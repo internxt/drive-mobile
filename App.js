@@ -1,8 +1,10 @@
 import React, { Component } from "react";
 import { Text, View } from "react-native";
+import { Provider } from "react-redux";
 
 import AppNavigator from "./src/AppNavigator";
-import {loadFonts} from './src/helpers'
+import { loadFonts } from "./src/helpers";
+import { store } from "./src/store";
 
 export default class App extends Component {
   constructor(props) {
@@ -12,7 +14,7 @@ export default class App extends Component {
       fontLoaded: false
     };
   }
-  
+
   async componentDidMount() {
     try {
       await loadFonts();
@@ -24,7 +26,11 @@ export default class App extends Component {
 
   render() {
     if (this.state.fontLoaded) {
-      return <AppNavigator />;
+      return (
+        <Provider store={store}>
+          <AppNavigator />
+        </Provider>
+      );
     }
 
     return (
