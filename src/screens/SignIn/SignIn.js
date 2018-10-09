@@ -28,7 +28,7 @@ class SignIn extends Component {
         <View style={styles.buttonWrapper}>
           <TouchableHighlight
             style={styles.button}
-            underlayColor={styles.button.backgroundColor}
+            underlayColor="#00aaff"
             onPress={() => {
               this.props.navigation.navigate("Home");
             }}

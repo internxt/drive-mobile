@@ -7,5 +7,6 @@ export const icons = {
     upload: require("../../assets/icons/icon-upload.png"),
     settings: require("../../assets/icons/icon-settings.png"),
     details: require("../../assets/icons/icon-search.png"), // TODO: get icon from zepelin
-    create: require("../../assets/icons/icon-search.png") // TODO: get icon from zepelin
+    create: require("../../assets/icons/icon-search.png"), // TODO: get icon from zepelin
+    back: require("../../assets/icons/icon-back.png")
 }

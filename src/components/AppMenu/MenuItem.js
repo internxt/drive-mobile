@@ -4,16 +4,6 @@ import { StyleSheet, View, TouchableHighlight, Image } from "react-native";
 import { getIcon } from "../../helpers";
 
 class MenuItem extends Component {
-  constructor(props) {
-    super(props);
-
-    this.handleMenuClick = this.handleMenuClick.bind(this);
-  }
-
-  handleMenuClick() {
-    console.log("menu item clicked");
-  }
-
   render() {
     const { name, hidden = false } = this.props;
     const imageSource = getIcon(name);
@@ -23,8 +13,8 @@ class MenuItem extends Component {
       content = (
         <TouchableHighlight
           style={styles.button}
-          underlayColor={styles.button.backgroundColor}
-          onPress={this.handleMenuClick}
+          underlayColor="#FFF"
+          onPress={this.props.onClickHandler}
         >
           <Image style={styles.icon} source={imageSource} />
         </TouchableHighlight>

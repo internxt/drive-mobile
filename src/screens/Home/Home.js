@@ -24,7 +24,7 @@ class Home extends Component {
 
     return (
       <View style={styles.container}>
-        <AppMenu />
+        <AppMenu navigation={this.props.navigation} />
         <View style={styles.breadcrumbs}>
           <Text style={styles.breadcrumbsTitle}>{this.state.location}</Text>
         </View>
@@ -33,7 +33,7 @@ class Home extends Component {
         <Button
           title="Go back to sign in"
           onPress={() => {
-            this.props.navigation.navigate("SignIn");
+            this.props.navigation.push("SignIn");
           }}
         />
       </View>
