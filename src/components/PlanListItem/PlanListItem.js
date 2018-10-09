@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableHighlight } from "react-native";
 
 class PlanListItem extends Component {
   render() {
-    const { plan, theme, navigation } = this.props;
+    const { navigation, plan, theme } = this.props;
     const extendStyles = StyleSheet.create({
       container: {
         backgroundColor: backgrounds[theme]
@@ -16,7 +16,7 @@ class PlanListItem extends Component {
     return (
       <TouchableHighlight
         underlayColor="#FFF"
-        onPress={this.props.clickHandler ? this.props.clickHandler() : () => {}}
+        onPress={() => navigation.push("SubscriptionDetails", { plan: plan })}
       >
         <View style={styles.row}>
           <View style={[styles.planStorageContainer, extendStyles.container]}>

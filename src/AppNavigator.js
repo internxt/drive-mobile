@@ -4,15 +4,17 @@ import { createStackNavigator } from "react-navigation";
 import Home from "./screens/Home/Home";
 import SignIn from "./screens/SignIn/SignIn";
 import Settings from "./screens/Settings/Settings";
+import SubscriptionDetails from "./screens/Settings/SubscriptionDetails";
 
 const routeConfig = {
   Home: { screen: Home },
   SignIn: { screen: SignIn },
-  Settings: { screen: Settings }
+  Settings: { screen: Settings },
+  SubscriptionDetails: { screen: SubscriptionDetails }
 };
 
 const navigatorOptions = {
-  initialRouteName: "Settings", // TODO: Change to "SignIn" after authentication is implemented
+  initialRouteName: "SignIn", // TODO: Change to "SignIn" after authentication is implemented
   headerMode: "none"
 };
 

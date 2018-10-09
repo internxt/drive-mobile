@@ -49,7 +49,8 @@ class Settings extends Component {
   }
 
   render() {
-    const { navigation, plans, usage, activePlan } = this.state;
+    const { plans, usage, activePlan } = this.state;
+    const { navigation } = this.props;
     const breadcrumbs = {
       name: "Settings"
     };
@@ -99,7 +100,6 @@ class Settings extends Component {
             plan={plan}
             theme={plan.id === activePlan.id ? "medium" : "light"}
             key={plan.id}
-            // clickHandler={this.props.navigation.push("plan.id")}
             navigation={navigation}
           />
         ))}
