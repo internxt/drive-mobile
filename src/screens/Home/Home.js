@@ -1,8 +1,12 @@
 import React, { Component } from "react";
 import { StyleSheet, Text, View, Button } from "react-native";
+import { compose } from "redux";
+import { connect } from "react-redux";
 
 import AppMenu from "../../components/AppMenu/AppMenu";
 import EmptyDirectory from "../../components/EmptyDirectory/EmptyDirectory";
+import FileList from "../../components/FileList/FileList";
+import { fileActions } from "../../actions";
 
 class Home extends Component {
   constructor(props) {
@@ -14,12 +18,27 @@ class Home extends Component {
     };
   }
 
-  render() {
-    let content = <EmptyDirectory />;
-    const { files } = this.state;
+  componentDidMount() {
+    this.props.dispatch(fileActions.getFiles());
+  }
 
-    if (files.length > 0) {
-      // content = <FileDirectory>
+  render() {
+    const {
+      files: { items, loading }
+    } = this.props;
+
+    if (loading) {
+      return (
+        <View>
+          <Text>Loading files..</Text>
+        </View>
+      );
+    }
+
+    let content = <EmptyDirectory />;
+    if (items.length > 0) {
+      console.log("OK");
+      content = <FileList files={items} />;
     }
 
     return (
@@ -62,4 +81,10 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Home;
+const mapStateToProps = state => {
+  return {
+    ...state
+  };
+};
+
+export default (HomeComposed = compose(connect(mapStateToProps))(Home));
