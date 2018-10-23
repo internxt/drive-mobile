@@ -6,10 +6,10 @@ class PlanListItem extends Component {
     const { navigation, plan, theme } = this.props;
     const extendStyles = StyleSheet.create({
       container: {
-        backgroundColor: backgrounds[theme]
+        backgroundColor: variants[theme].background
       },
       label: {
-        color: colors[theme]
+        color: variants[theme].color
       }
     });
 
@@ -32,17 +32,20 @@ class PlanListItem extends Component {
   }
 }
 
-const backgrounds = {
-  light: "#f5f5f5",
-  medium: "#f2f5ff",
-  dark: "#4385f4"
-};
-
-const colors = {
-  light: "#404040",
-  medium: "#2c6bc9",
-  dark: "#fff"
-};
+const variants = {
+  light: {
+    color: "#404040",
+    background: "#f5f5f5",
+  },
+  medium: {
+    color: "#2c6bc9",
+    background: "#f2f5ff",
+  },
+  dark: {
+    color: "#fff",
+    background: "#4385f4"
+  }
+}
 
 const styles = StyleSheet.create({
   row: {
