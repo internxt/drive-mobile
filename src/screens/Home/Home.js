@@ -1,52 +1,67 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, Button } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Button,
+  Image,
+  TouchableHighlight
+} from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 
 import AppMenu from "../../components/AppMenu/AppMenu";
-import EmptyDirectory from "../../components/EmptyDirectory/EmptyDirectory";
 import FileList from "../../components/FileList/FileList";
-import { fileActions } from "../../actions";
+import { getIcon } from "../../helpers";
 
 class Home extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      location: "All Files",
-      files: []
+      active: 0,
+      activeName: "All Files",
+      showBack: false
     };
   }
 
-  componentDidMount() {
-    this.props.dispatch(fileActions.getFiles());
+  componentWillReceiveProps(nextProps) {
+    const parent = nextProps.navigation.getParam("parent", 0);
+    this.setState({
+      active: parent,
+      activeName:
+        parent === 0 ? "All Files" : `Active dir ID: ${this.state.active}`,
+      showBack: parent !== 0
+    });
   }
 
   render() {
-    const {
-      files: { items, loading }
-    } = this.props;
+    const { navigation } = this.props;
+    const parent = navigation.getParam("parent", 0);
+    const arrowBack = getIcon("back");
 
-    if (loading) {
-      return (
-        <View>
-          <Text>Loading files..</Text>
+    const backButton = (
+      <TouchableHighlight
+        style={styles.button}
+        underlayColor="#FFF"
+        onPress={() => navigation.push("Home", { parent: 0 })}
+      >
+        <View style={styles.breadcrumbs}>
+          <Image style={styles.icon} source={arrowBack} />
+          <Text style={styles.breadcrumbsLabel}>All Files</Text>
         </View>
-      );
-    }
-
-    let content = <EmptyDirectory />;
-    if (items.length > 0) {
-      content = <FileList files={items} />;
-    }
+      </TouchableHighlight>
+    );
 
     return (
       <View style={styles.container}>
         <AppMenu navigation={this.props.navigation} />
         <View style={styles.breadcrumbs}>
-          <Text style={styles.breadcrumbsTitle}>{this.state.location}</Text>
+          <Text style={styles.breadcrumbsTitle}>{this.state.activeName}</Text>
+          {this.state.showBack && backButton}
         </View>
-        {content}
+
+        <FileList parent={parent} />
 
         <Button
           title="Go back to sign in"

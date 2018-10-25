@@ -1,18 +1,45 @@
 import React, { Component } from "react";
+import { compose } from "redux";
+import { connect } from "react-redux";
 import { StyleSheet, View, Text } from "react-native";
 
+import { fileActions } from "../../actions";
+import EmptyDirectory from "../EmptyDirectory/EmptyDirectory";
 import FileItem from "../FileItem/FileItem";
 
 class FileList extends Component {
+  componentDidMount() {
+    this.props.dispatch(
+      fileActions.getFiles({
+        id: this.props.parent
+      })
+    );
+  }
+
   render() {
     const { files } = this.props;
-    return (
-      <View>
-        {files.map((file, index) => (
-          <FileItem key={index} item={file} />
-        ))}
-      </View>
-    );
+    const { loading, items } = files;
+
+    if (loading) {
+      return (
+        <View>
+          <Text>Loading files..</Text>
+        </View>
+      );
+    }
+
+    let content = <EmptyDirectory />;
+    if (items.length > 0) {
+      content = (
+        <View>
+          {items.map((file, index) => (
+            <FileItem key={index} item={file} />
+          ))}
+        </View>
+      );
+    }
+
+    return content;
   }
 }
 
@@ -40,4 +67,10 @@ const styles = StyleSheet.create({
   }
 });
 
-export default FileList;
+const mapStateToProps = state => {
+  return {
+    ...state
+  };
+};
+
+export default (FileListComposed = compose(connect(mapStateToProps))(FileList));

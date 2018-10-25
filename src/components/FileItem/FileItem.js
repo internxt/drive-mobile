@@ -1,5 +1,14 @@
-import React, { Component } from "react";
-import { StyleSheet, View, Text, Image } from "react-native";
+import React, { Component, Fragment } from "react";
+import { compose } from "redux";
+import { connect } from "react-redux";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  TouchableHighlight
+} from "react-native";
+import { withNavigation } from "react-navigation";
 
 import { colors } from "../../constants";
 import { Svg } from "expo";
@@ -7,7 +16,7 @@ const { Defs, LinearGradient, Path, Stop } = Svg;
 
 class FileItem extends Component {
   render() {
-    const { item } = this.props;
+    const { item, navigation } = this.props;
     const { color } = item.style;
     const extendStyles = StyleSheet.create({
       text: {
@@ -39,10 +48,15 @@ class FileItem extends Component {
     );
 
     return (
-      <View style={styles.container}>
-        {icon}
-        <Text style={[styles.fileName, extendStyles.text]}>{item.name}</Text>
-      </View>
+      <TouchableHighlight
+        style={styles.container}
+        onPress={() => navigation.push("Home", { parent: item.id })}
+      >
+        <Fragment>
+          {icon}
+          <Text style={[styles.fileName, extendStyles.text]}>{item.name}</Text>
+        </Fragment>
+      </TouchableHighlight>
     );
   }
 }
@@ -71,4 +85,13 @@ const styles = StyleSheet.create({
   }
 });
 
-export default FileItem;
+const mapStateToProps = state => {
+  return {
+    ...state
+  };
+};
+
+export default (FileItemComposed = compose(
+  connect(mapStateToProps),
+  withNavigation
+)(FileItem));

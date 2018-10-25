@@ -9,7 +9,7 @@ function getFiles(id = 0) {
   return dispatch => {
     dispatch(request());
 
-    fileService.getFiles({ id }).then(
+    fileService.getFiles(id).then(
       data => {
         dispatch(
           success({
