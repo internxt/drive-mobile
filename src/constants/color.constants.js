@@ -1,30 +1,37 @@
-export const colors = [
-  {
-    name: "peachy-pink",
-    code: "#ff8888"
+export const colors = {
+  red: {
+    code: "#ff8888",
+    darker: "#FF8787",
+    lighter: "#FFB3B3"
   },
-  {
-    name: "wheat",
-    code: "#ffd07e"
+  yellow: {
+    code: "#ffd07e",
+    darker: "#FFCE7A",
+    lighter: "#FFE3B3"
   },
-  {
-    name: "pale-olive-green",
-    code: "#b2db79"
+  green: {
+    code: "#b2db79",
+    darker: "#7EC45A",
+    lighter: "#BDDB93"
   },
-  {
-    name: "carolina-blue",
-    code: "#89b8ff"
+  blue: {
+    code: "#89b8ff",
+    darker: "#87B7FF",
+    lighter: "#B3D1FF"
   },
-  {
-    name: "liliac",
-    code: "#c681ff"
+  purple: {
+    code: "#c681ff",
+    darker: "#C680FF",
+    lighter: "#DDB3FF"
   },
-  {
-    name: "bubblegum-pink",
-    code: "#ff8ac8"
+  pink: {
+    code: "#ff8ac8",
+    darker: "#FF87C7",
+    lighter: "#FFB3DB"
   },
-  {
-    name: "pinkish-gray",
-    code: "#c8c8c8"
+  grey: {
+    code: "#c8c8c8",
+    darker: "#BABABA",
+    lighter: "#D4D4D4"
   }
-];
+};

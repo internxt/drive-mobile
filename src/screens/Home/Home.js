@@ -37,7 +37,6 @@ class Home extends Component {
 
     let content = <EmptyDirectory />;
     if (items.length > 0) {
-      console.log("OK");
       content = <FileList files={items} />;
     }
 

@@ -3,8 +3,9 @@ export const fileService = {
 };
 
 function getFiles({ id }) {
+  const files = id ? filesMock.filter(f => f.parent === id) : filesMock;
   return Promise.resolve({
-    files: filesMock.filter(f => f.parent === id)
+    files
   });
 }
 
@@ -17,7 +18,7 @@ const filesMock = [
     added: 1539783819,
     items: [],
     style: {
-      color: "",
+      color: "purple",
       icon: ""
     }
   },
@@ -29,7 +30,7 @@ const filesMock = [
     added: 1539783819,
     items: [],
     style: {
-      color: "",
+      color: "blue",
       icon: ""
     }
   },
@@ -41,7 +42,7 @@ const filesMock = [
     added: 1539783819,
     items: [],
     style: {
-      color: "",
+      color: "pink",
       icon: ""
     }
   },
@@ -53,7 +54,7 @@ const filesMock = [
     added: 1539783819,
     items: [],
     style: {
-      color: "",
+      color: "yellow",
       icon: ""
     }
   }

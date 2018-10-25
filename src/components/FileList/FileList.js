@@ -1,12 +1,16 @@
 import React, { Component } from "react";
 import { StyleSheet, View, Text } from "react-native";
 
+import FileItem from "../FileItem/FileItem";
+
 class FileList extends Component {
   render() {
+    const { files } = this.props;
     return (
-      <View style={styles.container}>
-        <Text style={styles.heading}>Your X Cloud is empty!</Text>
-        <Text style={styles.subheading}>list.......</Text>
+      <View>
+        {files.map((file, index) => (
+          <FileItem key={index} item={file} />
+        ))}
       </View>
     );
   }
