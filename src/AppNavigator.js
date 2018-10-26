@@ -14,7 +14,7 @@ const routeConfig = {
 };
 
 const navigatorOptions = {
-  initialRouteName: "SignIn", // TODO: Change to "SignIn" after authentication is implemented
+  initialRouteName: "Home", // TODO: Change to "SignIn" after authentication is implemented
   headerMode: "none"
 };
 
