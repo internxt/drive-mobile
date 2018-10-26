@@ -1,18 +1,11 @@
 import React, { Component } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Button,
-  Image,
-  TouchableHighlight
-} from "react-native";
+import { StyleSheet, Text, View, Button } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 
 import AppMenu from "../../components/AppMenu/AppMenu";
 import FileList from "../../components/FileList/FileList";
-import { getIcon } from "../../helpers";
+import ButtonPreviousDir from "../../components/ButtonPreviousDir/ButtonPreviousDir";
 
 class Home extends Component {
   constructor(props) {
@@ -38,27 +31,13 @@ class Home extends Component {
   render() {
     const { navigation } = this.props;
     const parent = navigation.getParam("parent", 0);
-    const arrowBack = getIcon("back");
-
-    const backButton = (
-      <TouchableHighlight
-        style={styles.button}
-        underlayColor="#FFF"
-        onPress={() => navigation.push("Home", { parent: 0 })}
-      >
-        <View style={styles.breadcrumbs}>
-          <Image style={styles.icon} source={arrowBack} />
-          <Text style={styles.breadcrumbsLabel}>All Files</Text>
-        </View>
-      </TouchableHighlight>
-    );
 
     return (
       <View style={styles.container}>
         <AppMenu navigation={this.props.navigation} />
         <View style={styles.breadcrumbs}>
           <Text style={styles.breadcrumbsTitle}>{this.state.activeName}</Text>
-          {this.state.showBack && backButton}
+          {this.state.showBack && <ButtonPreviousDir />}
         </View>
 
         <FileList parent={parent} />
@@ -81,6 +60,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff"
   },
   breadcrumbs: {
+    display: "flex",
+    flexWrap: "nowrap",
+    flexDirection: "row",
+    justifyContent: "space-between",
     borderBottomColor: "#e6e6e6",
     borderBottomWidth: 2,
     marginTop: 30,

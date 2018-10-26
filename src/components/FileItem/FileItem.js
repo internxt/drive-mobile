@@ -1,13 +1,7 @@
 import React, { Component, Fragment } from "react";
 import { compose } from "redux";
 import { connect } from "react-redux";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  TouchableHighlight
-} from "react-native";
+import { StyleSheet, Text, TouchableHighlight } from "react-native";
 import { withNavigation } from "react-navigation";
 
 import { colors } from "../../constants";
