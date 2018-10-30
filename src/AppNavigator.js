@@ -5,16 +5,18 @@ import Home from "./screens/Home/Home";
 import SignIn from "./screens/SignIn/SignIn";
 import Settings from "./screens/Settings/Settings";
 import SubscriptionDetails from "./screens/Settings/SubscriptionDetails";
+import CreateFolder from "./screens/CreateFolder/CreateFolder";
 
 const routeConfig = {
   Home: { screen: Home },
   SignIn: { screen: SignIn },
   Settings: { screen: Settings },
-  SubscriptionDetails: { screen: SubscriptionDetails }
+  SubscriptionDetails: { screen: SubscriptionDetails },
+  CreateFolder: { screen: CreateFolder }
 };
 
 const navigatorOptions = {
-  initialRouteName: "Home", // TODO: Change to "SignIn" after authentication is implemented
+  initialRouteName: "CreateFolder", // TODO: Change to "SignIn" after authentication is implemented
   headerMode: "none"
 };
 

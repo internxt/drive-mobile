@@ -2,7 +2,8 @@ import { fileActionTypes } from "../constants";
 import { fileService } from "../services";
 
 export const fileActions = {
-  getFiles
+  getFiles,
+  createFolder
 };
 
 function getFiles(id = 0) {
@@ -33,5 +34,38 @@ function getFiles(id = 0) {
   }
   function failure(error) {
     return { type: fileActionTypes.GET_FILES_FAILURE, error };
+  }
+}
+
+function createFolder(parentFolderId = 0, newFolderName) {
+  return dispatch => {
+    dispatch(request());
+
+    fileService.createFolder(parentFolderId, newFolderName).then(
+      data => {
+        dispatch(
+          success({
+            parentFolderId,
+            newFolderName
+          })
+        );
+
+        // TODO: Redirect to Home/parentFolderId
+      },
+      error => {
+        dispatch(failure(error));
+        dispatch(alertActions.error(error));
+      }
+    );
+  };
+
+  function request() {
+    return { type: fileActionTypes.CREATE_FOLDER_REQUEST };
+  }
+  function success(payload) {
+    return { type: fileActionTypes.CREATE_FOLDER_SUCCESS, payload };
+  }
+  function failure(error) {
+    return { type: fileActionTypes.CREATE_FOLDER_SUCCESS, error };
   }
 }

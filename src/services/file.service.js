@@ -1,5 +1,6 @@
 export const fileService = {
-  getFiles
+  getFiles,
+  createFolder
 };
 
 function getFiles({ id = 0 }) {
@@ -7,6 +8,13 @@ function getFiles({ id = 0 }) {
   console.log(`Filtered by ID: ${id} and got: ${files.length} results`);
   return Promise.resolve({
     files
+  });
+}
+
+function createFolder(parentFolderId, newFolderName) {
+  console.log(`Creating ${newFolderName} inside folder id: ${parentFolderId}`);
+  return new Promise((resolve, reject) => {
+    return resolve();
   });
 }
 
