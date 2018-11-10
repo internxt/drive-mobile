@@ -1,3 +1,5 @@
+import { NavigationActions } from "react-navigation";
+
 import { fileActionTypes } from "../constants";
 import { fileService } from "../services";
 
@@ -21,7 +23,6 @@ function getFiles(id = 0) {
       },
       error => {
         dispatch(failure(error));
-        dispatch(alertActions.error(error));
       }
     );
   };
@@ -45,16 +46,16 @@ function createFolder(parentFolderId = 0, newFolderName) {
       data => {
         dispatch(
           success({
-            parentFolderId,
-            newFolderName
+            currentDirId: parentFolderId,
+            items: data.files
           })
         );
 
-        // TODO: Redirect to Home/parentFolderId
+        // TODO: Redirect to Home screen not working for some reason
+        dispatch(NavigationActions.navigate({ routeName: "Home" }));
       },
       error => {
         dispatch(failure(error));
-        dispatch(alertActions.error(error));
       }
     );
   };

@@ -64,8 +64,12 @@ class CreateFolder extends Component {
     return (
       <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
         <View style={styles.actionsWrapper}>
-          <MenuItem name="checkmark" onClickHandler={this.onSave} />
-          <MenuItem name="close" onClickHandler={this.onCancel} />
+          <View>
+            <MenuItem name="checkmark" onClickHandler={this.onSave} />
+          </View>
+          <View>
+            <MenuItem name="close" onClickHandler={this.onCancel} />
+          </View>
         </View>
         <ScrollView contentContainerStyle={styles.folderWrapper}>
           {folderIcon}
@@ -90,19 +94,18 @@ const styles = StyleSheet.create({
     display: "flex",
     flex: 1,
     flexDirection: "column",
+    alignItems: "stretch",
     backgroundColor: "#fff"
   },
   actionsWrapper: {
     height: 51,
-    marginTop: 25,
+    marginTop: 35,
+    paddingLeft: 20,
+    paddingRight: 20,
     display: "flex",
     flexDirection: "row",
-    justifyContent: "space-between"
-  },
-  icon: {
-    width: 219,
-    height: 172,
-    marginBottom: 20
+    justifyContent: "space-between",
+    alignSelf: "stretch"
   },
   folderWrapper: {
     display: "flex",
@@ -111,12 +114,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center"
   },
+  icon: {
+    width: 219,
+    height: 172,
+    marginBottom: 20
+  },
   input: {
     fontFamily: "CircularStd-Bold",
     letterSpacing: -0.2,
     fontSize: 23,
     color: "#2c6bc9",
-    width: 220,
+    width: 219,
     textAlign: "center"
   }
 });

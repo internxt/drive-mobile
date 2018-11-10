@@ -11,11 +11,25 @@ function getFiles({ id = 0 }) {
   });
 }
 
-function createFolder(parentFolderId, newFolderName) {
+function createFolder(parentFolderId, newFolderName = "Untitled folder") {
   console.log(`Creating ${newFolderName} inside folder id: ${parentFolderId}`);
-  return new Promise((resolve, reject) => {
-    return resolve();
-  });
+  const files = [
+    ...filesMock,
+    {
+      id: Math.floor(Math.random() * Math.floor(100)),
+      parent: parentFolderId,
+      name: newFolderName,
+      type: "FOLDER",
+      size: 0,
+      added: new Date().getTime(),
+      style: {
+        color: "blue",
+        icon: ""
+      }
+    }
+  ];
+
+  return Promise.resolve(files);
 }
 
 const filesMock = [
@@ -106,9 +120,6 @@ const filesMock = [
       icon: ""
     }
   },
-  // TODO: Extract two components:
-  // - Folder icon (props: color, icon)
-  // - File icon (props: format)
   {
     id: 8,
     parent: 1,

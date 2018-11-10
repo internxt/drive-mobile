@@ -25,6 +25,24 @@ export function files(state = initialState, action) {
         error: action.error,
         ...state
       };
+
+    case fileActionTypes.CREATE_FOLDER_REQUEST:
+      return {
+        loading: true,
+        ...state
+      };
+    case fileActionTypes.CREATE_FOLDER_SUCCESS:
+      return {
+        loading: false,
+        items: action.payload.items,
+        currentDir: action.payload.currentDirId
+      };
+    case fileActionTypes.CREATE_FOLDER_FAILURE:
+      return {
+        loading: false,
+        error: action.error,
+        ...state
+      };
     default:
       return state;
   }
