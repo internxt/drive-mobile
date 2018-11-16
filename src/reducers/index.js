@@ -1,11 +1,13 @@
 import { combineReducers } from "redux";
 
-import { authentication } from "./authentication.reducer";
-import { files } from "./files.reducer";
+import { authenticationReducer } from "./authentication.reducer";
+import { filesReducer } from "./files.reducer";
+import { layoutReducer } from "./layout.reducer";
 
 const rootReducer = combineReducers({
-  authentication,
-  files
+  layoutState: layoutReducer,
+  authenticationState: authenticationReducer,
+  filesState: filesReducer
 });
 
 export default rootReducer;

@@ -1,6 +1,4 @@
-import { NavigationActions } from "react-navigation";
-
-import { fileActionTypes } from "../constants";
+import { fileActionTypes, layoutActionTypes } from "../constants";
 import { fileService } from "../services";
 
 export const fileActions = {
@@ -51,8 +49,10 @@ function createFolder(parentFolderId = 0, newFolderName) {
           })
         );
 
-        // TODO: Redirect to Home screen not working for some reason
-        dispatch(NavigationActions.navigate({ routeName: "Home" }));
+        // Close Create Folder Form
+        dispatch({
+          type: layoutActionTypes.CLOSE_CREATE_FOLDER_FORM
+        });
       },
       error => {
         dispatch(failure(error));

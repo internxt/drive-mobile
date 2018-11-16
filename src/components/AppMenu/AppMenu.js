@@ -6,9 +6,14 @@ import {
   TouchableHighlight,
   Image
 } from "react-native";
+import { compose } from "redux";
+import { connect } from "react-redux";
 
 import MenuItem from "./MenuItem";
 import { getIcon } from "../../helpers";
+import { layoutActions } from "../../actions";
+
+const arrowBack = getIcon("back");
 
 class AppMenu extends Component {
   constructor(props) {
@@ -24,10 +29,18 @@ class AppMenu extends Component {
   render() {
     let content = (
       <Fragment>
-        <MenuItem name="search" />
+        <MenuItem
+          name="search"
+          onClickHandler={() => this.props.dispatch(layoutActions.openSearch())}
+        />
         <MenuItem name="list" />
         <MenuItem name="upload" />
-        <MenuItem name="create" />
+        <MenuItem
+          name="create"
+          onClickHandler={() =>
+            this.props.dispatch(layoutActions.openCreateNewFolder())
+          }
+        />
         <MenuItem name="details" hidden />
         <MenuItem
           name="settings"
@@ -38,8 +51,7 @@ class AppMenu extends Component {
 
     if (this.props.breadcrumbs) {
       const { name } = this.props.breadcrumbs;
-      const arrowBack = getIcon("back");
-      
+
       content = (
         <TouchableHighlight
           style={styles.button}
@@ -93,4 +105,10 @@ const styles = StyleSheet.create({
   }
 });
 
-export default AppMenu;
+const mapStateToProps = state => {
+  return {
+    ...state
+  };
+};
+
+export default (AppMenuComposed = compose(connect(mapStateToProps))(AppMenu));

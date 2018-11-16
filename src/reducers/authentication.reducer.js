@@ -2,7 +2,7 @@ import { userActionTypes } from "../constants";
 
 const initialState = {};
 
-export function authentication(state = initialState, action) {
+export function authenticationReducer(state = initialState, action) {
   switch (action.type) {
     case userActionTypes.SIGNIN_REQUEST:
       return {

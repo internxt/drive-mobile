@@ -17,8 +17,8 @@ class FileList extends Component {
   }
 
   render() {
-    const { files } = this.props;
-    const { loading, items } = files;
+    const { filesState } = this.props;
+    const { loading, items } = filesState;
 
     if (loading) {
       return (

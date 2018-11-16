@@ -6,7 +6,7 @@ const initialState = {
   currentDir: null
 };
 
-export function files(state = initialState, action) {
+export function filesReducer(state = initialState, action) {
   switch (action.type) {
     case fileActionTypes.GET_FILES_REQUEST:
       return {
