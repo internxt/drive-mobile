@@ -19,7 +19,11 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.internxt.xcloud"
+    },
+    "android": {
+      "package": "com.internxt.xcloud"
     }
   }
 }
