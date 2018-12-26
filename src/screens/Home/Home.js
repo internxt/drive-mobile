@@ -6,46 +6,67 @@ import { connect } from "react-redux";
 import AppMenu from "../../components/AppMenu/AppMenu";
 import FileList from "../../components/FileList/FileList";
 import ButtonPreviousDir from "../../components/ButtonPreviousDir/ButtonPreviousDir";
+import { fileActions } from "../../actions";
 
 class Home extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      active: 0,
-      activeName: "All Files",
-      showBack: false
+      folderId: null,
+      folderName: "Home",
+      backButtonVisible: false,
+      token: "",
+      user: {}
     };
   }
 
   componentWillReceiveProps(nextProps) {
-    const parent = nextProps.navigation.getParam("parent", 0);
-    this.setState({
-      active: parent,
-      activeName:
-        parent === 0 ? "All Files" : `Active dir ID: ${this.state.active}`,
-      showBack: parent !== 0
-    });
+    const folderId = parseFloat(
+      nextProps.navigation.getParam("folderId", "undefined")
+    );
+
+    // Set active Folder ID
+    if (folderId !== this.state.folderId) {
+      this.props.dispatch(fileActions.getFolderContent(folderId));
+      this.setState({
+        folderId: isNaN(folderId) ? null : folderId
+      });
+    }
+
+    const { token, user } = this.props.authenticationState;
+
+    if (user !== this.state.user) {
+      this.setState({
+        backButtonVisible: folderId !== user.root_folder_id,
+        token,
+        user
+      });
+    }
   }
 
   render() {
-    const { navigation } = this.props;
-    const parent = navigation.getParam("parent", 0);
+    const { navigation, filesState } = this.props;
 
     return (
       <View style={styles.container}>
-        <AppMenu navigation={this.props.navigation} />
+        <AppMenu navigation={navigation} />
         <View style={styles.breadcrumbs}>
-          <Text style={styles.breadcrumbsTitle}>{this.state.activeName}</Text>
-          {this.state.showBack && <ButtonPreviousDir />}
+          <Text style={styles.breadcrumbsTitle}>
+            {filesState.folderContent && filesState.folderContent.parentId
+              ? filesState.folderContent.name
+              : "Home"}
+          </Text>
+          {this.state.backButtonVisible && <ButtonPreviousDir />}
         </View>
 
-        <FileList parent={parent} />
+        <FileList />
 
         <Button
           title="Go back to sign in"
           onPress={() => {
-            this.props.navigation.push("SignIn");
+            // Go to the top of the stack - SignIn screen
+            navigation.popToTop();
           }}
         />
       </View>

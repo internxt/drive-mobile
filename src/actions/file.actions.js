@@ -2,27 +2,25 @@ import { fileActionTypes, layoutActionTypes } from "../constants";
 import { fileService } from "../services";
 
 export const fileActions = {
-  getFiles,
-  createFolder
+  getFolderContent
 };
 
-function getFiles(id = 0) {
+function getFolderContent(folderId) {
+  const id = parseInt(folderId);
+  if (isNaN(id)) {
+    return dispatch(failure(`Folder ID: "${folderId}" is not a number.`));
+  }
+
   return dispatch => {
     dispatch(request());
-
-    fileService.getFiles(id).then(
-      data => {
-        dispatch(
-          success({
-            currentDirId: id,
-            items: data.files
-          })
-        );
-      },
-      error => {
+    fileService
+      .getFolderContent(id)
+      .then(data => {
+        dispatch(success(data));
+      })
+      .catch(error => {
         dispatch(failure(error));
-      }
-    );
+      });
   };
 
   function request() {
@@ -36,15 +34,15 @@ function getFiles(id = 0) {
   }
 }
 
-function createFolder(parentFolderId = 0, newFolderName) {
+function createFolder(currentFolderId, newFolderName) {
   return dispatch => {
     dispatch(request());
 
-    fileService.createFolder(parentFolderId, newFolderName).then(
+    fileService.createFolder(currentFolderId, newFolderName).then(
       data => {
         dispatch(
           success({
-            currentDirId: parentFolderId,
+            currentDirId: currentFolderId,
             items: data.files
           })
         );

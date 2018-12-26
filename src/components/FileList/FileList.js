@@ -8,19 +8,11 @@ import EmptyDirectory from "../EmptyDirectory/EmptyDirectory";
 import FileItem from "../FileItem/FileItem";
 
 class FileList extends Component {
-  componentDidMount() {
-    this.props.dispatch(
-      fileActions.getFiles({
-        id: this.props.parent
-      })
-    );
-  }
-
   render() {
     const { filesState } = this.props;
-    const { loading, items } = filesState;
+    const { loading, folderContent } = filesState;
 
-    if (loading) {
+    if (loading || !folderContent) {
       return (
         <View>
           <Text>Loading files..</Text>
@@ -29,11 +21,14 @@ class FileList extends Component {
     }
 
     let content = <EmptyDirectory />;
-    if (items.length > 0) {
+    if (folderContent.files.length > 0 || folderContent.children.length > 0) {
       content = (
         <View>
-          {items.map((file, index) => (
-            <FileItem key={index} item={file} />
+          {folderContent.children.map(file => (
+            <FileItem key={file.id} item={file} isFolder={true} />
+          ))}
+          {folderContent.files.map(file => (
+            <FileItem key={file.id} item={file} isFolder={false} />
           ))}
         </View>
       );

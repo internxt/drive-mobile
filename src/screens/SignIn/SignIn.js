@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { compose } from "redux";
+import { connect } from "react-redux";
 import {
   StyleSheet,
   Text,
@@ -8,7 +10,18 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo";
 
+import { userActions } from "../../actions";
+
 class SignIn extends Component {
+  constructor() {
+    super();
+    this.onSignInClick = this.onSignInClick.bind(this);
+  }
+
+  onSignInClick() {
+    this.props.dispatch(userActions.signin());
+  }
+
   render() {
     return (
       <LinearGradient
@@ -29,9 +42,7 @@ class SignIn extends Component {
           <TouchableHighlight
             style={styles.button}
             underlayColor="#00aaff"
-            onPress={() => {
-              this.props.navigation.navigate("Home");
-            }}
+            onPress={() => this.onSignInClick()}
           >
             <Text style={styles.buttonLabel}>Sign in with Civic</Text>
           </TouchableHighlight>
@@ -100,4 +111,10 @@ const styles = StyleSheet.create({
   }
 });
 
-export default SignIn;
+const mapStateToProps = state => {
+  return {
+    ...state
+  };
+};
+
+export default (SignInComposed = compose(connect(mapStateToProps))(SignIn));

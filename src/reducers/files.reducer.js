@@ -16,8 +16,7 @@ export function filesReducer(state = initialState, action) {
     case fileActionTypes.GET_FILES_SUCCESS:
       return {
         loading: false,
-        items: action.payload.items,
-        currentDir: action.payload.currentDirId
+        folderContent: action.payload
       };
     case fileActionTypes.GET_FILES_FAILURE:
       return {

@@ -21,10 +21,20 @@ const navigatorOptions = {
 };
 
 const StackNav = createStackNavigator(routeConfig, navigatorOptions);
+export let navigatorRef;
 
 class AppNavigator extends Component {
+  componentDidMount() {
+    navigatorRef = this.navigator;
+  }
   render() {
-    return <StackNav />;
+    return (
+      <StackNav
+        ref={nav => {
+          this.navigator = nav;
+        }}
+      />
+    );
   }
 }
 

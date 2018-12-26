@@ -5,15 +5,32 @@ import { StyleSheet, View, Text, TouchableHighlight } from "react-native";
 import { withNavigation } from "react-navigation";
 import TimeAgo from "react-native-timeago";
 
+import { fileActions } from "../../actions";
 import { colors } from "../../constants";
 import IconFolder from "../../components/IconFolder/IconFolder";
 import IconFile from "../../components/IconFile/IconFile";
 
 class FileItem extends Component {
+  constructor() {
+    super();
+
+    this.onItemClick = this.onItemClick.bind(this);
+  }
+
+  onItemClick() {
+    const { item, isFolder, navigation } = this.props;
+
+    if (isFolder) {
+      this.props.dispatch(fileActions.getFolderContent(item.id));
+      navigation.push("Home", { folderId: item.id });
+    }
+  }
   render() {
-    const { item, navigation } = this.props;
-    const { color } = item.style;
-    const isFolder = item.type === "FOLDER";
+    const { item, isFolder } = this.props;
+    const { color } = item.style || {
+      color: "blue",
+      icon: ""
+    };
 
     const extendStyles = StyleSheet.create({
       text: {
@@ -28,12 +45,7 @@ class FileItem extends Component {
     );
 
     return (
-      <TouchableHighlight
-        style={styles.container}
-        onPress={() =>
-          isFolder ? navigation.push("Home", { parent: item.id }) : {}
-        }
-      >
+      <TouchableHighlight style={styles.container} onPress={this.onItemClick}>
         <Fragment>
           {itemIcon}
           <View>
