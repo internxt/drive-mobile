@@ -1,5 +1,7 @@
 import { deviceStorage } from "../helpers";
 
+const { API_URL } = process.env;
+
 export const fileService = {
   getFolderContent,
   createFolder
@@ -9,7 +11,7 @@ function getFolderContent(folderId) {
   return new Promise(async (resolve, reject) => {
     const token = await deviceStorage.getItem("token");
 
-    fetch(`http://192.168.1.104:3007/api/storage/folder/${folderId}`, {
+    fetch(`${API_URL}/api/storage/folder/${folderId}`, {
       method: "GET",
       headers: {
         "Content-type": "application/json; charset=utf-8",
@@ -28,7 +30,7 @@ function getFolderContent(folderId) {
 
 function createFolder(currentFolderId, newFolderName = "Untitled folder") {
   return new Promise((resolve, reject) => {
-    fetch(`/api/storage/folder`, {
+    fetch(`${API_URL}/api/storage/folder`, {
       method: "post",
       headers: {
         "content-type": "application/json; charset=utf-8",
