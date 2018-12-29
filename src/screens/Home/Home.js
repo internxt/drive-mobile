@@ -25,20 +25,19 @@ class Home extends Component {
     const folderId = parseFloat(
       nextProps.navigation.getParam("folderId", "undefined")
     );
+    const { token, user } = this.props.authenticationState;
 
     // Set active Folder ID
     if (folderId !== this.state.folderId) {
       this.props.dispatch(fileActions.getFolderContent(folderId));
       this.setState({
-        folderId: isNaN(folderId) ? null : folderId
+        folderId,
+        backButtonVisible: folderId !== user.root_folder_id
       });
     }
 
-    const { token, user } = this.props.authenticationState;
-
     if (user !== this.state.user) {
       this.setState({
-        backButtonVisible: folderId !== user.root_folder_id,
         token,
         user
       });
