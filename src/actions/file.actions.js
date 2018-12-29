@@ -1,8 +1,12 @@
+import { NavigationActions } from "react-navigation";
+
+import { navigatorRef } from "../AppNavigator";
 import { fileActionTypes, layoutActionTypes } from "../constants";
 import { fileService } from "../services";
 
 export const fileActions = {
-  getFolderContent
+  getFolderContent,
+  createFolder
 };
 
 function getFolderContent(folderId) {
@@ -34,26 +38,37 @@ function getFolderContent(folderId) {
   }
 }
 
-function createFolder(currentFolderId, newFolderName) {
+function createFolder(parentFolderId, newFolderName) {
   return dispatch => {
     dispatch(request());
 
-    fileService.createFolder(currentFolderId, newFolderName).then(
-      data => {
-        dispatch(
-          success({
-            currentDirId: currentFolderId,
-            items: data.files
-          })
-        );
+    fileService.createFolder(parentFolderId, newFolderName).then(
+      newFolderDetails => {
+        dispatch(success(newFolderDetails));
 
         // Close Create Folder Form
         dispatch({
           type: layoutActionTypes.CLOSE_CREATE_FOLDER_FORM
         });
+
+        // Redirect to Home screen
+        navigatorRef.dispatch(
+          NavigationActions.navigate({
+            routeName: "Home",
+            params: { folderId: newFolderDetails.id }
+          })
+        );
       },
       error => {
         dispatch(failure(error));
+
+        // Redirect to Home screen
+        navigatorRef.dispatch(
+          NavigationActions.navigate({
+            routeName: "Home",
+            params: { folderId: parentFolderId }
+          })
+        );
       }
     );
   };
@@ -61,10 +76,13 @@ function createFolder(currentFolderId, newFolderName) {
   function request() {
     return { type: fileActionTypes.CREATE_FOLDER_REQUEST };
   }
-  function success(payload) {
-    return { type: fileActionTypes.CREATE_FOLDER_SUCCESS, payload };
+  function success(newFolderDetails) {
+    return {
+      type: fileActionTypes.CREATE_FOLDER_SUCCESS,
+      payload: newFolderDetails
+    };
   }
-  function failure(error) {
-    return { type: fileActionTypes.CREATE_FOLDER_SUCCESS, error };
+  function failure(payload) {
+    return { type: fileActionTypes.CREATE_FOLDER_SUCCESS, payload };
   }
 }

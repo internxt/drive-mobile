@@ -27,6 +27,10 @@ class AppMenu extends Component {
   }
 
   render() {
+    const {
+      filesState: { folderContent }
+    } = this.props;
+
     let content = (
       <Fragment>
         <MenuItem
@@ -38,7 +42,9 @@ class AppMenu extends Component {
         <MenuItem
           name="create"
           onClickHandler={() =>
-            this.props.dispatch(layoutActions.openCreateNewFolder())
+            this.props.dispatch(
+              layoutActions.openCreateNewFolder(folderContent.id)
+            )
           }
         />
         <MenuItem name="details" hidden />

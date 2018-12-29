@@ -10,7 +10,6 @@ export const fileService = {
 function getFolderContent(folderId) {
   return new Promise(async (resolve, reject) => {
     const token = await deviceStorage.getItem("token");
-
     fetch(`${API_URL}/api/storage/folder/${folderId}`, {
       method: "GET",
       headers: {
@@ -28,26 +27,27 @@ function getFolderContent(folderId) {
   });
 }
 
-function createFolder(currentFolderId, newFolderName = "Untitled folder") {
-  return new Promise((resolve, reject) => {
+function createFolder(parentFolderId, folderName = "Untitled folder") {
+  return new Promise(async (resolve, reject) => {
+    const token = await deviceStorage.getItem("token");
     fetch(`${API_URL}/api/storage/folder`, {
-      method: "post",
+      method: "POST",
       headers: {
         "content-type": "application/json; charset=utf-8",
-        Authorization: `Bearer xxx`
-        // "internxt-mnemonic": "xxx"
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({
-        parentFolderId: currentFolderId,
-        folderName: newFolderName
+        parentFolderId,
+        folderName
       })
     })
-      .then(res => res.json())
-      .then(res => {
-        resolve(res);
+      .then(response => response.json())
+      .then(async response => {
+        const newFolderDetails = await getFolderContent(response.id);
+        resolve(newFolderDetails);
       })
-      .catch(err => {
-        reject("[file.service] Could not gcreate folder", err);
+      .catch(error => {
+        reject("[file.service] Could not create folder", error);
       });
   });
 }

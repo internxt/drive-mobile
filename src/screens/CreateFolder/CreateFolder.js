@@ -14,7 +14,7 @@ import { Svg } from "expo";
 const { Defs, LinearGradient, Path, Stop } = Svg;
 
 import MenuItem from "../../components/AppMenu/MenuItem";
-import { fileActions } from "../../actions";
+import { fileActions, layoutActions } from "../../actions";
 
 class CreateFolder extends Component {
   constructor(props) {
@@ -22,20 +22,31 @@ class CreateFolder extends Component {
 
     this.state = {
       placeholder: "Untitled folder",
-      value: "Untitled folder"
+      value: "Untitled folder",
+      parentFolderId: null
     };
 
     this.onSave = this.onSave.bind(this);
     this.onCancel = this.onCancel.bind(this);
   }
 
+  componentWillMount() {
+    const { navigation } = this.props;
+    const parentFolderId = navigation.getParam("parentFolderId", "undefined");
+
+    this.setState({ parentFolderId });
+  }
+
   onSave() {
-    this.props.dispatch(fileActions.createFolder(0, this.state.value));
+    this.props.dispatch(
+      fileActions.createFolder(this.state.parentFolderId, this.state.value)
+    );
   }
 
   onCancel() {
-    const { navigation } = this.props;
-    navigation.push("Home", { parent: 0 });
+    this.props.dispatch(
+      layoutActions.closeCreateNewFolder(this.state.parentFolderId)
+    );
   }
 
   render() {

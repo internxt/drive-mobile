@@ -1,3 +1,6 @@
+import { NavigationActions } from "react-navigation";
+
+import { navigatorRef } from "../AppNavigator";
 import { layoutActionTypes } from "../constants";
 
 export const layoutActions = {
@@ -19,14 +22,30 @@ function closeSearch() {
   };
 }
 
-function openCreateNewFolder() {
+function openCreateNewFolder(parentFolderId) {
   return dispatch => {
     dispatch({ type: layoutActionTypes.OPEN_CREATE_FOLDER_FORM });
+
+    // Redirect to CreateFolder screen
+    navigatorRef.dispatch(
+      NavigationActions.navigate({
+        routeName: "CreateFolder",
+        params: { parentFolderId }
+      })
+    );
   };
 }
 
-function closeCreateNewFolder() {
+function closeCreateNewFolder(folderId) {
   return dispatch => {
     dispatch({ type: layoutActionTypes.CLOSE_CREATE_FOLDER_FORM });
+
+    // Redirect to Home screen
+    navigatorRef.dispatch(
+      NavigationActions.navigate({
+        routeName: "Home",
+        params: { folderId }
+      })
+    );
   };
 }
