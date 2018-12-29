@@ -61,14 +61,6 @@ class Home extends Component {
         </View>
 
         <FileList />
-
-        <Button
-          title="Go back to sign in"
-          onPress={() => {
-            // Go to the top of the stack - SignIn screen
-            navigation.popToTop();
-          }}
-        />
       </View>
     );
   }
