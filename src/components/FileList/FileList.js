@@ -9,7 +9,7 @@ import FileItem from "../FileItem/FileItem";
 class FileList extends Component {
   render() {
     const { filesState } = this.props;
-    const { loading, folderContent } = filesState;
+    const { loading, folderContent, selectedFile } = filesState;
 
     if (loading || !folderContent) {
       return (
@@ -27,7 +27,12 @@ class FileList extends Component {
             <FileItem key={file.id} item={file} isFolder={true} />
           ))}
           {folderContent.files.map(file => (
-            <FileItem key={file.id} item={file} isFolder={false} />
+            <FileItem
+              key={file.id}
+              item={file}
+              isFolder={false}
+              isSelected={selectedFile && selectedFile.id === file.id}
+            />
           ))}
         </View>
       );

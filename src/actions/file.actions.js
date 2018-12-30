@@ -6,6 +6,8 @@ import { fileService } from "../services";
 
 export const fileActions = {
   getFolderContent,
+  selectFile,
+  deselectAll,
   createFolder
 };
 
@@ -36,6 +38,18 @@ function getFolderContent(folderId) {
   function failure(error) {
     return { type: fileActionTypes.GET_FILES_FAILURE, error };
   }
+}
+
+function selectFile(file) {
+  return dispatch => {
+    dispatch({ type: fileActionTypes.SELECT_FILE, payload: file });
+  };
+}
+
+function deselectAll() {
+  return dispatch => {
+    dispatch({ type: fileActionTypes.DESELECT_ALL });
+  };
 }
 
 function createFolder(parentFolderId, newFolderName) {

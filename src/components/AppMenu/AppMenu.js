@@ -28,8 +28,12 @@ class AppMenu extends Component {
 
   render() {
     const {
-      filesState: { folderContent }
+      filesState: { folderContent, selectedFile }
     } = this.props;
+
+    const isRoot = folderContent && folderContent.hierarchy_level === 1;
+    const isFileSelected = Boolean(selectedFile);
+    const buttonDetailsHidden = isRoot && !isFileSelected;
 
     let content = (
       <Fragment>
@@ -47,7 +51,15 @@ class AppMenu extends Component {
             )
           }
         />
-        <MenuItem name="details" hidden />
+        <MenuItem
+          name="details"
+          hidden={buttonDetailsHidden}
+          onClickHandler={() =>
+            isFileSelected
+              ? console.log("file details")
+              : console.log("folder details")
+          }
+        />
         <MenuItem
           name="settings"
           onClickHandler={() => this.props.navigation.push("Settings")}

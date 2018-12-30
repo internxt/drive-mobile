@@ -3,7 +3,8 @@ import { fileActionTypes } from "../constants";
 const initialState = {
   loading: false,
   items: [],
-  folderContent: null
+  folderContent: null,
+  selectedFile: null
 };
 
 export function filesReducer(state = initialState, action) {
@@ -17,13 +18,26 @@ export function filesReducer(state = initialState, action) {
       return {
         ...state,
         loading: false,
-        folderContent: action.payload
+        folderContent: action.payload,
+        selectedFile: null
       };
     case fileActionTypes.GET_FILES_FAILURE:
       return {
         ...state,
         loading: false,
         error: action.error
+      };
+
+    case fileActionTypes.SELECT_FILE:
+      return {
+        ...state,
+        selectedFile: action.payload
+      };
+
+    case fileActionTypes.DESELECT_ALL:
+      return {
+        ...state,
+        selectedFile: null
       };
 
     case fileActionTypes.CREATE_FOLDER_REQUEST:
@@ -35,7 +49,8 @@ export function filesReducer(state = initialState, action) {
       return {
         ...state,
         loading: false,
-        folderContent: action.payload
+        folderContent: action.payload,
+        selectedFile: null
       };
     case fileActionTypes.CREATE_FOLDER_FAILURE:
       return {
