@@ -14,7 +14,7 @@ import { Svg } from "expo";
 const { Defs, LinearGradient, Path, Stop } = Svg;
 
 import MenuItem from "../../components/AppMenu/MenuItem";
-import { fileActions, layoutActions } from "../../actions";
+import { fileActions } from "../../actions";
 
 class CreateFolder extends Component {
   constructor(props) {
@@ -41,12 +41,12 @@ class CreateFolder extends Component {
     this.props.dispatch(
       fileActions.createFolder(this.state.parentFolderId, this.state.value)
     );
+
+    this.props.navigation.push("Home", { folderId: this.state.parentFolderId });
   }
 
   onCancel() {
-    this.props.dispatch(
-      layoutActions.closeCreateNewFolder(this.state.parentFolderId)
-    );
+    this.props.navigation.goBack();
   }
 
   render() {
@@ -72,6 +72,7 @@ class CreateFolder extends Component {
         />
       </Svg>
     );
+
     return (
       <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
         <View style={styles.actionsWrapper}>

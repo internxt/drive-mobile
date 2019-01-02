@@ -1,7 +1,4 @@
-import { NavigationActions } from "react-navigation";
-
-import { navigatorRef } from "../AppNavigator";
-import { fileActionTypes, layoutActionTypes } from "../constants";
+import { fileActionTypes } from "../constants";
 import { fileService } from "../services";
 
 export const fileActions = {
@@ -60,29 +57,12 @@ function createFolder(parentFolderId, newFolderName) {
       newFolderDetails => {
         dispatch(success(newFolderDetails));
 
-        // Close Create Folder Form
-        dispatch({
-          type: layoutActionTypes.CLOSE_CREATE_FOLDER_FORM
-        });
-
-        // Redirect to Home screen
-        navigatorRef.dispatch(
-          NavigationActions.navigate({
-            routeName: "Home",
-            params: { folderId: newFolderDetails.id }
-          })
-        );
+        // Refresh parent folder content (?)
+        getFolderContent(parentFolderId);
       },
       error => {
+        console.error("Error creating folder", error);
         dispatch(failure(error));
-
-        // Redirect to Home screen
-        navigatorRef.dispatch(
-          NavigationActions.navigate({
-            routeName: "Home",
-            params: { folderId: parentFolderId }
-          })
-        );
       }
     );
   };
