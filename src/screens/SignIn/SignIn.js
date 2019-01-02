@@ -10,16 +10,43 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo";
 
-import { userActions } from "../../actions";
+import { userActions, fileActions } from "../../actions";
 
 class SignIn extends Component {
   constructor() {
     super();
+
+    this.state = {
+      loggedIn: false,
+      user: {}
+    };
+
     this.onSignInClick = this.onSignInClick.bind(this);
   }
 
   onSignInClick() {
     this.props.dispatch(userActions.signin());
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.authenticationState.loggedIn !== this.state.loggedIn) {
+      this.setState({
+        loggedIn: nextProps.authenticationState.loggedIn,
+        user: nextProps.authenticationState.user
+      });
+
+      // Redirect user if signed in & getFolderContent for user root_folder_id
+      if (nextProps.authenticationState.loggedIn) {
+        this.props.dispatch(
+          fileActions.getFolderContent(
+            nextProps.authenticationState.user.root_folder_id
+          )
+        );
+        this.props.navigation.push("Home", {
+          folderId: nextProps.authenticationState.user.root_folder_id
+        });
+      }
+    }
   }
 
   render() {

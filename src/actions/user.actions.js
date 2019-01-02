@@ -1,9 +1,5 @@
-import { NavigationActions } from "react-navigation";
-
-import { navigatorRef } from "../AppNavigator";
 import { userActionTypes } from "../constants";
 import { userService } from "../services";
-import { fileActions } from "./file.actions";
 
 export const userActions = {
   signin,
@@ -17,17 +13,6 @@ function signin() {
     userService.signin().then(
       userData => {
         dispatch(success(userData));
-
-        // Redirect to Home screen
-        navigatorRef.dispatch(
-          NavigationActions.navigate({
-            routeName: "Home",
-            params: { folderId: userData.user.root_folder_id }
-          })
-        );
-
-        // Call new data (root folder content)
-        dispatch(fileActions.getFolderContent(userData.user.root_folder_id));
       },
       error => {
         dispatch(failure(error));
