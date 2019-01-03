@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { compose } from "redux";
+import { connect } from "react-redux";
 import {
   StyleSheet,
   View,
@@ -8,6 +10,7 @@ import {
 } from "react-native";
 import { withNavigation } from "react-navigation";
 
+import { fileActions } from "../../actions";
 import { getIcon } from "../../helpers";
 
 class ButtonPreviousDir extends Component {
@@ -22,12 +25,10 @@ class ButtonPreviousDir extends Component {
   }
 
   goBack() {
-    const { navigation } = this.props;
-    navigation.push("Home", { parent: 0 });
-
-    // TODO: Use navigation.goBack(); + set route params
-    // navigation.goBack();
-    // navigation.state.params.onSelect({ parent: true });
+    const { navigation, filesState } = this.props;
+    const parentFolderId = filesState.folderContent.parentId;
+    this.props.dispatch(fileActions.getFolderContent(parentFolderId));
+    navigation.push("Home", { folderId: parentFolderId });
   }
 
   render() {
@@ -39,7 +40,7 @@ class ButtonPreviousDir extends Component {
       >
         <View style={styles.buttonWrapper}>
           <Image style={styles.icon} source={this.state.iconArrowBack} />
-          <Text style={styles.label}>All Files</Text>
+          <Text style={styles.label}>Back</Text>
         </View>
       </TouchableHighlight>
     );
@@ -67,4 +68,13 @@ const styles = StyleSheet.create({
   }
 });
 
-export default withNavigation(ButtonPreviousDir);
+const mapStateToProps = state => {
+  return {
+    ...state
+  };
+};
+
+export default (ButtonPreviousDirComposed = compose(
+  connect(mapStateToProps),
+  withNavigation
+)(ButtonPreviousDir));

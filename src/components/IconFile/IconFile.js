@@ -3,11 +3,11 @@ import { StyleSheet, View, Text } from "react-native";
 
 class IconFile extends Component {
   render() {
-    const { label } = this.props;
+    const { label = "" } = this.props;
 
     return (
       <View style={styles.wrapper}>
-        <Text style={styles.text}>{label}</Text>
+        <Text style={styles.text}>{label.toUpperCase()}</Text>
       </View>
     );
   }

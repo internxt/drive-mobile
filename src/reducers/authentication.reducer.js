@@ -1,23 +1,34 @@
 import { userActionTypes } from "../constants";
 
-const initialState = {};
+const initialState = {
+  loggedIn: false,
+  token: "",
+  user: {}
+};
 
 export function authenticationReducer(state = initialState, action) {
   switch (action.type) {
     case userActionTypes.SIGNIN_REQUEST:
       return {
-        loggingIn: true,
-        user: action.user
+        ...state
       };
     case userActionTypes.SIGNIN_SUCCESS:
+      const { token, user } = action.payload;
       return {
         loggedIn: true,
-        user: action.user
+        token,
+        user
       };
     case userActionTypes.SIGNIN_FAILURE:
-      return {};
+      return {
+        loggedIn: false,
+        error: action.payload
+      };
     case userActionTypes.SIGNOUT:
-      return {};
+      return {
+        loggedIn: false,
+        user: {}
+      };
     default:
       return state;
   }

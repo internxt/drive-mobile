@@ -11,8 +11,8 @@ function signin() {
     dispatch(request());
 
     userService.signin().then(
-      user => {
-        dispatch(success(user));
+      userData => {
+        dispatch(success(userData));
       },
       error => {
         dispatch(failure(error));
@@ -20,14 +20,14 @@ function signin() {
     );
   };
 
-  function request(user) {
-    return { type: userActionTypes.SIGNIN_REQUEST, user };
+  function request() {
+    return { type: userActionTypes.SIGNIN_REQUEST };
   }
-  function success(user) {
-    return { type: userActionTypes.SIGNIN_SUCCESS, user };
+  function success(userData) {
+    return { type: userActionTypes.SIGNIN_SUCCESS, payload: userData };
   }
   function failure(error) {
-    return { type: userActionTypes.SIGNIN_FAILURE, error };
+    return { type: userActionTypes.SIGNIN_FAILURE, payload: error };
   }
 }
 

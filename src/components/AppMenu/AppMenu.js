@@ -20,13 +20,26 @@ class AppMenu extends Component {
     super(props);
 
     this.handleMenuClick = this.handleMenuClick.bind(this);
+    this.handleFolderCreate = this.handleFolderCreate.bind(this);
   }
 
   handleMenuClick() {
     console.log("menu item clicked");
   }
 
+  handleFolderCreate(parentFolderId) {
+    this.props.navigation.push("CreateFolder", { parentFolderId });
+  }
+
   render() {
+    const {
+      filesState: { folderContent, selectedFile }
+    } = this.props;
+
+    const isRoot = folderContent && folderContent.hierarchy_level === 1;
+    const isFileSelected = Boolean(selectedFile);
+    const isButtonDetailsHidden = isRoot && !isFileSelected;
+
     let content = (
       <Fragment>
         <MenuItem
@@ -37,11 +50,17 @@ class AppMenu extends Component {
         <MenuItem name="upload" />
         <MenuItem
           name="create"
+          onClickHandler={() => this.handleFolderCreate(folderContent.id)}
+        />
+        <MenuItem
+          name="details"
+          hidden={isButtonDetailsHidden}
           onClickHandler={() =>
-            this.props.dispatch(layoutActions.openCreateNewFolder())
+            isFileSelected
+              ? console.log("file details")
+              : console.log("folder details")
           }
         />
-        <MenuItem name="details" hidden />
         <MenuItem
           name="settings"
           onClickHandler={() => this.props.navigation.push("Settings")}

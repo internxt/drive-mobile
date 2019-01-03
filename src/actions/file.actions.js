@@ -1,28 +1,29 @@
-import { fileActionTypes, layoutActionTypes } from "../constants";
+import { fileActionTypes } from "../constants";
 import { fileService } from "../services";
 
 export const fileActions = {
-  getFiles,
+  getFolderContent,
+  selectFile,
+  deselectAll,
   createFolder
 };
 
-function getFiles(id = 0) {
+function getFolderContent(folderId) {
+  const id = parseInt(folderId);
+  if (isNaN(id)) {
+    return dispatch(failure(`Folder ID: "${folderId}" is not a number.`));
+  }
+
   return dispatch => {
     dispatch(request());
-
-    fileService.getFiles(id).then(
-      data => {
-        dispatch(
-          success({
-            currentDirId: id,
-            items: data.files
-          })
-        );
-      },
-      error => {
+    fileService
+      .getFolderContent(id)
+      .then(data => {
+        dispatch(success(data));
+      })
+      .catch(error => {
         dispatch(failure(error));
-      }
-    );
+      });
   };
 
   function request() {
@@ -36,25 +37,31 @@ function getFiles(id = 0) {
   }
 }
 
-function createFolder(parentFolderId = 0, newFolderName) {
+function selectFile(file) {
+  return dispatch => {
+    dispatch({ type: fileActionTypes.SELECT_FILE, payload: file });
+  };
+}
+
+function deselectAll() {
+  return dispatch => {
+    dispatch({ type: fileActionTypes.DESELECT_ALL });
+  };
+}
+
+function createFolder(parentFolderId, newFolderName) {
   return dispatch => {
     dispatch(request());
 
     fileService.createFolder(parentFolderId, newFolderName).then(
-      data => {
-        dispatch(
-          success({
-            currentDirId: parentFolderId,
-            items: data.files
-          })
-        );
+      newFolderDetails => {
+        dispatch(success(newFolderDetails));
 
-        // Close Create Folder Form
-        dispatch({
-          type: layoutActionTypes.CLOSE_CREATE_FOLDER_FORM
-        });
+        // Refresh parent folder content (?)
+        getFolderContent(parentFolderId);
       },
       error => {
+        console.error("Error creating folder", error);
         dispatch(failure(error));
       }
     );
@@ -63,10 +70,13 @@ function createFolder(parentFolderId = 0, newFolderName) {
   function request() {
     return { type: fileActionTypes.CREATE_FOLDER_REQUEST };
   }
-  function success(payload) {
-    return { type: fileActionTypes.CREATE_FOLDER_SUCCESS, payload };
+  function success(newFolderDetails) {
+    return {
+      type: fileActionTypes.CREATE_FOLDER_SUCCESS,
+      payload: newFolderDetails
+    };
   }
-  function failure(error) {
-    return { type: fileActionTypes.CREATE_FOLDER_SUCCESS, error };
+  function failure(payload) {
+    return { type: fileActionTypes.CREATE_FOLDER_SUCCESS, payload };
   }
 }

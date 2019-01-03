@@ -1,26 +1,17 @@
 import React, { Component } from "react";
 import { compose } from "redux";
 import { connect } from "react-redux";
-import { StyleSheet, View, Text } from "react-native";
+import { View, Text } from "react-native";
 
-import { fileActions } from "../../actions";
 import EmptyDirectory from "../EmptyDirectory/EmptyDirectory";
 import FileItem from "../FileItem/FileItem";
 
 class FileList extends Component {
-  componentDidMount() {
-    this.props.dispatch(
-      fileActions.getFiles({
-        id: this.props.parent
-      })
-    );
-  }
-
   render() {
     const { filesState } = this.props;
-    const { loading, items } = filesState;
+    const { loading, folderContent, selectedFile } = filesState;
 
-    if (loading) {
+    if (loading || !folderContent) {
       return (
         <View>
           <Text>Loading files..</Text>
@@ -29,11 +20,19 @@ class FileList extends Component {
     }
 
     let content = <EmptyDirectory />;
-    if (items.length > 0) {
+    if (folderContent.files.length > 0 || folderContent.children.length > 0) {
       content = (
         <View>
-          {items.map((file, index) => (
-            <FileItem key={index} item={file} />
+          {folderContent.children.map(file => (
+            <FileItem key={file.id} item={file} isFolder={true} />
+          ))}
+          {folderContent.files.map(file => (
+            <FileItem
+              key={file.id}
+              item={file}
+              isFolder={false}
+              isSelected={selectedFile && selectedFile.id === file.id}
+            />
           ))}
         </View>
       );
@@ -42,30 +41,6 @@ class FileList extends Component {
     return content;
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff"
-  },
-  heading: {
-    fontFamily: "CircularStd-Black",
-    fontSize: 25,
-    letterSpacing: -0.8,
-    color: "#000000",
-    marginBottom: 10
-  },
-  subheading: {
-    fontFamily: "CircularStd-Book",
-    fontSize: 17,
-    opacity: 0.84,
-    letterSpacing: -0.1,
-    color: "#404040"
-  }
-});
 
 const mapStateToProps = state => {
   return {

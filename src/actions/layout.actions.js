@@ -2,9 +2,7 @@ import { layoutActionTypes } from "../constants";
 
 export const layoutActions = {
   openSearch,
-  closeSearch,
-  openCreateNewFolder,
-  closeCreateNewFolder
+  closeSearch
 };
 
 function openSearch() {
@@ -16,17 +14,5 @@ function openSearch() {
 function closeSearch() {
   return dispatch => {
     dispatch({ type: layoutActionTypes.CLOSE_SEARCH_FORM });
-  };
-}
-
-function openCreateNewFolder() {
-  return dispatch => {
-    dispatch({ type: layoutActionTypes.OPEN_CREATE_FOLDER_FORM });
-  };
-}
-
-function closeCreateNewFolder() {
-  return dispatch => {
-    dispatch({ type: layoutActionTypes.CLOSE_CREATE_FOLDER_FORM });
   };
 }

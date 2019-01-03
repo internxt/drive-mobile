@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { compose } from "redux";
+import { connect } from "react-redux";
 import {
   StyleSheet,
   Text,
@@ -8,7 +10,45 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo";
 
+import { userActions, fileActions } from "../../actions";
+
 class SignIn extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      loggedIn: false,
+      user: {}
+    };
+
+    this.onSignInClick = this.onSignInClick.bind(this);
+  }
+
+  onSignInClick() {
+    this.props.dispatch(userActions.signin());
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.authenticationState.loggedIn !== this.state.loggedIn) {
+      this.setState({
+        loggedIn: nextProps.authenticationState.loggedIn,
+        user: nextProps.authenticationState.user
+      });
+
+      // Redirect user if signed in & getFolderContent for user root_folder_id
+      if (nextProps.authenticationState.loggedIn) {
+        this.props.dispatch(
+          fileActions.getFolderContent(
+            nextProps.authenticationState.user.root_folder_id
+          )
+        );
+        this.props.navigation.push("Home", {
+          folderId: nextProps.authenticationState.user.root_folder_id
+        });
+      }
+    }
+  }
+
   render() {
     return (
       <LinearGradient
@@ -29,9 +69,7 @@ class SignIn extends Component {
           <TouchableHighlight
             style={styles.button}
             underlayColor="#00aaff"
-            onPress={() => {
-              this.props.navigation.navigate("Home");
-            }}
+            onPress={() => this.onSignInClick()}
           >
             <Text style={styles.buttonLabel}>Sign in with Civic</Text>
           </TouchableHighlight>
@@ -100,4 +138,10 @@ const styles = StyleSheet.create({
   }
 });
 
-export default SignIn;
+const mapStateToProps = state => {
+  return {
+    ...state
+  };
+};
+
+export default (SignInComposed = compose(connect(mapStateToProps))(SignIn));

@@ -1,23 +1,62 @@
 import React, { Component, Fragment } from "react";
 import { compose } from "redux";
 import { connect } from "react-redux";
-import { StyleSheet, View, Text, TouchableHighlight } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableHighlight,
+  Image
+} from "react-native";
 import { withNavigation } from "react-navigation";
 import TimeAgo from "react-native-timeago";
 
+import { fileActions } from "../../actions";
 import { colors } from "../../constants";
+import { getIcon } from "../../helpers";
 import IconFolder from "../../components/IconFolder/IconFolder";
 import IconFile from "../../components/IconFile/IconFile";
 
 class FileItem extends Component {
+  constructor() {
+    super();
+
+    this.onItemClick = this.onItemClick.bind(this);
+    this.onDetailsClick = this.onDetailsClick.bind(this);
+  }
+
+  onItemClick(event) {
+    event.preventDefault();
+    const { item, isFolder, navigation } = this.props;
+
+    if (isFolder) {
+      this.props.dispatch(fileActions.getFolderContent(item.id));
+      navigation.push("Home", { folderId: item.id });
+      return;
+    }
+
+    this.props.dispatch(fileActions.selectFile(item));
+  }
+
+  onDetailsClick() {
+    const { item } = this.props;
+    console.log("Show details: ", item);
+  }
+
   render() {
-    const { item, navigation } = this.props;
-    const { color } = item.style;
-    const isFolder = item.type === "FOLDER";
+    const { item, isFolder, isSelected } = this.props;
+    const { color } = item.style || {
+      color: "blue",
+      icon: ""
+    };
+    const imageSource = getIcon("details");
 
     const extendStyles = StyleSheet.create({
       text: {
         color: isFolder ? colors[color].code : "#000000"
+      },
+      containerBackground: {
+        backgroundColor: isSelected ? "#f2f5ff" : "#fff"
       }
     });
 
@@ -29,21 +68,32 @@ class FileItem extends Component {
 
     return (
       <TouchableHighlight
-        style={styles.container}
-        onPress={() =>
-          isFolder ? navigation.push("Home", { parent: item.id }) : {}
-        }
+        underlayColor="#FFF"
+        style={[styles.container, extendStyles.containerBackground]}
+        onPress={this.onItemClick}
       >
         <Fragment>
-          {itemIcon}
-          <View>
-            <Text style={[styles.fileName, extendStyles.text]}>
-              {item.name}
-            </Text>
-            {!isFolder && (
-              <TimeAgo style={styles.fileUpdated} time={item.added} />
-            )}
+          <View style={styles.fileDetails}>
+            {itemIcon}
+            <View>
+              <Text style={[styles.fileName, extendStyles.text]}>
+                {item.name}
+              </Text>
+              {!isFolder && (
+                <TimeAgo style={styles.fileUpdated} time={item.added} />
+              )}
+            </View>
           </View>
+
+          {isSelected && (
+            <TouchableHighlight
+              style={styles.buttonDetails}
+              underlayColor="#f2f5ff"
+              onPress={this.onDetailsClick}
+            >
+              <Image style={styles.buttonDetailsIcon} source={imageSource} />
+            </TouchableHighlight>
+          )}
         </Fragment>
       </TouchableHighlight>
     );
@@ -53,12 +103,16 @@ class FileItem extends Component {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
     alignItems: "center",
     height: 80,
-    backgroundColor: "#fff",
     borderBottomColor: "#e6e6e6",
     borderBottomWidth: 2
+  },
+  fileDetails: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center"
   },
   fileName: {
     fontFamily: "CircularStd-Bold",
@@ -71,6 +125,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#2a5fc9",
     marginTop: 2
+  },
+  buttonDetails: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 51,
+    height: 51,
+    marginRight: 10,
+    borderRadius: 25.5
+  },
+  buttonDetailsIcon: {
+    width: 25,
+    height: 25,
+    resizeMode: "contain"
   }
 });
 
