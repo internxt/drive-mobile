@@ -2,7 +2,7 @@
   "name": "x-cloud-mobile-react",
   "main": "node_modules/expo/AppEntry.js",
   "private": true,
-  "version": "1.0",
+  "version": "1.0.0",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
