@@ -71,12 +71,10 @@ class SignIn extends Component {
             underlayColor="#00aaff"
             onPress={() => this.onSignInClick()}
           >
-            <Text style={styles.buttonLabel}>Sign in with Civic</Text>
+            <Text style={styles.buttonLabel}>Sign in</Text>
           </TouchableHighlight>
 
-          <Text style={styles.redirectMessage}>
-            You will be re-directed to the Civic App
-          </Text>
+         
         </View>
       </LinearGradient>
     );
