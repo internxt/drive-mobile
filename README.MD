@@ -11,9 +11,9 @@ $ npm install expo-cli --global
 
 Clone repo and install dependencies
 ```bash
-$ git clone git@github.com:internxt/x-cloud-mobile-react.git
+$ git clone https://github.com/Internxt/X-Cloud-Mobile
 
-$ cd x-cloud-mobile-react
+$ cd X-Cloud-Mobile
 
 $ npm install
 ```
