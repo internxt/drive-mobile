@@ -1,22 +1,22 @@
 import React, { Component } from "react";
 import { createStackNavigator } from "react-navigation";
 
-import Home from "./screens/Home/Home";
-import SignIn from "./screens/SignIn/SignIn";
-import Settings from "./screens/Settings/Settings";
+import Home from "./screens/Home";
+import Auth from "./screens/Auth";
+import Settings from "./screens/Settings";
 import SubscriptionDetails from "./screens/Settings/SubscriptionDetails";
-import CreateFolder from "./screens/CreateFolder/CreateFolder";
+import CreateFolder from "./screens/CreateFolder";
 
 const routeConfig = {
   Home: { screen: Home },
-  SignIn: { screen: SignIn },
+  Auth: { screen: Auth },
   Settings: { screen: Settings },
   SubscriptionDetails: { screen: SubscriptionDetails },
   CreateFolder: { screen: CreateFolder }
 };
 
 const navigatorOptions = {
-  initialRouteName: "SignIn",
+  initialRouteName: "Auth",
   headerMode: "none"
 };
 

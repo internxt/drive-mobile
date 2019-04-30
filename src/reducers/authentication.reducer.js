@@ -29,6 +29,12 @@ export function authenticationReducer(state = initialState, action) {
         loggedIn: false,
         user: {}
       };
+    case userActionTypes.LOCAL_SIGNIN:
+      return {
+        loggedIn: true,
+        token: action.payload.token,
+        user: action.payload.user
+      };
     default:
       return state;
   }

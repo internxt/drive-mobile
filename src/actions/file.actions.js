@@ -2,22 +2,47 @@ import { fileActionTypes } from "../constants";
 import { fileService } from "../services";
 
 export const fileActions = {
+  downloadFile,
   getFolderContent,
   selectFile,
   deselectAll,
   createFolder
 };
 
+function downloadFile(user, file) {
+  return dispatch => {
+    dispatch(request());
+
+    fileService.downloadFile(user, file)
+    .then((result) => {
+      dispatch(success(result));
+    }).catch((error) => {
+      dispatch(failure(error));
+    })
+  }
+
+  function request() {
+    return { type: fileActionTypes.ADD_FILE_REQUEST }
+  }
+  function success(payload) {
+    return { type: fileActionTypes.ADD_FILE_SUCCESS }
+  }
+  function failure(error) {
+    return { type: fileActionTypes.ADD_FILE_FAILURE, error }
+  }
+}
+
 function getFolderContent(folderId) {
   const id = parseInt(folderId);
   if (isNaN(id)) {
-    return dispatch(failure(`Folder ID: "${folderId}" is not a number.`));
+    return dispatch => {
+      dispatch(failure(`Folder ID: "${folderId}" is not a number.`));
+    }
   }
 
   return dispatch => {
     dispatch(request());
-    fileService
-      .getFolderContent(id)
+    fileService.getFolderContent(id)
       .then(data => {
         dispatch(success(data));
       })

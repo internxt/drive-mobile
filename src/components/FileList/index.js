@@ -3,8 +3,8 @@ import { compose } from "redux";
 import { connect } from "react-redux";
 import { View, Text } from "react-native";
 
-import EmptyDirectory from "../EmptyDirectory/EmptyDirectory";
-import FileItem from "../FileItem/FileItem";
+import EmptyDirectory from "../EmptyDirectory";
+import FileItem from "../FileItem";
 
 class FileList extends Component {
   render() {
@@ -32,6 +32,7 @@ class FileList extends Component {
               item={file}
               isFolder={false}
               isSelected={selectedFile && selectedFile.id === file.id}
+              downloadFile={this.props.downloadFile}
             />
           ))}
         </View>

@@ -1,26 +1,66 @@
-import { deviceStorage } from "../helpers";
+import { deviceStorage, utils } from "../helpers";
+
+const { REACT_APP_API_URL } = process.env;
 
 export const userService = {
-  signin
+  signin,
+  signout
 };
 
-function signin() {
-  return new Promise(async resolve => {
-    await deviceStorage.saveItem("token", mockUser.token);
-    return resolve(mockUser);
-  });
-}
+function signin(email, password, sKey, twoFactorCode) {
+  return new Promise((resolve, reject) => {
+    // Manage credentials verification
+    // Check password
+    const salt = utils.decryptText(sKey);
+    const hashObj = utils.passToHash({ password, salt });
+    const encPass = utils.encryptText(hashObj.hash);
 
-const mockUser = {
-  user: {
-    id: 3,
-    userId: "$2a$08$wNBgek68hOR/Vxi7nuHrf.vbMnxbhgBBfq89JWwfeJPg4oFtPgzDu",
-    email: "ruzicic@gmail.com",
-    mnemonic:
-      "erase catch smooth vote memory mix sail employ sell brave rose human loan feel flat okay blame picture song reflect repair leopard nasty sting",
-    root_folder_id: 2,
-    isFreeTier: true
-  },
-  token:
-    "eyJhbGciOiJIUzI1NiJ9.cnV6aWNpY0BnbWFpbC5jb20.IihmSJh08QGL3cc7j57Maykzp9dKE7FOIqG_ue4EL3s"
+    fetch(`${REACT_APP_API_URL}/api/access`, {
+      method: "POST",
+      headers: { "content-type": "application/json; charset=utf-8" },
+      body: JSON.stringify({
+        email,
+        password: encPass,
+        tfa: twoFactorCode
+      })
+    }).then(response => {
+      if (response.status === 200) {
+        // Manage successfull login
+        response.json().then(async (body) => {
+          const user = {
+            userId: body.user.userId,
+            email: email,
+            mnemonic: body.user.mnemonic ? utils.decryptTextWithKey(body.user.mnemonic, password) : null,
+            root_folder_id: body.user.root_folder_id,
+            storeMnemonic: body.user.storeMnemonic,
+            name: body.user.name,
+            lastname: body.user.lastname
+          };
+
+          // Store login data
+          await deviceStorage.saveItem('xToken', body.token);
+          await deviceStorage.saveItem('xUser', JSON.stringify(user));
+
+          resolve({ token: body.token, user });
+        })
+      } else {
+        // Login error on access part
+        throw new Error('Login access error');
+      }
+    }).catch(err => {
+      reject("[user.service] Login failed", err);
+    });
+  });
+};
+
+async function signout() {
+  try {
+    // Delete login data
+    await Promise.all([
+      deviceStorage.deleteItem('xToken'),
+      deviceStorage.deleteItem('xUser')
+    ]);
+  } catch(error) {
+    console.log(error);
+  }
 };

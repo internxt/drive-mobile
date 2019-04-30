@@ -3,21 +3,20 @@ import { userService } from "../services";
 
 export const userActions = {
   signin,
-  signout
+  signout,
+  localSignIn
 };
 
-function signin() {
+function signin(email, password, sKey, twoFactorCode) {
   return dispatch => {
     dispatch(request());
 
-    userService.signin().then(
-      userData => {
-        dispatch(success(userData));
-      },
-      error => {
-        dispatch(failure(error));
-      }
-    );
+    userService.signin(email, password, sKey, twoFactorCode)
+    .then(userData => {
+      dispatch(success(userData));
+    }).catch(error => {
+      dispatch(failure(error));
+    });
   };
 
   function request() {
@@ -34,4 +33,9 @@ function signin() {
 function signout() {
   userService.signout();
   return { type: userActionTypes.SIGNOUT };
+}
+
+function localSignIn(token, user) {
+  const data = { token, user }
+  return { type: userActionTypes.LOCAL_SIGNIN, payload: data };
 }

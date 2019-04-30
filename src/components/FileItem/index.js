@@ -14,8 +14,8 @@ import TimeAgo from "react-native-timeago";
 import { fileActions } from "../../actions";
 import { colors } from "../../constants";
 import { getIcon } from "../../helpers";
-import IconFolder from "../../components/IconFolder/IconFolder";
-import IconFile from "../../components/IconFile/IconFile";
+import IconFolder from "../../components/IconFolder";
+import IconFile from "../../components/IconFile";
 
 class FileItem extends Component {
   constructor() {
@@ -71,6 +71,7 @@ class FileItem extends Component {
         underlayColor="#FFF"
         style={[styles.container, extendStyles.containerBackground]}
         onPress={this.onItemClick}
+        onLongPress={isFolder ? '' : (() => this.props.downloadFile(item))}
       >
         <Fragment>
           <View style={styles.fileDetails}>

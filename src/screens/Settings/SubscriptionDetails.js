@@ -1,8 +1,8 @@
 import React, { Component, Fragment } from "react";
 import { StyleSheet, Text, View, TouchableHighlight } from "react-native";
 
-import AppMenu from "../../components/AppMenu/AppMenu";
-import PlanListItem from "../../components/PlanListItem/PlanListItem";
+import AppMenu from "../../components/AppMenu";
+import PlanListItem from "../../components/PlanListItem";
 
 class SubscriptionDetails extends Component {
   render() {

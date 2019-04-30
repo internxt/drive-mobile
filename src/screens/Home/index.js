@@ -1,11 +1,11 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, Button } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 
-import AppMenu from "../../components/AppMenu/AppMenu";
-import FileList from "../../components/FileList/FileList";
-import ButtonPreviousDir from "../../components/ButtonPreviousDir/ButtonPreviousDir";
+import AppMenu from "../../components/AppMenu";
+import FileList from "../../components/FileList";
+import ButtonPreviousDir from "../../components/ButtonPreviousDir";
 import { fileActions } from "../../actions";
 
 class Home extends Component {
@@ -27,6 +27,11 @@ class Home extends Component {
     );
     const { token, user } = this.props.authenticationState;
 
+    // If logged out
+    if (this.props.authenticationState.loggedIn === false) {
+      this.props.navigation.popToTop();
+    }
+
     // Set active Folder ID
     if (folderId !== this.state.folderId) {
       this.props.dispatch(fileActions.getFolderContent(folderId));
@@ -44,6 +49,10 @@ class Home extends Component {
     }
   }
 
+  downloadfile(file) {
+    this.props.dispatch(fileActions.downloadFile(this.state.user, file));
+  }
+
   render() {
     const { navigation, filesState } = this.props;
 
@@ -59,7 +68,7 @@ class Home extends Component {
           {this.state.backButtonVisible && <ButtonPreviousDir />}
         </View>
 
-        <FileList />
+        <FileList downloadFile={this.downloadfile}/>
       </View>
     );
   }

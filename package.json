@@ -13,15 +13,17 @@
   },
   "dependencies": {
     "babel-preset-expo": "^5.0.0",
-    "expo": "^31.0.4",
+    "crypto-js": "^3.1.9-1",
+    "expo": "^32",
     "moment": "^2.22.2",
-    "react": "16.5.0",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-31.0.1.tar.gz",
+    "react": "16.5.1",
+    "react-native": "0.57.1",
     "react-native-timeago": "^0.4.0",
     "react-navigation": "^2.18.2",
     "react-redux": "^5.0.7",
     "redux": "^4.0.0",
-    "redux-thunk": "^2.3.0"
+    "redux-thunk": "^2.3.0",
+    "node-lib": "github:internxt/node-lib"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",

@@ -1,9 +1,12 @@
 import React, { Component } from "react";
 import { StyleSheet, Text, View, TouchableHighlight } from "react-native";
+import { compose } from "redux";
+import { connect } from "react-redux";
 
-import AppMenu from "../../components/AppMenu/AppMenu";
-import PlanListItem from "../../components/PlanListItem/PlanListItem";
-import ProgressBar from "../../components/ProgressBar/ProgressBar";
+import AppMenu from "../../components/AppMenu";
+import PlanListItem from "../../components/PlanListItem";
+import ProgressBar from "../../components/ProgressBar";
+import { userActions } from "../../actions";
 
 class Settings extends Component {
   constructor(props) {
@@ -109,7 +112,7 @@ class Settings extends Component {
         <TouchableHighlight
           style={styles.button}
           underlayColor="#FFF"
-          onPress={() => this.props.navigation.navigate("SignIn")}
+          onPress={() => this.props.dispatch(userActions.signout())}
         >
           <Text style={styles.buttonLabel}>Sign Out</Text>
         </TouchableHighlight>
@@ -202,4 +205,10 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Settings;
+const mapStateToProps = state => {
+  return {
+    ...state
+  };
+};
+
+export default (SettingsComposed = compose(connect(mapStateToProps))(Settings));

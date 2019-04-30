@@ -27,6 +27,23 @@ export function filesReducer(state = initialState, action) {
         loading: false,
         error: action.error
       };
+    case fileActionTypes.ADD_FILE_REQUEST:
+      return {
+        ...state,
+        loading: true
+      };
+    case fileActionTypes.ADD_FILE_SUCCESS:
+      return {
+        ...state,
+        loading: false
+      };
+
+    case fileActionTypes.ADD_FILE_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.error
+      };
 
     case fileActionTypes.SELECT_FILE:
       return {
@@ -45,6 +62,7 @@ export function filesReducer(state = initialState, action) {
         ...state,
         loading: true
       };
+
     case fileActionTypes.CREATE_FOLDER_SUCCESS:
       return {
         ...state,
