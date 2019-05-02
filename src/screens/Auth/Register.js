@@ -88,6 +88,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1
   },
+  logo: {
+    height: 52.4,
+    width: 99,
+    marginTop: 10
+  },
   title: {
     fontFamily: "CerebriSans-Bold",
     fontSize: 27,
@@ -103,17 +108,18 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
   buttonFooterWrapper: {
-    marginTop: 50,
-    marginBottom: 20
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   button: {
     alignSelf: "stretch",
     height: 60,
     borderRadius: 3.4,
     backgroundColor: "#4585f5",
-    paddingLeft: 20,
-    paddingRight: 20,
-    marginBottom: 10
+    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   buttonOn: {
     alignSelf: "stretch",
@@ -122,9 +128,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#4585f5",
     paddingLeft: 30,
     paddingRight: 30,
-    marginBottom: 10,
-    marginLeft: 10,
-    marginRight: 10
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   buttonOff: {
     alignSelf: "stretch",
@@ -133,23 +138,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f2",
     paddingLeft: 30,
     paddingRight: 30,
-    marginBottom: 10,
     marginLeft: 10,
-    marginRight: 10
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   buttonOnLabel: {
     fontFamily: "CerebriSans-Medium",
     fontSize: 18,
-    lineHeight: 49.5,
-    letterSpacing: 0.2,
     textAlign: "center",
     color: "#fff"
   },
   buttonOffLabel: {
     fontFamily: "CerebriSans-Medium",
     fontSize: 18,
-    lineHeight: 49.5,
-    letterSpacing: 0.2,
     textAlign: "center",
     color: "#5c5c5c"
   },
@@ -160,8 +162,7 @@ const styles = StyleSheet.create({
     color: "#000"
   },
   inputFieldsWrapper: {
-    marginTop: 50,
-    marginBottom: 50
+    marginBottom: 20
   },
   inputWrapper: {
     height: 64,

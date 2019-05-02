@@ -60,7 +60,7 @@ async function signout() {
       deviceStorage.deleteItem('xToken'),
       deviceStorage.deleteItem('xUser')
     ]);
-  } catch(error) {
+  } catch (error) {
     console.log(error);
   }
 };

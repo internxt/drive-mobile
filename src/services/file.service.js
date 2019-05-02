@@ -7,7 +7,7 @@ export const fileService = {
   createFolder
 };
 
-async function setHeaders () {
+async function setHeaders() {
   const token = await deviceStorage.getItem('xToken');
   const user = await deviceStorage.getItem('xUser');
   const headers = {
@@ -33,6 +33,8 @@ function downloadFile(user, file) {
 function getFolderContent(folderId) {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
+
+    console.log(headers);
 
     fetch(`${REACT_APP_API_URL}/api/storage/folder/${folderId}`, {
       method: "GET",

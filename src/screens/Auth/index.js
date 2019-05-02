@@ -25,9 +25,9 @@ class Auth extends Component {
 
   async componentWillMount() {
     // Check if exists user login info on device storage
-    const token = await deviceStorage.getItem('xToken'); 
+    const token = await deviceStorage.getItem('xToken');
     const user = JSON.parse(await deviceStorage.getItem('xUser'));
-    
+
     if (token && user) {
       this.props.dispatch(userActions.localSignIn(token, user));
     }

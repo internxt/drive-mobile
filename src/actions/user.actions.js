@@ -12,11 +12,11 @@ function signin(email, password, sKey, twoFactorCode) {
     dispatch(request());
 
     userService.signin(email, password, sKey, twoFactorCode)
-    .then(userData => {
-      dispatch(success(userData));
-    }).catch(error => {
-      dispatch(failure(error));
-    });
+      .then(userData => {
+        dispatch(success(userData));
+      }).catch(error => {
+        dispatch(failure(error));
+      });
   };
 
   function request() {
