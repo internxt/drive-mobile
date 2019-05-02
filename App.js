@@ -34,9 +34,18 @@ export default class App extends Component {
     }
 
     return (
-      <View>
+      <View style={styles.container}>
         <Text>Loading...</Text>
       </View>
     );
   }
 }
+
+const styles = {
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
+};
+

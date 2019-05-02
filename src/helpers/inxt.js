@@ -1,5 +1,5 @@
 import { FileSystem } from 'expo';
-const { Environment } = require('node-lib');
+//const { Environment } = require('node-lib');
 
 import { utils } from './utils'
 

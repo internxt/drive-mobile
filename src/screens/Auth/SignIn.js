@@ -6,7 +6,8 @@ import {
   Text,
   TextInput,
   View,
-  TouchableHighlight
+  TouchableHighlight,
+  Alert
 } from "react-native";
 
 class SignIn extends Component {
@@ -33,48 +34,49 @@ class SignIn extends Component {
   }
 
   check2FA = () => {
+    if (!this.validateForm()) {
+      console.log('Form not filled');
+      Alert.alert('Login failure', 'Invalid user data');
+      return;
+    }
     fetch(`${process.env.REACT_APP_API_URL}/api/login`, {
       method: 'POST',
       headers: { "content-type": "application/json; charset=utf-8" },
       body: JSON.stringify({ email: this.state.email })
-    }).then(response => {
-      if (response.status === 200) {
-        // Manage login depending on 2FA activated or not
-        response.json().then((body) => {
-          if (!body.tfa) {
+    })
+      .then(async res => {
+        return { res, data: await res.json() }
+      })
+      .then(res => {
+        if (res.res.status === 200) {
+          // Manage login depending on 2FA activated or not
+          if (!res.data.tfa) {
+            console.log('2FA not needed, performing regular login...');
             // Regular login
-            this.props.onSignInClick(this.state.email, this.state.pasword, body.sKey, this.state.twoFactorCode);
+            this.props.onSignInClick(this.state.email, this.state.pasword, res.data.sKey, this.state.twoFactorCode);
           } else {
             // 2FA login
             this.setState({ showTwoFactor: true });
           }
-        })
-      } else {
-        // Error on login (Account not exists)
-        console.log('User account not exists');
-      }
-    }).catch(error => {
-      console.error(error);
-    });
+        } else {
+          // Error on login (Propagate exception to show alert on catch block)
+          throw { error: res.data.error ? res.data.error : 'Internal error' };
+        }
+      }).catch(err => {
+        console.log(err);
+        Alert.alert('Login failed', err.error);
+      });
   }
 
   render() {
-    let isValid = this.validateForm();
     return (
       <View style={styles.container}>
         <Text style={styles.title}> Sign in to X Cloud</Text>
         <View style={styles.buttonWrapper}>
-          <TouchableHighlight
-            style={styles.buttonOn}
-            underlayColor="#00aaff"
-          >
+          <TouchableHighlight style={styles.buttonOn} underlayColor="#00aaff">
             <Text style={styles.buttonOnLabel}>Sign in</Text>
           </TouchableHighlight>
-          <TouchableHighlight
-            style={styles.buttonOff}
-            underlayColor="#00aaff"
-            onPress={() => this.props.goToForm('REGISTER')}
-          >
+          <TouchableHighlight style={styles.buttonOff} underlayColor="#00aaff" onPress={() => this.props.goToForm('REGISTER')}>
             <Text style={styles.buttonOffLabel}>Create account</Text>
           </TouchableHighlight>
         </View>
@@ -108,7 +110,6 @@ class SignIn extends Component {
           <TouchableHighlight
             style={styles.button}
             underlayColor="#00aaff"
-            disabled={!isValid}
             onPress={this.check2FA}
           >
             <Text style={styles.buttonOnLabel}>Sign in</Text>
@@ -131,7 +132,6 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "CerebriSans-Bold",
     fontSize: 27,
-    letterSpacing: -1.7,
     color: "#000",
     marginTop: 15,
     marginBottom: 35
@@ -149,17 +149,18 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
   buttonFooterWrapper: {
-    marginTop: 144,
-    marginBottom: 20
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   button: {
     alignSelf: "stretch",
     height: 60,
     borderRadius: 3.4,
     backgroundColor: "#4585f5",
-    paddingLeft: 20,
-    paddingRight: 20,
-    marginBottom: 10
+    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   buttonOn: {
     alignSelf: "stretch",
@@ -168,9 +169,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#4585f5",
     paddingLeft: 30,
     paddingRight: 30,
-    marginBottom: 10,
-    marginLeft: 10,
-    marginRight: 10
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   buttonOff: {
     alignSelf: "stretch",
@@ -179,23 +179,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f2",
     paddingLeft: 30,
     paddingRight: 30,
-    marginBottom: 10,
     marginLeft: 10,
-    marginRight: 10
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   buttonOnLabel: {
     fontFamily: "CerebriSans-Medium",
     fontSize: 18,
-    lineHeight: 49.5,
-    letterSpacing: 0.2,
     textAlign: "center",
     color: "#fff"
   },
   buttonOffLabel: {
     fontFamily: "CerebriSans-Medium",
     fontSize: 18,
-    lineHeight: 49.5,
-    letterSpacing: 0.2,
     textAlign: "center",
     color: "#5c5c5c"
   },
@@ -213,8 +210,7 @@ const styles = StyleSheet.create({
     color: "#000"
   },
   inputFieldsWrapper: {
-    marginTop: 50,
-    marginBottom: 50
+    marginBottom: 20
   },
   inputWrapper: {
     height: 64,
