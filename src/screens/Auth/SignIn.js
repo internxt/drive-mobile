@@ -33,12 +33,23 @@ class SignIn extends Component {
     return (emailValid && passValid);
   }
 
+  validateTwoFactorCode = () => {
+    return /^[0-9]{6}$/.test(this.state.twoFactorCode);
+  }
+
   check2FA = () => {
     if (!this.validateForm()) {
       console.log('Form not filled');
       Alert.alert('Login failure', 'Invalid user data');
+      this.setState({ showTwoFactor: false });
       return;
     }
+
+    if (this.state.showTwoFactor && !this.validateTwoFactorCode()) {
+      Alert.alert('Error', 'Two factor code not valid');
+      return;
+    }
+
     fetch(`${process.env.REACT_APP_API_URL}/api/login`, {
       method: 'POST',
       headers: { "content-type": "application/json; charset=utf-8" },
@@ -50,12 +61,13 @@ class SignIn extends Component {
       .then(res => {
         if (res.res.status === 200) {
           // Manage login depending on 2FA activated or not
-          if (!res.data.tfa) {
-            console.log('2FA not needed, performing regular login...');
+          if (!res.data.tfa || this.state.showTwoFactor) {
+            console.log('2FA not needed or already established, performing regular login...');
             // Regular login
             this.props.onSignInClick(this.state.email, this.state.pasword, res.data.sKey, this.state.twoFactorCode);
           } else {
             // 2FA login
+            console.log('Need 2FA code to login');
             this.setState({ showTwoFactor: true });
           }
         } else {
@@ -71,7 +83,7 @@ class SignIn extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}> Sign in to X Cloud</Text>
+        <Text style={styles.title}>Sign in to X Cloud</Text>
         <View style={styles.buttonWrapper}>
           <TouchableHighlight style={styles.buttonOn} underlayColor="#00aaff">
             <Text style={styles.buttonOnLabel}>Sign in</Text>
@@ -80,7 +92,7 @@ class SignIn extends Component {
             <Text style={styles.buttonOffLabel}>Create account</Text>
           </TouchableHighlight>
         </View>
-        <View style={styles.inputFieldsWrapper}>
+        <View style={this.state.showTwoFactor ? styles.hideInputFieldWrapper : styles.showInputFieldsWrapper}>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
@@ -103,6 +115,20 @@ class SignIn extends Component {
               maxLength={64}
               secureTextEntry={true}
               textContentType="password"
+            />
+          </View>
+        </View>
+        <View style={this.state.showTwoFactor ? styles.showInputFieldsWrapper : styles.hideInputFieldWrapper}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              value={this.state.twoFactorCode}
+              onChangeText={value => this.setState({ twoFactorCode: value })}
+              placeholder='Two-factor code'
+              placeholderTextColor="#666666"
+              maxLength={64}
+              keyboardType="numeric"
+              textContentType="none"
             />
           </View>
         </View>
@@ -132,6 +158,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "CerebriSans-Bold",
     fontSize: 27,
+    letterSpacing: -1.7,
     color: "#000",
     marginTop: 15,
     marginBottom: 35
@@ -209,8 +236,11 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: "#000"
   },
-  inputFieldsWrapper: {
+  showInputFieldsWrapper: {
     marginBottom: 20
+  },
+  hideInputFieldWrapper: {
+    display: 'none'
   },
   inputWrapper: {
     height: 64,
