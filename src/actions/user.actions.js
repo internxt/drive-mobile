@@ -9,7 +9,8 @@ export const userActions = {
 
 function signin(email, password, sKey, twoFactorCode) {
   return dispatch => {
-    dispatch(request());
+
+    dispatchRequest();
 
     userService.signin(email, password, sKey, twoFactorCode)
       .then(userData => {
@@ -18,6 +19,12 @@ function signin(email, password, sKey, twoFactorCode) {
         dispatch(failure(error));
       });
   };
+
+  function dispatchRequest() {
+    return dispatch => {
+      dispatch(request());
+    }
+  }
 
   function request() {
     return { type: userActionTypes.SIGNIN_REQUEST };

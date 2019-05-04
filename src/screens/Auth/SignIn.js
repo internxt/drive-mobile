@@ -80,6 +80,12 @@ class SignIn extends Component {
       });
   }
 
+  componentWillReceiveProps(newProps) {
+    if (newProps.authenticationState.error) {
+      Alert.alert('Login failed', newProps.authenticationState.error);
+    }
+  }
+
   render() {
     return (
       <View style={styles.container}>

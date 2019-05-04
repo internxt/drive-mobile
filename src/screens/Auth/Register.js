@@ -23,13 +23,12 @@ class Register extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}> Create X Cloud account</Text>
+        <Text style={styles.title}>Create X Cloud account</Text>
         <View style={styles.buttonWrapper}>
           <TouchableHighlight
             style={styles.buttonOff}
             underlayColor="#00aaff"
-            onPress={() => this.props.goToForm('SIGNIN')}
-          >
+            onPress={() => this.props.goToForm('SIGNIN')}>
             <Text style={styles.buttonOffLabel}>Sign in</Text>
           </TouchableHighlight>
           <TouchableHighlight

@@ -23,10 +23,15 @@ function signin(email, password, sKey, twoFactorCode) {
         password: encPass,
         tfa: twoFactorCode
       })
-    }).then(response => {
-      if (response.status === 200) {
-        // Manage successfull login
-        response.json().then(async (body) => {
+    })
+      .then(async response => {
+        return { response, data: await response.json() }
+      })
+      .then(async response => {
+        const body = response.data;
+
+        if (response.response.status === 200) {
+          // Manage successfull login
           const user = {
             userId: body.user.userId,
             email: email,
@@ -42,14 +47,12 @@ function signin(email, password, sKey, twoFactorCode) {
           await deviceStorage.saveItem('xUser', JSON.stringify(user));
 
           resolve({ token: body.token, user });
-        })
-      } else {
-        // Login error on access part
-        throw new Error('Login access error');
-      }
-    }).catch(err => {
-      reject("[user.service] Login failed", err);
-    });
+        } else {
+          throw body.error ? body.error : 'Unkown error';
+        }
+      }).catch(err => {
+        reject(err);
+      });
   });
 };
 
