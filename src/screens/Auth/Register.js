@@ -14,8 +14,12 @@ class Register extends Component {
     super();
 
     this.state = {
+      firstName: '',
+      lastName: '',
       email: '',
-      pasword: ''
+
+      pasword: '',
+      registerStep: 1
     };
 
   }
@@ -107,9 +111,7 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
   buttonFooterWrapper: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end'
   },
   button: {
     alignSelf: "stretch",
@@ -161,18 +163,17 @@ const styles = StyleSheet.create({
     color: "#000"
   },
   inputFieldsWrapper: {
-    marginBottom: 20
+    flex: 1,
+    justifyContent: 'center'
   },
   inputWrapper: {
     height: 64,
     borderRadius: 5,
     borderWidth: 1,
     borderColor: "#c9c9c9",
-    paddingTop: 20,
-    paddingBottom: 20,
-    paddingLeft: 10,
-    paddingRight: 10,
-    marginTop: 15,
+    justifyContent: 'center',
+    paddingLeft: 20,
+    paddingRight: 20,
     marginBottom: 15
   }
 });

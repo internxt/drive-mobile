@@ -58,6 +58,7 @@ class SignIn extends Component {
       .then(async res => {
         return { res, data: await res.json() }
       })
+
       .then(res => {
         if (res.res.status === 200) {
           // Manage login depending on 2FA activated or not
@@ -182,9 +183,7 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
   buttonFooterWrapper: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end'
   },
   button: {
     alignSelf: "stretch",
@@ -243,7 +242,8 @@ const styles = StyleSheet.create({
     color: "#000"
   },
   showInputFieldsWrapper: {
-    marginBottom: 20
+    flex: 1,
+    justifyContent: 'center'
   },
   hideInputFieldWrapper: {
     display: 'none'
@@ -253,11 +253,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 1,
     borderColor: "#c9c9c9",
-    paddingTop: 20,
-    paddingBottom: 20,
-    paddingLeft: 10,
-    paddingRight: 10,
-    marginTop: 15,
+    justifyContent: 'center',
+    paddingLeft: 20,
+    paddingRight: 20,
     marginBottom: 15
   }
 });
