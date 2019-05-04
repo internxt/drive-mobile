@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { StyleSheet, Text, View, TouchableHighlight } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
+import prettysize from 'prettysize'
 
 import AppMenu from "../../components/AppMenu";
 import PlanListItem from "../../components/PlanListItem";
@@ -15,14 +16,15 @@ class Settings extends Component {
     this.state = {
       usage: {
         activePlanId: 0,
-        used: 8,
+        used: 0,
+        maxLimit: 1024 * 1024 * 1024,
         remaining: 2
       },
       plans: [
         {
           id: 0,
           price: "Free",
-          amount: 10,
+          amount: 1,
           unit: "GB",
           active: true
         },
@@ -51,6 +53,41 @@ class Settings extends Component {
     };
   }
 
+  componentDidMount() {
+    const user = this.props.authenticationState.user.email;
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/limit`, {
+      method: 'post',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        email: user
+      })
+    }
+    ).then(res => res.json())
+      .then(res => {
+        var copyUsage = this.state.usage;
+        copyUsage.maxLimit = res.maxSpaceBytes;
+        this.setState({ usage: copyUsage })
+      }).catch(err => {
+        console.log(err);
+      });
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/usage`, {
+      method: 'post',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: user })
+    }
+    ).then(res => res.json())
+      .then(res => {
+        var copyUsage = this.state.usage;
+        copyUsage.used = res.total;
+        this.setState({ usage: copyUsage })
+      }).catch(err => {
+        console.log(err);
+      });
+
+  }
+
   render() {
     const { plans, usage, activePlan } = this.state;
     const { navigation } = this.props;
@@ -64,27 +101,23 @@ class Settings extends Component {
         <View style={styles.titleWrapper}>
           <Text style={styles.title}>Storage Space</Text>
           <Text style={styles.subtitleInline}>
-            Used {usage.used}
-            {activePlan.unit} of {activePlan.amount}
-            {activePlan.unit}
+            Used {prettysize(this.state.usage.used)} of {prettysize(this.state.usage.maxLimit)}
           </Text>
         </View>
 
-        <ProgressBar totalValue={activePlan.amount} usedValue={usage.used} />
+        <ProgressBar totalValue={this.state.usage.maxLimit} usedValue={this.state.usage.used} />
 
         <View style={styles.legendWrapper}>
           <View style={styles.legendFill} />
           <Text style={styles.textLegend}>
-            Used storage space ({usage.used}
-            {activePlan.unit})
+            Used storage space
           </Text>
         </View>
 
         <View style={styles.legendWrapper}>
           <View style={styles.legendEmpty} />
           <Text style={styles.textLegend}>
-            Unused storage space ({usage.remaining}
-            {activePlan.unit})
+            Unused storage space
           </Text>
         </View>
 
