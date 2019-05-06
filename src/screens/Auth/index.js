@@ -68,24 +68,13 @@ class Auth extends Component {
   }
 
   render() {
-    return (
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <Image
-            style={styles.logo}
-            source={require("../../../assets/images/logo.png")}
-          />
-        </View>
-        <View style={styles.formContainer}>
-          {(this.state.screen === 'SIGNIN') && (
-            <SignIn onSignInClick={this.onSignInClick} goToForm={this.goToForm} />
-          )}
-          {(this.state.screen === 'REGISTER') && (
-            <Register onRegisterClick={this.onRegisterClick} goToForm={this.goToForm} />
-          )}
-        </View>
-      </View>
-    );
+    if (this.state.screen === 'SIGNIN') {
+      return <SignIn onSignInClick={this.onSignInClick} goToForm={this.goToForm} />;
+    }
+
+    if (this.state.screen === 'REGISTER') {
+      return <Register onRegisterClick={this.onRegisterClick} goToForm={this.goToForm} />;
+    }
   }
 }
 

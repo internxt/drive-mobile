@@ -7,20 +7,19 @@ import {
   TextInput,
   View,
   TouchableHighlight,
-  Alert
+  Alert,
+  Image
 } from "react-native";
 
 class SignIn extends Component {
   constructor() {
     super();
-
     this.state = {
       email: '',
       pasword: '',
       showTwoFactor: false,
       twoFactorCode: ''
     };
-
   }
 
   validateForm = () => {
@@ -90,63 +89,71 @@ class SignIn extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Sign in to X Cloud</Text>
-        <View style={styles.buttonWrapper}>
-          <TouchableHighlight style={styles.buttonOn} underlayColor="#00aaff">
-            <Text style={styles.buttonOnLabel}>Sign in</Text>
-          </TouchableHighlight>
-          <TouchableHighlight style={styles.buttonOff} underlayColor="#00aaff" onPress={() => this.props.goToForm('REGISTER')}>
-            <Text style={styles.buttonOffLabel}>Create account</Text>
-          </TouchableHighlight>
-        </View>
-        <View style={this.state.showTwoFactor ? styles.hideInputFieldWrapper : styles.showInputFieldsWrapper}>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              value={this.state.email}
-              onChangeText={value => this.setState({ email: value })}
-              placeholder='Email address'
-              placeholderTextColor="#666666"
-              maxLength={64}
-              keyboardType="email-address"
-              textContentType="emailAddress"
-            />
+        <View style={styles.containerCentered}>
+          <View style={styles.containerHeader}>
+            <View style={styles.headerContainer}>
+              <Image
+                style={styles.logo}
+                source={require("../../../assets/images/logo.png")}
+              />
+            </View>
+            <Text style={styles.title}>Sign in to X Cloud</Text>
+            <View style={styles.buttonWrapper}>
+              <TouchableHighlight style={styles.buttonOn} underlayColor="#00aaff">
+                <Text style={styles.buttonOnLabel}>Sign in</Text>
+              </TouchableHighlight>
+              <TouchableHighlight style={styles.buttonOff} underlayColor="#00aaff" onPress={() => this.props.goToForm('REGISTER')}>
+                <Text style={styles.buttonOffLabel}>Create account</Text>
+              </TouchableHighlight>
+            </View>
           </View>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              value={this.state.pasword}
-              onChangeText={value => this.setState({ pasword: value })}
-              placeholder='Password'
-              placeholderTextColor="#666666"
-              maxLength={64}
-              secureTextEntry={true}
-              textContentType="password"
-            />
+          <View style={this.state.showTwoFactor ? styles.hideInputFieldWrapper : styles.showInputFieldsWrapper}>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                value={this.state.email}
+                onChangeText={value => this.setState({ email: value })}
+                placeholder='Email address'
+                placeholderTextColor="#666666"
+                maxLength={64}
+                keyboardType="email-address"
+                textContentType="emailAddress"
+              />
+            </View>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                value={this.state.pasword}
+                onChangeText={value => this.setState({ pasword: value })}
+                placeholder='Password'
+                placeholderTextColor="#666666"
+                maxLength={64}
+                secureTextEntry={true}
+                textContentType="password"
+              />
+            </View>
           </View>
-        </View>
-        <View style={this.state.showTwoFactor ? styles.showInputFieldsWrapper : styles.hideInputFieldWrapper}>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              value={this.state.twoFactorCode}
-              onChangeText={value => this.setState({ twoFactorCode: value })}
-              placeholder='Two-factor code'
-              placeholderTextColor="#666666"
-              maxLength={64}
-              keyboardType="numeric"
-              textContentType="none"
-            />
+          <View style={this.state.showTwoFactor ? styles.showInputFieldsWrapper : styles.hideInputFieldWrapper}>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                value={this.state.twoFactorCode}
+                onChangeText={value => this.setState({ twoFactorCode: value })}
+                placeholder='Two-factor code'
+                placeholderTextColor="#666666"
+                maxLength={64}
+                keyboardType="numeric"
+                textContentType="none" />
+            </View>
           </View>
-        </View>
-        <View style={styles.buttonFooterWrapper}>
-          <TouchableHighlight
-            style={styles.button}
-            underlayColor="#00aaff"
-            onPress={this.check2FA}
-          >
-            <Text style={styles.buttonOnLabel}>Sign in</Text>
-          </TouchableHighlight>
+          <View style={styles.buttonFooterWrapper}>
+            <TouchableHighlight
+              style={styles.button}
+              underlayColor="#00aaff"
+              onPress={this.check2FA}>
+              <Text style={styles.buttonOnLabel}>Sign in</Text>
+            </TouchableHighlight>
+          </View>
         </View>
       </View>
     );
@@ -155,20 +162,29 @@ class SignIn extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#FFFFFF'
+  },
+  containerCentered: {
+    justifyContent: 'center',
+    width: 325,
+    height: 600
+  },
+  containerHeader: {
   },
   logo: {
-    height: 52.4,
-    width: 99,
-    marginTop: 10
+    height: 29.1,
+    width: 55.4,
   },
   title: {
     fontFamily: "CerebriSans-Bold",
     fontSize: 27,
     letterSpacing: -1.7,
     color: "#000",
-    marginTop: 15,
-    marginBottom: 35
+    marginBottom: 35,
+    marginTop: 20
   },
   subtitle: {
     fontFamily: "CerebriSans-Medium",
@@ -183,7 +199,7 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
   buttonFooterWrapper: {
-    justifyContent: 'flex-end'
+    marginTop: 20
   },
   button: {
     alignSelf: "stretch",
@@ -242,7 +258,6 @@ const styles = StyleSheet.create({
     color: "#000"
   },
   showInputFieldsWrapper: {
-    flex: 1,
     justifyContent: 'center'
   },
   hideInputFieldWrapper: {

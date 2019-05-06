@@ -6,7 +6,8 @@ import {
   Text,
   TextInput,
   View,
-  TouchableHighlight
+  TouchableHighlight,
+  Image
 } from "react-native";
 
 class Register extends Component {
@@ -27,60 +28,64 @@ class Register extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Create X Cloud account</Text>
-        <View style={styles.buttonWrapper}>
-          <TouchableHighlight
-            style={styles.buttonOff}
-            underlayColor="#00aaff"
-            onPress={() => this.props.goToForm('SIGNIN')}>
-            <Text style={styles.buttonOffLabel}>Sign in</Text>
-          </TouchableHighlight>
-          <TouchableHighlight
-            style={styles.buttonOn}
-            underlayColor="#00aaff"
-          >
-            <Text style={styles.buttonOnLabel}>Create account</Text>
-          </TouchableHighlight>
-        </View>
-        <View style={styles.inputFieldsWrapper}>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              value={this.state.name}
-              onChangeText={value => this.setState({ name: value })}
-              placeholder='First name'
-              placeholderTextColor="#666666"
-              maxLength={64}
-            />
+        <View style={styles.containerCentered}>
+          <View style={styles.containerHeader}>
+            <View style={styles.headerContainer}>
+              <Image
+                style={styles.logo}
+                source={require("../../../assets/images/logo.png")}
+              />
+            </View>
+            <Text style={styles.title}>Create X Cloud account</Text>
+            <View style={styles.buttonWrapper}>
+              <TouchableHighlight style={styles.buttonOff} underlayColor="#00aaff" onPress={() => this.props.goToForm('SIGNIN')}>
+                <Text style={styles.buttonOffLabel}>Sign in</Text>
+              </TouchableHighlight>
+              <TouchableHighlight style={styles.buttonOn} underlayColor="#00aaff">
+                <Text style={styles.buttonOnLabel}>Create account</Text>
+              </TouchableHighlight>
+            </View>
           </View>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              value={this.state.lastName}
-              onChangeText={value => this.setState({ lastName: value })}
-              placeholder='Last name'
-              placeholderTextColor="#666666"
-              maxLength={64}
-            />
+          <View style={this.state.showTwoFactor ? styles.hideInputFieldWrapper : styles.showInputFieldsWrapper}>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                value={this.state.name}
+                onChangeText={value => this.setState({ name: value })}
+                placeholder='First name'
+                placeholderTextColor="#666666"
+                maxLength={64}
+              />
+            </View>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                value={this.state.lastName}
+                onChangeText={value => this.setState({ lastName: value })}
+                placeholder='Last name'
+                placeholderTextColor="#666666"
+                maxLength={64}
+              />
+            </View>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                value={this.state.email}
+                onChangeText={value => this.setState({ email: value })}
+                placeholder='Email address'
+                placeholderTextColor="#666666"
+                maxLength={64}
+              />
+            </View>
           </View>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              value={this.state.email}
-              onChangeText={value => this.setState({ email: value })}
-              placeholder='Email address'
-              placeholderTextColor="#666666"
-              maxLength={64}
-            />
+          <View style={styles.buttonFooterWrapper}>
+            <TouchableHighlight
+              style={styles.button}
+              underlayColor="#00aaff"
+              onPress={null}>
+              <Text style={styles.buttonOnLabel}>Continue</Text>
+            </TouchableHighlight>
           </View>
-        </View>
-        <View style={styles.buttonFooterWrapper}>
-          <TouchableHighlight
-            style={styles.button}
-            underlayColor="#00aaff"
-          >
-            <Text style={styles.buttonOnLabel}>Continue</Text>
-          </TouchableHighlight>
         </View>
       </View>
     );
@@ -89,20 +94,34 @@ class Register extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#FFFFFF'
+  },
+  containerCentered: {
+    justifyContent: 'center'
+  },
+  containerHeader: {
+    borderWidth: 0
   },
   logo: {
-    height: 52.4,
-    width: 99,
-    marginTop: 10
+    height: 29.1,
+    width: 55.4,
   },
   title: {
     fontFamily: "CerebriSans-Bold",
     fontSize: 27,
     letterSpacing: -1.7,
     color: "#000",
-    marginTop: 15,
-    marginBottom: 35
+    marginBottom: 35,
+    marginTop: 20
+  },
+  subtitle: {
+    fontFamily: "CerebriSans-Medium",
+    fontSize: 29,
+    color: "#fff",
+    opacity: 0.76
   },
   buttonWrapper: {
     display: "flex",
@@ -111,7 +130,7 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
   buttonFooterWrapper: {
-    justifyContent: 'flex-end'
+    marginTop: 20
   },
   button: {
     alignSelf: "stretch",
@@ -139,7 +158,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f2",
     paddingLeft: 30,
     paddingRight: 30,
-    marginLeft: 10,
     marginRight: 10,
     alignItems: 'center',
     justifyContent: 'center'
@@ -156,15 +174,24 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#5c5c5c"
   },
+  redirectMessage: {
+    fontFamily: "CerebriSans-Medium",
+    fontSize: 14,
+    letterSpacing: 0.3,
+    color: "#fff",
+    opacity: 0.6
+  },
   input: {
     fontFamily: "CerebriSans-Medium",
     letterSpacing: -0.2,
     fontSize: 17,
     color: "#000"
   },
-  inputFieldsWrapper: {
-    flex: 1,
+  showInputFieldsWrapper: {
     justifyContent: 'center'
+  },
+  hideInputFieldWrapper: {
+    display: 'none'
   },
   inputWrapper: {
     height: 64,
