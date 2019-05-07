@@ -20,7 +20,6 @@ class ButtonPreviousDir extends Component {
     this.state = {
       iconArrowBack: getIcon("back")
     };
-
     this.goBack = this.goBack.bind(this);
   }
 
@@ -28,7 +27,7 @@ class ButtonPreviousDir extends Component {
     const { navigation, filesState } = this.props;
     const parentFolderId = filesState.folderContent.parentId;
     this.props.dispatch(fileActions.getFolderContent(parentFolderId));
-    navigation.push("Home", { folderId: parentFolderId });
+    navigation.setParams({ folderId: parentFolderId });
   }
 
   render() {
@@ -36,8 +35,7 @@ class ButtonPreviousDir extends Component {
       <TouchableHighlight
         style={styles.button}
         underlayColor="#FFF"
-        onPress={this.goBack}
-      >
+        onPress={this.goBack}>
         <View style={styles.buttonWrapper}>
           <Image style={styles.icon} source={this.state.iconArrowBack} />
           <Text style={styles.label}>Back</Text>

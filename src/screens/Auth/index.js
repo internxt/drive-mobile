@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import {
   StyleSheet,
   View,
-  Image
+  ActivityIndicator
 } from "react-native";
 
 import SignIn from "./SignIn";
@@ -35,6 +35,7 @@ class Auth extends Component {
 
   // Manage new props recieved from parent
   componentWillReceiveProps(nextProps) {
+
     if (nextProps.authenticationState.loggedIn !== this.state.loggedIn) {
       this.setState({
         loggedIn: nextProps.authenticationState.loggedIn,
@@ -48,7 +49,7 @@ class Auth extends Component {
             nextProps.authenticationState.user.root_folder_id
           )
         );
-        this.props.navigation.push("Home", {
+        this.props.navigation.replace("Home", {
           folderId: nextProps.authenticationState.user.root_folder_id
         });
       }

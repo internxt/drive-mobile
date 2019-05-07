@@ -4,7 +4,7 @@ import { composeWithDevTools } from "redux-devtools-extension";
 
 import reducer from "../reducers";
 
-const ENABLE_DEBUGGING = false;
+const ENABLE_DEBUGGING = true;
 
 const lightweightLoggerMiddleware = store => next => action => {
   if (process.env.NODE_ENV == 'development' && ENABLE_DEBUGGING) {

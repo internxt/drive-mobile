@@ -91,7 +91,7 @@ class SignIn extends Component {
       <View style={styles.container}>
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
-            <View style={styles.headerContainer}>
+            <View>
               <Image
                 style={styles.logo}
                 source={require("../../../assets/images/logo.png")}
@@ -175,8 +175,8 @@ const styles = StyleSheet.create({
   containerHeader: {
   },
   logo: {
-    height: 29.1,
-    width: 55.4,
+    aspectRatio: 1.3,
+    resizeMode: 'contain'
   },
   title: {
     fontFamily: "CerebriSans-Bold",

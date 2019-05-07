@@ -31,11 +31,10 @@ class FileItem extends Component {
 
     if (isFolder) {
       this.props.dispatch(fileActions.getFolderContent(item.id));
-      navigation.push("Home", { folderId: item.id });
-      return;
+      navigation.setParams({ folderId: item.id });
+    } else {
+      this.props.dispatch(fileActions.selectFile(item));
     }
-
-    this.props.dispatch(fileActions.selectFile(item));
   }
 
   onDetailsClick() {

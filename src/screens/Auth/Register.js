@@ -106,8 +106,8 @@ const styles = StyleSheet.create({
     borderWidth: 0
   },
   logo: {
-    height: 29.1,
-    width: 55.4,
+    aspectRatio: 1.3,
+    resizeMode: 'contain'
   },
   title: {
     fontFamily: "CerebriSans-Bold",

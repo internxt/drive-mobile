@@ -10,7 +10,7 @@ import ProgressBar from '../../components/ProgressBar'
 import Separator from '../../components/Separator'
 import SettingsItem from '../../components/SettingsItem'
 
-import { fileActions, layoutActions } from "../../actions";
+import { fileActions, layoutActions, userActions } from "../../actions";
 
 import Modal from 'react-native-modalbox';
 
@@ -29,19 +29,21 @@ class Home extends Component {
 
   componentWillReceiveProps(nextProps) {
 
-    const folderId = parseFloat(
-      nextProps.navigation.getParam("folderId", "undefined")
-    );
+    if (nextProps.layoutState.showSettingsModal) {
+      this.refs.modalSettings.open();
+      this.props.dispatch(layoutActions.closeSettings());
+    }
+
+    const folderId = parseInt(nextProps.navigation.getParam("folderId", "undefined"));
     const { token, user } = this.props.authenticationState;
 
     // If logged out
-    if (this.props.authenticationState.loggedIn === false) {
-      this.props.navigation.popToTop();
+    if (nextProps.authenticationState.loggedIn === false) {
+      this.props.navigation.replace("Auth");
     }
 
     // Set active Folder ID
     if (folderId !== this.state.folderId) {
-      this.props.dispatch(fileActions.getFolderContent(folderId));
       this.setState({
         folderId,
         backButtonVisible: folderId !== user.root_folder_id
@@ -55,11 +57,6 @@ class Home extends Component {
       });
     }
 
-    if (nextProps.layoutState.showSettingsModal) {
-      this.refs.modalSettings.open();
-      this.props.dispatch(layoutActions.closeSettings());
-      console.log(nextProps);
-    }
   }
 
   downloadfile(file) {
@@ -78,6 +75,8 @@ class Home extends Component {
       borderRadius: 1.3
     }
 
+
+
     return (
       <View style={styles.container}>
         <Modal
@@ -87,7 +86,9 @@ class Home extends Component {
           backdropPressToClose={true}>
           <View style={styles.drawerKnob}></View>
 
-          <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 26, marginTop: 40, fontFamily: 'CerebriSans-Bold' }}>{this.props.authenticationState.user.name} {this.props.authenticationState.user.lastname}</Text>
+          <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 26, marginTop: 40, fontFamily: 'CerebriSans-Bold' }}>
+            {this.props.authenticationState.user.name} {this.props.authenticationState.user.lastname}
+          </Text>
 
           <ProgressBar styleBar={ProgressBarStyle} styleProgress={ProgressBarStyle} />
 
@@ -105,7 +106,7 @@ class Home extends Component {
 
           <Separator />
 
-          <SettingsItem text="Sign out" />
+          <SettingsItem text="Sign out" onClick={() => this.props.dispatch(userActions.signout())} />
         </Modal>
 
         <View style={{ height: 17.5 }}></View>
