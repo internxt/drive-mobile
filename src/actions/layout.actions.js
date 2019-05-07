@@ -2,7 +2,9 @@ import { layoutActionTypes } from "../constants";
 
 export const layoutActions = {
   openSearch,
-  closeSearch
+  closeSearch,
+  openSettings,
+  closeSettings
 };
 
 function openSearch() {
@@ -15,4 +17,16 @@ function closeSearch() {
   return dispatch => {
     dispatch({ type: layoutActionTypes.CLOSE_SEARCH_FORM });
   };
+}
+
+function openSettings() {
+  return dispatch => {
+    dispatch({ type: layoutActionTypes.OPEN_SETTINGS_MODAL });
+  }
+}
+
+function closeSettings() {
+  return dispatch => {
+    dispatch({ type: layoutActionTypes.CLOSE_SETTINGS_MODAL });
+  }
 }

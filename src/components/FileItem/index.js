@@ -63,15 +63,14 @@ class FileItem extends Component {
     const itemIcon = isFolder ? (
       <IconFolder color={color} />
     ) : (
-      <IconFile label={item.type} />
-    );
+        <IconFile label={item.type} />
+      );
 
     return (
       <TouchableHighlight
         underlayColor="#FFF"
         style={[styles.container, extendStyles.containerBackground]}
         onPress={this.onItemClick}
-        onLongPress={isFolder ? '' : (() => this.props.downloadFile(item))}
       >
         <Fragment>
           <View style={styles.fileDetails}>

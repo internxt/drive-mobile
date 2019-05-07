@@ -5,8 +5,10 @@ import { LinearGradient } from "expo";
 import { SCREEN_WIDTH } from "../../styles";
 
 class ProgressBar extends Component {
+
   render() {
-    const { totalValue, usedValue } = this.props;
+    const { totalValue, usedValue, styleBar, styleProgress } = this.props;
+
     const screenPadding = 40;
     const usedValueStyle = StyleSheet.create({
       size: {
@@ -15,11 +17,11 @@ class ProgressBar extends Component {
     });
 
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, styleBar]}>
         <LinearGradient
           colors={["#4b66ff", "#538dff"]}
           start={[0.5, 0]}
-          style={[styles.inner, usedValueStyle.size]}
+          style={[styles.inner, usedValueStyle.size, styleProgress]}
         />
       </View>
     );

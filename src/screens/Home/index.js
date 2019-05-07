@@ -3,10 +3,16 @@ import { StyleSheet, Text, View } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 
-import AppMenu from "../../components/AppMenu";
-import FileList from "../../components/FileList";
-import ButtonPreviousDir from "../../components/ButtonPreviousDir";
-import { fileActions } from "../../actions";
+import AppMenu from '../../components/AppMenu'
+import FileList from '../../components/FileList'
+import ButtonPreviousDir from '../../components/ButtonPreviousDir'
+import ProgressBar from '../../components/ProgressBar'
+import Separator from '../../components/Separator'
+import SettingsItem from '../../components/SettingsItem'
+
+import { fileActions, layoutActions } from "../../actions";
+
+import Modal from 'react-native-modalbox';
 
 class Home extends Component {
   constructor(props) {
@@ -22,6 +28,7 @@ class Home extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+
     const folderId = parseFloat(
       nextProps.navigation.getParam("folderId", "undefined")
     );
@@ -47,6 +54,12 @@ class Home extends Component {
         user
       });
     }
+
+    if (nextProps.layoutState.showSettingsModal) {
+      this.refs.modalSettings.open();
+      this.props.dispatch(layoutActions.closeSettings());
+      console.log(nextProps);
+    }
   }
 
   downloadfile(file) {
@@ -56,19 +69,57 @@ class Home extends Component {
   render() {
     const { navigation, filesState } = this.props;
 
+    const ProgressBarStyle = {
+      height: 6,
+      marginLeft: 26,
+      marginRight: 26,
+      marginTop: 18,
+      marginBottom: 23,
+      borderRadius: 1.3
+    }
+
     return (
       <View style={styles.container}>
+        <Modal
+          position={"bottom"}
+          ref={"modalSettings"}
+          style={styles.modalSettings}
+          backdropPressToClose={true}>
+          <View style={styles.drawerKnob}></View>
+
+          <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 26, marginTop: 40, fontFamily: 'CerebriSans-Bold' }}>{this.props.authenticationState.user.name} {this.props.authenticationState.user.lastname}</Text>
+
+          <ProgressBar styleBar={ProgressBarStyle} styleProgress={ProgressBarStyle} />
+
+          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
+            <Text>Used</Text>
+            <Text style={{ fontWeight: 'bold' }}> 24GB </Text>
+            <Text>of</Text>
+            <Text style={{ fontWeight: 'bold' }}> 100GB </Text>
+          </Text>
+
+          <Separator />
+
+          <SettingsItem text="Storage" />
+          <SettingsItem text="Contact Us" />
+
+          <Separator />
+
+          <SettingsItem text="Sign out" />
+        </Modal>
+
+        <View style={{ height: 17.5 }}></View>
+
         <AppMenu navigation={navigation} />
+
         <View style={styles.breadcrumbs}>
           <Text style={styles.breadcrumbsTitle}>
-            {filesState.folderContent && filesState.folderContent.parentId
-              ? filesState.folderContent.name
-              : "Home"}
+            {filesState.folderContent && filesState.folderContent.parentId ? filesState.folderContent.name : "Home"}
           </Text>
           {this.state.backButtonVisible && <ButtonPreviousDir />}
         </View>
 
-        <FileList downloadFile={this.downloadfile}/>
+        <FileList downloadFile={this.downloadfile} />
       </View>
     );
   }
@@ -79,6 +130,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-start",
     backgroundColor: "#fff"
+  },
+  drawerKnob: {
+    backgroundColor: '#d8d8d8',
+    width: 56,
+    height: 7,
+    borderRadius: 4,
+    alignSelf: 'center',
+    marginTop: 10
   },
   breadcrumbs: {
     display: "flex",
@@ -96,6 +155,14 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
     paddingLeft: 20,
     color: "#000000"
+  },
+  modalSettings: {
+    height: 383
+  },
+  modalSettingsProgressBar: {
+    height: 6.5,
+    marginLeft: 24,
+    marginRight: 24
   }
 });
 

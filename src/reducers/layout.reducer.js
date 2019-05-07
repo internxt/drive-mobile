@@ -27,6 +27,16 @@ export function layoutReducer(state = initialState, action) {
         ...state,
         searchActive: false
       };
+    case layoutActionTypes.OPEN_SETTINGS_MODAL:
+      return {
+        ...state,
+        showSettingsModal: true
+      }
+    case layoutActionTypes.CLOSE_SETTINGS_MODAL:
+      return {
+        ...state,
+        showSettingsModal: false
+      }
     default:
       return state;
   }

@@ -61,9 +61,13 @@ class AppMenu extends Component {
               : console.log("folder details")
           }
         />
+
         <MenuItem
           name="settings"
-          onClickHandler={() => this.props.navigation.push("Settings")}
+          onClickHandler={() => {
+            this.props.dispatch(layoutActions.openSettings());
+          }}
+
         />
       </Fragment>
     );
