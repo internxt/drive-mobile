@@ -4,8 +4,10 @@ import { composeWithDevTools } from "redux-devtools-extension";
 
 import reducer from "../reducers";
 
+const ENABLE_DEBUGGING = false;
+
 const lightweightLoggerMiddleware = store => next => action => {
-  if (process.env.NODE_ENV == 'development') {
+  if (process.env.NODE_ENV == 'development' && ENABLE_DEBUGGING) {
     console.log('[REDUX LOG] Initial state: ', store.getState());
     console.log('[REDUX LOG] Action: ', action);
   }

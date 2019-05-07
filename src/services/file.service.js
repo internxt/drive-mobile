@@ -34,8 +34,6 @@ function getFolderContent(folderId) {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
 
-    console.log(headers);
-
     fetch(`${REACT_APP_API_URL}/api/storage/folder/${folderId}`, {
       method: "GET",
       headers

@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { compose } from "redux";
 import { connect } from "react-redux";
-import { View, Text } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 
 import EmptyDirectory from "../EmptyDirectory";
 import FileItem from "../FileItem";
@@ -13,8 +13,8 @@ class FileList extends Component {
 
     if (loading || !folderContent) {
       return (
-        <View>
-          <Text>Loading files..</Text>
+        <View style={{ justifyContent: 'center', flex: 1, alignItems: 'center' }}>
+          <ActivityIndicator />
         </View>
       );
     }
@@ -22,7 +22,7 @@ class FileList extends Component {
     let content = <EmptyDirectory />;
     if (folderContent.files.length > 0 || folderContent.children.length > 0) {
       content = (
-        <View>
+        <ScrollView>
           {folderContent.children.map(file => (
             <FileItem key={file.id} item={file} isFolder={true} />
           ))}
@@ -35,7 +35,7 @@ class FileList extends Component {
               downloadFile={this.props.downloadFile}
             />
           ))}
-        </View>
+        </ScrollView>
       );
     }
 
@@ -44,9 +44,7 @@ class FileList extends Component {
 }
 
 const mapStateToProps = state => {
-  return {
-    ...state
-  };
+  return { ...state };
 };
 
 export default (FileListComposed = compose(connect(mapStateToProps))(FileList));

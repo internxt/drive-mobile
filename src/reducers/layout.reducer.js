@@ -2,7 +2,8 @@ import { layoutActionTypes } from "../constants";
 
 const initialState = {
   searchActive: false,
-  createFolderActive: false
+  createFolderActive: false,
+  showSettingsModal: false
 };
 
 export function layoutReducer(state = initialState, action) {
