@@ -14,11 +14,11 @@ function downloadFile(user, file) {
     dispatch(request());
 
     fileService.downloadFile(user, file)
-    .then((result) => {
-      dispatch(success(result));
-    }).catch((error) => {
-      dispatch(failure(error));
-    })
+      .then((result) => {
+        dispatch(success(result));
+      }).catch((error) => {
+        dispatch(failure(error));
+      })
   }
 
   function request() {
@@ -44,6 +44,7 @@ function getFolderContent(folderId) {
     dispatch(request());
     fileService.getFolderContent(id)
       .then(data => {
+        data.currentFolder = id;
         dispatch(success(data));
       })
       .catch(error => {
