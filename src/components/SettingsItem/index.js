@@ -20,7 +20,7 @@ class SettingsItem extends Component {
     }
 
     render() {
-        return <TouchableHighlight style={styles.itemContainer} onPress={this.handlePress}>
+        return <TouchableHighlight underlayColor='#FFFFFF' style={styles.itemContainer} onPress={this.handlePress}>
             <Text style={styles.itemText}>
                 {this.props.text}
             </Text>

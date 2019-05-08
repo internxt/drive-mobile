@@ -1,7 +1,9 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Linking } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
+
+import prettysize from 'prettysize'
 
 import AppMenu from '../../components/AppMenu'
 import FileList from '../../components/FileList'
@@ -23,7 +25,12 @@ class Home extends Component {
       folderName: "Home",
       backButtonVisible: false,
       token: "",
-      user: {}
+      user: {},
+
+      usage: {
+        used: 0,
+        maxLimit: 1024 * 1024 * 1024
+      }
     };
   }
 
@@ -63,6 +70,41 @@ class Home extends Component {
     this.props.dispatch(fileActions.downloadFile(this.state.user, file));
   }
 
+  loadUsage = () => {
+    const user = this.props.authenticationState.user.email;
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/limit`, {
+      method: 'post',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        email: user
+      })
+    }
+    ).then(res => res.json())
+      .then(res => {
+        var copyUsage = this.state.usage;
+        copyUsage.maxLimit = res.maxSpaceBytes;
+        this.setState({ usage: copyUsage })
+      }).catch(err => {
+        console.log(err);
+      });
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/usage`, {
+      method: 'post',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: user })
+    }
+    ).then(res => res.json())
+      .then(res => {
+        console.log(res);
+        var copyUsage = this.state.usage;
+        copyUsage.used = res.total;
+        this.setState({ usage: copyUsage })
+      }).catch(err => {
+        console.log(err);
+      });
+  }
+
   render() {
     const { navigation, filesState } = this.props;
 
@@ -75,14 +117,14 @@ class Home extends Component {
       borderRadius: 1.3
     }
 
-
-
     return (
       <View style={styles.container}>
         <Modal
           position={"bottom"}
           ref={"modalSettings"}
           style={styles.modalSettings}
+          onOpened={this.loadUsage}
+          backButtonClose={true}
           backdropPressToClose={true}>
           <View style={styles.drawerKnob}></View>
 
@@ -90,19 +132,24 @@ class Home extends Component {
             {this.props.authenticationState.user.name} {this.props.authenticationState.user.lastname}
           </Text>
 
-          <ProgressBar styleBar={ProgressBarStyle} styleProgress={ProgressBarStyle} />
+          <ProgressBar
+            styleBar={ProgressBarStyle}
+            styleProgress={{ height: 6 }}
+            totalValue={this.state.usage.maxLimit}
+            usedValue={this.state.usage.used}
+          />
 
           <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
             <Text>Used</Text>
-            <Text style={{ fontWeight: 'bold' }}> 24GB </Text>
+            <Text style={{ fontWeight: 'bold' }}> {prettysize(this.state.usage.used)} </Text>
             <Text>of</Text>
-            <Text style={{ fontWeight: 'bold' }}> 100GB </Text>
+            <Text style={{ fontWeight: 'bold' }}> {prettysize(this.state.usage.maxLimit)} </Text>
           </Text>
 
           <Separator />
 
-          <SettingsItem text="Storage" />
-          <SettingsItem text="Contact Us" />
+          <SettingsItem text="Storage" onClick={() => this.props.navigation.push("Settings")} />
+          <SettingsItem text="Contact Us" onClick={() => Linking.openURL('mailto:hello@internxt.com')} />
 
           <Separator />
 
