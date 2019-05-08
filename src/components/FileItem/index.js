@@ -52,7 +52,7 @@ class FileItem extends Component {
 
     const extendStyles = StyleSheet.create({
       text: {
-        color: isFolder ? colors[color].code : "#000000"
+        color: "#000000"
       },
       containerBackground: {
         backgroundColor: isSelected ? "#f2f5ff" : "#fff"
@@ -78,7 +78,7 @@ class FileItem extends Component {
               <Text style={[styles.fileName, extendStyles.text]}>
                 {item.name}
               </Text>
-              {!isFolder && (
+              {!isFolder && false && (
                 <TimeAgo style={styles.fileUpdated} time={item.added} />
               )}
             </View>
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     height: 80,
     borderBottomColor: "#e6e6e6",
-    borderBottomWidth: 2
+    borderBottomWidth: 0
   },
   fileDetails: {
     display: "flex",
