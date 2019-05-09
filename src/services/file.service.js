@@ -9,7 +9,7 @@ export const fileService = {
 
 async function setHeaders() {
   const token = await deviceStorage.getItem('xToken');
-  const user = await deviceStorage.getItem('xUser');
+  const user = JSON.parse(await deviceStorage.getItem('xUser'));
   const headers = {
     Authorization: `Bearer ${token}`,
     "Content-type": "application/json; charset=utf-8",
