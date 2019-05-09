@@ -4,14 +4,16 @@ import {
   View,
   Text,
   TouchableHighlight,
-  Image
+  Image, Linking, Alert
 } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 
 import MenuItem from "./MenuItem";
 import { getIcon } from "../../helpers";
-import { layoutActions } from "../../actions";
+import { layoutActions, fileActions } from "../../actions";
+
+import { DocumentPicker, FileSystem, WebBrowser } from 'expo';
 
 const arrowBack = getIcon("back");
 
@@ -21,14 +23,102 @@ class AppMenu extends Component {
 
     this.handleMenuClick = this.handleMenuClick.bind(this);
     this.handleFolderCreate = this.handleFolderCreate.bind(this);
+    this.uploadFile = this.uploadFile.bind(this);
+    this.downloadFile = this.downloadFile.bind(this);
   }
 
   handleMenuClick() {
-    console.log("menu item clicked");
+    Alert.alert('Action', 'Menu item clicked');
   }
 
   handleFolderCreate(parentFolderId) {
     this.props.navigation.push("CreateFolder", { parentFolderId });
+  }
+
+  downloadFile = async () => {
+    const fileId = this.props.filesState.selectedFile.fileId;
+    const fileName = this.props.filesState.selectedFile.name + '.' + this.props.filesState.selectedFile.type;
+    const token = this.props.authenticationState.token;
+    const mnemonic = this.props.authenticationState.user.mnemonic;
+
+    const headers = {
+      "Authorization": `Bearer ${token}`,
+      "internxt-mnemonic": mnemonic,
+      "Content-type": "application/json"
+    };
+
+    // Generate token:
+    fetch(`${process.env.REACT_APP_API_URL}/api/storage/share/file/${fileId}`, {
+      method: 'POST',
+      headers
+    }).then(async result => {
+      console.log(result.status);
+      var data = await result.json();
+      return { res: result, data };
+    }).then(result => {
+      if (result.res.status != 200) {
+        if (result.data.error) {
+          Alert.alert('Error', result.data.error);
+        } else {
+          Alert.alert('Error', 'Cannot download file');
+        }
+      } else {
+        const linkToken = result.data.token;
+        const proxy = 'https://api.internxt.com:8081';
+        Linking.openURL(`${proxy}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`);
+      }
+    }).catch(err => {
+      console.log("Error", err);
+      Alert.alert('Error', 'Internal error');
+    });
+
+  }
+
+  uploadFile = async () => {
+    const self = this;
+
+    DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: false }).then(async result => {
+      if (result.type == 'cancel') {
+        return;
+      }
+      const body = new FormData();
+      body.append('xfile', {
+        uri: result.uri,
+        type: 'application/octet-stream',
+        name: result.name
+      });
+
+      const token = this.props.authenticationState.token;
+      const mnemonic = this.props.authenticationState.user.mnemonic;
+
+      const headers = {
+        "Authorization": `Bearer ${token}`,
+        "internxt-mnemonic": mnemonic,
+        "Content-type": "multipart/form-data"
+      };
+
+      fetch(`${process.env.REACT_APP_API_URL}/api/storage/folder/${this.props.filesState.folderContent.currentFolder}/upload`, {
+        method: 'POST',
+        headers,
+        body
+      }).then(async resultFetch => {
+        var data = resultFetch.json();
+        return { res: resultFetch, data };
+      }).then(resultFetch => {
+        if (resultFetch.res.status == 201) {
+          self.props.dispatch(fileActions.getFolderContent(self.props.filesState.folderContent.currentFolder));
+        } else {
+          Alert.alert('Error', resultFetch.data.error ? resultFetch.data.error : 'Cannot upload file');
+        }
+      }).catch(errFetch => {
+        Alert.alert('Error', 'Cannot upload file');
+        console.log("Error fetching", errFetch);
+      });
+
+    }).catch(err => {
+      console.log('Error:', err);
+    });
+
   }
 
   render() {
@@ -46,8 +136,8 @@ class AppMenu extends Component {
           name="search"
           onClickHandler={() => this.props.dispatch(layoutActions.openSearch())}
         />
-        <MenuItem name="list" />
-        <MenuItem name="upload" />
+        <MenuItem name="list" onClickHandler={this.downloadFile} />
+        <MenuItem name="upload" onClickHandler={this.uploadFile} />
         <MenuItem
           name="create"
           onClickHandler={() => this.handleFolderCreate(folderContent.id)}
@@ -84,6 +174,7 @@ class AppMenu extends Component {
           <View style={styles.breadcrumbs}>
             <Image style={styles.icon} source={arrowBack} />
             <Text style={styles.breadcrumbsLabel}>{name}</Text>
+            <View style={{ borderBottomWidth: 1, borderBottomColor: '#f2f2f2' }}></View>
           </View>
         </TouchableHighlight>
       );
