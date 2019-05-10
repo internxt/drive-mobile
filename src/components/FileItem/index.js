@@ -59,11 +59,7 @@ class FileItem extends Component {
       }
     });
 
-    const itemIcon = isFolder ? (
-      <IconFolder color={color} />
-    ) : (
-        <IconFile label={item.type} />
-      );
+    const itemIcon = isFolder ? <IconFolder color={color} /> : <IconFile label={item.type} />;
 
     return (
       <TouchableHighlight
@@ -71,29 +67,28 @@ class FileItem extends Component {
         style={[styles.container, extendStyles.containerBackground]}
         onPress={this.onItemClick}
       >
-        <Fragment>
-          <View style={styles.fileDetails}>
+        <View style={styles.fileDetails}>
+          <View style={styles.itemIcon}>
             {itemIcon}
-            <View>
-              <Text style={[styles.fileName, extendStyles.text]}>
-                {item.name}
-              </Text>
-              {!isFolder && false && (
-                <TimeAgo style={styles.fileUpdated} time={item.added} />
-              )}
-            </View>
           </View>
-
-          {isSelected && (
-            <TouchableHighlight
-              style={styles.buttonDetails}
-              underlayColor="#f2f5ff"
-              onPress={this.onDetailsClick}
-            >
-              <Image style={styles.buttonDetailsIcon} source={imageSource} />
-            </TouchableHighlight>
-          )}
-        </Fragment>
+          <View style={styles.nameAndTime}>
+            <Text style={[styles.fileName, extendStyles.text]} numberOfLines={1}>
+              {item.name}
+            </Text>
+            {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.added} />)}
+          </View>
+          <View style={styles.buttonDetailsContainer}>
+            {isSelected && (
+              <TouchableHighlight
+                style={styles.buttonDetails}
+                underlayColor="#f2f5ff"
+                onPress={this.onDetailsClick}
+              >
+                <Image style={styles.buttonDetailsIcon} source={imageSource} />
+              </TouchableHighlight>
+            )}
+          </View>
+        </View>
       </TouchableHighlight>
     );
   }
@@ -101,17 +96,18 @@ class FileItem extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    height: 80,
-    borderBottomColor: "#e6e6e6",
-    borderBottomWidth: 0
+    justifyContent: 'center',
+    height: 80
   },
   fileDetails: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center"
+    flexDirection: 'row'
+  },
+  itemIcon: {
+    display: 'flex'
+  },
+  nameAndTime: {
+    justifyContent: 'center',
+    flex: 7
   },
   fileName: {
     fontFamily: "CircularStd-Bold",
@@ -124,6 +120,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#2a5fc9",
     marginTop: 2
+  },
+  buttonDetailsContainer: {
   },
   buttonDetails: {
     display: "flex",
