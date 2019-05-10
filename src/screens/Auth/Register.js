@@ -100,7 +100,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF'
   },
   containerCentered: {
-    justifyContent: 'center'
+    justifyContent: 'center',
+    alignSelf: 'center',
+    width: 325,
+    height: 600
   },
   containerHeader: {
     borderWidth: 0

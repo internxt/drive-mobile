@@ -80,37 +80,6 @@ class Auth extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
-    padding: 20
-  },
-  headerContainer: {
-    flex: 0.15
-  },
-  formContainer: {
-    flex: 0.9
-  },
-  logo: {
-    height: 29.1,
-    width: 55.4,
-    marginTop: 70
-  },
-  title: {
-    fontFamily: "CerebriSans-Bold",
-    fontSize: 27,
-    letterSpacing: -1.7,
-    color: "#000",
-    marginTop: 15,
-    marginBottom: 35
-  },
-  subtitle: {
-    fontFamily: "CerebriSans-Medium",
-    fontSize: 29,
-    color: "#fff",
-    opacity: 0.76
-  }
 });
 
 const mapStateToProps = state => {

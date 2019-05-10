@@ -169,6 +169,7 @@ const styles = StyleSheet.create({
   },
   containerCentered: {
     justifyContent: 'center',
+    alignSelf: 'center',
     width: 325,
     height: 600
   },
