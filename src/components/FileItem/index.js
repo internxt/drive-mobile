@@ -130,7 +130,8 @@ const styles = StyleSheet.create({
     width: 51,
     height: 51,
     marginRight: 10,
-    borderRadius: 25.5
+    borderRadius: 25.5,
+    flex: 1
   },
   buttonDetailsIcon: {
     width: 25,
