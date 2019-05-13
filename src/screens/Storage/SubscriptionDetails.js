@@ -10,7 +10,7 @@ class SubscriptionDetails extends Component {
     const { plan } = navigation.state.params;
     const isPaidPlan = plan.id !== 0;
     const breadcrumbs = {
-      name: "Settings"
+      name: "Storage"
     };
 
     return (

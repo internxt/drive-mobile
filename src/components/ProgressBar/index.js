@@ -31,8 +31,8 @@ class ProgressBar extends Component {
 const styles = StyleSheet.create({
   container: {
     position: "relative",
-    height: 17,
-    borderRadius: 9,
+    height: 10,
+    borderRadius: 3,
     backgroundColor: "#e8e8e8",
     marginBottom: 10
   },
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     top: 0,
-    height: 17,
+    height: 10,
     borderRadius: 9
   }
 });

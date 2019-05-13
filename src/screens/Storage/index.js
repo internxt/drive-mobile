@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, TouchableHighlight } from "react-native";
+import { StyleSheet, Text, View, TouchableHighlight, ScrollView } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 import prettysize from 'prettysize'
@@ -9,7 +9,9 @@ import PlanListItem from "../../components/PlanListItem";
 import ProgressBar from "../../components/ProgressBar";
 import { userActions } from "../../actions";
 
-class Settings extends Component {
+import { LinearGradient } from 'expo';
+
+class Storage extends Component {
   constructor(props) {
     super(props);
 
@@ -30,14 +32,16 @@ class Settings extends Component {
         },
         {
           id: 1,
-          price: "$1.49 / month",
+          price: "€1.49",
+          period: "month",
           amount: 100,
           unit: "GB",
           active: false
         },
         {
           id: 2,
-          price: "$4.99 / month",
+          price: "€4.99",
+          period: "month",
           amount: 1,
           unit: "TB",
           active: false
@@ -77,7 +81,8 @@ class Settings extends Component {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email: user })
     }
-    ).then(res => res.json())
+    )
+      .then(res => res.json())
       .then(res => {
         var copyUsage = this.state.usage;
         copyUsage.used = res.total;
@@ -92,64 +97,79 @@ class Settings extends Component {
     const { plans, usage, activePlan } = this.state;
     const { navigation } = this.props;
     const breadcrumbs = {
-      name: "Settings"
+      name: "Storage"
     };
 
     return (
-      <View style={styles.container}>
-        <AppMenu navigation={navigation} breadcrumbs={breadcrumbs} />
-        <View style={styles.titleWrapper}>
-          <Text style={styles.title}>Storage Space</Text>
-          <Text style={styles.subtitleInline}>
-            Used {prettysize(this.state.usage.used)} of {prettysize(this.state.usage.maxLimit)}
-          </Text>
-        </View>
-
-        <ProgressBar totalValue={this.state.usage.maxLimit} usedValue={this.state.usage.used} />
-
-        <View style={styles.legendWrapper}>
-          <View style={styles.legendFill} />
-          <Text style={styles.textLegend}>
-            Used storage space
-          </Text>
-        </View>
-
-        <View style={styles.legendWrapper}>
-          <View style={styles.legendEmpty} />
-          <Text style={styles.textLegend}>
-            Unused storage space
-          </Text>
-        </View>
-
-        <View style={styles.divider} />
+      <ScrollView style={styles.container}>
 
         <View>
-          <Text style={styles.title}>Storage Plans</Text>
-          <Text style={styles.subtitle}>
-            You are currently using {activePlan.amount}
-            {activePlan.unit} for {activePlan.price.toLowerCase()}.
-          </Text>
+          <View style={[styles.marginBox, { marginTop: 5 }]} >
+            <AppMenu navigation={navigation} breadcrumbs={breadcrumbs} />
+          </View>
+          <View style={[styles.divider, { marginTop: 5, marginBottom: 40 }]} />
+
+          <View style={styles.marginBox}>
+            <View style={styles.titleWrapper}>
+              <Text style={styles.title}>Storage Space</Text>
+              <Text style={styles.subtitleInline}>
+                Used <Text style={styles.bold}>{prettysize(this.state.usage.used)}</Text> of <Text style={styles.bold}>{prettysize(this.state.usage.maxLimit)}</Text>
+              </Text>
+            </View>
+
+            <View style={{ marginTop: 22, marginBottom: 22 }}>
+              <ProgressBar totalValue={this.state.usage.maxLimit} usedValue={this.state.usage.used} />
+            </View>
+
+
+            <View style={{ flexDirection: 'row' }}>
+              <View style={styles.legendWrapper}>
+                <LinearGradient style={styles.legendFill} colors={['#096dff', '#00b1ff']} />
+                <Text style={styles.textLegend}>Used space</Text>
+              </View>
+
+              <View style={{ width: 25 }} />
+
+              <View style={styles.legendWrapper}>
+                <View style={styles.legendEmpty} />
+                <Text style={styles.textLegend}>Unused space</Text>
+              </View>
+            </View>
+
+          </View>
+
+          <View style={[styles.divider, { marginTop: 38, marginBottom: 40 }]} />
         </View>
 
-        {plans.map(plan => (
-          <PlanListItem
-            plan={plan}
-            theme={plan.id === activePlan.id ? "medium" : "light"}
-            key={plan.id}
-            navigation={navigation}
-          />
-        ))}
 
-        <View style={styles.divider} />
+        <View style={styles.marginBox}>
+          <View>
+            <Text style={[styles.title, { marginBottom: 25 }]}>Storage Plans</Text>
+          </View>
 
-        <TouchableHighlight
-          style={styles.button}
-          underlayColor="#FFF"
-          onPress={() => this.props.dispatch(userActions.signout())}
-        >
-          <Text style={styles.buttonLabel}>Sign Out</Text>
-        </TouchableHighlight>
-      </View>
+          {plans.map(plan => (
+            <PlanListItem
+              plan={plan}
+              theme={plan.id === activePlan.id ? "medium" : "light"}
+              key={plan.id}
+              navigation={navigation}
+            />
+          ))}
+        </View>
+        <View style={[styles.marginBox, { marginBottom: 41, marginTop: 30 }]}>
+
+          <Text>You are subscribed to the 1GB plan.</Text>
+
+          <TouchableHighlight
+            style={styles.button}
+            underlayColor="#FFF"
+            onPress={() => this.props.dispatch(userActions.signout())}
+          >
+            <Text style={styles.buttonLabel}>Cancel plan</Text>
+          </TouchableHighlight>
+        </View>
+
+      </ScrollView>
     );
   }
 }
@@ -160,8 +180,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "space-between",
-    padding: 20
+    padding: 0
+  },
+  marginBox: {
+    marginLeft: 20,
+    marginRight: 20
   },
   titleWrapper: {
     display: "flex",
@@ -173,8 +196,7 @@ const styles = StyleSheet.create({
     fontFamily: "CircularStd-Bold",
     fontSize: 22,
     letterSpacing: -0.7,
-    color: "#000000",
-    marginBottom: 15
+    color: "#000000"
   },
   subtitle: {
     fontFamily: "CircularStd-Book",
@@ -189,7 +211,7 @@ const styles = StyleSheet.create({
     fontFamily: "CircularStd-Book",
     fontSize: 17,
     letterSpacing: -0.2,
-    color: "#404040"
+    color: "#7e848c"
   },
   subtitleInline: {
     fontFamily: "CircularStd-Book",
@@ -201,8 +223,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
-    marginBottom: 10
+    justifyContent: "flex-start"
   },
   legendFill: {
     width: 16,
@@ -219,11 +240,8 @@ const styles = StyleSheet.create({
     marginRight: 10
   },
   divider: {
-    position: "relative",
-    height: 2,
-    backgroundColor: "#f2f2f2",
-    marginTop: 5,
-    marginBottom: 5
+    height: 1,
+    backgroundColor: "#f2f2f2"
   },
   button: {
     height: 24,
@@ -231,10 +249,13 @@ const styles = StyleSheet.create({
     marginTop: 15
   },
   buttonLabel: {
-    fontFamily: "CircularStd-Bold",
+    fontFamily: "CircularStd-Book",
     color: "#4b66ff",
-    fontSize: 19,
+    fontSize: 16,
     letterSpacing: -0.2
+  },
+  bold: {
+    fontFamily: 'CircularStd-Bold'
   }
 });
 
@@ -244,4 +265,4 @@ const mapStateToProps = state => {
   };
 };
 
-export default (SettingsComposed = compose(connect(mapStateToProps))(Settings));
+export default (StorageComposed = compose(connect(mapStateToProps))(Storage));

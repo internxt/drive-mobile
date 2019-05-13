@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { StyleSheet, View, Text, TouchableHighlight } from "react-native";
+import { LinearGradient } from 'expo';
 
 class PlanListItem extends Component {
   render() {
@@ -19,13 +20,15 @@ class PlanListItem extends Component {
         onPress={() => navigation.push("SubscriptionDetails", { plan: plan })}
       >
         <View style={styles.row}>
-          <View style={[styles.planStorageContainer, extendStyles.container]}>
-            <Text style={[styles.planStorage, extendStyles.label]}>
-              {plan.amount}
-              {plan.unit}
-            </Text>
-          </View>
-          <Text style={styles.planPrice}>{plan.price}</Text>
+          <LinearGradient style={styles.linearGradientContainer} colors={['#096dff', '#00b1ff']} start={[0.0, 0.0]} end={[1.0, 1.0]}>
+            <View style={[styles.planStorageContainer]}>
+              <Text style={[styles.planStorage]}>
+                {plan.amount}
+                {plan.unit}
+              </Text>
+            </View>
+          </LinearGradient>
+          <Text style={styles.planPrice}><Text style={{ fontFamily: 'CircularStd-Bold' }}>{plan.price}</Text>{plan.period ? <Text style={{ color: '#7e848c' }}>/{plan.period}</Text> : ""}</Text>
         </View>
       </TouchableHighlight>
     );
@@ -34,12 +37,12 @@ class PlanListItem extends Component {
 
 const variants = {
   light: {
-    color: "#404040",
-    background: "#f5f5f5",
+    color: "#000000",
+    background: "#ffffff",
   },
   medium: {
-    color: "#2c6bc9",
-    background: "#f2f5ff",
+    color: "#000000",
+    background: "#ffffff",
   },
   dark: {
     color: "#fff",
@@ -53,27 +56,32 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center"
   },
+  linearGradientContainer: {
+    margin: 9,
+    padding: 1,
+    borderRadius: 4
+  },
   planStorageContainer: {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    width: 95,
-    height: 55,
-    borderRadius: 3,
-    marginRight: 10
+    width: 94,
+    height: 57,
+    borderRadius: 4,
+    backgroundColor: '#FFF'
   },
   planStorage: {
     fontFamily: "CircularStd-Black",
-    fontSize: 20,
-    color: "#404040",
-    letterSpacing: -0.1,
-    opacity: 0.64
+    fontSize: 18,
+    color: "#000",
+    letterSpacing: -0.1
   },
   planPrice: {
-    fontFamily: "CircularStd-Bold",
+    fontFamily: "CircularStd-Book",
     fontSize: 18,
     letterSpacing: -0.3,
-    color: "#000000"
+    color: "#000",
+    margin: 11
   }
 });
 
