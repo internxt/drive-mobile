@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontFamily: "CircularStd-Book",
-    color: "#4b66ff",
+    color: "#4585f5",
     fontSize: 16,
     letterSpacing: -0.2
   },
