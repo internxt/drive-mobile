@@ -4,7 +4,9 @@ export const layoutActions = {
   openSearch,
   closeSearch,
   openSettings,
-  closeSettings
+  closeSettings,
+  openFolderModal,
+  closeFolderModal
 };
 
 function openSearch() {
@@ -28,5 +30,17 @@ function openSettings() {
 function closeSettings() {
   return dispatch => {
     dispatch({ type: layoutActionTypes.CLOSE_SETTINGS_MODAL });
+  }
+}
+
+function openFolderModal() {
+  return dispatch => {
+    dispatch({ type: layoutActionTypes.OPEN_FOLDER_MODAL });
+  }
+}
+
+function closeFolderModal() {
+  return dispatch => {
+    dispatch({ type: layoutActionTypes.CLOSE_FOLDER_MODAL });
   }
 }

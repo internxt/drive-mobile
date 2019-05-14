@@ -6,7 +6,8 @@ export const fileActions = {
   getFolderContent,
   selectFile,
   deselectAll,
-  createFolder
+  createFolder,
+  updateFolderMetadata
 };
 
 function downloadFile(user, file) {
@@ -104,5 +105,28 @@ function createFolder(parentFolderId, newFolderName) {
   }
   function failure(payload) {
     return { type: fileActionTypes.CREATE_FOLDER_SUCCESS, payload };
+  }
+}
+
+function updateFolderMetadata(metadata, folderId) {
+  return dispatch => {
+    dispatch(request());
+
+    fileService.updateFolderMetadata(metadata, folderId)
+    .then(() => { dispatch(success()); })
+    .catch((error) => {
+      console.error(`Error updating metadata on folder (${parentFolderId}): `, error);
+      dispatch(failure(error));
+    });
+  };
+
+  function request() {
+    return { type: fileActionTypes.UPDATE_FOLDER_METADATA_REQUEST };
+  }
+  function success() {
+    return { type: fileActionTypes.UPDATE_FOLDER_METADATA_SUCCESS };
+  }
+  function failure(payload) {
+    return { type: fileActionTypes.UPDATE_FOLDER_METADATA_FAILURE, payload };
   }
 }

@@ -1,9 +1,9 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, Linking } from "react-native";
+import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
-
-import prettysize from 'prettysize'
+import Modal from 'react-native-modalbox';
+import prettysize from 'prettysize';
 
 import AppMenu from '../../components/AppMenu'
 import FileList from '../../components/FileList'
@@ -11,10 +11,10 @@ import ButtonPreviousDir from '../../components/ButtonPreviousDir'
 import ProgressBar from '../../components/ProgressBar'
 import Separator from '../../components/Separator'
 import SettingsItem from '../../components/SettingsItem'
+import { colors, folderIconsList } from '../../constants'
+import Icon from '../../../assets/icons/Icon'
 
 import { fileActions, layoutActions, userActions } from "../../actions";
-
-import Modal from 'react-native-modalbox';
 
 class Home extends Component {
   constructor(props) {
@@ -26,19 +26,34 @@ class Home extends Component {
       backButtonVisible: false,
       token: "",
       user: {},
-
+      selectedColor: '',
+      selectedIcon: '',
+      inputFileName: '',
       usage: {
         used: 0,
         maxLimit: 1024 * 1024 * 1024
       }
     };
+
+    this.modalFolder = React.createRef();
   }
 
   componentWillReceiveProps(nextProps) {
-
+    // Manage showing settings modal
     if (nextProps.layoutState.showSettingsModal) {
       this.refs.modalSettings.open();
       this.props.dispatch(layoutActions.closeSettings());
+    }
+
+    // Manage showing folder modal
+    if (nextProps.layoutState.showFolderModal) {
+      this.modalFolder.current.open();
+      this.props.dispatch(layoutActions.closeFolderModal());
+    }
+
+    // Set folder/file name if is selected
+    if (nextProps.filesState.selectedFile) {
+      this.setState({ inputFileName: nextProps.filesState.selectedFile.name })
     }
 
     const folderId = parseInt(nextProps.navigation.getParam("folderId", "undefined"));
@@ -63,11 +78,99 @@ class Home extends Component {
         user
       });
     }
-
   }
 
-  downloadfile(file) {
-    this.props.dispatch(fileActions.downloadFile(this.state.user, file));
+  closeFolderModal = () => {
+    // Check if color or icon was changed an set these changes
+    if (this.props.filesState.selectedFile) {
+      let metadata = {};
+      if (this.state.inputFileName !== this.props.filesState.selectedFile.name) {
+        metadata.itemName = this.state.inputFileName;
+      }
+      if (this.state.selectedColor !== this.props.filesState.selectedFile.color) {
+        metadata.color = this.state.selectedColor;
+      }
+      if (this.state.selectedIcon !== this.props.filesState.selectedFile.icon.id) {
+        metadata.icon = this.state.selectedIcon;
+      }
+      // Submit changes
+      if (metadata.itemName || metadata.color || metadata.icon) {
+        this.props.dispatch(fileActions.updateFolderMetadata(metadata, this.props.filesState.selectedFile.id));
+        this.props.dispatch(fileActions.getFolderContent(this.state.folderId));
+      }
+    }
+
+    this.setState({ selectedColor: '', selectedIcon: '' });
+  }
+
+  getFolderModal = (folder) => {
+    if (folder) {
+      return (
+        <Modal
+          position={"bottom"}
+          ref={this.modalFolder}
+          style={styles.modalFolder}
+          onClosed={this.closeFolderModal}
+          backButtonClose={true}
+          backdropPressToClose={true}>
+          <View style={styles.drawerKnob}></View>
+  
+          <TextInput 
+            style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 40 }} 
+            onChangeText={(value) => { this.setState({ inputFileName: value })}}
+            value={this.state.inputFileName}/>
+  
+          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
+            <Text>Type:</Text>
+            <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Folder</Text>
+          </Text>
+  
+          <Separator />
+  
+          <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
+            Style Color
+          </Text>
+  
+          <View style={styles.colorSelection}>
+              { 
+                Object.getOwnPropertyNames(colors).map((value, i) => {
+                  localColor = this.state.selectedColor ? this.state.selectedColor : (folder ? folder.color : null);
+                  isSelected = (localColor ? localColor === value : false);
+                  return(<TouchableHighlight key={i}
+                            underlayColor={colors[value].darker}
+                            style={[{ backgroundColor: colors[value].code}, styles.colorButton]}
+                            onPress={() => { this.setState({ selectedColor: value })}}>
+                            { isSelected ? <Icon name="checkmark" width={15} height={15} /> : <Text> </Text>} 
+                         </TouchableHighlight>)
+                })
+              }
+          </View>
+          
+          <Separator />
+          
+          <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
+            Cover Icon
+          </Text>
+  
+          <View style={styles.iconSelection}>
+            {
+              folderIconsList.map((value, i) => {
+                localIcon = this.state.selectedIcon ? this.state.selectedIcon : ((folder && folder.icon) ? folder.icon.id : null);
+                isSelected = (localIcon ? localIcon-1 === i : false);
+                return(<TouchableHighlight key={i}
+                          style={styles.iconButton}
+                          underlayColor="#F2F5FF"
+                          onPress={() => { this.setState({ selectedIcon: i+1 })}}>
+                          { isSelected ? <Icon name={value} color="#4385F4" style={styles.iconImage} width="30" height="30" /> : <Icon name={value} color={'grey'} style={styles.iconImage} width="30" height="30" /> }
+                       </TouchableHighlight>)
+              })
+            }
+          </View>
+  
+        </Modal>
+      )
+    } else { return; }
+    
   }
 
   loadUsage = () => {
@@ -96,7 +199,6 @@ class Home extends Component {
     }
     ).then(res => res.json())
       .then(res => {
-        console.log(res);
         var copyUsage = this.state.usage;
         copyUsage.used = res.total;
         this.setState({ usage: copyUsage })
@@ -119,6 +221,7 @@ class Home extends Component {
 
     return (
       <View style={styles.container}>
+        {filesState.selectedFile && this.getFolderModal(filesState.selectedFile)}
         <Modal
           position={"bottom"}
           ref={"modalSettings"}
@@ -148,7 +251,7 @@ class Home extends Component {
 
           <Separator />
 
-          <SettingsItem text="Storage" onClick={() => this.props.navigation.push("Settings")} />
+          <SettingsItem text="Storage" onClick={() => this.props.navigation.push("Storage")} />
           <SettingsItem text="Contact Us" onClick={() => Linking.openURL('mailto:hello@internxt.com')} />
 
           <Separator />
@@ -167,7 +270,7 @@ class Home extends Component {
           {this.state.backButtonVisible && <ButtonPreviousDir />}
         </View>
 
-        <FileList downloadFile={this.downloadfile} />
+        <FileList />
       </View>
     );
   }
@@ -211,6 +314,42 @@ const styles = StyleSheet.create({
     height: 6.5,
     marginLeft: 24,
     marginRight: 24
+  },
+  modalFolder: {
+    height: 600
+  },
+  colorSelection: {
+    display: "flex",
+    flexDirection: "row",
+    marginLeft: 15,
+    marginRight: 15,
+  },
+  colorButton: {
+    height: 27,
+    width: 27,
+    borderRadius: 15,
+    marginLeft: 9,
+    marginRight: 9,
+    justifyContent: "center",
+    alignItems: "center"
+  }, 
+  iconSelection: {
+    display: "flex",
+    flexWrap: "wrap",
+    flexDirection: "row",
+    marginLeft: 15,
+    marginRight: 15,
+  },
+  iconButton: {
+    height: 43,
+    width: 43,
+    margin: 8,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  iconImage: {
+    height: 25,
+    width: 25
   }
 });
 

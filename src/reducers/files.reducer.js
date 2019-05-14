@@ -76,6 +76,22 @@ export function filesReducer(state = initialState, action) {
         loading: false,
         error: action.payload
       };
+    case fileActionTypes.UPDATE_FOLDER_METADATA_REQUEST:
+      return {
+        ...state,
+        loading: true
+      }
+    case fileActionTypes.UPDATE_FOLDER_METADATA_SUCCESS:
+      return {
+        ...state,
+        loading: false
+      }
+    case fileActionTypes.UPDATE_FOLDER_METADATA_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload
+      }
     default:
       return state;
   }

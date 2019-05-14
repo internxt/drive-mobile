@@ -18,7 +18,7 @@
     "moment": "^2.22.2",
     "prettysize": "^2.0.0",
     "react": "16.5.1",
-    "react-native": "0.57.1",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
     "react-native-modalbox": "^1.7.1",
     "react-native-timeago": "^0.4.0",
     "react-navigation": "^2.18.2",

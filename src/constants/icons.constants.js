@@ -1,4 +1,9 @@
-export const icons = {
+export {
+  icons,
+  folderIconsList
+} 
+
+const icons = {
   /**
    * AppMenu Icons
    */
@@ -17,3 +22,8 @@ export const icons = {
   sort: require("../../assets/icons/icon-sort.png"),
   download: require("../../assets/icons/icon-download.png")
 };
+
+const folderIconsList = ['avatarcircleneutral', 'backup', 'barchart', 'bell', 'binoculars', 'book', 'camera', 'bowl', 'categories', 
+'circlefilledcheckmark', 'clappboard', 'clipboard', 'cloud', 'controllerneoGeo', 'dollarsign', 'facehappy', 'file', 
+'heartfilled', 'inbox', 'lighton', 'locklocked', 'musicnote', 'navigationcircle', 'notifications', 
+'path', 'running', 'starfilled', 'video', 'window', 'yinyang'];

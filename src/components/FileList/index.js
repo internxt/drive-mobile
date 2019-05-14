@@ -42,8 +42,12 @@ class FileList extends Component {
     if (folderContent.files.length > 0 || folderContent.children.length > 0) {
       content = (
         <ScrollView refreshControl={<RefreshControl isRefreshing={this.state.isRefreshing} onRefresh={this.refreshList} />}>
-          {folderContent.children.map(file => (
-            <FileItem key={file.id} item={file} isFolder={true} />
+          {folderContent.children.map(folder => (
+            <FileItem 
+              key={folder.id} 
+              item={folder} 
+              isFolder={true}
+              isSelected={selectedFile && selectedFile.id === folder.id} />
           ))}
           {folderContent.files.map(file => (
             <FileItem
@@ -51,7 +55,6 @@ class FileList extends Component {
               item={file}
               isFolder={false}
               isSelected={selectedFile && selectedFile.id === file.id}
-              downloadFile={this.props.downloadFile}
             />
           ))}
         </ScrollView>

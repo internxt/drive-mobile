@@ -3,7 +3,8 @@ import { layoutActionTypes } from "../constants";
 const initialState = {
   searchActive: false,
   createFolderActive: false,
-  showSettingsModal: false
+  showSettingsModal: false,
+  showFolderModal: false
 };
 
 export function layoutReducer(state = initialState, action) {
@@ -37,6 +38,16 @@ export function layoutReducer(state = initialState, action) {
       return {
         ...state,
         showSettingsModal: false
+      }
+    case layoutActionTypes.OPEN_FOLDER_MODAL:
+      return {
+        ...state,
+        showFolderModal: true
+      }
+    case layoutActionTypes.CLOSE_FOLDER_MODAL:
+      return {
+        ...state,
+        showFolderModal: false
       }
     default:
       return state;

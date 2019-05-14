@@ -8,7 +8,7 @@ const { Defs, LinearGradient, Path, Stop } = Svg;
 
 class IconFolder extends Component {
   render() {
-    const { color } = this.props;
+    const color = this.props.color || 'blue';
 
     return (
       <Svg style={styles.icon} viewBox="0 0 99 78">

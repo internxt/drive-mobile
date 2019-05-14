@@ -11,45 +11,54 @@ import {
 import { withNavigation } from "react-navigation";
 import TimeAgo from "react-native-timeago";
 
-import { fileActions } from "../../actions";
-import { colors } from "../../constants";
+import { fileActions, layoutActions } from "../../actions";
+import { folderIconsList, colors } from "../../constants";
 import { getIcon } from "../../helpers";
 import IconFolder from "../../components/IconFolder";
 import IconFile from "../../components/IconFile";
+import Icon from '../../../assets/icons/Icon';
 
 class FileItem extends Component {
   constructor() {
     super();
-
-    this.onItemClick = this.onItemClick.bind(this);
-    this.onDetailsClick = this.onDetailsClick.bind(this);
   }
 
-  onItemClick(event) {
+  onItemClick = (event) => {
     event.preventDefault();
     const { item, isFolder, navigation } = this.props;
 
     if (isFolder) {
+      // Enter in folder
       this.props.dispatch(fileActions.getFolderContent(item.id));
       navigation.setParams({ folderId: item.id });
     } else {
+      // Select file
       this.props.dispatch(fileActions.selectFile(item));
     }
   }
 
-  onDetailsClick() {
-    const { item } = this.props;
-    console.log("Show details: ", item);
+  onItemLongPress = (event) => {
+    event.preventDefault();
+    console.log(this.props);
+    const { item, isFolder } = this.props;
+    if (isFolder) {
+      // Select folder
+      this.props.dispatch(fileActions.selectFile(item));
+    }
+  }
+
+  onDetailsClick = () => {
+    const { item, isFolder } = this.props;
+    if (isFolder) {
+      this.props.dispatch(layoutActions.openFolderModal());
+    } else {
+      console.log("Show details: ", item);
+    }
   }
 
   render() {
     const { item, isFolder, isSelected } = this.props;
-    const { color } = item.style || {
-      color: "blue",
-      icon: ""
-    };
     const imageSource = getIcon("details");
-
     const extendStyles = StyleSheet.create({
       text: {
         color: "#000000"
@@ -60,7 +69,12 @@ class FileItem extends Component {
     });
 
     const itemIcon = isFolder ? (
-      <IconFolder color={color} />
+      <View>
+        <IconFolder color={item.color}/>
+        <View style={{ position: "absolute", left: 35, top: 7 }}>
+          <Icon name={item.icon ? folderIconsList[item.icon.id-1] : ''} color={colors[item.color].icon} height="24" width="24" />
+        </View>
+      </View>
     ) : (
         <IconFile label={item.type} />
       );
@@ -70,20 +84,19 @@ class FileItem extends Component {
         underlayColor="#FFF"
         style={[styles.container, extendStyles.containerBackground]}
         onPress={this.onItemClick}
+        onLongPress={this.onItemLongPress}
       >
-        <Fragment>
-          <View style={styles.fileDetails}>
+        <View style={styles.fileDetails}>
+          <View style={styles.itemIcon}>
             {itemIcon}
-            <View>
-              <Text style={[styles.fileName, extendStyles.text]}>
-                {item.name}
-              </Text>
-              {!isFolder && false && (
-                <TimeAgo style={styles.fileUpdated} time={item.added} />
-              )}
-            </View>
           </View>
-
+          <View style={styles.nameAndTime}>
+            <Text style={[styles.fileName, extendStyles.text]} numberOfLines={1}>
+              {item.name}
+            </Text>
+            {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.added} />)}
+          </View>
+          <View style={styles.buttonDetailsContainer}>
           {isSelected && (
             <TouchableHighlight
               style={styles.buttonDetails}
@@ -93,7 +106,8 @@ class FileItem extends Component {
               <Image style={styles.buttonDetailsIcon} source={imageSource} />
             </TouchableHighlight>
           )}
-        </Fragment>
+          </View>
+        </View>
       </TouchableHighlight>
     );
   }
@@ -101,17 +115,18 @@ class FileItem extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    height: 80,
-    borderBottomColor: "#e6e6e6",
-    borderBottomWidth: 0
+    justifyContent: 'center',
+    height: 80
   },
   fileDetails: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center"
+    flexDirection: 'row'
+  },
+  itemIcon: {
+    
+  },
+  nameAndTime: {
+    justifyContent: 'center',
+    flex: 7
   },
   fileName: {
     fontFamily: "CircularStd-Bold",
@@ -132,7 +147,8 @@ const styles = StyleSheet.create({
     width: 51,
     height: 51,
     marginRight: 10,
-    borderRadius: 25.5
+    borderRadius: 25.5,
+    flex: 1
   },
   buttonDetailsIcon: {
     width: 25,

@@ -4,7 +4,8 @@ const { REACT_APP_API_URL } = process.env;
 export const fileService = {
   downloadFile,
   getFolderContent,
-  createFolder
+  createFolder,
+  updateFolderMetadata
 };
 
 async function setHeaders() {
@@ -66,5 +67,19 @@ function createFolder(parentFolderId, folderName = "Untitled folder") {
       }).catch(error => {
         reject("[file.service] Could not create folder", error);
       });
+  });
+}
+
+function updateFolderMetadata(metadata, folderId) {
+  return new Promise(async (resolve, reject) => {
+    const headers = await setHeaders();
+    const data = JSON.stringify({ metadata });
+
+    fetch(`${REACT_APP_API_URL}/api/storage/folder/${folderId}/meta`, {
+      method: "POST",
+      headers,
+      body: data
+    }).then(() => { resolve(); })
+    .catch((error) => { reject(error); });
   });
 }
