@@ -117,11 +117,11 @@ class Home extends Component {
           <View style={styles.drawerKnob}></View>
   
           <TextInput 
-            style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 40 }} 
+            style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }} 
             onChangeText={(value) => { this.setState({ inputFileName: value })}}
             value={this.state.inputFileName}/>
   
-          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
+          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
             <Text>Type:</Text>
             <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Folder</Text>
           </Text>
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     marginRight: 24
   },
   modalFolder: {
-    height: hp('90%')
+    height: hp('90%') < 550 ? 550 : Math.min(600, hp('80%'))
   },
   colorSelection: {
     display: "flex",
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   iconButton: {
     height: 43,
     width: 43,
-    margin: 8,
+    margin: hp('90%') < 600 ? 5 : 8,
     justifyContent: "center",
     alignItems: "center"
   },
