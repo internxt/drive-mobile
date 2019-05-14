@@ -88,6 +88,7 @@ obj/
 /android/.idea/dynamic.xml
 /android/.idea/uiDesigner.xml
 /android/.idea/assetWizardSettings.xml
+/android/.idea/gradle.xml
 
 # OS-specific files
 .DS_Store
