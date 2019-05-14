@@ -4,6 +4,7 @@ import { compose } from "redux";
 import { connect } from "react-redux";
 import Modal from 'react-native-modalbox';
 import prettysize from 'prettysize';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 import AppMenu from '../../components/AppMenu'
 import FileList from '../../components/FileList'
@@ -116,11 +117,11 @@ class Home extends Component {
           <View style={styles.drawerKnob}></View>
   
           <TextInput 
-            style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 40 }} 
+            style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }} 
             onChangeText={(value) => { this.setState({ inputFileName: value })}}
             value={this.state.inputFileName}/>
   
-          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
+          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
             <Text>Type:</Text>
             <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Folder</Text>
           </Text>
@@ -316,11 +317,12 @@ const styles = StyleSheet.create({
     marginRight: 24
   },
   modalFolder: {
-    height: 600
+    height: hp('90%') < 550 ? 550 : Math.min(600, hp('80%')) 
   },
   colorSelection: {
     display: "flex",
     flexDirection: "row",
+    justifyContent: "space-between",
     marginLeft: 15,
     marginRight: 15,
   },
@@ -337,13 +339,14 @@ const styles = StyleSheet.create({
     display: "flex",
     flexWrap: "wrap",
     flexDirection: "row",
+    justifyContent: "space-between",
     marginLeft: 15,
     marginRight: 15,
   },
   iconButton: {
     height: 43,
     width: 43,
-    margin: 8,
+    margin: hp('90%') < 600 ? 5 : 8,
     justifyContent: "center",
     alignItems: "center"
   },
