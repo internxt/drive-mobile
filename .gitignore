@@ -117,13 +117,13 @@ hs_err_pid*
 ## Plugin-specific files:
 
 # mpeltonen/sbt-idea plugin
-.idea_modules/
+/android/.idea_modules/
 
 # JIRA plugin
 atlassian-ide-plugin.xml
 
 # Mongo Explorer plugin
-.idea/mongoSettings.xml
+/android/.idea/mongoSettings.xml
 
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
