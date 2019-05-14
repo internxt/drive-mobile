@@ -52,7 +52,6 @@ class AppMenu extends Component {
       method: 'POST',
       headers
     }).then(async result => {
-      console.log(result.status);
       var data = await result.json();
       return { res: result, data };
     }).then(result => {

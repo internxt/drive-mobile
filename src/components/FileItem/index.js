@@ -96,7 +96,7 @@ class FileItem extends Component {
             </Text>
             {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.added} />)}
           </View>
-          <View style={styles.buttonDetailsContainer}>
+          <View>
           {isSelected && (
             <TouchableHighlight
               style={styles.buttonDetails}
