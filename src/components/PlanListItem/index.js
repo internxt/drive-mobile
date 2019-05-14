@@ -1,9 +1,11 @@
 import React, { Component } from "react";
-import { StyleSheet, View, Text, TouchableHighlight } from "react-native";
+import { StyleSheet, View, Text, TouchableHighlight, Image } from "react-native";
 import { LinearGradient } from 'expo';
+import { getIcon } from '../../helpers'
 
 class PlanListItem extends Component {
   render() {
+    const checkMark = getIcon("checkmark");
     const { navigation, plan, theme } = this.props;
     const extendStyles = StyleSheet.create({
       container: {
@@ -28,7 +30,10 @@ class PlanListItem extends Component {
               </Text>
             </View>
           </LinearGradient>
-          <Text style={styles.planPrice}><Text style={{ fontFamily: 'CircularStd-Bold' }}>{plan.price}</Text>{plan.period ? <Text style={{ color: '#7e848c' }}>/{plan.period}</Text> : ""}</Text>
+          <Text style={styles.planPrice}>
+            <Text style={{ fontFamily: 'CircularStd-Bold' }}>{plan.price}</Text>{plan.period ? <Text style={{ color: '#7e848c' }}>/{plan.period}</Text> : ""}
+          </Text>
+          <Image source={checkMark} />
         </View>
       </TouchableHighlight>
     );
