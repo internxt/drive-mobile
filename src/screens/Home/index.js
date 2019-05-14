@@ -4,6 +4,7 @@ import { compose } from "redux";
 import { connect } from "react-redux";
 import Modal from 'react-native-modalbox';
 import prettysize from 'prettysize';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 import AppMenu from '../../components/AppMenu'
 import FileList from '../../components/FileList'
@@ -316,13 +317,14 @@ const styles = StyleSheet.create({
     marginRight: 24
   },
   modalFolder: {
-    height: 600
+    height: hp('90%')
   },
   colorSelection: {
     display: "flex",
     flexDirection: "row",
+    justifyContent: "space-between",
     marginLeft: 15,
-    marginRight: 15,
+    marginRight: 15
   },
   colorButton: {
     height: 27,
@@ -337,8 +339,9 @@ const styles = StyleSheet.create({
     display: "flex",
     flexWrap: "wrap",
     flexDirection: "row",
+    justifyContent: "space-between",
     marginLeft: 15,
-    marginRight: 15,
+    marginRight: 15
   },
   iconButton: {
     height: 43,
