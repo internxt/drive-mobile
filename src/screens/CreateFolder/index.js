@@ -37,13 +37,15 @@ class CreateFolder extends Component {
     this.setState({ parentFolderId });
   }
 
-  onSave() {
-    this.props.dispatch(
-      fileActions.createFolder(this.state.parentFolderId, this.state.value)
-    );
+  componentWillReceiveProps(nextProps) {
+    // When folderContent is updated with new folder data, go back to Home
+    if (nextProps.filesState.folderContent.name === this.state.value) {
+      this.props.navigation.navigate("Home", { folderId: nextProps.filesState.folderContent.id });
+    }
+  }
 
-    this.props.navigation.setParams({ folderId: this.state.parentFolderId });
-    this.onCancel();
+  onSave() {
+    this.props.dispatch(fileActions.createFolder(this.state.parentFolderId, this.state.value));
   }
 
   onCancel() {

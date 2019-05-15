@@ -1,13 +1,13 @@
 import React, { Component } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
 
 class IconFile extends Component {
   render() {
-    const { label = "" } = this.props;
+    const { label = "", isUploading = false } = this.props;
 
     return (
       <View style={styles.wrapper}>
-        <Text style={styles.text}>{label.toUpperCase()}</Text>
+        {isUploading ? <ActivityIndicator style={styles.activityIndicator} /> : <Text style={styles.text}>{label.toUpperCase()}</Text>}
       </View>
     );
   }
@@ -34,6 +34,10 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
     color: "#2e7bff",
     textAlign: "center"
+  },
+  activityIndicator: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0
   }
 });
 

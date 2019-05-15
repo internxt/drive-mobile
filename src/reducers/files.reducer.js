@@ -4,7 +4,9 @@ const initialState = {
   loading: false,
   items: [],
   folderContent: null,
-  selectedFile: null
+  selectedFile: null,
+  isUploading: false,
+  isUploadingFileName: ''
 };
 
 export function filesReducer(state = initialState, action) {
@@ -30,19 +32,23 @@ export function filesReducer(state = initialState, action) {
     case fileActionTypes.ADD_FILE_REQUEST:
       return {
         ...state,
-        loading: true
+        loading: true,
+        isUploading: true,
+        isUploadingFileName: action.payload
       };
     case fileActionTypes.ADD_FILE_SUCCESS:
       return {
         ...state,
-        loading: false
+        loading: false,
+        isUploading: false
       };
 
     case fileActionTypes.ADD_FILE_FAILURE:
       return {
         ...state,
         loading: false,
-        error: action.error
+        error: action.error,
+        isUploading: false
       };
 
     case fileActionTypes.SELECT_FILE:

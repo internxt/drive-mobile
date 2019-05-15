@@ -3,6 +3,9 @@ import { fileService } from "../services";
 
 export const fileActions = {
   downloadFile,
+  uploadFileStart,
+  uploadFileFinished,
+  uploadFileFailed,
   getFolderContent,
   selectFile,
   deselectAll,
@@ -31,6 +34,18 @@ function downloadFile(user, file) {
   function failure(error) {
     return { type: fileActionTypes.ADD_FILE_FAILURE, error }
   }
+}
+
+function uploadFileStart(fileName) {
+  return { type: fileActionTypes.ADD_FILE_REQUEST, payload: fileName }
+}
+
+function uploadFileFinished() {
+  return { type: fileActionTypes.ADD_FILE_SUCCESS };
+}
+
+function uploadFileFailed() {
+  return { type: fileActionTypes.ADD_FILE_FAILURE };
 }
 
 function getFolderContent(folderId) {
@@ -85,7 +100,7 @@ function createFolder(parentFolderId, newFolderName) {
         dispatch(success(newFolderDetails));
 
         // Refresh parent folder content (?)
-        getFolderContent(parentFolderId);
+        getFolderContent(newFolderDetails.id);
       },
       error => {
         console.error("Error creating folder", error);

@@ -85,13 +85,13 @@ class Home extends Component {
     // Check if color or icon was changed an set these changes
     if (this.props.filesState.selectedFile) {
       let metadata = {};
-      if (this.state.inputFileName !== this.props.filesState.selectedFile.name) {
+      if (this.state.inputFileName && (this.state.inputFileName !== this.props.filesState.selectedFile.name)) {
         metadata.itemName = this.state.inputFileName;
       }
-      if (this.state.selectedColor !== this.props.filesState.selectedFile.color) {
+      if (this.state.selectedColor && (this.state.selectedColor !== this.props.filesState.selectedFile.color)) {
         metadata.color = this.state.selectedColor;
       }
-      if (this.state.selectedIcon !== this.props.filesState.selectedFile.icon.id) {
+      if (this.state.selectedIcon && (!this.props.filesState.selectedFile.icon || (this.state.selectedIcon !== this.props.filesState.selectedFile.icon.id))) {
         metadata.icon = this.state.selectedIcon;
       }
       // Submit changes
