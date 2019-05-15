@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight, Image } from "react-native";
+import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight, Image, Alert } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 import Modal from 'react-native-modalbox';
@@ -94,6 +94,35 @@ class Home extends Component {
     }
   }
 
+  handleDeleteSelectedFile() {
+    const fileToDelete = this.props.filesState.selectedFile;
+    const token = this.props.authenticationState.token;
+    const mnemonic = this.props.authenticationState.user.mnemonic;
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/storage/bucket/${fileToDelete.bucket}/file/${fileToDelete.fileId}`, {
+      method: 'DELETE',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "internxt-mnemonic": mnemonic,
+        "Content-type": "application/json"
+      }
+    }).then(async res => {
+
+      return { res, data: await res.json() };
+
+    }).then(res => {
+      if (res.res.status == 200) {
+        this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
+        this.modalFile.current.close();
+      } else {
+        Alert.alert('Error deleting file');
+      }
+    }).catch(err => {
+      console.log(err);
+      Alert.alert('Error deleting file');
+    });
+  }
+
   closeFolderModal = () => {
     // Check if color or icon was changed an set these changes
     if (this.props.filesState.selectedFile) {
@@ -182,7 +211,7 @@ class Home extends Component {
           <Text style={{ width: 20 }}> </Text>
           <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
         </Text>} onClick={() => {
-
+          this.handleDeleteSelectedFile();
         }} />
 
       </Modal>;
