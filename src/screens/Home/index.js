@@ -123,6 +123,55 @@ class Home extends Component {
     });
   }
 
+  closeFileModal = () => {
+    if (!this.props.filesState.selectedFile) {
+      return;
+    }
+
+    const newName = this.state.inputFileName;
+
+    if (!newName) {
+      return;
+    }
+
+    if (this.props.filesState.selectedFile.name == newName) {
+      // Nothing to change.
+      return;
+    }
+
+    const token = this.props.authenticationState.token;
+    const mnemonic = this.props.authenticationState.user.mnemonic;
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/storage/file/${this.props.filesState.selectedFile.fileId}/meta`, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "internxt-mnemonic": mnemonic,
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify({
+        metadata: {
+          itemName: newName
+        }
+      })
+    }).then(async res => {
+      return { res, data: await res.json() };
+    }).then(res => {
+      if (res.res.status == 200) {
+        this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
+        this.modalFile.current.close();
+      } else {
+        console.log(res.data);
+        Alert.alert('Error renaming file', "Could not rename file");
+      }
+    }).catch(err => {
+      console.log(err);
+      Alert.alert('Error renaming file', "Could not rename file");
+
+    });
+
+  }
+
   closeFolderModal = () => {
     // Check if color or icon was changed an set these changes
     if (this.props.filesState.selectedFile) {
@@ -161,7 +210,7 @@ class Home extends Component {
         position={"bottom"}
         ref={this.modalFile}
         style={styles.modalSettings}
-        onOpened={this.loadUsage}
+        onClosed={this.closeFileModal}
         backButtonClose={true}
         backdropPressToClose={true}>
         <View style={styles.drawerKnob}></View>
