@@ -6,7 +6,8 @@ import {
   View,
   Text,
   TouchableHighlight,
-  Image
+  Image,
+  ActivityIndicator
 } from "react-native";
 import { withNavigation } from "react-navigation";
 import TimeAgo from "react-native-timeago";
@@ -70,10 +71,10 @@ class FileItem extends Component {
 
     const itemIcon = isFolder ? (
       <View>
-        <IconFolder color={item.color}/>
+        <IconFolder color={item.color} />
         {
           item.icon ? <View style={{ position: "absolute", left: 35, top: 7 }}>
-            <Icon name={item.icon ? folderIconsList[item.icon.id-1] : ''} color={item.color ? colors[item.color].icon : colors["blue"].icon} height="24" width="24" />
+            <Icon name={item.icon ? folderIconsList[item.icon.id - 1] : ''} color={item.color ? colors[item.color].icon : colors["blue"].icon} height="24" width="24" />
           </View> : <Text></Text>
         }
       </View>
@@ -90,7 +91,7 @@ class FileItem extends Component {
       >
         <View style={styles.fileDetails}>
           <View style={styles.itemIcon}>
-            {itemIcon}
+            {this.props.isBeingUploaded ? <IconFile isUploading={true} /> : itemIcon}
           </View>
           <View style={styles.nameAndTime}>
             <Text style={[styles.fileName, extendStyles.text]} numberOfLines={1}>
@@ -99,15 +100,15 @@ class FileItem extends Component {
             {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.added} />)}
           </View>
           <View>
-          {isSelected && (
-            <TouchableHighlight
-              style={styles.buttonDetails}
-              underlayColor="#f2f5ff"
-              onPress={this.onDetailsClick}
-            >
-              <Image style={styles.buttonDetailsIcon} source={imageSource} />
-            </TouchableHighlight>
-          )}
+            {isSelected && (
+              <TouchableHighlight
+                style={styles.buttonDetails}
+                underlayColor="#f2f5ff"
+                onPress={this.onDetailsClick}
+              >
+                <Image style={styles.buttonDetailsIcon} source={imageSource} />
+              </TouchableHighlight>
+            )}
           </View>
         </View>
       </TouchableHighlight>
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row'
   },
   itemIcon: {
-    
+
   },
   nameAndTime: {
     justifyContent: 'center',

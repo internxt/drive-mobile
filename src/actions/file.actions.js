@@ -3,6 +3,9 @@ import { fileService } from "../services";
 
 export const fileActions = {
   downloadFile,
+  uploadFileStart,
+  uploadFileFinished,
+  uploadFileFailed,
   getFolderContent,
   selectFile,
   deselectAll,
@@ -31,6 +34,18 @@ function downloadFile(user, file) {
   function failure(error) {
     return { type: fileActionTypes.ADD_FILE_FAILURE, error }
   }
+}
+
+function uploadFileStart(fileName) {
+  return { type: fileActionTypes.ADD_FILE_REQUEST, payload: fileName }
+}
+
+function uploadFileFinished() {
+  return { type: fileActionTypes.ADD_FILE_SUCCESS };
+}
+
+function uploadFileFailed() {
+  return { type: fileActionTypes.ADD_FILE_FAILURE };
 }
 
 function getFolderContent(folderId) {
@@ -113,11 +128,11 @@ function updateFolderMetadata(metadata, folderId) {
     dispatch(request());
 
     fileService.updateFolderMetadata(metadata, folderId)
-    .then(() => { dispatch(success()); })
-    .catch((error) => {
-      console.error(`Error updating metadata on folder (${parentFolderId}): `, error);
-      dispatch(failure(error));
-    });
+      .then(() => { dispatch(success()); })
+      .catch((error) => {
+        console.error(`Error updating metadata on folder (${parentFolderId}): `, error);
+        dispatch(failure(error));
+      });
   };
 
   function request() {
