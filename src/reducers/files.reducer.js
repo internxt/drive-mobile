@@ -6,7 +6,8 @@ const initialState = {
   folderContent: null,
   selectedFile: null,
   isUploading: false,
-  isUploadingFileName: ''
+  isUploadingFileName: '',
+  startDownloadSelectedFile: false
 };
 
 export function filesReducer(state = initialState, action) {
@@ -98,6 +99,10 @@ export function filesReducer(state = initialState, action) {
         loading: false,
         error: action.payload
       }
+    case fileActionTypes.DOWNLOAD_SELECTED_FILE_START:
+      return { ...state, startDownloadSelectedFile: true };
+    case fileActionTypes.DOWNLOAD_SELECTED_FILE_STOP:
+      return { ...state, startDownloadSelectedFile: false };
     default:
       return state;
   }

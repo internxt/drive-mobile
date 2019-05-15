@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight } from "react-native";
+import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight, Image } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 import Modal from 'react-native-modalbox';
@@ -14,8 +14,14 @@ import Separator from '../../components/Separator'
 import SettingsItem from '../../components/SettingsItem'
 import { colors, folderIconsList } from '../../constants'
 import Icon from '../../../assets/icons/Icon'
+import TimeAgo from "react-native-timeago";
 
 import { fileActions, layoutActions, userActions } from "../../actions";
+import { getIcon } from "../../helpers";
+
+const iconDownload = getIcon('download');
+const iconShare = getIcon('share');
+const iconDelete = getIcon('delete');
 
 class Home extends Component {
   constructor(props) {
@@ -37,6 +43,7 @@ class Home extends Component {
     };
 
     this.modalFolder = React.createRef();
+    this.modalFile = React.createRef();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -52,6 +59,12 @@ class Home extends Component {
       this.props.dispatch(layoutActions.closeFolderModal());
     }
 
+    // Manager showing file modal
+    if (nextProps.layoutState.showFileModal) {
+      this.modalFile.current.open();
+      this.props.dispatch(layoutActions.closeFileModal());
+    }
+
     // Set folder/file name if is selected
     if (nextProps.filesState.selectedFile) {
       this.setState({ inputFileName: nextProps.filesState.selectedFile.name })
@@ -64,7 +77,7 @@ class Home extends Component {
     if (nextProps.authenticationState.loggedIn === false) {
       this.props.navigation.replace("Auth");
     }
-    
+
     // Set active Folder ID
     if (folderId !== this.state.folderId) {
       this.setState({
@@ -92,7 +105,7 @@ class Home extends Component {
         metadata.color = this.state.selectedColor;
       }
       if (this.state.selectedIcon && (!this.props.filesState.selectedFile.icon || (this.state.selectedIcon !== this.props.filesState.selectedFile.icon.id))) {
-        metadata.icon  = this.state.selectedIcon;
+        metadata.icon = this.state.selectedIcon;
       }
       // Submit changes
       if (metadata.itemName || metadata.color || metadata.icon) {
@@ -104,74 +117,147 @@ class Home extends Component {
     this.setState({ selectedColor: '', selectedIcon: '' });
   }
 
+  getItemModal = (item) => {
+    let isFolder = item.size == undefined;
+    if (isFolder) {
+      return this.getFolderModal(item);
+    } else {
+      return this.getFileModal(item);
+    }
+  }
+
+  getFileModal = (file) => {
+    if (file) {
+      return <Modal
+        position={"bottom"}
+        ref={this.modalFile}
+        style={styles.modalSettings}
+        onOpened={this.loadUsage}
+        backButtonClose={true}
+        backdropPressToClose={true}>
+        <View style={styles.drawerKnob}></View>
+
+        <TextInput
+          style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }}
+          onChangeText={(value) => { this.setState({ inputFileName: value }) }}
+          value={this.state.inputFileName} />
+
+        <Separator />
+
+        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Text>Type: </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{file.type ? file.type.toUpperCase() : ''}</Text>
+        </Text>
+
+        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Text>Added: </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}><TimeAgo time={file.created_at} /></Text>
+        </Text>
+
+        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Text>Size: </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{prettysize(file.size)}</Text>
+        </Text>
+
+        <Separator />
+
+        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Image source={iconDownload} width={24} height={24} />
+          <Text style={{ width: 20 }}> </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
+        </Text>} onClick={() => {
+          this.props.dispatch(fileActions.downloadSelectedFileStart());
+        }} />
+
+        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Image source={iconShare} width={24} height={24} />
+          <Text style={{ width: 20 }}> </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>  Share</Text>
+        </Text>} onClick={() => {
+          this.modalFile.current.close();
+        }} />
+
+        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Image source={iconDelete} width={24} height={24} />
+          <Text style={{ width: 20 }}> </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
+        </Text>} onClick={() => {
+
+        }} />
+
+      </Modal>;
+    } else {
+      return <Text></Text>;
+    }
+  }
+
   getFolderModal = (folder) => {
     if (folder) {
-      return (
-        <Modal
-          position={"bottom"}
-          ref={this.modalFolder}
-          style={styles.modalFolder}
-          onClosed={this.closeFolderModal}
-          backButtonClose={true}
-          backdropPressToClose={true}>
-          <View style={styles.drawerKnob}></View>
-  
-          <TextInput 
-            style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }} 
-            onChangeText={(value) => { this.setState({ inputFileName: value })}}
-            value={this.state.inputFileName}/>
-  
-          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-            <Text>Type:</Text>
-            <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Folder</Text>
+      return (<Modal
+        position={"bottom"}
+        ref={this.modalFolder}
+        style={styles.modalFolder}
+        onClosed={this.closeFolderModal}
+        backButtonClose={true}
+        backdropPressToClose={true}>
+        <View style={styles.drawerKnob}></View>
+
+        <TextInput
+          style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }}
+          onChangeText={(value) => { this.setState({ inputFileName: value }) }}
+          value={this.state.inputFileName} />
+
+        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Text>Type:</Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Folder</Text>
+        </Text>
+
+        <Separator />
+
+        <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
+          Style Color
           </Text>
-  
-          <Separator />
-  
-          <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
-            Style Color
+
+        <View style={styles.colorSelection}>
+          {
+            Object.getOwnPropertyNames(colors).map((value, i) => {
+              localColor = this.state.selectedColor ? this.state.selectedColor : (folder ? folder.color : null);
+              isSelected = (localColor ? localColor === value : false);
+              return (<TouchableHighlight key={i}
+                underlayColor={colors[value].darker}
+                style={[{ backgroundColor: colors[value].code }, styles.colorButton]}
+                onPress={() => { this.setState({ selectedColor: value }) }}>
+                {isSelected ? <Icon name="checkmark" width={15} height={15} /> : <Text> </Text>}
+              </TouchableHighlight>)
+            })
+          }
+        </View>
+
+        <Separator />
+
+        <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
+          Cover Icon
           </Text>
-  
-          <View style={styles.colorSelection}>
-              { 
-                Object.getOwnPropertyNames(colors).map((value, i) => {
-                  localColor = this.state.selectedColor ? this.state.selectedColor : (folder ? folder.color : null);
-                  isSelected = (localColor ? localColor === value : false);
-                  return(<TouchableHighlight key={i}
-                            underlayColor={colors[value].darker}
-                            style={[{ backgroundColor: colors[value].code}, styles.colorButton]}
-                            onPress={() => { this.setState({ selectedColor: value })}}>
-                            { isSelected ? <Icon name="checkmark" width={15} height={15} /> : <Text> </Text>} 
-                         </TouchableHighlight>)
-                })
-              }
-          </View>
-          
-          <Separator />
-          
-          <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
-            Cover Icon
-          </Text>
-  
-          <View style={styles.iconSelection}>
-            {
-              folderIconsList.map((value, i) => {
-                localIcon = this.state.selectedIcon ? this.state.selectedIcon : ((folder && folder.icon) ? folder.icon.id : null);
-                isSelected = (localIcon ? localIcon-1 === i : false);
-                return(<TouchableHighlight key={i}
-                          style={styles.iconButton}
-                          underlayColor="#F2F5FF"
-                          onPress={() => { this.setState({ selectedIcon: i+1 })}}>
-                          { isSelected ? <Icon name={value} color="#4385F4" style={styles.iconImage} width="30" height="30" /> : <Icon name={value} color={'grey'} style={styles.iconImage} width="30" height="30" /> }
-                       </TouchableHighlight>)
-              })
-            }
-          </View>
-  
-        </Modal>
+
+        <View style={styles.iconSelection}>
+          {
+            folderIconsList.map((value, i) => {
+              localIcon = this.state.selectedIcon ? this.state.selectedIcon : ((folder && folder.icon) ? folder.icon.id : null);
+              isSelected = (localIcon ? localIcon - 1 === i : false);
+              return (<TouchableHighlight key={i}
+                style={styles.iconButton}
+                underlayColor="#F2F5FF"
+                onPress={() => { this.setState({ selectedIcon: i + 1 }) }}>
+                {isSelected ? <Icon name={value} color="#4385F4" style={styles.iconImage} width="30" height="30" /> : <Icon name={value} color={'grey'} style={styles.iconImage} width="30" height="30" />}
+              </TouchableHighlight>)
+            })
+          }
+        </View>
+
+      </Modal>
       )
     } else { return; }
-    
+
   }
 
   loadUsage = () => {
@@ -222,7 +308,7 @@ class Home extends Component {
 
     return (
       <View style={styles.container}>
-        {filesState.selectedFile && this.getFolderModal(filesState.selectedFile)}
+        {filesState.selectedFile && this.getItemModal(filesState.selectedFile)}
         <Modal
           position={"bottom"}
           ref={"modalSettings"}
@@ -317,7 +403,7 @@ const styles = StyleSheet.create({
     marginRight: 24
   },
   modalFolder: {
-    height: hp('90%') < 550 ? 550 : Math.min(600, hp('80%')) 
+    height: hp('90%') < 550 ? 550 : Math.min(600, hp('80%'))
   },
   colorSelection: {
     display: "flex",
@@ -334,7 +420,7 @@ const styles = StyleSheet.create({
     marginRight: 9,
     justifyContent: "center",
     alignItems: "center"
-  }, 
+  },
   iconSelection: {
     display: "flex",
     flexWrap: "wrap",

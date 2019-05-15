@@ -27,6 +27,13 @@ class AppMenu extends Component {
     this.downloadFile = this.downloadFile.bind(this);
   }
 
+  componentWillReceiveProps(newProps) {
+    if (newProps.filesState.startDownloadSelectedFile) {
+      this.props.dispatch(fileActions.downloadSelectedFileStop());
+      this.downloadFile();
+    }
+  }
+
   handleMenuClick() {
     Alert.alert('Action', 'Menu item clicked');
   }

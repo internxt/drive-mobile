@@ -4,7 +4,8 @@ const initialState = {
   searchActive: false,
   createFolderActive: false,
   showSettingsModal: false,
-  showFolderModal: false
+  showFolderModal: false,
+  showFileModal: false
 };
 
 export function layoutReducer(state = initialState, action) {
@@ -48,6 +49,15 @@ export function layoutReducer(state = initialState, action) {
       return {
         ...state,
         showFolderModal: false
+      }
+    case layoutActionTypes.OPEN_FILE_MODAL:
+      return {
+        ...state,
+        showFileModal: true
+      }
+    case layoutActionTypes.CLOSE_FILE_MODAL:
+      return {
+        showFileModal: false
       }
     default:
       return state;

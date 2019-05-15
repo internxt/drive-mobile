@@ -51,7 +51,7 @@ class FileItem extends Component {
     if (isFolder) {
       this.props.dispatch(layoutActions.openFolderModal());
     } else {
-      console.log("Show details: ", item);
+      this.props.dispatch(layoutActions.openFileModal());
     }
   }
 
@@ -85,24 +85,24 @@ class FileItem extends Component {
         <DoubleClick singleTap={this.onItemClick} doubleTap={this.onItemDobleTap}>
           <View style={styles.fileDetails}>
             <View style={styles.itemIcon}>
-            {this.props.isBeingUploaded ? <IconFile isUploading={true} /> : itemIcon}
+              {this.props.isBeingUploaded ? <IconFile isUploading={true} /> : itemIcon}
             </View>
             <View style={styles.nameAndTime}>
               <Text style={[styles.fileName, extendStyles.text]} numberOfLines={1}>
                 {item.name}
               </Text>
-              {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.added} />)}
+              {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.created_at} />)}
             </View>
             <View>
-            {isSelected && (
-              <TouchableHighlight
-                style={styles.buttonDetails}
-                underlayColor="#f2f5ff"
-                onPress={this.onDetailsClick}
-              >
-                <Image style={styles.buttonDetailsIcon} source={imageSource} />
-              </TouchableHighlight>
-            )}
+              {isSelected && (
+                <TouchableHighlight
+                  style={styles.buttonDetails}
+                  underlayColor="#f2f5ff"
+                  onPress={this.onDetailsClick}
+                >
+                  <Image style={styles.buttonDetailsIcon} source={imageSource} />
+                </TouchableHighlight>
+              )}
             </View>
           </View>
         </DoubleClick>
