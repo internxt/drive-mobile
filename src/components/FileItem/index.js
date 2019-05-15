@@ -70,7 +70,7 @@ class FileItem extends Component {
 
     const itemIcon = isFolder ? (
       <View>
-        <IconFolder color={item.color}/>
+        <IconFolder color={item.color} />
         {
           item.icon ? <View style={{ position: "absolute", left: 35, top: 7 }}>
             <Icon name={item.icon ? folderIconsList[item.icon.id - 1] : ''} color={item.color ? colors[item.color].icon : colors["blue"].icon} height="24" width="24" />
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row'
   },
   itemIcon: {
-    
+
   },
   nameAndTime: {
     justifyContent: 'center',

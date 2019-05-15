@@ -80,6 +80,9 @@ class AppMenu extends Component {
       if (result.type == 'cancel') {
         return;
       }
+
+      this.props.dispatch(fileActions.uploadFileStart(result.name));
+
       const body = new FormData();
       body.append('xfile', {
         uri: result.uri,
@@ -109,13 +112,16 @@ class AppMenu extends Component {
         } else {
           Alert.alert('Error', resultFetch.data.error ? resultFetch.data.error : 'Cannot upload file');
         }
+        this.props.dispatch(fileActions.uploadFileFinished());
       }).catch(errFetch => {
+        this.props.dispatch(fileActions.uploadFileFinished());
         Alert.alert('Error', 'Cannot upload file');
         console.log("Error fetching", errFetch);
       });
 
     }).catch(err => {
       console.log('Error:', err);
+      this.props.dispatch(fileActions.uploadFileFinished());
     });
 
   }
