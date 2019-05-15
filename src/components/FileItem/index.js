@@ -97,7 +97,7 @@ class FileItem extends Component {
             <Text style={[styles.fileName, extendStyles.text]} numberOfLines={1}>
               {item.name}
             </Text>
-            {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.added} />)}
+            {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.created_at} />)}
           </View>
           <View>
             {isSelected && (
