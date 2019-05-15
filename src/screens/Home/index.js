@@ -40,7 +40,6 @@ class Home extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log(this.props.filesState);
     // Manage showing settings modal
     if (nextProps.layoutState.showSettingsModal) {
       this.refs.modalSettings.open();
@@ -65,7 +64,7 @@ class Home extends Component {
     if (nextProps.authenticationState.loggedIn === false) {
       this.props.navigation.replace("Auth");
     }
-
+    
     // Set active Folder ID
     if (folderId !== this.state.folderId) {
       this.setState({

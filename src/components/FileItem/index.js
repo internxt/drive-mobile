@@ -38,7 +38,6 @@ class FileItem extends Component {
   }
 
   onItemDobleTap = () => {
-    console.log(this.props);
     const { item, isFolder, navigation } = this.props;
     if (isFolder) {
       // Enter in folder
