@@ -85,7 +85,7 @@ function createFolder(parentFolderId, newFolderName) {
         dispatch(success(newFolderDetails));
 
         // Refresh parent folder content (?)
-        getFolderContent(parentFolderId);
+        //getFolderContent(newFolderDetails.id);
       },
       error => {
         console.error("Error creating folder", error);

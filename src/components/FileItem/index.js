@@ -6,10 +6,12 @@ import {
   View,
   Text,
   TouchableHighlight,
-  Image
+  Image,
+  ActivityIndicator
 } from "react-native";
 import { withNavigation } from "react-navigation";
 import TimeAgo from "react-native-timeago";
+import DoubleClick from 'react-native-double-tap'
 
 import { fileActions, layoutActions } from "../../actions";
 import { folderIconsList, colors } from "../../constants";
@@ -23,27 +25,25 @@ class FileItem extends Component {
     super();
   }
 
-  onItemClick = (event) => {
-    event.preventDefault();
-    const { item, isFolder, navigation } = this.props;
+  onItemClick = () => {
+    const { item, isFolder } = this.props;
 
     if (isFolder) {
-      // Enter in folder
-      this.props.dispatch(fileActions.getFolderContent(item.id));
-      navigation.setParams({ folderId: item.id });
+      // Select folder
+      this.props.dispatch(fileActions.selectFile(item));
     } else {
       // Select file
       this.props.dispatch(fileActions.selectFile(item));
     }
   }
 
-  onItemLongPress = (event) => {
-    event.preventDefault();
+  onItemDobleTap = () => {
     console.log(this.props);
-    const { item, isFolder } = this.props;
+    const { item, isFolder, navigation } = this.props;
     if (isFolder) {
-      // Select folder
-      this.props.dispatch(fileActions.selectFile(item));
+      // Enter in folder
+      this.props.dispatch(fileActions.getFolderContent(item.id));
+      navigation.setParams({ folderId: item.id });
     }
   }
 
@@ -73,7 +73,7 @@ class FileItem extends Component {
         <IconFolder color={item.color}/>
         {
           item.icon ? <View style={{ position: "absolute", left: 35, top: 7 }}>
-            <Icon name={item.icon ? folderIconsList[item.icon.id-1] : ''} color={item.color ? colors[item.color].icon : colors["blue"].icon} height="24" width="24" />
+            <Icon name={item.icon ? folderIconsList[item.icon.id - 1] : ''} color={item.color ? colors[item.color].icon : colors["blue"].icon} height="24" width="24" />
           </View> : <Text></Text>
         }
       </View>
@@ -82,34 +82,31 @@ class FileItem extends Component {
       );
 
     return (
-      <TouchableHighlight
-        underlayColor="#FFF"
-        style={[styles.container, extendStyles.containerBackground]}
-        onPress={this.onItemClick}
-        onLongPress={this.onItemLongPress}
-      >
-        <View style={styles.fileDetails}>
-          <View style={styles.itemIcon}>
-            {itemIcon}
+      <TouchableHighlight underlayColor="#FFF" style={[styles.container, extendStyles.containerBackground]}>
+        <DoubleClick singleTap={this.onItemClick} doubleTap={this.onItemDobleTap}>
+          <View style={styles.fileDetails}>
+            <View style={styles.itemIcon}>
+            {this.props.isBeingUploaded ? <IconFile isUploading={true} /> : itemIcon}
+            </View>
+            <View style={styles.nameAndTime}>
+              <Text style={[styles.fileName, extendStyles.text]} numberOfLines={1}>
+                {item.name}
+              </Text>
+              {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.added} />)}
+            </View>
+            <View>
+            {isSelected && (
+              <TouchableHighlight
+                style={styles.buttonDetails}
+                underlayColor="#f2f5ff"
+                onPress={this.onDetailsClick}
+              >
+                <Image style={styles.buttonDetailsIcon} source={imageSource} />
+              </TouchableHighlight>
+            )}
+            </View>
           </View>
-          <View style={styles.nameAndTime}>
-            <Text style={[styles.fileName, extendStyles.text]} numberOfLines={1}>
-              {item.name}
-            </Text>
-            {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.added} />)}
-          </View>
-          <View>
-          {isSelected && (
-            <TouchableHighlight
-              style={styles.buttonDetails}
-              underlayColor="#f2f5ff"
-              onPress={this.onDetailsClick}
-            >
-              <Image style={styles.buttonDetailsIcon} source={imageSource} />
-            </TouchableHighlight>
-          )}
-          </View>
-        </View>
+        </DoubleClick>
       </TouchableHighlight>
     );
   }

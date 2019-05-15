@@ -41,7 +41,6 @@ class CreateFolder extends Component {
     this.props.dispatch(
       fileActions.createFolder(this.state.parentFolderId, this.state.value)
     );
-
     this.props.navigation.setParams({ folderId: this.state.parentFolderId });
     this.onCancel();
   }

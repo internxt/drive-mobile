@@ -40,6 +40,7 @@ class Home extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log(this.props.filesState);
     // Manage showing settings modal
     if (nextProps.layoutState.showSettingsModal) {
       this.refs.modalSettings.open();
@@ -85,14 +86,14 @@ class Home extends Component {
     // Check if color or icon was changed an set these changes
     if (this.props.filesState.selectedFile) {
       let metadata = {};
-      if (this.state.inputFileName !== this.props.filesState.selectedFile.name) {
+      if (this.state.inputFileName && (this.state.inputFileName !== this.props.filesState.selectedFile.name)) {
         metadata.itemName = this.state.inputFileName;
       }
-      if (this.state.selectedColor !== this.props.filesState.selectedFile.color) {
+      if (this.state.selectedColor && (this.state.selectedColor !== this.props.filesState.selectedFile.color)) {
         metadata.color = this.state.selectedColor;
       }
-      if (this.state.selectedIcon !== this.props.filesState.selectedFile.icon.id) {
-        metadata.icon = this.state.selectedIcon;
+      if (this.state.selectedIcon && (!this.props.filesState.selectedFile.icon || (this.state.selectedIcon !== this.props.filesState.selectedFile.icon.id))) {
+        metadata.icon  = this.state.selectedIcon;
       }
       // Submit changes
       if (metadata.itemName || metadata.color || metadata.icon) {
