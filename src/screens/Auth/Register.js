@@ -18,12 +18,12 @@ class Register extends Component {
     super();
 
     this.state = {
-      firstName: 'pe',
-      lastName: 'rraka',
-      email: 'perraka@yopmail.com',
+      firstName: '',
+      lastName: '',
+      email: '',
 
-      password: 'test1234',
-      confirmPassword: 'test1234',
+      password: '',
+      confirmPassword: '',
 
       registerStep: 1,
       isProcessing: false
