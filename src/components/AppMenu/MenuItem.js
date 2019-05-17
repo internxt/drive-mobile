@@ -27,10 +27,9 @@ class MenuItem extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    flexDirection: "row",
     justifyContent: "center",
-    backgroundColor: "#fff"
+    backgroundColor: "#fff",
+    marginRight: 10
   },
   button: {
     display: "flex",

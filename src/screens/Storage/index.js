@@ -158,7 +158,7 @@ class Storage extends Component {
         </View>
         <View style={[styles.marginBox, { marginBottom: 41, marginTop: 30 }]}>
 
-          <Text>You are subscribed to the 1GB plan.</Text>
+          {/* <Text>You are subscribed to the 1GB plan.</Text> */}
 
           <TouchableHighlight
             style={styles.button}

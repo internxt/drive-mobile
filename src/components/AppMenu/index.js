@@ -144,16 +144,30 @@ class AppMenu extends Component {
 
     let content = (
       <Fragment>
+        <View style={{ flexDirection: 'row-reverse', flex: 1, alignItems: 'flex-end' }}>
+          {/*
         <MenuItem
           name="search"
           onClickHandler={() => this.props.dispatch(layoutActions.openSearch())}
         />
         <MenuItem name="list" onClickHandler={this.downloadFile} />
-        <MenuItem name="upload" onClickHandler={this.uploadFile} />
-        <MenuItem
-          name="create"
-          onClickHandler={() => this.handleFolderCreate(folderContent.id)}
-        />
+        */}
+          <MenuItem
+            name="settings"
+            onClickHandler={() => {
+              this.props.dispatch(layoutActions.openSettings());
+            }}
+
+          />
+
+          <MenuItem
+            name="create"
+            onClickHandler={() => this.handleFolderCreate(folderContent.id)}
+          />
+
+          <MenuItem name="upload" onClickHandler={this.uploadFile} />
+
+          {/*
         <MenuItem
           name="details"
           hidden={isButtonDetailsHidden}
@@ -163,14 +177,9 @@ class AppMenu extends Component {
               : console.log("folder details")
           }
         />
+        */}
 
-        <MenuItem
-          name="settings"
-          onClickHandler={() => {
-            this.props.dispatch(layoutActions.openSettings());
-          }}
-
-        />
+        </View>
       </Fragment>
     );
 

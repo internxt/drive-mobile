@@ -247,6 +247,7 @@ class Home extends Component {
           this.props.dispatch(fileActions.downloadSelectedFileStart());
         }} />
 
+        {/*
         <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
           <Image source={iconShare} width={24} height={24} />
           <Text style={{ width: 20 }}> </Text>
@@ -254,6 +255,7 @@ class Home extends Component {
         </Text>} onClick={() => {
           this.modalFile.current.close();
         }} />
+      */}
 
         <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
           <Image source={iconDelete} width={24} height={24} />
@@ -462,8 +464,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderBottomColor: "#e6e6e6",
     borderBottomWidth: 2,
-    marginTop: 30,
-    paddingBottom: 30
+    marginTop: 15,
+    paddingBottom: 15
   },
   breadcrumbsTitle: {
     fontFamily: "CircularStd-Bold",

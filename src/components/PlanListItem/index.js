@@ -33,7 +33,7 @@ class PlanListItem extends Component {
           <Text style={styles.planPrice}>
             <Text style={{ fontFamily: 'CircularStd-Bold' }}>{plan.price}</Text>{plan.period ? <Text style={{ color: '#7e848c' }}>/{plan.period}</Text> : ""}
           </Text>
-          <Image source={checkMark} />
+          {/* <Image source={checkMark} /> */}
         </View>
       </TouchableHighlight>
     );
