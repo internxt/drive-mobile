@@ -16,43 +16,12 @@ class Storage extends Component {
     super(props);
 
     this.state = {
+      plans: [],
       usage: {
         activePlanId: 0,
         used: 0,
         maxLimit: 1024 * 1024 * 1024,
         remaining: 2
-      },
-      plans: [
-        {
-          id: 0,
-          price: "Free",
-          amount: 1,
-          unit: "GB",
-          active: true
-        },
-        {
-          id: 1,
-          price: "€1.49",
-          period: "month",
-          amount: 100,
-          unit: "GB",
-          active: false
-        },
-        {
-          id: 2,
-          price: "€4.99",
-          period: "month",
-          amount: 1,
-          unit: "TB",
-          active: false
-        }
-      ],
-      activePlan: {
-        id: 0,
-        price: "Free",
-        amount: 10,
-        unit: "GB",
-        active: true
       }
     };
   }
@@ -60,14 +29,23 @@ class Storage extends Component {
   componentDidMount() {
     const user = this.props.authenticationState.user.email;
 
+    // Get plans info
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/plans`, {
+      method: "POST"
+    }).then(async (response) => {
+      const data = await response.json();
+      this.setState({ plans: data });
+    })
+
+    // Get storage data
     fetch(`${process.env.REACT_APP_API_URL}/api/limit`, {
       method: 'post',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         email: user
       })
-    }
-    ).then(res => res.json())
+    }).then(res => res.json())
       .then(res => {
         var copyUsage = this.state.usage;
         copyUsage.maxLimit = res.maxSpaceBytes;
@@ -94,7 +72,7 @@ class Storage extends Component {
   }
 
   render() {
-    const { plans, usage, activePlan } = this.state;
+    const { plans, usage } = this.state;
     const { navigation } = this.props;
     const breadcrumbs = {
       name: "Storage"
@@ -138,7 +116,7 @@ class Storage extends Component {
 
           </View>
 
-          <View style={[styles.divider, { marginTop: 38, marginBottom: 40 }]} />
+          <View style={[styles.divider, { marginTop: 38, marginBottom: 20 }]} />
         </View>
 
 
@@ -147,10 +125,9 @@ class Storage extends Component {
             <Text style={[styles.title, { marginBottom: 25 }]}>Storage Plans</Text>
           </View>
 
-          {plans.map(plan => (
+          {this.state.plans.map(plan => (
             <PlanListItem
               plan={plan}
-              theme={plan.id === activePlan.id ? "medium" : "light"}
               key={plan.id}
               navigation={navigation}
             />

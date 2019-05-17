@@ -1,10 +1,52 @@
 import React, { Component, Fragment } from "react";
-import { StyleSheet, Text, View, TouchableHighlight } from "react-native";
+import { StyleSheet, Text, View, TouchableHighlight, Platform } from "react-native";
+import stripe from 'tipsi-stripe';
 
 import AppMenu from "../../components/AppMenu";
 import PlanListItem from "../../components/PlanListItem";
 
 class SubscriptionDetails extends Component {
+  
+  launchBuyNow = () => {
+    if (Platform.OS === "android") { this.launchAndroidBuy(); }
+    else { this.launchIosBuy(); }
+  }
+  
+  launchAndroidBuy = async () => {
+
+    const { plan } = this.props.navigation.state.params;
+    stripe.setOptions({
+      publishableKey: '****',
+      androidPayMode: 'test',
+    });
+
+    const options = {
+      total_price: plan.price_eur,
+      currency_code: 'EUR',
+      billing_address_required: true,
+      shipping_countries: ["ES"],
+      line_items: [{
+        currency_code: 'EUR',
+        description: plan.name,
+        total_price: plan.price_eur,
+        unit_price: plan.price_eur,
+        quantity: '1',
+      }],
+    }
+    const supportGPay = await stripe.deviceSupportsNativePay();
+    console.log(`Google Pay support: ${supportGPay}`);
+    stripe.paymentRequestWithNativePay(options).then((result) => {
+      console.log(result);
+    }).catch((error) => {
+      console.log(error);
+    })
+  }
+
+  launchIosBuy = () => {
+    // TODO: Ios stripe implementation
+  }
+
+  
   render() {
     const { navigation } = this.props;
     const { plan } = navigation.state.params;
@@ -19,12 +61,11 @@ class SubscriptionDetails extends Component {
           <AppMenu navigation={navigation} breadcrumbs={breadcrumbs} />
           <Text style={styles.title}>Subscription details</Text>
 
-          <PlanListItem plan={plan} theme={"dark"} navigation={navigation} />
+          <PlanListItem plan={plan} navigation={navigation} />
 
           {isPaidPlan && (
             <Text style={styles.text}>
-              Your iTunes Account will be charged $1.49 automatically each
-              month. Your payment will be charged to your iTunes Account once
+              Your payment account will be charged automatically when subscription period ends. Your payment will be charged to your payment account once
               you confirm your purchase below.
             </Text>
           )}
@@ -33,7 +74,7 @@ class SubscriptionDetails extends Component {
           <TouchableHighlight
             style={styles.button}
             underlayColor="#FFF"
-            onPress={() => console.log("Buy Now clicked")}
+            onPress={this.buyPlan}
           >
             <Text style={styles.buttonLabel}>Buy Now</Text>
           </TouchableHighlight>
