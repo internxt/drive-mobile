@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { StyleSheet, Text, View, TouchableHighlight, Platform } from "react-native";
+import { StyleSheet, Text, View, TouchableHighlight, Platform, Alert } from "react-native";
 import stripe from 'tipsi-stripe';
 
 import AppMenu from "../../components/AppMenu";
@@ -8,44 +8,47 @@ import PlanListItem from "../../components/PlanListItem";
 class SubscriptionDetails extends Component {
   
   launchBuyNow = () => {
-    if (Platform.OS === "android") { this.launchAndroidBuy(); }
-    else { this.launchIosBuy(); }
-  }
-  
-  launchAndroidBuy = async () => {
+    let supported = false;
 
-    const { plan } = this.props.navigation.state.params;
     stripe.setOptions({
-      publishableKey: '****',
+      publishableKey: 'pk_test_vpHlkSQ7DhmzSWHEbmfT1lIJ',
       androidPayMode: 'test',
     });
 
-    const options = {
-      total_price: plan.price_eur,
-      currency_code: 'EUR',
-      billing_address_required: true,
-      shipping_countries: ["ES"],
-      line_items: [{
-        currency_code: 'EUR',
-        description: plan.name,
-        total_price: plan.price_eur,
-        unit_price: plan.price_eur,
-        quantity: '1',
-      }],
+    // Check if platform supports pay
+    if (Platform.OS === "android") { 
+      supported = await stripe.deviceSupportsNativePay();
+      console.log(`Google Pay support: ${supported}`);   
     }
-    const supportGPay = await stripe.deviceSupportsNativePay();
-    console.log(`Google Pay support: ${supportGPay}`);
-    stripe.paymentRequestWithNativePay(options).then((result) => {
-      console.log(result);
-    }).catch((error) => {
-      console.log(error);
-    })
-  }
+    else { 
+      supported = await stripe.deviceSupportsApplePay();
+      console.log(`Apple Pay support: ${supported}`)
+    }
 
-  launchIosBuy = () => {
-    // TODO: Ios stripe implementation
-  }
+    if (supported) {
+      const { plan } = this.props.navigation.state.params;
 
+      const options = {
+        total_price: plan.price_eur,
+        currency_code: 'EUR',
+        billing_address_required: true,
+        shipping_countries: ["ES"],
+        line_items: [{
+          currency_code: 'EUR',
+          description: plan.name,
+          total_price: plan.price_eur,
+          unit_price: plan.price_eur,
+          quantity: '1',
+        }],
+      }
+      
+      stripe.paymentRequestWithNativePay(options).then((result) => {
+        console.log(result);
+      }).catch((error) => {
+        console.log(error);
+      })
+    }
+  }
   
   render() {
     const { navigation } = this.props;
@@ -74,7 +77,7 @@ class SubscriptionDetails extends Component {
           <TouchableHighlight
             style={styles.button}
             underlayColor="#FFF"
-            onPress={this.buyPlan}
+            onPress={this.launchBuyNow}
           >
             <Text style={styles.buttonLabel}>Buy Now</Text>
           </TouchableHighlight>

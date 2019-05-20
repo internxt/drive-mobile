@@ -335,6 +335,11 @@
     <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="fb0"/>
 
     <meta-data android:name="standaloneStripeScheme" android:value="c6fc3c4a-9059-45a7-969a-f789ebd2499f" />
+
+    <!-- Activation of Google Pay service -->
+    <meta-data
+        android:name="com.google.android.gms.wallet.api.enabled"
+        android:value="true"/>
   </application>
 
 </manifest>
