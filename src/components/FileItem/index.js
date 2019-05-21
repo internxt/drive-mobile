@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { withNavigation } from "react-navigation";
 import TimeAgo from "react-native-timeago";
-import DoubleClick from 'react-native-double-tap';
+import DoubleClick from 'react-native-double-tap'
 
 import { fileActions, layoutActions } from "../../actions";
 import { folderIconsList, colors } from "../../constants";
@@ -21,12 +21,23 @@ import IconFile from "../../components/IconFile";
 import Icon from '../../../assets/icons/Icon';
 
 class FileItem extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+
+    this.downloadFile = this.props.downloadFile;
+
+    // time interval between double clicks
+    this.delayTime = 200;
+    // bool to check whether user tapped once
+    this.firstPress = true;
+    // the last time user tapped
+    this.lastTime = new Date();
+    // a timer is used to run the single tap event
+    this.timer = false;
   }
 
   onItemClick = () => {
-    const { item, isFolder, navigation } = this.props;
+    const { item, isFolder } = this.props;
 
     if (isFolder) {
       // Select folder
@@ -37,12 +48,14 @@ class FileItem extends Component {
     }
   }
 
-  onItemDobleTap = () => {
+  onItemDobleTap = (item_param) => {
     const { item, isFolder, navigation } = this.props;
     if (isFolder) {
       // Enter in folder
       this.props.dispatch(fileActions.getFolderContent(item.id));
       navigation.setParams({ folderId: item.id });
+    } else {
+      this.downloadFile(item_param ? item_param : null);
     }
   }
 
@@ -51,9 +64,49 @@ class FileItem extends Component {
     if (isFolder) {
       this.props.dispatch(layoutActions.openFolderModal());
     } else {
-      console.log("Show details: ", item);
+      this.props.dispatch(layoutActions.openFileModal());
     }
   }
+
+  handleTypeOfClick = (item) => {
+    // get the instance of time when pressed
+    let now = new Date().getTime();
+
+    if (this.firstPress) {
+      // if pressed first can be a first press again
+      this.firstPress = false;
+
+      //set the timeout
+      this.timer = setTimeout(() => {
+        //check if user passed in prop
+        this.onItemClick ? this.onItemClick() : null;
+
+        // reset back to initial state
+        this.firstPress = true;
+      }, this.delayTime);
+
+      // mark the last time of the press
+      this.lastTime = now;
+    } else {
+      //if user pressed immediately again within span of delayTime
+      if (now - this.lastTime < this.delayTime) {
+        // clear the timeout for the single press
+        this.timer && clearTimeout(this.timer);
+
+        //check if user passed in prop for double click
+        this.onItemDobleTap ? this.onItemDobleTap(item) : null;
+
+        // reset back to initial state
+        this.firstPress = true;
+      }
+    }
+  }
+
+  componentWillUnmount() {
+    // make sure to clear the timer when unmounting
+    this.timer && clearTimeout(this.timer);
+  }
+
 
   render() {
     const { item, isFolder, isSelected } = this.props;
@@ -64,16 +117,16 @@ class FileItem extends Component {
       },
       containerBackground: {
         backgroundColor: isSelected ? "#f2f5ff" : "#fff"
-      }
+      },
     });
 
     const itemIcon = isFolder ? (
       <View>
-        <IconFolder color={item.color}/>
+        <IconFolder color={item.color} />
         {
           item.icon ? <View style={{ position: "absolute", left: 35, top: 7 }}>
             <Icon name={item.icon ? folderIconsList[item.icon.id - 1] : ''} color={item.color ? colors[item.color].icon : colors["blue"].icon} height="24" width="24" />
-          </View> : <Text></Text>
+          </View> : <View style={{ position: "absolute", left: 35, top: 7 }}></View>
         }
       </View>
     ) : (
@@ -81,19 +134,18 @@ class FileItem extends Component {
       );
 
     return (
-      <TouchableHighlight underlayColor="#FFF" style={[styles.container, extendStyles.containerBackground]}>
-        <DoubleClick singleTap={this.onItemClick} doubleTap={this.onItemDobleTap} >
-          <View style={styles.fileDetails}>
-            <View style={styles.itemIcon}>
+        <View style={styles.fileDetails}>
+          <View style={styles.itemIcon}>
             {this.props.isBeingUploaded ? <IconFile isUploading={true} /> : itemIcon}
-            </View>
-            <View style={styles.nameAndTime}>
-              <Text style={[styles.fileName, extendStyles.text]} numberOfLines={1}>
-                {item.name}
-              </Text>
-              {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.created_at} />)}
-            </View>
-            <View>
+      <TouchableHighlight onPress={this.handleTypeOfClick.bind(this, item)} underlayColor="#FFF" style={[styles.container, extendStyles.containerBackground]}>
+          </View>
+          <View style={styles.nameAndTime}>
+            <Text style={[styles.fileName, extendStyles.text]} numberOfLines={1}>
+              {item.name}
+            </Text>
+            {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.created_at} />)}
+          </View>
+          <View>
             {isSelected && (
               <TouchableHighlight
                 style={styles.buttonDetails}
@@ -103,9 +155,8 @@ class FileItem extends Component {
                 <Image style={styles.buttonDetailsIcon} source={imageSource} />
               </TouchableHighlight>
             )}
-            </View>
           </View>
-        </DoubleClick>
+        </View>
       </TouchableHighlight>
     );
   }
@@ -120,7 +171,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row'
   },
   itemIcon: {
-    
+
   },
   nameAndTime: {
     justifyContent: 'center',

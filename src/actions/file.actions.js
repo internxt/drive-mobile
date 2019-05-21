@@ -3,6 +3,8 @@ import { fileService } from "../services";
 
 export const fileActions = {
   downloadFile,
+  downloadSelectedFileStart,
+  downloadSelectedFileStop,
   uploadFileStart,
   uploadFileFinished,
   uploadFileFailed,
@@ -13,6 +15,16 @@ export const fileActions = {
   updateFolderMetadata
 };
 
+// Will only download the current selected file defined in props
+function downloadSelectedFileStart() {
+  return { type: fileActionTypes.DOWNLOAD_SELECTED_FILE_START };
+}
+
+function downloadSelectedFileStop() {
+  return { type: fileActionTypes.DOWNLOAD_SELECTED_FILE_STOP }
+}
+
+// TODO: Will download the file specified in the parameters.
 function downloadFile(user, file) {
   return dispatch => {
     dispatch(request());
@@ -128,11 +140,11 @@ function updateFolderMetadata(metadata, folderId) {
     dispatch(request());
 
     fileService.updateFolderMetadata(metadata, folderId)
-    .then(() => { dispatch(success()); })
-    .catch((error) => {
-      console.error(`Error updating metadata on folder (${parentFolderId}): `, error);
-      dispatch(failure(error));
-    });
+      .then(() => { dispatch(success()); })
+      .catch((error) => {
+        console.error(`Error updating metadata on folder (${parentFolderId}): `, error);
+        dispatch(failure(error));
+      });
   };
 
   function request() {

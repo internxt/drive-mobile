@@ -15,6 +15,8 @@ class FileList extends Component {
       isRefreshing: false
     }
 
+    this.downloadFile = this.props.downloadFile;
+
     this.refreshList = this.refreshList.bind(this);
   }
 
@@ -40,19 +42,21 @@ class FileList extends Component {
 
     let content = <EmptyDirectory />;
     if (folderContent.files.length > 0 || folderContent.children.length > 0) {
+
       content = (
         <ScrollView refreshControl={<RefreshControl isRefreshing={this.state.isRefreshing} onRefresh={this.refreshList} />}>
           {this.props.filesState.isUploading ? <FileItem key={99999999} item={{ type: '', name: this.props.filesState.isUploadingFileName }} isFolder={false} isSelected={false} isBeingUploaded={true} /> : <Text></Text>}
           {folderContent.children.map(folder => (
-            <FileItem 
-              key={folder.id} 
-              item={folder} 
+            <FileItem
+              key={folder.id}
+              item={folder}
               isFolder={true}
               isSelected={selectedFile && selectedFile.id === folder.id} />
           ))}
           {folderContent.files.map(file => (
             <FileItem
               key={file.id}
+              downloadFile={this.downloadFile}
               item={file}
               isFolder={false}
               isSelected={selectedFile && selectedFile.id === file.id}

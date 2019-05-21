@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight } from "react-native";
+import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight, Image, Alert } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 import Modal from 'react-native-modalbox';
@@ -14,8 +14,14 @@ import Separator from '../../components/Separator'
 import SettingsItem from '../../components/SettingsItem'
 import { colors, folderIconsList } from '../../constants'
 import Icon from '../../../assets/icons/Icon'
+import TimeAgo from "react-native-timeago";
 
 import { fileActions, layoutActions, userActions } from "../../actions";
+import { getIcon } from "../../helpers";
+
+const iconDownload = getIcon('download');
+const iconShare = getIcon('share');
+const iconDelete = getIcon('delete');
 
 class Home extends Component {
   constructor(props) {
@@ -37,6 +43,7 @@ class Home extends Component {
     };
 
     this.modalFolder = React.createRef();
+    this.modalFile = React.createRef();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -52,6 +59,12 @@ class Home extends Component {
       this.props.dispatch(layoutActions.closeFolderModal());
     }
 
+    // Manager showing file modal
+    if (nextProps.layoutState.showFileModal) {
+      this.modalFile.current.open();
+      this.props.dispatch(layoutActions.closeFileModal());
+    }
+
     // Set folder/file name if is selected
     if (nextProps.filesState.selectedFile) {
       this.setState({ inputFileName: nextProps.filesState.selectedFile.name })
@@ -64,6 +77,12 @@ class Home extends Component {
     if (nextProps.authenticationState.loggedIn === false) {
       this.props.navigation.replace("Auth");
     }
+
+    if (nextProps.layoutState.showRunOutSpaceModal) {
+      this.props.dispatch(layoutActions.closeRunOutStorageModal());
+      this.refs.runOutStorageModal.open();
+    }
+
 
     // Set active Folder ID
     if (folderId !== this.state.folderId) {
@@ -79,6 +98,125 @@ class Home extends Component {
         user
       });
     }
+  }
+
+
+  downloadFile = async (item) => {
+
+    const fileId = item ? item.fileId : this.props.filesState.selectedFile.fileId;
+    //const fileName = this.props.filesState.selectedFile.name + '.' + this.props.filesState.selectedFile.type;
+    const token = this.props.authenticationState.token;
+    const mnemonic = this.props.authenticationState.user.mnemonic;
+
+    const headers = {
+      "Authorization": `Bearer ${token}`,
+      "internxt-mnemonic": mnemonic,
+      "Content-type": "application/json"
+    };
+
+    // Generate token:
+    fetch(`${process.env.REACT_APP_API_URL}/api/storage/share/file/${fileId}`, {
+      method: 'POST',
+      headers
+    }).then(async result => {
+      var data = await result.json();
+      return { res: result, data };
+    }).then(result => {
+      if (result.res.status != 200) {
+        if (result.data.error) {
+          Alert.alert('Error', result.data.error);
+        } else {
+          Alert.alert('Error', 'Cannot download file');
+        }
+      } else {
+        const linkToken = result.data.token;
+        const proxy = 'https://api.internxt.com:8081';
+        Linking.openURL(`${proxy}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`);
+      }
+    }).catch(err => {
+      console.log("Error", err);
+      Alert.alert('Error', 'Internal error');
+    });
+
+  }
+
+
+  handleDeleteSelectedFile() {
+    const fileToDelete = this.props.filesState.selectedFile;
+    const token = this.props.authenticationState.token;
+    const mnemonic = this.props.authenticationState.user.mnemonic;
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/storage/bucket/${fileToDelete.bucket}/file/${fileToDelete.fileId}`, {
+      method: 'DELETE',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "internxt-mnemonic": mnemonic,
+        "Content-type": "application/json"
+      }
+    }).then(async res => {
+
+      return { res, data: await res.json() };
+
+    }).then(res => {
+      if (res.res.status == 200) {
+        this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
+        this.modalFile.current.close();
+      } else {
+        Alert.alert('Error deleting file');
+      }
+    }).catch(err => {
+      console.log(err);
+      Alert.alert('Error deleting file');
+    });
+  }
+
+  closeFileModal = () => {
+    if (!this.props.filesState.selectedFile) {
+      return;
+    }
+
+    const newName = this.state.inputFileName;
+
+    if (!newName) {
+      return;
+    }
+
+    if (this.props.filesState.selectedFile.name == newName) {
+      // Nothing to change.
+      return;
+    }
+
+    const token = this.props.authenticationState.token;
+    const mnemonic = this.props.authenticationState.user.mnemonic;
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/storage/file/${this.props.filesState.selectedFile.fileId}/meta`, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "internxt-mnemonic": mnemonic,
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify({
+        metadata: {
+          itemName: newName
+        }
+      })
+    }).then(async res => {
+      return { res, data: await res.json() };
+    }).then(res => {
+      if (res.res.status == 200) {
+        this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
+        this.modalFile.current.close();
+      } else {
+        console.log(res.data);
+        Alert.alert('Error renaming file', "Could not rename file");
+      }
+    }).catch(err => {
+      console.log(err);
+      Alert.alert('Error renaming file', "Could not rename file");
+
+    });
+
   }
 
   closeFolderModal = () => {
@@ -104,74 +242,149 @@ class Home extends Component {
     this.setState({ selectedColor: '', selectedIcon: '' });
   }
 
+  getItemModal = (item) => {
+    let isFolder = item.size == undefined;
+    if (isFolder) {
+      return this.getFolderModal(item);
+    } else {
+      return this.getFileModal(item);
+    }
+  }
+
+  getFileModal = (file) => {
+    if (file) {
+      return <Modal
+        position={"bottom"}
+        ref={this.modalFile}
+        style={styles.modalSettings}
+        onClosed={this.closeFileModal}
+        backButtonClose={true}
+        backdropPressToClose={true}>
+        <View style={styles.drawerKnob}></View>
+
+        <TextInput
+          style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }}
+          onChangeText={(value) => { this.setState({ inputFileName: value }) }}
+          value={this.state.inputFileName} />
+
+        <Separator />
+
+        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Text>Type: </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{file.type ? file.type.toUpperCase() : ''}</Text>
+        </Text>
+
+        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Text>Added: </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}><TimeAgo time={file.created_at} /></Text>
+        </Text>
+
+        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Text>Size: </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{prettysize(file.size)}</Text>
+        </Text>
+
+        <Separator />
+
+        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Image source={iconDownload} width={24} height={24} />
+          <Text style={{ width: 20 }}> </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
+        </Text>} onClick={() => {
+          this.props.dispatch(fileActions.downloadSelectedFileStart());
+        }} />
+
+        {/*
+        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Image source={iconShare} width={24} height={24} />
+          <Text style={{ width: 20 }}> </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>  Share</Text>
+        </Text>} onClick={() => {
+          this.modalFile.current.close();
+        }} />
+      */}
+
+        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Image source={iconDelete} width={24} height={24} />
+          <Text style={{ width: 20 }}> </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
+        </Text>} onClick={() => {
+          this.handleDeleteSelectedFile();
+        }} />
+
+      </Modal>;
+    } else {
+      return <Text></Text>;
+    }
+  }
+
   getFolderModal = (folder) => {
     if (folder) {
-      return (
-        <Modal
-          position={"bottom"}
-          ref={this.modalFolder}
-          style={styles.modalFolder}
-          onClosed={this.closeFolderModal}
-          backButtonClose={true}
-          backdropPressToClose={true}>
-          <View style={styles.drawerKnob}></View>
-  
-          <TextInput 
-            style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }} 
-            onChangeText={(value) => { this.setState({ inputFileName: value })}}
-            value={this.state.inputFileName}/>
-  
-          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-            <Text>Type:</Text>
-            <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Folder</Text>
+      return (<Modal
+        position={"bottom"}
+        ref={this.modalFolder}
+        style={styles.modalFolder}
+        onClosed={this.closeFolderModal}
+        backButtonClose={true}
+        backdropPressToClose={true}>
+        <View style={styles.drawerKnob}></View>
+
+        <TextInput
+          style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }}
+          onChangeText={(value) => { this.setState({ inputFileName: value }) }}
+          value={this.state.inputFileName} />
+
+        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Text>Type:</Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Folder</Text>
+        </Text>
+
+        <Separator />
+
+        <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
+          Style Color
           </Text>
-  
-          <Separator />
-  
-          <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
-            Style Color
+
+        <View style={styles.colorSelection}>
+          {
+            Object.getOwnPropertyNames(colors).map((value, i) => {
+              localColor = this.state.selectedColor ? this.state.selectedColor : (folder ? folder.color : null);
+              isSelected = (localColor ? localColor === value : false);
+              return (<TouchableHighlight key={i}
+                underlayColor={colors[value].darker}
+                style={[{ backgroundColor: colors[value].code }, styles.colorButton]}
+                onPress={() => { this.setState({ selectedColor: value }) }}>
+                {isSelected ? <Icon name="checkmark" width={15} height={15} /> : <Text> </Text>}
+              </TouchableHighlight>)
+            })
+          }
+        </View>
+
+        <Separator />
+
+        <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
+          Cover Icon
           </Text>
-  
-          <View style={styles.colorSelection}>
-              { 
-                Object.getOwnPropertyNames(colors).map((value, i) => {
-                  localColor = this.state.selectedColor ? this.state.selectedColor : (folder ? folder.color : null);
-                  isSelected = (localColor ? localColor === value : false);
-                  return(<TouchableHighlight key={i}
-                            underlayColor={colors[value].darker}
-                            style={[{ backgroundColor: colors[value].code}, styles.colorButton]}
-                            onPress={() => { this.setState({ selectedColor: value })}}>
-                            { isSelected ? <Icon name="checkmark" width={15} height={15} /> : <Text> </Text>} 
-                         </TouchableHighlight>)
-                })
-              }
-          </View>
-          
-          <Separator />
-          
-          <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 15, paddingLeft: 24, paddingBottom: 13 }}>
-            Cover Icon
-          </Text>
-  
-          <View style={styles.iconSelection}>
-            {
-              folderIconsList.map((value, i) => {
-                localIcon = this.state.selectedIcon ? this.state.selectedIcon : ((folder && folder.icon) ? folder.icon.id : null);
-                isSelected = (localIcon ? localIcon-1 === i : false);
-                return(<TouchableHighlight key={i}
-                          style={styles.iconButton}
-                          underlayColor="#F2F5FF"
-                          onPress={() => { this.setState({ selectedIcon: i+1 })}}>
-                          { isSelected ? <Icon name={value} color="#4385F4" style={styles.iconImage} width="30" height="30" /> : <Icon name={value} color={'grey'} style={styles.iconImage} width="30" height="30" /> }
-                       </TouchableHighlight>)
-              })
-            }
-          </View>
-  
-        </Modal>
+
+        <View style={styles.iconSelection}>
+          {
+            folderIconsList.map((value, i) => {
+              localIcon = this.state.selectedIcon ? this.state.selectedIcon : ((folder && folder.icon) ? folder.icon.id : null);
+              isSelected = (localIcon ? localIcon - 1 === i : false);
+              return (<TouchableHighlight key={i}
+                style={styles.iconButton}
+                underlayColor="#F2F5FF"
+                onPress={() => { this.setState({ selectedIcon: i + 1 }) }}>
+                {isSelected ? <Icon name={value} color="#4385F4" style={styles.iconImage} width="30" height="30" /> : <Icon name={value} color={'grey'} style={styles.iconImage} width="30" height="30" />}
+              </TouchableHighlight>)
+            })
+          }
+        </View>
+
+      </Modal>
       )
     } else { return; }
-    
+
   }
 
   loadUsage = () => {
@@ -220,9 +433,58 @@ class Home extends Component {
       borderRadius: 1.3
     }
 
+    const self = this;
+
     return (
       <View style={styles.container}>
-        {filesState.selectedFile && this.getFolderModal(filesState.selectedFile)}
+
+        <Modal ref={'runOutStorageModal'} style={{ padding: 24 }}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <View>
+              <Image source={require('../../../assets/images/logo.png')} style={{ width: 55, height: 29, marginBottom: 22 }} />
+              <Text style={{ fontSize: 27, fontFamily: 'CircularStd-Bold' }}>Run out of space.</Text>
+              <Text style={{ fontSize: 17, color: '#737880', marginTop: 15 }}>In order to start uploading more files please upgrade your storage plan.</Text>
+
+              <View style={{ flexDirection: 'row', marginTop: 40 }}>
+
+                <TouchableHighlight style={{
+                  height: 60, borderRadius: 4, borderWidth: 2,
+                  backgroundColor: '#fff',
+                  borderColor: 'rgba(151, 151, 151, 0.2)',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '45%'
+                }} onPress={() => {
+                  self.refs.runOutStorageModal.close();
+                }}>
+                  <Text style={{ color: '#5c6066', fontFamily: 'CerebriSans-Bold', fontSize: 16 }}>Close</Text>
+                </TouchableHighlight>
+
+                <View style={{ width: 20 }}></View>
+
+                <TouchableHighlight style={{
+                  height: 60, borderRadius: 4.1,
+                  backgroundColor: '#4585f5',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '45%'
+                }}
+                  onPress={() => {
+                    self.refs.runOutStorageModal.close();
+                    this.props.navigation.push("Storage");
+                  }}>
+
+                  <Text style={{ color: '#ffffff', fontFamily: 'CerebriSans-Bold', fontSize: 16 }}>Upgrade</Text>
+
+                </TouchableHighlight>
+
+              </View>
+
+            </View>
+          </View>
+        </Modal>
+
+        {filesState.selectedFile && this.getItemModal(filesState.selectedFile)}
         <Modal
           position={"bottom"}
           ref={"modalSettings"}
@@ -262,7 +524,7 @@ class Home extends Component {
 
         <View style={{ height: 17.5 }}></View>
 
-        <AppMenu navigation={navigation} />
+        <AppMenu navigation={navigation} downloadFile={this.downloadFile} />
 
         <View style={styles.breadcrumbs}>
           <Text style={styles.breadcrumbsTitle}>
@@ -271,8 +533,8 @@ class Home extends Component {
           {this.state.backButtonVisible && <ButtonPreviousDir />}
         </View>
 
-        <FileList />
-      </View>
+        <FileList downloadFile={this.downloadFile} />
+      </View >
     );
   }
 }
@@ -298,8 +560,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderBottomColor: "#e6e6e6",
     borderBottomWidth: 2,
-    marginTop: 30,
-    paddingBottom: 30
+    marginTop: 15,
+    paddingBottom: 15
   },
   breadcrumbsTitle: {
     fontFamily: "CircularStd-Bold",
@@ -334,7 +596,7 @@ const styles = StyleSheet.create({
     marginRight: 9,
     justifyContent: "center",
     alignItems: "center"
-  }, 
+  },
   iconSelection: {
     display: "flex",
     flexWrap: "wrap",

@@ -1,10 +1,20 @@
 import React, { Component } from "react";
-import { StyleSheet, View, Text, TouchableHighlight } from "react-native";
+import { StyleSheet, View, Text, TouchableHighlight, Image } from "react-native";
 import { LinearGradient } from 'expo';
+import { getIcon } from '../../helpers'
 
 class PlanListItem extends Component {
   render() {
-    const { navigation, plan } = this.props;
+    const checkMark = getIcon("checkmark");
+    const { navigation, plan, theme } = this.props;
+    const extendStyles = StyleSheet.create({
+      container: {
+        backgroundColor: variants[theme].background
+      },
+      label: {
+        color: variants[theme].color
+      }
+    });
 
     return (
       <TouchableHighlight

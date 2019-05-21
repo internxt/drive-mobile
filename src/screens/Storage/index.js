@@ -132,6 +132,9 @@ class Storage extends Component {
           ))}
         </View>
         <View style={[styles.marginBox, { marginBottom: 41, marginTop: 30 }]}>
+
+          {/* <Text>You are subscribed to the 1GB plan.</Text> */}
+
           <TouchableHighlight
             style={styles.button}
             underlayColor="#FFF"
@@ -222,7 +225,7 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontFamily: "CircularStd-Book",
-    color: "#4b66ff",
+    color: "#4585f5",
     fontSize: 16,
     letterSpacing: -0.2
   },
