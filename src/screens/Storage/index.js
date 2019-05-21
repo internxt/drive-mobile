@@ -27,16 +27,20 @@ class Storage extends Component {
   }
 
   componentDidMount() {
-    const user = this.props.authenticationState.user.email;
-
     // Get plans info
-
     fetch(`${process.env.REACT_APP_API_URL}/api/plans`, {
       method: "POST"
     }).then(async (response) => {
       const data = await response.json();
       this.setState({ plans: data });
     })
+
+    //Update storage data
+    this.updateStorageInfo();
+  }
+
+  updateStorageInfo = () => {
+    const user = this.props.authenticationState.user.email;
 
     // Get storage data
     fetch(`${process.env.REACT_APP_API_URL}/api/limit`, {
@@ -58,9 +62,7 @@ class Storage extends Component {
       method: 'post',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email: user })
-    }
-    )
-      .then(res => res.json())
+    }).then(res => res.json())
       .then(res => {
         var copyUsage = this.state.usage;
         copyUsage.used = res.total;
@@ -68,7 +70,6 @@ class Storage extends Component {
       }).catch(err => {
         console.log(err);
       });
-
   }
 
   render() {
@@ -99,7 +100,6 @@ class Storage extends Component {
               <ProgressBar totalValue={this.state.usage.maxLimit} usedValue={this.state.usage.used} />
             </View>
 
-
             <View style={{ flexDirection: 'row' }}>
               <View style={styles.legendWrapper}>
                 <LinearGradient style={styles.legendFill} colors={['#096dff', '#00b1ff']} />
@@ -119,12 +119,10 @@ class Storage extends Component {
           <View style={[styles.divider, { marginTop: 38, marginBottom: 20 }]} />
         </View>
 
-
         <View style={styles.marginBox}>
           <View>
             <Text style={[styles.title, { marginBottom: 25 }]}>Storage Plans</Text>
           </View>
-
           {this.state.plans.map(plan => (
             <PlanListItem
               plan={plan}
@@ -134,9 +132,6 @@ class Storage extends Component {
           ))}
         </View>
         <View style={[styles.marginBox, { marginBottom: 41, marginTop: 30 }]}>
-
-          <Text>You are subscribed to the 1GB plan.</Text>
-
           <TouchableHighlight
             style={styles.button}
             underlayColor="#FFF"

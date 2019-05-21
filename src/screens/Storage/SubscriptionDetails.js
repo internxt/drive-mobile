@@ -1,20 +1,35 @@
 import React, { Component, Fragment } from "react";
 import { StyleSheet, Text, View, TouchableHighlight, Platform, Alert } from "react-native";
+import { compose } from "redux";
+import { connect } from 'react-redux';
 import stripe from 'tipsi-stripe';
 
 import AppMenu from "../../components/AppMenu";
 import PlanListItem from "../../components/PlanListItem";
 import { userActions } from "../../actions";
 
+
 class SubscriptionDetails extends Component {
+  constructor(props) {
+    super(props);
+  }
   
+  componentWillReceiveProps(nextProps) {
+    // Go back when plan has changed
+    if (nextProps.settingsState.plan_changed) {
+      const { plan } = this.props.navigation.state.params;
+      Alert.alert('Plan purchased', `${plan.name} plan successfully purchased`);
+      nextProps.navigation.goBack();
+    }
+  }
+
   launchBuyNow = async () => {
     try {
       // Set stripe opts
       stripe.setOptions({
-        publishableKey: process.env.REACT_APP_STRIPE_KEY,
+        publishableKey: 'pk_test_vpHlkSQ7DhmzSWHEbmfT1lIJ'/*process.env.REACT_APP_STRIPE_KEY*/,
         merchantId: "merchant.com.internxt.xcloud",
-        androidPayMode: "production",
+        androidPayMode: 'test',
       });
       // Wait for stripe to be initialized
       while(!stripe.stripeInitialized) { setTimeout({}, 250); }
@@ -51,10 +66,11 @@ class SubscriptionDetails extends Component {
     
         const items = [{ label: plan.name, amount: plan.price_eur }];
 
-        const token = await stripe.paymentRequestWithNativePay(options, items);
-        console.log(token);
-        this.props.navigation.dispatch(userActions.payment(token, plan.id));
-        
+        // Set email on token
+        let token = await stripe.paymentRequestWithNativePay(options, items);
+        Object.assign(token, { email: this.props.authenticationState.user.email });
+        this.props.dispatch(userActions.payment(token, plan.stripe_plan_id));
+
       } else {
         Alert.alert('Error','Your device does not support payment in app. Go to Web app for credit card payment.');
       }
@@ -139,4 +155,10 @@ const styles = StyleSheet.create({
   }
 });
 
-export default SubscriptionDetails;
+const mapStateToProps = state => {
+  return {
+    ...state
+  };
+};
+
+export default (SubscriptionDetailsComposed = compose(connect(mapStateToProps))(SubscriptionDetails));

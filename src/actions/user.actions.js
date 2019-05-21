@@ -49,15 +49,16 @@ function localSignIn(token, user) {
 }
 
 function payment(token, planId) {
-  dispatch(request());
-  userService.payment(token, planId)
-    .then((data) => {
-      console.log('Successfull payment. ',data);
-      dispatch(success())
-    })
-    .catch((error) => {
-      dispatch(failure(error))
-    })
+  return dispatch => {
+    dispatch(request());
+    userService.payment(token, planId)
+      .then(() => {
+        dispatch(success())
+      })
+      .catch((error) => {
+        dispatch(failure(error))
+      })
+  }
 
   function request() {
     return { type: userActionTypes.PAYMENT_REQUEST };

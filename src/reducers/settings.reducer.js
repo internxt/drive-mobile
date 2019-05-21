@@ -2,6 +2,7 @@ import { userActionTypes } from "../constants";
 
 const initialState = {
   loading: false,
+  plan_changed: false,
   error: ''
 };
 
@@ -14,7 +15,8 @@ export function settingsReducer(state = initialState, action) {
       };
     case userActionTypes.PAYMENT_SUCCESS:
       return {
-        loading: false
+        loading: false,
+        plan_changed: true
       };
     case userActionTypes.PAYMENT_FAILURE:
       return {
