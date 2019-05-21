@@ -134,10 +134,10 @@ class FileItem extends Component {
       );
 
     return (
+      <TouchableHighlight onPress={this.handleTypeOfClick.bind(this, item)} underlayColor="#FFF" style={[styles.container, extendStyles.containerBackground]}>
         <View style={styles.fileDetails}>
           <View style={styles.itemIcon}>
             {this.props.isBeingUploaded ? <IconFile isUploading={true} /> : itemIcon}
-      <TouchableHighlight onPress={this.handleTypeOfClick.bind(this, item)} underlayColor="#FFF" style={[styles.container, extendStyles.containerBackground]}>
           </View>
           <View style={styles.nameAndTime}>
             <Text style={[styles.fileName, extendStyles.text]} numberOfLines={1}>
