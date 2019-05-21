@@ -10,10 +10,21 @@ class SubscriptionDetails extends Component {
   
   launchBuyNow = async () => {
     try {
+      // Set stripe opts
+      stripe.setOptions({
+        publishableKey: process.env.REACT_APP_STRIPE_KEY,
+        merchantId: "merchant.com.internxt.xcloud",
+        androidPayMode: "production",
+      });
+      // Wait for stripe to be initialized
+      while(!stripe.stripeInitialized) { setTimeout({}, 250); }
+      console.log('Stripe initialized')
+
       // Check if platform supports pay
       let supported = await stripe.deviceSupportsNativePay();
       console.log(`Supported Google/Apple Pay: ${supported}`);
       if (supported) {        
+        // Set opts which depends on platform
         const { plan } = this.props.navigation.state.params;
         let options = {};
         if (Platform.OS === "android") { 
@@ -39,16 +50,10 @@ class SubscriptionDetails extends Component {
         }
     
         const items = [{ label: plan.name, amount: plan.price_eur }];
-        
-        // Set stripe opts and items for payment
-        stripe.setOptions({
-          publishableKey: "pk_test_vpHlkSQ7DhmzSWHEbmfT1lIJ",
-          merchantId: "merchant.com.internxt.xcloud",
-          androidPayMode: "test",
-        });
+
         const token = await stripe.paymentRequestWithNativePay(options, items);
         console.log(token);
-        //this.props.dispatch(userActions.payment(token, plan.id));
+        this.props.navigation.dispatch(userActions.payment(token, plan.id));
         
       } else {
         Alert.alert('Error','Your device does not support payment in app. Go to Web app for credit card payment.');
