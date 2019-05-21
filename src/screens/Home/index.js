@@ -78,6 +78,12 @@ class Home extends Component {
       this.props.navigation.replace("Auth");
     }
 
+    if (nextProps.layoutState.showRunOutSpaceModal) {
+      this.props.dispatch(layoutActions.closeRunOutStorageModal());
+      this.refs.runOutStorageModal.open();
+    }
+
+
     // Set active Folder ID
     if (folderId !== this.state.folderId) {
       this.setState({
@@ -386,8 +392,57 @@ class Home extends Component {
       borderRadius: 1.3
     }
 
+    const self = this;
+
     return (
       <View style={styles.container}>
+
+        <Modal ref={'runOutStorageModal'} style={{ padding: 24 }}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <View>
+              <Image source={require('../../../assets/images/logo.png')} style={{ width: 55, height: 29, marginBottom: 22 }} />
+              <Text style={{ fontSize: 27, fontFamily: 'CircularStd-Bold' }}>Run out of space.</Text>
+              <Text style={{ fontSize: 17, color: '#737880', marginTop: 15 }}>In order to start uploading more files please upgrade your storage plan.</Text>
+
+              <View style={{ flexDirection: 'row', marginTop: 40 }}>
+
+                <TouchableHighlight style={{
+                  height: 60, borderRadius: 4, borderWidth: 2,
+                  backgroundColor: '#fff',
+                  borderColor: 'rgba(151, 151, 151, 0.2)',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '45%'
+                }} onPress={() => {
+                  self.refs.runOutStorageModal.close();
+                }}>
+                  <Text style={{ color: '#5c6066', fontFamily: 'CerebriSans-Bold', fontSize: 16 }}>Close</Text>
+                </TouchableHighlight>
+
+                <View style={{ width: 20 }}></View>
+
+                <TouchableHighlight style={{
+                  height: 60, borderRadius: 4.1,
+                  backgroundColor: '#4585f5',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '45%'
+                }}
+                  onPress={() => {
+                    self.refs.runOutStorageModal.close();
+                    this.props.navigation.push("Storage");
+                  }}>
+
+                  <Text style={{ color: '#ffffff', fontFamily: 'CerebriSans-Bold', fontSize: 16 }}>Upgrade</Text>
+
+                </TouchableHighlight>
+
+              </View>
+
+            </View>
+          </View>
+        </Modal>
+
         {filesState.selectedFile && this.getItemModal(filesState.selectedFile)}
         <Modal
           position={"bottom"}
@@ -438,7 +493,7 @@ class Home extends Component {
         </View>
 
         <FileList />
-      </View>
+      </View >
     );
   }
 }

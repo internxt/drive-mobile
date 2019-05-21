@@ -111,10 +111,12 @@ class AppMenu extends Component {
         headers,
         body
       }).then(async resultFetch => {
-        var data = resultFetch.json();
+        var data = await resultFetch.json();
         return { res: resultFetch, data };
       }).then(resultFetch => {
-        if (resultFetch.res.status == 201) {
+        if (resultFetch.res.status == 500 && resultFetch.data.message && resultFetch.data.message.includes("rate limit error")) {
+          this.props.dispatch(layoutActions.openRunOutStorageModal());
+        } else if (resultFetch.res.status == 201) {
           self.props.dispatch(fileActions.getFolderContent(self.props.filesState.folderContent.currentFolder));
         } else {
           Alert.alert('Error', resultFetch.data.error ? resultFetch.data.error : 'Cannot upload file');
