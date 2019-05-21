@@ -4,7 +4,8 @@ const { REACT_APP_API_URL } = process.env;
 
 export const userService = {
   signin,
-  signout
+  signout,
+  payment
 };
 
 function signin(email, password, sKey, twoFactorCode) {
@@ -54,7 +55,7 @@ function signin(email, password, sKey, twoFactorCode) {
         reject(err);
       });
   });
-};
+}
 
 async function signout() {
   try {
@@ -66,4 +67,20 @@ async function signout() {
   } catch (error) {
     console.log(error);
   }
-};
+}
+
+function payment(token, stripePlan) {
+  return new Promise((resolve, reject) => {
+    fetch(`${REACT_APP_API_URL}/api/buy`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        token: JSON.stringify(token),
+        plan: stripePlan
+      })
+    }).then(async (response) => {
+      const body = response.json();
+      resolve(body.message);
+    }).catch((error) => { reject(error); });
+  })
+}

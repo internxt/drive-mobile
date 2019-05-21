@@ -4,49 +4,57 @@ import stripe from 'tipsi-stripe';
 
 import AppMenu from "../../components/AppMenu";
 import PlanListItem from "../../components/PlanListItem";
+import { userActions } from "../../actions";
 
 class SubscriptionDetails extends Component {
   
-  launchBuyNow = () => {
-    let supported = false;
-
-    stripe.setOptions({
-      publishableKey: 'pk_test_vpHlkSQ7DhmzSWHEbmfT1lIJ',
-      androidPayMode: 'test',
-    });
-
-    // Check if platform supports pay
-    if (Platform.OS === "android") { 
-      supported = await stripe.deviceSupportsNativePay();
-      console.log(`Google Pay support: ${supported}`);   
-    }
-    else { 
-      supported = await stripe.deviceSupportsApplePay();
-      console.log(`Apple Pay support: ${supported}`)
-    }
-
-    if (supported) {
-      const { plan } = this.props.navigation.state.params;
-
-      const options = {
-        total_price: plan.price_eur,
-        currency_code: 'EUR',
-        billing_address_required: true,
-        shipping_countries: ["ES"],
-        line_items: [{
-          currency_code: 'EUR',
-          description: plan.name,
-          total_price: plan.price_eur,
-          unit_price: plan.price_eur,
-          quantity: '1',
-        }],
+  launchBuyNow = async () => {
+    try {
+      // Check if platform supports pay
+      let supported = await stripe.deviceSupportsNativePay();
+      console.log(`Supported Google/Apple Pay: ${supported}`);
+      if (supported) {        
+        const { plan } = this.props.navigation.state.params;
+        let options = {};
+        if (Platform.OS === "android") { 
+          options = {
+            total_price: plan.price_eur,
+            currency_code: 'EUR',
+            billing_address_required: true,
+            line_items: [{
+              currency_code: 'EUR',
+              description: plan.name,
+              total_price: plan.price_eur,
+              unit_price: plan.price_eur,
+              quantity: '1'
+            }]
+          };  
+        }
+        else { 
+          options = {
+            requiredBillingAddressFields: ['all'],
+            currencyCode: 'EUR',
+            countryCode: 'ES'
+          }
+        }
+    
+        const items = [{ label: plan.name, amount: plan.price_eur }];
+        
+        // Set stripe opts and items for payment
+        stripe.setOptions({
+          publishableKey: "pk_test_vpHlkSQ7DhmzSWHEbmfT1lIJ",
+          merchantId: "merchant.com.internxt.xcloud",
+          androidPayMode: "test",
+        });
+        const token = await stripe.paymentRequestWithNativePay(options, items);
+        console.log(token);
+        //this.props.dispatch(userActions.payment(token, plan.id));
+        
+      } else {
+        Alert.alert('Error','Your device does not support payment in app. Go to Web app for credit card payment.');
       }
-      
-      stripe.paymentRequestWithNativePay(options).then((result) => {
-        console.log(result);
-      }).catch((error) => {
-        console.log(error);
-      })
+    } catch (error) {
+      console.log(error);
     }
   }
   

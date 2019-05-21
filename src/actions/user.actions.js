@@ -4,7 +4,8 @@ import { userService } from "../services";
 export const userActions = {
   signin,
   signout,
-  localSignIn
+  localSignIn,
+  payment
 };
 
 function signin(email, password, sKey, twoFactorCode) {
@@ -45,4 +46,28 @@ function signout() {
 function localSignIn(token, user) {
   const data = { token, user }
   return { type: userActionTypes.LOCAL_SIGNIN, payload: data };
+}
+
+function payment(token, planId) {
+  dispatch(request());
+  userService.payment(token, planId)
+    .then((data) => {
+      console.log('Successfull payment. ',data);
+      dispatch(success())
+    })
+    .catch((error) => {
+      dispatch(failure(error))
+    })
+
+  function request() {
+    return { type: userActionTypes.PAYMENT_REQUEST };
+  }
+
+  function success() {
+    return { type: userActionTypes.PAYMENT_SUCCESS };
+  }
+
+  function failure(error) {
+    return { type: userActionTypes.PAYMENT_FAILURE, payload: error };
+  }
 }
