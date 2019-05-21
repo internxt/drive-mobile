@@ -24,7 +24,7 @@ class AppMenu extends Component {
     this.handleMenuClick = this.handleMenuClick.bind(this);
     this.handleFolderCreate = this.handleFolderCreate.bind(this);
     this.uploadFile = this.uploadFile.bind(this);
-    this.downloadFile = this.downloadFile.bind(this);
+    this.downloadFile = this.props.downloadFile;
   }
 
   componentWillReceiveProps(newProps) {
@@ -40,44 +40,6 @@ class AppMenu extends Component {
 
   handleFolderCreate(parentFolderId) {
     this.props.navigation.push("CreateFolder", { parentFolderId });
-  }
-
-  downloadFile = async () => {
-    const fileId = this.props.filesState.selectedFile.fileId;
-    const fileName = this.props.filesState.selectedFile.name + '.' + this.props.filesState.selectedFile.type;
-    const token = this.props.authenticationState.token;
-    const mnemonic = this.props.authenticationState.user.mnemonic;
-
-    const headers = {
-      "Authorization": `Bearer ${token}`,
-      "internxt-mnemonic": mnemonic,
-      "Content-type": "application/json"
-    };
-
-    // Generate token:
-    fetch(`${process.env.REACT_APP_API_URL}/api/storage/share/file/${fileId}`, {
-      method: 'POST',
-      headers
-    }).then(async result => {
-      var data = await result.json();
-      return { res: result, data };
-    }).then(result => {
-      if (result.res.status != 200) {
-        if (result.data.error) {
-          Alert.alert('Error', result.data.error);
-        } else {
-          Alert.alert('Error', 'Cannot download file');
-        }
-      } else {
-        const linkToken = result.data.token;
-        const proxy = 'https://api.internxt.com:8081';
-        Linking.openURL(`${proxy}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`);
-      }
-    }).catch(err => {
-      console.log("Error", err);
-      Alert.alert('Error', 'Internal error');
-    });
-
   }
 
   uploadFile = async () => {

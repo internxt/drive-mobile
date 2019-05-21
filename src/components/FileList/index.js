@@ -15,6 +15,8 @@ class FileList extends Component {
       isRefreshing: false
     }
 
+    this.downloadFile = this.props.downloadFile;
+
     this.refreshList = this.refreshList.bind(this);
   }
 
@@ -53,6 +55,7 @@ class FileList extends Component {
           {folderContent.files.map(file => (
             <FileItem
               key={file.id}
+              downloadFile={this.downloadFile}
               item={file}
               isFolder={false}
               isSelected={selectedFile && selectedFile.id === file.id}

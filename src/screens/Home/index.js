@@ -100,6 +100,47 @@ class Home extends Component {
     }
   }
 
+
+  downloadFile = async (item) => {
+
+    const fileId = item ? item.fileId : this.props.filesState.selectedFile.fileId;
+    //const fileName = this.props.filesState.selectedFile.name + '.' + this.props.filesState.selectedFile.type;
+    const token = this.props.authenticationState.token;
+    const mnemonic = this.props.authenticationState.user.mnemonic;
+
+    const headers = {
+      "Authorization": `Bearer ${token}`,
+      "internxt-mnemonic": mnemonic,
+      "Content-type": "application/json"
+    };
+
+    // Generate token:
+    fetch(`${process.env.REACT_APP_API_URL}/api/storage/share/file/${fileId}`, {
+      method: 'POST',
+      headers
+    }).then(async result => {
+      var data = await result.json();
+      return { res: result, data };
+    }).then(result => {
+      if (result.res.status != 200) {
+        if (result.data.error) {
+          Alert.alert('Error', result.data.error);
+        } else {
+          Alert.alert('Error', 'Cannot download file');
+        }
+      } else {
+        const linkToken = result.data.token;
+        const proxy = 'https://api.internxt.com:8081';
+        Linking.openURL(`${proxy}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`);
+      }
+    }).catch(err => {
+      console.log("Error", err);
+      Alert.alert('Error', 'Internal error');
+    });
+
+  }
+
+
   handleDeleteSelectedFile() {
     const fileToDelete = this.props.filesState.selectedFile;
     const token = this.props.authenticationState.token;
@@ -483,7 +524,7 @@ class Home extends Component {
 
         <View style={{ height: 17.5 }}></View>
 
-        <AppMenu navigation={navigation} />
+        <AppMenu navigation={navigation} downloadFile={this.downloadFile} />
 
         <View style={styles.breadcrumbs}>
           <Text style={styles.breadcrumbsTitle}>
@@ -492,7 +533,7 @@ class Home extends Component {
           {this.state.backButtonVisible && <ButtonPreviousDir />}
         </View>
 
-        <FileList />
+        <FileList downloadFile={this.downloadFile} />
       </View >
     );
   }
