@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "x-cloud-mobile",
-    "description": "X Cloud Mobile",
-    "slug": "x-cloud-mobile",
+    "name": "X Cloud",
+    "description": "",
+    "slug": "x-cloud",
     "privacy": "public",
     "sdkVersion": "32.0.0",
     "platforms": [
@@ -25,16 +25,19 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.internxt.xcloud"
+      "bundleIdentifier": "com.internxt.cloud",
+      "publishBundlePath": "ios/x-cloud/Supporting/shell-app.bundle",
+      "publishManifestPath": "ios/x-cloud/Supporting/shell-app-manifest.json"
     },
     "android": {
-      "package": "com.internxt.xcloud",
+      "package": "com.internxt.cloud",
       "publishBundlePath": "android/app/src/main/assets/shell-app.bundle",
       "publishManifestPath": "android/app/src/main/assets/shell-app-manifest.json"
     },
     "isDetached": true,
     "detach": {
-      "androidExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/android-v2.10.8-sdk32.0.0-bca0f957-de78-44c8-91ed-f3151372d79d.tar.gz"
+      "androidExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/android-v2.10.8-sdk32.0.0-bca0f957-de78-44c8-91ed-f3151372d79d.tar.gz",
+      "iosExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/ios-v2.10.6-sdk32.0.0-e50ee83a-41bd-4965-b067-4c815a3b3fcc.tar.gz"
     },
     "scheme": "exp6b2a44a6709f4e8d8f306106f9e6b8fb"
   }

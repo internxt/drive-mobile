@@ -6,15 +6,7 @@ import { getIcon } from '../../helpers'
 class PlanListItem extends Component {
   render() {
     const checkMark = getIcon("checkmark");
-    const { navigation, plan, theme } = this.props;
-    const extendStyles = StyleSheet.create({
-      container: {
-        backgroundColor: variants[theme].background
-      },
-      label: {
-        color: variants[theme].color
-      }
-    });
+    const { navigation, plan } = this.props;
 
     return (
       <TouchableHighlight
@@ -29,7 +21,7 @@ class PlanListItem extends Component {
               </Text>
             </View>
           </LinearGradient>
-          <Text style={styles.planPrice}><Text style={{ fontFamily: 'CircularStd-Bold' }}>{ parseInt(plan.price_eur) === 0 ? 'Free' : `€${plan.price_eur}`}</Text>{plan.period ? <Text style={{ color: '#7e848c' }}>/{plan.period}</Text> : ""}</Text>
+          <Text style={styles.planPrice}><Text style={{ fontFamily: 'CircularStd-Bold' }}>{parseInt(plan.price_eur) === 0 ? 'Free' : `€${plan.price_eur}`}</Text>{plan.period ? <Text style={{ color: '#7e848c' }}>/{plan.period}</Text> : ""}</Text>
         </View>
       </TouchableHighlight>
     );
