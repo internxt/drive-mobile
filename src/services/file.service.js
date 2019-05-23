@@ -80,6 +80,6 @@ function updateFolderMetadata(metadata, folderId) {
       headers,
       body: data
     }).then(() => { resolve(); })
-    .catch((error) => { reject(error); });
+      .catch((error) => { reject(error); });
   });
 }

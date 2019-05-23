@@ -13,7 +13,7 @@ class SubscriptionDetails extends Component {
   constructor(props) {
     super(props);
   }
-  
+
   componentWillReceiveProps(nextProps) {
     // Go back when plan has changed
     if (nextProps.settingsState.plan_changed) {
@@ -27,22 +27,22 @@ class SubscriptionDetails extends Component {
     try {
       // Set stripe opts
       stripe.setOptions({
-        publishableKey: 'pk_test_vpHlkSQ7DhmzSWHEbmfT1lIJ'/*process.env.REACT_APP_STRIPE_KEY*/,
+        publishableKey: process.env.REACT_APP_STRIPE_KEY || 'pk_live_Rl9YfdPjEGxGUDh9BK5rgI3Y',
         merchantId: "merchant.com.internxt.xcloud",
         androidPayMode: 'test',
       });
       // Wait for stripe to be initialized
-      while(!stripe.stripeInitialized) { setTimeout({}, 250); }
+      while (!stripe.stripeInitialized) { setTimeout({}, 250); }
       console.log('Stripe initialized')
 
       // Check if platform supports pay
       let supported = await stripe.deviceSupportsNativePay();
       console.log(`Supported Google/Apple Pay: ${supported}`);
-      if (supported) {        
+      if (supported) {
         // Set opts which depends on platform
         const { plan } = this.props.navigation.state.params;
         let options = {};
-        if (Platform.OS === "android") { 
+        if (Platform.OS === "android") {
           options = {
             total_price: plan.price_eur,
             currency_code: 'EUR',
@@ -54,16 +54,16 @@ class SubscriptionDetails extends Component {
               unit_price: plan.price_eur,
               quantity: '1'
             }]
-          };  
+          };
         }
-        else { 
+        else {
           options = {
             requiredBillingAddressFields: ['all'],
             currencyCode: 'EUR',
             countryCode: 'ES'
           }
         }
-    
+
         const items = [{ label: plan.name, amount: plan.price_eur }];
 
         // Set email on token
@@ -72,13 +72,13 @@ class SubscriptionDetails extends Component {
         this.props.dispatch(userActions.payment(token, plan.stripe_plan_id));
 
       } else {
-        Alert.alert('Error','Your device does not support payment in app. Go to Web app for credit card payment.');
+        Alert.alert('Error', 'Your device does not support payment in app. Go to Web app for credit card payment.');
       }
     } catch (error) {
       console.log(error);
     }
   }
-  
+
   render() {
     const { navigation } = this.props;
     const { plan } = navigation.state.params;

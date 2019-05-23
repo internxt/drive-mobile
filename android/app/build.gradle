@@ -20,7 +20,7 @@ android {
   compileSdkVersion 27
 
   defaultConfig {
-    applicationId 'com.internxt.xcloud'
+    applicationId 'com.internxt.cloud'
     minSdkVersion 21
     targetSdkVersion 26
     versionCode 1

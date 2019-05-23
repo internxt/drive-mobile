@@ -5,11 +5,11 @@
   xmlns:tools="http://schemas.android.com/tools">
 
   <permission
-    android:name="com.internxt.xcloud.permission.C2D_MESSAGE"
+    android:name="com.internxt.cloud.permission.C2D_MESSAGE"
     android:protectionLevel="signature"/>
 
   <!-- These are required permissions to make the app run -->
-  <uses-permission android:name="com.internxt.xcloud.permission.C2D_MESSAGE" />
+  <uses-permission android:name="com.internxt.cloud.permission.C2D_MESSAGE" />
   <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <uses-permission android:name="android.permission.INTERNET" />
@@ -156,7 +156,7 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="com.internxt.xcloud" android:path="oauthredirect"/>
+        <data android:scheme="com.internxt.cloud" android:path="oauthredirect"/>
       </intent-filter>
     </activity>
 
@@ -178,7 +178,7 @@
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
-            <data android:scheme="expo.modules.payments.stripe.c6fc3c4a-9059-45a7-969a-f789ebd2499f" />
+            <data android:scheme="expo.modules.payments.stripe.b313a89d-fd22-451d-8179-f3b1243f1953" />
         </intent-filter>
     </activity>
     <!-- Versioned Activity for Stripe -->
@@ -267,7 +267,7 @@
         <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
         <action android:name="com.google.android.c2dm.intent.REGISTRATION"/>
 
-        <category android:name="com.internxt.xcloud"/>
+        <category android:name="com.internxt.cloud"/>
       </intent-filter>
     </receiver>
 
@@ -334,12 +334,7 @@
     <!-- The Facebook SDK runs FacebookInitProvider on startup and crashes if there isn't an ID here -->
     <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="fb0"/>
 
-    <meta-data android:name="standaloneStripeScheme" android:value="c6fc3c4a-9059-45a7-969a-f789ebd2499f" />
-
-    <!-- Activation of Google Pay service -->
-    <meta-data
-        android:name="com.google.android.gms.wallet.api.enabled"
-        android:value="true"/>
+    <meta-data android:name="standaloneStripeScheme" android:value="b313a89d-fd22-451d-8179-f3b1243f1953" />
   </application>
 
 </manifest>

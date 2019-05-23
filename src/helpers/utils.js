@@ -18,13 +18,13 @@ function passToHash(passObject) {
 // AES Plain text encryption method
 function encryptText(textToEncrypt) {
   let password = process.env.REACT_APP_CRYPTO_SECRET; // Force env var loading
-  return encryptTextWithKey(textToEncrypt, process.env.REACT_APP_CRYPTO_SECRET);
+  return encryptTextWithKey(textToEncrypt, password);
 }
 
 // AES Plain text decryption method
 function decryptText(encryptedText) {
   let password = process.env.REACT_APP_CRYPTO_SECRET; // Force env var loading
-  return decryptTextWithKey(encryptedText, process.env.REACT_APP_CRYPTO_SECRET);
+  return decryptTextWithKey(encryptedText, password);
 }
 
 // AES Plain text encryption method with enc. key

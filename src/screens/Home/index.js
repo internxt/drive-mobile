@@ -515,7 +515,6 @@ class Home extends Component {
           <Separator />
 
           <SettingsItem text="Storage" onClick={() => this.props.navigation.push("Storage")} />
-          <SettingsItem text="Contact Us" onClick={() => Linking.openURL('mailto:hello@internxt.com')} />
 
           <Separator />
 

@@ -5,5 +5,7 @@
   },
   "plugins": ["react"],
   "extends": ["eslint:recommended", "plugin:react/recommended"],
-  "rules": {}
+  "rules": {
+    "no-console": "off"
+  }
 }
