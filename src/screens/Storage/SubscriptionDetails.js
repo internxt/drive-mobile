@@ -2,7 +2,7 @@ import React, { Component, Fragment } from "react";
 import { StyleSheet, Text, View, TouchableHighlight, Platform, Alert } from "react-native";
 import { compose } from "redux";
 import { connect } from 'react-redux';
-import stripe from 'tipsi-stripe';
+import * as RNIap from 'react-native-iap';
 
 import AppMenu from "../../components/AppMenu";
 import PlanListItem from "../../components/PlanListItem";
@@ -12,6 +12,12 @@ import { userActions } from "../../actions";
 class SubscriptionDetails extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      products = Platform.select({
+        android: ['android.test'],
+        ios: []
+      })
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -25,57 +31,18 @@ class SubscriptionDetails extends Component {
 
   launchBuyNow = async () => {
     try {
-      // Set stripe opts
-      stripe.setOptions({
-        publishableKey: process.env.REACT_APP_STRIPE_KEY || 'pk_live_Rl9YfdPjEGxGUDh9BK5rgI3Y',
-        merchantId: "merchant.com.internxt.xcloud",
-        androidPayMode: 'test',
-      });
-      // Wait for stripe to be initialized
-      while (!stripe.stripeInitialized) { setTimeout({}, 250); }
-      console.log('Stripe initialized')
+      // Initialize in-app purchase
+      const result = await RNIap.initConnection();
+      
+      // Purchase subscription
+      const subscription = await RNIap.buySubscription(this.state.products[0]);
 
-      // Check if platform supports pay
-      let supported = await stripe.deviceSupportsNativePay();
-      console.log(`Supported Google/Apple Pay: ${supported}`);
-      if (supported) {
-        // Set opts which depends on platform
-        const { plan } = this.props.navigation.state.params;
-        let options = {};
-        if (Platform.OS === "android") {
-          options = {
-            total_price: plan.price_eur,
-            currency_code: 'EUR',
-            billing_address_required: true,
-            line_items: [{
-              currency_code: 'EUR',
-              description: plan.name,
-              total_price: plan.price_eur,
-              unit_price: plan.price_eur,
-              quantity: '1'
-            }]
-          };
-        }
-        else {
-          options = {
-            requiredBillingAddressFields: ['all'],
-            currencyCode: 'EUR',
-            countryCode: 'ES'
-          }
-        }
-
-        const items = [{ label: plan.name, amount: plan.price_eur }];
-
-        // Set email on token
-        let token = await stripe.paymentRequestWithNativePay(options, items);
-        Object.assign(token, { email: this.props.authenticationState.user.email });
-        this.props.dispatch(userActions.payment(token, plan.stripe_plan_id));
-
-      } else {
-        Alert.alert('Error', 'Your device does not support payment in app. Go to Web app for credit card payment.');
-      }
+      console.log(`Subscription ${this.state.products[0]} purchased.`)
+      console.log(subscription);
     } catch (error) {
       console.log(error);
+    } finally {
+      await RNIap.endConnection();
     }
   }
 

@@ -22,7 +22,7 @@ android {
   defaultConfig {
     applicationId 'com.internxt.cloud'
     minSdkVersion 21
-    targetSdkVersion 26
+    targetSdkVersion 27
     versionCode 1
     versionName '1.0.0'
     ndk {
@@ -104,7 +104,7 @@ apply from: 'expo.gradle'
 // WHEN_PREPARING_SHELL_REMOVE_TO_HERE
 
 dependencies {
-    compile project(':tipsi-stripe')
+  compile project(':react-native-iap')
   implementation fileTree(dir: 'libs', include: ['*.jar'])
 
   implementation 'com.android.support:multidex:1.0.1'

@@ -34,7 +34,7 @@ import expolib_v1.okhttp3.OkHttpClient;
 
 // Needed for `react-native link`
 // import com.facebook.react.ReactApplication;
-import com.gettipsi.stripe.StripeReactPackage;
+import com.dooboolab.RNIap.RNIapPackage;
 
 public class MainApplication extends ExpoApplication implements AppLoaderPackagesProviderInterface<ReactPackage> {
 
@@ -51,7 +51,7 @@ public class MainApplication extends ExpoApplication implements AppLoaderPackage
 
         // Needed for `react-native link`
         // new MainReactPackage(),
-            new StripeReactPackage()
+            new RNIapPackage()
     );
   }
 

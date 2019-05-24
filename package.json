@@ -21,14 +21,14 @@
     "react": "16.5.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
     "react-native-double-tap": "^1.0.1",
+    "react-native-iap": "^2.5.4",
     "react-native-modalbox": "^1.7.1",
     "react-native-responsive-screen": "^1.2.2",
     "react-native-timeago": "^0.4.0",
     "react-navigation": "^2.18.2",
     "react-redux": "^5.0.7",
     "redux": "^4.0.0",
-    "redux-thunk": "^2.3.0",
-    "tipsi-stripe": "^7.5.0"
+    "redux-thunk": "^2.3.0"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",

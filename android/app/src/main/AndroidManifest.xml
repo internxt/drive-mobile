@@ -17,6 +17,8 @@
   <uses-permission android:name="android.permission.WAKE_LOCK" />
 
   <!-- ADD PERMISSIONS HERE -->
+  <uses-permission android:name="com.android.vending.BILLING" />
+  
   <!-- BEGIN OPTIONAL PERMISSIONS -->
   <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" />
   <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
@@ -167,35 +169,6 @@
     <activity
       android:name="abi32_0_0.expo.modules.appauth.AppAuthBrowserActivity">
     </activity>
-
-    <!-- START OF STRIPE SCHEMES -->
-    <activity
-        android:exported="true"
-        android:launchMode="singleTask"
-        android:name="expo.modules.payments.stripe.RedirectUriReceiver"
-        android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen">
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <data android:scheme="expo.modules.payments.stripe.b313a89d-fd22-451d-8179-f3b1243f1953" />
-        </intent-filter>
-    </activity>
-    <!-- Versioned Activity for Stripe -->
-    <activity
-        android:exported="true"
-        android:launchMode="singleTask"
-        android:name="abi31_0_0.expo.modules.payments.stripe.RedirectUriReceiver"
-        android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen">
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <data android:scheme="abi31_0_0.expo.modules.payments.stripe" />
-        </intent-filter>
-    </activity>
-
-    <!-- END OF STRIPE SCHEMES -->
 
     <activity
       android:name=".chrometabs.ChromeTabsManagerActivity">
