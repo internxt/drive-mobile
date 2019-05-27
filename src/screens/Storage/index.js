@@ -28,7 +28,7 @@ class Storage extends Component {
 
   componentDidMount() {
     // Get plans info
-    fetch(`${process.env.REACT_APP_API_URL}/api/plans`, {
+    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/plans`, {
       method: "POST"
     }).then(async (response) => {
       const data = await response.json();
@@ -43,7 +43,7 @@ class Storage extends Component {
     const user = this.props.authenticationState.user.email;
 
     // Get storage data
-    fetch(`${process.env.REACT_APP_API_URL}/api/limit`, {
+    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/limit`, {
       method: 'post',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -58,7 +58,7 @@ class Storage extends Component {
         console.log(err);
       });
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/usage`, {
+    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/usage`, {
       method: 'post',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email: user })

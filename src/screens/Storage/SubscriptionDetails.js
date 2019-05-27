@@ -2,7 +2,6 @@ import React, { Component, Fragment } from "react";
 import { StyleSheet, Text, View, TouchableHighlight, Platform, Alert } from "react-native";
 import { compose } from "redux";
 import { connect } from 'react-redux';
-import * as RNIap from 'react-native-iap';
 
 import AppMenu from "../../components/AppMenu";
 import PlanListItem from "../../components/PlanListItem";
@@ -13,7 +12,7 @@ class SubscriptionDetails extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      products = Platform.select({
+      products: Platform.select({
         android: ['android.test'],
         ios: []
       })
@@ -33,7 +32,7 @@ class SubscriptionDetails extends Component {
     try {
       // Initialize in-app purchase
       const result = await RNIap.initConnection();
-      
+
       // Purchase subscription
       const subscription = await RNIap.buySubscription(this.state.products[0]);
 

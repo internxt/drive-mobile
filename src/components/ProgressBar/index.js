@@ -7,7 +7,11 @@ import { SCREEN_WIDTH } from "../../styles";
 class ProgressBar extends Component {
 
   render() {
-    const { totalValue, usedValue, styleBar, styleProgress } = this.props;
+    var { totalValue, usedValue, styleBar, styleProgress } = this.props;
+
+    if (usedValue > totalValue) {
+      usedValue = totalValue;
+    }
 
     const screenPadding = 40;
     const usedValueStyle = StyleSheet.create({

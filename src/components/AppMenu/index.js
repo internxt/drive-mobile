@@ -68,7 +68,7 @@ class AppMenu extends Component {
         "Content-type": "multipart/form-data"
       };
 
-      fetch(`${process.env.REACT_APP_API_URL}/api/storage/folder/${this.props.filesState.folderContent.currentFolder}/upload`, {
+      fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${this.props.filesState.folderContent.currentFolder}/upload`, {
         method: 'POST',
         headers,
         body
@@ -76,7 +76,7 @@ class AppMenu extends Component {
         var data = await resultFetch.json();
         return { res: resultFetch, data };
       }).then(resultFetch => {
-        if (resultFetch.res.status == 500 && resultFetch.data.message && resultFetch.data.message.includes("rate limit error")) {
+        if (resultFetch.res.status == 402) {
           this.props.dispatch(layoutActions.openRunOutStorageModal());
         } else if (resultFetch.res.status == 201) {
           self.props.dispatch(fileActions.getFolderContent(self.props.filesState.folderContent.currentFolder));

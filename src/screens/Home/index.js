@@ -115,7 +115,7 @@ class Home extends Component {
     };
 
     // Generate token:
-    fetch(`${process.env.REACT_APP_API_URL}/api/storage/share/file/${fileId}`, {
+    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/share/file/${fileId}`, {
       method: 'POST',
       headers
     }).then(async result => {
@@ -131,7 +131,7 @@ class Home extends Component {
       } else {
         const linkToken = result.data.token;
         const proxy = 'https://api.internxt.com:8081';
-        Linking.openURL(`${proxy}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`);
+        Linking.openURL(`${proxy}/${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/share/${linkToken}`);
       }
     }).catch(err => {
       console.log("Error", err);
@@ -146,7 +146,7 @@ class Home extends Component {
     const token = this.props.authenticationState.token;
     const mnemonic = this.props.authenticationState.user.mnemonic;
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/storage/bucket/${fileToDelete.bucket}/file/${fileToDelete.fileId}`, {
+    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/bucket/${fileToDelete.bucket}/file/${fileToDelete.fileId}`, {
       method: 'DELETE',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -189,7 +189,7 @@ class Home extends Component {
     const token = this.props.authenticationState.token;
     const mnemonic = this.props.authenticationState.user.mnemonic;
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/storage/file/${this.props.filesState.selectedFile.fileId}/meta`, {
+    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/file/${this.props.filesState.selectedFile.fileId}/meta`, {
       method: 'POST',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -256,7 +256,7 @@ class Home extends Component {
       return <Modal
         position={"bottom"}
         ref={this.modalFile}
-        style={styles.modalSettings}
+        style={styles.modalSettingsFile}
         onClosed={this.closeFileModal}
         backButtonClose={true}
         backdropPressToClose={true}>
@@ -390,7 +390,7 @@ class Home extends Component {
   loadUsage = () => {
     const user = this.props.authenticationState.user.email;
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/limit`, {
+    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/limit`, {
       method: 'post',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -406,7 +406,7 @@ class Home extends Component {
         console.log(err);
       });
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/usage`, {
+    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/usage`, {
       method: 'post',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email: user })
@@ -442,8 +442,8 @@ class Home extends Component {
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <View>
               <Image source={require('../../../assets/images/logo.png')} style={{ width: 55, height: 29, marginBottom: 22 }} />
-              <Text style={{ fontSize: 27, fontFamily: 'CircularStd-Bold' }}>Run out of space.</Text>
-              <Text style={{ fontSize: 17, color: '#737880', marginTop: 15 }}>In order to start uploading more files please upgrade your storage plan.</Text>
+              <Text style={{ fontSize: 27, fontFamily: 'CircularStd-Bold' }}>Ran out of space.</Text>
+              <Text style={{ fontSize: 17, color: '#737880', marginTop: 15 }}>In order to start uploading more files please access X Cloud on your computer and upgrade your storage plan.</Text>
 
               <View style={{ flexDirection: 'row', marginTop: 40 }}>
 
@@ -460,23 +460,8 @@ class Home extends Component {
                   <Text style={{ color: '#5c6066', fontFamily: 'CerebriSans-Bold', fontSize: 16 }}>Close</Text>
                 </TouchableHighlight>
 
-                <View style={{ width: 20 }}></View>
 
-                <TouchableHighlight style={{
-                  height: 60, borderRadius: 4.1,
-                  backgroundColor: '#4585f5',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  width: '45%'
-                }}
-                  onPress={() => {
-                    self.refs.runOutStorageModal.close();
-                    this.props.navigation.push("Storage");
-                  }}>
 
-                  <Text style={{ color: '#ffffff', fontFamily: 'CerebriSans-Bold', fontSize: 16 }}>Upgrade</Text>
-
-                </TouchableHighlight>
 
               </View>
 
@@ -514,9 +499,6 @@ class Home extends Component {
 
           <Separator />
 
-          <SettingsItem text="Storage" onClick={() => this.props.navigation.push("Storage")} />
-
-          <Separator />
 
           <SettingsItem text="Sign out" onClick={() => this.props.dispatch(userActions.signout())} />
         </Modal>
@@ -570,7 +552,10 @@ const styles = StyleSheet.create({
     color: "#000000"
   },
   modalSettings: {
-    height: 383
+    height: 303
+  },
+  modalSettingsFile: {
+    height: 333
   },
   modalSettingsProgressBar: {
     height: 6.5,

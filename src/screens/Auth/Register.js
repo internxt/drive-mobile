@@ -91,7 +91,7 @@ class Register extends Component {
     const encPass = utils.encryptText(hashObj.hash);
     const encSalt = utils.encryptText(hashObj.salt);
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/temp`, {
+    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/temp`, {
       method: 'GET',
       headers: {
         "content-type": "application/json; charset=utf-8",
@@ -105,17 +105,16 @@ class Register extends Component {
 
         let mnemonicEncrypted = res.data.payload;
         let mnemonic = utils.decryptText(mnemonicEncrypted);
-        const encMnemonic = utils.encryptText(mnemonic);
+        const encMnemonic = utils.encryptTextWithKey(mnemonic, this.state.password);
 
-
-        fetch(`${process.env.REACT_APP_API_URL}/api/register`, {
+        fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/register`, {
           method: 'POST',
           headers: {
             "content-type": "application/json; charset=utf-8",
           },
           body: JSON.stringify({
-            name: this.state.name,
-            lastname: this.state.lastname,
+            name: this.state.firstName,
+            lastname: this.state.lastName,
             email: this.state.email,
             password: encPass,
             mnemonic: encMnemonic,
@@ -143,7 +142,6 @@ class Register extends Component {
   }
 
   render() {
-
     if (this.state.registerStep == 1) {
       return (
         <View style={styles.container}>

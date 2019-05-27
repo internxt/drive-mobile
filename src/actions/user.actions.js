@@ -5,7 +5,8 @@ export const userActions = {
   signin,
   signout,
   localSignIn,
-  payment
+  payment,
+  userInitializaation
 };
 
 function signin(email, password, sKey, twoFactorCode) {
@@ -36,6 +37,10 @@ function signin(email, password, sKey, twoFactorCode) {
   function failure(error) {
     return { type: userActionTypes.SIGNIN_FAILURE, payload: error };
   }
+}
+
+function userInitializaation(userData) {
+  return { type: userActionTypes.SIGNIN_SUCCESS, payload: userData };
 }
 
 function signout() {

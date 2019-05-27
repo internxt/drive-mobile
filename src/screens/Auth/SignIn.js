@@ -10,6 +10,7 @@ import {
   Alert,
   Image
 } from "react-native";
+import { utils } from './../../helpers'
 
 class SignIn extends Component {
   constructor() {
@@ -49,7 +50,7 @@ class SignIn extends Component {
       return;
     }
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/login`, {
+    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/login`, {
       method: 'POST',
       headers: { "content-type": "application/json; charset=utf-8" },
       body: JSON.stringify({ email: this.state.email })
@@ -58,11 +59,57 @@ class SignIn extends Component {
         return { res, data: await res.json() }
       })
 
-      .then(res => {
+      .then(async res => {
         if (res.res.status === 200) {
           // Manage login depending on 2FA activated or not
           if (!res.data.tfa || this.state.showTwoFactor) {
             console.log('2FA not needed or already established, performing regular login...');
+
+            // Check initialization
+
+            try {
+              const salt = utils.decryptText(res.data.sKey);
+              const hashObj = utils.passToHash({ password: this.state.pasword, salt });
+              const encPass = utils.encryptText(hashObj.hash);
+
+              var activation = fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/access`, {
+                method: "POST",
+                headers: { "content-type": "application/json; charset=utf-8" },
+                body: JSON.stringify({
+                  email: this.state.email,
+                  password: encPass,
+                  tfa: this.state.twoFactorCode
+                })
+              })
+                .then(async response => {
+                  return { response, data: await response.json() }
+                }).then(resp => {
+                  if (!resp.data.user.root_folder_id || true) {
+                    // No root folder, create one
+
+                    const mnemonicEncrypted = resp.data.user.mnemonic;
+                    const mnemonicDecrypted = utils.decryptTextWithKey(mnemonicEncrypted, this.state.pasword);
+
+                    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/initialize`, {
+                      method: 'POST',
+                      headers: {
+                        "Authorization": `Bearer ${resp.data.token}`,
+                        "internxt-mnemonic": mnemonicDecrypted,
+                        "Content-type": "application/json"
+                      },
+                      body: JSON.stringify({
+                        email: this.state.email,
+                        mnemonic: mnemonicDecrypted
+                      })
+                    })
+
+                  }
+                })
+
+            } catch { }
+
+            if (activation) { await activation; }
+
             // Regular login
             this.props.onSignInClick(this.state.email, this.state.pasword, res.data.sKey, this.state.twoFactorCode);
           } else {

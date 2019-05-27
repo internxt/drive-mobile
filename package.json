@@ -21,7 +21,6 @@
     "react": "16.5.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
     "react-native-double-tap": "^1.0.1",
-    "react-native-iap": "^2.5.4",
     "react-native-modalbox": "^1.7.1",
     "react-native-responsive-screen": "^1.2.2",
     "react-native-timeago": "^0.4.0",

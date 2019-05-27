@@ -35,7 +35,7 @@ function getFolderContent(folderId) {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
 
-    fetch(`${REACT_APP_API_URL}/api/storage/folder/${folderId}`, {
+    fetch(`${REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${folderId}`, {
       method: "GET",
       headers
     })
@@ -53,7 +53,7 @@ function createFolder(parentFolderId, folderName = "Untitled folder") {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
 
-    fetch(`${REACT_APP_API_URL}/api/storage/folder`, {
+    fetch(`${REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder`, {
       method: "POST",
       headers,
       body: JSON.stringify({
@@ -75,7 +75,7 @@ function updateFolderMetadata(metadata, folderId) {
     const headers = await setHeaders();
     const data = JSON.stringify({ metadata });
 
-    fetch(`${REACT_APP_API_URL}/api/storage/folder/${folderId}/meta`, {
+    fetch(`${REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${folderId}/meta`, {
       method: "POST",
       headers,
       body: data
