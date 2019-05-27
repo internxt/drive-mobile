@@ -25,20 +25,20 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.internxt.cloud",
+      "bundleIdentifier": "com.internxt.yosemite",
       "publishBundlePath": "ios/x-cloud/Supporting/shell-app.bundle",
       "publishManifestPath": "ios/x-cloud/Supporting/shell-app-manifest.json"
     },
     "android": {
-      "package": "com.internxt.cloud",
+      "package": "com.internxt.yosemite",
       "publishBundlePath": "android/app/src/main/assets/shell-app.bundle",
       "publishManifestPath": "android/app/src/main/assets/shell-app-manifest.json"
     },
     "isDetached": true,
     "detach": {
-      "androidExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/android-v2.10.8-sdk32.0.0-bca0f957-de78-44c8-91ed-f3151372d79d.tar.gz",
-      "iosExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/ios-v2.10.6-sdk32.0.0-e50ee83a-41bd-4965-b067-4c815a3b3fcc.tar.gz"
+      "iosExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/ios-v2.10.6-sdk32.0.0-e50ee83a-41bd-4965-b067-4c815a3b3fcc.tar.gz",
+      "androidExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/android-v2.10.8-sdk32.0.0-bca0f957-de78-44c8-91ed-f3151372d79d.tar.gz"
     },
-    "scheme": "exp6b2a44a6709f4e8d8f306106f9e6b8fb"
+    "scheme": "exp0d6220867549490f86b82b4152b680fc"
   }
 }
