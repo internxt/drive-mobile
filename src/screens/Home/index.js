@@ -20,7 +20,6 @@ import { fileActions, layoutActions, userActions } from "../../actions";
 import { getIcon } from "../../helpers";
 
 const iconDownload = getIcon('download');
-const iconShare = getIcon('share');
 const iconDelete = getIcon('delete');
 
 class Home extends Component {
@@ -141,32 +140,37 @@ class Home extends Component {
   }
 
 
-  handleDeleteSelectedFile() {
-    const fileToDelete = this.props.filesState.selectedFile;
+  handleDeleteSelectedItem() {
+    const itemToDelete = this.props.filesState.selectedFile;
     const token = this.props.authenticationState.token;
     const mnemonic = this.props.authenticationState.user.mnemonic;
+    const isFolder = !(itemToDelete.size && itemToDelete.size >= 0); 
+    const url = isFolder ? `${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${itemToDelete.id}` : `${process.env.REACT_APP_API_URL}/api/storage/bucket/${itemToDelete.bucket}/file/${itemToDelete.fileId}`
 
-    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/bucket/${fileToDelete.bucket}/file/${fileToDelete.fileId}`, {
+    fetch(url, {
       method: 'DELETE',
       headers: {
         "Authorization": `Bearer ${token}`,
         "internxt-mnemonic": mnemonic,
         "Content-type": "application/json"
       }
-    }).then(async res => {
-
-      return { res, data: await res.json() };
-
     }).then(res => {
-      if (res.res.status == 200) {
-        this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
-        this.modalFile.current.close();
+      // Manage file (200) and folder (204) deletion response
+      if (res.status == 200 || res.status == 204) {
+        // Wait 1 sec for update content
+        setTimeout(() => {
+          this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
+          // Close modal
+          if (isFolder) this.modalFolder.current.close();
+          else { this.modalFile.current.close(); }
+        }, 1000);
+        
       } else {
-        Alert.alert('Error deleting file');
+        Alert.alert('Error deleting item');
       }
     }).catch(err => {
       console.log(err);
-      Alert.alert('Error deleting file');
+      Alert.alert('Error deleting item');
     });
   }
 
@@ -294,22 +298,12 @@ class Home extends Component {
           this.props.dispatch(fileActions.downloadSelectedFileStart());
         }} />
 
-        {/*
-        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Image source={iconShare} width={24} height={24} />
-          <Text style={{ width: 20 }}> </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>  Share</Text>
-        </Text>} onClick={() => {
-          this.modalFile.current.close();
-        }} />
-      */}
-
         <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
           <Image source={iconDelete} width={24} height={24} />
           <Text style={{ width: 20 }}> </Text>
           <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
         </Text>} onClick={() => {
-          this.handleDeleteSelectedFile();
+          this.handleDeleteSelectedItem();
         }} />
 
       </Modal>;
@@ -338,6 +332,16 @@ class Home extends Component {
           <Text>Type:</Text>
           <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Folder</Text>
         </Text>
+
+        <SettingsItem 
+          text={
+            <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+              <Image source={iconDelete} width={24} height={24} />
+              <Text style={{ width: 20 }}> </Text>
+              <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
+            </Text>} 
+          onClick={() => { this.handleDeleteSelectedItem(); }} 
+        />
 
         <Separator />
 
@@ -459,12 +463,7 @@ class Home extends Component {
                 }}>
                   <Text style={{ color: '#5c6066', fontFamily: 'CerebriSans-Bold', fontSize: 16 }}>Close</Text>
                 </TouchableHighlight>
-
-
-
-
               </View>
-
             </View>
           </View>
         </Modal>
@@ -498,7 +497,6 @@ class Home extends Component {
           </Text>
 
           <Separator />
-
 
           <SettingsItem text="Sign out" onClick={() => this.props.dispatch(userActions.signout())} />
         </Modal>
@@ -563,7 +561,7 @@ const styles = StyleSheet.create({
     marginRight: 24
   },
   modalFolder: {
-    height: hp('90%') < 550 ? 550 : Math.min(600, hp('80%'))
+    height: hp('90%') < 600 ? 600 : Math.min(650, hp('90%'))
   },
   colorSelection: {
     display: "flex",

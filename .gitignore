@@ -11,6 +11,7 @@ npm-debug.*
 # Built application files
 *.apk
 *.ap_
+*.aab
 
 # Files for the ART/Dalvik VM
 *.dex
@@ -136,10 +137,9 @@ fabric.properties
 
 !/gradle/wrapper/gradle-wrapper.jar
 
+### User defined ###
 
-
-# Created by https://www.gitignore.io/api/xcode
-# Edit at https://www.gitignore.io/?templates=xcode
+android/app/prodKernel
 
 ### Xcode ###
 # Xcode
@@ -174,21 +174,9 @@ ios/DerivedData/
 /*.gcno
 **/xcshareddata/WorkspaceSettings.xcsettings
 
-# End of https://www.gitignore.io/api/xcode
-
-
-
-
-
-# Created by https://www.gitignore.io/api/cocoapods
-# Edit at https://www.gitignore.io/?templates=cocoapods
-
 ### CocoaPods ###
-## CocoaPods GitIgnore Template
 
 # CocoaPods - Only use to conserve bandwidth / Save time on Pushing
 #           - Also handy if you have a large number of dependant pods
 #           - AS PER https://guides.cocoapods.org/using/using-cocoapods.html NEVER IGNORE THE LOCK FILE
 ios/Pods/
-
-# End of https://www.gitignore.io/api/cocoapods
