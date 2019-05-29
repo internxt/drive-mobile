@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { utils } from './../../helpers'
 
+
 class SignIn extends Component {
   constructor() {
     super();
@@ -208,6 +209,7 @@ class SignIn extends Component {
           </View>
         </View>
       </View>
+
     );
   }
 }

@@ -8,8 +8,7 @@ import {
   View,
   TouchableHighlight,
   Image,
-  Alert,
-  ActivityIndicator
+  Alert
 } from "react-native";
 import { utils } from '../../helpers'
 
@@ -26,7 +25,7 @@ class Register extends Component {
       confirmPassword: '',
 
       registerStep: 1,
-      isProcessing: false
+      isLoading: false
     };
 
   }
@@ -129,12 +128,14 @@ class Register extends Component {
           console.log(err);
           Alert.alert('Internal server error while registering Code: 2');
         });
+
       }
+      this.setState({ isLoading: false });
+
     }).catch(err => {
       Alert.alert('Internal server error while registering Code: 1');
     });
 
-    this.setState({ isProcessing: false });
 
   }
 
@@ -152,10 +153,10 @@ class Register extends Component {
               </View>
               <Text style={styles.title}>Create an X Cloud account</Text>
               <View style={styles.buttonWrapper}>
-                <TouchableHighlight style={styles.buttonOff} underlayColor="#00aaff" onPress={() => this.props.goToForm('SIGNIN')}>
+                <TouchableHighlight style={styles.buttonOff} underlayColor="#4585f5" onPress={() => this.props.goToForm('SIGNIN')}>
                   <Text style={styles.buttonOffLabel}>Sign in</Text>
                 </TouchableHighlight>
-                <TouchableHighlight style={styles.buttonOn} underlayColor="#00aaff">
+                <TouchableHighlight style={styles.buttonOn} underlayColor="#4585f5">
                   <Text style={styles.buttonOnLabel}>Create account</Text>
                 </TouchableHighlight>
               </View>
@@ -195,7 +196,7 @@ class Register extends Component {
             <View style={styles.buttonFooterWrapper}>
               <TouchableHighlight
                 style={styles.button}
-                underlayColor="#00aaff"
+                underlayColor="#4585f5"
                 onPress={() => {
                   if (this.isValidStep1()) {
                     this.setState({ registerStep: 2 });
@@ -240,7 +241,7 @@ class Register extends Component {
               <View style={[styles.buttonFooterWrapper, { marginTop: 35 }]}>
                 <TouchableHighlight
                   style={styles.button}
-                  underlayColor="#00aaff"
+                  underlayColor="#4585f5"
                   onPress={() => {
                     this.setState({ registerStep: 3 });
                   }}>
@@ -257,7 +258,7 @@ class Register extends Component {
     if (this.state.registerStep == 3) {
       return (
         <View style={styles.container}>
-          <View style={styles.containerCentered}>
+          <View style={[styles.containerCentered, this.state.isLoading ? { opacity: 0.5 } : {}]}>
             <View style={styles.containerHeader}>
               <View style={styles.headerContainer}>
                 <Image
@@ -296,16 +297,18 @@ class Register extends Component {
             <View style={styles.buttonFooterWrapper}>
               <TouchableHighlight
                 style={styles.button}
-                underlayColor="#00aaff"
+                underlayColor="#4585f5"
                 onPress={() => {
-                  if (this.state.isProcessing) { return; }
+                  if (this.state.isLoading) { return; }
+                  this.setState({ isLoading: true });
 
                   if (this.isValidStep3()) {
-                    this.setState({ isProcessing: true });
                     this.doRegister();
+                  } else {
+                    this.setState({ isLoading: false });
                   }
                 }}>
-                {this.state.isProcessing ? <ActivityIndicator /> : <Text style={styles.buttonOnLabel}>Continue</Text>}
+                <Text style={styles.buttonOnLabel}>{this.state.isLoading ? 'Creating your account...' : 'Continue'}</Text>
               </TouchableHighlight>
             </View>
           </View>
@@ -337,7 +340,7 @@ class Register extends Component {
               <View style={styles.buttonFooterWrapper}>
                 <TouchableHighlight
                   style={[styles.button, { marginTop: 10 }]}
-                  underlayColor="#00aaff"
+                  underlayColor="#4585f5"
                   onPress={() => {
                   }}>
                   <Text style={styles.buttonOnLabel}>Re-send activation email</Text>

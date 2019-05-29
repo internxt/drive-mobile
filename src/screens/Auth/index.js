@@ -2,9 +2,7 @@ import React, { Component } from "react";
 import { compose } from "redux";
 import { connect } from "react-redux";
 import {
-  StyleSheet,
-  View,
-  ActivityIndicator
+  StyleSheet
 } from "react-native";
 
 import SignIn from "./SignIn";
