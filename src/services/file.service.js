@@ -1,11 +1,13 @@
 import { deviceStorage, inxt } from "../helpers";
+import { sortTypes } from "../constants";
 const { REACT_APP_API_URL } = process.env;
 
 export const fileService = {
   downloadFile,
   getFolderContent,
   createFolder,
-  updateFolderMetadata
+  updateFolderMetadata,
+  getSortFunction
 };
 
 async function setHeaders() {
@@ -82,4 +84,35 @@ function updateFolderMetadata(metadata, folderId) {
     }).then(() => { resolve(); })
       .catch((error) => { reject(error); });
   });
+}
+
+function getSortFunction(sortType) {
+  // Sort items depending on option selected
+  let sortFunc = null;
+  switch (sortType) {
+      case sortTypes.DATE_ADDED:
+      // At this time, default order is date added
+          break;
+      case sortTypes.FILETYPE_ASC:
+          sortFunc = function(a, b) { return a.type ? a.type.localeCompare(b.type) : true };
+          break;
+      case sortTypes.FILETYPE_DESC:
+          sortFunc = function(a, b) { return b.type ? b.type.localeCompare(a.type) : true };
+          break;
+      case sortTypes.NAME_ASC:
+          sortFunc = function(a, b) { return a.name.localeCompare(b.name) };
+          break;
+      case sortTypes.NAME_DESC:
+          sortFunc = function(a, b) { return b.name.localeCompare(a.name) };
+          break;
+      case sortTypes.SIZE_ASC:
+          sortFunc = function(a, b) { return a.size ? a.size - b.size : true };
+          break;
+      case sortTypes.SIZE_DESC:
+          sortFunc = function(a, b) { return b.size ? b.size - a.size : true };
+          break;
+      default:
+          break;
+  }
+  return sortFunc;
 }

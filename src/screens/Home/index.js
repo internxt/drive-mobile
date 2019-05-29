@@ -12,7 +12,7 @@ import ButtonPreviousDir from '../../components/ButtonPreviousDir'
 import ProgressBar from '../../components/ProgressBar'
 import Separator from '../../components/Separator'
 import SettingsItem from '../../components/SettingsItem'
-import { colors, folderIconsList } from '../../constants'
+import { colors, folderIconsList, sortTypes } from '../../constants'
 import Icon from '../../../assets/icons/Icon'
 import TimeAgo from "react-native-timeago";
 
@@ -43,6 +43,7 @@ class Home extends Component {
 
     this.modalFolder = React.createRef();
     this.modalFile = React.createRef();
+    this.modalSort = React.createRef();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -62,6 +63,12 @@ class Home extends Component {
     if (nextProps.layoutState.showFileModal) {
       this.modalFile.current.open();
       this.props.dispatch(layoutActions.closeFileModal());
+    }
+
+    // Manage showing sort modal
+    if (nextProps.layoutState.showSortModal) {
+      this.modalSort.current.open();
+      this.props.dispatch(layoutActions.closeSortModal());
     }
 
     // Set folder/file name if is selected
@@ -138,7 +145,6 @@ class Home extends Component {
     });
 
   }
-
 
   handleDeleteSelectedItem() {
     const itemToDelete = this.props.filesState.selectedFile;
@@ -391,6 +397,36 @@ class Home extends Component {
 
   }
 
+  getSortModal = () => {
+    return (
+      <Modal
+        position={"bottom"}
+        ref={this.modalSort}
+        style={{ height: 240 }}
+        backButtonClose={true}
+        backdropPressToClose={true}> 
+        <View style={styles.drawerKnob}></View>
+
+        <Text style={(this.props.filesState.sortType === sortTypes.DATE_ADDED || this.props.filesState.sortType === '') ? styles.sortOptionSelected : styles.sortOption}
+          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.DATE_ADDED))}}>
+          Date Added
+        </Text>
+        <Text style={this.props.filesState.sortType === sortTypes.SIZE_ASC ? styles.sortOptionSelected : styles.sortOption}
+          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.SIZE_ASC))}}>
+          Size
+        </Text>
+        <Text style={this.props.filesState.sortType === sortTypes.NAME_ASC ? styles.sortOptionSelected : styles.sortOption}
+          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.NAME_ASC))}}>
+          Name
+        </Text>
+        <Text style={this.props.filesState.sortType === sortTypes.FILETYPE_ASC ? styles.sortOptionSelected : styles.sortOption}
+          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.FILETYPE_ASC))}}>
+          File Type
+        </Text>
+      </Modal>
+    )
+  }
+
   loadUsage = () => {
     const user = this.props.authenticationState.user.email;
 
@@ -469,6 +505,7 @@ class Home extends Component {
         </Modal>
 
         {filesState.selectedFile && this.getItemModal(filesState.selectedFile)}
+        {this.getSortModal()}
         <Modal
           position={"bottom"}
           ref={"modalSettings"}
@@ -559,6 +596,21 @@ const styles = StyleSheet.create({
     height: 6.5,
     marginLeft: 24,
     marginRight: 24
+  },
+  sortOption: {
+    fontFamily: 'CerebriSans-Bold', 
+    fontSize: 18,
+    paddingTop: 13,
+    paddingBottom: 13,
+    paddingLeft: 28
+  },
+  sortOptionSelected: {
+    fontFamily: 'CerebriSans-Bold', 
+    fontSize: 18,
+    color: "#0054ff",
+    paddingTop: 13,
+    paddingBottom: 13,
+    paddingLeft: 28
   },
   modalFolder: {
     height: hp('90%') < 600 ? 600 : Math.min(650, hp('90%'))

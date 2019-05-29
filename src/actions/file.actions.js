@@ -11,6 +11,7 @@ export const fileActions = {
   getFolderContent,
   selectFile,
   deselectAll,
+  setSortFunction,
   createFolder,
   updateFolderMetadata
 };
@@ -101,6 +102,13 @@ function deselectAll() {
   return dispatch => {
     dispatch({ type: fileActionTypes.DESELECT_ALL });
   };
+}
+
+function setSortFunction(sortType) {
+  let sortFunc = fileService.getSortFunction(sortType);
+  return dispatch => {
+    dispatch({ type: fileActionTypes.SET_SORT_TYPE, payload: [sortType ,sortFunc] })
+  }
 }
 
 function createFolder(parentFolderId, newFolderName) {

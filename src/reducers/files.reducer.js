@@ -5,6 +5,8 @@ const initialState = {
   items: [],
   folderContent: null,
   selectedFile: null,
+  sortType: '',
+  sortFunction: null,
   isUploading: false,
   isUploadingFileName: '',
   startDownloadSelectedFile: false
@@ -62,6 +64,13 @@ export function filesReducer(state = initialState, action) {
       return {
         ...state,
         selectedFile: null
+      };
+
+    case fileActionTypes.SET_SORT_TYPE:
+      return {
+        ...state,
+        sortType: action.payload[0],
+        sortFunction: action.payload[1]
       };
 
     case fileActionTypes.CREATE_FOLDER_REQUEST:

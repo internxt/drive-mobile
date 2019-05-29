@@ -3,18 +3,16 @@ import { layoutActionTypes } from "../constants";
 export const layoutActions = {
   openSearch,
   closeSearch,
-
   openSettings,
   closeSettings,
-
   openFolderModal,
   closeFolderModal,
-
   openFileModal,
   closeFileModal,
-
   openRunOutStorageModal,
-  closeRunOutStorageModal
+  closeRunOutStorageModal,
+  openSortModal,
+  closeSortModal
 };
 
 function openSearch() {
@@ -74,5 +72,17 @@ function openRunOutStorageModal() {
 function closeRunOutStorageModal() {
   return dispatch => {
     dispatch({ type: layoutActionTypes.CLOSE_RUNOUTSTORAGE_MODAL });
+  }
+}
+
+function openSortModal() {
+  return dispatch => {
+    dispatch({ type: layoutActionTypes.OPEN_SORT_MODAL });
+  }
+}
+
+function closeSortModal() {
+  return dispatch => {
+    dispatch({ type: layoutActionTypes.CLOSE_SORT_MODAL });
   }
 }

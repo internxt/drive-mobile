@@ -16,7 +16,6 @@ class FileList extends Component {
     }
 
     this.downloadFile = this.props.downloadFile;
-
     this.refreshList = this.refreshList.bind(this);
   }
 
@@ -25,8 +24,6 @@ class FileList extends Component {
       this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
     })
   }
-
-
 
   render() {
     const { filesState } = this.props;
@@ -42,7 +39,11 @@ class FileList extends Component {
 
     let content = <EmptyDirectory />;
     if (folderContent.files.length > 0 || folderContent.children.length > 0) {
-
+      // Apply sort function if is set
+      if (filesState.sortFunction) {
+        folderContent.children.sort(filesState.sortFunction);
+        folderContent.files.sort(filesState.sortFunction);
+      }
       content = (
         <ScrollView refreshControl={<RefreshControl isRefreshing={this.state.isRefreshing} onRefresh={this.refreshList} />}>
           {this.props.filesState.isUploading ? <FileItem key={99999999} item={{ type: '', name: this.props.filesState.isUploadingFileName }} isFolder={false} isSelected={false} isBeingUploaded={true} /> : <Text></Text>}
@@ -65,7 +66,6 @@ class FileList extends Component {
         </ScrollView>
       );
     }
-
     return content;
   }
 }
