@@ -12,6 +12,7 @@
     "debug": "open 'rndebugger://set-debugger-loc?host=localhost&port=19001'"
   },
   "dependencies": {
+    "babel-plugin-inline-dotenv": "^1.2.0",
     "babel-preset-expo": "^5.0.0",
     "crypto-js": "^3.1.9-1",
     "expo": "^32",
@@ -31,7 +32,6 @@
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",
-    "babel-plugin-inline-dotenv": "^1.2.0",
     "eslint": "^5.7.0",
     "eslint-plugin-react-native": "^3.5.0",
     "redux-devtools-extension": "^2.13.5"

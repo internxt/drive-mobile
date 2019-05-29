@@ -4,5 +4,6 @@
     "development": {
       "plugins": ["@babel/transform-react-jsx-source", "inline-dotenv"]
     }
-  }
+  },
+  "plugins": ["inline-dotenv"]
 }
