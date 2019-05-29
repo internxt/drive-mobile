@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.internxt.cloud</string>
+	<string>com.internxt.snacks</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -23,7 +23,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>exp6b2a44a6709f4e8d8f306106f9e6b8fb</string>
+				<string>expf25ca4eba7b34a80bec63ad8bf3adb71</string>
 			</array>
 		</dict>
 		<dict>
@@ -31,7 +31,7 @@
 			<string>OAuthRedirect</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.internxt.cloud</string>
+				<string>com.internxt.snacks</string>
 			</array>
 		</dict>
 	</array>

@@ -245,10 +245,6 @@ PODS:
     - React/Core
     - React/fishhook
     - React/RCTBlob
-  - Stripe (14.0.0)
-  - tipsi-stripe (7.5.0):
-    - React
-    - Stripe (~> 14.0.0)
   - yoga (0.57.1.React)
 
 DEPENDENCIES:
@@ -305,8 +301,6 @@ DEPENDENCIES:
   - React/RCTText (from `../node_modules/react-native`)
   - React/RCTVibration (from `../node_modules/react-native`)
   - React/RCTWebSocket (from `../node_modules/react-native`)
-  - Stripe (~> 14.0.0)
-  - tipsi-stripe (from `../node_modules/tipsi-stripe`)
   - yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -332,7 +326,6 @@ SPEC REPOS:
     - GTMSessionFetcher
     - JKBigInteger2
     - lottie-ios
-    - Stripe
 
 EXTERNAL SOURCES:
   DoubleConversion:
@@ -418,8 +411,6 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   React:
     :path: "../node_modules/react-native"
-  tipsi-stripe:
-    :path: "../node_modules/tipsi-stripe"
   yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -491,10 +482,8 @@ SPEC CHECKSUMS:
   JKBigInteger2: e91672035c42328c48b7dd015b66812ddf40ca9b
   lottie-ios: a50d5c0160425cd4b01b852bb9578963e6d92d31
   React: 1fe0eb13d90b625d94c3b117c274dcfd2e760e11
-  Stripe: db29ad197c74aca6fb981e4e8355cf7ebd0fca5a
-  tipsi-stripe: 237cab79699eb7d354bfc09238b3284e3b8dad84
   yoga: b1ce48b6cf950b98deae82838f5173ea7cf89e85
 
-PODFILE CHECKSUM: 3eb3953b1385d9d90ca0e8c58982f06f89f9deaa
+PODFILE CHECKSUM: db3fd9bde4e26412423de77c29c838ea89f86839
 
 COCOAPODS: 1.5.3

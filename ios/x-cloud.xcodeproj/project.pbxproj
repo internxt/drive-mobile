@@ -23,7 +23,7 @@
 
 /* Begin PBXFileReference section */
 		2C1548D9E4CB1AEFA5CCAE6D /* Pods-x-cloud.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-x-cloud.debug.xcconfig"; path = "Pods/Target Support Files/Pods-x-cloud/Pods-x-cloud.debug.xcconfig"; sourceTree = "<group>"; };
-		41BBE5CF2295669100B126AC /* x-cloud.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "x-cloud.entitlements"; sourceTree = "<group>"; };
+		4139DFF7229E7126006B401A /* x-cloud.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "x-cloud.entitlements"; sourceTree = "<group>"; };
 		A47FE4D7F70906B7DC8CE39B /* Pods-x-cloud.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-x-cloud.release.xcconfig"; path = "Pods/Target Support Files/Pods-x-cloud/Pods-x-cloud.release.xcconfig"; sourceTree = "<group>"; };
 		B501732A1DC01252003445D9 /* EXShell.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = EXShell.plist; sourceTree = "<group>"; };
 		B56386411DB9693800A0598C /* x-cloud.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "x-cloud.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -92,7 +92,7 @@
 		B56386431DB9693800A0598C /* x-cloud */ = {
 			isa = PBXGroup;
 			children = (
-				41BBE5CF2295669100B126AC /* x-cloud.entitlements */,
+				4139DFF7229E7126006B401A /* x-cloud.entitlements */,
 				B56386471DB9693800A0598C /* AppDelegate.h */,
 				B56386481DB9693800A0598C /* AppDelegate.m */,
 				B56386501DB9693800A0598C /* Assets.xcassets */,
@@ -156,9 +156,6 @@
 						DevelopmentTeam = JR4S3SY396;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
-							com.apple.ApplePay = {
-								enabled = 1;
-							};
 							com.apple.Push = {
 								enabled = 1;
 							};
@@ -254,7 +251,6 @@
 				"${PODS_ROOT}/FBSDKCoreKit/FacebookSDKStrings.bundle",
 				"${PODS_ROOT}/GoogleMaps/Maps/Frameworks/GoogleMaps.framework/Resources/GoogleMaps.bundle",
 				"${PODS_ROOT}/GoogleSignIn/Resources/GoogleSignIn.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/Stripe/Stripe.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
@@ -265,7 +261,6 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FacebookSDKStrings.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleMaps.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleSignIn.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Stripe.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -412,7 +407,7 @@
 				DEVELOPMENT_TEAM = JR4S3SY396;
 				INFOPLIST_FILE = "$(SRCROOT)/x-cloud/Supporting/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.cloud;
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -427,7 +422,7 @@
 				DEVELOPMENT_TEAM = JR4S3SY396;
 				INFOPLIST_FILE = "$(SRCROOT)/x-cloud/Supporting/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.cloud;
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
