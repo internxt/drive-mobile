@@ -19,7 +19,8 @@ class SignIn extends Component {
       email: '',
       pasword: '',
       showTwoFactor: false,
-      twoFactorCode: ''
+      twoFactorCode: '',
+      isLoading: false
     };
   }
 
@@ -38,6 +39,10 @@ class SignIn extends Component {
   }
 
   check2FA = () => {
+    if (this.state.isLoading) {
+      return;
+    }
+    this.setState({ isLoading: true });
     if (!this.validateForm()) {
       console.log('Form not filled');
       Alert.alert('Login failure', 'Invalid user data');
@@ -136,7 +141,7 @@ class SignIn extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <View style={styles.containerCentered}>
+        <View style={[styles.containerCentered, this.state.isLoading ? { opacity: 0.5 } : {}]}>
           <View style={styles.containerHeader}>
             <View>
               <Image
@@ -196,9 +201,9 @@ class SignIn extends Component {
           <View style={styles.buttonFooterWrapper}>
             <TouchableHighlight
               style={styles.button}
-              underlayColor="#00aaff"
+              underlayColor="#4585f5"
               onPress={this.check2FA}>
-              <Text style={styles.buttonOnLabel}>Sign in</Text>
+              <Text style={styles.buttonOnLabel}>{this.state.isLoading ? 'Loading...' : 'Sign in'}</Text>
             </TouchableHighlight>
           </View>
         </View>
@@ -257,6 +262,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  buttonDisabled: {
+    backgroundColor: "#f2f2f2",
   },
   buttonOn: {
     alignSelf: "stretch",
