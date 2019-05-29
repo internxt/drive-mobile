@@ -91,19 +91,19 @@ function getSortFunction(sortType) {
   let sortFunc = null;
   switch (sortType) {
       case sortTypes.DATE_ADDED:
-      // At this time, default order is date added
+          sortFunc = function(a, b) { return a.id > b.id };
           break;
       case sortTypes.FILETYPE_ASC:
-          sortFunc = function(a, b) { return a.type ? a.type.localeCompare(b.type) : true };
+          sortFunc = function(a, b) { return a.type ? a.type.toLowerCase().localeCompare(b.type.toLowerCase()) : true };
           break;
       case sortTypes.FILETYPE_DESC:
-          sortFunc = function(a, b) { return b.type ? b.type.localeCompare(a.type) : true };
+          sortFunc = function(a, b) { return b.type ? b.type.toLowerCase().localeCompare(a.type.toLowerCase()) : true };
           break;
       case sortTypes.NAME_ASC:
-          sortFunc = function(a, b) { return a.name.localeCompare(b.name) };
+          sortFunc = function(a, b) { return a.name.toLowerCase().localeCompare(b.name.toLowerCase()) };
           break;
       case sortTypes.NAME_DESC:
-          sortFunc = function(a, b) { return b.name.localeCompare(a.name) };
+          sortFunc = function(a, b) { return b.name.toLowerCase().localeCompare(a.name.toLowerCase()) };
           break;
       case sortTypes.SIZE_ASC:
           sortFunc = function(a, b) { return a.size ? a.size - b.size : true };
