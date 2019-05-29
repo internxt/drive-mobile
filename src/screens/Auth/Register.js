@@ -65,7 +65,6 @@ class Register extends Component {
   }
 
   isValidStep3 = () => {
-    console.log(this.state.password);
     if (this.isNullOrEmpty(this.state.password)) {
       Alert.alert('', 'Please enter a valid password');
       return false;
@@ -85,13 +84,11 @@ class Register extends Component {
   }
 
   doRegister = () => {
-    console.log("Doing register");
-
     const hashObj = utils.passToHash({ password: this.state.password });
     const encPass = utils.encryptText(hashObj.hash);
     const encSalt = utils.encryptText(hashObj.salt);
 
-    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/temp`, {
+    fetch(`${process.env.REACT_APP_API_URL}/api/temp`, {
       method: 'GET',
       headers: {
         "content-type": "application/json; charset=utf-8",
@@ -107,7 +104,7 @@ class Register extends Component {
         let mnemonic = utils.decryptText(mnemonicEncrypted);
         const encMnemonic = utils.encryptTextWithKey(mnemonic, this.state.password);
 
-        fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/register`, {
+        fetch(`${process.env.REACT_APP_API_URL}/api/register`, {
           method: 'POST',
           headers: {
             "content-type": "application/json; charset=utf-8",

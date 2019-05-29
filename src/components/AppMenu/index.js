@@ -68,7 +68,7 @@ class AppMenu extends Component {
         "Content-type": "multipart/form-data"
       };
 
-      fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${this.props.filesState.folderContent.currentFolder}/upload`, {
+      fetch(`${process.env.REACT_APP_API_URL}/api/storage/folder/${this.props.filesState.folderContent.currentFolder}/upload`, {
         method: 'POST',
         headers,
         body

@@ -114,7 +114,7 @@ class Home extends Component {
     };
 
     // Generate token:
-    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/share/file/${fileId}`, {
+    fetch(`${process.env.REACT_APP_API_URL}/api/storage/share/file/${fileId}`, {
       method: 'POST',
       headers
     }).then(async result => {
@@ -130,7 +130,7 @@ class Home extends Component {
       } else {
         const linkToken = result.data.token;
         const proxy = 'https://api.internxt.com:8081';
-        Linking.openURL(`${proxy}/${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/share/${linkToken}`);
+        Linking.openURL(`${proxy}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`);
       }
     }).catch(err => {
       console.log("Error", err);
@@ -145,7 +145,7 @@ class Home extends Component {
     const token = this.props.authenticationState.token;
     const mnemonic = this.props.authenticationState.user.mnemonic;
     const isFolder = !(itemToDelete.size && itemToDelete.size >= 0); 
-    const url = isFolder ? `${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${itemToDelete.id}` : `${process.env.REACT_APP_API_URL}/api/storage/bucket/${itemToDelete.bucket}/file/${itemToDelete.fileId}`
+    const url = isFolder ? `${process.env.REACT_APP_API_URL}/api/storage/folder/${itemToDelete.id}` : `${process.env.REACT_APP_API_URL}/api/storage/bucket/${itemToDelete.bucket}/file/${itemToDelete.fileId}`
 
     fetch(url, {
       method: 'DELETE',
@@ -193,7 +193,7 @@ class Home extends Component {
     const token = this.props.authenticationState.token;
     const mnemonic = this.props.authenticationState.user.mnemonic;
 
-    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/file/${this.props.filesState.selectedFile.fileId}/meta`, {
+    fetch(`${process.env.REACT_APP_API_URL}/api/storage/file/${this.props.filesState.selectedFile.fileId}/meta`, {
       method: 'POST',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -394,7 +394,7 @@ class Home extends Component {
   loadUsage = () => {
     const user = this.props.authenticationState.user.email;
 
-    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/limit`, {
+    fetch(`${process.env.REACT_APP_API_URL}/api/limit`, {
       method: 'post',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -410,7 +410,7 @@ class Home extends Component {
         console.log(err);
       });
 
-    fetch(`${process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/usage`, {
+    fetch(`${process.env.REACT_APP_API_URL}/api/usage`, {
       method: 'post',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email: user })
