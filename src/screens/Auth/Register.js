@@ -8,7 +8,8 @@ import {
   View,
   TouchableHighlight,
   Image,
-  Alert
+  Alert,
+  AppState
 } from "react-native";
 import { utils } from '../../helpers'
 
@@ -25,10 +26,28 @@ class Register extends Component {
       confirmPassword: '',
 
       registerStep: 1,
-      isLoading: false
+      isLoading: false,
+
+      appState: AppState.currentState
     };
 
   }
+
+  componentDidMount() {
+    AppState.addEventListener('change', this._handleAppStateChange);
+  }
+
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this._handleAppStateChange);
+  }
+
+  _handleAppStateChange = (nextAppState) => {
+    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+      this.props.goToForm('SIGNIN')
+    } else {
+      this.setState({ appState: nextAppState });
+    }
+  };
 
   isValidEmail = (email) => {
     let re = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
