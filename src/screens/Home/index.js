@@ -245,7 +245,9 @@ class Home extends Component {
       // Submit changes
       if (metadata.itemName || metadata.color || metadata.icon) {
         this.props.dispatch(fileActions.updateFolderMetadata(metadata, this.props.filesState.selectedFile.id));
-        this.props.dispatch(fileActions.getFolderContent(this.state.folderId));
+        setTimeout(() => {
+          this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
+        }, 400);
       }
     }
 
