@@ -33,6 +33,7 @@
   "devDependencies": {
     "babel-eslint": "^10.0.1",
     "eslint": "^5.7.0",
+    "eslint-plugin-react": "^7.13.0",
     "eslint-plugin-react-native": "^3.5.0",
     "redux-devtools-extension": "^2.13.5"
   }

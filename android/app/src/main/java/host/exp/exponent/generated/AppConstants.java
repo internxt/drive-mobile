@@ -16,7 +16,7 @@ public class AppConstants {
   public static final String SHELL_APP_SCHEME = "exp6b2a44a6709f4e8d8f306106f9e6b8fb";
   public static final String RELEASE_CHANNEL = "default";
   public static boolean SHOW_LOADING_VIEW_IN_SHELL_APP = true;
-  public static boolean ARE_REMOTE_UPDATES_ENABLED = true;
+  public static boolean ARE_REMOTE_UPDATES_ENABLED = false;
   public static final List<Constants.EmbeddedResponse> EMBEDDED_RESPONSES;
   public static boolean FCM_ENABLED = false;
 
@@ -30,10 +30,13 @@ public class AppConstants {
         
         
         
+        
+        
+        
         // ADD EMBEDDED RESPONSES HERE
         // START EMBEDDED RESPONSES
         embeddedResponses.add(new Constants.EmbeddedResponse("https://exp.host/@internxt/x-cloud", "assets://shell-app-manifest.json", "application/json"));
-        embeddedResponses.add(new Constants.EmbeddedResponse("https://d1wp6m56sqw74a.cloudfront.net/%40internxt%2Fx-cloud%2F1.0.0%2Fe97671469f9b6a612e00ebc7f8a7469f-32.0.0-android.js", "assets://shell-app.bundle", "application/javascript"));
+        embeddedResponses.add(new Constants.EmbeddedResponse("https://d1wp6m56sqw74a.cloudfront.net/%40internxt%2Fx-cloud%2F1.0.0%2F42296e23c2d70f10a69e67150abe9785-32.0.0-android.js", "assets://shell-app.bundle", "application/javascript"));
         // END EMBEDDED RESPONSES
     EMBEDDED_RESPONSES = embeddedResponses;
   }
