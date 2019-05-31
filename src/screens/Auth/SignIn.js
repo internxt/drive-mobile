@@ -8,7 +8,8 @@ import {
   View,
   TouchableHighlight,
   Alert,
-  Image
+  Image,
+  KeyboardAvoidingView
 } from "react-native";
 import { utils } from './../../helpers'
 
@@ -141,7 +142,7 @@ class SignIn extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <KeyboardAvoidingView behavior="padding" style={styles.container}>
         <View style={[styles.containerCentered, this.state.isLoading ? { opacity: 0.5 } : {}]}>
           <View style={styles.containerHeader}>
             <View>
@@ -208,7 +209,7 @@ class SignIn extends Component {
             </TouchableHighlight>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
 
     );
   }

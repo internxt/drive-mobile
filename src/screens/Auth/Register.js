@@ -9,7 +9,8 @@ import {
   TouchableHighlight,
   Image,
   Alert,
-  AppState
+  AppState,
+  KeyboardAvoidingView
 } from "react-native";
 import { utils } from '../../helpers'
 
@@ -161,7 +162,7 @@ class Register extends Component {
   render() {
     if (this.state.registerStep == 1) {
       return (
-        <View style={styles.container}>
+        <KeyboardAvoidingView behavior="padding" style={styles.container}>
           <View style={styles.containerCentered}>
             <View style={styles.containerHeader}>
               <View style={styles.headerContainer}>
@@ -209,6 +210,8 @@ class Register extends Component {
                   placeholder='Email address'
                   placeholderTextColor="#666666"
                   maxLength={64}
+                  keyboardType="email-address"
+                  textContentType="emailAddress"
                 />
               </View>
             </View>
@@ -225,7 +228,7 @@ class Register extends Component {
               </TouchableHighlight>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       );
     }
 
@@ -269,14 +272,14 @@ class Register extends Component {
               </View>
             </View>
           </View>
-        </View >
+        </View>
       );
     }
 
 
     if (this.state.registerStep == 3) {
       return (
-        <View style={styles.container}>
+        <KeyboardAvoidingView behavior="padding"  style={styles.container}>
           <View style={[styles.containerCentered, this.state.isLoading ? { opacity: 0.5 } : {}]}>
             <View style={styles.containerHeader}>
               <View style={styles.headerContainer}>
@@ -331,7 +334,7 @@ class Register extends Component {
               </TouchableHighlight>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       );
     }
 
