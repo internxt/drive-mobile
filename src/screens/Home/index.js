@@ -1,10 +1,10 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight, Image, Alert } from "react-native";
+import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight, Image, Alert, Keyboard } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 import Modal from 'react-native-modalbox';
 import prettysize from 'prettysize';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 import AppMenu from '../../components/AppMenu'
 import FileList from '../../components/FileList'
@@ -38,8 +38,17 @@ class Home extends Component {
       usage: {
         used: 0,
         maxLimit: 1024 * 1024 * 1024
-      }
+      },
+      keyboardSpace: 0
     };
+    //for get keyboard height
+    Keyboard.addListener('keyboardDidShow',(frames)=>{
+      if (!frames.endCoordinates) return;
+      this.setState({keyboardSpace: frames.endCoordinates.height});
+    });
+    Keyboard.addListener('keyboardDidHide',(frames)=>{
+        this.setState({keyboardSpace:0});
+    }); 
 
     this.modalFolder = React.createRef();
     this.modalFile = React.createRef();
@@ -265,56 +274,53 @@ class Home extends Component {
 
   getFileModal = (file) => {
     if (file) {
-      return <Modal
-        position={"bottom"}
+      return (
+        <Modal position={"bottom"}
         ref={this.modalFile}
-        style={styles.modalSettingsFile}
+        style={[styles.modalSettingsFile, { top: this.state.keyboardSpace? 0 - this.state.keyboardSpace : 0}]}
         onClosed={this.closeFileModal}
         backButtonClose={true}
         backdropPressToClose={true}>
-        <View style={styles.drawerKnob}></View>
+          <View style={styles.drawerKnob}></View>
+          <TextInput
+            style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }}
+            onChangeText={(value) => { this.setState({ inputFileName: value }) }}
+            value={this.state.inputFileName} />
+          <Separator />
 
-        <TextInput
-          style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }}
-          onChangeText={(value) => { this.setState({ inputFileName: value }) }}
-          value={this.state.inputFileName} />
+          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+            <Text>Type: </Text>
+            <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{file.type ? file.type.toUpperCase() : ''}</Text>
+          </Text>
 
-        <Separator />
+          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+            <Text>Added: </Text>
+            <Text style={{ fontFamily: 'CerebriSans-Bold' }}><TimeAgo time={file.created_at} /></Text>
+          </Text>
 
-        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Text>Type: </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{file.type ? file.type.toUpperCase() : ''}</Text>
-        </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+            <Text>Size: </Text>
+            <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{prettysize(file.size)}</Text>
+          </Text>
 
-        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Text>Added: </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}><TimeAgo time={file.created_at} /></Text>
-        </Text>
+          <Separator />
 
-        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Text>Size: </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{prettysize(file.size)}</Text>
-        </Text>
+          <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+            <Image source={iconDownload} width={24} height={24} />
+            <Text style={{ width: 20 }}> </Text>
+            <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
+          </Text>} onClick={() => {
+            this.props.dispatch(fileActions.downloadSelectedFileStart());
+          }} />
+          <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+            <Image source={iconDelete} width={24} height={24} />
+            <Text style={{ width: 20 }}> </Text>
+            <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
+          </Text>} onClick={() => {
+            this.handleDeleteSelectedItem();
+          }} />
 
-        <Separator />
-
-        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Image source={iconDownload} width={24} height={24} />
-          <Text style={{ width: 20 }}> </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
-        </Text>} onClick={() => {
-          this.props.dispatch(fileActions.downloadSelectedFileStart());
-        }} />
-
-        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Image source={iconDelete} width={24} height={24} />
-          <Text style={{ width: 20 }}> </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
-        </Text>} onClick={() => {
-          this.handleDeleteSelectedItem();
-        }} />
-
-      </Modal>;
+        </Modal>)
     } else {
       return <Text></Text>;
     }
@@ -479,7 +485,6 @@ class Home extends Component {
 
     return (
       <View style={styles.container}>
-
         <Modal ref={'runOutStorageModal'} style={{ padding: 24 }}>
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <View>
@@ -505,7 +510,6 @@ class Home extends Component {
             </View>
           </View>
         </Modal>
-
         {filesState.selectedFile && this.getItemModal(filesState.selectedFile)}
         {this.getSortModal()}
         <Modal
@@ -552,7 +556,7 @@ class Home extends Component {
         </View>
 
         <FileList downloadFile={this.downloadFile} />
-      </View >
+      </View>
     );
   }
 }
