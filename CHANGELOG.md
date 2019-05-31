@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.2] - 2019-05-31
+### Fixed
+- (UI) Keyboard shows over input fields
+- Login/Register issues
+
+### Changed
+- File/Folder customization modal
+
 ## [1.0.1] - 2019-05-30
 ### Added
 - (UI) Option to delete folder on modal menu
