@@ -42,13 +42,13 @@ class Home extends Component {
       keyboardSpace: 0
     };
     //for get keyboard height
-    Keyboard.addListener('keyboardDidShow',(frames)=>{
+    Keyboard.addListener('keyboardDidShow', (frames) => {
       if (!frames.endCoordinates) return;
-      this.setState({keyboardSpace: frames.endCoordinates.height});
+      this.setState({ keyboardSpace: frames.endCoordinates.height });
     });
-    Keyboard.addListener('keyboardDidHide',(frames)=>{
-        this.setState({keyboardSpace:0});
-    }); 
+    Keyboard.addListener('keyboardDidHide', (frames) => {
+      this.setState({ keyboardSpace: 0 });
+    });
 
     this.modalFolder = React.createRef();
     this.modalFile = React.createRef();
@@ -159,7 +159,7 @@ class Home extends Component {
     const itemToDelete = this.props.filesState.selectedFile;
     const token = this.props.authenticationState.token;
     const mnemonic = this.props.authenticationState.user.mnemonic;
-    const isFolder = !(itemToDelete.size && itemToDelete.size >= 0); 
+    const isFolder = !(itemToDelete.size && itemToDelete.size >= 0);
     const url = isFolder ? `${process.env.REACT_APP_API_URL}/api/storage/folder/${itemToDelete.id}` : `${process.env.REACT_APP_API_URL}/api/storage/bucket/${itemToDelete.bucket}/file/${itemToDelete.fileId}`
 
     fetch(url, {
@@ -179,7 +179,7 @@ class Home extends Component {
           if (isFolder) this.modalFolder.current.close();
           else { this.modalFile.current.close(); }
         }, 1000);
-        
+
       } else {
         Alert.alert('Error deleting item');
       }
@@ -274,53 +274,56 @@ class Home extends Component {
 
   getFileModal = (file) => {
     if (file) {
-      return (
-        <Modal position={"bottom"}
+      return <Modal
+        position={"bottom"}
         ref={this.modalFile}
         style={[styles.modalSettingsFile, { top: this.state.keyboardSpace? 0 - this.state.keyboardSpace : 0}]}
         onClosed={this.closeFileModal}
         backButtonClose={true}
         backdropPressToClose={true}>
-          <View style={styles.drawerKnob}></View>
-          <TextInput
-            style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }}
-            onChangeText={(value) => { this.setState({ inputFileName: value }) }}
-            value={this.state.inputFileName} />
-          <Separator />
+        <View style={styles.drawerKnob}></View>
 
-          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-            <Text>Type: </Text>
-            <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{file.type ? file.type.toUpperCase() : ''}</Text>
-          </Text>
+        <TextInput
+          style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }}
+          onChangeText={(value) => { this.setState({ inputFileName: value }) }}
+          value={this.state.inputFileName} />
 
-          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-            <Text>Added: </Text>
-            <Text style={{ fontFamily: 'CerebriSans-Bold' }}><TimeAgo time={file.created_at} /></Text>
-          </Text>
+        <Separator />
 
-          <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-            <Text>Size: </Text>
-            <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{prettysize(file.size)}</Text>
-          </Text>
+        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Text>Type: </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{file.type ? file.type.toUpperCase() : ''}</Text>
+        </Text>
 
-          <Separator />
+        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Text>Added: </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}><TimeAgo time={file.created_at} /></Text>
+        </Text>
 
-          <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-            <Image source={iconDownload} width={24} height={24} />
-            <Text style={{ width: 20 }}> </Text>
-            <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
-          </Text>} onClick={() => {
-            this.props.dispatch(fileActions.downloadSelectedFileStart());
-          }} />
-          <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-            <Image source={iconDelete} width={24} height={24} />
-            <Text style={{ width: 20 }}> </Text>
-            <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
-          </Text>} onClick={() => {
-            this.handleDeleteSelectedItem();
-          }} />
+        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Text>Size: </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{prettysize(file.size)}</Text>
+        </Text>
 
-        </Modal>)
+        <Separator />
+
+        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Image source={iconDownload} width={24} height={24} />
+          <Text style={{ width: 20 }}> </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
+        </Text>} onClick={() => {
+          this.props.dispatch(fileActions.downloadSelectedFileStart());
+        }} />
+
+        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Image source={iconDelete} width={24} height={24} />
+          <Text style={{ width: 20 }}> </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
+        </Text>} onClick={() => {
+          this.handleDeleteSelectedItem();
+        }} />
+
+      </Modal>;
     } else {
       return <Text></Text>;
     }
@@ -337,25 +340,20 @@ class Home extends Component {
         backdropPressToClose={true}>
         <View style={styles.drawerKnob}></View>
 
-        <TextInput
-          style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }}
-          onChangeText={(value) => { this.setState({ inputFileName: value }) }}
-          value={this.state.inputFileName} />
+        <View style={{ flexDirection: 'row', paddingRight: 22 }}>
+          <TextInput
+            style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, flex: 1 }}
+            onChangeText={(value) => { this.setState({ inputFileName: value }) }}
+            value={this.state.inputFileName} />
 
-        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Text>Type:</Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Folder</Text>
-        </Text>
-
-        <SettingsItem 
-          text={
-            <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-              <Image source={iconDelete} width={24} height={24} />
-              <Text style={{ width: 20 }}> </Text>
-              <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
-            </Text>} 
-          onClick={() => { this.handleDeleteSelectedItem(); }} 
-        />
+          <SettingsItem
+            text={
+              <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+                <Image source={iconDelete} width={24} height={24} />
+                <Text style={{ width: 20 }}> </Text>
+              </Text>}
+            onClick={() => { this.handleDeleteSelectedItem(); }}
+          /></View>
 
         <Separator />
 
@@ -412,23 +410,23 @@ class Home extends Component {
         ref={this.modalSort}
         style={{ height: 240 }}
         backButtonClose={true}
-        backdropPressToClose={true}> 
+        backdropPressToClose={true}>
         <View style={styles.drawerKnob}></View>
 
         <Text style={(this.props.filesState.sortType === sortTypes.DATE_ADDED || this.props.filesState.sortType === '') ? styles.sortOptionSelected : styles.sortOption}
-          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.DATE_ADDED))}}>
+          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.DATE_ADDED)) }}>
           Date Added
         </Text>
         <Text style={this.props.filesState.sortType === sortTypes.SIZE_ASC ? styles.sortOptionSelected : styles.sortOption}
-          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.SIZE_ASC))}}>
+          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.SIZE_ASC)) }}>
           Size
         </Text>
         <Text style={this.props.filesState.sortType === sortTypes.NAME_ASC ? styles.sortOptionSelected : styles.sortOption}
-          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.NAME_ASC))}}>
+          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.NAME_ASC)) }}>
           Name
         </Text>
         <Text style={this.props.filesState.sortType === sortTypes.FILETYPE_ASC ? styles.sortOptionSelected : styles.sortOption}
-          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.FILETYPE_ASC))}}>
+          onPress={() => { this.props.dispatch(fileActions.setSortFunction(sortTypes.FILETYPE_ASC)) }}>
           File Type
         </Text>
       </Modal>
@@ -485,6 +483,7 @@ class Home extends Component {
 
     return (
       <View style={styles.container}>
+
         <Modal ref={'runOutStorageModal'} style={{ padding: 24 }}>
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <View>
@@ -604,14 +603,14 @@ const styles = StyleSheet.create({
     marginRight: 24
   },
   sortOption: {
-    fontFamily: 'CerebriSans-Bold', 
+    fontFamily: 'CerebriSans-Bold',
     fontSize: 18,
     paddingTop: 13,
     paddingBottom: 13,
     paddingLeft: 28
   },
   sortOptionSelected: {
-    fontFamily: 'CerebriSans-Bold', 
+    fontFamily: 'CerebriSans-Bold',
     fontSize: 18,
     color: "#0054ff",
     paddingTop: 13,
@@ -619,7 +618,7 @@ const styles = StyleSheet.create({
     paddingLeft: 28
   },
   modalFolder: {
-    height: hp('90%') < 600 ? 600 : Math.min(650, hp('90%'))
+    height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%'))
   },
   colorSelection: {
     display: "flex",
