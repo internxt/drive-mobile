@@ -36,19 +36,26 @@ class SignIn extends Component {
     return (emailValid && passValid);
   }
 
-  validateTwoFactorCode = () => {
-    return /^[0-9]{6}$/.test(this.state.twoFactorCode);
+  validateTwoFactorCode = (code) => {
+    if (code) {
+      return /^[0-9]{6}$/.test(code);
+    }
+    else {
+      return /^[0-9]{6}$/.test(this.state.twoFactorCode);
+    }
   }
 
   check2FA = () => {
     if (this.state.isLoading) {
       return;
     }
-    this.setState({ isLoading: true });
+
+    this.setState({ isLoading: true })
+
     if (!this.validateForm()) {
       console.log('Form not filled');
       Alert.alert('Login failure', 'Invalid user data');
-      this.setState({ showTwoFactor: false });
+      this.setState({ showTwoFactor: false, isLoading: false });
       return;
     }
 
@@ -73,7 +80,6 @@ class SignIn extends Component {
             console.log('2FA not needed or already established, performing regular login...');
 
             // Check initialization
-
             try {
               const salt = utils.decryptText(res.data.sKey);
               const hashObj = utils.passToHash({ password: this.state.pasword, salt });
@@ -122,7 +128,7 @@ class SignIn extends Component {
           } else {
             // 2FA login
             console.log('Need 2FA code to login');
-            this.setState({ showTwoFactor: true });
+            this.setState({ showTwoFactor: true, isLoading: false });
           }
         } else {
           // Error on login (Propagate exception to show alert on catch block)
@@ -131,6 +137,7 @@ class SignIn extends Component {
       }).catch(err => {
         console.log(err);
         Alert.alert('Login failed', err.error);
+        this.setState({ isLoading: false });
       });
   }
 
@@ -192,7 +199,13 @@ class SignIn extends Component {
               <TextInput
                 style={styles.input}
                 value={this.state.twoFactorCode}
-                onChangeText={value => this.setState({ twoFactorCode: value })}
+                onChangeText={value => {
+                  this.setState({ twoFactorCode: value }, () => {
+                    if (this.validateTwoFactorCode(value)) {
+                      this.check2FA();
+                    }
+                  })
+                }}
                 placeholder='Two-factor code'
                 placeholderTextColor="#666666"
                 maxLength={64}
@@ -314,7 +327,9 @@ const styles = StyleSheet.create({
     fontFamily: "CerebriSans-Medium",
     letterSpacing: -0.2,
     fontSize: 17,
-    color: "#000"
+    color: "#000",
+    flex: 1,
+    paddingLeft: 20
   },
   showInputFieldsWrapper: {
     justifyContent: 'center'
@@ -328,8 +343,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#c9c9c9",
     justifyContent: 'center',
-    paddingLeft: 20,
-    paddingRight: 20,
     marginBottom: 15
   }
 });

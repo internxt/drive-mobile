@@ -279,7 +279,7 @@ class Register extends Component {
 
     if (this.state.registerStep == 3) {
       return (
-        <KeyboardAvoidingView behavior="padding"  style={styles.container}>
+        <KeyboardAvoidingView behavior="padding" style={styles.container}>
           <View style={[styles.containerCentered, this.state.isLoading ? { opacity: 0.5 } : {}]}>
             <View style={styles.containerHeader}>
               <View style={styles.headerContainer}>
@@ -473,7 +473,9 @@ const styles = StyleSheet.create({
     fontFamily: "CerebriSans-Medium",
     letterSpacing: -0.2,
     fontSize: 17,
-    color: "#000"
+    color: "#000",
+    flex: 1,
+    paddingLeft: 20
   },
   showInputFieldsWrapper: {
     justifyContent: 'center'
@@ -487,8 +489,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#c9c9c9",
     justifyContent: 'center',
-    paddingLeft: 20,
-    paddingRight: 20,
     marginBottom: 15
   }
 });
