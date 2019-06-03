@@ -4,17 +4,16 @@ import {
   View,
   Text,
   TouchableHighlight,
-  Image, Linking, Alert
+  Image, 
+  Alert
 } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
+import { DocumentPicker, ImagePicker, Permissions } from 'expo';
 
 import MenuItem from "./MenuItem";
 import { getIcon } from "../../helpers";
 import { layoutActions, fileActions } from "../../actions";
-
-import { DocumentPicker, FileSystem, WebBrowser } from 'expo';
-
 const arrowBack = getIcon("back");
 
 class AppMenu extends Component {
@@ -42,13 +41,37 @@ class AppMenu extends Component {
     this.props.navigation.push("CreateFolder", { parentFolderId });
   }
 
-  uploadFile = async () => {
-    const self = this;
-
-    DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: false }).then(async result => {
-      if (result.type == 'cancel') {
-        return;
+  handleUpload = () => {
+    Alert.alert('Select type of file', '', [
+      { text: 'Upload a document', onPress: async () => {
+          const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: false });
+          if (result.type !== 'cancel') this.uploadFile(result);
+        }
+      }, {
+        text: 'Upload a picture', onPress: async () => {
+          const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+          if (status === 'granted') {
+            const result = await ImagePicker.launchImageLibraryAsync()
+            if (!result.cancelled) this.uploadFile(result);
+          }
+        }
+      }, {
+        text: 'Take a photo', onPress: async () => {
+          const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
+          if (status === 'granted') {
+            const result = await ImagePicker.launchCameraAsync();
+            if (!result.cancelled) this.uploadFile(result);
+          }
+        }
       }
+    ]);
+  }
+
+  uploadFile = async (result) => {
+    try {
+      const self = this;
+      // Set name for pics/photos
+      if (!result.name) result.name = result.uri.split('/').pop()
 
       this.props.dispatch(fileActions.uploadFileStart(result.name));
 
@@ -85,26 +108,20 @@ class AppMenu extends Component {
         }
         this.props.dispatch(fileActions.uploadFileFinished());
       }).catch(errFetch => {
+        console.log("Error fetching", errFetch);
         this.props.dispatch(fileActions.uploadFileFinished());
         Alert.alert('Error', 'Cannot upload file');
-        console.log("Error fetching", errFetch);
       });
-
-    }).catch(err => {
-      console.log('Error:', err);
+    } catch(error) {
+      console.log('Error:', error);
       this.props.dispatch(fileActions.uploadFileFinished());
-    });
-
+    }
   }
 
   render() {
     const {
-      filesState: { folderContent, selectedFile }
+      filesState: { folderContent }
     } = this.props;
-
-    const isRoot = folderContent && folderContent.hierarchy_level === 1;
-    const isFileSelected = Boolean(selectedFile);
-    const isButtonDetailsHidden = isRoot && !isFileSelected;
 
     let content = (
       <Fragment>
@@ -116,7 +133,7 @@ class AppMenu extends Component {
             onClickHandler={() => this.handleFolderCreate(folderContent.id)}/>
 
           <MenuItem name="upload" 
-            onClickHandler={this.uploadFile} />
+            onClickHandler={this.handleUpload} />
 
           <MenuItem name="list" 
             onClickHandler={() => { this.props.dispatch(layoutActions.openSortModal()); }} />

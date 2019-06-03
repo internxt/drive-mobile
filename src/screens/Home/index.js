@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight, Image, Alert, Keyboard } from "react-native";
+import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight, Image, Alert, Keyboard, Platform } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 import Modal from 'react-native-modalbox';
@@ -277,7 +277,7 @@ class Home extends Component {
       return <Modal
         position={"bottom"}
         ref={this.modalFile}
-        style={[styles.modalSettingsFile, { top: this.state.keyboardSpace? 0 - this.state.keyboardSpace : 0}]}
+        style={[styles.modalSettingsFile, { top: (this.state.keyboardSpace && Platform.OS !== 'ios') ? 0 - this.state.keyboardSpace : 0}]}
         onClosed={this.closeFileModal}
         backButtonClose={true}
         backdropPressToClose={true}>
