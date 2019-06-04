@@ -173,7 +173,7 @@ class AppMenu extends Component {
             onChange={(e) => this.props.dispatch(fileActions.setSearchString(e.nativeEvent.text))}
           />
           <TouchableHighlight onPress={() => this.props.dispatch(layoutActions.closeSearch())}>
-            <Image style={{ marginLeft: 10, marginRight: 20 }} source={closeIcon}/>
+            <Image style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }} source={closeIcon}/>
           </TouchableHighlight>
         </View>
       )
