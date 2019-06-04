@@ -24,7 +24,7 @@ export function layoutReducer(state = initialState, action) {
       };
     case layoutActionTypes.OPEN_SEARCH_FORM:
       return {
-        createFolderActive: false,
+        ...state,
         searchActive: true
       };
     case layoutActionTypes.CLOSE_SEARCH_FORM:

@@ -5,7 +5,8 @@ import {
   Text,
   TouchableHighlight,
   Image, 
-  Alert
+  Alert,
+  TextInput
 } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
@@ -15,6 +16,8 @@ import MenuItem from "./MenuItem";
 import { getIcon } from "../../helpers";
 import { layoutActions, fileActions } from "../../actions";
 const arrowBack = getIcon("back");
+const searchIcon = getIcon("search");
+const closeIcon = getIcon("close");
 
 class AppMenu extends Component {
   constructor(props) {
@@ -119,9 +122,7 @@ class AppMenu extends Component {
   }
 
   render() {
-    const {
-      filesState: { folderContent }
-    } = this.props;
+    const { filesState: { folderContent }, layoutState } = this.props;
 
     let content = (
       <Fragment>
@@ -137,6 +138,10 @@ class AppMenu extends Component {
 
           <MenuItem name="list" 
             onClickHandler={() => { this.props.dispatch(layoutActions.openSortModal()); }} />
+
+          <MenuItem name="search"
+            onClickHandler={() => this.props.dispatch(layoutActions.openSearch())}
+        />
         </View>
       </Fragment>
     );
@@ -157,6 +162,21 @@ class AppMenu extends Component {
           </View>
         </TouchableHighlight>
       );
+    }
+
+    if (layoutState.searchActive) {
+      content = (
+        <View style={styles.searchContainer}>
+          <Image style={{ marginLeft: 20, marginRight: 10 }} source={searchIcon} />
+          <TextInput style={styles.searchInput} 
+            placeholder="Search"
+            onChange={(e) => this.props.dispatch(fileActions.setSearchString(e.nativeEvent.text))}
+          />
+          <TouchableHighlight onPress={() => this.props.dispatch(layoutActions.closeSearch())}>
+            <Image style={{ marginLeft: 10, marginRight: 20 }} source={closeIcon}/>
+          </TouchableHighlight>
+        </View>
+      )
     }
 
     return <View style={styles.container}>{content}</View>;
@@ -195,6 +215,24 @@ const styles = StyleSheet.create({
     width: 10,
     height: 17,
     resizeMode: "contain"
+  },
+  searchContainer: {
+    position: "relative",
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#f7f7f7",
+    marginLeft: 20,
+    marginRight: 20,
+    borderRadius: 30
+  },
+  searchInput: {
+    marginLeft: 15,
+    marginRight: 15,
+    fontFamily: "CerebriSans-Medium",
+    fontSize: 17,
+    flex: 1
   }
 });
 

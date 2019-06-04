@@ -49,10 +49,24 @@ function decryptTextWithKey(encryptedText, keyToDecrypt) {
   }
 }
 
+// Method to remove accents and other special characters from string
+function removeAccents(string) {
+  const accents = 'ÀÁÂÃÄÅĄĀāàáâãäåąßÒÓÔÕÕÖØŐòóôőõöøĎďDŽdžÈÉÊËĘèéêëęðÇçČčĆćÐÌÍÎÏĪìíîïīÙÚÛÜŰùűúûüĽĹŁľĺłÑŇŃňñńŔŕŠŚŞšśşŤťŸÝÿýŽŻŹžżźđĢĞģğ';
+  const accentsOut = 'AAAAAAAAaaaaaaaasOOOOOOOOoooooooDdDZdzEEEEEeeeeeeCcCcCcDIIIIIiiiiiUUUUUuuuuuLLLlllNNNnnnRrSSSsssTtYYyyZZZzzzdGGgg';
+  return string
+    .split("")
+    .map((letter, index) => {
+      const accentIndex = accents.indexOf(letter);
+      return accentIndex !== -1 ? accentsOut[accentIndex] : letter;
+    })
+    .join("");
+}
+
 export const utils = {
   passToHash,
   encryptText,
   decryptText,
   encryptTextWithKey,
-  decryptTextWithKey
+  decryptTextWithKey,
+  removeAccents
 }

@@ -12,6 +12,7 @@ export const fileActions = {
   selectFile,
   deselectAll,
   setSortFunction,
+  setSearchString,
   createFolder,
   updateFolderMetadata
 };
@@ -108,6 +109,12 @@ function setSortFunction(sortType) {
   let sortFunc = fileService.getSortFunction(sortType);
   return dispatch => {
     dispatch({ type: fileActionTypes.SET_SORT_TYPE, payload: [sortType ,sortFunc] })
+  }
+}
+
+function setSearchString(searchString) {
+  return dispatch => {
+    dispatch({ type: fileActionTypes.SET_SEARCH_STRING, payload: searchString })
   }
 }
 

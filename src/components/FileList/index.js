@@ -2,10 +2,11 @@ import React, { Component } from "react";
 import { compose } from "redux";
 import { connect } from "react-redux";
 import { View, Text, ScrollView, ActivityIndicator, RefreshControl } from "react-native";
-import { fileActions } from '../../actions'
 
+import { fileActions } from '../../actions'
 import EmptyDirectory from "../EmptyDirectory";
 import FileItem from "../FileItem";
+import { utils } from "../../helpers";
 
 class FileList extends Component {
   constructor(props) {
@@ -38,23 +39,34 @@ class FileList extends Component {
     }
 
     let content = <EmptyDirectory />;
+    
     if (folderContent.files.length > 0 || folderContent.children.length > 0) {
+      let folderList = folderContent.children;
+      let fileList = folderContent.files;
+      // Apply search function if is set
+      if (filesState.searchString !== null) {
+        let searchStringRegular = filesState.searchString; 
+        if (searchStringRegular.length > 0) searchStringRegular = utils.removeAccents(filesState.searchString.toLowerCase());
+        const searchFunction = function(item) { return item.name.toLowerCase().includes(searchStringRegular); }
+        folderList = folderList.filter(searchFunction);
+        fileList = fileList.filter(searchFunction);
+      }
       // Apply sort function if is set
       if (filesState.sortFunction) {
-        folderContent.children.sort(filesState.sortFunction);
-        folderContent.files.sort(filesState.sortFunction);
+        folderList.sort(filesState.sortFunction);
+        fileList.sort(filesState.sortFunction);
       }
       content = (
         <ScrollView refreshControl={<RefreshControl isRefreshing={this.state.isRefreshing} onRefresh={this.refreshList} />}>
           {this.props.filesState.isUploading ? <FileItem key={99999999} item={{ type: '', name: this.props.filesState.isUploadingFileName }} isFolder={false} isSelected={false} isBeingUploaded={true} /> : <Text></Text>}
-          {folderContent.children.map(folder => (
+          {folderList.map(folder => (
             <FileItem
               key={folder.id}
               item={folder}
               isFolder={true}
               isSelected={selectedFile && selectedFile.id === folder.id} />
           ))}
-          {folderContent.files.map(file => (
+          {fileList.map(file => (
             <FileItem
               key={file.id}
               downloadFile={this.downloadFile}
