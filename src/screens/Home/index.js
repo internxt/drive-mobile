@@ -248,11 +248,11 @@ class Home extends Component {
       if (this.state.selectedColor && (this.state.selectedColor !== this.props.filesState.selectedFile.color)) {
         metadata.color = this.state.selectedColor;
       }
-      if (this.state.selectedIcon && (!this.props.filesState.selectedFile.icon || (this.state.selectedIcon !== this.props.filesState.selectedFile.icon.id))) {
+      if ((typeof this.state.selectedIcon === 'number' && this.state.selectedIcon >= 0) && (!this.props.filesState.selectedFile.icon || (this.state.selectedIcon !== this.props.filesState.selectedFile.icon.id))) {
         metadata.icon = this.state.selectedIcon;
       }
       // Submit changes
-      if (metadata.itemName || metadata.color || metadata.icon) {
+      if (metadata.itemName || metadata.color || (metadata.icon >= 0)) {
         this.props.dispatch(fileActions.updateFolderMetadata(metadata, this.props.filesState.selectedFile.id));
         setTimeout(() => {
           this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
@@ -364,8 +364,8 @@ class Home extends Component {
         <View style={styles.colorSelection}>
           {
             Object.getOwnPropertyNames(colors).map((value, i) => {
-              localColor = this.state.selectedColor ? this.state.selectedColor : (folder ? folder.color : null);
-              isSelected = (localColor ? localColor === value : false);
+              let localColor = this.state.selectedColor ? this.state.selectedColor : (folder ? folder.color : null);
+              let isSelected = (localColor ? localColor === value : false);
               return (<TouchableHighlight key={i}
                 underlayColor={colors[value].darker}
                 style={[{ backgroundColor: colors[value].code }, styles.colorButton]}
@@ -385,12 +385,14 @@ class Home extends Component {
         <View style={styles.iconSelection}>
           {
             folderIconsList.map((value, i) => {
-              localIcon = this.state.selectedIcon ? this.state.selectedIcon : ((folder && folder.icon) ? folder.icon.id : null);
-              isSelected = (localIcon ? localIcon - 1 === i : false);
+              let localIcon = (typeof this.state.selectedIcon === 'number' && this.state.selectedIcon >= 0) ? this.state.selectedIcon : ((folder && folder.icon) ? folder.icon.id : null);
+              let isSelected = (localIcon ? localIcon - 1 === i : false);
+              let iconValue = isSelected ? 0 : i + 1;
+
               return (<TouchableHighlight key={i}
                 style={styles.iconButton}
                 underlayColor="#F2F5FF"
-                onPress={() => { this.setState({ selectedIcon: i + 1 }) }}>
+                onPress={() => { this.setState({ selectedIcon: iconValue }) }}>
                 {isSelected ? <Icon name={value} color="#4385F4" style={styles.iconImage} width="30" height="30" /> : <Icon name={value} color={'grey'} style={styles.iconImage} width="30" height="30" />}
               </TouchableHighlight>)
             })
