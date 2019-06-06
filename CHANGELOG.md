@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.3] - 2019-06-07
+### Added
+- Search feature
+- Upload pictures from gallery/Upload photos from camera
+- Clear folder icon selecting actual icon
+
+### Changed
+- Improved performance on Register
+
 ## [1.0.2] - 2019-05-31
 ### Fixed
 - (UI) Keyboard shows over input fields
