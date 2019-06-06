@@ -12,6 +12,8 @@ import {
   AppState,
   KeyboardAvoidingView
 } from "react-native";
+import bip39 from 'react-native-bip39';
+
 import { utils } from '../../helpers'
 
 class Register extends Component {
@@ -101,62 +103,45 @@ class Register extends Component {
 
     return true;
   }
-
-  doRegister = () => {
+  
+  doRegister = async () => {
+    // Pass setup
     const hashObj = utils.passToHash({ password: this.state.password });
     const encPass = utils.encryptText(hashObj.hash);
     const encSalt = utils.encryptText(hashObj.salt);
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/temp`, {
-      method: 'GET',
+    // Mnemonic generation
+    const mnemonic = await bip39.generateMnemonic(256);
+    console.log(mnemonic);
+    const encMnemonic = utils.encryptTextWithKey(mnemonic, this.state.password);
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/register`, {
+      method: 'POST',
       headers: {
         "content-type": "application/json; charset=utf-8",
-      }
+      },
+      body: JSON.stringify({
+        name: this.state.firstName,
+        lastname: this.state.lastName,
+        email: this.state.email,
+        password: encPass,
+        mnemonic: encMnemonic,
+        salt: encSalt
+      })
     }).then(async res => {
       return { res, data: await res.json() };
     }).then(res => {
       if (res.res.status != 200) {
-        throw { error: 'Could not connect to server' }
+        Alert.alert('Server register error');
       } else {
-
-        let mnemonicEncrypted = res.data.payload;
-        let mnemonic = utils.decryptText(mnemonicEncrypted);
-        const encMnemonic = utils.encryptTextWithKey(mnemonic, this.state.password);
-
-        fetch(`${process.env.REACT_APP_API_URL}/api/register`, {
-          method: 'POST',
-          headers: {
-            "content-type": "application/json; charset=utf-8",
-          },
-          body: JSON.stringify({
-            name: this.state.firstName,
-            lastname: this.state.lastName,
-            email: this.state.email,
-            password: encPass,
-            mnemonic: encMnemonic,
-            salt: encSalt
-          })
-        }).then(async res => {
-          return { res, data: await res.json() };
-        }).then(res => {
-          if (res.res.status != 200) {
-            Alert.alert('Server register error');
-          } else {
-            this.setState({ registerStep: 4 });
-          }
-        }).catch(err => {
-          console.log(err);
-          Alert.alert('Internal server error while registering Code: 2');
-        });
-
+        this.setState({ registerStep: 4 });
       }
-      this.setState({ isLoading: false });
-
     }).catch(err => {
-      Alert.alert('Internal server error while registering Code: 1');
+      console.log(err);
+      Alert.alert('Internal server error while registering Code: 2');
     });
 
-
+    this.setState({ isLoading: false });
   }
 
   render() {
