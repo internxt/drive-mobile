@@ -45,6 +45,7 @@
     "react-native-tcp": "^3.3.0",
     "react-native-timeago": "^0.4.0",
     "react-native-udp": "^2.6.1",
+    "react-native-version-number": "^0.3.6",
     "react-navigation": "^2.18.2",
     "react-redux": "^5.0.7",
     "readable-stream": "^1.0.33",
