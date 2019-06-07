@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 - Search feature
 - Upload pictures from gallery/Upload photos from camera
 - Clear folder icon selecting actual icon
+- Version number on log screen
 
 ### Changed
 - Improved performance on Register
