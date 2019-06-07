@@ -112,7 +112,6 @@ class Register extends Component {
 
     // Mnemonic generation
     const mnemonic = await bip39.generateMnemonic(256);
-    console.log(mnemonic);
     const encMnemonic = utils.encryptTextWithKey(mnemonic, this.state.password);
 
     fetch(`${process.env.REACT_APP_API_URL}/api/register`, {
