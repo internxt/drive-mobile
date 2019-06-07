@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight, Image, Alert, Keyboard, Platform } from "react-native";
+import { StyleSheet, Text, TextInput, View, Linking, TouchableHighlight, Image, Alert, Keyboard, Platform, Share } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
 import Modal from 'react-native-modalbox';
@@ -21,6 +21,7 @@ import { getIcon } from "../../helpers";
 
 const iconDownload = getIcon('download');
 const iconDelete = getIcon('delete');
+const iconShare = getIcon('share');
 
 class Home extends Component {
   constructor(props) {
@@ -115,44 +116,58 @@ class Home extends Component {
     }
   }
 
+  getFileToken = async (item) => {
+    try {
+      const fileId = item ? item.fileId : this.props.filesState.selectedFile.fileId;
+      const token = this.props.authenticationState.token;
+      const mnemonic = this.props.authenticationState.user.mnemonic;
+  
+      const headers = {
+        "Authorization": `Bearer ${token}`,
+        "internxt-mnemonic": mnemonic,
+        "Content-type": "application/json"
+      };
+
+      // Generate token
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/storage/share/file/${fileId}`, {
+        method: 'POST',
+        headers
+      });
+      const data = await res.json();
+
+      if (res.status != 200) {
+        const errMsg = data.error ? data.error : 'Cannot download file';
+        Alert.alert('Error', errMsg);
+      } else {
+        return data.token;
+      }
+    } catch (error) {
+      console.log(`Error getting file token: ${error}`);
+      Alert.alert('Error', 'Error getting file from server')
+    }
+  }
 
   downloadFile = async (item) => {
+    // Get file token
+    const linkToken = await this.getFileToken(item);
+    const proxy = 'https://api.internxt.com:8081';
+    // Open file on browser
+    Linking.openURL(`${proxy}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`);
+  }
 
-    const fileId = item ? item.fileId : this.props.filesState.selectedFile.fileId;
-    //const fileName = this.props.filesState.selectedFile.name + '.' + this.props.filesState.selectedFile.type;
-    const token = this.props.authenticationState.token;
-    const mnemonic = this.props.authenticationState.user.mnemonic;
+  shareFile = async (item) => {
+    // Get file token
+    const linkToken = await this.getFileToken(item);
+    const proxy = 'https://api.internxt.com:8081';
+    const url = `${proxy}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`;
 
-    const headers = {
-      "Authorization": `Bearer ${token}`,
-      "internxt-mnemonic": mnemonic,
-      "Content-type": "application/json"
-    };
-
-    // Generate token:
-    fetch(`${process.env.REACT_APP_API_URL}/api/storage/share/file/${fileId}`, {
-      method: 'POST',
-      headers
-    }).then(async result => {
-      var data = await result.json();
-      return { res: result, data };
-    }).then(result => {
-      if (result.res.status != 200) {
-        if (result.data.error) {
-          Alert.alert('Error', result.data.error);
-        } else {
-          Alert.alert('Error', 'Cannot download file');
-        }
-      } else {
-        const linkToken = result.data.token;
-        const proxy = 'https://api.internxt.com:8081';
-        Linking.openURL(`${proxy}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`);
-      }
-    }).catch(err => {
-      console.log("Error", err);
-      Alert.alert('Error', 'Internal error');
+    // Share link on native share system
+    await Share.share({
+      title: 'X Cloud file sharing',
+      message: `I shared with you file: ${item.name}, you can access
+      with this link: ${url}. Take care that you only have 1
+      access with this link.`
     });
-
   }
 
   handleDeleteSelectedItem() {
@@ -313,6 +328,14 @@ class Home extends Component {
           <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
         </Text>} onClick={() => {
           this.props.dispatch(fileActions.downloadSelectedFileStart());
+        }} />
+
+        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Image source={iconShare} width={24} height={24} />
+          <Text style={{ width: 20 }}> </Text>
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Share</Text>
+        </Text>} onClick={() => {
+          this.shareFile(this.props.filesState.selectedFile);
         }} />
 
         <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
@@ -597,7 +620,7 @@ const styles = StyleSheet.create({
     height: 303
   },
   modalSettingsFile: {
-    height: 333
+    height: 370
   },
   modalSettingsProgressBar: {
     height: 6.5,
