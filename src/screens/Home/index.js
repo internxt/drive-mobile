@@ -164,11 +164,8 @@ class Home extends Component {
     // Share link on native share system
     await Share.share({
       title: 'X Cloud file sharing',
-      message: `Hello,
-      How are things going?
-      I’m using X Cloud, a secure, simple, private and eco-friendly cloud storage service https://internxt.com/cloud
-      I wanted to share a file (${item.name}) with you through this single-use private link -no sign up required: ${shortedUrl}`
-    });
+      message: `Hello, \nHow are things going? I’m using X Cloud, a secure, simple, private and eco-friendly cloud storage service https://internxt.com/cloud \n\nI wanted to share a file (${item.name}) with you through this single-use private link -no sign up required: ${shortedUrl}`
+    })
   }
 
   handleDeleteSelectedItem() {
