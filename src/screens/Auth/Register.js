@@ -103,7 +103,7 @@ class Register extends Component {
 
     return true;
   }
-  
+
   doRegister = async () => {
     // Pass setup
     const hashObj = utils.passToHash({ password: this.state.password });
@@ -132,15 +132,16 @@ class Register extends Component {
     }).then(res => {
       if (res.res.status != 200) {
         Alert.alert('Server register error');
+        this.setState({ isLoading: false });
       } else {
-        this.setState({ registerStep: 4 });
+        this.setState({ registerStep: 4, isLoading: false });
       }
     }).catch(err => {
       console.log(err);
       Alert.alert('Internal server error while registering Code: 2');
+      this.setState({ isLoading: false });
     });
 
-    this.setState({ isLoading: false });
   }
 
   render() {
