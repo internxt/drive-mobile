@@ -87,7 +87,7 @@ class SignIn extends Component {
               const hashObj = utils.passToHash({ password: this.state.pasword, salt });
               const encPass = utils.encryptText(hashObj.hash);
 
-              var activation = fetch(`${process.env.REACT_APP_API_URL}/api/access`, {
+              fetch(`${process.env.REACT_APP_API_URL}/api/access`, {
                 method: "POST",
                 headers: { "content-type": "application/json; charset=utf-8" },
                 body: JSON.stringify({
@@ -99,7 +99,9 @@ class SignIn extends Component {
                 .then(async response => {
                   return { response, data: await response.json() }
                 }).then(resp => {
-                  if (!resp.data.user.root_folder_id || true) {
+
+                  if (!resp.data.user.root_folder_id) {
+                    console.log('No root folder, creating one')
                     // No root folder, create one
 
                     const mnemonicEncrypted = resp.data.user.mnemonic;
@@ -116,17 +118,19 @@ class SignIn extends Component {
                         email: this.state.email,
                         mnemonic: mnemonicDecrypted
                       })
+                    }).then(respFinal => {
+                      this.props.onSignInClick(this.state.email, this.state.pasword, res.data.sKey, this.state.twoFactorCode);
+                    }).catch(err => {
+                      Alert.alert('Error initilizing account')
                     })
 
+                  } else {
+                    this.props.onSignInClick(this.state.email, this.state.pasword, res.data.sKey, this.state.twoFactorCode);
                   }
                 })
 
             } catch (error) { console.log(error); }
 
-            if (activation) { await activation; }
-
-            // Regular login
-            this.props.onSignInClick(this.state.email, this.state.pasword, res.data.sKey, this.state.twoFactorCode);
           } else {
             // 2FA login
             console.log('Need 2FA code to login');
