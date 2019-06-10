@@ -30,6 +30,7 @@ class Register extends Component {
 
       registerStep: 1,
       isLoading: false,
+      registerButtonClickedOnce: false,
 
       appState: AppState.currentState
     };
@@ -105,6 +106,7 @@ class Register extends Component {
   }
 
   doRegister = async () => {
+
     // Pass setup
     const hashObj = utils.passToHash({ password: this.state.password });
     const encPass = utils.encryptText(hashObj.hash);
@@ -306,14 +308,17 @@ class Register extends Component {
                 style={styles.button}
                 underlayColor="#4585f5"
                 onPress={() => {
-                  if (this.state.isLoading) { return; }
-                  this.setState({ isLoading: true });
 
-                  if (this.isValidStep3()) {
-                    this.doRegister();
-                  } else {
-                    this.setState({ isLoading: false });
-                  }
+                  if (this.state.registerButtonClickedOnce || this.state.isLoading) { return; }
+
+                  this.setState({ isLoading: true, registerButtonClickedOnce: true }, () => {
+                    if (this.isValidStep3()) {
+                      this.doRegister();
+                    } else {
+                      this.setState({ isLoading: false });
+                    }
+                  });
+
                 }}>
                 <Text style={styles.buttonOnLabel}>{this.state.isLoading ? 'Creating your account...' : 'Continue'}</Text>
               </TouchableHighlight>
