@@ -126,22 +126,22 @@ class AppMenu extends Component {
 
     let content = (
       <Fragment>
-        <View style={{ flexDirection: 'row-reverse', flex: 1, alignItems: 'flex-end' }}>
+        <View style={styles.buttonContainer}>
+          <View style={styles.commonButtons}>
+            <MenuItem name="search"
+              onClickHandler={() => this.props.dispatch(layoutActions.openSearch())}/>
+
+            <MenuItem name="list" 
+              onClickHandler={() => { this.props.dispatch(layoutActions.openSortModal()); }} />
+
+            <MenuItem name="upload" 
+              onClickHandler={this.handleUpload} />
+      
+            <MenuItem name="create"
+              onClickHandler={() => this.handleFolderCreate(folderContent.id)}/>
+          </View>
           <MenuItem name="settings"
             onClickHandler={() => { this.props.dispatch(layoutActions.openSettings()); }}/>
-
-          <MenuItem name="create"
-            onClickHandler={() => this.handleFolderCreate(folderContent.id)}/>
-
-          <MenuItem name="upload" 
-            onClickHandler={this.handleUpload} />
-
-          <MenuItem name="list" 
-            onClickHandler={() => { this.props.dispatch(layoutActions.openSortModal()); }} />
-
-          <MenuItem name="search"
-            onClickHandler={() => this.props.dispatch(layoutActions.openSearch())}
-        />
         </View>
       </Fragment>
     );
@@ -184,6 +184,16 @@ class AppMenu extends Component {
 }
 
 const styles = StyleSheet.create({
+  buttonContainer: {
+    flexDirection: "row", 
+    flex: 1, 
+    justifyContent: "space-between",
+    marginLeft: 10,
+    marginRight: 10
+  },
+  commonButtons: {
+    flexDirection: "row"
+  },
   container: {
     height: 54,
     flexDirection: "row",

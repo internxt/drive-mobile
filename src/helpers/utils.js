@@ -62,11 +62,36 @@ function removeAccents(string) {
     .join("");
 }
 
+// Method to short url with Kutt.it service
+async function shortUrl(url) {
+  try {
+    const shorterApiUrl = process.env.REACT_APP_SHORTER_API_URL;
+
+    const result = await fetch(`${shorterApiUrl}`, {
+      method: 'POST',
+      headers: {  
+        'X-API-Key': `${process.env.REACT_APP_SHORTER_API_KEY}`,
+        'Content-type': "application/json"
+      },
+      body: JSON.stringify({
+        "target": `${url}`,
+        "reuse": "false"
+      })
+    });
+    const resultData = await result.json();
+    return resultData.shortUrl;
+  } catch(error) {
+    console.log(`Error on url shorting`, error);
+  }
+  
+}
+
 export const utils = {
   passToHash,
   encryptText,
   decryptText,
   encryptTextWithKey,
   decryptTextWithKey,
-  removeAccents
+  removeAccents,
+  shortUrl
 }

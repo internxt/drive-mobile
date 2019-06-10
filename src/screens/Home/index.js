@@ -17,7 +17,7 @@ import Icon from '../../../assets/icons/Icon'
 import TimeAgo from "react-native-timeago";
 
 import { fileActions, layoutActions, userActions } from "../../actions";
-import { getIcon } from "../../helpers";
+import { getIcon, utils } from "../../helpers";
 
 const iconDownload = getIcon('download');
 const iconDelete = getIcon('delete');
@@ -150,23 +150,24 @@ class Home extends Component {
   downloadFile = async (item) => {
     // Get file token
     const linkToken = await this.getFileToken(item);
-    const proxy = 'https://api.internxt.com:8081';
     // Open file on browser
-    Linking.openURL(`${proxy}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`);
+    Linking.openURL(`${process.env.REACT_APP_PROXY_URL}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`);
   }
 
   shareFile = async (item) => {
     // Get file token
     const linkToken = await this.getFileToken(item);
-    const proxy = 'https://api.internxt.com:8081';
-    const url = `${proxy}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`;
+    const url = `${process.env.REACT_APP_PROXY_URL}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`;
+
+    const shortedUrl = await utils.shortUrl(url);
 
     // Share link on native share system
     await Share.share({
       title: 'X Cloud file sharing',
-      message: `I shared with you file: ${item.name}, you can access
-      with this link: ${url}. Take care that you only have 1
-      access with this link.`
+      message: `Hello,
+      How are things going?
+      I’m using X Cloud, a secure, simple, private and eco-friendly cloud storage service https://internxt.com/cloud
+      I wanted to share a file (${item.name}) with you through this single-use private link -no sign up required: ${shortedUrl}`
     });
   }
 
