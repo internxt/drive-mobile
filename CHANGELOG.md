@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.5] - 2019-06-10
+### Added
+- Sharing files from context menu
+
+### Changed
+- UI App buttons order
+
+### Fixed
+- Register issues
+
 ## [1.0.3] - 2019-06-07
 ### Added
 - Search feature
