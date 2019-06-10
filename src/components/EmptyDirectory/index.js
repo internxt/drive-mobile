@@ -2,10 +2,15 @@ import React, { Component } from "react";
 import { StyleSheet, View, Text } from "react-native";
 
 class EmptyDirectory extends Component {
+  constructor(props) {
+    super(props);
+  }
+
   render() {
+    const message = this.props.isRoot ? 'Your X Cloud is empty!' : 'This folder is empty';
     return (
       <View style={styles.container}>
-        <Text style={styles.heading}>Your X Cloud is empty!</Text>
+        <Text style={styles.heading}>{message}</Text>
         <Text style={styles.subheading}>
           Click the upload button to get started.
         </Text>

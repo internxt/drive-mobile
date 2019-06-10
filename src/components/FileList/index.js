@@ -29,6 +29,7 @@ class FileList extends Component {
   render() {
     const { filesState } = this.props;
     const { loading, folderContent, selectedFile } = filesState;
+    const isRoot = folderContent && folderContent.parentId ? false : true;
 
     if ((loading || !folderContent) && !this.props.filesState.isUploading) {
       return (
@@ -38,7 +39,7 @@ class FileList extends Component {
       );
     }
 
-    let content = <EmptyDirectory />;
+    let content = <EmptyDirectory isRoot={isRoot} />;
     
     if (folderContent.files.length > 0 || folderContent.children.length > 0) {
       let folderList = folderContent.children;
