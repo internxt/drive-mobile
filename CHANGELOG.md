@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.6] - 2019-06-14
+### Fixed
+- Some issues on sharing files
+
 ## [1.0.5] - 2019-06-10
 ### Added
 - Sharing files from context menu

@@ -23,8 +23,8 @@ android {
     applicationId 'com.internxt.cloud'
     minSdkVersion 21
     targetSdkVersion 28
-    versionCode 7
-    versionName '1.0.3'
+    versionCode 8
+    versionName '1.0.6'
     ndk {
       abiFilters 'armeabi-v7a', 'x86'
     }
