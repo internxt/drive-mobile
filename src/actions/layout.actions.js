@@ -12,7 +12,9 @@ export const layoutActions = {
   openRunOutStorageModal,
   closeRunOutStorageModal,
   openSortModal,
-  closeSortModal
+  closeSortModal,
+  openMoveFilesModal,
+  closeMoveFilesModal
 };
 
 function openSearch() {
@@ -84,5 +86,17 @@ function openSortModal() {
 function closeSortModal() {
   return dispatch => {
     dispatch({ type: layoutActionTypes.CLOSE_SORT_MODAL });
+  }
+}
+
+function openMoveFilesModal() {
+  return dispatch => {
+    dispatch({ type: layoutActionTypes.OPEN_MOVEFILES_MODAL });
+  }
+}
+
+function closeMoveFilesModal() { 
+  return dispatch => {
+    dispatch({ type: layoutActionTypes.CLOSE_MOVEFILES_MODAL });
   }
 }

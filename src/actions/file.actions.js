@@ -14,7 +14,8 @@ export const fileActions = {
   setSortFunction,
   setSearchString,
   createFolder,
-  updateFolderMetadata
+  updateFolderMetadata,
+  moveFile
 };
 
 // Will only download the current selected file defined in props
@@ -147,6 +148,32 @@ function createFolder(parentFolderId, newFolderName) {
   }
   function failure(payload) {
     return { type: fileActionTypes.CREATE_FOLDER_SUCCESS, payload };
+  }
+}
+
+function moveFile(fileId, destination) {
+  return dispatch => {
+    dispatch(request());
+
+    fileService.moveFile(fileId, destination).then((result) => {
+      if (result === 1) {
+        dispatch(success());
+
+      } else {
+        console.error("Error creating folder", result);
+        dispatch(failure(result)); 
+      } 
+    });
+  };
+
+  function request() {
+    return { type: fileActionTypes.MOVE_FILES_REQUEST };
+  }
+  function success() {
+    return { type: fileActionTypes.MOVE_FILES_SUCCESS };
+  }
+  function failure(payload) {
+    return { type: fileActionTypes.MOVE_FILES_FAILURE, payload };
   }
 }
 

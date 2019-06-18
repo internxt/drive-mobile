@@ -7,7 +7,8 @@ export const fileService = {
   getFolderContent,
   createFolder,
   updateFolderMetadata,
-  getSortFunction
+  getSortFunction,
+  moveFile
 };
 
 async function setHeaders() {
@@ -84,6 +85,30 @@ function updateFolderMetadata(metadata, folderId) {
     }).then(() => { resolve(); })
       .catch((error) => { reject(error); });
   });
+}
+
+async function moveFile(fileId, destination) {
+  try {
+    const headers = await setHeaders();
+    const data = JSON.stringify({
+      fileId,
+      destination
+    })
+    const res = await fetch(`${REACT_APP_API_URL}/api/storage/moveFile`, {
+      method: "POST",
+      headers,
+      body: data
+    });
+    if (res.status === 200) {
+      return 1;
+    } else {
+      const data = await res.json();
+      return data.message;
+    }
+  } catch(error) {
+    console.log(`Error moving file: ${error.message ? error.message : error}`)
+    return error;
+  }
 }
 
 function getSortFunction(sortType) {

@@ -20,6 +20,7 @@ const icons = {
   delete: require("../../assets/icons/icon-delete.png"),
   share: require("../../assets/icons/icon-share.png"),
   sort: require("../../assets/icons/icon-sort.png"),
+  move: require("../../assets/icons/icon-move-file.png"),
   download: require("../../assets/icons/icon-download.png")
 };
 

@@ -4,24 +4,25 @@ import { compose } from "redux";
 import { connect } from "react-redux";
 import Modal from 'react-native-modalbox';
 import prettysize from 'prettysize';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import TimeAgo from "react-native-timeago";
 
 import AppMenu from '../../components/AppMenu'
 import FileList from '../../components/FileList'
+import MoveList from '../../components/MoveList'
 import ButtonPreviousDir from '../../components/ButtonPreviousDir'
 import ProgressBar from '../../components/ProgressBar'
 import Separator from '../../components/Separator'
 import SettingsItem from '../../components/SettingsItem'
 import { colors, folderIconsList, sortTypes } from '../../constants'
 import Icon from '../../../assets/icons/Icon'
-import TimeAgo from "react-native-timeago";
-
 import { fileActions, layoutActions, userActions } from "../../actions";
 import { getIcon, utils } from "../../helpers";
 
 const iconDownload = getIcon('download');
 const iconDelete = getIcon('delete');
 const iconShare = getIcon('share');
+const iconMove = getIcon('move');
 
 class Home extends Component {
   constructor(props) {
@@ -54,6 +55,7 @@ class Home extends Component {
     this.modalFolder = React.createRef();
     this.modalFile = React.createRef();
     this.modalSort = React.createRef();
+    this.modalMoveFiles = React.createRef();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -79,6 +81,12 @@ class Home extends Component {
     if (nextProps.layoutState.showSortModal) {
       this.modalSort.current.open();
       this.props.dispatch(layoutActions.closeSortModal());
+    }
+
+    // Manage showing moveFiles modal
+    if (nextProps.layoutState.showMoveFilesModal) {
+      this.modalMoveFiles.current.open();
+      this.props.dispatch(layoutActions.closeMoveFilesModal());
     }
 
     // Set folder/file name if is selected
@@ -276,6 +284,18 @@ class Home extends Component {
     this.setState({ selectedColor: '', selectedIcon: '' });
   }
 
+  closeMoveFilesModal = (result) => {
+    // When modal is closed by move action result = folder id otherwise ans = -1
+    if (result >= 0 && this.props.filesState.selectedFile) {
+      this.props.dispatch(fileActions.moveFile(this.props.filesState.selectedFile.fileId, result));
+      setTimeout(() => {
+        this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
+      }, 400);
+    }
+    this.modalMoveFiles.current.close();
+    this.modalFile.current.close();
+  }
+
   getItemModal = (item) => {
     let isFolder = item.size == undefined;
     if (isFolder) {
@@ -290,7 +310,7 @@ class Home extends Component {
       return <Modal
         position={"bottom"}
         ref={this.modalFile}
-        style={[styles.modalSettingsFile, { top: (this.state.keyboardSpace && Platform.OS !== 'ios') ? 0 - this.state.keyboardSpace : 0}]}
+        style={[styles.modalSettingsFile, { top: (this.state.keyboardSpace && Platform.OS !== 'ios') ? 150 - this.state.keyboardSpace : 0}]}
         onClosed={this.closeFileModal}
         backButtonClose={true}
         backdropPressToClose={true}>
@@ -324,25 +344,25 @@ class Home extends Component {
           <Image source={iconDownload} width={24} height={24} />
           <Text style={{ width: 20 }}> </Text>
           <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
-        </Text>} onClick={() => {
-          this.props.dispatch(fileActions.downloadSelectedFileStart());
-        }} />
+        </Text>} onClick={() => { this.props.dispatch(fileActions.downloadSelectedFileStart()); }} />
+
+        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+            <Image source={iconMove} width={26} height={26} />
+            <Text style={{ width: 20 }}> </Text>
+            <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Move</Text>
+          </Text>} onClick={() => { this.props.dispatch(layoutActions.openMoveFilesModal()); }} />
 
         <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
           <Image source={iconShare} width={24} height={24} />
           <Text style={{ width: 20 }}> </Text>
           <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Share</Text>
-        </Text>} onClick={() => {
-          this.shareFile(this.props.filesState.selectedFile);
-        }} />
+        </Text>} onClick={() => { this.shareFile(this.props.filesState.selectedFile); }} />
 
         <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
           <Image source={iconDelete} width={24} height={24} />
           <Text style={{ width: 20 }}> </Text>
           <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
-        </Text>} onClick={() => {
-          this.handleDeleteSelectedItem();
-        }} />
+        </Text>} onClick={() => { this.handleDeleteSelectedItem(); }} />
 
       </Modal>;
     } else {
@@ -456,6 +476,23 @@ class Home extends Component {
     )
   }
 
+  getMoveFilesModal = () => {
+    return (
+      <Modal
+        ref={this.modalMoveFiles}
+        style={styles.modalMoveFiles}
+        swipeToClose={false}
+        backButtonClose={true}>
+        <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 16, marginTop: 15, marginLeft: 10 }}>Move file to:</Text>
+        <Separator />
+        <MoveList style={{ height: hp('80%') }} 
+          folderId={this.state.folderId} 
+          folders={this.props.filesState.folderContent ? this.props.filesState.folderContent.children : null}
+          onMoveFile={this.closeMoveFilesModal}/>
+      </Modal>
+    )
+  }
+
   loadUsage = () => {
     const user = this.props.authenticationState.user.email;
 
@@ -534,6 +571,7 @@ class Home extends Component {
         </Modal>
         {filesState.selectedFile && this.getItemModal(filesState.selectedFile)}
         {this.getSortModal()}
+        {this.getMoveFilesModal()}
         <Modal
           position={"bottom"}
           ref={"modalSettings"}
@@ -562,7 +600,8 @@ class Home extends Component {
           </Text>
 
           <Separator />
-
+          <SettingsItem text="Contact Us" onClick={() => Linking.openURL('mailto:hello@internxt.com')} />
+          <Separator />
           <SettingsItem text="Sign out" onClick={() => this.props.dispatch(userActions.signout())} />
         </Modal>
 
@@ -615,15 +654,20 @@ const styles = StyleSheet.create({
     color: "#000000"
   },
   modalSettings: {
-    height: 303
+    height: 350
   },
   modalSettingsFile: {
-    height: 370
+    height: 420
   },
   modalSettingsProgressBar: {
     height: 6.5,
     marginLeft: 24,
     marginRight: 24
+  },
+  modalMoveFiles: {
+    height: hp('90%'), 
+    width: wp('90%'),
+    justifyContent: "flex-start"
   },
   sortOption: {
     fontFamily: 'CerebriSans-Bold',

@@ -116,9 +116,31 @@ export function filesReducer(state = initialState, action) {
         error: action.payload
       }
     case fileActionTypes.DOWNLOAD_SELECTED_FILE_START:
-      return { ...state, startDownloadSelectedFile: true };
+      return { 
+        ...state, 
+        startDownloadSelectedFile: true 
+      }
     case fileActionTypes.DOWNLOAD_SELECTED_FILE_STOP:
-      return { ...state, startDownloadSelectedFile: false };
+      return { 
+        ...state, 
+        startDownloadSelectedFile: false 
+      }
+    case fileActionTypes.MOVE_FILES_REQUEST:
+      return {
+        ...state,
+        loading: true
+      }
+    case fileActionTypes.MOVE_FILES_SUCCESS:
+      return {
+        ...state,
+        loading: false
+      }
+    case fileActionTypes.MOVE_FILES_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload
+      }
     default:
       return state;
   }
