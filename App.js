@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Text, View } from "react-native";
+import { Text, View, StatusBar } from "react-native";
 import { Provider } from "react-redux";
 import './shim.js';
 
@@ -29,7 +29,10 @@ export default class App extends Component {
     if (this.state.fontLoaded) {
       return (
         <Provider store={store}>
-          <AppNavigator />
+          <View style={{ flex: 1}}>
+            <StatusBar backgroundColor="#fff" barStyle="dark-content" />
+            <AppNavigator />
+          </View>
         </Provider>
       );
     }

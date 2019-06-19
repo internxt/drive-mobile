@@ -547,7 +547,6 @@ class Home extends Component {
 
     return (
       <View style={styles.container}>
-
         <Modal ref={'runOutStorageModal'} style={{ padding: 24 }}>
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <View>
