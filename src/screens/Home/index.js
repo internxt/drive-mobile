@@ -313,7 +313,8 @@ class Home extends Component {
         style={[styles.modalSettingsFile, { top: (this.state.keyboardSpace && Platform.OS !== 'ios') ? 150 - this.state.keyboardSpace : 0}]}
         onClosed={this.closeFileModal}
         backButtonClose={true}
-        backdropPressToClose={true}>
+        backdropPressToClose={true}
+        animationDuration={200}>
         <View style={styles.drawerKnob}></View>
 
         <TextInput
@@ -341,25 +342,25 @@ class Home extends Component {
         <Separator />
 
         <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Image source={iconDownload} width={24} height={24} />
+          <Image source={iconDownload} style={{ width: 20, height: 22 }} />
           <Text style={{ width: 20 }}> </Text>
           <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
         </Text>} onClick={() => { this.props.dispatch(fileActions.downloadSelectedFileStart()); }} />
 
         <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-            <Image source={iconMove} width={26} height={26} />
+            <Image source={iconMove} style={{ width: 22, height: 22 }} />
             <Text style={{ width: 20 }}> </Text>
             <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Move</Text>
           </Text>} onClick={() => { this.props.dispatch(layoutActions.openMoveFilesModal()); }} />
 
         <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Image source={iconShare} width={24} height={24} />
+          <Image source={iconShare} style={{ width: 23, height: 17 }} />
           <Text style={{ width: 20 }}> </Text>
           <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Share</Text>
         </Text>} onClick={() => { this.shareFile(this.props.filesState.selectedFile); }} />
 
         <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Image source={iconDelete} width={24} height={24} />
+          <Image source={iconDelete} style={{ width: 19, height: 24 }} />
           <Text style={{ width: 20 }}> </Text>
           <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
         </Text>} onClick={() => { this.handleDeleteSelectedItem(); }} />
@@ -378,7 +379,7 @@ class Home extends Component {
         style={styles.modalFolder}
         onClosed={this.closeFolderModal}
         backButtonClose={true}
-        backdropPressToClose={true}>
+        animationDuration={200}>
         <View style={styles.drawerKnob}></View>
 
         <View style={{ flexDirection: 'row', paddingRight: 22 }}>
@@ -453,7 +454,8 @@ class Home extends Component {
         ref={this.modalSort}
         style={{ height: 240 }}
         backButtonClose={true}
-        backdropPressToClose={true}>
+        backdropPressToClose={true}
+        animationDuration={200}>
         <View style={styles.drawerKnob}></View>
 
         <Text style={(this.props.filesState.sortType === sortTypes.DATE_ADDED || this.props.filesState.sortType === '') ? styles.sortOptionSelected : styles.sortOption}
@@ -482,10 +484,12 @@ class Home extends Component {
         ref={this.modalMoveFiles}
         style={styles.modalMoveFiles}
         swipeToClose={false}
-        backButtonClose={true}>
-        <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 16, marginTop: 15, marginLeft: 10 }}>Move file to:</Text>
+        backButtonClose={true}
+        backdropPressToClose={false}
+        animationDuration={200}>
+        <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 18, marginTop: 25, marginBottom: 10, marginLeft: 10 }}>Choose a folder to move this file.</Text>
         <Separator />
-        <MoveList style={{ height: hp('80%') }} 
+        <MoveList style={{ height: hp('82%') }} 
           folderId={this.state.folderId} 
           folders={this.props.filesState.folderContent ? this.props.filesState.folderContent.children : null}
           onMoveFile={this.closeMoveFilesModal}/>
@@ -578,7 +582,7 @@ class Home extends Component {
           style={styles.modalSettings}
           onOpened={this.loadUsage}
           backButtonClose={true}
-          backdropPressToClose={true}>
+          animationDuration={200}>
           <View style={styles.drawerKnob}></View>
 
           <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 26, marginTop: 40, fontFamily: 'CerebriSans-Bold' }}>
@@ -601,7 +605,6 @@ class Home extends Component {
 
           <Separator />
           <SettingsItem text="Contact Us" onClick={() => Linking.openURL('mailto:hello@internxt.com')} />
-          <Separator />
           <SettingsItem text="Sign out" onClick={() => this.props.dispatch(userActions.signout())} />
         </Modal>
 
@@ -665,9 +668,11 @@ const styles = StyleSheet.create({
     marginRight: 24
   },
   modalMoveFiles: {
-    height: hp('90%'), 
-    width: wp('90%'),
-    justifyContent: "flex-start"
+    //height: hp('90%'), 
+    //width: wp('90%'),
+    justifyContent: "flex-start",
+    paddingTop: 30,
+    paddingLeft: 10
   },
   sortOption: {
     fontFamily: 'CerebriSans-Bold',
