@@ -62,7 +62,7 @@ class MoveItem extends Component {
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
-    height: 80
+    height: 75
   },
   fileDetails: {
     flexDirection: 'row'

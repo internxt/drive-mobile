@@ -4,8 +4,7 @@ const initialState = {
   searchActive: false,
   createFolderActive: false,
   showSettingsModal: false,
-  showFolderModal: false,
-  showFileModal: false,
+  showItemModal: false,
   showRunOutSpaceModal: false,
   showSortModal: false,
   showMoveFilesModal: false
@@ -43,25 +42,15 @@ export function layoutReducer(state = initialState, action) {
         ...state,
         showSettingsModal: false
       }
-    case layoutActionTypes.OPEN_FOLDER_MODAL:
+    case layoutActionTypes.OPEN_ITEM_MODAL:
       return {
         ...state,
-        showFolderModal: true
+        showItemModal: true
       }
-    case layoutActionTypes.CLOSE_FOLDER_MODAL:
+    case layoutActionTypes.CLOSE_ITEM_MODAL:
       return {
         ...state,
-        showFolderModal: false
-      }
-    case layoutActionTypes.OPEN_FILE_MODAL:
-      return {
-        ...state,
-        showFileModal: true
-      }
-    case layoutActionTypes.CLOSE_FILE_MODAL:
-      return {
-        ...state,
-        showFileModal: false
+        showItemModal: false
       }
     case layoutActionTypes.OPEN_RUNOUTSTORAGE_MODAL: {
       return {

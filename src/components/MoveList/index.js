@@ -5,6 +5,7 @@ import { ScrollView, View, Text, TouchableHighlight, StyleSheet, Image } from "r
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 import MoveItem from "../MoveItem";
+import Separator from "../Separator";
 import { fileService } from "../../services";
 import { getIcon } from '../../helpers';
 
@@ -61,6 +62,7 @@ class MoveList extends Component {
           </TouchableHighlight> : <Text style={[styles.iconContainer, styles.iconArrow]} ></Text>}
           <Text style={styles.label}>{(this.state.parentId !== null && this.state.selectedFolder) ? this.state.selectedFolder.name : 'Home'}</Text>
         </View>
+        <Separator />
         <ScrollView>
           {content}
         </ScrollView>
@@ -105,7 +107,8 @@ const styles = StyleSheet.create({
     fontFamily: "CircularStd-Medium",
     fontSize: 19,
     letterSpacing: -0.2,
-    alignSelf: "center"
+    alignSelf: "center",
+    color: "#6a6f75"
   },
   iconContainer: {
     marginRight: 15,
@@ -119,7 +122,8 @@ const styles = StyleSheet.create({
   listHeader: {
     flexDirection: "row",
     justifyContent: "flex-start",
-    alignItems: "center"
+    alignItems: "center",
+    marginBottom: 10
   }
 })
 

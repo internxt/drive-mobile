@@ -32,7 +32,8 @@ const styles = StyleSheet.create({
     itemContainer: {
         paddingTop: 13,
         paddingBottom: 13,
-        paddingLeft: 24
+        paddingLeft: 24,
+        justifyContent: "center"
     },
     itemText: {
         fontFamily: 'CerebriSans-Bold',

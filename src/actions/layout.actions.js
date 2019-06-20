@@ -1,14 +1,12 @@
-import { layoutActionTypes } from "../constants";
+import { layoutActionTypes, fileActionTypes } from "../constants";
 
 export const layoutActions = {
   openSearch,
   closeSearch,
   openSettings,
   closeSettings,
-  openFolderModal,
-  closeFolderModal,
-  openFileModal,
-  closeFileModal,
+  openItemModal,
+  closeItemModal,
   openRunOutStorageModal,
   closeRunOutStorageModal,
   openSortModal,
@@ -41,27 +39,16 @@ function closeSettings() {
   }
 }
 
-function openFolderModal() {
+function openItemModal(item) {
   return dispatch => {
-    dispatch({ type: layoutActionTypes.OPEN_FOLDER_MODAL });
+    if (item) { dispatch({ type: fileActionTypes.SELECT_FILE, payload: item}); }
+    dispatch({ type: layoutActionTypes.OPEN_ITEM_MODAL });
   }
 }
 
-function closeFolderModal() {
+function closeItemModal() {
   return dispatch => {
-    dispatch({ type: layoutActionTypes.CLOSE_FOLDER_MODAL });
-  }
-}
-
-function openFileModal() {
-  return dispatch => {
-    dispatch({ type: layoutActionTypes.OPEN_FILE_MODAL });
-  }
-}
-
-function closeFileModal() {
-  return dispatch => {
-    dispatch({ type: layoutActionTypes.CLOSE_FILE_MODAL });
+    dispatch({ type: layoutActionTypes.CLOSE_ITEM_MODAL });
   }
 }
 

@@ -34,7 +34,7 @@ import YinYang from './Folder-cover-icons/YinYang';
 
 // UI Icons
 import CheckMark from './userInterface/checkmark';
-
+import Details from './userInterface/details';
 
 import { colors } from '../../src/constants/color.constants';
 
@@ -122,6 +122,8 @@ const Icon = props => {
         // UI icons
         case "checkmark":
             return <CheckMark defaultColors={defaultColors} {...props} />;
+        case "details":
+            return <Details defaultColors={defaultColors} {...props} />;
         default:
             return;
     }

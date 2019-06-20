@@ -1,21 +1,17 @@
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
 import { compose } from "redux";
 import { connect } from "react-redux";
 import {
   StyleSheet,
   View,
   Text,
-  TouchableHighlight,
-  Image,
-  ActivityIndicator
+  TouchableHighlight
 } from "react-native";
 import { withNavigation } from "react-navigation";
 import TimeAgo from "react-native-timeago";
-import DoubleClick from 'react-native-double-tap'
 
 import { fileActions, layoutActions } from "../../actions";
 import { folderIconsList, colors } from "../../constants";
-import { getIcon } from "../../helpers";
 import IconFolder from "../../components/IconFolder";
 import IconFile from "../../components/IconFile";
 import Icon from '../../../assets/icons/Icon';
@@ -44,17 +40,12 @@ class FileItem extends Component {
   }
 
   onDetailsClick = () => {
-    const { isFolder } = this.props;
-    if (isFolder) {
-      this.props.dispatch(layoutActions.openFolderModal());
-    } else {
-      this.props.dispatch(layoutActions.openFileModal());
-    }
+    // Open item modal
+    this.props.dispatch(layoutActions.openItemModal(this.props.item));
   }
 
   render() {
     const { item, isFolder, isSelected } = this.props;
-    const imageSource = getIcon("details");
     const extendStyles = StyleSheet.create({
       text: {
         color: "#000000"
@@ -90,15 +81,12 @@ class FileItem extends Component {
             {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.created_at} />)}
           </View>
           <View>
-            {isSelected && (
-              <TouchableHighlight
-                style={styles.buttonDetails}
-                underlayColor="#f2f5ff"
-                onPress={this.onDetailsClick}
-              >
-                <Image style={styles.buttonDetailsIcon} source={imageSource} />
-              </TouchableHighlight>
-            )}
+            <TouchableHighlight
+              style={styles.buttonDetails}
+              underlayColor="#f2f5ff"
+              onPress={this.onDetailsClick}>
+              <Icon name="details" />
+            </TouchableHighlight>
           </View>
         </View>
       </TouchableHighlight>
@@ -142,11 +130,6 @@ const styles = StyleSheet.create({
     marginRight: 10,
     borderRadius: 25.5,
     flex: 1
-  },
-  buttonDetailsIcon: {
-    width: 25,
-    height: 25,
-    resizeMode: "contain"
   }
 });
 

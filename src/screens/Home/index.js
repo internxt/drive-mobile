@@ -52,8 +52,7 @@ class Home extends Component {
       this.setState({ keyboardSpace: 0 });
     });
 
-    this.modalFolder = React.createRef();
-    this.modalFile = React.createRef();
+    this.modalItem = React.createRef();
     this.modalSort = React.createRef();
     this.modalMoveFiles = React.createRef();
   }
@@ -65,16 +64,10 @@ class Home extends Component {
       this.props.dispatch(layoutActions.closeSettings());
     }
 
-    // Manage showing folder modal
-    if (nextProps.layoutState.showFolderModal) {
-      this.modalFolder.current.open();
-      this.props.dispatch(layoutActions.closeFolderModal());
-    }
-
-    // Manager showing file modal
-    if (nextProps.layoutState.showFileModal) {
-      this.modalFile.current.open();
-      this.props.dispatch(layoutActions.closeFileModal());
+    // Manage showing item modal
+    if (nextProps.layoutState.showItemModal) {
+      this.modalItem.current.open();
+      this.props.dispatch(layoutActions.closeItemModal());
     }
 
     // Manage showing sort modal
@@ -197,8 +190,7 @@ class Home extends Component {
         setTimeout(() => {
           this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
           // Close modal
-          if (isFolder) this.modalFolder.current.close();
-          else { this.modalFile.current.close(); }
+          this.modalItem.current.close();
         }, 1000);
 
       } else {
@@ -246,7 +238,7 @@ class Home extends Component {
     }).then(res => {
       if (res.res.status == 200) {
         this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
-        this.modalFile.current.close();
+        this.modalItem.current.close();
       } else {
         console.log(res.data);
         Alert.alert('Error renaming file', "Could not rename file");
@@ -293,11 +285,12 @@ class Home extends Component {
       }, 400);
     }
     this.modalMoveFiles.current.close();
-    this.modalFile.current.close();
+    this.modalItem.current.close();
   }
 
-  getItemModal = (item) => {
-    let isFolder = item.size == undefined;
+  getItemModal = () => {
+    const item = this.props.filesState.selectedFile;
+    let isFolder = item && (item.size == undefined);
     if (isFolder) {
       return this.getFolderModal(item);
     } else {
@@ -306,76 +299,72 @@ class Home extends Component {
   }
 
   getFileModal = (file) => {
-    if (file) {
-      return <Modal
-        position={"bottom"}
-        ref={this.modalFile}
-        style={[styles.modalSettingsFile, { top: (this.state.keyboardSpace && Platform.OS !== 'ios') ? 150 - this.state.keyboardSpace : 0}]}
-        onClosed={this.closeFileModal}
-        backButtonClose={true}
-        backdropPressToClose={true}
-        animationDuration={200}>
-        <View style={styles.drawerKnob}></View>
+    return (<Modal
+      position={"bottom"}
+      ref={this.modalItem}
+      style={[styles.modalSettingsFile, { top: (this.state.keyboardSpace && Platform.OS !== 'ios') ? 150 - this.state.keyboardSpace : 0}]}
+      onClosed={this.closeFileModal}
+      backButtonClose={true}
+      backdropPressToClose={true}
+      animationDuration={200}>
+      <View style={styles.drawerKnob}></View>
 
-        <TextInput
-          style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }}
-          onChangeText={(value) => { this.setState({ inputFileName: value }) }}
-          value={this.state.inputFileName} />
+      <TextInput
+        style={{ fontFamily: 'CerebriSans-Bold', fontSize: 20, marginLeft: 26, marginTop: 20 }}
+        onChangeText={(value) => { this.setState({ inputFileName: value }) }}
+        value={this.state.inputFileName} />
 
-        <Separator />
+      <Separator />
 
-        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Text>Type: </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{file.type ? file.type.toUpperCase() : ''}</Text>
-        </Text>
+      <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+        <Text>Type: </Text>
+        <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{file && file.type ? file.type.toUpperCase() : ''}</Text>
+      </Text>
 
-        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Text>Added: </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}><TimeAgo time={file.created_at} /></Text>
-        </Text>
+      <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+        <Text>Added: </Text>
+        <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{file ? <TimeAgo time={file.created_at} /> : ''}</Text>
+      </Text>
 
-        <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Text>Size: </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{prettysize(file.size)}</Text>
-        </Text>
+      <Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+        <Text>Size: </Text>
+        <Text style={{ fontFamily: 'CerebriSans-Bold' }}>{file ? prettysize(file.size) : ''}</Text>
+      </Text>
 
-        <Separator />
+      <Separator />
 
-        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Image source={iconDownload} style={{ width: 20, height: 22 }} />
+      <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+        <Image source={iconDownload} style={{ width: 20, height: 22 }} />
+        <Text style={{ width: 20 }}> </Text>
+        <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
+      </Text>} onClick={() => { this.props.dispatch(fileActions.downloadSelectedFileStart()); }} />
+
+      <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+          <Image source={iconMove} style={{ width: 20, height: 20 }} />
           <Text style={{ width: 20 }}> </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
-        </Text>} onClick={() => { this.props.dispatch(fileActions.downloadSelectedFileStart()); }} />
+          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Move</Text>
+        </Text>} onClick={() => { this.props.dispatch(layoutActions.openMoveFilesModal()); }} />
 
-        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-            <Image source={iconMove} style={{ width: 22, height: 22 }} />
-            <Text style={{ width: 20 }}> </Text>
-            <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Move</Text>
-          </Text>} onClick={() => { this.props.dispatch(layoutActions.openMoveFilesModal()); }} />
+      <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+        <Image source={iconShare} style={{ width: 20, height: 14 }} />
+        <Text style={{ width: 20 }}> </Text>
+        <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Share</Text>
+      </Text>} onClick={() => { this.shareFile(this.props.filesState.selectedFile); }} />
 
-        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Image source={iconShare} style={{ width: 23, height: 17 }} />
-          <Text style={{ width: 20 }}> </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Share</Text>
-        </Text>} onClick={() => { this.shareFile(this.props.filesState.selectedFile); }} />
+      <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+        <Image source={iconDelete} style={{ width: 20, height: 25 }} />
+        <Text style={{ width: 20 }}> </Text>
+        <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
+      </Text>} onClick={() => { this.handleDeleteSelectedItem(); }} />
 
-        <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Image source={iconDelete} style={{ width: 19, height: 24 }} />
-          <Text style={{ width: 20 }}> </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
-        </Text>} onClick={() => { this.handleDeleteSelectedItem(); }} />
-
-      </Modal>;
-    } else {
-      return <Text></Text>;
-    }
+    </Modal>);
   }
 
   getFolderModal = (folder) => {
     if (folder) {
       return (<Modal
         position={"bottom"}
-        ref={this.modalFolder}
+        ref={this.modalItem}
         style={styles.modalFolder}
         onClosed={this.closeFolderModal}
         backButtonClose={true}
@@ -489,7 +478,7 @@ class Home extends Component {
         animationDuration={200}>
         <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 18, marginTop: 25, marginBottom: 10, marginLeft: 10 }}>Choose a folder to move this file.</Text>
         <Separator />
-        <MoveList style={{ height: hp('82%') }} 
+        <MoveList style={{ height: hp('78%') }} 
           folderId={this.state.folderId} 
           folders={this.props.filesState.folderContent ? this.props.filesState.folderContent.children : null}
           onMoveFile={this.closeMoveFilesModal}/>
@@ -572,7 +561,7 @@ class Home extends Component {
             </View>
           </View>
         </Modal>
-        {filesState.selectedFile && this.getItemModal(filesState.selectedFile)}
+        {this.getItemModal()}
         {this.getSortModal()}
         {this.getMoveFilesModal()}
         <Modal
