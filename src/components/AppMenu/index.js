@@ -6,7 +6,8 @@ import {
   TouchableHighlight,
   Image, 
   Alert,
-  TextInput
+  TextInput ,
+  Platform
 } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
@@ -199,7 +200,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     backgroundColor: "#fff",
-    paddingTop: 3
+    paddingTop: 3,
+    marginTop: Platform.OS === 'ios' ? 20 : 0
   },
   button: {
     flex: 1
