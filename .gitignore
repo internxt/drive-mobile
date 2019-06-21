@@ -140,6 +140,9 @@ fabric.properties
 ### User defined ###
 
 android/app/prodKernel
+android/app/src
+ios/x-cloud/Supporting/shell*
+ios/x-cloud/Supporting/EXShell.plist
 
 ### Xcode ###
 # Xcode

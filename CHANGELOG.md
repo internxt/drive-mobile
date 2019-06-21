@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.7] - 2019-06-21
+### Added
+- Moving files feature
+
+### Changed
+- User interface style various changes
+
 ## [1.0.6] - 2019-06-14
 ### Fixed
 - Some issues on sharing files

@@ -199,7 +199,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     backgroundColor: "#fff",
-    marginTop: 25,
     paddingTop: 3
   },
   button: {

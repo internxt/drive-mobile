@@ -29,7 +29,7 @@ export default class App extends Component {
     if (this.state.fontLoaded) {
       return (
         <Provider store={store}>
-          <View style={{ flex: 1}}>
+          <View style={{ flex: 1 }}>
             <StatusBar backgroundColor="#fff" barStyle="dark-content" />
             <AppNavigator />
           </View>
