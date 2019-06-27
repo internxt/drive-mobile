@@ -97,7 +97,9 @@ class FileItem extends Component {
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
-    height: 80
+    height: 80,
+    borderBottomWidth: 1,
+    borderColor: '#e6e6e6'
   },
   fileDetails: {
     flexDirection: 'row'

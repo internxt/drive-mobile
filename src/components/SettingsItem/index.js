@@ -33,13 +33,14 @@ const styles = StyleSheet.create({
         paddingTop: 13,
         paddingBottom: 13,
         paddingLeft: 24,
-        justifyContent: "center"
+        justifyContent: 'center'
     },
     itemText: {
         fontFamily: 'CerebriSans-Bold',
         fontSize: 19,
         fontWeight: '500',
-        color: '#000000'
+        color: '#000000',
+        justifyContent: 'center'
     }
 });
 

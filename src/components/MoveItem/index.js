@@ -20,7 +20,7 @@ class MoveItem extends Component {
     super(props);
   }
 
-  onItemClick = () => {}
+  onItemClick = () => { }
 
   render() {
     const { item } = this.props;
@@ -45,7 +45,7 @@ class MoveItem extends Component {
     );
 
     return (
-      <TouchableHighlight onPress={() => {this.props.selectFolder(this.props.item)}} underlayColor="#FFF" style={[styles.container, extendStyles.containerBackground]}>
+      <TouchableHighlight onPress={() => { this.props.selectFolder(this.props.item) }} underlayColor="#FFF" style={[styles.container, extendStyles.containerBackground]}>
         <View style={styles.fileDetails}>
           <View style={styles.itemIcon}>{itemIcon}</View>
           <View style={styles.nameAndTime}>
@@ -62,7 +62,9 @@ class MoveItem extends Component {
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
-    height: 75
+    height: 75,
+    borderBottomWidth: 1,
+    borderColor: '#e9e9e9'
   },
   fileDetails: {
     flexDirection: 'row'
@@ -93,4 +95,4 @@ const mapStateToProps = state => {
   return { ...state };
 };
 
-export default (MoveItemComposed = compose(connect(mapStateToProps),withNavigation)(MoveItem));
+export default (MoveItemComposed = compose(connect(mapStateToProps), withNavigation)(MoveItem));

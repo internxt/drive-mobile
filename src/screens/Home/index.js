@@ -122,7 +122,7 @@ class Home extends Component {
       const fileId = item ? item.fileId : this.props.filesState.selectedFile.fileId;
       const token = this.props.authenticationState.token;
       const mnemonic = this.props.authenticationState.user.mnemonic;
-  
+
       const headers = {
         "Authorization": `Bearer ${token}`,
         "internxt-mnemonic": mnemonic,
@@ -302,7 +302,7 @@ class Home extends Component {
     return (<Modal
       position={"bottom"}
       ref={this.modalItem}
-      style={[styles.modalSettingsFile, { top: (this.state.keyboardSpace && Platform.OS !== 'ios') ? 150 - this.state.keyboardSpace : 0}]}
+      style={[styles.modalSettingsFile, { top: (this.state.keyboardSpace && Platform.OS !== 'ios') ? 150 - this.state.keyboardSpace : 0 }]}
       onClosed={this.closeFileModal}
       backButtonClose={true}
       backdropPressToClose={true}
@@ -333,26 +333,26 @@ class Home extends Component {
 
       <Separator />
 
-      <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-        <Image source={iconDownload} style={{ width: 20, height: 22 }} />
+      <SettingsItem text={<Text style={styles.modalFileItemContainer}>
+        <Image source={iconDownload} style={{ width: 19, height: 21 }} />
         <Text style={{ width: 20 }}> </Text>
         <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Download</Text>
       </Text>} onClick={() => { this.props.dispatch(fileActions.downloadSelectedFileStart()); }} />
 
-      <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-          <Image source={iconMove} style={{ width: 20, height: 20 }} />
-          <Text style={{ width: 20 }}> </Text>
-          <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Move</Text>
-        </Text>} onClick={() => { this.props.dispatch(layoutActions.openMoveFilesModal()); }} />
+      <SettingsItem text={<Text style={styles.modalFileItemContainer}>
+        <Image source={iconMove} style={{ width: 20, height: 20 }} />
+        <Text style={{ width: 20 }}> </Text>
+        <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Move</Text>
+      </Text>} onClick={() => { this.props.dispatch(layoutActions.openMoveFilesModal()); }} />
 
-      <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
+      <SettingsItem text={<Text style={styles.modalFileItemContainer}>
         <Image source={iconShare} style={{ width: 20, height: 14 }} />
         <Text style={{ width: 20 }}> </Text>
         <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Share</Text>
       </Text>} onClick={() => { this.shareFile(this.props.filesState.selectedFile); }} />
 
-      <SettingsItem text={<Text style={{ fontFamily: 'CerebriSans-Regular', fontSize: 15, paddingLeft: 24, paddingBottom: 6 }}>
-        <Image source={iconDelete} style={{ width: 20, height: 25 }} />
+      <SettingsItem text={<Text style={styles.modalFileItemContainer}>
+        <Image source={iconDelete} style={{ width: 16, height: 21 }} />
         <Text style={{ width: 20 }}> </Text>
         <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
       </Text>} onClick={() => { this.handleDeleteSelectedItem(); }} />
@@ -476,12 +476,11 @@ class Home extends Component {
         backButtonClose={true}
         backdropPressToClose={false}
         animationDuration={200}>
-        <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 18, marginTop: 25, marginBottom: 10, marginLeft: 10 }}>Choose a folder to move this file.</Text>
-        <Separator />
-        <MoveList style={{ height: hp('78%') }} 
-          folderId={this.state.folderId} 
+        <Text style={{ fontFamily: 'CerebriSans-Bold', fontSize: 18, marginTop: 25, marginBottom: 18, marginLeft: 10 }}>Choose a folder to move this file.</Text>
+        <MoveList style={{ height: hp('83%') }}
+          folderId={this.state.folderId}
           folders={this.props.filesState.folderContent ? this.props.filesState.folderContent.children : null}
-          onMoveFile={this.closeMoveFilesModal}/>
+          onMoveFile={this.closeMoveFilesModal} />
       </Modal>
     )
   }
@@ -602,7 +601,7 @@ class Home extends Component {
 
         <View style={styles.breadcrumbs}>
           <Text style={styles.breadcrumbsTitle}>
-            {filesState.folderContent && filesState.folderContent.parentId ? filesState.folderContent.name : "Home"}
+            {filesState.folderContent && filesState.folderContent.parentId ? filesState.folderContent.name : "All Files"}
           </Text>
           {this.state.backButtonVisible && <ButtonPreviousDir />}
         </View>
@@ -633,7 +632,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     borderBottomColor: "#e6e6e6",
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
     marginTop: 15,
     paddingBottom: 15
   },
@@ -659,8 +658,7 @@ const styles = StyleSheet.create({
     //height: hp('90%'), 
     //width: wp('90%'),
     justifyContent: "flex-start",
-    paddingTop: 30,
-    paddingLeft: 10
+    paddingTop: 30
   },
   sortOption: {
     fontFamily: 'CerebriSans-Bold',
@@ -714,6 +712,19 @@ const styles = StyleSheet.create({
   iconImage: {
     height: 25,
     width: 25
+  },
+  modalFileItemContainer: {
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: 15,
+    paddingLeft: 24,
+    paddingBottom: 6,
+    justifyContent: 'center'
+  },
+  modalFileItemIcon: {
+
+  },
+  modalFileItemText: {
+
   }
 });
 

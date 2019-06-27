@@ -21,7 +21,6 @@ class CreateFolder extends Component {
     super(props);
 
     this.state = {
-      placeholder: "Untitled folder",
       value: "Untitled folder",
       parentFolderId: null
     };

@@ -40,15 +40,15 @@ class FileList extends Component {
     }
 
     let content = <EmptyDirectory isRoot={isRoot} />;
-    
-    if (folderContent.files.length > 0 || folderContent.children.length > 0) {
+
+    if (folderContent.files.length > 0 || folderContent.children.length > 0 || this.props.filesState.isUploading) {
       let folderList = folderContent.children;
       let fileList = folderContent.files;
       // Apply search function if is set
       if (filesState.searchString !== null) {
-        let searchStringRegular = filesState.searchString; 
+        let searchStringRegular = filesState.searchString;
         if (searchStringRegular.length > 0) searchStringRegular = utils.removeAccents(filesState.searchString.toLowerCase());
-        const searchFunction = function(item) { return item.name.toLowerCase().includes(searchStringRegular); }
+        const searchFunction = function (item) { return item.name.toLowerCase().includes(searchStringRegular); }
         folderList = folderList.filter(searchFunction);
         fileList = fileList.filter(searchFunction);
       }
@@ -59,7 +59,7 @@ class FileList extends Component {
       }
       content = (
         <ScrollView refreshControl={<RefreshControl isRefreshing={this.state.isRefreshing} onRefresh={this.refreshList} />}>
-          {this.props.filesState.isUploading ? <FileItem key={99999999} item={{ type: '', name: this.props.filesState.isUploadingFileName }} isFolder={false} isSelected={false} isBeingUploaded={true} /> : <Text></Text>}
+          {this.props.filesState.isUploading ? <FileItem key={99999999} item={{ type: '', name: this.props.filesState.isUploadingFileName }} isFolder={false} isSelected={false} isBeingUploaded={true} /> : <Text style={{ display: 'none' }}></Text>}
           {folderList.map(folder => (
             <FileItem
               key={folder.id}

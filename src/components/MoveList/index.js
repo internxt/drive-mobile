@@ -36,7 +36,7 @@ class MoveList extends Component {
         name: data.name
       },
       parentId: data.parentId
-    }) 
+    })
   }
 
   render() {
@@ -45,33 +45,24 @@ class MoveList extends Component {
 
     if (folders.length > 0) {
       content = (folders.map(folder => (
-              <MoveItem
-                key={folder.id}
-                item={folder} 
-                selectFolder={() => { this.loadFolder(folder.id); }}/>
-            ))
+        <MoveItem
+          key={folder.id}
+          item={folder}
+          selectFolder={() => { this.loadFolder(folder.id); }} />
+      ))
       );
     }
     return (
-      <View style={[styles.container,this.props.style]}>
-        <View style={styles.listHeader}>
-          {this.state.parentId ? <TouchableHighlight style={styles.iconContainer}
-            underlayColor="#FFF"
-            onPress={() => { this.loadFolder(this.state.parentId); }}>
-            <Image style={styles.iconArrow} source={iconArrowBack} />
-          </TouchableHighlight> : <Text style={[styles.iconContainer, styles.iconArrow]} ></Text>}
-          <Text style={styles.label}>{(this.state.parentId !== null && this.state.selectedFolder) ? this.state.selectedFolder.name : 'Home'}</Text>
-        </View>
-        <Separator />
-        <ScrollView>
+      <View style={[styles.container, this.props.style]}>
+        <ScrollView style={{ borderColor: '#e9e9e9', borderTopWidth: 1 }}>
           {content}
         </ScrollView>
         <View style={styles.buttonView}>
-          <TouchableHighlight style={[styles.button, { backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#c9c9c9"}]} onPress={() => { this.props.onMoveFile(-1) }}>
-            <Text style={[styles.buttonText, { color: "#5c5c5c"}]}>Cancel</Text>
+          <TouchableHighlight style={[styles.button, { backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#c9c9c9" }]} onPress={() => { this.props.onMoveFile(-1) }}>
+            <Text style={[styles.buttonText, { color: "#5c5c5c" }]}>Cancel</Text>
           </TouchableHighlight>
-          <TouchableHighlight style={[styles.button, { backgroundColor: "#4585f5"}]} onPress={() => { this.props.onMoveFile(this.state.selectedFolder.id) }}>
-            <Text style={[styles.buttonText, { color: "#FFFFFF"}]}>Move here</Text>
+          <TouchableHighlight style={[styles.button, { backgroundColor: "#4585f5" }]} onPress={() => { this.props.onMoveFile(this.state.selectedFolder.id) }}>
+            <Text style={[styles.buttonText, { color: "#FFFFFF" }]}>Move</Text>
           </TouchableHighlight>
         </View>
       </View>
@@ -86,15 +77,14 @@ const styles = StyleSheet.create({
   },
   buttonView: {
     flexDirection: "row",
-    justifyContent: "space-evenly",
-    marginRight: 10
+    justifyContent: "space-evenly"
   },
   button: {
     margin: 10,
     padding: 5,
     borderRadius: 4,
     width: wp('40%'),
-    height: 60,
+    height: 53,
     alignItems: "center",
     justifyContent: "center"
   },
@@ -116,7 +106,7 @@ const styles = StyleSheet.create({
     paddingLeft: 15
   },
   iconArrow: {
-    height: 12, 
+    height: 12,
     width: 10
   },
   listHeader: {

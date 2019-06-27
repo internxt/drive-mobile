@@ -4,9 +4,9 @@ import {
   View,
   Text,
   TouchableHighlight,
-  Image, 
+  Image,
   Alert,
-  TextInput ,
+  TextInput,
   Platform
 } from "react-native";
 import { compose } from "redux";
@@ -47,7 +47,8 @@ class AppMenu extends Component {
 
   handleUpload = () => {
     Alert.alert('Select type of file', '', [
-      { text: 'Upload a document', onPress: async () => {
+      {
+        text: 'Upload a document', onPress: async () => {
           const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: false });
           if (result.type !== 'cancel') this.uploadFile(result);
         }
@@ -116,7 +117,7 @@ class AppMenu extends Component {
         this.props.dispatch(fileActions.uploadFileFinished());
         Alert.alert('Error', 'Cannot upload file');
       });
-    } catch(error) {
+    } catch (error) {
       console.log('Error:', error);
       this.props.dispatch(fileActions.uploadFileFinished());
     }
@@ -130,19 +131,19 @@ class AppMenu extends Component {
         <View style={styles.buttonContainer}>
           <View style={styles.commonButtons}>
             <MenuItem name="search"
-              onClickHandler={() => this.props.dispatch(layoutActions.openSearch())}/>
+              onClickHandler={() => this.props.dispatch(layoutActions.openSearch())} />
 
-            <MenuItem name="list" 
+            <MenuItem name="list"
               onClickHandler={() => { this.props.dispatch(layoutActions.openSortModal()); }} />
 
-            <MenuItem name="upload" 
+            <MenuItem name="upload"
               onClickHandler={this.handleUpload} />
-      
+
             <MenuItem name="create"
-              onClickHandler={() => this.handleFolderCreate(folderContent.id)}/>
+              onClickHandler={() => this.handleFolderCreate(folderContent.id)} />
           </View>
           <MenuItem name="settings"
-            onClickHandler={() => { this.props.dispatch(layoutActions.openSettings()); }}/>
+            onClickHandler={() => { this.props.dispatch(layoutActions.openSettings()); }} />
         </View>
       </Fragment>
     );
@@ -169,12 +170,12 @@ class AppMenu extends Component {
       content = (
         <View style={styles.searchContainer}>
           <Image style={{ marginLeft: 20, marginRight: 10 }} source={searchIcon} />
-          <TextInput style={styles.searchInput} 
+          <TextInput style={styles.searchInput}
             placeholder="Search"
             onChange={(e) => this.props.dispatch(fileActions.setSearchString(e.nativeEvent.text))}
           />
           <TouchableHighlight onPress={() => this.props.dispatch(layoutActions.closeSearch())}>
-            <Image style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }} source={closeIcon}/>
+            <Image style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }} source={closeIcon} />
           </TouchableHighlight>
         </View>
       )
@@ -186,10 +187,10 @@ class AppMenu extends Component {
 
 const styles = StyleSheet.create({
   buttonContainer: {
-    flexDirection: "row", 
-    flex: 1, 
+    flexDirection: "row",
+    flex: 1,
     justifyContent: "space-between",
-    marginLeft: 10,
+    marginLeft: 17,
     marginRight: 10
   },
   commonButtons: {
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     backgroundColor: "#fff",
     paddingTop: 3,
-    marginTop: Platform.OS === 'ios' ? 20 : 0
+    marginTop: Platform.OS === 'ios' ? 30 : 0
   },
   button: {
     flex: 1
