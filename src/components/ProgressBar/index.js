@@ -13,12 +13,12 @@ class ProgressBar extends Component {
       usedValue = totalValue;
     }
 
-    const screenPadding = 40;
-    const usedValueStyle = StyleSheet.create({
+    const screenPadding = styleBar.marginLeft + styleBar.marginRight;
+    const usedValueStyle = {
       size: {
-        width: (SCREEN_WIDTH - screenPadding) * (usedValue / totalValue)
+        width: Math.min((SCREEN_WIDTH - screenPadding) * (usedValue / totalValue), (SCREEN_WIDTH - screenPadding))
       }
-    });
+    };
 
     return (
       <View style={[styles.container, styleBar]}>

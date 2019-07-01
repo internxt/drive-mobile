@@ -572,7 +572,7 @@ class Home extends Component {
           animationDuration={200}>
           <View style={styles.drawerKnob}></View>
 
-          <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 26, marginTop: 40, fontFamily: 'CerebriSans-Bold' }}>
+          <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 26, marginTop: 17, fontFamily: 'CerebriSans-Bold' }}>
             {this.props.authenticationState.user.name} {this.props.authenticationState.user.lastname}
           </Text>
 
@@ -591,7 +591,8 @@ class Home extends Component {
           </Text>
 
           <Separator />
-          <SettingsItem text="Contact Us" onClick={() => Linking.openURL('mailto:hello@internxt.com')} />
+          <SettingsItem text="More info" onClick={() => Linking.openURL('https://internxt.com/cloud')} />
+          <SettingsItem text="Contact" onClick={() => Linking.openURL('mailto:hello@internxt.com')} />
           <SettingsItem text="Sign out" onClick={() => this.props.dispatch(userActions.signout())} />
         </Modal>
 
