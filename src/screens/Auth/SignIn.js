@@ -99,9 +99,11 @@ class SignIn extends Component {
                 .then(async response => {
                   return { response, data: await response.json() }
                 }).then(resp => {
-
-                  if (!resp.data.user.root_folder_id) {
-                    console.log('No root folder, creating one')
+                  if (resp.data.error) {
+                    Alert.alert('Login failed', resp.data.error);
+                    this.setState({ isLoading: false });
+                  } else if (!resp.data.user.root_folder_id) {
+                    console.log('No root folder, creating one');
                     // No root folder, create one
 
                     const mnemonicEncrypted = resp.data.user.mnemonic;

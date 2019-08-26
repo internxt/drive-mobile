@@ -354,6 +354,19 @@ class Register extends Component {
                   style={[styles.button, { marginTop: 10 }]}
                   underlayColor="#4585f5"
                   onPress={() => {
+                    fetch(`${process.env.REACT_APP_API_URL}/api/user/resend/${this.state.email.toLowerCase()}`, {
+                      method: 'GET'
+                    }).then(async res => {
+                      return { response: res, data: await res.json() };
+                    }).then(res => {
+                      if (res.response.status !== 200) {
+                        throw res.data;
+                      } else {
+                        Alert.alert(`Activation email sent to ${this.state.email}`)
+                      }
+                    }).catch(err => {
+                      Alert.alert(`Error: ${err.error ? err.error : 'Internal Server Error'}`);
+                    });
                   }}>
                   <Text style={styles.buttonOnLabel}>Re-send activation email</Text>
                 </TouchableHighlight>

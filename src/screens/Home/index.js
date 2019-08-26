@@ -55,6 +55,7 @@ class Home extends Component {
     this.modalItem = React.createRef();
     this.modalSort = React.createRef();
     this.modalMoveFiles = React.createRef();
+    this.modalDeleteFiles = React.createRef();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -288,6 +289,10 @@ class Home extends Component {
     this.modalItem.current.close();
   }
 
+  closeDeleteItemsModal = (result) => {
+    this.modalDeleteFiles.current.close();
+  }
+
   getItemModal = () => {
     const item = this.props.filesState.selectedFile;
     let isFolder = item && (item.size == undefined);
@@ -355,7 +360,9 @@ class Home extends Component {
         <Image source={iconDelete} style={{ width: 16, height: 21 }} />
         <Text style={{ width: 20 }}> </Text>
         <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
-      </Text>} onClick={() => { this.handleDeleteSelectedItem(); }} />
+      </Text>} onClick={() => {
+        this.modalDeleteFiles.current.open();
+      }} />
 
     </Modal>);
   }
@@ -485,6 +492,52 @@ class Home extends Component {
     )
   }
 
+  getDeleteItemsModal = () => {
+    return (
+      <Modal ref={this.modalDeleteFiles} style={{ padding: 24 }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View>
+            <Image source={require('../../../assets/images/logo.png')} style={{ width: 55, height: 29, marginBottom: 22 }} />
+            <Text style={{ fontSize: 27, fontFamily: 'CircularStd-Bold' }}>Delete item.</Text>
+            <Text style={{ fontSize: 17, color: '#737880', marginTop: 15 }}>Please confirm you want to delete this item. This action can’t be undone.</Text>
+
+            <View style={{ flexDirection: 'row', marginTop: 40 }}>
+              <TouchableHighlight style={{
+                height: 60, borderRadius: 4, borderWidth: 2,
+                backgroundColor: '#fff',
+                borderColor: 'rgba(151, 151, 151, 0.2)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '45%'
+              }} onPress={() => {
+                this.closeDeleteItemsModal();
+              }}>
+                <Text style={{ color: '#5c6066', fontFamily: 'CerebriSans-Bold', fontSize: 16 }}>Cancel</Text>
+              </TouchableHighlight>
+
+              <TouchableHighlight style={{
+                height: 60, borderRadius: 4, borderWidth: 2,
+                backgroundColor: '#4585f5',
+                borderColor: 'rgba(151, 151, 151, 0.2)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginLeft: 20,
+                width: '45%'
+              }} onPress={() => {
+                this.handleDeleteSelectedItem();
+                this.closeDeleteItemsModal();
+              }}>
+                <Text style={{ color: '#fff', fontFamily: 'CerebriSans-Bold', fontSize: 16 }}>Confirm</Text>
+              </TouchableHighlight>
+
+            </View>
+
+          </View>
+        </View>
+      </Modal>
+    )
+  }
+
   loadUsage = () => {
     const user = this.props.authenticationState.user.email;
 
@@ -563,6 +616,7 @@ class Home extends Component {
         {this.getItemModal()}
         {this.getSortModal()}
         {this.getMoveFilesModal()}
+        {this.getDeleteItemsModal()}
         <Modal
           position={"bottom"}
           ref={"modalSettings"}

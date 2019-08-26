@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.9</string>
+	<string>1.1.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -69,7 +69,7 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Allow X Cloud to access your microphone</string>
 	<key>NSMotionUsageDescription</key>
-	<string>Allow X Cloud to access your device&apos;s accelerometer</string>
+	<string>Allow X Cloud to access your device's accelerometer</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Allow X Cloud to save photos</string>
 	<key>NSPhotoLibraryUsageDescription</key>
