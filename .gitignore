@@ -143,6 +143,7 @@ android/app/prodKernel
 android/app/src
 ios/x-cloud/Supporting/shell*
 ios/x-cloud/Supporting/EXShell.plist
+android/app/inxt-android-keystore.jks
 
 ### Xcode ###
 # Xcode
