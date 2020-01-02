@@ -12,7 +12,9 @@ import {
   AppState,
   KeyboardAvoidingView
 } from "react-native";
-import bip39 from 'react-native-bip39';
+// import bip39 from 'react-native-bip39';
+import Intro from './Intro'
+
 
 import { utils } from '../../helpers'
 
@@ -32,7 +34,9 @@ class Register extends Component {
       isLoading: false,
       registerButtonClickedOnce: false,
 
-      appState: AppState.currentState
+      appState: AppState.currentState,
+
+      showIntro: true
     };
 
   }
@@ -113,10 +117,11 @@ class Register extends Component {
     const encSalt = utils.encryptText(hashObj.salt);
 
     // Mnemonic generation
-    const mnemonic = await bip39.generateMnemonic(256);
+    // const mnemonic = await bip39.generateMnemonic(256);
+    const mnemonic = await utils.getNewBits()
     const encMnemonic = utils.encryptTextWithKey(mnemonic, this.state.password);
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/register`, {
+    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/register`, {
       method: 'POST',
       headers: {
         "content-type": "application/json; charset=utf-8",
@@ -146,7 +151,15 @@ class Register extends Component {
 
   }
 
+  finishIntro() {
+    this.setState({ showIntro: false })
+  }
+
   render() {
+    if (this.state.showIntro) {
+      return <Intro onFinish={this.finishIntro.bind(this)} />
+    }
+
     if (this.state.registerStep == 1) {
       return (
         <KeyboardAvoidingView behavior="padding" style={styles.container}>
@@ -313,7 +326,9 @@ class Register extends Component {
 
                   this.setState({ isLoading: true, registerButtonClickedOnce: true }, () => {
                     if (this.isValidStep3()) {
-                      this.doRegister();
+                      setTimeout(() => {
+                        this.doRegister();
+                      }, 1000)
                     } else {
                       this.setState({ isLoading: false });
                     }
@@ -354,7 +369,7 @@ class Register extends Component {
                   style={[styles.button, { marginTop: 10 }]}
                   underlayColor="#4585f5"
                   onPress={() => {
-                    fetch(`${process.env.REACT_APP_API_URL}/api/user/resend/${this.state.email.toLowerCase()}`, {
+                    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/user/resend/${this.state.email.toLowerCase()}`, {
                       method: 'GET'
                     }).then(async res => {
                       return { response: res, data: await res.json() };
@@ -370,6 +385,7 @@ class Register extends Component {
                   }}>
                   <Text style={styles.buttonOnLabel}>Re-send activation email</Text>
                 </TouchableHighlight>
+                <Text style={styles.link} onPress={() => this.props.goToForm('SIGNIN')}>Sign in</Text>
               </View>
 
             </View>
@@ -493,6 +509,13 @@ const styles = StyleSheet.create({
     borderColor: "#c9c9c9",
     justifyContent: 'center',
     marginBottom: 15
+  },
+  link: {
+    fontFamily: 'CerebriSans-Regular',
+    textAlign: 'center',
+    color: '#737880',
+    fontSize: 15,
+    marginTop: 10
   }
 });
 

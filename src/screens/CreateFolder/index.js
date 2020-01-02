@@ -9,9 +9,7 @@ import {
 import { compose } from "redux";
 import { connect } from "react-redux";
 import { withNavigation } from "react-navigation";
-import { Svg } from "expo";
-
-const { Defs, LinearGradient, Path, Stop } = Svg;
+import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import MenuItem from "../../components/AppMenu/MenuItem";
 import { fileActions } from "../../actions";
@@ -29,14 +27,14 @@ class CreateFolder extends Component {
     this.onCancel = this.onCancel.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     const { navigation } = this.props;
     const parentFolderId = navigation.getParam("parentFolderId", "undefined");
 
     this.setState({ parentFolderId });
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     // When folderContent is updated with new folder data, go back to Home
     if (nextProps.filesState.folderContent.name === this.state.value) {
       this.props.navigation.navigate("Home", { folderId: nextProps.filesState.folderContent.id });
@@ -144,9 +142,7 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = state => {
-  return {
-    ...state
-  };
+  return { ...state };
 };
 
 export default (CreateFolderComposed = compose(

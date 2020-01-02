@@ -6,7 +6,7 @@ import { utils } from './utils'
 function getEnvironment(email, password, mnemonic) {
     try {
         return new Environment({
-            bridgeUrl: process.env.REACT_APP_BRIDGE_URL,
+            bridgeUrl: process && process.env && process.env.REACT_APP_BRIDGE_URL,
             bridgeUser: email,
             bridgePass: password,
             encryptionKey: mnemonic,
@@ -23,7 +23,7 @@ function isUserActivated(email) {
     const headers = { 'Content-Type': 'application/json', email }
 
     // Do api call
-    return fetch(`${process.env.REACT_APP_BRIDGE_URL}/users/isactivated`, {
+    return fetch(`${process && process.env && process.env.REACT_APP_BRIDGE_URL}/users/isactivated`, {
         method: "GET",
         headers
     })

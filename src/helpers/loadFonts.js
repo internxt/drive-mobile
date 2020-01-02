@@ -1,7 +1,7 @@
-import { Font } from "expo";
+import * as Font from "expo-font";
 
-export async function loadFonts() {
-  await Font.loadAsync({
+function loadFontsAsync() {
+  return Font.loadAsync({
     "CerebriSans-Bold": require("../../assets/fonts/CerebriSans-Bold.ttf"),
     "CerebriSans-Medium": require("../../assets/fonts/CerebriSans-Medium.ttf"),
     "CerebriSans-Regular": require("../../assets/fonts/CerebriSans-Regular.ttf"),
@@ -11,3 +11,5 @@ export async function loadFonts() {
     "CircularStd-Medium": require("../../assets/fonts/CircularStd-Medium.ttf")
   });
 }
+
+export const loadFonts = loadFontsAsync

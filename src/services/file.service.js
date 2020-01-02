@@ -1,6 +1,6 @@
 import { deviceStorage, inxt } from "../helpers";
 import { sortTypes } from "../constants";
-const { REACT_APP_API_URL } = process.env;
+const { REACT_APP_API_URL } = process && process.env;
 
 export const fileService = {
   downloadFile,
@@ -8,7 +8,8 @@ export const fileService = {
   createFolder,
   updateFolderMetadata,
   getSortFunction,
-  moveFile
+  moveFile,
+  deleteItems
 };
 
 async function setHeaders() {
@@ -78,7 +79,7 @@ function updateFolderMetadata(metadata, folderId) {
     const headers = await setHeaders();
     const data = JSON.stringify({ metadata });
 
-    fetch(`${REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${folderId}/meta`, {
+    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${folderId}/meta`, {
       method: "POST",
       headers,
       body: data
@@ -94,7 +95,8 @@ async function moveFile(fileId, destination) {
       fileId,
       destination
     })
-    const res = await fetch(`${REACT_APP_API_URL}/api/storage/moveFile`, {
+
+    const res = await fetch(`${REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/moveFile`, {
       method: "POST",
       headers,
       body: data
@@ -109,6 +111,28 @@ async function moveFile(fileId, destination) {
     console.log(`Error moving file: ${error.message ? error.message : error}`)
     return error;
   }
+}
+
+function deleteItems(items) {
+  return new Promise((resolve, reject) => {
+
+    let fetchArray = [];
+
+    items.forEach(async item => {
+      const isFolder = !(item.fileId);
+      const headers = await setHeaders();
+      const url = isFolder ? `${process && process.env && process.env.REACT_APP_API_URL}/api/storage/folder/${item.id}` : `${process && process.env && process.env.REACT_APP_API_URL}/api/storage/bucket/${item.bucket}/file/${item.fileId}`
+
+      const fetchObj = fetch(url, {
+        method: 'DELETE',
+        headers
+      });
+
+      fetchArray.push(fetchObj);
+    });
+
+    Promise.all(fetchArray).then(() => resolve()).catch((err) => reject(err));
+  });
 }
 
 function getSortFunction(sortType) {

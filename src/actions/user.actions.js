@@ -13,7 +13,6 @@ function signin(email, password, sKey, twoFactorCode) {
   return dispatch => {
 
     dispatchRequest();
-
     userService.signin(email, password, sKey, twoFactorCode)
       .then(userData => {
         dispatch(success(userData));

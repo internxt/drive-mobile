@@ -1,6 +1,6 @@
 import { deviceStorage, utils } from "../helpers";
 
-const { REACT_APP_API_URL } = process.env;
+const { REACT_APP_API_URL } = process && process.env;
 
 export const userService = {
   signin,
@@ -16,7 +16,9 @@ function signin(email, password, sKey, twoFactorCode) {
     const hashObj = utils.passToHash({ password, salt });
     const encPass = utils.encryptText(hashObj.hash);
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/access`, {
+    console.log('stl', salt)
+
+    fetch(`${process && process.env && process.env.REACT_APP_API_URL}/api/access`, {
       method: "POST",
       headers: { "content-type": "application/json; charset=utf-8" },
       body: JSON.stringify({
@@ -71,7 +73,7 @@ async function signout() {
 
 function payment(token, stripePlan) {
   return new Promise((resolve, reject) => {
-    fetch(`${REACT_APP_API_URL}/api/buy`, {
+    fetch(`${process && process.env && process.env.REACT_APP_API_URL}/api/buy`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({

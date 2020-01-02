@@ -11,10 +11,8 @@ import {
   Image,
   KeyboardAvoidingView
 } from "react-native";
-import VersionNumber from 'react-native-version-number';
 
 import { utils } from './../../helpers'
-
 
 class SignIn extends Component {
   constructor() {
@@ -66,7 +64,7 @@ class SignIn extends Component {
       return;
     }
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/login`, {
+    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/login`, {
       method: 'POST',
       headers: { "content-type": "application/json; charset=utf-8" },
       body: JSON.stringify({ email: this.state.email })
@@ -74,7 +72,6 @@ class SignIn extends Component {
       .then(async res => {
         return { res, data: await res.json() }
       })
-
       .then(async res => {
         if (res.res.status === 200) {
           // Manage login depending on 2FA activated or not
@@ -87,7 +84,7 @@ class SignIn extends Component {
               const hashObj = utils.passToHash({ password: this.state.pasword, salt });
               const encPass = utils.encryptText(hashObj.hash);
 
-              fetch(`${process.env.REACT_APP_API_URL}/api/access`, {
+              fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/access`, {
                 method: "POST",
                 headers: { "content-type": "application/json; charset=utf-8" },
                 body: JSON.stringify({
@@ -99,6 +96,7 @@ class SignIn extends Component {
                 .then(async response => {
                   return { response, data: await response.json() }
                 }).then(resp => {
+
                   if (resp.data.error) {
                     Alert.alert('Login failed', resp.data.error);
                     this.setState({ isLoading: false });
@@ -109,7 +107,7 @@ class SignIn extends Component {
                     const mnemonicEncrypted = resp.data.user.mnemonic;
                     const mnemonicDecrypted = utils.decryptTextWithKey(mnemonicEncrypted, this.state.pasword);
 
-                    fetch(`${process.env.REACT_APP_API_URL}/api/initialize`, {
+                    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/initialize`, {
                       method: 'POST',
                       headers: {
                         "Authorization": `Bearer ${resp.data.token}`,
@@ -131,7 +129,10 @@ class SignIn extends Component {
                   }
                 })
 
-            } catch (error) { console.log(error); }
+            } catch (error) {
+              console.log('CHECK INITIALIZATION ERROR')
+              console.log(error);
+            }
 
           } else {
             // 2FA login
@@ -149,7 +150,7 @@ class SignIn extends Component {
       });
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     if (newProps.authenticationState.error) {
       Alert.alert('Login failed', newProps.authenticationState.error);
     }
@@ -230,7 +231,7 @@ class SignIn extends Component {
             </TouchableHighlight>
           </View>
         </View>
-        <Text style={styles.versionLabel}>v{VersionNumber.appVersion}.{VersionNumber.buildVersion}</Text>
+        <Text style={styles.versionLabel}>X Cloud, by Internxt v1.1.1</Text>
       </KeyboardAvoidingView>
 
     );

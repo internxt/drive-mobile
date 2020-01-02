@@ -10,7 +10,9 @@ export const fileActions = {
   uploadFileFailed,
   getFolderContent,
   selectFile,
+  deselectFile,
   deselectAll,
+  deleteItems,
   setSortFunction,
   setSearchString,
   createFolder,
@@ -94,10 +96,45 @@ function getFolderContent(folderId) {
   }
 }
 
+function deleteItems(items, folderToReload) {
+  return async dispatch => {
+    dispatch(request());
+    fileService.deleteItems(items).then(() => {
+      dispatch(requestSuccess());
+      setTimeout(() => {
+        dispatch(getFolderContent(folderToReload));
+      }, 1000)
+    }).catch((err) => {
+      dispatch(requestFailure());
+      setTimeout(() => {
+        dispatch(getFolderContent(folderToReload));
+      }, 1000)
+    });
+  }
+
+  function request() {
+    return { type: fileActionTypes.DELETE_FILE_REQUEST, payload: items };
+  }
+
+  function requestFailure() {
+    return { type: fileActionTypes.DELETE_FILE_FAILURE }
+  }
+
+  function requestSuccess() {
+    return { type: fileActionTypes.DELETE_FILE_SUCCESS }
+  }
+}
+
 function selectFile(file) {
   return dispatch => {
     dispatch({ type: fileActionTypes.SELECT_FILE, payload: file });
   };
+}
+
+function deselectFile(file) {
+  return dispatch => {
+    dispatch({ type: fileActionTypes.DESELECT_FILE, payload: file });
+  }
 }
 
 function deselectAll() {
@@ -109,7 +146,7 @@ function deselectAll() {
 function setSortFunction(sortType) {
   let sortFunc = fileService.getSortFunction(sortType);
   return dispatch => {
-    dispatch({ type: fileActionTypes.SET_SORT_TYPE, payload: [sortType ,sortFunc] })
+    dispatch({ type: fileActionTypes.SET_SORT_TYPE, payload: [sortType, sortFunc] })
   }
 }
 
@@ -161,8 +198,8 @@ function moveFile(fileId, destination) {
 
       } else {
         console.error("Error creating folder", result);
-        dispatch(failure(result)); 
-      } 
+        dispatch(failure(result));
+      }
     });
   };
 

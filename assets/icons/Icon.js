@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { View } from 'react-native';
 // Folder cover icons
 import AvatarCircleNeutral from './Folder-cover-icons/AvatarCircleNeutral';
 import Backup from './Folder-cover-icons/Backup';
@@ -39,13 +40,13 @@ import Details from './userInterface/details';
 import { colors } from '../../src/constants/color.constants';
 
 const defaultColors = {
-    'blue'      :   colors['blue'].icon,
-    'green'     :   colors['green'].icon,
-    'grey'      :   colors['grey'].icon,
-    'pink'      :   colors['pink'].icon,
-    'purple'    :   colors['purple'].icon,
-    'red'       :   colors['red'].icon,
-    'yellow'    :   colors['yellow'].icon
+    'blue': colors['blue'].icon,
+    'green': colors['green'].icon,
+    'grey': colors['grey'].icon,
+    'pink': colors['pink'].icon,
+    'purple': colors['purple'].icon,
+    'red': colors['red'].icon,
+    'yellow': colors['yellow'].icon
 }
 
 // Icon class to use every svg icons without importing it
@@ -56,77 +57,87 @@ const defaultColors = {
 // Usage:  import Icon from '../../assets/Icon'
 //  <Icon name="folder" color="blue" height="75"/>
 
-const Icon = props => {
-    switch (props.name.toLowerCase()) {
-        // Folder cover icons
-        case "avatarcircleneutral":
-            return <AvatarCircleNeutral defaultColors={defaultColors}  {...props} />
-        case "backup":
-            return <Backup defaultColors={defaultColors} {...props} />;
-        case "barchart":
-            return <BarChart defaultColors={defaultColors} {...props} />;
-        case "bell":
-            return <Bell defaultColors={defaultColors} {...props} />;
-        case "binoculars":
-            return <Binoculars defaultColors={defaultColors} {...props} />;
-        case "book":
-            return <Book defaultColors={defaultColors} {...props} />;
-        case "bowl":
-            return <Bowl defaultColors={defaultColors} {...props} />;
-        case "camera":
-            return <Camera defaultColors={defaultColors} {...props} />;
-        case "categories":
-            return <Categories defaultColors={defaultColors} {...props} />;
-        case "circlefilledcheckmark":
-            return <CircleFilledCheckmark defaultColors={defaultColors} {...props} />;
-        case "clappboard":
-            return <Clappboard defaultColors={defaultColors} {...props} />;
-        case "clipboard":
-            return <Clipboard defaultColors={defaultColors} {...props} />;
-        case "cloud":
-            return <Cloud defaultColors={defaultColors} {...props} />;
-        case "controllerneogeo":
-            return <ControllerNeoGeo defaultColors={defaultColors} {...props} />;
-        case "dollarsign":
-            return <DollarSign defaultColors={defaultColors} {...props} />;
-        case "facehappy":
-            return <FaceHappy defaultColors={defaultColors} {...props} />;
-        case "file":
-            return <File defaultColors={defaultColors} {...props} />;
-        case "heartfilled":
-            return <HeartFilled defaultColors={defaultColors} {...props} />;
-        case "inbox":
-            return <Inbox defaultColors={defaultColors} {...props} />;
-        case "lighton":
-            return <LightOn defaultColors={defaultColors} {...props} />;
-        case "locklocked":
-            return <LockLocked defaultColors={defaultColors} {...props} />;
-        case "musicnote":
-            return <MusicNote defaultColors={defaultColors} {...props} />;
-        case "navigationcircle":
-            return <NavigationCircle defaultColors={defaultColors} {...props} />;
-        case "notifications":
-            return <Notifications defaultColors={defaultColors} {...props} />;
-        case "path":
-            return <Path defaultColors={defaultColors} {...props} />;
-        case "running":
-            return <Running defaultColors={defaultColors} {...props} />;
-        case "starfilled":
-            return <StarFilled defaultColors={defaultColors} {...props} />;
-        case "video":
-            return <Video defaultColors={defaultColors} {...props} />;
-        case "window":
-            return <Window defaultColors={defaultColors} {...props} />;
-        case "yinyang":
-            return <YinYang defaultColors={defaultColors} {...props} />;
-        // UI icons
-        case "checkmark":
-            return <CheckMark defaultColors={defaultColors} {...props} />;
-        case "details":
-            return <Details defaultColors={defaultColors} {...props} />;
-        default:
-            return;
+class Icon extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = { name: props.name }
     }
-};
+
+    render() {
+        switch (this.state.name) {
+            // Folder cover icons
+            case "avatarcircleneutral":
+                return <AvatarCircleNeutral defaultColors={defaultColors}  {...this.props} />
+            case "backup":
+                return <Backup defaultColors={defaultColors} {...this.props} />;
+            case "barchart":
+                return <BarChart defaultColors={defaultColors} {...this.props} />;
+            case "bell":
+                return <Bell defaultColors={defaultColors} {...this.props} />;
+            case "binoculars":
+                return <Binoculars defaultColors={defaultColors} {...this.props} />;
+            case "book":
+                return <Book defaultColors={defaultColors} {...this.props} />;
+            case "bowl":
+                return <Bowl defaultColors={defaultColors} {...this.props} />;
+            case "camera":
+                return <Camera defaultColors={defaultColors} {...this.props} />;
+            case "categories":
+                return <Categories defaultColors={defaultColors} {...this.props} />;
+            case "circlefilledcheckmark":
+                return <CircleFilledCheckmark defaultColors={defaultColors} {...this.props} />;
+            case "clappboard":
+                return <Clappboard defaultColors={defaultColors} {...this.props} />;
+            case "clipboard":
+                return <Clipboard defaultColors={defaultColors} {...this.props} />;
+            case "cloud":
+                return <Cloud defaultColors={defaultColors} {...this.props} />;
+            case "controllerneogeo":
+                return <ControllerNeoGeo defaultColors={defaultColors} {...this.props} />;
+            case "dollarsign":
+                return <DollarSign defaultColors={defaultColors} {...this.props} />;
+            case "facehappy":
+                return <FaceHappy defaultColors={defaultColors} {...this.props} />;
+            case "file":
+                return <File defaultColors={defaultColors} {...this.props} />;
+            case "heartfilled":
+                return <HeartFilled defaultColors={defaultColors} {...this.props} />;
+            case "inbox":
+                return <Inbox defaultColors={defaultColors} {...this.props} />;
+            case "lighton":
+                return <LightOn defaultColors={defaultColors} {...this.props} />;
+            case "locklocked":
+                return <LockLocked defaultColors={defaultColors} {...this.props} />;
+            case "musicnote":
+                return <MusicNote defaultColors={defaultColors} {...this.props} />;
+            case "navigationcircle":
+                return <NavigationCircle defaultColors={defaultColors} {...this.props} />;
+            case "notifications":
+                return <Notifications defaultColors={defaultColors} {...this.props} />;
+            case "path":
+                return <Path defaultColors={defaultColors} {...this.props} />;
+            case "running":
+                return <Running defaultColors={defaultColors} {...this.props} />;
+            case "starfilled":
+                return <StarFilled defaultColors={defaultColors} {...this.props} />;
+            case "video":
+                return <Video defaultColors={defaultColors} {...this.props} />;
+            case "window":
+                return <Window defaultColors={defaultColors} {...this.props} />;
+            case "yinyang":
+                return <YinYang defaultColors={defaultColors} {...this.props} />;
+
+            // UI icons
+            case "checkmark":
+                return <CheckMark defaultColors={defaultColors} {...this.props} />;
+            case "details":
+                return <Details defaultColors={defaultColors} {...this.props} />;
+            default:
+                console.error('Missing icon:', this.state.name);
+                return <View></View>;
+        }
+    }
+}
 
 export default Icon;

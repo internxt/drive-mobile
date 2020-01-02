@@ -11,7 +11,9 @@ import {
 } from "react-native";
 import { compose } from "redux";
 import { connect } from "react-redux";
-import { DocumentPicker, ImagePicker, Permissions } from 'expo';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
+import * as Permissions from 'expo-permissions';
 
 import MenuItem from "./MenuItem";
 import { getIcon } from "../../helpers";
@@ -30,7 +32,8 @@ class AppMenu extends Component {
     this.downloadFile = this.props.downloadFile;
   }
 
-  componentWillReceiveProps(newProps) {
+  
+  UNSAFE_componentWillReceiveProps(newProps) {
     if (newProps.filesState.startDownloadSelectedFile) {
       this.props.dispatch(fileActions.downloadSelectedFileStop());
       this.downloadFile();
@@ -96,7 +99,7 @@ class AppMenu extends Component {
         "Content-type": "multipart/form-data"
       };
 
-      fetch(`${process.env.REACT_APP_API_URL}/api/storage/folder/${this.props.filesState.folderContent.currentFolder}/upload`, {
+      fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${this.props.filesState.folderContent.currentFolder}/upload`, {
         method: 'POST',
         headers,
         body
@@ -141,6 +144,9 @@ class AppMenu extends Component {
 
             <MenuItem name="create"
               onClickHandler={() => this.handleFolderCreate(folderContent.id)} />
+
+            {this.props.filesState.selectedItems.length > 0 ? <MenuItem name="delete" onClickHandler={this.props.deleteItems} /> : <View></View>}
+
           </View>
           <MenuItem name="settings"
             onClickHandler={() => { this.props.dispatch(layoutActions.openSettings()); }} />
@@ -177,8 +183,7 @@ class AppMenu extends Component {
           <TouchableHighlight onPress={() => {
             this.props.dispatch(fileActions.setSearchString(''));
             this.props.dispatch(layoutActions.closeSearch())
-          }
-          }>
+          }}>
             <Image style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }} source={closeIcon} />
           </TouchableHighlight>
         </View>

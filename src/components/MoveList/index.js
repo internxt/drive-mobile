@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     paddingTop: 9,
     paddingBottom: 5
-
   },
   button: {
     margin: 10,

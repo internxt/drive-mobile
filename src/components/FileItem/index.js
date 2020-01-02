@@ -23,20 +23,49 @@ class FileItem extends Component {
     this.downloadFile = this.props.downloadFile;
   }
 
+  itemIsSelected = (item) => {
+    const itemIsFolder = !(item.fileId);
+
+    const filteredItems = this.props.filesState.selectedItems.filter((element) => {
+      const elementIsFolder = !(element.fileId);
+      return itemIsFolder ? elementIsFolder && element.id == item.id : !elementIsFolder && element.fileId == item.fileId;
+    });
+
+    return filteredItems.length > 0;
+  }
+
   onItemPress = () => {
     const { item, isFolder, navigation } = this.props;
-    if (isFolder) {
-      // Enter in folder
-      this.props.dispatch(fileActions.getFolderContent(item.id));
-      navigation.setParams({ folderId: item.id });
+
+    if (this.props.filesState.selectedItems.length > 0) {
+      // If we are in selection mode, just perform selection action
+      return this.onItemLongPress();
+    }
+
+    const isSelected = this.itemIsSelected(item);
+
+    if (isSelected) {
+
     } else {
-      this.downloadFile(item ? item : null);
+      if (isFolder) {
+        // Enter in folder
+        this.props.dispatch(fileActions.getFolderContent(item.id));
+        navigation.setParams({ folderId: item.id });
+      } else {
+        this.downloadFile(item ? item : null);
+      }
     }
   }
 
   onItemLongPress = () => {
     // Select file/folder
-    this.props.dispatch(fileActions.selectFile(this.props.item));
+    const isSelected = this.itemIsSelected(this.props.item);
+
+    if (isSelected) {
+      this.props.dispatch(fileActions.deselectFile(this.props.item));
+    } else {
+      this.props.dispatch(fileActions.selectFile(this.props.item));
+    }
   }
 
   onDetailsClick = () => {
@@ -45,14 +74,12 @@ class FileItem extends Component {
   }
 
   render() {
-    const { item, isFolder, isSelected } = this.props;
+    const { item, isFolder } = this.props;
+    const isSelected = this.itemIsSelected(item);
+    
     const extendStyles = StyleSheet.create({
-      text: {
-        color: "#000000"
-      },
-      containerBackground: {
-        backgroundColor: isSelected ? "#f2f5ff" : "#fff"
-      },
+      text: { color: "#000000" },
+      containerBackground: { backgroundColor: isSelected ? "#f2f5ff" : "#fff" },
     });
 
     const itemIcon = isFolder ? (
@@ -69,7 +96,11 @@ class FileItem extends Component {
       );
 
     return (
-      <TouchableHighlight onPress={this.onItemPress} onLongPress={this.onItemLongPress} underlayColor="#FFF" style={[styles.container, extendStyles.containerBackground]}>
+      <TouchableHighlight
+        onPress={this.onItemPress}
+        onLongPress={this.onItemLongPress}
+        underlayColor={isSelected ? "#fff" : "#f2f5ff"}
+        style={[styles.container, extendStyles.containerBackground]}>
         <View style={styles.fileDetails}>
           <View style={styles.itemIcon}>
             {this.props.isBeingUploaded ? <IconFile isUploading={true} /> : itemIcon}

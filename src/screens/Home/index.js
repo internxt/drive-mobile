@@ -39,7 +39,7 @@ class Home extends Component {
       inputFileName: '',
       usage: {
         used: 0,
-        maxLimit: 1024 * 1024 * 1024
+        maxLimit: 1024 * 1024 * 1024 * 2
       },
       keyboardSpace: 0
     };
@@ -58,7 +58,7 @@ class Home extends Component {
     this.modalDeleteFiles = React.createRef();
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     // Manage showing settings modal
     if (nextProps.layoutState.showSettingsModal) {
       this.refs.modalSettings.open();
@@ -131,7 +131,7 @@ class Home extends Component {
       };
 
       // Generate token
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/storage/share/file/${fileId}`, {
+      const res = await fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/share/file/${fileId}`, {
         method: 'POST',
         headers
       });
@@ -153,13 +153,13 @@ class Home extends Component {
     // Get file token
     const linkToken = await this.getFileToken(item);
     // Open file on browser
-    Linking.openURL(`${process.env.REACT_APP_PROXY_URL}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`);
+    Linking.openURL(`${process && process.env && process.env.REACT_APP_PROXY_URL}/${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/share/${linkToken}`);
   }
 
   shareFile = async (item) => {
     // Get file token
     const linkToken = await this.getFileToken(item);
-    const url = `${process.env.REACT_APP_PROXY_URL}/${process.env.REACT_APP_API_URL}/api/storage/share/${linkToken}`;
+    const url = `${process && process.env && process.env.REACT_APP_PROXY_URL}/${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/share/${linkToken}`;
 
     const shortedUrl = await utils.shortUrl(url);
 
@@ -170,12 +170,21 @@ class Home extends Component {
     })
   }
 
+  handleDeleteSelectedItems() {
+    const itemsToDelete = this.props.filesState.selectedItems;
+    this.props.dispatch(fileActions.deleteItems(itemsToDelete, this.props.filesState.folderContent.currentFolder));
+  }
+
+  openDeleteSelectedItemsComfirmation() {
+    this.modalDeleteFiles.current.open();
+  }
+
   handleDeleteSelectedItem() {
     const itemToDelete = this.props.filesState.selectedFile;
     const token = this.props.authenticationState.token;
     const mnemonic = this.props.authenticationState.user.mnemonic;
     const isFolder = !(itemToDelete.size && itemToDelete.size >= 0);
-    const url = isFolder ? `${process.env.REACT_APP_API_URL}/api/storage/folder/${itemToDelete.id}` : `${process.env.REACT_APP_API_URL}/api/storage/bucket/${itemToDelete.bucket}/file/${itemToDelete.fileId}`
+    const url = isFolder ? `${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${itemToDelete.id}` : `${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/bucket/${itemToDelete.bucket}/file/${itemToDelete.fileId}`
 
     fetch(url, {
       method: 'DELETE',
@@ -222,7 +231,7 @@ class Home extends Component {
     const token = this.props.authenticationState.token;
     const mnemonic = this.props.authenticationState.user.mnemonic;
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/storage/file/${this.props.filesState.selectedFile.fileId}/meta`, {
+    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/file/${this.props.filesState.selectedFile.fileId}/meta`, {
       method: 'POST',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -362,6 +371,7 @@ class Home extends Component {
         <Text style={{ fontFamily: 'CerebriSans-Bold' }}>   Delete</Text>
       </Text>} onClick={() => {
         this.modalDeleteFiles.current.open();
+        this.modalItem.current.close()
       }} />
 
     </Modal>);
@@ -420,19 +430,22 @@ class Home extends Component {
           Cover Icon
           </Text>
 
-        <View style={styles.iconSelection}>
+        <View style={styles.iconSelection} key={this.state.selectedIcon}>
           {
             folderIconsList.map((value, i) => {
               let localIcon = (typeof this.state.selectedIcon === 'number' && this.state.selectedIcon >= 0) ? this.state.selectedIcon : ((folder && folder.icon) ? folder.icon.id : null);
               let isSelected = (localIcon ? localIcon - 1 === i : false);
               let iconValue = isSelected ? 0 : i + 1;
 
-              return (<TouchableHighlight key={i}
+              return <TouchableHighlight key={i}
                 style={styles.iconButton}
                 underlayColor="#F2F5FF"
-                onPress={() => { this.setState({ selectedIcon: iconValue }) }}>
-                {isSelected ? <Icon name={value} color="#4385F4" style={styles.iconImage} width="30" height="30" /> : <Icon name={value} color={'grey'} style={styles.iconImage} width="30" height="30" />}
-              </TouchableHighlight>)
+                onPress={() => {
+                  console.log(iconValue);
+                  this.setState({ selectedIcon: iconValue })
+                }}>
+                <Icon name={value} color={isSelected ? '#4385F4' : 'grey'} width={30} height={30} style={styles.iconImage} />
+              </TouchableHighlight>
             })
           }
         </View>
@@ -493,13 +506,14 @@ class Home extends Component {
   }
 
   getDeleteItemsModal = () => {
+    const multipleFiles = this.props.filesState.selectedItems.length > 1;
     return (
       <Modal ref={this.modalDeleteFiles} style={{ padding: 24 }}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <View>
             <Image source={require('../../../assets/images/logo.png')} style={{ width: 55, height: 29, marginBottom: 22 }} />
-            <Text style={{ fontSize: 27, fontFamily: 'CircularStd-Bold' }}>Delete item.</Text>
-            <Text style={{ fontSize: 17, color: '#737880', marginTop: 15 }}>Please confirm you want to delete this item. This action can’t be undone.</Text>
+            <Text style={{ fontSize: 27, fontFamily: 'CircularStd-Bold' }}>Delete item{multipleFiles ? 's' : ''}.</Text>
+            <Text style={{ fontSize: 17, color: '#737880', marginTop: 15 }}>Please confirm you want to delete this item{multipleFiles ? 's' : ''}. This action can’t be undone.</Text>
 
             <View style={{ flexDirection: 'row', marginTop: 40 }}>
               <TouchableHighlight style={{
@@ -524,7 +538,7 @@ class Home extends Component {
                 marginLeft: 20,
                 width: '45%'
               }} onPress={() => {
-                this.handleDeleteSelectedItem();
+                this.handleDeleteSelectedItems();
                 this.closeDeleteItemsModal();
               }}>
                 <Text style={{ color: '#fff', fontFamily: 'CerebriSans-Bold', fontSize: 16 }}>Confirm</Text>
@@ -540,8 +554,8 @@ class Home extends Component {
 
   loadUsage = () => {
     const user = this.props.authenticationState.user.email;
-
-    fetch(`${process.env.REACT_APP_API_URL}/api/limit`, {
+    console.log('usage', user)
+    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/limit`, {
       method: 'post',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -557,7 +571,7 @@ class Home extends Component {
         console.log(err);
       });
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/usage`, {
+    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/usage`, {
       method: 'post',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email: user })
@@ -652,7 +666,7 @@ class Home extends Component {
 
         <View style={{ height: 17.5 }}></View>
 
-        <AppMenu navigation={navigation} downloadFile={this.downloadFile} />
+        <AppMenu navigation={navigation} downloadFile={this.downloadFile} deleteItems={this.openDeleteSelectedItemsComfirmation.bind(this)} />
 
         <View style={styles.breadcrumbs}>
           <Text style={styles.breadcrumbsTitle}>

@@ -21,7 +21,7 @@ class Auth extends Component {
     };
   }
 
-  async componentWillMount() {
+  async UNSAFE_componentWillMount() {
     // Check if exists user login info on device storage
     const token = await deviceStorage.getItem('xToken');
     const user = JSON.parse(await deviceStorage.getItem('xUser'));
@@ -32,7 +32,7 @@ class Auth extends Component {
   }
 
   // Manage new props recieved from parent
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
 
     if (nextProps.authenticationState.loggedIn !== this.state.loggedIn) {
       this.setState({

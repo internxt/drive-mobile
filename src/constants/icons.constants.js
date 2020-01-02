@@ -25,6 +25,6 @@ const icons = {
 };
 
 const folderIconsList = ['avatarcircleneutral', 'backup', 'barchart', 'bell', 'binoculars', 'book', 'camera', 'bowl', 'categories', 
-'circlefilledcheckmark', 'clappboard', 'clipboard', 'cloud', 'controllerneoGeo', 'dollarsign', 'facehappy', 'file', 
+'circlefilledcheckmark', 'clappboard', 'clipboard', 'cloud', 'controllerneogeo', 'dollarsign', 'facehappy', 'file', 
 'heartfilled', 'inbox', 'lighton', 'locklocked', 'musicnote', 'navigationcircle', 'notifications', 
 'path', 'running', 'starfilled', 'video', 'window', 'yinyang'];

@@ -7,7 +7,7 @@ class IconFile extends Component {
 
     return (
       <View style={styles.wrapper}>
-        {isUploading ? <ActivityIndicator style={styles.activityIndicator} /> : <Text style={styles.text}>{label.toUpperCase()}</Text>}
+        {isUploading ? <ActivityIndicator style={styles.activityIndicator} /> : <Text numberOfLines={1} style={styles.text}>{label.toUpperCase()}</Text>}
       </View>
     );
   }
@@ -33,7 +33,8 @@ const styles = StyleSheet.create({
     fontSize: 9,
     letterSpacing: -0.2,
     color: "#2e7bff",
-    textAlign: "center"
+    textAlign: "center",
+    paddingHorizontal: 5
   },
   activityIndicator: {
     position: 'absolute',

@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { StyleSheet, View, Text, TouchableHighlight, Image } from "react-native";
-import { LinearGradient } from 'expo';
+import { LinearGradient } from 'expo-linear-gradient';
 import { getIcon } from '../../helpers'
 
 class PlanListItem extends Component {

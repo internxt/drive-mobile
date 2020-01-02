@@ -2,6 +2,7 @@ const CryptoJS = require('crypto-js')
 
 // Method to hash password. If salt is passed, use it, in other case use crypto lib for generate salt
 function passToHash(passObject) {
+  console.log('# passToHash')
   try {
     const salt = passObject.salt ? CryptoJS.enc.Hex.parse(passObject.salt) : CryptoJS.lib.WordArray.random(128 / 8);
     const hash = CryptoJS.PBKDF2(passObject.password, salt, { keySize: 256 / 32, iterations: 10000 });
@@ -11,19 +12,20 @@ function passToHash(passObject) {
     }
     return hashedObjetc;
   } catch (error) {
+    console.log('Error in pass to hash')
     throw new Error(error);
   }
 }
 
 // AES Plain text encryption method
 function encryptText(textToEncrypt) {
-  let password = process.env.REACT_APP_CRYPTO_SECRET; // Force env var loading
+  let password = process && process.env && process.env.REACT_APP_CRYPTO_SECRET; // Force env var loading
   return encryptTextWithKey(textToEncrypt, password);
 }
 
 // AES Plain text decryption method
 function decryptText(encryptedText) {
-  let password = process.env.REACT_APP_CRYPTO_SECRET; // Force env var loading
+  let password = process && process.env && process.env.REACT_APP_CRYPTO_SECRET; // Force env var loading
   return decryptTextWithKey(encryptedText, password);
 }
 
@@ -65,10 +67,10 @@ function removeAccents(string) {
 // Method to short url with Kutt.it service
 async function shortUrl(url) {
   try {
-    const result = await fetch(`${process.env.REACT_APP_SHORTER_API_URL}`, {
+    const result = await fetch(`${process && process.env && process.env.REACT_APP_SHORTER_API_URL}`, {
       method: 'POST',
       headers: {  
-        'x-api-key': `${process.env.REACT_APP_SHORTER_API_KEY}`,
+        'x-api-key': `${process && process.env && process.env.REACT_APP_SHORTER_API_KEY}`,
         'Content-type': "application/json"
       },
       body: JSON.stringify({
@@ -84,6 +86,20 @@ async function shortUrl(url) {
   }
 }
 
+function getNewBits() {
+  return new Promise((resolve, reject) => {
+    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/bits`, {
+    }).then(async res => {
+      return { res, data: await res.json() }
+    }).then(res => {
+      const decrypt = this.decryptText(res.data.bits)
+      resolve(decrypt)
+    }).catch(err => {
+      reject(err)
+    })
+  })
+}
+
 export const utils = {
   passToHash,
   encryptText,
@@ -91,5 +107,6 @@ export const utils = {
   encryptTextWithKey,
   decryptTextWithKey,
   removeAccents,
-  shortUrl
+  shortUrl,
+  getNewBits
 }

@@ -1,6 +1,6 @@
 import React, { Component } from "react";
-import { StyleSheet, View } from "react-native";
-import { LinearGradient } from "expo";
+import { StyleSheet, View, Text } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { SCREEN_WIDTH } from "../../styles";
 
