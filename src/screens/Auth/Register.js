@@ -298,7 +298,6 @@ class Register extends Component {
                   onChangeText={value => this.setState({ password: value })}
                   placeholder='Password'
                   placeholderTextColor="#666666"
-                  maxLength={64}
                   secureTextEntry={true}
                   textContentType="password"
                 />
@@ -310,7 +309,6 @@ class Register extends Component {
                   onChangeText={value => this.setState({ confirmPassword: value })}
                   placeholder='Confirm password'
                   placeholderTextColor="#666666"
-                  maxLength={64}
                   secureTextEntry={true}
                   textContentType="password"
                 />

@@ -197,7 +197,6 @@ class SignIn extends Component {
                 onChangeText={value => this.setState({ pasword: value })}
                 placeholder='Password'
                 placeholderTextColor="#666666"
-                maxLength={64}
                 secureTextEntry={true}
                 textContentType="password"
               />
