@@ -82,7 +82,7 @@ async function shortUrl(url) {
     return resultData.shortUrl;
   } catch(error) {
     console.log(`Error on url shorting`);
-    console.log(error);
+    console.log('shortUrl', error);
   }
 }
 

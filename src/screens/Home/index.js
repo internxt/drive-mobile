@@ -17,7 +17,7 @@ import SettingsItem from '../../components/SettingsItem'
 import { colors, folderIconsList, sortTypes } from '../../constants'
 import Icon from '../../../assets/icons/Icon'
 import { fileActions, layoutActions, userActions } from "../../actions";
-import { getIcon, utils } from "../../helpers";
+import { getIcon, utils, getHeaders } from "../../helpers";
 
 const iconDownload = getIcon('download');
 const iconDelete = getIcon('delete');
@@ -133,7 +133,7 @@ class Home extends Component {
       // Generate token
       const res = await fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/share/file/${fileId}`, {
         method: 'POST',
-        headers
+        headers: getHeaders(this.props.authenticationState.token, this.props.authenticationState.user.mnemonic)
       });
       const data = await res.json();
 
@@ -188,11 +188,7 @@ class Home extends Component {
 
     fetch(url, {
       method: 'DELETE',
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "internxt-mnemonic": mnemonic,
-        "Content-type": "application/json"
-      }
+      headers: getHeaders(true, true)
     }).then(res => {
       // Manage file (200) and folder (204) deletion response
       if (res.status == 200 || res.status == 204) {
@@ -207,7 +203,7 @@ class Home extends Component {
         Alert.alert('Error deleting item');
       }
     }).catch(err => {
-      console.log(err);
+      console.log('handleDeleteSelectedItem', err);
       Alert.alert('Error deleting item');
     });
   }
@@ -254,7 +250,7 @@ class Home extends Component {
         Alert.alert('Error renaming file', "Could not rename file");
       }
     }).catch(err => {
-      console.log(err);
+      console.log('closeFileModal', err);
       Alert.alert('Error renaming file', "Could not rename file");
 
     });
@@ -553,14 +549,9 @@ class Home extends Component {
   }
 
   loadUsage = () => {
-    const user = this.props.authenticationState.user.email;
-    console.log('usage', user)
     fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/limit`, {
-      method: 'post',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        email: user
-      })
+      method: 'get',
+      headers: getHeaders(this.props.authenticationState.token)
     }
     ).then(res => res.json())
       .then(res => {
@@ -568,13 +559,12 @@ class Home extends Component {
         copyUsage.maxLimit = res.maxSpaceBytes;
         this.setState({ usage: copyUsage })
       }).catch(err => {
-        console.log(err);
+        console.log('loadUsage 1', err);
       });
 
     fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/usage`, {
-      method: 'post',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email: user })
+      method: 'get',
+      headers: getHeaders(this.props.authenticationState.token)
     }
     ).then(res => res.json())
       .then(res => {
@@ -582,7 +572,7 @@ class Home extends Component {
         copyUsage.used = res.total;
         this.setState({ usage: copyUsage })
       }).catch(err => {
-        console.log(err);
+        console.log('loadUsage 2', err);
       });
   }
 

@@ -130,8 +130,7 @@ class SignIn extends Component {
                 })
 
             } catch (error) {
-              console.log('CHECK INITIALIZATION ERROR')
-              console.log(error);
+              console.log('CHECK INITIALIZATION ERROR', error);
             }
 
           } else {
@@ -144,7 +143,7 @@ class SignIn extends Component {
           throw { error: res.data.error ? res.data.error : 'Internal error' };
         }
       }).catch(err => {
-        console.log(err);
+        console.log('check2FA', err);
         Alert.alert('Login failed', err.error);
         this.setState({ isLoading: false });
       });

@@ -29,7 +29,7 @@ function downloadFile(user, file) {
       console.log(`File downloaded with state: ${result}`)
       resolve();
     }).catch((error) => {
-      console.log(error);
+      console.log('downloadFile', error);
       reject(error);
     });
   })
@@ -56,19 +56,24 @@ function getFolderContent(folderId) {
 function createFolder(parentFolderId, folderName = "Untitled folder") {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
+    const body = JSON.stringify({
+      parentFolderId,
+      folderName
+    })
+
+    console.log('create folder body', body)
 
     fetch(`${REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder`, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        parentFolderId,
-        folderName
-      })
+      body
     }).then(response => response.json())
       .then(async response => {
         if (response.error) {
+          console.log('Create folder response error', response.error)
           reject(response.error)
         } else {
+          console.log('response id', response.id)
           const newFolderDetails = await getFolderContent(response.id);
           resolve(newFolderDetails);
         }

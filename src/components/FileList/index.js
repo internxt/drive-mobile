@@ -59,7 +59,10 @@ class FileList extends Component {
       <EmptyDirectory isRoot={isRoot} />
       </ScrollView>;
 
-    if (folderContent.files.length > 0 || folderContent.children.length > 0 || this.props.filesState.isUploading) {
+    if (!folderContent || !folderContent.files) {
+
+    }
+    else if (folderContent.files.length > 0 || folderContent.children.length > 0 || this.props.filesState.isUploading) {
       let folderList = folderContent.children;
       let fileList = folderContent.files;
       // Apply search function if is set

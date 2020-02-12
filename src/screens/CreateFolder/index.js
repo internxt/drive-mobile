@@ -42,7 +42,8 @@ class CreateFolder extends Component {
   }
 
   onSave() {
-    this.props.dispatch(fileActions.createFolder(this.state.parentFolderId, this.state.value));
+    const parentId = this.state.parentFolderId || this.props.authenticationState.user.root_folder_id
+    this.props.dispatch(fileActions.createFolder(parentId, this.state.value));
     this.props.navigation.goBack();
   }
 

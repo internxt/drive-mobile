@@ -71,6 +71,8 @@ class AppMenu extends Component {
             if (!result.cancelled) this.uploadFile(result);
           }
         }
+      }, {
+        text: 'Cancel', onPress: () => { }, style: 'destructive'
       }
     ]);
   }

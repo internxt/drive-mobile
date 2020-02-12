@@ -144,7 +144,7 @@ class Register extends Component {
         this.setState({ registerStep: 4, isLoading: false });
       }
     }).catch(err => {
-      console.log(err);
+      console.log('doRegister', err);
       Alert.alert('Internal server error while registering Code: 2');
       this.setState({ isLoading: false });
     });

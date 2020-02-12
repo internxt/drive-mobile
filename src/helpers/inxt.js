@@ -13,7 +13,7 @@ function getEnvironment(email, password, mnemonic) {
             logLevel: 4
         });
     } catch (error) {
-        console.log(error);
+        console.log('getEnvironment', error);
         return null;
     }
 }
