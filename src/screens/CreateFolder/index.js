@@ -37,12 +37,13 @@ class CreateFolder extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
     // When folderContent is updated with new folder data, go back to Home
     if (nextProps.filesState.folderContent.name === this.state.value) {
-      this.props.navigation.navigate("Home", { folderId: nextProps.filesState.folderContent.id });
+      this.props.navigation.navigate("Home", { folderId: nextProps.filesState.folderContent.parentId });
     }
   }
 
   onSave() {
     this.props.dispatch(fileActions.createFolder(this.state.parentFolderId, this.state.value));
+    this.props.navigation.goBack();
   }
 
   onCancel() {

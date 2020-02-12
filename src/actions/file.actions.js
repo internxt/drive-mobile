@@ -163,12 +163,11 @@ function createFolder(parentFolderId, newFolderName) {
     fileService.createFolder(parentFolderId, newFolderName).then(
       newFolderDetails => {
         dispatch(success(newFolderDetails));
-
         // Refresh parent folder content (?)
-        getFolderContent(newFolderDetails.id);
+        // getFolderContent(newFolderDetails.id);
       },
       error => {
-        console.error("Error creating folder", error);
+        console.log("Error creating folder", error);
         dispatch(failure(error));
       }
     );
@@ -184,7 +183,7 @@ function createFolder(parentFolderId, newFolderName) {
     };
   }
   function failure(payload) {
-    return { type: fileActionTypes.CREATE_FOLDER_SUCCESS, payload };
+    return { type: fileActionTypes.CREATE_FOLDER_FAILURE, payload };
   }
 }
 

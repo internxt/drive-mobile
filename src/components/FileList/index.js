@@ -8,21 +8,37 @@ import EmptyDirectory from "../EmptyDirectory";
 import FileItem from "../FileItem";
 import { utils } from "../../helpers";
 
+import { withNavigation } from "react-navigation";
+
 class FileList extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      isRefreshing: false
+      isRefreshing: false,
+      active: true
     }
 
     this.downloadFile = this.props.downloadFile;
     this.refreshList = this.refreshList.bind(this);
+
+    this.props.navigation.addListener('willBlur', payload => {
+      this.setState({ active: false })
+    })
+
+    this.props.navigation.addListener('didFocus', payload => {
+      this.setState({ active: true }, () => {
+        this.refreshList();
+      })
+    })
   }
 
   refreshList = () => {
     this.setState({ isRefreshing: true }, () => {
-      this.props.dispatch(fileActions.getFolderContent(this.props.filesState.folderContent.currentFolder));
+      const currentFolderId = this.props.filesState.folderContent?.currentFolder
+      if (currentFolderId) {
+        this.props.dispatch(fileActions.getFolderContent(currentFolderId));
+      }
     })
   }
 
@@ -39,7 +55,9 @@ class FileList extends Component {
       );
     }
 
-    let content = <EmptyDirectory isRoot={isRoot} />;
+    let content = <ScrollView contentContainerStyle={{flex: 1}} refreshControl={<RefreshControl isRefreshing={this.state.isRefreshing} onRefresh={this.refreshList} />}>
+      <EmptyDirectory isRoot={isRoot} />
+      </ScrollView>;
 
     if (folderContent.files.length > 0 || folderContent.children.length > 0 || this.props.filesState.isUploading) {
       let folderList = folderContent.children;
@@ -87,4 +105,7 @@ const mapStateToProps = state => {
   return { ...state };
 };
 
-export default (FileListComposed = compose(connect(mapStateToProps))(FileList));
+export default (FileListComposed = compose(
+  connect(mapStateToProps),
+  withNavigation
+)(FileList));

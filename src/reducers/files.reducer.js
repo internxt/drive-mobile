@@ -119,7 +119,6 @@ export function filesReducer(state = initialState, action) {
       return {
         ...state,
         loading: false,
-        folderContent: action.payload,
         selectedFile: null,
         selectedItems: []
       };

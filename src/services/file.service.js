@@ -66,8 +66,12 @@ function createFolder(parentFolderId, folderName = "Untitled folder") {
       })
     }).then(response => response.json())
       .then(async response => {
-        const newFolderDetails = await getFolderContent(response.id);
-        resolve(newFolderDetails);
+        if (response.error) {
+          reject(response.error)
+        } else {
+          const newFolderDetails = await getFolderContent(response.id);
+          resolve(newFolderDetails);
+        }
       }).catch(error => {
         reject("[file.service] Could not create folder", error);
       });
