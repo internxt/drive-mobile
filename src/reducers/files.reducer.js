@@ -27,7 +27,8 @@ export function filesReducer(state = initialState, action) {
         loading: false,
         folderContent: action.payload,
         selectedFile: null,
-        selectedItems: []
+        selectedItems: [],
+        error: null
       };
     case fileActionTypes.GET_FILES_FAILURE:
       return {

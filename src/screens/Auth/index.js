@@ -43,9 +43,7 @@ class Auth extends Component {
       // Redirect user if signed in & getFolderContent for user root_folder_id
       if (nextProps.authenticationState.loggedIn) {
         this.props.dispatch(
-          fileActions.getFolderContent(
-            nextProps.authenticationState.user.root_folder_id
-          )
+          fileActions.getFolderContent(nextProps.authenticationState.user.root_folder_id)
         );
         this.props.navigation.replace("Home", {
           folderId: nextProps.authenticationState.user.root_folder_id

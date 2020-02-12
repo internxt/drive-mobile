@@ -1,7 +1,7 @@
 import { deviceStorage, inxt } from "../helpers";
 import { sortTypes } from "../constants";
 const { REACT_APP_API_URL } = process && process.env;
-import { getHeaders } from '../helpers'
+import { userService } from './user.service'
 
 export const fileService = {
   downloadFile,
@@ -43,13 +43,13 @@ function getFolderContent(folderId) {
     fetch(`${REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${folderId}`, {
       method: "GET",
       headers
-    })
-      .then(response => response.json())
-      .then(data => {
-        resolve(data)
-      })
-      .catch(err => {
-        reject("[file.service] Could not get folder content", err);
+    }).then(res => {
+        if (res.status !== 200) {
+          throw res
+        }
+        return res.json()
+      }).then(data => resolve(data)).catch(err => {
+          reject(err)
       });
   });
 }

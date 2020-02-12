@@ -66,7 +66,9 @@ class SignIn extends Component {
 
     fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/login`, {
       method: 'POST',
-      headers: { "content-type": "application/json; charset=utf-8" },
+      headers: {
+        "content-type": "application/json; charset=utf-8"
+      },
       body: JSON.stringify({ email: this.state.email })
     })
       .then(async res => {
@@ -86,7 +88,9 @@ class SignIn extends Component {
 
               fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/access`, {
                 method: "POST",
-                headers: { "content-type": "application/json; charset=utf-8" },
+                headers: {
+                  "content-type": "application/json; charset=utf-8"
+                },
                 body: JSON.stringify({
                   email: this.state.email,
                   password: encPass,
@@ -230,7 +234,7 @@ class SignIn extends Component {
             </TouchableHighlight>
           </View>
         </View>
-        <Text style={styles.versionLabel}>X Cloud, by Internxt v1.1.1.1</Text>
+        <Text style={styles.versionLabel}>X Cloud, by Internxt v1.1.1.2</Text>
       </KeyboardAvoidingView>
 
     );

@@ -17,7 +17,7 @@ import * as Permissions from 'expo-permissions';
 
 import MenuItem from "./MenuItem";
 import { getIcon } from "../../helpers";
-import { layoutActions, fileActions } from "../../actions";
+import { layoutActions, fileActions, userActions } from "../../actions";
 const arrowBack = getIcon("back");
 const searchIcon = getIcon("search");
 const closeIcon = getIcon("close");
@@ -106,6 +106,9 @@ class AppMenu extends Component {
         headers,
         body
       }).then(async resultFetch => {
+        if (resultFetch.status === 401) {
+          throw resultFetch
+        }
         var data = await resultFetch.json();
         return { res: resultFetch, data };
       }).then(resultFetch => {
@@ -118,9 +121,13 @@ class AppMenu extends Component {
         }
         this.props.dispatch(fileActions.uploadFileFinished());
       }).catch(errFetch => {
-        console.log("Error fetching", errFetch);
-        this.props.dispatch(fileActions.uploadFileFinished());
-        Alert.alert('Error', 'Cannot upload file');
+        if (errFetch.status === 401) {
+          this.props.dispatch(userActions.signout())
+          this.props.dispatch(fileActions.uploadFileFinished());
+        } else {
+          this.props.dispatch(fileActions.uploadFileFinished());
+          Alert.alert('Error', 'Cannot upload file');  
+        }
       });
     } catch (error) {
       console.log('Error:', error);

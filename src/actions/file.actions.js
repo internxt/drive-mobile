@@ -1,5 +1,6 @@
 import { fileActionTypes } from "../constants";
 import { fileService } from "../services";
+import { userActions } from './user.actions'
 
 export const fileActions = {
   downloadFile,
@@ -82,6 +83,10 @@ function getFolderContent(folderId) {
       })
       .catch(error => {
         dispatch(failure(error));
+
+        if (error.status === 401) {
+          dispatch(userActions.signout())
+        }
       });
   };
 
