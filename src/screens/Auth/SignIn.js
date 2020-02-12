@@ -101,7 +101,7 @@ class SignIn extends Component {
                     Alert.alert('Login failed', resp.data.error);
                     this.setState({ isLoading: false });
                   } else if (!resp.data.user.root_folder_id) {
-                    console.log('No root folder, creating one');
+                    console.log('No root folder, initializing user');
                     // No root folder, create one
 
                     const mnemonicEncrypted = resp.data.user.mnemonic;
@@ -121,6 +121,7 @@ class SignIn extends Component {
                     }).then(respFinal => {
                       this.props.onSignInClick(this.state.email, this.state.pasword, res.data.sKey, this.state.twoFactorCode);
                     }).catch(err => {
+                      console.log('Error initializing user', err)
                       Alert.alert('Error initilizing account')
                     })
 
@@ -229,7 +230,7 @@ class SignIn extends Component {
             </TouchableHighlight>
           </View>
         </View>
-        <Text style={styles.versionLabel}>X Cloud, by Internxt v1.1.1</Text>
+        <Text style={styles.versionLabel}>X Cloud, by Internxt v1.1.1.1</Text>
       </KeyboardAvoidingView>
 
     );

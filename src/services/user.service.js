@@ -16,8 +16,6 @@ function signin(email, password, sKey, twoFactorCode) {
     const hashObj = utils.passToHash({ password, salt });
     const encPass = utils.encryptText(hashObj.hash);
 
-    console.log('stl', salt)
-
     fetch(`${process && process.env && process.env.REACT_APP_API_URL}/api/access`, {
       method: "POST",
       headers: { "content-type": "application/json; charset=utf-8" },

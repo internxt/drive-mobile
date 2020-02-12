@@ -1,6 +1,7 @@
 import { deviceStorage, inxt } from "../helpers";
 import { sortTypes } from "../constants";
 const { REACT_APP_API_URL } = process && process.env;
+import { getHeaders } from '../helpers'
 
 export const fileService = {
   downloadFile,
@@ -45,7 +46,7 @@ function getFolderContent(folderId) {
     })
       .then(response => response.json())
       .then(data => {
-        resolve(data);
+        resolve(data)
       })
       .catch(err => {
         reject("[file.service] Could not get folder content", err);
@@ -61,8 +62,6 @@ function createFolder(parentFolderId, folderName = "Untitled folder") {
       folderName
     })
 
-    console.log('create folder body', body)
-
     fetch(`${REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder`, {
       method: "POST",
       headers,
@@ -73,9 +72,7 @@ function createFolder(parentFolderId, folderName = "Untitled folder") {
           console.log('Create folder response error', response.error)
           reject(response.error)
         } else {
-          console.log('response id', response.id)
-          const newFolderDetails = await getFolderContent(response.id);
-          resolve(newFolderDetails);
+          resolve();
         }
       }).catch(error => {
         reject("[file.service] Could not create folder", error);

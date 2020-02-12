@@ -27,18 +27,18 @@ class FileList extends Component {
     })
 
     this.props.navigation.addListener('didFocus', payload => {
-      this.setState({ active: true }, () => {
-        this.refreshList();
-      })
+      if (!this.state.active) {
+        this.setState({ active: true }, () => {
+          this.refreshList();
+        })
+      }
     })
   }
 
   refreshList = () => {
     this.setState({ isRefreshing: true }, () => {
-      const currentFolderId = this.props.filesState.folderContent?.currentFolder
-      if (currentFolderId) {
-        this.props.dispatch(fileActions.getFolderContent(currentFolderId));
-      }
+      const currentFolderId = this.props.filesState.folderContent ? this.props.filesState.folderContent.currentFolder : this.props.authenticationState.user.root_folder_id
+      this.props.dispatch(fileActions.getFolderContent(currentFolderId));
     })
   }
 

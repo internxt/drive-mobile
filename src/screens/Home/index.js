@@ -43,7 +43,8 @@ class Home extends Component {
       },
       keyboardSpace: 0
     };
-    //for get keyboard height
+
+    // to get keyboard height
     Keyboard.addListener('keyboardDidShow', (frames) => {
       if (!frames.endCoordinates) return;
       this.setState({ keyboardSpace: frames.endCoordinates.height });
