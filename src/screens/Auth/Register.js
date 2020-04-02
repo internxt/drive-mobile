@@ -1,6 +1,6 @@
-import React, { Component } from "react";
-import { compose } from "redux";
-import { connect } from "react-redux";
+import React, { Component } from 'react';
+import { compose } from 'redux';
+import { connect } from 'react-redux';
 import {
   StyleSheet,
   Text,
@@ -11,12 +11,11 @@ import {
   Alert,
   AppState,
   KeyboardAvoidingView
-} from "react-native";
+} from 'react-native';
 // import bip39 from 'react-native-bip39';
-import Intro from './Intro'
+import Intro from './Intro';
 
-
-import { utils } from '../../helpers'
+import { utils } from '../../helpers';
 
 class Register extends Component {
   constructor() {
@@ -38,7 +37,6 @@ class Register extends Component {
 
       showIntro: true
     };
-
   }
 
   componentDidMount() {
@@ -49,27 +47,30 @@ class Register extends Component {
     AppState.removeEventListener('change', this._handleAppStateChange);
   }
 
-  _handleAppStateChange = (nextAppState) => {
-    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
-      this.props.goToForm('SIGNIN')
+  _handleAppStateChange = nextAppState => {
+    if (
+      this.state.appState.match(/inactive|background/) &&
+      nextAppState === 'active'
+    ) {
+      // this.props.goToForm('SIGNIN')
     } else {
       this.setState({ appState: nextAppState });
     }
   };
 
-  isValidEmail = (email) => {
+  isValidEmail = email => {
     let re = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
     return re.test(String(email).toLowerCase());
-  }
+  };
 
-  isStrongPassword = (pwd) => {
-    let re = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/
+  isStrongPassword = pwd => {
+    let re = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/;
     return re.test(pwd);
-  }
+  };
 
-  isNullOrEmpty = (string) => {
+  isNullOrEmpty = string => {
     return !(string != null && string != undefined && string != '');
-  }
+  };
 
   isValidStep1 = () => {
     if (this.isNullOrEmpty(this.state.firstName)) {
@@ -88,7 +89,7 @@ class Register extends Component {
     }
 
     return true;
-  }
+  };
 
   isValidStep3 = () => {
     if (this.isNullOrEmpty(this.state.password)) {
@@ -97,7 +98,10 @@ class Register extends Component {
     }
 
     if (!this.isStrongPassword(this.state.password)) {
-      Alert.alert('', 'Please make sure your password contains at least six characters, a number, and a letter');
+      Alert.alert(
+        '',
+        'Please make sure your password contains at least six characters, a number, and a letter'
+      );
       return false;
     }
 
@@ -107,10 +111,9 @@ class Register extends Component {
     }
 
     return true;
-  }
+  };
 
   doRegister = async () => {
-
     // Pass setup
     const hashObj = utils.passToHash({ password: this.state.password });
     const encPass = utils.encryptText(hashObj.hash);
@@ -118,46 +121,52 @@ class Register extends Component {
 
     // Mnemonic generation
     // const mnemonic = await bip39.generateMnemonic(256);
-    const mnemonic = await utils.getNewBits()
+    const mnemonic = await utils.getNewBits();
     const encMnemonic = utils.encryptTextWithKey(mnemonic, this.state.password);
 
-    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/register`, {
-      method: 'POST',
-      headers: {
-        "content-type": "application/json; charset=utf-8",
-      },
-      body: JSON.stringify({
-        name: this.state.firstName,
-        lastname: this.state.lastName,
-        email: this.state.email,
-        password: encPass,
-        mnemonic: encMnemonic,
-        salt: encSalt
-      })
-    }).then(async res => {
-      return { res, data: await res.json() };
-    }).then(res => {
-      if (res.res.status != 200) {
-        Alert.alert('Server register error');
-        this.setState({ isLoading: false });
-      } else {
-        this.setState({ registerStep: 4, isLoading: false });
+    fetch(
+      `${(process && process.env && process.env.REACT_APP_API_URL) ||
+        'https://drive.internxt.com'}/api/register`,
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json; charset=utf-8'
+        },
+        body: JSON.stringify({
+          name: this.state.firstName,
+          lastname: this.state.lastName,
+          email: this.state.email,
+          password: encPass,
+          mnemonic: encMnemonic,
+          salt: encSalt
+        })
       }
-    }).catch(err => {
-      console.log('doRegister', err);
-      Alert.alert('Internal server error while registering Code: 2');
-      this.setState({ isLoading: false });
-    });
-
-  }
+    )
+      .then(async res => {
+        return { res, data: await res.json() };
+      })
+      .then(res => {
+        if (res.res.status != 200) {
+          Alert.alert('Server register error');
+          this.setState({ isLoading: false });
+        } else {
+          this.setState({ registerStep: 4, isLoading: false });
+        }
+      })
+      .catch(err => {
+        console.log('doRegister', err);
+        Alert.alert('Internal server error while registering Code: 2');
+        this.setState({ isLoading: false });
+      });
+  };
 
   finishIntro() {
-    this.setState({ showIntro: false })
+    this.setState({ showIntro: false });
   }
 
   render() {
     if (this.state.showIntro) {
-      return <Intro onFinish={this.finishIntro.bind(this)} />
+      return <Intro onFinish={this.finishIntro.bind(this)} />;
     }
 
     if (this.state.registerStep == 1) {
@@ -168,15 +177,22 @@ class Register extends Component {
               <View style={styles.headerContainer}>
                 <Image
                   style={styles.logo}
-                  source={require("../../../assets/images/logo.png")}
+                  source={require('../../../assets/images/logo.png')}
                 />
               </View>
-              <Text style={styles.title}>Create an X Cloud account</Text>
+              <Text style={styles.title}>Create an Internxt account</Text>
               <View style={styles.buttonWrapper}>
-                <TouchableHighlight style={styles.buttonOff} underlayColor="#4585f5" onPress={() => this.props.goToForm('SIGNIN')}>
+                <TouchableHighlight
+                  style={styles.buttonOff}
+                  underlayColor="#4585f5"
+                  onPress={() => this.props.goToForm('SIGNIN')}
+                >
                   <Text style={styles.buttonOffLabel}>Sign in</Text>
                 </TouchableHighlight>
-                <TouchableHighlight style={styles.buttonOn} underlayColor="#4585f5">
+                <TouchableHighlight
+                  style={styles.buttonOn}
+                  underlayColor="#4585f5"
+                >
                   <Text style={styles.buttonOnLabel}>Create account</Text>
                 </TouchableHighlight>
               </View>
@@ -187,7 +203,7 @@ class Register extends Component {
                   style={styles.input}
                   value={this.state.firstName}
                   onChangeText={value => this.setState({ firstName: value })}
-                  placeholder='First name'
+                  placeholder="First name"
                   placeholderTextColor="#666666"
                   maxLength={64}
                 />
@@ -197,7 +213,7 @@ class Register extends Component {
                   style={styles.input}
                   value={this.state.lastName}
                   onChangeText={value => this.setState({ lastName: value })}
-                  placeholder='Last name'
+                  placeholder="Last name"
                   placeholderTextColor="#666666"
                   maxLength={64}
                 />
@@ -207,7 +223,7 @@ class Register extends Component {
                   style={styles.input}
                   value={this.state.email}
                   onChangeText={value => this.setState({ email: value })}
-                  placeholder='Email address'
+                  placeholder="Email address"
                   placeholderTextColor="#666666"
                   maxLength={64}
                   keyboardType="email-address"
@@ -223,7 +239,8 @@ class Register extends Component {
                   if (this.isValidStep1()) {
                     this.setState({ registerStep: 2 });
                   }
-                }}>
+                }}
+              >
                 <Text style={styles.buttonOnLabel}>Continue</Text>
               </TouchableHighlight>
             </View>
@@ -240,23 +257,64 @@ class Register extends Component {
               <View style={styles.headerContainer}>
                 <Image
                   style={styles.logo}
-                  source={require("../../../assets/images/logo.png")}
+                  source={require('../../../assets/images/logo.png')}
                 />
               </View>
-              <Text style={styles.title}>X Cloud Security</Text>
+              <Text style={styles.title}>Internxt Drive Security</Text>
 
               <View>
-                <Text style={{ fontSize: 17, color: '#737880', fontFamily: 'CerebriSans-Regular', textAlign: 'justify', letterSpacing: -0.1, marginTop: -15 }}>X Cloud uses your password to encrypt and decrypt your files. Due to the secure nature of X Cloud, we don't know your password. That means that if you ever forget it, your files are gone forever. With us, you're the only owner of your files. We strongly suggest you to:</Text>
+                <Text
+                  style={{
+                    fontSize: 17,
+                    color: '#737880',
+                    fontFamily: 'CerebriSans-Regular',
+                    textAlign: 'justify',
+                    letterSpacing: -0.1,
+                    marginTop: -15
+                  }}
+                >
+                  Internxt Drive uses your password to encrypt and decrypt your
+                  files. Due to the secure nature of Internxt Drive, we don't
+                  know your password. That means that if you ever forget it,
+                  your files are gone forever. With us, you're the only owner of
+                  your files. We strongly suggest you to:
+                </Text>
               </View>
 
-              <View style={{ backgroundColor: '#f7f7f7', padding: 23, marginTop: 30 }}>
+              <View
+                style={{
+                  backgroundColor: '#f7f7f7',
+                  padding: 23,
+                  marginTop: 30
+                }}
+              >
                 <View style={{ flexDirection: 'row', marginBottom: 10 }}>
                   <Text>{'\u2022'}</Text>
-                  <Text style={{ flex: 1, paddingLeft: 9, color: '#737880', fontSize: 17, fontFamily: 'CerebriSans-Regular' }}>Store your Password. Keep it safe and secure.</Text>
+                  <Text
+                    style={{
+                      flex: 1,
+                      paddingLeft: 9,
+                      color: '#737880',
+                      fontSize: 17,
+                      fontFamily: 'CerebriSans-Regular'
+                    }}
+                  >
+                    Store your Password. Keep it safe and secure.
+                  </Text>
                 </View>
                 <View style={{ flexDirection: 'row' }}>
                   <Text>{'\u2022'}</Text>
-                  <Text style={{ flex: 1, paddingLeft: 9, color: '#737880', fontSize: 17, fontFamily: 'CerebriSans-Regular' }}>Keep an offline backup of your password.</Text>
+                  <Text
+                    style={{
+                      flex: 1,
+                      paddingLeft: 9,
+                      color: '#737880',
+                      fontSize: 17,
+                      fontFamily: 'CerebriSans-Regular'
+                    }}
+                  >
+                    Keep an offline backup of your password.
+                  </Text>
                 </View>
               </View>
 
@@ -266,7 +324,8 @@ class Register extends Component {
                   underlayColor="#4585f5"
                   onPress={() => {
                     this.setState({ registerStep: 3 });
-                  }}>
+                  }}
+                >
                   <Text style={styles.buttonOnLabel}>Continue</Text>
                 </TouchableHighlight>
               </View>
@@ -276,19 +335,23 @@ class Register extends Component {
       );
     }
 
-
     if (this.state.registerStep == 3) {
       return (
         <KeyboardAvoidingView behavior="padding" style={styles.container}>
-          <View style={[styles.containerCentered, this.state.isLoading ? { opacity: 0.5 } : {}]}>
+          <View
+            style={[
+              styles.containerCentered,
+              this.state.isLoading ? { opacity: 0.5 } : {}
+            ]}
+          >
             <View style={styles.containerHeader}>
               <View style={styles.headerContainer}>
                 <Image
                   style={styles.logo}
-                  source={require("../../../assets/images/logo.png")}
+                  source={require('../../../assets/images/logo.png')}
                 />
               </View>
-              <Text style={styles.title}>Create an X Cloud account</Text>
+              <Text style={styles.title}>Create an Internxt account</Text>
             </View>
             <View style={[styles.showInputFieldsWrapper, { marginTop: -10 }]}>
               <View style={styles.inputWrapper}>
@@ -296,7 +359,7 @@ class Register extends Component {
                   style={styles.input}
                   value={this.state.password}
                   onChangeText={value => this.setState({ password: value })}
-                  placeholder='Password'
+                  placeholder="Password"
                   placeholderTextColor="#666666"
                   secureTextEntry={true}
                   textContentType="password"
@@ -306,8 +369,10 @@ class Register extends Component {
                 <TextInput
                   style={styles.input}
                   value={this.state.confirmPassword}
-                  onChangeText={value => this.setState({ confirmPassword: value })}
-                  placeholder='Confirm password'
+                  onChangeText={value =>
+                    this.setState({ confirmPassword: value })
+                  }
+                  placeholder="Confirm password"
                   placeholderTextColor="#666666"
                   secureTextEntry={true}
                   textContentType="password"
@@ -319,21 +384,32 @@ class Register extends Component {
                 style={styles.button}
                 underlayColor="#4585f5"
                 onPress={() => {
+                  if (
+                    this.state.registerButtonClickedOnce ||
+                    this.state.isLoading
+                  ) {
+                    return;
+                  }
 
-                  if (this.state.registerButtonClickedOnce || this.state.isLoading) { return; }
-
-                  this.setState({ isLoading: true, registerButtonClickedOnce: true }, () => {
-                    if (this.isValidStep3()) {
-                      setTimeout(() => {
-                        this.doRegister();
-                      }, 1000)
-                    } else {
-                      this.setState({ isLoading: false });
+                  this.setState(
+                    { isLoading: true, registerButtonClickedOnce: true },
+                    () => {
+                      if (this.isValidStep3()) {
+                        setTimeout(() => {
+                          this.doRegister();
+                        }, 1000);
+                      } else {
+                        this.setState({ isLoading: false });
+                      }
                     }
-                  });
-
-                }}>
-                <Text style={styles.buttonOnLabel}>{this.state.isLoading ? 'Creating your account...' : 'Continue'}</Text>
+                  );
+                }}
+              >
+                <Text style={styles.buttonOnLabel}>
+                  {this.state.isLoading
+                    ? 'Creating your account...'
+                    : 'Continue'}
+                </Text>
               </TouchableHighlight>
             </View>
           </View>
@@ -349,17 +425,42 @@ class Register extends Component {
               <View style={styles.headerContainer}>
                 <Image
                   style={styles.logo}
-                  source={require("../../../assets/images/logo.png")}
+                  source={require('../../../assets/images/logo.png')}
                 />
               </View>
               <Text style={styles.title}>Activation Email</Text>
 
               <View>
-                <Text style={{ fontSize: 17, color: '#737880', fontFamily: 'CerebriSans-Regular', marginTop: -10 }}>Please check your email and follow the instructions to activate your account so you can start using X Cloud.</Text>
+                <Text
+                  style={{
+                    fontSize: 17,
+                    color: '#737880',
+                    fontFamily: 'CerebriSans-Regular',
+                    marginTop: -10
+                  }}
+                >
+                  Please check your email and follow the instructions to
+                  activate your account so you can start using Internxt Drive.
+                </Text>
               </View>
 
-              <View style={{ backgroundColor: '#f7f7f7', padding: 23, marginTop: 30 }}>
-                <Text style={{ color: '#737880', fontSize: 17, fontFamily: 'CerebriSans-Regular' }}>By creating an account, you are agreeing to our Terms &amp; Conditions and Privacy Policy.</Text>
+              <View
+                style={{
+                  backgroundColor: '#f7f7f7',
+                  padding: 23,
+                  marginTop: 30
+                }}
+              >
+                <Text
+                  style={{
+                    color: '#737880',
+                    fontSize: 17,
+                    fontFamily: 'CerebriSans-Regular'
+                  }}
+                >
+                  By creating an account, you are agreeing to our Terms &amp;
+                  Conditions and Privacy Policy.
+                </Text>
               </View>
 
               <View style={styles.buttonFooterWrapper}>
@@ -367,28 +468,50 @@ class Register extends Component {
                   style={[styles.button, { marginTop: 10 }]}
                   underlayColor="#4585f5"
                   onPress={() => {
-                    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/user/resend/${this.state.email.toLowerCase()}`, {
-                      method: 'GET'
-                    }).then(async res => {
-                      return { response: res, data: await res.json() };
-                    }).then(res => {
-                      if (res.response.status !== 200) {
-                        throw res.data;
-                      } else {
-                        Alert.alert(`Activation email sent to ${this.state.email}`)
+                    fetch(
+                      `${(process &&
+                        process.env &&
+                        process.env.REACT_APP_API_URL) ||
+                        'https://drive.internxt.com'}/api/user/resend/${this.state.email.toLowerCase()}`,
+                      {
+                        method: 'GET'
                       }
-                    }).catch(err => {
-                      Alert.alert(`Error: ${err.error ? err.error : 'Internal Server Error'}`);
-                    });
-                  }}>
-                  <Text style={styles.buttonOnLabel}>Re-send activation email</Text>
+                    )
+                      .then(async res => {
+                        return { response: res, data: await res.json() };
+                      })
+                      .then(res => {
+                        if (res.response.status !== 200) {
+                          throw res.data;
+                        } else {
+                          Alert.alert(
+                            `Activation email sent to ${this.state.email}`
+                          );
+                        }
+                      })
+                      .catch(err => {
+                        Alert.alert(
+                          `Error: ${
+                            err.error ? err.error : 'Internal Server Error'
+                          }`
+                        );
+                      });
+                  }}
+                >
+                  <Text style={styles.buttonOnLabel}>
+                    Re-send activation email
+                  </Text>
                 </TouchableHighlight>
-                <Text style={styles.link} onPress={() => this.props.goToForm('SIGNIN')}>Sign in</Text>
+                <Text
+                  style={styles.link}
+                  onPress={() => this.props.goToForm('SIGNIN')}
+                >
+                  Sign in
+                </Text>
               </View>
-
             </View>
           </View>
-        </View >
+        </View>
       );
     }
   }
@@ -415,52 +538,52 @@ const styles = StyleSheet.create({
     resizeMode: 'contain'
   },
   title: {
-    fontFamily: "CerebriSans-Bold",
+    fontFamily: 'CerebriSans-Bold',
     fontSize: 27,
     letterSpacing: -1.7,
-    color: "#000",
+    color: '#000',
     marginBottom: 35,
     marginTop: 20
   },
   subtitle: {
-    fontFamily: "CerebriSans-Medium",
+    fontFamily: 'CerebriSans-Medium',
     fontSize: 29,
-    color: "#fff",
+    color: '#fff',
     opacity: 0.76
   },
   buttonWrapper: {
-    display: "flex",
+    display: 'flex',
     flexDirection: 'row',
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 30
   },
   buttonFooterWrapper: {
     marginTop: 20
   },
   button: {
-    alignSelf: "stretch",
+    alignSelf: 'stretch',
     height: 60,
     borderRadius: 3.4,
-    backgroundColor: "#4585f5",
+    backgroundColor: '#4585f5',
     marginBottom: 10,
     alignItems: 'center',
     justifyContent: 'center'
   },
   buttonOn: {
-    alignSelf: "stretch",
+    alignSelf: 'stretch',
     height: 60,
     borderRadius: 3.4,
-    backgroundColor: "#4585f5",
+    backgroundColor: '#4585f5',
     paddingLeft: 30,
     paddingRight: 30,
     alignItems: 'center',
     justifyContent: 'center'
   },
   buttonOff: {
-    alignSelf: "stretch",
+    alignSelf: 'stretch',
     height: 60,
     borderRadius: 3.4,
-    backgroundColor: "#f2f2f2",
+    backgroundColor: '#f2f2f2',
     paddingLeft: 30,
     paddingRight: 30,
     marginRight: 10,
@@ -468,29 +591,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   buttonOnLabel: {
-    fontFamily: "CerebriSans-Medium",
+    fontFamily: 'CerebriSans-Medium',
     fontSize: 18,
-    textAlign: "center",
-    color: "#fff"
+    textAlign: 'center',
+    color: '#fff'
   },
   buttonOffLabel: {
-    fontFamily: "CerebriSans-Medium",
+    fontFamily: 'CerebriSans-Medium',
     fontSize: 18,
-    textAlign: "center",
-    color: "#5c5c5c"
+    textAlign: 'center',
+    color: '#5c5c5c'
   },
   redirectMessage: {
-    fontFamily: "CerebriSans-Medium",
+    fontFamily: 'CerebriSans-Medium',
     fontSize: 14,
     letterSpacing: 0.3,
-    color: "#fff",
+    color: '#fff',
     opacity: 0.6
   },
   input: {
-    fontFamily: "CerebriSans-Medium",
+    fontFamily: 'CerebriSans-Medium',
     letterSpacing: -0.2,
     fontSize: 17,
-    color: "#000",
+    color: '#000',
     flex: 1,
     paddingLeft: 20
   },
@@ -504,7 +627,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: "#c9c9c9",
+    borderColor: '#c9c9c9',
     justifyContent: 'center',
     marginBottom: 15
   },
@@ -523,4 +646,4 @@ const mapStateToProps = state => {
   };
 };
 
-export default (RegisterComposed = compose(connect(mapStateToProps))(Register));
+export default RegisterComposed = compose(connect(mapStateToProps))(Register);
