@@ -1,7 +1,7 @@
-import React, { Component } from "react";
-import { StyleSheet, View, TouchableHighlight, Image } from "react-native";
+import React, { Component } from 'react';
+import { StyleSheet, View, TouchableHighlight, Image } from 'react-native';
 
-import { getIcon } from "../../helpers";
+import { getIcon } from '../../helpers';
 
 class MenuItem extends Component {
   render() {
@@ -27,23 +27,23 @@ class MenuItem extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: "center",
-    backgroundColor: "#fff",
+    justifyContent: 'center',
+    backgroundColor: '#fff',
     marginRight: 10
   },
   button: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 48,
     height: 48,
     borderRadius: 25.5,
-    backgroundColor: "#f7f7f7"
+    backgroundColor: '#f7f7f7'
   },
   icon: {
     width: 25,
     height: 25,
-    resizeMode: "contain"
+    resizeMode: 'contain'
   }
 });
 

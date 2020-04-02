@@ -1,25 +1,25 @@
-import React, { Component } from "react";
+import React, { Component } from 'react';
 import {
   StyleSheet,
   View,
   TextInput,
   KeyboardAvoidingView,
   ScrollView
-} from "react-native";
-import { compose } from "redux";
-import { connect } from "react-redux";
-import { withNavigation } from "react-navigation";
+} from 'react-native';
+import { compose } from 'redux';
+import { connect } from 'react-redux';
+import { withNavigation } from 'react-navigation';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 
-import MenuItem from "../../components/AppMenu/MenuItem";
-import { fileActions } from "../../actions";
+import MenuItem from '../../components/AppMenu/MenuItem';
+import { fileActions } from '../../actions';
 
 class CreateFolder extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      value: "Untitled folder",
+      value: 'Untitled folder',
       parentFolderId: null
     };
 
@@ -29,7 +29,7 @@ class CreateFolder extends Component {
 
   UNSAFE_componentWillMount() {
     const { navigation } = this.props;
-    const parentFolderId = navigation.getParam("parentFolderId", "undefined");
+    const parentFolderId = navigation.getParam('parentFolderId', 'undefined');
 
     this.setState({ parentFolderId });
   }
@@ -37,12 +37,16 @@ class CreateFolder extends Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
     // When folderContent is updated with new folder data, go back to Home
     if (nextProps.filesState.folderContent.name === this.state.value) {
-      this.props.navigation.navigate("Home", { folderId: nextProps.filesState.folderContent.parentId });
+      this.props.navigation.navigate('Home', {
+        folderId: nextProps.filesState.folderContent.parentId
+      });
     }
   }
 
   onSave() {
-    const parentId = this.state.parentFolderId || this.props.authenticationState.user.root_folder_id
+    const parentId =
+      this.state.parentFolderId ||
+      this.props.authenticationState.user.root_folder_id;
     this.props.dispatch(fileActions.createFolder(parentId, this.state.value));
     this.props.navigation.goBack();
   }
@@ -105,28 +109,28 @@ class CreateFolder extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    display: "flex",
+    display: 'flex',
     flex: 1,
-    flexDirection: "column",
-    alignItems: "stretch",
-    backgroundColor: "#fff"
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    backgroundColor: '#fff'
   },
   actionsWrapper: {
     height: 51,
     marginTop: 35,
     paddingLeft: 20,
     paddingRight: 20,
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignSelf: "stretch"
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignSelf: 'stretch'
   },
   folderWrapper: {
-    display: "flex",
+    display: 'flex',
     flex: 1,
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center"
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   icon: {
     width: 219,
@@ -134,12 +138,12 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   input: {
-    fontFamily: "CircularStd-Bold",
+    fontFamily: 'CircularStd-Bold',
     letterSpacing: -0.2,
     fontSize: 23,
-    color: "#2c6bc9",
+    color: '#2c6bc9',
     width: 219,
-    textAlign: "center"
+    textAlign: 'center'
   }
 });
 
@@ -147,7 +151,7 @@ const mapStateToProps = state => {
   return { ...state };
 };
 
-export default (CreateFolderComposed = compose(
+export default CreateFolderComposed = compose(
   connect(mapStateToProps),
   withNavigation
-)(CreateFolder));
+)(CreateFolder);

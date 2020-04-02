@@ -1,10 +1,10 @@
-import React, { Component } from "react";
-import { createAppContainer } from "react-navigation";
-import { createStackNavigator } from "react-navigation-stack"
+import React, { Component } from 'react';
+import { createAppContainer } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
 
-import Home from "./screens/Home";
-import Auth from "./screens/Auth";
-import CreateFolder from "./screens/CreateFolder";
+import Home from './screens/Home';
+import Auth from './screens/Auth';
+import CreateFolder from './screens/CreateFolder';
 
 const routeConfig = {
   Home: { screen: Home },
@@ -13,8 +13,8 @@ const routeConfig = {
 };
 
 const navigatorOptions = {
-  initialRouteName: "Auth",
-  headerMode: "none"
+  initialRouteName: 'Auth',
+  headerMode: 'none'
 };
 
 const StackNav = createStackNavigator(routeConfig, navigatorOptions);

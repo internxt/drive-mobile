@@ -1,4 +1,4 @@
-import { deviceStorage, utils } from "../helpers";
+import { deviceStorage, utils } from '../helpers';
 
 const { REACT_APP_API_URL } = process && process.env;
 
@@ -16,17 +16,20 @@ function signin(email, password, sKey, twoFactorCode) {
     const hashObj = utils.passToHash({ password, salt });
     const encPass = utils.encryptText(hashObj.hash);
 
-    fetch(`${process && process.env && process.env.REACT_APP_API_URL}/api/access`, {
-      method: "POST",
-      headers: { "content-type": "application/json; charset=utf-8" },
-      body: JSON.stringify({
-        email,
-        password: encPass,
-        tfa: twoFactorCode
-      })
-    })
+    fetch(
+      `${process && process.env && process.env.REACT_APP_API_URL}/api/access`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json; charset=utf-8' },
+        body: JSON.stringify({
+          email,
+          password: encPass,
+          tfa: twoFactorCode
+        })
+      }
+    )
       .then(async response => {
-        return { response, data: await response.json() }
+        return { response, data: await response.json() };
       })
       .then(async response => {
         const body = response.data;
@@ -36,7 +39,9 @@ function signin(email, password, sKey, twoFactorCode) {
           const user = {
             userId: body.user.userId,
             email: email,
-            mnemonic: body.user.mnemonic ? utils.decryptTextWithKey(body.user.mnemonic, password) : null,
+            mnemonic: body.user.mnemonic
+              ? utils.decryptTextWithKey(body.user.mnemonic, password)
+              : null,
             root_folder_id: body.user.root_folder_id,
             storeMnemonic: body.user.storeMnemonic,
             name: body.user.name,
@@ -51,7 +56,8 @@ function signin(email, password, sKey, twoFactorCode) {
         } else {
           throw body.error ? body.error : 'Unkown error';
         }
-      }).catch(err => {
+      })
+      .catch(err => {
         reject(err);
       });
   });
@@ -71,16 +77,23 @@ async function signout() {
 
 function payment(token, stripePlan) {
   return new Promise((resolve, reject) => {
-    fetch(`${process && process.env && process.env.REACT_APP_API_URL}/api/buy`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        token: JSON.stringify(token),
-        plan: stripePlan
+    fetch(
+      `${process && process.env && process.env.REACT_APP_API_URL}/api/buy`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          token: JSON.stringify(token),
+          plan: stripePlan
+        })
+      }
+    )
+      .then(async response => {
+        const body = response.json();
+        resolve(body.message);
       })
-    }).then(async (response) => {
-      const body = response.json();
-      resolve(body.message);
-    }).catch((error) => { reject(error); });
-  })
+      .catch(error => {
+        reject(error);
+      });
+  });
 }

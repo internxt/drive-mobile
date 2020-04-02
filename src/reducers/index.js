@@ -1,9 +1,9 @@
-import { combineReducers } from "redux";
+import { combineReducers } from 'redux';
 
-import { authenticationReducer } from "./authentication.reducer";
-import { filesReducer } from "./files.reducer";
-import { layoutReducer } from "./layout.reducer";
-import { settingsReducer } from "./settings.reducer";
+import { authenticationReducer } from './authentication.reducer';
+import { filesReducer } from './files.reducer';
+import { layoutReducer } from './layout.reducer';
+import { settingsReducer } from './settings.reducer';
 
 const rootReducer = combineReducers({
   layoutState: layoutReducer,

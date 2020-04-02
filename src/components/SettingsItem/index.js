@@ -1,47 +1,50 @@
-import React, { Component } from "react";
-import { StyleSheet, View, TouchableHighlight, Text } from "react-native";
+import React, { Component } from 'react';
+import { StyleSheet, View, TouchableHighlight, Text } from 'react-native';
 
 class SettingsItem extends Component {
+  properties = {
+    onClick: null
+  };
 
-    properties = {
-        onClick: null
-    }
+  constructor(props) {
+    super(props);
+    this.properties.onClick = props.onClick;
+    this.handlePress = this.handlePress.bind(this);
+  }
 
-    constructor(props) {
-        super(props);
-        this.properties.onClick = props.onClick;
-        this.handlePress = this.handlePress.bind(this);
+  handlePress(e) {
+    if (this.properties.onClick) {
+      this.properties.onClick();
     }
+  }
 
-    handlePress(e) {
-        if (this.properties.onClick) {
-            this.properties.onClick();
-        }
-    }
-
-    render() {
-        return <TouchableHighlight underlayColor='#FFFFFF' style={styles.itemContainer} onPress={this.handlePress}>
-            <Text style={styles.itemText}>
-                {this.props.text}
-            </Text>
-        </TouchableHighlight>
-    }
+  render() {
+    return (
+      <TouchableHighlight
+        underlayColor="#FFFFFF"
+        style={styles.itemContainer}
+        onPress={this.handlePress}
+      >
+        <Text style={styles.itemText}>{this.props.text}</Text>
+      </TouchableHighlight>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
-    itemContainer: {
-        paddingTop: 13,
-        paddingBottom: 13,
-        paddingLeft: 24,
-        justifyContent: 'center'
-    },
-    itemText: {
-        fontFamily: 'CerebriSans-Bold',
-        fontSize: 19,
-        fontWeight: '500',
-        color: '#000000',
-        justifyContent: 'center'
-    }
+  itemContainer: {
+    paddingTop: 13,
+    paddingBottom: 13,
+    paddingLeft: 24,
+    justifyContent: 'center'
+  },
+  itemText: {
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 19,
+    fontWeight: '500',
+    color: '#000000',
+    justifyContent: 'center'
+  }
 });
 
 export default SettingsItem;

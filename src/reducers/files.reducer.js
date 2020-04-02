@@ -1,4 +1,4 @@
-import { fileActionTypes } from "../constants";
+import { fileActionTypes } from '../constants';
 
 const initialState = {
   loading: false,
@@ -60,26 +60,33 @@ export function filesReducer(state = initialState, action) {
 
     case fileActionTypes.SELECT_FILE:
       // Check if file object is already on selection list
-      let isAlreadySelected = state.selectedItems.filter(element => {
-        const elementIsFolder = !(element.fileId);
-        return elementIsFolder ? action.payload.id == element.id : action.payload.fileId == element.fileId
-      }).length > 0;
+      let isAlreadySelected =
+        state.selectedItems.filter(element => {
+          const elementIsFolder = !element.fileId;
+          return elementIsFolder
+            ? action.payload.id == element.id
+            : action.payload.fileId == element.fileId;
+        }).length > 0;
 
       return {
         ...state,
         selectedFile: action.payload,
-        selectedItems: isAlreadySelected ? state.selectedItems : [...state.selectedItems, action.payload]
+        selectedItems: isAlreadySelected
+          ? state.selectedItems
+          : [...state.selectedItems, action.payload]
       };
 
     case fileActionTypes.DESELECT_FILE:
       let removedItem = state.selectedItems.filter(element => {
-        const elementIsFolder = !(element.fileId);
-        return elementIsFolder ? action.payload.id != element.id : action.payload.fileId != element.fileId;
+        const elementIsFolder = !element.fileId;
+        return elementIsFolder
+          ? action.payload.id != element.id
+          : action.payload.fileId != element.fileId;
       });
       return {
         ...state,
         selectedItems: removedItem
-      }
+      };
 
     case fileActionTypes.DESELECT_ALL:
       return {
@@ -108,7 +115,7 @@ export function filesReducer(state = initialState, action) {
       return {
         ...state,
         searchString: action.payload
-      }
+      };
 
     case fileActionTypes.CREATE_FOLDER_REQUEST:
       return {
@@ -133,44 +140,44 @@ export function filesReducer(state = initialState, action) {
       return {
         ...state,
         loading: true
-      }
+      };
     case fileActionTypes.UPDATE_FOLDER_METADATA_SUCCESS:
       return {
         ...state,
         loading: false
-      }
+      };
     case fileActionTypes.UPDATE_FOLDER_METADATA_FAILURE:
       return {
         ...state,
         loading: false,
         error: action.payload
-      }
+      };
     case fileActionTypes.DOWNLOAD_SELECTED_FILE_START:
       return {
         ...state,
         startDownloadSelectedFile: true
-      }
+      };
     case fileActionTypes.DOWNLOAD_SELECTED_FILE_STOP:
       return {
         ...state,
         startDownloadSelectedFile: false
-      }
+      };
     case fileActionTypes.MOVE_FILES_REQUEST:
       return {
         ...state,
         loading: true
-      }
+      };
     case fileActionTypes.MOVE_FILES_SUCCESS:
       return {
         ...state,
         loading: false
-      }
+      };
     case fileActionTypes.MOVE_FILES_FAILURE:
       return {
         ...state,
         loading: false,
         error: action.payload
-      }
+      };
     default:
       return state;
   }

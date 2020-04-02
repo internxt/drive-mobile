@@ -1,12 +1,19 @@
-import React, { Component } from "react";
-import { compose } from "redux";
-import { connect } from "react-redux";
-import { ScrollView, View, Text, TouchableHighlight, StyleSheet, Image } from "react-native";
+import React, { Component } from 'react';
+import { compose } from 'redux';
+import { connect } from 'react-redux';
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableHighlight,
+  StyleSheet,
+  Image
+} from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
-import MoveItem from "../MoveItem";
-import Separator from "../Separator";
-import { fileService } from "../../services";
+import MoveItem from '../MoveItem';
+import Separator from '../Separator';
+import { fileService } from '../../services';
 import { getIcon } from '../../helpers';
 
 const iconArrowBack = getIcon('back');
@@ -19,7 +26,7 @@ class MoveList extends Component {
       folders: [],
       selectedFolder: null,
       parentId: null
-    }
+    };
   }
 
   async componentDidMount() {
@@ -27,7 +34,7 @@ class MoveList extends Component {
     this.loadFolder(this.props.folderId);
   }
 
-  loadFolder = async (folderId) => {
+  loadFolder = async folderId => {
     const data = await fileService.getFolderContent(folderId);
     this.setState({
       folders: data.children,
@@ -36,21 +43,23 @@ class MoveList extends Component {
         name: data.name
       },
       parentId: data.parentId
-    })
-  }
+    });
+  };
 
   render() {
     const { folders } = this.state;
     let content = null;
 
     if (folders.length > 0) {
-      content = (folders.map(folder => (
+      content = folders.map(folder => (
         <MoveItem
           key={folder.id}
           item={folder}
-          selectFolder={() => { this.loadFolder(folder.id); }} />
-      ))
-      );
+          selectFolder={() => {
+            this.loadFolder(folder.id);
+          }}
+        />
+      ));
     }
     return (
       <View style={[styles.container, this.props.style]}>
@@ -58,11 +67,30 @@ class MoveList extends Component {
           {content}
         </ScrollView>
         <View style={styles.buttonView}>
-          <TouchableHighlight style={[styles.button, { backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#c9c9c9" }]} onPress={() => { this.props.onMoveFile(-1) }}>
-            <Text style={[styles.buttonText, { color: "#5c5c5c" }]}>Cancel</Text>
+          <TouchableHighlight
+            style={[
+              styles.button,
+              {
+                backgroundColor: '#FFFFFF',
+                borderWidth: 1,
+                borderColor: '#c9c9c9'
+              }
+            ]}
+            onPress={() => {
+              this.props.onMoveFile(-1);
+            }}
+          >
+            <Text style={[styles.buttonText, { color: '#5c5c5c' }]}>
+              Cancel
+            </Text>
           </TouchableHighlight>
-          <TouchableHighlight style={[styles.button, { backgroundColor: "#4585f5" }]} onPress={() => { this.props.onMoveFile(this.state.selectedFolder.id) }}>
-            <Text style={[styles.buttonText, { color: "#FFFFFF" }]}>Move</Text>
+          <TouchableHighlight
+            style={[styles.button, { backgroundColor: '#4585f5' }]}
+            onPress={() => {
+              this.props.onMoveFile(this.state.selectedFolder.id);
+            }}
+          >
+            <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Move</Text>
           </TouchableHighlight>
         </View>
       </View>
@@ -72,12 +100,12 @@ class MoveList extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "column",
-    alignContent: "space-between"
+    flexDirection: 'column',
+    alignContent: 'space-between'
   },
   buttonView: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
     paddingTop: 9,
     paddingBottom: 5
   },
@@ -87,8 +115,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     width: wp('40%'),
     height: 53,
-    alignItems: "center",
-    justifyContent: "center"
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   buttonText: {
     fontFamily: 'CircularStd-Bold',
@@ -96,11 +124,11 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2
   },
   label: {
-    fontFamily: "CircularStd-Medium",
+    fontFamily: 'CircularStd-Medium',
     fontSize: 19,
     letterSpacing: -0.2,
-    alignSelf: "center",
-    color: "#6a6f75"
+    alignSelf: 'center',
+    color: '#6a6f75'
   },
   iconContainer: {
     marginRight: 15,
@@ -112,15 +140,15 @@ const styles = StyleSheet.create({
     width: 10
   },
   listHeader: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
     marginBottom: 10
   }
-})
+});
 
 const mapStateToProps = state => {
   return { ...state };
 };
 
-export default (MoveListComposed = compose(connect(mapStateToProps))(MoveList));
+export default MoveListComposed = compose(connect(mapStateToProps))(MoveList);

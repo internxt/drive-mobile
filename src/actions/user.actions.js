@@ -1,5 +1,5 @@
-import { userActionTypes } from "../constants";
-import { userService } from "../services";
+import { userActionTypes } from '../constants';
+import { userService } from '../services';
 
 export const userActions = {
   signin,
@@ -11,12 +11,13 @@ export const userActions = {
 
 function signin(email, password, sKey, twoFactorCode) {
   return dispatch => {
-
     dispatchRequest();
-    userService.signin(email, password, sKey, twoFactorCode)
+    userService
+      .signin(email, password, sKey, twoFactorCode)
       .then(userData => {
         dispatch(success(userData));
-      }).catch(error => {
+      })
+      .catch(error => {
         dispatch(failure(error));
       });
   };
@@ -24,7 +25,7 @@ function signin(email, password, sKey, twoFactorCode) {
   function dispatchRequest() {
     return dispatch => {
       dispatch(request());
-    }
+    };
   }
 
   function request() {
@@ -48,21 +49,22 @@ function signout() {
 }
 
 function localSignIn(token, user) {
-  const data = { token, user }
+  const data = { token, user };
   return { type: userActionTypes.LOCAL_SIGNIN, payload: data };
 }
 
 function payment(token, planId) {
   return dispatch => {
     dispatch(request());
-    userService.payment(token, planId)
+    userService
+      .payment(token, planId)
       .then(() => {
-        dispatch(success())
+        dispatch(success());
       })
-      .catch((error) => {
-        dispatch(failure(error))
-      })
-  }
+      .catch(error => {
+        dispatch(failure(error));
+      });
+  };
 
   function request() {
     return { type: userActionTypes.PAYMENT_REQUEST };

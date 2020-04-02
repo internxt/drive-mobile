@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import React, { Component, Fragment } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,19 +8,19 @@ import {
   Alert,
   TextInput,
   Platform
-} from "react-native";
-import { compose } from "redux";
-import { connect } from "react-redux";
+} from 'react-native';
+import { compose } from 'redux';
+import { connect } from 'react-redux';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import * as Permissions from 'expo-permissions';
 
-import MenuItem from "./MenuItem";
-import { getIcon } from "../../helpers";
-import { layoutActions, fileActions, userActions } from "../../actions";
-const arrowBack = getIcon("back");
-const searchIcon = getIcon("search");
-const closeIcon = getIcon("close");
+import MenuItem from './MenuItem';
+import { getIcon } from '../../helpers';
+import { layoutActions, fileActions, userActions } from '../../actions';
+const arrowBack = getIcon('back');
+const searchIcon = getIcon('search');
+const closeIcon = getIcon('close');
 
 class AppMenu extends Component {
   constructor(props) {
@@ -32,7 +32,6 @@ class AppMenu extends Component {
     this.downloadFile = this.props.downloadFile;
   }
 
-  
   UNSAFE_componentWillReceiveProps(newProps) {
     if (newProps.filesState.startDownloadSelectedFile) {
       this.props.dispatch(fileActions.downloadSelectedFileStop());
@@ -45,43 +44,59 @@ class AppMenu extends Component {
   }
 
   handleFolderCreate(parentFolderId) {
-    this.props.navigation.push("CreateFolder", { parentFolderId });
+    this.props.navigation.push('CreateFolder', { parentFolderId });
   }
 
   handleUpload = () => {
     Alert.alert('Select type of file', '', [
       {
-        text: 'Upload a document', onPress: async () => {
-          const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: false });
+        text: 'Upload a document',
+        onPress: async () => {
+          const result = await DocumentPicker.getDocumentAsync({
+            type: '*/*',
+            copyToCacheDirectory: false
+          });
           if (result.type !== 'cancel') this.uploadFile(result);
         }
-      }, {
-        text: 'Upload a picture', onPress: async () => {
-          const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+      },
+      {
+        text: 'Upload a picture',
+        onPress: async () => {
+          const { status } = await Permissions.askAsync(
+            Permissions.CAMERA_ROLL
+          );
           if (status === 'granted') {
-            const result = await ImagePicker.launchImageLibraryAsync()
+            const result = await ImagePicker.launchImageLibraryAsync();
             if (!result.cancelled) this.uploadFile(result);
           }
         }
-      }, {
-        text: 'Take a photo', onPress: async () => {
-          const { status } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
+      },
+      {
+        text: 'Take a photo',
+        onPress: async () => {
+          const { status } = await Permissions.askAsync(
+            Permissions.CAMERA,
+            Permissions.CAMERA_ROLL
+          );
           if (status === 'granted') {
             const result = await ImagePicker.launchCameraAsync();
             if (!result.cancelled) this.uploadFile(result);
           }
         }
-      }, {
-        text: 'Cancel', onPress: () => { }, style: 'destructive'
+      },
+      {
+        text: 'Cancel',
+        onPress: () => {},
+        style: 'destructive'
       }
     ]);
-  }
+  };
 
-  uploadFile = async (result) => {
+  uploadFile = async result => {
     try {
       const self = this;
       // Set name for pics/photos
-      if (!result.name) result.name = result.uri.split('/').pop()
+      if (!result.name) result.name = result.uri.split('/').pop();
 
       this.props.dispatch(fileActions.uploadFileStart(result.name));
 
@@ -96,69 +111,106 @@ class AppMenu extends Component {
       const mnemonic = this.props.authenticationState.user.mnemonic;
 
       const headers = {
-        "Authorization": `Bearer ${token}`,
-        "internxt-mnemonic": mnemonic,
-        "Content-type": "multipart/form-data"
+        Authorization: `Bearer ${token}`,
+        'internxt-mnemonic': mnemonic,
+        'Content-type': 'multipart/form-data'
       };
 
-      fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/storage/folder/${this.props.filesState.folderContent.currentFolder}/upload`, {
-        method: 'POST',
-        headers,
-        body
-      }).then(async resultFetch => {
-        if (resultFetch.status === 401) {
-          throw resultFetch
+      fetch(
+        `${(process && process.env && process.env.REACT_APP_API_URL) ||
+          'https://drive.internxt.com'}/api/storage/folder/${
+          this.props.filesState.folderContent.currentFolder
+        }/upload`,
+        {
+          method: 'POST',
+          headers,
+          body
         }
-        var data = await resultFetch.json();
-        return { res: resultFetch, data };
-      }).then(resultFetch => {
-        if (resultFetch.res.status == 402) {
-          this.props.dispatch(layoutActions.openRunOutStorageModal());
-        } else if (resultFetch.res.status == 201) {
-          self.props.dispatch(fileActions.getFolderContent(self.props.filesState.folderContent.currentFolder));
-        } else {
-          Alert.alert('Error', resultFetch.data.error ? resultFetch.data.error : 'Cannot upload file');
-        }
-        this.props.dispatch(fileActions.uploadFileFinished());
-      }).catch(errFetch => {
-        if (errFetch.status === 401) {
-          this.props.dispatch(userActions.signout())
+      )
+        .then(async resultFetch => {
+          if (resultFetch.status === 401) {
+            throw resultFetch;
+          }
+          var data = await resultFetch.json();
+          return { res: resultFetch, data };
+        })
+        .then(resultFetch => {
+          if (resultFetch.res.status == 402) {
+            this.props.dispatch(layoutActions.openRunOutStorageModal());
+          } else if (resultFetch.res.status == 201) {
+            self.props.dispatch(
+              fileActions.getFolderContent(
+                self.props.filesState.folderContent.currentFolder
+              )
+            );
+          } else {
+            Alert.alert(
+              'Error',
+              resultFetch.data.error
+                ? resultFetch.data.error
+                : 'Cannot upload file'
+            );
+          }
           this.props.dispatch(fileActions.uploadFileFinished());
-        } else {
-          this.props.dispatch(fileActions.uploadFileFinished());
-          Alert.alert('Error', 'Cannot upload file');  
-        }
-      });
+        })
+        .catch(errFetch => {
+          if (errFetch.status === 401) {
+            this.props.dispatch(userActions.signout());
+            this.props.dispatch(fileActions.uploadFileFinished());
+          } else {
+            this.props.dispatch(fileActions.uploadFileFinished());
+            Alert.alert('Error', 'Cannot upload file');
+          }
+        });
     } catch (error) {
       console.log('Error:', error);
       this.props.dispatch(fileActions.uploadFileFinished());
     }
-  }
+  };
 
   render() {
-    const { filesState: { folderContent }, layoutState } = this.props;
+    const {
+      filesState: { folderContent },
+      layoutState
+    } = this.props;
 
     let content = (
       <Fragment>
         <View style={styles.buttonContainer}>
           <View style={styles.commonButtons}>
-            <MenuItem name="search"
-              onClickHandler={() => this.props.dispatch(layoutActions.openSearch())} />
+            <MenuItem
+              name="search"
+              onClickHandler={() =>
+                this.props.dispatch(layoutActions.openSearch())
+              }
+            />
 
-            <MenuItem name="list"
-              onClickHandler={() => { this.props.dispatch(layoutActions.openSortModal()); }} />
+            <MenuItem
+              name="list"
+              onClickHandler={() => {
+                this.props.dispatch(layoutActions.openSortModal());
+              }}
+            />
 
-            <MenuItem name="upload"
-              onClickHandler={this.handleUpload} />
+            <MenuItem name="upload" onClickHandler={this.handleUpload} />
 
-            <MenuItem name="create"
-              onClickHandler={() => this.handleFolderCreate(folderContent.id)} />
+            <MenuItem
+              name="create"
+              onClickHandler={() => this.handleFolderCreate(folderContent.id)}
+            />
 
-            {this.props.filesState.selectedItems.length > 0 ? <MenuItem name="delete" onClickHandler={this.props.deleteItems} /> : <View></View>}
-
+            {this.props.filesState.selectedItems.length > 0 ? (
+              <MenuItem name="delete" onClickHandler={this.props.deleteItems} />
+            ) : (
+              <View></View>
+            )}
           </View>
-          <MenuItem name="settings"
-            onClickHandler={() => { this.props.dispatch(layoutActions.openSettings()); }} />
+          <MenuItem
+            name="settings"
+            onClickHandler={() => {
+              this.props.dispatch(layoutActions.openSettings());
+            }}
+          />
         </View>
       </Fragment>
     );
@@ -175,7 +227,9 @@ class AppMenu extends Component {
           <View style={styles.breadcrumbs}>
             <Image style={styles.icon} source={arrowBack} />
             <Text style={styles.breadcrumbsLabel}>{name}</Text>
-            <View style={{ borderBottomWidth: 1, borderBottomColor: '#f2f2f2' }}></View>
+            <View
+              style={{ borderBottomWidth: 1, borderBottomColor: '#f2f2f2' }}
+            ></View>
           </View>
         </TouchableHighlight>
       );
@@ -184,19 +238,32 @@ class AppMenu extends Component {
     if (layoutState.searchActive) {
       content = (
         <View style={styles.searchContainer}>
-          <Image style={{ marginLeft: 20, marginRight: 10 }} source={searchIcon} />
-          <TextInput style={styles.searchInput}
-            placeholder="Search"
-            onChange={(e) => this.props.dispatch(fileActions.setSearchString(e.nativeEvent.text))}
+          <Image
+            style={{ marginLeft: 20, marginRight: 10 }}
+            source={searchIcon}
           />
-          <TouchableHighlight onPress={() => {
-            this.props.dispatch(fileActions.setSearchString(''));
-            this.props.dispatch(layoutActions.closeSearch())
-          }}>
-            <Image style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }} source={closeIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search"
+            onChange={e =>
+              this.props.dispatch(
+                fileActions.setSearchString(e.nativeEvent.text)
+              )
+            }
+          />
+          <TouchableHighlight
+            onPress={() => {
+              this.props.dispatch(fileActions.setSearchString(''));
+              this.props.dispatch(layoutActions.closeSearch());
+            }}
+          >
+            <Image
+              style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }}
+              source={closeIcon}
+            />
           </TouchableHighlight>
         </View>
-      )
+      );
     }
 
     return <View style={styles.container}>{content}</View>;
@@ -205,20 +272,20 @@ class AppMenu extends Component {
 
 const styles = StyleSheet.create({
   buttonContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     flex: 1,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
     marginLeft: 17,
     marginRight: 10
   },
   commonButtons: {
-    flexDirection: "row"
+    flexDirection: 'row'
   },
   container: {
     height: 54,
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    backgroundColor: "#fff",
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    backgroundColor: '#fff',
     paddingTop: 3,
     marginTop: Platform.OS === 'ios' ? 30 : 0
   },
@@ -226,33 +293,33 @@ const styles = StyleSheet.create({
     flex: 1
   },
   breadcrumbs: {
-    position: "relative",
+    position: 'relative',
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center"
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   breadcrumbsLabel: {
-    fontFamily: "CircularStd-Bold",
+    fontFamily: 'CircularStd-Bold',
     fontSize: 21,
     letterSpacing: -0.2,
-    color: "#000000"
+    color: '#000000'
   },
   icon: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     top: 17,
     width: 10,
     height: 17,
-    resizeMode: "contain"
+    resizeMode: 'contain'
   },
   searchContainer: {
-    position: "relative",
+    position: 'relative',
     flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#f7f7f7",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f7f7f7',
     marginLeft: 20,
     marginRight: 20,
     borderRadius: 30
@@ -260,7 +327,7 @@ const styles = StyleSheet.create({
   searchInput: {
     marginLeft: 15,
     marginRight: 15,
-    fontFamily: "CerebriSans-Medium",
+    fontFamily: 'CerebriSans-Medium',
     fontSize: 17,
     flex: 1
   }
@@ -272,4 +339,4 @@ const mapStateToProps = state => {
   };
 };
 
-export default (AppMenuComposed = compose(connect(mapStateToProps))(AppMenu));
+export default AppMenuComposed = compose(connect(mapStateToProps))(AppMenu);

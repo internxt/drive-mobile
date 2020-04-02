@@ -1,4 +1,4 @@
-import { userActionTypes } from "../constants";
+import { userActionTypes } from '../constants';
 
 const initialState = {
   loading: false,

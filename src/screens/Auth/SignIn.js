@@ -1,6 +1,6 @@
-import React, { Component } from "react";
-import { compose } from "redux";
-import { connect } from "react-redux";
+import React, { Component } from 'react';
+import { compose } from 'redux';
+import { connect } from 'react-redux';
 import {
   StyleSheet,
   Text,
@@ -10,9 +10,9 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView
-} from "react-native";
+} from 'react-native';
 
-import { utils } from './../../helpers'
+import { utils } from './../../helpers';
 
 class SignIn extends Component {
   constructor() {
@@ -33,24 +33,24 @@ class SignIn extends Component {
     // Validate pass
     let passValid = this.state.pasword.length >= 5;
 
-    return (emailValid && passValid);
-  }
+    return emailValid && passValid;
+  };
 
-  validateTwoFactorCode = (code) => {
+  validateTwoFactorCode = code => {
     if (code) {
       return /^[0-9]{6}$/.test(code);
-    }
-    else {
+    } else {
       return /^[0-9]{6}$/.test(this.state.twoFactorCode);
     }
-  }
+  };
 
   check2FA = () => {
+    console.log('Check 2fa start');
     if (this.state.isLoading) {
       return;
     }
 
-    this.setState({ isLoading: true })
+    this.setState({ isLoading: true });
 
     if (!this.validateForm()) {
       console.log('Form not filled');
@@ -64,43 +64,58 @@ class SignIn extends Component {
       return;
     }
 
-    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/login`, {
+    const urlToFetch = `${(process &&
+      process.env &&
+      process.env.REACT_APP_API_URL) ||
+      'https://drive.internxt.com'}/api/login`;
+    console.log('url to fetch', urlToFetch);
+    fetch(urlToFetch, {
       method: 'POST',
       headers: {
-        "content-type": "application/json; charset=utf-8"
+        'content-type': 'application/json; charset=utf-8'
       },
       body: JSON.stringify({ email: this.state.email })
     })
       .then(async res => {
-        return { res, data: await res.json() }
+        return { res, data: await res.json() };
       })
       .then(async res => {
         if (res.res.status === 200) {
           // Manage login depending on 2FA activated or not
           if (!res.data.tfa || this.state.showTwoFactor) {
-            console.log('2FA not needed or already established, performing regular login...');
+            console.log(
+              '2FA not needed or already established, performing regular login...'
+            );
 
             // Check initialization
             try {
               const salt = utils.decryptText(res.data.sKey);
-              const hashObj = utils.passToHash({ password: this.state.pasword, salt });
+              const hashObj = utils.passToHash({
+                password: this.state.pasword,
+                salt
+              });
               const encPass = utils.encryptText(hashObj.hash);
 
-              fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/access`, {
-                method: "POST",
-                headers: {
-                  "content-type": "application/json; charset=utf-8"
-                },
-                body: JSON.stringify({
-                  email: this.state.email,
-                  password: encPass,
-                  tfa: this.state.twoFactorCode
-                })
-              })
+              fetch(
+                `${(process && process.env && process.env.REACT_APP_API_URL) ||
+                  'https://drive.internxt.com'}/api/access`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'content-type': 'application/json; charset=utf-8',
+                    ghfdgsdfgfhjfdgsfdghj: 'x-cloud-mobile'
+                  },
+                  body: JSON.stringify({
+                    email: this.state.email,
+                    password: encPass,
+                    tfa: this.state.twoFactorCode
+                  })
+                }
+              )
                 .then(async response => {
-                  return { response, data: await response.json() }
-                }).then(resp => {
-
+                  return { response, data: await response.json() };
+                })
+                .then(resp => {
                   if (resp.data.error) {
                     Alert.alert('Login failed', resp.data.error);
                     this.setState({ isLoading: false });
@@ -109,35 +124,53 @@ class SignIn extends Component {
                     // No root folder, create one
 
                     const mnemonicEncrypted = resp.data.user.mnemonic;
-                    const mnemonicDecrypted = utils.decryptTextWithKey(mnemonicEncrypted, this.state.pasword);
+                    const mnemonicDecrypted = utils.decryptTextWithKey(
+                      mnemonicEncrypted,
+                      this.state.pasword
+                    );
 
-                    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/initialize`, {
-                      method: 'POST',
-                      headers: {
-                        "Authorization": `Bearer ${resp.data.token}`,
-                        "internxt-mnemonic": mnemonicDecrypted,
-                        "Content-type": "application/json"
-                      },
-                      body: JSON.stringify({
-                        email: this.state.email,
-                        mnemonic: mnemonicDecrypted
+                    fetch(
+                      `${(process &&
+                        process.env &&
+                        process.env.REACT_APP_API_URL) ||
+                        'https://drive.internxt.com'}/api/initialize`,
+                      {
+                        method: 'POST',
+                        headers: {
+                          Authorization: `Bearer ${resp.data.token}`,
+                          'internxt-mnemonic': mnemonicDecrypted,
+                          'Content-type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          email: this.state.email,
+                          mnemonic: mnemonicDecrypted
+                        })
+                      }
+                    )
+                      .then(respFinal => {
+                        this.props.onSignInClick(
+                          this.state.email,
+                          this.state.pasword,
+                          res.data.sKey,
+                          this.state.twoFactorCode
+                        );
                       })
-                    }).then(respFinal => {
-                      this.props.onSignInClick(this.state.email, this.state.pasword, res.data.sKey, this.state.twoFactorCode);
-                    }).catch(err => {
-                      console.log('Error initializing user', err)
-                      Alert.alert('Error initilizing account')
-                    })
-
+                      .catch(err => {
+                        console.log('Error initializing user', err);
+                        Alert.alert('Error initilizing account');
+                      });
                   } else {
-                    this.props.onSignInClick(this.state.email, this.state.pasword, res.data.sKey, this.state.twoFactorCode);
+                    this.props.onSignInClick(
+                      this.state.email,
+                      this.state.pasword,
+                      res.data.sKey,
+                      this.state.twoFactorCode
+                    );
                   }
-                })
-
+                });
             } catch (error) {
               console.log('CHECK INITIALIZATION ERROR', error);
             }
-
           } else {
             // 2FA login
             console.log('Need 2FA code to login');
@@ -147,12 +180,13 @@ class SignIn extends Component {
           // Error on login (Propagate exception to show alert on catch block)
           throw { error: res.data.error ? res.data.error : 'Internal error' };
         }
-      }).catch(err => {
+      })
+      .catch(err => {
         console.log('check2FA', err);
         Alert.alert('Login failed', err.error);
         this.setState({ isLoading: false });
       });
-  }
+  };
 
   UNSAFE_componentWillReceiveProps(newProps) {
     if (newProps.authenticationState.error) {
@@ -163,31 +197,49 @@ class SignIn extends Component {
   render() {
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
-        <View style={[styles.containerCentered, this.state.isLoading ? { opacity: 0.5 } : {}]}>
+        <View
+          style={[
+            styles.containerCentered,
+            this.state.isLoading ? { opacity: 0.5 } : {}
+          ]}
+        >
           <View style={styles.containerHeader}>
             <View>
               <Image
                 style={styles.logo}
-                source={require("../../../assets/images/logo.png")}
+                source={require('../../../assets/images/logo.png')}
               />
             </View>
-            <Text style={styles.title}>Sign in to X Cloud</Text>
+            <Text style={styles.title}>Sign in to Internxt</Text>
             <View style={styles.buttonWrapper}>
-              <TouchableHighlight style={styles.buttonOn} underlayColor="#00aaff">
+              <TouchableHighlight
+                style={styles.buttonOn}
+                underlayColor="#00aaff"
+              >
                 <Text style={styles.buttonOnLabel}>Sign in</Text>
               </TouchableHighlight>
-              <TouchableHighlight style={styles.buttonOff} underlayColor="#00aaff" onPress={() => this.props.goToForm('REGISTER')}>
+              <TouchableHighlight
+                style={styles.buttonOff}
+                underlayColor="#00aaff"
+                onPress={() => this.props.goToForm('REGISTER')}
+              >
                 <Text style={styles.buttonOffLabel}>Create account</Text>
               </TouchableHighlight>
             </View>
           </View>
-          <View style={this.state.showTwoFactor ? styles.hideInputFieldWrapper : styles.showInputFieldsWrapper}>
+          <View
+            style={
+              this.state.showTwoFactor
+                ? styles.hideInputFieldWrapper
+                : styles.showInputFieldsWrapper
+            }
+          >
             <View style={styles.inputWrapper}>
               <TextInput
                 style={styles.input}
                 value={this.state.email}
                 onChangeText={value => this.setState({ email: value })}
-                placeholder='Email address'
+                placeholder="Email address"
                 placeholderTextColor="#666666"
                 maxLength={64}
                 keyboardType="email-address"
@@ -199,14 +251,20 @@ class SignIn extends Component {
                 style={styles.input}
                 value={this.state.pasword}
                 onChangeText={value => this.setState({ pasword: value })}
-                placeholder='Password'
+                placeholder="Password"
                 placeholderTextColor="#666666"
                 secureTextEntry={true}
                 textContentType="password"
               />
             </View>
           </View>
-          <View style={this.state.showTwoFactor ? styles.showInputFieldsWrapper : styles.hideInputFieldWrapper}>
+          <View
+            style={
+              this.state.showTwoFactor
+                ? styles.showInputFieldsWrapper
+                : styles.hideInputFieldWrapper
+            }
+          >
             <View style={styles.inputWrapper}>
               <TextInput
                 style={styles.input}
@@ -216,27 +274,36 @@ class SignIn extends Component {
                     if (this.validateTwoFactorCode(value)) {
                       this.check2FA();
                     }
-                  })
+                  });
                 }}
-                placeholder='Two-factor code'
+                placeholder="Two-factor code"
                 placeholderTextColor="#666666"
                 maxLength={64}
                 keyboardType="numeric"
-                textContentType="none" />
+                textContentType="none"
+              />
             </View>
           </View>
           <View style={styles.buttonFooterWrapper}>
             <TouchableHighlight
               style={styles.button}
               underlayColor="#4585f5"
-              onPress={this.check2FA}>
-              <Text style={styles.buttonOnLabel}>{this.state.isLoading ? 'Loading...' : 'Sign in'}</Text>
+              onPress={this.check2FA}
+            >
+              <Text style={styles.buttonOnLabel}>
+                {this.state.isLoading ? 'Decrypting...' : 'Sign in'}
+              </Text>
             </TouchableHighlight>
+            <Text
+              style={styles.forgotPasswordText}
+              onPress={() => this.props.goToForm('FORGOT')}
+            >
+              Forgot your password?
+            </Text>
           </View>
         </View>
-        <Text style={styles.versionLabel}>X Cloud, by Internxt v1.1.1.2</Text>
+        <Text style={styles.versionLabel}>Internxt Drive v1.1.1.2</Text>
       </KeyboardAvoidingView>
-
     );
   }
 }
@@ -254,62 +321,61 @@ const styles = StyleSheet.create({
     width: 325,
     height: 600
   },
-  containerHeader: {
-  },
+  containerHeader: {},
   logo: {
     aspectRatio: 1.3,
     resizeMode: 'contain'
   },
   title: {
-    fontFamily: "CerebriSans-Bold",
+    fontFamily: 'CerebriSans-Bold',
     fontSize: 27,
     letterSpacing: -1.7,
-    color: "#000",
+    color: '#000',
     marginBottom: 35,
     marginTop: 20
   },
   subtitle: {
-    fontFamily: "CerebriSans-Medium",
+    fontFamily: 'CerebriSans-Medium',
     fontSize: 29,
-    color: "#fff",
+    color: '#fff',
     opacity: 0.76
   },
   buttonWrapper: {
-    display: "flex",
+    display: 'flex',
     flexDirection: 'row',
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 30
   },
   buttonFooterWrapper: {
     marginTop: 20
   },
   button: {
-    alignSelf: "stretch",
+    alignSelf: 'stretch',
     height: 60,
     borderRadius: 3.4,
-    backgroundColor: "#4585f5",
+    backgroundColor: '#4585f5',
     marginBottom: 10,
     alignItems: 'center',
     justifyContent: 'center'
   },
   buttonDisabled: {
-    backgroundColor: "#f2f2f2",
+    backgroundColor: '#f2f2f2'
   },
   buttonOn: {
-    alignSelf: "stretch",
+    alignSelf: 'stretch',
     height: 60,
     borderRadius: 3.4,
-    backgroundColor: "#4585f5",
+    backgroundColor: '#4585f5',
     paddingLeft: 30,
     paddingRight: 30,
     alignItems: 'center',
     justifyContent: 'center'
   },
   buttonOff: {
-    alignSelf: "stretch",
+    alignSelf: 'stretch',
     height: 60,
     borderRadius: 3.4,
-    backgroundColor: "#f2f2f2",
+    backgroundColor: '#f2f2f2',
     paddingLeft: 30,
     paddingRight: 30,
     marginLeft: 10,
@@ -318,29 +384,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   buttonOnLabel: {
-    fontFamily: "CerebriSans-Medium",
+    fontFamily: 'CerebriSans-Medium',
     fontSize: 18,
-    textAlign: "center",
-    color: "#fff"
+    textAlign: 'center',
+    color: '#fff'
   },
   buttonOffLabel: {
-    fontFamily: "CerebriSans-Medium",
+    fontFamily: 'CerebriSans-Medium',
     fontSize: 18,
-    textAlign: "center",
-    color: "#5c5c5c"
+    textAlign: 'center',
+    color: '#5c5c5c'
   },
   redirectMessage: {
-    fontFamily: "CerebriSans-Medium",
+    fontFamily: 'CerebriSans-Medium',
     fontSize: 14,
     letterSpacing: 0.3,
-    color: "#fff",
+    color: '#fff',
     opacity: 0.6
   },
   input: {
-    fontFamily: "CerebriSans-Medium",
+    fontFamily: 'CerebriSans-Medium',
     letterSpacing: -0.2,
     fontSize: 17,
-    color: "#000",
+    color: '#000',
     flex: 1,
     paddingLeft: 20
   },
@@ -354,14 +420,18 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: "#c9c9c9",
+    borderColor: '#c9c9c9',
     justifyContent: 'center',
     marginBottom: 15
   },
   versionLabel: {
-    fontFamily: "CerebriSans-Regular",
-    alignSelf: "center",
-    color: "#999999"
+    fontFamily: 'CerebriSans-Regular',
+    alignSelf: 'center',
+    color: '#999999'
+  },
+  forgotPasswordText: {
+    marginTop: 15,
+    color: '#a4a4a4'
   }
 });
 
@@ -371,4 +441,4 @@ const mapStateToProps = state => {
   };
 };
 
-export default (SignInComposed = compose(connect(mapStateToProps))(SignIn));
+export default SignInComposed = compose(connect(mapStateToProps))(SignIn);

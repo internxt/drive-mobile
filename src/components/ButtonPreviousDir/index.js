@@ -1,24 +1,24 @@
-import React, { Component } from "react";
-import { compose } from "redux";
-import { connect } from "react-redux";
+import React, { Component } from 'react';
+import { compose } from 'redux';
+import { connect } from 'react-redux';
 import {
   StyleSheet,
   View,
   Text,
   TouchableHighlight,
   Image
-} from "react-native";
-import { withNavigation } from "react-navigation";
+} from 'react-native';
+import { withNavigation } from 'react-navigation';
 
-import { fileActions } from "../../actions";
-import { getIcon } from "../../helpers";
+import { fileActions } from '../../actions';
+import { getIcon } from '../../helpers';
 
 class ButtonPreviousDir extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      iconArrowBack: getIcon("back")
+      iconArrowBack: getIcon('back')
     };
     this.goBack = this.goBack.bind(this);
   }
@@ -35,7 +35,8 @@ class ButtonPreviousDir extends Component {
       <TouchableHighlight
         style={styles.button}
         underlayColor="#FFF"
-        onPress={this.goBack}>
+        onPress={this.goBack}
+      >
         <View style={styles.buttonWrapper}>
           <Image style={styles.icon} source={this.state.iconArrowBack} />
           <Text style={styles.label}>Back</Text>
@@ -48,9 +49,9 @@ class ButtonPreviousDir extends Component {
 const styles = StyleSheet.create({
   button: {},
   buttonWrapper: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
     marginRight: 20
   },
   icon: {
@@ -59,10 +60,10 @@ const styles = StyleSheet.create({
     marginRight: 5
   },
   label: {
-    fontFamily: "CircularStd-Medium",
+    fontFamily: 'CircularStd-Medium',
     fontSize: 19,
     letterSpacing: -0.2,
-    color: "#000000"
+    color: '#000000'
   }
 });
 
@@ -72,7 +73,7 @@ const mapStateToProps = state => {
   };
 };
 
-export default (ButtonPreviousDirComposed = compose(
+export default ButtonPreviousDirComposed = compose(
   connect(mapStateToProps),
   withNavigation
-)(ButtonPreviousDir));
+)(ButtonPreviousDir);

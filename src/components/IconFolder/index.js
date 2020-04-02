@@ -1,8 +1,8 @@
-import React, { Component } from "react";
-import { StyleSheet, View } from "react-native";
+import React, { Component } from 'react';
+import { StyleSheet, View } from 'react-native';
 import Svg, { Path, LinearGradient, Defs, Stop } from 'react-native-svg';
 
-import { colors } from "../../constants";
+import { colors } from '../../constants';
 
 class IconFolder extends Component {
   render() {

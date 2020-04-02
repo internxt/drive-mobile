@@ -1,18 +1,23 @@
-const CryptoJS = require('crypto-js')
+const CryptoJS = require('crypto-js');
 
 // Method to hash password. If salt is passed, use it, in other case use crypto lib for generate salt
 function passToHash(passObject) {
-  console.log('# passToHash')
+  console.log('# passToHash');
   try {
-    const salt = passObject.salt ? CryptoJS.enc.Hex.parse(passObject.salt) : CryptoJS.lib.WordArray.random(128 / 8);
-    const hash = CryptoJS.PBKDF2(passObject.password, salt, { keySize: 256 / 32, iterations: 10000 });
+    const salt = passObject.salt
+      ? CryptoJS.enc.Hex.parse(passObject.salt)
+      : CryptoJS.lib.WordArray.random(128 / 8);
+    const hash = CryptoJS.PBKDF2(passObject.password, salt, {
+      keySize: 256 / 32,
+      iterations: 10000
+    });
     const hashedObjetc = {
       salt: salt.toString(),
       hash: hash.toString()
-    }
+    };
     return hashedObjetc;
   } catch (error) {
-    console.log('Error in pass to hash')
+    console.log('Error in pass to hash');
     throw new Error(error);
   }
 }
@@ -44,7 +49,10 @@ function encryptTextWithKey(textToEncrypt, keyToEncrypt) {
 function decryptTextWithKey(encryptedText, keyToDecrypt) {
   try {
     const reb = CryptoJS.enc.Hex.parse(encryptedText);
-    const bytes = CryptoJS.AES.decrypt(reb.toString(CryptoJS.enc.Base64), keyToDecrypt);
+    const bytes = CryptoJS.AES.decrypt(
+      reb.toString(CryptoJS.enc.Base64),
+      keyToDecrypt
+    );
     return bytes.toString(CryptoJS.enc.Utf8);
   } catch (error) {
     throw new Error(error);
@@ -53,34 +61,41 @@ function decryptTextWithKey(encryptedText, keyToDecrypt) {
 
 // Method to remove accents and other special characters from string
 function removeAccents(string) {
-  const accents = 'ÀÁÂÃÄÅĄĀāàáâãäåąßÒÓÔÕÕÖØŐòóôőõöøĎďDŽdžÈÉÊËĘèéêëęðÇçČčĆćÐÌÍÎÏĪìíîïīÙÚÛÜŰùűúûüĽĹŁľĺłÑŇŃňñńŔŕŠŚŞšśşŤťŸÝÿýŽŻŹžżźđĢĞģğ';
-  const accentsOut = 'AAAAAAAAaaaaaaaasOOOOOOOOoooooooDdDZdzEEEEEeeeeeeCcCcCcDIIIIIiiiiiUUUUUuuuuuLLLlllNNNnnnRrSSSsssTtYYyyZZZzzzdGGgg';
+  const accents =
+    'ÀÁÂÃÄÅĄĀāàáâãäåąßÒÓÔÕÕÖØŐòóôőõöøĎďDŽdžÈÉÊËĘèéêëęðÇçČčĆćÐÌÍÎÏĪìíîïīÙÚÛÜŰùűúûüĽĹŁľĺłÑŇŃňñńŔŕŠŚŞšśşŤťŸÝÿýŽŻŹžżźđĢĞģğ';
+  const accentsOut =
+    'AAAAAAAAaaaaaaaasOOOOOOOOoooooooDdDZdzEEEEEeeeeeeCcCcCcDIIIIIiiiiiUUUUUuuuuuLLLlllNNNnnnRrSSSsssTtYYyyZZZzzzdGGgg';
   return string
-    .split("")
+    .split('')
     .map((letter, index) => {
       const accentIndex = accents.indexOf(letter);
       return accentIndex !== -1 ? accentsOut[accentIndex] : letter;
     })
-    .join("");
+    .join('');
 }
 
 // Method to short url with Kutt.it service
 async function shortUrl(url) {
   try {
-    const result = await fetch(`${process && process.env && process.env.REACT_APP_SHORTER_API_URL}`, {
-      method: 'POST',
-      headers: {  
-        'x-api-key': `${process && process.env && process.env.REACT_APP_SHORTER_API_KEY}`,
-        'Content-type': "application/json"
-      },
-      body: JSON.stringify({
-        "target": `${url}`,
-        "reuse": "false"
-      })
-    });
+    const result = await fetch(
+      `${process && process.env && process.env.REACT_APP_SHORTER_API_URL}`,
+      {
+        method: 'POST',
+        headers: {
+          'x-api-key': `${process &&
+            process.env &&
+            process.env.REACT_APP_SHORTER_API_KEY}`,
+          'Content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          target: `${url}`,
+          reuse: 'false'
+        })
+      }
+    );
     const resultData = await result.json();
     return resultData.shortUrl;
-  } catch(error) {
+  } catch (error) {
     console.log(`Error on url shorting`);
     console.log('shortUrl', error);
   }
@@ -88,16 +103,22 @@ async function shortUrl(url) {
 
 function getNewBits() {
   return new Promise((resolve, reject) => {
-    fetch(`${process && process.env && process.env.REACT_APP_API_URL || 'https://cloud.internxt.com'}/api/bits`, {
-    }).then(async res => {
-      return { res, data: await res.json() }
-    }).then(res => {
-      const decrypt = this.decryptText(res.data.bits)
-      resolve(decrypt)
-    }).catch(err => {
-      reject(err)
-    })
-  })
+    fetch(
+      `${(process && process.env && process.env.REACT_APP_API_URL) ||
+        'https://drive.internxt.com'}/api/bits`,
+      {}
+    )
+      .then(async res => {
+        return { res, data: await res.json() };
+      })
+      .then(res => {
+        const decrypt = this.decryptText(res.data.bits);
+        resolve(decrypt);
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
 }
 
 export const utils = {
@@ -109,4 +130,4 @@ export const utils = {
   removeAccents,
   shortUrl,
   getNewBits
-}
+};

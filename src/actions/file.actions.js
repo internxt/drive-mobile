@@ -1,6 +1,6 @@
-import { fileActionTypes } from "../constants";
-import { fileService } from "../services";
-import { userActions } from './user.actions'
+import { fileActionTypes } from '../constants';
+import { fileService } from '../services';
+import { userActions } from './user.actions';
 
 export const fileActions = {
   downloadFile,
@@ -27,7 +27,7 @@ function downloadSelectedFileStart() {
 }
 
 function downloadSelectedFileStop() {
-  return { type: fileActionTypes.DOWNLOAD_SELECTED_FILE_STOP }
+  return { type: fileActionTypes.DOWNLOAD_SELECTED_FILE_STOP };
 }
 
 // TODO: Will download the file specified in the parameters.
@@ -35,27 +35,29 @@ function downloadFile(user, file) {
   return dispatch => {
     dispatch(request());
 
-    fileService.downloadFile(user, file)
-      .then((result) => {
+    fileService
+      .downloadFile(user, file)
+      .then(result => {
         dispatch(success(result));
-      }).catch((error) => {
-        dispatch(failure(error));
       })
-  }
+      .catch(error => {
+        dispatch(failure(error));
+      });
+  };
 
   function request() {
-    return { type: fileActionTypes.ADD_FILE_REQUEST }
+    return { type: fileActionTypes.ADD_FILE_REQUEST };
   }
   function success(payload) {
-    return { type: fileActionTypes.ADD_FILE_SUCCESS }
+    return { type: fileActionTypes.ADD_FILE_SUCCESS };
   }
   function failure(error) {
-    return { type: fileActionTypes.ADD_FILE_FAILURE, error }
+    return { type: fileActionTypes.ADD_FILE_FAILURE, error };
   }
 }
 
 function uploadFileStart(fileName) {
-  return { type: fileActionTypes.ADD_FILE_REQUEST, payload: fileName }
+  return { type: fileActionTypes.ADD_FILE_REQUEST, payload: fileName };
 }
 
 function uploadFileFinished() {
@@ -71,12 +73,13 @@ function getFolderContent(folderId) {
   if (isNaN(id)) {
     return dispatch => {
       dispatch(failure(`Folder ID: "${folderId}" is not a number.`));
-    }
+    };
   }
 
   return dispatch => {
     dispatch(request());
-    fileService.getFolderContent(id)
+    fileService
+      .getFolderContent(id)
       .then(data => {
         data.currentFolder = id;
         dispatch(success(data));
@@ -85,7 +88,7 @@ function getFolderContent(folderId) {
         dispatch(failure(error));
 
         if (error.status === 401) {
-          dispatch(userActions.signout())
+          dispatch(userActions.signout());
         }
       });
   };
@@ -104,29 +107,32 @@ function getFolderContent(folderId) {
 function deleteItems(items, folderToReload) {
   return async dispatch => {
     dispatch(request());
-    fileService.deleteItems(items).then(() => {
-      dispatch(requestSuccess());
-      setTimeout(() => {
-        dispatch(getFolderContent(folderToReload));
-      }, 1000)
-    }).catch((err) => {
-      dispatch(requestFailure());
-      setTimeout(() => {
-        dispatch(getFolderContent(folderToReload));
-      }, 1000)
-    });
-  }
+    fileService
+      .deleteItems(items)
+      .then(() => {
+        dispatch(requestSuccess());
+        setTimeout(() => {
+          dispatch(getFolderContent(folderToReload));
+        }, 1000);
+      })
+      .catch(err => {
+        dispatch(requestFailure());
+        setTimeout(() => {
+          dispatch(getFolderContent(folderToReload));
+        }, 1000);
+      });
+  };
 
   function request() {
     return { type: fileActionTypes.DELETE_FILE_REQUEST, payload: items };
   }
 
   function requestFailure() {
-    return { type: fileActionTypes.DELETE_FILE_FAILURE }
+    return { type: fileActionTypes.DELETE_FILE_FAILURE };
   }
 
   function requestSuccess() {
-    return { type: fileActionTypes.DELETE_FILE_SUCCESS }
+    return { type: fileActionTypes.DELETE_FILE_SUCCESS };
   }
 }
 
@@ -139,7 +145,7 @@ function selectFile(file) {
 function deselectFile(file) {
   return dispatch => {
     dispatch({ type: fileActionTypes.DESELECT_FILE, payload: file });
-  }
+  };
 }
 
 function deselectAll() {
@@ -151,14 +157,20 @@ function deselectAll() {
 function setSortFunction(sortType) {
   let sortFunc = fileService.getSortFunction(sortType);
   return dispatch => {
-    dispatch({ type: fileActionTypes.SET_SORT_TYPE, payload: [sortType, sortFunc] })
-  }
+    dispatch({
+      type: fileActionTypes.SET_SORT_TYPE,
+      payload: [sortType, sortFunc]
+    });
+  };
 }
 
 function setSearchString(searchString) {
   return dispatch => {
-    dispatch({ type: fileActionTypes.SET_SEARCH_STRING, payload: searchString })
-  }
+    dispatch({
+      type: fileActionTypes.SET_SEARCH_STRING,
+      payload: searchString
+    });
+  };
 }
 
 function createFolder(parentFolderId, newFolderName) {
@@ -172,7 +184,7 @@ function createFolder(parentFolderId, newFolderName) {
         // getFolderContent(newFolderDetails.id);
       },
       error => {
-        console.log("Error creating folder", error);
+        console.log('Error creating folder', error);
         dispatch(failure(error));
       }
     );
@@ -196,12 +208,11 @@ function moveFile(fileId, destination) {
   return dispatch => {
     dispatch(request());
 
-    fileService.moveFile(fileId, destination).then((result) => {
+    fileService.moveFile(fileId, destination).then(result => {
       if (result === 1) {
         dispatch(success());
-
       } else {
-        console.error("Error creating folder", result);
+        console.error('Error creating folder', result);
         dispatch(failure(result));
       }
     });
@@ -222,10 +233,16 @@ function updateFolderMetadata(metadata, folderId) {
   return dispatch => {
     dispatch(request());
 
-    fileService.updateFolderMetadata(metadata, folderId)
-      .then(() => { dispatch(success()); })
-      .catch((error) => {
-        console.error(`Error updating metadata on folder (${parentFolderId}): `, error);
+    fileService
+      .updateFolderMetadata(metadata, folderId)
+      .then(() => {
+        dispatch(success());
+      })
+      .catch(error => {
+        console.error(
+          `Error updating metadata on folder (${parentFolderId}): `,
+          error
+        );
         dispatch(failure(error));
       });
   };

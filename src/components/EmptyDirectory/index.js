@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import React, { Component } from 'react';
+import { StyleSheet, View, Text } from 'react-native';
 
 class EmptyDirectory extends Component {
   constructor(props) {
@@ -7,7 +7,9 @@ class EmptyDirectory extends Component {
   }
 
   render() {
-    const message = this.props.isRoot ? 'Your X Cloud is empty!' : 'This folder is empty';
+    const message = this.props.isRoot
+      ? 'Your Internxt Drive is empty!'
+      : 'This folder is empty';
     return (
       <View style={styles.container}>
         <Text style={styles.heading}>{message}</Text>
@@ -22,24 +24,24 @@ class EmptyDirectory extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff"
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff'
   },
   heading: {
-    fontFamily: "CircularStd-Black",
+    fontFamily: 'CircularStd-Black',
     fontSize: 25,
     letterSpacing: -0.8,
-    color: "#000000",
+    color: '#000000',
     marginBottom: 10
   },
   subheading: {
-    fontFamily: "CircularStd-Book",
+    fontFamily: 'CircularStd-Book',
     fontSize: 17,
     opacity: 0.84,
     letterSpacing: -0.1,
-    color: "#404040"
+    color: '#404040'
   }
 });
 

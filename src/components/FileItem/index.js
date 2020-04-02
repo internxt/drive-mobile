@@ -1,19 +1,14 @@
-import React, { Component } from "react";
-import { compose } from "redux";
-import { connect } from "react-redux";
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableHighlight
-} from "react-native";
-import { withNavigation } from "react-navigation";
-import TimeAgo from "react-native-timeago";
+import React, { Component } from 'react';
+import { compose } from 'redux';
+import { connect } from 'react-redux';
+import { StyleSheet, View, Text, TouchableHighlight } from 'react-native';
+import { withNavigation } from 'react-navigation';
+import TimeAgo from 'react-native-timeago';
 
-import { fileActions, layoutActions } from "../../actions";
-import { folderIconsList, colors } from "../../constants";
-import IconFolder from "../../components/IconFolder";
-import IconFile from "../../components/IconFile";
+import { fileActions, layoutActions } from '../../actions';
+import { folderIconsList, colors } from '../../constants';
+import IconFolder from '../../components/IconFolder';
+import IconFile from '../../components/IconFile';
 import Icon from '../../../assets/icons/Icon';
 
 class FileItem extends Component {
@@ -23,16 +18,20 @@ class FileItem extends Component {
     this.downloadFile = this.props.downloadFile;
   }
 
-  itemIsSelected = (item) => {
-    const itemIsFolder = !(item.fileId);
+  itemIsSelected = item => {
+    const itemIsFolder = !item.fileId;
 
-    const filteredItems = this.props.filesState.selectedItems.filter((element) => {
-      const elementIsFolder = !(element.fileId);
-      return itemIsFolder ? elementIsFolder && element.id == item.id : !elementIsFolder && element.fileId == item.fileId;
-    });
+    const filteredItems = this.props.filesState.selectedItems.filter(
+      element => {
+        const elementIsFolder = !element.fileId;
+        return itemIsFolder
+          ? elementIsFolder && element.id == item.id
+          : !elementIsFolder && element.fileId == item.fileId;
+      }
+    );
 
     return filteredItems.length > 0;
-  }
+  };
 
   onItemPress = () => {
     const { item, isFolder, navigation } = this.props;
@@ -45,7 +44,6 @@ class FileItem extends Component {
     const isSelected = this.itemIsSelected(item);
 
     if (isSelected) {
-
     } else {
       if (isFolder) {
         // Enter in folder
@@ -55,7 +53,7 @@ class FileItem extends Component {
         this.downloadFile(item ? item : null);
       }
     }
-  }
+  };
 
   onItemLongPress = () => {
     // Select file/folder
@@ -66,56 +64,74 @@ class FileItem extends Component {
     } else {
       this.props.dispatch(fileActions.selectFile(this.props.item));
     }
-  }
+  };
 
   onDetailsClick = () => {
     // Open item modal
     this.props.dispatch(layoutActions.openItemModal(this.props.item));
-  }
+  };
 
   render() {
     const { item, isFolder } = this.props;
     const isSelected = this.itemIsSelected(item);
-    
+
     const extendStyles = StyleSheet.create({
-      text: { color: "#000000" },
-      containerBackground: { backgroundColor: isSelected ? "#f2f5ff" : "#fff" },
+      text: { color: '#000000' },
+      containerBackground: { backgroundColor: isSelected ? '#f2f5ff' : '#fff' }
     });
 
     const itemIcon = isFolder ? (
       <View>
         <IconFolder color={item.color} />
-        {
-          item.icon ? <View style={{ position: "absolute", left: 35, top: 7 }}>
-            <Icon name={item.icon ? folderIconsList[item.icon.id - 1] : ''} color={item.color ? colors[item.color].icon : colors["blue"].icon} height="24" width="24" />
-          </View> : <View style={{ position: "absolute", left: 35, top: 7 }}></View>
-        }
+        {item.icon ? (
+          <View style={{ position: 'absolute', left: 35, top: 7 }}>
+            <Icon
+              name={item.icon ? folderIconsList[item.icon.id - 1] : ''}
+              color={item.color ? colors[item.color].icon : colors['blue'].icon}
+              height="24"
+              width="24"
+            />
+          </View>
+        ) : (
+          <View style={{ position: 'absolute', left: 35, top: 7 }}></View>
+        )}
       </View>
     ) : (
-        <IconFile label={item.type} />
-      );
+      <IconFile label={item.type} />
+    );
 
     return (
       <TouchableHighlight
         onPress={this.onItemPress}
         onLongPress={this.onItemLongPress}
-        underlayColor={isSelected ? "#fff" : "#f2f5ff"}
-        style={[styles.container, extendStyles.containerBackground]}>
+        underlayColor={isSelected ? '#fff' : '#f2f5ff'}
+        style={[styles.container, extendStyles.containerBackground]}
+      >
         <View style={styles.fileDetails}>
           <View style={styles.itemIcon}>
-            {this.props.isBeingUploaded ? <IconFile isUploading={true} /> : itemIcon}
+            {this.props.isBeingUploaded ? (
+              <IconFile isUploading={true} />
+            ) : (
+              itemIcon
+            )}
           </View>
           <View style={styles.nameAndTime}>
-            <Text style={[styles.fileName, extendStyles.text]} numberOfLines={1}>
+            <Text
+              style={[styles.fileName, extendStyles.text]}
+              numberOfLines={1}
+            >
               {item.name}
             </Text>
-            {!isFolder && (<TimeAgo style={styles.fileUpdated} time={item.created_at} />)}
+            {!isFolder && (
+              <TimeAgo style={styles.fileUpdated} time={item.created_at} />
+            )}
           </View>
           <View>
             <TouchableHighlight
               style={styles.buttonDetails}
               underlayColor="#f2f5ff"
-              onPress={this.onDetailsClick}>
+              onPress={this.onDetailsClick}
+            >
               <Icon name="details" />
             </TouchableHighlight>
           </View>
@@ -135,29 +151,27 @@ const styles = StyleSheet.create({
   fileDetails: {
     flexDirection: 'row'
   },
-  itemIcon: {
-
-  },
+  itemIcon: {},
   nameAndTime: {
     justifyContent: 'center',
     flex: 7
   },
   fileName: {
-    fontFamily: "CircularStd-Bold",
+    fontFamily: 'CircularStd-Bold',
     fontSize: 16,
     letterSpacing: -0.1,
-    color: "#000000"
+    color: '#000000'
   },
   fileUpdated: {
-    fontFamily: "CircularStd-Book",
+    fontFamily: 'CircularStd-Book',
     fontSize: 13,
-    color: "#2a5fc9",
+    color: '#2a5fc9',
     marginTop: 2
   },
   buttonDetails: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 51,
     height: 51,
     marginRight: 10,
@@ -172,7 +186,7 @@ const mapStateToProps = state => {
   };
 };
 
-export default (FileItemComposed = compose(
+export default FileItemComposed = compose(
   connect(mapStateToProps),
   withNavigation
-)(FileItem));
+)(FileItem);
