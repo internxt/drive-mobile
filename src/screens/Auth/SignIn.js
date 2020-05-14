@@ -204,13 +204,13 @@ class SignIn extends Component {
           ]}
         >
           <View style={styles.containerHeader}>
-            <View>
-              <Image
-                style={styles.logo}
-                source={require('../../../assets/images/logo.png')}
-              />
-            </View>
+            <View style={{flexDirection: 'row'}}>
+            <Image
+              style={styles.logo}
+              source={require('../../../assets/images/logo.png')}
+            />
             <Text style={styles.title}>Sign in to Internxt</Text>
+            </View>
             <View style={styles.buttonWrapper}>
               <TouchableHighlight
                 style={styles.buttonOn}
@@ -302,7 +302,7 @@ class SignIn extends Component {
             </Text>
           </View>
         </View>
-        <Text style={styles.versionLabel}>Internxt Drive v1.1.1.2</Text>
+        <Text style={styles.versionLabel}>Internxt Drive v1.1.5.0</Text>
       </KeyboardAvoidingView>
     );
   }
@@ -321,10 +321,13 @@ const styles = StyleSheet.create({
     width: 325,
     height: 600
   },
-  containerHeader: {},
+  containerHeader: {
+  },
   logo: {
-    aspectRatio: 1.3,
-    resizeMode: 'contain'
+    resizeMode: 'contain',
+    height: 52,
+    width: 40,
+    marginLeft: -7
   },
   title: {
     fontFamily: 'CerebriSans-Bold',
@@ -332,7 +335,8 @@ const styles = StyleSheet.create({
     letterSpacing: -1.7,
     color: '#000',
     marginBottom: 35,
-    marginTop: 20
+    marginTop: 10,
+    marginLeft: 3
   },
   subtitle: {
     fontFamily: 'CerebriSans-Medium',

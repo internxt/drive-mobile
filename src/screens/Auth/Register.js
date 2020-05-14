@@ -175,12 +175,15 @@ class Register extends Component {
           <View style={styles.containerCentered}>
             <View style={styles.containerHeader}>
               <View style={styles.headerContainer}>
-                <Image
-                  style={styles.logo}
-                  source={require('../../../assets/images/logo.png')}
-                />
               </View>
-              <Text style={styles.title}>Create an Internxt account</Text>
+              <View style={{flexDirection: 'row'}}>
+            <Image
+              style={styles.logo}
+              source={require('../../../assets/images/logo.png')}
+            />
+              <Text style={styles.title}>Create an account</Text>
+            </View>
+
               <View style={styles.buttonWrapper}>
                 <TouchableHighlight
                   style={styles.buttonOff}
@@ -254,13 +257,14 @@ class Register extends Component {
         <View style={styles.container}>
           <View style={styles.containerCentered}>
             <View style={styles.containerHeader}>
-              <View style={styles.headerContainer}>
-                <Image
-                  style={styles.logo}
-                  source={require('../../../assets/images/logo.png')}
-                />
-              </View>
+            <View style={{flexDirection: 'row'}}>
+              <Image
+                style={styles.logo}
+                source={require('../../../assets/images/logo.png')}
+              />
               <Text style={styles.title}>Internxt Drive Security</Text>
+            </View>
+
 
               <View>
                 <Text
@@ -345,13 +349,13 @@ class Register extends Component {
             ]}
           >
             <View style={styles.containerHeader}>
-              <View style={styles.headerContainer}>
-                <Image
-                  style={styles.logo}
-                  source={require('../../../assets/images/logo.png')}
-                />
-              </View>
-              <Text style={styles.title}>Create an Internxt account</Text>
+              <View style={{flexDirection: 'row'}}>
+              <Image
+                style={styles.logo}
+                source={require('../../../assets/images/logo.png')}
+              />
+              <Text style={styles.title}>Create an account</Text>
+            </View>
             </View>
             <View style={[styles.showInputFieldsWrapper, { marginTop: -10 }]}>
               <View style={styles.inputWrapper}>
@@ -399,7 +403,7 @@ class Register extends Component {
                           this.doRegister();
                         }, 1000);
                       } else {
-                        this.setState({ isLoading: false });
+                        this.setState({ isLoading: false, registerButtonClickedOnce: false });
                       }
                     }
                   );
@@ -422,13 +426,14 @@ class Register extends Component {
         <View style={styles.container}>
           <View style={styles.containerCentered}>
             <View style={styles.containerHeader}>
-              <View style={styles.headerContainer}>
-                <Image
-                  style={styles.logo}
-                  source={require('../../../assets/images/logo.png')}
-                />
-              </View>
+              
+            <View style={{flexDirection: 'row'}}>
+              <Image
+                style={styles.logo}
+                source={require('../../../assets/images/logo.png')}
+              />
               <Text style={styles.title}>Activation Email</Text>
+            </View>
 
               <View>
                 <Text
@@ -534,8 +539,10 @@ const styles = StyleSheet.create({
     borderWidth: 0
   },
   logo: {
-    aspectRatio: 1.3,
-    resizeMode: 'contain'
+    resizeMode: 'contain',
+    height: 52,
+    width: 40,
+    marginLeft: -7
   },
   title: {
     fontFamily: 'CerebriSans-Bold',
@@ -543,7 +550,8 @@ const styles = StyleSheet.create({
     letterSpacing: -1.7,
     color: '#000',
     marginBottom: 35,
-    marginTop: 20
+    marginTop: 10,
+    marginLeft: 3
   },
   subtitle: {
     fontFamily: 'CerebriSans-Medium',

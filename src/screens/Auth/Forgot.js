@@ -9,7 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   TextInput,
-  TouchableHighlight
+  TouchableHighlight,
 } from 'react-native';
 
 class Forgot extends Component {
@@ -19,11 +19,11 @@ class Forgot extends Component {
       isLoading: false,
       email: '',
       currentContainer: 1,
-      isValidEmail: false
+      isValidEmail: false,
     };
   }
 
-  isValidEmail = email => {
+  isValidEmail = (email) => {
     let re = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
     return re.test(String(email).toLowerCase());
   };
@@ -35,16 +35,17 @@ class Forgot extends Component {
 
     this.setState({ isLoading: true }, () => {
       if (!this.isValidEmail(this.state.email)) {
+        this.setState({ isLoading: false });
         return Alert.alert('Warning', 'Enter a valid e-mail address');
       }
 
       const endpoint = `https://drive.internxt.com/api/reset/${this.state.email}`;
       fetch(endpoint)
-        .then(res => {
+        .then((res) => {
           if (res.status === 200) {
             this.setState({
               isLoading: false,
-              currentContainer: 2
+              currentContainer: 2,
             });
           } else {
             throw Error();
@@ -65,17 +66,17 @@ class Forgot extends Component {
           <View
             style={[
               styles.containerCentered,
-              this.state.isLoading ? { opacity: 0.5 } : {}
+              this.state.isLoading ? { opacity: 0.5 } : {},
             ]}
           >
             <View style={styles.containerHeader}>
-              <View>
+            <View style={{flexDirection: 'row'}}>
                 <Image
                   style={styles.logo}
                   source={require('../../../assets/images/logo.png')}
                 />
+                <Text style={styles.title}>Internxt Security</Text>
               </View>
-              <Text style={styles.title}>Internxt Security</Text>
               <Text style={styles.text}>
                 As specified during the sign up process, Internxt Drive encrypts
                 your files, and only you have access to those. We never know
@@ -92,7 +93,7 @@ class Forgot extends Component {
                 <TextInput
                   style={styles.input}
                   value={this.state.email}
-                  onChangeText={value => this.setState({ email: value })}
+                  onChangeText={(value) => this.setState({ email: value })}
                   placeholder="Email address"
                   placeholderTextColor="#666666"
                   maxLength={64}
@@ -103,14 +104,14 @@ class Forgot extends Component {
               <View style={styles.buttonWrapper}>
                 <TouchableHighlight
                   style={[styles.button, styles.buttonOff, styles.buttonLeft]}
-                  underlayColor="#00aaff"
+                  underlayColor="#4585f5"
                   onPress={() => this.props.goToForm('SIGNIN')}
                 >
                   <Text style={styles.buttonOffLabel}>Back</Text>
                 </TouchableHighlight>
                 <TouchableHighlight
                   style={[styles.button, styles.buttonOn, styles.buttonRight]}
-                  underlayColor="#00aaff"
+                  underlayColor="#4585f5"
                   onPress={() => this.sendDeactivationEmail()}
                 >
                   <Text style={styles.buttonOnLabel}>Continue</Text>
@@ -128,7 +129,7 @@ class Forgot extends Component {
           <View
             style={[
               styles.containerCentered,
-              this.state.isLoading ? { opacity: 0.5 } : {}
+              this.state.isLoading ? { opacity: 0.5 } : {},
             ]}
           >
             <View style={styles.containerHeader}>
@@ -183,42 +184,45 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#FFFFFF'
+    backgroundColor: '#FFFFFF',
   },
   containerCentered: {
     justifyContent: 'center',
     alignSelf: 'center',
     width: 325,
-    height: 600
+    height: 600,
   },
   logo: {
-    aspectRatio: 1.3,
-    resizeMode: 'contain'
+    resizeMode: 'contain',
+    height: 52,
+    width: 40,
+    marginLeft: -7
   },
   title: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: 27,
     letterSpacing: -1.7,
     color: '#000',
-    marginBottom: 10,
-    marginTop: 20
+    marginBottom: 35,
+    marginTop: 10,
+    marginLeft: 3
   },
   text: {
     fontFamily: 'CerebriSans-Regular',
     fontSize: 17,
     color: '#737880',
     textAlign: 'justify',
-    marginBottom: 20
+    marginBottom: 20,
   },
   bold: {
-    fontFamily: 'CerebriSans-Bold'
+    fontFamily: 'CerebriSans-Bold',
   },
   inputWrapper: {
     height: 64,
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#c9c9c9',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   input: {
     fontFamily: 'CerebriSans-Medium',
@@ -226,17 +230,17 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: '#000',
     flex: 1,
-    paddingLeft: 20
+    paddingLeft: 20,
   },
   buttonOnLabel: {
     fontFamily: 'CerebriSans-Medium',
     fontSize: 18,
-    color: '#fff'
+    color: '#fff',
   },
   buttonOffLabel: {
     fontFamily: 'CerebriSans-Medium',
     fontSize: 18,
-    color: '#5c5c5c'
+    color: '#5c5c5c',
   },
   button: {
     marginTop: 15,
@@ -244,35 +248,35 @@ const styles = StyleSheet.create({
     borderRadius: 3.4,
     width: '45%',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   buttonOn: {
     backgroundColor: '#4585f5',
-    flex: 1
+    flex: 1,
   },
   buttonOff: {
     backgroundColor: '#f2f2f2',
-    flex: 1
+    flex: 1,
   },
   buttonWrapper: {
     flexDirection: 'row',
-    marginTop: 15
+    marginTop: 15,
     // justifyContent: 'center'
   },
   buttonRight: {
-    marginLeft: 10
+    marginLeft: 10,
   },
   buttonLeft: {
-    marginRight: 10
+    marginRight: 10,
   },
   grayBox: {
     backgroundColor: '#f7f7f7',
-    padding: 23
+    padding: 23,
   },
   grayBoxText: {
     color: '#737880',
     fontSize: 17,
-    fontFamily: 'CerebriSans-Regular'
+    fontFamily: 'CerebriSans-Regular',
   },
   signUp: {
     fontFamily: 'CerebriSans-Regular',
@@ -280,13 +284,13 @@ const styles = StyleSheet.create({
     color: '#737880',
     fontSize: 15,
     marginTop: 10,
-    padding: 20
-  }
+    padding: 20,
+  },
 });
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
-    ...state
+    ...state,
   };
 };
 

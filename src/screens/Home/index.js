@@ -152,7 +152,7 @@ class Home extends Component {
       // Generate token
       const res = await fetch(
         `${(process && process.env && process.env.REACT_APP_API_URL) ||
-          'https://drive.internxt.com'}/api/storage/share/file/${fileId}`,
+        'https://drive.internxt.com'}/api/storage/share/file/${fileId}`,
         {
           method: 'POST',
           headers: getHeaders(
@@ -181,30 +181,24 @@ class Home extends Component {
     // Open file on browser
     Linking.openURL(
       `${process &&
-        process.env &&
-        process.env.REACT_APP_PROXY_URL}/${(process &&
+      process.env &&
+      process.env.REACT_APP_PROXY_URL}/${(process &&
         process.env &&
         process.env.REACT_APP_API_URL) ||
-        'https://drive.internxt.com'}/api/storage/share/${linkToken}`
+      'https://drive.internxt.com'}/api/storage/share/${linkToken}`
     );
   };
 
   shareFile = async item => {
     // Get file token
     const linkToken = await this.getFileToken(item);
-    const url = `${process &&
-      process.env &&
-      process.env.REACT_APP_PROXY_URL}/${(process &&
-      process.env &&
-      process.env.REACT_APP_API_URL) ||
-      'https://drive.internxt.com'}/api/storage/share/${linkToken}`;
+    const url = `https://drive.internxt.com/${linkToken}`;
 
-    const shortedUrl = await utils.shortUrl(url);
 
     // Share link on native share system
     await Share.share({
       title: 'Internxt Drive file sharing',
-      message: `Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple, private and eco-friendly cloud storage service https://internxt.com/drive \n\nI wanted to share a file (${item.name}) with you through this single-use private link -no sign up required: ${shortedUrl}`
+      message: `Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple, private and eco-friendly cloud storage service https://internxt.com/drive \nI wanted to share a file (${item.name}) with you through this single-use private link -no sign up required: ${url}`
     });
   };
 
@@ -229,11 +223,11 @@ class Home extends Component {
     const isFolder = !(itemToDelete.size && itemToDelete.size >= 0);
     const url = isFolder
       ? `${(process && process.env && process.env.REACT_APP_API_URL) ||
-          'https://drive.internxt.com'}/api/storage/folder/${itemToDelete.id}`
+      'https://drive.internxt.com'}/api/storage/folder/${itemToDelete.id}`
       : `${(process && process.env && process.env.REACT_APP_API_URL) ||
-          'https://drive.internxt.com'}/api/storage/bucket/${
-          itemToDelete.bucket
-        }/file/${itemToDelete.fileId}`;
+      'https://drive.internxt.com'}/api/storage/bucket/${
+      itemToDelete.bucket
+      }/file/${itemToDelete.fileId}`;
 
     fetch(url, {
       method: 'DELETE',
@@ -283,8 +277,8 @@ class Home extends Component {
 
     fetch(
       `${(process && process.env && process.env.REACT_APP_API_URL) ||
-        'https://drive.internxt.com'}/api/storage/file/${
-        this.props.filesState.selectedFile.fileId
+      'https://drive.internxt.com'}/api/storage/file/${
+      this.props.filesState.selectedFile.fileId
       }/meta`,
       {
         method: 'POST',
@@ -343,7 +337,7 @@ class Home extends Component {
         this.state.selectedIcon >= 0 &&
         (!this.props.filesState.selectedFile.icon ||
           this.state.selectedIcon !==
-            this.props.filesState.selectedFile.icon.id)
+          this.props.filesState.selectedFile.icon.id)
       ) {
         metadata.icon = this.state.selectedIcon;
       }
@@ -582,8 +576,8 @@ class Home extends Component {
               let localColor = this.state.selectedColor
                 ? this.state.selectedColor
                 : folder
-                ? folder.color
-                : null;
+                  ? folder.color
+                  : null;
               let isSelected = localColor ? localColor === value : false;
               return (
                 <TouchableHighlight
@@ -600,8 +594,8 @@ class Home extends Component {
                   {isSelected ? (
                     <Icon name="checkmark" width={15} height={15} />
                   ) : (
-                    <Text> </Text>
-                  )}
+                      <Text> </Text>
+                    )}
                 </TouchableHighlight>
               );
             })}
@@ -624,11 +618,11 @@ class Home extends Component {
             {folderIconsList.map((value, i) => {
               let localIcon =
                 typeof this.state.selectedIcon === 'number' &&
-                this.state.selectedIcon >= 0
+                  this.state.selectedIcon >= 0
                   ? this.state.selectedIcon
                   : folder && folder.icon
-                  ? folder.icon.id
-                  : null;
+                    ? folder.icon.id
+                    : null;
               let isSelected = localIcon ? localIcon - 1 === i : false;
               let iconValue = isSelected ? 0 : i + 1;
 
@@ -673,7 +667,7 @@ class Home extends Component {
         <Text
           style={
             this.props.filesState.sortType === sortTypes.DATE_ADDED ||
-            this.props.filesState.sortType === ''
+              this.props.filesState.sortType === ''
               ? styles.sortOptionSelected
               : styles.sortOption
           }
@@ -850,7 +844,7 @@ class Home extends Component {
   loadUsage = () => {
     fetch(
       `${(process && process.env && process.env.REACT_APP_API_URL) ||
-        'https://drive.internxt.com'}/api/limit`,
+      'https://drive.internxt.com'}/api/limit`,
       {
         method: 'get',
         headers: getHeaders(this.props.authenticationState.token)
@@ -868,7 +862,7 @@ class Home extends Component {
 
     fetch(
       `${(process && process.env && process.env.REACT_APP_API_URL) ||
-        'https://drive.internxt.com'}/api/usage`,
+      'https://drive.internxt.com'}/api/usage`,
       {
         method: 'get',
         headers: getHeaders(this.props.authenticationState.token)
@@ -906,14 +900,31 @@ class Home extends Component {
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           >
             <View>
-              <Image
-                source={require('../../../assets/images/logo.png')}
-                style={{ width: 55, height: 29, marginBottom: 22 }}
-              />
-              <Text style={{ fontSize: 27, fontFamily: 'CircularStd-Bold' }}>
-                Ran out of space.
-              </Text>
-              <Text style={{ fontSize: 17, color: '#737880', marginTop: 15 }}>
+
+              <View style={{ flexDirection: 'row' }}>
+                <Image
+                  style={{
+                    resizeMode: 'contain',
+                    height: 52,
+                    width: 40,
+                    marginLeft: -7
+                  }}
+                  source={require('../../../assets/images/logo.png')}
+                />
+                <Text style={{
+                  fontFamily: 'CerebriSans-Bold',
+                  fontSize: 27,
+                  letterSpacing: -1.7,
+                  color: '#000',
+                  marginTop: 10,
+                  marginBottom: 15,
+                  marginLeft: 3
+                }}>
+                  Ran out of space.
+                </Text>
+              </View>
+
+              <Text style={{ fontSize: 17, color: '#737880' }}>
                 In order to start uploading more files please access Internxt
                 Drive on your computer and upgrade your storage plan.
               </Text>
