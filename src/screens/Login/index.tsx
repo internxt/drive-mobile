@@ -40,7 +40,9 @@ function Login(props: any) {
             activeOpacity={1}
             style={[styles.button, styles.buttonOff]}
             underlayColor="#f2f2f2"
-            onPress={() => { /*props.goToForm('REGISTER')*/ }}
+            onPress={() => {
+              props.navigation.replace('Register')
+            }}
           >
             <Text style={styles.buttonOffLabel}>Create account</Text>
           </TouchableHighlight>
@@ -124,12 +126,8 @@ function Login(props: any) {
 }
 
 const mapStateToProps = (state: any) => {
-  return {
-    ...state
-  };
+  return { ...state };
 };
-
-
 
 export default connect(mapStateToProps)(Login)
 

@@ -1,5 +1,15 @@
-import { View } from "react-native";
+import React from 'react'
+import { View, Text } from "react-native";
+import { connect } from "react-redux";
 
-export default function Register() {
-  return <View>Register</View>
+function Register(props: any) {
+  return <View>
+    <Text>Register</Text>
+  </View>
 }
+
+const mapStateToProps = (state: any) => {
+  return { ...state };
+};
+
+export default connect(mapStateToProps)(Register)
