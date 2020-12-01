@@ -1,6 +1,6 @@
 import * as Font from 'expo-font';
 
-function loadFontsAsync() {
+async function loadFontsAsync() {
   return Font.loadAsync({
     'CerebriSans-Bold': require('../../assets/fonts/CerebriSans-Bold.ttf'),
     'CerebriSans-Medium': require('../../assets/fonts/CerebriSans-Medium.ttf'),

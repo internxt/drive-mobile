@@ -1,8 +1,8 @@
-import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { ActivityIndicator, processColor, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, StatusBar, View } from 'react-native';
 import { Provider } from 'react-redux'
 import { store } from './src/store'
+import AppNavigator from "./src/AppNavigator";
 import { loadFonts } from './src/helpers'
 
 export default function App() {
@@ -16,9 +16,9 @@ export default function App() {
 
   return <Provider store={store}>
     {appInitialized ?
-      <View style={styles.container}>
-        <Text>Open up App.tsx to start working on your app!</Text>
-        <StatusBar style="auto" />
+      <View style={styles.appContainer}>
+        <StatusBar backgroundColor={'#fff'} barStyle={'dark-content'} />
+        <AppNavigator />
       </View>
       : <View style={styles.container}>
         <ActivityIndicator color={'#00f'} />
@@ -29,10 +29,12 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  appContainer: {
+    flex: 1
+  },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
 });
