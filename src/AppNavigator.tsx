@@ -3,6 +3,7 @@ import { createAppContainer, CreateNavigatorConfig, NavigationParams, Navigation
 import { createStackNavigator } from 'react-navigation-stack';
 import { StackNavigationConfig, StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import Auth from './screens/Auth'
+import Intro from './screens/Intro';
 import Login from './screens/Login';
 import Register from './screens/Register';
 
@@ -12,11 +13,12 @@ type NavigatorOptions = CreateNavigatorConfig<StackNavigationConfig, NavigationS
 const routeConfig: RouteConfig  = {
   Auth: { screen: Auth },
   Register: { screen: Register },
-  Login: { screen: Login }
+  Login: { screen: Login },
+  Intro: { screen: Intro }
 };
 
 const navigatorOptions: NavigatorOptions = {
-  initialRouteName: 'Login',
+  initialRouteName: 'Intro',
   headerMode: 'none'
 };
 

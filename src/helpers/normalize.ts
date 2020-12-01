@@ -1,5 +1,9 @@
 import { Dimensions, PixelRatio, Platform } from "react-native";
 
+/**
+ * Normalizes a pixel value to target device
+ * @param size Size in pixels
+ */
 export const normalize = (size: number) => {
   const {
       width: SCREEN_WIDTH,
