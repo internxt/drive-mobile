@@ -1,16 +1,17 @@
-import React, { ReactElement, ReactNode, useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Image } from "react-native";
+import React, { ReactElement, ReactNode, useEffect, useState } from 'react'
+import { View, Text, KeyboardAvoidingView, StyleSheet, Image, BackHandler } from "react-native";
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from "react-redux";
 import { normalize } from '../../helpers';
+import Intro from '../Intro'
 
 function isValidStep1() {
   return true;
 }
 
 function Register(props: any): any {
-  const [registerStep, setRegisterStep] = useState(0);
-  const [showIntro, setShowIntro] = useState(false);
+  const [registerStep, setRegisterStep] = useState(1);
+  const [showIntro, setShowIntro] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   // Register form fields
@@ -22,7 +23,7 @@ function Register(props: any): any {
   const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
 
   if (showIntro) {
-    // return <Intro onFinish={this.finishIntro.bind(this)} />;
+    return <Intro onFinish={() => { setShowIntro(false) }} />;
   }
 
   if (registerStep === 1) {
@@ -31,27 +32,24 @@ function Register(props: any): any {
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
             <View style={styles.headerContainer}>
+
             </View>
+
             <View style={{ flexDirection: 'row' }}>
-              <Image
-                style={styles.logo}
-                source={require('../../../assets/images/logo.png')}
-              />
+              <Image style={styles.logo} source={require('../../../assets/images/logo.png')} />
               <Text style={styles.title}>Create an account</Text>
             </View>
 
             <View style={styles.buttonWrapper}>
               <TouchableHighlight
-                style={styles.buttonOff}
+                style={[styles.button, styles.buttonOff]}
                 underlayColor="#f2f2f2"
                 activeOpacity={1}
                 onPress={() => props.navigation.replace('Login')}
               >
                 <Text style={styles.buttonOffLabel}>Sign in</Text>
               </TouchableHighlight>
-              <TouchableHighlight
-                style={styles.buttonOn}
-              >
+              <TouchableHighlight style={[styles.button, styles.buttonOn]}>
                 <Text style={styles.buttonOnLabel}>Create account</Text>
               </TouchableHighlight>
             </View>
@@ -92,14 +90,13 @@ function Register(props: any): any {
           </View>
           <View style={styles.buttonFooterWrapper}>
             <TouchableHighlight
-              style={styles.button}
+              style={[styles.button, styles.buttonBlock]}
               underlayColor="#4585f5"
               onPress={() => {
                 if (isValidStep1()) {
                   setRegisterStep(2);
                 }
-              }}
-            >
+              }}>
               <Text style={styles.buttonOnLabel}>Continue</Text>
             </TouchableHighlight>
           </View>
@@ -180,7 +177,7 @@ function Register(props: any): any {
 
             <View style={[styles.buttonFooterWrapper, { marginTop: 35 }]}>
               <TouchableHighlight
-                style={styles.button}
+                style={[styles.button, styles.buttonBlock]}
                 underlayColor="#4585f5"
                 onPress={() => {
                   setRegisterStep(3);
@@ -239,7 +236,7 @@ function Register(props: any): any {
           </View>
           <View style={styles.buttonFooterWrapper}>
             <TouchableHighlight
-              style={styles.button}
+              style={[styles.button, styles.buttonBlock]}
               underlayColor="#4585f5"
               onPress={() => {
                 if (registerButtonClicked || isLoading) {
@@ -386,29 +383,23 @@ const styles = StyleSheet.create({
   button: {
     alignSelf: 'stretch',
     height: normalize(55),
+    width: normalize(130),
     borderRadius: 3.4,
     backgroundColor: '#4585f5',
     marginBottom: normalize(10),
     alignItems: 'center',
     justifyContent: 'center'
   },
+  buttonBlock: {
+    width: '100%'
+  },
   buttonOn: {
-    alignSelf: 'stretch',
-    height: normalize(55),
-    borderRadius: 3.4,
     backgroundColor: '#4585f5',
-    width: '59%',
-    alignItems: 'center',
-    justifyContent: 'center'
+    alignItems: 'center'
   },
   buttonOff: {
-    alignSelf: 'stretch',
-    height: normalize(55),
-    borderRadius: 3.4,
     backgroundColor: '#f2f2f2',
-    width: '38%',
-    alignItems: 'center',
-    justifyContent: 'center'
+    alignItems: 'center'
   },
   buttonOnLabel: {
     fontFamily: 'CerebriSans-Medium',

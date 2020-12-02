@@ -6,6 +6,11 @@ import { connect } from 'react-redux';
 import { normalize } from '../../helpers';
 import B from '../../components/Bold'
 
+interface IntroProps {
+  onFinish: () => void
+  navigation?: any
+}
+
 const slides = [
   {
     key: 'intro001',
@@ -86,7 +91,7 @@ function renderDoneButton() {
 
 
 
-function Intro(props: any) {
+function Intro(props: IntroProps) {
   return <AppIntroSlider
     data={slides}
     renderItem={renderItem}
@@ -94,7 +99,7 @@ function Intro(props: any) {
     renderDoneButton={renderDoneButton}
     bottomButton
     onDone={() => {
-      props.navigation.replace('Register')
+      props.onFinish()
     }}
     activeDotStyle={styles.activeDot}
     dotStyle={styles.inactiveDot}
@@ -104,7 +109,8 @@ function Intro(props: any) {
 
 const styles = StyleSheet.create({
   body: {
-    margin: normalize(31),
+    backgroundColor: '#fff',
+    padding: normalize(31),
     flex: 1
   },
   explanationText: {

@@ -29,32 +29,26 @@ function Login(props: any) {
           />
           <Text style={styles.title}>Sign in to Internxt</Text>
         </View>
+
         <View style={styles.buttonWrapper}>
+
           <TouchableHighlight
             style={[styles.button, styles.buttonOn]}
-            underlayColor="#00aaff"
-          >
+            underlayColor="#00aaff">
             <Text style={styles.buttonOnLabel}>Sign in</Text>
           </TouchableHighlight>
+
           <TouchableHighlight
             activeOpacity={1}
             style={[styles.button, styles.buttonOff]}
             underlayColor="#f2f2f2"
-            onPress={() => {
-              props.navigation.replace('Register')
-            }}
-          >
+            onPress={() => { props.navigation.replace('Register') }}>
             <Text style={styles.buttonOffLabel}>Create account</Text>
           </TouchableHighlight>
+
         </View>
       </View>
-      <View
-        style={
-          showTwoFactor
-            ? styles.hideInputFieldWrapper
-            : styles.showInputFieldsWrapper
-        }
-      >
+      <View style={showTwoFactor ? styles.hideInputFieldWrapper : styles.showInputFieldsWrapper}>
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.input}
@@ -109,9 +103,7 @@ function Login(props: any) {
           underlayColor="#4585f5"
           onPress={() => {/*check2FA*/ }}
         >
-          <Text style={styles.buttonOnLabel}>
-            {isLoading ? 'Decrypting...' : 'Sign in'}
-          </Text>
+          <Text style={styles.buttonOnLabel}>{isLoading ? 'Decrypting...' : 'Sign in'}</Text>
         </TouchableHighlight>
         <Text
           style={styles.forgotPasswordText}
