@@ -4,7 +4,7 @@ import { Image, View, Text, KeyboardAvoidingView, StyleSheet } from "react-nativ
 import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
 import { connect } from 'react-redux';
 import { normalize } from '../../helpers/normalize'
-import { validate2FA } from './access';
+import { validate2FA, doLogin } from './access';
 
 interface LoginProps {
   goToForm?: (screenName: string) => void
@@ -18,20 +18,13 @@ function Login(props: any) {
   const [showTwoFactor, setShowTwoFactor] = useState(false)
 
   return <KeyboardAvoidingView behavior="padding" style={styles.container}>
-    <View
-      style={[styles.containerCentered, isLoading ? { opacity: 0.5 } : {}]}
-    >
+    <View style={[styles.containerCentered, isLoading ? { opacity: 0.5 } : {}]}>
       <View style={styles.containerHeader}>
         <View style={{ flexDirection: 'row' }}>
-          <Image
-            style={styles.logo}
-            source={require('../../../assets/images/logo.png')}
-          />
+          <Image style={styles.logo} source={require('../../../assets/images/logo.png')} />
           <Text style={styles.title}>Sign in to Internxt</Text>
         </View>
-
         <View style={styles.buttonWrapper}>
-
           <TouchableHighlight
             style={[styles.button, styles.buttonOn]}
             underlayColor="#00aaff">
@@ -42,10 +35,9 @@ function Login(props: any) {
             activeOpacity={1}
             style={[styles.button, styles.buttonOff]}
             underlayColor="#f2f2f2"
-            onPress={() => { props.navigation.replace('Register') }}>
+            onPress={() => props.navigation.replace('Register')}>
             <Text style={styles.buttonOffLabel}>Create account</Text>
           </TouchableHighlight>
-
         </View>
       </View>
       <View style={showTwoFactor ? styles.hideInputFieldWrapper : styles.showInputFieldsWrapper}>
@@ -73,44 +65,27 @@ function Login(props: any) {
           />
         </View>
       </View>
-      <View
-        style={
-          showTwoFactor ? styles.showInputFieldsWrapper : styles.hideInputFieldWrapper
-        }>
+      <View style={showTwoFactor ? styles.showInputFieldsWrapper : styles.hideInputFieldWrapper}>
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.input}
             value={twoFactorCode}
-            onChangeText={value => {
-              setTwoFactorCode(value)
-              /*
-              if (validateTwoFactorCode(value)) {
-                check2FA();
-              }
-              */
-            }}
+            onChangeText={value => setTwoFactorCode(value)}
             placeholder="Two-factor code"
             placeholderTextColor="#666666"
             maxLength={64}
             keyboardType="numeric"
-            textContentType="none"
-          />
+            textContentType="none" />
         </View>
       </View>
       <View style={styles.buttonFooterWrapper}>
         <TouchableHighlight
           style={[styles.button, styles.buttonBlock]}
           underlayColor="#4585f5"
-          onPress={() => {/*check2FA*/ }}
-        >
+          onPress={() => doLogin('', '', '')}>
           <Text style={styles.buttonOnLabel}>{isLoading ? 'Decrypting...' : 'Sign in'}</Text>
         </TouchableHighlight>
-        <Text
-          style={styles.forgotPasswordText}
-          onPress={() => { /* props.goToForm('FORGOT') */ }}
-        >
-          Forgot your password?
-      </Text>
+        <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>Forgot your password?</Text>
       </View>
     </View>
     <Text style={styles.versionLabel}>Internxt Drive v1.1.6 (2)</Text>

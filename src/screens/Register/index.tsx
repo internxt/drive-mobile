@@ -1,13 +1,12 @@
+import { isEmpty } from 'lodash';
 import React, { ReactElement, ReactNode, useEffect, useState } from 'react'
 import { View, Text, KeyboardAvoidingView, StyleSheet, Image, BackHandler } from "react-native";
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from "react-redux";
 import { normalize } from '../../helpers';
 import Intro from '../Intro'
-
-function isValidStep1() {
-  return true;
-}
+import { validateEmail } from '../Login/access';
+import { isNullOrEmpty, isStrongPassword } from './registerUtils';
 
 function Register(props: any): any {
   const [registerStep, setRegisterStep] = useState(1);
@@ -22,42 +21,47 @@ function Register(props: any): any {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
 
+  const isValidEmail = validateEmail(email);
+  const isValidFirstName = !isNullOrEmpty(firstName)
+  const isValidLastName = !isNullOrEmpty(lastName)
+
   if (showIntro) {
-    return <Intro onFinish={() => { setShowIntro(false) }} />;
+    return <Intro onFinish={() => setShowIntro(false)} />;
   }
 
   if (registerStep === 1) {
+
+    const isValidStep = isValidFirstName && isValidLastName && isValidEmail;
+
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
-            <View style={styles.headerContainer}>
-
-            </View>
-
             <View style={{ flexDirection: 'row' }}>
               <Image style={styles.logo} source={require('../../../assets/images/logo.png')} />
               <Text style={styles.title}>Create an account</Text>
             </View>
 
             <View style={styles.buttonWrapper}>
+
               <TouchableHighlight
                 style={[styles.button, styles.buttonOff]}
                 underlayColor="#f2f2f2"
                 activeOpacity={1}
-                onPress={() => props.navigation.replace('Login')}
-              >
+                onPress={() => props.navigation.replace('Login')}>
                 <Text style={styles.buttonOffLabel}>Sign in</Text>
               </TouchableHighlight>
+
               <TouchableHighlight style={[styles.button, styles.buttonOn]}>
                 <Text style={styles.buttonOnLabel}>Create account</Text>
               </TouchableHighlight>
+
             </View>
           </View>
           <View style={styles.showInputFieldsWrapper}>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, !isValidFirstName ? { borderWidth: 1, borderColor: 'red' } : {}]}
                 value={firstName}
                 onChangeText={value => setFirstName(value)}
                 placeholder="First name"
@@ -67,7 +71,7 @@ function Register(props: any): any {
             </View>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, !isValidLastName ? { borderWidth: 1, borderColor: 'red' } : {}]}
                 value={lastName}
                 onChangeText={value => setLastName(value)}
                 placeholder="Last name"
@@ -77,7 +81,7 @@ function Register(props: any): any {
             </View>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, isValidEmail ? {} : { borderWidth: 1, borderColor: 'red' }]}
                 value={email}
                 onChangeText={value => setEmail(value)}
                 placeholder="Email address"
@@ -90,12 +94,11 @@ function Register(props: any): any {
           </View>
           <View style={styles.buttonFooterWrapper}>
             <TouchableHighlight
-              style={[styles.button, styles.buttonBlock]}
+              style={[styles.button, styles.buttonBlock, isValidStep ? {} : styles.buttonDisabled]}
               underlayColor="#4585f5"
+              disabled={!isValidStep}
               onPress={() => {
-                if (isValidStep1()) {
-                  setRegisterStep(2);
-                }
+                setRegisterStep(2);
               }}>
               <Text style={styles.buttonOnLabel}>Continue</Text>
             </TouchableHighlight>
@@ -193,14 +196,12 @@ function Register(props: any): any {
   }
 
   if (registerStep === 3) {
+    const isValidPassword = isStrongPassword(password);
+    const isValidStep = (password === confirmPassword) && isValidPassword;
+
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
-        <View
-          style={[
-            styles.containerCentered,
-            isLoading ? { opacity: 0.5 } : {}
-          ]}
-        >
+        <View style={[styles.containerCentered, isLoading ? { opacity: 0.5 } : {}]}>
           <View style={styles.containerHeader}>
             <View style={{ flexDirection: 'row' }}>
               <Image
@@ -213,7 +214,7 @@ function Register(props: any): any {
           <View style={[styles.showInputFieldsWrapper, { marginTop: -10 }]}>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, !isValidPassword ? { borderWidth: 1, borderColor: 'red' } : {}]}
                 value={password}
                 onChangeText={value => setPassword(value)}
                 placeholder="Password"
@@ -224,7 +225,7 @@ function Register(props: any): any {
             </View>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, !isValidStep ? { borderWidth: 1, borderColor: 'red' } : {}]}
                 value={confirmPassword}
                 onChangeText={value => setConfirmPassword(value)}
                 placeholder="Confirm password"
@@ -331,9 +332,6 @@ function Register(props: any): any {
 }
 
 const styles = StyleSheet.create({
-  headerContainer: {
-
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -392,6 +390,9 @@ const styles = StyleSheet.create({
   },
   buttonBlock: {
     width: '100%'
+  },
+  buttonDisabled: {
+    opacity: 0.5
   },
   buttonOn: {
     backgroundColor: '#4585f5',

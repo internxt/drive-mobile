@@ -1,9 +1,10 @@
-export function access() {
+export function doAccess() {
 
 }
 
-export function login() {
-  
+export async function doLogin(username: string, password: string, twofactor: string) {
+  fetch(process.env.REACT_NATIVE_API_URL)
+  return
 }
 
 export function validateEmail(email: string) {
