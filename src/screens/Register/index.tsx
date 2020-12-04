@@ -25,16 +25,6 @@ function Register(props: any): any {
   const isValidFirstName = !isNullOrEmpty(firstName)
   const isValidLastName = !isNullOrEmpty(lastName)
 
-  if (process.env.NODE_ENV === 'development' && !firstName) {
-    setShowIntro(false)
-    setFirstName('Mock first name')
-    setLastName('Mock last name')
-    setEmail('mock5@mock.com')
-    setPassword('inxt1234')
-    setConfirmPassword('inxt1234')
-    setRegisterStep(1)
-  }
-
   if (showIntro) {
     return <Intro onFinish={() => setShowIntro(false)} />;
   }
@@ -91,6 +81,7 @@ function Register(props: any): any {
             </View>
             <View style={styles.inputWrapper}>
               <TextInput
+                autoCapitalize="none"
                 style={[styles.input, isValidEmail ? {} : { borderWidth: 1, borderColor: 'red' }]}
                 value={email}
                 onChangeText={value => setEmail(value)}
@@ -230,6 +221,7 @@ function Register(props: any): any {
           <View style={[styles.showInputFieldsWrapper, { marginTop: -10 }]}>
             <View style={styles.inputWrapper}>
               <TextInput
+                autoCapitalize="none"
                 style={[styles.input, !isValidPassword ? { borderWidth: 1, borderColor: 'red' } : {}]}
                 value={password}
                 onChangeText={value => setPassword(value)}
@@ -276,11 +268,11 @@ function Register(props: any): any {
               <Text style={styles.buttonOnLabel}>{isLoading ? 'Creating your account...' : 'Continue'}</Text>
             </TouchableHighlight>
             <TouchableHighlight
-                activeOpacity={1}
-                underlayColor="#ffffff"
-                onPress={() => setRegisterStep(2)}>
-                <Text style={styles.link}>Back</Text>
-              </TouchableHighlight>
+              activeOpacity={1}
+              underlayColor="#ffffff"
+              onPress={() => setRegisterStep(2)}>
+              <Text style={styles.link}>Back</Text>
+            </TouchableHighlight>
           </View>
         </View>
       </KeyboardAvoidingView>
