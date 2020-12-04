@@ -6,7 +6,7 @@ import { connect } from "react-redux";
 import { normalize } from '../../helpers';
 import Intro from '../Intro'
 import { validateEmail } from '../Login/access';
-import { doRegister, isNullOrEmpty, isStrongPassword } from './registerUtils';
+import { doRegister, isNullOrEmpty, isStrongPassword, resendActivationEmail } from './registerUtils';
 
 function Register(props: any): any {
   const [registerStep, setRegisterStep] = useState(1);
@@ -29,7 +29,7 @@ function Register(props: any): any {
     setShowIntro(false)
     setFirstName('Mock first name')
     setLastName('Mock last name')
-    setEmail('mock@mock.com')
+    setEmail('mock2@mock.com')
     setPassword('inxt1234')
     setConfirmPassword('inxt1234')
   }
@@ -323,12 +323,26 @@ function Register(props: any): any {
 
             <View style={styles.buttonFooterWrapper}>
               <TouchableHighlight
-                style={[styles.button, { marginTop: normalize(10) }]}
-                underlayColor="#4585f5" onPress={() => { }}>
+                style={[styles.button, styles.buttonBlock, { marginTop: normalize(10) }]}
+                underlayColor="#4585f5" onPress={() => {
+                  setRegisterButtonClicked(true)
+                  setIsLoading(true)
+                  resendActivationEmail(email).then(() => {
+                    Alert.alert(`Activation email sent to ${email}`)
+                  }).catch(err => {
+                    Alert.alert(err.message)
+                  }).finally(() => {
+                    setRegisterButtonClicked(false)
+                    setIsLoading(false)
+                  })
+                }}>
                 <Text style={styles.buttonOnLabel}>Re-send activation email</Text>
               </TouchableHighlight>
-              <TouchableHighlight activeOpacity={1} underlayColor="#737880">
-                <Text style={styles.link} onPress={() => props.navigation.replace('Login')}>Sign in</Text>
+              <TouchableHighlight
+                activeOpacity={1}
+                underlayColor="#737880"
+                onPress={() => props.navigation.replace('Login')}>
+                <Text style={styles.link}>Sign in</Text>
               </TouchableHighlight>
             </View>
           </View>

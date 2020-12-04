@@ -52,7 +52,7 @@ export async function doRegister(params: RegisterParams) {
         body: JSON.stringify({
             name: params.firstName,
             lastname: params.lastName,
-            email: params.email,
+            email: params.email.toLowerCase(),
             password: encPass,
             mnemonic: encMnemonic,
             salt: encSalt,
@@ -72,4 +72,20 @@ export async function doRegister(params: RegisterParams) {
             }
         }
     })
+}
+
+export async function resendActivationEmail(email: string) {
+    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/user/resend/${email.toLowerCase()}`)
+        .then(async res => {
+            if (res.status !== 200) {
+                const body = await res.text()
+                const json = IsJsonString(body)
+
+                if (json) {
+                    throw Error(json.message)
+                } else {
+                    throw Error(body)
+                }
+            }
+        })
 }
