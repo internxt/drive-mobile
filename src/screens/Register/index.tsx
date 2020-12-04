@@ -32,7 +32,7 @@ function Register(props: any): any {
     setEmail('mock5@mock.com')
     setPassword('inxt1234')
     setConfirmPassword('inxt1234')
-    setRegisterStep(4)
+    setRegisterStep(1)
   }
 
   if (showIntro) {
@@ -198,6 +198,12 @@ function Register(props: any): any {
               >
                 <Text style={styles.buttonOnLabel}>Continue</Text>
               </TouchableHighlight>
+              <TouchableHighlight
+                activeOpacity={1}
+                underlayColor="#ffffff"
+                onPress={() => setRegisterStep(1)}>
+                <Text style={styles.link}>Back</Text>
+              </TouchableHighlight>
             </View>
           </View>
         </View>
@@ -269,6 +275,12 @@ function Register(props: any): any {
             >
               <Text style={styles.buttonOnLabel}>{isLoading ? 'Creating your account...' : 'Continue'}</Text>
             </TouchableHighlight>
+            <TouchableHighlight
+                activeOpacity={1}
+                underlayColor="#ffffff"
+                onPress={() => setRegisterStep(2)}>
+                <Text style={styles.link}>Back</Text>
+              </TouchableHighlight>
           </View>
         </View>
       </KeyboardAvoidingView>
