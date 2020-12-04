@@ -29,9 +29,10 @@ function Register(props: any): any {
     setShowIntro(false)
     setFirstName('Mock first name')
     setLastName('Mock last name')
-    setEmail('mock2@mock.com')
+    setEmail('mock5@mock.com')
     setPassword('inxt1234')
     setConfirmPassword('inxt1234')
+    setRegisterStep(4)
   }
 
   if (showIntro) {
@@ -340,7 +341,7 @@ function Register(props: any): any {
               </TouchableHighlight>
               <TouchableHighlight
                 activeOpacity={1}
-                underlayColor="#737880"
+                underlayColor="#ffffff"
                 onPress={() => props.navigation.replace('Login')}>
                 <Text style={styles.link}>Sign in</Text>
               </TouchableHighlight>

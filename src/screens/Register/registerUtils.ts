@@ -82,7 +82,7 @@ export async function resendActivationEmail(email: string) {
                 const json = IsJsonString(body)
 
                 if (json) {
-                    throw Error(json.message)
+                    throw Error(json.error ? json.error : json.message)
                 } else {
                     throw Error(body)
                 }
