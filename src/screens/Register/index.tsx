@@ -10,7 +10,7 @@ import { isNullOrEmpty, isStrongPassword } from './registerUtils';
 
 function Register(props: any): any {
   const [registerStep, setRegisterStep] = useState(1);
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // Register form fields
@@ -48,7 +48,10 @@ function Register(props: any): any {
                 style={[styles.button, styles.buttonOff]}
                 underlayColor="#f2f2f2"
                 activeOpacity={1}
-                onPress={() => props.navigation.replace('Login')}>
+                onPress={() => {
+                  console.log(process && process.env && process.env.EXPO_PRUEBA)
+                  // props.navigation.replace('Login')
+                }}>
                 <Text style={styles.buttonOffLabel}>Sign in</Text>
               </TouchableHighlight>
 
