@@ -1,0 +1,11 @@
+interface Encoding {
+
+}
+
+declare module 'crypto-js' {
+    export {
+        enc,
+        lib,
+        PBKDF2
+    }
+}

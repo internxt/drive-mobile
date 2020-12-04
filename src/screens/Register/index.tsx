@@ -6,11 +6,11 @@ import { connect } from "react-redux";
 import { normalize } from '../../helpers';
 import Intro from '../Intro'
 import { validateEmail } from '../Login/access';
-import { isNullOrEmpty, isStrongPassword } from './registerUtils';
+import { doRegister, isNullOrEmpty, isStrongPassword } from './registerUtils';
 
 function Register(props: any): any {
   const [registerStep, setRegisterStep] = useState(1);
-  const [showIntro, setShowIntro] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   // Register form fields
@@ -24,6 +24,15 @@ function Register(props: any): any {
   const isValidEmail = validateEmail(email);
   const isValidFirstName = !isNullOrEmpty(firstName)
   const isValidLastName = !isNullOrEmpty(lastName)
+
+  if (process.env.NODE_ENV === 'development' && !firstName) {
+    setShowIntro(false)
+    setFirstName('Mock first name')
+    setLastName('Mock last name')
+    setEmail('mock@mock.com')
+    setPassword('inxt1234')
+    setConfirmPassword('inxt1234')
+  }
 
   if (showIntro) {
     return <Intro onFinish={() => setShowIntro(false)} />;
@@ -243,6 +252,15 @@ function Register(props: any): any {
                 if (registerButtonClicked || isLoading) {
                   return;
                 }
+                // setRegisterButtonClicked(true)
+                // setIsLoading(true)
+
+                doRegister({
+                  firstName,
+                  lastName,
+                  email,
+                  password
+                })
                 /*
                 this.setState(
                   { isLoading: true, registerButtonClickedOnce: true },

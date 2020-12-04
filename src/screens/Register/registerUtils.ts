@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { passToHash } from '../../helpers';
 
 export function isStrongPassword(pwd: string) {
     return /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(pwd);
@@ -19,6 +20,7 @@ interface RegisterParams {
     password: string
 }
 
-export function doRegister() {
-
+export async function doRegister(params: RegisterParams) {
+    const pwd = passToHash({ password: params.password })
+    console.log(pwd)
 }
