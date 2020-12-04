@@ -48,10 +48,7 @@ function Register(props: any): any {
                 style={[styles.button, styles.buttonOff]}
                 underlayColor="#f2f2f2"
                 activeOpacity={1}
-                onPress={() => {
-                  console.log(process && process.env && process.env.EXPO_PRUEBA)
-                  // props.navigation.replace('Login')
-                }}>
+                onPress={() => props.navigation.replace('Login')}>
                 <Text style={styles.buttonOffLabel}>Sign in</Text>
               </TouchableHighlight>
 
