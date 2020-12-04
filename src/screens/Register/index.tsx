@@ -1,6 +1,6 @@
 import { isEmpty } from 'lodash';
 import React, { ReactElement, ReactNode, useEffect, useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Image, BackHandler } from "react-native";
+import { View, Text, KeyboardAvoidingView, StyleSheet, Image, BackHandler, Alert } from "react-native";
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from "react-redux";
 import { normalize } from '../../helpers';
@@ -252,29 +252,18 @@ function Register(props: any): any {
                 if (registerButtonClicked || isLoading) {
                   return;
                 }
-                // setRegisterButtonClicked(true)
-                // setIsLoading(true)
+                setRegisterButtonClicked(true)
+                setIsLoading(true)
 
-                doRegister({
-                  firstName,
-                  lastName,
-                  email,
-                  password
-                })
-                /*
-                this.setState(
-                  { isLoading: true, registerButtonClickedOnce: true },
-                  () => {
-                    if (this.isValidStep3()) {
-                      setTimeout(() => {
-                        this.doRegister();
-                      }, 1000);
-                    } else {
-                      this.setState({ isLoading: false, registerButtonClickedOnce: false });
-                    }
-                  }
-                );
-                */
+                doRegister({ firstName, lastName, email, password })
+                  .then(() => {
+                    setRegisterStep(4)
+                  }).catch(err => {
+                    Alert.alert(err.message)
+                  }).finally(() => {
+                    setIsLoading(false)
+                    setRegisterButtonClicked(false)
+                  })
               }}
             >
               <Text style={styles.buttonOnLabel}>{isLoading ? 'Creating your account...' : 'Continue'}</Text>

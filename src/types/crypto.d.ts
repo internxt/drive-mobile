@@ -6,6 +6,7 @@ declare module 'crypto-js' {
     export {
         enc,
         lib,
-        PBKDF2
+        PBKDF2,
+        AES
     }
 }
