@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, StatusBar, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, StatusBar, View, Text } from 'react-native';
 import { Provider } from 'react-redux'
 import { store } from './src/store'
 import AppNavigator from "./src/AppNavigator";
-import { loadFonts } from './src/helpers'
+import { loadEnvVars, loadFonts } from './src/helpers'
 
 export default function App() {
   const [appInitialized, setAppInitialized] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   Promise.all([
-    loadFonts()
+    loadFonts(),
+    loadEnvVars(),
   ]).then(() => {
     setAppInitialized(true);
+  }).catch((err: Error) => {
+    setLoadError(err.message)
   })
 
   return <Provider store={store}>
@@ -21,7 +25,8 @@ export default function App() {
         <AppNavigator />
       </View>
       : <View style={styles.container}>
-        <ActivityIndicator color={'#00f'} />
+        {loadError ? <Text>{loadError}</Text>
+        : <ActivityIndicator color={'#00f'} />}
       </View>
     }
   </Provider>

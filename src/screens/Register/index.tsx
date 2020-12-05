@@ -1,12 +1,12 @@
 import { isEmpty } from 'lodash';
 import React, { ReactElement, ReactNode, useEffect, useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Image, BackHandler } from "react-native";
+import { View, Text, KeyboardAvoidingView, StyleSheet, Image, BackHandler, Alert } from "react-native";
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from "react-redux";
 import { normalize } from '../../helpers';
 import Intro from '../Intro'
 import { validateEmail } from '../Login/access';
-import { isNullOrEmpty, isStrongPassword } from './registerUtils';
+import { doRegister, isNullOrEmpty, isStrongPassword, resendActivationEmail } from './registerUtils';
 
 function Register(props: any): any {
   const [registerStep, setRegisterStep] = useState(1);
@@ -65,7 +65,7 @@ function Register(props: any): any {
                 value={firstName}
                 onChangeText={value => setFirstName(value)}
                 placeholder="First name"
-                placeholderTextColor="#666666"
+                placeholderTextColor="#666"
                 maxLength={64}
               />
             </View>
@@ -75,17 +75,18 @@ function Register(props: any): any {
                 value={lastName}
                 onChangeText={value => setLastName(value)}
                 placeholder="Last name"
-                placeholderTextColor="#666666"
+                placeholderTextColor="#666"
                 maxLength={64}
               />
             </View>
             <View style={styles.inputWrapper}>
               <TextInput
+                autoCapitalize="none"
                 style={[styles.input, isValidEmail ? {} : { borderWidth: 1, borderColor: 'red' }]}
                 value={email}
                 onChangeText={value => setEmail(value)}
                 placeholder="Email address"
-                placeholderTextColor="#666666"
+                placeholderTextColor="#666"
                 maxLength={64}
                 keyboardType="email-address"
                 textContentType="emailAddress"
@@ -188,6 +189,12 @@ function Register(props: any): any {
               >
                 <Text style={styles.buttonOnLabel}>Continue</Text>
               </TouchableHighlight>
+              <TouchableHighlight
+                activeOpacity={1}
+                underlayColor="#ffffff"
+                onPress={() => setRegisterStep(1)}>
+                <Text style={styles.link}>Back</Text>
+              </TouchableHighlight>
             </View>
           </View>
         </View>
@@ -214,11 +221,12 @@ function Register(props: any): any {
           <View style={[styles.showInputFieldsWrapper, { marginTop: -10 }]}>
             <View style={styles.inputWrapper}>
               <TextInput
+                autoCapitalize="none"
                 style={[styles.input, !isValidPassword ? { borderWidth: 1, borderColor: 'red' } : {}]}
                 value={password}
                 onChangeText={value => setPassword(value)}
                 placeholder="Password"
-                placeholderTextColor="#666666"
+                placeholderTextColor="#666"
                 secureTextEntry={true}
                 textContentType="password"
               />
@@ -229,7 +237,7 @@ function Register(props: any): any {
                 value={confirmPassword}
                 onChangeText={value => setConfirmPassword(value)}
                 placeholder="Confirm password"
-                placeholderTextColor="#666666"
+                placeholderTextColor="#666"
                 secureTextEntry={true}
                 textContentType="password"
               />
@@ -243,23 +251,27 @@ function Register(props: any): any {
                 if (registerButtonClicked || isLoading) {
                   return;
                 }
-                /*
-                this.setState(
-                  { isLoading: true, registerButtonClickedOnce: true },
-                  () => {
-                    if (this.isValidStep3()) {
-                      setTimeout(() => {
-                        this.doRegister();
-                      }, 1000);
-                    } else {
-                      this.setState({ isLoading: false, registerButtonClickedOnce: false });
-                    }
-                  }
-                );
-                */
+                setRegisterButtonClicked(true)
+                setIsLoading(true)
+
+                doRegister({ firstName, lastName, email, password })
+                  .then(() => {
+                    setRegisterStep(4)
+                  }).catch(err => {
+                    Alert.alert(err.message)
+                  }).finally(() => {
+                    setIsLoading(false)
+                    setRegisterButtonClicked(false)
+                  })
               }}
             >
               <Text style={styles.buttonOnLabel}>{isLoading ? 'Creating your account...' : 'Continue'}</Text>
+            </TouchableHighlight>
+            <TouchableHighlight
+              activeOpacity={1}
+              underlayColor="#ffffff"
+              onPress={() => setRegisterStep(2)}>
+              <Text style={styles.link}>Back</Text>
             </TouchableHighlight>
           </View>
         </View>
@@ -316,12 +328,26 @@ function Register(props: any): any {
 
             <View style={styles.buttonFooterWrapper}>
               <TouchableHighlight
-                style={[styles.button, { marginTop: normalize(10) }]}
-                underlayColor="#4585f5" onPress={() => { }}>
+                style={[styles.button, styles.buttonBlock, { marginTop: normalize(10) }]}
+                underlayColor="#4585f5" onPress={() => {
+                  setRegisterButtonClicked(true)
+                  setIsLoading(true)
+                  resendActivationEmail(email).then(() => {
+                    Alert.alert(`Activation email sent to ${email}`)
+                  }).catch(err => {
+                    Alert.alert(err.message)
+                  }).finally(() => {
+                    setRegisterButtonClicked(false)
+                    setIsLoading(false)
+                  })
+                }}>
                 <Text style={styles.buttonOnLabel}>Re-send activation email</Text>
               </TouchableHighlight>
-              <TouchableHighlight activeOpacity={1} underlayColor="#737880">
-                <Text style={styles.link} onPress={() => props.navigation.replace('Login')}>Sign in</Text>
+              <TouchableHighlight
+                activeOpacity={1}
+                underlayColor="#ffffff"
+                onPress={() => props.navigation.replace('Login')}>
+                <Text style={styles.link}>Sign in</Text>
               </TouchableHighlight>
             </View>
           </View>
