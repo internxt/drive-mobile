@@ -65,7 +65,7 @@ function Register(props: any): any {
                 value={firstName}
                 onChangeText={value => setFirstName(value)}
                 placeholder="First name"
-                placeholderTextColor="#666666"
+                placeholderTextColor="#666"
                 maxLength={64}
               />
             </View>
@@ -75,7 +75,7 @@ function Register(props: any): any {
                 value={lastName}
                 onChangeText={value => setLastName(value)}
                 placeholder="Last name"
-                placeholderTextColor="#666666"
+                placeholderTextColor="#666"
                 maxLength={64}
               />
             </View>
@@ -86,7 +86,7 @@ function Register(props: any): any {
                 value={email}
                 onChangeText={value => setEmail(value)}
                 placeholder="Email address"
-                placeholderTextColor="#666666"
+                placeholderTextColor="#666"
                 maxLength={64}
                 keyboardType="email-address"
                 textContentType="emailAddress"
@@ -226,7 +226,7 @@ function Register(props: any): any {
                 value={password}
                 onChangeText={value => setPassword(value)}
                 placeholder="Password"
-                placeholderTextColor="#666666"
+                placeholderTextColor="#666"
                 secureTextEntry={true}
                 textContentType="password"
               />
@@ -237,7 +237,7 @@ function Register(props: any): any {
                 value={confirmPassword}
                 onChangeText={value => setConfirmPassword(value)}
                 placeholder="Confirm password"
-                placeholderTextColor="#666666"
+                placeholderTextColor="#666"
                 secureTextEntry={true}
                 textContentType="password"
               />

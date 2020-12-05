@@ -2,15 +2,11 @@ import { decryptText, encryptText, encryptTextWithKey, passToHash } from "../../
 import { getHeaders } from "../../helpers/headers"
 import { IsJsonString } from "../Register/registerUtils"
 
-export function doAccess() {
-
-}
-
 export async function apiLogin(email: string) {
   console.log('GET /login')
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/login`, {
     method: 'POST',
-    headers: getHeaders(false, false),
+    headers: getHeaders(),
     body: JSON.stringify({ email: email })
   }).then(async res => {
     const data = await res.text()
@@ -29,12 +25,11 @@ export async function apiLogin(email: string) {
 }
 
 export async function apiAccess(email: string, password: string, twoFactor: string, secretKey: string): Promise<any> {
-  console.log('POST /access', secretKey)
   const hashObj = passToHash({ password: password, salt: decryptText(secretKey) })
   const encPassword = encryptText(hashObj.hash)
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/access`, {
     method: 'post',
-    headers: getHeaders(false, false),
+    headers: getHeaders(),
     body: JSON.stringify({
       email: email,
       password: encPassword,
@@ -52,8 +47,12 @@ export async function apiAccess(email: string, password: string, twoFactor: stri
   })
 }
 
+export async function isUserActivated() {
+
+}
+
 export async function doLogin(username: string, password: string, twofactor: string, secretKey: string) {
-  if (twofactor) {
+  if (twofactor && secretKey) {
     return apiAccess(username, password, twofactor, secretKey);
   }
 

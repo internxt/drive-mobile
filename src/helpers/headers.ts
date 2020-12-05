@@ -1,22 +1,19 @@
-  
-function getHeaders(withAuth: Boolean, withMnemonic: Boolean): Headers {
+
+export function getHeaders(authToken?: string, mnemonic?: string) {
+
     const headers = new Headers()
-    
     headers.append('content-type', 'application/json; charset=utf-8')
     headers.append('internxt-version', '1.0.0')
     headers.append('internxt-client', 'drive-mobile')
 
-    if (withAuth) {
-        // headers.append('Authorization', `Bearer ${localStorage.getItem("xToken")}`)
+    if (authToken) {
+        headers.append('Authorization', `Bearer ${authToken}`);
     }
 
-    if (withMnemonic) {
-        // headers.append('internxt-mnemonic', `${localStorage.getItem("xMnemonic")}`)
+    if (mnemonic) {
+        headers.append('internxt-mnemonic', mnemonic);
     }
 
     return headers;
 }
 
-export {
-    getHeaders
-}

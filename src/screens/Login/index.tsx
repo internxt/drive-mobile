@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from "react-native";
 import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
 import { connect } from 'react-redux';
+import { decryptTextWithKey } from '../../helpers';
 import { normalize } from '../../helpers/normalize'
 import { validate2FA, doLogin } from './access';
 
@@ -48,7 +49,7 @@ function Login(props: any) {
             value={email}
             onChangeText={value => setEmail(value)}
             placeholder="Email address"
-            placeholderTextColor="#666666"
+            placeholderTextColor="#666"
             maxLength={64}
             keyboardType="email-address"
             textContentType="emailAddress"
@@ -60,7 +61,7 @@ function Login(props: any) {
             value={password}
             onChangeText={value => setPassword(value)}
             placeholder="Password"
-            placeholderTextColor="#666666"
+            placeholderTextColor="#666"
             secureTextEntry={true}
             textContentType="password"
           />
@@ -69,11 +70,11 @@ function Login(props: any) {
       <View style={showTwoFactor ? styles.showInputFieldsWrapper : styles.hideInputFieldWrapper}>
         <View style={styles.inputWrapper}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, validate2FA(twoFactorCode) ? {} : { borderWidth: 1, borderColor: '#f00'}]}
             value={twoFactorCode}
             onChangeText={value => setTwoFactorCode(value)}
             placeholder="Two-factor code"
-            placeholderTextColor="#666666"
+            placeholderTextColor="#666"
             maxLength={64}
             keyboardType="numeric"
             textContentType="none" />
@@ -92,10 +93,11 @@ function Login(props: any) {
                   setShowTwoFactor(true)
                 } else {
                   console.log('LOGIN')
+                  data.user.mnemonic = decryptTextWithKey(data.user.mnemonic, password)
+                  props.dispatch();
                 }
               })
               .catch(err => {
-                console.log('Error')
                 Alert.alert(err.message)
               })
               .finally(() => {

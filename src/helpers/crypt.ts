@@ -29,7 +29,6 @@ export function encryptText(textToEncrypt: string) {
 
 // AES Plain text decryption method
 export function decryptText(encryptedText: string) {
-  console.log('PASSWORD', password)
   return decryptTextWithKey(encryptedText, password);
 }
 
