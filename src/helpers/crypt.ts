@@ -8,6 +8,7 @@ interface PassObjectInterface {
 }
 
 export function passToHash(passObject: PassObjectInterface) {
+  console.log(passObject)
   try {
     const salt = passObject.salt ? CryptoJS.enc.Hex.parse(passObject.salt) : CryptoJS.lib.WordArray.random(128 / 8);
     const hash = CryptoJS.PBKDF2(passObject.password, salt, { keySize: 256 / 32, iterations: 10000 });

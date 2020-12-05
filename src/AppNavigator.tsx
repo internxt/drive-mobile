@@ -18,7 +18,7 @@ const routeConfig: RouteConfig  = {
 };
 
 const navigatorOptions: NavigatorOptions = {
-  initialRouteName: 'Register',
+  initialRouteName: 'Login',
   headerMode: 'none'
 };
 

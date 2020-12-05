@@ -1,6 +1,5 @@
 import _ from 'lodash'
-import { proc } from 'react-native-reanimated';
-import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
+import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 
 export function isStrongPassword(pwd: string) {

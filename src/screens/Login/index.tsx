@@ -1,6 +1,6 @@
 import React from 'react'
 import { useState } from "react";
-import { Image, View, Text, KeyboardAvoidingView, StyleSheet } from "react-native";
+import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from "react-native";
 import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
 import { connect } from 'react-redux';
 import { normalize } from '../../helpers/normalize'
@@ -16,6 +16,7 @@ function Login(props: any) {
   const [password, setPassword] = useState('')
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [showTwoFactor, setShowTwoFactor] = useState(false)
+  const [secretKey, setSecretKey] = useState('')
 
   return <KeyboardAvoidingView behavior="padding" style={styles.container}>
     <View style={[styles.containerCentered, isLoading ? { opacity: 0.5 } : {}]}>
@@ -82,7 +83,25 @@ function Login(props: any) {
         <TouchableHighlight
           style={[styles.button, styles.buttonBlock]}
           underlayColor="#4585f5"
-          onPress={() => doLogin('', '', '')}>
+          onPress={() => {
+            setIsLoading(true)
+            doLogin(email, password, twoFactorCode, secretKey)
+              .then(data => {
+                setSecretKey(data.sKey)
+                if (data.tfa) {
+                  setShowTwoFactor(true)
+                } else {
+                  console.log('LOGIN')
+                }
+              })
+              .catch(err => {
+                console.log('Error')
+                Alert.alert(err.message)
+              })
+              .finally(() => {
+                setIsLoading(false)
+              })
+          }}>
           <Text style={styles.buttonOnLabel}>{isLoading ? 'Decrypting...' : 'Sign in'}</Text>
         </TouchableHighlight>
         <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>Forgot your password?</Text>
