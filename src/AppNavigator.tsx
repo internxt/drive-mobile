@@ -4,7 +4,7 @@ import { createStackNavigator } from 'react-navigation-stack';
 import { StackNavigationConfig, StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { connect } from 'react-redux';
 import Auth from './screens/Auth'
-import { FileExplorer } from './screens/FileExplorer';
+import FileExplorer from './screens/FileExplorer';
 import Intro from './screens/Intro';
 import Login from './screens/Login';
 import Register from './screens/Register';

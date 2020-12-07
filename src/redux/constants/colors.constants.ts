@@ -1,4 +1,4 @@
-export const colors = {
+export const colors: any = {
   red: {
     code: '#ff8888',
     darker: '#FF8787',

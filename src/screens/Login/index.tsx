@@ -5,7 +5,7 @@ import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
 import { connect } from 'react-redux';
 import { decryptTextWithKey } from '../../helpers';
 import { normalize } from '../../helpers/normalize'
-import { userActions } from '../../redux/actions';
+import { fileActions, userActions } from '../../redux/actions';
 import { validate2FA, doLogin, apiLogin } from './access';
 
 interface LoginProps {
@@ -21,7 +21,13 @@ function Login(props: any) {
   const [secretKey, setSecretKey] = useState('')
 
   useEffect(() => {
-    props.navigation.replace('FileExplorer')
+    if (props.authenticationState.loggedIn) {
+      const rootFolderId = props.authenticationState.user.root_folder_id;
+      props.dispatch(fileActions.getFolderContent(rootFolderId))
+      props.navigation.replace('FileExplorer', {
+        folderId: rootFolderId
+      })
+    }
   }, [props.authenticationState])
 
   return <KeyboardAvoidingView behavior="padding" style={styles.container}>
