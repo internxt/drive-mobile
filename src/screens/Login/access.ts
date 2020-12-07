@@ -41,7 +41,6 @@ export async function apiAccess(email: string, password: string, twoFactor: stri
     if (res.status === 200) {
       return json
     } else {
-      console.log(json)
       throw Error(json && json.error ? json.error : data)
     }
   })
@@ -56,9 +55,7 @@ export async function doLogin(username: string, password: string, twofactor: str
     return apiAccess(username, password, twofactor, secretKey);
   }
 
-  return apiLogin(username).then(res => res).catch(err => {
-    console.log(err)
-  })
+  return apiLogin(username).then(res => res)
 }
 
 export function validateEmail(email: string): boolean {

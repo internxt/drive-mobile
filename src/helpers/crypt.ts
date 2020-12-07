@@ -8,7 +8,6 @@ interface PassObjectInterface {
 }
 
 export function passToHash(passObject: PassObjectInterface) {
-  console.log(passObject)
   try {
     const salt = passObject.salt ? CryptoJS.enc.Hex.parse(passObject.salt) : CryptoJS.lib.WordArray.random(128 / 8);
     const hash = CryptoJS.PBKDF2(passObject.password, salt, { keySize: 256 / 32, iterations: 10000 });
@@ -46,7 +45,6 @@ export function encryptTextWithKey(textToEncrypt: string, keyToEncrypt: string) 
 // AES Plain text decryption method with enc. key
 export function decryptTextWithKey(encryptedText: string, keyToDecrypt: string) {
   try {
-    console.log(encryptedText)
     const reb = CryptoJS.enc.Hex.parse(encryptedText);
     const bytes = CryptoJS.AES.decrypt(
       reb.toString(CryptoJS.enc.Base64),

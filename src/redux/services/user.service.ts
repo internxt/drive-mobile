@@ -1,7 +1,5 @@
 import { decryptText, decryptTextWithKey, deviceStorage, encryptText, passToHash } from "../../helpers";
 
-const { REACT_APP_API_URL } = process && process.env;
-
 export const userService = {
     signin,
     signout,
@@ -10,13 +8,11 @@ export const userService = {
 
 function signin(email: string, password: string, sKey: string, twoFactorCode: string) {
     return new Promise((resolve, reject) => {
-        // Manage credentials verification
-        // Check password
         const salt = decryptText(sKey);
         const hashObj = passToHash({ password, salt });
         const encPass = encryptText(hashObj.hash);
 
-        fetch(`${REACT_APP_API_URL}/api/access`, {
+        fetch(`${process.env.REACT_NATIVE_API_URL}/api/access`, {
             method: 'POST',
             headers: { 'content-type': 'application/json; charset=utf-8' },
             body: JSON.stringify({

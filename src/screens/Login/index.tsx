@@ -1,11 +1,12 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from "react";
 import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from "react-native";
 import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
 import { connect } from 'react-redux';
 import { decryptTextWithKey } from '../../helpers';
 import { normalize } from '../../helpers/normalize'
-import { validate2FA, doLogin } from './access';
+import { userActions } from '../../redux/actions';
+import { validate2FA, doLogin, apiLogin } from './access';
 
 interface LoginProps {
   goToForm?: (screenName: string) => void
@@ -18,6 +19,10 @@ function Login(props: any) {
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [showTwoFactor, setShowTwoFactor] = useState(false)
   const [secretKey, setSecretKey] = useState('')
+
+  useEffect(() => {
+    props.navigation.replace('FileExplorer')
+  }, [props.authenticationState])
 
   return <KeyboardAvoidingView behavior="padding" style={styles.container}>
     <View style={[styles.containerCentered, isLoading ? { opacity: 0.5 } : {}]}>
@@ -70,7 +75,7 @@ function Login(props: any) {
       <View style={showTwoFactor ? styles.showInputFieldsWrapper : styles.hideInputFieldWrapper}>
         <View style={styles.inputWrapper}>
           <TextInput
-            style={[styles.input, validate2FA(twoFactorCode) ? {} : { borderWidth: 1, borderColor: '#f00'}]}
+            style={[styles.input, validate2FA(twoFactorCode) ? {} : { borderWidth: 1, borderColor: '#f00' }]}
             value={twoFactorCode}
             onChangeText={value => setTwoFactorCode(value)}
             placeholder="Two-factor code"
@@ -86,23 +91,19 @@ function Login(props: any) {
           underlayColor="#4585f5"
           onPress={() => {
             setIsLoading(true)
-            doLogin(email, password, twoFactorCode, secretKey)
-              .then(data => {
-                setSecretKey(data.sKey)
-                if (data.tfa) {
-                  setShowTwoFactor(true)
-                } else {
-                  console.log('LOGIN')
-                  data.user.mnemonic = decryptTextWithKey(data.user.mnemonic, password)
-                  props.dispatch();
-                }
-              })
-              .catch(err => {
-                Alert.alert(err.message)
-              })
-              .finally(() => {
-                setIsLoading(false)
-              })
+
+            apiLogin(email).then(userLoginData => {
+              if (userLoginData.tfa && !twoFactorCode) {
+                setShowTwoFactor(true)
+              } else {
+                const decSKey = decryptTextWithKey(userLoginData.sKey, password)
+                props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
+              }
+            }).catch(err => {
+              Alert.alert(err.message)
+            }).finally(() => {
+              setIsLoading(false)
+            })
           }}>
           <Text style={styles.buttonOnLabel}>{isLoading ? 'Decrypting...' : 'Sign in'}</Text>
         </TouchableHighlight>
