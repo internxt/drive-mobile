@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { ScrollView, View, Text, RefreshControl, StyleSheet } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { connect } from 'react-redux';
 import { fileActions } from '../../redux/actions';
 import EmptyFolder from '../EmptyFolder';
@@ -22,7 +23,7 @@ function FileList(props: any) {
 
     const isEmptyFolder = folderList.length === 0 && fileList.length === 0
 
-    return <ScrollView
+    return <Animated.ScrollView
         style={styles.fileListScrollView}
         contentContainerStyle={isEmptyFolder ? styles.fileListContentsScrollView : {}}>
         {isEmptyFolder
@@ -36,7 +37,7 @@ function FileList(props: any) {
             key={file.id}
             isFolder={false}
             item={file} />)}
-    </ScrollView>
+    </Animated.ScrollView>
 }
 
 const styles = StyleSheet.create({

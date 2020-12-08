@@ -1,7 +1,9 @@
-import React, { Fragment } from 'react'
-import { View, StyleSheet, Platform, Text } from 'react-native'
+import React, { Fragment, useEffect, useState } from 'react'
+import { View, StyleSheet, Platform, Text, Alert, TextInput, Animated, Image } from 'react-native'
+import { TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import { layoutActions } from '../../redux/actions';
+import { getIcon } from '../../helpers/getIcon';
+import { fileActions, layoutActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
 
 function handleUpload() {
@@ -13,20 +15,54 @@ function handleFolderCreate() {
 }
 
 function AppMenu(props: any) {
+    const [activeSearchBox, setActiveSearchBox] = useState(false)
+
     return <View
         style={styles.container}>
+
+        <View style={[
+            styles.searchContainer,
+            { display: activeSearchBox ? 'flex' : 'none' }]}>
+            <Image
+                style={{ marginLeft: 20, marginRight: 10 }}
+                source={getIcon('search')}
+            />
+            <TextInput
+                style={styles.searchInput}
+                placeholder="Search"
+                value={props.filesState.searchString}
+                onChange={e => {
+                    props.dispatch(fileActions.setSearchString(e.nativeEvent.text))
+                }}
+            />
+            <TouchableHighlight
+                underlayColor="#fff"
+                onPress={() => {
+                    props.dispatch(fileActions.setSearchString(''));
+                    props.dispatch(layoutActions.closeSearch());
+                    setActiveSearchBox(false)
+                }}>
+                <Image
+                    style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }}
+                    source={getIcon('close')}
+                />
+            </TouchableHighlight>
+        </View>
+
         <Fragment>
-            <View style={styles.buttonContainer}>
+            <View style={[styles.buttonContainer, { display: activeSearchBox ? 'none' : 'flex' }]}>
                 <View style={styles.commonButtons}>
                     <MenuItem
                         name="search"
-                        onClickHandler={() =>
+                        onClickHandler={() => {
+                            setActiveSearchBox(true)
                             props.dispatch(layoutActions.openSearch())
-                        } />
+                        }} />
 
                     <MenuItem
                         name="list"
                         onClickHandler={() => {
+                            props.dispatch(layoutActions.closeSearch())
                             props.dispatch(layoutActions.openSortModal());
                         }} />
 
@@ -34,7 +70,12 @@ function AppMenu(props: any) {
 
                     <MenuItem
                         name="create"
-                        onClickHandler={() => handleFolderCreate(/* folderContent.id */)} />
+                        onClickHandler={() => {
+                            Alert.prompt('Create new folder', 'Type a name', (res) => {
+                                // fileActions.createFolder(curr)
+                            })
+                            // handleFolderCreate(/* folderContent.id */)
+                        }} />
 
                     {props.filesState.selectedItems.length > 0 ? (
                         <MenuItem name="delete" onClickHandler={props.deleteItems} />

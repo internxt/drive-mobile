@@ -12,7 +12,13 @@ import { getIcon } from '../../helpers/getIcon';
 function FileExplorer(props: any) {
     const { filesState } = props;
     const currentFolderId = props.navigation.state.params.folderId;
-    const parentFolderId = props.filesState.folderContent.parentId;
+    const parentFolderId = (() => {
+        if (props.filesState.folderContent) {
+            return props.filesState.folderContent.parentId || null
+        } else {
+            return null
+        }
+    })()
 
     useEffect(() => {
         const backAction = () => {
