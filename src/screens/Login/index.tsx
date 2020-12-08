@@ -6,13 +6,13 @@ import { connect } from 'react-redux';
 import { decryptTextWithKey } from '../../helpers';
 import { normalize } from '../../helpers/normalize'
 import { fileActions, userActions } from '../../redux/actions';
-import { validate2FA, doLogin, apiLogin } from './access';
+import { validate2FA, apiLogin } from './access';
 
 interface LoginProps {
   goToForm?: (screenName: string) => void
 }
 
-function Login(props: any) {
+function Login(props: LoginProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

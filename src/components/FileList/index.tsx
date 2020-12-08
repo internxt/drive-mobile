@@ -7,7 +7,6 @@ import FileItem from '../FileItem';
 
 function FileList(props: any) {
     const [refreshing, setRefreshing] = useState(false)
-    console.log(props)
 
     const { filesState } = props;
     const { loading, folderContent, selectedFile } = filesState;
@@ -19,9 +18,11 @@ function FileList(props: any) {
             ? <EmptyFolder />
             : <Text style={{ display: 'none' }}></Text>}
         {folderList.map((folder: any) => <FileItem
+            key={folder.id}
             isFolder={true}
             item={folder} />)}
         {fileList.map((file: any) => <FileItem
+            key={file.id}
             isFolder={false}
             item={file} />)}
     </ScrollView>

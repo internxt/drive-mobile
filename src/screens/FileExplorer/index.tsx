@@ -5,6 +5,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { fileActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
+import SettingsModal from '../../modals/SettingsModal';
 
 function FileExplorer(props: any) {
     const { filesState } = props;
@@ -18,10 +19,12 @@ function FileExplorer(props: any) {
         <View style={styles.breadcrumbs}>
             <Text style={styles.breadcrumbsTitle}>
                 {filesState.folderContent && filesState.folderContent.parentId
-              ? filesState.folderContent.name
-            : 'All Files'}
+                    ? filesState.folderContent.name
+                    : 'All Files'}
             </Text>
         </View>
+
+        <SettingsModal isOpen={props.layoutState.showSettingsModal} />
 
         <FileList />
 

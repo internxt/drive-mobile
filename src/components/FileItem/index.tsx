@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
@@ -19,7 +19,12 @@ function FileItem(props: FileItemProps) {
         containerBackground: { backgroundColor: isSelected ? '#f2f5ff' : '#fff' }
     });
 
-    return <TouchableHighlight style={[styles.container, extendStyles.containerBackground]}>
+    return <TouchableHighlight
+        underlayColor="#fff"
+        style={[styles.container, extendStyles.containerBackground]}
+        onPress={() => {
+            Alert.alert('CLIKED')
+        }}>
         <View style={styles.fileDetails}>
             <View
                 style={styles.itemIcon}>
@@ -33,8 +38,7 @@ function FileItem(props: FileItemProps) {
                                 left: 35,
                                 top: 7
                             }}>
-                                <Icon
-                                    name={props.item.icon} />
+                                <Icon name={props.item.icon} />
                             </View>
                             : <></>}
                     </>

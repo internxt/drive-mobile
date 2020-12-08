@@ -13,6 +13,7 @@ function MenuItem(props: MenuItemProps) {
   const imageSource = getIcon(props.name)
   return <TouchableHighlight
     underlayColor="#fff"
+    onPress={props.onClickHandler}
     style={styles.button}>
     <Image
       style={styles.icon}
