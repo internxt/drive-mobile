@@ -13,8 +13,8 @@ function handleFolderCreate() {
 }
 
 function AppMenu(props: any) {
-
-    return <View>
+    return <View
+        style={styles.container}>
         <Fragment>
             <View style={styles.buttonContainer}>
                 <View style={styles.commonButtons}>

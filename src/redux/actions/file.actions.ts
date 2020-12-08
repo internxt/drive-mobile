@@ -4,7 +4,6 @@ import { fileService } from '../services';
 import { userActions } from './user.actions';
 
 export const fileActions = {
-  downloadFile,
   downloadFileStart,
   downloadFileEnd,
   downloadSelectedFileStart,
@@ -40,32 +39,6 @@ function downloadSelectedFileStop() {
   return { type: fileActionTypes.DOWNLOAD_SELECTED_FILE_STOP };
 }
 
-// TODO: Will download the file specified in the parameters.
-function downloadFile(user: string, file: string) {
-  return (dispatch: Dispatch) => {
-    dispatch(request());
-
-    fileService
-      .downloadFile(user, file)
-      .then(result => {
-        dispatch(success(result));
-      })
-      .catch(error => {
-        dispatch(failure(error));
-      });
-  };
-
-  function request() {
-    return { type: fileActionTypes.ADD_FILE_REQUEST };
-  }
-  function success(payload: any) {
-    return { type: fileActionTypes.ADD_FILE_SUCCESS };
-  }
-  function failure(error: string) {
-    return { type: fileActionTypes.ADD_FILE_FAILURE, error };
-  }
-}
-
 function uploadFileStart(fileName: string) {
   return { type: fileActionTypes.ADD_FILE_REQUEST, payload: fileName };
 }
@@ -93,10 +66,8 @@ function getFolderContent(folderId: string) {
       .then((data: any) => {
         data.currentFolder = id;
         dispatch(success(data));
-      })
-      .catch(error => {
+      }).catch(error => {
         dispatch(failure(error));
-
         if (error.status === 401) {
           dispatch(userActions.signout());
         }
@@ -152,7 +123,7 @@ function selectFile(file) {
   };
 }
 
-function deselectFile(file) {
+function deselectFile(file: any) {
   return (dispatch: Dispatch) => {
     dispatch({ type: fileActionTypes.DESELECT_FILE, payload: file });
   };
@@ -234,7 +205,7 @@ function moveFile(fileId, destination) {
   function success() {
     return { type: fileActionTypes.MOVE_FILES_SUCCESS };
   }
-  function failure(payload) {
+  function failure(payload: any) {
     return { type: fileActionTypes.MOVE_FILES_FAILURE, payload };
   }
 }
@@ -263,7 +234,7 @@ function updateFolderMetadata(metadata, folderId) {
   function success() {
     return { type: fileActionTypes.UPDATE_FOLDER_METADATA_SUCCESS };
   }
-  function failure(payload) {
+  function failure(payload: any) {
     return { type: fileActionTypes.UPDATE_FOLDER_METADATA_FAILURE, payload };
   }
 }
