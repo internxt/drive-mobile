@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, Linking } from 'react-native';
 import Modal from 'react-native-modalbox'
 import ProgressBar from '../../components/ProgressBar';
@@ -8,9 +8,38 @@ import prettysize from 'prettysize'
 import Separator from '../../components/Separator';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
+import { getHeaders } from '../../helpers/headers';
+import { deviceStorage } from '../../helpers';
+import { useSafeArea } from 'react-native-safe-area-context';
+import { values } from 'lodash';
 
-function loadUsage() {
+async function loadUsage() {
+    const xToken = await deviceStorage.getItem('xToken') || undefined
+    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
+        method: 'get',
+        headers: getHeaders(xToken)
+    }).then(res => {
+        if (res.status !== 200) { throw Error('Cannot load usage') }
+        return res
+    }).then(res => res.json()).then(res => res.total)
+}
 
+async function loadLimit() {
+    const xToken = await deviceStorage.getItem('xToken') || undefined
+
+    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
+        method: 'get',
+        headers: getHeaders(xToken)
+    }).then(res => {
+        if (res.status !== 200) { throw Error('Cannot load limit') }
+        return res
+    }).then(res => res.json()).then(res => res.maxSpaceBytes)
+}
+
+async function loadValues() {
+    const limit = await loadLimit()
+    const usage = await loadUsage()
+    return { usage, limit }
 }
 
 interface SettingsModalProps {
@@ -20,6 +49,19 @@ interface SettingsModalProps {
 }
 
 function SettingsModal(props: SettingsModalProps) {
+
+    const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
+
+    useEffect(() => {
+        if (props.layoutState.showSettingsModal) {
+            loadValues().then(values => {
+                setUsageValues(values)
+            }).catch(err => {
+
+            })
+        }
+    }, [props.layoutState])
+
     return <Modal
         isOpen={props.layoutState.showSettingsModal}
         position={'bottom'}
@@ -49,8 +91,8 @@ function SettingsModal(props: SettingsModalProps) {
         <ProgressBar
             styleBar={{}}
             styleProgress={{ height: 6 }}
-            totalValue={123}
-            usedValue={20}
+            totalValue={usageValues.limit}
+            usedValue={usageValues.usage}
         />
 
         <Text
@@ -64,27 +106,24 @@ function SettingsModal(props: SettingsModalProps) {
             <Text>Used</Text>
             <Text style={{ fontWeight: 'bold' }}>
                 {' '}
-                {prettysize(123)}{' '}
+                {prettysize(usageValues.usage)}{' '}
             </Text>
             <Text>of</Text>
             <Text style={{ fontWeight: 'bold' }}>
                 {' '}
-                {prettysize(123)}{' '}
+                {prettysize(usageValues.limit)}{' '}
             </Text>
         </Text>
 
         <Separator />
-        <SettingsItem
-            text="Storage"
-            onClick={() => { }}
-        />
+
         <SettingsItem
             text="More info"
-            onClick={() => Linking.openURL('https://internxt.com/drive')}
+            onPress={() => Linking.openURL('https://internxt.com/drive')}
         />
         <SettingsItem
             text="Contact"
-            onClick={() => Linking.openURL('mailto:hello@internxt.com')}
+            onPress={() => Linking.openURL('mailto:hello@internxt.com')}
         />
         <SettingsItem
             text="Sign out"
