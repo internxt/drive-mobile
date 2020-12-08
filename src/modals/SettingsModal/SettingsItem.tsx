@@ -6,7 +6,7 @@ export default function SettingsItem(props: any) {
     return <TouchableHighlight
         underlayColor="#FFFFFF"
         style={styles.itemContainer}
-        onPress={props.handlePress}
+        onPress={props.onPress}
     >
         <Text style={styles.itemText}>{props.text}</Text>
     </TouchableHighlight>

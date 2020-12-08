@@ -14,14 +14,14 @@ function loadUsage() {
 }
 
 interface SettingsModalProps {
-    isOpen: boolean
     authenticationState?: any
-    dispatch: any
+    dispatch?: any
+    layoutState?: any
 }
 
 function SettingsModal(props: SettingsModalProps) {
     return <Modal
-        isOpen={props.isOpen}
+        isOpen={props.layoutState.showSettingsModal}
         position={'bottom'}
         style={styles.modalSettings}
         onClosed={() => {
@@ -88,7 +88,10 @@ function SettingsModal(props: SettingsModalProps) {
         />
         <SettingsItem
             text="Sign out"
-            onClick={() => props.dispatch(userActions.signout())}
+            onPress={() => {
+                props.dispatch(layoutActions.closeSettings())
+                props.dispatch(userActions.signout())
+            }}
         />
     </Modal>
 }

@@ -6,10 +6,20 @@ import IconFolder from '../IconFolder';
 import TimeAgo from 'react-native-timeago';
 import Icon from '../../../assets/icons/Icon';
 import IconFile from '../IconFile';
+import { fileActions } from '../../redux/actions';
 
 interface FileItemProps {
     isFolder: boolean
     item: any
+    dispatch?: any
+}
+
+function handleClick(isFolder: boolean, item: any, dispatch: any) {
+    if (isFolder) {
+        dispatch(fileActions.getFolderContent(item.id))
+    } else {
+
+    }
 }
 
 function FileItem(props: FileItemProps) {
@@ -22,9 +32,7 @@ function FileItem(props: FileItemProps) {
     return <TouchableHighlight
         underlayColor="#fff"
         style={[styles.container, extendStyles.containerBackground]}
-        onPress={() => {
-            Alert.alert('CLIKED')
-        }}>
+        onPress={() => { handleClick(props.isFolder, props.item, props.dispatch) }}>
         <View style={styles.fileDetails}>
             <View
                 style={styles.itemIcon}>
