@@ -1,5 +1,5 @@
-import React from 'react'
-import { Text, View, StyleSheet, Image } from 'react-native'
+import React, { useEffect } from 'react'
+import { Text, View, StyleSheet, Image, Alert, BackHandler } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fileActions } from '../../redux/actions';
@@ -13,6 +13,23 @@ function FileExplorer(props: any) {
     const { filesState } = props;
     const currentFolderId = props.navigation.state.params.folderId;
     const parentFolderId = props.filesState.folderContent.parentId;
+
+    useEffect(() => {
+        const backAction = () => {
+            if (parentFolderId) {
+                // Go to parent folder if exists
+                props.dispatch(fileActions.getFolderContent(parentFolderId))
+            } else {
+                // Exit application if root folder
+                BackHandler.exitApp()
+            }
+            return true;
+        };
+
+        const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+        return () => backHandler.remove();
+    }, []);
+
 
     if (!props.authenticationState.loggedIn) {
         props.navigation.replace('Login')

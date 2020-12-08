@@ -26,8 +26,6 @@ async function setHeaders() {
 function getFolderContent(folderId: number) {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
-
-    console.log(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}`)
     fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}`, {
       method: 'GET',
       headers

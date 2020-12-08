@@ -3,7 +3,6 @@ import { getHeaders } from "../../helpers/headers"
 import { IsJsonString } from "../Register/registerUtils"
 
 export async function apiLogin(email: string) {
-  console.log('GET /login')
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/login`, {
     method: 'POST',
     headers: getHeaders(),
