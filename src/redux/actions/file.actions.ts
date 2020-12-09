@@ -154,14 +154,13 @@ function setSearchString(searchString) {
   };
 }
 
-function createFolder(parentFolderId, newFolderName) {
+function createFolder(parentFolderId: number, newFolderName: string) {
   return (dispatch: Dispatch) => {
     dispatch(request());
 
     fileService.createFolder(parentFolderId, newFolderName).then(
-      newFolderDetails => {
+      (newFolderDetails: any) => {
         dispatch(success(newFolderDetails));
-        // Refresh parent folder content (?)
         // getFolderContent(newFolderDetails.id);
       },
       error => {
@@ -174,7 +173,7 @@ function createFolder(parentFolderId, newFolderName) {
   function request() {
     return { type: fileActionTypes.CREATE_FOLDER_REQUEST };
   }
-  function success(newFolderDetails) {
+  function success(newFolderDetails: any) {
     return {
       type: fileActionTypes.CREATE_FOLDER_SUCCESS,
       payload: newFolderDetails

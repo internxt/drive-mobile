@@ -37,7 +37,7 @@ function getFolderContent(folderId: number) {
   });
 }
 
-function createFolder(parentFolderId: string, folderName = 'Untitled folder') {
+function createFolder(parentFolderId: number, folderName = 'Untitled folder') {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
     const body = JSON.stringify({

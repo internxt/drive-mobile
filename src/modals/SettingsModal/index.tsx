@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, Linking } from 'react-native';
+import { View, Text, StyleSheet, Linking, ActivityIndicator } from 'react-native';
 import Modal from 'react-native-modalbox'
 import ProgressBar from '../../components/ProgressBar';
 import { layoutActions, userActions } from '../../redux/actions';
@@ -37,6 +37,7 @@ async function loadLimit() {
 }
 
 async function loadValues() {
+    console.log('LOADING USAGE')
     const limit = await loadLimit()
     const usage = await loadUsage()
     return { usage, limit }
@@ -51,13 +52,18 @@ interface SettingsModalProps {
 function SettingsModal(props: SettingsModalProps) {
 
     const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
+    const [lastUpdate, setLastUpdate] = useState(new Date())
+    const [isLoadingUsage, setIsLoadingUpdate] = useState(false)
 
     useEffect(() => {
         if (props.layoutState.showSettingsModal) {
+            setIsLoadingUpdate(true)
             loadValues().then(values => {
                 setUsageValues(values)
             }).catch(err => {
 
+            }).finally(() => {
+                setIsLoadingUpdate(false)
             })
         }
     }, [props.layoutState])
@@ -69,7 +75,6 @@ function SettingsModal(props: SettingsModalProps) {
         onClosed={() => {
             props.dispatch(layoutActions.closeSettings())
         }}
-        onOpened={loadUsage}
         backButtonClose={true}
         animationDuration={200}>
 
@@ -95,7 +100,7 @@ function SettingsModal(props: SettingsModalProps) {
             usedValue={usageValues.usage}
         />
 
-        <Text
+        {isLoadingUsage ? <ActivityIndicator /> : <Text
             style={{
                 fontFamily: 'CerebriSans-Regular',
                 fontSize: 15,
@@ -114,6 +119,7 @@ function SettingsModal(props: SettingsModalProps) {
                 {prettysize(usageValues.limit)}{' '}
             </Text>
         </Text>
+        }
 
         <Separator />
 
