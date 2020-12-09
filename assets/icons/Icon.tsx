@@ -58,7 +58,6 @@ const defaultColors = {
 //  <Icon name="folder" color="blue" height="75"/>
 
 function Icon(props: any) {
-
     switch (props.name) {
         // Folder cover icons
         case "avatarcircleneutral":

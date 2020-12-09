@@ -63,5 +63,7 @@
     <true/>
     <key>CFBundleDisplayName</key>
     <string>drive-mobile</string>
+    <key>NSFaceIDUsageDescription</key>
+    <string>$(PRODUCT_NAME) requires FaceID access to allows you quick and secure access.</string>
   </dict>
 </plist>

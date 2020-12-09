@@ -22,6 +22,9 @@ PODS:
     - UMCore
   - EXLinearGradient (8.3.1):
     - UMCore
+  - EXLocalAuthentication (9.3.0):
+    - UMConstantsInterface
+    - UMCore
   - EXLocation (9.0.1):
     - UMCore
     - UMPermissionsInterface
@@ -271,6 +274,8 @@ PODS:
     - React-cxxreact (= 0.63.3)
     - React-jsi (= 0.63.3)
   - React-jsinspector (0.63.3)
+  - react-native-fingerprint-scanner (6.0.0):
+    - React
   - react-native-safe-area-context (3.1.4):
     - React
   - React-RCTActionSheet (0.63.3):
@@ -377,6 +382,7 @@ DEPENDENCIES:
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - EXKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - EXLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
+  - EXLocalAuthentication (from `../node_modules/expo-local-authentication/ios`)
   - EXLocation (from `../node_modules/expo-location/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
@@ -417,6 +423,7 @@ DEPENDENCIES:
   - React-jsi (from `../node_modules/react-native/ReactCommon/jsi`)
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
+  - react-native-fingerprint-scanner (from `../node_modules/react-native-fingerprint-scanner`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
@@ -482,6 +489,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-keep-awake/ios"
   EXLinearGradient:
     :path: "../node_modules/expo-linear-gradient/ios"
+  EXLocalAuthentication:
+    :path: "../node_modules/expo-local-authentication/ios"
   EXLocation:
     :path: "../node_modules/expo-location/ios"
   EXPermissions:
@@ -520,6 +529,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsiexecutor"
   React-jsinspector:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
+  react-native-fingerprint-scanner:
+    :path: "../node_modules/react-native-fingerprint-scanner"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   React-RCTActionSheet:
@@ -597,6 +608,7 @@ SPEC CHECKSUMS:
   EXImageLoader: 7153fb1307ac643299a9072b71da0d276f4c7789
   EXKeepAwake: 76eed36786534f6a476748e600fa6faf07ac3d09
   EXLinearGradient: c7ca1c2933ac240ffbc805c014a72947e227ac75
+  EXLocalAuthentication: 692a1fdd27389b483b44919388e2a814d43af104
   EXLocation: 90232c6f2773b04a3c146bfda9f181035722c10a
   EXPermissions: 30cbe5b72bd209b65c00884180ad058a60bb413d
   EXSplashScreen: 7ea40b8524f27e7444e3892411c8a4782ab6b4ce
@@ -624,6 +636,7 @@ SPEC CHECKSUMS:
   React-jsi: df07aa95b39c5be3e41199921509bfa929ed2b9d
   React-jsiexecutor: b56c03e61c0dd5f5801255f2160a815f4a53d451
   React-jsinspector: 8e68ffbfe23880d3ee9bafa8be2777f60b25cbe2
+  react-native-fingerprint-scanner: ac6656f18c8e45a7459302b84da41a44ad96dbbe
   react-native-safe-area-context: eb91fe1fb3f7b87d9c30a7f0808407d8569d539d
   React-RCTActionSheet: 53ea72699698b0b47a6421cb1c8b4ab215a774aa
   React-RCTAnimation: 1befece0b5183c22ae01b966f5583f42e69a83c2
