@@ -9,6 +9,7 @@ import IconFile from '../IconFile';
 import { fileActions } from '../../redux/actions';
 import RNFetchBlob from 'rn-fetch-blob'
 import { deviceStorage } from '../../helpers';
+import FileViewer from 'react-native-file-viewer'
 
 interface FileItemProps {
     isFolder: boolean
@@ -25,23 +26,29 @@ async function handleClick(isFolder: boolean, item: any, dispatch: any) {
         const xUserJson = JSON.parse(xUser || '{}')
         console.log(xUserJson.mnemonic)
         RNFetchBlob.config({
+            appendExt: item.type,
+            path: RNFetchBlob.fs.dirs.DocumentDir + '/' + item.name + '.' + item.type,
             fileCache: true,
             addAndroidDownloads: {
                 notification: true,
                 title: 'File downloaded',
                 description: item.name + '.' + item.type
-            },
-            IOSBackgroundTask: true,
-            indicator: true
-        }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${item.id}`, {
-            Authorization: `Bearer ${xToken}`
-        }).then((res) => {
-            if (Platform.OS === 'ios') {
-                RNFetchBlob.ios.previewDocument(res.path())
-            } else {
-                RNFetchBlob.android.actionViewIntent(res.path(), '')
             }
-            console.log('File saved to ' + res.path())
+        }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${item.fileId}`, {
+            'Authorization': `Bearer ${xToken}`,
+            'internxt-mnemonic': xUserJson.mnemonic
+        }).then((res) => {
+            if (res.respInfo.status === 200) {
+                if (Platform.OS === 'ios') {
+                    // RNFetchBlob.ios.previewDocument(res.path())
+                    FileViewer.open(res.path())
+                } else {
+                    // RNFetchBlob.android.actionViewIntent(res.path(), '')
+                    FileViewer.open(res.path())
+                }    
+            } else {
+                Alert.alert('Error downloading file')
+            }
         }).catch(err => {
             console.log('Error downloading file: ' + err.message)
         })
@@ -66,13 +73,13 @@ function FileItem(props: FileItemProps) {
                     ? <>
                         <IconFolder
                             color={props.item.color} />
-                        {props.item.icon
+                        {props.isFolder && props.item.icon
                             ? <View style={{
                                 position: 'absolute',
                                 left: 35,
                                 top: 7
                             }}>
-                                <Icon name={props.item.icon} />
+                                <Icon name={props.item.icon.name} />
                             </View>
                             : <></>}
                     </>
