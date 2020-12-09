@@ -1,15 +1,25 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
 import TimeAgo from 'react-native-timeago';
 import Icon from '../../../assets/icons/Icon';
 import IconFile from '../IconFile';
+import { fileActions } from '../../redux/actions';
 
 interface FileItemProps {
     isFolder: boolean
     item: any
+    dispatch?: any
+}
+
+function handleClick(isFolder: boolean, item: any, dispatch: any) {
+    if (isFolder) {
+        dispatch(fileActions.getFolderContent(item.id))
+    } else {
+
+    }
 }
 
 function FileItem(props: FileItemProps) {
@@ -19,7 +29,10 @@ function FileItem(props: FileItemProps) {
         containerBackground: { backgroundColor: isSelected ? '#f2f5ff' : '#fff' }
     });
 
-    return <TouchableHighlight style={[styles.container, extendStyles.containerBackground]}>
+    return <TouchableHighlight
+        underlayColor="#fff"
+        style={[styles.container, extendStyles.containerBackground]}
+        onPress={() => { handleClick(props.isFolder, props.item, props.dispatch) }}>
         <View style={styles.fileDetails}>
             <View
                 style={styles.itemIcon}>
@@ -33,8 +46,7 @@ function FileItem(props: FileItemProps) {
                                 left: 35,
                                 top: 7
                             }}>
-                                <Icon
-                                    name={props.item.icon} />
+                                <Icon name={props.item.icon} />
                             </View>
                             : <></>}
                     </>

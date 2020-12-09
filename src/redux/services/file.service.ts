@@ -1,9 +1,9 @@
 import { deviceStorage } from '../../helpers';
 import { sortTypes } from '../constants';
-const { REACT_APP_API_URL } = process && process.env;
+
+const { REACT_NATIVE_API_URL } = process && process.env;
 
 export const fileService = {
-  downloadFile,
   getFolderContent,
   createFolder,
   updateFolderMetadata,
@@ -14,7 +14,7 @@ export const fileService = {
 
 async function setHeaders() {
   const token = await deviceStorage.getItem('xToken');
-  const user = JSON.parse(await deviceStorage.getItem('xUser'));
+  const user = JSON.parse(await deviceStorage.getItem('xUser') || '');
   const headers = {
     Authorization: `Bearer ${token}`,
     'Content-type': 'application/json; charset=utf-8',
@@ -23,43 +23,17 @@ async function setHeaders() {
   return headers;
 }
 
-function downloadFile(user: string, file: string) {
-  return new Promise((resolve, reject) => {
-    inxt
-      .resolveFile(user, file)
-      .then((result: any) => {
-        console.log(`File downloaded with state: ${result}`);
-        resolve();
-      })
-      .catch((error: any) => {
-        console.log('downloadFile', error);
-        reject(error);
-      });
-  });
-}
-
 function getFolderContent(folderId: number) {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
-
-    fetch(
-      `${REACT_APP_API_URL ||
-        'https://drive.internxt.com'}/api/storage/folder/${folderId}`,
-      {
-        method: 'GET',
-        headers
-      }
-    )
-      .then(res => {
-        if (res.status !== 200) {
-          throw res;
-        }
-        return res.json();
-      })
-      .then(data => resolve(data))
-      .catch(err => {
-        reject(err);
-      });
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}`, {
+      method: 'GET',
+      headers
+    }).then(res => {
+      if (res.status !== 200) { throw res; }
+      return res.json();
+    }).then(resolve)
+      .catch(reject);
   });
 }
 
@@ -71,15 +45,11 @@ function createFolder(parentFolderId: string, folderName = 'Untitled folder') {
       folderName
     });
 
-    fetch(
-      `${REACT_APP_API_URL || 'https://drive.internxt.com'}/api/storage/folder`,
-      {
-        method: 'POST',
-        headers,
-        body
-      }
-    )
-      .then(response => response.json())
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder`, {
+      method: 'POST',
+      headers,
+      body
+    }).then(response => response.json())
       .then(async response => {
         if (response.error) {
           console.log('Create folder response error', response.error);
@@ -87,8 +57,7 @@ function createFolder(parentFolderId: string, folderName = 'Untitled folder') {
         } else {
           resolve();
         }
-      })
-      .catch(error => {
+      }).catch(error => {
         reject('[file.service] Could not create folder');
       });
   });
@@ -99,21 +68,15 @@ function updateFolderMetadata(metadata: any, folderId: string) {
     const headers = await setHeaders();
     const data = JSON.stringify({ metadata });
 
-    fetch(
-      `${(process && process.env && process.env.REACT_APP_API_URL) ||
-        'https://drive.internxt.com'}/api/storage/folder/${folderId}/meta`,
-      {
-        method: 'POST',
-        headers,
-        body: data
-      }
-    )
-      .then(() => {
-        resolve();
-      })
-      .catch(error => {
-        reject(error);
-      });
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}/meta`, {
+      method: 'POST',
+      headers,
+      body: data
+    }).then(() => {
+      resolve();
+    }).catch(error => {
+      reject(error);
+    });
   });
 }
 
@@ -125,15 +88,12 @@ async function moveFile(fileId: string, destination: string) {
       destination
     });
 
-    const res = await fetch(
-      `${REACT_APP_API_URL ||
-        'https://drive.internxt.com'}/api/storage/moveFile`,
-      {
-        method: 'POST',
-        headers,
-        body: data
-      }
-    );
+    const res = await fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/moveFile`, {
+      method: 'POST',
+      headers,
+      body: data
+    });
+
     if (res.status === 200) {
       return 1;
     } else {
@@ -154,14 +114,9 @@ function deleteItems(items: any[]) {
       const isFolder = !item.fileId;
       const headers = await setHeaders();
       const url = isFolder
-        ? `${process &&
-            process.env &&
-            process.env.REACT_APP_API_URL}/api/storage/folder/${item.id}`
-        : `${process &&
-            process.env &&
-            process.env.REACT_APP_API_URL}/api/storage/bucket/${
-            item.bucket
-          }/file/${item.fileId}`;
+        ? `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${item.id}`
+        : `${process.env.REACT_NATIVE_API_URL}/api/storage/bucket/${item.bucket
+        }/file/${item.fileId}`;
 
       const fetchObj = fetch(url, {
         method: 'DELETE',
@@ -182,41 +137,41 @@ function getSortFunction(sortType: string) {
   let sortFunc = null;
   switch (sortType) {
     case sortTypes.DATE_ADDED:
-      sortFunc = function(a: any, b: any) {
+      sortFunc = function (a: any, b: any) {
         return a.id > b.id;
       };
       break;
     case sortTypes.FILETYPE_ASC:
-      sortFunc = function(a: any, b: any) {
+      sortFunc = function (a: any, b: any) {
         return a.type
           ? a.type.toLowerCase().localeCompare(b.type.toLowerCase())
           : true;
       };
       break;
     case sortTypes.FILETYPE_DESC:
-      sortFunc = function(a: any, b: any) {
+      sortFunc = function (a: any, b: any) {
         return b.type
           ? b.type.toLowerCase().localeCompare(a.type.toLowerCase())
           : true;
       };
       break;
     case sortTypes.NAME_ASC:
-      sortFunc = function(a: any, b: any) {
+      sortFunc = function (a: any, b: any) {
         return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
       };
       break;
     case sortTypes.NAME_DESC:
-      sortFunc = function(a: any, b: any) {
+      sortFunc = function (a: any, b: any) {
         return b.name.toLowerCase().localeCompare(a.name.toLowerCase());
       };
       break;
     case sortTypes.SIZE_ASC:
-      sortFunc = function(a: any, b: any) {
+      sortFunc = function (a: any, b: any) {
         return a.size ? a.size - b.size : true;
       };
       break;
     case sortTypes.SIZE_DESC:
-      sortFunc = function(a: any, b: any) {
+      sortFunc = function (a: any, b: any) {
         return b.size ? b.size - a.size : true;
       };
       break;

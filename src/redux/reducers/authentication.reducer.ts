@@ -33,7 +33,7 @@ export function authenticationReducer(state = initialState, action: any) {
       return {
         loggedIn: true,
         token: action.payload.token,
-        user: action.payload.user
+        user: JSON.parse(action.payload.user)
       };
     default:
       return state;

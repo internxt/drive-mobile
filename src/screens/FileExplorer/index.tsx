@@ -1,14 +1,46 @@
-import React from 'react'
-import { Text, View, StyleSheet } from 'react-native'
+import React, { useEffect } from 'react'
+import { Text, View, StyleSheet, Image, Alert, BackHandler } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fileActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
+import SettingsModal from '../../modals/SettingsModal';
+import { TouchableHighlight } from 'react-native-gesture-handler';
+import { getIcon } from '../../helpers/getIcon';
 
 function FileExplorer(props: any) {
     const { filesState } = props;
     const currentFolderId = props.navigation.state.params.folderId;
+    const parentFolderId = (() => {
+        if (props.filesState.folderContent) {
+            return props.filesState.folderContent.parentId || null
+        } else {
+            return null
+        }
+    })()
+
+    useEffect(() => {
+        const backAction = () => {
+            if (parentFolderId) {
+                // Go to parent folder if exists
+                props.dispatch(fileActions.getFolderContent(parentFolderId))
+            } else {
+                // Exit application if root folder
+                BackHandler.exitApp()
+            }
+            return true;
+        };
+
+        const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+        return () => backHandler.remove();
+    }, []);
+
+
+    if (!props.authenticationState.loggedIn) {
+        props.navigation.replace('Login')
+    }
+
 
     return <View style={styles.container}>
         <View style={{ height: '5%' }}></View>
@@ -18,10 +50,23 @@ function FileExplorer(props: any) {
         <View style={styles.breadcrumbs}>
             <Text style={styles.breadcrumbsTitle}>
                 {filesState.folderContent && filesState.folderContent.parentId
-              ? filesState.folderContent.name
-            : 'All Files'}
+                    ? filesState.folderContent.name
+                    : 'All Files'}
             </Text>
+            <TouchableHighlight
+                underlayColor="#FFF"
+                onPress={() => {
+                    props.dispatch(fileActions.getFolderContent(parentFolderId))
+                }}
+            >
+                <View style={parentFolderId ? styles.backButtonWrapper : styles.backHidden}>
+                    <Image style={styles.backIcon} source={getIcon('back')} />
+                    <Text style={styles.backLabel}>Back</Text>
+                </View>
+            </TouchableHighlight>
         </View>
+
+        <SettingsModal />
 
         <FileList />
 
@@ -141,5 +186,25 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     modalFileItemIcon: {},
-    modalFileItemText: {}
+    modalFileItemText: {},
+    backButtonWrapper: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 20
+    },
+    backIcon: {
+        height: 12,
+        width: 8,
+        marginRight: 5
+    },
+    backLabel: {
+        fontFamily: 'CircularStd-Medium',
+        fontSize: 19,
+        letterSpacing: -0.2,
+        color: '#000000'
+    },
+    backHidden: {
+        display: 'none'
+    }
 });

@@ -3,17 +3,20 @@ import { useState } from "react";
 import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from "react-native";
 import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
 import { connect } from 'react-redux';
-import { decryptTextWithKey } from '../../helpers';
+import { decryptTextWithKey, deviceStorage } from '../../helpers';
 import { normalize } from '../../helpers/normalize'
 import { fileActions, userActions } from '../../redux/actions';
-import { validate2FA, doLogin, apiLogin } from './access';
+import { validate2FA, apiLogin } from './access';
 
 interface LoginProps {
   goToForm?: (screenName: string) => void
+  authenticationState?: any
+  dispatch?: any
+  navigation?: any
 }
 
-function Login(props: any) {
-  const [isLoading, setIsLoading] = useState(false)
+function Login(props: LoginProps) {
+  const [isLoading, setIsLoading] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [twoFactorCode, setTwoFactorCode] = useState('')
@@ -21,14 +24,23 @@ function Login(props: any) {
   const [secretKey, setSecretKey] = useState('')
 
   useEffect(() => {
-    if (props.authenticationState.loggedIn) {
+    if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
-      props.dispatch(fileActions.getFolderContent(rootFolderId))
       props.navigation.replace('FileExplorer', {
         folderId: rootFolderId
       })
+    } else {
+      (async () => {
+        const xToken = await deviceStorage.getItem('xToken')
+        const xUser = await deviceStorage.getItem('xUser')
+        if (xToken && xUser) {
+          props.dispatch(userActions.localSignIn(xToken, xUser))
+        } else {
+          setIsLoading(false)
+        }
+      })()
     }
-  }, [props.authenticationState])
+  }, [props.authenticationState.loggedIn, props.authenticationState.token])
 
   return <KeyboardAvoidingView behavior="padding" style={styles.container}>
     <View style={[styles.containerCentered, isLoading ? { opacity: 0.5 } : {}]}>
