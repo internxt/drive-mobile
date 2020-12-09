@@ -71,10 +71,14 @@ function AppMenu(props: any) {
                     <MenuItem
                         name="create"
                         onClickHandler={() => {
-                            Alert.prompt('Create new folder', 'Type a name', (res) => {
-                                // fileActions.createFolder(curr)
+                            Alert.prompt('Create new folder', 'Type a name', (newFolderName) => {
+                                if (newFolderName) {
+                                    const currentFolder = props.filesState.folderContent.currentFolder
+                                    const parentFolder = props.filesState.folderContent.parentId
+                                    const rootFolder = props.authenticationState.user.root_folder_id
+                                    props.dispatch(fileActions.createFolder(currentFolder || rootFolder, newFolderName))
+                                }
                             })
-                            // handleFolderCreate(/* folderContent.id */)
                         }} />
 
                     {props.filesState.selectedItems.length > 0 ? (

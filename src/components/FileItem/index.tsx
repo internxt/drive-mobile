@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, Platform } from 'react-native';
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
@@ -7,6 +7,8 @@ import TimeAgo from 'react-native-timeago';
 import Icon from '../../../assets/icons/Icon';
 import IconFile from '../IconFile';
 import { fileActions } from '../../redux/actions';
+import RNFetchBlob from 'rn-fetch-blob'
+import { deviceStorage } from '../../helpers';
 
 interface FileItemProps {
     isFolder: boolean
@@ -14,11 +16,35 @@ interface FileItemProps {
     dispatch?: any
 }
 
-function handleClick(isFolder: boolean, item: any, dispatch: any) {
+async function handleClick(isFolder: boolean, item: any, dispatch: any) {
     if (isFolder) {
         dispatch(fileActions.getFolderContent(item.id))
     } else {
-
+        const xToken = await deviceStorage.getItem('xToken')
+        const xUser = await deviceStorage.getItem('xUser')
+        const xUserJson = JSON.parse(xUser || '{}')
+        console.log(xUserJson.mnemonic)
+        RNFetchBlob.config({
+            fileCache: true,
+            addAndroidDownloads: {
+                notification: true,
+                title: 'File downloaded',
+                description: item.name + '.' + item.type
+            },
+            IOSBackgroundTask: true,
+            indicator: true
+        }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${item.id}`, {
+            Authorization: `Bearer ${xToken}`
+        }).then((res) => {
+            if (Platform.OS === 'ios') {
+                RNFetchBlob.ios.previewDocument(res.path())
+            } else {
+                RNFetchBlob.android.actionViewIntent(res.path(), '')
+            }
+            console.log('File saved to ' + res.path())
+        }).catch(err => {
+            console.log('Error downloading file: ' + err.message)
+        })
     }
 }
 
