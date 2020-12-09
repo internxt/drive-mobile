@@ -24,16 +24,10 @@ async function handleClick(isFolder: boolean, item: any, dispatch: any) {
         const xToken = await deviceStorage.getItem('xToken')
         const xUser = await deviceStorage.getItem('xUser')
         const xUserJson = JSON.parse(xUser || '{}')
-        console.log(xUserJson.mnemonic)
         RNFetchBlob.config({
             appendExt: item.type,
             path: RNFetchBlob.fs.dirs.DocumentDir + '/' + item.name + '.' + item.type,
-            fileCache: true,
-            addAndroidDownloads: {
-                notification: true,
-                title: 'File downloaded',
-                description: item.name + '.' + item.type
-            }
+            fileCache: true
         }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${item.fileId}`, {
             'Authorization': `Bearer ${xToken}`,
             'internxt-mnemonic': xUserJson.mnemonic
