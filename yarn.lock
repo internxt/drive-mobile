@@ -3342,6 +3342,13 @@ expo-linking@~1.0.4:
     qs "^6.5.0"
     url-parse "^1.4.4"
 
+expo-local-authentication@~9.3.0:
+  version "9.3.0"
+  resolved "https://registry.yarnpkg.com/expo-local-authentication/-/expo-local-authentication-9.3.0.tgz#5e4bbc73c4b40ce5a2ad3555b51138cddeab37bb"
+  integrity sha512-treB43thcgh7dDt/g+0QrmznhaHF7s6jHVfzi5yO8kdsSkK0uHOyDhAJfAy8oN5d8GQjdmJ5vZIoJw/zE5nJoA==
+  dependencies:
+    invariant "^2.2.4"
+
 expo-location@~9.0.0:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/expo-location/-/expo-location-9.0.1.tgz#adf93b8adf5e9dcf9570cba1d66c8e3831329156"
@@ -6363,11 +6370,6 @@ react-native-file-viewer@^2.1.4:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/react-native-file-viewer/-/react-native-file-viewer-2.1.4.tgz#987b2902f0f0ac87b42f3ac3d3037c8ae98f17a6"
   integrity sha512-G3ko9lmqxT+lWhsDNy2K3Jes6xSMsUvlYwuwnRCNk2wC6hgYMeoeaiwDt8R3CdON781hB6Ej1eu3ir1QATtHXg==
-
-react-native-fingerprint-scanner@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/react-native-fingerprint-scanner/-/react-native-fingerprint-scanner-6.0.0.tgz#ecb47ad0682d2a66a5e126d2b9e4d95e73c8dbf2"
-  integrity sha512-8VoKSA0Z0kWnIni96yABZfUUzfmWFXQEXcELwWr1CNLloPt3WoPptYb/6pGsBcH0YxSsW3X4+C8tl0clgyBsvA==
 
 react-native-gesture-handler@~1.7.0:
   version "1.7.0"
