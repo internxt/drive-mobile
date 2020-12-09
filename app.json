@@ -18,7 +18,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.internxt.snacks"
+      "bundleIdentifier": "com.internxt.snacks",
+      "usesIcloudStorage": true
     },
     "android": {
       "adaptiveIcon": {

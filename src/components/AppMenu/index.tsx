@@ -3,15 +3,65 @@ import { View, StyleSheet, Platform, Text, Alert, TextInput, Animated, Image } f
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
-import { fileActions, layoutActions } from '../../redux/actions';
+import { fileActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
+import { getDocumentAsync } from 'expo-document-picker'
+import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker'
 
-function handleUpload() {
+function uploadFile(result: any, props: any) {
 
-}
+    try {
+        // Set name for pics/photos
+        if (!result.name) result.name = result.uri.split('/').pop();
+        props.dispatch(fileActions.uploadFileStart(result.name));
+        const body = new FormData();
+        body.append('xfile', {
+            uri: result.uri,
+            type: 'application/octet-stream',
+            name: result.name
+        });
 
-function handleFolderCreate() {
+        const token = props.authenticationState.token;
+        const mnemonic = props.authenticationState.user.mnemonic;
 
+        const headers = {
+            Authorization: `Bearer ${token}`,
+            'internxt-mnemonic': mnemonic,
+            'Content-type': 'multipart/form-data'
+        };
+
+        fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, {
+            method: 'POST',
+            headers,
+            body
+        }).then(async resultFetch => {
+            if (resultFetch.status === 401) {
+                throw resultFetch;
+            }
+            var data = await resultFetch.json();
+            return { res: resultFetch, data };
+        }).then(resultFetch => {
+            if (resultFetch.res.status == 402) {
+                props.dispatch(layoutActions.openRunOutStorageModal());
+            } else if (resultFetch.res.status == 201) {
+                props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
+            } else {
+                Alert.alert('Error', resultFetch.data.error ? resultFetch.data.error : 'Cannot upload file');
+            }
+            props.dispatch(fileActions.uploadFileFinished());
+        }).catch(errFetch => {
+            if (errFetch.status === 401) {
+                props.dispatch(userActions.signout());
+                props.dispatch(fileActions.uploadFileFinished());
+            } else {
+                props.dispatch(fileActions.uploadFileFinished());
+                Alert.alert('Error', 'Cannot upload file');
+            }
+        });
+    } catch (error) {
+        console.log('Error:', error);
+        props.dispatch(fileActions.uploadFileFinished());
+    }
 }
 
 function AppMenu(props: any) {
@@ -66,7 +116,49 @@ function AppMenu(props: any) {
                             props.dispatch(layoutActions.openSortModal());
                         }} />
 
-                    <MenuItem name="upload" onClickHandler={handleUpload} />
+                    <MenuItem name="upload" onClickHandler={() => {
+                        Alert.alert('Select type of file', '', [
+                            {
+                                text: 'Upload a document',
+                                onPress: async () => {
+                                    const result = await getDocumentAsync({ type: '*/*', copyToCacheDirectory: false });
+                                    if (result.type !== 'cancel') {
+                                        uploadFile(result, props);
+                                    }
+                                }
+                            },
+                            {
+                                text: 'Upload media',
+                                onPress: async () => {
+                                    const { status } = await requestCameraPermissionsAsync();
+                                    if (status === 'granted') {
+                                        const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All });
+                                        if (!result.cancelled) {
+                                            uploadFile(result, props);
+                                        }
+                                    } else {
+                                        Alert.alert('Camera permission needed to perform this action')
+                                    }
+                                }
+                            },
+                            {
+                                text: 'Take a photo',
+                                onPress: async () => {
+                                    const { status } = await requestCameraPermissionsAsync();
+                                    if (status === 'granted') {
+                                        const result = await launchCameraAsync();
+                                        if (!result.cancelled) {
+                                            uploadFile(result, props);
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                text: 'Cancel',
+                                style: 'destructive'
+                            }
+                        ])
+                    }} />
 
                     <MenuItem
                         name="create"
