@@ -66,13 +66,13 @@ function FileItem(props: FileItemProps) {
                     ? <>
                         <IconFolder
                             color={props.item.color} />
-                        {props.item.icon
+                        {props.isFolder && props.item.icon
                             ? <View style={{
                                 position: 'absolute',
                                 left: 35,
                                 top: 7
                             }}>
-                                <Icon name={props.item.icon} />
+                                {<Icon name={props.item.icon.name} />}
                             </View>
                             : <></>}
                     </>

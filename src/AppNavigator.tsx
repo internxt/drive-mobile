@@ -24,7 +24,7 @@ const routeConfig: RouteConfig  = {
 };
 
 const navigatorOptions: NavigatorOptions = {
-  initialRouteName: 'Biometric',
+  initialRouteName: 'Login',
   headerMode: 'none'
 };
 
