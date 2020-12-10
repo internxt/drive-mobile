@@ -67,6 +67,11 @@ function uploadFile(result: any, props: any) {
 function AppMenu(props: any) {
     const [activeSearchBox, setActiveSearchBox] = useState(false)
 
+    const currentFolderId = props.filesState.folderContent.currentFolder
+    const parentFolder = props.filesState.folderContent.parentId
+
+    const selectedItems = props.filesState.selectedItems;
+
     return <View
         style={styles.container}>
 
@@ -170,16 +175,19 @@ function AppMenu(props: any) {
                         onClickHandler={() => {
                             Alert.prompt('Create new folder', 'Type a name', (newFolderName) => {
                                 if (newFolderName) {
-                                    const currentFolder = props.filesState.folderContent.currentFolder
-                                    const parentFolder = props.filesState.folderContent.parentId
                                     const rootFolder = props.authenticationState.user.root_folder_id
-                                    props.dispatch(fileActions.createFolder(currentFolder || rootFolder, newFolderName))
+                                    props.dispatch(fileActions.createFolder(currentFolderId || rootFolder, newFolderName))
                                 }
                             })
                         }} />
 
-                    {props.filesState.selectedItems.length > 0 ? (
-                        <MenuItem name="delete" onClickHandler={props.deleteItems} />
+                    {selectedItems.length > 0 ? (
+                        <MenuItem name="delete" onClickHandler={() => {
+                            if (selectedItems.length > 0) {
+                                props.dispatch(fileActions.downloadSelectedFileStart())
+                                props.dispatch(fileActions.deleteItems(selectedItems, currentFolderId))
+                            }
+                        }} />
                     ) : (<View></View>)}
                 </View>
                 <MenuItem
