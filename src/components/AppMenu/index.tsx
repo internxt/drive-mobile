@@ -15,11 +15,11 @@ function uploadFile(result: any, props: any) {
         if (!result.name) result.name = result.uri.split('/').pop();
         props.dispatch(fileActions.uploadFileStart(result.name));
         const body = new FormData();
-        body.append('xfile', {
+        body.append('xfile', JSON.stringify({
             uri: result.uri,
             type: 'application/octet-stream',
             name: result.name
-        });
+        }));
 
         const token = props.authenticationState.token;
         const mnemonic = props.authenticationState.user.mnemonic;
@@ -166,7 +166,7 @@ function AppMenu(props: any) {
 
                     <MenuItem
                         name="create"
-                        style={{ marginRight: 0 }}
+                        style={{ marginRight: 10 }}
                         onClickHandler={() => {
                             Alert.prompt('Create new folder', 'Type a name', (newFolderName) => {
                                 if (newFolderName) {

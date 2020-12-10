@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Alert, Platform } from 'react-native';
-import { TouchableHighlight } from 'react-native-gesture-handler';
+import { TouchableHighlight, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
 import TimeAgo from 'react-native-timeago';
@@ -22,12 +22,17 @@ async function handleClick(props: any) {
     const isSelectionMode = props.filesState.selectedItems.length > 0
 
     if (isSelectionMode) {
-        const isSelected = props.filesState.selectedItems.filter(x => x.id === props.item.id).length > 0
+        // one tap will select file if there are already selected files
+        const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0
         return handleLongPress(props, isSelected)
     }
+
+    // one tap on a folder will open and load contents
     if (props.isFolder) {
         props.dispatch(fileActions.getFolderContent(props.item.id))
     } else {
+        // one tap on a file will download and preview the file
+
         // Dispatch file download start
         props.dispatch(fileActions.downloadFileStart(props.item.fileId))
         const xToken = await deviceStorage.getItem('xToken')
@@ -71,71 +76,84 @@ async function handleLongPress(props: any, isSelected: boolean) {
     }
 }
 
+async function onDetailsClick(props: any) {
+    console.log(props)
+
+}
+
 function FileItem(props: FileItemProps) {
-    const isSelected = props.filesState.selectedItems.filter(x => x.id === props.item.id).length > 0
+    const isSelectionMode = props.filesState.selectedItems.length > 0
+    const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0
+
     const extendStyles = StyleSheet.create({
         text: { color: '#000000' },
         containerBackground: { backgroundColor: isSelected ? '#f2f5ff' : '#fff' }
     });
 
-    return <TouchableHighlight
-        underlayColor="#fff"
-        style={[styles.container, extendStyles.containerBackground]}
-        onLongPress={() => { handleLongPress(props, isSelected) }}
-        onPress={() => { handleClick(props) }}>
-        <View style={styles.fileDetails}>
-            <View
-                style={styles.itemIcon}>
-                {props.isFolder
-                    ? <>
-                        <IconFolder
-                            color={props.item.color} />
-                        {props.isFolder && props.item.icon
-                            ? <View style={{
-                                position: 'absolute',
-                                left: 35,
-                                top: 7
-                            }}>
-                                <Icon name={props.item.icon.name} />
-                            </View>
-                            : <></>}
-                    </>
-                    : <IconFile
-                        label={props.item.type} />}
+    return (
+        <View style={[styles.container, extendStyles.containerBackground]}>
+            <View style={styles.fileDetails}>
+                <TouchableWithoutFeedback
+                    style={styles.touchableItemArea}
+                    onLongPress={() => { handleLongPress(props, isSelected) }}
+                    onPress={() => { handleClick(props) }}>
+
+                    <View style={styles.itemIcon}>
+                        {props.isFolder
+                            ? <>
+                                <IconFolder color={props.item.color} />
+                                {props.isFolder && props.item.icon
+                                    ? <View style={{
+                                        position: 'absolute',
+                                        left: 35,
+                                        top: 7
+                                    }}>
+                                        <Icon name={props.item.icon.name} />
+                                    </View>
+                                    : <></>}
+                            </>
+                            : <IconFile label={props.item.type} />}
+                    </View>
+                    <View style={styles.nameAndTime}>
+                        <Text
+                            style={[styles.fileName, extendStyles.text]}
+                            numberOfLines={1}
+                        >{props.item.name}</Text>
+                        {!props.isFolder && <TimeAgo time={props.item.created_at} />}
+                    </View>
+                </TouchableWithoutFeedback>
             </View>
-            <View style={styles.nameAndTime}>
-                <Text
-                    style={[styles.fileName, extendStyles.text]}
-                    numberOfLines={1}
-                >{props.item.name}</Text>
-                {!props.isFolder && <TimeAgo time={props.item.created_at} />}
-            </View>
-            <View>
-                <TouchableHighlight
-                    style={styles.buttonDetails}
-                    underlayColor="#f2f5ff"
-                >
-                    <Text>iii</Text>
-                </TouchableHighlight>
+            <View style={styles.buttonDetails}>
+                <TouchableWithoutFeedback
+                    style={{ display: isSelectionMode ? 'none' : 'flex' }}
+                    onPress={onDetailsClick.bind(null, props)}>
+                    <Icon name="details" />
+                </TouchableWithoutFeedback>
             </View>
         </View>
-    </TouchableHighlight>
+    )
 }
 
 const styles = StyleSheet.create({
     container: {
-        justifyContent: 'center',
         height: 80,
         borderBottomWidth: 1,
-        borderColor: '#e6e6e6'
+        borderColor: '#e6e6e6',
+        flexDirection: 'row',
+        alignItems: 'center'
     },
     fileDetails: {
-        flexDirection: 'row'
+        flexGrow: 1
     },
-    itemIcon: {},
+    touchableItemArea: {
+        flexDirection: 'row',
+        alignItems: 'center'
+    },
+    itemIcon: {
+    },
     nameAndTime: {
-        justifyContent: 'center',
-        flex: 7
+        flexDirection: 'column',
+        width: 240
     },
     fileName: {
         fontFamily: 'CircularStd-Bold',
@@ -150,14 +168,11 @@ const styles = StyleSheet.create({
         marginTop: 2
     },
     buttonDetails: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        borderRadius: 30,
         width: 51,
         height: 51,
-        marginRight: 10,
-        borderRadius: 25.5,
-        flex: 1
+        alignItems: 'center',
+        justifyContent: 'center'
     }
 });
 
