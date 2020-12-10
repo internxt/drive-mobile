@@ -21,6 +21,8 @@ async function handleClick(isFolder: boolean, item: any, dispatch: any) {
     if (isFolder) {
         dispatch(fileActions.getFolderContent(item.id))
     } else {
+        // Dispatch file download start
+        dispatch(fileActions.downloadFileStart(item.fileId))
         const xToken = await deviceStorage.getItem('xToken')
         const xUser = await deviceStorage.getItem('xUser')
         const xUserJson = JSON.parse(xUser || '{}')
@@ -31,6 +33,8 @@ async function handleClick(isFolder: boolean, item: any, dispatch: any) {
         }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${item.fileId}`, {
             'Authorization': `Bearer ${xToken}`,
             'internxt-mnemonic': xUserJson.mnemonic
+        }).progress((progress, total) => {
+            console.log(progress + ' ' + total)
         }).then((res) => {
             if (res.respInfo.status === 200) {
                 if (Platform.OS === 'ios') {
@@ -45,6 +49,9 @@ async function handleClick(isFolder: boolean, item: any, dispatch: any) {
             }
         }).catch(err => {
             console.log('Error downloading file: ' + err.message)
+        }).finally(() => {
+            // Dispatch download file end
+            dispatch(fileActions.downloadFileEnd(item.fileId))
         })
     }
 }
