@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Text, View, StyleSheet, Image, Alert, BackHandler } from 'react-native'
+import { Text, View, StyleSheet, Image, BackHandler, Platform } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fileActions } from '../../redux/actions';
@@ -43,7 +43,7 @@ function FileExplorer(props: any) {
 
 
     return <View style={styles.container}>
-        <View style={{ height: '5%' }}></View>
+        <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
 
         <AppMenu />
 
@@ -57,8 +57,7 @@ function FileExplorer(props: any) {
                 underlayColor="#FFF"
                 onPress={() => {
                     props.dispatch(fileActions.getFolderContent(parentFolderId))
-                }}
-            >
+                }}>
                 <View style={parentFolderId ? styles.backButtonWrapper : styles.backHidden}>
                     <Image style={styles.backIcon} source={getIcon('back')} />
                     <Text style={styles.backLabel}>Back</Text>

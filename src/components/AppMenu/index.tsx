@@ -103,6 +103,7 @@ function AppMenu(props: any) {
             <View style={[styles.buttonContainer, { display: activeSearchBox ? 'none' : 'flex' }]}>
                 <View style={styles.commonButtons}>
                     <MenuItem
+                        style={{ marginRight: 10 }}
                         name="search"
                         onClickHandler={() => {
                             setActiveSearchBox(true)
@@ -110,58 +111,62 @@ function AppMenu(props: any) {
                         }} />
 
                     <MenuItem
+                        style={{ marginRight: 10 }}
                         name="list"
                         onClickHandler={() => {
                             props.dispatch(layoutActions.closeSearch())
                             props.dispatch(layoutActions.openSortModal());
                         }} />
 
-                    <MenuItem name="upload" onClickHandler={() => {
-                        Alert.alert('Select type of file', '', [
-                            {
-                                text: 'Upload a document',
-                                onPress: async () => {
-                                    const result = await getDocumentAsync({ type: '*/*', copyToCacheDirectory: false });
-                                    if (result.type !== 'cancel') {
-                                        uploadFile(result, props);
-                                    }
-                                }
-                            },
-                            {
-                                text: 'Upload media',
-                                onPress: async () => {
-                                    const { status } = await requestCameraPermissionsAsync();
-                                    if (status === 'granted') {
-                                        const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All });
-                                        if (!result.cancelled) {
-                                            uploadFile(result, props);
-                                        }
-                                    } else {
-                                        Alert.alert('Camera permission needed to perform this action')
-                                    }
-                                }
-                            },
-                            {
-                                text: 'Take a photo',
-                                onPress: async () => {
-                                    const { status } = await requestCameraPermissionsAsync();
-                                    if (status === 'granted') {
-                                        const result = await launchCameraAsync();
-                                        if (!result.cancelled) {
+                    <MenuItem
+                        style={{ marginRight: 10 }}
+                        name="upload" onClickHandler={() => {
+                            Alert.alert('Select type of file', '', [
+                                {
+                                    text: 'Upload a document',
+                                    onPress: async () => {
+                                        const result = await getDocumentAsync({ type: '*/*', copyToCacheDirectory: false });
+                                        if (result.type !== 'cancel') {
                                             uploadFile(result, props);
                                         }
                                     }
+                                },
+                                {
+                                    text: 'Upload media',
+                                    onPress: async () => {
+                                        const { status } = await requestCameraPermissionsAsync();
+                                        if (status === 'granted') {
+                                            const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All });
+                                            if (!result.cancelled) {
+                                                uploadFile(result, props);
+                                            }
+                                        } else {
+                                            Alert.alert('Camera permission needed to perform this action')
+                                        }
+                                    }
+                                },
+                                {
+                                    text: 'Take a photo',
+                                    onPress: async () => {
+                                        const { status } = await requestCameraPermissionsAsync();
+                                        if (status === 'granted') {
+                                            const result = await launchCameraAsync();
+                                            if (!result.cancelled) {
+                                                uploadFile(result, props);
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    text: 'Cancel',
+                                    style: 'destructive'
                                 }
-                            },
-                            {
-                                text: 'Cancel',
-                                style: 'destructive'
-                            }
-                        ])
-                    }} />
+                            ])
+                        }} />
 
                     <MenuItem
                         name="create"
+                        style={{ marginRight: 0 }}
                         onClickHandler={() => {
                             Alert.prompt('Create new folder', 'Type a name', (newFolderName) => {
                                 if (newFolderName) {
@@ -196,7 +201,8 @@ const styles = StyleSheet.create({
         marginRight: 10
     },
     commonButtons: {
-        flexDirection: 'row'
+        flexDirection: 'row',
+        flexGrow: 1
     },
     container: {
         height: 54,

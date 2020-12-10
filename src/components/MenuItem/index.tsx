@@ -7,6 +7,7 @@ import { getIcon } from '../../helpers/getIcon';
 interface MenuItemProps {
   name?: string
   onClickHandler?: any
+  style?: any
 }
 
 function MenuItem(props: MenuItemProps) {
@@ -14,7 +15,7 @@ function MenuItem(props: MenuItemProps) {
   return <TouchableHighlight
     underlayColor="#fff"
     onPress={props.onClickHandler}
-    style={styles.button}>
+    style={[styles.button, props.style ? {...props.style} : {}]}>
     <Image
       style={styles.icon}
       source={imageSource} />
