@@ -15,6 +15,7 @@ interface FileItemProps {
     isFolder: boolean
     item: any
     dispatch?: any
+    filesState?: any
 }
 
 async function handleClick(isFolder: boolean, item: any, dispatch: any) {
@@ -43,7 +44,7 @@ async function handleClick(isFolder: boolean, item: any, dispatch: any) {
                 } else {
                     // RNFetchBlob.android.actionViewIntent(res.path(), '')
                     FileViewer.open(res.path())
-                }    
+                }
             } else {
                 Alert.alert('Error downloading file')
             }
@@ -56,8 +57,16 @@ async function handleClick(isFolder: boolean, item: any, dispatch: any) {
     }
 }
 
+async function handleLongPress(props: any, isSelected: boolean) {
+    if (isSelected) {
+        props.dispatch(fileActions.deselectFile(props.item))
+    } else {
+        props.dispatch(fileActions.selectFile(props.item))
+    }
+}
+
 function FileItem(props: FileItemProps) {
-    const isSelected = false
+    const isSelected = props.filesState.selectedItems.filter(x => x.id === props.item.id).length > 0
     const extendStyles = StyleSheet.create({
         text: { color: '#000000' },
         containerBackground: { backgroundColor: isSelected ? '#f2f5ff' : '#fff' }
@@ -66,6 +75,7 @@ function FileItem(props: FileItemProps) {
     return <TouchableHighlight
         underlayColor="#fff"
         style={[styles.container, extendStyles.containerBackground]}
+        onLongPress={() => { handleLongPress(props, isSelected) }}
         onPress={() => { handleClick(props.isFolder, props.item, props.dispatch) }}>
         <View style={styles.fileDetails}>
             <View
