@@ -5,7 +5,7 @@ import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
 import { connect } from 'react-redux';
 import { decryptTextWithKey, deviceStorage } from '../../helpers';
 import { normalize } from '../../helpers/normalize'
-import { fileActions, userActions } from '../../redux/actions';
+import { userActions } from '../../redux/actions';
 import { validate2FA, apiLogin } from './access';
 
 interface LoginProps {

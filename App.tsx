@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, StatusBar, View, Text } from 'react-nati
 import { Provider } from 'react-redux'
 import { store } from './src/store'
 import AppNavigator from "./src/AppNavigator";
-import { loadEnvVars, loadFonts } from './src/helpers'
+import { analyticsSetup, loadEnvVars, loadFonts } from './src/helpers'
 
 export default function App() {
   const [appInitialized, setAppInitialized] = useState(false);
@@ -12,6 +12,7 @@ export default function App() {
   Promise.all([
     loadFonts(),
     loadEnvVars(),
+    analyticsSetup()
   ]).then(() => {
     setAppInitialized(true);
   }).catch((err: Error) => {
