@@ -18,20 +18,26 @@ interface FileItemProps {
     filesState?: any
 }
 
-async function handleClick(isFolder: boolean, item: any, dispatch: any) {
-    if (isFolder) {
-        dispatch(fileActions.getFolderContent(item.id))
+async function handleClick(props: any) {
+    const isSelectionMode = props.filesState.selectedItems.length > 0
+
+    if (isSelectionMode) {
+        const isSelected = props.filesState.selectedItems.filter(x => x.id === props.item.id).length > 0
+        return handleLongPress(props, isSelected)
+    }
+    if (props.isFolder) {
+        props.dispatch(fileActions.getFolderContent(props.item.id))
     } else {
         // Dispatch file download start
-        dispatch(fileActions.downloadFileStart(item.fileId))
+        props.dispatch(fileActions.downloadFileStart(props.item.fileId))
         const xToken = await deviceStorage.getItem('xToken')
         const xUser = await deviceStorage.getItem('xUser')
         const xUserJson = JSON.parse(xUser || '{}')
         RNFetchBlob.config({
-            appendExt: item.type,
-            path: RNFetchBlob.fs.dirs.DocumentDir + '/' + item.name + '.' + item.type,
+            appendExt: props.item.type,
+            path: RNFetchBlob.fs.dirs.DocumentDir + '/' + props.item.name + '.' + props.item.type,
             fileCache: true
-        }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${item.fileId}`, {
+        }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${props.item.fileId}`, {
             'Authorization': `Bearer ${xToken}`,
             'internxt-mnemonic': xUserJson.mnemonic
         }).progress((progress, total) => {
@@ -52,7 +58,7 @@ async function handleClick(isFolder: boolean, item: any, dispatch: any) {
             console.log('Error downloading file: ' + err.message)
         }).finally(() => {
             // Dispatch download file end
-            dispatch(fileActions.downloadFileEnd(item.fileId))
+            props.dispatch(fileActions.downloadFileEnd(props.item.fileId))
         })
     }
 }
@@ -76,7 +82,7 @@ function FileItem(props: FileItemProps) {
         underlayColor="#fff"
         style={[styles.container, extendStyles.containerBackground]}
         onLongPress={() => { handleLongPress(props, isSelected) }}
-        onPress={() => { handleClick(props.isFolder, props.item, props.dispatch) }}>
+        onPress={() => { handleClick(props) }}>
         <View style={styles.fileDetails}>
             <View
                 style={styles.itemIcon}>
