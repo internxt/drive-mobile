@@ -50,6 +50,9 @@ function FileExplorer(props: any) {
 
 
     return <View style={styles.container}>
+        <FileDetailsModal key={selectedKeyId} />
+        <SettingsModal />
+
         <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
 
         <AppMenu />
@@ -71,9 +74,6 @@ function FileExplorer(props: any) {
                 </View>
             </TouchableHighlight>
         </View>
-
-        <SettingsModal />
-        <FileDetailsModal key={selectedKeyId} />
 
         <FileList />
 

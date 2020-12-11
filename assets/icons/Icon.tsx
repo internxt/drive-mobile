@@ -60,9 +60,9 @@ const defaultColors = {
 interface IconProps {
     style?: any
     name: string
-    width: number
-    height: number
-    color: any
+    width?: number
+    height?: number
+    color?: any
 }
 
 function Icon(props: IconProps) {

@@ -35,6 +35,7 @@ function FileDetailsModal(props: FileDetailsProps) {
     return <>
         {isFolder ? <Modal
             position={'bottom'}
+            swipeArea={20}
             isOpen={showModal}
             style={styles.modalFolder}
             onOpened={() => setInputFileName(file.name)}
@@ -149,6 +150,7 @@ function FileDetailsModal(props: FileDetailsProps) {
             </View>
         </Modal> : <Modal
             position={'bottom'}
+            swipeArea={20}
             style={styles.modalSettingsFile}
             isOpen={showModal}
             onOpened={() => setInputFileName(file.name)}

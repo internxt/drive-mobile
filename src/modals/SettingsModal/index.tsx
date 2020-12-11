@@ -51,7 +51,6 @@ interface SettingsModalProps {
 function SettingsModal(props: SettingsModalProps) {
 
     const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
-    const [lastUpdate, setLastUpdate] = useState(new Date())
     const [isLoadingUsage, setIsLoadingUpdate] = useState(false)
 
     useEffect(() => {
@@ -70,6 +69,7 @@ function SettingsModal(props: SettingsModalProps) {
     return <Modal
         isOpen={props.layoutState.showSettingsModal}
         position={'bottom'}
+        swipeArea={20}
         style={styles.modalSettings}
         onClosed={() => {
             props.dispatch(layoutActions.closeSettings())
