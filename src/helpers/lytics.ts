@@ -3,7 +3,7 @@ import Branch from '@segment/analytics-react-native-branch'
 import { deviceStorage } from './deviceStorage';
 
 export async function analyticsSetup() {
-    const WRITEKEY = process.env.REACT_NATIVE_SEGMENT_API
+    const WRITEKEY = process.env.NODE_ENV !== 'production' ? process.env.REACT_NATIVE_SEGMENT_API_DEV : process.env.REACT_NATIVE_SEGMENT_API
 
     if (!WRITEKEY) {
         console.warn('No WRITEKEY Key provided')
