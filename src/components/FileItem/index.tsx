@@ -11,12 +11,14 @@ import RNFetchBlob from 'rn-fetch-blob'
 import { deviceStorage } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
 import { colors } from '../../redux/constants';
+import { reduce } from 'lodash';
 
 interface FileItemProps {
     isFolder: boolean
     item: any
     dispatch?: any
     filesState?: any
+    isLoading?: boolean
 }
 
 async function handleClick(props: any) {
@@ -82,7 +84,7 @@ function FileItem(props: FileItemProps) {
     const isSelectionMode = props.filesState.selectedItems.length > 0
     const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0
 
-    const [isLoading, setIsLoading] = useState(false)
+    const [isLoading, setIsLoading] = useState(props.isLoading ? true : false)
 
     const extendStyles = StyleSheet.create({
         text: { color: '#000000' },
@@ -166,7 +168,7 @@ const styles = StyleSheet.create({
     },
     nameAndTime: {
         flexDirection: 'column',
-        width: 240
+        width: 230
     },
     fileName: {
         fontFamily: 'CircularStd-Bold',
