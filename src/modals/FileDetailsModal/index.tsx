@@ -12,7 +12,7 @@ import { fileActions, layoutActions } from '../../redux/actions';
 import SettingsItem from '../SettingsModal/SettingsItem';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { colors, folderIconsList } from '../../redux/constants'
-import { updateFolderMetadata } from './actions';
+import { updateFileMetadata, updateFolderMetadata } from './actions';
 
 interface FileDetailsProps {
     dispatch?: any
@@ -152,9 +152,17 @@ function FileDetailsModal(props: FileDetailsProps) {
             style={styles.modalSettingsFile}
             isOpen={showModal}
             onOpened={() => setInputFileName(file.name)}
-            onClosed={() => {
+            onClosed={async () => {
                 props.dispatch(fileActions.deselectAll())
                 props.dispatch(layoutActions.closeItemModal())
+
+                const metadata:any = {}
+                
+                if (file.name !== inputFileName) {
+                    metadata.itemName = inputFileName
+                    await updateFileMetadata(metadata, file.fileId)
+                    props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
+                }
             }}
             backButtonClose={true}
             backdropPressToClose={true}
