@@ -50,11 +50,13 @@ function FileDetailsModal(props: FileDetailsProps) {
                 }
 
                 if (selectedColor && selectedColor !== folder.color) {
+                    analytics.track('folder-color-selection', { value: selectedColor }).catch(() => { })
                     metadata.color = selectedColor
                 }
 
                 if (selectedIcon && selectedIcon > 0) {
                     if (folder.icon && folder.icon.id !== selectedIcon) {
+                        analytics.track('folder-icon-selection', { value: selectedIcon }).catch(() => { })
                         metadata.icon = selectedIcon
                     }
                     else if (!folder.icon) {
