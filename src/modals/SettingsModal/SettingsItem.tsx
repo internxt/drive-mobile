@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
         fontFamily: 'CerebriSans-Bold',
         fontSize: 19,
         fontWeight: '500',
-        color: '#000000',
+        color: '#000',
         justifyContent: 'center'
     }
 });

@@ -67,8 +67,8 @@ function uploadFile(result: any, props: any) {
 function AppMenu(props: any) {
     const [activeSearchBox, setActiveSearchBox] = useState(false)
 
-    const currentFolderId = props.filesState.folderContent.currentFolder
-    const parentFolder = props.filesState.folderContent.parentId
+    const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
+    const parentFolder = props.filesState.folderContent && props.filesState.folderContent.parentId
 
     const selectedItems = props.filesState.selectedItems;
 
