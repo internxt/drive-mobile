@@ -13,6 +13,10 @@ function FileList(props: any) {
     let folderList: object[] = folderContent && folderContent.children || [];
     let fileList: object[] = folderContent && folderContent.files || [];
 
+    useEffect(() => {
+        setRefreshing(false)
+    }, [props.filesState.folderContent])
+
     const searchString = props.filesState.searchString
 
     if (searchString) {
@@ -36,8 +40,12 @@ function FileList(props: any) {
 
     const isUploading = props.filesState.isUploadingFileName
     const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && !isUploading
-
     return <ScrollView
+    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => {
+        setRefreshing(true)
+        const currentFolder = props.filesState.folderContent.currentFolder
+        props.dispatch(fileActions.getFolderContent(currentFolder))
+    }} />}
         style={styles.fileListScrollView}
         contentContainerStyle={isEmptyFolder ? styles.fileListContentsScrollView : {}}>
         {isEmptyFolder
