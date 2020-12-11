@@ -34,7 +34,8 @@ function FileList(props: any) {
         }
     }, [])
 
-    const isEmptyFolder = folderList.length === 0 && fileList.length === 0
+    const isUploading = props.filesState.isUploadingFileName
+    const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && !isUploading
 
     return <ScrollView
         style={styles.fileListScrollView}
@@ -42,6 +43,12 @@ function FileList(props: any) {
         {isEmptyFolder
             ? <EmptyFolder />
             : <Text style={{ display: 'none' }}></Text>}
+        {isUploading ?
+            <FileItem
+                key={isUploading}
+                isFolder={false}
+                item={{ name: isUploading }}
+                isLoading={true} /> : <></>}
         {folderList.map((folder: any) => <FileItem
             key={folder.id}
             isFolder={true}

@@ -46,7 +46,8 @@ export function filesReducer(state = initialState, action: any) {
       return {
         ...state,
         loading: false,
-        isUploading: false
+        isUploading: false,
+        isUploadingFileName: null
       };
 
     case fileActionTypes.ADD_FILE_FAILURE:
