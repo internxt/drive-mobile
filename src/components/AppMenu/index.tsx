@@ -16,11 +16,11 @@ function uploadFile(result: any, props: any) {
         if (!result.name) result.name = result.uri.split('/').pop();
         props.dispatch(fileActions.uploadFileStart(result.name));
         const body = new FormData();
-        body.append('xfile', JSON.stringify({
+        body.append('xfile', {
             uri: result.uri,
             type: 'application/octet-stream',
             name: result.name
-        }));
+        });
 
         const token = props.authenticationState.token;
         const mnemonic = props.authenticationState.user.mnemonic;
@@ -49,15 +49,14 @@ function uploadFile(result: any, props: any) {
             } else {
                 Alert.alert('Error', resultFetch.data.error ? resultFetch.data.error : 'Cannot upload file');
             }
-            props.dispatch(fileActions.uploadFileFinished());
         }).catch(errFetch => {
             if (errFetch.status === 401) {
                 props.dispatch(userActions.signout());
-                props.dispatch(fileActions.uploadFileFinished());
             } else {
-                props.dispatch(fileActions.uploadFileFinished());
                 Alert.alert('Error', 'Cannot upload file');
             }
+        }).finally(() => {
+            props.dispatch(fileActions.uploadFileFinished());
         });
     } catch (error) {
         console.log('Error:', error);
