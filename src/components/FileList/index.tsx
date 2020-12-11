@@ -16,8 +16,8 @@ function FileList(props: any) {
     const searchString = props.filesState.searchString
 
     if (searchString) {
-        fileList = fileList.filter(file => file.name.includes(searchString))
-        folderList = folderList.filter(folder => folder.name.includes(searchString))
+        fileList = fileList.filter((file: any) => file.name.toLowerCase().includes(searchString.toLowerCase()))
+        folderList = folderList.filter((folder: any) => folder.name.toLowerCase().includes(searchString.toLowerCase()))
     }
 
     useEffect(() => {
