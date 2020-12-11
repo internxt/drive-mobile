@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert, Platform } from 'react-native';
 import { TouchableHighlight, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -6,10 +6,11 @@ import IconFolder from '../IconFolder';
 import TimeAgo from 'react-native-timeago';
 import Icon from '../../../assets/icons/Icon';
 import IconFile from '../IconFile';
-import { fileActions } from '../../redux/actions';
+import { fileActions, layoutActions } from '../../redux/actions';
 import RNFetchBlob from 'rn-fetch-blob'
 import { deviceStorage } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
+import FileDetailsModal from '../../modals/FileDetailsModal';
 
 interface FileItemProps {
     isFolder: boolean
@@ -51,11 +52,12 @@ async function handleClick(props: any) {
             if (res.respInfo.status === 200) {
                 if (Platform.OS === 'ios') {
                     // RNFetchBlob.ios.previewDocument(res.path())
-                    FileViewer.open(res.path())
                 } else {
                     // RNFetchBlob.android.actionViewIntent(res.path(), '')
-                    FileViewer.open(res.path())
                 }
+                FileViewer.open(res.path()).catch(err => {
+                    Alert.alert('Error opening file', err.message)
+                })
             } else {
                 Alert.alert('Error downloading file')
             }
@@ -84,6 +86,8 @@ async function onDetailsClick(props: any) {
 function FileItem(props: FileItemProps) {
     const isSelectionMode = props.filesState.selectedItems.length > 0
     const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0
+
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
     const extendStyles = StyleSheet.create({
         text: { color: '#000000' },
@@ -126,7 +130,9 @@ function FileItem(props: FileItemProps) {
             <View style={styles.buttonDetails}>
                 <TouchableWithoutFeedback
                     style={{ display: isSelectionMode ? 'none' : 'flex' }}
-                    onPress={onDetailsClick.bind(null, props)}>
+                    onPress={() => {
+                        props.dispatch(layoutActions.openItemModal(props.item))
+                    }}>
                     <Icon name="details" />
                 </TouchableWithoutFeedback>
             </View>

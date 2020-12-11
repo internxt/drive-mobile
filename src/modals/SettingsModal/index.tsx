@@ -10,7 +10,6 @@ import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { getHeaders } from '../../helpers/headers';
 import { deviceStorage } from '../../helpers';
-import { useSafeArea } from 'react-native-safe-area-context';
 import { values } from 'lodash';
 
 async function loadUsage() {

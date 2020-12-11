@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Text, View, StyleSheet, Image, BackHandler, Platform } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -8,8 +8,10 @@ import FileList from '../../components/FileList';
 import SettingsModal from '../../modals/SettingsModal';
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import { getIcon } from '../../helpers/getIcon';
+import FileDetailsModal from '../../modals/FileDetailsModal';
 
 function FileExplorer(props: any) {
+    const [selectedKeyId, setSelectedKeyId] = useState(0)
     const { filesState } = props;
     const currentFolderId = props.navigation.state.params.folderId;
     const parentFolderId = (() => {
@@ -35,6 +37,11 @@ function FileExplorer(props: any) {
         const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
         return () => backHandler.remove();
     }, []);
+
+    useEffect(() => {
+        const keyId = props.filesState.selectedItems.length > 0 && props.filesState.selectedItems[0].id
+        setSelectedKeyId(keyId)
+    }, [props.filesState])
 
 
     if (!props.authenticationState.loggedIn) {
@@ -66,6 +73,7 @@ function FileExplorer(props: any) {
         </View>
 
         <SettingsModal />
+        <FileDetailsModal key={selectedKeyId} />
 
         <FileList />
 
