@@ -27,17 +27,8 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
 
             if (response.response.status === 200) {
                 // Manage successfull login
-                const user = {
-                    userId: body.user.userId,
-                    email: email,
-                    mnemonic: body.user.mnemonic
-                        ? decryptTextWithKey(body.user.mnemonic, password)
-                        : null,
-                    root_folder_id: body.user.root_folder_id,
-                    storeMnemonic: body.user.storeMnemonic,
-                    name: body.user.name,
-                    lastname: body.user.lastname
-                };
+                const user = body.user;
+                user.mnemonic = user.mnemonic ? decryptTextWithKey(user.mnemonic, password) : null
 
                 // Store login data
                 await deviceStorage.saveItem('xToken', body.token);
