@@ -1,4 +1,6 @@
 import { Dispatch } from 'redux';
+import { getLyticsData } from '../../helpers';
+import analytics from '../../helpers/lytics';
 import { fileActionTypes } from '../constants';
 import { fileService } from '../services';
 import { userActions } from './user.actions';
@@ -117,7 +119,7 @@ function deleteItems(items, folderToReload) {
   }
 }
 
-function selectFile(file) {
+function selectFile(file: any) {
   return (dispatch: Dispatch) => {
     dispatch({ type: fileActionTypes.SELECT_FILE, payload: file });
   };
@@ -145,7 +147,7 @@ function setSortFunction(sortType) {
   };
 }
 
-function setSearchString(searchString) {
+function setSearchString(searchString: string) {
   return (dispatch: Dispatch) => {
     dispatch({
       type: fileActionTypes.SET_SEARCH_STRING,
@@ -161,7 +163,7 @@ function createFolder(parentFolderId: number, newFolderName: string) {
     fileService.createFolder(parentFolderId, newFolderName).then(
       (newFolderDetails: any) => {
         dispatch(success(newFolderDetails));
-        dispatch(getFolderContent(parentFolderId+''))
+        dispatch(getFolderContent(parentFolderId + ''))
       },
       error => {
         console.log('Error creating folder', error);
@@ -174,6 +176,14 @@ function createFolder(parentFolderId: number, newFolderName: string) {
     return { type: fileActionTypes.CREATE_FOLDER_REQUEST };
   }
   function success(newFolderDetails: any) {
+    (async () => {
+      const userData = await getLyticsData()
+      analytics.track('folder-created', {
+        userId: userData.uuid,
+        platform: 'mobile',
+        email: userData.email
+      }).catch(() => { })
+    })()
     return {
       type: fileActionTypes.CREATE_FOLDER_SUCCESS,
       payload: newFolderDetails
@@ -209,7 +219,7 @@ function moveFile(fileId, destination) {
   }
 }
 
-function updateFolderMetadata(metadata, folderId) {
+function updateFolderMetadata(metadata: any, folderId) {
   return (dispatch: Dispatch) => {
     dispatch(request());
 

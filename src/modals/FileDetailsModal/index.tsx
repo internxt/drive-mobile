@@ -13,6 +13,7 @@ import SettingsItem from '../SettingsModal/SettingsItem';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { colors, folderIconsList } from '../../redux/constants'
 import { updateFileMetadata, updateFolderMetadata } from './actions';
+import analytics, { getLyticsData } from '../../helpers/lytics';
 
 interface FileDetailsProps {
     dispatch?: any
@@ -64,6 +65,16 @@ function FileDetailsModal(props: FileDetailsProps) {
                 if (Object.keys(metadata).length > 0) {
                     await updateFolderMetadata(metadata, folder.id)
                     props.dispatch(fileActions.getFolderContent(folder.parentId))
+                    if (inputFileName !== folder.name) {
+                        const userData = await getLyticsData()
+                        analytics.track('folder-rename', {
+                            userId: userData.uuid,
+                            email: userData.email,
+                            platform: 'mobile',
+                            device: Platform.OS,
+                            folder_id: folder.id
+                        }).catch(() => { })
+                    }
                 }
             }}
             backButtonClose={true}
@@ -158,12 +169,20 @@ function FileDetailsModal(props: FileDetailsProps) {
                 props.dispatch(fileActions.deselectAll())
                 props.dispatch(layoutActions.closeItemModal())
 
-                const metadata:any = {}
-                
+                const metadata: any = {}
+
                 if (file.name !== inputFileName) {
                     metadata.itemName = inputFileName
                     await updateFileMetadata(metadata, file.fileId)
                     props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
+                    const userData = await getLyticsData()
+                    analytics.track('file-rename', {
+                        userId: userData.uuid,
+                        email: userData.email,
+                        platform: 'mobile',
+                        device: Platform.OS,
+                        folder_id: file.id
+                    }).catch(() => { })
                 }
             }}
             backButtonClose={true}
@@ -266,7 +285,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                         /*
                         modalDeleteFiles.current.open();
                         */
-                       props.dispatch(layoutActions.closeItemModal())
+                        props.dispatch(layoutActions.closeItemModal())
                     }}
                 /></Modal>}
     </>;

@@ -16,8 +16,13 @@ export async function analyticsSetup() {
 }
 
 export async function getLyticsUuid() {
-    const xUser: any = JSON.parse(await deviceStorage.getItem('xUser') || '{}')
+    const xUser: any = await getLyticsData()
     return xUser.uuid
+}
+
+export async function getLyticsData() {
+    const xUser: any = JSON.parse(await deviceStorage.getItem('xUser') || '{}')
+    return xUser
 }
 
 export default analytics;

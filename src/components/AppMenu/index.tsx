@@ -177,7 +177,7 @@ function AppMenu(props: any) {
                             <Dialog.Input
                                 style={{ borderBottomWidth: Platform.OS == 'ios' ? 0 : 1 }}
                                 onChangeText={(value) => setCreateFolderName(value)}
-                                ></Dialog.Input>
+                            ></Dialog.Input>
                             <Dialog.Button label="Cancel" color="red" onPress={() => setCreateFolderVisible(false)}></Dialog.Button>
                             <Dialog.Button label="Create" onPress={() => {
                                 if (createFolderName) {

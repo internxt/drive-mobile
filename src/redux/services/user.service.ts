@@ -1,4 +1,5 @@
 import { decryptText, decryptTextWithKey, deviceStorage, encryptText, passToHash } from "../../helpers";
+import analytics, { getLyticsData } from "../../helpers/lytics";
 
 export const userService = {
     signin,
@@ -46,6 +47,8 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
 
 async function signout() {
     try {
+        const userData = await getLyticsData()
+        analytics.track('user-signout', { userId: userData.uuid, email: userData.email, platform: 'mobile' }).catch(() => { })
         // Delete login data
         await Promise.all([
             deviceStorage.deleteItem('xToken'),
