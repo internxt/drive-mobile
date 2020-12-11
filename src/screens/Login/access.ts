@@ -23,40 +23,6 @@ export async function apiLogin(email: string) {
   })
 }
 
-export async function apiAccess(email: string, password: string, twoFactor: string, secretKey: string): Promise<any> {
-  const hashObj = passToHash({ password: password, salt: decryptText(secretKey) })
-  const encPassword = encryptText(hashObj.hash)
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/access`, {
-    method: 'post',
-    headers: getHeaders(),
-    body: JSON.stringify({
-      email: email,
-      password: encPassword,
-      tfa: twoFactor
-    })
-  }).then(async res => {
-    const data = await res.text()
-    const json = IsJsonString(data)
-    if (res.status === 200) {
-      return json
-    } else {
-      throw Error(json && json.error ? json.error : data)
-    }
-  })
-}
-
-export async function isUserActivated() {
-
-}
-
-export async function doLogin(username: string, password: string, twofactor: string, secretKey: string) {
-  if (twofactor && secretKey) {
-    return apiAccess(username, password, twofactor, secretKey);
-  }
-
-  return apiLogin(username).then(res => res)
-}
-
 export function validateEmail(email: string): boolean {
   let emailPattern = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
   return emailPattern.test(email);

@@ -8,8 +8,14 @@ import MenuItem from '../MenuItem';
 import { getDocumentAsync } from 'expo-document-picker'
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker'
 import Dialog from 'react-native-dialog'
+import { getHeaders } from '../../helpers/headers';
+import analytics, { getLyticsData } from '../../helpers/lytics';
 
-function uploadFile(result: any, props: any) {
+async function uploadFile(result: any, props: any) {
+
+    const userData = await getLyticsData()
+
+    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
 
     try {
         // Set name for pics/photos
@@ -25,11 +31,7 @@ function uploadFile(result: any, props: any) {
         const token = props.authenticationState.token;
         const mnemonic = props.authenticationState.user.mnemonic;
 
-        const headers = {
-            Authorization: `Bearer ${token}`,
-            'internxt-mnemonic': mnemonic,
-            'Content-type': 'multipart/form-data'
-        };
+        const headers = await getHeaders(token, mnemonic)
 
         fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, {
             method: 'POST',
@@ -45,6 +47,7 @@ function uploadFile(result: any, props: any) {
             if (resultFetch.res.status == 402) {
                 props.dispatch(layoutActions.openRunOutStorageModal());
             } else if (resultFetch.res.status == 201) {
+                analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
                 props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
             } else {
                 Alert.alert('Error', resultFetch.data.error ? resultFetch.data.error : 'Cannot upload file');
@@ -59,6 +62,7 @@ function uploadFile(result: any, props: any) {
             props.dispatch(fileActions.uploadFileFinished());
         });
     } catch (error) {
+        analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
         console.log('Error:', error);
         props.dispatch(fileActions.uploadFileFinished());
     }

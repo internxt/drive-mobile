@@ -8,10 +8,11 @@ import Icon from '../../../assets/icons/Icon';
 import IconFile from '../IconFile';
 import { fileActions, layoutActions } from '../../redux/actions';
 import RNFetchBlob from 'rn-fetch-blob'
-import { deviceStorage } from '../../helpers';
+import { deviceStorage, getLyticsData } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
 import { colors } from '../../redux/constants';
 import { reduce } from 'lodash';
+import analytics from '../../helpers/lytics';
 
 interface FileItemProps {
     isFolder: boolean
@@ -38,6 +39,18 @@ async function handleClick(props: any) {
 
         // Dispatch file download start
         props.dispatch(fileActions.downloadSelectedFileStart())
+
+        try {
+            const userData = await getLyticsData()
+            analytics.track('file-download-start', {
+                file_id: props.item.id,
+                file_size: props.item.size,
+                file_type: props.item.type,
+                email: userData.email,
+                folder_id: props.item.folder_id,
+                platform: 'mobile'
+            })
+        } catch { }
         const xToken = await deviceStorage.getItem('xToken')
         const xUser = await deviceStorage.getItem('xUser')
         const xUserJson = JSON.parse(xUser || '{}')
@@ -50,7 +63,7 @@ async function handleClick(props: any) {
             'internxt-mnemonic': xUserJson.mnemonic
         }).progress((progress, total) => {
             console.log(progress + ' ' + total)
-        }).then((res) => {
+        }).then(async (res) => {
             if (res.respInfo.status === 200) {
                 if (Platform.OS === 'ios') {
                     // RNFetchBlob.ios.previewDocument(res.path())
@@ -63,8 +76,39 @@ async function handleClick(props: any) {
             } else {
                 Alert.alert('Error downloading file')
             }
-        }).catch(err => {
+
+            try {
+                const userData = await getLyticsData()
+                analytics.track('file-download-finished', {
+                    file_id: props.item.id,
+                    file_size: props.item.size,
+                    file_type: props.item.type,
+                    email: userData.email,
+                    folder_id: props.item.folder_id,
+                    platform: 'mobile'
+                })
+            } catch {
+                console.log('Cannot track file-download-finished')
+            }
+
+        }).catch(async err => {
             console.log('Error downloading file: ' + err.message)
+
+            try {
+                const userData = await getLyticsData()
+                analytics.track('file-download-error', {
+                    file_id: props.item.id,
+                    file_size: props.item.size,
+                    file_type: props.item.type,
+                    email: userData.email,
+                    folder_id: props.item.folder_id,
+                    platform: 'mobile',
+                    msg: err && err.message
+                })
+            } catch {
+                console.log('Cannot track file-download-error')
+            }
+
         }).finally(() => {
             // Dispatch download file end
             props.dispatch(fileActions.downloadSelectedFileStop())
