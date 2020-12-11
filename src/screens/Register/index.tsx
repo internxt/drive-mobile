@@ -61,7 +61,7 @@ function Register(props: any): any {
           <View style={styles.showInputFieldsWrapper}>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={[styles.input, !isValidFirstName ? { borderWidth: 1, borderColor: 'red' } : {}]}
+                style={[styles.input, !isValidFirstName ? { } : {}]}
                 value={firstName}
                 onChangeText={value => setFirstName(value)}
                 placeholder="First name"
@@ -71,7 +71,7 @@ function Register(props: any): any {
             </View>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={[styles.input, !isValidLastName ? { borderWidth: 1, borderColor: 'red' } : {}]}
+                style={[styles.input, !isValidLastName ? { } : {}]}
                 value={lastName}
                 onChangeText={value => setLastName(value)}
                 placeholder="Last name"
@@ -82,7 +82,7 @@ function Register(props: any): any {
             <View style={styles.inputWrapper}>
               <TextInput
                 autoCapitalize="none"
-                style={[styles.input, isValidEmail ? {} : { borderWidth: 1, borderColor: 'red' }]}
+                style={[styles.input, isValidEmail ? {} : { }]}
                 value={email}
                 onChangeText={value => setEmail(value)}
                 placeholder="Email address"
@@ -183,9 +183,7 @@ function Register(props: any): any {
               <TouchableHighlight
                 style={[styles.button, styles.buttonBlock]}
                 underlayColor="#4585f5"
-                onPress={() => {
-                  setRegisterStep(3);
-                }}
+                onPress={() => setRegisterStep(3)}
               >
                 <Text style={styles.buttonOnLabel}>Continue</Text>
               </TouchableHighlight>
@@ -222,7 +220,7 @@ function Register(props: any): any {
             <View style={styles.inputWrapper}>
               <TextInput
                 autoCapitalize="none"
-                style={[styles.input, !isValidPassword ? { borderWidth: 1, borderColor: 'red' } : {}]}
+                style={[styles.input, !isValidPassword ? { } : {}]}
                 value={password}
                 onChangeText={value => setPassword(value)}
                 placeholder="Password"
@@ -233,7 +231,7 @@ function Register(props: any): any {
             </View>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={[styles.input, !isValidStep ? { borderWidth: 1, borderColor: 'red' } : {}]}
+                style={[styles.input, !isValidStep ? { } : {}]}
                 value={confirmPassword}
                 onChangeText={value => setConfirmPassword(value)}
                 placeholder="Confirm password"

@@ -7,6 +7,7 @@ import { fileActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
 import { getDocumentAsync } from 'expo-document-picker'
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker'
+import Dialog from 'react-native-dialog'
 
 function uploadFile(result: any, props: any) {
 
@@ -66,6 +67,8 @@ function uploadFile(result: any, props: any) {
 
 function AppMenu(props: any) {
     const [activeSearchBox, setActiveSearchBox] = useState(false)
+    const [createFolderVisible, setCreateFolderVisible] = useState(false);
+    const [createFolderName, setCreateFolderName] = useState('')
 
     const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
     const parentFolder = props.filesState.folderContent && props.filesState.folderContent.parentId
@@ -169,16 +172,30 @@ function AppMenu(props: any) {
                             ])
                         }} />
 
+                    <>
+                        <Dialog.Container visible={createFolderVisible}>
+                            <Dialog.Title>Create new folder</Dialog.Title>
+                            <Dialog.Input
+                                style={{ borderBottomWidth: Platform.OS == 'ios' ? 0 : 1 }}
+                                onChangeText={(value) => setCreateFolderName(value)}
+                                ></Dialog.Input>
+                            <Dialog.Button label="Cancel" color="red" onPress={() => setCreateFolderVisible(false)}></Dialog.Button>
+                            <Dialog.Button label="Create" onPress={() => {
+                                if (createFolderName) {
+                                    const rootFolder = props.authenticationState.user.root_folder_id
+                                    props.dispatch(fileActions.createFolder(currentFolderId || rootFolder, createFolderName))
+                                }
+                                setCreateFolderVisible(false)
+                            }}></Dialog.Button>
+
+                        </Dialog.Container>
+                    </>
+
                     <MenuItem
                         name="create"
                         style={{ marginRight: 10 }}
                         onClickHandler={() => {
-                            Alert.prompt('Create new folder', 'Type a name', (newFolderName) => {
-                                if (newFolderName) {
-                                    const rootFolder = props.authenticationState.user.root_folder_id
-                                    props.dispatch(fileActions.createFolder(currentFolderId || rootFolder, newFolderName))
-                                }
-                            })
+                            setCreateFolderVisible(true)
                         }} />
 
                     {selectedItems.length > 0 ? (
