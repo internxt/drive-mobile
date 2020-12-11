@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert, Platform } from 'react-native';
-import { TouchableHighlight, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
 import TimeAgo from 'react-native-timeago';
@@ -10,7 +10,7 @@ import { fileActions, layoutActions } from '../../redux/actions';
 import RNFetchBlob from 'rn-fetch-blob'
 import { deviceStorage } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
-import FileDetailsModal from '../../modals/FileDetailsModal';
+import { colors } from '../../redux/constants';
 
 interface FileItemProps {
     isFolder: boolean
@@ -35,11 +35,11 @@ async function handleClick(props: any) {
         // one tap on a file will download and preview the file
 
         // Dispatch file download start
-        props.dispatch(fileActions.downloadFileStart(props.item.fileId))
+        props.dispatch(fileActions.downloadSelectedFileStart())
         const xToken = await deviceStorage.getItem('xToken')
         const xUser = await deviceStorage.getItem('xUser')
         const xUserJson = JSON.parse(xUser || '{}')
-        RNFetchBlob.config({
+        return RNFetchBlob.config({
             appendExt: props.item.type,
             path: RNFetchBlob.fs.dirs.DocumentDir + '/' + props.item.name + '.' + props.item.type,
             fileCache: true
@@ -65,7 +65,7 @@ async function handleClick(props: any) {
             console.log('Error downloading file: ' + err.message)
         }).finally(() => {
             // Dispatch download file end
-            props.dispatch(fileActions.downloadFileEnd(props.item.fileId))
+            props.dispatch(fileActions.downloadSelectedFileStop())
         })
     }
 }
@@ -78,21 +78,18 @@ async function handleLongPress(props: any, isSelected: boolean) {
     }
 }
 
-async function onDetailsClick(props: any) {
-    console.log(props)
-
-}
-
 function FileItem(props: FileItemProps) {
     const isSelectionMode = props.filesState.selectedItems.length > 0
     const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0
 
-    const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
 
     const extendStyles = StyleSheet.create({
         text: { color: '#000000' },
         containerBackground: { backgroundColor: isSelected ? '#f2f5ff' : '#fff' }
     });
+
+    const item = props.item
 
     return (
         <View style={[styles.container, extendStyles.containerBackground]}>
@@ -100,7 +97,12 @@ function FileItem(props: FileItemProps) {
                 <TouchableWithoutFeedback
                     style={styles.touchableItemArea}
                     onLongPress={() => { handleLongPress(props, isSelected) }}
-                    onPress={() => { handleClick(props) }}>
+                    onPress={() => {
+                        setIsLoading(true)
+                        handleClick(props).finally(() => {
+                            setIsLoading(false)
+                        })
+                    }}>
 
                     <View style={styles.itemIcon}>
                         {props.isFolder
@@ -112,11 +114,16 @@ function FileItem(props: FileItemProps) {
                                         left: 35,
                                         top: 7
                                     }}>
-                                        <Icon name={props.item.icon.name} />
+                                        <Icon
+                                            name={props.item.icon.name}
+                                            color={item.color ? colors[item.color].icon : colors['blue'].icon}
+                                            width={24}
+                                            height={24}
+                                        />
                                     </View>
                                     : <></>}
                             </>
-                            : <IconFile label={props.item.type} />}
+                            : <IconFile label={props.item.type || ''} isLoading={isLoading} />}
                     </View>
                     <View style={styles.nameAndTime}>
                         <Text

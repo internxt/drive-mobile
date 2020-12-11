@@ -1,14 +1,29 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { connect } from 'react-redux';
 
-function IconFile(props: any) {
-    const { label = '', isUploading = false } = props;
+interface IconFileProps {
+    label: string
+    isLoading: boolean
+}
+
+function IconFile(props: IconFileProps) {
+    const { label = '', isLoading = false } = props;
 
     return <View style={styles.wrapper}>
-        <Text numberOfLines={1} style={styles.text}>{label.toUpperCase()}</Text>
+        {isLoading
+            ? <ActivityIndicator style={{ position: 'absolute' }} size='small' color="gray" />
+            : <Text numberOfLines={1} style={styles.text}>{label.toUpperCase()}</Text>}
+
     </View>
 
 }
+
+const mapStateToProps = (state: any) => {
+    return { ...state };
+};
+
+export default connect(mapStateToProps)(IconFile);
 
 const styles = StyleSheet.create({
     wrapper: {
@@ -19,7 +34,9 @@ const styles = StyleSheet.create({
         marginRight: 25,
         borderRadius: 3,
         borderColor: '#5291ff',
-        borderWidth: 0.6
+        borderWidth: 0.6,
+        alignItems: 'center',
+        justifyContent: 'center'
     },
     text: {
         position: 'absolute',
@@ -42,5 +59,3 @@ const styles = StyleSheet.create({
     }
 });
 
-
-export default IconFile;

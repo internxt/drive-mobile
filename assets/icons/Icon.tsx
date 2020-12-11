@@ -57,7 +57,15 @@ const defaultColors = {
 // Usage:  import Icon from '../../assets/Icon'
 //  <Icon name="folder" color="blue" height="75"/>
 
-function Icon(props: any) {
+interface IconProps {
+    style?: any
+    name: string
+    width: number
+    height: number
+    color: any
+}
+
+function Icon(props: IconProps) {
     switch (props.name) {
         // Folder cover icons
         case "avatarcircleneutral":
