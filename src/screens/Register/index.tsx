@@ -4,6 +4,7 @@ import { View, Text, KeyboardAvoidingView, StyleSheet, Image, BackHandler, Alert
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from "react-redux";
 import { normalize } from '../../helpers';
+import analytics from '../../helpers/lytics';
 import Intro from '../Intro'
 import { validateEmail } from '../Login/access';
 import { doRegister, isNullOrEmpty, isStrongPassword, resendActivationEmail } from './registerUtils';
@@ -253,7 +254,8 @@ function Register(props: any): any {
                 setIsLoading(true)
 
                 doRegister({ firstName, lastName, email, password })
-                  .then(() => {
+                  .then((userData) => {
+                    analytics.identify(userData.uuid, { email }).catch(() => { })
                     setRegisterStep(4)
                   }).catch(err => {
                     Alert.alert(err.message)

@@ -7,10 +7,13 @@ import SettingsItem from './SettingsItem';
 import prettysize from 'prettysize'
 import Separator from '../../components/Separator';
 import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
 import { getHeaders } from '../../helpers/headers';
 import { deviceStorage } from '../../helpers';
-import { values } from 'lodash';
+import analytics, { getLyticsUuid } from '../../helpers/lytics';
+
+function identifyPlanName(bytes: number): string {
+    return bytes === 0 ? "Free 2GB" : prettysize(bytes)
+}
 
 async function loadUsage() {
     const xToken = await deviceStorage.getItem('xToken') || undefined
@@ -36,9 +39,17 @@ async function loadLimit() {
 }
 
 async function loadValues() {
-    console.log('LOADING USAGE')
     const limit = await loadLimit()
     const usage = await loadUsage()
+
+    const uuid = await getLyticsUuid()
+    analytics.identify(uuid, {
+        platform: 'mobile',
+        storage: usage,
+        plan: identifyPlanName(limit),
+        userId: uuid
+    }).catch(() => { })
+
     return { usage, limit }
 }
 
