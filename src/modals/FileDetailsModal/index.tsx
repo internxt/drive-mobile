@@ -237,7 +237,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                             <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Move</Text>
                         </Text>
                     }
-                    onClick={() => {
+                    onPress={() => {
                         props.dispatch(layoutActions.openMoveFilesModal());
                     }}
                 />
@@ -250,7 +250,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                             <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Share</Text>
                         </Text>
                     }
-                    onClick={() => {
+                    onPress={() => {
                         /* shareFile(props.filesState.selectedFile); */
                     }}
                 />
@@ -262,11 +262,11 @@ function FileDetailsModal(props: FileDetailsProps) {
                         <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Delete</Text>
                     </Text>
                 }
-                    onClick={() => {
+                    onPress={() => {
                         /*
                         modalDeleteFiles.current.open();
-                        modalItem.current.close();
                         */
+                       props.dispatch(layoutActions.closeItemModal())
                     }}
                 /></Modal>}
     </>;
