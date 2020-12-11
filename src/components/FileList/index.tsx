@@ -13,6 +13,13 @@ function FileList(props: any) {
     let folderList: object[] = folderContent && folderContent.children || [];
     let fileList: object[] = folderContent && folderContent.files || [];
 
+    const searchString = props.filesState.searchString
+
+    if (searchString) {
+        fileList = fileList.filter(file => file.name.includes(searchString))
+        folderList = folderList.filter(folder => folder.name.includes(searchString))
+    }
+
     useEffect(() => {
         if (!props.filesState.folderContent) {
             const rootFolderId = props.authenticationState.user.root_folder_id
