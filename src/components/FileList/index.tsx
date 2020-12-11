@@ -20,6 +20,13 @@ function FileList(props: any) {
         folderList = folderList.filter((folder: any) => folder.name.toLowerCase().includes(searchString.toLowerCase()))
     }
 
+    const sortFunction = props.filesState.sortFunction
+
+    if (sortFunction) {
+        folderList.sort(sortFunction);
+        fileList.sort(sortFunction);
+    }
+
     useEffect(() => {
         if (!props.filesState.folderContent) {
             const rootFolderId = props.authenticationState.user.root_folder_id

@@ -9,6 +9,7 @@ import SettingsModal from '../../modals/SettingsModal';
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import { getIcon } from '../../helpers/getIcon';
 import FileDetailsModal from '../../modals/FileDetailsModal';
+import SortModal from '../../modals/SortModal';
 
 function FileExplorer(props: any) {
     const [selectedKeyId, setSelectedKeyId] = useState(0)
@@ -52,6 +53,7 @@ function FileExplorer(props: any) {
     return <View style={styles.container}>
         <FileDetailsModal key={selectedKeyId} />
         <SettingsModal />
+        <SortModal />
 
         <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
 
