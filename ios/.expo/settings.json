@@ -1,4 +1,5 @@
 {
+  "scheme": null,
   "hostType": "lan",
   "lanType": "ip",
   "dev": true,

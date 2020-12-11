@@ -1,27 +1,17 @@
 {
   "expo": {
-    "name": "X Cloud",
-    "description": "",
-    "slug": "x-cloud",
-    "privacy": "public",
-    "sdkVersion": "32.0.0",
-    "platforms": [
-      "ios",
-      "android"
-    ],
-    "version": "1.0.2",
+    "name": "drive-mobile",
+    "slug": "drive-mobile",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#00aaff"
-    },
-    "androidStatusBar": {
-      "backgroundColor": "#fff"
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     },
     "updates": {
-      "enabled": false
+      "fallbackToCacheTimeout": 0
     },
     "assetBundlePatterns": [
       "**/*"
@@ -29,19 +19,17 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.internxt.snacks",
-      "publishBundlePath": "ios/x-cloud/Supporting/shell-app.bundle",
-      "publishManifestPath": "ios/x-cloud/Supporting/shell-app-manifest.json"
+      "usesIcloudStorage": true
     },
     "android": {
-      "package": "com.internxt.cloud",
-      "publishBundlePath": "android/app/src/main/assets/shell-app.bundle",
-      "publishManifestPath": "android/app/src/main/assets/shell-app-manifest.json"
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.internxt.cloud"
     },
-    "isDetached": true,
-    "detach": {
-      "iosExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/ios-v2.10.6-sdk32.0.0-e50ee83a-41bd-4965-b067-4c815a3b3fcc.tar.gz",
-      "androidExpoViewUrl": "https://s3.amazonaws.com/exp-exponent-view-code/android-v2.10.8-sdk32.0.0-bca0f957-de78-44c8-91ed-f3151372d79d.tar.gz"
-    },
-    "scheme": "expf25ca4eba7b34a80bec63ad8bf3adb71"
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
   }
 }
