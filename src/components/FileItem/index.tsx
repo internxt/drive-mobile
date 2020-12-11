@@ -33,6 +33,12 @@ async function handleClick(props: any) {
 
     // one tap on a folder will open and load contents
     if (props.isFolder) {
+        const userData = await getLyticsData()
+        analytics.track('folder-opened', {
+            userId: userData.uuid,
+            email: userData.email,
+            folder_id: props.item.id
+        })
         props.dispatch(fileActions.getFolderContent(props.item.id))
     } else {
         // one tap on a file will download and preview the file
