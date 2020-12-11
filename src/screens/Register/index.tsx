@@ -61,7 +61,7 @@ function Register(props: any): any {
           <View style={styles.showInputFieldsWrapper}>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={[styles.input, !isValidFirstName ? { } : {}]}
+                style={[styles.input, !isValidFirstName ? {} : {}]}
                 value={firstName}
                 onChangeText={value => setFirstName(value)}
                 placeholder="First name"
@@ -71,7 +71,7 @@ function Register(props: any): any {
             </View>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={[styles.input, !isValidLastName ? { } : {}]}
+                style={[styles.input, !isValidLastName ? {} : {}]}
                 value={lastName}
                 onChangeText={value => setLastName(value)}
                 placeholder="Last name"
@@ -82,7 +82,7 @@ function Register(props: any): any {
             <View style={styles.inputWrapper}>
               <TextInput
                 autoCapitalize="none"
-                style={[styles.input, isValidEmail ? {} : { }]}
+                style={[styles.input, isValidEmail ? {} : {}]}
                 value={email}
                 onChangeText={value => setEmail(value)}
                 placeholder="Email address"
@@ -220,7 +220,7 @@ function Register(props: any): any {
             <View style={styles.inputWrapper}>
               <TextInput
                 autoCapitalize="none"
-                style={[styles.input, !isValidPassword ? { } : {}]}
+                style={[styles.input, !isValidPassword ? {} : {}]}
                 value={password}
                 onChangeText={value => setPassword(value)}
                 placeholder="Password"
@@ -231,7 +231,7 @@ function Register(props: any): any {
             </View>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={[styles.input, !isValidStep ? { } : {}]}
+                style={[styles.input, !isValidStep ? {} : {}]}
                 value={confirmPassword}
                 onChangeText={value => setConfirmPassword(value)}
                 placeholder="Confirm password"
