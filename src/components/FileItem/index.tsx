@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, Platform } from 'react-native';
+import React, { SetStateAction, useState } from 'react';
+import { View, Text, StyleSheet, Alert, Platform, Dimensions } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
@@ -22,7 +22,7 @@ interface FileItemProps {
     isLoading?: boolean
 }
 
-async function handleClick(props: any) {
+async function handleClick(props: any, setProgress: React.Dispatch<SetStateAction<number>>) {
     const isSelectionMode = props.filesState.selectedItems.length > 0
 
     if (isSelectionMode) {
@@ -68,7 +68,7 @@ async function handleClick(props: any) {
             'Authorization': `Bearer ${xToken}`,
             'internxt-mnemonic': xUserJson.mnemonic
         }).progress((progress, total) => {
-            console.log(progress + ' ' + total)
+            setProgress(progress)
         }).then(async (res) => {
             if (res.respInfo.status === 200) {
                 if (Platform.OS === 'ios') {
@@ -134,6 +134,10 @@ function FileItem(props: FileItemProps) {
     const isSelectionMode = props.filesState.selectedItems.length > 0
     const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0
 
+    const [progress, setProgress] = useState(0)
+    const progressPct = progress > 0 ? progress / props.item.size : 0
+    const progressWidth = Dimensions.get('screen').width * progressPct
+
     const [isLoading, setIsLoading] = useState(props.isLoading ? true : false)
 
     const extendStyles = StyleSheet.create({
@@ -144,62 +148,81 @@ function FileItem(props: FileItemProps) {
     const item = props.item
 
     return (
-        <View style={[styles.container, extendStyles.containerBackground]}>
-            <View style={styles.fileDetails}>
-                <TouchableWithoutFeedback
-                    style={styles.touchableItemArea}
-                    onLongPress={() => { handleLongPress(props, isSelected) }}
-                    onPress={() => {
-                        setIsLoading(true)
-                        handleClick(props).finally(() => {
-                            setIsLoading(false)
-                        })
-                    }}>
+        <View style={styles.progressIndicatorContainer}>
+            <View style={[styles.container, extendStyles.containerBackground]}>
+                <View style={styles.fileDetails}>
+                    <TouchableWithoutFeedback
+                        style={styles.touchableItemArea}
+                        onLongPress={() => { handleLongPress(props, isSelected) }}
+                        onPress={() => {
+                            setIsLoading(true)
+                            handleClick(props, setProgress).finally(() => {
+                                setProgress(0)
+                                setIsLoading(false)
+                            })
+                        }}>
 
-                    <View style={styles.itemIcon}>
-                        {props.isFolder
-                            ? <>
-                                <IconFolder color={props.item.color} />
-                                {props.isFolder && props.item.icon
-                                    ? <View style={{
-                                        position: 'absolute',
-                                        left: 35,
-                                        top: 7
-                                    }}>
-                                        <Icon
-                                            name={props.item.icon.name}
-                                            color={item.color ? colors[item.color].icon : colors['blue'].icon}
-                                            width={24}
-                                            height={24}
-                                        />
-                                    </View>
-                                    : <></>}
-                            </>
-                            : <IconFile label={props.item.type || ''} isLoading={isLoading} />}
-                    </View>
-                    <View style={styles.nameAndTime}>
-                        <Text
-                            style={[styles.fileName, extendStyles.text]}
-                            numberOfLines={1}
-                        >{props.item.name}</Text>
-                        {!props.isFolder && <TimeAgo time={props.item.created_at} />}
-                    </View>
-                </TouchableWithoutFeedback>
+                        <View style={styles.itemIcon}>
+                            {props.isFolder
+                                ? <>
+                                    <IconFolder color={props.item.color} />
+                                    {props.isFolder && props.item.icon
+                                        ? <View style={{
+                                            position: 'absolute',
+                                            left: 35,
+                                            top: 7
+                                        }}>
+                                            <Icon
+                                                name={props.item.icon.name}
+                                                color={item.color ? colors[item.color].icon : colors['blue'].icon}
+                                                width={24}
+                                                height={24}
+                                            />
+                                        </View>
+                                        : <></>}
+                                </>
+                                : <IconFile label={props.item.type || ''} isLoading={isLoading} />}
+                        </View>
+                        <View style={styles.nameAndTime}>
+                            <Text
+                                style={[styles.fileName, extendStyles.text]}
+                                numberOfLines={1}
+                            >{props.item.name}</Text>
+                            {!props.isFolder && <TimeAgo time={props.item.created_at} />}
+                        </View>
+                    </TouchableWithoutFeedback>
+                </View>
+                <View style={styles.buttonDetails}>
+                    <TouchableWithoutFeedback
+                        style={{ display: isSelectionMode ? 'none' : 'flex' }}
+                        onPress={() => {
+                            props.dispatch(layoutActions.openItemModal(props.item))
+                        }}>
+                        <Icon name="details" />
+                    </TouchableWithoutFeedback>
+                </View>
             </View>
-            <View style={styles.buttonDetails}>
-                <TouchableWithoutFeedback
-                    style={{ display: isSelectionMode ? 'none' : 'flex' }}
-                    onPress={() => {
-                        props.dispatch(layoutActions.openItemModal(props.item))
-                    }}>
-                    <Icon name="details" />
-                </TouchableWithoutFeedback>
+            <View style={[styles.progressIndicator, { width: progressWidth }]}>
+
             </View>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
+    progressIndicatorContainer: {
+        flexDirection: 'column',
+        alignItems: 'center'
+    },
+    progressIndicator: {
+        backgroundColor: '#87B7FF',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: '100%',
+        width: 0,
+        opacity: 0.2
+    },
     container: {
         height: 80,
         borderBottomWidth: 1,
