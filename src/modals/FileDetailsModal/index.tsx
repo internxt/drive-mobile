@@ -12,6 +12,7 @@ import { fileActions, layoutActions } from '../../redux/actions';
 import SettingsItem from '../SettingsModal/SettingsItem';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { colors, folderIconsList } from '../../redux/constants'
+import { updateFolderMetadata } from './actions';
 
 interface FileDetailsProps {
     dispatch?: any
@@ -37,9 +38,32 @@ function FileDetailsModal(props: FileDetailsProps) {
             isOpen={showModal}
             style={styles.modalFolder}
             onOpened={() => setInputFileName(file.name)}
-            onClosed={() => {
+            onClosed={async () => {
                 props.dispatch(fileActions.deselectAll())
                 props.dispatch(layoutActions.closeItemModal())
+
+                const metadata: any = {}
+                if (inputFileName !== folder.name) {
+                    metadata.itemName = inputFileName
+                }
+
+                if (selectedColor && selectedColor !== folder.color) {
+                    metadata.color = selectedColor
+                }
+
+                if (selectedIcon && selectedIcon > 0) {
+                    if (folder.icon && folder.icon.id !== selectedIcon) {
+                        metadata.icon = selectedIcon
+                    }
+                    else if (!folder.icon) {
+                        metadata.icon = selectedIcon
+                    }
+                }
+
+                if (Object.keys(metadata).length > 0) {
+                    await updateFolderMetadata(metadata, folder.id)
+                    props.dispatch(fileActions.getFolderContent(folder.parentId))
+                }
             }}
             backButtonClose={true}
             animationDuration={200}
