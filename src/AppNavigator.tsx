@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import analytics from './helpers/lytics';
 import Auth from './screens/Auth'
 import Biometric  from './screens/Biometric';
+import CreateFolder from './screens/CreateFolder';
 import FileExplorer from './screens/FileExplorer';
 import Intro from './screens/Intro';
 import Login from './screens/Login';
@@ -20,7 +21,8 @@ const routeConfig: RouteConfig  = {
   Login: { screen: Login },
   Intro: { screen: Intro },
   FileExplorer: { screen: FileExplorer },
-  Biometric: { screen: Biometric }
+  Biometric: { screen: Biometric },
+  CreateFolder: { screen: CreateFolder}
 };
 
 const navigatorOptions: NavigatorOptions = {
