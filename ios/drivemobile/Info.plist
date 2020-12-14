@@ -30,7 +30,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -54,6 +54,8 @@
 	<string></string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app requires microphone access to upload audios and videos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires library access to upload pictures.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
