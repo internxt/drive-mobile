@@ -68,17 +68,19 @@ async function uploadFile(result: any, props: any) {
     }
 }
 
-function AppMenu(props: any) {
+interface AppMenuProps {
+    navigation?: any
+}
+
+function AppMenu(props: AppMenuProps & any) {
     const [activeSearchBox, setActiveSearchBox] = useState(false)
     const [createFolderVisible, setCreateFolderVisible] = useState(false);
-    const [createFolderName, setCreateFolderName] = useState('')
+   
 
     const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
     const parentFolder = props.filesState.folderContent && props.filesState.folderContent.parentId
 
     const selectedItems = props.filesState.selectedItems;
-
-
 
     return <View
         style={styles.container}>

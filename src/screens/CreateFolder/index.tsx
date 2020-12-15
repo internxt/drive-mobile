@@ -21,7 +21,7 @@ interface CreateFolderProps {
     filesState?: any
 }
 
-const folderIcon = () => (
+const FolderIcon = () => (
     <Svg style={styles.icon} viewBox="0 0 99 78">
       <Defs>
         <LinearGradient
@@ -42,49 +42,54 @@ const folderIcon = () => (
         transform="translate(-745 -97)"
       />
     </Svg>
-);
+)
 
 function CreateFolder(props: any) {
     const [ foldername, setFolderName ] = useState("Untitled folder")
-    const [ parentfolderid, setParentFolderId ] = useState(Number)
+    const [ parentfolderid, setParentFolderId ] = useState(0)
+    const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
 
     useEffect(() => {
         setParentFolderId(props.navigation.getParam("parentFolderId", "undefined"))
-
-        if (props.fileState.folderContent.name === foldername) {
+        console.log('---------- PARENT FOLDER ID ----------', parentfolderid)
+/*         if (props.fileState.folderContent.name === foldername) {
             props.navigation.navigate("Home", { folderId: props.fileState.folderContent.id })
-        }
+        } */
     }, [])
 
     const onSave = () => {
-        props.dispatch(fileActions.createFolder(parentfolderid, foldername))
+      if (foldername) {
+
+        const rootFolder = props.authenticationState.user.root_folder_id
+        props.dispatch(fileActions.createFolder(currentFolderId || rootFolder, foldername))
+      }
+      props.navigation.replace("FileExplorer")
     }
 
     const onCancel = () => {
-        props.navigation.navigate.goBack()
+        props.navigation.replace("FileExplorer")
     }
 
     return (
-        <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
+        <KeyboardAvoidingView style={styles.container} enabled>
             <View style={styles.actionsWrapper}>
                 <View>
-                    <MenuItem name="checkmark" onClickHandler={ onSave() } />
+                    <MenuItem name="close" onClickHandler={ () => onCancel() } />
                 </View>
 
                 <View>
-                    <MenuItem name="close" onClickHandler={ onCancel() } />
+                    <MenuItem name="checkmark" onClickHandler={() => onSave() } />
                 </View>
             </View>
 
             <ScrollView contentContainerStyle={styles.folderWrapper}>
-                {folderIcon}
+                <FolderIcon />
 
                 <TextInput
                     autoFocus={true}
                     style={styles.input}
                     value={foldername}
-                    onChangeText={value => setFolderName(value)}
-                    placeholder="Enter the name of the folder"
+                    onChangeText={e => setFolderName(e)}
                     placeholderTextColor="#2c6bc9"
                     maxLength={24}
                     clearTextOnFocus={true}
