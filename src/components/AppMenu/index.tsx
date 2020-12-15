@@ -78,6 +78,8 @@ function AppMenu(props: any) {
 
     const selectedItems = props.filesState.selectedItems;
 
+
+
     return <View
         style={styles.container}>
 
@@ -176,7 +178,7 @@ function AppMenu(props: any) {
                         }} />
 
                     <>
-                        <Dialog.Container visible={createFolderVisible}>
+                        {/* <Dialog.Container visible={createFolderVisible}>
                             <Dialog.Title>Create new folder</Dialog.Title>
                             <Dialog.Input
                                 style={{ borderBottomWidth: Platform.OS == 'ios' ? 0 : 1 }}
@@ -191,14 +193,14 @@ function AppMenu(props: any) {
                                 setCreateFolderVisible(false)
                             }}></Dialog.Button>
 
-                        </Dialog.Container>
+                        </Dialog.Container> */}
                     </>
 
                     <MenuItem
                         name="create"
                         style={{ marginRight: 10 }}
                         onClickHandler={() => {
-                            setCreateFolderVisible(true)
+                            props.navigation.replace('CreateFolder')
                         }} />
 
                     {selectedItems.length > 0 ? (
