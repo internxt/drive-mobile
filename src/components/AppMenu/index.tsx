@@ -177,26 +177,8 @@ function AppMenu(props: AppMenuProps & any) {
                                     style: 'destructive'
                                 }
                             ])
-                        }} />
-
-                    <>
-                        {/* <Dialog.Container visible={createFolderVisible}>
-                            <Dialog.Title>Create new folder</Dialog.Title>
-                            <Dialog.Input
-                                style={{ borderBottomWidth: Platform.OS == 'ios' ? 0 : 1 }}
-                                onChangeText={(value) => setCreateFolderName(value)}
-                            ></Dialog.Input>
-                            <Dialog.Button label="Cancel" color="red" onPress={() => setCreateFolderVisible(false)}></Dialog.Button>
-                            <Dialog.Button label="Create" onPress={() => {
-                                if (createFolderName) {
-                                    const rootFolder = props.authenticationState.user.root_folder_id
-                                    props.dispatch(fileActions.createFolder(currentFolderId || rootFolder, createFolderName))
-                                }
-                                setCreateFolderVisible(false)
-                            }}></Dialog.Button>
-
-                        </Dialog.Container> */}
-                    </>
+                        }} 
+                    />
 
                     <MenuItem
                         name="create"

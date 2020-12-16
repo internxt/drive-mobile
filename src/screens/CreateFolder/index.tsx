@@ -1,4 +1,4 @@
-import React, { Component, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -6,20 +6,11 @@ import {
   KeyboardAvoidingView,
   ScrollView
 } from "react-native";
-import { compose } from "redux";
 import { connect } from "react-redux";
-import { withNavigation } from "react-navigation";
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import MenuItem from "../../components/MenuItem";
 import { fileActions } from "../../redux/actions";
-
-interface CreateFolderProps {
-    goToForm?: (screenName: string) => void
-    authenticationState?: any
-    dispatch?: any
-    navigation?: any
-    filesState?: any
-}
+import { widthPercentageToDP as wp } from "react-native-responsive-screen";
 
 const FolderIcon = () => (
     <Svg style={styles.icon} viewBox="0 0 99 78">
@@ -45,7 +36,7 @@ const FolderIcon = () => (
 )
 
 function CreateFolder(props: any) {
-    const [ foldername, setFolderName ] = useState("Untitled folder")
+    const [ foldername, setFolderName ] = useState("")
     const [ parentfolderid, setParentFolderId ] = useState(0)
     const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
 
@@ -86,11 +77,13 @@ function CreateFolder(props: any) {
                 <FolderIcon />
 
                 <TextInput
+                    selectTextOnFocus={true}
                     autoFocus={true}
                     style={styles.input}
                     value={foldername}
                     onChangeText={e => setFolderName(e)}
-                    placeholderTextColor="#2c6bc9"
+                    placeholder="Enter folder name"
+                    placeholderTextColor="rgba(44, 107, 201, 0.5)"
                     maxLength={24}
                     clearTextOnFocus={true}
                 />
@@ -144,7 +137,8 @@ const styles = StyleSheet.create({
     fontSize: 23,
     color: "#2c6bc9",
     width: 219,
-    textAlign: "center"
+    textAlign: "left",
+    marginLeft: wp(5)
   }
 });
 
