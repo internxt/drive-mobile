@@ -284,9 +284,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                     </Text>
                 }
                     onPress={() => {
-                        /*
-                        modalDeleteFiles.current.open();
-                        */
+                        
                         props.dispatch(layoutActions.closeItemModal())
                     }}
                 /></Modal>}
