@@ -10,6 +10,7 @@ import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCa
 import Dialog from 'react-native-dialog'
 import { getHeaders } from '../../helpers/headers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
+import RNFetchBlob from 'rn-fetch-blob';
 
 async function uploadFile(result: any, props: any) {
 
@@ -32,18 +33,25 @@ async function uploadFile(result: any, props: any) {
         const mnemonic = props.authenticationState.user.mnemonic;
 
         const headers = await getHeaders(token, mnemonic)
+        console.log("------- BEFORE FETCH ----------")
 
-        fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, {
-            method: 'POST',
-            headers,
+        RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, {
+            Authorization: `Bearer ${token}`,
+            'Content-type': 'application/json; charset=utf-8',
+            'internxt-version': '1.0.0',
+            'internxt-client': 'drive-mobile',
+            'internxt-mnemonic': mnemonic
+        }, 
             body
-        }).then(async resultFetch => {
+        ).then(async resultFetch => {
+            console.log("------- FIRST THEN ----------")
             if (resultFetch.status === 401) {
                 throw resultFetch;
             }
             var data = await resultFetch.json();
             return { res: resultFetch, data };
         }).then(resultFetch => {
+            console.log("------- SECOND THEN ----------")
             if (resultFetch.res.status == 402) {
                 props.dispatch(layoutActions.openRunOutStorageModal());
             } else if (resultFetch.res.status == 201) {
