@@ -70,9 +70,11 @@ async function uploadFile(result: any, props: any) {
 
 interface AppMenuProps {
     navigation?: any
+    filesState?: any
+    dispatch?: any
 }
 
-function AppMenu(props: AppMenuProps & any) {
+function AppMenu(props: AppMenuProps) {
     const [activeSearchBox, setActiveSearchBox] = useState(false)
     const [createFolderVisible, setCreateFolderVisible] = useState(false);
    
