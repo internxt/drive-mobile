@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from 'react'
 import { View, StyleSheet, Platform, Text, Alert, TextInput, Animated, Image } from 'react-native'
-import { TouchableHighlight } from 'react-native-gesture-handler';
+import { TouchableHighlight, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
 import { fileActions, layoutActions, userActions } from '../../redux/actions';
@@ -98,8 +98,7 @@ function AppMenu(props: any) {
                     props.dispatch(fileActions.setSearchString(e.nativeEvent.text))
                 }}
             />
-            <TouchableHighlight
-                underlayColor="#fff"
+            <TouchableWithoutFeedback
                 onPress={() => {
                     props.dispatch(fileActions.setSearchString(''));
                     props.dispatch(layoutActions.closeSearch());
@@ -109,7 +108,7 @@ function AppMenu(props: any) {
                     style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }}
                     source={getIcon('close')}
                 />
-            </TouchableHighlight>
+            </TouchableWithoutFeedback>
         </View>
 
         <Fragment>
