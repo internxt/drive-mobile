@@ -14,7 +14,7 @@ import SortModal from '../../modals/SortModal';
 function FileExplorer(props: any) {
     const [selectedKeyId, setSelectedKeyId] = useState(0)
     const { filesState } = props;
-    const currentFolderId = props.navigation.state.params.folderId;
+    //const currentFolderId = props.navigation.state.params.folderId;
     const parentFolderId = (() => {
         if (props.filesState.folderContent) {
             return props.filesState.folderContent.parentId || null
@@ -57,7 +57,7 @@ function FileExplorer(props: any) {
 
         <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
 
-        <AppMenu />
+        <AppMenu navigation={props.navigation} />
 
         <View style={styles.breadcrumbs}>
             <Text style={styles.breadcrumbsTitle}>
