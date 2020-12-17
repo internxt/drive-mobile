@@ -1,14 +1,12 @@
-import React, { Fragment, useEffect, useState } from 'react'
-import { View, StyleSheet, Platform, Text, Alert, TextInput, Animated, Image } from 'react-native'
-import { TouchableHighlight, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import React, { Fragment, useState } from 'react'
+import { View, StyleSheet, Platform, Alert, TextInput, Image } from 'react-native'
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
 import { fileActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
 import { getDocumentAsync } from 'expo-document-picker'
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker'
-import Dialog from 'react-native-dialog'
-import { getHeaders } from '../../helpers/headers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
 
 async function uploadFile(result: any, props: any) {
@@ -49,7 +47,7 @@ async function uploadFile(result: any, props: any) {
                 analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
                 props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
             } else {
-                Alert.alert('Error', resultFetch.res.error ? resultFetch.data.error : 'Cannot upload file');
+                Alert.alert('Error', 'Cannot upload file');
             }
         }).catch(errFetch => {
             console.log(errFetch)

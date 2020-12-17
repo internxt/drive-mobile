@@ -4,28 +4,27 @@ import { createStackNavigator } from 'react-navigation-stack';
 import { StackNavigationConfig, StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { connect } from 'react-redux';
 import analytics from './helpers/lytics';
-import Auth from './screens/Auth'
-import Biometric  from './screens/Biometric';
+import Biometric from './screens/Biometric';
 import CreateFolder from './screens/CreateFolder';
 import FileExplorer from './screens/FileExplorer';
 import Intro from './screens/Intro';
 import Login from './screens/Login';
 import Register from './screens/Register';
-import Forgot from './screens/Auth/Forgot';
+import Forgot from './screens/Forgot';
 
 
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, unknown>
 type NavigatorOptions = CreateNavigatorConfig<StackNavigationConfig, NavigationStackRouterConfig, StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>>
 
-const routeConfig: RouteConfig  = {
+const routeConfig: RouteConfig = {
   Register: { screen: Register },
   Login: { screen: Login },
   Intro: { screen: Intro },
   FileExplorer: { screen: FileExplorer },
   Biometric: { screen: Biometric },
-  CreateFolder: { screen: CreateFolder},
-  Forgot: { screen: Forgot}
+  CreateFolder: { screen: CreateFolder },
+  Forgot: { screen: Forgot }
 };
 
 const navigatorOptions: NavigatorOptions = {
