@@ -139,7 +139,7 @@ function SettingsModal(props: SettingsModalProps) {
         />
         <SettingsItem
             text="Contact"
-            onPress={() => Linking.openURL('mailto:hello@internxt.com')}
+            onPress={() => Linking.openURL('mailto:support@internxt.zohodesk.eu')}
         />
         <SettingsItem
             text="Sign out"
