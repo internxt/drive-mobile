@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Linking, ActivityIndicator, Alert } from 'react-native';
 import Modal from 'react-native-modalbox'
 import ProgressBar from '../../components/ProgressBar';
 import { layoutActions, userActions } from '../../redux/actions';
@@ -139,7 +139,14 @@ function SettingsModal(props: SettingsModalProps) {
         />
         <SettingsItem
             text="Contact"
-            onPress={() => Linking.openURL('mailto:hello@internxt.com')}
+            onPress={() => {
+                const emailUrl = 'mailto:support@internxt.zohodesk.eu'
+                Linking.canOpenURL(emailUrl).then(() => {
+                    Linking.openURL(emailUrl)
+                }).catch(err => {
+                    Alert.alert('Info', 'Send us an email to: support@internxt.zohodesk.')
+                })
+            }}
         />
         <SettingsItem
             text="Sign out"

@@ -1,18 +1,15 @@
-import React, { Fragment, useEffect, useState } from 'react'
-import { View, StyleSheet, Platform, Text, Alert, TextInput, Animated, Image } from 'react-native'
-import { TouchableHighlight } from 'react-native-gesture-handler';
+import React, { Fragment, useState } from 'react'
+import { View, StyleSheet, Platform, Alert, TextInput, Image } from 'react-native'
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
 import { fileActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
 import { getDocumentAsync } from 'expo-document-picker'
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker'
-import Dialog from 'react-native-dialog'
-import { getHeaders } from '../../helpers/headers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
 
 async function uploadFile(result: any, props: any) {
-
     const userData = await getLyticsData()
 
     analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
@@ -20,19 +17,19 @@ async function uploadFile(result: any, props: any) {
     try {
         // Set name for pics/photos
         if (!result.name) result.name = result.uri.split('/').pop();
+        result.type = 'application/octet-stream';
         props.dispatch(fileActions.uploadFileStart(result.name));
         const body = new FormData();
-        body.append('xfile', {
-            uri: result.uri,
-            type: 'application/octet-stream',
-            name: result.name
-        });
+        body.append('xfile', result, result.name);
 
         const token = props.authenticationState.token;
         const mnemonic = props.authenticationState.user.mnemonic;
 
-        const headers = await getHeaders(token, mnemonic)
-
+        const headers = {
+            Authorization: `Bearer ${token}`,
+            'internxt-mnemonic': mnemonic,
+            'Content-type': 'multipart/form-data'
+        };
         fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, {
             method: 'POST',
             headers,
@@ -41,22 +38,23 @@ async function uploadFile(result: any, props: any) {
             if (resultFetch.status === 401) {
                 throw resultFetch;
             }
-            var data = await resultFetch.json();
+            var data = await resultFetch.text();
             return { res: resultFetch, data };
         }).then(resultFetch => {
-            if (resultFetch.res.status == 402) {
+            if (resultFetch.res.status === 402) {
                 props.dispatch(layoutActions.openRunOutStorageModal());
-            } else if (resultFetch.res.status == 201) {
+            } else if (resultFetch.res.status === 201) {
                 analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
                 props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
             } else {
-                Alert.alert('Error', resultFetch.data.error ? resultFetch.data.error : 'Cannot upload file');
+                Alert.alert('Error', 'Cannot upload file');
             }
         }).catch(errFetch => {
+            console.log(errFetch)
             if (errFetch.status === 401) {
                 props.dispatch(userActions.signout());
             } else {
-                Alert.alert('Error', 'Cannot upload file');
+                Alert.alert('Error', 'Cannot upload file\n' + errFetch);
             }
         }).finally(() => {
             props.dispatch(fileActions.uploadFileFinished());
@@ -102,8 +100,7 @@ function AppMenu(props: AppMenuProps) {
                     props.dispatch(fileActions.setSearchString(e.nativeEvent.text))
                 }}
             />
-            <TouchableHighlight
-                underlayColor="#fff"
+            <TouchableWithoutFeedback
                 onPress={() => {
                     props.dispatch(fileActions.setSearchString(''));
                     props.dispatch(layoutActions.closeSearch());
@@ -113,7 +110,7 @@ function AppMenu(props: AppMenuProps) {
                     style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }}
                     source={getIcon('close')}
                 />
-            </TouchableHighlight>
+            </TouchableWithoutFeedback>
         </View>
 
         <Fragment>
