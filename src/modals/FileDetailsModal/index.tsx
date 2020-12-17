@@ -372,5 +372,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'space-around',
         marginBottom: 15,
+        minHeight: 129 // pixel perfect leave like this
     }
 })
