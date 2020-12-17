@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from 'react'
-import { View, StyleSheet, Platform, Text, Alert, TextInput, Animated, Image, NativeModules } from 'react-native'
-import { TouchableHighlight } from 'react-native-gesture-handler';
+import { View, StyleSheet, Platform, Text, Alert, TextInput, Animated, Image } from 'react-native'
+import { TouchableHighlight, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
 import { fileActions, layoutActions, userActions } from '../../redux/actions';
@@ -68,10 +68,16 @@ async function uploadFile(result: any, props: any) {
     }
 }
 
-function AppMenu(props: any) {
+interface AppMenuProps {
+    navigation?: any
+    filesState?: any
+    dispatch?: any
+}
+
+function AppMenu(props: AppMenuProps) {
     const [activeSearchBox, setActiveSearchBox] = useState(false)
     const [createFolderVisible, setCreateFolderVisible] = useState(false);
-    const [createFolderName, setCreateFolderName] = useState('')
+   
 
     const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
     const parentFolder = props.filesState.folderContent && props.filesState.folderContent.parentId
@@ -96,8 +102,7 @@ function AppMenu(props: any) {
                     props.dispatch(fileActions.setSearchString(e.nativeEvent.text))
                 }}
             />
-            <TouchableHighlight
-                underlayColor="#fff"
+            <TouchableWithoutFeedback
                 onPress={() => {
                     props.dispatch(fileActions.setSearchString(''));
                     props.dispatch(layoutActions.closeSearch());
@@ -107,7 +112,7 @@ function AppMenu(props: any) {
                     style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }}
                     source={getIcon('close')}
                 />
-            </TouchableHighlight>
+            </TouchableWithoutFeedback>
         </View>
 
         <Fragment>
@@ -173,32 +178,14 @@ function AppMenu(props: any) {
                                     style: 'destructive'
                                 }
                             ])
-                        }} />
-
-                    <>
-                        <Dialog.Container visible={createFolderVisible}>
-                            <Dialog.Title>Create new folder</Dialog.Title>
-                            <Dialog.Input
-                                style={{ borderBottomWidth: Platform.OS == 'ios' ? 0 : 1 }}
-                                onChangeText={(value) => setCreateFolderName(value)}
-                            ></Dialog.Input>
-                            <Dialog.Button label="Cancel" color="red" onPress={() => setCreateFolderVisible(false)}></Dialog.Button>
-                            <Dialog.Button label="Create" onPress={() => {
-                                if (createFolderName) {
-                                    const rootFolder = props.authenticationState.user.root_folder_id
-                                    props.dispatch(fileActions.createFolder(currentFolderId || rootFolder, createFolderName))
-                                }
-                                setCreateFolderVisible(false)
-                            }}></Dialog.Button>
-
-                        </Dialog.Container>
-                    </>
+                        }} 
+                    />
 
                     <MenuItem
                         name="create"
                         style={{ marginRight: 10 }}
                         onClickHandler={() => {
-                            setCreateFolderVisible(true)
+                            props.navigation.replace('CreateFolder')
                         }} />
 
                     {selectedItems.length > 0 ? (

@@ -6,10 +6,13 @@ import { connect } from 'react-redux';
 import analytics from './helpers/lytics';
 import Auth from './screens/Auth'
 import Biometric  from './screens/Biometric';
+import CreateFolder from './screens/CreateFolder';
 import FileExplorer from './screens/FileExplorer';
 import Intro from './screens/Intro';
 import Login from './screens/Login';
 import Register from './screens/Register';
+import Forgot from './screens/Auth/Forgot';
+
 
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, unknown>
@@ -20,7 +23,9 @@ const routeConfig: RouteConfig  = {
   Login: { screen: Login },
   Intro: { screen: Intro },
   FileExplorer: { screen: FileExplorer },
-  Biometric: { screen: Biometric }
+  Biometric: { screen: Biometric },
+  CreateFolder: { screen: CreateFolder},
+  Forgot: { screen: Forgot}
 };
 
 const navigatorOptions: NavigatorOptions = {
