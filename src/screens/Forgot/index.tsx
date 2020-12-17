@@ -1,4 +1,4 @@
-import { isValidEmail, sendDeactivationsEmail } from './Forgotutils';
+import { isValidEmail, sendDeactivationsEmail } from './ForgotUtils';
 import {
     View,
     Text,
@@ -7,10 +7,9 @@ import {
     Alert,
     KeyboardAvoidingView,
     TextInput,
-    TouchableHighlight,
-    Dimensions, Platform, PixelRatio
+    TouchableHighlight
 } from 'react-native';
-import React, { ReactElement, ReactNode, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { normalize } from '../../helpers';
 import { connect } from "react-redux";
 

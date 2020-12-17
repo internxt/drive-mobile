@@ -42,10 +42,6 @@ function CreateFolder(props: any) {
 
     useEffect(() => {
         setParentFolderId(props.navigation.getParam("parentFolderId", "undefined"))
-        console.log('---------- PARENT FOLDER ID ----------', parentfolderid)
-/*         if (props.fileState.folderContent.name === foldername) {
-            props.navigation.navigate("Home", { folderId: props.fileState.folderContent.id })
-        } */
     }, [])
 
     const onSave = () => {

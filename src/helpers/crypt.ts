@@ -45,16 +45,12 @@ export function encryptTextWithKey(textToEncrypt: string, keyToEncrypt: string) 
 // AES Plain text decryption method with enc. key
 export function decryptTextWithKey(encryptedText: string, keyToDecrypt: string) {
   try {
-    const reb = CryptoJS.enc.Hex.parse(encryptedText); //convierte string a hexadecimal
+    const reb = CryptoJS.enc.Hex.parse(encryptedText);
     const bytes = CryptoJS.AES.decrypt(
-      reb.toString(CryptoJS.enc.Base64),//convierte de string a base 64 
+      reb.toString(CryptoJS.enc.Base64),
       keyToDecrypt
     );
-    try {
-      return bytes.toString(CryptoJS.enc.Utf8);
-    } catch {
-      return decryptTextWithKey(encryptedText, keyToDecrypt)
-    }
+    return bytes.toString(CryptoJS.enc.Utf8);
   } catch (error) {
     throw new Error(error);
   }
