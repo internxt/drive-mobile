@@ -1,3 +1,4 @@
+import { authenticateAsync } from 'expo-local-authentication';
 import React, { useEffect } from 'react'
 import { useState } from "react";
 import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from "react-native";
@@ -23,6 +24,13 @@ function Login(props: LoginProps) {
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [showTwoFactor, setShowTwoFactor] = useState(false)
   const [secretKey, setSecretKey] = useState('')
+  const [ blockedaccount, setBlockedAccout ] = useState(false)
+
+  useEffect(() => {
+    console.log('-------- Login AUTHENTICATION PROPS -------', props.authenticationState)
+    props.authenticationState.error ? setBlockedAccout(true) : null
+    console.log(blockedaccount)
+  }, [props.authenticationState])
 
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
@@ -115,18 +123,22 @@ function Login(props: LoginProps) {
               if (userLoginData.tfa && !twoFactorCode) {
                 setShowTwoFactor(true)
               } else {
+                console.log('----------- Login FIRST ELSE ------------')
                 const decSKey = decryptTextWithKey(userLoginData.sKey, password)
                 props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
               }
             }).catch(err => {
+              console.log('---- CATCH', err.message)
               analytics.track('user-signin-attempted', {
                 status: 'error',
                 message: err.message
-              }).catch(() => {})
-        
-              Alert.alert(err.message)
+              })
+              
+      
             }).finally(() => {
+              console.log('-------- Login INSIDE FINALLY --------')
               setIsLoading(false)
+              blockedaccount ? Alert.alert('Your account is blocked', props.authenticationState.error) : null
             })
           }}>
           <Text style={styles.buttonOnLabel}>{isLoading ? 'Decrypting...' : 'Sign in'}</Text>
