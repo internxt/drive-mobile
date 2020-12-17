@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useState } from 'react'
-import { View, StyleSheet, Platform, Text, Alert, TextInput, Animated, Image } from 'react-native'
+import { View, StyleSheet, Platform, Text, Alert, TextInput, Animated, Image, NativeModules } from 'react-native'
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
@@ -10,77 +10,57 @@ import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCa
 import Dialog from 'react-native-dialog'
 import { getHeaders } from '../../helpers/headers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
-import RNFetchBlob from 'rn-fetch-blob';
 
 async function uploadFile(result: any, props: any) {
     const userData = await getLyticsData()
 
-    console.log('URI', result.uri)
-    console.log(RNFetchBlob.wrap(result.uri))
     analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
 
     try {
         // Set name for pics/photos
         if (!result.name) result.name = result.uri.split('/').pop();
+        result.type = 'application/octet-stream';
         props.dispatch(fileActions.uploadFileStart(result.name));
         const body = new FormData();
-/*         body.append('xfile', {
-            uri: 'RNFetchBlob-' + result.uri,
-            type: 'application/octet-stream',
-            name: result.name
-        });
- */
-        body.append('xfile', result.uri, result.name)
-        
+        body.append('xfile', result, result.name);
+
         const token = props.authenticationState.token;
         const mnemonic = props.authenticationState.user.mnemonic;
 
-        const headers = await getHeaders(token, mnemonic)
-        console.log("------- BEFORE FETCH ----------")
-        //console.log("----------- BODY URI -------------", body._parts[0])
-
-        RNFetchBlob.config({
-            /* addAndroidDownloads: {
-                useDownloadManager: true, // <-- this is the only thing required
-            } */
-        })
-            .fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, {
-                Authorization: `Bearer ${token}`,
-                'Content-type': 'application/json; charset=utf-8',
-                'internxt-version': '1.0.0',
-                'internxt-client': 'drive-mobile',
-                'internxt-mnemonic': mnemonic
-            }, JSON.stringify(body)
-            ).then(async resultFetch => {
-                console.log("------- FIRST THEN ----------")
-                if (resultFetch.info().status === 401) {
-                    console.log("------- INSIDE IF ----------")
-                    throw resultFetch;
-                }
-                console.log("------- OUTSIDE IF ----------")
-                var data = await resultFetch.text();
-                console.log("------- DATA ----------", data)
-                return { res: resultFetch, data };
-            }).then(resultFetch => {
-                console.log("------- SECOND THEN ----------")
-                if (resultFetch.res.info().status == 402) {
-                    props.dispatch(layoutActions.openRunOutStorageModal());
-                } else if (resultFetch.res.info().status == 201) {
-                    analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-                    props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
-                } else {
-                    Alert.alert('Error', resultFetch.data.error ? resultFetch.data.error : 'Cannot upload file');
-                }
-            }).catch(errFetch => {
-                console.log(errFetch)
-                if (errFetch.status === 401) {
-                    props.dispatch(userActions.signout());
-                } else {
-                    Alert.alert('Error', 'Cannot upload file');
-                }
-            }).finally(() => {
-                props.dispatch(fileActions.uploadFileFinished());
-            });
+        const headers = {
+            Authorization: `Bearer ${token}`,
+            'internxt-mnemonic': mnemonic,
+            'Content-type': 'multipart/form-data'
+        };
+        fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, {
+            method: 'POST',
+            headers,
+            body
+        }).then(async resultFetch => {
+            if (resultFetch.status === 401) {
+                throw resultFetch;
+            }
+            var data = await resultFetch.text();
+            return { res: resultFetch, data };
+        }).then(resultFetch => {
+            if (resultFetch.res.status === 402) {
+                props.dispatch(layoutActions.openRunOutStorageModal());
+            } else if (resultFetch.res.status === 201) {
+                analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+                props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
+            } else {
+                Alert.alert('Error', resultFetch.res.error ? resultFetch.data.error : 'Cannot upload file');
+            }
+        }).catch(errFetch => {
+            console.log(errFetch)
+            if (errFetch.status === 401) {
+                props.dispatch(userActions.signout());
+            } else {
+                Alert.alert('Error', 'Cannot upload file\n' + errFetch);
+            }
+        }).finally(() => {
+            props.dispatch(fileActions.uploadFileFinished());
+        });
     } catch (error) {
         analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
         console.log('Error:', error);
