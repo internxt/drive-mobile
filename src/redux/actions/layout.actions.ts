@@ -4,18 +4,27 @@ import { layoutActionTypes, fileActionTypes } from '../constants';
 export const layoutActions = {
   openSearch,
   closeSearch,
+
   openSettings,
   closeSettings,
+
   openItemModal,
   closeItemModal,
+
   openRunOutStorageModal,
+  closeRunOutStorageModal,
+  
   openFreeForYouModal,
   closeFreeForYouModal,
-  closeRunOutStorageModal,
+
   openSortModal,
   closeSortModal,
+
   openMoveFilesModal,
-  closeMoveFilesModal
+  closeMoveFilesModal,
+
+  openDeleteModal,
+  closeDeleteModal
 };
 
 function openSearch() {
@@ -102,5 +111,17 @@ function openMoveFilesModal() {
 function closeMoveFilesModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_MOVEFILES_MODAL });
+  };
+}
+
+function openDeleteModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.OPEN_DELETE_MODAL });
+  };
+}
+
+function closeDeleteModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_DELETE_MODAL });
   };
 }

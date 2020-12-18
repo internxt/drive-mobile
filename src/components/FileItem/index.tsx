@@ -13,7 +13,6 @@ import FileViewer from 'react-native-file-viewer'
 import { colors } from '../../redux/constants';
 import { reduce } from 'lodash';
 import analytics from '../../helpers/lytics';
-
 interface FileItemProps {
     isFolder: boolean
     item: any
@@ -179,19 +178,22 @@ function FileItem(props: FileItemProps) {
                                                 height={24}
                                             />
                                         </View>
-                                        : <></>}
+                                        : null}
                                 </>
                                 : <IconFile label={props.item.type || ''} isLoading={isLoading} />}
                         </View>
+
                         <View style={styles.nameAndTime}>
                             <Text
                                 style={[styles.fileName, extendStyles.text]}
                                 numberOfLines={1}
                             >{props.item.name}</Text>
+
                             {!props.isFolder && <TimeAgo time={props.item.created_at} />}
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
+
                 <View style={styles.buttonDetails}>
                     <TouchableWithoutFeedback
                         style={{ display: isSelectionMode ? 'none' : 'flex' }}
@@ -202,9 +204,8 @@ function FileItem(props: FileItemProps) {
                     </TouchableWithoutFeedback>
                 </View>
             </View>
-            <View style={[styles.progressIndicator, { width: progressWidth }]}>
 
-            </View>
+            <View style={[styles.progressIndicator, { width: progressWidth }]}></View>
         </View>
     )
 }
@@ -263,8 +264,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     }
 });
-
-
 
 const mapStateToProps = (state: any) => {
     return { ...state };

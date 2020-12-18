@@ -10,9 +10,11 @@ import { TouchableHighlight } from 'react-native-gesture-handler';
 import { getIcon } from '../../helpers/getIcon';
 import FileDetailsModal from '../../modals/FileDetailsModal';
 import SortModal from '../../modals/SortModal';
+import DeleteItemModal from '../../modals/DeleteItemModal';
 
 function FileExplorer(props: any) {
     const [selectedKeyId, setSelectedKeyId] = useState(0)
+
     const { filesState } = props;
     //const currentFolderId = props.navigation.state.params.folderId;
     const parentFolderId = (() => {
@@ -49,11 +51,11 @@ function FileExplorer(props: any) {
         props.navigation.replace('Login')
     }
 
-
     return <View style={styles.container}>
         <FileDetailsModal key={selectedKeyId} />
         <SettingsModal />
         <SortModal />
+        <DeleteItemModal />
 
         <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
 

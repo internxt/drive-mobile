@@ -193,7 +193,7 @@ function AppMenu(props: AppMenuProps) {
                                 props.dispatch(fileActions.deleteItems(selectedItems, currentFolderId))
                             }
                         }} />
-                    ) : <></>}
+                    ) : null}
                 </View>
                 <MenuItem
                     name="settings"

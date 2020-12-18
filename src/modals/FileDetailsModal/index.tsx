@@ -1,5 +1,5 @@
 import prettysize from 'prettysize';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Image, Platform, StyleSheet, Text, View } from 'react-native'
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox'
@@ -14,6 +14,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { colors, folderIconsList } from '../../redux/constants'
 import { updateFileMetadata, updateFolderMetadata } from './actions';
 import analytics, { getLyticsData } from '../../helpers/lytics';
+import DeleteItemModal from '../DeleteItemModal';
 
 interface FileDetailsProps {
     dispatch?: any
@@ -25,6 +26,11 @@ function FileDetailsModal(props: FileDetailsProps) {
     const [inputFileName, setInputFileName] = useState('')
     const [selectedColor, setSelectedColor] = useState('')
     const [selectedIcon, setSelectedIcon] = useState(0)
+
+    const [deleteisopen, setDeleteIsOpen] = useState(false)
+    function handleChange(newValue: boolean) {
+        setDeleteIsOpen(newValue)
+    }
 
     const selectedItems = props.filesState.selectedItems
     const showModal = props.layoutState.showItemModal && selectedItems.length > 0
@@ -284,13 +290,12 @@ function FileDetailsModal(props: FileDetailsProps) {
                         </Text>
                     }
                         onPress={() => {
-                            
-                            props.dispatch(layoutActions.closeItemModal())
+                            props.dispatch(layoutActions.openDeleteModal())
+                            setDeleteIsOpen(true)
                         }}
                     />
                 </View>
-                
-                </Modal>}
+            </Modal>}
     </>;
 }
 
