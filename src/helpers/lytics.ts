@@ -1,5 +1,4 @@
 import analytics from '@segment/analytics-react-native'
-import Branch from '@segment/analytics-react-native-branch'
 import { deviceStorage } from './deviceStorage';
 
 export async function analyticsSetup() {
@@ -9,7 +8,6 @@ export async function analyticsSetup() {
         console.warn('No WRITEKEY Key provided')
     }
     await analytics.setup(WRITEKEY, {
-        using: [Branch],
         recordScreenViews: true,
         trackAppLifecycleEvents: true
     });
