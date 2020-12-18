@@ -27,11 +27,6 @@ function FileDetailsModal(props: FileDetailsProps) {
     const [selectedColor, setSelectedColor] = useState('')
     const [selectedIcon, setSelectedIcon] = useState(0)
 
-    const [deleteisopen, setDeleteIsOpen] = useState(false)
-    function handleChange(newValue: boolean) {
-        setDeleteIsOpen(newValue)
-    }
-
     const selectedItems = props.filesState.selectedItems
     const showModal = props.layoutState.showItemModal && selectedItems.length > 0
 
@@ -291,7 +286,6 @@ function FileDetailsModal(props: FileDetailsProps) {
                     }
                         onPress={() => {
                             props.dispatch(layoutActions.openDeleteModal())
-                            setDeleteIsOpen(true)
                         }}
                     />
                 </View>
