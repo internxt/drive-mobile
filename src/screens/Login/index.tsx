@@ -24,12 +24,11 @@ function Login(props: LoginProps) {
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [showTwoFactor, setShowTwoFactor] = useState(false)
   const [secretKey, setSecretKey] = useState('')
-  const [ blockedaccount, setBlockedAccout ] = useState(false)
 
   useEffect(() => {
     console.log('-------- Login AUTHENTICATION PROPS -------', props.authenticationState)
-    props.authenticationState.error ? setBlockedAccout(true) : null
-    console.log(blockedaccount)
+    props.authenticationState.error ? Alert.alert('Your account is blocked', props.authenticationState.error) : null
+    
   }, [props.authenticationState])
 
   useEffect(() => {
@@ -133,12 +132,11 @@ function Login(props: LoginProps) {
                 status: 'error',
                 message: err.message
               })
-              
+              Alert.alert(err.message)
       
             }).finally(() => {
               console.log('-------- Login INSIDE FINALLY --------')
               setIsLoading(false)
-              blockedaccount ? Alert.alert('Your account is blocked', props.authenticationState.error) : null
             })
           }}>
           <Text style={styles.buttonOnLabel}>{isLoading ? 'Decrypting...' : 'Sign in'}</Text>
