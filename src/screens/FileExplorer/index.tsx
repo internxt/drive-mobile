@@ -11,6 +11,7 @@ import { getIcon } from '../../helpers/getIcon';
 import FileDetailsModal from '../../modals/FileDetailsModal';
 import SortModal from '../../modals/SortModal';
 import DeleteItemModal from '../../modals/DeleteItemModal';
+import MoveFilesModal from '../../modals/MoveFilesModal';
 
 function FileExplorer(props: any) {
     const [selectedKeyId, setSelectedKeyId] = useState(0)
@@ -56,7 +57,8 @@ function FileExplorer(props: any) {
         <SettingsModal />
         <SortModal />
         <DeleteItemModal />
-
+        <MoveFilesModal />
+        
         <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
 
         <AppMenu navigation={props.navigation} />
@@ -78,9 +80,8 @@ function FileExplorer(props: any) {
                 </View>
             </TouchableHighlight>
         </View>
-
+                
         <FileList />
-
     </View>
 }
 

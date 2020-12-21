@@ -260,7 +260,9 @@ function FileDetailsModal(props: FileDetailsProps) {
                             </Text>
                         }
                         onPress={() => {
+                            props.dispatch(layoutActions.closeItemModal())
                             props.dispatch(layoutActions.openMoveFilesModal());
+                            console.log('------ SELECTED FILE PROPS ------', props.filesState)
                         }}
                     />
 

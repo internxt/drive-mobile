@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Image, View, Text, StyleSheet, Dimensions } from 'react-native';
-import { TouchableHighlight, TouchableOpacity } from 'react-native-gesture-handler';
+import { Image, View, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
-import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
 export interface DeleteItemModalProps {
