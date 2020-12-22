@@ -115,7 +115,6 @@ function Login(props: LoginProps) {
               if (userLoginData.tfa && !twoFactorCode) {
                 setShowTwoFactor(true)
               } else {
-                const decSKey = decryptTextWithKey(userLoginData.sKey, password)
                 props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
               }
             }).catch(err => {

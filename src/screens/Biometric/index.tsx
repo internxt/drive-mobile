@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, ToastAndroid } from 'react-native'
 import { useState } from "react";
-import Constants from 'expo-constants'
 import { connect } from 'react-redux';
 import * as LocalAuthentication from 'expo-local-authentication';
 
@@ -107,7 +106,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'space-around',
-    paddingTop: Constants.statusBarHeight,
     backgroundColor: '#ecf0f1',
   },
   text: {

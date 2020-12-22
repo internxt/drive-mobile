@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     },
     nameAndTime: {
         flexDirection: 'column',
-        width: 230
+        width: "56%"
     },
     fileName: {
         fontFamily: 'CircularStd-Bold',

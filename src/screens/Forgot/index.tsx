@@ -99,7 +99,7 @@ function Forgot(props: any): any {
                         <View style={styles.buttonWrapper}>
                             <TouchableHighlight
                                 style={[styles.button, styles.buttonOff, styles.buttonLeft]}
-                                underlayColor="#4585f5"
+                                underlayColor="#f2f2f2"
                                 onPress={() => props.navigation.replace('Login')}
                             >
                                 <Text style={styles.buttonOffLabel}>Back</Text>

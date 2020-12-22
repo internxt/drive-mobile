@@ -1,5 +1,5 @@
-import React, { Fragment, useState } from 'react'
-import { View, StyleSheet, Platform, Alert, TextInput, Image } from 'react-native'
+import React, { Fragment, useState, useRef } from 'react'
+import { View, StyleSheet, Platform, Alert, TextInput, Image} from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
@@ -82,6 +82,18 @@ function AppMenu(props: AppMenuProps) {
 
     const selectedItems = props.filesState.selectedItems;
 
+    let textInput = useRef(null)
+
+    const handleClickSearch = () => {
+        textInput.current.focus();
+    }
+    
+    const closeSearch = () => {
+        textInput.current.blur();
+    }
+
+   
+
     return <View
         style={styles.container}>
 
@@ -93,6 +105,7 @@ function AppMenu(props: AppMenuProps) {
                 source={getIcon('search')}
             />
             <TextInput
+                ref={textInput}
                 style={styles.searchInput}
                 placeholder="Search"
                 value={props.filesState.searchString}
@@ -105,6 +118,7 @@ function AppMenu(props: AppMenuProps) {
                     props.dispatch(fileActions.setSearchString(''));
                     props.dispatch(layoutActions.closeSearch());
                     setActiveSearchBox(false)
+                    closeSearch()
                 }}>
                 <Image
                     style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }}
@@ -122,6 +136,8 @@ function AppMenu(props: AppMenuProps) {
                         onClickHandler={() => {
                             setActiveSearchBox(true)
                             props.dispatch(layoutActions.openSearch())
+                            handleClickSearch();
+
                         }} />
 
                     <MenuItem
