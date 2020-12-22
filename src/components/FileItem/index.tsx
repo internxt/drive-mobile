@@ -145,7 +145,6 @@ function FileItem(props: FileItemProps) {
     });
 
     const item = props.item
-
     return (
         <View style={styles.progressIndicatorContainer}>
             <View style={[styles.container, extendStyles.containerBackground]}>

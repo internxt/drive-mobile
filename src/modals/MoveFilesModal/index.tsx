@@ -1,33 +1,63 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
-import { heightPercentageToDP, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
-import FileItem from '../../components/FileItem';
 import Separator from '../../components/Separator';
+import { getIcon } from '../../helpers/getIcon';
 import { fileActions, layoutActions } from '../../redux/actions';
+import Folder from './Folder';
 
-export interface MoveFilesProps {
-    dispatch?: any,
-    filesState?: any,
-    fileActions?: any,
-    layoutState?: any,
+interface MoveFilesProps {
+    layoutState?: any
+    filesState?: any
+    authenticationState?: any
+    dispatch?: any
 }
 
 function MoveFilesModal(props: MoveFilesProps) {
     const [ isOpen, setIsOpen ] = useState(props.layoutState.showMoveModal)
-    const [ folderlist, setFolderList ] = useState([])
+    const [ currentfolderid, setCurrentFolderId ] = useState('')
+    const [ parentfolderid, setParentFolderId ] = useState('')
+    const [ selectedfile, setSelectedFile ] = useState(0)
+
     const { folderContent } = props.filesState
+    let folderList: object[] = folderContent && folderContent.children || [];
 
     useEffect(() => {
-        const folders = folderContent && folderContent.children || []
-        setFolderList(folders)
-        console.log(folderlist.length)
-        console.log('----- MOVE FILES FOLDERS ------', folderlist)
         props.layoutState.showMoveModal === true ? setIsOpen(true) : null
-
+        if (props.filesState.folderContent) {
+            setCurrentFolderId(props.filesState.folderContent.currentFolder)
+            setSelectedFile(props.filesState.selectedFile)
+            setParentFolderId(props.filesState.folderContent.parentId)
+        }
     }, [props.layoutState.showMoveModal])
+
+    useEffect(() => {
+        if( props.filesState.folderContent) {
+            setCurrentFolderId(props.filesState.folderContent.currentFolder)
+            setParentFolderId(props.filesState.folderContent.parentId)
+        }
+        //return console.log('---- CURRENTFOLDERID AND SELECTEDFILE ----', currentfolderid, selectedfile)
+    }, [props.filesState.folderContent])
+
+    useEffect(() => {
+        if (!props.filesState.folderContent) {
+            const rootFolderId = props.authenticationState.user.root_folder_id
+            props.dispatch(fileActions.getFolderContent(rootFolderId))
+        }
+    }, [])
+
+    const moveFile = async (result: any) => {
+        // When modal is closed by move action result = folder id otherwise ans = -1
+        if (result >= 0 && selectedfile) {
+            await props.dispatch(fileActions.moveFile(selectedfile.fileId, result))
+
+            props.dispatch(layoutActions.closeMoveFilesModal())
+            setIsOpen(false)
+        }
+    }
 
     return (
         <Modal isOpen={isOpen}
@@ -38,20 +68,31 @@ function MoveFilesModal(props: MoveFilesProps) {
             position='center' 
             style={styles.container}
         >
-            <Text style={styles.title}>Choose a folder to move this file.</Text>
-            
+            <View style={styles.breadcrumbs}>
+                <Text style={styles.title}>Choose a folder to move this file.</Text>
+
+                <TouchableOpacity
+                    style={parentfolderid ? styles.back_button : styles.hidden}
+                    onPress={() => {
+                        props.dispatch(fileActions.getFolderContent(parentfolderid))
+                    }}>
+                        <Image style={styles.backIcon} source={getIcon('back')} />
+                </TouchableOpacity>
+            </View>
+
             <Separator />
             
             <View style={styles.folder_list}>
                 <FlatList
-                    data={folderlist}
+                    data={folderList}
                     renderItem={folder => (
-                        <FileItem 
+                        <Folder 
                             isFolder={true}
                             key={folder.item.id}
                             item={folder.item}
                         />
                     )}
+                    keyExtractor={folder => folder.id}
                 />
             </View>
             
@@ -65,11 +106,16 @@ function MoveFilesModal(props: MoveFilesProps) {
                     <Text style={styles.text}>Cancel</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.button, styles.blue]}>
+                <TouchableOpacity style={[styles.button, styles.blue]}
+                    onPress={() => {
+                        console.log('--- CURRENT FOLDER ID ---', currentfolderid)
+                        console.log('--- SELECTED FILE ---', selectedfile)
+                        moveFile(currentfolderid)
+                    }}
+                >
                     <Text style={[styles.text, styles.white]}>Move</Text>
                 </TouchableOpacity>
             </View>
-            
         </Modal>
     );
 }
@@ -79,6 +125,14 @@ const styles = StyleSheet.create({
         height: '100%'
     },
 
+    breadcrumbs: {
+        display: 'flex',
+        flexWrap: 'nowrap',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: "center",
+    },
+    
     title: {
         height: 30,
         fontFamily: 'CircularStd-Bold',
@@ -87,6 +141,28 @@ const styles = StyleSheet.create({
         paddingLeft: 20,
         color: '#000000',
         marginTop: 20
+    },
+
+    back_button: {
+        marginRight: 12,
+        marginTop: wp('3.5'),
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 40, //container size is bigger so easy to touch
+        height: 40
+    },
+
+    backIcon: {
+        height: 15,
+        width: 10,
+        marginRight: 5
+    },
+
+    backLabel: {
+        fontFamily: 'CircularStd-Medium',
+        fontSize: 19,
+        letterSpacing: -0.2,
+        color: '#000000'
     },
 
     folder_list: {
@@ -123,6 +199,10 @@ const styles = StyleSheet.create({
 
     white: {
         color: '#fff'
+    },
+
+    hidden: {
+        display: 'none'
     }
 })
 

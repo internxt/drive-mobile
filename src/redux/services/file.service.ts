@@ -93,7 +93,7 @@ async function moveFile(fileId: string, destination: string) {
       headers,
       body: data
     });
-
+    console.log('--- file.service.ts AFTER POST REQUEST ---')
     if (res.status === 200) {
       return 1;
     } else {

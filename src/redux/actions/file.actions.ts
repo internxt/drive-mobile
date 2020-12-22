@@ -197,7 +197,7 @@ function createFolder(parentFolderId: number, newFolderName: string) {
 function moveFile(fileId, destination) {
   return (dispatch: Dispatch) => {
     dispatch(request());
-
+    console.log('--- moveFile dispatch ---')
     fileService.moveFile(fileId, destination).then(result => {
       if (result === 1) {
         dispatch(success());
