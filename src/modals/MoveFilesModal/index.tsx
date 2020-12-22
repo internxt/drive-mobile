@@ -20,6 +20,7 @@ function MoveFilesModal(props: MoveFilesProps) {
     const [ isOpen, setIsOpen ] = useState(props.layoutState.showMoveModal)
     const [ currentfolderid, setCurrentFolderId ] = useState('')
     const [ parentfolderid, setParentFolderId ] = useState('')
+    const [ firstfolder, setFirstFolder ] = useState('')
     const [ selectedfile, setSelectedFile ] = useState(0)
 
     const { folderContent } = props.filesState
@@ -31,6 +32,7 @@ function MoveFilesModal(props: MoveFilesProps) {
             setCurrentFolderId(props.filesState.folderContent.currentFolder)
             setSelectedFile(props.filesState.selectedFile)
             setParentFolderId(props.filesState.folderContent.parentId)
+            setFirstFolder(props.filesState.folderContent.currentFolder)
         }
     }, [props.layoutState.showMoveModal])
 
@@ -101,6 +103,7 @@ function MoveFilesModal(props: MoveFilesProps) {
                     onPress={() => {
                         props.dispatch(layoutActions.closeMoveFilesModal())
                         setIsOpen(false)
+                        props.dispatch(fileActions.getFolderContent(firstfolder))
                     }}
                 >
                     <Text style={styles.text}>Cancel</Text>
