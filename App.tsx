@@ -4,10 +4,19 @@ import { Provider } from 'react-redux'
 import { store } from './src/store'
 import AppNavigator from "./src/AppNavigator";
 import { analyticsSetup, loadEnvVars, loadFonts } from './src/helpers'
+import { NavigationContainer } from '@react-navigation/native';
+import * as Linking from 'expo-linking';
+
+
 
 export default function App() {
   const [appInitialized, setAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
+ 
+  const linking = {
+    prefixes: ['inxt:'],
+  };
+
 
   Promise.all([
     loadFonts(),
@@ -20,16 +29,18 @@ export default function App() {
   })
 
   return <Provider store={store}>
-    {appInitialized ?
-      <View style={styles.appContainer}>
-        <StatusBar backgroundColor={'#fff'} barStyle={'dark-content'} />
-        <AppNavigator />
-      </View>
-      : <View style={styles.container}>
-        {loadError ? <Text>{loadError}</Text>
-        : <ActivityIndicator color={'#00f'} />}
-      </View>
-    }
+    <NavigationContainer linking={linking} fallback={<Text>Loading...</Text>}>
+      {appInitialized ?
+        <View style={styles.appContainer}>
+          <StatusBar backgroundColor={'#fff'} barStyle={'dark-content'} />
+          <AppNavigator />
+        </View>
+        : <View style={styles.container}>
+          {loadError ? <Text>{loadError}</Text>
+            : <ActivityIndicator color={'#00f'} />}
+        </View>
+      }
+    </NavigationContainer>
   </Provider>
     ;
 }
