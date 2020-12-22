@@ -24,7 +24,10 @@ export const layoutActions = {
   closeMoveFilesModal,
 
   openDeleteModal,
-  closeDeleteModal
+  closeDeleteModal,
+
+  openShareModal,
+  closeShareModal
 };
 
 function openSearch() {
@@ -123,5 +126,17 @@ function openDeleteModal() {
 function closeDeleteModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_DELETE_MODAL });
+  };
+}
+
+function openShareModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.OPEN_SHARE_MODAL });
+  };
+}
+
+function closeShareModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_SHARE_MODAL });
   };
 }

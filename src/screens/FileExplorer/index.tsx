@@ -12,6 +12,7 @@ import FileDetailsModal from '../../modals/FileDetailsModal';
 import SortModal from '../../modals/SortModal';
 import DeleteItemModal from '../../modals/DeleteItemModal';
 import MoveFilesModal from '../../modals/MoveFilesModal';
+import ShareFilesModal from '../../modals/ShareFilesModal';
 
 function FileExplorer(props: any) {
     const [selectedKeyId, setSelectedKeyId] = useState(0)
@@ -58,7 +59,8 @@ function FileExplorer(props: any) {
         <SortModal />
         <DeleteItemModal />
         <MoveFilesModal />
-        
+        <ShareFilesModal />
+
         <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
 
         <AppMenu navigation={props.navigation} />
@@ -69,6 +71,7 @@ function FileExplorer(props: any) {
                     ? filesState.folderContent.name
                     : 'All Files'}
             </Text>
+
             <TouchableHighlight
                 underlayColor="#FFF"
                 onPress={() => {
@@ -76,6 +79,7 @@ function FileExplorer(props: any) {
                 }}>
                 <View style={parentFolderId ? styles.backButtonWrapper : styles.backHidden}>
                     <Image style={styles.backIcon} source={getIcon('back')} />
+
                     <Text style={styles.backLabel}>Back</Text>
                 </View>
             </TouchableHighlight>

@@ -260,7 +260,6 @@ function FileDetailsModal(props: FileDetailsProps) {
                             </Text>
                         }
                         onPress={() => {
-                            console.log('--- PROPS ON PRESS ---', props.filesState)
                             props.dispatch(layoutActions.openMoveFilesModal());
                         }}
                     />
@@ -274,7 +273,8 @@ function FileDetailsModal(props: FileDetailsProps) {
                             </Text>
                         }
                         onPress={() => {
-                            /* shareFile(props.filesState.selectedFile); */
+                            console.log('--- PROPS ON PRESS ---', props.layoutState)
+                            props.dispatch(layoutActions.openShareModal())
                         }}
                     />
 

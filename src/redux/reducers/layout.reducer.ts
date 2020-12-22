@@ -8,7 +8,8 @@ const initialState = {
   showRunOutSpaceModal: false, 
   showSortModal: false,
   showMoveModal: false,
-  showDeleteModal: false
+  showDeleteModal: false,
+  showShareModal: false
 };
 
 export function layoutReducer(state = initialState, action: any) {
@@ -101,6 +102,19 @@ export function layoutReducer(state = initialState, action: any) {
       return {
         ...state,
         showDeleteModal: false
+      }
+    }
+
+    case layoutActionTypes.OPEN_SHARE_MODAL: {
+      return {
+        ...state,
+        showShareModal: true
+      }
+    }
+    case layoutActionTypes.CLOSE_SHARE_MODAL: {
+      return {
+        ...state,
+        showShareModal: false
       }
     }
     default:
