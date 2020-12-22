@@ -12,11 +12,11 @@ import * as Linking from 'expo-linking';
 export default function App() {
   const [appInitialized, setAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
-  const prefix = Linking.makeUrl('/');
-
+ 
   const linking = {
-    prefixes: [prefix],
+    prefixes: ['inxt:'],
   };
+
 
   Promise.all([
     loadFonts(),

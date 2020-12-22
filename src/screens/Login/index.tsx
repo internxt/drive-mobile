@@ -8,6 +8,7 @@ import analytics from '../../helpers/lytics';
 import { normalize } from '../../helpers/normalize'
 import { userActions } from '../../redux/actions';
 import { validate2FA, apiLogin } from './access';
+import * as Linking from 'expo-linking';
 
 interface LoginProps {
   goToForm?: (screenName: string) => void
@@ -23,6 +24,23 @@ function Login(props: LoginProps) {
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [showTwoFactor, setShowTwoFactor] = useState(false)
   const [secretKey, setSecretKey] = useState('')
+
+
+  const deepLink = async() => {
+    const url = await Linking.getInitialURL();
+    const res = url
+    if( url!= null) {
+      return res
+    }
+  }
+
+  deepLink().then((res) => {
+    //console.log('entro aqui') DEEPLINK
+  }).catch((err) =>{
+    console.log('error',err)
+
+  })
+
 
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
@@ -121,8 +139,8 @@ function Login(props: LoginProps) {
               analytics.track('user-signin-attempted', {
                 status: 'error',
                 message: err.message
-              }).catch(() => {})
-        
+              }).catch(() => { })
+
               Alert.alert(err.message)
             }).finally(() => {
               setIsLoading(false)
