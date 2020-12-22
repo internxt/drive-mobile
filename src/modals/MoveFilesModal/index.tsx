@@ -54,10 +54,9 @@ function MoveFilesModal(props: MoveFilesProps) {
     const moveFile = async (result: any) => {
         // When modal is closed by move action result = folder id otherwise ans = -1
         if (result >= 0 && selectedfile) {
-            await props.dispatch(fileActions.moveFile(selectedfile.fileId, result))
-
-            props.dispatch(layoutActions.closeMoveFilesModal())
             setIsOpen(false)
+            await props.dispatch(fileActions.moveFile(selectedfile.fileId, result))
+            props.dispatch(layoutActions.closeMoveFilesModal())
         }
     }
 
