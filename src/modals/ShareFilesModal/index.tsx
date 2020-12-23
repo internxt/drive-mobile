@@ -98,6 +98,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
             isOpen={isOpen}
             swipeArea={2}
             onClosed={() => {
+                setInputValue('1')
                 props.dispatch(layoutActions.closeShareModal())
                 setIsOpen(false)
             }} 
