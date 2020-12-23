@@ -31,6 +31,7 @@ function DeleteItemModal(props: DeleteItemModalProps) {
             swipeArea={2}
             onClosed={() => {
                 props.dispatch(layoutActions.closeDeleteModal())
+                setIsOpen(false)
             }} 
             position='center' 
             style={styles.modal_container}

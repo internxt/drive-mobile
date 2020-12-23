@@ -273,7 +273,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                             </Text>
                         }
                         onPress={() => {
-                            console.log('--- PROPS ON PRESS ---', props.layoutState)
+                            console.log('--- PROPS ON PRESS ---', props.filesState.selectedFile.fileId)
                             props.dispatch(layoutActions.openShareModal())
                         }}
                     />
@@ -368,7 +368,6 @@ const styles = StyleSheet.create({
     },
 
     options_container: {
-        display: 'flex',
         flex: 1,
         justifyContent: 'space-around',
         marginBottom: 15,

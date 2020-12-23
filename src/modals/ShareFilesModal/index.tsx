@@ -1,28 +1,101 @@
-import { addListener } from 'process';
 import React, { useEffect, useState } from 'react';
-import { Image, View, Text, StyleSheet } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, Share, Alert } from 'react-native';
+import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import Separator from '../../components/Separator';
-import { fileActions, layoutActions } from '../../redux/actions';
-import { Picker } from '@react-native-picker/picker';
+import { layoutActions } from '../../redux/actions';
+import { getHeaders } from '../../helpers/headers';
+import NumberPlease from "react-native-number-please";
 
 export interface ShareFilesModalProps {
     dispatch?: any,
     filesState?: any,
     fileActions?: any,
     layoutState?: any,
+    authenticationState?: any
 }
 
 function ShareFilesModal(props: ShareFilesModalProps) {
     const [ isOpen, setIsOpen ] = useState(props.layoutState.showShareModal)
+    const [ selectedfile, setSelectedFile ] = useState()
+    const [ filename, setFileName ] = useState('')
+    const [ link, setLink ] = useState('')
+    const [ isloading, setIsLoading ] = useState(true)
+    const [ inputvalue, setInputValue ] = useState('1')
+
+    const handleInputChange = (e: string) => {
+        setInputValue(e.replace(/[^0-9]/g, ''))
+    }
 
     useEffect(() => {
         props.layoutState.showShareModal ? setIsOpen(true) : null
-    }, [props.layoutState])
- 
+        
+        if ( props.filesState.selectedFile ) {
+            setSelectedFile(props.filesState.selectedFile)
+            setFileName(props.filesState.selectedFile.name)
+            getLink(selectedfile, parseInt(inputvalue))
+        }
+    }, [props.layoutState.showShareModal])
+
+    useEffect(() => {
+        setIsLoading(true)
+        const delaySearch = setTimeout(() => {
+            getLink(selectedfile, parseInt(inputvalue)).finally(() => setIsLoading(false))
+        }, 1000);
+7
+        return () => { clearTimeout(delaySearch); }
+    }, [inputvalue])
+
+    const getLink = async (file: any, views: number) => {
+        const tokenLink = await getFileToken(file, views);
+        const url = `https://drive.internxt.com/${tokenLink}`;
+        setLink(url)
+    }
+
+    const shareFile = async (file: any) => {
+        // Share link on native share system
+        await Share.share({
+            title: 'Internxt Drive file sharing',
+            message: `Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple, private and eco-friendly cloud storage service https://internxt.com/drive \nI wanted to share a file (${file.name}) with you through this single-use private link -no sign up required: ${link}`
+        });
+    };
+
+    const getFileToken = async (file: any, views: number) => {
+        try {
+            const fileId = file ? file.fileId : props.filesState.selectedFile.fileId;
+            const token = props.authenticationState.token;
+            const mnemonic = props.authenticationState.user.mnemonic;
+
+            // Generate token
+            const res = await fetch(`${(process && process.env && process.env.REACT_APP_API_URL) || 'https://drive.internxt.com'}/api/storage/share/file/${fileId}`,
+            {
+                method: 'POST',
+                headers: getHeaders(
+                    props.authenticationState.token,
+                    props.authenticationState.user.mnemonic
+                ),
+                body: JSON.stringify({
+                    'isFolder': 'false',
+                    'views': inputvalue === '' || inputvalue === '0' || inputvalue === null ? 1 : inputvalue
+                })
+            }
+            );
+            const data = await res.json();
+            console.log(data)
+            if (res.status != 200) {
+                const errMsg = data.error ? data.error : 'Cannot download file';
+                Alert.alert('Error', errMsg);
+            } else {
+                return data.token;
+            }
+        } catch (error) {
+            console.log(`Error getting file token: ${error}`);
+            Alert.alert('Error', 'Error getting file from server');
+        }
+    };
+
     return (
         <Modal 
             isOpen={isOpen}
@@ -30,31 +103,43 @@ function ShareFilesModal(props: ShareFilesModalProps) {
             onClosed={() => {
                 props.dispatch(layoutActions.closeShareModal())
                 setIsOpen(false)
-                console.log('--- PROPS ON CLOSE ---', props.layoutState)
             }} 
             position='center' 
             style={styles.modal_container}
         >
-            <Text style={styles.title}>File name.jpg</Text>
+            <Text style={styles.title}>
+                {filename}
+            </Text>
 
             <Separator />
 
             <View>
-                <Text style={styles.subtitle}>Share your Drive file with this private link, or enter the number of times you'd like the link to be valid: </Text>
-                <Picker
-                    selectedValue={1}
-                    style={{height: 50, width: 100}}
-                >
-                    <Picker.Item label="1" value="1" />
-                    <Picker.Item label="2" value="2" />
-                </Picker>
+                <Text style={styles.subtitle}>Share your Drive file with this private link</Text>
+
+                <View style={styles.input_container}>
+                    <Text style={[styles.subtitle, {width: '70%'}]}>or enter the number of times you would like the link to be valid: </Text>
+                    <TextInput
+                        style={styles.input}
+                        keyboardType='numeric'
+                        placeholder='1'
+                        onChangeText={e => handleInputChange(e)}
+                        value={inputvalue}
+                        maxLength={6}
+                    />
+                </View>
             </View>
 
             <View style={styles.share_container}>
-                <Text style={styles.link}>This is the link</Text>
-
+                <Text style={styles.link}>
+                    {!isloading ? link : 'Loading link...'}
+                </Text>
+                
                 <View style={styles.button_container}>
-                    <TouchableOpacity style={styles.button}>
+                    <TouchableOpacity style={styles.button}
+                        onPress={() => {
+                            shareFile(selectedfile)    
+                        }}
+                    >
                         <Text style={styles.button_text}>Share</Text>
                     </TouchableOpacity>
                 </View>
@@ -81,24 +166,43 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 16, 
         letterSpacing: 0.5,
+        lineHeight: 25,
         color: '#737880', 
-        marginHorizontal: wp('6'),
-        marginVertical: 10
+        marginLeft: wp('6')
+    },
+
+    input_container: {
+        flexDirection: 'row',
+        alignItems: 'flex-end'
+    },
+
+    input: {
+        width: '17%',
+        height: 37,  
+        backgroundColor: '#f2f2f2',
+        fontSize: 12,
+        color: '#737880', 
+        paddingLeft: 10
     },
     
     share_container: {
         flexDirection: 'row',
-        borderTopWidth: 1,
         borderColor: 'rgba(151, 151, 151, 0.2)',
-        alignItems: 'center'
+        alignItems: 'center',
+        marginTop: 12,
+        borderWidth: 1
     },
 
     link: {
         flex: 0.8,
-        fontSize: 16,
+        textAlign: 'center',
+        textAlignVertical: 'center',
+        backgroundColor: '#f2f2f2',
+        fontSize: 14,
+        marginHorizontal: wp('4'),
         color: '#737880',
-        marginLeft: wp('6')
-    },
+        height: 45
+    }, 
 
     button_container: {
         flex: 0.2,

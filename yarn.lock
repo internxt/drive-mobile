@@ -4085,6 +4085,11 @@ immediate@^3.2.2:
   resolved "https://registry.yarnpkg.com/immediate/-/immediate-3.3.0.tgz#1aef225517836bcdf7f2a2de2600c79ff0269266"
   integrity sha512-HR7EVodfFUdQCTIeySw+WDRFJlPcLOJbXfwwZ7Oom6tjsvZ3bOkCDJHehQC3nxJrv7+f9XecwazynjU8e4Vw3Q==
 
+immer@^6.0.3:
+  version "6.0.9"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-6.0.9.tgz#b9dd69b8e69b3a12391e87db1e3ff535d1b26485"
+  integrity sha512-SyCYnAuiRf67Lvk0VkwFvwtDoEiCMjeamnHvRfnVDyc7re1/rQrNxuL+jJ7lA3WvdC4uznrvbmm+clJ9+XXatg==
+
 import-fresh@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/import-fresh/-/import-fresh-2.0.0.tgz#d81355c15612d386c61f9ddd3922d4304822a546"
@@ -5198,6 +5203,16 @@ lodash._reinterpolate@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/lodash._reinterpolate/-/lodash._reinterpolate-3.0.0.tgz#0ccf2d89166af03b3663c796538b75ac6e114d9d"
   integrity sha1-DM8tiRZq8Ds2Y8eWU4t1rG4RTZ0=
+
+lodash.find@^4.6.0:
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/lodash.find/-/lodash.find-4.6.0.tgz#cb0704d47ab71789ffa0de8b97dd926fb88b13b1"
+  integrity sha1-ywcE1Hq3F4n/oN6Ll92Sb7iLE7E=
+
+lodash.findindex@^4.6.0:
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/lodash.findindex/-/lodash.findindex-4.6.0.tgz#a3245dee61fb9b6e0624b535125624bb69c11106"
+  integrity sha1-oyRd7mH7m24GJLU1ElYku2nBEQY=
 
 lodash.frompairs@^4.0.1:
   version "4.0.1"
@@ -6516,6 +6531,15 @@ react-native-modalbox@^2.0.2:
   integrity sha512-uSuoZ+siPPNqWGyw8NXhA/Aots7mOx2+qijFoeovequY0kczZEPZDd0ARHbzg+1cE3H3AATJEwGdkVA8lUxs0g==
   dependencies:
     prop-types "^15.5.10"
+
+react-native-number-please@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/react-native-number-please/-/react-native-number-please-1.0.5.tgz#6dfe6d4ab8438ed38cd3f21468ef5f9d41c3718e"
+  integrity sha512-XkbSv1o3zFyadnpU9KmcW18nvM/kPgr2cirRHFEZsvcEw9rjWTe57HFD/7NeNSXvTYOd7srtuh0Cs4f9hkmWUw==
+  dependencies:
+    immer "^6.0.3"
+    lodash.find "^4.6.0"
+    lodash.findindex "^4.6.0"
 
 react-native-responsive-screen@^1.4.1:
   version "1.4.1"
