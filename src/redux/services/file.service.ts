@@ -30,6 +30,7 @@ function getFolderContent(folderId: number) {
       method: 'GET',
       headers
     }).then(res => {
+      console.log('--- GETFOLDERCONTENT CALLED ---')
       if (res.status !== 200) { throw res; }
       return res.json();
     }).then(resolve)
@@ -93,7 +94,7 @@ async function moveFile(fileId: string, destination: string) {
       headers,
       body: data
     });
-
+    
     if (res.status === 200) {
       return 1;
     } else {

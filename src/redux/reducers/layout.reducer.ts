@@ -5,9 +5,11 @@ const initialState = {
   createFolderActive: false,
   showSettingsModal: false,
   showItemModal: false,
-  showRunOutSpaceModal: false,
+  showRunOutSpaceModal: false, 
   showSortModal: false,
-  showMoveFilesModal: false
+  showMoveModal: false,
+  showDeleteModal: false,
+  showShareModal: false
 };
 
 export function layoutReducer(state = initialState, action: any) {
@@ -76,16 +78,43 @@ export function layoutReducer(state = initialState, action: any) {
         showSortModal: false
       }
     }
+    
     case layoutActionTypes.OPEN_MOVEFILES_MODAL: {
       return {
         ...state,
-        showMoveFilesModal: true
+        showMoveModal: true
       }
     }
     case layoutActionTypes.CLOSE_MOVEFILES_MODAL: {
       return {
         ...state,
-        showMoveFilesModal: false
+        showMoveModal: false
+      }
+    }
+
+    case layoutActionTypes.OPEN_DELETE_MODAL: {
+      return {
+        ...state,
+        showDeleteModal: true
+      }
+    }
+    case layoutActionTypes.CLOSE_DELETE_MODAL: {
+      return {
+        ...state,
+        showDeleteModal: false
+      }
+    }
+
+    case layoutActionTypes.OPEN_SHARE_MODAL: {
+      return {
+        ...state,
+        showShareModal: true
+      }
+    }
+    case layoutActionTypes.CLOSE_SHARE_MODAL: {
+      return {
+        ...state,
+        showShareModal: false
       }
     }
     default:

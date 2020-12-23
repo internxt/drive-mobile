@@ -10,9 +10,13 @@ import { TouchableHighlight } from 'react-native-gesture-handler';
 import { getIcon } from '../../helpers/getIcon';
 import FileDetailsModal from '../../modals/FileDetailsModal';
 import SortModal from '../../modals/SortModal';
+import DeleteItemModal from '../../modals/DeleteItemModal';
+import MoveFilesModal from '../../modals/MoveFilesModal';
+import ShareFilesModal from '../../modals/ShareFilesModal';
 
 function FileExplorer(props: any) {
     const [selectedKeyId, setSelectedKeyId] = useState(0)
+
     const { filesState } = props;
     //const currentFolderId = props.navigation.state.params.folderId;
     const parentFolderId = (() => {
@@ -49,11 +53,13 @@ function FileExplorer(props: any) {
         props.navigation.replace('Login')
     }
 
-
     return <View style={styles.container}>
         <FileDetailsModal key={selectedKeyId} />
         <SettingsModal />
         <SortModal />
+        <DeleteItemModal />
+        <MoveFilesModal />
+        <ShareFilesModal />
 
         <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
 
@@ -65,6 +71,7 @@ function FileExplorer(props: any) {
                     ? filesState.folderContent.name
                     : 'All Files'}
             </Text>
+
             <TouchableHighlight
                 underlayColor="#FFF"
                 onPress={() => {
@@ -72,13 +79,13 @@ function FileExplorer(props: any) {
                 }}>
                 <View style={parentFolderId ? styles.backButtonWrapper : styles.backHidden}>
                     <Image style={styles.backIcon} source={getIcon('back')} />
+
                     <Text style={styles.backLabel}>Back</Text>
                 </View>
             </TouchableHighlight>
         </View>
-
+                
         <FileList />
-
     </View>
 }
 
