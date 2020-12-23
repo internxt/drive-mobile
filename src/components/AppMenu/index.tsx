@@ -204,12 +204,9 @@ function AppMenu(props: AppMenuProps) {
 
                     {selectedItems.length > 0 ? (
                         <MenuItem name="delete" onClickHandler={() => {
-                            if (selectedItems.length > 0) {
-                                props.dispatch(fileActions.downloadSelectedFileStart())
-                                props.dispatch(fileActions.deleteItems(selectedItems, currentFolderId))
-                            }
+                            props.dispatch(layoutActions.openDeleteModal())
                         }} />
-                    ) : <></>}
+                    ) : null}
                 </View>
                 <MenuItem
                     name="settings"

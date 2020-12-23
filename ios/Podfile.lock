@@ -1,6 +1,7 @@
 PODS:
   - Analytics (4.1.2)
   - boost-for-react-native (1.63.0)
+  - Branch (0.36.0)
   - CocoaAsyncSocket (7.6.4)
   - CocoaLibEvent (1.0.0)
   - DoubleConversion (1.1.6)
@@ -355,6 +356,11 @@ PODS:
   - RNAnalytics (1.3.2):
     - Analytics (~> 4.1)
     - React
+  - RNAnalyticsIntegration-Branch (1.3.2):
+    - Analytics
+    - React
+    - RNAnalytics
+    - Segment-Branch
   - RNCMaskedView (0.1.10):
     - React
   - RNFileViewer (2.1.4):
@@ -365,6 +371,9 @@ PODS:
     - React-Core
   - RNSVG (12.1.0):
     - React
+  - Segment-Branch (0.1.24):
+    - Analytics
+    - Branch (~> 0.36.0)
   - UMAppLoader (1.4.0)
   - UMBarCodeScannerInterface (5.4.0)
   - UMCameraInterface (5.4.0)
@@ -454,6 +463,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - "RNAnalytics (from `../node_modules/@segment/analytics-react-native`)"
+  - "RNAnalyticsIntegration-Branch (from `../node_modules/@segment/analytics-react-native-branch`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
@@ -478,6 +488,7 @@ SPEC REPOS:
   trunk:
     - Analytics
     - boost-for-react-native
+    - Branch
     - CocoaAsyncSocket
     - CocoaLibEvent
     - Flipper
@@ -488,6 +499,7 @@ SPEC REPOS:
     - Flipper-RSocket
     - FlipperKit
     - OpenSSL-Universal
+    - Segment-Branch
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -583,6 +595,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/rn-fetch-blob"
   RNAnalytics:
     :path: "../node_modules/@segment/analytics-react-native"
+  RNAnalyticsIntegration-Branch:
+    :path: "../node_modules/@segment/analytics-react-native-branch"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
   RNFileViewer:
@@ -625,6 +639,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Analytics: 177da2c597aba83a6882b706ca6e0a071fd7cd26
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
+  Branch: 8aebcb7a6465f19f9f4d315acced369ae078d3f2
   CocoaAsyncSocket: 694058e7c0ed05a9e217d1b3c7ded962f4180845
   CocoaLibEvent: 2fab71b8bd46dd33ddb959f7928ec5909f838e3f
   DoubleConversion: cde416483dac037923206447da6e1454df403714
@@ -681,11 +696,13 @@ SPEC CHECKSUMS:
   ReactCommon: 73d79c7039f473b76db6ff7c6b159c478acbbb3b
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
   RNAnalytics: ac18ac964dd53bac7f957994412963e8e2568c4d
+  RNAnalyticsIntegration-Branch: 47321b41421dee4901f88c6a7b3bcc3ce9b89006
   RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
   RNFileViewer: 83cc066ad795b1f986791d03b56fe0ee14b6a69f
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
+  Segment-Branch: 5e91faad404e1af9998f5a2bbd44522a0f071786
   UMAppLoader: 92d044af52626af3d81a69796ad666fc7a9a7d78
   UMBarCodeScannerInterface: 3f6c1b09ef4b867ce752b8c0b3893bcf9cd85f32
   UMCameraInterface: d516032121192fee9a6c93bdfff0bb2cc7282796
