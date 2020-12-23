@@ -65,8 +65,6 @@ function ShareFilesModal(props: ShareFilesModalProps) {
     const getFileToken = async (file: any, views: number) => {
         try {
             const fileId = file ? file.fileId : props.filesState.selectedFile.fileId;
-            const token = props.authenticationState.token;
-            const mnemonic = props.authenticationState.user.mnemonic;
 
             // Generate token
             const res = await fetch(`${(process && process.env && process.env.REACT_APP_API_URL) || 'https://drive.internxt.com'}/api/storage/share/file/${fileId}`,
@@ -83,7 +81,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
             }
             );
             const data = await res.json();
-            console.log(data)
+            console.log('--- GET FILE TOKEN DATA ---', data)
             if (res.status != 200) {
                 const errMsg = data.error ? data.error : 'Cannot download file';
                 Alert.alert('Error', errMsg);
@@ -92,7 +90,6 @@ function ShareFilesModal(props: ShareFilesModalProps) {
             }
         } catch (error) {
             console.log(`Error getting file token: ${error}`);
-            Alert.alert('Error', 'Error getting file from server');
         }
     };
 
@@ -104,7 +101,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
                 props.dispatch(layoutActions.closeShareModal())
                 setIsOpen(false)
             }} 
-            position='center' 
+            position='bottom' 
             style={styles.modal_container}
         >
             <Text style={styles.title}>
@@ -139,8 +136,9 @@ function ShareFilesModal(props: ShareFilesModalProps) {
                         onPress={() => {
                             shareFile(selectedfile)    
                         }}
+                        disabled={isloading}
                     >
-                        <Text style={styles.button_text}>Share</Text>
+                        <Text style={!isloading ? styles.button_text : styles.button_text_loading}>Share</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -150,9 +148,9 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 
 const styles = StyleSheet.create({
     modal_container: {
-        borderRadius: 10,
+        borderTopRightRadius: 10,
+        borderTopLeftRadius: 10,
         height: 'auto',
-        width: '93%',
         paddingTop: 20
     },
 
@@ -219,6 +217,12 @@ const styles = StyleSheet.create({
     button_text: {
         fontSize: 18, 
         color: '#4585f5',     
+        fontFamily: 'CircularStd-Bold'
+    },
+
+    button_text_loading: {
+        fontSize: 18, 
+        color: 'rgba(69, 133, 245, 0.7)',     
         fontFamily: 'CircularStd-Bold'
     },
 })

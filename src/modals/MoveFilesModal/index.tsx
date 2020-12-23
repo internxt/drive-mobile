@@ -93,7 +93,7 @@ function MoveFilesModal(props: MoveFilesProps) {
                             item={folder.item}
                         />
                     )}
-                    keyExtractor={folder => folder.id}
+                    keyExtractor={folder => folder.id.toString()}
                 />
             </View>
             
