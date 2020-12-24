@@ -141,7 +141,6 @@ function Login(props: LoginProps) {
                 setShowTwoFactor(true)
               } else {
                 console.log('----------- Login FIRST ELSE ------------')
-                const decSKey = decryptTextWithKey(userLoginData.sKey, password)
                 props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
               }
             }).catch(err => {

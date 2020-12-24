@@ -14,6 +14,7 @@ import DeleteItemModal from '../../modals/DeleteItemModal';
 import MoveFilesModal from '../../modals/MoveFilesModal';
 import ShareFilesModal from '../../modals/ShareFilesModal';
 import OutOfSpaceModal from '../../modals/OutOfSpaceModal';
+import UploadFileModal from '../../modals/UploadFileModal';
 
 function FileExplorer(props: any) {
     const [selectedKeyId, setSelectedKeyId] = useState(0)
@@ -62,7 +63,8 @@ function FileExplorer(props: any) {
         <MoveFilesModal />
         <ShareFilesModal />
         <OutOfSpaceModal />
-
+        <UploadFileModal />
+        
         <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
 
         <AppMenu navigation={props.navigation} />

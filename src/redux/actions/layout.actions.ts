@@ -30,7 +30,10 @@ export const layoutActions = {
   closeShareModal,
   
   openOutOfSpaceModal,
-  closeOutOfSpaceModal
+  closeOutOfSpaceModal,
+
+  openUploadFileModal,
+  closeUploadFileModal,
 };
 
 function openSearch() {
@@ -153,5 +156,17 @@ function openOutOfSpaceModal() {
 function closeOutOfSpaceModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_OUT_OF_SPACE_MODAL });
+  }
+}
+
+function openUploadFileModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.OPEN_UPLOAD_FILE_MODAL });
+  };
+}
+
+function closeUploadFileModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_UPLOAD_FILE_MODAL });
   };
 }
