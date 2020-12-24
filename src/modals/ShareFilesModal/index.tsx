@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     button_text: {
         fontSize: 18, 
         color: '#4585f5',     
-        fontFamily: 'CircularStd-Bold'
+        fontFamily: 'CerebriSans-Bold'
     },
 
     button_text_loading: {
