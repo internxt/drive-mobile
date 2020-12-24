@@ -66,9 +66,11 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
         }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${props.item.fileId}`, {
             'Authorization': `Bearer ${xToken}`,
             'internxt-mnemonic': xUserJson.mnemonic
-        }).progress((progress, total) => {
-            setProgress(progress)
+        }).progress((received, total) => {
+            console.log('progress ' + Math.floor(received/total*100) + '%')
+            setProgress(received)
         }).then(async (res) => {
+            console.log(res)
             if (res.respInfo.status === 200) {
                 if (Platform.OS === 'ios') {
                     // RNFetchBlob.ios.previewDocument(res.path())
@@ -133,7 +135,7 @@ function FileItem(props: FileItemProps) {
     const isSelectionMode = props.filesState.selectedItems.length > 0
     const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0
 
-    const [progress, setProgress] = useState(0)
+    const [ progress, setProgress ] = useState(0)
     const progressPct = progress > 0 ? progress / props.item.size : 0
     const progressWidth = Dimensions.get('screen').width * progressPct
 
@@ -161,25 +163,32 @@ function FileItem(props: FileItemProps) {
                         }}>
 
                         <View style={styles.itemIcon}>
-                            {props.isFolder
-                                ? <>
-                                    <IconFolder color={props.item.color} />
-                                    {props.isFolder && props.item.icon
-                                        ? <View style={{
-                                            position: 'absolute',
-                                            left: 35,
-                                            top: 7
-                                        }}>
-                                            <Icon
-                                                name={props.item.icon.name}
-                                                color={item.color ? colors[item.color].icon : colors['blue'].icon}
-                                                width={24}
-                                                height={24}
-                                            />
-                                        </View>
-                                        : null}
-                                </>
-                                : <IconFile label={props.item.type || ''} isLoading={isLoading} />}
+                            {
+                                props.isFolder ? 
+                                    <View>
+                                        <IconFolder color={props.item.color} />
+                                            {
+                                                props.isFolder && props.item.icon ? 
+                                                
+                                                    <View style={{
+                                                        position: 'absolute',
+                                                        left: 35,
+                                                        top: 7
+                                                    }}>
+                                                        <Icon
+                                                            name={props.item.icon.name}
+                                                            color={item.color ? colors[item.color].icon : colors['blue'].icon}
+                                                            width={24}
+                                                            height={24}
+                                                        />
+                                                    </View>
+                                                : 
+                                                    null
+                                            }
+                                    </View>
+                                : 
+                                    <IconFile label={props.item.type || ''} isLoading={isLoading} />
+                            }
                         </View>
 
                         <View style={styles.nameAndTime}>

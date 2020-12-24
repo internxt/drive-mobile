@@ -5,11 +5,11 @@ const initialState = {
   createFolderActive: false,
   showSettingsModal: false,
   showItemModal: false,
-  showRunOutSpaceModal: false, 
   showSortModal: false,
   showMoveModal: false,
   showDeleteModal: false,
-  showShareModal: false
+  showShareModal: false,
+  showOutOfSpaceModal: false
 };
 
 export function layoutReducer(state = initialState, action: any) {
@@ -54,18 +54,6 @@ export function layoutReducer(state = initialState, action: any) {
         ...state,
         showItemModal: false
       }
-    case layoutActionTypes.OPEN_RUNOUTSTORAGE_MODAL: {
-      return {
-        ...state,
-        showRunOutSpaceModal: true
-      }
-    }
-    case layoutActionTypes.CLOSE_RUNOUTSTORAGE_MODAL: {
-      return {
-        ...state,
-        showRunOutSpaceModal: false
-      }
-    }
     case layoutActionTypes.OPEN_SORT_MODAL: {
       return {
         ...state,
@@ -115,6 +103,19 @@ export function layoutReducer(state = initialState, action: any) {
       return {
         ...state,
         showShareModal: false
+      }
+    }
+
+    case layoutActionTypes.OPEN_OUT_OF_SPACE_MODAL: {
+      return {
+        ...state,
+        showOutOfSpaceModal: true
+      }
+    }
+    case layoutActionTypes.CLOSE_OUT_OF_SPACE_MODAL: {
+      return {
+        ...state,
+        showOutOfSpaceModal: false
       }
     }
     default:
