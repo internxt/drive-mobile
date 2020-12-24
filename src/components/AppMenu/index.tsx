@@ -35,18 +35,15 @@ function AppMenu(props: AppMenuProps) {
         textInput.current.blur();
     }
 
-   
-
     return <View
         style={styles.container}>
 
-        <View style={[
-            styles.searchContainer,
-            { display: activeSearchBox ? 'flex' : 'none' }]}>
+        <View style={[styles.searchContainer, { display: activeSearchBox ? 'flex' : 'none' }]}>
             <Image
                 style={{ marginLeft: 20, marginRight: 10 }}
                 source={getIcon('search')}
             />
+
             <TextInput
                 ref={textInput}
                 style={styles.searchInput}
@@ -56,13 +53,15 @@ function AppMenu(props: AppMenuProps) {
                     props.dispatch(fileActions.setSearchString(e.nativeEvent.text))
                 }}
             />
+
             <TouchableWithoutFeedback
                 onPress={() => {
                     props.dispatch(fileActions.setSearchString(''));
                     props.dispatch(layoutActions.closeSearch());
                     setActiveSearchBox(false)
                     closeSearch()
-                }}>
+                }}
+            >
                 <Image
                     style={{ marginLeft: 10, marginRight: 20, height: 16, width: 16 }}
                     source={getIcon('close')}
@@ -96,8 +95,7 @@ function AppMenu(props: AppMenuProps) {
                         name="upload" 
                         onClickHandler={() => {
                             props.dispatch(layoutActions.openUploadFileModal())
-                        }} 
-                    />
+                        }} />
 
                     <MenuItem
                         name="create"
@@ -106,12 +104,16 @@ function AppMenu(props: AppMenuProps) {
                             props.navigation.replace('CreateFolder')
                         }} />
 
-                    {selectedItems.length > 0 ? (
-                        <MenuItem name="delete" onClickHandler={() => {
-                            props.dispatch(layoutActions.openDeleteModal())
-                        }} />
-                    ) : null}
+                    {
+                        selectedItems.length > 0 ? 
+                            <MenuItem name="delete" onClickHandler={() => {
+                                props.dispatch(layoutActions.openDeleteModal())
+                            }} />
+                        : 
+                            null
+                    }
                 </View>
+
                 <MenuItem
                     name="settings"
                     onClickHandler={() => {
