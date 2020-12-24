@@ -27,7 +27,10 @@ export const layoutActions = {
   closeDeleteModal,
 
   openShareModal,
-  closeShareModal
+  closeShareModal,
+
+  openUploadFileModal,
+  closeUploadFileModal
 };
 
 function openSearch() {
@@ -138,5 +141,17 @@ function openShareModal() {
 function closeShareModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_SHARE_MODAL });
+  };
+}
+
+function openUploadFileModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.OPEN_UPLOAD_FILE_MODAL });
+  };
+}
+
+function closeUploadFileModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_UPLOAD_FILE_MODAL });
   };
 }

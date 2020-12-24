@@ -9,7 +9,8 @@ const initialState = {
   showSortModal: false,
   showMoveModal: false,
   showDeleteModal: false,
-  showShareModal: false
+  showShareModal: false,
+  showUploadModal: false
 };
 
 export function layoutReducer(state = initialState, action: any) {
@@ -115,6 +116,19 @@ export function layoutReducer(state = initialState, action: any) {
       return {
         ...state,
         showShareModal: false
+      }
+    }
+
+    case layoutActionTypes.OPEN_UPLOAD_FILE_MODAL: {
+      return {
+        ...state,
+        showUploadModal: true
+      }
+    }
+    case layoutActionTypes.CLOSE_UPLOAD_FILE_MODAL: {
+      return {
+        ...state,
+        showUploadModal: false
       }
     }
     default:
