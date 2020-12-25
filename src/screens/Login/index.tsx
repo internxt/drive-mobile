@@ -52,7 +52,7 @@ function Login(props: LoginProps) {
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
-      props.navigation.replace('FileExplorer', {
+      props.navigation.replace('Biometric', {
         folderId: rootFolderId
       })
     } else {
@@ -141,7 +141,6 @@ function Login(props: LoginProps) {
                 setShowTwoFactor(true)
               } else {
                 console.log('----------- Login FIRST ELSE ------------')
-                const decSKey = decryptTextWithKey(userLoginData.sKey, password)
                 props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
               }
             }).catch(err => {
