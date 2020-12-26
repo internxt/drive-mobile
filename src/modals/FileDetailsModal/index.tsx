@@ -14,7 +14,6 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { colors, folderIconsList } from '../../redux/constants'
 import { updateFileMetadata, updateFolderMetadata } from './actions';
 import analytics, { getLyticsData } from '../../helpers/lytics';
-import DeleteItemModal from '../DeleteItemModal';
 
 interface FileDetailsProps {
     dispatch?: any
@@ -53,7 +52,6 @@ function FileDetailsModal(props: FileDetailsProps) {
                     isOpen={showModal}
                     style={styles.modalFolder}
                     onClosed={async () => {
-                        console.log('--- SE CIERRA ---')
                         props.dispatch(fileActions.deselectAll())
                         props.dispatch(layoutActions.closeItemModal())
 
@@ -124,8 +122,8 @@ function FileDetailsModal(props: FileDetailsProps) {
 
                     <View style={styles.colorSelection}>
                         {Object.getOwnPropertyNames(colors).map((value, i) => {
-                            let localColor = selectedColor ? selectedColor : (folder ? folder.color : null);
-                            let isSelected = localColor ? localColor === value : false;
+                            const localColor = selectedColor ? selectedColor : (folder ? folder.color : null);
+                            const isSelected = localColor ? localColor === value : false;
                             return (
                                 <TouchableHighlight
                                     key={i}
@@ -151,12 +149,12 @@ function FileDetailsModal(props: FileDetailsProps) {
 
                     <View style={styles.iconSelection} key={selectedIcon}>
                         {folderIconsList.map((value, i) => {
-                            let localIcon =
+                            const localIcon =
                                 typeof selectedIcon === 'number' &&
                                     selectedIcon >= 0
                                     ? selectedIcon : folder && folder.icon ? folder.icon.id : null;
-                            let isSelected = localIcon ? localIcon - 1 === i : false;
-                            let iconValue = isSelected ? 0 : i + 1;
+                            const isSelected = localIcon ? localIcon - 1 === i : false;
+                            const iconValue = isSelected ? 0 : i + 1;
 
                             return (
                                 <TouchableHighlight
@@ -288,7 +286,6 @@ function FileDetailsModal(props: FileDetailsProps) {
                                 </Text>
                             }
                             onPress={() => {
-                                console.log('--- PROPS ON PRESS ---', props.filesState.selectedFile.fileId)
                                 props.dispatch(layoutActions.openShareModal())
                             }}
                         />
@@ -317,7 +314,7 @@ export default connect(mapStateToProps)(FileDetailsModal)
 
 const styles = StyleSheet.create({
     modalSettingsFile: {
-        height: '47%',
+        height: '47%'
     },
     modalFileItemContainer: {
     },
@@ -330,7 +327,7 @@ const styles = StyleSheet.create({
         marginTop: 10
     },
     modalFolder: {
-        height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%')),
+        height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%'))
     },
     colorSelection: {
         display: 'flex',
@@ -367,21 +364,17 @@ const styles = StyleSheet.create({
         height: 25,
         width: 25
     },
-
     fileName_container: {
-        height: 'auto',
+        height: 'auto'
     },
-
     fileName: {
         fontFamily: 'CerebriSans-Bold',
         fontSize: 20,
-        marginLeft: 26,
+        marginLeft: 26
     },
-
     info_container: {
-        height: 'auto',
+        height: 'auto'
     },
-
     options_container: {
         flex: 1,
         justifyContent: 'space-around',

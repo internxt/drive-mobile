@@ -53,7 +53,7 @@ function UploadFile(props: UploadFileProps) {
                 if (resultFetch.status === 401) {
                     throw resultFetch;
                 }
-                var data = await resultFetch.text();
+                const data = await resultFetch.text();
                 return { res: resultFetch, data };
             }).then(resultFetch => {
                 if (resultFetch.res.status === 402) {
@@ -65,7 +65,6 @@ function UploadFile(props: UploadFileProps) {
                     Alert.alert('Error', 'Cannot upload file');
                 }
             }).catch(errFetch => {
-                console.log(errFetch)
                 if (errFetch.status === 401) {
                     props.dispatch(userActions.signout());
                 } else {
@@ -76,7 +75,6 @@ function UploadFile(props: UploadFileProps) {
             });
         } catch (error) {
             analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-            console.log('Error:', error);
             props.dispatch(fileActions.uploadFileFinished());
         }
     }
@@ -139,7 +137,7 @@ const styles = StyleSheet.create({
     modal_container: {
         borderRadius: 10,
         height: 'auto',
-        width: '93%',
+        width: '93%'
     },
 
     text_container: {
@@ -149,7 +147,7 @@ const styles = StyleSheet.create({
 
     title_container: {
         flexDirection: 'row',
-        alignItems: 'flex-end',
+        alignItems: 'flex-end'
 
     },
 
@@ -166,7 +164,6 @@ const styles = StyleSheet.create({
         letterSpacing: -0.5,
         color: '#000000'
     },
-
     subtitle: {
         fontFamily: 'CerebriSans-Regular',
         fontSize: 17,
@@ -175,16 +172,13 @@ const styles = StyleSheet.create({
         color: '#5c6066',
         marginTop: 15
     },
-
     button_container: {
         flexDirection: 'row',
         alignItems: 'center',
         marginTop: 30,
-
         borderTopWidth: 1,
-        borderColor: 'rgba(151, 151, 151, 0.2)',
+        borderColor: 'rgba(151, 151, 151, 0.2)'
     },
-
     button: {
         height: 65, 
         width: wp('46.5'),

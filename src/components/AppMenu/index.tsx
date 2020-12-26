@@ -1,13 +1,10 @@
 import React, { Fragment, useState, useRef } from 'react'
-import { View, StyleSheet, Platform, Alert, TextInput, Image} from 'react-native'
+import { View, StyleSheet, Platform, TextInput, Image} from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
-import { fileActions, layoutActions, userActions } from '../../redux/actions';
+import { fileActions, layoutActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
-import { getDocumentAsync } from 'expo-document-picker'
-import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker'
-import analytics, { getLyticsData } from '../../helpers/lytics';
 
 interface AppMenuProps {
     navigation?: any
@@ -17,15 +14,10 @@ interface AppMenuProps {
 
 function AppMenu(props: AppMenuProps) {
     const [activeSearchBox, setActiveSearchBox] = useState(false)
-    const [createFolderVisible, setCreateFolderVisible] = useState(false);
-   
-
-    const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
-    const parentFolder = props.filesState.folderContent && props.filesState.folderContent.parentId
 
     const selectedItems = props.filesState.selectedItems;
 
-    let textInput = useRef(null)
+    const textInput = useRef(null)
 
     const handleClickSearch = () => {
         textInput.current.focus();

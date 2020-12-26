@@ -1,8 +1,6 @@
 import { deviceStorage } from '../../helpers';
 import { sortTypes } from '../constants';
 
-const { REACT_NATIVE_API_URL } = process && process.env;
-
 export const fileService = {
   getFolderContent,
   createFolder,
@@ -30,7 +28,6 @@ function getFolderContent(folderId: number) {
       method: 'GET',
       headers
     }).then(res => {
-      console.log('--- GETFOLDERCONTENT CALLED ---')
       if (res.status !== 200) { throw res; }
       return res.json();
     }).then(resolve)
@@ -53,7 +50,6 @@ function createFolder(parentFolderId: number, folderName = 'Untitled folder') {
     }).then(response => response.json())
       .then(async response => {
         if (response.error) {
-          console.log('Create folder response error', response.error);
           reject(response.error);
         } else {
           resolve();
@@ -102,14 +98,13 @@ async function moveFile(fileId: string, destination: string) {
       return data.message;
     }
   } catch (error) {
-    console.log(`Error moving file: ${error.message ? error.message : error}`);
     return error;
   }
 }
 
 function deleteItems(items: any[]) {
   return new Promise((resolve, reject) => {
-    let fetchArray: any[] = [];
+    const fetchArray: any[] = [];
 
     items.forEach(async (item: any) => {
       const isFolder = !item.fileId;

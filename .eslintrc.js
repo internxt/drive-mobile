@@ -9,10 +9,10 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaFeatures: {
-      jsx: true,
+      jsx: true
     },
     ecmaVersion: 12,
-    sourceType: 'module',
+    sourceType: 'module'
   },
   plugins: [
     'react',
@@ -21,6 +21,8 @@ module.exports = {
   rules: {
     "@typescript-eslint/no-use-before-define": "off",
     "no-console": "error",
-    "comma-dangle": ["error", "never"]
+    "comma-dangle": ["error", "never"],
+    "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   }
 };

@@ -1,10 +1,9 @@
-import { authenticateAsync } from 'expo-local-authentication';
 import React, { useEffect } from 'react'
 import { useState } from "react";
 import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from "react-native";
 import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
 import { connect } from 'react-redux';
-import { decryptTextWithKey, deviceStorage } from '../../helpers';
+import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { normalize } from '../../helpers/normalize'
 import { userActions } from '../../redux/actions';
@@ -24,8 +23,6 @@ function Login(props: LoginProps) {
   const [password, setPassword] = useState('')
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [showTwoFactor, setShowTwoFactor] = useState(false)
-  const [secretKey, setSecretKey] = useState('')
-
 
   const deepLink = async() => {
     const url = await Linking.getInitialURL();
@@ -38,13 +35,10 @@ function Login(props: LoginProps) {
   deepLink().then((res) => {
     //console.log('entro aqui') DEEPLINK
   }).catch((err) =>{
-    console.log('error',err)
-
   })
 
 
   useEffect(() => {
-    console.log('-------- Login AUTHENTICATION PROPS -------', props.authenticationState)
     props.authenticationState.error ? Alert.alert('Your account is blocked', props.authenticationState.error) : null
     
   }, [props.authenticationState])
@@ -140,11 +134,9 @@ function Login(props: LoginProps) {
               if (userLoginData.tfa && !twoFactorCode) {
                 setShowTwoFactor(true)
               } else {
-                console.log('----------- Login FIRST ELSE ------------')
                 props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
               }
             }).catch(err => {
-              console.log('---- CATCH', err.message)
               analytics.track('user-signin-attempted', {
                 status: 'error',
                 message: err.message
@@ -153,7 +145,6 @@ function Login(props: LoginProps) {
               Alert.alert(err.message)
       
             }).finally(() => {
-              console.log('-------- Login INSIDE FINALLY --------')
               setIsLoading(false)
             })
           }}>
@@ -234,10 +225,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2'
   },
   buttonOn: {
-    backgroundColor: '#4585f5',
+    backgroundColor: '#4585f5'
   },
   buttonOff: {
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#f2f2f2'
   },
   buttonOnLabel: {
     fontFamily: 'CerebriSans-Medium',

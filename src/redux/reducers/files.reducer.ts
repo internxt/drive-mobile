@@ -60,7 +60,7 @@ export function filesReducer(state = initialState, action: any) {
 
     case fileActionTypes.SELECT_FILE:
       // Check if file object is already on selection list
-      let isAlreadySelected = state.selectedItems.filter((element: any) => {
+      const isAlreadySelected = state.selectedItems.filter((element: any) => {
         const elementIsFolder = !(element.fileId);
         return elementIsFolder ? action.payload.id == element.id : action.payload.fileId == element.fileId
       }).length > 0;
@@ -72,7 +72,7 @@ export function filesReducer(state = initialState, action: any) {
       };
 
     case fileActionTypes.DESELECT_FILE:
-      let removedItem = state.selectedItems.filter((element: any) => {
+      const removedItem = state.selectedItems.filter((element: any) => {
         const elementIsFolder = !(element.fileId);
         return elementIsFolder ? action.payload.id != element.id : action.payload.fileId != element.fileId;
       });

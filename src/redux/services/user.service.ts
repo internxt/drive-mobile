@@ -40,7 +40,6 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
                 throw body.error ? body.error : 'Unkown error';
             }
         }).catch(err => {
-            console.log('--- REDUX SIGIN', err)
             reject(err);
         });
     });
@@ -56,7 +55,6 @@ async function signout() {
             deviceStorage.deleteItem('xUser')
         ]);
     } catch (error) {
-        console.log('signout', error);
     }
 }
 

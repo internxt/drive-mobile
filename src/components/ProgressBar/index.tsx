@@ -3,10 +3,8 @@ import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProgressBar(props: any) {
-    const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
     var { totalValue, usedValue, styleBar, styleProgress } = props;
     if (usedValue > totalValue) { usedValue = totalValue; }
-    const screenPadding = styleBar.marginLeft || 0 + styleBar.marginRight || 0;
 
     const usedValueStyle = {
         size: {
@@ -34,7 +32,7 @@ const styles = StyleSheet.create({
         height: 7,
         borderRadius: 3,
         backgroundColor: '#e8e8e8',
-        margin: 20,
+        margin: 20
     },
     inner: {
         position: 'absolute',

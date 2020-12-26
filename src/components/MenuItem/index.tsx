@@ -1,5 +1,5 @@
 import React from 'react'
-import { Image, Text, View, StyleSheet } from 'react-native'
+import { Image, StyleSheet } from 'react-native'
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';

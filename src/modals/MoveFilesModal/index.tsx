@@ -24,7 +24,7 @@ function MoveFilesModal(props: MoveFilesProps) {
     const [ selectedfile, setSelectedFile ] = useState(0)
 
     const { folderContent } = props.filesState
-    let folderList: object[] = folderContent && folderContent.children || [];
+    const folderList: any[] = folderContent && folderContent.children || [];
 
     useEffect(() => {
         props.layoutState.showMoveModal === true ? setIsOpen(true) : null
@@ -110,8 +110,6 @@ function MoveFilesModal(props: MoveFilesProps) {
 
                 <TouchableOpacity style={[styles.button, styles.blue]}
                     onPress={() => {
-                        console.log('--- CURRENT FOLDER ID ---', currentfolderid)
-                        console.log('--- SELECTED FILE ---', selectedfile)
                         moveFile(currentfolderid)
                     }}
                 >
@@ -126,15 +124,13 @@ const styles = StyleSheet.create({
     container: {
         height: '100%'
     },
-
     breadcrumbs: {
         display: 'flex',
         flexWrap: 'nowrap',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: "center",
+        alignItems: "center"
     },
-    
     title: {
         height: 30,
         fontFamily: 'CircularStd-Bold',
@@ -144,7 +140,6 @@ const styles = StyleSheet.create({
         color: '#000000',
         marginTop: 20
     },
-
     back_button: {
         marginRight: 12,
         marginTop: wp('3.5'),
@@ -153,31 +148,26 @@ const styles = StyleSheet.create({
         width: 40, //container size is bigger so easy to touch
         height: 40
     },
-
     backIcon: {
         height: 15,
         width: 10,
         marginRight: 5
     },
-
     backLabel: {
         fontFamily: 'CircularStd-Medium',
         fontSize: 19,
         letterSpacing: -0.2,
         color: '#000000'
     },
-
     folder_list: {
         height: '75%'
     },
-
     button_container: {
         flex: 1,
         flexDirection: 'row',
         justifyContent: 'space-evenly',
         alignItems: 'center'
     }, 
-
     button: {
         height: 50, 
         width: wp('40'),
@@ -188,21 +178,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
-
     blue: {
         backgroundColor: '#4585f5'
     },
-
     text: {
         color: '#5c6066', 
         fontFamily: 'CerebriSans-Bold', 
         fontSize: 16
     },
-
     white: {
         color: '#fff'
     },
-
     hidden: {
         display: 'none'
     }
