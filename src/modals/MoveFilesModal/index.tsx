@@ -41,7 +41,6 @@ function MoveFilesModal(props: MoveFilesProps) {
             setCurrentFolderId(props.filesState.folderContent.currentFolder)
             setParentFolderId(props.filesState.folderContent.parentId)
         }
-        //return console.log('---- CURRENTFOLDERID AND SELECTEDFILE ----', currentfolderid, selectedfile)
     }, [props.filesState.folderContent])
 
     useEffect(() => {

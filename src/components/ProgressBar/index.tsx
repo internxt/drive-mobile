@@ -1,9 +1,10 @@
 import React from 'react'
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProgressBar(props: any) {
-    var { totalValue, usedValue, styleBar, styleProgress } = props;
+    const { totalValue, styleProgress } = props;
+    let usedValue = props.styleBar;
     if (usedValue > totalValue) { usedValue = totalValue; }
 
     const usedValueStyle = {

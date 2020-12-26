@@ -32,9 +32,9 @@ function Login(props: LoginProps) {
     }
   }
 
-  deepLink().then((res) => {
+  deepLink().then(() => {
     //console.log('entro aqui') DEEPLINK
-  }).catch((err) =>{
+  }).catch(() =>{
   })
 
 
