@@ -19,11 +19,12 @@ module.exports = {
     'react-native'
   ],
   rules: {
-    "@typescript-eslint/no-use-before-define": "off",
-    "no-console": "error",
-    "comma-dangle": ["error", "never"],
-    "@typescript-eslint/no-empty-function": "off",
-    "@typescript-eslint/no-explicit-any": "off",
-    "camelcase": ['error', {"properties": "always"}]
+    '@typescript-eslint/no-use-before-define': 'off',
+    'no-console': 'error',
+    'comma-dangle': ['error', 'never'],
+    '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    'camelcase': ['error', { 'properties': 'always' }],
+    'no-multiple-empty-lines': 'error'
   }
 };
