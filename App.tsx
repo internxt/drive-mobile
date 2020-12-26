@@ -5,16 +5,13 @@ import { store } from './src/store'
 import AppNavigator from "./src/AppNavigator";
 import { analyticsSetup, loadEnvVars, loadFonts } from './src/helpers'
 import { NavigationContainer } from '@react-navigation/native';
-import * as Linking from 'expo-linking';
-
-
 
 export default function App() {
   const [appInitialized, setAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
  
   const linking = {
-    prefixes: ['inxt:'],
+    prefixes: ['inxt:']
   };
 
 
@@ -53,5 +50,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center'
-  },
+  }
 });

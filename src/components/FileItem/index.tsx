@@ -11,7 +11,6 @@ import RNFetchBlob from 'rn-fetch-blob'
 import { deviceStorage, getLyticsData } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
 import { colors } from '../../redux/constants';
-import { reduce } from 'lodash';
 import analytics from '../../helpers/lytics';
 interface FileItemProps {
     isFolder: boolean
@@ -93,12 +92,9 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
                     platform: 'mobile'
                 })
             } catch {
-                console.log('Cannot track file-download-finished')
             }
 
         }).catch(async err => {
-            console.log('Error downloading file: ' + err.message)
-
             try {
                 const userData = await getLyticsData()
                 analytics.track('file-download-error', {
@@ -111,7 +107,6 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
                     msg: err && err.message
                 })
             } catch {
-                console.log('Cannot track file-download-error')
             }
 
         }).finally(() => {

@@ -47,7 +47,6 @@ function DeleteItemModal(props: DeleteItemModalProps) {
 
             <View style={styles.button_container}>
                 <TouchableOpacity style={styles.button} onPress={() => {
-                    console.log('cancel')
                     setIsOpen(false)
                 }}>
                     <Text style={styles.text}>Cancel</Text>

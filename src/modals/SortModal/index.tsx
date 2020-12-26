@@ -97,5 +97,5 @@ const styles = StyleSheet.create({
         paddingTop: 13,
         paddingBottom: 13,
         paddingLeft: 28
-    },
+    }
 })

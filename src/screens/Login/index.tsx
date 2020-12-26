@@ -1,10 +1,9 @@
-import { authenticateAsync } from 'expo-local-authentication';
 import React, { useEffect } from 'react'
 import { useState } from "react";
 import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from "react-native";
 import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
 import { connect } from 'react-redux';
-import { decryptTextWithKey, deviceStorage } from '../../helpers';
+import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { normalize } from '../../helpers/normalize'
 import { userActions } from '../../redux/actions';
@@ -24,7 +23,6 @@ function Login(props: LoginProps) {
   const [password, setPassword] = useState('')
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [showTwoFactor, setShowTwoFactor] = useState(false)
-  const [secretKey, setSecretKey] = useState('')
 
   useEffect(() => {
     props.authenticationState.error ? Alert.alert('Your account is blocked', props.authenticationState.error) : null
@@ -213,10 +211,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2'
   },
   buttonOn: {
-    backgroundColor: '#4585f5',
+    backgroundColor: '#4585f5'
   },
   buttonOff: {
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#f2f2f2'
   },
   buttonOnLabel: {
     fontFamily: 'CerebriSans-Medium',

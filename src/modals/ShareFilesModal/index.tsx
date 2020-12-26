@@ -7,7 +7,6 @@ import { connect } from 'react-redux';
 import Separator from '../../components/Separator';
 import { layoutActions } from '../../redux/actions';
 import { getHeaders } from '../../helpers/headers';
-
 export interface ShareFilesModalProps {
     dispatch?: any,
     filesState?: any,
@@ -87,7 +86,6 @@ function ShareFilesModal(props: ShareFilesModalProps) {
                 return data.token;
             }
         } catch (error) {
-            console.log(`Error getting file token: ${error}`);
         }
     };
 
@@ -205,7 +203,7 @@ const styles = StyleSheet.create({
         flex: 0.2,
         borderLeftWidth: 1,
         borderColor: 'rgba(151, 151, 151, 0.2)',
-        padding: 20,
+        padding: 20
     },
     
     button: {
@@ -216,14 +214,14 @@ const styles = StyleSheet.create({
     button_text: {
         fontSize: 18, 
         color: '#4585f5',     
-        fontFamily: 'CircularStd-Bold'
+        fontFamily: 'CerebriSans-Bold'
     },
 
     button_text_loading: {
         fontSize: 18, 
         color: 'rgba(69, 133, 245, 0.7)',     
         fontFamily: 'CircularStd-Bold'
-    },
+    }
 })
 
 const mapStateToProps = (state: any) => {
