@@ -7,7 +7,6 @@ import { connect } from 'react-redux';
 import Separator from '../../components/Separator';
 import { layoutActions } from '../../redux/actions';
 import { getHeaders } from '../../helpers/headers';
-import NumberPlease from "react-native-number-please";
 
 export interface ShareFilesModalProps {
     dispatch?: any,
