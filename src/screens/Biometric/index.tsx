@@ -4,7 +4,7 @@ import { useState } from "react";
 import { connect } from 'react-redux';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { deviceStorage } from '../../helpers';
-import { checkDeviceForHardware, checkForBiometric,checkDeviceStorageShowConf, checkDeviceStorageBiometric,scanBiometrics } from './BiometricUtils'
+import { checkDeviceForHardware, checkForBiometric, checkDeviceStorageShowConf, checkDeviceStorageBiometric, scanBiometrics } from './BiometricUtils'
 import { ConfirmDialog } from 'react-native-simple-dialogs';
 
 
@@ -14,60 +14,46 @@ interface BiometricProps {
   dispatch?: any
   navigation?: any
 }
-async function showBiometrics() {
-  const checkHardware = await checkDeviceForHardware();
-  const checkBiometrics = await checkForBiometric();
-  const xBiometricStorage = await checkDeviceStorageBiometric();
-
-  return checkBiometrics && checkHardware && xBiometricStorage
-}
-
 
 function Biometric(props: any) {
-  const [compatible, setIsCompatible] = useState(false)
-  const [biometric, setIsBiometric] = useState(false)
-  const [result, setIsResult] = useState('')
   const rootFolderId = props.authenticationState.user.root_folder_id;
-  const [confVisible, setconfVisible] = useState(true);
-  const [showConf, setshowConf] = useState(true)
+  const [showConf, setshowConf] = useState(false)
 
-  useEffect(() => {
-    console.log('USE EFFECT')
-    checkForBiometric().then((res) => checkForBiometric()).then((res1) => {
-      console.log(res1)
-      if(res1===false){
+  const showConfig = () => {
+    checkDeviceForHardware().then((isCompatible) => {
+      if (isCompatible === false) {
         props.navigation.replace('FileExplorer', {
           folderId: rootFolderId
         })
+      } else if (isCompatible === true) {
+        checkForBiometric().then((biometricSave) => {
+          checkDeviceStorageShowConf().then((NotShowConf)=>{
+            checkDeviceStorageBiometric().then((xBiometric)=>{
+              if(biometricSave === false && NotShowConf === false && xBiometric ===false){
+                props.navigation.replace('FileExplorer', {
+                  folderId: rootFolderId
+                })
+              } else if(biometricSave===true && NotShowConf === false && xBiometric === false){
+                setshowConf(true)
+              }else if(biometricSave === true && NotShowConf === true){
+                setshowConf(false)
+                props.navigation.replace('FileExplorer', {
+                  folderId: rootFolderId
+                })
+              }else if(biometricSave === true && xBiometric ===true){
+                setshowConf(false)
+                scan()
+              }
+            })
+          })  
+        })
       }
     })
+  }
+
+  useEffect(() => {
+    showConfig();
   }, [])
-
-  useEffect(() => {
-    console.log('USEEFFCT 2')
-    checkDeviceStorageBiometric().then((resu)=>{
-      if(resu === true){
-        scan()
-        setshowConf(false)
-      }
-    })
-
-    
-  }, [showConf])
-
-  useEffect(() => {
-    console.log('USE EFFECT 3')
-   checkDeviceStorageShowConf().then((resm)=>{
-     if(resm===true){
-       setshowConf(false)
-       props.navigation.replace('FileExplorer', {
-        folderId: rootFolderId
-      })
-     }
-   })
-    
-  }, [showConf])
-
 
 
   const scan = () => {
@@ -78,45 +64,34 @@ function Biometric(props: any) {
     })
   }
 
-  
+
 
   return (
     <View>
-
-      {
-        showConf ? 
-        <ConfirmDialog
-          title="Confirm Dialog"
-          message="Are you sure about that?"
-          visible={confVisible}
-          positiveButton={{
-            title: "YES",
-            onPress: () => {
-              setconfVisible(false)
-              setshowConf(false)
-              deviceStorage.saveItem('xBiometric', 'true')
-              scan()
-            }
-          }}
-          negativeButton={{
-            title: "NO",
-            onPress: () => {
-              setconfVisible(false)
-              setshowConf(false)
-              deviceStorage.saveItem('xNotShowConfBiometric', 'true')
-              props.navigation.replace('FileExplorer', {
-                folderId: rootFolderId
-              })
-            }
-          }}
+      <ConfirmDialog
+        title="Confirm Dialog"
+        message="Are you sure about that?"
+        visible={showConf}
+        positiveButton={{
+          title: "YES",
+          onPress: () => {
+            setshowConf(false)
+            deviceStorage.saveItem('xBiometric', 'true')
+            scan()
+          }
+        }}
+        negativeButton={{
+          title: "NO",
+          onPress: () => {
+            setshowConf(false)
+            deviceStorage.saveItem('xNotShowConfBiometric', 'true')
+            props.navigation.replace('FileExplorer', {
+              folderId: rootFolderId
+            })
+          }
+        }}
       />
-    : <></>
-    
-    }
-
     </View>
-
-
   );
 }
 const mapStateToProps = (state: any) => {
@@ -125,30 +100,7 @@ const mapStateToProps = (state: any) => {
 
 export default connect(mapStateToProps)(Biometric)
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    backgroundColor: '#ecf0f1',
-  },
-  text: {
-    fontSize: 18,
-    textAlign: 'center',
-  },
-  button: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 150,
-    height: 60,
-    backgroundColor: '#056ecf',
-    borderRadius: 5,
-  },
-  buttonText: {
-    fontSize: 30,
-    color: '#fff',
-  },
-});
+
 
 
 

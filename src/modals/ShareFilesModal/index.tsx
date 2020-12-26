@@ -80,7 +80,6 @@ function ShareFilesModal(props: ShareFilesModalProps) {
             }
             );
             const data = await res.json();
-            console.log('--- GET FILE TOKEN DATA ---', data)
             if (res.status != 200) {
                 const errMsg = data.error ? data.error : 'Cannot download file';
                 Alert.alert('Error', errMsg);

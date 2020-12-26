@@ -41,7 +41,6 @@ function MoveFilesModal(props: MoveFilesProps) {
             setCurrentFolderId(props.filesState.folderContent.currentFolder)
             setParentFolderId(props.filesState.folderContent.parentId)
         }
-        //return console.log('---- CURRENTFOLDERID AND SELECTEDFILE ----', currentfolderid, selectedfile)
     }, [props.filesState.folderContent])
 
     useEffect(() => {
@@ -110,8 +109,6 @@ function MoveFilesModal(props: MoveFilesProps) {
 
                 <TouchableOpacity style={[styles.button, styles.blue]}
                     onPress={() => {
-                        console.log('--- CURRENT FOLDER ID ---', currentfolderid)
-                        console.log('--- SELECTED FILE ---', selectedfile)
                         moveFile(currentfolderid)
                     }}
                 >
