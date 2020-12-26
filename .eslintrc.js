@@ -19,6 +19,8 @@ module.exports = {
     'react-native'
   ],
   rules: {
-    "@typescript-eslint/no-use-before-define": "off"
-  },
+    "@typescript-eslint/no-use-before-define": "off",
+    "no-console": "error",
+    "comma-dangle": ["error", "never"]
+  }
 };
