@@ -8,8 +8,6 @@ import analytics from '../../helpers/lytics';
 import { normalize } from '../../helpers/normalize'
 import { userActions } from '../../redux/actions';
 import { validate2FA, apiLogin } from './access';
-import * as Linking from 'expo-linking';
-
 interface LoginProps {
   goToForm?: (screenName: string) => void
   authenticationState?: any

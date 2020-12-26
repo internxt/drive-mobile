@@ -1,19 +1,10 @@
 import React, { useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native'
+import { View } from 'react-native'
 import { useState } from "react";
-import { connect } from 'react-redux';
-import * as LocalAuthentication from 'expo-local-authentication';
 import { deviceStorage } from '../../helpers';
 import { checkDeviceForHardware, checkForBiometric, checkDeviceStorageShowConf, checkDeviceStorageBiometric, scanBiometrics } from './BiometricUtils'
 import { ConfirmDialog } from 'react-native-simple-dialogs';
-
-
-interface BiometricProps {
-  goToForm?: (screenName: string) => void
-  authenticationState?: any
-  dispatch?: any
-  navigation?: any
-}
+import { connect } from 'react-redux';
 
 function Biometric(props: any) {
   const rootFolderId = props.authenticationState.user.root_folder_id;
@@ -64,8 +55,6 @@ function Biometric(props: any) {
     })
   }
 
-
-
   return (
     <View>
       <ConfirmDialog
@@ -94,16 +83,9 @@ function Biometric(props: any) {
     </View>
   );
 }
+
 const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
 export default connect(mapStateToProps)(Biometric)
-
-
-
-
-
-
-
-

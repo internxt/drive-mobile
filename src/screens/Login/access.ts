@@ -1,8 +1,7 @@
-import { decryptText, encryptText, encryptTextWithKey, passToHash } from "../../helpers"
 import { getHeaders } from "../../helpers/headers"
 import { IsJsonString } from "../Register/registerUtils"
 
-export async function apiLogin(email: string) {
+export async function apiLogin(email: string): Promise<any> {
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/login`, {
     method: 'POST',
     headers: getHeaders(),

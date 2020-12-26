@@ -8,8 +8,6 @@ async function setHeaders() {
     return getHeaders(token || ``)
 }
 
-
-
 export async function updateFolderMetadata(metadata: any, folderId: number) {
     const headers = await setHeaders()
     return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}/meta`, {

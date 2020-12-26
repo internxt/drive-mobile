@@ -24,7 +24,7 @@ module.exports = {
     'comma-dangle': ['error', 'never'],
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
-    'camelcase': ['error', { 'properties': 'always' }],
+    'camelcase': ['warn', { 'properties': 'always' }],
     'no-multiple-empty-lines': 'error'
   }
 };

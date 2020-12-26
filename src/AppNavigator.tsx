@@ -12,8 +12,6 @@ import Login from './screens/Login';
 import Register from './screens/Register';
 import Forgot from './screens/Forgot';
 
-
-
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, unknown>
 type NavigatorOptions = CreateNavigatorConfig<StackNavigationConfig, NavigationStackRouterConfig, StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>>
 
@@ -38,10 +36,8 @@ const App = createAppContainer(StackNav);
 function trackScreen(previousScreen: NavigationState, nextScreen: NavigationState) {
   try {
     const routeName = nextScreen.routes[0].routeName
-    console.log('Route', routeName)
     analytics.screen(routeName)
   } catch {
-
   }
 }
 
