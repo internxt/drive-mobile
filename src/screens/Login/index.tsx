@@ -24,20 +24,6 @@ function Login(props: LoginProps) {
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [showTwoFactor, setShowTwoFactor] = useState(false)
 
-  const deepLink = async() => {
-    const url = await Linking.getInitialURL();
-    const res = url
-    if( url!= null) {
-      return res
-    }
-  }
-
-  deepLink().then(() => {
-    //console.log('entro aqui') DEEPLINK
-  }).catch(() =>{
-  })
-
-
   useEffect(() => {
     props.authenticationState.error ? Alert.alert('Your account is blocked', props.authenticationState.error) : null
     

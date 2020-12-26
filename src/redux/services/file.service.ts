@@ -1,5 +1,6 @@
 import { deviceStorage } from '../../helpers';
 import { sortTypes } from '../constants';
+import { compare } from 'natural-orderby'
 
 export const fileService = {
   getFolderContent,
@@ -153,12 +154,12 @@ function getSortFunction(sortType: string) {
       break;
     case sortTypes.NAME_ASC:
       sortFunc = function (a: any, b: any) {
-        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        return compare({order:'asc'})(a.name.toLowerCase(),b.name.toLowerCase())
       };
       break;
     case sortTypes.NAME_DESC:
       sortFunc = function (a: any, b: any) {
-        return b.name.toLowerCase().localeCompare(a.name.toLowerCase());
+        return compare({order:'desc'})(a.name.toLowerCase(),b.name.toLowerCase())
       };
       break;
     case sortTypes.SIZE_ASC:

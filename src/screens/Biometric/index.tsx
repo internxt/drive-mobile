@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, ToastAndroid } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native'
 import { useState } from "react";
 import { connect } from 'react-redux';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { deviceStorage } from '../../helpers';
+import { checkDeviceForHardware, checkForBiometric, checkDeviceStorageShowConf, checkDeviceStorageBiometric, scanBiometrics } from './BiometricUtils'
+import { ConfirmDialog } from 'react-native-simple-dialogs';
 
 
 interface BiometricProps {
@@ -13,85 +16,81 @@ interface BiometricProps {
 }
 
 function Biometric(props: any) {
-  const [compatible, setIsCompatible] = useState(false)
-  const [biometric, setIsBiometric] = useState(false)
-  const [result, setIsResult] = useState('')
+  const rootFolderId = props.authenticationState.user.root_folder_id;
+  const [showConf, setshowConf] = useState(false)
 
-  useEffect(() => {
-    checkDeviceForHardware();
-    checkForBiometric();
-    if (!compatible && !biometric) {
-      props.navigation.replace('FileExplorer')
-    }
-  })
-
-  const checkDeviceForHardware = async () => {
-    let compatible = await LocalAuthentication.hasHardwareAsync();
-    if (compatible) {
-      console.log(compatible)
-    } else {
-      console.log(compatible)
-      //ToastAndroid.show("Biometric is not available in this device", ToastAndroid.SHORT);
-    }
-    setIsCompatible(compatible)
-  };
-
-  const checkForBiometric = async () => {
-    let biometric = await LocalAuthentication.isEnrolledAsync();
-    setIsBiometric(biometric)
-  };
-
-  const checkType = async () => {
-    let type = await LocalAuthentication.supportedAuthenticationTypesAsync();
+  const showConfig = () => {
+    checkDeviceForHardware().then((isCompatible) => {
+      if (isCompatible === false) {
+        props.navigation.replace('FileExplorer', {
+          folderId: rootFolderId
+        })
+      } else if (isCompatible === true) {
+        checkForBiometric().then((biometricSave) => {
+          checkDeviceStorageShowConf().then((NotShowConf)=>{
+            checkDeviceStorageBiometric().then((xBiometric)=>{
+              if(biometricSave === false && NotShowConf === false && xBiometric ===false){
+                props.navigation.replace('FileExplorer', {
+                  folderId: rootFolderId
+                })
+              } else if(biometricSave===true && NotShowConf === false && xBiometric === false){
+                setshowConf(true)
+              }else if(biometricSave === true && NotShowConf === true){
+                setshowConf(false)
+                props.navigation.replace('FileExplorer', {
+                  folderId: rootFolderId
+                })
+              }else if(biometricSave === true && xBiometric ===true){
+                setshowConf(false)
+                scan()
+              }
+            })
+          })  
+        })
+      }
+    })
   }
 
-  const scanBiometric = async () => {
-    let result = await LocalAuthentication.authenticateAsync();
-    console.log('Scan Result:', result);
-    let res;
-    res = JSON.stringify(result)
-    setIsResult(res)
-  };
+  useEffect(() => {
+    showConfig();
+  }, [])
 
-  const showAndroidAlert = () => {
-    Alert.alert(
-      'Fingerprint Scan',
-      'Place your finger over the touch sensor and press scan.',
-      [
-        {
-          text: 'Scan',
-          onPress: () => {
-            scanBiometric();
-          },
-        },
-        {
-          text: 'Cancel',
-          onPress: () => console.log('Cancel'),
-          style: 'cancel',
-        },
-      ]
-    );
-  };
+
+  const scan = () => {
+    scanBiometrics().then((res2) => {
+      props.navigation.replace('FileExplorer', {
+        folderId: rootFolderId
+      })
+    })
+  }
+
+
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>
-        Compatible Device? {compatible === true ? 'True' : 'False'}
-      </Text>
-      <Text style={styles.text}>
-        Fingerprings Saved?{' '}
-        {biometric === true ? 'True' : 'False'}
-      </Text>
-      <TouchableOpacity
-        onPress={
-          Platform.OS === 'android'
-            ? showAndroidAlert
-            : scanBiometric
-        }
-        style={styles.button}>
-        <Text style={styles.buttonText}>SCAN</Text>
-      </TouchableOpacity>
-      <Text>{result}</Text>
+    <View>
+      <ConfirmDialog
+        title="Confirm Dialog"
+        message="Are you sure about that?"
+        visible={showConf}
+        positiveButton={{
+          title: "YES",
+          onPress: () => {
+            setshowConf(false)
+            deviceStorage.saveItem('xBiometric', 'true')
+            scan()
+          }
+        }}
+        negativeButton={{
+          title: "NO",
+          onPress: () => {
+            setshowConf(false)
+            deviceStorage.saveItem('xNotShowConfBiometric', 'true')
+            props.navigation.replace('FileExplorer', {
+              folderId: rootFolderId
+            })
+          }
+        }}
+      />
     </View>
   );
 }
@@ -101,30 +100,6 @@ const mapStateToProps = (state: any) => {
 
 export default connect(mapStateToProps)(Biometric)
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    backgroundColor: '#ecf0f1',
-  },
-  text: {
-    fontSize: 18,
-    textAlign: 'center',
-  },
-  button: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 150,
-    height: 60,
-    backgroundColor: '#056ecf',
-    borderRadius: 5,
-  },
-  buttonText: {
-    fontSize: 30,
-    color: '#fff',
-  },
-});
 
 
 
