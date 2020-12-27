@@ -24,7 +24,7 @@ export async function getNewBits(): Promise<string> {
         .catch(() => null)
 }
 
-export function IsJsonString(str: string) {
+export function IsJsonString(str: string): any {
     try {
         return JSON.parse(str);
     } catch (e) {
@@ -33,7 +33,7 @@ export function IsJsonString(str: string) {
 }
 
 
-export async function doRegister(params: RegisterParams) {
+export async function doRegister(params: RegisterParams): Promise<any> {
     const hashObj = passToHash({ password: params.password })
     const encPass = encryptText(hashObj.hash);
     const encSalt = encryptText(hashObj.salt);
@@ -68,7 +68,7 @@ export async function doRegister(params: RegisterParams) {
     })
 }
 
-export async function resendActivationEmail(email: string) {
+export async function resendActivationEmail(email: string): Promise<any> {
     return fetch(`${process.env.REACT_NATIVE_API_URL}/api/user/resend/${email.toLowerCase()}`)
         .then(async res => {
             if (res.status !== 200) {

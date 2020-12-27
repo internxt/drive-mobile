@@ -1,7 +1,7 @@
-import React, { useEffect, useState,Component } from 'react'
-import { Text, View, StyleSheet, Image, BackHandler, Platform,Linking } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { Text, View, StyleSheet, Image, BackHandler, Platform } from 'react-native'
 import AppMenu from '../../components/AppMenu'
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fileActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
