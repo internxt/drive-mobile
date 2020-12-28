@@ -23,8 +23,9 @@ function Login(props: LoginProps) {
   const [showTwoFactor, setShowTwoFactor] = useState(false)
 
   useEffect(() => {
-    props.authenticationState.error ? Alert.alert('Your account is blocked', props.authenticationState.error) : null
-    
+    if (props.authenticationState.error) {
+      Alert.alert('Login error', props.authenticationState.error)
+    }
   }, [props.authenticationState])
 
   useEffect(() => {
@@ -127,7 +128,7 @@ function Login(props: LoginProps) {
               }).catch(() => { })
 
               Alert.alert(err.message)
-      
+
             }).finally(() => {
               setIsLoading(false)
             })
