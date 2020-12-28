@@ -198,8 +198,8 @@ function FileItem(props: FileItemProps) {
                     </TouchableWithoutFeedback>
                 </View>
             </View>
-
-            <View style={[styles.progressIndicator, { width: progressWidth }]}></View>
+            <View style={[styles.progressIndicator, { width: progressWidth }]}>
+            </View>
         </View>
     )
 }
@@ -207,16 +207,18 @@ function FileItem(props: FileItemProps) {
 const styles = StyleSheet.create({
     progressIndicatorContainer: {
         flexDirection: 'column',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     progressIndicator: {
         backgroundColor: '#87B7FF',
         position: 'absolute',
-        top: 0,
+        top: 70,
         left: 0,
+        right: 0,
         height: '100%',
-        width: 0,
-        opacity: 0.2
+        width: 60,
+        opacity: 0.6,
+        borderRadius:1,
     },
     container: {
         height: 80,
