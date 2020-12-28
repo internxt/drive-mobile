@@ -11,9 +11,7 @@ import RNFetchBlob from 'rn-fetch-blob'
 import { deviceStorage, getLyticsData } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
 import { colors } from '../../redux/constants';
-import { reduce } from 'lodash';
 import analytics from '../../helpers/lytics';
-
 interface FileItemProps {
     isFolder: boolean
     item: any
@@ -94,12 +92,9 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
                     platform: 'mobile'
                 })
             } catch {
-                console.log('Cannot track file-download-finished')
             }
 
         }).catch(async err => {
-            console.log('Error downloading file: ' + err.message)
-
             try {
                 const userData = await getLyticsData()
                 analytics.track('file-download-error', {
@@ -112,7 +107,6 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
                     msg: err && err.message
                 })
             } catch {
-                console.log('Cannot track file-download-error')
             }
 
         }).finally(() => {
@@ -146,7 +140,6 @@ function FileItem(props: FileItemProps) {
     });
 
     const item = props.item
-
     return (
         <View style={styles.progressIndicatorContainer}>
             <View style={[styles.container, extendStyles.containerBackground]}>
@@ -179,19 +172,22 @@ function FileItem(props: FileItemProps) {
                                                 height={24}
                                             />
                                         </View>
-                                        : <></>}
+                                        : null}
                                 </>
                                 : <IconFile label={props.item.type || ''} isLoading={isLoading} />}
                         </View>
+
                         <View style={styles.nameAndTime}>
                             <Text
                                 style={[styles.fileName, extendStyles.text]}
                                 numberOfLines={1}
                             >{props.item.name}</Text>
+
                             {!props.isFolder && <TimeAgo time={props.item.created_at} />}
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
+
                 <View style={styles.buttonDetails}>
                     <TouchableWithoutFeedback
                         style={{ display: isSelectionMode ? 'none' : 'flex' }}
@@ -203,7 +199,6 @@ function FileItem(props: FileItemProps) {
                 </View>
             </View>
             <View style={[styles.progressIndicator, { width: progressWidth }]}>
-
             </View>
         </View>
     )
@@ -217,11 +212,13 @@ const styles = StyleSheet.create({
     progressIndicator: {
         backgroundColor: '#87B7FF',
         position: 'absolute',
-        top: 0,
+        top: 70,
         left: 0,
+        right: 0,
         height: '100%',
-        width: 0,
-        opacity: 0.2
+        width: 60,
+        opacity: 0.6,
+        borderRadius: 1
     },
     container: {
         height: 80,
@@ -241,7 +238,7 @@ const styles = StyleSheet.create({
     },
     nameAndTime: {
         flexDirection: 'column',
-        width: 230
+        width: "56%"
     },
     fileName: {
         fontFamily: 'CircularStd-Bold',
@@ -263,8 +260,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     }
 });
-
-
 
 const mapStateToProps = (state: any) => {
     return { ...state };

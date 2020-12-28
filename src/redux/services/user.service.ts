@@ -55,7 +55,6 @@ async function signout() {
             deviceStorage.deleteItem('xUser')
         ]);
     } catch (error) {
-        console.log('signout', error);
     }
 }
 

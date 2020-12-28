@@ -138,7 +138,7 @@ function deselectAll() {
 }
 
 function setSortFunction(sortType) {
-  let sortFunc = fileService.getSortFunction(sortType);
+  const sortFunc = fileService.getSortFunction(sortType);
   return (dispatch: Dispatch) => {
     dispatch({
       type: fileActionTypes.SET_SORT_TYPE,
@@ -166,7 +166,6 @@ function createFolder(parentFolderId: number, newFolderName: string) {
         dispatch(getFolderContent(parentFolderId + ''))
       },
       error => {
-        console.log('Error creating folder', error);
         dispatch(failure(error));
       }
     );
@@ -194,15 +193,14 @@ function createFolder(parentFolderId: number, newFolderName: string) {
   }
 }
 
-function moveFile(fileId, destination) {
+function moveFile(fileId: string, destination: string) {
   return (dispatch: Dispatch) => {
     dispatch(request());
-
     fileService.moveFile(fileId, destination).then(result => {
+      dispatch(fileActions.getFolderContent(destination))
       if (result === 1) {
         dispatch(success());
       } else {
-        console.error('Error creating folder', result);
         dispatch(failure(result));
       }
     });
@@ -229,10 +227,6 @@ function updateFolderMetadata(metadata: any, folderId) {
         dispatch(success());
       })
       .catch(error => {
-        console.error(
-          `Error updating metadata on folder (${parentFolderId}): `,
-          error
-        );
         dispatch(failure(error));
       });
   };

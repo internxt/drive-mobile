@@ -1,11 +1,10 @@
 import React, { ReactNode } from 'react'
-import { View, Text, Image, StyleSheet, ListRenderItemInfo } from 'react-native'
+import { View, Text, Image, StyleSheet } from 'react-native'
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { normalize } from '../../helpers';
 import B from '../../components/Bold'
-
 interface IntroProps {
   onFinish: () => void
   navigation?: any
@@ -88,8 +87,6 @@ function renderDoneButton() {
     </TouchableHighlight>
   );
 }
-
-
 
 function Intro(props: IntroProps) {
   return <AppIntroSlider

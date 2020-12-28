@@ -9,9 +9,9 @@ function FileList(props: any) {
     const [refreshing, setRefreshing] = useState(false)
 
     const { filesState } = props;
-    const { loading, folderContent, selectedFile } = filesState;
-    let folderList: object[] = folderContent && folderContent.children || [];
-    let fileList: object[] = folderContent && folderContent.files || [];
+    const { folderContent } = filesState;
+    let folderList: any[] = folderContent && folderContent.children || [];
+    let fileList: any[] = folderContent && folderContent.files || [];
 
     useEffect(() => {
         setRefreshing(false)
@@ -40,32 +40,64 @@ function FileList(props: any) {
 
     const isUploading = props.filesState.isUploadingFileName
     const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && !isUploading
-    return <ScrollView
-    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => {
-        setRefreshing(true)
-        const currentFolder = props.filesState.folderContent.currentFolder
-        props.dispatch(fileActions.getFolderContent(currentFolder))
-    }} />}
-        style={styles.fileListScrollView}
-        contentContainerStyle={isEmptyFolder ? styles.fileListContentsScrollView : {}}>
-        {isEmptyFolder
-            ? <EmptyFolder />
-            : <Text style={{ display: 'none' }}></Text>}
-        {isUploading ?
-            <FileItem
-                key={isUploading}
-                isFolder={false}
-                item={{ name: isUploading }}
-                isLoading={true} /> : <></>}
-        {folderList.map((folder: any) => <FileItem
-            key={folder.id}
-            isFolder={true}
-            item={folder} />)}
-        {fileList.map((file: any) => <FileItem
-            key={file.id}
-            isFolder={false}
-            item={file} />)}
-    </ScrollView>
+
+    return (
+        <ScrollView
+            refreshControl={
+                <RefreshControl refreshing={refreshing} 
+                    onRefresh={() => {
+                        setRefreshing(true)
+                        if (!props || !props.filesState || !props.filesState.folderContent) {
+                            return setRefreshing(false)
+                        }
+                        const currentFolder = props.filesState.folderContent.currentFolder
+                        props.dispatch(fileActions.getFolderContent(currentFolder))
+                    }} 
+                />
+            }
+            style={styles.fileListScrollView}
+            contentContainerStyle={isEmptyFolder ? styles.fileListContentsScrollView : null}
+        >
+            {
+                isEmptyFolder ? 
+                    <EmptyFolder />
+                : 
+                    <Text style={{ display: 'none' }}></Text>
+            }
+
+            {
+                isUploading ?
+                    <FileItem
+                        key={isUploading}
+                        isFolder={false}
+                        item={{ name: isUploading }}
+                        isLoading={true} 
+                    /> 
+                : 
+                    null
+            }
+
+            {
+                folderList.map((folder: any) => 
+                    <FileItem
+                        key={folder.id}
+                        isFolder={true}
+                        item={folder} 
+                    />
+                )
+            }
+
+            {
+                fileList.map((file: any) => 
+                    <FileItem
+                        key={file.id}
+                        isFolder={false}
+                        item={file} 
+                    />
+                )
+            }
+        </ScrollView>
+    )
 }
 
 const styles = StyleSheet.create({

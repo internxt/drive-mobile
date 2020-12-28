@@ -13,15 +13,9 @@ import React, { useEffect, useState } from 'react'
 import { normalize } from '../../helpers';
 import { connect } from "react-redux";
 
-interface ForgotProps {
-    goToForm?: (screenName: string) => void
-    navigation?: any
-}
-
 function Forgot(props: any): any {
     const [currentContainer, setCurrentCointainer] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
-    const [validateEmail, setIsValidEmail] = useState(false)
 
     // Get email form field
     const [email, setIsEmail] = useState("");
@@ -42,12 +36,11 @@ function Forgot(props: any): any {
             return;
         }
         setIsLoading(true)
-        sendDeactivationsEmail(email).then((res1) => {
+        sendDeactivationsEmail(email).then(() => {
             setIsLoading(false)
             setCurrentCointainer(2)
 
-        }).catch((err) => {
-            console.log(err)
+        }).catch(() => {
             setIsLoading(false)
             return Alert.alert('Error', 'Connection to server failed');
         });
@@ -61,7 +54,7 @@ function Forgot(props: any): any {
                 <View
                     style={[
                         styles.containerCentered,
-                        isLoading ? { opacity: 0.5 } : {},
+                        isLoading ? { opacity: 0.5 } : {}
                     ]}
                 >
                     <View style={styles.containerHeader}>
@@ -76,7 +69,7 @@ function Forgot(props: any): any {
                             As specified during the sign up process, Internxt Drive encrypts
                             your files, and only you have access to those. We never know
                             your password, and thus, that way, only you can decrypt your
-                            account. For that reason, if you forget your password, we can't
+                            account. For that reason, if you forget your password, we can&apos;t
                     restore your account. What we can do, however, is to{' '}
                             <Text style={styles.bold}>
                                 delete your account and erase all its files
@@ -99,7 +92,7 @@ function Forgot(props: any): any {
                         <View style={styles.buttonWrapper}>
                             <TouchableHighlight
                                 style={[styles.button, styles.buttonOff, styles.buttonLeft]}
-                                underlayColor="#4585f5"
+                                underlayColor="#f2f2f2"
                                 onPress={() => props.navigation.replace('Login')}
                             >
                                 <Text style={styles.buttonOffLabel}>Back</Text>
@@ -127,7 +120,7 @@ function Forgot(props: any): any {
                 <View
                     style={[
                         styles.containerCentered,
-                        isLoading ? { opacity: 0.5 } : {},
+                        isLoading ? { opacity: 0.5 } : {}
                     ]}
                 >
                     <View style={styles.containerHeader}>
@@ -189,13 +182,13 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         padding: normalize(20),
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#FFFFFF'
     },
     containerCentered: {
         justifyContent: 'center',
         alignSelf: 'center',
         width: '100%',
-        height: normalize(600),
+        height: normalize(600)
     },
     logo: {
         marginTop: normalize(-27),
@@ -219,17 +212,17 @@ const styles = StyleSheet.create({
         fontSize: normalize(15),
         color: '#737880',
         textAlign: 'justify',
-        marginBottom: normalize(20),
+        marginBottom: normalize(20)
     },
     bold: {
-        fontFamily: 'CerebriSans-Bold',
+        fontFamily: 'CerebriSans-Bold'
     },
     inputWrapper: {
         height: normalize(55),
         borderRadius: 5,
         borderWidth: 1,
         borderColor: '#c9c9c9',
-        justifyContent: 'center',
+        justifyContent: 'center'
     },
     input: {
         fontFamily: 'CerebriSans-Medium',
@@ -237,17 +230,17 @@ const styles = StyleSheet.create({
         fontSize: normalize(15),
         color: '#000',
         flex: 1,
-        paddingLeft: normalize(20),
+        paddingLeft: normalize(20)
     },
     buttonOnLabel: {
         fontFamily: 'CerebriSans-Medium',
         fontSize: normalize(15),
-        color: '#fff',
+        color: '#fff'
     },
     buttonOffLabel: {
         fontFamily: 'CerebriSans-Medium',
         fontSize: normalize(15),
-        color: '#5c5c5c',
+        color: '#5c5c5c'
     },
     button: {
         marginTop: normalize(10),
@@ -256,35 +249,34 @@ const styles = StyleSheet.create({
         width: '45%',
         // height: '35%',
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'center'
     },
     buttonOn: {
         backgroundColor: '#4585f5',
-        flex: 1,
+        flex: 1
     },
     buttonOff: {
         backgroundColor: '#f2f2f2',
-        flex: 1,
+        flex: 1
     },
     buttonWrapper: {
         flexDirection: 'row',
-        marginTop: normalize(15),
-        // justifyContent: 'center'
+        marginTop: normalize(15)
     },
     buttonRight: {
-        marginLeft: normalize(10),
+        marginLeft: normalize(10)
     },
     buttonLeft: {
-        marginRight: normalize(10),
+        marginRight: normalize(10)
     },
     grayBox: {
         backgroundColor: '#f7f7f7',
-        padding: normalize(23),
+        padding: normalize(23)
     },
     grayBoxText: {
         color: '#737880',
         fontSize: normalize(15),
-        fontFamily: 'CerebriSans-Regular',
+        fontFamily: 'CerebriSans-Regular'
     },
     signUp: {
         fontFamily: 'CerebriSans-Regular',
@@ -292,6 +284,6 @@ const styles = StyleSheet.create({
         color: '#737880',
         fontSize: normalize(15),
         marginTop: normalize(10),
-        padding: normalize(20),
-    },
+        padding: normalize(20)
+    }
 });

@@ -1,6 +1,5 @@
-import { isEmpty } from 'lodash';
-import React, { ReactElement, ReactNode, useEffect, useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Image, BackHandler, Alert } from "react-native";
+import React, { useState } from 'react'
+import { View, Text, KeyboardAvoidingView, StyleSheet, Image, Alert } from "react-native";
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from "react-redux";
 import { normalize } from '../../helpers';
@@ -120,7 +119,7 @@ function Register(props: any): any {
                 style={styles.logo}
                 source={require('../../../assets/images/logo.png')}
               />
-              <Text style={styles.title}>Internxt Drive Security</Text>
+              <Text style={styles.title}>Internxt Security</Text>
             </View>
 
 
@@ -136,9 +135,9 @@ function Register(props: any): any {
                 }}
               >
                 Internxt Drive uses your password to encrypt and decrypt your
-                files. Due to the secure nature of Internxt Drive, we don't
+                files. Due to the secure nature of Internxt Drive, we don&apos;t
                 know your password. That means that if you ever forget it,
-                your files are gone forever. With us, you're the only owner of
+                your files are gone forever. With us, you&apos;re the only owner of
                 your files. We strongly suggest you to:
                 </Text>
             </View>
@@ -180,20 +179,24 @@ function Register(props: any): any {
               </View>
             </View>
 
-            <View style={[styles.buttonFooterWrapper, { marginTop: 35 }]}>
-              <TouchableHighlight
-                style={[styles.button, styles.buttonBlock]}
-                underlayColor="#4585f5"
-                onPress={() => setRegisterStep(3)}
-              >
-                <Text style={styles.buttonOnLabel}>Continue</Text>
-              </TouchableHighlight>
-              <TouchableHighlight
-                activeOpacity={1}
-                underlayColor="#ffffff"
-                onPress={() => setRegisterStep(1)}>
-                <Text style={styles.link}>Back</Text>
-              </TouchableHighlight>
+            <View style={[styles.buttonFooterWrapper, { marginTop: 42 }]}>
+              <View style={styles.buttonWrapper}>
+                <TouchableHighlight
+                  style={[styles.button, styles.buttonOff, styles.buttonLeft]}
+                  underlayColor="#f2f2f2"
+                  onPress={() => setRegisterStep(1)}
+                >
+                  <Text style={styles.buttonOffLabel}>Back</Text>
+                </TouchableHighlight>
+                <TouchableHighlight
+                  style={[styles.button, styles.buttonOn, styles.buttonRight]}
+                  underlayColor="#4585f5"
+                  onPress={() => setRegisterStep(3)}
+                >
+                  <Text style={styles.buttonOnLabel}>Continue</Text>
+                </TouchableHighlight>
+              </View>
+
             </View>
           </View>
         </View>
@@ -243,36 +246,39 @@ function Register(props: any): any {
             </View>
           </View>
           <View style={styles.buttonFooterWrapper}>
-            <TouchableHighlight
-              style={[styles.button, styles.buttonBlock]}
-              underlayColor="#4585f5"
-              onPress={() => {
-                if (registerButtonClicked || isLoading) {
-                  return;
-                }
-                setRegisterButtonClicked(true)
-                setIsLoading(true)
+            <View style={styles.buttonWrapper}>
+              <TouchableHighlight
+                style={[styles.button, styles.buttonOff, styles.buttonLeft]}
+                underlayColor="#f2f2f2"
+                onPress={() => setRegisterStep(2)}
+              >
+                <Text style={styles.buttonOffLabel}>Back</Text>
+              </TouchableHighlight>
+              <TouchableHighlight
+                style={[styles.button, styles.buttonOn, styles.buttonRight]}
+                underlayColor="#4585f5"
+                onPress={() => {
+                  if (registerButtonClicked || isLoading) {
+                    return;
+                  }
+                  setRegisterButtonClicked(true)
+                  setIsLoading(true)
 
-                doRegister({ firstName, lastName, email, password })
-                  .then((userData) => {
-                    analytics.identify(userData.uuid, { email }).catch(() => { })
-                    setRegisterStep(4)
-                  }).catch(err => {
-                    Alert.alert(err.message)
-                  }).finally(() => {
-                    setIsLoading(false)
-                    setRegisterButtonClicked(false)
-                  })
-              }}
-            >
-              <Text style={styles.buttonOnLabel}>{isLoading ? 'Creating your account...' : 'Continue'}</Text>
-            </TouchableHighlight>
-            <TouchableHighlight
-              activeOpacity={1}
-              underlayColor="#ffffff"
-              onPress={() => setRegisterStep(2)}>
-              <Text style={styles.link}>Back</Text>
-            </TouchableHighlight>
+                  doRegister({ firstName, lastName, email, password })
+                    .then((userData) => {
+                      analytics.identify(userData.uuid, { email }).catch(() => { })
+                      setRegisterStep(4)
+                    }).catch(err => {
+                      Alert.alert(err.message)
+                    }).finally(() => {
+                      setIsLoading(false)
+                      setRegisterButtonClicked(false)
+                    })
+                }}
+              >
+                <Text style={styles.buttonOnLabel}>{isLoading ? 'Creating your account...' : 'Continue'}</Text>
+              </TouchableHighlight>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -328,7 +334,7 @@ function Register(props: any): any {
 
             <View style={styles.buttonFooterWrapper}>
               <TouchableHighlight
-                style={[styles.button, styles.buttonBlock, { marginTop: normalize(10) }]}
+                style={[styles.button, styles.buttonBlock, { marginTop: normalize(15) }]}
                 underlayColor="#4585f5" onPress={() => {
                   setRegisterButtonClicked(true)
                   setIsLoading(true)
@@ -439,6 +445,12 @@ const styles = StyleSheet.create({
     fontSize: normalize(15),
     textAlign: 'center',
     color: '#5c5c5c'
+  },
+  buttonRight: {
+    marginLeft: normalize(10)
+  },
+  buttonLeft: {
+    marginRight: normalize(10)
   },
   redirectMessage: {
     fontFamily: 'CerebriSans-Medium',
