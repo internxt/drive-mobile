@@ -207,7 +207,7 @@ function FileItem(props: FileItemProps) {
 const styles = StyleSheet.create({
     progressIndicatorContainer: {
         flexDirection: 'column',
-        alignItems: 'center',
+        alignItems: 'center'
     },
     progressIndicator: {
         backgroundColor: '#87B7FF',
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
         height: '100%',
         width: 60,
         opacity: 0.6,
-        borderRadius:1,
+        borderRadius: 1
     },
     container: {
         height: 80,

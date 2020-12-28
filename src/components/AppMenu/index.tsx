@@ -1,6 +1,6 @@
 import { getDocumentAsync } from 'expo-document-picker';
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker';
-import React, { Fragment, useState, useRef, useEffect } from 'react'
+import React, { Fragment, useState, useRef } from 'react'
 import { View, StyleSheet, Platform, TextInput, Image, Alert} from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -46,7 +46,7 @@ async function uploadFile(result: any, props: any) {
             if (resultFetch.status === 401) {
                 throw resultFetch;
             }
-            var data = await resultFetch.text();
+            const data = await resultFetch.text();
             return { res: resultFetch, data };
         }).then(resultFetch => {
             if (resultFetch.res.status === 402) {
@@ -58,7 +58,6 @@ async function uploadFile(result: any, props: any) {
                 Alert.alert('Error', 'Cannot upload file');
             }
         }).catch(errFetch => {
-            console.log(errFetch)
             if (errFetch.status === 401) {
                 props.dispatch(userActions.signout());
             } else {
@@ -69,7 +68,6 @@ async function uploadFile(result: any, props: any) {
         });
     } catch (error) {
         analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-        console.log('Error:', error);
         props.dispatch(fileActions.uploadFileFinished());
     }
 }

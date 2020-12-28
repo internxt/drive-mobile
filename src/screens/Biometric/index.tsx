@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react'
-import { View, Alert, } from 'react-native'
-import { useState } from "react";
+import { Alert } from 'react-native'
 import { deviceStorage } from '../../helpers';
 import { checkDeviceForHardware, checkForBiometric, checkDeviceStorageShowConf, checkDeviceStorageBiometric, scanBiometrics } from './BiometricUtils'
 import { connect } from 'react-redux';
 
 function Biometric(props: any) {
   const rootFolderId = props.authenticationState.user.root_folder_id;
-  const [showConf, setshowConf] = useState(false)
 
   const showConfig = () => {
     checkDeviceForHardware().then((isCompatible) => {
@@ -24,7 +22,6 @@ function Biometric(props: any) {
                   folderId: rootFolderId
                 })
               } else if (biometricSave === true && NotShowConf === false && xBiometric === false) {
-                setshowConf(true)
                 return Alert.alert(
                   "Biometric lock",
                   "Would you like to activate biometric lock on your device?",
@@ -32,7 +29,6 @@ function Biometric(props: any) {
                     {
                       text: "No",
                       onPress: () => {
-                        setshowConf(false)
                         deviceStorage.saveItem('xNotShowConfBiometric', 'true')
                         props.navigation.replace('FileExplorer', {
                           folderId: rootFolderId
@@ -42,7 +38,6 @@ function Biometric(props: any) {
                     },
                     {
                       text: "Yes", onPress: () => {
-                        setshowConf(false)
                         deviceStorage.saveItem('xBiometric', 'true')
                         scan()
                       }
@@ -51,12 +46,10 @@ function Biometric(props: any) {
                   { cancelable: false }
                 );
               } else if (biometricSave === true && NotShowConf === true) {
-                setshowConf(false)
                 props.navigation.replace('FileExplorer', {
                   folderId: rootFolderId
                 })
               } else if (biometricSave === true && xBiometric === true) {
-                setshowConf(false)
                 scan()
               }
             })
@@ -79,12 +72,7 @@ function Biometric(props: any) {
     })
   }
 
-  return (
-    <View>
-
-     
-    </View>
-  );
+  return <></>;
 }
 
 const mapStateToProps = (state: any) => {
