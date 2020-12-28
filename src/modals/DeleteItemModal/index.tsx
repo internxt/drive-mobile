@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Image, View, Text, StyleSheet } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
 export interface DeleteItemModalProps {
@@ -39,7 +40,7 @@ function DeleteItemModal(props: DeleteItemModalProps) {
             <View style={styles.text_container}>
                 <View style={styles.title_container}>
                     <Image source={require('../../../assets/images/logo.png')} style={styles.image} />
-                    <Text style={styles.title}>Delete item.</Text>
+                    <Text style={styles.title}>Delete item</Text>
                 </View>
                 
                 <Text style={styles.subtitle}>Please confirm you want to delete this item. This action can not be undone.</Text>
@@ -47,7 +48,6 @@ function DeleteItemModal(props: DeleteItemModalProps) {
 
             <View style={styles.button_container}>
                 <TouchableOpacity style={styles.button} onPress={() => {
-                    console.log('cancel')
                     setIsOpen(false)
                 }}>
                     <Text style={styles.text}>Cancel</Text>
@@ -68,9 +68,8 @@ const styles = StyleSheet.create({
     modal_container: {
         justifyContent: 'center', 
         alignItems: 'center',
-        borderRadius: 10,
-        height: 250,
-        width: '93%'
+        height: '100%',
+        width: '100%'
     },
 
     text_container: {
@@ -83,7 +82,7 @@ const styles = StyleSheet.create({
     },
 
     image: {
-        height: 40,
+        height: 30,
         width: 26,
         marginRight: 10,
         marginBottom: 4
@@ -91,7 +90,8 @@ const styles = StyleSheet.create({
 
     title: {
         fontSize: 27, 
-        fontFamily: 'CircularStd-Bold'
+        fontFamily: 'CelebriSans-Bold',
+        color: 'black'
     },
 
     subtitle: {
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
 
     button: {
         height: 50, 
-        width: 120,
+        width: widthPercentageToDP('35'),
         borderRadius: 4, 
         borderWidth: 2,
         backgroundColor: '#fff',

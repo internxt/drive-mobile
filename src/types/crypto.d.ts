@@ -1,7 +1,3 @@
-interface Encoding {
-
-}
-
 declare module 'crypto-js' {
     export {
         enc,

@@ -1,7 +1,6 @@
 import { deviceStorage } from '../../helpers';
 import { sortTypes } from '../constants';
-
-const { REACT_NATIVE_API_URL } = process && process.env;
+import { compare } from 'natural-orderby'
 
 export const fileService = {
   getFolderContent,
@@ -52,7 +51,6 @@ function createFolder(parentFolderId: number, folderName = 'Untitled folder') {
     }).then(response => response.json())
       .then(async response => {
         if (response.error) {
-          console.log('Create folder response error', response.error);
           reject(response.error);
         } else {
           resolve();
@@ -101,14 +99,13 @@ async function moveFile(fileId: string, destination: string) {
       return data.message;
     }
   } catch (error) {
-    console.log(`Error moving file: ${error.message ? error.message : error}`);
     return error;
   }
 }
 
 function deleteItems(items: any[]) {
   return new Promise((resolve, reject) => {
-    let fetchArray: any[] = [];
+    const fetchArray: any[] = [];
 
     items.forEach(async (item: any) => {
       const isFolder = !item.fileId;
@@ -157,12 +154,12 @@ function getSortFunction(sortType: string) {
       break;
     case sortTypes.NAME_ASC:
       sortFunc = function (a: any, b: any) {
-        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        return compare({order:'asc'})(a.name.toLowerCase(),b.name.toLowerCase())
       };
       break;
     case sortTypes.NAME_DESC:
       sortFunc = function (a: any, b: any) {
-        return b.name.toLowerCase().localeCompare(a.name.toLowerCase());
+        return compare({order:'desc'})(a.name.toLowerCase(),b.name.toLowerCase())
       };
       break;
     case sortTypes.SIZE_ASC:

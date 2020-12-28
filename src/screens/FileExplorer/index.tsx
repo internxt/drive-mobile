@@ -1,7 +1,7 @@
-import React, { useEffect, useState,Component } from 'react'
-import { Text, View, StyleSheet, Image, BackHandler, Platform,Linking } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { Text, View, StyleSheet, Image, BackHandler, Platform } from 'react-native'
 import AppMenu from '../../components/AppMenu'
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fileActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
@@ -13,6 +13,7 @@ import SortModal from '../../modals/SortModal';
 import DeleteItemModal from '../../modals/DeleteItemModal';
 import MoveFilesModal from '../../modals/MoveFilesModal';
 import ShareFilesModal from '../../modals/ShareFilesModal';
+import UploadFileModal from '../../modals/UploadFileModal';
 
 function FileExplorer(props: any) {
     const [selectedKeyId, setSelectedKeyId] = useState(0)
@@ -60,7 +61,8 @@ function FileExplorer(props: any) {
         <DeleteItemModal />
         <MoveFilesModal />
         <ShareFilesModal />
-
+        <UploadFileModal />
+        
         <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
 
         <AppMenu navigation={props.navigation} />

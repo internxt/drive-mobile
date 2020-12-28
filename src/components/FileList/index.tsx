@@ -9,9 +9,9 @@ function FileList(props: any) {
     const [refreshing, setRefreshing] = useState(false)
 
     const { filesState } = props;
-    const { loading, folderContent, selectedFile } = filesState;
-    let folderList: object[] = folderContent && folderContent.children || [];
-    let fileList: object[] = folderContent && folderContent.files || [];
+    const { folderContent } = filesState;
+    let folderList: any[] = folderContent && folderContent.children || [];
+    let fileList: any[] = folderContent && folderContent.files || [];
 
     useEffect(() => {
         setRefreshing(false)

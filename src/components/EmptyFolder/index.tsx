@@ -16,7 +16,7 @@ function EmptyFolder(props: any) {
 const styles = StyleSheet.create({
     container: {
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: '#fff'
     },
     heading: {
         fontFamily: 'CircularStd-Black',
