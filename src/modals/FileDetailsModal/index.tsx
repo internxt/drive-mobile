@@ -286,6 +286,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                                 </Text>
                             }
                             onPress={() => {
+                                props.dispatch(layoutActions.closeItemModal())
                                 props.dispatch(layoutActions.openShareModal())
                             }}
                         />
