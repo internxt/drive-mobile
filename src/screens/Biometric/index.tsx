@@ -48,7 +48,7 @@ function Biometric(props: any) {
 
 
   const scan = () => {
-    scanBiometrics().then((res2) => {
+    scanBiometrics().then(() => {
       props.navigation.replace('FileExplorer', {
         folderId: rootFolderId
       })

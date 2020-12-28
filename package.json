@@ -6,7 +6,8 @@
     "web": "expo start --web",
     "link": "react-native link",
     "eject": "expo eject",
-    "lint": "eslint src/**/* App.tsx"
+    "lint": "eslint src/**/* App.tsx",
+    "test": "npm run lint"
   },
   "dependencies": {
     "@react-native-community/masked-view": "0.1.10",

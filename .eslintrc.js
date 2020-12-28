@@ -23,8 +23,13 @@ module.exports = {
     'no-console': 'error',
     'comma-dangle': ['error', 'never'],
     '@typescript-eslint/no-empty-function': 'off',
-    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-explicit-any': 'warn',
     'camelcase': ['warn', { 'properties': 'always' }],
     'no-multiple-empty-lines': 'error'
+  },
+  'settings': {
+    'react': {
+      'version': 'detect'
+    }
   }
 };

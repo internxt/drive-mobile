@@ -36,11 +36,11 @@ function Forgot(props: any): any {
             return;
         }
         setIsLoading(true)
-        sendDeactivationsEmail(email).then((res1) => {
+        sendDeactivationsEmail(email).then(() => {
             setIsLoading(false)
             setCurrentCointainer(2)
 
-        }).catch((err) => {
+        }).catch(() => {
             setIsLoading(false)
             return Alert.alert('Error', 'Connection to server failed');
         });
