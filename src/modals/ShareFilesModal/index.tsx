@@ -145,8 +145,6 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 
 const styles = StyleSheet.create({
     modal_container: {
-        borderTopRightRadius: 10,
-        borderTopLeftRadius: 10,
         height: 'auto',
         paddingTop: 20
     },
@@ -192,9 +190,8 @@ const styles = StyleSheet.create({
         flex: 0.8,
         textAlign: 'center',
         textAlignVertical: 'center',
-        backgroundColor: '#f2f2f2',
         fontSize: 14,
-        marginHorizontal: wp('4'),
+        marginHorizontal: wp('2'),
         color: '#737880',
         height: 45
     }, 
