@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react'
-import { View } from 'react-native'
+import { View, Alert, } from 'react-native'
 import { useState } from "react";
 import { deviceStorage } from '../../helpers';
 import { checkDeviceForHardware, checkForBiometric, checkDeviceStorageShowConf, checkDeviceStorageBiometric, scanBiometrics } from './BiometricUtils'
-import { ConfirmDialog } from 'react-native-simple-dialogs';
 import { connect } from 'react-redux';
 
 function Biometric(props: any) {
@@ -18,25 +17,50 @@ function Biometric(props: any) {
         })
       } else if (isCompatible === true) {
         checkForBiometric().then((biometricSave) => {
-          checkDeviceStorageShowConf().then((NotShowConf)=>{
-            checkDeviceStorageBiometric().then((xBiometric)=>{
-              if(biometricSave === false && NotShowConf === false && xBiometric ===false){
+          checkDeviceStorageShowConf().then((NotShowConf) => {
+            checkDeviceStorageBiometric().then((xBiometric) => {
+              if (biometricSave === false && NotShowConf === false && xBiometric === false) {
                 props.navigation.replace('FileExplorer', {
                   folderId: rootFolderId
                 })
-              } else if(biometricSave===true && NotShowConf === false && xBiometric === false){
+              } else if (biometricSave === true && NotShowConf === false && xBiometric === false) {
                 setshowConf(true)
-              }else if(biometricSave === true && NotShowConf === true){
+                return Alert.alert(
+                  "Biometric lock",
+                  "Would you like to activate biometric lock on your device?",
+                  [
+                    {
+                      text: "No",
+                      onPress: () => {
+                        setshowConf(false)
+                        deviceStorage.saveItem('xNotShowConfBiometric', 'true')
+                        props.navigation.replace('FileExplorer', {
+                          folderId: rootFolderId
+                        })
+                      },
+                      style: "cancel"
+                    },
+                    {
+                      text: "Yes", onPress: () => {
+                        setshowConf(false)
+                        deviceStorage.saveItem('xBiometric', 'true')
+                        scan()
+                      }
+                    }
+                  ],
+                  { cancelable: false }
+                );
+              } else if (biometricSave === true && NotShowConf === true) {
                 setshowConf(false)
                 props.navigation.replace('FileExplorer', {
                   folderId: rootFolderId
                 })
-              }else if(biometricSave === true && xBiometric ===true){
+              } else if (biometricSave === true && xBiometric === true) {
                 setshowConf(false)
                 scan()
               }
             })
-          })  
+          })
         })
       }
     })
@@ -57,29 +81,8 @@ function Biometric(props: any) {
 
   return (
     <View>
-      <ConfirmDialog
-        title="Confirm Dialog"
-        message="Are you sure about that?"
-        visible={showConf}
-        positiveButton={{
-          title: "YES",
-          onPress: () => {
-            setshowConf(false)
-            deviceStorage.saveItem('xBiometric', 'true')
-            scan()
-          }
-        }}
-        negativeButton={{
-          title: "NO",
-          onPress: () => {
-            setshowConf(false)
-            deviceStorage.saveItem('xNotShowConfBiometric', 'true')
-            props.navigation.replace('FileExplorer', {
-              folderId: rootFolderId
-            })
-          }
-        }}
-      />
+
+     
     </View>
   );
 }

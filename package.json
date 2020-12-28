@@ -39,10 +39,10 @@
     "react-native-file-viewer": "^2.1.4",
     "react-native-gesture-handler": "~1.8.0",
     "react-native-modalbox": "^2.0.2",
+    "react-native-paper": "^4.5.0",
     "react-native-responsive-screen": "^1.4.1",
     "react-native-safe-area-context": "3.1.9",
     "react-native-screens": "~2.15.0",
-    "react-native-simple-dialogs": "^1.4.0",
     "react-native-svg": "12.1.0",
     "react-native-timeago": "^0.5.0",
     "react-native-unimodules": "~0.12.0",
@@ -53,7 +53,7 @@
     "redux": "^4.0.5",
     "redux-devtools-extension": "^2.13.8",
     "redux-thunk": "^2.3.0",
-    "rn-fetch-blob": "^0.12.0"
+    "rn-fetch-blob": "0.11.2"
   },
   "devDependencies": {
     "@babel/core": "~7.9.0",
