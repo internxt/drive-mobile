@@ -17,67 +17,60 @@ interface AppMenuProps {
     layoutState?: any
 }
 
-function uploadFile(result: any, props: AppMenuProps) {
-    const [ isOpen, setIsOpen ] = useState(props.layoutState.showUploadModal)
+async function uploadFile(result: any, props: any) {
+    const userData = await getLyticsData()
 
-    useEffect(() => {
-        props.layoutState.showUploadModal ? setIsOpen(true) : null
+    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
 
-    }, [props.layoutState.showUploadModal])
+    try {
+        // Set name for pics/photos
+        if (!result.name) result.name = result.uri.split('/').pop();
+        result.type = 'application/octet-stream';
+        props.dispatch(fileActions.uploadFileStart(result.name));
+        const body = new FormData();
+        body.append('xfile', result, result.name);
 
-    const uploadFile = async (result: any, props: any) => {
-        const userData = await getLyticsData()
-    
-        analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-    
-        try {
-            // Set name for pics/photos
-            if (!result.name) result.name = result.uri.split('/').pop();
-            result.type = 'application/octet-stream';
-            props.dispatch(fileActions.uploadFileStart(result.name));
-            const body = new FormData();
-            body.append('xfile', result, result.name);
-    
-            const token = props.authenticationState.token;
-            const mnemonic = props.authenticationState.user.mnemonic;
-    
-            const headers = {
-                Authorization: `Bearer ${token}`,
-                'internxt-mnemonic': mnemonic,
-                'Content-type': 'multipart/form-data'
-            };
-            fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, {
-                method: 'POST',
-                headers,
-                body
-            }).then(async resultFetch => {
-                if (resultFetch.status === 401) {
-                    throw resultFetch;
-                }
-                const data = await resultFetch.text();
-                return { res: resultFetch, data };
-            }).then(resultFetch => {
-                if (resultFetch.res.status === 402) {
-                    props.dispatch(layoutActions.openRunOutStorageModal());
-                } else if (resultFetch.res.status === 201) {
-                    analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-                    props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
-                } else {
-                    Alert.alert('Error', 'Cannot upload file');
-                }
-            }).catch(errFetch => {
-                if (errFetch.status === 401) {
-                    props.dispatch(userActions.signout());
-                } else {
-                    Alert.alert('Error', 'Cannot upload file\n' + errFetch);
-                }
-            }).finally(() => {
-                props.dispatch(fileActions.uploadFileFinished());
-            });
-        } catch (error) {
-            analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+        const token = props.authenticationState.token;
+        const mnemonic = props.authenticationState.user.mnemonic;
+
+        const headers = {
+            Authorization: `Bearer ${token}`,
+            'internxt-mnemonic': mnemonic,
+            'Content-type': 'multipart/form-data'
+        };
+        fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, {
+            method: 'POST',
+            headers,
+            body
+        }).then(async resultFetch => {
+            if (resultFetch.status === 401) {
+                throw resultFetch;
+            }
+            var data = await resultFetch.text();
+            return { res: resultFetch, data };
+        }).then(resultFetch => {
+            if (resultFetch.res.status === 402) {
+                props.dispatch(layoutActions.openRunOutStorageModal());
+            } else if (resultFetch.res.status === 201) {
+                analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+                props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
+            } else {
+                Alert.alert('Error', 'Cannot upload file');
+            }
+        }).catch(errFetch => {
+            console.log(errFetch)
+            if (errFetch.status === 401) {
+                props.dispatch(userActions.signout());
+            } else {
+                Alert.alert('Error', 'Cannot upload file\n' + errFetch);
+            }
+        }).finally(() => {
             props.dispatch(fileActions.uploadFileFinished());
-        }
+        });
+    } catch (error) {
+        analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+        console.log('Error:', error);
+        props.dispatch(fileActions.uploadFileFinished());
     }
 }
 
