@@ -30,7 +30,7 @@ function Login(props: LoginProps) {
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
-      props.navigation.replace('FileExplorer', {
+      props.navigation.replace('Biometric', {
         folderId: rootFolderId
       })
     } else {
