@@ -29,9 +29,6 @@ export const layoutActions = {
   openShareModal,
   closeShareModal,
   
-  openOutOfSpaceModal,
-  closeOutOfSpaceModal,
-
   openUploadFileModal,
   closeUploadFileModal,
 };
@@ -145,18 +142,6 @@ function closeShareModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_SHARE_MODAL });
   };
-}
-
-function openOutOfSpaceModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_OUT_OF_SPACE_MODAL });
-  };
-}
-
-function closeOutOfSpaceModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_OUT_OF_SPACE_MODAL });
-  }
 }
 
 function openUploadFileModal() {

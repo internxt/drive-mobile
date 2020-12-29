@@ -88,15 +88,6 @@ function CreateFolder(props: any) {
     )
 }
 
-/* class CreateFolder2 extends Component {
-  componentWillReceiveProps(nextProps) {
-    // When folderContent is updated with new folder data, go back to Home
-    if (nextProps.filesState.folderContent.name === this.state.value) {
-      this.props.navigation.navigate("Home", { folderId: nextProps.filesState.folderContent.id });
-    }
-  }
-} */
-
 const styles = StyleSheet.create({
   container: {
     display: "flex",

@@ -57,7 +57,7 @@ function FileExplorer(props: any) {
 
     return <View style={styles.container}>
         <FileDetailsModal key={selectedKeyId} />
-        <SettingsModal />
+        <SettingsModal navigation={props.navigation} />
         <SortModal />
         <DeleteItemModal />
         <MoveFilesModal />
@@ -76,7 +76,7 @@ function FileExplorer(props: any) {
                     : 'All Files'}
             </Text>
 
-            <TouchableOpacity onPress={() => { props.dispatch(layoutActions.openOutOfSpaceModal()) }}>
+            <TouchableOpacity onPress={() => { props.navigation.replace('OutOfSpace') }}>
                 <Text>Show modal</Text>
             </TouchableOpacity>
 

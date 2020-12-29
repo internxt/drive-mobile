@@ -9,7 +9,6 @@ const initialState = {
   showMoveModal: false,
   showDeleteModal: false,
   showShareModal: false,
-  showOutOfSpaceModal: false,
   showUploadModal: false
 };
 
@@ -106,20 +105,7 @@ export function layoutReducer(state = initialState, action: any) {
         showShareModal: false
       }
     }
-
-    case layoutActionTypes.OPEN_OUT_OF_SPACE_MODAL: {
-      return {
-        ...state,
-        showOutOfSpaceModal: true
-      }
-    }
-    case layoutActionTypes.CLOSE_OUT_OF_SPACE_MODAL: {
-      return {
-        ...state,
-        showOutOfSpaceModal: false
-      }
-    }
-
+ 
     case layoutActionTypes.OPEN_UPLOAD_FILE_MODAL: {
       return {
         ...state,
