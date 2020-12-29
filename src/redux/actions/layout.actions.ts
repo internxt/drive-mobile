@@ -28,9 +28,9 @@ export const layoutActions = {
 
   openShareModal,
   closeShareModal,
-
+  
   openUploadFileModal,
-  closeUploadFileModal
+  closeUploadFileModal,
 };
 
 function openSearch() {

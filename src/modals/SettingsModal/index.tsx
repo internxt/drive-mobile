@@ -54,9 +54,10 @@ async function loadValues() {
 }
 
 interface SettingsModalProps {
-    authenticationState?: any
-    dispatch?: any
-    layoutState?: any
+    authenticationState?: any,
+    dispatch?: any,
+    layoutState?: any,
+    navigation?: any
 }
 
 function SettingsModal(props: SettingsModalProps) {
@@ -137,6 +138,15 @@ function SettingsModal(props: SettingsModalProps) {
             text="More info"
             onPress={() => Linking.openURL('https://internxt.com/drive')}
         />
+
+        <SettingsItem
+            text="Storage"
+            onPress={() => {
+                props.dispatch(layoutActions.closeSettings())
+                props.navigation.replace('Storage')
+            }}
+        />
+
         <SettingsItem
             text="Contact"
             onPress={() => {
@@ -148,6 +158,7 @@ function SettingsModal(props: SettingsModalProps) {
                 })
             }}
         />
+
         <SettingsItem
             text="Sign out"
             onPress={() => {
