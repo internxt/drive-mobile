@@ -154,7 +154,7 @@ function Storage(props: OutOfSpaceProps) {
                 </View>
             </View>
 
-            <View style={styles.cardsContainer}>
+{/*             <View style={styles.cardsContainer}>
                 <Text style={styles.title}>
                     Storage plans
                 </Text>
@@ -184,7 +184,7 @@ function Storage(props: OutOfSpaceProps) {
                 <TouchableOpacity>                
                     <Text style={[styles.footer, styles.blue]}>Cancel plan</Text>
                 </TouchableOpacity>
-            </View>
+            </View> */}
         </View>
     );
 }
@@ -192,7 +192,7 @@ function Storage(props: OutOfSpaceProps) {
 const styles = StyleSheet.create({
 
     container: {
-        justifyContent: 'space-around',
+        //justifyContent: 'space-around',
         height: '100%',
         backgroundColor: 'white'
     },
