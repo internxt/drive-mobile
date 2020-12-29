@@ -1,16 +1,13 @@
-import { authenticateAsync } from 'expo-local-authentication';
 import React, { useEffect } from 'react'
 import { useState } from "react";
 import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from "react-native";
 import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
 import { connect } from 'react-redux';
-import { decryptTextWithKey, deviceStorage } from '../../helpers';
+import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { normalize } from '../../helpers/normalize'
 import { userActions } from '../../redux/actions';
 import { validate2FA, apiLogin } from './access';
-import * as Linking from 'expo-linking';
-
 interface LoginProps {
   goToForm?: (screenName: string) => void
   authenticationState?: any
@@ -24,35 +21,17 @@ function Login(props: LoginProps) {
   const [password, setPassword] = useState('')
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [showTwoFactor, setShowTwoFactor] = useState(false)
-  const [secretKey, setSecretKey] = useState('')
-
-
-  const deepLink = async() => {
-    const url = await Linking.getInitialURL();
-    const res = url
-    if( url!= null) {
-      return res
-    }
-  }
-
-  deepLink().then((res) => {
-    //console.log('entro aqui') DEEPLINK
-  }).catch((err) =>{
-    console.log('error',err)
-
-  })
-
 
   useEffect(() => {
-    console.log('-------- Login AUTHENTICATION PROPS -------', props.authenticationState)
-    props.authenticationState.error ? Alert.alert('Your account is blocked', props.authenticationState.error) : null
-    
+    if (props.authenticationState.error) {
+      Alert.alert('Login error', props.authenticationState.error)
+    }
   }, [props.authenticationState])
 
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
-      props.navigation.replace('FileExplorer', {
+      props.navigation.replace('Biometric', {
         folderId: rootFolderId
       })
     } else {
@@ -140,20 +119,17 @@ function Login(props: LoginProps) {
               if (userLoginData.tfa && !twoFactorCode) {
                 setShowTwoFactor(true)
               } else {
-                console.log('----------- Login FIRST ELSE ------------')
                 props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
               }
             }).catch(err => {
-              console.log('---- CATCH', err.message)
               analytics.track('user-signin-attempted', {
                 status: 'error',
                 message: err.message
               }).catch(() => { })
 
               Alert.alert(err.message)
-      
+
             }).finally(() => {
-              console.log('-------- Login INSIDE FINALLY --------')
               setIsLoading(false)
             })
           }}>
@@ -162,7 +138,7 @@ function Login(props: LoginProps) {
         <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>Forgot your password?</Text>
       </View>
     </View>
-    <Text style={styles.versionLabel}>Internxt Drive v1.2.0 (1)</Text>
+    <Text style={styles.versionLabel}>Internxt Drive v1.2.1</Text>
   </KeyboardAvoidingView>
 }
 
@@ -234,10 +210,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2'
   },
   buttonOn: {
-    backgroundColor: '#4585f5',
+    backgroundColor: '#4585f5'
   },
   buttonOff: {
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#f2f2f2'
   },
   buttonOnLabel: {
     fontFamily: 'CerebriSans-Medium',

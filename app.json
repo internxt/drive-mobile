@@ -1,8 +1,11 @@
 {
+  "name": "drive-mobile",
+  "displayName": "drive-mobile",
   "expo": {
     "name": "drive-mobile",
     "slug": "drive-mobile",
     "version": "1.0.0",
+    "sdkVersion": "40.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {

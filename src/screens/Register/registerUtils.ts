@@ -2,18 +2,13 @@ import _ from 'lodash'
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 
-export function isStrongPassword(pwd: string) {
+export function isStrongPassword(pwd: string): boolean {
     return /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(pwd);
 }
 
-export function isNullOrEmpty(input: any) {
+export function isNullOrEmpty(input: string): boolean {
     return _.isEmpty(input)
 }
-
-export function registerService() {
-
-}
-
 interface RegisterParams {
     firstName: string
     lastName: string
@@ -21,7 +16,7 @@ interface RegisterParams {
     password: string
 }
 
-export async function getNewBits() {
+export async function getNewBits(): Promise<string> {
     return fetch(`${process.env.REACT_NATIVE_API_URL}/api/bits`)
         .then(res => res.json())
         .then(res => res.bits)
@@ -29,7 +24,7 @@ export async function getNewBits() {
         .catch(() => null)
 }
 
-export function IsJsonString(str: string) {
+export function IsJsonString(str: string): any {
     try {
         return JSON.parse(str);
     } catch (e) {
@@ -38,7 +33,7 @@ export function IsJsonString(str: string) {
 }
 
 
-export async function doRegister(params: RegisterParams) {
+export async function doRegister(params: RegisterParams): Promise<any> {
     const hashObj = passToHash({ password: params.password })
     const encPass = encryptText(hashObj.hash);
     const encSalt = encryptText(hashObj.salt);
@@ -73,7 +68,7 @@ export async function doRegister(params: RegisterParams) {
     })
 }
 
-export async function resendActivationEmail(email: string) {
+export async function resendActivationEmail(email: string): Promise<any> {
     return fetch(`${process.env.REACT_NATIVE_API_URL}/api/user/resend/${email.toLowerCase()}`)
         .then(async res => {
             if (res.status !== 200) {

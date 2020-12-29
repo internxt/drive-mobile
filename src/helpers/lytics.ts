@@ -5,6 +5,8 @@ export async function analyticsSetup() {
     const WRITEKEY = process.env.NODE_ENV !== 'production' ? process.env.REACT_NATIVE_SEGMENT_API_DEV : process.env.REACT_NATIVE_SEGMENT_API
 
     if (!WRITEKEY) {
+        // This console log is neccesary to show devs if they are missing an env. variable
+        // eslint-disable-next-line no-console
         console.warn('No WRITEKEY Key provided')
     }
     await analytics.setup(WRITEKEY, {

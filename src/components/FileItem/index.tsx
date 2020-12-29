@@ -11,7 +11,6 @@ import RNFetchBlob from 'rn-fetch-blob'
 import { deviceStorage, getLyticsData } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
 import { colors } from '../../redux/constants';
-import { reduce } from 'lodash';
 import analytics from '../../helpers/lytics';
 interface FileItemProps {
     isFolder: boolean
@@ -95,12 +94,9 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
                     platform: 'mobile'
                 })
             } catch {
-                console.log('Cannot track file-download-finished')
             }
 
         }).catch(async err => {
-            console.log('Error downloading file: ' + err.message)
-
             try {
                 const userData = await getLyticsData()
                 analytics.track('file-download-error', {
@@ -113,7 +109,6 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
                     msg: err && err.message
                 })
             } catch {
-                console.log('Cannot track file-download-error')
             }
 
         }).finally(() => {
@@ -212,8 +207,8 @@ function FileItem(props: FileItemProps) {
                     </TouchableWithoutFeedback>
                 </View>
             </View>
-
-            <View style={[styles.progressIndicator, { width: progressWidth }]}></View>
+            <View style={[styles.progressIndicator, { width: progressWidth }]}>
+            </View>
         </View>
     )
 }
@@ -226,11 +221,13 @@ const styles = StyleSheet.create({
     progressIndicator: {
         backgroundColor: '#87B7FF',
         position: 'absolute',
-        top: 0,
+        top: 70,
         left: 0,
+        right: 0,
         height: '100%',
-        width: 0,
-        opacity: 0.2
+        width: 60,
+        opacity: 0.6,
+        borderRadius: 1
     },
     container: {
         height: 80,

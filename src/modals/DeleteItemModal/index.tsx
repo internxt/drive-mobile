@@ -48,7 +48,6 @@ function DeleteItemModal(props: DeleteItemModalProps) {
 
             <View style={styles.button_container}>
                 <TouchableOpacity style={styles.button} onPress={() => {
-                    console.log('cancel')
                     setIsOpen(false)
                 }}>
                     <Text style={styles.text}>Cancel</Text>
@@ -91,7 +90,7 @@ const styles = StyleSheet.create({
 
     title: {
         fontSize: 27, 
-        fontFamily: 'CircularStd-Bold',
+        fontFamily: 'CelebriSans-Bold',
         color: 'black'
     },
 

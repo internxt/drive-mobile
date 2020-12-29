@@ -1,6 +1,5 @@
-import { isEmpty } from 'lodash';
-import React, { ReactElement, ReactNode, useEffect, useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Image, BackHandler, Alert } from "react-native";
+import React, { useState } from 'react'
+import { View, Text, KeyboardAvoidingView, StyleSheet, Image, Alert } from "react-native";
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from "react-redux";
 import { normalize } from '../../helpers';
@@ -136,9 +135,9 @@ function Register(props: any): any {
                 }}
               >
                 Internxt Drive uses your password to encrypt and decrypt your
-                files. Due to the secure nature of Internxt Drive, we don't
+                files. Due to the secure nature of Internxt Drive, we don&apos;t
                 know your password. That means that if you ever forget it,
-                your files are gone forever. With us, you're the only owner of
+                your files are gone forever. With us, you&apos;re the only owner of
                 your files. We strongly suggest you to:
                 </Text>
             </View>
@@ -448,10 +447,10 @@ const styles = StyleSheet.create({
     color: '#5c5c5c'
   },
   buttonRight: {
-    marginLeft: normalize(10),
+    marginLeft: normalize(10)
   },
   buttonLeft: {
-    marginRight: normalize(10),
+    marginRight: normalize(10)
   },
   redirectMessage: {
     fontFamily: 'CerebriSans-Medium',

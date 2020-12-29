@@ -2,7 +2,7 @@ import { userActionTypes } from '../constants';
 
 interface ReduxAction {
   type: string
-  payload: Object
+  payload: any
 }
 
 const initialState = {
