@@ -11,6 +11,7 @@ import { getHeaders } from '../../helpers/headers';
 import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import PlanCard from './PlanCard';
 import { LinearGradient } from 'expo-linear-gradient';
+import { storageService } from '../../redux/services';
 
 interface OutOfSpaceProps {
     filesState?: any
@@ -22,38 +23,17 @@ interface OutOfSpaceProps {
 
 function Storage(props: OutOfSpaceProps) {
 
-    const [ parentfolderid, setParentFolderId ] = useState('')
-    const [ usagevalues, setUsageValues ] = useState({ usage: 0, limit: 0 })
-
-    const plans = [
-        {
-            id: 1,
-            size: 2,
-            prices: {}
-        },
-        {
-            id: 2,
-            size: 20,
-            prices: {
-                'month': 9.95,
-                '6month': 9.45,
-                '12month': 8.95
-            }
-        },
-        {
-            id: 3,
-            size: 2000,
-            prices: {
-                'month': 49.95,
-                '6month': 49.45,
-                '12month': 48.95
-            }
-        }
-    ]
+    const [parentfolderid, setParentFolderId] = useState('')
+    const [usagevalues, setUsageValues] = useState({ usage: 0, limit: 0 })
+    const [usertoken, setUserToken] = useState(props.authenticationState.token)
+    const [isloading, setIsLoading] = useState(true)
+    const [products, setProducts] = useState(JSON)
+    const [plans, setPlans] = useState(JSON)
+    const [chosenproduct, setChosenProduct] = useState()
 
     const loadLimit = async () => {
         const xToken = await deviceStorage.getItem('xToken') || undefined
-    
+
         return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
             method: 'get',
             headers: getHeaders(xToken)
@@ -79,9 +59,9 @@ function Storage(props: OutOfSpaceProps) {
     }
 
     const loadValues = async () => {
-        const limit = await loadLimit() 
+        const limit = await loadLimit()
         const usage = await loadUsage()
-    
+
         const uuid = await getLyticsUuid()
         analytics.identify(uuid, {
             platform: 'mobile',
@@ -89,15 +69,66 @@ function Storage(props: OutOfSpaceProps) {
             plan: identifyPlanName(limit),
             userId: uuid
         }).catch(() => { })
-    
+
         return { usage, limit }
     }
+
+    const getProducts = async () => {
+        const products = await storageService.loadAvailableProducts(usertoken)
+        return products
+    }
+
+    const getPlans = async () => {
+        const plans = await storageService.loadAvailablePlans(usertoken, chosenproduct.id)
+        return plans
+    }
+
+    /* const handleStripePayment = () => {
+        const stripe = new stripeGlobal(process.env.NODE_ENV !== 'production' ? process.env.REACT_APP_STRIPE_TEST_PK : process.env.REACT_APP_STRIPE_PK);
+
+        const body = { plan: this.state.selectedPlanToBuy.id }
+
+        if (/^pk_test_/.exec(stripe._apiKey)) { body.test = true }
+
+        fetch('/api/stripe/session', {
+            method: 'POST',
+            headers: getHeaders(true, false),
+            body: JSON.stringify(body)
+        }).then(result => result.json()).then(result => {
+            if (result.error) {
+                throw Error(result.error);
+            }
+            analytics.track('user-enter-payments')
+            this.setState({ statusMessage: 'Redirecting to Stripe...' });
+            stripe.redirectToCheckout({ sessionId: result.id }).then(result => {
+                console.log(result);
+            }).catch(err => {
+                this.setState({ statusMessage: 'Failed to redirect to Stripe. Reason:' + err.message });
+            });
+        }).catch(err => {
+            console.error('Error starting Stripe session. Reason: %s', err);
+            this.setState({ statusMessage: 'Please contact us. Reason: ' + err.message });
+        });
+    } */
 
     useEffect(() => {
         loadValues().then(values => {
             setUsageValues(values)
         })
+        getProducts().then(res => {
+            setProducts(res)
+            setIsLoading(false)
+        })
     }, [])
+
+    useEffect(() => {
+        if (chosenproduct != undefined) {
+            getPlans().then(res => {
+                setPlans(res)
+                setIsLoading(false)
+            })
+        }
+    }, [chosenproduct])
 
     return (
         <View style={styles.container}>
@@ -108,13 +139,13 @@ function Storage(props: OutOfSpaceProps) {
                             props.navigation.replace('FileExplorer')
                         }}
                     >
-                        <Image style={styles.backIcon}  source={getIcon('back')} />
-                    </TouchableOpacity> 
+                        <Image style={styles.backIcon} source={getIcon('back')} />
+                    </TouchableOpacity>
                 </View>
 
                 <Text style={styles.backText}>Storage</Text>
 
-                <View style={{flex: 0.1}}></View>
+                <View style={{ flex: 0.1 }}></View>
             </View>
 
             <View style={styles.progressContainer}>
@@ -123,12 +154,12 @@ function Storage(props: OutOfSpaceProps) {
 
                     <View style={styles.usedSapceContainer}>
                         <Text style={styles.usedSpace}>Used </Text>
-                        <Text style={[styles.usedSpace, styles.bold]}>{usagevalues.usage} </Text>
+                        <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usagevalues.usage)} </Text>
                         <Text style={styles.usedSpace}>of </Text>
-                        <Text style={[styles.usedSpace, styles.bold]}>{usagevalues.limit}</Text>
+                        <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usagevalues.limit)}</Text>
                     </View>
                 </View>
-               
+
                 <ProgressBar
                     styleBar={{}}
                     styleProgress={{ height: 6 }}
@@ -139,7 +170,7 @@ function Storage(props: OutOfSpaceProps) {
                 <View style={styles.secondRow}>
                     <View style={styles.legend}>
                         <LinearGradient
-                            colors={['#00b1ff', '#096dff']}            
+                            colors={['#00b1ff', '#096dff']}
                             start={[0, 0.18]}
                             end={[0.18, 1]}
 
@@ -149,42 +180,82 @@ function Storage(props: OutOfSpaceProps) {
 
                     <View style={styles.legend}>
                         <View style={styles.circle}></View>
-                        <Text style={styles.secondRowText}>Unused space</Text>   
+                        <Text style={styles.secondRowText}>Unused space</Text>
                     </View>
                 </View>
             </View>
 
-{/*             <View style={styles.cardsContainer}>
-                <Text style={styles.title}>
-                    Storage plans
-                </Text>
+            {
+                !isloading ?
+                    <View style={styles.cardsContainer}>
+                        {
+                            !chosenproduct ?
+                                <View>
+                                    <Text style={styles.title}>
+                                        Storage plans
+                                    </Text>
 
-                <TouchableOpacity onPress={() => {
-                    
-                }}>
-                    <PlanCard plan={plans[0]} />
-                </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => {
+                                        setIsLoading(true)
+                                        setChosenProduct(products[0])
+                                    }}>
+                                        <PlanCard size={products[0].metadata.simple_name} price={products[0].metadata.price_eur} />
+                                    </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => {
-                    
-                }}>
-                    <PlanCard plan={plans[1]}  />
-                </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => {
+                                        setIsLoading(true)
+                                        setChosenProduct(products[1])
+                                    }}>
+                                        <PlanCard size={products[1].metadata.simple_name} price={products[1].metadata.price_eur} />
+                                    </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => {
-                    
-                }}>
-                    <PlanCard plan={plans[2]} />
+                                    <TouchableOpacity onPress={() => {
+                                        setIsLoading(true)
+                                        setChosenProduct(products[2])
+                                    }}>
+                                        <PlanCard size={products[2].metadata.simple_name} price={products[2].metadata.price_eur} />
+                                    </TouchableOpacity>
+                                </View>
+                                :
+                                <View>
+                                    <View style={styles.titleContainer}>
+                                        <Text style={styles.title}>
+                                            Payment length
+                                        </Text>
+
+                                        <Text style={styles.titlePlan}>{chosenproduct.name}</Text>
+                                    </View>
+
+                                    <TouchableOpacity onPress={() => {
+
+                                    }}>
+                                        <PlanCard chosen={true} price={plans[0].price.toString()} plan={plans[0]} />
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity onPress={() => {
+
+                                    }}>
+                                        <PlanCard chosen={true} price={plans[1].price.toString()} plan={plans[1]} />
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity onPress={() => {
+
+                                    }}>
+                                        <PlanCard chosen={true} price={plans[2].price.toString()} plan={plans[2]} />
+                                    </TouchableOpacity>
+                                </View>
+                        }
+                    </View>
+                    :
+                    null
+            }
+            <View>
+                <Text style={styles.footer}>You are subscribed to the { }1GB plan</Text>
+
+                <TouchableOpacity>
+                    <Text style={[styles.footer, styles.blue]}>Permanently delete your account</Text>
                 </TouchableOpacity>
             </View>
-
-            <View>
-                <Text style={styles.footer}>You are subscribed to the {}1GB plan</Text>
-
-                <TouchableOpacity>                
-                    <Text style={[styles.footer, styles.blue]}>Cancel plan</Text>
-                </TouchableOpacity>
-            </View> */}
         </View>
     );
 }
@@ -192,7 +263,7 @@ function Storage(props: OutOfSpaceProps) {
 const styles = StyleSheet.create({
 
     container: {
-        //justifyContent: 'space-around',
+        justifyContent: 'space-around',
         height: '100%',
         backgroundColor: 'white'
     },
@@ -245,12 +316,12 @@ const styles = StyleSheet.create({
     },
 
     usedSapceContainer: {
-        flexDirection: 'row', 
+        flexDirection: 'row',
         flex: 0.5,
         justifyContent: 'flex-end',
         paddingRight: 20
     },
-    
+
     usedSpace: {
         fontFamily: 'CerebriSans-Regular',
         color: 'black',
@@ -286,12 +357,26 @@ const styles = StyleSheet.create({
         color: '#7e848c'
     },
 
+    titleContainer: {
+        flexDirection: 'row'
+    },
+
     title: {
         fontFamily: 'CerebriSans-Bold',
         fontSize: 18,
         letterSpacing: 0,
         color: 'black',
-        marginBottom: 30
+        marginBottom: 30,
+        marginRight: 10
+    },
+
+    titlePlan: {
+        fontFamily: 'CerebriSans-Medium',
+        fontSize: 18,
+        height: 32,
+        paddingLeft: 10,
+        borderLeftWidth: 1,
+        borderColor: '#eaeced'
     },
 
     cardsContainer: {
@@ -314,9 +399,9 @@ const styles = StyleSheet.create({
     },
 
     button: {
-        height: 50, 
+        height: 50,
         width: wp('42'),
-        borderRadius: 4, 
+        borderRadius: 4,
         borderWidth: 2,
         backgroundColor: '#fff',
         borderColor: 'rgba(151, 151, 151, 0.2)',
@@ -334,7 +419,7 @@ const styles = StyleSheet.create({
         letterSpacing: -0.2,
         color: '#5c6066'
     },
-    
+
     white: {
         color: 'white'
     }

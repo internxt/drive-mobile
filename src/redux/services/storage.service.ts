@@ -8,28 +8,18 @@ export const storageService = {
 const STRIPE_DEBUG = false;
 const apiUrl = 'https://drive.internxt.com';
 
-function loadAvailableProducts(userToken: string) {
-    return new Promise((resolve, reject) => {
-        fetch(`${apiUrl}/api/stripe/products${(STRIPE_DEBUG ? '?test=true' : '')}`, {
-            headers: getHeaders(userToken)
-        })
-            .then(res => res.json())
-            .then(resolve)
-            .catch(reject);
-    });
+function loadAvailableProducts(userToken: string): Promise<JSON> {
+    return fetch(`${apiUrl}/api/stripe/products${(STRIPE_DEBUG ? '?test=true' : '')}`, {
+        headers: getHeaders(userToken)
+    }).then(res => res.json())
 }
 
-function loadAvailablePlans(userToken: string, productId: string) {
+function loadAvailablePlans(userToken: string, productId: string): Promise<JSON> {
     const body = { product: productId };
-
-    return new Promise((resolve, reject) => {
-        fetch(`${apiUrl}/api/stripe/plans${(STRIPE_DEBUG ? '?test=true' : '')}`, {
-            method: 'post',
-            headers: getHeaders(userToken),
-            body: JSON.stringify(body)
-        })
-            .then(res => res.json())
-            .then(resolve)
-            .catch(reject);
-    });
+    return fetch(`${apiUrl}/api/stripe/plans${(STRIPE_DEBUG ? '?test=true' : '')}`, {
+        method: 'post',
+        headers: getHeaders(userToken),
+        body: JSON.stringify(body)
+    })
+        .then(res => res.json())
 }

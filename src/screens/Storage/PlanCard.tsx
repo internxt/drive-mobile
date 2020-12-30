@@ -1,31 +1,15 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 export interface PlanCardProps {
-    plan: Record<string, unknown>
+    size?: string
+    price?: string
+    chosen?: boolean
+    plan?: Record<string, unknown>
 }
 
 const PlanCard = (props: PlanCardProps) => {
-
-    const formatSize = (gb: number) => {
-        const sizes = [ 'GB', 'TB']
-
-        if (gb === 0) return 'N/A'
-
-        const i = Math.floor( Math.log(gb) / Math.log(1000) )
-
-        if (i === 0) return gb + ' ' + sizes[i]
-
-        return ( gb / Math.pow(1000, i) ).toFixed(0) + ' ' + sizes[i]
-    }
-
-    const isEmpty = (object: Record<string, unknown>) => { for(let i in object) { return false; } return true; }
-
-    useEffect(() => {
-        console.log(props.plan)
-    }, [])
 
     return ( 
         <View style={styles.planContainer}>
@@ -36,24 +20,40 @@ const PlanCard = (props: PlanCardProps) => {
                 style={{ borderRadius: 4 }}
             >
                 <View style={styles.circleGradient}>
-                    <Text style={styles.text}>
-                        {formatSize(props.plan.size)}
-                    </Text>
+                    {
+                        !props.chosen ?
+                            <Text style={styles.text}>
+                                {props.size}
+                            </Text>
+                        :
+                            <Text style={styles.text}>
+                                €{(parseInt(props.price) / 100).toFixed(2)}
+                            </Text>
+                    }
                 </View>
             </LinearGradient>
 
             <View style={styles.priceContainer}>
                 {
-                    isEmpty(props.plan.prices) ? 
-                        <Text style={styles.text}>
-                            Free
-                        </Text>
+                    !props.chosen ?
+                        <View style={styles.priceBackground}>
+                            <Text style={styles.price}>€{props.price}</Text>
+                            
+                            <Text style={[styles.price, styles.grey]}>/month</Text>
+                        </View>
                     :
-                    <View style={styles.priceBackground}>
-                        <Text style={styles.price}>€{props.plan.prices['month']}</Text>
-                        
-                        <Text style={[styles.price, styles.grey]}>/month</Text>
-                    </View>
+                        <View style={styles.priceBackground}>
+                            <Text style={styles.price}>{props.plan.name === 'Monthly' ? 'Pay per ' : 'Prepay '}</Text>
+                            
+                            <Text style={[styles.price, styles.grey]}>
+                                {
+                                    props.plan.name === 'Annually' ? 
+                                        '12 months' 
+                                    : 
+                                        <Text>{props.plan.interval_count === 1 ? 'month' : `${props.plan.interval_count} months`}</Text>
+                                }
+                            </Text>
+                        </View>
                 }
             </View>
         </View>
