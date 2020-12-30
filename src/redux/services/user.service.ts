@@ -1,4 +1,5 @@
 import { decryptText, decryptTextWithKey, deviceStorage, encryptText, passToHash } from "../../helpers";
+1|import { getHeaders } from "../../helpers/headers";
 import analytics, { getLyticsData } from "../../helpers/lytics";
 
 export const userService = {
@@ -31,6 +32,11 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
                 const user = body.user;
                 user.mnemonic = user.mnemonic ? decryptTextWithKey(user.mnemonic, password) : null
 
+                if (!body.root_folder_id) {
+                    const initializeData = await initializeUser(email, user.mnemonic, body.token)
+                    user.root_folder_id = initializeData.user.root_folder_id
+                }
+
                 // Store login data
                 await deviceStorage.saveItem('xToken', body.token);
                 await deviceStorage.saveItem('xUser', JSON.stringify(user));
@@ -43,6 +49,22 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
             reject(err);
         });
     });
+}
+
+async function initializeUser(email: string, mnemonic: string, token: string) {
+    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/initialize`, {
+        method: 'POST',
+        headers: getHeaders(token, mnemonic),
+        body: JSON.stringify({
+            email: email,
+            mnemonic: mnemonic
+        })
+    }).then(res => {
+        if (res.status !== 200) {
+            throw Error(res.statusText)
+        }
+        return res.json()
+    })
 }
 
 async function signout() {
