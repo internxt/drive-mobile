@@ -15,6 +15,7 @@ interface AppMenuProps {
     filesState?: any
     dispatch?: any,
     layoutState?: any
+    authenticationState?: any
 }
 
 function AppMenu(props: AppMenuProps) {
