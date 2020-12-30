@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProgressBar(props: any) {
     const { totalValue, styleProgress } = props;
-    let usedValue = props.styleBar;
+    let usedValue = props.usedValue;
     if (usedValue > totalValue) { usedValue = totalValue; }
 
     const usedValueStyle = {
