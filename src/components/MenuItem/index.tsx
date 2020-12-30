@@ -15,7 +15,7 @@ function MenuItem(props: MenuItemProps) {
   return <TouchableHighlight
     underlayColor="#fff"
     onPress={props.onClickHandler}
-    style={[styles.button, props.style ? {...props.style} : {}]}>
+    style={[styles.button, props.style ? { ...props.style } : {}]}>
     <Image
       style={styles.icon}
       source={imageSource} />

@@ -16,12 +16,12 @@ export interface ShareFilesModalProps {
 }
 
 function ShareFilesModal(props: ShareFilesModalProps) {
-    const [ isOpen, setIsOpen ] = useState(props.layoutState.showShareModal)
-    const [ selectedfile, setSelectedFile ] = useState()
-    const [ filename, setFileName ] = useState('')
-    const [ link, setLink ] = useState('')
-    const [ isloading, setIsLoading ] = useState(true)
-    const [ inputvalue, setInputValue ] = useState('1')
+    const [isOpen, setIsOpen] = useState(props.layoutState.showShareModal)
+    const [selectedfile, setSelectedFile] = useState()
+    const [filename, setFileName] = useState('')
+    const [link, setLink] = useState('')
+    const [isloading, setIsLoading] = useState(true)
+    const [inputvalue, setInputValue] = useState('1')
 
     const handleInputChange = (e: string) => {
         setInputValue(e.replace(/[^0-9]/g, ''))
@@ -29,8 +29,8 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 
     useEffect(() => {
         props.layoutState.showShareModal === true ? setIsOpen(true) : null
-        
-        if ( props.layoutState.showShareModal === true && props.filesState.selectedFile ) {
+
+        if (props.layoutState.showShareModal === true && props.filesState.selectedFile) {
             setSelectedFile(props.filesState.selectedFile)
             setFileName(props.filesState.selectedFile.name)
             getLink(selectedfile, parseInt(inputvalue))
@@ -42,7 +42,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
         const delaySearch = setTimeout(() => {
             getLink(selectedfile, parseInt(inputvalue)).finally(() => setIsLoading(false))
         }, 1000);
-7
+        7
         return () => { clearTimeout(delaySearch); }
     }, [inputvalue])
 
@@ -66,17 +66,17 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 
             // Generate token
             const res = await fetch(`${(process && process.env && process.env.REACT_APP_API_URL) || 'https://drive.internxt.com'}/api/storage/share/file/${fileId}`,
-            {
-                method: 'POST',
-                headers: getHeaders(
-                    props.authenticationState.token,
-                    props.authenticationState.user.mnemonic
-                ),
-                body: JSON.stringify({
-                    'isFolder': 'false',
-                    'views': inputvalue === '' || inputvalue === '0' || inputvalue === null ? 1 : inputvalue
-                })
-            }
+                {
+                    method: 'POST',
+                    headers: getHeaders(
+                        props.authenticationState.token,
+                        props.authenticationState.user.mnemonic
+                    ),
+                    body: JSON.stringify({
+                        'isFolder': 'false',
+                        'views': inputvalue === '' || inputvalue === '0' || inputvalue === null ? 1 : inputvalue
+                    })
+                }
             );
             const data = await res.json();
             if (res.status != 200) {
@@ -90,15 +90,15 @@ function ShareFilesModal(props: ShareFilesModalProps) {
     };
 
     return (
-        <Modal 
+        <Modal
             isOpen={isOpen}
             swipeArea={2}
             onClosed={() => {
                 setInputValue('1')
                 props.dispatch(layoutActions.closeShareModal())
                 setIsOpen(false)
-            }} 
-            position='bottom' 
+            }}
+            position='bottom'
             style={styles.modal_container}
         >
             <Text style={styles.title}>
@@ -111,7 +111,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
                 <Text style={styles.subtitle}>Share your Drive file with this private link</Text>
 
                 <View style={styles.input_container}>
-                    <Text style={[styles.subtitle, {width: '70%'}]}>or enter the number of times you would like the link to be valid: </Text>
+                    <Text style={[styles.subtitle, { width: '70%' }]}>or enter the number of times you would like the link to be valid: </Text>
                     <TextInput
                         style={styles.input}
                         keyboardType='numeric'
@@ -127,11 +127,11 @@ function ShareFilesModal(props: ShareFilesModalProps) {
                 <Text style={styles.link}>
                     {!isloading ? link : 'Loading link...'}
                 </Text>
-                
+
                 <View style={styles.button_container}>
                     <TouchableOpacity style={styles.button}
                         onPress={() => {
-                            shareFile(selectedfile)    
+                            shareFile(selectedfile)
                         }}
                         disabled={isloading}
                     >
@@ -150,17 +150,17 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        fontSize: 18, 
+        fontSize: 18,
         color: 'black',
         fontFamily: 'CircularStd-Bold',
         marginHorizontal: wp('6')
     },
 
     subtitle: {
-        fontSize: 16, 
+        fontSize: 16,
         letterSpacing: 0.5,
         lineHeight: 25,
-        color: '#737880', 
+        color: '#737880',
         marginLeft: wp('6')
     },
 
@@ -171,13 +171,13 @@ const styles = StyleSheet.create({
 
     input: {
         width: '17%',
-        height: 37,  
+        height: 37,
         backgroundColor: '#f2f2f2',
         fontSize: 12,
-        color: '#737880', 
+        color: '#737880',
         paddingLeft: 10
     },
-    
+
     share_container: {
         flexDirection: 'row',
         borderColor: 'rgba(151, 151, 151, 0.2)',
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
         marginHorizontal: wp('2'),
         color: '#737880',
         height: 45
-    }, 
+    },
 
     button_container: {
         flex: 0.2,
@@ -202,21 +202,21 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(151, 151, 151, 0.2)',
         padding: 20
     },
-    
+
     button: {
         justifyContent: 'center',
         alignItems: 'center'
     },
 
     button_text: {
-        fontSize: 18, 
-        color: '#4585f5',     
+        fontSize: 18,
+        color: '#4585f5',
         fontFamily: 'CerebriSans-Bold'
     },
 
     button_text_loading: {
-        fontSize: 18, 
-        color: 'rgba(69, 133, 245, 0.7)',     
+        fontSize: 18,
+        color: 'rgba(69, 133, 245, 0.7)',
         fontFamily: 'CircularStd-Bold'
     }
 })

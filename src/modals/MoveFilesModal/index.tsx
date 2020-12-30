@@ -17,11 +17,11 @@ interface MoveFilesProps {
 }
 
 function MoveFilesModal(props: MoveFilesProps) {
-    const [ isOpen, setIsOpen ] = useState(props.layoutState.showMoveModal)
-    const [ currentfolderid, setCurrentFolderId ] = useState('')
-    const [ parentfolderid, setParentFolderId ] = useState('')
-    const [ firstfolder, setFirstFolder ] = useState('')
-    const [ selectedfile, setSelectedFile ] = useState(0)
+    const [isOpen, setIsOpen] = useState(props.layoutState.showMoveModal)
+    const [currentfolderid, setCurrentFolderId] = useState('')
+    const [parentfolderid, setParentFolderId] = useState('')
+    const [firstfolder, setFirstFolder] = useState('')
+    const [selectedfile, setSelectedFile] = useState(0)
 
     const { folderContent } = props.filesState
     const folderList: any[] = folderContent && folderContent.children || [];
@@ -37,7 +37,7 @@ function MoveFilesModal(props: MoveFilesProps) {
     }, [props.layoutState.showMoveModal])
 
     useEffect(() => {
-        if( props.filesState.folderContent) {
+        if (props.filesState.folderContent) {
             setCurrentFolderId(props.filesState.folderContent.currentFolder)
             setParentFolderId(props.filesState.folderContent.parentId)
         }
@@ -64,8 +64,8 @@ function MoveFilesModal(props: MoveFilesProps) {
             swipeArea={2}
             onClosed={() => {
                 props.dispatch(layoutActions.closeMoveFilesModal())
-            }} 
-            position='center' 
+            }}
+            position='center'
             style={styles.container}
         >
             <View style={styles.breadcrumbs}>
@@ -76,17 +76,17 @@ function MoveFilesModal(props: MoveFilesProps) {
                     onPress={() => {
                         props.dispatch(fileActions.getFolderContent(parentfolderid))
                     }}>
-                        <Image style={styles.backIcon} source={getIcon('back')} />
+                    <Image style={styles.backIcon} source={getIcon('back')} />
                 </TouchableOpacity>
             </View>
 
             <Separator />
-            
+
             <View style={styles.folder_list}>
                 <FlatList
                     data={folderList}
                     renderItem={folder => (
-                        <Folder 
+                        <Folder
                             isFolder={true}
                             key={folder.item.id}
                             item={folder.item}
@@ -95,7 +95,7 @@ function MoveFilesModal(props: MoveFilesProps) {
                     keyExtractor={folder => folder.id.toString()}
                 />
             </View>
-            
+
             <View style={styles.button_container}>
                 <TouchableOpacity style={styles.button}
                     onPress={() => {
@@ -166,11 +166,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-evenly',
         alignItems: 'center'
-    }, 
+    },
     button: {
-        height: 50, 
+        height: 50,
         width: wp('40'),
-        borderRadius: 8, 
+        borderRadius: 8,
         borderWidth: 2,
         backgroundColor: '#fff',
         borderColor: 'rgba(151, 151, 151, 0.2)',
@@ -181,8 +181,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#4585f5'
     },
     text: {
-        color: '#5c6066', 
-        fontFamily: 'CerebriSans-Bold', 
+        color: '#5c6066',
+        fontFamily: 'CerebriSans-Bold',
         fontSize: 16
     },
     white: {

@@ -23,8 +23,8 @@ interface FileDetailsProps {
 
 function FileDetailsModal(props: FileDetailsProps) {
     const [inputFileName, setInputFileName] = useState('')
-    const [ originalfilename, setOriginalFileName ] = useState('')
-    const [ newfilename, setNewFileName ] = useState('')
+    const [originalfilename, setOriginalFileName] = useState('')
+    const [newfilename, setNewFileName] = useState('')
 
     const [selectedColor, setSelectedColor] = useState('')
     const [selectedIcon, setSelectedIcon] = useState(0)
@@ -37,7 +37,7 @@ function FileDetailsModal(props: FileDetailsProps) {
     const folder = isFolder && file
 
     useEffect(() => {
-        if ( props.layoutState.showItemModal === true ) {
+        if (props.layoutState.showItemModal === true) {
             setOriginalFileName(file.name)
             setNewFileName(file.name)
         }
@@ -174,8 +174,8 @@ function FileDetailsModal(props: FileDetailsProps) {
                             );
                         })}
                     </View>
-                </Modal> 
-            : 
+                </Modal>
+                :
                 <Modal
                     position={'bottom'}
                     swipeArea={20}

@@ -26,7 +26,9 @@ module.exports = {
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
     'camelcase': ['warn', { 'properties': 'always' }],
-    'no-multiple-empty-lines': ['error', { 'max': 1, 'maxEOF': 0 }]
+    'no-multiple-empty-lines': ['error', { 'max': 1, 'maxEOF': 0 }],
+    'object-curly-spacing': ['error', 'always'],
+    'array-bracket-spacing': ['error', 'never']
   },
   'settings': {
     'react': {
