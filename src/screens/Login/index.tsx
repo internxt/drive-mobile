@@ -31,7 +31,7 @@ function Login(props: LoginProps) {
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
-      props.navigation.replace('Biometric', {
+      props.navigation.replace('FileExplorer', {
         folderId: rootFolderId
       })
     } else {
@@ -75,6 +75,7 @@ function Login(props: LoginProps) {
           <TextInput
             style={styles.input}
             value={email}
+            autoCapitalize={'none'}
             onChangeText={value => setEmail(value)}
             placeholder="Email address"
             placeholderTextColor="#666"

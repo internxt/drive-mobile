@@ -29,8 +29,7 @@ function Register(props: any): any {
     return <Intro onFinish={() => setShowIntro(false)} />;
   }
 
-  if (registerStep === 1) {
-
+  if (registerStep === 1) {  
     const isValidStep = isValidFirstName && isValidLastName && isValidEmail;
 
     return (

@@ -29,18 +29,22 @@ function StorageWebView(props: OutOfSpaceProps) {
     }, [])
 
     const getLink = () => {
-        const testBody = { plan: STRIPE.PLAN_NAME, test: true };
-        const body = { plan: STRIPE.PLAN_NAME };
+        const body = {
+            plan: STRIPE.PLAN_NAME,
+            test: process.env.NODE_ENV === 'development',
+            isMobile: true
+         };
 
         fetch(`${process.env.REACT_NATIVE_API_URL}/api/stripe/session${(process.env.NODE_ENV === 'development' ? '?test=true' : '')}`, {
             method: 'POST',
             headers: getHeaders(user.token),
-            body: JSON.stringify(testBody)
+            body: JSON.stringify(body)
         }).then(result => result.json()).then(result => {
             if (result.error) {
                 throw Error(result.error);
             }
             const link = `${process.env.REACT_NATIVE_API_URL}/checkout/${result.id}`
+            Linking.openURL(link)
             setIsLoading(false)
             setUri(link)
 
@@ -61,9 +65,9 @@ function StorageWebView(props: OutOfSpaceProps) {
     }
     return (
         <View>
-            <WebView 
+            {/* <WebView 
                 source={{ uri: uri }}
-            />
+            /> */}
         </View>
     )
 

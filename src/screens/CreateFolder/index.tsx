@@ -58,7 +58,7 @@ function CreateFolder(props: any) {
     }
 
     return (
-        <KeyboardAvoidingView style={styles.container} enabled>
+        <KeyboardAvoidingView behavior="padding" style={styles.container} enabled>
             <View style={styles.actionsWrapper}>
                 <View>
                     <MenuItem name="close" onClickHandler={ () => onCancel() } />
