@@ -27,8 +27,9 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'warn',
     'camelcase': ['warn', { 'properties': 'always' }],
     'no-multiple-empty-lines': ['error', { 'max': 1, 'maxEOF': 0 }],
-    'object-curly-spacing': ['error', 'always'],
-    'array-bracket-spacing': ['error', 'never']
+    'array-bracket-spacing': ['error', 'never'],
+    'react-native/no-unused-styles': 'error',
+    "react-native/no-inline-styles": 'warn'
   },
   'settings': {
     'react': {

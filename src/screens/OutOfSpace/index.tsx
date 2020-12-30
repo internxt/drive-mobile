@@ -16,7 +16,7 @@ function OutOfSpace(props: OutOfSpaceProps) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.title_container}>
+            <View style={styles.titleContainer}>
                 <Text style={styles.title}>
                     Run out of space
                 </Text>
@@ -32,7 +32,7 @@ function OutOfSpace(props: OutOfSpaceProps) {
                         props.navigation.replace('FileExplorer')
                     }}
                 >
-                    <Text style={styles.button_text}>Close</Text>
+                    <Text style={styles.buttonText}>Close</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.button, styles.blue]}
@@ -40,7 +40,7 @@ function OutOfSpace(props: OutOfSpaceProps) {
                         props.navigation.replace('Storage')
                     }}
                 >
-                    <Text style={[styles.button_text, styles.white]}>Upgrade</Text>
+                    <Text style={[styles.buttonText, styles.white]}>Upgrade</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white'
     },
 
-    title_container: {
+    titleContainer: {
         alignSelf: 'flex-start',
         marginHorizontal: wp('6'),
         marginVertical: wp('15')
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
         borderWidth: 0
     },
 
-    button_text: {
+    buttonText: {
         fontFamily: 'CerebriSans-Bold',
         fontSize: 16,
         letterSpacing: -0.2,

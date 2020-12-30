@@ -253,12 +253,6 @@ const styles = StyleSheet.create({
         letterSpacing: -0.1,
         color: '#000000'
     },
-    fileUpdated: {
-        fontFamily: 'CircularStd-Book',
-        fontSize: 13,
-        color: '#2a5fc9',
-        marginTop: 2
-    },
     buttonDetails: {
         borderRadius: 30,
         width: 51,

@@ -179,12 +179,6 @@ const styles = StyleSheet.create({
     marginTop: normalize(64),
     marginLeft: normalize(7)
   },
-  subtitle: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(22),
-    color: '#fff',
-    opacity: 0.76
-  },
   buttonWrapper: {
     display: 'flex',
     flexDirection: 'row',
@@ -207,9 +201,6 @@ const styles = StyleSheet.create({
   buttonBlock: {
     width: '100%'
   },
-  buttonDisabled: {
-    backgroundColor: '#f2f2f2'
-  },
   buttonOn: {
     backgroundColor: '#4585f5'
   },
@@ -227,13 +218,6 @@ const styles = StyleSheet.create({
     fontSize: normalize(15),
     textAlign: 'center',
     color: '#5c5c5c'
-  },
-  redirectMessage: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    letterSpacing: 0.3,
-    color: '#fff',
-    opacity: 0.6
   },
   input: {
     fontFamily: 'CerebriSans-Medium',

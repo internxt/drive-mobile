@@ -152,12 +152,6 @@ const styles = StyleSheet.create({
         width: 10,
         marginRight: 5
     },
-    backLabel: {
-        fontFamily: 'CircularStd-Medium',
-        fontSize: 19,
-        letterSpacing: -0.2,
-        color: '#000000'
-    },
     folder_list: {
         height: '75%'
     },

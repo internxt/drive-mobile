@@ -363,37 +363,6 @@ const styles = StyleSheet.create({
         marginLeft: 20,
         marginBottom: 10,
         color: '#7e848c'
-    },
-
-    buttons_container: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly'
-    },
-
-    button: {
-        height: 50,
-        width: wp('42'),
-        borderRadius: 4,
-        borderWidth: 2,
-        backgroundColor: '#fff',
-        borderColor: 'rgba(151, 151, 151, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-
-    blue: {
-        color: '#4585f5'
-    },
-
-    button_text: {
-        fontFamily: 'CerebriSans-Bold',
-        fontSize: 16,
-        letterSpacing: -0.2,
-        color: '#5c6066'
-    },
-
-    white: {
-        color: 'white'
     }
 })
 

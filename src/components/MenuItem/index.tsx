@@ -27,11 +27,6 @@ const mapStateToProps = (state: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    marginRight: 10
-  },
   button: {
     display: 'flex',
     alignItems: 'center',

@@ -409,12 +409,6 @@ const styles = StyleSheet.create({
     marginTop: normalize(12),
     marginLeft: normalize(3)
   },
-  subtitle: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(22),
-    color: '#fff',
-    opacity: 0.76
-  },
   buttonWrapper: {
     display: 'flex',
     flexDirection: 'row',
@@ -467,13 +461,6 @@ const styles = StyleSheet.create({
   buttonLeft: {
     marginRight: normalize(10)
   },
-  redirectMessage: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    letterSpacing: 0.3,
-    color: '#fff',
-    opacity: 0.6
-  },
   input: {
     fontFamily: 'CerebriSans-Medium',
     letterSpacing: -0.2,
@@ -484,9 +471,6 @@ const styles = StyleSheet.create({
   },
   showInputFieldsWrapper: {
     justifyContent: 'center'
-  },
-  hideInputFieldWrapper: {
-    display: 'none'
   },
   inputWrapper: {
     height: normalize(55),
