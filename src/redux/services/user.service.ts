@@ -1,5 +1,5 @@
 import { decryptText, decryptTextWithKey, deviceStorage, encryptText, passToHash } from "../../helpers";
-1|import { getHeaders } from "../../helpers/headers";
+import { getHeaders } from "../../helpers/headers";
 import analytics, { getLyticsData } from "../../helpers/lytics";
 
 export const userService = {
