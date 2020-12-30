@@ -256,6 +256,17 @@ function Register(props: any): any {
                 style={[styles.button, styles.buttonOn, styles.buttonRight]}
                 underlayColor="#4585f5"
                 onPress={() => {
+                  if (!isValidPassword) {
+                    Alert.alert(
+                      '',
+                      'Please make sure your password contains at least six characters, a number, and a letter'
+                    );
+                    return
+                  }
+                  if (password !== confirmPassword) {
+                    Alert.alert('', 'Please make sure your passwords match');
+                    return
+                  }
                   if (registerButtonClicked || isLoading) {
                     return;
                   }
