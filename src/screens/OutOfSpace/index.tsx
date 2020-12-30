@@ -16,7 +16,7 @@ function OutOfSpace(props: OutOfSpaceProps) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.title_container}>
+            <View style={styles.titleContainer}>
                 <Text style={styles.title}>
                     Run out of space
                 </Text>
@@ -32,15 +32,7 @@ function OutOfSpace(props: OutOfSpaceProps) {
                         props.navigation.replace('FileExplorer')
                     }}
                 >
-                    <Text style={styles.button_text}>Close</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.button, styles.blue]}
-                    onPress={() => {
-                        props.navigation.replace('Storage')
-                    }}
-                >
-                    <Text style={[styles.button_text, styles.white]}>Upgrade</Text>
+                    <Text style={styles.buttonText}>Close</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -55,7 +47,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white'
     },
 
-    title_container: {
+    titleContainer: {
         alignSelf: 'flex-start',
         marginHorizontal: wp('6'),
         marginVertical: wp('15')
@@ -83,9 +75,9 @@ const styles = StyleSheet.create({
     },
 
     button: {
-        height: 50, 
+        height: 50,
         width: wp('42'),
-        borderRadius: 4, 
+        borderRadius: 4,
         borderWidth: 2,
         backgroundColor: '#fff',
         borderColor: 'rgba(151, 151, 151, 0.2)',
@@ -93,20 +85,11 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
 
-    blue: {
-        backgroundColor: '#4585f5',
-        borderWidth: 0
-    },
-
-    button_text: {
+    buttonText: {
         fontFamily: 'CerebriSans-Bold',
         fontSize: 16,
         letterSpacing: -0.2,
         color: '#5c6066'
-    },
-    
-    white: {
-        color: 'white'
     }
 })
 

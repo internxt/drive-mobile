@@ -37,19 +37,13 @@ const FolderIcon = () => (
 )
 
 function CreateFolder(props: any) {
-  const [foldername, setFolderName] = useState("")
-  const [parentfolderid, setParentFolderId] = useState(0)
+  const [folderName, setFolderName] = useState("")
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
 
-  useEffect(() => {
-    setParentFolderId(props.navigation.getParam("parentFolderId", "undefined"))
-  }, [])
-
   const onSave = () => {
-    if (foldername) {
-
+    if (folderName) {
       const rootFolder = props.authenticationState.user.root_folder_id
-      props.dispatch(fileActions.createFolder(currentFolderId || rootFolder, foldername))
+      props.dispatch(fileActions.createFolder(currentFolderId || rootFolder, folderName))
     }
     props.navigation.replace("FileExplorer")
   }
@@ -59,7 +53,9 @@ function CreateFolder(props: any) {
   }
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={styles.container} enabled>
+    <KeyboardAvoidingView
+      behavior="padding"
+      style={styles.container}>
       <View style={styles.actionsWrapper}>
         <View>
           <MenuItem name="close" onClickHandler={() => onCancel()} />
@@ -77,7 +73,7 @@ function CreateFolder(props: any) {
           selectTextOnFocus={true}
           autoFocus={true}
           style={styles.input}
-          value={foldername}
+          value={folderName}
           onChangeText={e => setFolderName(e)}
           placeholder="Enter folder name"
           placeholderTextColor="rgba(44, 107, 201, 0.5)"
@@ -92,14 +88,13 @@ function CreateFolder(props: any) {
 const styles = StyleSheet.create({
   container: {
     display: "flex",
-    flex: 1,
     flexDirection: "column",
-    alignItems: "stretch",
+    alignItems: 'stretch',
     backgroundColor: "#fff"
   },
   actionsWrapper: {
     height: 51,
-    marginTop: Platform.select({ ios: 35, android: 0 }),
+    marginTop: Platform.select({ ios: 45, android: 20 }),
     paddingLeft: 20,
     paddingRight: 20,
     display: "flex",
@@ -108,8 +103,6 @@ const styles = StyleSheet.create({
     alignSelf: "stretch"
   },
   folderWrapper: {
-    display: "flex",
-    flex: 1,
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center"

@@ -15,7 +15,7 @@ function MenuItem(props: MenuItemProps) {
   return <TouchableHighlight
     underlayColor="#fff"
     onPress={props.onClickHandler}
-    style={[styles.button, props.style ? {...props.style} : {}]}>
+    style={[styles.button, props.style ? { ...props.style } : {}]}>
     <Image
       style={styles.icon}
       source={imageSource} />
@@ -27,11 +27,6 @@ const mapStateToProps = (state: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    marginRight: 10
-  },
   button: {
     display: 'flex',
     alignItems: 'center',
@@ -47,6 +42,5 @@ const styles = StyleSheet.create({
     resizeMode: 'contain'
   }
 });
-
 
 export default connect(mapStateToProps)(MenuItem);

@@ -4,8 +4,7 @@ import analytics, { getLyticsData } from "../../helpers/lytics";
 
 export const userService = {
     signin,
-    signout,
-    payment
+    signout
 };
 
 function signin(email: string, password: string, sKey: string, twoFactorCode: string) {
@@ -81,20 +80,3 @@ async function signout() {
     }
 }
 
-function payment(token: string, stripePlan: string) {
-    return new Promise((resolve, reject) => {
-        fetch(`${process.env.REACT_APP_API_URL}/api/buy`, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({
-                token: JSON.stringify(token),
-                plan: stripePlan
-            })
-        }).then(async response => {
-            const body = await response.json();
-            resolve(body.message);
-        }).catch(error => {
-            reject(error);
-        });
-    });
-}

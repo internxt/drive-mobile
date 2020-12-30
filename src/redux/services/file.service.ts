@@ -55,7 +55,7 @@ function createFolder(parentFolderId: number, folderName = 'Untitled folder') {
         } else {
           resolve();
         }
-      }).catch(error => {
+      }).catch(() => {
         reject('[file.service] Could not create folder');
       });
   });
@@ -70,8 +70,8 @@ function updateFolderMetadata(metadata: any, folderId: string) {
       method: 'POST',
       headers,
       body: data
-    }).then(() => {
-      resolve();
+    }).then((res) => {
+      resolve(res);
     }).catch(error => {
       reject(error);
     });
@@ -91,7 +91,7 @@ async function moveFile(fileId: string, destination: string) {
       headers,
       body: data
     });
-    
+
     if (res.status === 200) {
       return 1;
     } else {
@@ -154,12 +154,12 @@ function getSortFunction(sortType: string) {
       break;
     case sortTypes.NAME_ASC:
       sortFunc = function (a: any, b: any) {
-        return compare({order:'asc'})(a.name.toLowerCase(),b.name.toLowerCase())
+        return compare({ order: 'asc' })(a.name.toLowerCase(), b.name.toLowerCase())
       };
       break;
     case sortTypes.NAME_DESC:
       sortFunc = function (a: any, b: any) {
-        return compare({order:'desc'})(a.name.toLowerCase(),b.name.toLowerCase())
+        return compare({ order: 'desc' })(a.name.toLowerCase(), b.name.toLowerCase())
       };
       break;
     case sortTypes.SIZE_ASC:

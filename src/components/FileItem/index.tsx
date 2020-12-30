@@ -128,7 +128,7 @@ function FileItem(props: FileItemProps) {
     const isSelectionMode = props.filesState.selectedItems.length > 0
     const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0
 
-    const [ progress, setProgress ] = useState(0)
+    const [progress, setProgress] = useState(0)
     const progressPct = progress > 0 ? progress / props.item.size : 0
     const progressWidth = Dimensions.get('screen').width * progressPct
 
@@ -157,29 +157,29 @@ function FileItem(props: FileItemProps) {
 
                         <View style={styles.itemIcon}>
                             {
-                                props.isFolder ? 
+                                props.isFolder ?
                                     <View>
                                         <IconFolder color={props.item.color} />
-                                            {
-                                                props.isFolder && props.item.icon ? 
-                                                
-                                                    <View style={{
-                                                        position: 'absolute',
-                                                        left: 35,
-                                                        top: 7
-                                                    }}>
-                                                        <Icon
-                                                            name={props.item.icon.name}
-                                                            color={item.color ? colors[item.color].icon : colors['blue'].icon}
-                                                            width={24}
-                                                            height={24}
-                                                        />
-                                                    </View>
-                                                : 
-                                                    null
-                                            }
+                                        {
+                                            props.isFolder && props.item.icon ?
+
+                                                <View style={{
+                                                    position: 'absolute',
+                                                    left: 35,
+                                                    top: 7
+                                                }}>
+                                                    <Icon
+                                                        name={props.item.icon.name}
+                                                        color={item.color ? colors[item.color].icon : colors['blue'].icon}
+                                                        width={24}
+                                                        height={24}
+                                                    />
+                                                </View>
+                                                :
+                                                null
+                                        }
                                     </View>
-                                : 
+                                    :
                                     <IconFile label={props.item.type || ''} isLoading={isLoading} />
                             }
                         </View>
@@ -252,12 +252,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         letterSpacing: -0.1,
         color: '#000000'
-    },
-    fileUpdated: {
-        fontFamily: 'CircularStd-Book',
-        fontSize: 13,
-        color: '#2a5fc9',
-        marginTop: 2
     },
     buttonDetails: {
         borderRadius: 30,

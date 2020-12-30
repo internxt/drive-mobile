@@ -4,7 +4,6 @@ import { getHeaders } from "../../helpers/headers";
 async function setHeaders() {
     const token = await deviceStorage.getItem('xToken');
     const user = JSON.parse(await deviceStorage.getItem('xUser') || '{}');
-
     return getHeaders(token || ``)
 }
 

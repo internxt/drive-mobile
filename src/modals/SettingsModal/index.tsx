@@ -70,7 +70,7 @@ function SettingsModal(props: SettingsModalProps) {
             setIsLoadingUpdate(true)
             loadValues().then(values => {
                 setUsageValues(values)
-            }).catch(err => {
+            }).catch(() => {
 
             }).finally(() => {
                 setIsLoadingUpdate(false)
@@ -137,14 +137,6 @@ function SettingsModal(props: SettingsModalProps) {
         <SettingsItem
             text="More info"
             onPress={() => Linking.openURL('https://internxt.com/drive')}
-        />
-
-        <SettingsItem
-            text="Storage"
-            onPress={() => {
-                props.dispatch(layoutActions.closeSettings())
-                props.navigation.replace('Storage')
-            }}
         />
 
         <SettingsItem

@@ -8,7 +8,11 @@
 
   `git pull`
 
-* Abre una nueva rama desde **master**, ponle el nombre de la tarea. Los nombres de las ramas se escriben en inglés, deben describir la tarea y se debe usar la convención *kebap-case*.
+* Abre una nueva rama desde **master**, ponle el nombre de la tarea. **Los nombres de las ramas se escriben en inglés, deben describir la tarea y se debe usar la convención *kebap-case*.** Los nombres en *CamelCase* pueden causar problemas si diferentes desarrolladores contribuyen desde diferentes sistemas operativos. [documentación](https://docs.microsoft.com/en-us/azure/devops/repos/git/case-sensitivity?view=azure-devops)
+
+  [new-branch] LoginBug (:x: mal)
+
+  [new-branch] login-bug (:heavy_check_mark: bien)
 
 * Desarrolla tu tarea en esta rama.
 

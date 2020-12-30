@@ -191,9 +191,14 @@ function AppMenu(props: AppMenuProps) {
                                             }
                                         }
                                     }
+                                },
+                                {
+                                    text: 'Cancel',
+                                    style: 'destructive'
                                 }
-                            ],
-                                { cancelable: true })
+                            ], {
+                                cancelable: Platform.OS === 'android'
+                            })
                         }} />
 
                     <MenuItem
@@ -242,30 +247,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingTop: 3,
         marginTop: Platform.OS === 'ios' ? 30 : 0
-    },
-    button: {
-        flex: 1
-    },
-    breadcrumbs: {
-        position: 'relative',
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    breadcrumbsLabel: {
-        fontFamily: 'CircularStd-Bold',
-        fontSize: 21,
-        letterSpacing: -0.2,
-        color: '#000000'
-    },
-    icon: {
-        position: 'absolute',
-        left: 0,
-        top: 17,
-        width: 10,
-        height: 17,
-        resizeMode: 'contain'
     },
     searchContainer: {
         position: 'relative',

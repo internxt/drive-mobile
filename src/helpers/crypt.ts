@@ -64,7 +64,7 @@ export function removeAccents(string: string) {
     'AAAAAAAAaaaaaaaasOOOOOOOOoooooooDdDZdzEEEEEeeeeeeCcCcCcDIIIIIiiiiiUUUUUuuuuuLLLlllNNNnnnRrSSSsssTtYYyyZZZzzzdGGgg';
   return string
     .split('')
-    .map((letter, index) => {
+    .map((letter) => {
       const accentIndex = accents.indexOf(letter);
       return accentIndex !== -1 ? accentsOut[accentIndex] : letter;
     })
