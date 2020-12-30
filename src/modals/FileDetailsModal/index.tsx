@@ -263,7 +263,7 @@ function FileDetailsModal(props: FileDetailsProps) {
 
                     <Separator />
 
-                    <View style={styles.options_container}>
+                    <View style={styles.optionsContainer}>
                         <SettingsItem
                             text={
                                 <Text style={styles.modalFileItemContainer}>
@@ -315,7 +315,7 @@ export default connect(mapStateToProps)(FileDetailsModal)
 
 const styles = StyleSheet.create({
     modalSettingsFile: {
-        height: '47%'
+        height: Platform.OS === 'ios' ? '42%' : '55%'
     },
     modalFileItemContainer: {
     },
@@ -325,7 +325,8 @@ const styles = StyleSheet.create({
         height: 7,
         borderRadius: 4,
         alignSelf: 'center',
-        marginTop: 10
+        marginTop: 10,
+        marginBottom: 10
     },
     modalFolder: {
         height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%'))
@@ -376,9 +377,8 @@ const styles = StyleSheet.create({
     info_container: {
         height: 'auto'
     },
-    options_container: {
+    optionsContainer: {
         flex: 1,
-        justifyContent: 'space-around',
         marginBottom: 15,
         minHeight: 129 // pixel perfect leave like this
     }
