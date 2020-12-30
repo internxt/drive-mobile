@@ -75,6 +75,7 @@ function Login(props: LoginProps) {
           <TextInput
             style={styles.input}
             value={email}
+            autoCapitalize={'none'}
             onChangeText={value => setEmail(value)}
             placeholder="Email address"
             placeholderTextColor="#666"
