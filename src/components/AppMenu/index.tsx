@@ -191,9 +191,14 @@ function AppMenu(props: AppMenuProps) {
                                             }
                                         }
                                     }
+                                },
+                                {
+                                    text: 'Cancel',
+                                    style: 'destructive'
                                 }
-                            ],
-                                { cancelable: true })
+                            ], {
+                                cancelable: Platform.OS === 'android'
+                            })
                         }} />
 
                     <MenuItem
