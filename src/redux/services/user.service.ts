@@ -52,7 +52,8 @@ async function signout() {
         // Delete login data
         await Promise.all([
             deviceStorage.deleteItem('xToken'),
-            deviceStorage.deleteItem('xUser')
+            deviceStorage.deleteItem('xUser'),
+            deviceStorage.deleteItem('xBiometric')
         ]);
     } catch (error) {
     }
