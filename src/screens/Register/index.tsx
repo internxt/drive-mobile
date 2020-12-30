@@ -276,10 +276,11 @@ function Register(props: any): any {
                   doRegister({ firstName, lastName, email, password })
                     .then((userData) => {
                       analytics.identify(userData.uuid, { email }).catch(() => { })
-                      analytics.track(userData.uuid, {
+                      analytics.track('user-signup', {
                         properties: {
                           userId: userData.uuid,
-                          email: email
+                          email: email,
+                          platform: 'mobile'
                         }
                       })
                       setRegisterStep(4)
