@@ -140,14 +140,6 @@ function SettingsModal(props: SettingsModalProps) {
         />
 
         <SettingsItem
-            text="Storage"
-            onPress={() => {
-                props.dispatch(layoutActions.closeSettings())
-                props.navigation.replace('Storage')
-            }}
-        />
-
-        <SettingsItem
             text="Contact"
             onPress={() => {
                 const emailUrl = 'mailto:support@internxt.zohodesk.eu'
