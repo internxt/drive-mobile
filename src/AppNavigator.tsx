@@ -13,7 +13,7 @@ import Register from './screens/Register';
 import Forgot from './screens/Forgot';
 import OutOfSpace from './screens/OutOfSpace';
 import Storage from './screens/Storage';
-import SettingsModal from './modals/SettingsModal';
+import StorageWebView from './screens/StorageWebView';
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, unknown>
 type NavigatorOptions = CreateNavigatorConfig<StackNavigationConfig, NavigationStackRouterConfig, StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>>
@@ -27,7 +27,8 @@ const routeConfig: RouteConfig = {
   CreateFolder: { screen: CreateFolder },
   Forgot: { screen: Forgot },
   OutOfSpace: { screen: OutOfSpace },
-  Storage: { screen: Storage }
+  Storage: { screen: Storage },
+  StorageWebView: { screen: StorageWebView}
 };
 
 const navigatorOptions: NavigatorOptions = {

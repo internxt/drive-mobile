@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
-import { View, Text, StyleSheet, Image } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import ProgressBar from '../../components/ProgressBar';
@@ -23,7 +23,6 @@ interface OutOfSpaceProps {
 
 function Storage(props: OutOfSpaceProps) {
 
-    const [parentfolderid, setParentFolderId] = useState('')
     const [usagevalues, setUsageValues] = useState({ usage: 0, limit: 0 })
     const [usertoken, setUserToken] = useState(props.authenticationState.token)
     const [isloading, setIsLoading] = useState(true)
@@ -83,34 +82,6 @@ function Storage(props: OutOfSpaceProps) {
         return plans
     }
 
-    /* const handleStripePayment = () => {
-        const stripe = new stripeGlobal(process.env.NODE_ENV !== 'production' ? process.env.REACT_APP_STRIPE_TEST_PK : process.env.REACT_APP_STRIPE_PK);
-
-        const body = { plan: this.state.selectedPlanToBuy.id }
-
-        if (/^pk_test_/.exec(stripe._apiKey)) { body.test = true }
-
-        fetch('/api/stripe/session', {
-            method: 'POST',
-            headers: getHeaders(true, false),
-            body: JSON.stringify(body)
-        }).then(result => result.json()).then(result => {
-            if (result.error) {
-                throw Error(result.error);
-            }
-            analytics.track('user-enter-payments')
-            this.setState({ statusMessage: 'Redirecting to Stripe...' });
-            stripe.redirectToCheckout({ sessionId: result.id }).then(result => {
-                console.log(result);
-            }).catch(err => {
-                this.setState({ statusMessage: 'Failed to redirect to Stripe. Reason:' + err.message });
-            });
-        }).catch(err => {
-            console.error('Error starting Stripe session. Reason: %s', err);
-            this.setState({ statusMessage: 'Please contact us. Reason: ' + err.message });
-        });
-    } */
-
     useEffect(() => {
         loadValues().then(values => {
             setUsageValues(values)
@@ -129,6 +100,7 @@ function Storage(props: OutOfSpaceProps) {
             })
         }
     }, [chosenproduct])
+
 
     return (
         <View style={styles.container}>
@@ -191,70 +163,63 @@ function Storage(props: OutOfSpaceProps) {
                         {
                             !chosenproduct ?
                                 <View>
-                                    <Text style={styles.title}>
-                                        Storage plans
-                                    </Text>
-
-                                    <TouchableOpacity onPress={() => {
-                                        setIsLoading(true)
-                                        setChosenProduct(products[0])
-                                    }}>
-                                        <PlanCard size={products[0].metadata.simple_name} price={products[0].metadata.price_eur} />
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity onPress={() => {
-                                        setIsLoading(true)
-                                        setChosenProduct(products[1])
-                                    }}>
-                                        <PlanCard size={products[1].metadata.simple_name} price={products[1].metadata.price_eur} />
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity onPress={() => {
-                                        setIsLoading(true)
-                                        setChosenProduct(products[2])
-                                    }}>
-                                        <PlanCard size={products[2].metadata.simple_name} price={products[2].metadata.price_eur} />
-                                    </TouchableOpacity>
+                                    <View style={styles.titleContainer}>
+                                        <Text style={styles.title}>
+                                            Storage plans
+                                        </Text>
+                                    </View>
+                                    {
+                                        products && products.map((product: any) => <TouchableWithoutFeedback
+                                            key={product.id}
+                                            onPress={async () => {
+                                                setIsLoading(true)
+                                                setChosenProduct(product)
+                                            }}>
+                                            <PlanCard size={product.metadata.simple_name} price={product.metadata.price_eur} />
+                                        </TouchableWithoutFeedback>)
+                                    }
                                 </View>
                                 :
                                 <View>
-                                    <View style={styles.titleContainer}>
-                                        <Text style={styles.title}>
-                                            Payment length
-                                        </Text>
+                                    {
+                                        !isloading ?
+                                            <View>
+                                                <View style={styles.titleContainer}>
+                                                    <TouchableOpacity
+                                                        onPress={() => {
+                                                            setChosenProduct(undefined)
+                                                        }}
+                                                    >
+                                                        <Image style={styles.paymentBackIcon} source={getIcon('back')} />
+                                                    </TouchableOpacity>
 
-                                        <Text style={styles.titlePlan}>{chosenproduct.name}</Text>
-                                    </View>
+                                                    <Text style={styles.title}>
+                                                        Payment length
+                                                    </Text>
 
-                                    <TouchableOpacity onPress={() => {
+                                                    <Text style={styles.titlePlan}>{chosenproduct.name}</Text>
+                                                </View>
 
-                                    }}>
-                                        <PlanCard chosen={true} price={plans[0].price.toString()} plan={plans[0]} />
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity onPress={() => {
-
-                                    }}>
-                                        <PlanCard chosen={true} price={plans[1].price.toString()} plan={plans[1]} />
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity onPress={() => {
-
-                                    }}>
-                                        <PlanCard chosen={true} price={plans[2].price.toString()} plan={plans[2]} />
-                                    </TouchableOpacity>
+                                                {
+                                                    plans && plans.map(plan => <TouchableWithoutFeedback
+                                                        key={plan.id}
+                                                        onPress={() => props.navigation.replace('StorageWebView', { plan: plan }) }
+                                                    >
+                                                        <PlanCard chosen={true} price={plan.price.toString()} plan={plan} />
+                                                    </TouchableWithoutFeedback>)
+                                                }
+                                            </View>
+                                        :
+                                            null
+                                    }
                                 </View>
                         }
                     </View>
-                    :
+                :   
                     null
             }
             <View>
                 <Text style={styles.footer}>You are subscribed to the { }1GB plan</Text>
-
-                <TouchableOpacity>
-                    <Text style={[styles.footer, styles.blue]}>Permanently delete your account</Text>
-                </TouchableOpacity>
             </View>
         </View>
     );
@@ -358,15 +323,17 @@ const styles = StyleSheet.create({
     },
 
     titleContainer: {
-        flexDirection: 'row'
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12
     },
 
     title: {
         fontFamily: 'CerebriSans-Bold',
         fontSize: 18,
+        height: 32,
         letterSpacing: 0,
         color: 'black',
-        marginBottom: 30,
         marginRight: 10
     },
 
@@ -377,6 +344,12 @@ const styles = StyleSheet.create({
         paddingLeft: 10,
         borderLeftWidth: 1,
         borderColor: '#eaeced'
+    },
+
+    paymentBackIcon: {
+        width: 8,
+        height: 13,
+        marginRight: 10
     },
 
     cardsContainer: {
