@@ -28,7 +28,7 @@ export const layoutActions = {
 
   openShareModal,
   closeShareModal,
-
+  
   openUploadFileModal,
   closeUploadFileModal
 };

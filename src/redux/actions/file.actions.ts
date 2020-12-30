@@ -98,7 +98,7 @@ function deleteItems(items, folderToReload) {
           dispatch(getFolderContent(folderToReload));
         }, 1000);
       })
-      .catch(err => {
+      .catch(() => {
         dispatch(requestFailure());
         setTimeout(() => {
           dispatch(getFolderContent(folderToReload));

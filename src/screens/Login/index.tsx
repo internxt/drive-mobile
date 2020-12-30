@@ -31,7 +31,7 @@ function Login(props: LoginProps) {
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
-      props.navigation.replace('Biometric', {
+      props.navigation.replace('FileExplorer', {
         folderId: rootFolderId
       })
     } else {
@@ -75,6 +75,7 @@ function Login(props: LoginProps) {
           <TextInput
             style={styles.input}
             value={email}
+            autoCapitalize={'none'}
             onChangeText={value => setEmail(value)}
             placeholder="Email address"
             placeholderTextColor="#666"
@@ -138,7 +139,7 @@ function Login(props: LoginProps) {
         <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>Forgot your password?</Text>
       </View>
     </View>
-    <Text style={styles.versionLabel}>Internxt Drive v1.2.1</Text>
+    <Text style={styles.versionLabel}>Internxt Drive v1.2.2</Text>
   </KeyboardAvoidingView>
 }
 
@@ -178,12 +179,6 @@ const styles = StyleSheet.create({
     marginTop: normalize(64),
     marginLeft: normalize(7)
   },
-  subtitle: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(22),
-    color: '#fff',
-    opacity: 0.76
-  },
   buttonWrapper: {
     display: 'flex',
     flexDirection: 'row',
@@ -206,9 +201,6 @@ const styles = StyleSheet.create({
   buttonBlock: {
     width: '100%'
   },
-  buttonDisabled: {
-    backgroundColor: '#f2f2f2'
-  },
   buttonOn: {
     backgroundColor: '#4585f5'
   },
@@ -226,13 +218,6 @@ const styles = StyleSheet.create({
     fontSize: normalize(15),
     textAlign: 'center',
     color: '#5c5c5c'
-  },
-  redirectMessage: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    letterSpacing: 0.3,
-    color: '#fff',
-    opacity: 0.6
   },
   input: {
     fontFamily: 'CerebriSans-Medium',

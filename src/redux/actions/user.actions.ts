@@ -43,7 +43,8 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
     }).then(() => {
       analytics.track('user-signin', {
         email: userData.user.email,
-        userId: userData.user.uuid
+        userId: userData.user.uuid,
+        platform: 'mobile'
       }).catch(() => { })
     }).catch(() => { })
     return { type: userActionTypes.SIGNIN_SUCCESS, payload: userData };

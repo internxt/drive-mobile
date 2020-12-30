@@ -11,6 +11,7 @@ import Intro from './screens/Intro';
 import Login from './screens/Login';
 import Register from './screens/Register';
 import Forgot from './screens/Forgot';
+import OutOfSpace from './screens/OutOfSpace';
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, unknown>
 type NavigatorOptions = CreateNavigatorConfig<StackNavigationConfig, NavigationStackRouterConfig, StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>>
@@ -22,7 +23,8 @@ const routeConfig: RouteConfig = {
   FileExplorer: { screen: FileExplorer },
   Biometric: { screen: Biometric },
   CreateFolder: { screen: CreateFolder },
-  Forgot: { screen: Forgot }
+  Forgot: { screen: Forgot },
+  OutOfSpace: { screen: OutOfSpace }
 };
 
 const navigatorOptions: NavigatorOptions = {

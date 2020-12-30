@@ -29,8 +29,7 @@ function Register(props: any): any {
     return <Intro onFinish={() => setShowIntro(false)} />;
   }
 
-  if (registerStep === 1) {
-
+  if (registerStep === 1) {  
     const isValidStep = isValidFirstName && isValidLastName && isValidEmail;
 
     return (
@@ -121,7 +120,6 @@ function Register(props: any): any {
               />
               <Text style={styles.title}>Internxt Security</Text>
             </View>
-
 
             <View>
               <Text
@@ -258,6 +256,17 @@ function Register(props: any): any {
                 style={[styles.button, styles.buttonOn, styles.buttonRight]}
                 underlayColor="#4585f5"
                 onPress={() => {
+                  if (!isValidPassword) {
+                    Alert.alert(
+                      '',
+                      'Please make sure your password contains at least six characters, a number, and a letter'
+                    );
+                    return
+                  }
+                  if (password !== confirmPassword) {
+                    Alert.alert('', 'Please make sure your passwords match');
+                    return
+                  }
                   if (registerButtonClicked || isLoading) {
                     return;
                   }
@@ -267,6 +276,13 @@ function Register(props: any): any {
                   doRegister({ firstName, lastName, email, password })
                     .then((userData) => {
                       analytics.identify(userData.uuid, { email }).catch(() => { })
+                      analytics.track('user-signup', {
+                        properties: {
+                          userId: userData.uuid,
+                          email: email,
+                          platform: 'mobile'
+                        }
+                      })
                       setRegisterStep(4)
                     }).catch(err => {
                       Alert.alert(err.message)
@@ -276,7 +292,7 @@ function Register(props: any): any {
                     })
                 }}
               >
-                <Text style={styles.buttonOnLabel}>{isLoading ? 'Creating your account...' : 'Continue'}</Text>
+                <Text style={styles.buttonOnLabel}>Continue</Text>
               </TouchableHighlight>
             </View>
           </View>
@@ -394,12 +410,6 @@ const styles = StyleSheet.create({
     marginTop: normalize(12),
     marginLeft: normalize(3)
   },
-  subtitle: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(22),
-    color: '#fff',
-    opacity: 0.76
-  },
   buttonWrapper: {
     display: 'flex',
     flexDirection: 'row',
@@ -452,13 +462,6 @@ const styles = StyleSheet.create({
   buttonLeft: {
     marginRight: normalize(10)
   },
-  redirectMessage: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    letterSpacing: 0.3,
-    color: '#fff',
-    opacity: 0.6
-  },
   input: {
     fontFamily: 'CerebriSans-Medium',
     letterSpacing: -0.2,
@@ -469,9 +472,6 @@ const styles = StyleSheet.create({
   },
   showInputFieldsWrapper: {
     justifyContent: 'center'
-  },
-  hideInputFieldWrapper: {
-    display: 'none'
   },
   inputWrapper: {
     height: normalize(55),

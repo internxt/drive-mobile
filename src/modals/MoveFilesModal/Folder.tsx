@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../../components/IconFolder';
 import Icon from '../../../assets/icons/Icon';
 import { colors } from '../../redux/constants';
-import { fileActions, layoutActions } from '../../redux/actions';
+import { fileActions } from '../../redux/actions';
 import { getLyticsData } from '../../helpers';
 import analytics from '../../helpers/lytics';
 
@@ -99,22 +99,6 @@ const styles = StyleSheet.create({
         letterSpacing: -0.1,
         color: '#000000'
     },
-
-    fileUpdated: {
-        fontFamily: 'CircularStd-Book',
-        fontSize: 13,
-        color: '#2a5fc9',
-        marginTop: 2
-    },
-
-    buttonDetails: {
-        borderRadius: 30,
-        width: 51,
-        height: 51,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-
     icon: {
         position: 'absolute',
         left: 35,

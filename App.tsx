@@ -14,7 +14,6 @@ export default function App() {
     prefixes: ['inxt:']
   };
 
-
   Promise.all([
     loadFonts(),
     loadEnvVars(),

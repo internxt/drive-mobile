@@ -65,8 +65,8 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
         }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${props.item.fileId}`, {
             'Authorization': `Bearer ${xToken}`,
             'internxt-mnemonic': xUserJson.mnemonic
-        }).progress((progress, total) => {
-            setProgress(progress)
+        }).progress((received, total) => {
+            setProgress(received)
         }).then(async (res) => {
             if (res.respInfo.status === 200) {
                 if (Platform.OS === 'ios') {
@@ -156,25 +156,32 @@ function FileItem(props: FileItemProps) {
                         }}>
 
                         <View style={styles.itemIcon}>
-                            {props.isFolder
-                                ? <>
-                                    <IconFolder color={props.item.color} />
-                                    {props.isFolder && props.item.icon
-                                        ? <View style={{
-                                            position: 'absolute',
-                                            left: 35,
-                                            top: 7
-                                        }}>
-                                            <Icon
-                                                name={props.item.icon.name}
-                                                color={item.color ? colors[item.color].icon : colors['blue'].icon}
-                                                width={24}
-                                                height={24}
-                                            />
-                                        </View>
-                                        : null}
-                                </>
-                                : <IconFile label={props.item.type || ''} isLoading={isLoading} />}
+                            {
+                                props.isFolder ?
+                                    <View>
+                                        <IconFolder color={props.item.color} />
+                                        {
+                                            props.isFolder && props.item.icon ?
+
+                                                <View style={{
+                                                    position: 'absolute',
+                                                    left: 35,
+                                                    top: 7
+                                                }}>
+                                                    <Icon
+                                                        name={props.item.icon.name}
+                                                        color={item.color ? colors[item.color].icon : colors['blue'].icon}
+                                                        width={24}
+                                                        height={24}
+                                                    />
+                                                </View>
+                                                :
+                                                null
+                                        }
+                                    </View>
+                                    :
+                                    <IconFile label={props.item.type || ''} isLoading={isLoading} />
+                            }
                         </View>
 
                         <View style={styles.nameAndTime}>
@@ -245,12 +252,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         letterSpacing: -0.1,
         color: '#000000'
-    },
-    fileUpdated: {
-        fontFamily: 'CircularStd-Book',
-        fontSize: 13,
-        color: '#2a5fc9',
-        marginTop: 2
     },
     buttonDetails: {
         borderRadius: 30,

@@ -1,7 +1,7 @@
 import { getDocumentAsync } from 'expo-document-picker';
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker';
-import React, { Fragment, useState, useRef } from 'react'
-import { View, StyleSheet, Platform, TextInput, Image, Alert} from 'react-native'
+import React, { Fragment, useState, useRef, useEffect } from 'react'
+import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { getLyticsData } from '../../helpers';
@@ -15,66 +15,12 @@ interface AppMenuProps {
     filesState?: any
     dispatch?: any,
     layoutState?: any
-}
-
-async function uploadFile(result: any, props: any) {
-    const userData = await getLyticsData()
-
-    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-
-    try {
-        // Set name for pics/photos
-        if (!result.name) result.name = result.uri.split('/').pop();
-        result.type = 'application/octet-stream';
-        props.dispatch(fileActions.uploadFileStart(result.name));
-        const body = new FormData();
-        body.append('xfile', result, result.name);
-
-        const token = props.authenticationState.token;
-        const mnemonic = props.authenticationState.user.mnemonic;
-
-        const headers = {
-            Authorization: `Bearer ${token}`,
-            'internxt-mnemonic': mnemonic,
-            'Content-type': 'multipart/form-data'
-        };
-        fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, {
-            method: 'POST',
-            headers,
-            body
-        }).then(async resultFetch => {
-            if (resultFetch.status === 401) {
-                throw resultFetch;
-            }
-            const data = await resultFetch.text();
-            return { res: resultFetch, data };
-        }).then(resultFetch => {
-            if (resultFetch.res.status === 402) {
-                props.dispatch(layoutActions.openRunOutStorageModal());
-            } else if (resultFetch.res.status === 201) {
-                analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-                props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
-            } else {
-                Alert.alert('Error', 'Cannot upload file');
-            }
-        }).catch(errFetch => {
-            if (errFetch.status === 401) {
-                props.dispatch(userActions.signout());
-            } else {
-                Alert.alert('Error', 'Cannot upload file\n' + errFetch);
-            }
-        }).finally(() => {
-            props.dispatch(fileActions.uploadFileFinished());
-        });
-    } catch (error) {
-        analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-        props.dispatch(fileActions.uploadFileFinished());
-    }
+    authenticationState?: any
 }
 
 function AppMenu(props: AppMenuProps) {
     const [activeSearchBox, setActiveSearchBox] = useState(false)
-
+    const [hasSpace, setHasSpace] = useState(true)
     const selectedItems = props.filesState.selectedItems;
 
     const textInput = useRef(null)
@@ -82,9 +28,72 @@ function AppMenu(props: AppMenuProps) {
     const handleClickSearch = () => {
         textInput.current.focus();
     }
-    
+
     const closeSearch = () => {
         textInput.current.blur();
+    }
+
+    useEffect(() => {
+        if (!hasSpace) props.navigation.replace('OutOfSpace')
+    }, [hasSpace])
+
+    const uploadFile = async (result: any, props: any) => {
+        const userData = await getLyticsData()
+
+        analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+
+        try {
+            // Set name for pics/photos
+            if (!result.name) result.name = result.uri.split('/').pop();
+            result.type = 'application/octet-stream';
+            props.dispatch(fileActions.uploadFileStart(result.name));
+            const body = new FormData();
+            body.append('xfile', result, result.name);
+
+            const token = props.authenticationState.token;
+            const mnemonic = props.authenticationState.user.mnemonic;
+
+            const headers = {
+                Authorization: `Bearer ${token}`,
+                'internxt-mnemonic': mnemonic,
+                'Content-type': 'multipart/form-data'
+            };
+            fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, {
+                method: 'POST',
+                headers,
+                body
+            }).then(async resultFetch => {
+                if (resultFetch.status === 401) {
+                    throw resultFetch;
+                }
+                const data = await resultFetch.text();
+                return { res: resultFetch, data };
+
+            }).then(resultFetch => {
+                if (resultFetch.res.status === 402) {
+                    setHasSpace(false)
+                } else if (resultFetch.res.status === 201) {
+                    analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+                    props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
+                } else {
+                    Alert.alert('Error', 'Cannot upload file');
+                }
+
+                props.dispatch(fileActions.uploadFileFinished());
+
+            }).catch(errFetch => {
+                if (errFetch.status === 401) {
+                    props.dispatch(userActions.signout());
+                } else {
+                    Alert.alert('Error', 'Cannot upload file\n' + errFetch);
+                }
+                props.dispatch(fileActions.uploadFileFinished());
+
+            })
+        } catch (error) {
+            analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+            props.dispatch(fileActions.uploadFileFinished());
+        }
     }
 
     return <View
@@ -144,7 +153,7 @@ function AppMenu(props: AppMenuProps) {
 
                     <MenuItem
                         style={{ marginRight: 10 }}
-                        name="upload" 
+                        name="upload"
                         onClickHandler={() => {
                             //props.dispatch(layoutActions.openUploadFileModal())
                             Alert.alert('Select type of file', '', [
@@ -187,7 +196,9 @@ function AppMenu(props: AppMenuProps) {
                                     text: 'Cancel',
                                     style: 'destructive'
                                 }
-                            ])
+                            ], {
+                                cancelable: Platform.OS === 'android'
+                            })
                         }} />
 
                     <MenuItem
@@ -198,11 +209,11 @@ function AppMenu(props: AppMenuProps) {
                         }} />
 
                     {
-                        selectedItems.length > 0 ? 
+                        selectedItems.length > 0 ?
                             <MenuItem name="delete" onClickHandler={() => {
                                 props.dispatch(layoutActions.openDeleteModal())
                             }} />
-                        : 
+                            :
                             null
                     }
                 </View>
@@ -236,30 +247,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingTop: 3,
         marginTop: Platform.OS === 'ios' ? 30 : 0
-    },
-    button: {
-        flex: 1
-    },
-    breadcrumbs: {
-        position: 'relative',
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    breadcrumbsLabel: {
-        fontFamily: 'CircularStd-Bold',
-        fontSize: 21,
-        letterSpacing: -0.2,
-        color: '#000000'
-    },
-    icon: {
-        position: 'absolute',
-        left: 0,
-        top: 17,
-        width: 10,
-        height: 17,
-        resizeMode: 'contain'
     },
     searchContainer: {
         position: 'relative',

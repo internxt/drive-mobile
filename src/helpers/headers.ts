@@ -16,4 +16,3 @@ export function getHeaders(authToken?: string, mnemonic?: string) {
 
     return headers;
 }
-

@@ -5,7 +5,6 @@ const initialState = {
   createFolderActive: false,
   showSettingsModal: false,
   showItemModal: false,
-  showRunOutSpaceModal: false, 
   showSortModal: false,
   showMoveModal: false,
   showDeleteModal: false,
@@ -55,18 +54,6 @@ export function layoutReducer(state = initialState, action: any) {
         ...state,
         showItemModal: false
       }
-    case layoutActionTypes.OPEN_RUNOUTSTORAGE_MODAL: {
-      return {
-        ...state,
-        showRunOutSpaceModal: true
-      }
-    }
-    case layoutActionTypes.CLOSE_RUNOUTSTORAGE_MODAL: {
-      return {
-        ...state,
-        showRunOutSpaceModal: false
-      }
-    }
     case layoutActionTypes.OPEN_SORT_MODAL: {
       return {
         ...state,
@@ -118,7 +105,7 @@ export function layoutReducer(state = initialState, action: any) {
         showShareModal: false
       }
     }
-
+ 
     case layoutActionTypes.OPEN_UPLOAD_FILE_MODAL: {
       return {
         ...state,

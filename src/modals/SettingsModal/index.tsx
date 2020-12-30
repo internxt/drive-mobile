@@ -54,9 +54,10 @@ async function loadValues() {
 }
 
 interface SettingsModalProps {
-    authenticationState?: any
-    dispatch?: any
-    layoutState?: any
+    authenticationState?: any,
+    dispatch?: any,
+    layoutState?: any,
+    navigation?: any
 }
 
 function SettingsModal(props: SettingsModalProps) {
@@ -69,7 +70,7 @@ function SettingsModal(props: SettingsModalProps) {
             setIsLoadingUpdate(true)
             loadValues().then(values => {
                 setUsageValues(values)
-            }).catch(err => {
+            }).catch(() => {
 
             }).finally(() => {
                 setIsLoadingUpdate(false)
@@ -110,7 +111,7 @@ function SettingsModal(props: SettingsModalProps) {
             usedValue={usageValues.usage}
         />
 
-        {isLoadingUsage ? <ActivityIndicator /> : <Text
+        {isLoadingUsage ? <ActivityIndicator color={'#00f'} /> : <Text
             style={{
                 fontFamily: 'CerebriSans-Regular',
                 fontSize: 15,
@@ -137,6 +138,7 @@ function SettingsModal(props: SettingsModalProps) {
             text="More info"
             onPress={() => Linking.openURL('https://internxt.com/drive')}
         />
+
         <SettingsItem
             text="Contact"
             onPress={() => {
@@ -148,6 +150,7 @@ function SettingsModal(props: SettingsModalProps) {
                 })
             }}
         />
+
         <SettingsItem
             text="Sign out"
             onPress={() => {

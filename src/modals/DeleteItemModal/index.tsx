@@ -15,7 +15,7 @@ export interface DeleteItemModalProps {
 function DeleteItemModal(props: DeleteItemModalProps) {
     const selectedItems = props.filesState.selectedItems
     const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
-    const [ isOpen, setIsOpen ] = useState(props.layoutState.showDeleteModal)
+    const [isOpen, setIsOpen] = useState(props.layoutState.showDeleteModal)
 
     useEffect(() => {
         props.layoutState.showDeleteModal ? setIsOpen(true) : null
@@ -25,16 +25,16 @@ function DeleteItemModal(props: DeleteItemModalProps) {
     const handleDeleteSelectedItem = () => {
         props.dispatch(fileActions.deleteItems(selectedItems, currentFolderId))
     }
- 
+
     return (
-        <Modal 
+        <Modal
             isOpen={isOpen}
             swipeArea={2}
             onClosed={() => {
                 props.dispatch(layoutActions.closeDeleteModal())
                 setIsOpen(false)
-            }} 
-            position='center' 
+            }}
+            position='center'
             style={styles.modal_container}
         >
             <View style={styles.text_container}>
@@ -42,7 +42,7 @@ function DeleteItemModal(props: DeleteItemModalProps) {
                     <Image source={require('../../../assets/images/logo.png')} style={styles.image} />
                     <Text style={styles.title}>Delete item</Text>
                 </View>
-                
+
                 <Text style={styles.subtitle}>Please confirm you want to delete this item. This action can not be undone.</Text>
             </View>
 
@@ -66,7 +66,7 @@ function DeleteItemModal(props: DeleteItemModalProps) {
 
 const styles = StyleSheet.create({
     modal_container: {
-        justifyContent: 'center', 
+        justifyContent: 'center',
         alignItems: 'center',
         height: '100%',
         width: '100%'
@@ -89,28 +89,28 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        fontSize: 27, 
-        fontFamily: 'CelebriSans-Bold',
+        fontSize: 27,
+        fontFamily: 'CerebriSans-Bold',
         color: 'black'
     },
 
     subtitle: {
-        fontSize: 17, 
-        color: '#737880', 
+        fontSize: 17,
+        color: '#737880',
         marginTop: 15
     },
 
     button_container: {
-        flexDirection: 'row', 
+        flexDirection: 'row',
         justifyContent: 'space-around',
         width: '80%',
         marginTop: 30
     },
 
     button: {
-        height: 50, 
+        height: 50,
         width: widthPercentageToDP('35'),
-        borderRadius: 4, 
+        borderRadius: 4,
         borderWidth: 2,
         backgroundColor: '#fff',
         borderColor: 'rgba(151, 151, 151, 0.2)',
@@ -123,8 +123,8 @@ const styles = StyleSheet.create({
     },
 
     text: {
-        color: '#5c6066', 
-        fontFamily: 'CerebriSans-Bold', 
+        color: '#5c6066',
+        fontFamily: 'CerebriSans-Bold',
         fontSize: 16
     },
 

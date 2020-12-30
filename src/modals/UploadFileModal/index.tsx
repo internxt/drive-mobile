@@ -17,7 +17,7 @@ export interface UploadFileProps {
 }
 
 function UploadFile(props: UploadFileProps) {
-    const [ isOpen, setIsOpen ] = useState(props.layoutState.showUploadModal)
+    const [isOpen, setIsOpen] = useState(props.layoutState.showUploadModal)
 
     useEffect(() => {
         props.layoutState.showUploadModal ? setIsOpen(true) : null
@@ -26,9 +26,9 @@ function UploadFile(props: UploadFileProps) {
 
     const uploadFile = async (result: any, props: any) => {
         const userData = await getLyticsData()
-    
+
         analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-    
+
         try {
             // Set name for pics/photos
             if (!result.name) result.name = result.uri.split('/').pop();
@@ -36,10 +36,10 @@ function UploadFile(props: UploadFileProps) {
             props.dispatch(fileActions.uploadFileStart(result.name));
             const body = new FormData();
             body.append('xfile', result, result.name);
-    
+
             const token = props.authenticationState.token;
             const mnemonic = props.authenticationState.user.mnemonic;
-    
+
             const headers = {
                 Authorization: `Bearer ${token}`,
                 'internxt-mnemonic': mnemonic,
@@ -78,16 +78,16 @@ function UploadFile(props: UploadFileProps) {
             props.dispatch(fileActions.uploadFileFinished());
         }
     }
- 
+
     return (
-        <Modal 
+        <Modal
             isOpen={isOpen}
             swipeArea={2}
             onClosed={() => {
                 props.dispatch(layoutActions.closeUploadFileModal())
                 setIsOpen(false)
-            }} 
-            position='center' 
+            }}
+            position='center'
             style={styles.modal_container}
         >
             <View style={styles.text_container}>
@@ -101,7 +101,7 @@ function UploadFile(props: UploadFileProps) {
 
             <View style={styles.button_container}>
                 <TouchableOpacity style={styles.button}
-                    onPress={ async () => {   
+                    onPress={async () => {
                         const { status } = await requestCameraPermissionsAsync()
                         if (status === 'granted') {
                             const result = await launchCameraAsync()
@@ -117,7 +117,7 @@ function UploadFile(props: UploadFileProps) {
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.button}
-                    onPress={ async () => {   
+                    onPress={async () => {
                         const result = await getDocumentAsync({ type: "*/*", copyToCacheDirectory: false })
                         if (result.type !== 'cancel') {
                             uploadFile(result, props)
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(151, 151, 151, 0.2)'
     },
     button: {
-        height: 65, 
+        height: 65,
         width: wp('46.5'),
         backgroundColor: '#fff',
         borderRightWidth: 1,
@@ -192,8 +192,8 @@ const styles = StyleSheet.create({
     },
 
     button_text: {
-        fontSize: 18, 
-        color: '#4585f5',     
+        fontSize: 18,
+        color: '#4585f5',
         fontFamily: 'CerebriSans-Bold'
     }
 })
