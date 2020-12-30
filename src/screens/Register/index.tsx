@@ -281,7 +281,7 @@ function Register(props: any): any {
                     })
                 }}
               >
-                <Text style={styles.buttonOnLabel}>{isLoading ? 'Creating your account...' : 'Continue'}</Text>
+                <Text style={styles.buttonOnLabel}>Continue</Text>
               </TouchableHighlight>
             </View>
           </View>
