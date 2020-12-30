@@ -66,10 +66,8 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
             'Authorization': `Bearer ${xToken}`,
             'internxt-mnemonic': xUserJson.mnemonic
         }).progress((received, total) => {
-            console.log('progress ' + Math.floor(received/total*100) + '%')
             setProgress(received)
         }).then(async (res) => {
-            console.log(res)
             if (res.respInfo.status === 200) {
                 if (Platform.OS === 'ios') {
                     // RNFetchBlob.ios.previewDocument(res.path())

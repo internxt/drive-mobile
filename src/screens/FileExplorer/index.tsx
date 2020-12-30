@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { Text, View, StyleSheet, Image, BackHandler, Platform } from 'react-native'
 import AppMenu from '../../components/AppMenu'
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { fileActions, layoutActions } from '../../redux/actions';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { fileActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
 import SettingsModal from '../../modals/SettingsModal';
-import { TouchableHighlight, TouchableOpacity } from 'react-native-gesture-handler';
+import { TouchableHighlight } from 'react-native-gesture-handler';
 import { getIcon } from '../../helpers/getIcon';
 import FileDetailsModal from '../../modals/FileDetailsModal';
 import SortModal from '../../modals/SortModal';
 import DeleteItemModal from '../../modals/DeleteItemModal';
 import MoveFilesModal from '../../modals/MoveFilesModal';
 import ShareFilesModal from '../../modals/ShareFilesModal';
-import OutOfSpaceModal from '../../modals/OutOfSpaceModal';
 import UploadFileModal from '../../modals/UploadFileModal';
 
 function FileExplorer(props: any) {
@@ -62,7 +61,6 @@ function FileExplorer(props: any) {
         <DeleteItemModal />
         <MoveFilesModal />
         <ShareFilesModal />
-        <OutOfSpaceModal />
         <UploadFileModal />
         
         <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
@@ -75,10 +73,6 @@ function FileExplorer(props: any) {
                     ? filesState.folderContent.name
                     : 'All Files'}
             </Text>
-
-            <TouchableOpacity onPress={() => { props.navigation.replace('OutOfSpace') }}>
-                <Text>Show modal</Text>
-            </TouchableOpacity>
 
             <TouchableHighlight
                 underlayColor="#FFF"
