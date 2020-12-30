@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 
     title: {
         fontSize: 27, 
-        fontFamily: 'CelebriSans-Bold',
+        fontFamily: 'CerebriSans-Bold',
         color: 'black'
     },
 

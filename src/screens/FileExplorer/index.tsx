@@ -76,10 +76,6 @@ function FileExplorer(props: any) {
                     : 'All Files'}
             </Text>
 
-            <TouchableOpacity onPress={() => { props.navigation.replace('OutOfSpace') }}>
-                <Text>Show modal</Text>
-            </TouchableOpacity>
-
             <TouchableHighlight
                 underlayColor="#FFF"
                 onPress={() => {

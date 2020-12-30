@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
-import { View, Text, StyleSheet, Image } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import ProgressBar from '../../components/ProgressBar';
@@ -11,6 +11,7 @@ import { getHeaders } from '../../helpers/headers';
 import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import PlanCard from './PlanCard';
 import { LinearGradient } from 'expo-linear-gradient';
+import { storageService } from '../../redux/services';
 
 interface OutOfSpaceProps {
     filesState?: any
@@ -22,38 +23,16 @@ interface OutOfSpaceProps {
 
 function Storage(props: OutOfSpaceProps) {
 
-    const [ parentfolderid, setParentFolderId ] = useState('')
-    const [ usagevalues, setUsageValues ] = useState({ usage: 0, limit: 0 })
-
-    const plans = [
-        {
-            id: 1,
-            size: 2,
-            prices: {}
-        },
-        {
-            id: 2,
-            size: 20,
-            prices: {
-                'month': 9.95,
-                '6month': 9.45,
-                '12month': 8.95
-            }
-        },
-        {
-            id: 3,
-            size: 2000,
-            prices: {
-                'month': 49.95,
-                '6month': 49.45,
-                '12month': 48.95
-            }
-        }
-    ]
+    const [usagevalues, setUsageValues] = useState({ usage: 0, limit: 0 })
+    const [usertoken, setUserToken] = useState(props.authenticationState.token)
+    const [isloading, setIsLoading] = useState(true)
+    const [products, setProducts] = useState(JSON)
+    const [plans, setPlans] = useState(JSON)
+    const [chosenproduct, setChosenProduct] = useState()
 
     const loadLimit = async () => {
         const xToken = await deviceStorage.getItem('xToken') || undefined
-    
+
         return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
             method: 'get',
             headers: getHeaders(xToken)
@@ -79,9 +58,9 @@ function Storage(props: OutOfSpaceProps) {
     }
 
     const loadValues = async () => {
-        const limit = await loadLimit() 
+        const limit = await loadLimit()
         const usage = await loadUsage()
-    
+
         const uuid = await getLyticsUuid()
         analytics.identify(uuid, {
             platform: 'mobile',
@@ -89,15 +68,39 @@ function Storage(props: OutOfSpaceProps) {
             plan: identifyPlanName(limit),
             userId: uuid
         }).catch(() => { })
-    
+
         return { usage, limit }
+    }
+
+    const getProducts = async () => {
+        const products = await storageService.loadAvailableProducts(usertoken)
+        return products
+    }
+
+    const getPlans = async () => {
+        const plans = await storageService.loadAvailablePlans(usertoken, chosenproduct.id)
+        return plans
     }
 
     useEffect(() => {
         loadValues().then(values => {
             setUsageValues(values)
         })
+        getProducts().then(res => {
+            setProducts(res)
+            setIsLoading(false)
+        })
     }, [])
+
+    useEffect(() => {
+        if (chosenproduct != undefined) {
+            getPlans().then(res => {
+                setPlans(res)
+                setIsLoading(false)
+            })
+        }
+    }, [chosenproduct])
+
 
     return (
         <View style={styles.container}>
@@ -108,13 +111,13 @@ function Storage(props: OutOfSpaceProps) {
                             props.navigation.replace('FileExplorer')
                         }}
                     >
-                        <Image style={styles.backIcon}  source={getIcon('back')} />
-                    </TouchableOpacity> 
+                        <Image style={styles.backIcon} source={getIcon('back')} />
+                    </TouchableOpacity>
                 </View>
 
                 <Text style={styles.backText}>Storage</Text>
 
-                <View style={{flex: 0.1}}></View>
+                <View style={{ flex: 0.1 }}></View>
             </View>
 
             <View style={styles.progressContainer}>
@@ -123,12 +126,12 @@ function Storage(props: OutOfSpaceProps) {
 
                     <View style={styles.usedSapceContainer}>
                         <Text style={styles.usedSpace}>Used </Text>
-                        <Text style={[styles.usedSpace, styles.bold]}>{usagevalues.usage} </Text>
+                        <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usagevalues.usage)} </Text>
                         <Text style={styles.usedSpace}>of </Text>
-                        <Text style={[styles.usedSpace, styles.bold]}>{usagevalues.limit}</Text>
+                        <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usagevalues.limit)}</Text>
                     </View>
                 </View>
-               
+
                 <ProgressBar
                     styleBar={{}}
                     styleProgress={{ height: 6 }}
@@ -139,7 +142,7 @@ function Storage(props: OutOfSpaceProps) {
                 <View style={styles.secondRow}>
                     <View style={styles.legend}>
                         <LinearGradient
-                            colors={['#00b1ff', '#096dff']}            
+                            colors={['#00b1ff', '#096dff']}
                             start={[0, 0.18]}
                             end={[0.18, 1]}
 
@@ -149,42 +152,75 @@ function Storage(props: OutOfSpaceProps) {
 
                     <View style={styles.legend}>
                         <View style={styles.circle}></View>
-                        <Text style={styles.secondRowText}>Unused space</Text>   
+                        <Text style={styles.secondRowText}>Unused space</Text>
                     </View>
                 </View>
             </View>
 
-{/*             <View style={styles.cardsContainer}>
-                <Text style={styles.title}>
-                    Storage plans
-                </Text>
+            {
+                !isloading ?
+                    <View style={styles.cardsContainer}>
+                        {
+                            !chosenproduct ?
+                                <View>
+                                    <View style={styles.titleContainer}>
+                                        <Text style={styles.title}>
+                                            Storage plans
+                                        </Text>
+                                    </View>
+                                    {
+                                        products && products.map((product: any) => <TouchableWithoutFeedback
+                                            key={product.id}
+                                            onPress={async () => {
+                                                setIsLoading(true)
+                                                setChosenProduct(product)
+                                            }}>
+                                            <PlanCard size={product.metadata.simple_name} price={product.metadata.price_eur} />
+                                        </TouchableWithoutFeedback>)
+                                    }
+                                </View>
+                                :
+                                <View>
+                                    {
+                                        !isloading ?
+                                            <View>
+                                                <View style={styles.titleContainer}>
+                                                    <TouchableOpacity
+                                                        onPress={() => {
+                                                            setChosenProduct(undefined)
+                                                        }}
+                                                    >
+                                                        <Image style={styles.paymentBackIcon} source={getIcon('back')} />
+                                                    </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => {
-                    
-                }}>
-                    <PlanCard plan={plans[0]} />
-                </TouchableOpacity>
+                                                    <Text style={styles.title}>
+                                                        Payment length
+                                                    </Text>
 
-                <TouchableOpacity onPress={() => {
-                    
-                }}>
-                    <PlanCard plan={plans[1]}  />
-                </TouchableOpacity>
+                                                    <Text style={styles.titlePlan}>{chosenproduct.name}</Text>
+                                                </View>
 
-                <TouchableOpacity onPress={() => {
-                    
-                }}>
-                    <PlanCard plan={plans[2]} />
-                </TouchableOpacity>
-            </View>
-
+                                                {
+                                                    plans && plans.map(plan => <TouchableWithoutFeedback
+                                                        key={plan.id}
+                                                        onPress={() => props.navigation.replace('StorageWebView', { plan: plan }) }
+                                                    >
+                                                        <PlanCard chosen={true} price={plan.price.toString()} plan={plan} />
+                                                    </TouchableWithoutFeedback>)
+                                                }
+                                            </View>
+                                        :
+                                            null
+                                    }
+                                </View>
+                        }
+                    </View>
+                :   
+                    null
+            }
             <View>
-                <Text style={styles.footer}>You are subscribed to the {}1GB plan</Text>
-
-                <TouchableOpacity>                
-                    <Text style={[styles.footer, styles.blue]}>Cancel plan</Text>
-                </TouchableOpacity>
-            </View> */}
+                <Text style={styles.footer}>You are subscribed to the { }1GB plan</Text>
+            </View>
         </View>
     );
 }
@@ -192,7 +228,7 @@ function Storage(props: OutOfSpaceProps) {
 const styles = StyleSheet.create({
 
     container: {
-        //justifyContent: 'space-around',
+        justifyContent: 'space-around',
         height: '100%',
         backgroundColor: 'white'
     },
@@ -245,12 +281,12 @@ const styles = StyleSheet.create({
     },
 
     usedSapceContainer: {
-        flexDirection: 'row', 
+        flexDirection: 'row',
         flex: 0.5,
         justifyContent: 'flex-end',
         paddingRight: 20
     },
-    
+
     usedSpace: {
         fontFamily: 'CerebriSans-Regular',
         color: 'black',
@@ -286,12 +322,34 @@ const styles = StyleSheet.create({
         color: '#7e848c'
     },
 
+    titleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12
+    },
+
     title: {
         fontFamily: 'CerebriSans-Bold',
         fontSize: 18,
+        height: 32,
         letterSpacing: 0,
         color: 'black',
-        marginBottom: 30
+        marginRight: 10
+    },
+
+    titlePlan: {
+        fontFamily: 'CerebriSans-Medium',
+        fontSize: 18,
+        height: 32,
+        paddingLeft: 10,
+        borderLeftWidth: 1,
+        borderColor: '#eaeced'
+    },
+
+    paymentBackIcon: {
+        width: 8,
+        height: 13,
+        marginRight: 10
     },
 
     cardsContainer: {
@@ -314,9 +372,9 @@ const styles = StyleSheet.create({
     },
 
     button: {
-        height: 50, 
+        height: 50,
         width: wp('42'),
-        borderRadius: 4, 
+        borderRadius: 4,
         borderWidth: 2,
         backgroundColor: '#fff',
         borderColor: 'rgba(151, 151, 151, 0.2)',
@@ -334,7 +392,7 @@ const styles = StyleSheet.create({
         letterSpacing: -0.2,
         color: '#5c6066'
     },
-    
+
     white: {
         color: 'white'
     }

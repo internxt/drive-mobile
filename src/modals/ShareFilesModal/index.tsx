@@ -28,9 +28,9 @@ function ShareFilesModal(props: ShareFilesModalProps) {
     }
 
     useEffect(() => {
-        props.layoutState.showShareModal ? setIsOpen(true) : null
+        props.layoutState.showShareModal === true ? setIsOpen(true) : null
         
-        if ( props.filesState.selectedFile ) {
+        if ( props.layoutState.showShareModal === true && props.filesState.selectedFile ) {
             setSelectedFile(props.filesState.selectedFile)
             setFileName(props.filesState.selectedFile.name)
             getLink(selectedfile, parseInt(inputvalue))

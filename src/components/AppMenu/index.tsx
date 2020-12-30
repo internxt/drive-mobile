@@ -15,6 +15,7 @@ interface AppMenuProps {
     filesState?: any
     dispatch?: any,
     layoutState?: any
+    authenticationState?: any
 }
 
 function AppMenu(props: AppMenuProps) {
@@ -70,7 +71,6 @@ function AppMenu(props: AppMenuProps) {
     
             }).then(resultFetch => {
                 if (resultFetch.res.status === 402) {
-                    console.log('FileExplorer should open')
                     setHasSpace(false)
                 } else if (resultFetch.res.status === 201) {
                     analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })

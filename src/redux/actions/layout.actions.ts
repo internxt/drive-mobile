@@ -30,7 +30,7 @@ export const layoutActions = {
   closeShareModal,
   
   openUploadFileModal,
-  closeUploadFileModal,
+  closeUploadFileModal
 };
 
 function openSearch() {
