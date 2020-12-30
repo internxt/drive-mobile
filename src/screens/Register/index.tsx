@@ -121,7 +121,6 @@ function Register(props: any): any {
               <Text style={styles.title}>Internxt Security</Text>
             </View>
 
-
             <View>
               <Text
                 style={{

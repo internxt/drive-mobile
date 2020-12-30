@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../../components/IconFolder';
 import Icon from '../../../assets/icons/Icon';
 import { colors } from '../../redux/constants';
-import { fileActions, layoutActions } from '../../redux/actions';
+import { fileActions } from '../../redux/actions';
 import { getLyticsData } from '../../helpers';
 import analytics from '../../helpers/lytics';
 

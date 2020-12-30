@@ -49,7 +49,6 @@ function FileExplorer(props: any) {
         setSelectedKeyId(keyId)
     }, [props.filesState])
 
-
     if (!props.authenticationState.loggedIn) {
         props.navigation.replace('Login')
     }

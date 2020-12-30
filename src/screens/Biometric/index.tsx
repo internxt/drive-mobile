@@ -63,7 +63,6 @@ function Biometric(props: any) {
     showConfig();
   }, [])
 
-
   const scan = () => {
     scanBiometrics().then(() => {
       props.navigation.replace('FileExplorer', {

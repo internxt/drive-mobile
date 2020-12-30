@@ -32,7 +32,6 @@ export function IsJsonString(str: string): any {
     }
 }
 
-
 export async function doRegister(params: RegisterParams): Promise<any> {
     const hashObj = passToHash({ password: params.password })
     const encPass = encryptText(hashObj.hash);

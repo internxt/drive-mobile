@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Linking, View, Text, Alert, ActivityIndicator } from 'react-native';
+import { Linking, View, Alert, ActivityIndicator } from 'react-native';
 import { getHeaders } from '../../helpers/headers';
 import { WebView } from 'react-native-webview'
 import { connect } from 'react-redux';
@@ -11,8 +11,8 @@ interface OutOfSpaceProps {
 
 function StorageWebView(props: OutOfSpaceProps) {
 
-    const [ isloading, setIsLoading ] = useState(true)
-    const [ uri, setUri ] = useState('')
+    const [isloading, setIsLoading] = useState(true)
+    const [uri, setUri] = useState('')
     const { plan } = props.navigation.state.params
     const user = {
         id: props.authenticationState.user.userId,
@@ -33,7 +33,7 @@ function StorageWebView(props: OutOfSpaceProps) {
             plan: STRIPE.PLAN_NAME,
             test: process.env.NODE_ENV === 'development',
             isMobile: true
-         };
+        };
 
         fetch(`${process.env.REACT_NATIVE_API_URL}/api/stripe/session${(process.env.NODE_ENV === 'development' ? '?test=true' : '')}`, {
             method: 'POST',
@@ -50,7 +50,7 @@ function StorageWebView(props: OutOfSpaceProps) {
 
         }).catch(err => {
             Alert.alert('There has been an error', `${err.message}, please contact us.`, [
-                { 
+                {
                     text: 'Go back',
                     onPress: () => props.navigation.replace('Storage')
                 }
@@ -65,9 +65,7 @@ function StorageWebView(props: OutOfSpaceProps) {
     }
     return (
         <View>
-            {/* <WebView 
-                source={{ uri: uri }}
-            /> */}
+            <WebView source={{ uri: uri }} />
         </View>
     )
 

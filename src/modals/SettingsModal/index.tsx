@@ -70,7 +70,7 @@ function SettingsModal(props: SettingsModalProps) {
             setIsLoadingUpdate(true)
             loadValues().then(values => {
                 setUsageValues(values)
-            }).catch(err => {
+            }).catch(() => {
 
             }).finally(() => {
                 setIsLoadingUpdate(false)

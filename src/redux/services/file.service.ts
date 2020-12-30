@@ -55,7 +55,7 @@ function createFolder(parentFolderId: number, folderName = 'Untitled folder') {
         } else {
           resolve();
         }
-      }).catch(error => {
+      }).catch(() => {
         reject('[file.service] Could not create folder');
       });
   });
@@ -70,8 +70,8 @@ function updateFolderMetadata(metadata: any, folderId: string) {
       method: 'POST',
       headers,
       body: data
-    }).then(() => {
-      resolve();
+    }).then((res) => {
+      resolve(res);
     }).catch(error => {
       reject(error);
     });

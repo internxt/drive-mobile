@@ -19,4 +19,3 @@ export async function checkDeviceStorageShowConf(): Promise<boolean>{
 export async function scanBiometrics(): Promise<LocalAuthentication.LocalAuthenticationResult>{
     return await LocalAuthentication.authenticateAsync()
 }
-

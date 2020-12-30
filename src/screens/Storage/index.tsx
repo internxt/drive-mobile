@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
-import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
@@ -100,7 +100,6 @@ function Storage(props: OutOfSpaceProps) {
             })
         }
     }, [chosenproduct])
-
 
     return (
         <View style={styles.container}>
