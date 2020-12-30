@@ -266,6 +266,12 @@ function Register(props: any): any {
                   doRegister({ firstName, lastName, email, password })
                     .then((userData) => {
                       analytics.identify(userData.uuid, { email }).catch(() => { })
+                      analytics.track(userData.uuid, {
+                        properties: {
+                          userId: userData.uuid,
+                          email: email
+                        }
+                      })
                       setRegisterStep(4)
                     }).catch(err => {
                       Alert.alert(err.message)
