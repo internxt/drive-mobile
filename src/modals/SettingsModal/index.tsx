@@ -111,7 +111,7 @@ function SettingsModal(props: SettingsModalProps) {
             usedValue={usageValues.usage}
         />
 
-        {isLoadingUsage ? <ActivityIndicator /> : <Text
+        {isLoadingUsage ? <ActivityIndicator color={'#00f'} /> : <Text
             style={{
                 fontFamily: 'CerebriSans-Regular',
                 fontSize: 15,
