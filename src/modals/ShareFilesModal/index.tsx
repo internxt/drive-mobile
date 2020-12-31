@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Share, Alert } from 'react-native';
+import { View, Text, StyleSheet, Share, Alert, Platform } from 'react-native';
 import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 12,
         borderWidth: 1,
-        height: 80
+        height: Platform.OS === 'ios' ? wp('19') : wp('15')
     },
 
     linkContainer: {
