@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import Separator from '../../components/Separator';
 import { layoutActions } from '../../redux/actions';
 import { getHeaders } from '../../helpers/headers';
+
 export interface ShareFilesModalProps {
     dispatch?: any,
     filesState?: any,
@@ -33,21 +34,21 @@ function ShareFilesModal(props: ShareFilesModalProps) {
         if (props.layoutState.showShareModal === true && props.filesState.selectedFile) {
             setSelectedFile(props.filesState.selectedFile)
             setFileName(props.filesState.selectedFile.name)
-            getLink(selectedfile, parseInt(inputvalue))
+            getLink(selectedfile)
         }
     }, [props.layoutState.showShareModal])
 
     useEffect(() => {
         setIsLoading(true)
         const delaySearch = setTimeout(() => {
-            getLink(selectedfile, parseInt(inputvalue)).finally(() => setIsLoading(false))
+            getLink(selectedfile).finally(() => setIsLoading(false))
         }, 1000);
         7
         return () => { clearTimeout(delaySearch); }
     }, [inputvalue])
 
-    const getLink = async (file: any, views: number) => {
-        const tokenLink = await getFileToken(file, views);
+    const getLink = async (file: any) => {
+        const tokenLink = await getFileToken(file);
         const url = `https://drive.internxt.com/${tokenLink}`;
         setLink(url)
     }
@@ -56,11 +57,11 @@ function ShareFilesModal(props: ShareFilesModalProps) {
         // Share link on native share system
         await Share.share({
             title: 'Internxt Drive file sharing',
-            message: `Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple, private and eco-friendly cloud storage service https://internxt.com/drive \nI wanted to share a file (${file.name}) with you through this single-use private link -no sign up required: ${link}`
+            message: `Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple, private and eco-friendly cloud storage service https://internxt.com/drive \nI wanted to share a file (${file.name}) with you through this private link (${inputvalue} total uses) -no sign up required: ${link}`
         });
     };
 
-    const getFileToken = async (file: any, views: number) => {
+    const getFileToken = async (file: any) => {
         try {
             const fileId = file ? file.fileId : props.filesState.selectedFile.fileId;
 
@@ -99,7 +100,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
                 setIsOpen(false)
             }}
             position='bottom'
-            style={styles.modal_container}
+            style={styles.modalContainer}
         >
             <Text style={styles.title}>
                 {filename}
@@ -110,8 +111,8 @@ function ShareFilesModal(props: ShareFilesModalProps) {
             <View>
                 <Text style={styles.subtitle}>Share your Drive file with this private link</Text>
 
-                <View style={styles.input_container}>
-                    <Text style={[styles.subtitle, { width: '70%' }]}>or enter the number of times you would like the link to be valid: </Text>
+                <View style={styles.inputContainer}>
+                    <Text style={[styles.subtitle, styles.short]}>or enter the number of times you would like the link to be valid: </Text>
                     <TextInput
                         style={styles.input}
                         keyboardType='numeric'
@@ -123,19 +124,21 @@ function ShareFilesModal(props: ShareFilesModalProps) {
                 </View>
             </View>
 
-            <View style={styles.share_container}>
-                <Text style={styles.link}>
-                    {!isloading ? link : 'Loading link...'}
-                </Text>
+            <View style={styles.shareContainer}>
+                <View style={styles.linkContainer}>
+                    <Text style={styles.link}>
+                        {!isloading ? link : 'Loading link...'}
+                    </Text>
+                </View>
 
-                <View style={styles.button_container}>
+                <View style={styles.buttonContainer}>
                     <TouchableOpacity style={styles.button}
                         onPress={() => {
                             shareFile(selectedfile)
                         }}
                         disabled={isloading}
                     >
-                        <Text style={!isloading ? styles.button_text : styles.button_text_loading}>Share</Text>
+                        <Text style={!isloading ? styles.buttonText : styles.buttonTextLoading}>Share</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -144,7 +147,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 }
 
 const styles = StyleSheet.create({
-    modal_container: {
+    modalContainer: {
         height: 'auto',
         paddingTop: 20
     },
@@ -164,7 +167,11 @@ const styles = StyleSheet.create({
         marginLeft: wp('6')
     },
 
-    input_container: {
+    short: {
+        width: '70%'
+    },
+
+    inputContainer: {
         flexDirection: 'row',
         alignItems: 'flex-end'
     },
@@ -178,27 +185,32 @@ const styles = StyleSheet.create({
         paddingLeft: 10
     },
 
-    share_container: {
+    shareContainer: {
         flexDirection: 'row',
         borderColor: 'rgba(151, 151, 151, 0.2)',
         alignItems: 'center',
         marginTop: 12,
-        borderWidth: 1
+        borderWidth: 1,
+        height: 80
+    },
+
+    linkContainer: {
+        flex: 0.8,
+        alignItems: 'center',
+        justifyContent: 'center'
     },
 
     link: {
-        flex: 0.8,
-        textAlign: 'center',
-        textAlignVertical: 'center',
         fontSize: 14,
         marginHorizontal: wp('2'),
-        color: '#737880',
-        height: 45
+        color: '#737880'
     },
 
-    button_container: {
+    buttonContainer: {
         flex: 0.2,
         borderLeftWidth: 1,
+        height: '100%',
+        justifyContent: 'center',
         borderColor: 'rgba(151, 151, 151, 0.2)',
         padding: 20
     },
@@ -208,13 +220,13 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
 
-    button_text: {
+    buttonText: {
         fontSize: 18,
         color: '#4585f5',
         fontFamily: 'CerebriSans-Bold'
     },
 
-    button_text_loading: {
+    buttonTextLoading: {
         fontSize: 18,
         color: 'rgba(69, 133, 245, 0.7)',
         fontFamily: 'CircularStd-Bold'
