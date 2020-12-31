@@ -66,7 +66,7 @@ function CreateFolder(props: any) {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.folderWrapper}>
+      <View style={styles.folderWrapper}>
         <FolderIcon />
 
         <TextInput
@@ -80,7 +80,7 @@ function CreateFolder(props: any) {
           maxLength={24}
           clearTextOnFocus={true}
         />
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   )
 }
@@ -90,7 +90,8 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     alignItems: 'stretch',
-    backgroundColor: "#fff"
+    backgroundColor: "#fff",
+    height: '100%'
   },
   actionsWrapper: {
     height: 51,

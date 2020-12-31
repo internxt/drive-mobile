@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, Platform } from 'react-native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -72,7 +72,7 @@ function MoveFilesModal(props: MoveFilesProps) {
                 <Text style={styles.title}>Choose a folder to move this file.</Text>
 
                 <TouchableOpacity
-                    style={parentfolderid ? styles.back_button : styles.hidden}
+                    style={parentfolderid ? styles.backButton : styles.hidden}
                     onPress={() => {
                         props.dispatch(fileActions.getFolderContent(parentfolderid))
                     }}>
@@ -82,7 +82,7 @@ function MoveFilesModal(props: MoveFilesProps) {
 
             <Separator />
 
-            <View style={styles.folder_list}>
+            <View style={styles.folderList}>
                 <FlatList
                     data={folderList}
                     renderItem={folder => (
@@ -96,7 +96,7 @@ function MoveFilesModal(props: MoveFilesProps) {
                 />
             </View>
 
-            <View style={styles.button_container}>
+            <View style={styles.buttonContainer}>
                 <TouchableOpacity style={styles.button}
                     onPress={() => {
                         props.dispatch(layoutActions.closeMoveFilesModal())
@@ -128,7 +128,8 @@ const styles = StyleSheet.create({
         flexWrap: 'nowrap',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: "center"
+        alignItems: "center",
+        marginTop: Platform.OS === 'ios' ? wp('14') : 0
     },
     title: {
         height: 30,
@@ -136,10 +137,9 @@ const styles = StyleSheet.create({
         fontSize: 21,
         letterSpacing: -0.2,
         paddingLeft: 20,
-        color: '#000000',
-        marginTop: 20
+        color: '#000000'
     },
-    back_button: {
+    backButton: {
         marginRight: 12,
         marginTop: wp('3.5'),
         alignItems: 'center',
@@ -152,10 +152,10 @@ const styles = StyleSheet.create({
         width: 10,
         marginRight: 5
     },
-    folder_list: {
+    folderList: {
         height: '75%'
     },
-    button_container: {
+    buttonContainer: {
         flex: 1,
         flexDirection: 'row',
         justifyContent: 'space-evenly',
