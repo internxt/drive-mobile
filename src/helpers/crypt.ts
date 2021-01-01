@@ -15,6 +15,7 @@ export function passToHash(passObject: PassObjectInterface) {
       salt: salt.toString(),
       hash: hash.toString()
     }
+
     return hashedObjetc;
   } catch (error) {
     throw error;
@@ -36,6 +37,7 @@ export function encryptTextWithKey(textToEncrypt: string, keyToEncrypt: string) 
   try {
     const bytes = CryptoJS.AES.encrypt(textToEncrypt, keyToEncrypt).toString();
     const text64 = CryptoJS.enc.Base64.parse(bytes);
+
     return text64.toString(CryptoJS.enc.Hex);
   } catch (error) {
     throw new Error(error);
@@ -50,6 +52,7 @@ export function decryptTextWithKey(encryptedText: string, keyToDecrypt: string) 
       reb.toString(CryptoJS.enc.Base64),
       keyToDecrypt
     );
+
     return bytes.toString(CryptoJS.enc.Utf8);
   } catch (error) {
     throw new Error(error);
@@ -62,10 +65,12 @@ export function removeAccents(string: string) {
     'ÀÁÂÃÄÅĄĀāàáâãäåąßÒÓÔÕÕÖØŐòóôőõöøĎďDŽdžÈÉÊËĘèéêëęðÇçČčĆćÐÌÍÎÏĪìíîïīÙÚÛÜŰùűúûüĽĹŁľĺłÑŇŃňñńŔŕŠŚŞšśşŤťŸÝÿýŽŻŹžżźđĢĞģğ';
   const accentsOut =
     'AAAAAAAAaaaaaaaasOOOOOOOOoooooooDdDZdzEEEEEeeeeeeCcCcCcDIIIIIiiiiiUUUUUuuuuuLLLlllNNNnnnRrSSSsssTtYYyyZZZzzzdGGgg';
+
   return string
     .split('')
     .map((letter) => {
       const accentIndex = accents.indexOf(letter);
+
       return accentIndex !== -1 ? accentsOut[accentIndex] : letter;
     })
     .join('');

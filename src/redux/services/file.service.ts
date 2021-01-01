@@ -19,12 +19,14 @@ async function setHeaders() {
     'Content-type': 'application/json; charset=utf-8',
     'internxt-mnemonic': user.mnemonic
   };
+
   return headers;
 }
 
 function getFolderContent(folderId: number) {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
+
     fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}`, {
       method: 'GET',
       headers
@@ -96,6 +98,7 @@ async function moveFile(fileId: string, destination: string) {
       return 1;
     } else {
       const data = await res.json();
+
       return data.message;
     }
   } catch (error) {
@@ -132,48 +135,49 @@ function deleteItems(items: any[]) {
 function getSortFunction(sortType: string) {
   // Sort items depending on option selected
   let sortFunc = null;
+
   switch (sortType) {
-    case sortTypes.DATE_ADDED:
-      sortFunc = function (a: any, b: any) {
-        return a.id > b.id;
-      };
-      break;
-    case sortTypes.FILETYPE_ASC:
-      sortFunc = function (a: any, b: any) {
-        return a.type
-          ? a.type.toLowerCase().localeCompare(b.type.toLowerCase())
-          : true;
-      };
-      break;
-    case sortTypes.FILETYPE_DESC:
-      sortFunc = function (a: any, b: any) {
-        return b.type
-          ? b.type.toLowerCase().localeCompare(a.type.toLowerCase())
-          : true;
-      };
-      break;
-    case sortTypes.NAME_ASC:
-      sortFunc = function (a: any, b: any) {
-        return compare({ order: 'asc' })(a.name.toLowerCase(), b.name.toLowerCase())
-      };
-      break;
-    case sortTypes.NAME_DESC:
-      sortFunc = function (a: any, b: any) {
-        return compare({ order: 'desc' })(a.name.toLowerCase(), b.name.toLowerCase())
-      };
-      break;
-    case sortTypes.SIZE_ASC:
-      sortFunc = function (a: any, b: any) {
-        return a.size ? a.size - b.size : true;
-      };
-      break;
-    case sortTypes.SIZE_DESC:
-      sortFunc = function (a: any, b: any) {
-        return b.size ? b.size - a.size : true;
-      };
-      break;
-    default:
-      break;
+  case sortTypes.DATE_ADDED:
+    sortFunc = function (a: any, b: any) {
+      return a.id > b.id;
+    };
+    break;
+  case sortTypes.FILETYPE_ASC:
+    sortFunc = function (a: any, b: any) {
+      return a.type
+        ? a.type.toLowerCase().localeCompare(b.type.toLowerCase())
+        : true;
+    };
+    break;
+  case sortTypes.FILETYPE_DESC:
+    sortFunc = function (a: any, b: any) {
+      return b.type
+        ? b.type.toLowerCase().localeCompare(a.type.toLowerCase())
+        : true;
+    };
+    break;
+  case sortTypes.NAME_ASC:
+    sortFunc = function (a: any, b: any) {
+      return compare({ order: 'asc' })(a.name.toLowerCase(), b.name.toLowerCase())
+    };
+    break;
+  case sortTypes.NAME_DESC:
+    sortFunc = function (a: any, b: any) {
+      return compare({ order: 'desc' })(a.name.toLowerCase(), b.name.toLowerCase())
+    };
+    break;
+  case sortTypes.SIZE_ASC:
+    sortFunc = function (a: any, b: any) {
+      return a.size ? a.size - b.size : true;
+    };
+    break;
+  case sortTypes.SIZE_DESC:
+    sortFunc = function (a: any, b: any) {
+      return b.size ? b.size - a.size : true;
+    };
+    break;
+  default:
+    break;
   }
   return sortFunc;
 }

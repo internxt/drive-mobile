@@ -11,6 +11,7 @@ export const deviceStorage = {
   async getItem(key: string) {
     try {
       const value = await AsyncStorage.getItem(key);
+
       return value;
     } catch (error) {
     }
@@ -19,6 +20,7 @@ export const deviceStorage = {
   async deleteItem(key: string) {
     try {
       const value = await AsyncStorage.removeItem(key);
+
       return value;
     } catch (error) {
     }

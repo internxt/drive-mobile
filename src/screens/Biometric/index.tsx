@@ -23,21 +23,21 @@ function Biometric(props: any) {
                 })
               } else if (biometricSave === true && NotShowConf === false && xBiometric === false) {
                 return Alert.alert(
-                  "Biometric lock",
-                  "Would you like to activate biometric lock on your device?",
+                  'Biometric lock',
+                  'Would you like to activate biometric lock on your device?',
                   [
                     {
-                      text: "No",
+                      text: 'No',
                       onPress: () => {
                         deviceStorage.saveItem('xNotShowConfBiometric', 'true')
                         props.navigation.replace('FileExplorer', {
                           folderId: rootFolderId
                         })
                       },
-                      style: "cancel"
+                      style: 'cancel'
                     },
                     {
-                      text: "Yes", onPress: () => {
+                      text: 'Yes', onPress: () => {
                         deviceStorage.saveItem('xBiometric', 'true')
                         scan()
                       }

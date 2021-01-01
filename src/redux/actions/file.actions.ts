@@ -55,6 +55,7 @@ function uploadFileFailed() {
 
 function getFolderContent(folderId: string) {
   const id = parseInt(folderId);
+
   if (isNaN(id)) {
     return (dispatch: Dispatch) => {
       dispatch(failure(`Folder ID: "${folderId}" is not a number.`));
@@ -139,6 +140,7 @@ function deselectAll() {
 
 function setSortFunction(sortType) {
   const sortFunc = fileService.getSortFunction(sortType);
+
   return (dispatch: Dispatch) => {
     dispatch({
       type: fileActionTypes.SET_SORT_TYPE,
@@ -177,6 +179,7 @@ function createFolder(parentFolderId: number, newFolderName: string) {
   function success(newFolderDetails: any) {
     (async () => {
       const userData = await getLyticsData()
+
       analytics.track('folder-created', {
         userId: userData.uuid,
         platform: 'mobile',

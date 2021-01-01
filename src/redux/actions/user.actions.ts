@@ -69,6 +69,7 @@ function signout() {
 
 function localSignIn(token: any, user: any) {
   const data = { token, user };
+
   return { type: userActionTypes.LOCAL_SIGNIN, payload: data };
 }
 
