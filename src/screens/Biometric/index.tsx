@@ -3,8 +3,13 @@ import { Alert } from 'react-native'
 import { deviceStorage } from '../../helpers';
 import { checkDeviceForHardware, checkForBiometric, checkDeviceStorageShowConf, checkDeviceStorageBiometric, scanBiometrics } from './BiometricUtils'
 import { connect } from 'react-redux';
+import { Reducers } from '../../redux/reducers/reducers';
 
-function Biometric(props: any) {
+interface BiometricProps extends Reducers {
+  navigation?: any
+}
+
+function Biometric(props: BiometricProps): JSX.Element {
   const rootFolderId = props.authenticationState.user.root_folder_id;
 
   const showConfig = () => {

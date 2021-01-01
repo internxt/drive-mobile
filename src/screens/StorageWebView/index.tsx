@@ -9,7 +9,8 @@ interface OutOfSpaceProps {
   authenticationState?: any
 }
 
-function StorageWebView(props: OutOfSpaceProps) {
+// TODO: OutOfSpaceProps is a bad name for this component
+function StorageWebView(props: OutOfSpaceProps): JSX.Element {
 
   const [isloading, setIsLoading] = useState(true)
   const [uri, setUri] = useState('')

@@ -15,7 +15,7 @@ import MoveFilesModal from '../../modals/MoveFilesModal';
 import ShareFilesModal from '../../modals/ShareFilesModal';
 import UploadFileModal from '../../modals/UploadFileModal';
 
-function FileExplorer(props: any) {
+function FileExplorer(props: any): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
 
   const { filesState } = props;

@@ -1,11 +1,16 @@
 import { userActionTypes } from '../constants';
 
+export interface SettingsState {
+  loading: boolean
+  plan_changed: boolean
+  error: string
+}
 interface ReduxAction {
   type: string
   payload: any
 }
 
-const initialState = {
+const initialState: SettingsState = {
   loading: false,
   plan_changed: false,
   error: ''
@@ -16,12 +21,14 @@ export function settingsReducer(state = initialState, action: ReduxAction): any 
   case userActionTypes.PAYMENT_REQUEST:
     return {
       ...state,
-      loading: true
+      loading: true,
+      error: ''
     };
   case userActionTypes.PAYMENT_SUCCESS:
     return {
       loading: false,
-      plan_changed: true
+      plan_changed: true,
+      error: ''
     };
   case userActionTypes.PAYMENT_FAILURE:
     return {

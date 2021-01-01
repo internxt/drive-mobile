@@ -1,6 +1,18 @@
 import { layoutActionTypes } from '../constants';
 
-const initialState = {
+export interface LayoutState {
+  searchActive: boolean
+  createFolderActive: boolean
+  showSettingsModal: boolean
+  showItemModal: boolean
+  showSortModal: boolean
+  showMoveModal: boolean
+  showDeleteModal: boolean
+  showShareModal: boolean
+  showUploadModal: boolean
+}
+
+const initialState: LayoutState = {
   searchActive: false,
   createFolderActive: false,
   showSettingsModal: false,

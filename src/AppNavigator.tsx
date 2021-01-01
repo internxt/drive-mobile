@@ -42,12 +42,13 @@ const App = createAppContainer(StackNav);
 function trackScreen(previousScreen: NavigationState, nextScreen: NavigationState) {
   try {
     const routeName = nextScreen.routes[0].routeName
+
     analytics.screen(routeName)
   } catch {
   }
 }
 
-function AppNavigator(props: any) {
+function AppNavigator(props: any): JSX.Element {
   return <App onNavigationStateChange={trackScreen} />
 }
 

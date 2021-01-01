@@ -13,7 +13,7 @@ import React, { useEffect, useState } from 'react'
 import { normalize } from '../../helpers';
 import { connect } from 'react-redux';
 
-function Forgot(props: any): any {
+function Forgot(props: any): JSX.Element {
   const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -169,6 +169,8 @@ function Forgot(props: any): any {
     );
 
   }
+
+  return <></>;
 
 }
 const mapStateToProps = (state: any) => {

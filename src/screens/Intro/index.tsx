@@ -88,7 +88,7 @@ function renderDoneButton() {
   );
 }
 
-function Intro(props: IntroProps) {
+function Intro(props: IntroProps): JSX.Element {
   return <AppIntroSlider
     data={slides}
     renderItem={renderItem}

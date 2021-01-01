@@ -7,15 +7,15 @@ import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { normalize } from '../../helpers/normalize'
 import { userActions } from '../../redux/actions';
+import { Reducers } from '../../redux/reducers/reducers';
 import { validate2FA, apiLogin } from './access';
-interface LoginProps {
+interface LoginProps extends Reducers {
   goToForm?: (screenName: string) => void
-  authenticationState?: any
   dispatch?: any
   navigation?: any
 }
 
-function Login(props: LoginProps) {
+function Login(props: LoginProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

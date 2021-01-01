@@ -14,7 +14,7 @@ export const userActions = {
 function signin(email: string, password: string, sKey: string, twoFactorCode: string) {
   return (dispatch: Dispatch) => {
     dispatchRequest();
-    userService
+    return userService
       .signin(email, password, sKey, twoFactorCode)
       .then(userData => {
         dispatch(success(userData));
@@ -94,7 +94,7 @@ function payment(token: any, planId: any) {
     return { type: userActionTypes.PAYMENT_SUCCESS };
   }
 
-  function failure(error: any) {
+  function failure(error: Error) {
     return { type: userActionTypes.PAYMENT_FAILURE, payload: error };
   }
 }

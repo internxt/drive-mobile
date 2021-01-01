@@ -9,8 +9,7 @@ export interface PlanCardProps {
     plan?: Record<string, unknown>
 }
 
-const PlanCard = (props: PlanCardProps) => {
-
+function PlanCard(props: PlanCardProps): JSX.Element {
   return (
     <View style={styles.planContainer}>
       <LinearGradient

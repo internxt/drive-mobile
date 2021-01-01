@@ -1,6 +1,13 @@
 import { userActionTypes } from '../constants';
 
-const initialState = {
+export interface AuthenticationState {
+  loggedIn: boolean
+  token: string
+  user: any
+  error: string
+}
+
+const initialState: AuthenticationState = {
   loggedIn: false,
   token: '',
   user: {}

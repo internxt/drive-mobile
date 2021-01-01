@@ -8,7 +8,7 @@ import Intro from '../Intro'
 import { validateEmail } from '../Login/access';
 import { doRegister, isNullOrEmpty, isStrongPassword, resendActivationEmail } from './registerUtils';
 
-function Register(props: any): any {
+function Register(props: any): JSX.Element {
   const [registerStep, setRegisterStep] = useState(1);
   const [showIntro, setShowIntro] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -377,6 +377,8 @@ function Register(props: any): any {
       </View>
     );
   }
+
+  return <></>;
 }
 
 const styles = StyleSheet.create({

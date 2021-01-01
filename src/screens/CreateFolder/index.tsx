@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -35,7 +35,7 @@ const FolderIcon = () => (
   </Svg>
 )
 
-function CreateFolder(props: any) {
+function CreateFolder(props: any): JSX.Element {
   const [folderName, setFolderName] = useState('')
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
 

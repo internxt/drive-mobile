@@ -11,17 +11,14 @@ import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import PlanCard from './PlanCard';
 import { LinearGradient } from 'expo-linear-gradient';
 import { storageService } from '../../redux/services';
+import { Reducers } from '../../redux/reducers/reducers';
 
-interface OutOfSpaceProps {
-    filesState?: any
-    layoutState?: any
-    authenticationState?: any
+interface StorageProps extends Reducers {
     dispatch?: any,
     navigation?: any
 }
 
-function Storage(props: OutOfSpaceProps) {
-
+function Storage(props: StorageProps): JSX.Element {
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
   const [userToken, setUserToken] = useState(props.authenticationState.token)
   const [isLoading, setIsLoading] = useState(true)

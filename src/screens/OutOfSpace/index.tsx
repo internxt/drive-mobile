@@ -5,14 +5,12 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 
 interface OutOfSpaceProps {
-    layoutState?: any
-    filesState?: any
-    authenticationState?: any
     dispatch?: any,
     navigation?: any
 }
 
-function OutOfSpace(props: OutOfSpaceProps) {
+// TODO: This should be a modal, not a new screen
+function OutOfSpace(props: OutOfSpaceProps): JSX.Element {
 
   return (
     <View style={styles.container}>

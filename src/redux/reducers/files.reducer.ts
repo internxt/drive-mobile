@@ -1,6 +1,21 @@
 import { fileActionTypes } from '../constants';
 
-const initialState = {
+export interface FilesState {
+  loading: boolean
+  items: any[]
+  folderContent: any
+  selectedFile: string | null
+  selectedItems: any[]
+  sortType: string
+  sortFunction: any
+  searchString: string
+  isUploading: boolean
+  isUploadingFileName: string | null
+  startDownloadSelectedFile: boolean
+  error?: string | null
+}
+
+const initialState: FilesState = {
   loading: false,
   items: [],
   folderContent: null,
@@ -14,7 +29,7 @@ const initialState = {
   startDownloadSelectedFile: false
 };
 
-export function filesReducer(state = initialState, action: any) {
+export function filesReducer(state = initialState, action: any): FilesState {
   switch (action.type) {
   case fileActionTypes.GET_FILES_REQUEST:
     return {
