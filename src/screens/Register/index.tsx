@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Image, Alert } from "react-native";
+import { View, Text, KeyboardAvoidingView, StyleSheet, Image, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
-import { connect } from "react-redux";
+import { connect } from 'react-redux';
 import { normalize } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import Intro from '../Intro'
@@ -29,7 +29,7 @@ function Register(props: any): any {
     return <Intro onFinish={() => setShowIntro(false)} />;
   }
 
-  if (registerStep === 1) {  
+  if (registerStep === 1) {
     const isValidStep = isValidFirstName && isValidLastName && isValidEmail;
 
     return (
@@ -137,7 +137,7 @@ function Register(props: any): any {
                 know your password. That means that if you ever forget it,
                 your files are gone forever. With us, you&apos;re the only owner of
                 your files. We strongly suggest you to:
-                </Text>
+              </Text>
             </View>
 
             <View
@@ -159,7 +159,7 @@ function Register(props: any): any {
                   }}
                 >
                   Store your Password. Keep it safe and secure.
-                  </Text>
+                </Text>
               </View>
               <View style={{ flexDirection: 'row' }}>
                 <Text>{'\u2022'}</Text>
@@ -173,7 +173,7 @@ function Register(props: any): any {
                   }}
                 >
                   Keep an offline backup of your password.
-                  </Text>
+                </Text>
               </View>
             </View>
 
@@ -326,7 +326,7 @@ function Register(props: any): any {
               >
                 Please check your email and follow the instructions to
                 activate your account so you can start using Internxt Drive.
-                </Text>
+              </Text>
             </View>
 
             <View
@@ -345,7 +345,7 @@ function Register(props: any): any {
               >
                 By creating an account, you are agreeing to our Terms &amp;
                 Conditions and Privacy Policy.
-                </Text>
+              </Text>
             </View>
 
             <View style={styles.buttonFooterWrapper}>

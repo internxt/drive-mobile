@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
-import { useState } from "react";
-import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from "react-native";
-import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
+import { useState } from 'react';
+import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
+import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/lytics';
@@ -31,6 +31,7 @@ function Login(props: LoginProps) {
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
+
       props.navigation.replace('FileExplorer', {
         folderId: rootFolderId
       })
@@ -38,6 +39,7 @@ function Login(props: LoginProps) {
       (async () => {
         const xToken = await deviceStorage.getItem('xToken')
         const xUser = await deviceStorage.getItem('xUser')
+
         if (xToken && xUser) {
           props.dispatch(userActions.localSignIn(xToken, xUser))
         } else {

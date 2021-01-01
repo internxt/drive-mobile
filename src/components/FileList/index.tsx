@@ -6,111 +6,113 @@ import EmptyFolder from '../EmptyFolder';
 import FileItem from '../FileItem';
 
 function FileList(props: any) {
-    const [refreshing, setRefreshing] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
-    const { filesState } = props;
-    const { folderContent } = filesState;
-    let folderList: any[] = folderContent && folderContent.children || [];
-    let fileList: any[] = folderContent && folderContent.files || [];
+  const { filesState } = props;
+  const { folderContent } = filesState;
+  let folderList: any[] = folderContent && folderContent.children || [];
+  let fileList: any[] = folderContent && folderContent.files || [];
 
-    useEffect(() => {
-        setRefreshing(false)
-    }, [props.filesState.folderContent])
+  useEffect(() => {
+    setRefreshing(false)
+  }, [props.filesState.folderContent])
 
-    const searchString = props.filesState.searchString
+  const searchString = props.filesState.searchString
 
-    if (searchString) {
-        fileList = fileList.filter((file: any) => file.name.toLowerCase().includes(searchString.toLowerCase()))
-        folderList = folderList.filter((folder: any) => folder.name.toLowerCase().includes(searchString.toLowerCase()))
+  if (searchString) {
+    fileList = fileList.filter((file: any) => file.name.toLowerCase().includes(searchString.toLowerCase()))
+    folderList = folderList.filter((folder: any) => folder.name.toLowerCase().includes(searchString.toLowerCase()))
+  }
+
+  const sortFunction = props.filesState.sortFunction
+
+  if (sortFunction) {
+    folderList.sort(sortFunction);
+    fileList.sort(sortFunction);
+  }
+
+  useEffect(() => {
+    if (!props.filesState.folderContent) {
+      const rootFolderId = props.authenticationState.user.root_folder_id
+
+      props.dispatch(fileActions.getFolderContent(rootFolderId))
     }
+  }, [])
 
-    const sortFunction = props.filesState.sortFunction
+  const isUploading = props.filesState.isUploadingFileName
+  const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && !isUploading
 
-    if (sortFunction) {
-        folderList.sort(sortFunction);
-        fileList.sort(sortFunction);
-    }
-
-    useEffect(() => {
-        if (!props.filesState.folderContent) {
-            const rootFolderId = props.authenticationState.user.root_folder_id
-            props.dispatch(fileActions.getFolderContent(rootFolderId))
-        }
-    }, [])
-
-    const isUploading = props.filesState.isUploadingFileName
-    const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && !isUploading
-
-    return (
-        <ScrollView
-            refreshControl={
-                <RefreshControl refreshing={refreshing} 
-                    onRefresh={() => {
-                        setRefreshing(true)
-                        if (!props || !props.filesState || !props.filesState.folderContent) {
-                            return setRefreshing(false)
-                        }
-                        const currentFolder = props.filesState.folderContent.currentFolder
-                        props.dispatch(fileActions.getFolderContent(currentFolder))
-                    }} 
-                />
+  return (
+    <ScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing}
+          onRefresh={() => {
+            setRefreshing(true)
+            if (!props || !props.filesState || !props.filesState.folderContent) {
+              return setRefreshing(false)
             }
-            style={styles.fileListScrollView}
-            contentContainerStyle={isEmptyFolder ? styles.fileListContentsScrollView : null}
-        >
-            {
-                isEmptyFolder ? 
-                    <EmptyFolder />
-                : 
-                    <Text style={{ display: 'none' }}></Text>
-            }
+            const currentFolder = props.filesState.folderContent.currentFolder
 
-            {
-                isUploading ?
-                    <FileItem
-                        key={isUploading}
-                        isFolder={false}
-                        item={{ name: isUploading }}
-                        isLoading={true} 
-                    /> 
-                : 
-                    null
-            }
+            props.dispatch(fileActions.getFolderContent(currentFolder))
+          }}
+        />
+      }
+      style={styles.fileListScrollView}
+      contentContainerStyle={isEmptyFolder ? styles.fileListContentsScrollView : null}
+    >
+      {
+        isEmptyFolder ?
+          <EmptyFolder />
+          :
+          <Text style={{ display: 'none' }}></Text>
+      }
 
-            {
-                folderList.map((folder: any) => 
-                    <FileItem
-                        key={folder.id}
-                        isFolder={true}
-                        item={folder} 
-                    />
-                )
-            }
+      {
+        isUploading ?
+          <FileItem
+            key={isUploading}
+            isFolder={false}
+            item={{ name: isUploading }}
+            isLoading={true}
+          />
+          :
+          null
+      }
 
-            {
-                fileList.map((file: any) => 
-                    <FileItem
-                        key={file.id}
-                        isFolder={false}
-                        item={file} 
-                    />
-                )
-            }
-        </ScrollView>
-    )
+      {
+        folderList.map((folder: any) =>
+          <FileItem
+            key={folder.id}
+            isFolder={true}
+            item={folder}
+          />
+        )
+      }
+
+      {
+        fileList.map((file: any) =>
+          <FileItem
+            key={file.id}
+            isFolder={false}
+            item={file}
+          />
+        )
+      }
+    </ScrollView>
+  )
 }
 
 const styles = StyleSheet.create({
-    fileListScrollView: {
-    },
-    fileListContentsScrollView: {
-        flexGrow: 1,
-        justifyContent: 'center'
-    }
+  fileListScrollView: {
+  },
+  fileListContentsScrollView: {
+    flexGrow: 1,
+    justifyContent: 'center'
+  }
 })
 
 const mapStateToProps = (state: any) => {
-    return { ...state };
+  return { ...state };
 };
 
 export default connect(mapStateToProps)(FileList)

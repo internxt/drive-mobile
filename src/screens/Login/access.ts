@@ -1,5 +1,5 @@
-import { getHeaders } from "../../helpers/headers"
-import { IsJsonString } from "../Register/registerUtils"
+import { getHeaders } from '../../helpers/headers'
+import { IsJsonString } from '../Register/registerUtils'
 
 export async function apiLogin(email: string): Promise<any> {
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/login`, {
@@ -24,6 +24,7 @@ export async function apiLogin(email: string): Promise<any> {
 
 export function validateEmail(email: string): boolean {
   const emailPattern = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+
   return emailPattern.test(email);
 }
 

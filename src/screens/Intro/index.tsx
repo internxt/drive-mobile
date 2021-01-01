@@ -71,8 +71,8 @@ function renderItem({ item }: any) {
 function renderNextButton(): ReactNode {
   return (
     <TouchableHighlight style={styles.buttonSkip}
-        activeOpacity={1}
-        underlayColor="#007aff">
+      activeOpacity={1}
+      underlayColor="#007aff">
       <Text style={styles.buttonSkipText}>Next</Text>
     </TouchableHighlight>
   );
