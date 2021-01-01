@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { ScrollView, View, Text, RefreshControl, StyleSheet } from 'react-native';
+import { ScrollView, Text, RefreshControl, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
 import { fileActions } from '../../redux/actions';
 import EmptyFolder from '../EmptyFolder';
@@ -57,14 +57,13 @@ function FileList(props: any) {
           }}
         />
       }
-      style={styles.fileListScrollView}
       contentContainerStyle={isEmptyFolder ? styles.fileListContentsScrollView : null}
     >
       {
         isEmptyFolder ?
           <EmptyFolder />
           :
-          <Text style={{ display: 'none' }}></Text>
+          <Text style={styles.dNone}></Text>
       }
 
       {
@@ -103,11 +102,12 @@ function FileList(props: any) {
 }
 
 const styles = StyleSheet.create({
-  fileListScrollView: {
-  },
   fileListContentsScrollView: {
     flexGrow: 1,
     justifyContent: 'center'
+  },
+  dNone: {
+    display: 'none'
   }
 })
 

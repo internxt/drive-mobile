@@ -50,9 +50,9 @@ function Login(props: LoginProps): JSX.Element {
   }, [props.authenticationState.loggedIn, props.authenticationState.token])
 
   return <KeyboardAvoidingView behavior="padding" style={styles.container}>
-    <View style={[styles.containerCentered, isLoading ? { opacity: 0.5 } : {}]}>
+    <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
       <View style={styles.containerHeader}>
-        <View style={{ flexDirection: 'row' }}>
+        <View style={styles.flexRow}>
           <Image style={styles.logo} source={require('../../../assets/images/logo.png')} />
           <Text style={styles.title}>Sign in to Internxt</Text>
         </View>
@@ -253,5 +253,11 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     marginTop: normalize(13),
     color: '#a4a4a4'
+  },
+  flexRow: {
+    flexDirection: 'row'
+  },
+  halfOpacity: {
+    opacity: 0.5
   }
 });

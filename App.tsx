@@ -6,7 +6,7 @@ import AppNavigator from './src/AppNavigator';
 import { analyticsSetup, loadEnvVars, loadFonts } from './src/helpers'
 import { NavigationContainer } from '@react-navigation/native';
 
-export default function App() {
+export default function App(): JSX.Element {
   const [appInitialized, setAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
 

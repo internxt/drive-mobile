@@ -5,11 +5,9 @@ import Modal from 'react-native-modalbox';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
-export interface DeleteItemModalProps {
+import { Reducers } from '../../redux/reducers/reducers';
+export interface DeleteItemModalProps extends Reducers {
     dispatch?: any,
-    filesState?: any,
-    fileActions?: any,
-    layoutState?: any,
 }
 
 function DeleteItemModal(props: DeleteItemModalProps) {
@@ -35,10 +33,10 @@ function DeleteItemModal(props: DeleteItemModalProps) {
         setIsOpen(false)
       }}
       position='center'
-      style={styles.modal_container}
+      style={styles.modalContainer}
     >
-      <View style={styles.text_container}>
-        <View style={styles.title_container}>
+      <View style={styles.textContainer}>
+        <View style={styles.titleContainer}>
           <Image source={require('../../../assets/images/logo.png')} style={styles.image} />
           <Text style={styles.title}>Delete item</Text>
         </View>
@@ -46,7 +44,7 @@ function DeleteItemModal(props: DeleteItemModalProps) {
         <Text style={styles.subtitle}>Please confirm you want to delete this item. This action can not be undone.</Text>
       </View>
 
-      <View style={styles.button_container}>
+      <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={() => {
           setIsOpen(false)
         }}>
@@ -65,18 +63,18 @@ function DeleteItemModal(props: DeleteItemModalProps) {
 }
 
 const styles = StyleSheet.create({
-  modal_container: {
+  modalContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     height: '100%',
     width: '100%'
   },
 
-  text_container: {
+  textContainer: {
     paddingHorizontal: 30
   },
 
-  title_container: {
+  titleContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end'
   },
@@ -100,7 +98,7 @@ const styles = StyleSheet.create({
     marginTop: 15
   },
 
-  button_container: {
+  buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '80%',

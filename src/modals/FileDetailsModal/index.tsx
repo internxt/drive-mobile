@@ -10,19 +10,18 @@ import Separator from '../../components/Separator';
 import { getIcon } from '../../helpers/getIcon';
 import { fileActions, layoutActions } from '../../redux/actions';
 import SettingsItem from '../SettingsModal/SettingsItem';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { colors, folderIconsList } from '../../redux/constants'
 import { updateFileMetadata, updateFolderMetadata } from './actions';
 import analytics, { getLyticsData } from '../../helpers/lytics';
 
 interface FileDetailsProps {
-    dispatch?: any
-    filesState?: any
-    layoutState?: any
+  dispatch?: any
+  filesState?: any
+  layoutState?: any
 }
 
 function FileDetailsModal(props: FileDetailsProps) {
-  const [inputFileName, setInputFileName] = useState('')
   const [originalfilename, setOriginalFileName] = useState('')
   const [newfilename, setNewFileName] = useState('')
 
@@ -99,12 +98,7 @@ function FileDetailsModal(props: FileDetailsProps) {
 
           <View style={{ flexDirection: 'row', paddingRight: 22 }}>
             <TextInput
-              style={{
-                fontFamily: 'CerebriSans-Bold',
-                fontSize: 20,
-                marginLeft: 26,
-                flex: 1
-              }}
+              style={styles.textDefault}
               onChangeText={value => {
                 setNewFileName(value)
               }}
@@ -115,12 +109,7 @@ function FileDetailsModal(props: FileDetailsProps) {
           <Separator />
 
           <Text
-            style={{
-              fontFamily: 'CerebriSans-Bold',
-              fontSize: 15,
-              paddingLeft: 24,
-              paddingBottom: 13
-            }}>Style Color</Text>
+            style={styles.cerebriSansBold}>Style Color</Text>
 
           <View style={styles.colorSelection}>
             {Object.getOwnPropertyNames(colors).map((value, i) => {
@@ -145,17 +134,13 @@ function FileDetailsModal(props: FileDetailsProps) {
           <Separator />
 
           <Text
-            style={{
-              fontFamily: 'CerebriSans-Bold',
-              fontSize: 15, paddingLeft: 24, paddingBottom: 13
-            }}>Cover Icon</Text>
+            style={styles.textDefault}>Cover Icon</Text>
 
           <View style={styles.iconSelection} key={selectedIcon}>
             {folderIconsList.map((value, i) => {
-              const localIcon =
-                                typeof selectedIcon === 'number' &&
-                                    selectedIcon >= 0
-                                  ? selectedIcon : folder && folder.icon ? folder.icon.id : null;
+              const localIcon = typeof selectedIcon === 'number' && selectedIcon >= 0 ?
+                selectedIcon : folder && folder.icon ? folder.icon.id
+                  : null;
               const isSelected = localIcon ? localIcon - 1 === i : false;
               const iconValue = isSelected ? 0 : i + 1;
 
@@ -211,7 +196,7 @@ function FileDetailsModal(props: FileDetailsProps) {
         >
           <View style={styles.drawerKnob}></View>
 
-          <View style={styles.fileName_container}>
+          <View style={styles.fileNameContainer}>
             <TextInput
               style={styles.fileName}
               onChangeText={value => setNewFileName(value)}
@@ -221,45 +206,24 @@ function FileDetailsModal(props: FileDetailsProps) {
 
           <Separator />
 
-          <View style={styles.info_container}>
-            <Text
-              style={{
-                fontFamily: 'CerebriSans-Regular',
-                fontSize: 15,
-                paddingLeft: 24,
-                paddingBottom: 6
-              }}
-            >
+          <View style={styles.infoContainer}>
+            <Text style={styles.textDefault}>
               <Text>Type: </Text>
-              <Text style={{ fontFamily: 'CerebriSans-Bold' }}>
+              <Text style={styles.cerebriSansBold}>
                 {file && file.type ? file.type.toUpperCase() : ''}
               </Text>
             </Text>
 
-            <Text
-              style={{
-                fontFamily: 'CerebriSans-Regular',
-                fontSize: 15,
-                paddingLeft: 24,
-                paddingBottom: 6
-              }}
-            >
+            <Text style={styles.textDefault}>
               <Text>Added: </Text>
-              <Text style={{ fontFamily: 'CerebriSans-Bold' }}>
+              <Text style={styles.cerebriSansBold}>
                 {file ? <TimeAgo time={file.created_at} /> : ''}
               </Text>
             </Text>
 
-            <Text
-              style={{
-                fontFamily: 'CerebriSans-Regular',
-                fontSize: 15,
-                paddingLeft: 24,
-                paddingBottom: 6
-              }}
-            >
+            <Text style={styles.textDefault}>
               <Text>Size: </Text>
-              <Text style={{ fontFamily: 'CerebriSans-Bold' }}>
+              <Text style={styles.cerebriSansBold}>
                 {file ? prettysize(file.size) : ''}
               </Text>
             </Text>
@@ -272,8 +236,8 @@ function FileDetailsModal(props: FileDetailsProps) {
               text={
                 <Text style={styles.modalFileItemContainer}>
                   <Image source={getIcon('move')} style={{ width: 20, height: 20 }} />
-                  <Text style={{ width: 20 }}> </Text>
-                  <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Move</Text>
+                  <Text style={styles.mr20}> </Text>
+                  <Text style={styles.cerebriSansBold}> Move</Text>
                 </Text>
               }
               onPress={() => {
@@ -285,8 +249,8 @@ function FileDetailsModal(props: FileDetailsProps) {
               text={
                 <Text style={styles.modalFileItemContainer}>
                   <Image source={getIcon('share')} style={{ width: 20, height: 14 }} />
-                  <Text style={{ width: 20 }}> </Text>
-                  <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Share</Text>
+                  <Text style={styles.mr20}> </Text>
+                  <Text style={{}}> Share</Text>
                 </Text>
               }
               onPress={() => {
@@ -298,8 +262,8 @@ function FileDetailsModal(props: FileDetailsProps) {
             <SettingsItem text={
               <Text style={styles.modalFileItemContainer}>
                 <Image source={getIcon('delete')} style={{ width: 16, height: 21 }} />
-                <Text style={{ width: 20 }}> </Text>
-                <Text style={{ fontFamily: 'CerebriSans-Bold' }}> Delete</Text>
+                <Text style={styles.mr20}> </Text>
+                <Text style={styles.cerebriSansBold}> Delete</Text>
               </Text>
             }
             onPress={() => {
@@ -370,7 +334,7 @@ const styles = StyleSheet.create({
     height: 25,
     width: 25
   },
-  fileName_container: {
+  fileNameContainer: {
     height: 'auto'
   },
   fileName: {
@@ -378,12 +342,24 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginLeft: 26
   },
-  info_container: {
+  infoContainer: {
     height: 'auto'
   },
   optionsContainer: {
     flex: 1,
     marginBottom: 15,
     minHeight: 129 // pixel perfect leave like this
+  },
+  textDefault: {
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: 15,
+    paddingLeft: 24,
+    paddingBottom: 6
+  },
+  cerebriSansBold: {
+    fontFamily: 'CerebriSans-Bold'
+  },
+  mr20: {
+    marginRight: 20
   }
 })

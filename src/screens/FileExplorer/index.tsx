@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Text, View, StyleSheet, Image, BackHandler, Platform } from 'react-native'
 import AppMenu from '../../components/AppMenu'
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fileActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
@@ -13,9 +12,14 @@ import SortModal from '../../modals/SortModal';
 import DeleteItemModal from '../../modals/DeleteItemModal';
 import MoveFilesModal from '../../modals/MoveFilesModal';
 import ShareFilesModal from '../../modals/ShareFilesModal';
-import UploadFileModal from '../../modals/UploadFileModal';
+import { Reducers } from '../../redux/reducers/reducers';
 
-function FileExplorer(props: any): JSX.Element {
+interface FileExplorerProps extends Reducers {
+  navigation?: any
+  dispatch?: any
+}
+
+function FileExplorer(props: FileExplorerProps): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
 
   const { filesState } = props;
@@ -62,9 +66,8 @@ function FileExplorer(props: any): JSX.Element {
     <DeleteItemModal />
     <MoveFilesModal />
     <ShareFilesModal />
-    <UploadFileModal />
 
-    <View style={{ height: Platform.OS === 'ios' ? '5%' : '0%' }}></View>
+    <View style={styles.platformSpecificHeight}></View>
 
     <AppMenu navigation={props.navigation} />
 
@@ -140,5 +143,8 @@ const styles = StyleSheet.create({
   },
   backHidden: {
     display: 'none'
+  },
+  platformSpecificHeight: {
+    height: Platform.OS === 'ios' ? '5%' : '0%'
   }
 });

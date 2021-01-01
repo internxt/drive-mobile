@@ -11,11 +11,11 @@ import { fileActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
 
 interface AppMenuProps {
-    navigation?: any
-    filesState?: any
-    dispatch?: any,
-    layoutState?: any
-    authenticationState?: any
+  navigation?: any
+  filesState?: any
+  dispatch?: any,
+  layoutState?: any
+  authenticationState?: any
 }
 
 function AppMenu(props: AppMenuProps) {
@@ -23,18 +23,24 @@ function AppMenu(props: AppMenuProps) {
   const [hasSpace, setHasSpace] = useState(true)
   const selectedItems = props.filesState.selectedItems;
 
-  const textInput = useRef(null)
+  const textInput = useRef<TextInput>(null)
 
   const handleClickSearch = () => {
-    textInput.current.focus();
+    if (textInput && textInput.current) {
+      textInput.current.focus();
+    }
   }
 
   const closeSearch = () => {
-    textInput.current.blur();
+    if (textInput && textInput.current) {
+      textInput.current.blur();
+    }
   }
 
   useEffect(() => {
-    if (!hasSpace) props.navigation.replace('OutOfSpace')
+    if (!hasSpace) {
+      props.navigation.replace('OutOfSpace')
+    }
   }, [hasSpace])
 
   const uploadFile = async (result: any, props: any) => {
@@ -44,7 +50,9 @@ function AppMenu(props: AppMenuProps) {
 
     try {
       // Set name for pics/photos
-      if (!result.name) result.name = result.uri.split('/').pop();
+      if (!result.name) {
+        result.name = result.uri.split('/').pop();
+      }
       result.type = 'application/octet-stream';
       props.dispatch(fileActions.uploadFileStart(result.name));
       const body = new FormData();
@@ -137,7 +145,7 @@ function AppMenu(props: AppMenuProps) {
       <View style={[styles.buttonContainer, { display: activeSearchBox ? 'none' : 'flex' }]}>
         <View style={styles.commonButtons}>
           <MenuItem
-            style={{ marginRight: 10 }}
+            style={styles.mr10}
             name="search"
             onClickHandler={() => {
               setActiveSearchBox(true)
@@ -147,7 +155,7 @@ function AppMenu(props: AppMenuProps) {
             }} />
 
           <MenuItem
-            style={{ marginRight: 10 }}
+            style={styles.mr10}
             name="list"
             onClickHandler={() => {
               props.dispatch(layoutActions.closeSearch())
@@ -155,10 +163,9 @@ function AppMenu(props: AppMenuProps) {
             }} />
 
           <MenuItem
-            style={{ marginRight: 10 }}
+            style={styles.mr10}
             name="upload"
             onClickHandler={() => {
-              //props.dispatch(layoutActions.openUploadFileModal())
               Alert.alert('Select type of file', '', [
                 {
                   text: 'Upload a document',
@@ -211,7 +218,7 @@ function AppMenu(props: AppMenuProps) {
 
           <MenuItem
             name="create"
-            style={{ marginRight: 10 }}
+            style={styles.mr10}
             onClickHandler={() => {
               props.navigation.replace('CreateFolder')
             }} />
@@ -273,6 +280,9 @@ const styles = StyleSheet.create({
     fontFamily: 'CerebriSans-Medium',
     fontSize: 17,
     flex: 1
+  },
+  mr10: {
+    marginRight: 10
   }
 });
 

@@ -37,7 +37,8 @@ module.exports = {
     'quotes': ['error', 'single'],
     'object-curly-spacing': ['error', 'always'],
     'newline-after-var': ['error', 'always'],
-    'no-multi-spaces': 'error'
+    'no-multi-spaces': 'error',
+    'curly': 'error'
   },
   'settings': {
     'react': {

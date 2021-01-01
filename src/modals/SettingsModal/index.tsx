@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 import { getHeaders } from '../../helpers/headers';
 import { deviceStorage } from '../../helpers';
 import analytics, { getLyticsUuid } from '../../helpers/lytics';
+import Bold from '../../components/Bold';
 
 function identifyPlanName(bytes: number): string {
   return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
@@ -56,10 +57,10 @@ async function loadValues() {
 }
 
 interface SettingsModalProps {
-    authenticationState?: any,
-    dispatch?: any,
-    layoutState?: any,
-    navigation?: any
+  authenticationState?: any
+  layoutState?: any
+  dispatch?: any,
+  navigation?: any
 }
 
 function SettingsModal(props: SettingsModalProps) {
@@ -94,13 +95,7 @@ function SettingsModal(props: SettingsModalProps) {
     <View style={styles.drawerKnob}></View>
 
     <Text
-      style={{
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginLeft: 26,
-        marginTop: 10,
-        fontFamily: 'CerebriSans-Bold'
-      }}
+      style={styles.nameText}
     >
       {props.authenticationState.user.name}{' '}
       {props.authenticationState.user.lastname}
@@ -108,29 +103,24 @@ function SettingsModal(props: SettingsModalProps) {
 
     <ProgressBar
       styleBar={{}}
-      styleProgress={{ height: 6 }}
+      styleProgress={styles.progressHeight}
       totalValue={usageValues.limit}
       usedValue={usageValues.usage}
     />
 
     {isLoadingUsage ? <ActivityIndicator color={'#00f'} /> : <Text
-      style={{
-        fontFamily: 'CerebriSans-Regular',
-        fontSize: 15,
-        paddingLeft: 24,
-        paddingBottom: 0
-      }}
+      style={styles.usageText}
     >
       <Text>Used</Text>
-      <Text style={{ fontWeight: 'bold' }}>
+      <Bold>
         {' '}
         {prettysize(usageValues.usage)}{' '}
-      </Text>
+      </Bold>
       <Text>of</Text>
-      <Text style={{ fontWeight: 'bold' }}>
+      <Bold>
         {' '}
         {prettysize(usageValues.limit)}{' '}
-      </Text>
+      </Bold>
     </Text>
     }
 
@@ -156,7 +146,7 @@ function SettingsModal(props: SettingsModalProps) {
 
         Linking.canOpenURL(emailUrl).then(() => {
           Linking.openURL(emailUrl)
-        }).catch(err => {
+        }).catch(() => {
           Alert.alert('Info', 'Send us an email to: support@internxt.zohodesk.')
         })
       }}
@@ -183,6 +173,22 @@ const styles = StyleSheet.create({
   },
   modalSettings: {
     height: 380
+  },
+  nameText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 26,
+    marginTop: 10,
+    fontFamily: 'CerebriSans-Bold'
+  },
+  progressHeight: {
+    height: 6
+  },
+  usageText: {
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: 15,
+    paddingLeft: 24,
+    paddingBottom: 0
   }
 })
 

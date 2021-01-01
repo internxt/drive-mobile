@@ -1,7 +1,7 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native';
 
-export default function Separator(props: any) {
+export default function Separator(): JSX.Element {
   return <View style={styles.separator} />;
 }
 

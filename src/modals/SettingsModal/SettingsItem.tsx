@@ -2,7 +2,7 @@ import React from 'react'
 import { StyleSheet, Text } from 'react-native';
 import { TouchableHighlight } from 'react-native-gesture-handler'
 
-export default function SettingsItem(props: any) {
+export default function SettingsItem(props: any): JSX.Element {
   return <TouchableHighlight
     underlayColor="#FFFFFF"
     style={styles.itemContainer}

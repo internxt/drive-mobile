@@ -7,7 +7,7 @@ interface PassObjectInterface {
   salt?: string
 }
 
-export function passToHash(passObject: PassObjectInterface) {
+export function passToHash(passObject: PassObjectInterface): any {
   try {
     const salt = passObject.salt ? CryptoJS.enc.Hex.parse(passObject.salt) : CryptoJS.lib.WordArray.random(128 / 8);
     const hash = CryptoJS.PBKDF2(passObject.password, salt, { keySize: 256 / 32, iterations: 10000 });
@@ -33,7 +33,7 @@ export function decryptText(encryptedText: string) {
 }
 
 // AES Plain text encryption method with enc. key
-export function encryptTextWithKey(textToEncrypt: string, keyToEncrypt: string) {
+export function encryptTextWithKey(textToEncrypt: string, keyToEncrypt: string): string {
   try {
     const bytes = CryptoJS.AES.encrypt(textToEncrypt, keyToEncrypt).toString();
     const text64 = CryptoJS.enc.Base64.parse(bytes);
@@ -45,7 +45,7 @@ export function encryptTextWithKey(textToEncrypt: string, keyToEncrypt: string) 
 }
 
 // AES Plain text decryption method with enc. key
-export function decryptTextWithKey(encryptedText: string, keyToDecrypt: string) {
+export function decryptTextWithKey(encryptedText: string, keyToDecrypt: string): string {
   try {
     const reb = CryptoJS.enc.Hex.parse(encryptedText);
     const bytes = CryptoJS.AES.decrypt(
@@ -60,7 +60,7 @@ export function decryptTextWithKey(encryptedText: string, keyToDecrypt: string) 
 }
 
 // Method to remove accents and other special characters from string
-export function removeAccents(string: string) {
+export function removeAccents(string: string): string {
   const accents =
     'ÀÁÂÃÄÅĄĀāàáâãäåąßÒÓÔÕÕÖØŐòóôőõöøĎďDŽdžÈÉÊËĘèéêëęðÇçČčĆćÐÌÍÎÏĪìíîïīÙÚÛÜŰùűúûüĽĹŁľĺłÑŇŃňñńŔŕŠŚŞšśşŤťŸÝÿýŽŻŹžżźđĢĞģğ';
   const accentsOut =

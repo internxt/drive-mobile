@@ -63,7 +63,7 @@ function createFolder(parentFolderId: number, folderName = 'Untitled folder') {
   });
 }
 
-function updateFolderMetadata(metadata: any, folderId: string) {
+function updateFolderMetadata(metadata: any, folderId: string): Promise<Response> {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
     const data = JSON.stringify({ metadata });
@@ -106,7 +106,7 @@ async function moveFile(fileId: string, destination: string) {
   }
 }
 
-function deleteItems(items: any[]) {
+function deleteItems(items: any[]): Promise<void> {
   return new Promise((resolve, reject) => {
     const fetchArray: any[] = [];
 
@@ -132,7 +132,7 @@ function deleteItems(items: any[]) {
   });
 }
 
-function getSortFunction(sortType: string) {
+function getSortFunction(sortType: string): ((a: any, b: any) => any) | null {
   // Sort items depending on option selected
   let sortFunc = null;
 

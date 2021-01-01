@@ -54,11 +54,11 @@ function Forgot(props: any): JSX.Element {
         <View
           style={[
             styles.containerCentered,
-            isLoading ? { opacity: 0.5 } : {}
+            isLoading ? styles.halfOpacity : {}
           ]}
         >
           <View style={styles.containerHeader}>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={styles.flexRow}>
               <Image
                 style={styles.logo}
                 source={require('../../../assets/images/logo.png')}
@@ -120,11 +120,11 @@ function Forgot(props: any): JSX.Element {
         <View
           style={[
             styles.containerCentered,
-            isLoading ? { opacity: 0.5 } : {}
+            isLoading ? styles.halfOpacity : {}
           ]}
         >
           <View style={styles.containerHeader}>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={styles.flexRow}>
               <Image
                 style={styles.logo}
                 source={require('../../../assets/images/logo.png')}
@@ -288,5 +288,11 @@ const styles = StyleSheet.create({
     fontSize: normalize(15),
     marginTop: normalize(10),
     padding: normalize(20)
+  },
+  halfOpacity: {
+    opacity: 0.5
+  },
+  flexRow: {
+    flexDirection: 'row'
   }
 });

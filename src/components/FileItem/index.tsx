@@ -73,11 +73,6 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
       setProgress(received)
     }).then(async (res) => {
       if (res.respInfo.status === 200) {
-        if (Platform.OS === 'ios') {
-          // RNFetchBlob.ios.previewDocument(res.path())
-        } else {
-          // RNFetchBlob.android.actionViewIntent(res.path(), '')
-        }
         FileViewer.open(res.path()).catch(err => {
           Alert.alert('Error opening file', err.message)
         })

@@ -3,12 +3,11 @@ import { getHeaders } from '../../helpers/headers';
 
 async function setHeaders() {
   const token = await deviceStorage.getItem('xToken');
-  const user = JSON.parse(await deviceStorage.getItem('xUser') || '{}');
 
   return getHeaders(token || '')
 }
 
-export async function updateFolderMetadata(metadata: any, folderId: number) {
+export async function updateFolderMetadata(metadata: any, folderId: number): Promise<void> {
   const headers = await setHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}/meta`, {
@@ -23,7 +22,7 @@ export async function updateFolderMetadata(metadata: any, folderId: number) {
   })
 }
 
-export async function updateFileMetadata(metadata: any, fileId: number) {
+export async function updateFileMetadata(metadata: any, fileId: number): Promise<void> {
   const headers = await setHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/file/${fileId}/meta`, {

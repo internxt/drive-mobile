@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import ProgressBar from '../../components/ProgressBar';
@@ -10,21 +10,21 @@ import { getHeaders } from '../../helpers/headers';
 import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import PlanCard from './PlanCard';
 import { LinearGradient } from 'expo-linear-gradient';
-import { storageService } from '../../redux/services';
+import { IPlan, IProduct, storageService } from '../../redux/services';
 import { Reducers } from '../../redux/reducers/reducers';
 
 interface StorageProps extends Reducers {
-    dispatch?: any,
-    navigation?: any
+  dispatch?: any,
+  navigation?: any
 }
 
 function Storage(props: StorageProps): JSX.Element {
+  const userToken = props.authenticationState.token
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
-  const [userToken, setUserToken] = useState(props.authenticationState.token)
   const [isLoading, setIsLoading] = useState(true)
-  const [products, setProducts] = useState(JSON)
-  const [plans, setPlans] = useState([])
-  const [chosenProduct, setChosenProduct] = useState()
+  const [products, setProducts] = useState<IProduct[]>([])
+  const [plans, setPlans] = useState<IPlan[]>([])
+  const [chosenProduct, setChosenProduct] = useState<IProduct>()
 
   const loadLimit = async () => {
     const xToken = await deviceStorage.getItem('xToken') || undefined
@@ -86,14 +86,14 @@ function Storage(props: StorageProps): JSX.Element {
     loadValues().then(values => {
       setUsageValues(values)
     })
-    getProducts().then(res => {
+    getProducts().then((res) => {
       setProducts(res)
       setIsLoading(false)
     })
   }, [])
 
   useEffect(() => {
-    if (chosenProduct !== undefined) {
+    if (chosenProduct) {
       getPlans().then(res => {
         setPlans(res)
         setIsLoading(false)
@@ -115,8 +115,6 @@ function Storage(props: StorageProps): JSX.Element {
         </View>
 
         <Text style={styles.backText}>Storage</Text>
-
-        <View style={{ flex: 0.1 }}></View>
       </View>
 
       <View style={styles.progressContainer}>
@@ -125,15 +123,15 @@ function Storage(props: StorageProps): JSX.Element {
 
           <View style={styles.usedSapceContainer}>
             <Text style={styles.usedSpace}>Used </Text>
-            <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usagevalues.usage)} </Text>
+            <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.usage)} </Text>
             <Text style={styles.usedSpace}>of </Text>
-            <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usagevalues.limit)}</Text>
+            <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.limit)}</Text>
           </View>
         </View>
 
         <ProgressBar
           styleBar={{}}
-          styleProgress={{ height: 6 }}
+          styleProgress={{ height: 10 }}
           totalValue={usageValues.limit}
           usedValue={usageValues.usage}
         />
@@ -156,69 +154,65 @@ function Storage(props: StorageProps): JSX.Element {
         </View>
       </View>
 
-      {
-        !isLoading ?
-          <View style={styles.cardsContainer}>
-            {
-              !chosenProduct ?
-                <View>
-                  <View style={styles.titleContainer}>
-                    <Text style={styles.title}>
-                                            Storage plans
-                    </Text>
-                  </View>
-                  {
-                    products && products.map((product: any) => <TouchableWithoutFeedback
-                      key={product.id}
-                      onPress={async () => {
-                        setIsLoading(true)
-                        setChosenProduct(product)
-                      }}>
-                      <PlanCard size={product.metadata.simple_name} price={product.metadata.price_eur} />
-                    </TouchableWithoutFeedback>)
-                  }
+      <View style={styles.cardsContainer}>
+        {
+          !isLoading ?
+            !chosenProduct ?
+              <View>
+                <View style={styles.titleContainer}>
+                  <Text style={styles.title}>Storage plans</Text>
                 </View>
-                :
-                <View>
-                  {
-                    !isLoading ?
-                      <View>
-                        <View style={styles.titleContainer}>
-                          <TouchableOpacity
-                            onPress={() => {
-                              setChosenProduct(undefined)
-                            }}
-                          >
-                            <Image style={styles.paymentBackIcon} source={getIcon('back')} />
-                          </TouchableOpacity>
+                {
+                  products && products.map((product: IProduct) => <TouchableWithoutFeedback
+                    key={product.id}
+                    onPress={async () => {
+                      setIsLoading(true)
+                      setChosenProduct(product)
+                    }}>
+                    <PlanCard size={product.metadata.simple_name} price={product.metadata.price_eur} />
+                  </TouchableWithoutFeedback>)
+                }
+              </View>
+              :
+              <View>
+                {
+                  !isLoading ?
+                    <View>
+                      <View style={styles.titleContainer}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            setChosenProduct(undefined)
+                          }}
+                        >
+                          <Image style={styles.paymentBackIcon} source={getIcon('back')} />
+                        </TouchableOpacity>
 
-                          <Text style={styles.title}>
-                                                        Payment length
-                          </Text>
+                        <Text style={styles.title}>Payment length</Text>
 
-                          <Text style={styles.titlePlan}>{chosenProduct.name}</Text>
-                        </View>
-
-                        {
-                          plans && plans.map(plan => <TouchableWithoutFeedback
-                            key={plan.id}
-                            onPress={() => props.navigation.replace('StorageWebView', { plan: plan }) }
-                          >
-                            <PlanCard chosen={true} price={plan.price.toString()} plan={plan} />
-                          </TouchableWithoutFeedback>)
-                        }
+                        <Text style={styles.titlePlan}>{chosenProduct.name}</Text>
                       </View>
-                      :
-                      null
-                  }
-                </View>
-            }
-          </View>
-          :
-          null
-      }
-      <View>
-        <Text style={styles.footer}>You are subscribed to the { }1GB plan</Text>
+
+                      {
+                        plans && plans.map((plan: IPlan) => <TouchableWithoutFeedback
+                          key={plan.id}
+                          onPress={() => props.navigation.replace('StorageWebView', { plan: plan })}
+                        >
+                          <PlanCard chosen={true} price={plan.price.toString()} plan={plan} />
+                        </TouchableWithoutFeedback>)
+                      }
+                    </View>
+                    :
+                    <></>
+                }
+              </View>
+            :
+            <View>
+              <ActivityIndicator color={'gray'} />
+            </View>
+        }
+        <View>
+          <Text style={styles.footer}>You are subscribed to the 2GB plan</Text>
+        </View>
       </View>
     </View>
   );
@@ -226,7 +220,7 @@ function Storage(props: StorageProps): JSX.Element {
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'space-around',
+    justifyContent: 'flex-start',
     height: '100%',
     backgroundColor: 'white'
   },
@@ -257,7 +251,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderBottomWidth: 1,
     borderColor: '#f2f2f2',
-    paddingBottom: 45
+    paddingBottom: 45,
+    paddingTop: 30
   },
   firstRow: {
     flexDirection: 'row',
@@ -270,7 +265,6 @@ const styles = StyleSheet.create({
     color: 'black',
     paddingLeft: 20
   },
-
   usedSapceContainer: {
     flexDirection: 'row',
     flex: 0.5,
@@ -285,7 +279,6 @@ const styles = StyleSheet.create({
   bold: {
     fontFamily: 'CerebriSans-Bold'
   },
-
   secondRow: {
     flexDirection: 'row',
     marginLeft: 20
@@ -302,7 +295,6 @@ const styles = StyleSheet.create({
     marginRight: 6,
     backgroundColor: '#ededed'
   },
-
   secondRowText: {
     fontSize: 13,
     fontFamily: 'CerebriSans-Regular',
@@ -329,14 +321,15 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderColor: '#eaeced'
   },
-
   paymentBackIcon: {
     width: 8,
     height: 13,
     marginRight: 10
   },
   cardsContainer: {
-    marginLeft: 20
+    paddingTop: 20,
+    marginLeft: 20,
+    flexGrow: 1
   },
   footer: {
     fontFamily: 'CerebriSans-Regular',
@@ -344,7 +337,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     letterSpacing: -0.1,
     marginLeft: 20,
-    marginBottom: 10,
+    marginTop: 20,
     color: '#7e848c'
   }
 })
