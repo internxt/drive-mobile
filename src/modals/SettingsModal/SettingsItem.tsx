@@ -1,8 +1,13 @@
 import React from 'react'
-import { StyleSheet, Text } from 'react-native';
+import { GestureResponderEvent, StyleSheet, Text } from 'react-native';
 import { TouchableHighlight } from 'react-native-gesture-handler'
 
-export default function SettingsItem(props: any): JSX.Element {
+interface SettingsItemProps {
+  onPress: (event: GestureResponderEvent) => void
+  text: JSX.Element
+}
+
+export default function SettingsItem(props: SettingsItemProps): JSX.Element {
   return <TouchableHighlight
     underlayColor="#FFFFFF"
     style={styles.itemContainer}

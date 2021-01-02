@@ -2,7 +2,13 @@ import React from 'react'
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function ProgressBar(props: any) {
+interface ProgressBarProps {
+  usedValue: number
+  totalValue: number
+  styleProgress: any
+}
+
+export default function ProgressBar(props: ProgressBarProps): JSX.Element {
   const { totalValue, styleProgress } = props;
   let usedValue = props.usedValue;
 

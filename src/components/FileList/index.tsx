@@ -5,13 +5,32 @@ import { fileActions } from '../../redux/actions';
 import EmptyFolder from '../EmptyFolder';
 import FileItem from '../FileItem';
 
+export interface IFolder {
+  name: string
+  id: number
+  color: any
+  icon: any
+}
+
+export interface IFile {
+  bucket: string
+  createdAt: Date
+  folderId: number
+  fileId: number
+  id: number
+  name: string
+  type: string
+  updatedAt: Date
+  size: number
+}
+
 function FileList(props: any) {
   const [refreshing, setRefreshing] = useState(false)
 
   const { filesState } = props;
   const { folderContent } = filesState;
-  let folderList: any[] = folderContent && folderContent.children || [];
-  let fileList: any[] = folderContent && folderContent.files || [];
+  let folderList: IFolder[] = folderContent && folderContent.children || [];
+  let fileList: IFile[] = folderContent && folderContent.files || [];
 
   useEffect(() => {
     setRefreshing(false)
@@ -20,8 +39,8 @@ function FileList(props: any) {
   const searchString = props.filesState.searchString
 
   if (searchString) {
-    fileList = fileList.filter((file: any) => file.name.toLowerCase().includes(searchString.toLowerCase()))
-    folderList = folderList.filter((folder: any) => folder.name.toLowerCase().includes(searchString.toLowerCase()))
+    fileList = fileList.filter((file: IFile) => file.name.toLowerCase().includes(searchString.toLowerCase()))
+    folderList = folderList.filter((folder: IFolder) => folder.name.toLowerCase().includes(searchString.toLowerCase()))
   }
 
   const sortFunction = props.filesState.sortFunction
@@ -79,7 +98,7 @@ function FileList(props: any) {
       }
 
       {
-        folderList.map((folder: any) =>
+        folderList.map((folder: IFolder) =>
           <FileItem
             key={folder.id}
             isFolder={true}
@@ -89,7 +108,7 @@ function FileList(props: any) {
       }
 
       {
-        fileList.map((file: any) =>
+        fileList.map((file: IFile) =>
           <FileItem
             key={file.id}
             isFolder={false}

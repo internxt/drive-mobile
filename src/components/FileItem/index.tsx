@@ -1,5 +1,5 @@
 import React, { SetStateAction, useState } from 'react';
-import { View, Text, StyleSheet, Alert, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Alert, Dimensions } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
@@ -12,20 +12,21 @@ import { deviceStorage, getLyticsData } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
 import { colors } from '../../redux/constants';
 import analytics from '../../helpers/lytics';
-interface FileItemProps {
-    isFolder: boolean
-    item: any
-    dispatch?: any
-    filesState?: any
-    isLoading?: boolean
+import { IFile, IFolder } from '../FileList';
+import { Reducers } from '../../redux/reducers/reducers';
+interface FileItemProps extends Reducers {
+  isFolder: boolean
+  item: IFile & IFolder
+  dispatch?: any
+  isLoading?: boolean
 }
 
-async function handleClick(props: any, setProgress: React.Dispatch<SetStateAction<number>>) {
+async function handleClick(props: FileItemProps, setProgress: React.Dispatch<SetStateAction<number>>) {
   const isSelectionMode = props.filesState.selectedItems.length > 0
 
   if (isSelectionMode) {
     // one tap will select file if there are already selected files
-    const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0
+    const isSelected = props.filesState.selectedItems.filter((x: (IFile & IFolder)) => x.id === props.item.id).length > 0
 
     return handleLongPress(props, isSelected)
   }
@@ -39,7 +40,7 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
       email: userData.email,
       folder_id: props.item.id
     })
-    props.dispatch(fileActions.getFolderContent(props.item.id))
+    props.dispatch(fileActions.getFolderContent(props.item.id.toString()))
   } else {
     // one tap on a file will download and preview the file
 
@@ -54,7 +55,7 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
         file_size: props.item.size,
         file_type: props.item.type,
         email: userData.email,
-        folder_id: props.item.folder_id,
+        folder_id: props.item.folderId,
         platform: 'mobile'
       })
     } catch { }
@@ -69,7 +70,7 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
     }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${props.item.fileId}`, {
       'Authorization': `Bearer ${xToken}`,
       'internxt-mnemonic': xUserJson.mnemonic
-    }).progress((received, total) => {
+    }).progress((received) => {
       setProgress(received)
     }).then(async (res) => {
       if (res.respInfo.status === 200) {
@@ -88,7 +89,7 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
           file_size: props.item.size,
           file_type: props.item.type,
           email: userData.email,
-          folder_id: props.item.folder_id,
+          folder_id: props.item.folderId,
           platform: 'mobile'
         })
       } catch {
@@ -103,7 +104,7 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
           file_size: props.item.size,
           file_type: props.item.type,
           email: userData.email,
-          folder_id: props.item.folder_id,
+          folder_id: props.item.folderId,
           platform: 'mobile',
           msg: err && err.message
         })
@@ -117,7 +118,7 @@ async function handleClick(props: any, setProgress: React.Dispatch<SetStateActio
   }
 }
 
-async function handleLongPress(props: any, isSelected: boolean) {
+async function handleLongPress(props: FileItemProps, isSelected: boolean) {
   if (isSelected) {
     props.dispatch(fileActions.deselectFile(props.item))
   } else {
@@ -165,11 +166,7 @@ function FileItem(props: FileItemProps) {
                     {
                       props.isFolder && props.item.icon ?
 
-                        <View style={{
-                          position: 'absolute',
-                          left: 35,
-                          top: 7
-                        }}>
+                        <View style={styles.iconContainer}>
                           <Icon
                             name={props.item.icon.name}
                             color={item.color ? colors[item.color].icon : colors['blue'].icon}
@@ -192,14 +189,14 @@ function FileItem(props: FileItemProps) {
                 numberOfLines={1}
               >{props.item.name}</Text>
 
-              {!props.isFolder && <TimeAgo time={props.item.created_at} />}
+              {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
             </View>
           </TouchableWithoutFeedback>
         </View>
 
         <View style={styles.buttonDetails}>
           <TouchableWithoutFeedback
-            style={{ display: isSelectionMode ? 'none' : 'flex' }}
+            style={isSelectionMode ? styles.dNone : styles.dFlex}
             onPress={() => {
               props.dispatch(layoutActions.openItemModal(props.item))
             }}>
@@ -261,6 +258,15 @@ const styles = StyleSheet.create({
     height: 51,
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  dFlex: {
+    display: 'flex'
+  },
+  dNone: {
+    display: 'none'
+  },
+  iconContainer: {
+    position: 'absolute', left: 35, top: 7
   }
 });
 

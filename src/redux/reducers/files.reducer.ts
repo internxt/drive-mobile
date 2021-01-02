@@ -1,13 +1,15 @@
+import { IFile, IFolder } from '../../components/FileList';
 import { fileActionTypes } from '../constants';
+import { ArraySortFunction } from '../services';
 
 export interface FilesState {
   loading: boolean
   items: any[]
   folderContent: any
-  selectedFile: string | null
+  selectedFile: IFile & IFolder | null
   selectedItems: any[]
   sortType: string
-  sortFunction: any
+  sortFunction: ArraySortFunction | null
   searchString: string
   isUploading: boolean
   isUploadingFileName: string | null

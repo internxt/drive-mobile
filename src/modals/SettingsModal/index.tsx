@@ -111,15 +111,13 @@ function SettingsModal(props: SettingsModalProps) {
     {isLoadingUsage ? <ActivityIndicator color={'#00f'} /> : <Text
       style={styles.usageText}
     >
-      <Text>Used</Text>
+      <Text>Used </Text>
       <Bold>
-        {' '}
-        {prettysize(usageValues.usage)}{' '}
+        {prettysize(usageValues.usage)}
       </Bold>
-      <Text>of</Text>
+      <Text> of </Text>
       <Bold>
-        {' '}
-        {prettysize(usageValues.limit)}{' '}
+        {prettysize(usageValues.limit)}
       </Bold>
     </Text>
     }
