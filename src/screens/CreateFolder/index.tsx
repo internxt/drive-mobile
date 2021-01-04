@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
   TextInput,
   KeyboardAvoidingView,
-  ScrollView,
   Platform
-} from "react-native";
-import { connect } from "react-redux";
+} from 'react-native';
+import { connect } from 'react-redux';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
-import MenuItem from "../../components/MenuItem";
-import { fileActions } from "../../redux/actions";
-import { widthPercentageToDP as wp } from "react-native-responsive-screen";
+import MenuItem from '../../components/MenuItem';
+import { fileActions } from '../../redux/actions';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 const FolderIcon = () => (
   <Svg style={styles.icon} viewBox="0 0 99 78">
@@ -36,20 +35,21 @@ const FolderIcon = () => (
   </Svg>
 )
 
-function CreateFolder(props: any) {
-  const [folderName, setFolderName] = useState("")
+function CreateFolder(props: any): JSX.Element {
+  const [folderName, setFolderName] = useState('')
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
 
   const onSave = () => {
     if (folderName) {
       const rootFolder = props.authenticationState.user.root_folder_id
+
       props.dispatch(fileActions.createFolder(currentFolderId || rootFolder, folderName))
     }
-    props.navigation.replace("FileExplorer")
+    props.navigation.replace('FileExplorer')
   }
 
   const onCancel = () => {
-    props.navigation.replace("FileExplorer")
+    props.navigation.replace('FileExplorer')
   }
 
   return (
@@ -66,7 +66,7 @@ function CreateFolder(props: any) {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.folderWrapper}>
+      <View style={styles.folderWrapper}>
         <FolderIcon />
 
         <TextInput
@@ -80,32 +80,33 @@ function CreateFolder(props: any) {
           maxLength={24}
           clearTextOnFocus={true}
         />
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    display: "flex",
-    flexDirection: "column",
+    display: 'flex',
+    flexDirection: 'column',
     alignItems: 'stretch',
-    backgroundColor: "#fff"
+    backgroundColor: '#fff',
+    height: '100%'
   },
   actionsWrapper: {
     height: 51,
     marginTop: Platform.select({ ios: 45, android: 20 }),
     paddingLeft: 20,
     paddingRight: 20,
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignSelf: "stretch"
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignSelf: 'stretch'
   },
   folderWrapper: {
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center"
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   icon: {
     width: 219,
@@ -114,12 +115,12 @@ const styles = StyleSheet.create({
     marginTop: 15
   },
   input: {
-    fontFamily: "CircularStd-Bold",
+    fontFamily: 'CircularStd-Bold',
     letterSpacing: -0.2,
     fontSize: 23,
-    color: "#2c6bc9",
+    color: '#2c6bc9',
     width: 219,
-    textAlign: "left",
+    textAlign: 'left',
     marginLeft: wp(5)
   }
 });

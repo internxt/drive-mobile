@@ -1,21 +1,21 @@
 import React, { useEffect } from 'react'
-import { useState } from "react";
-import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from "react-native";
-import { TextInput, TouchableHighlight } from "react-native-gesture-handler";
+import { useState } from 'react';
+import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
+import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { normalize } from '../../helpers/normalize'
 import { userActions } from '../../redux/actions';
+import { Reducers } from '../../redux/reducers/reducers';
 import { validate2FA, apiLogin } from './access';
-interface LoginProps {
+interface LoginProps extends Reducers {
   goToForm?: (screenName: string) => void
-  authenticationState?: any
   dispatch?: any
   navigation?: any
 }
 
-function Login(props: LoginProps) {
+function Login(props: LoginProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -31,6 +31,7 @@ function Login(props: LoginProps) {
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
+
       props.navigation.replace('FileExplorer', {
         folderId: rootFolderId
       })
@@ -38,6 +39,7 @@ function Login(props: LoginProps) {
       (async () => {
         const xToken = await deviceStorage.getItem('xToken')
         const xUser = await deviceStorage.getItem('xUser')
+
         if (xToken && xUser) {
           props.dispatch(userActions.localSignIn(xToken, xUser))
         } else {
@@ -48,9 +50,9 @@ function Login(props: LoginProps) {
   }, [props.authenticationState.loggedIn, props.authenticationState.token])
 
   return <KeyboardAvoidingView behavior="padding" style={styles.container}>
-    <View style={[styles.containerCentered, isLoading ? { opacity: 0.5 } : {}]}>
+    <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
       <View style={styles.containerHeader}>
-        <View style={{ flexDirection: 'row' }}>
+        <View style={styles.flexRow}>
           <Image style={styles.logo} source={require('../../../assets/images/logo.png')} />
           <Text style={styles.title}>Sign in to Internxt</Text>
         </View>
@@ -139,7 +141,7 @@ function Login(props: LoginProps) {
         <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>Forgot your password?</Text>
       </View>
     </View>
-    <Text style={styles.versionLabel}>Internxt Drive v1.2.2</Text>
+    <Text style={styles.versionLabel}>Internxt Drive v1.2.2(1)</Text>
   </KeyboardAvoidingView>
 }
 
@@ -251,5 +253,11 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     marginTop: normalize(13),
     color: '#a4a4a4'
+  },
+  flexRow: {
+    flexDirection: 'row'
+  },
+  halfOpacity: {
+    opacity: 0.5
   }
 });

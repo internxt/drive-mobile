@@ -8,46 +8,46 @@ interface IconFileProps {
 }
 
 function IconFile(props: IconFileProps) {
-    const { label = '', isLoading = false } = props;
+  const { label = '', isLoading = false } = props;
 
-    return <View style={styles.wrapper}>
-        {isLoading
-            ? <ActivityIndicator style={{ position: 'absolute' }} size='small' color="gray" />
-            : <Text numberOfLines={1} style={styles.text}>{label.toUpperCase()}</Text>}
+  return <View style={styles.wrapper}>
+    {isLoading
+      ? <ActivityIndicator style={{ position: 'absolute' }} size='small' color="gray" />
+      : <Text numberOfLines={1} style={styles.text}>{label.toUpperCase()}</Text>}
 
-    </View>
+  </View>
 
 }
 
 const mapStateToProps = (state: any) => {
-    return { ...state };
+  return { ...state };
 };
 
 export default connect(mapStateToProps)(IconFile);
 
 const styles = StyleSheet.create({
-    wrapper: {
-        position: 'relative',
-        width: 44,
-        height: 42,
-        marginLeft: 25,
-        marginRight: 25,
-        borderRadius: 3,
-        borderColor: '#5291ff',
-        borderWidth: 0.6,
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    text: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 5,
-        fontFamily: 'CircularStd-Bold',
-        fontSize: 9,
-        letterSpacing: -0.2,
-        color: '#2e7bff',
-        textAlign: 'center',
-        paddingHorizontal: 5
-    }
+  wrapper: {
+    position: 'relative',
+    width: 44,
+    height: 42,
+    marginLeft: 25,
+    marginRight: 25,
+    borderRadius: 3,
+    borderColor: '#5291ff',
+    borderWidth: 0.6,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  text: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 5,
+    fontFamily: 'CircularStd-Bold',
+    fontSize: 9,
+    letterSpacing: -0.2,
+    color: '#2e7bff',
+    textAlign: 'center',
+    paddingHorizontal: 5
+  }
 });

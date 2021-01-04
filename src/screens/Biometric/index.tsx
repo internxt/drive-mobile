@@ -3,8 +3,13 @@ import { Alert } from 'react-native'
 import { deviceStorage } from '../../helpers';
 import { checkDeviceForHardware, checkForBiometric, checkDeviceStorageShowConf, checkDeviceStorageBiometric, scanBiometrics } from './BiometricUtils'
 import { connect } from 'react-redux';
+import { Reducers } from '../../redux/reducers/reducers';
 
-function Biometric(props: any) {
+interface BiometricProps extends Reducers {
+  navigation?: any
+}
+
+function Biometric(props: BiometricProps): JSX.Element {
   const rootFolderId = props.authenticationState.user.root_folder_id;
 
   const showConfig = () => {
@@ -23,21 +28,21 @@ function Biometric(props: any) {
                 })
               } else if (biometricSave === true && NotShowConf === false && xBiometric === false) {
                 return Alert.alert(
-                  "Biometric lock",
-                  "Would you like to activate biometric lock on your device?",
+                  'Biometric lock',
+                  'Would you like to activate biometric lock on your device?',
                   [
                     {
-                      text: "No",
+                      text: 'No',
                       onPress: () => {
                         deviceStorage.saveItem('xNotShowConfBiometric', 'true')
                         props.navigation.replace('FileExplorer', {
                           folderId: rootFolderId
                         })
                       },
-                      style: "cancel"
+                      style: 'cancel'
                     },
                     {
-                      text: "Yes", onPress: () => {
+                      text: 'Yes', onPress: () => {
                         deviceStorage.saveItem('xBiometric', 'true')
                         scan()
                       }

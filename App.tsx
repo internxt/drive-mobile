@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { ActivityIndicator, StyleSheet, StatusBar, View, Text } from 'react-native';
 import { Provider } from 'react-redux'
 import { store } from './src/store'
-import AppNavigator from "./src/AppNavigator";
+import AppNavigator from './src/AppNavigator';
 import { analyticsSetup, loadEnvVars, loadFonts } from './src/helpers'
 import { NavigationContainer } from '@react-navigation/native';
 
-export default function App() {
+export default function App(): JSX.Element {
   const [appInitialized, setAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
- 
+
   const linking = {
     prefixes: ['inxt:']
   };
@@ -38,7 +38,7 @@ export default function App() {
       }
     </NavigationContainer>
   </Provider>
-    ;
+  ;
 }
 
 const styles = StyleSheet.create({

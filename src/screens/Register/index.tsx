@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Image, Alert } from "react-native";
+import { View, Text, KeyboardAvoidingView, StyleSheet, Image, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
-import { connect } from "react-redux";
+import { connect } from 'react-redux';
 import { normalize } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import Intro from '../Intro'
 import { validateEmail } from '../Login/access';
 import { doRegister, isNullOrEmpty, isStrongPassword, resendActivationEmail } from './registerUtils';
 
-function Register(props: any): any {
+function Register(props: any): JSX.Element {
   const [registerStep, setRegisterStep] = useState(1);
   const [showIntro, setShowIntro] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,14 +29,14 @@ function Register(props: any): any {
     return <Intro onFinish={() => setShowIntro(false)} />;
   }
 
-  if (registerStep === 1) {  
+  if (registerStep === 1) {
     const isValidStep = isValidFirstName && isValidLastName && isValidEmail;
 
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={styles.flexRow}>
               <Image style={styles.logo} source={require('../../../assets/images/logo.png')} />
               <Text style={styles.title}>Create an account</Text>
             </View>
@@ -113,7 +113,7 @@ function Register(props: any): any {
       <View style={styles.container}>
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={styles.flexRow}>
               <Image
                 style={styles.logo}
                 source={require('../../../assets/images/logo.png')}
@@ -123,57 +123,30 @@ function Register(props: any): any {
 
             <View>
               <Text
-                style={{
-                  fontSize: normalize(15),
-                  color: '#737880',
-                  fontFamily: 'CerebriSans-Regular',
-                  textAlign: 'justify',
-                  letterSpacing: -0.1,
-                  marginTop: -15
-                }}
+                style={styles.textDisclaimer}
               >
                 Internxt Drive uses your password to encrypt and decrypt your
                 files. Due to the secure nature of Internxt Drive, we don&apos;t
                 know your password. That means that if you ever forget it,
                 your files are gone forever. With us, you&apos;re the only owner of
                 your files. We strongly suggest you to:
-                </Text>
+              </Text>
             </View>
 
-            <View
-              style={{
-                backgroundColor: '#f7f7f7',
-                padding: normalize(23),
-                marginTop: normalize(30)
-              }}
-            >
-              <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+            <View style={styles.textStorePasswordContainer}>
+              <View style={[styles.flexRow, { marginBottom: 10 }]}>
                 <Text>{'\u2022'}</Text>
                 <Text
-                  style={{
-                    flex: 1,
-                    paddingLeft: normalize(9),
-                    color: '#737880',
-                    fontSize: normalize(15),
-                    fontFamily: 'CerebriSans-Regular'
-                  }}
+                  style={styles.textStorePassword}
                 >
                   Store your Password. Keep it safe and secure.
-                  </Text>
+                </Text>
               </View>
-              <View style={{ flexDirection: 'row' }}>
+              <View style={styles.flexRow}>
                 <Text>{'\u2022'}</Text>
-                <Text
-                  style={{
-                    flex: 1,
-                    paddingLeft: normalize(9),
-                    color: '#737880',
-                    fontSize: normalize(15),
-                    fontFamily: 'CerebriSans-Regular'
-                  }}
-                >
+                <Text style={styles.textTip}>
                   Keep an offline backup of your password.
-                  </Text>
+                </Text>
               </View>
             </View>
 
@@ -208,9 +181,9 @@ function Register(props: any): any {
 
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
-        <View style={[styles.containerCentered, isLoading ? { opacity: 0.5 } : {}]}>
+        <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
           <View style={styles.containerHeader}>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={styles.flexRow}>
               <Image
                 style={styles.logo}
                 source={require('../../../assets/images/logo.png')}
@@ -307,7 +280,7 @@ function Register(props: any): any {
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
 
-            <View style={{ flexDirection: 'row' }}>
+            <View style={styles.flexRow}>
               <Image
                 style={styles.logo}
                 source={require('../../../assets/images/logo.png')}
@@ -316,36 +289,17 @@ function Register(props: any): any {
             </View>
 
             <View>
-              <Text
-                style={{
-                  fontSize: normalize(17),
-                  color: '#737880',
-                  fontFamily: 'CerebriSans-Regular',
-                  marginTop: -10
-                }}
-              >
+              <Text style={styles.textEmailCheck}>
                 Please check your email and follow the instructions to
                 activate your account so you can start using Internxt Drive.
-                </Text>
+              </Text>
             </View>
 
-            <View
-              style={{
-                backgroundColor: '#f7f7f7',
-                padding: normalize(23),
-                marginTop: normalize(30)
-              }}
-            >
-              <Text
-                style={{
-                  color: '#737880',
-                  fontSize: normalize(17),
-                  fontFamily: 'CerebriSans-Regular'
-                }}
-              >
+            <View style={styles.textAgreeContainer}>
+              <Text style={styles.textAgree}>
                 By creating an account, you are agreeing to our Terms &amp;
                 Conditions and Privacy Policy.
-                </Text>
+              </Text>
             </View>
 
             <View style={styles.buttonFooterWrapper}>
@@ -377,6 +331,8 @@ function Register(props: any): any {
       </View>
     );
   }
+
+  return <></>;
 }
 
 const styles = StyleSheet.create({
@@ -487,6 +443,55 @@ const styles = StyleSheet.create({
     color: '#737880',
     fontSize: normalize(15),
     marginTop: normalize(10)
+  },
+  flexRow: {
+    flexDirection: 'row'
+  },
+  textDisclaimer: {
+    fontSize: normalize(15),
+    color: '#737880',
+    fontFamily: 'CerebriSans-Regular',
+    textAlign: 'justify',
+    letterSpacing: -0.1,
+    marginTop: -15
+  },
+  textEmailCheck: {
+    fontSize: normalize(17),
+    color: '#737880',
+    fontFamily: 'CerebriSans-Regular',
+    marginTop: -10
+  },
+  textStorePasswordContainer: {
+    backgroundColor: '#f7f7f7',
+    padding: normalize(23),
+    marginTop: normalize(30)
+  },
+  textStorePassword: {
+    flex: 1,
+    paddingLeft: normalize(9),
+    color: '#737880',
+    fontSize: normalize(15),
+    fontFamily: 'CerebriSans-Regular'
+  },
+  textAgree: {
+    color: '#737880',
+    fontSize: normalize(17),
+    fontFamily: 'CerebriSans-Regular'
+  },
+  textAgreeContainer: {
+    backgroundColor: '#f7f7f7',
+    padding: normalize(23),
+    marginTop: normalize(30)
+  },
+  textTip: {
+    flex: 1,
+    paddingLeft: normalize(9),
+    color: '#737880',
+    fontSize: normalize(15),
+    fontFamily: 'CerebriSans-Regular'
+  },
+  halfOpacity: {
+    opacity: 0.5
   }
 });
 
