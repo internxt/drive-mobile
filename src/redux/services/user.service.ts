@@ -33,7 +33,7 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
 
         user.mnemonic = user.mnemonic ? decryptTextWithKey(user.mnemonic, password) : null
 
-        if (!body.root_folder_id) {
+        if (!user.root_folder_id) {
           const initializeData = await initializeUser(email, user.mnemonic, body.token)
 
           user.root_folder_id = initializeData.user.root_folder_id
