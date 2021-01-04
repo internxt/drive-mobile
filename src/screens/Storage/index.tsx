@@ -4,14 +4,13 @@ import { View, Text, StyleSheet, Image, ActivityIndicator, Platform } from 'reac
 import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import ProgressBar from '../../components/ProgressBar';
-import { deviceStorage } from '../../helpers';
 import { getIcon } from '../../helpers/getIcon';
-import { getHeaders } from '../../helpers/headers';
-import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import PlanCard from './PlanCard';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IPlan, IProduct, storageService } from '../../redux/services';
 import { Reducers } from '../../redux/reducers/reducers';
+import { loadValues } from '../../modals';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface StorageProps extends Reducers {
   dispatch?: any,
@@ -27,50 +26,6 @@ function Storage(props: StorageProps): JSX.Element {
   const [plans, setPlans] = useState<IPlan[]>([])
   const [chosenProduct, setChosenProduct] = useState<IProduct>()
 
-  const loadLimit = async () => {
-    const xToken = await deviceStorage.getItem('xToken') || undefined
-
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
-      method: 'get',
-      headers: getHeaders(xToken)
-    }).then(res => {
-      if (res.status !== 200) { throw Error('Cannot load limit') }
-      return res
-    }).then(res => res.json()).then(res => res.maxSpaceBytes)
-  }
-
-  const loadUsage = async () => {
-    const xToken = await deviceStorage.getItem('xToken') || undefined
-
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
-      method: 'get',
-      headers: getHeaders(xToken)
-    }).then(res => {
-      if (res.status !== 200) { throw Error('Cannot load usage') }
-      return res
-    }).then(res => res.json()).then(res => res.total)
-  }
-
-  const identifyPlanName = (bytes: number): string => {
-    return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
-  }
-
-  const loadValues = async () => {
-    const limit = await loadLimit()
-    const usage = await loadUsage()
-
-    const uuid = await getLyticsUuid()
-
-    analytics.identify(uuid, {
-      platform: 'mobile',
-      storage: usage,
-      plan: identifyPlanName(limit),
-      userId: uuid
-    }).catch(() => { })
-
-    return { usage, limit }
-  }
-
   const getProducts = async () => {
     const products = await storageService.loadAvailableProducts(userToken)
 
@@ -84,7 +39,10 @@ function Storage(props: StorageProps): JSX.Element {
   }
 
   useEffect(() => {
-    setUsageValues(props.navigation.state.params.usageValues)
+
+    loadValues().then(res => {
+      setUsageValues(res)
+    }).catch(() => { })
 
     getProducts().then((res) => {
       setProducts(res)
@@ -102,125 +60,127 @@ function Storage(props: StorageProps): JSX.Element {
   }, [chosenProduct])
 
   return (
-    <View style={styles.container}>
-      <View style={styles.navigatorContainer}>
-        <View style={styles.backButton}>
-          <TouchableOpacity
-            onPress={() => {
-              props.navigation.replace('FileExplorer')
-            }}
-          >
-            <Image style={styles.backIcon} source={getIcon('back')} />
-          </TouchableOpacity>
+    <SafeAreaView style={{ backgroundColor: '#fff' }}>
+      <View style={styles.container}>
+        <View style={styles.navigatorContainer}>
+          <View style={styles.backButton}>
+            <TouchableOpacity
+              onPress={() => {
+                props.navigation.replace('FileExplorer')
+              }}
+            >
+              <Image style={styles.backIcon} source={getIcon('back')} />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.backText}>Storage</Text>
         </View>
 
-        <Text style={styles.backText}>Storage</Text>
-      </View>
+        <View style={styles.progressContainer}>
+          <View style={styles.firstRow}>
+            <Text style={styles.progressTitle}>Storage Space</Text>
 
-      <View style={styles.progressContainer}>
-        <View style={styles.firstRow}>
-          <Text style={styles.progressTitle}>Storage Space</Text>
+            <View style={styles.usedSapceContainer}>
+              <Text style={styles.usedSpace}>Used </Text>
+              <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.usage)} </Text>
+              <Text style={styles.usedSpace}>of </Text>
+              <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.limit)}</Text>
+            </View>
+          </View>
 
-          <View style={styles.usedSapceContainer}>
-            <Text style={styles.usedSpace}>Used </Text>
-            <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.usage)} </Text>
-            <Text style={styles.usedSpace}>of </Text>
-            <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.limit)}</Text>
+          <ProgressBar
+            styleBar={{}}
+            styleProgress={{ height: 10 }}
+            totalValue={usageValues.limit}
+            usedValue={usageValues.usage}
+          />
+
+          <View style={styles.secondRow}>
+            <View style={styles.legend}>
+              {
+                Platform.OS === 'ios' ?
+                  <View style={[styles.circle, styles.blue]}></View>
+                  :
+                  <LinearGradient
+                    colors={['#00b1ff', '#096dff']}
+                    start={[0, 0.18]}
+                    end={[0.18, 1]}
+
+                    style={styles.circle} />
+              }
+
+              <Text style={styles.secondRowText}>Used space</Text>
+            </View>
+
+            <View style={styles.legend}>
+              <View style={styles.circle}></View>
+              <Text style={styles.secondRowText}>Unused space</Text>
+            </View>
           </View>
         </View>
 
-        <ProgressBar
-          styleBar={{}}
-          styleProgress={{ height: 10 }}
-          totalValue={usageValues.limit}
-          usedValue={usageValues.usage}
-        />
-
-        <View style={styles.secondRow}>
-          <View style={styles.legend}>
-            {
-              Platform.OS === 'ios' ?
-                <View style={[styles.circle, styles.blue]}></View>
-                :
-                <LinearGradient
-                  colors={['#00b1ff', '#096dff']}
-                  start={[0, 0.18]}
-                  end={[0.18, 1]}
-
-                  style={styles.circle} />
-            }
-
-            <Text style={styles.secondRowText}>Used space</Text>
-          </View>
-
-          <View style={styles.legend}>
-            <View style={styles.circle}></View>
-            <Text style={styles.secondRowText}>Unused space</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.cardsContainer}>
-        {
-          !isLoading ?
-            !chosenProduct ?
-              <View>
-                <View style={styles.titleContainer}>
-                  <Text style={styles.title}>Storage plans</Text>
+        <View style={styles.cardsContainer}>
+          {
+            !isLoading ?
+              !chosenProduct ?
+                <View>
+                  <View style={styles.titleContainer}>
+                    <Text style={styles.title}>Storage plans</Text>
+                  </View>
+                  {
+                    products && products.map((product: IProduct) => <TouchableWithoutFeedback
+                      key={product.id}
+                      onPress={async () => {
+                        setIsLoading(true)
+                        setChosenProduct(product)
+                      }}>
+                      <PlanCard currentPlan={prettysize(usageValues.limit)} product={product} size={product.metadata.simple_name} price={product.metadata.price_eur} />
+                    </TouchableWithoutFeedback>)
+                  }
                 </View>
-                {
-                  products && products.map((product: IProduct) => <TouchableWithoutFeedback
-                    key={product.id}
-                    onPress={async () => {
-                      setIsLoading(true)
-                      setChosenProduct(product)
-                    }}>
-                    <PlanCard currentPlan={prettysize(usageValues.limit)} product={product} size={product.metadata.simple_name} price={product.metadata.price_eur} />
-                  </TouchableWithoutFeedback>)
-                }
-              </View>
+                :
+                <View>
+                  {
+                    !isLoading ?
+                      <View>
+                        <View style={styles.titleContainer}>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setChosenProduct(undefined)
+                            }}
+                          >
+                            <Image style={styles.paymentBackIcon} source={getIcon('back')} />
+                          </TouchableOpacity>
+
+                          <Text style={styles.title}>Payment length</Text>
+
+                          <Text style={styles.titlePlan}>{chosenProduct.name}</Text>
+                        </View>
+
+                        {
+                          plans && plans.map((plan: IPlan) => <TouchableWithoutFeedback
+                            key={plan.id}
+                            onPress={() => props.navigation.replace('StorageWebView', { plan: plan })}
+                          >
+                            <PlanCard chosen={true} price={plan.price.toString()} plan={plan} />
+                          </TouchableWithoutFeedback>)
+                        }
+                      </View>
+                      :
+                      null
+                  }
+                </View>
               :
               <View>
-                {
-                  !isLoading ?
-                    <View>
-                      <View style={styles.titleContainer}>
-                        <TouchableOpacity
-                          onPress={() => {
-                            setChosenProduct(undefined)
-                          }}
-                        >
-                          <Image style={styles.paymentBackIcon} source={getIcon('back')} />
-                        </TouchableOpacity>
-
-                        <Text style={styles.title}>Payment length</Text>
-
-                        <Text style={styles.titlePlan}>{chosenProduct.name}</Text>
-                      </View>
-
-                      {
-                        plans && plans.map((plan: IPlan) => <TouchableWithoutFeedback
-                          key={plan.id}
-                          onPress={() => props.navigation.replace('StorageWebView', { plan: plan })}
-                        >
-                          <PlanCard chosen={true} price={plan.price.toString()} plan={plan} />
-                        </TouchableWithoutFeedback>)
-                      }
-                    </View>
-                    :
-                    null
-                }
+                <ActivityIndicator color={'gray'} />
               </View>
-            :
-            <View>
-              <ActivityIndicator color={'gray'} />
-            </View>
-        }
-        <View>
-          <Text style={styles.footer}>You are subscribed to the {prettysize(usageValues.limit)} plan</Text>
+          }
+          <View>
+            <Text style={styles.footer}>You are subscribed to the {prettysize(usageValues.limit)} plan</Text>
+          </View>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -233,8 +193,8 @@ const styles = StyleSheet.create({
   navigatorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: 20,
     borderBottomWidth: 1,
+    paddingBottom: 20,
     borderColor: '#f2f2f2'
   },
   backButton: {

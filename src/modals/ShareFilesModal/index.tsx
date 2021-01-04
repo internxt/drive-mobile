@@ -39,6 +39,9 @@ function ShareFilesModal(props: ShareFilesModalProps) {
   }, [props.layoutState.showShareModal])
 
   useEffect(() => {
+    if (!isOpen) {
+      return
+    }
     setIsLoading(true)
     const delay = setTimeout(() => {
       getLink(selectedFile, parseInt(inputValue)).finally(() => setIsLoading(false))

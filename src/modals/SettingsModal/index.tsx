@@ -16,7 +16,7 @@ function identifyPlanName(bytes: number): string {
   return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
 }
 
-async function loadUsage() {
+async function loadUsage(): Promise<number> {
   const xToken = await deviceStorage.getItem('xToken') || undefined
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
@@ -28,7 +28,7 @@ async function loadUsage() {
   }).then(res => res.json()).then(res => res.total)
 }
 
-async function loadLimit() {
+async function loadLimit(): Promise<number> {
   const xToken = await deviceStorage.getItem('xToken') || undefined
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
@@ -40,7 +40,7 @@ async function loadLimit() {
   }).then(res => res.json()).then(res => res.maxSpaceBytes)
 }
 
-async function loadValues() {
+export async function loadValues(): Promise<{ usage: number, limit: number}> {
   const limit = await loadLimit()
   const usage = await loadUsage()
 
@@ -79,7 +79,7 @@ function SettingsModal(props: SettingsModalProps) {
         setIsLoadingUpdate(false)
       })
     }
-  }, [props.layoutState])
+  }, [props.layoutState.showSettingsModal])
 
   return <Modal
     isOpen={props.layoutState.showSettingsModal}
@@ -133,7 +133,7 @@ function SettingsModal(props: SettingsModalProps) {
       text="Storage"
       onPress={() => {
         props.dispatch(layoutActions.closeSettings())
-        props.navigation.replace('Storage', { usageValues: usageValues })
+        props.navigation.replace('Storage')
       }}
     />
 
