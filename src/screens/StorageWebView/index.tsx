@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, Alert, ActivityIndicator, Dimensions, StyleSheet, Platform } from 'react-native';
+import { View, Alert, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { getHeaders } from '../../helpers/headers';
 import { WebView } from 'react-native-webview'
 import { connect } from 'react-redux';
@@ -42,10 +42,10 @@ function StorageWebView(props: StorageWebView): JSX.Element {
         throw Error(result.error);
       }
       const link = `${process.env.REACT_NATIVE_API_URL}/checkout/${result.id}`
-      console.log('link', link)
+
       setIsLoading(false)
       setUri(link)
-      
+
     }).catch(err => {
       Alert.alert('There has been an error', `${err.message}, please contact us.`, [
         {

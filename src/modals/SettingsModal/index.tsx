@@ -133,7 +133,7 @@ function SettingsModal(props: SettingsModalProps) {
       text="Storage"
       onPress={() => {
         props.dispatch(layoutActions.closeSettings())
-        props.navigation.replace('Storage')
+        props.navigation.replace('Storage', { usageValues: usageValues })
       }}
     />
 

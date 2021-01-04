@@ -1,13 +1,16 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, Image } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient';
-import { IPlan } from '../../redux/services';
+import { IPlan, IProduct } from '../../redux/services';
+import { getIcon } from '../../helpers/getIcon';
 
 export interface PlanCardProps {
   size?: string
   price: string
   chosen?: boolean
   plan?: IPlan
+  currentPlan?: string
+  product?: IProduct
 }
 
 function PlanCard(props: PlanCardProps): JSX.Element {
@@ -40,17 +43,31 @@ function PlanCard(props: PlanCardProps): JSX.Element {
               <Text style={styles.price}>€{props.price}</Text>
 
               <Text style={[styles.price, styles.grey]}>/month</Text>
+
+              {
+                props.currentPlan && props.size ?
+                  <View>
+                    {
+                      props.currentPlan.replace(/\D/g, '') === props.size.replace(/\D/g, '') ?
+                        <Image style={styles.checkmark} source={getIcon('checkmark')} />
+                        :
+                        null
+                    }
+                  </View>
+                  :
+                  null
+              }
             </View>
             :
             <View style={styles.priceBackground}>
-              <Text style={styles.price}>{props.plan.name === 'Monthly' ? 'Pay per ' : 'Prepay '}</Text>
+              <Text style={styles.price}>{props.plan && props.plan.name === 'Monthly' ? 'Pay per ' : 'Prepay '}</Text>
 
               <Text style={[styles.price, styles.grey]}>
                 {
-                  props.plan.name === 'Annually' ?
+                  props.plan && props.plan.name === 'Annually' ?
                     '12 months'
                     :
-                    <Text>{props.plan.interval_count === 1 ? 'month' : `${props.plan.interval_count} months`}</Text>
+                    <Text>{props.plan && props.plan.interval_count === 1 ? 'month' : `${props.plan && props.plan.interval_count} months`}</Text>
                 }
               </Text>
             </View>
@@ -86,7 +103,8 @@ const styles = StyleSheet.create({
     marginLeft: 20
   },
   priceBackground: {
-    flexDirection: 'row'
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   price: {
     fontFamily: 'CircularStd-Bold',
@@ -100,6 +118,11 @@ const styles = StyleSheet.create({
   },
   borderRadius4: {
     borderRadius: 4
+  },
+  checkmark: {
+    marginLeft: 10,
+    width: 15,
+    height: 12
   }
 })
 

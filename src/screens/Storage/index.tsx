@@ -15,7 +15,8 @@ import { Reducers } from '../../redux/reducers/reducers';
 
 interface StorageProps extends Reducers {
   dispatch?: any,
-  navigation?: any
+  navigation?: any,
+  currentPlan: number
 }
 
 function Storage(props: StorageProps): JSX.Element {
@@ -76,16 +77,15 @@ function Storage(props: StorageProps): JSX.Element {
     return products
   }
 
-  const getPlans = async () => {
-    const plans = await storageService.loadAvailablePlans(userToken, chosenProduct.id)
+  const getPlans = async (product: IProduct) => {
+    const plans = await storageService.loadAvailablePlans(userToken, product.id)
 
     return plans
   }
 
   useEffect(() => {
-    loadValues().then(values => {
-      setUsageValues(values)
-    })
+    setUsageValues(props.navigation.state.params.usageValues)
+
     getProducts().then((res) => {
       setProducts(res)
       setIsLoading(false)
@@ -94,7 +94,7 @@ function Storage(props: StorageProps): JSX.Element {
 
   useEffect(() => {
     if (chosenProduct) {
-      getPlans().then(res => {
+      getPlans(chosenProduct).then(res => {
         setPlans(res)
         setIsLoading(false)
       })
@@ -175,7 +175,7 @@ function Storage(props: StorageProps): JSX.Element {
                       setIsLoading(true)
                       setChosenProduct(product)
                     }}>
-                    <PlanCard size={product.metadata.simple_name} price={product.metadata.price_eur} />
+                    <PlanCard currentPlan={prettysize(usageValues.limit)} product={product} size={product.metadata.simple_name} price={product.metadata.price_eur} />
                   </TouchableWithoutFeedback>)
                 }
               </View>
@@ -208,7 +208,7 @@ function Storage(props: StorageProps): JSX.Element {
                       }
                     </View>
                     :
-                    <></>
+                    null
                 }
               </View>
             :
@@ -339,8 +339,8 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     marginLeft: 20,
     flexGrow: 1
-  }
-  /* footer: {
+  },
+  footer: {
     fontFamily: 'CerebriSans-Regular',
     fontSize: 16,
     lineHeight: 22,
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     marginLeft: 0,
     marginTop: 20,
     color: '#7e848c'
-  } */
+  }
 })
 
 const mapStateToProps = (state: any) => {
