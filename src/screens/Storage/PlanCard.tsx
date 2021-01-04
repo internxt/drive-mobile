@@ -63,7 +63,7 @@ function PlanCard(props: PlanCardProps): JSX.Element {
 const styles = StyleSheet.create({
   planContainer: {
     flexDirection: 'row',
-    marginBottom: 18
+    marginBottom: 20
   },
 
   circleGradient: {

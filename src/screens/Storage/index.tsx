@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
-import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, ActivityIndicator, Platform } from 'react-native';
 import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import ProgressBar from '../../components/ProgressBar';
@@ -138,12 +138,18 @@ function Storage(props: StorageProps): JSX.Element {
 
         <View style={styles.secondRow}>
           <View style={styles.legend}>
-            <LinearGradient
-              colors={['#00b1ff', '#096dff']}
-              start={[0, 0.18]}
-              end={[0.18, 1]}
+            {
+              Platform.OS === 'ios' ?
+                <View style={[styles.circle, styles.blue]}></View>
+                :
+                <LinearGradient
+                  colors={['#00b1ff', '#096dff']}
+                  start={[0, 0.18]}
+                  end={[0.18, 1]}
 
-              style={styles.circle} />
+                  style={styles.circle} />
+            }
+
             <Text style={styles.secondRowText}>Used space</Text>
           </View>
 
@@ -211,7 +217,7 @@ function Storage(props: StorageProps): JSX.Element {
             </View>
         }
         <View>
-          <Text style={styles.footer}>You are subscribed to the 2GB plan</Text>
+          <Text style={styles.footer}>You are subscribed to the {prettysize(usageValues.limit)} plan</Text>
         </View>
       </View>
     </View>
@@ -295,6 +301,9 @@ const styles = StyleSheet.create({
     marginRight: 6,
     backgroundColor: '#ededed'
   },
+  blue: {
+    backgroundColor: '#096dff'
+  },
   secondRowText: {
     fontSize: 13,
     fontFamily: 'CerebriSans-Regular',
@@ -330,16 +339,16 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     marginLeft: 20,
     flexGrow: 1
-  },
-  footer: {
+  }
+  /* footer: {
     fontFamily: 'CerebriSans-Regular',
     fontSize: 16,
     lineHeight: 22,
     letterSpacing: -0.1,
-    marginLeft: 20,
+    marginLeft: 0,
     marginTop: 20,
     color: '#7e848c'
-  }
+  } */
 })
 
 const mapStateToProps = (state: any) => {

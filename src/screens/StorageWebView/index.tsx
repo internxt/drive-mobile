@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Linking, View, Alert, ActivityIndicator } from 'react-native';
+import { Text, View, Alert, ActivityIndicator, Dimensions, StyleSheet, Platform } from 'react-native';
 import { getHeaders } from '../../helpers/headers';
 import { WebView } from 'react-native-webview'
 import { connect } from 'react-redux';
 
-interface OutOfSpaceProps {
+interface StorageWebView {
   navigation?: any
   authenticationState?: any
 }
 
 // TODO: OutOfSpaceProps is a bad name for this component
-function StorageWebView(props: OutOfSpaceProps): JSX.Element {
+function StorageWebView(props: StorageWebView): JSX.Element {
 
   const [isloading, setIsLoading] = useState(true)
   const [uri, setUri] = useState('')
@@ -19,11 +19,6 @@ function StorageWebView(props: OutOfSpaceProps): JSX.Element {
     id: props.authenticationState.user.userId,
     token: props.authenticationState.token
   }
-  const STRIPE = {
-    PLAN_NAME: plan.id,
-    SUCCESS_URL: `${process.env.REACT_NATIVE_API_URL}/checkout/ok`,
-    CANCELED_URL: `${process.env.REACT_NATIVE_API_URL}/checkout/cancel`
-  }
 
   useEffect(() => {
     getLink()
@@ -31,8 +26,10 @@ function StorageWebView(props: OutOfSpaceProps): JSX.Element {
 
   const getLink = () => {
     const body = {
-      plan: STRIPE.PLAN_NAME,
+      plan: plan.id,
       test: process.env.NODE_ENV === 'development',
+      SUCCESS_URL: `${process.env.REACT_NATIVE_API_URL}`,
+      CANCELED_URL: `${process.env.REACT_NATIVE_API_URL}`,
       isMobile: true
     };
 
@@ -45,11 +42,10 @@ function StorageWebView(props: OutOfSpaceProps): JSX.Element {
         throw Error(result.error);
       }
       const link = `${process.env.REACT_NATIVE_API_URL}/checkout/${result.id}`
-
-      Linking.openURL(link)
+      console.log('link', link)
       setIsLoading(false)
       setUri(link)
-
+      
     }).catch(err => {
       Alert.alert('There has been an error', `${err.message}, please contact us.`, [
         {
@@ -66,11 +62,20 @@ function StorageWebView(props: OutOfSpaceProps): JSX.Element {
     )
   }
   return (
-    <View>
-      <WebView source={{ uri: uri }} />
+    <View style={styles.container}>
+      <WebView style={styles.webview} source={{ uri: uri }} />
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1
+  },
+  webview: {
+    marginTop: Platform.OS === 'ios' ? 30 : 0
+  }
+})
 
 const mapStateToProps = (state: any) => {
   return { ...state };
