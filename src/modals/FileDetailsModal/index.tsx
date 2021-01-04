@@ -105,12 +105,10 @@ function FileDetailsModal(props: FileDetailsProps) {
               value={newfilename}
             />
           </View>
-
           <Separator />
 
           <Text
-            style={styles.cerebriSansBold}>Style Color</Text>
-
+            style={styles.styleColor}>Style Color</Text>
           <View style={styles.colorSelection}>
             {Object.getOwnPropertyNames(colors).map((value, i) => {
               const localColor = selectedColor ? selectedColor : (folder ? folder.color : null);
@@ -297,7 +295,8 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   modalFolder: {
-    height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%'))
+    height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%')),
+    marginTop: 70
   },
   colorSelection: {
     display: 'flex',
@@ -354,10 +353,17 @@ const styles = StyleSheet.create({
     fontFamily: 'CerebriSans-Regular',
     fontSize: 15,
     paddingLeft: 24,
-    paddingBottom: 6
+    paddingBottom: 6,
+    fontWeight: 'bold'
   },
   cerebriSansBold: {
     fontFamily: 'CerebriSans-Bold'
+  },
+  styleColor: {
+    fontFamily: 'CerebriSans-Bold',
+    fontWeight: 'bold',
+    paddingLeft: 24,
+    paddingBottom: 6
   },
   mr20: {
     marginRight: 20
