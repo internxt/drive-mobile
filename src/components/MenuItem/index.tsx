@@ -12,6 +12,7 @@ interface MenuItemProps {
 
 function MenuItem(props: MenuItemProps) {
   const imageSource = getIcon(props.name)
+
   return <TouchableHighlight
     underlayColor="#fff"
     onPress={props.onClickHandler}

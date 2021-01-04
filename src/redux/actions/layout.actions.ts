@@ -13,7 +13,7 @@ export const layoutActions = {
 
   openRunOutStorageModal,
   closeRunOutStorageModal,
-  
+
   openFreeForYouModal,
   closeFreeForYouModal,
 
@@ -28,7 +28,7 @@ export const layoutActions = {
 
   openShareModal,
   closeShareModal,
-  
+
   openUploadFileModal,
   closeUploadFileModal
 };

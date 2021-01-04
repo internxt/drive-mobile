@@ -10,173 +10,188 @@ import { connect } from 'react-redux';
 import { getHeaders } from '../../helpers/headers';
 import { deviceStorage } from '../../helpers';
 import analytics, { getLyticsUuid } from '../../helpers/lytics';
+import Bold from '../../components/Bold';
 
 function identifyPlanName(bytes: number): string {
-    return bytes === 0 ? "Free 2GB" : prettysize(bytes)
+  return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
 }
 
 async function loadUsage() {
-    const xToken = await deviceStorage.getItem('xToken') || undefined
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
-        method: 'get',
-        headers: getHeaders(xToken)
-    }).then(res => {
-        if (res.status !== 200) { throw Error('Cannot load usage') }
-        return res
-    }).then(res => res.json()).then(res => res.total)
+  const xToken = await deviceStorage.getItem('xToken') || undefined
+
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
+    method: 'get',
+    headers: getHeaders(xToken)
+  }).then(res => {
+    if (res.status !== 200) { throw Error('Cannot load usage') }
+    return res
+  }).then(res => res.json()).then(res => res.total)
 }
 
 async function loadLimit() {
-    const xToken = await deviceStorage.getItem('xToken') || undefined
+  const xToken = await deviceStorage.getItem('xToken') || undefined
 
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
-        method: 'get',
-        headers: getHeaders(xToken)
-    }).then(res => {
-        if (res.status !== 200) { throw Error('Cannot load limit') }
-        return res
-    }).then(res => res.json()).then(res => res.maxSpaceBytes)
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
+    method: 'get',
+    headers: getHeaders(xToken)
+  }).then(res => {
+    if (res.status !== 200) { throw Error('Cannot load limit') }
+    return res
+  }).then(res => res.json()).then(res => res.maxSpaceBytes)
 }
 
 async function loadValues() {
-    const limit = await loadLimit()
-    const usage = await loadUsage()
+  const limit = await loadLimit()
+  const usage = await loadUsage()
 
-    const uuid = await getLyticsUuid()
-    analytics.identify(uuid, {
-        platform: 'mobile',
-        storage: usage,
-        plan: identifyPlanName(limit),
-        userId: uuid
-    }).catch(() => { })
+  const uuid = await getLyticsUuid()
 
-    return { usage, limit }
+  analytics.identify(uuid, {
+    platform: 'mobile',
+    storage: usage,
+    plan: identifyPlanName(limit),
+    userId: uuid
+  }).catch(() => { })
+
+  return { usage, limit }
 }
 
 interface SettingsModalProps {
-    authenticationState?: any,
-    dispatch?: any,
-    layoutState?: any,
-    navigation?: any
+  authenticationState?: any
+  layoutState?: any
+  dispatch?: any,
+  navigation?: any
 }
 
 function SettingsModal(props: SettingsModalProps) {
 
-    const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
-    const [isLoadingUsage, setIsLoadingUpdate] = useState(false)
+  const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
+  const [isLoadingUsage, setIsLoadingUpdate] = useState(false)
 
-    useEffect(() => {
-        if (props.layoutState.showSettingsModal) {
-            setIsLoadingUpdate(true)
-            loadValues().then(values => {
-                setUsageValues(values)
-            }).catch(() => {
+  useEffect(() => {
+    if (props.layoutState.showSettingsModal) {
+      setIsLoadingUpdate(true)
+      loadValues().then(values => {
+        setUsageValues(values)
+      }).catch(() => {
 
-            }).finally(() => {
-                setIsLoadingUpdate(false)
-            })
-        }
-    }, [props.layoutState])
+      }).finally(() => {
+        setIsLoadingUpdate(false)
+      })
+    }
+  }, [props.layoutState])
 
-    return <Modal
-        isOpen={props.layoutState.showSettingsModal}
-        position={'bottom'}
-        swipeArea={20}
-        style={styles.modalSettings}
-        onClosed={() => {
-            props.dispatch(layoutActions.closeSettings())
-        }}
-        backButtonClose={true}
-        animationDuration={200}>
+  return <Modal
+    isOpen={props.layoutState.showSettingsModal}
+    position={'bottom'}
+    swipeArea={20}
+    style={styles.modalSettings}
+    onClosed={() => {
+      props.dispatch(layoutActions.closeSettings())
+    }}
+    backButtonClose={true}
+    animationDuration={200}>
 
-        <View style={styles.drawerKnob}></View>
+    <View style={styles.drawerKnob}></View>
 
-        <Text
-            style={{
-                fontSize: 20,
-                fontWeight: 'bold',
-                marginLeft: 26,
-                marginTop: 10,
-                fontFamily: 'CerebriSans-Bold'
-            }}
-        >
-            {props.authenticationState.user.name}{' '}
-            {props.authenticationState.user.lastname}
-        </Text>
+    <Text
+      style={styles.nameText}
+    >
+      {props.authenticationState.user.name}{' '}
+      {props.authenticationState.user.lastname}
+    </Text>
 
-        <ProgressBar
-            styleBar={{}}
-            styleProgress={{ height: 6 }}
-            totalValue={usageValues.limit}
-            usedValue={usageValues.usage}
-        />
+    <ProgressBar
+      styleBar={{}}
+      styleProgress={styles.progressHeight}
+      totalValue={usageValues.limit}
+      usedValue={usageValues.usage}
+    />
 
-        {isLoadingUsage ? <ActivityIndicator color={'#00f'} /> : <Text
-            style={{
-                fontFamily: 'CerebriSans-Regular',
-                fontSize: 15,
-                paddingLeft: 24,
-                paddingBottom: 0
-            }}
-        >
-            <Text>Used</Text>
-            <Text style={{ fontWeight: 'bold' }}>
-                {' '}
-                {prettysize(usageValues.usage)}{' '}
-            </Text>
-            <Text>of</Text>
-            <Text style={{ fontWeight: 'bold' }}>
-                {' '}
-                {prettysize(usageValues.limit)}{' '}
-            </Text>
-        </Text>
-        }
+    {isLoadingUsage ? <ActivityIndicator color={'#00f'} /> : <Text
+      style={styles.usageText}
+    >
+      <Text>Used </Text>
+      <Bold>
+        {prettysize(usageValues.usage)}
+      </Bold>
+      <Text> of </Text>
+      <Bold>
+        {prettysize(usageValues.limit)}
+      </Bold>
+    </Text>
+    }
 
-        <Separator />
+    <Separator />
 
-        <SettingsItem
-            text="More info"
-            onPress={() => Linking.openURL('https://internxt.com/drive')}
-        />
+    <SettingsItem
+      text="More info"
+      onPress={() => Linking.openURL('https://internxt.com/drive')}
+    />
 
-        <SettingsItem
-            text="Contact"
-            onPress={() => {
-                const emailUrl = 'mailto:support@internxt.zohodesk.eu'
-                Linking.canOpenURL(emailUrl).then(() => {
-                    Linking.openURL(emailUrl)
-                }).catch(err => {
-                    Alert.alert('Info', 'Send us an email to: support@internxt.zohodesk.')
-                })
-            }}
-        />
+    <SettingsItem
+      text="Storage"
+      onPress={() => {
+        props.dispatch(layoutActions.closeSettings())
+        props.navigation.replace('Storage', { usageValues: usageValues })
+      }}
+    />
 
-        <SettingsItem
-            text="Sign out"
-            onPress={() => {
-                props.dispatch(layoutActions.closeSettings())
-                props.dispatch(userActions.signout())
-            }}
-        />
-    </Modal>
+    <SettingsItem
+      text="Contact"
+      onPress={() => {
+        const emailUrl = 'mailto:support@internxt.zohodesk.eu'
+
+        Linking.canOpenURL(emailUrl).then(() => {
+          Linking.openURL(emailUrl)
+        }).catch(() => {
+          Alert.alert('Info', 'Send us an email to: support@internxt.zohodesk.')
+        })
+      }}
+    />
+
+    <SettingsItem
+      text="Sign out"
+      onPress={() => {
+        props.dispatch(layoutActions.closeSettings())
+        props.dispatch(userActions.signout())
+      }}
+    />
+  </Modal>
 }
 
 const styles = StyleSheet.create({
-    drawerKnob: {
-        backgroundColor: '#d8d8d8',
-        width: 56,
-        height: 7,
-        borderRadius: 4,
-        alignSelf: 'center',
-        marginTop: 10
-    },
-    modalSettings: {
-        height: 380
-    }
+  drawerKnob: {
+    backgroundColor: '#d8d8d8',
+    width: 56,
+    height: 7,
+    borderRadius: 4,
+    alignSelf: 'center',
+    marginTop: 10
+  },
+  modalSettings: {
+    height: 380
+  },
+  nameText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 26,
+    marginTop: 10,
+    fontFamily: 'CerebriSans-Bold'
+  },
+  progressHeight: {
+    height: 6
+  },
+  usageText: {
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: 15,
+    paddingLeft: 24,
+    paddingBottom: 0
+  }
 })
 
 const mapStateToProps = (state: any) => {
-    return { ...state };
+  return { ...state };
 };
 
 export default connect(mapStateToProps)(SettingsModal);
