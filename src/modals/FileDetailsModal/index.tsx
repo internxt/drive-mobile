@@ -98,19 +98,17 @@ function FileDetailsModal(props: FileDetailsProps) {
 
           <View style={{ flexDirection: 'row', paddingRight: 22 }}>
             <TextInput
-              style={styles.textDefault}
+              style={styles.folderName}
               onChangeText={value => {
                 setNewFileName(value)
               }}
               value={newfilename}
             />
           </View>
-
           <Separator />
 
           <Text
-            style={styles.cerebriSansBold}>Style Color</Text>
-
+            style={styles.stylesColorFolder}>Style Color</Text>
           <View style={styles.colorSelection}>
             {Object.getOwnPropertyNames(colors).map((value, i) => {
               const localColor = selectedColor ? selectedColor : (folder ? folder.color : null);
@@ -134,7 +132,7 @@ function FileDetailsModal(props: FileDetailsProps) {
           <Separator />
 
           <Text
-            style={styles.textDefault}>Cover Icon</Text>
+            style={styles.stylesCoverFolder}>Cover Icon</Text>
 
           <View style={styles.iconSelection} key={selectedIcon}>
             {folderIconsList.map((value, i) => {
@@ -297,7 +295,8 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   modalFolder: {
-    height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%'))
+    height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%')),
+    marginTop: 70
   },
   colorSelection: {
     display: 'flex',
@@ -352,12 +351,32 @@ const styles = StyleSheet.create({
   },
   textDefault: {
     fontFamily: 'CerebriSans-Regular',
-    fontSize: 15,
+    fontSize: 18,
     paddingLeft: 24,
-    paddingBottom: 6
+    paddingBottom: 6,
+    fontWeight: 'bold'
+  },
+  folderName: {
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 20,
+    marginLeft: 26
   },
   cerebriSansBold: {
     fontFamily: 'CerebriSans-Bold'
+  },
+  stylesColorFolder: {
+    fontFamily: 'CerebriSans-Bold',
+    fontWeight: 'bold',
+    paddingLeft: 24,
+    paddingBottom: 8,
+    fontSize: 17
+  },
+  stylesCoverFolder: {
+    fontFamily: 'CerebriSans-Bold',
+    fontWeight: 'bold',
+    paddingLeft: 24,
+    paddingBottom: 5,
+    fontSize: 17
   },
   mr20: {
     marginRight: 20
