@@ -10,7 +10,7 @@ import Separator from '../../components/Separator';
 import { getIcon } from '../../helpers/getIcon';
 import { fileActions, layoutActions } from '../../redux/actions';
 import SettingsItem from '../SettingsModal/SettingsItem';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { colors, folderIconsList } from '../../redux/constants'
 import { updateFileMetadata, updateFolderMetadata } from './actions';
 import analytics, { getLyticsData } from '../../helpers/lytics';
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
   modalFolder: {
     height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%')),
-    marginTop: 70
+    marginTop: wp('15')
   },
   colorSelection: {
     display: 'flex',
