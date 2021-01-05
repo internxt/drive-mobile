@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
   modalFolder: {
     height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%')),
-    marginTop: 70
+    marginTop: 20
   },
   colorSelection: {
     display: 'flex',
