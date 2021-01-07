@@ -23,8 +23,6 @@ function AppMenu(props: AppMenuProps) {
   const [activeSearchBox, setActiveSearchBox] = useState(false)
   const [hasSpace, setHasSpace] = useState(true)
   const selectedItems = props.filesState.selectedItems;
-  const [progress, setProgress] = useState(0)
-  const [totalprogress, setTotalProgress] = useState(0)
   const textInput = useRef<TextInput>(null)
 
   const handleClickSearch = () => {
@@ -40,35 +38,34 @@ function AppMenu(props: AppMenuProps) {
   }
 
   useEffect(() => {
-    console.log('received', progress, 'total', totalprogress)
-  }, [progress])
-
-  useEffect(() => {
     if (!hasSpace) {
       props.navigation.replace('OutOfSpace')
     }
   }, [hasSpace])
 
   const uploadFile = async (result: any, props: any) => {
-    const URI = result.uri
-    console.log('RESULT uploadFile', result)
+
     const userData = await getLyticsData()
 
-    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { console.log('--- tracking error ---') })
 
     try {
+      console.log('--- BEFORE CHANGING RESULT ---', result)
       // Set name for pics/photos
       if (!result.name) {
         result.name = result.uri.split('/').pop();
       }
-      result.type = 'application/octet-stream';
+      //result.type = 'application/octet-stream';
+      console.log('--- AFTER CHANGING RESULT ---', result)
+
       props.dispatch(fileActions.uploadFileStart(result.name));
       const body = new FormData();
+      const token = props.authenticationState.token;
+      const mnemonic = props.authenticationState.user.mnemonic;
 
       body.append('xfile', result, result.name);
 
-      const token = props.authenticationState.token;
-      const mnemonic = props.authenticationState.user.mnemonic;
+      console.log('--- BODY ---', body._parts[0][1].uri)
 
       const headers = {
         'Authorization': `Bearer ${token}`,
@@ -76,21 +73,28 @@ function AppMenu(props: AppMenuProps) {
         'Content-Type': 'multipart/form-data'
       };
 
-      RNFetchBlob.fs.stat(URI)
+      /* RNFetchBlob.fs.stat(URI)
         .then(res => {
           console.log('FETCHBLOB', res)
-        })
+        }) */
 
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm
-      const filepath = URI.replace(regex, '$2')
+      const path = result.uri.replace(regex, '$1')
+      const file = result.uri.replace(regex, '$2')
+
+      console.log('--- path ---', path)
+      console.log('--- uri ---', file)
+      console.log('--- uri ---', result.uri)
+      console.log('--- modified uri ---', RNFetchBlob.wrap(file))
 
       RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
         [
-          { name: 'xfile', filename: body._parts[0][1].name, data: Platform.OS === 'ios' ? RNFetchBlob.wrap(filepath) : body._parts[0][1].uri }
+          { name: 'xfile', filename: body._parts[0][1].name, data: Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri) }
         ] )
-        .progress( (received, total) => {
-          setProgress(received)
-          setTotalProgress(total)
+        .uploadProgress({ interval: 100 }, (sent, total) => {
+          props.dispatch(fileActions.uploadFileSetProgress( sent / total ))
+
+          console.log('--- UPLOAD PROGRESS appmenu ---', sent / total, '(sent)', sent, '(total)', total )
         })
         .then((res) => {
           if ( res.respInfo.status === 401) {
@@ -108,8 +112,10 @@ function AppMenu(props: AppMenuProps) {
             props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
           } else {
             Alert.alert('Error', 'Cannot upload file');
+            console.log('--- ERROR ---', res)
           }
 
+          props.dispatch(fileActions.uploadFileSetProgress(0))
           props.dispatch(fileActions.uploadFileFinished());
         })
         .catch((err) => {
@@ -120,12 +126,14 @@ function AppMenu(props: AppMenuProps) {
           }
           props.dispatch(fileActions.uploadFileFailed());
           props.dispatch(fileActions.uploadFileFinished());
+          console.log('--- ERROR 2 ---', err)
         })
 
     } catch (error) {
       analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
       props.dispatch(fileActions.uploadFileFailed());
       props.dispatch(fileActions.uploadFileFinished());
+      console.log('--- ERROR 3 ---', error)
     }
   }
 
@@ -192,7 +200,7 @@ function AppMenu(props: AppMenuProps) {
                 {
                   text: 'Upload a document',
                   onPress: async () => {
-                    const result = await getDocumentAsync({ type: '*/*', copyToCacheDirectory: false })
+                    const result = await getDocumentAsync({ copyToCacheDirectory: false })
 
                     if (result.type !== 'cancel') {
                       uploadFile(result, props)
