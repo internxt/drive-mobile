@@ -73,35 +73,30 @@ function AppMenu(props: AppMenuProps) {
         'Content-Type': 'multipart/form-data'
       };
 
-      /* RNFetchBlob.fs.stat(URI)
-        .then(res => {
-          console.log('FETCHBLOB', res)
-        }) */
-
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm
       const path = result.uri.replace(regex, '$1')
       const file = result.uri.replace(regex, '$2')
 
-      console.log('--- path ---', path)
-      console.log('--- uri ---', file)
-      console.log('--- uri ---', result.uri)
-      console.log('--- modified uri ---', RNFetchBlob.wrap(file))
+      console.log('--- uri ---' + ' (path) ' + path + ' || (original) ' + result.uri + ' || (extracted) ' + file + ' || (final) ' + RNFetchBlob.wrap(file))
+
+      const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri)
+      const finalSize = RNFetchBlob.fs.stat(finalUri).then(res => { return res.size })
 
       RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
         [
-          { name: 'xfile', filename: body._parts[0][1].name, data: Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri) }
+          { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
         ] )
-        .uploadProgress({ interval: 100 }, (sent, total) => {
+        .uploadProgress({ count: 10 }, (sent, total) => {
           props.dispatch(fileActions.uploadFileSetProgress( sent / total ))
-
           console.log('--- UPLOAD PROGRESS appmenu ---', sent / total, '(sent)', sent, '(total)', total )
+          sent === total ? console.log('--- FINISHED ---') : console.log('--- UPLOADING ---')
         })
         .then((res) => {
           if ( res.respInfo.status === 401) {
             throw res;
           }
           const data = res;
-
+          console.log('-- FINISHED --')
           return { res: res, data };
         })
         .then(res => {
@@ -200,10 +195,16 @@ function AppMenu(props: AppMenuProps) {
                 {
                   text: 'Upload a document',
                   onPress: async () => {
-                    const result = await getDocumentAsync({ copyToCacheDirectory: false })
+                    const { status } = await requestCameraPermissionsAsync()
 
-                    if (result.type !== 'cancel') {
-                      uploadFile(result, props)
+                    if (status === 'granted') {
+                      const result = await getDocumentAsync({ copyToCacheDirectory: false })
+
+                      if (result.type !== 'cancel') {
+                        uploadFile(result, props)
+                      }
+                    } else {
+                      Alert.alert('Camera permission needed to perform this action')
                     }
                   }
                 },
