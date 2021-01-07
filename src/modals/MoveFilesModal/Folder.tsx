@@ -85,15 +85,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center'
   },
-
   itemIcon: {
   },
-
   nameAndTime: {
     flexDirection: 'column',
     width: 230
   },
-
   fileName: {
     fontFamily: 'CircularStd-Bold',
     fontSize: 16,
