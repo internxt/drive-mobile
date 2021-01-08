@@ -82,14 +82,19 @@ function AppMenu(props: AppMenuProps) {
         [
           { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
         ] )
-        .uploadProgress({ count: 10 }, (sent, total) => {
+        .uploadProgress({ count: 10 }, async (sent, total) => {
           props.dispatch(fileActions.uploadFileSetProgress( sent / total ))
           console.log('--- UPLOAD PROGRESS appmenu ---', sent / total, '(sent)', sent, '(total)', total )
-          if (sent / total >= 1) {
-            console.log('--- FINISHED ---')
+
+          if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
+            console.log('--- FINISHED ---', result.uri)
+            props.dispatch(fileActions.uploadFileSetUri(result.uri)) // Set the uri of the file so FileItem can get it as props
+            console.log('--- uploadFileSetUri dispatch ---')
+
           }
           else {
             console.log('--- UPLOADING ---')
+
           }
         })
         .then((res) => {

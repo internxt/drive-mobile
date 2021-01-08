@@ -13,6 +13,7 @@ export interface FilesState {
   searchString: string
   isUploading: boolean
   isUploadingFileName: string | null
+  uploadFileUri: string
   progress: number
   startDownloadSelectedFile: boolean
   error?: string | null
@@ -29,6 +30,7 @@ const initialState: FilesState = {
   searchString: '',
   isUploading: false,
   isUploadingFileName: '',
+  uploadFileUri: '',
   progress: 0,
   startDownloadSelectedFile: false
 };
@@ -81,6 +83,12 @@ export function filesReducer(state = initialState, action: any): FilesState {
     return {
       ...state,
       progress: action.payload
+    };
+
+  case fileActionTypes.SET_FILE_UPLOAD_URI:
+    return {
+      ...state,
+      uploadFileUri: action.payload
     };
 
   case fileActionTypes.SELECT_FILE:

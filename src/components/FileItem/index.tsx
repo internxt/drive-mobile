@@ -14,6 +14,8 @@ import { colors } from '../../redux/constants';
 import analytics from '../../helpers/lytics';
 import { IFile, IFolder } from '../FileList';
 import { Reducers } from '../../redux/reducers/reducers';
+import * as FileSystem from 'expo-file-system'
+
 interface FileItemProps extends Reducers {
   isFolder: boolean
   item: IFile & IFolder
@@ -41,9 +43,23 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
       folder_id: props.item.id
     })
     props.dispatch(fileActions.getFolderContent(props.item.id.toString()))
+
   } else {
     // one tap on a file will download and preview the file
+    console.log('(isLoading)', props.isLoading, '(has uri)', props.filesState.uploadFileUri)
+    if (props.isLoading && props.filesState.uploadFileUri) {
+      console.log('--- isLoading and uri true ---')
+      const fileInfo = await FileSystem.getInfoAsync(props.filesState.uploadFileUri)
 
+      if (fileInfo.exists) {
+        console.log('--- opening file ---')
+        console.log(fileInfo)
+        console.log('File exists')
+        FileViewer.open(fileInfo.uri).catch(err => console.log('--- FILEVIEWER ERROR ---', err))
+        return
+      }
+    }
+    return
     // Dispatch file download start
     props.dispatch(fileActions.downloadSelectedFileStart())
 
@@ -169,7 +185,8 @@ function FileItem(props: FileItemProps) {
                 setProgress(0)
                 setIsLoading(false)
               })
-            }}>
+            }}
+          >
 
             <View style={styles.itemIcon}>
               {
