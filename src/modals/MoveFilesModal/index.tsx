@@ -70,7 +70,7 @@ function MoveFilesModal(props: MoveFilesProps) {
       style={styles.container}
     >
       <View style={styles.breadcrumbs}>
-        <Text style={styles.title}>Move to {folderContent.name}</Text>
+        <Text style={styles.title}>Choose a folder to move this file.</Text>
 
       </View>
 
