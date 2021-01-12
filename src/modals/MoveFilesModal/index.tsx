@@ -70,15 +70,14 @@ function MoveFilesModal(props: MoveFilesProps) {
       style={styles.container}
     >
       <View style={styles.breadcrumbs}>
-        <Text style={styles.title}>Choose a folder to move this file.</Text>
-
         <TouchableOpacity
           style={parentfolderid ? styles.backButton : styles.hidden}
-          onPress={() => {
-            props.dispatch(fileActions.getFolderContent(parentfolderid))
-          }}>
+          onPress={() => props.dispatch(fileActions.getFolderContent(parentfolderid))}
+        >
           <Image style={styles.backIcon} source={getIcon('back')} />
         </TouchableOpacity>
+
+        <Text style={parentfolderid ? styles.title : [styles.title, styles.paddingLeft]}>Choose a folder to move this file.</Text>
       </View>
 
       <Separator />
@@ -128,7 +127,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexWrap: 'nowrap',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: Platform.OS === 'ios' ? wp('14') : 0
   },
@@ -137,12 +135,12 @@ const styles = StyleSheet.create({
     fontFamily: 'CircularStd-Bold',
     fontSize: 21,
     letterSpacing: -0.2,
-    paddingLeft: 20,
     color: '#000000'
   },
+  paddingLeft: {
+    paddingLeft: 20
+  },
   backButton: {
-    marginRight: 12,
-    marginTop: wp('3.5'),
     alignItems: 'center',
     justifyContent: 'center',
     width: 40, //container size is bigger so easy to touch
@@ -150,8 +148,7 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     height: 15,
-    width: 10,
-    marginRight: 5
+    width: 10
   },
   folderList: {
     height: '75%'

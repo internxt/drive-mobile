@@ -69,42 +69,35 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%'
   },
-
   textContainer: {
     paddingHorizontal: 30
   },
-
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end'
   },
-
   image: {
     height: 30,
     width: 26,
     marginRight: 10,
     marginBottom: 4
   },
-
   title: {
     fontSize: 27,
     fontFamily: 'CerebriSans-Bold',
     color: 'black'
   },
-
   subtitle: {
     fontSize: 17,
     color: '#737880',
     marginTop: 15
   },
-
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '80%',
     marginTop: 30
   },
-
   button: {
     height: 50,
     width: widthPercentageToDP('35'),
@@ -115,17 +108,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-
   blue: {
     backgroundColor: '#4585f5'
   },
-
   text: {
     color: '#5c6066',
     fontFamily: 'CerebriSans-Bold',
     fontSize: 16
   },
-
   white: {
     color: '#fff'
   }

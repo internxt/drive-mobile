@@ -281,7 +281,7 @@ export default connect(mapStateToProps)(FileDetailsModal)
 
 const styles = StyleSheet.create({
   modalSettingsFile: {
-    height: Platform.OS === 'ios' ? '42%' : '55%'
+    height: Platform.OS === 'ios' ? '48%' : '55%'
   },
   modalFileItemContainer: {
   },
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
   modalFolder: {
     height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%')),
-    marginTop: wp('15')
+    marginTop: wp('12')
   },
   colorSelection: {
     display: 'flex',

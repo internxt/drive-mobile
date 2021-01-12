@@ -226,7 +226,6 @@ const styles = StyleSheet.create({
     borderColor: '#c9c9c9',
     justifyContent: 'center'
   },
-
   input: {
     fontFamily: 'CerebriSans-Medium',
     letterSpacing: -0.2,

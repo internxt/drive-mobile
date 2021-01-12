@@ -13,6 +13,7 @@ export const fileActions = {
   uploadFileStart,
   uploadFileFinished,
   uploadFileFailed,
+  uploadFileSetProgress,
   getFolderContent,
   selectFile,
   deselectFile,
@@ -51,6 +52,10 @@ function uploadFileFinished() {
 
 function uploadFileFailed() {
   return { type: fileActionTypes.ADD_FILE_FAILURE };
+}
+
+function uploadFileSetProgress(percentage: number) {
+  return { type: fileActionTypes.ADD_FILE_UPLOAD_PROGRESS, payload: percentage };
 }
 
 function getFolderContent(folderId: string) {
