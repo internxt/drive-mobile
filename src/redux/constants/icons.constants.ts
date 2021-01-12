@@ -14,7 +14,6 @@ const icons: any = {
   details: require('../../../assets/icons/icon-options.png'),
   create: require('../../../assets/icons/icon-create.png'),
   back: require('../../../assets/icons/icon-back.png'),
-
   checkmark: require('../../../assets/icons/icon-checkmark.png'),
   close: require('../../../assets/icons/icon-close.png'),
   delete: require('../../../assets/icons/icon-delete.png'),

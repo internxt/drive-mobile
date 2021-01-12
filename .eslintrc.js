@@ -16,7 +16,8 @@ module.exports = {
   },
   plugins: [
     'react',
-    'react-native'
+    'react-native',
+    'ext'
   ],
   rules: {
     '@typescript-eslint/no-use-before-define': 'off',
@@ -38,7 +39,8 @@ module.exports = {
     'object-curly-spacing': ['error', 'always'],
     'newline-after-var': ['error', 'always'],
     'no-multi-spaces': 'error',
-    'curly': 'error'
+    'curly': 'error',
+    'ext/lines-between-object-properties': ['error', 'never']
   },
   'settings': {
     'react': {
