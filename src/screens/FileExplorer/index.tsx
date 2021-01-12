@@ -13,6 +13,7 @@ import DeleteItemModal from '../../modals/DeleteItemModal';
 import MoveFilesModal from '../../modals/MoveFilesModal';
 import ShareFilesModal from '../../modals/ShareFilesModal';
 import { Reducers } from '../../redux/reducers/reducers';
+import * as Linking from 'expo-linking';
 
 interface FileExplorerProps extends Reducers {
   navigation?: any
@@ -31,6 +32,23 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       return null
     }
   })()
+
+  const getUrl = async() => {
+    const url = await Linking.getInitialURL();
+    return url    
+  }
+  
+
+  useEffect(() => {
+    getUrl().then((res) => {
+        console.log('URL', res)
+       
+      }).catch((err) =>{
+        console.log('error',err)
+    
+      })
+}, [])
+
 
   useEffect(() => {
     const backAction = () => {
