@@ -1,4 +1,4 @@
-import React, { SetStateAction, useState } from 'react';
+import React, { SetStateAction, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert, Dimensions } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -58,7 +58,9 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
         folder_id: props.item.folderId,
         platform: 'mobile'
       })
-    } catch { }
+    } catch (error) {
+      console.log('--- ERROR 1 ---', error)
+    }
     const xToken = await deviceStorage.getItem('xToken')
     const xUser = await deviceStorage.getItem('xUser')
     const xUserJson = JSON.parse(xUser || '{}')
@@ -79,6 +81,7 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
         })
       } else {
         Alert.alert('Error downloading file')
+        console.log('--- ERROR ---', res)
       }
 
       try {
@@ -92,7 +95,8 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
           folder_id: props.item.folderId,
           platform: 'mobile'
         })
-      } catch {
+      } catch (error) {
+        console.log('--- ERROR 2 ---', error)
       }
 
     }).catch(async err => {
@@ -108,8 +112,9 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
           platform: 'mobile',
           msg: err && err.message
         })
-      } catch {
-      }
+      } catch (error) {
+      console.log('--- ERROR 3 ---', error)
+    }
 
     }).finally(() => {
       // Dispatch download file end
@@ -134,12 +139,20 @@ function FileItem(props: FileItemProps) {
   const progressPct = progress > 0 ? progress / props.item.size : 0
   const progressWidth = Dimensions.get('screen').width * progressPct
 
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const uploadProgressWidth = Dimensions.get('screen').width * uploadProgress
+
   const [isLoading, setIsLoading] = useState(props.isLoading ? true : false)
 
   const extendStyles = StyleSheet.create({
     text: { color: '#000000' },
     containerBackground: { backgroundColor: isSelected ? '#f2f5ff' : '#fff' }
   });
+
+  useEffect(() => {
+    setUploadProgress(props.filesState.progress)
+    //console.log('--- UPLOAD PROGRESS FileItem ---', props.filesState.progress)
+  }, [props.filesState.progress])
 
   const item = props.item
 
@@ -204,8 +217,13 @@ function FileItem(props: FileItemProps) {
           </TouchableWithoutFeedback>
         </View>
       </View>
-      <View style={[styles.progressIndicator, { width: progressWidth }]}>
-      </View>
+      <View style={[styles.progressIndicator, { width: progressWidth }]}></View>
+      {
+        props.isLoading ?
+          <View style={[styles.progressIndicator, { width: uploadProgressWidth }]}></View>
+          :
+          null
+      }
     </View>
   )
 }
@@ -221,7 +239,7 @@ const styles = StyleSheet.create({
     top: 70,
     left: 0,
     right: 0,
-    height: '100%',
+    height: 10,
     width: 60,
     opacity: 0.6,
     borderRadius: 1
