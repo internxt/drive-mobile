@@ -39,7 +39,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
   }, [props.layoutState.showShareModal])
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!props.layoutState.showShareModal) {
       return
     }
     setIsLoading(true)
@@ -47,6 +47,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
       getLink(selectedFile, parseInt(inputValue)).finally(() => setIsLoading(false))
     }, 1000);
 
+    console.log(inputValue)
     return () => { clearTimeout(delay); }
   }, [inputValue])
 
@@ -85,9 +86,9 @@ function ShareFilesModal(props: ShareFilesModalProps) {
       isOpen={isOpen}
       swipeArea={2}
       onClosed={() => {
-        setInputValue('1')
         props.dispatch(layoutActions.closeShareModal())
         setIsOpen(false)
+        setInputValue('1')
       }}
       position='bottom'
       style={styles.modalContainer}>
