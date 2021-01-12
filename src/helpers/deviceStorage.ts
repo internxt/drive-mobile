@@ -7,7 +7,6 @@ export const deviceStorage = {
     } catch (error) {
     }
   },
-
   async getItem(key: string): Promise<string | null> {
     try {
       const value = await AsyncStorage.getItem(key);
@@ -17,7 +16,6 @@ export const deviceStorage = {
       return null
     }
   },
-
   async deleteItem(key: string): Promise<void> {
     try {
       const value = await AsyncStorage.removeItem(key);

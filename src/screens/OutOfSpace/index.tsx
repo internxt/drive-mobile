@@ -52,34 +52,28 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: 'white'
   },
-
   titleContainer: {
     alignSelf: 'flex-start',
     marginHorizontal: wp('6'),
     marginVertical: wp('15')
   },
-
   title: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: 27,
     letterSpacing: -0.5,
     color: '#000000'
   },
-
   subtitle: {
     fontFamily: 'CerebriSans-Regular',
     fontSize: 17,
     lineHeight: 23,
     letterSpacing: -0.1,
-
     marginTop: 15
   },
-
   buttonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly'
   },
-
   button: {
     height: 50,
     width: wp('42'),
@@ -90,19 +84,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-
   blue: {
     backgroundColor: '#4585f5',
     borderWidth: 0
   },
-
   buttonText: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: 16,
     letterSpacing: -0.2,
     color: '#5c6066'
   },
-
   white: {
     color: 'white'
   }
