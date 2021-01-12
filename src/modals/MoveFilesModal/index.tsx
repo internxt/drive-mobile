@@ -72,13 +72,6 @@ function MoveFilesModal(props: MoveFilesProps) {
       <View style={styles.breadcrumbs}>
         <Text style={styles.title}>Choose a folder to move this file.</Text>
 
-        <TouchableOpacity
-          style={parentfolderid ? styles.backButton : styles.hidden}
-          onPress={() => {
-            props.dispatch(fileActions.getFolderContent(parentfolderid))
-          }}>
-          <Image style={styles.backIcon} source={getIcon('back')} />
-        </TouchableOpacity>
       </View>
 
       <Separator />
