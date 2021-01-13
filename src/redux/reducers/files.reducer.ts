@@ -17,6 +17,7 @@ export interface FilesState {
   progress: number
   startDownloadSelectedFile: boolean
   error?: string | null
+  uri: string | Record<string, string> | undefined | null
 }
 
 const initialState: FilesState = {
@@ -32,7 +33,8 @@ const initialState: FilesState = {
   isUploading: false,
   isUploadingFileName: '',
   progress: 0,
-  startDownloadSelectedFile: false
+  startDownloadSelectedFile: false,
+  uri: undefined
 };
 
 export function filesReducer(state = initialState, action: any): FilesState {
@@ -205,6 +207,11 @@ export function filesReducer(state = initialState, action: any): FilesState {
     return {
       ...state,
       rootFolderContent: action.payload
+    }
+  case fileActionTypes.SET_URI:
+    return {
+      ...state,
+      uri: action.payload
     }
   default:
     return state;

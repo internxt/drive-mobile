@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Text, View, StyleSheet, Image, BackHandler, Platform } from 'react-native'
-import AppMenu from '../../components/AppMenu'
+import AppMenu, { uploadFile } from '../../components/AppMenu'
 import { fileActions } from '../../redux/actions';
 import { connect } from 'react-redux';
-import FileList from '../../components/FileList';
+import FileList, { IFolder } from '../../components/FileList';
 import SettingsModal from '../../modals/SettingsModal';
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import { getIcon } from '../../helpers/getIcon';
@@ -23,6 +23,16 @@ interface FileExplorerProps extends Reducers {
 function FileExplorer(props: FileExplorerProps): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
 
+ /*  const searchString = props.filesState.searchString
+  let folderList: IFolder[] = folderContent && folderContent.children || [];
+  let fileList: IFile[] = folderContent && folderContent.files || [];
+
+  if (searchString) {
+    fileList = fileList.filter((file: IFile) => file.name.toLowerCase().includes(searchString.toLowerCase()))
+    folderList = folderList.filter((folder: IFolder) => folder.name.toLowerCase().includes(searchString.toLowerCase()))
+  }
+  const isEmptyFolder = folderList.length === 0 && fileList.length === 0
+ */
   const { filesState } = props;
   //const currentFolderId = props.navigation.state.params.folderId;
   const parentFolderId = (() => {
@@ -33,22 +43,24 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
     }
   })()
 
-  const getUrl = async() => {
-    const url = await Linking.getInitialURL();
-    return url    
+  const handleOpenURL = e => {
+    props.dispatch(fileActions.setUri(e))
+    console.log('gh',e)
+
   }
-  
+
+  const getUrl = () => {
+    Linking.getInitialURL().then(e => {
+      props.dispatch(fileActions.setUri(e))
+      console.log(e)
+    }).catch()
+
+  }
 
   useEffect(() => {
-    getUrl().then((res) => {
-        console.log('URL', res)
-       
-      }).catch((err) =>{
-        console.log('error',err)
-    
-      })
-}, [])
-
+    Linking.addEventListener('url', handleOpenURL)
+    getUrl()
+  }, [])
 
   useEffect(() => {
     const backAction = () => {
@@ -72,6 +84,10 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
   useEffect(() => {
     parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(props.filesState.folderContent)) : null
 
+    if (props.filesState.uri !== undefined && props.filesState.uri !== null) {
+      console.log(props.filesState.uri)
+      uploadFile(props.filesState.uri, props)
+    }
   }, [props.filesState.folderContent])
 
   useEffect(() => {

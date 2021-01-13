@@ -55,6 +55,7 @@ function FileList(props: any) {
       const rootFolderId = props.authenticationState.user.root_folder_id
 
       props.dispatch(fileActions.getFolderContent(rootFolderId))
+      console.log('useEffect FileList')
     }
   }, [])
 
@@ -76,6 +77,7 @@ function FileList(props: any) {
             }
             const currentFolder = props.filesState.folderContent.currentFolder
 
+            console.log('112')
             props.dispatch(fileActions.getFolderContent(currentFolder))
           }}
         />
