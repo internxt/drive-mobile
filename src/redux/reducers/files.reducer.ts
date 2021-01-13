@@ -6,6 +6,7 @@ export interface FilesState {
   loading: boolean
   items: any[]
   folderContent: any
+  rootFolderContent: any
   selectedFile: IFile & IFolder | null
   selectedItems: any[]
   sortType: string
@@ -13,6 +14,7 @@ export interface FilesState {
   searchString: string
   isUploading: boolean
   isUploadingFileName: string | null
+  progress: number
   startDownloadSelectedFile: boolean
   error?: string | null
 }
@@ -21,6 +23,7 @@ const initialState: FilesState = {
   loading: false,
   items: [],
   folderContent: null,
+  rootFolderContent: null,
   selectedFile: null,
   selectedItems: [],
   sortType: '',
@@ -28,6 +31,7 @@ const initialState: FilesState = {
   searchString: '',
   isUploading: false,
   isUploadingFileName: '',
+  progress: 0,
   startDownloadSelectedFile: false
 };
 
@@ -73,6 +77,12 @@ export function filesReducer(state = initialState, action: any): FilesState {
       loading: false,
       error: action.error,
       isUploading: false
+    };
+
+  case fileActionTypes.ADD_FILE_UPLOAD_PROGRESS:
+    return {
+      ...state,
+      progress: action.payload
     };
 
   case fileActionTypes.SELECT_FILE:
@@ -190,6 +200,11 @@ export function filesReducer(state = initialState, action: any): FilesState {
       ...state,
       loading: false,
       error: action.payload
+    }
+  case fileActionTypes.SET_ROOTFOLDER_CONTENT:
+    return {
+      ...state,
+      rootFolderContent: action.payload
     }
   default:
     return state;

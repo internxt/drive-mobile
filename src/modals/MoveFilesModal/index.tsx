@@ -19,19 +19,19 @@ interface MoveFilesProps {
 function MoveFilesModal(props: MoveFilesProps) {
   const [isOpen, setIsOpen] = useState(props.layoutState.showMoveModal)
   const [currentfolderid, setCurrentFolderId] = useState('')
-  const [parentfolderid, setParentFolderId] = useState('')
+  const [folderlist, setFolderList] = useState(Array)
   const [firstfolder, setFirstFolder] = useState('')
-  const [selectedfile, setSelectedFile] = useState(0)
+  const [selectedfile, setSelectedFile] = useState({})
 
-  const { folderContent } = props.filesState
-  const folderList: any[] = folderContent && folderContent.children || [];
+  const { rootFolderContent } = props.filesState
+  const folderList: any[] = rootFolderContent && rootFolderContent.children || []
 
   useEffect(() => {
     props.layoutState.showMoveModal === true ? setIsOpen(true) : null
     if (props.filesState.folderContent) {
       setCurrentFolderId(props.filesState.folderContent.currentFolder)
       setSelectedFile(props.filesState.selectedFile)
-      setParentFolderId(props.filesState.folderContent.parentId)
+      setFolderList(props.filesState.rootFolderContent.children)
       setFirstFolder(props.filesState.folderContent.currentFolder)
     }
   }, [props.layoutState.showMoveModal])
@@ -39,7 +39,7 @@ function MoveFilesModal(props: MoveFilesProps) {
   useEffect(() => {
     if (props.filesState.folderContent) {
       setCurrentFolderId(props.filesState.folderContent.currentFolder)
-      setParentFolderId(props.filesState.folderContent.parentId)
+      setFolderList(props.filesState.folderContent.children)
     }
   }, [props.filesState.folderContent])
 
@@ -71,21 +71,13 @@ function MoveFilesModal(props: MoveFilesProps) {
     >
       <View style={styles.breadcrumbs}>
         <Text style={styles.title}>Choose a folder to move this file.</Text>
-
-        <TouchableOpacity
-          style={parentfolderid ? styles.backButton : styles.hidden}
-          onPress={() => {
-            props.dispatch(fileActions.getFolderContent(parentfolderid))
-          }}>
-          <Image style={styles.backIcon} source={getIcon('back')} />
-        </TouchableOpacity>
       </View>
 
       <Separator />
 
       <View style={styles.folderList}>
         <FlatList
-          data={folderList}
+          data={folderlist}
           renderItem={folder => (
             <Folder
               isFolder={true}
@@ -128,7 +120,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexWrap: 'nowrap',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: Platform.OS === 'ios' ? wp('14') : 0
   },
@@ -137,21 +128,8 @@ const styles = StyleSheet.create({
     fontFamily: 'CircularStd-Bold',
     fontSize: 21,
     letterSpacing: -0.2,
-    paddingLeft: 20,
-    color: '#000000'
-  },
-  backButton: {
-    marginRight: 12,
-    marginTop: wp('3.5'),
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 40, //container size is bigger so easy to touch
-    height: 40
-  },
-  backIcon: {
-    height: 15,
-    width: 10,
-    marginRight: 5
+    color: '#000000',
+    marginLeft: 20
   },
   folderList: {
     height: '75%'
@@ -182,9 +160,6 @@ const styles = StyleSheet.create({
   },
   white: {
     color: '#fff'
-  },
-  hidden: {
-    display: 'none'
   }
 })
 

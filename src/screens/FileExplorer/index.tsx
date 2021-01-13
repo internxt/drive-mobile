@@ -53,6 +53,8 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
   useEffect(() => {
     const backAction = () => {
       if (parentFolderId) {
+        // eslint-disable-next-line no-console
+        console.log('back') // do not delete
         // Go to parent folder if exists
         props.dispatch(fileActions.getFolderContent(parentFolderId))
       } else {
@@ -66,6 +68,11 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
 
     return () => backHandler.remove();
   }, []);
+
+  useEffect(() => {
+    parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(props.filesState.folderContent)) : null
+
+  }, [props.filesState.folderContent])
 
   useEffect(() => {
     const keyId = props.filesState.selectedItems.length > 0 && props.filesState.selectedItems[0].id

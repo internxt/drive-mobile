@@ -13,6 +13,7 @@ export const fileActions = {
   uploadFileStart,
   uploadFileFinished,
   uploadFileFailed,
+  uploadFileSetProgress,
   getFolderContent,
   selectFile,
   deselectFile,
@@ -22,7 +23,8 @@ export const fileActions = {
   setSearchString,
   createFolder,
   updateFolderMetadata,
-  moveFile
+  moveFile,
+  setRootFolderContent
 };
 
 function downloadFileStart(fileId: string) {
@@ -51,6 +53,10 @@ function uploadFileFinished() {
 
 function uploadFileFailed() {
   return { type: fileActionTypes.ADD_FILE_FAILURE };
+}
+
+function uploadFileSetProgress(percentage: number) {
+  return { type: fileActionTypes.ADD_FILE_UPLOAD_PROGRESS, payload: percentage };
 }
 
 function getFolderContent(folderId: string) {
@@ -218,6 +224,10 @@ function moveFile(fileId: string, destination: string) {
   function failure(payload: any) {
     return { type: fileActionTypes.MOVE_FILES_FAILURE, payload };
   }
+}
+
+function setRootFolderContent(folderContent: any) {
+  return { type: fileActionTypes.SET_ROOTFOLDER_CONTENT, payload: folderContent }
 }
 
 function updateFolderMetadata(metadata: any, folderId) {
