@@ -47,7 +47,6 @@ function ShareFilesModal(props: ShareFilesModalProps) {
       getLink(selectedFile, parseInt(inputValue)).finally(() => setIsLoading(false))
     }, 1000);
 
-    console.log(inputValue)
     return () => { clearTimeout(delay); }
   }, [inputValue])
 
