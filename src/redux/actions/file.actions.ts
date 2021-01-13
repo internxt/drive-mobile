@@ -23,7 +23,8 @@ export const fileActions = {
   setSearchString,
   createFolder,
   updateFolderMetadata,
-  moveFile
+  moveFile,
+  setRootFolderContent
 };
 
 function downloadFileStart(fileId: string) {
@@ -223,6 +224,10 @@ function moveFile(fileId: string, destination: string) {
   function failure(payload: any) {
     return { type: fileActionTypes.MOVE_FILES_FAILURE, payload };
   }
+}
+
+function setRootFolderContent(folderContent: any) {
+  return { type: fileActionTypes.SET_ROOTFOLDER_CONTENT, payload: folderContent }
 }
 
 function updateFolderMetadata(metadata: any, folderId) {
