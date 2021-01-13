@@ -32,9 +32,10 @@ function ShareFilesModal(props: ShareFilesModalProps) {
     setIsOpen(props.layoutState.showShareModal === true)
 
     if (props.layoutState.showShareModal && props.filesState.selectedFile) {
+      console.log('inside if on open modal')
       setSelectedFile(props.filesState.selectedFile)
       setFileName(props.filesState.selectedFile.name)
-      getLink(props.filesState.selectedFile, parseInt(inputValue))
+      getLink(props.filesState.selectedFile, parseInt(inputValue)).then(() => setIsLoading(false))
     }
   }, [props.layoutState.showShareModal])
 
@@ -44,7 +45,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
     }
     setIsLoading(true)
     const delay = setTimeout(() => {
-      getLink(selectedFile, parseInt(inputValue)).finally(() => setIsLoading(false))
+      getLink(selectedFile, parseInt(inputValue)).then(() => setIsLoading(false))
     }, 1000);
 
     return () => { clearTimeout(delay); }
@@ -52,6 +53,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 
   const getLink = async (file: any, views: number) => {
     const tokenLink = await getFileToken(file, views);
+
     const url = `${process.env.REACT_NATIVE_API_URL}/${tokenLink}`;
 
     setLink(url)
