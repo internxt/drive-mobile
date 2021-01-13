@@ -32,7 +32,6 @@ function ShareFilesModal(props: ShareFilesModalProps) {
     setIsOpen(props.layoutState.showShareModal === true)
 
     if (props.layoutState.showShareModal && props.filesState.selectedFile) {
-      console.log('inside if on open modal')
       setSelectedFile(props.filesState.selectedFile)
       setFileName(props.filesState.selectedFile.name)
       getLink(props.filesState.selectedFile, parseInt(inputValue)).then(() => setIsLoading(false))
