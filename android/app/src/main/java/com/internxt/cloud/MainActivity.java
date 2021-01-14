@@ -1,6 +1,10 @@
 package com.internxt.cloud;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+
+import androidx.annotation.Nullable;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -28,14 +32,26 @@ public class MainActivity extends ReactActivity {
     protected String getMainComponentName() {
         return "main";
     }
-
+    
     @Override
     protected ReactActivityDelegate createReactActivityDelegate() {
         return new ReactActivityDelegate(this, getMainComponentName()) {
+           
             @Override
-            protected ReactRootView createRootView() {
-                return new RNGestureHandlerEnabledRootView(MainActivity.this);
+            protected Bundle getLaunchOptions() {
+
+                Intent intent = MainActivity.this.getIntent();
+                Bundle bundle = new Bundle();
+                Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (uri != null) {
+                    bundle.putString("fileUri", uri.toString());
+                }else{
+                    bundle.putString("fileUri", "");
+                }
+                
+                return bundle;
             }
+
         };
     }
 }

@@ -19,8 +19,7 @@ interface AppMenuProps {
   authenticationState?: any
 }
 
-export const uploadFile = async (result: any, props: AppMenuProps) => {
-  //console.log('(result)', result, '(props)', props)
+export const uploadFile = async (result: any, currentFolder: number, props: AppMenuProps) => {
   console.log('(result)', result)
   /* THREE POSSIBLE RESULTS
     NORMAL UPLOAD => {"name": "IMG_20210113_120939.jpg", "size": 145374, "type": "success", "uri": "content://com.android.providers.media.documents/document/image%3A38"}
@@ -39,11 +38,12 @@ export const uploadFile = async (result: any, props: AppMenuProps) => {
       'internxt-mnemonic': mnemonic,
       'Content-Type': 'multipart/form-data'
     }
-    const body = new FormData();
 
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm
     let file
     let finalUri
+    let currFolder
+    let name
 
     if (result.uri) {
       // Set name for pics/photos
@@ -54,7 +54,7 @@ export const uploadFile = async (result: any, props: AppMenuProps) => {
 
       file = result.uri.replace(regex, '$2')
       finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri)
-      console.log('--- FINAL URL ---', finalUri)
+      currFolder = props.filesState.folderContent.currentFolder
 
     } else {
       if (result.url) {
@@ -63,34 +63,34 @@ export const uploadFile = async (result: any, props: AppMenuProps) => {
 
         file = result.url.replace(regex, '$2')
         finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.url)
-        console.log('--- FINAL URL ---', finalUri)
+        currFolder = currentFolder
 
       } else {
-        result.name = result.split('/').pop()
+        name = result.split('/').pop()
         props.dispatch(fileActions.uploadFileStart(result.name))
+        console.log('(result.name)', result.name)
 
         file = result.replace(regex, '$2')
-        console.log(file)
         finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result)
-        console.log('--- FINAL URI ---', finalUri)
+        currFolder = currentFolder
       }
     }
+    console.log('(name) xfile', '(filename)', name, '(data)', finalUri)
 
-    body.append('xfile', result, result.name)
+    console.log('RESULT', result)
 
-    console.log('(BODY)', body)
-
-    RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
+    RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currFolder}/upload`, headers,
       [
-        { name: 'xfile', filename: result.name, data: finalUri }
+        { name: 'xfile', filename: name, data: finalUri }
       ] )
       .uploadProgress({ count: 10 }, (sent, total) => {
         props.dispatch(fileActions.uploadFileSetProgress( sent / total ))
 
       })
       .then((res) => {
-        console.log(res.respInfo.status)
-        console.log(res.text())
+        console.log('(res)', res)
+        console.log('(res status)', res.respInfo.status)
+        //console.log('(first res)', res.text())
         if ( res.respInfo.status === 401) {
           throw res;
         }
@@ -108,8 +108,8 @@ export const uploadFile = async (result: any, props: AppMenuProps) => {
           props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
 
         } else {
-          console.log(res)
-          Alert.alert('Error', 'Cannot upload file');
+          //console.log('(second res)', res)
+          Alert.alert('Error', 'Can not upload file');
         }
 
         props.filesState.uri !== undefined ? props.dispatch(fileActions.setUri(undefined)) : null

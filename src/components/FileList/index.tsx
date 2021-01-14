@@ -55,17 +55,12 @@ function FileList(props: any) {
       const rootFolderId = props.authenticationState.user.root_folder_id
 
       props.dispatch(fileActions.getFolderContent(rootFolderId))
-      console.log('useEffect FileList')
     }
   }, [])
 
   const isUploading = props.filesState.isUploadingFileName
   const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && !isUploading
 
-  useEffect(() => {
-    //console.log('--- UPLOADING PROGRESS ON FILELIST ---', filesState.progress)
-
-  }, [filesState.progress])
   return (
     <ScrollView
       refreshControl={
@@ -77,7 +72,6 @@ function FileList(props: any) {
             }
             const currentFolder = props.filesState.folderContent.currentFolder
 
-            console.log('112')
             props.dispatch(fileActions.getFolderContent(currentFolder))
           }}
         />

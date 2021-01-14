@@ -5,14 +5,11 @@ import { store } from './src/store'
 import AppNavigator from './src/AppNavigator';
 import { analyticsSetup, loadEnvVars, loadFonts } from './src/helpers'
 import { NavigationContainer } from '@react-navigation/native';
+import { fileActions } from './src/redux/actions';
 
-export default function App(): JSX.Element {
+export default function App(props: any): JSX.Element {
   const [appInitialized, setAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
-
-  const linking = {
-    prefixes: ['inxt:']
-  };
 
   Promise.all([
     loadFonts(),
@@ -23,6 +20,20 @@ export default function App(): JSX.Element {
   }).catch((err: Error) => {
     setLoadError(err.message)
   })
+
+  const prefix = 'inxt'
+  const config = {
+    screens: {
+      FileExplorer: '/'
+    }
+  }
+
+  const linking = {
+    prefixes: [prefix],
+    config: config
+  }
+
+  store.dispatch(fileActions.setUri(props.fileUri))
 
   return <Provider store={store}>
     <NavigationContainer linking={linking} fallback={<Text>Loading...</Text>}>

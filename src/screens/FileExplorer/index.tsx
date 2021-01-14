@@ -13,26 +13,16 @@ import DeleteItemModal from '../../modals/DeleteItemModal';
 import MoveFilesModal from '../../modals/MoveFilesModal';
 import ShareFilesModal from '../../modals/ShareFilesModal';
 import { Reducers } from '../../redux/reducers/reducers';
-import * as Linking from 'expo-linking';
 
 interface FileExplorerProps extends Reducers {
   navigation?: any
   dispatch?: any
+  image?: any
 }
 
 function FileExplorer(props: FileExplorerProps): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
 
- /*  const searchString = props.filesState.searchString
-  let folderList: IFolder[] = folderContent && folderContent.children || [];
-  let fileList: IFile[] = folderContent && folderContent.files || [];
-
-  if (searchString) {
-    fileList = fileList.filter((file: IFile) => file.name.toLowerCase().includes(searchString.toLowerCase()))
-    folderList = folderList.filter((folder: IFolder) => folder.name.toLowerCase().includes(searchString.toLowerCase()))
-  }
-  const isEmptyFolder = folderList.length === 0 && fileList.length === 0
- */
   const { filesState } = props;
   //const currentFolderId = props.navigation.state.params.folderId;
   const parentFolderId = (() => {
@@ -43,24 +33,23 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
     }
   })()
 
-  const handleOpenURL = e => {
-    props.dispatch(fileActions.setUri(e))
-    console.log('gh',e)
-
-  }
-
-  const getUrl = () => {
-    Linking.getInitialURL().then(e => {
-      props.dispatch(fileActions.setUri(e))
-      console.log(e)
-    }).catch()
-
-  }
-
   useEffect(() => {
-    Linking.addEventListener('url', handleOpenURL)
-    getUrl()
-  }, [])
+    parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(filesState.folderContent)) : null
+
+    if (filesState.uri !== undefined && filesState.uri !== null && filesState.uri !== '') {
+      if (filesState.folderContent) {
+        console.log('(filesState)', filesState.folderContent.currentFolder)
+        const uri = filesState.uri
+        const regex = /inxt:\/\//g
+        const found = uri.match(regex)
+
+        console.log('found', found)
+        setTimeout(() => {
+          !found ? uploadFile(filesState.uri, filesState.folderContent.currentFolder, props) : null
+        }, 5000)
+      }
+    }
+  }, [filesState.folderContent])
 
   useEffect(() => {
     const backAction = () => {
@@ -82,19 +71,10 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(props.filesState.folderContent)) : null
-
-    if (props.filesState.uri !== undefined && props.filesState.uri !== null) {
-      console.log(props.filesState.uri)
-      uploadFile(props.filesState.uri, props)
-    }
-  }, [props.filesState.folderContent])
-
-  useEffect(() => {
     const keyId = props.filesState.selectedItems.length > 0 && props.filesState.selectedItems[0].id
 
     setSelectedKeyId(keyId)
-  }, [props.filesState])
+  }, [filesState])
 
   if (!props.authenticationState.loggedIn) {
     props.navigation.replace('Login')

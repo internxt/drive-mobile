@@ -77,7 +77,6 @@ function FileDetailsModal(props: FileDetailsProps) {
 
             if (Object.keys(metadata).length > 0) {
               await updateFolderMetadata(metadata, folder.id)
-            console.log('11123w2')
 
               props.dispatch(fileActions.getFolderContent(folder.parentId))
               if (newfilename !== originalfilename) {
