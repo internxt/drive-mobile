@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, StatusBar, View, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, StatusBar, View, Text, Platform, Linking } from 'react-native';
 import { Provider } from 'react-redux'
 import { store } from './src/store'
 import AppNavigator from './src/AppNavigator';
@@ -33,7 +33,39 @@ export default function App(props: any): JSX.Element {
     config: config
   }
 
-  store.dispatch(fileActions.setUri(props.fileUri))
+  const handleOpenURL = (e) => {
+    if (e.url) {
+      const regex = /inxt:\/\//g
+      const uri = e
+      const finalUri = uri.url.replace(regex, '')
+
+      console.log('(App.tsx) set uri if opened iOS', e)
+      store.dispatch(fileActions.setUri(finalUri))
+    }
+  }
+
+  useEffect(() => {
+    if(Platform.OS === 'ios'){
+      const regex = /inxt:\/\//g
+
+      Linking.addEventListener('url', handleOpenURL);
+
+      Linking.getInitialURL().then(res => {
+        if (res && !res.url) {
+          const uri = res
+          const finalUri = uri.replace(regex, '')
+
+          console.log('(App.tsx) set uri if closed iOS', res)
+          store.dispatch(fileActions.setUri(finalUri))
+        }
+      })
+    } else {
+      console.log('(App.tsx) set uri Android')
+      store.dispatch(fileActions.setUri(props.fileUri))
+    }
+
+    return () => Linking.removeEventListener('url', handleOpenURL)
+  }, [])
 
   return <Provider store={store}>
     <NavigationContainer linking={linking} fallback={<Text>Loading...</Text>}>
@@ -61,4 +93,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   }
-});
+})
