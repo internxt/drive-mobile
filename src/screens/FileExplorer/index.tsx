@@ -26,13 +26,12 @@ interface FileExplorerProps extends Reducers {
 
 function FileExplorer(props: FileExplorerProps): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
-  const [folderId, setFolderId] = useState(0)
 
-  const { filesState } = props;
-  //const currentFolderId = props.navigation.state.params.folderId;
+  const { filesState } = props
+
   const parentFolderId = (() => {
-    if (props.filesState.folderContent) {
-      return props.filesState.folderContent.parentId || null
+    if (filesState.folderContent) {
+      return filesState.folderContent.parentId || null
     } else {
       return null
     }
@@ -44,9 +43,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
 
   if (Platform.OS === 'ios') {
     useEffect(() => {
-      console.log('(file explorer uri)', filesState.uri)
       if (filesState.uri !== undefined && filesState.uri !== null && filesState.uri !== '') {
-        console.log('(uri is not undefined, null or empty), (folderId)', folderId)
         const uri = filesState.uri
         const regex = /inxt:\/\//g
         let found
@@ -55,38 +52,45 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
 
         console.log('found', found)
         setTimeout(() => {
-          !found ? uploadFile(uri, props.filesState.currentFolder) : null
+          !found ? uploadFile(uri, props.filesState.folderContent.currentFolder) : null
         }, 3000)
       }
     }, [filesState.uri])
 
   } else {
     useEffect(() => {
-      console.log('(file explorer uri)', filesState.uri)
-      if (filesState.uri !== undefined && filesState.uri !== null && filesState.uri !== '') {
-        if (filesState.folderContent) {
-          if (filesState.folderContent.currentFolder) {
-            console.log('(uri is not undefined, null or empty), (folderId)', folderId)
-            const uri = filesState.uri
-            const regex = /inxt:\/\//g
-            let found
+      if (filesState.uri) {
+        if (filesState.uri.fileUri !== undefined && filesState.uri.fileUri !== null && filesState.uri.fileUri !== '') {
+          if (filesState.folderContent) {
+            if (filesState.folderContent.currentFolder) {
+              console.log('(uri)', filesState.uri)
+              const uri = filesState.uri.fileUri
+              const name = filesState.uri.fileName
+              const regex = /inxt:\/\//g
+              const folderId = filesState.folderContent.currentFolder
+              let found
 
-            uri.url ? found = uri.url.match(regex) : found = uri.match(regex)
+              uri.url ? found = uri.url.match(regex) : found = uri.match(regex)
 
-            console.log('found', found)
-            setTimeout(() => {
-              !found ? uploadFile(uri, props.filesState.currentFolder) : null
-            }, 2000)
+              console.log('found', found)
+              setTimeout(() => {
+                !found ? uploadFile(uri, name, folderId) : null
+              }, 2000)
+            }
           }
         }
       }
     }, [filesState.folderContent])
   }
 
-  const uploadFile = async (result: any, currentFolder: number) => {
-    console.log('(uploadFile result)', result)
+  const uploadFile = async (uri: any, name: string, currentFolder: number) => {
+    console.log('(uploadFile params) =>', 'uri:', uri, 'name:', name, 'currentFolder:', currentFolder)
+
+    //RNFetchBlob.fs.readStream(result, 'base64').then(res => {console.log(res)}) //{"_onData": [Function anonymous], "_onEnd": [Function anonymous], "_onError": [Function anonymous], "bufferSize": undefined, "closed": false, "encoding": "base64", "path": "content://com.android.providers.media.documents/document/document%3A31", "streamId": "RNFBRS6l23q9jnldaxk58am06ujc", "tick": 10}
     /* THREE POSSIBLE RESULTS
-      SHARE TO WITH APP CLOSED => content://com.android.providers.media.documents/document/image%3A38
+      NORMAL UPLOAD DOCUMENT FINAL URI =>  RNFetchBlob-content://content://com.android.providers.media.documents/document/document%3A31
+      AUTOMATIC UPLOAD FINAL URI =>        RNFetchBlob-content://content://com.android.providers.media.documents/document/document%3A31
+      SHARE TO WITH APP CLOSED =>          content://com.android.providers.media.documents/document/image%3A38
       SHARE TO WITH APP OPENED => {"url": "content://com.android.providers.media.documents/document/video%3A37"}
     */
     const userData = await getLyticsData()
@@ -101,32 +105,28 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
         'internxt-mnemonic': mnemonic,
         'Content-Type': 'multipart/form-data'
       }
-
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm
       let file
       let finalUri
       let currFolder
-      let name
 
-      if (result.url) {
-        result.name = result.url.split('/').pop()
-        props.dispatch(fileActions.uploadFileStart(result.name))
+      if (uri.url) { // if shared while the app was open
+        uri.name = uri.url.split('/').pop()
+        props.dispatch(fileActions.uploadFileStart(uri.name))
 
-        file = result.url.replace(regex, '$2')
-        finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.url)
+        file = uri.url.replace(regex, '$2')
+        finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(uri.url)
         currFolder = currentFolder
 
-      } else {
-        name = result.split('/').pop()
+      } else { // if shared while the app was closed
         props.dispatch(fileActions.uploadFileStart(name))
-        console.log('(result.name)', name)
 
-        file = result.replace(regex, '$2')
-        finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(result)
+        file = uri.replace(regex, '$2')
+        finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(uri)
         currFolder = currentFolder
       }
 
-      console.log('(name) xfile', '(filename)', name, '(data)', finalUri)
+      console.log('(RNFetchBlob body) =>', 'name: xfile', 'filename:', name, 'data:', finalUri)
 
       RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currFolder}/upload`, headers,
         [
@@ -154,14 +154,14 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
 
           } else if (res.respInfo.status === 201) {
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-            props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
+            props.dispatch(fileActions.getFolderContent(filesState.folderContent.currentFolder))
 
           } else {
             //console.log('(second res)', res)
             Alert.alert('Error', 'Can not upload file');
           }
 
-          props.filesState.uri !== undefined ? props.dispatch(fileActions.setUri(undefined)) : null
+          filesState.uri !== undefined ? props.dispatch(fileActions.setUri(undefined)) : null
           props.dispatch(fileActions.uploadFileSetProgress(0))
           props.dispatch(fileActions.uploadFileFinished());
         })
@@ -174,7 +174,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
           }
           console.log('second catch', err)
 
-          props.filesState.uri && props.filesState.uri !== undefined ? props.dispatch(fileActions.setUri(undefined)) : null
+          filesState.uri && filesState.uri !== undefined ? props.dispatch(fileActions.setUri(undefined)) : null
           props.dispatch(fileActions.uploadFileFailed())
           props.dispatch(fileActions.uploadFileFinished())
         })
@@ -182,7 +182,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
     } catch (error) {
       analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
       console.log('first catch', error)
-      props.filesState.uri !== undefined ? props.dispatch(fileActions.setUri(undefined)) : null
+      filesState.uri !== undefined ? props.dispatch(fileActions.setUri(undefined)) : null
       props.dispatch(fileActions.uploadFileFailed())
       props.dispatch(fileActions.uploadFileFinished())
     }
@@ -208,7 +208,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    const keyId = props.filesState.selectedItems.length > 0 && props.filesState.selectedItems[0].id
+    const keyId = filesState.selectedItems.length > 0 && filesState.selectedItems[0].id
 
     setSelectedKeyId(keyId)
   }, [filesState])
