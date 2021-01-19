@@ -32,9 +32,7 @@ function Login(props: LoginProps): JSX.Element {
     if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
 
-      props.navigation.replace('FileExplorer', {
-        folderId: rootFolderId
-      })
+      props.navigation.replace('Home')
     } else {
       (async () => {
         const xToken = await deviceStorage.getItem('xToken')
@@ -54,7 +52,7 @@ function Login(props: LoginProps): JSX.Element {
       <View style={styles.containerHeader}>
         <View style={styles.flexRow}>
           <Image style={styles.logo} source={require('../../../assets/images/logo.png')} />
-          <Text style={styles.title}>Sign in to Internxt</Text>
+          <Text style={styles.title}>Welcome to Internxt</Text>
         </View>
         <View style={styles.buttonWrapper}>
           <TouchableHighlight
