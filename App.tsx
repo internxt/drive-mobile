@@ -35,16 +35,20 @@ export default function App(props: any): JSX.Element {
 
   const handleOpenURL = (e) => {
     if (e.url) {
-      const regex = /inxt:\/\//g
-      const uri = e
-      const finalUri = uri.url.replace(regex, '')
+      if ( e.url.match(/inxt:\/\/.*:\/*/g) ) {
+        const regex = /inxt:\/\//g
+        const uri = e
+        const finalUri = uri.url.replace(regex, '')
 
-      console.log('(App.tsx) set uri if opened iOS', e)
-      store.dispatch(fileActions.setUri(finalUri))
+        console.log('(App.tsx) set uri if opened iOS', e)
+        store.dispatch(fileActions.setUri(finalUri))
+      } else { console.log('this also a deeplink fella')}
     }
   }
 
   useEffect(() => {
+    // deep link => inxt://tumama
+    // share to => inxt://file:///Users/internxt/Library/Developer/CoreSimulator/Devices/5238DEFF-AC91-43B6-AF4D-185C87891566/data/Containers/Shared/AppGroup/B4881A46-801E-4B64-8ED2-69A48EFBEF73/File%20Provider%20Storage/Downloads/a530838.pdf
     if(Platform.OS === 'ios'){
       const regex = /inxt:\/\//g
 
@@ -53,10 +57,13 @@ export default function App(props: any): JSX.Element {
       Linking.getInitialURL().then(res => {
         if (res && !res.url) {
           const uri = res
-          const finalUri = uri.replace(regex, '')
 
-          console.log('(App.tsx) set uri if closed iOS', res)
-          store.dispatch(fileActions.setUri(finalUri))
+          if ( uri.match(/inxt:\/\/.*:\/*/g) ) {
+            const finalUri = uri.replace(regex, '')
+
+            console.log('(App.tsx) set uri if closed iOS', res)
+            store.dispatch(fileActions.setUri(finalUri))
+          } else { console.log('this a deep link fella')}
         }
       })
     } else {

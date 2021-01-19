@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Image, BackHandler, Platform, Alert } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import { Text, View, StyleSheet, Image, BackHandler, Platform, Alert, AppState, AppStateStatus } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
@@ -26,7 +26,10 @@ interface FileExplorerProps extends Reducers {
 
 function FileExplorer(props: FileExplorerProps): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
-
+  const appState = useRef(AppState.currentState);
+  const [appStateVisible, setAppStateVisible] = useState(appState.current);
+  const [currentFolder, setCurrentFolder] = useState(0)
+  const regex = /inxt:\/\//g
   const { filesState } = props
 
   const parentFolderId = (() => {
@@ -37,47 +40,100 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
     }
   })()
 
+  const validateUri = () => {
+    if (Platform.OS === 'ios') {
+      if (filesState.uri !== undefined && filesState.uri !== null && filesState.uri !== '') {
+        if (filesState.folderContent) {
+          if (filesState.folderContent.currentFolder) {
+            return true
+          }
+        }
+      }
+      return false
+
+    } else {
+      if (filesState.uri.fileUri !== undefined && filesState.uri.fileUri !== null && filesState.uri.fileUri !== '') {
+        if (filesState.folderContent) {
+          if (filesState.folderContent.currentFolder) {
+            return true
+          }
+        }
+      }
+      return false
+    }
+  }
+
+  // useEffect to set rootFolderId
   useEffect(() => {
     parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(filesState.folderContent)) : null
+    if (filesState.folderContent) {
+      if (filesState.folderContent.currentFolder) {
+        setCurrentFolder(filesState.folderContent.currentFolder)
+      }
+    }
   }, [filesState.folderContent])
 
-  if (Platform.OS === 'ios') {
-    useEffect(() => {
-      if (filesState.uri !== undefined && filesState.uri !== null && filesState.uri !== '') {
+  // useEffect to detect if the app is active or not
+  useEffect(() => {
+    AppState.addEventListener('change', handleAppStateChange)
+
+    return () => {
+      AppState.removeEventListener('change', handleAppStateChange)
+    }
+  }, [])
+
+  const handleAppStateChange = (nextAppState: AppStateStatus) => {
+    appState.current = nextAppState
+    setAppStateVisible(appState.current)
+  }
+
+  // useEffect to trigger uploadFile while app on background
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      if (validateUri()) {
         const uri = filesState.uri
-        const regex = /inxt:\/\//g
-        let found
+        const name = filesState.uri.split('/').pop()
+        let found = Boolean
 
         uri.url ? found = uri.url.match(regex) : found = uri.match(regex)
 
-        console.log('found', found)
         setTimeout(() => {
-          !found ? uploadFile(uri, props.filesState.folderContent.currentFolder) : null
+          !found ? uploadFile(uri, name, currentFolder) : null
         }, 3000)
       }
-    }, [filesState.uri])
+    }
+  }, [appStateVisible])
+
+  if (Platform.OS === 'ios') {
+    useEffect(() => {
+      if (validateUri()) {
+        const uri = filesState.uri
+        const folderId = filesState.folderContent.currentFolder
+        const name = filesState.uri.split('/').pop()
+        let found = Boolean
+
+        uri.url ? found = uri.url.match(regex) : found = uri.match(regex)
+
+        setTimeout(() => {
+          !found ? uploadFile(uri, name, folderId) : null
+        }, 3000)
+      }
+    }, [filesState.folderContent])
 
   } else {
     useEffect(() => {
       if (filesState.uri) {
-        if (filesState.uri.fileUri !== undefined && filesState.uri.fileUri !== null && filesState.uri.fileUri !== '') {
-          if (filesState.folderContent) {
-            if (filesState.folderContent.currentFolder) {
-              console.log('(uri)', filesState.uri)
-              const uri = filesState.uri.fileUri
-              const name = filesState.uri.fileName
-              const regex = /inxt:\/\//g
-              const folderId = filesState.folderContent.currentFolder
-              let found
+        if (validateUri()) {
+          const uri = filesState.uri.fileUri
+          const name = filesState.uri.fileName
+          const folderId = filesState.folderContent.currentFolder
+          let found = Boolean
 
-              uri.url ? found = uri.url.match(regex) : found = uri.match(regex)
+          uri.url ? found = uri.url.match(regex) : found = uri.match(regex)
 
-              console.log('found', found)
-              setTimeout(() => {
-                !found ? uploadFile(uri, name, folderId) : null
-              }, 2000)
-            }
-          }
+          setTimeout(() => {
+            !found ? uploadFile(uri, name, folderId) : null
+          }, 3000)
         }
       }
     }, [filesState.folderContent])
@@ -85,8 +141,6 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
 
   const uploadFile = async (uri: any, name: string, currentFolder: number) => {
     console.log('(uploadFile params) =>', 'uri:', uri, 'name:', name, 'currentFolder:', currentFolder)
-
-    //RNFetchBlob.fs.readStream(result, 'base64').then(res => {console.log(res)}) //{"_onData": [Function anonymous], "_onEnd": [Function anonymous], "_onError": [Function anonymous], "bufferSize": undefined, "closed": false, "encoding": "base64", "path": "content://com.android.providers.media.documents/document/document%3A31", "streamId": "RNFBRS6l23q9jnldaxk58am06ujc", "tick": 10}
     /* THREE POSSIBLE RESULTS
       NORMAL UPLOAD DOCUMENT FINAL URI =>  RNFetchBlob-content://content://com.android.providers.media.documents/document/document%3A31
       AUTOMATIC UPLOAD FINAL URI =>        RNFetchBlob-content://content://com.android.providers.media.documents/document/document%3A31
