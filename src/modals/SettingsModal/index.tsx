@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, Linking, ActivityIndicator, Alert } from 'react-native';
-import Modal from 'react-native-modalbox'
+import prettysize from 'prettysize';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Linking, StyleSheet, Text } from 'react-native';
+import Modal from 'react-native-modalbox';
+import { connect } from 'react-redux';
+import Bold from '../../components/Bold';
 import ProgressBar from '../../components/ProgressBar';
+import Separator from '../../components/Separator';
+import { deviceStorage } from '../../helpers';
+import { getHeaders } from '../../helpers/headers';
+import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import { layoutActions, userActions } from '../../redux/actions';
 import SettingsItem from './SettingsItem';
-import prettysize from 'prettysize'
-import Separator from '../../components/Separator';
-import { connect } from 'react-redux';
-import { getHeaders } from '../../helpers/headers';
-import { deviceStorage } from '../../helpers';
-import analytics, { getLyticsUuid } from '../../helpers/lytics';
-import Bold from '../../components/Bold';
 
 function identifyPlanName(bytes: number): string {
   return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
@@ -84,16 +84,14 @@ function SettingsModal(props: SettingsModalProps) {
   return <Modal
     isOpen={props.layoutState.showSettingsModal}
     position={'bottom'}
-    swipeArea={20}
     style={styles.modalSettings}
     onClosed={() => {
       props.dispatch(layoutActions.closeSettings())
     }}
     backButtonClose={true}
-    animationDuration={200}>
-
-    <View style={styles.drawerKnob}></View>
-
+    animationDuration={200}
+    swipeToClose={true}
+    >
     <Text
       style={styles.nameText}
     >
@@ -109,28 +107,38 @@ function SettingsModal(props: SettingsModalProps) {
     />
 
     {isLoadingUsage ? <ActivityIndicator color={'#00f'} /> : <Text
-      style={styles.usageText}
-    >
-      <Text>Used </Text>
-      <Bold>
-        {prettysize(usageValues.usage)}
-      </Bold>
-      <Text> of </Text>
-      <Bold>
-        {prettysize(usageValues.limit)}
-      </Bold>
-    </Text>
+            style={{
+                fontFamily: 'Averta-Regular',
+                fontSize: 15,
+                paddingLeft: 24,
+                paddingBottom: 0,
+                color: "#8a8a8e"
+            }}
+        >
+            <Text>Used</Text>
+            <Text >
+                {' '}
+                {prettysize(usageValues.usage)}{' '}
+            </Text>
+            <Text>of</Text>
+            <Text >
+                {' '}
+                {prettysize(usageValues.limit)}{' '}
+            </Text>
+        </Text>
     }
+
+    <SettingsItem
+      text="Upgrade"
+      isUpgrade={true}
+      onPress={() => {}}
+    />
 
     <Separator />
 
     <SettingsItem
-      text="More info"
-      onPress={() => Linking.openURL('https://internxt.com/drive')}
-    />
-
-    <SettingsItem
-      text="Storage"
+      text="Settings"
+      isUpgrade={false}
       onPress={() => {
         props.dispatch(layoutActions.closeSettings())
         props.navigation.replace('Storage')
@@ -138,7 +146,8 @@ function SettingsModal(props: SettingsModalProps) {
     />
 
     <SettingsItem
-      text="Contact"
+      text="Contact us"
+      isUpgrade={false}
       onPress={() => {
         const emailUrl = 'mailto:support@internxt.zohodesk.eu'
 
@@ -150,8 +159,11 @@ function SettingsModal(props: SettingsModalProps) {
       }}
     />
 
+    <Separator />
+
     <SettingsItem
       text="Sign out"
+      isUpgrade={false}
       onPress={() => {
         props.dispatch(layoutActions.closeSettings())
         props.dispatch(userActions.signout())
@@ -170,20 +182,32 @@ const styles = StyleSheet.create({
     marginTop: 10
   },
   modalSettings: {
-    height: 380
+    top: '40%',
+    paddingLeft: 15,
+    paddingRight: 15,
+    paddingTop: 25,
+    borderRadius: 8
+  },
+  upgradeButton: {
+    fontFamily: 'Averta-Regular',
+    fontWeight: 'bold',
+    color: "red",
+    fontSize: 19,
+    justifyContent: 'center'
   },
   nameText: {
     fontSize: 20,
-    fontWeight: 'bold',
     marginLeft: 26,
     marginTop: 10,
-    fontFamily: 'CerebriSans-Bold'
+    fontFamily: 'Averta-Bold',
+    color: 'black'
   },
   progressHeight: {
     height: 6
   },
   usageText: {
-    fontFamily: 'CerebriSans-Regular',
+    fontFamily: 'Averta-Regular',
+    color: '#8a8a8e',
     fontSize: 15,
     paddingLeft: 24,
     paddingBottom: 0

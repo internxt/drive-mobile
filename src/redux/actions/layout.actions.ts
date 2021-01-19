@@ -8,6 +8,10 @@ export const layoutActions = {
   closeSettings,
   openItemModal,
   closeItemModal,
+  openAlbumModal,
+  closeAlbumModal,
+  openAddItemModal,
+  closeAddItemModal,
   openRunOutStorageModal,
   closeRunOutStorageModal,
   openFreeForYouModal,
@@ -60,6 +64,32 @@ function openItemModal(item: any) {
 function closeItemModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_ITEM_MODAL });
+  };
+}
+
+function openAlbumModal() {
+  return (dispatch: Dispatch) => {
+    
+    dispatch({ type: layoutActionTypes.OPEN_ALBUM_MODAL});
+  };
+}
+
+function closeAlbumModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_ALBUM_MODAL });
+  };
+}
+
+function openAddItemModal() {
+  return (dispatch: Dispatch) => {
+    
+    dispatch({ type: layoutActionTypes.OPEN_ADD_ITEM_MODAL});
+  };
+}
+
+function closeAddItemModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_ADD_ITEM_MODAL });
   };
 }
 

@@ -4,7 +4,8 @@ import { TouchableHighlight } from 'react-native-gesture-handler'
 
 interface SettingsItemProps {
   onPress: (event: GestureResponderEvent) => void
-  text: JSX.Element
+  text: string
+  isUpgrade: boolean
 }
 
 export default function SettingsItem(props: SettingsItemProps): JSX.Element {
@@ -13,7 +14,10 @@ export default function SettingsItem(props: SettingsItemProps): JSX.Element {
     style={styles.itemContainer}
     onPress={props.onPress}
   >
-    <Text style={styles.itemText}>{props.text}</Text>
+    {props.isUpgrade ?
+        <Text style={styles.upgrade}>{props.text}</Text>
+        : <Text style={styles.itemText}>{props.text}</Text>
+      }
   </TouchableHighlight>
 
 }
@@ -26,10 +30,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   itemText: {
-    fontFamily: 'CerebriSans-Bold',
-    fontSize: 19,
+    fontFamily: 'Averta-Regular',
+    fontSize: 18,
     fontWeight: '500',
     color: '#000',
     justifyContent: 'center'
+  },
+  upgrade: {
+    fontFamily: 'Averta-Regular',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0084ff',
+    letterSpacing: 0.4,
+    justifyContent: 'center',
+    marginTop: 7
   }
 });
