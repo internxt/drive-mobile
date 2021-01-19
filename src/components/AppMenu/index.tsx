@@ -47,7 +47,7 @@ function AppMenu(props: AppMenuProps) {
 
     const userData = await getLyticsData()
 
-    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => {})
+    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => {})
 
     try {
       // Set name for pics/photos
@@ -61,7 +61,7 @@ function AppMenu(props: AppMenuProps) {
       const token = props.authenticationState.token;
       const mnemonic = props.authenticationState.user.mnemonic;
 
-      body.append('xfile', result, result.name);
+      body.append('xphoto', result, result.name);
 
       const headers = {
         'Authorization': `Bearer ${token}`,
@@ -76,7 +76,7 @@ function AppMenu(props: AppMenuProps) {
 
       RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
         [
-          { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
+          { name: 'xphoto', filename: body._parts[0][1].name, data: finalUri }
         ] )
         .uploadProgress({ count: 10 }, (sent, total) => {
           props.dispatch(fileActions.uploadFileSetProgress( sent / total ))
@@ -96,7 +96,7 @@ function AppMenu(props: AppMenuProps) {
             setHasSpace(false)
 
           } else if (res.res.respInfo.status === 201) {
-            analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+            analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => { })
             props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
 
           } else {
@@ -119,7 +119,7 @@ function AppMenu(props: AppMenuProps) {
         })
 
     } catch (error) {
-      analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+      analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => { })
       props.dispatch(fileActions.uploadFileFailed());
       props.dispatch(fileActions.uploadFileFinished());
     }
@@ -174,33 +174,9 @@ function AppMenu(props: AppMenuProps) {
 
           <MenuItem
             style={styles.mr10}
-            name="list"
-            onClickHandler={() => {
-              props.dispatch(layoutActions.closeSearch())
-              props.dispatch(layoutActions.openSortModal())
-            }} />
-
-          <MenuItem
-            style={styles.mr10}
             name="upload"
             onClickHandler={() => {
-              Alert.alert('Select type of file', '', [
-                {
-                  text: 'Upload a document',
-                  onPress: async () => {
-                    const { status } = await requestCameraPermissionsAsync()
-
-                    if (status === 'granted') {
-                      const result = await getDocumentAsync({ copyToCacheDirectory: false })
-
-                      if (result.type !== 'cancel') {
-                        uploadFile(result, props)
-                      }
-                    } else {
-                      Alert.alert('Camera permission needed to perform this action')
-                    }
-                  }
-                },
+              Alert.alert('Select media', '', [
                 {
                   text: 'Upload media',
                   onPress: async () => {
@@ -244,7 +220,7 @@ function AppMenu(props: AppMenuProps) {
             name="create"
             style={styles.mr10}
             onClickHandler={() => {
-              props.navigation.replace('CreateFolder')
+              props.navigation.replace('CreateAlbum')
             }} />
 
           {
@@ -301,7 +277,7 @@ const styles = StyleSheet.create({
   searchInput: {
     marginLeft: 15,
     marginRight: 15,
-    fontFamily: 'CerebriSans-Medium',
+    fontFamily: 'Averta-Regular',
     fontSize: 17,
     flex: 1
   },
