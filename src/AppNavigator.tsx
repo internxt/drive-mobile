@@ -14,6 +14,9 @@ import Forgot from './screens/Forgot';
 import OutOfSpace from './screens/OutOfSpace';
 import Storage from './screens/Storage';
 import StorageWebView from './screens/StorageWebView';
+import Home from './screens/Home';
+import AlbumView from './screens/AlbumView';
+import CreateAlbum from './screens/CreateAlbum';
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, unknown>
 type NavigatorOptions = CreateNavigatorConfig<StackNavigationConfig, NavigationStackRouterConfig, StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>>
@@ -22,8 +25,11 @@ const routeConfig: RouteConfig = {
   Register: { screen: Register },
   Login: { screen: Login },
   Intro: { screen: Intro },
+  Home: { screen: Home },
+  AlbumView: { screen: AlbumView },
   FileExplorer: { screen: FileExplorer },
   Biometric: { screen: Biometric },
+  CreateAlbum: { screen: CreateAlbum },
   CreateFolder: { screen: CreateFolder },
   Forgot: { screen: Forgot },
   OutOfSpace: { screen: OutOfSpace },
