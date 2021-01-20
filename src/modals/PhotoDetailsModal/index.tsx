@@ -14,7 +14,7 @@ import OptionItem from '../AlbumDetailsModal/OptionItem';
 
 interface PhotoDetailsProps {
     dispatch?: any
-    filesState?: any
+    photosState?: any
     layoutState?: any
   }
 
@@ -34,7 +34,7 @@ function PhotoDetailsModal(props: PhotoDetailsProps) {
             swipeArea={60}
             swipeToClose={true}
             style={styles.modalSettingsFile}
-            isOpen={true}
+            isOpen={props.layoutState.showPhotoDetailsModal}
             onOpened={() => {
                 setOriginalPhotoName("Mum & Oscar")
                 setNewPhotoName(originalPhotoName)

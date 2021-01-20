@@ -11,7 +11,7 @@ import OptionItem from "./OptionItem";
 
 interface AlbumDetailsProps {
     dispatch?: any
-    filesState?: any
+    photosState?: any
     layoutState?: any
   }
 
@@ -165,7 +165,7 @@ export default connect(mapStateToProps)(AlbumDetailsModal)
 
 const styles = StyleSheet.create({
     modalSettingsFile: {
-        top: '30%',
+        top: '33%',
         borderRadius: 8,
         paddingLeft: 15
     },
