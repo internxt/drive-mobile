@@ -7,6 +7,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { BackButton } from '../../components/BackButton';
 import { useLinkProps, useNavigation } from '@react-navigation/native';
 import PhotoItem from '../../components/PhotoItem';
+import { layoutActions } from '../../redux/actions';
+import SelectPhotoModal from '../../modals/SelectPhotoModal';
+//import PhotoListModal from '../../modals/PhotoListModal';
 
 interface CreateAlbumProps {
     route: any;
@@ -37,7 +40,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element  {
 
     return (
         <View style={styles.container}>
-
+            <SelectPhotoModal />
 
             <View style={styles.albumHeader}>
                 <BackButton navigation={props.navigation} ></BackButton>
@@ -58,7 +61,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element  {
             <View style={styles.selectHeader}>
                 <View style={styles.selectPhotos}>
                     <Pressable
-                        onPress={() => { console.log("hola"); /*props.dispatch(openPhotoListModal())*/ }}>
+                        onPress={() => { props.dispatch(layoutActions.openSelectPhotoModal()) }}>
                         <Text style={styles.photosText}>
                             Select Photos
                         </Text>
@@ -76,7 +79,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element  {
                             if (!result.cancelled) {
                                 //uploadFile(result, props);
                                 console.log("result", result.uri)
-                                //albumPhotos.push(result.uri)
+                                albumPhotos.push(result.uri)
                             }
                         } else {
                             Alert.alert('Camera permission needed to perform this action')

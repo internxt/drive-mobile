@@ -12,6 +12,8 @@ export const layoutActions = {
   closeAlbumModal,
   openAddItemModal,
   closeAddItemModal,
+  openSelectPhotoModal,
+  closeSelectPhotoModal,
   openRunOutStorageModal,
   closeRunOutStorageModal,
   openFreeForYouModal,
@@ -90,6 +92,19 @@ function openAddItemModal() {
 function closeAddItemModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_ADD_ITEM_MODAL });
+  };
+}
+
+function openSelectPhotoModal() {
+  return (dispatch: Dispatch) => {
+    
+    dispatch({ type: layoutActionTypes.OPEN_SELECT_PHOTO_MODAL});
+  };
+}
+
+function closeSelectPhotoModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_SELECT_PHOTO_MODAL });
   };
 }
 

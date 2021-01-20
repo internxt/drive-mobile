@@ -7,6 +7,7 @@ export interface LayoutState {
   showItemModal: boolean
   showAlbumModal: boolean
   showAddItemModal: boolean
+  showSelectPhotoModal: boolean
   showSortModal: boolean
   showMoveModal: boolean
   showDeleteModal: boolean
@@ -21,6 +22,7 @@ const initialState: LayoutState = {
   showItemModal: false,
   showAlbumModal: false,
   showAddItemModal: false,
+  showSelectPhotoModal: false,
   showSortModal: false,
   showMoveModal: false,
   showDeleteModal: false,
@@ -89,6 +91,18 @@ export function layoutReducer(state = initialState, action: any) {
       return {
         ...state,
         showAddItemModal: false
+      }
+      case layoutActionTypes.OPEN_SELECT_PHOTO_MODAL: {
+        return {
+          ...state,
+          showSelectPhotoModal: true
+        }
+      }
+      case layoutActionTypes.CLOSE_SELECT_PHOTO_MODAL: {
+        return {
+          ...state,
+          showSelectPhotoModal: false
+        }
       }
     case layoutActionTypes.OPEN_SORT_MODAL: {
       return {
