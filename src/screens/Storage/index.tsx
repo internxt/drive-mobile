@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
 import { View, Text, StyleSheet, Image, ActivityIndicator, Platform } from 'react-native';
-import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import ProgressBar from '../../components/ProgressBar';
 import { getIcon } from '../../helpers/getIcon';
@@ -64,13 +64,13 @@ function Storage(props: StorageProps): JSX.Element {
       <View style={styles.container}>
         <View style={styles.navigatorContainer}>
           <View style={styles.backButton}>
-            <TouchableOpacity
+            <TouchableNativeFeedback
               onPress={() => {
                 props.navigation.replace('FileExplorer')
               }}
             >
               <Image style={styles.backIcon} source={getIcon('back')} />
-            </TouchableOpacity>
+            </TouchableNativeFeedback>
           </View>
 
           <Text style={styles.backText}>Storage</Text>
@@ -90,7 +90,7 @@ function Storage(props: StorageProps): JSX.Element {
 
           <ProgressBar
             styleBar={{}}
-            styleProgress={{ height: 10 }}
+            styleProgress={{ height: 7 }}
             totalValue={usageValues.limit}
             usedValue={usageValues.usage}
           />

@@ -74,9 +74,8 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
         folder_id: props.item.folderId,
         platform: 'mobile'
       })
-    } catch (error) {
-      console.log('--- ERROR 1 ---', error)
-    }
+    } catch (error) {}
+
     const xToken = await deviceStorage.getItem('xToken')
     const xUser = await deviceStorage.getItem('xUser')
     const xUserJson = JSON.parse(xUser || '{}')
@@ -97,7 +96,6 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
         })
       } else {
         Alert.alert('Error downloading file')
-        console.log('--- ERROR ---', res)
       }
 
       try {
@@ -111,9 +109,7 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
           folder_id: props.item.folderId,
           platform: 'mobile'
         })
-      } catch (error) {
-        console.log('--- ERROR 2 ---', error)
-      }
+      } catch (error) {}
 
     }).catch(async err => {
       try {
@@ -128,9 +124,7 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
           platform: 'mobile',
           msg: err && err.message
         })
-      } catch (error) {
-      console.log('--- ERROR 3 ---', error)
-    }
+      } catch (error) {}
 
     }).finally(() => {
       // Dispatch download file end
@@ -167,7 +161,6 @@ function FileItem(props: FileItemProps) {
 
   useEffect(() => {
     setUploadProgress(props.filesState.progress)
-    //console.log('--- UPLOAD PROGRESS FileItem ---', props.filesState.progress)
   }, [props.filesState.progress])
 
   const item = props.item

@@ -47,7 +47,7 @@ function AppMenu(props: AppMenuProps) {
 
     const userData = await getLyticsData()
 
-    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { console.log('--- tracking error ---') })
+    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => {})
 
     try {
       // Set name for pics/photos
@@ -70,13 +70,9 @@ function AppMenu(props: AppMenuProps) {
       };
 
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm
-      const path = result.uri.replace(regex, '$1')
       const file = result.uri.replace(regex, '$2')
 
-      console.log('--- uri ---' + ' (path) ' + path + ' || (original) ' + result.uri + ' || (extracted) ' + file + ' || (final) ' + RNFetchBlob.wrap(file))
-
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri)
-      //const finalSize = RNFetchBlob.fs.stat(finalUri).then(res => { return res.size })
 
       RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
         [
@@ -108,10 +104,22 @@ function AppMenu(props: AppMenuProps) {
           } else if (res.respInfo.status === 201) {
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
             props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder));
+          }
+
+          const data = res;
+
+          return { res: res, data };
+        })
+        .then(res => {
+          if (res.res.respInfo.status === 402) {
+            setHasSpace(false)
+
+          } else if (res.res.respInfo.status === 201) {
+            analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+            props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
 
           } else {
             Alert.alert('Error', 'Cannot upload file');
-            console.log('--- ERROR ---', res)
           }
 
           props.dispatch(fileActions.uploadFileSetProgress(0))
@@ -119,20 +127,20 @@ function AppMenu(props: AppMenuProps) {
         })
         .catch((err) => {
           if (err.status === 401) {
-            props.dispatch(userActions.signout());
+            props.dispatch(userActions.signout())
+
           } else {
-            Alert.alert('Error', 'Cannot upload file\n' + 'Please try again');
+            Alert.alert('Error', 'Cannot upload file\n' + err)
           }
+
           props.dispatch(fileActions.uploadFileFailed());
           props.dispatch(fileActions.uploadFileFinished());
-          console.log('--- ERROR 2 ---', err)
         })
 
     } catch (error) {
       analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
       props.dispatch(fileActions.uploadFileFailed());
       props.dispatch(fileActions.uploadFileFinished());
-      console.log('--- ERROR 3 ---', error)
     }
   }
 

@@ -34,17 +34,17 @@ function ShareFilesModal(props: ShareFilesModalProps) {
     if (props.layoutState.showShareModal && props.filesState.selectedFile) {
       setSelectedFile(props.filesState.selectedFile)
       setFileName(props.filesState.selectedFile.name)
-      getLink(props.filesState.selectedFile, parseInt(inputValue))
+      getLink(props.filesState.selectedFile, parseInt(inputValue)).then(() => setIsLoading(false))
     }
   }, [props.layoutState.showShareModal])
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!props.layoutState.showShareModal) {
       return
     }
     setIsLoading(true)
     const delay = setTimeout(() => {
-      getLink(selectedFile, parseInt(inputValue)).finally(() => setIsLoading(false))
+      getLink(selectedFile, parseInt(inputValue)).then(() => setIsLoading(false))
     }, 1000);
 
     return () => { clearTimeout(delay); }
@@ -52,6 +52,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 
   const getLink = async (file: any, views: number) => {
     const tokenLink = await getFileToken(file, views);
+
     const url = `${process.env.REACT_NATIVE_API_URL}/${tokenLink}`;
 
     setLink(url)
@@ -85,9 +86,9 @@ function ShareFilesModal(props: ShareFilesModalProps) {
       isOpen={isOpen}
       swipeArea={2}
       onClosed={() => {
-        setInputValue('1')
         props.dispatch(layoutActions.closeShareModal())
         setIsOpen(false)
+        setInputValue('1')
       }}
       position='bottom'
       style={styles.modalContainer}>

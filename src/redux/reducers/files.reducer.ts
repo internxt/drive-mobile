@@ -6,6 +6,7 @@ export interface FilesState {
   loading: boolean
   items: any[]
   folderContent: any
+  rootFolderContent: any
   selectedFile: IFile & IFolder | null
   selectedItems: any[]
   sortType: string
@@ -23,6 +24,7 @@ const initialState: FilesState = {
   loading: false,
   items: [],
   folderContent: null,
+  rootFolderContent: null,
   selectedFile: null,
   selectedItems: [],
   sortType: '',
@@ -206,6 +208,11 @@ export function filesReducer(state = initialState, action: any): FilesState {
       ...state,
       loading: false,
       error: action.payload
+    }
+  case fileActionTypes.SET_ROOTFOLDER_CONTENT:
+    return {
+      ...state,
+      rootFolderContent: action.payload
     }
   default:
     return state;
