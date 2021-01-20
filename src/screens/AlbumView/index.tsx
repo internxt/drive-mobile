@@ -13,7 +13,8 @@ import { BackButton } from '../../components/BackButton';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
-
+import AddItemToModal from '../../modals/AddItemToModal'
+import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 interface AlbumViewProps {
     route: any;
     navigation?: any
@@ -59,6 +60,8 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
         <View style={styles.container}>
 
             <AlbumDetailsModal />
+            <AddItemToModal />
+            <PhotoDetailsModal />
 
             <View style={styles.albumHeader}>
                 <BackButton navigation={props.navigation} />

@@ -16,7 +16,7 @@ function OptionItem(props: OptionItemProps) {
     }
   }
 
-  const icon = getIcon(props.text.toLowerCase());
+  const icon = getIcon(props.text.trim().toLowerCase());
 
   return (
     <TouchableHighlight
@@ -50,7 +50,8 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'normal',
     color: '#2a2c35',
-    marginLeft: 17
+    marginLeft: 17,
+    letterSpacing: -0.09
   },
   itemImage: {
       height: 25,
