@@ -10,21 +10,20 @@ function SortModal(props: any) {
   return <Modal
     position={'bottom'}
     isOpen={props.layoutState.showSortModal}
-    swipeArea={20}
-    style={{ height: 240 }}
+    style={{ height: 300, paddingTop: 10, borderRadius: 8 }}
     backButtonClose={true}
     onClosed={() => {
       props.dispatch(layoutActions.closeSortModal())
     }}
     backdropPressToClose={true}
+    swipeToClose={true}
     animationDuration={200}
   >
-    <View style={styles.drawerKnob}></View>
 
     <Text
       style={
         props.filesState.sortType === sortTypes.DATE_ADDED ||
-                    props.filesState.sortType === ''
+          props.filesState.sortType === ''
           ? styles.sortOptionSelected
           : styles.sortOption
       }
@@ -83,19 +82,17 @@ const styles = StyleSheet.create({
     marginTop: 10
   },
   sortOption: {
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'Averta-Semibold',
     fontSize: 18,
-    paddingTop: 13,
-    paddingBottom: 13,
-    paddingLeft: 28,
-    color: 'gray'
+    paddingTop: 25,
+    paddingLeft: 40,
+    color: 'black'
   },
   sortOptionSelected: {
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'Averta-Semibold',
     fontSize: 18,
-    color: '#0054ff',
-    paddingTop: 13,
-    paddingBottom: 13,
-    paddingLeft: 28
+    color: '#0084ff',
+    paddingTop: 25,
+    paddingLeft: 40
   }
 })

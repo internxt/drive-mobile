@@ -22,7 +22,7 @@ export default function ProgressBar(props: ProgressBarProps): JSX.Element {
 
   return <View style={[styles.container]}>
     <LinearGradient
-      colors={['#4b66ff', '#538dff']}
+      colors={['#00b1ff', '#096dff']}
       start={[0.5, 0]}
       style={[
         styles.inner,

@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   upgrade: {
-    fontFamily: 'Averta-Regular',
+    fontFamily: 'Averta-Bold',
     fontSize: 18,
     fontWeight: '700',
     color: '#0084ff',
