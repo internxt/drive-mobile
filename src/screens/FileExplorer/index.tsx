@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { Text, View, StyleSheet, Image, BackHandler, Platform, Alert, AppState, AppStateStatus } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { Text, View, StyleSheet, Image, BackHandler, Platform, Alert } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
@@ -26,10 +26,6 @@ interface FileExplorerProps extends Reducers {
 
 function FileExplorer(props: FileExplorerProps): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
-  const appState = useRef(AppState.currentState);
-  const [appStateVisible, setAppStateVisible] = useState(appState.current);
-  const [currentFolder, setCurrentFolder] = useState(0)
-  const regex = /inxt:\/\//g
   const { filesState } = props
 
   const parentFolderId = (() => {
@@ -40,116 +36,70 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
     }
   })()
 
+  // Check if everything is set up for file upload
   const validateUri = () => {
     if (Platform.OS === 'ios') {
-      if (filesState.uri !== undefined && filesState.uri !== null && filesState.uri !== '') {
-        if (filesState.folderContent) {
-          if (filesState.folderContent.currentFolder) {
-            return true
-          }
-        }
-      }
-      return false
+      return filesState.uri && filesState.folderContent && filesState.folderContent.currentFolder
 
     } else {
-      if (filesState.uri.fileUri !== undefined && filesState.uri.fileUri !== null && filesState.uri.fileUri !== '') {
-        if (filesState.folderContent) {
-          if (filesState.folderContent.currentFolder) {
-            return true
-          }
-        }
-      }
-      return false
+      return filesState.uri.fileUri && filesState.folderContent && filesState.folderContent.currentFolder
     }
   }
 
-  // useEffect to set rootFolderId
+  // useEffect to set rootFolderContent for MoveFilesModal
   useEffect(() => {
     parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(filesState.folderContent)) : null
-    if (filesState.folderContent) {
-      if (filesState.folderContent.currentFolder) {
-        setCurrentFolder(filesState.folderContent.currentFolder)
-      }
-    }
   }, [filesState.folderContent])
-
-  // useEffect to detect if the app is active or not
-  useEffect(() => {
-    AppState.addEventListener('change', handleAppStateChange)
-
-    return () => {
-      AppState.removeEventListener('change', handleAppStateChange)
-    }
-  }, [])
-
-  const handleAppStateChange = (nextAppState: AppStateStatus) => {
-    appState.current = nextAppState
-    setAppStateVisible(appState.current)
-  }
 
   // useEffect to trigger uploadFile while app on background
   useEffect(() => {
     if (Platform.OS === 'ios') {
-      if (validateUri()) {
+      if (filesState.uri && validateUri()) {
         const uri = filesState.uri
         const name = filesState.uri.split('/').pop()
-        let found = Boolean
-
-        uri.url ? found = uri.url.match(regex) : found = uri.match(regex)
 
         setTimeout(() => {
-          !found ? uploadFile(uri, name, currentFolder) : null
+          uploadFile(uri, name, filesState.folderContent.currentFolder)
+        }, 3000)
+      }
+    } else {
+      if (filesState.uri && validateUri()) {
+        const uri = filesState.uri.fileUri
+        const name = filesState.uri.fileName.split('/').pop()
+
+        setTimeout(() => {
+          uploadFile(uri, name, filesState.folderContent.currentFolder)
         }, 3000)
       }
     }
-  }, [appStateVisible])
+  }, [filesState.uri])
 
-  if (Platform.OS === 'ios') {
-    useEffect(() => {
+  // seEffect to trigger uploadFile while app closed
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
       if (validateUri()) {
         const uri = filesState.uri
-        const folderId = filesState.folderContent.currentFolder
         const name = filesState.uri.split('/').pop()
-        let found = Boolean
-
-        uri.url ? found = uri.url.match(regex) : found = uri.match(regex)
 
         setTimeout(() => {
-          !found ? uploadFile(uri, name, folderId) : null
+          uploadFile(uri, name, filesState.folderContent.currentFolder)
         }, 3000)
       }
-    }, [filesState.folderContent])
+    } else {
+      if (filesState.uri && validateUri()) {
+        const uri = filesState.uri.fileUri
+        const name = filesState.uri.fileName
 
-  } else {
-    useEffect(() => {
-      if (filesState.uri) {
-        if (validateUri()) {
-          const uri = filesState.uri.fileUri
-          const name = filesState.uri.fileName
-          const folderId = filesState.folderContent.currentFolder
-          let found = Boolean
-
-          uri.url ? found = uri.url.match(regex) : found = uri.match(regex)
-
-          setTimeout(() => {
-            !found ? uploadFile(uri, name, folderId) : null
-          }, 3000)
-        }
+        setTimeout(() => {
+          uploadFile(uri, name, filesState.folderContent.currentFolder)
+        }, 3000)
       }
-    }, [filesState.folderContent])
-  }
+    }
+  }, [filesState.folderContent])
 
-  const uploadFile = async (uri: any, name: string, currentFolder: number) => {
-    console.log('(uploadFile params) =>', 'uri:', uri, 'name:', name, 'currentFolder:', currentFolder)
-    /* THREE POSSIBLE RESULTS
-      NORMAL UPLOAD DOCUMENT FINAL URI =>  RNFetchBlob-content://content://com.android.providers.media.documents/document/document%3A31
-      AUTOMATIC UPLOAD FINAL URI =>        RNFetchBlob-content://content://com.android.providers.media.documents/document/document%3A31
-      SHARE TO WITH APP CLOSED =>          content://com.android.providers.media.documents/document/image%3A38
-      SHARE TO WITH APP OPENED => {"url": "content://com.android.providers.media.documents/document/video%3A37"}
-    */
+  const uploadFile = async (uri: string, name: string, currentFolder: number) => {
+    props.dispatch(fileActions.setUri(undefined))
     const userData = await getLyticsData()
-
-    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => {})
 
     try {
       const token = props.authenticationState.token;
@@ -160,29 +110,14 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
         'Content-Type': 'multipart/form-data'
       }
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm
-      let file
-      let finalUri
-      let currFolder
 
-      if (uri.url) { // if shared while the app was open
-        uri.name = uri.url.split('/').pop()
-        props.dispatch(fileActions.uploadFileStart(uri.name))
+      analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => {})
+      props.dispatch(fileActions.uploadFileStart(name))
 
-        file = uri.url.replace(regex, '$2')
-        finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(uri.url)
-        currFolder = currentFolder
+      const file = uri.replace(regex, '$2') // if iOS remove file://
+      const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(uri)
 
-      } else { // if shared while the app was closed
-        props.dispatch(fileActions.uploadFileStart(name))
-
-        file = uri.replace(regex, '$2')
-        finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(uri)
-        currFolder = currentFolder
-      }
-
-      console.log('(RNFetchBlob body) =>', 'name: xfile', 'filename:', name, 'data:', finalUri)
-
-      RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currFolder}/upload`, headers,
+      RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers,
         [
           { name: 'xfile', filename: name, data: finalUri }
         ])
@@ -191,13 +126,9 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
 
         })
         .then((res) => {
-          console.log('(res)', res)
-          console.log('(res status)', res.respInfo.status)
-          //console.log('(first res)', res.text())
           if ( res.respInfo.status === 401) {
             throw res;
           }
-
           const data = res
 
           return data
@@ -211,11 +142,9 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
             props.dispatch(fileActions.getFolderContent(filesState.folderContent.currentFolder))
 
           } else {
-            //console.log('(second res)', res)
             Alert.alert('Error', 'Can not upload file');
           }
 
-          filesState.uri !== undefined ? props.dispatch(fileActions.setUri(undefined)) : null
           props.dispatch(fileActions.uploadFileSetProgress(0))
           props.dispatch(fileActions.uploadFileFinished());
         })
@@ -226,17 +155,13 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
           } else {
             Alert.alert('Error', 'Cannot upload file\n' + err.message)
           }
-          console.log('second catch', err)
 
-          filesState.uri && filesState.uri !== undefined ? props.dispatch(fileActions.setUri(undefined)) : null
           props.dispatch(fileActions.uploadFileFailed())
           props.dispatch(fileActions.uploadFileFinished())
         })
 
     } catch (error) {
       analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-      console.log('first catch', error)
-      filesState.uri !== undefined ? props.dispatch(fileActions.setUri(undefined)) : null
       props.dispatch(fileActions.uploadFileFailed())
       props.dispatch(fileActions.uploadFileFinished())
     }

@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, StatusBar, View, Text, Platform, Linking } from 'react-native';
+import { ActivityIndicator, StyleSheet, StatusBar, View, Text, Platform, Linking, Alert } from 'react-native';
 import { Provider } from 'react-redux'
 import { store } from './src/store'
 import AppNavigator from './src/AppNavigator';
 import { analyticsSetup, loadEnvVars, loadFonts } from './src/helpers'
 import { NavigationContainer } from '@react-navigation/native';
 import { fileActions } from './src/redux/actions';
+import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 
-export default function App(props: any): JSX.Element {
+export default function App(): JSX.Element {
   const [appInitialized, setAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
 
@@ -40,15 +41,13 @@ export default function App(props: any): JSX.Element {
         const uri = e
         const finalUri = uri.url.replace(regex, '')
 
-        console.log('(App.tsx) set uri if opened iOS', e)
         store.dispatch(fileActions.setUri(finalUri))
-      } else { console.log('this also a deeplink fella')}
+      }
     }
   }
 
+  // useEffect to receive shared file
   useEffect(() => {
-    // deep link => inxt://tumama
-    // share to => inxt://file:///Users/internxt/Library/Developer/CoreSimulator/Devices/5238DEFF-AC91-43B6-AF4D-185C87891566/data/Containers/Shared/AppGroup/B4881A46-801E-4B64-8ED2-69A48EFBEF73/File%20Provider%20Storage/Downloads/a530838.pdf
     if(Platform.OS === 'ios'){
       const regex = /inxt:\/\//g
 
@@ -58,20 +57,35 @@ export default function App(props: any): JSX.Element {
         if (res && !res.url) {
           const uri = res
 
+          // check if it's a file or it's an url redirect
           if ( uri.match(/inxt:\/\/.*:\/*/g) ) {
             const finalUri = uri.replace(regex, '')
 
-            console.log('(App.tsx) set uri if closed iOS', res)
             store.dispatch(fileActions.setUri(finalUri))
-          } else { console.log('this a deep link fella')}
+          }
         }
       })
     } else {
-      console.log('(App.tsx) set uri Android')
-      store.dispatch(fileActions.setUri(props.fileUri))
-    }
+      // Receive the file from the intent using react-native-receive-sharing-intent
+      ReceiveSharingIntent.getReceivedFiles(files => {
+        const fileInfo = {
+          fileUri: files[0].contentUri,
+          fileName: files[0].fileName
+        }
 
-    return () => Linking.removeEventListener('url', handleOpenURL)
+        store.dispatch(fileActions.setUri(fileInfo))
+        ReceiveSharingIntent.clearReceivedFiles()
+        // files returns as JSON Array example
+        //[{ filePath: null, text: null, weblink: null, mimeType: null, contentUri: null, fileName: null, extension: null }]
+      },
+      (error) => {
+        Alert.alert('There was an error', error)
+      }, 'inxt' // share url protocol (must be unique to your app, suggest using your apple bundle id)
+      )
+    }
+    return () => {
+      Linking.removeEventListener('url', handleOpenURL)
+    }
   }, [])
 
   return <Provider store={store}>
