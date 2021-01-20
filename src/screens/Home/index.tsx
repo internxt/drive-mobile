@@ -16,20 +16,17 @@ import { Reducers } from '../../redux/reducers/reducers';
 import FileDetailsModal from '../../modals/FileDetailsModal';
 import PhotoItem from '../../components/PhotoItem';
 import AlbumCard from '../../components/AlbumCard';
-
+import { getPhotos } from '../../helpers/mediaAccess';
+import { PhotoActions } from '../../redux/actions/photo.actions';
+import PhotoList from '../../components/PhotoList';
 interface HomeProps extends Reducers {
     navigation?: any
     dispatch?: any
+    photosState: any
 }
-
-import SourceList from '../../helpers/getAssets';
 
 function Home(props: HomeProps): JSX.Element {
     const [selectedKeyId, setSelectedKeyId] = useState(0)
-
-    const img = require('../../../assets/images/img.jpg')
-
-
 
     //const currentFolderId = props.navigation.state.params.folderId;
     const parentFolderId = (() => {
@@ -39,6 +36,17 @@ function Home(props: HomeProps): JSX.Element {
             return null
         }
     })()
+
+    useEffect(() => {
+        if (props.photosState.cursor === 0) {
+            getPhotos('0').then((dataResult) => {
+                props.dispatch(PhotoActions.updateCursor(20));
+                return props.dispatch(PhotoActions.setFolderContent(dataResult?.photos || []));
+            }).catch((err) => {
+                console.log("GETPHOTOS ERROR: ", err)
+            })
+        }
+    })
 
     useEffect(() => {
         const backAction = () => {
@@ -75,7 +83,7 @@ function Home(props: HomeProps): JSX.Element {
     }
 
     const keyExtractor = (item: any, index: any) => index.toString();
-    const renderAllPhotoItem = ({ item }: { item: IFile }) => (
+    const renderAllPhotoItem = ({ item }: { item: any }) => (
         <Pressable
             onPress={() => { props.navigation.navigate('AlbumView', { title: 'All Photos' }) }}
             onLongPress={() => {
@@ -87,11 +95,11 @@ function Home(props: HomeProps): JSX.Element {
                 backgroundColor: '#fff'
             }}
         >
-            <PhotoItem source={item} isLoading={props.filesState.loading} />
+            <PhotoItem item={item} isLoading={props.photosState.loading} />
         </Pressable>
     );
 
-    const renderDeletedPhotoItem = ({ item }: { item: IFile }) => (
+    const renderDeletedPhotoItem = ({ item }: { item: any }) => (
         /*<TouchableHighlight
           underlayColor="#fff"
           onPress={() => { this.props.navigation.navigate('AlbumView', { title: 'Deleted Photos' }) }}
@@ -102,7 +110,7 @@ function Home(props: HomeProps): JSX.Element {
             backgroundColor: '#fff',
           }}
         >*/
-        <PhotoItem source={item} isLoading={props.filesState.loading} />
+        <PhotoItem item={item} isLoading={props.photosState.loading} />
         //</TouchableHighlight>
     );
 
@@ -149,13 +157,13 @@ function Home(props: HomeProps): JSX.Element {
             </View>
 
             <View style={styles.photoScroll}>
-            <FlatList
-              keyExtractor={keyExtractor}
-              renderItem={renderAlbumItem}
-              data={SourceList}
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-            ></FlatList>
+                <FlatList
+                    keyExtractor={keyExtractor}
+                    renderItem={renderAlbumItem}
+                    data={props.photosState.photos}
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={false}
+                ></FlatList>
             </View>
         </View>
 
@@ -172,15 +180,11 @@ function Home(props: HomeProps): JSX.Element {
                 underlayColor="#FFF"
                 onPress={() => { props.navigation.navigate('AlbumView', { title: 'All Photos' }) }}
             >
-                <View>
-                    <FlatList
-                        keyExtractor={keyExtractor}
-                        renderItem={renderAllPhotoItem}
-                        data={SourceList}
-                        horizontal={true}
-                        showsHorizontalScrollIndicator={false}
-                    ></FlatList>
-                </View>
+                <PhotoList
+                    title={'All Photos'}
+                    photos={props.photosState.photos}
+                    navigation={props.navigation}
+                />
             </TouchableHighlight>
         </View>
 
@@ -202,15 +206,11 @@ function Home(props: HomeProps): JSX.Element {
                         underlayColor="#fff"
                         onPress={() => { props.navigation.navigate('AlbumView', { title: 'Deleted Photos' }) }}
                     >
-                        <View>
-                            <FlatList
-                                keyExtractor={keyExtractor}
-                                renderItem={renderDeletedPhotoItem}
-                                data={SourceList}
-                                horizontal={true}
-                                showsHorizontalScrollIndicator={false}
-                            ></FlatList>
-                        </View>
+                        <PhotoList
+                            title={'Deleted Photos'}
+                            photos={props.photosState.photos}
+                            navigation={props.navigation}
+                        />
                     </TouchableHighlight>
                 </View>
             </TouchableHighlight>
