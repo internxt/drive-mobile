@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { FlatList, Image, StyleProp, StyleSheet, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
-
-const addAlbum = require('../../../assets/icons/photos/group-13.png')
-
+import { getIcon } from '../../helpers/getIcon';
 export interface CreateAlbumProps {
     style?: StyleProp<ViewStyle>
     album?: any
@@ -12,9 +10,9 @@ export interface CreateAlbumProps {
 
 // TODO: Add album param
 function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
+    const img = getIcon('create');
+
     return (
-
-
         <TouchableHighlight
                 underlayColor="#fff"
                 style={styles.albumCard}
@@ -24,11 +22,12 @@ function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
             >
                 <View style={styles.card}>
 
-                    <Image source={addAlbum} style={{ height: 39, width: 47}}/>
+                    <Image source={img} style={{ height: 30, width: 45, backgroundColor: '#0084ff'}}/>
                     <Text style={{
                         fontFamily: 'Averta-Semibold',
                         marginTop: 14,
-                        fontSize: 16
+                        fontSize: 16,
+                        color: 'black'
                     }}>
                         Create New Album
                     </Text>
@@ -43,8 +42,8 @@ function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
 
 const styles = StyleSheet.create({
     albumCard: {
-        paddingHorizontal: 15,
-        paddingVertical: 15,
+        paddingHorizontal: 20,
+        paddingVertical: 5,
     },
     card: {
         display: 'flex',
