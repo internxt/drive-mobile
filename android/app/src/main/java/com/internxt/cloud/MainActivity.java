@@ -27,6 +27,11 @@ public class MainActivity extends ReactActivity {
     SplashScreen.show(this, SplashScreenImageResizeMode.CONTAIN, ReactRootView.class, false);
   }
 
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
 
     /**
      * Returns the name of the main component registered from JavaScript.
@@ -35,37 +40,5 @@ public class MainActivity extends ReactActivity {
     @Override
     protected String getMainComponentName() {
         return "main";
-    }
-    
-    @Override
-    protected ReactActivityDelegate createReactActivityDelegate() {
-        return new ReactActivityDelegate(this, getMainComponentName()) {
-           
-            @Override
-            protected Bundle getLaunchOptions() {
-
-                Intent intent = MainActivity.this.getIntent();
-                String name = null;
-                Bundle bundle = new Bundle();
-                Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                if (uri != null) {
-                    Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-                    try {
-                        if (cursor != null && cursor.moveToFirst()) {
-                            name = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                            bundle.putString("fileUri", uri.toString());
-                            bundle.putString("fileName", name);
-                        }
-                    } finally {
-                        cursor.close();
-                    }
-                }else{
-                    bundle.putString("fileUri", "");
-                }
-                
-                return bundle;
-            }
-
-        };
     }
 }
