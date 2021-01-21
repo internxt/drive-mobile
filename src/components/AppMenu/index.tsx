@@ -21,7 +21,6 @@ interface AppMenuProps {
 
 function AppMenu(props: AppMenuProps) {
   const [activeSearchBox, setActiveSearchBox] = useState(false)
-  const [hasSpace, setHasSpace] = useState(true)
   const selectedItems = props.filesState.selectedItems;
   const textInput = useRef<TextInput>(null)
 
@@ -36,12 +35,6 @@ function AppMenu(props: AppMenuProps) {
       textInput.current.blur();
     }
   }
-
-  useEffect(() => {
-    if (!hasSpace) {
-      props.navigation.replace('OutOfSpace')
-    }
-  }, [hasSpace])
 
   const uploadFile = async (result: any, props: any) => {
 
@@ -97,7 +90,6 @@ function AppMenu(props: AppMenuProps) {
             throw res;
 
           } else if (res.respInfo.status === 402) {
-            setHasSpace(false)
 
           } else if (res.respInfo.status === 201) {
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
@@ -110,7 +102,6 @@ function AppMenu(props: AppMenuProps) {
         })
         .then(res => {
           if (res.res.respInfo.status === 402) {
-            setHasSpace(false)
 
           } else if (res.res.respInfo.status === 201) {
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
