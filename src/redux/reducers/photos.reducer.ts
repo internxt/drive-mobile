@@ -1,4 +1,6 @@
 //import { IPhoto, IFolder } from '../../components/PhotoList';
+import { IAlbum } from '../../components/AlbumList';
+import { IPhoto } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
 
@@ -30,7 +32,7 @@ const initialState: PhotosState = {
   selectedPhoto: null,
   selectedAlbum: null,
   selectedItems: [],
-  sortType: '',
+  sortType: 'Name',
   sortFunction: null,
   searchString: '',
   isUploading: false,
@@ -216,7 +218,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       loading: false,
       error: action.payload
     }
-  case photoActionTypes.SET_ROOTFOLDER_CONTENT:
+  case photoActionTypes.SET_FOLDER_CONTENT:
     return {
       ...state,
       rootFolderContent: action.payload

@@ -27,8 +27,22 @@ export const layoutActions = {
   openShareModal,
   closeShareModal,
   openUploadFileModal,
-  closeUploadFileModal
+  closeUploadFileModal,
+  openSortPhotoModal,
+  closeSortPhotoModal
 };
+
+function openSortPhotoModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.OPEN_SORT_PHOTO_MODAL });
+  };
+}
+
+function closeSortPhotoModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_SORT_PHOTO_MODAL });
+  };
+}
 
 function openSearch() {
   return (dispatch: Dispatch) => {
