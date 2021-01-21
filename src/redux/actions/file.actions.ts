@@ -60,7 +60,7 @@ function uploadFileSetProgress(percentage: number) {
   return { type: fileActionTypes.ADD_FILE_UPLOAD_PROGRESS, payload: percentage };
 }
 
-function uploadFileSetUri(uri: string) {
+function uploadFileSetUri(uri: string | undefined) {
   return { type: fileActionTypes.SET_FILE_UPLOAD_URI, payload: uri };
 }
 

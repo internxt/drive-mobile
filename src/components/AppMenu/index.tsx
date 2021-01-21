@@ -85,12 +85,10 @@ function AppMenu(props: AppMenuProps) {
           if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
             console.log('--- FINISHED ---', result.uri)
             props.dispatch(fileActions.uploadFileSetUri(result.uri)) // Set the uri of the file so FileItem can get it as props
-            console.log('--- uploadFileSetUri dispatch ---')
 
           }
           else {
             console.log('--- UPLOADING ---')
-
           }
         })
         .then((res) => {

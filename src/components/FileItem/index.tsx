@@ -46,20 +46,28 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
 
   } else {
     // one tap on a file will download and preview the file
-    console.log('(isLoading)', props.isLoading, '(has uri)', props.filesState.uploadFileUri)
-    if (props.isLoading && props.filesState.uploadFileUri) {
-      console.log('--- isLoading and uri true ---')
+
+    // if the file is still uploading, do not do anything
+    if (props.isLoading) {
+      console.log('--------------------CANT OPEN IT ITS LOADING--------------------------')
+      return
+    }
+
+    // once it stopped uploading
+    if (props.filesState.uploadFileUri) {
       const fileInfo = await FileSystem.getInfoAsync(props.filesState.uploadFileUri)
 
       if (fileInfo.exists) {
+        props.dispatch(fileActions.uploadFileSetUri(undefined))
         console.log('--- opening file ---')
         console.log(fileInfo)
         console.log('File exists')
         FileViewer.open(fileInfo.uri).catch(err => console.log('--- FILEVIEWER ERROR ---', err))
+
         return
       }
     }
-    return
+
     // Dispatch file download start
     props.dispatch(fileActions.downloadSelectedFileStart())
 

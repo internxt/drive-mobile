@@ -14,7 +14,7 @@ export interface FilesState {
   searchString: string
   isUploading: boolean
   isUploadingFileName: string | null
-  uploadFileUri: string
+  uploadFileUri: string | undefined | null
   progress: number
   startDownloadSelectedFile: boolean
   error?: string | null
