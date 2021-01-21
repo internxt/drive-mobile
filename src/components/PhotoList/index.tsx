@@ -3,7 +3,7 @@ import { ScrollView, Text, RefreshControl, StyleSheet, Pressable, View } from 'r
 import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { PhotoActions } from '../../redux/actions';
-import EmptyFolder from '../EmptyFolder';
+import EmptyAlbum from '../EmptyAlbum';
 import PhotoItem from '../PhotoItem';
 
 
@@ -64,7 +64,7 @@ function PhotoList(props: PhotoListProps) {
     }, [])*/
 
     const isUploading = props.photosState.isUploadingPhotoName
-    const isEmptyFolder = photoList.length === 0 && !isUploading
+    const isEmptyAlbum = photoList.length === 0 && !isUploading
 
     useEffect(() => {
         //console.log('--- UPLOADING PROGRESS ON photoList ---', photosState.progress)
@@ -98,8 +98,8 @@ function PhotoList(props: PhotoListProps) {
     return (
         <View>
             {
-                isEmptyFolder ?
-                    <EmptyFolder />
+                isEmptyAlbum ?
+                    <EmptyAlbum />
                     :
                     <Text style={styles.dNone}></Text>
             }
