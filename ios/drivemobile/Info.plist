@@ -23,9 +23,13 @@
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>inxt</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.internxt.snacks</string>
+				<string>inxt</string>
 			</array>
 		</dict>
 	</array>

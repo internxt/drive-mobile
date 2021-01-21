@@ -43,20 +43,16 @@ function MoveFilesModal(props: MoveFilesProps) {
     }
   }, [props.filesState.folderContent])
 
-  useEffect(() => {
-    if (!props.filesState.folderContent) {
-      const rootFolderId = props.authenticationState.user.root_folder_id
-
-      props.dispatch(fileActions.getFolderContent(rootFolderId))
-    }
-  }, [])
-
   const moveFile = async (result: any) => {
     // When modal is closed by move action result = folder id otherwise ans = -1
     if (result >= 0 && selectedfile) {
       setIsOpen(false)
       await props.dispatch(fileActions.moveFile(selectedfile.fileId, result))
       props.dispatch(layoutActions.closeMoveFilesModal())
+
+      const rootFolderId = props.authenticationState.user.root_folder_id
+
+      props.dispatch(fileActions.getFolderContent(rootFolderId))
     }
   }
 
