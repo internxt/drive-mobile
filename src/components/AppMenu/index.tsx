@@ -65,7 +65,7 @@ function AppMenu(props: AppMenuProps) {
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm
       const file = result.uri.replace(regex, '$2')
 
-      const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri)
+      const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(result.uri)
 
       RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
         [
