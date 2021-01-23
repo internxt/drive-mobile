@@ -10,7 +10,8 @@ export interface AuthenticationState {
 const initialState: AuthenticationState = {
   loggedIn: false,
   token: '',
-  user: {}
+  user: {},
+  error: ''
 };
 
 export function authenticationReducer(state = initialState, action: any) {

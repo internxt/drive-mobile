@@ -39,7 +39,7 @@ export async function doRegister(params: RegisterParams): Promise<any> {
   const mnemonic = await getNewBits()
   const encMnemonic = encryptTextWithKey(mnemonic, params.password);
 
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/register`, {
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/register`, {
     method: 'post',
     headers: getHeaders(),
     body: JSON.stringify({

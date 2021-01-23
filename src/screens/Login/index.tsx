@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     marginLeft: normalize(1)
   },
   title: {
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'Averta-Bold',
     fontSize: normalize(22),
     letterSpacing: -1.7,
     color: '#000',
@@ -208,19 +208,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2'
   },
   buttonOnLabel: {
-    fontFamily: 'CerebriSans-Medium',
+    fontFamily: 'Averta-Regular',
     fontSize: normalize(15),
     textAlign: 'center',
     color: '#fff'
   },
   buttonOffLabel: {
-    fontFamily: 'CerebriSans-Medium',
+    fontFamily: 'Averta-Regular',
     fontSize: normalize(15),
     textAlign: 'center',
     color: '#5c5c5c'
   },
   input: {
-    fontFamily: 'CerebriSans-Medium',
+    fontFamily: 'Averta-Regular',
     letterSpacing: -0.2,
     fontSize: normalize(15),
     color: '#000',
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     marginBottom: normalize(13)
   },
   versionLabel: {
-    fontFamily: 'CerebriSans-Regular',
+    fontFamily: 'Averta-Regular',
     alignSelf: 'center',
     color: '#999999',
     marginTop: normalize(30),

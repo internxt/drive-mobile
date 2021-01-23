@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     marginLeft: -7
   },
   title: {
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'Averta-Bold',
     fontSize: normalize(22),
     letterSpacing: -1.7,
     color: '#000',
@@ -401,13 +401,13 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   buttonOnLabel: {
-    fontFamily: 'CerebriSans-Medium',
+    fontFamily: 'Averta-Regular',
     fontSize: normalize(15),
     textAlign: 'center',
     color: '#fff'
   },
   buttonOffLabel: {
-    fontFamily: 'CerebriSans-Medium',
+    fontFamily: 'Averta-Regular',
     fontSize: normalize(15),
     textAlign: 'center',
     color: '#5c5c5c'
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
     marginRight: normalize(10)
   },
   input: {
-    fontFamily: 'CerebriSans-Medium',
+    fontFamily: 'Averta-Regular',
     letterSpacing: -0.2,
     fontSize: normalize(15),
     color: '#000',
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     marginBottom: normalize(15)
   },
   link: {
-    fontFamily: 'CerebriSans-Regular',
+    fontFamily: 'Averta-Regular',
     textAlign: 'center',
     color: '#737880',
     fontSize: normalize(15),
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   textDisclaimer: {
     fontSize: normalize(15),
     color: '#737880',
-    fontFamily: 'CerebriSans-Regular',
+    fontFamily: 'Averta-Regular',
     textAlign: 'justify',
     letterSpacing: -0.1,
     marginTop: -15
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   textEmailCheck: {
     fontSize: normalize(17),
     color: '#737880',
-    fontFamily: 'CerebriSans-Regular',
+    fontFamily: 'Averta-Regular',
     marginTop: -10
   },
   textStorePasswordContainer: {
@@ -471,12 +471,12 @@ const styles = StyleSheet.create({
     paddingLeft: normalize(9),
     color: '#737880',
     fontSize: normalize(15),
-    fontFamily: 'CerebriSans-Regular'
+    fontFamily: 'Averta-Regular'
   },
   textAgree: {
     color: '#737880',
     fontSize: normalize(17),
-    fontFamily: 'CerebriSans-Regular'
+    fontFamily: 'Averta-Regular'
   },
   textAgreeContainer: {
     backgroundColor: '#f7f7f7',
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     paddingLeft: normalize(9),
     color: '#737880',
     fontSize: normalize(15),
-    fontFamily: 'CerebriSans-Regular'
+    fontFamily: 'Averta-Regular'
   },
   halfOpacity: {
     opacity: 0.5

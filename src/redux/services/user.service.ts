@@ -14,7 +14,7 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
     const hashObj = passToHash({ password, salt });
     const encPass = encryptText(hashObj.hash);
 
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/access`, {
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/access`, {
       method: 'POST',
       headers: { 'content-type': 'application/json; charset=utf-8' },
       body: JSON.stringify({
@@ -33,12 +33,13 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
 
         user.mnemonic = user.mnemonic ? decryptTextWithKey(user.mnemonic, password) : null
 
-        if (!user.root_folder_id) {
+        if (!user.rootAlbumId) {
           const initializeData = await initializeUser(email, user.mnemonic, body.token)
 
-          user.root_folder_id = initializeData.user.root_folder_id
+          user.rootAlbumId = initializeData.user.rootAlbumId
         }
 
+        user.mnemonic = user.mnemonic ? decryptTextWithKey(user.mnemonic, password) : null
         // Store login data
         await deviceStorage.saveItem('xToken', body.token);
         await deviceStorage.saveItem('xUser', JSON.stringify(user));
@@ -53,8 +54,8 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
   });
 }
 
-async function initializeUser(email: string, mnemonic: string, token: string) {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/initialize`, {
+async function initializeUser(email: string, mnemonic: any, token: any) {
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
     method: 'POST',
     headers: getHeaders(token, mnemonic),
     body: JSON.stringify({
