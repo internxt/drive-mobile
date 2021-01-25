@@ -15,6 +15,9 @@ export const PhotoActions = {
   uploadPhotoFinished,
   uploadPhotoFailed,
   uploadPhotoSetProgress,
+  getAlbumList,
+  getAllPhotos,
+  getDeletePhotos,
   getFolderContent,
   setFolderContent,
   selectPhoto,
@@ -26,8 +29,13 @@ export const PhotoActions = {
   createFolder,
   updateFolderMetadata,
   movePhoto,
-  setRootFolderContent
+  setRootFolderContent,
+  setIsLoading
 };
+
+function setIsLoading(value: boolean) {
+  return { type: photoActionTypes.SET_IS_LOADING, payload: value };
+}
 
 function updateCursor(newCursor: number) {
     return { type: photoActionTypes.UPDATE_CURSOR, payload: newCursor };
@@ -63,6 +71,18 @@ function uploadPhotoFailed() {
 
 function uploadPhotoSetProgress(percentage: number) {
   return { type: photoActionTypes.ADD_PHOTO_UPLOAD_PROGRESS, payload: percentage };
+}
+
+function getAlbumList(albumList: any) {
+  return { type: photoActionTypes.GET_ALBUMS_SUCCESS, payload: albumList };
+}
+
+function getAllPhotos(photos: any) {
+  return { type: photoActionTypes.GET_PHOTOS_SUCCESS, payload: photos };
+}
+
+function getDeletePhotos(photos: any) {
+  return { type: photoActionTypes.GET_DELETE_SUCCESS, payload: photos };
 }
 
 function getFolderContent(folderId: string) {

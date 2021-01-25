@@ -1,4 +1,4 @@
-import React, { Component, useState } from 'react';
+import React, { Component, useEffect, useState } from 'react';
 import { Alert, Button, FlatList, Pressable, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,7 +14,7 @@ import SelectPhotoModal from '../../modals/SelectPhotoModal';
 interface CreateAlbumProps {
     route: any;
     navigation?: any
-    filesState?: any
+    photosState?: any
     dispatch?: any,
     layoutState?: any
     authenticationState?: any
@@ -22,21 +22,15 @@ interface CreateAlbumProps {
 
 function CreateAlbum(props: CreateAlbumProps): JSX.Element  {
     const [inputAlbumTitle, setInputAlbumTitle] = useState('Untitled Album')
+    const [refresh, setRefresh] = useState(false)
 
-    let albumPhotos = props.filesState.selectedItems;
+    let albumPhotos = props.photosState.selectedItems;
 
     const keyExtractor = (item: any, index: any) => index;
     const renderItem = ({ item }) => (
-        <TouchableHighlight
-            underlayColor="#FFF"
-            onPress={() => {
-                
-            }}
-
-        >
-            <PhotoItem source={item} isLoading={false}/>
-        </TouchableHighlight>
+        <PhotoItem source={item} isLoading={false}/>
     );
+
 
     return (
         <View style={styles.container}>
@@ -78,8 +72,12 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element  {
                             const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.All });
                             if (!result.cancelled) {
                                 //uploadFile(result, props);
-                                console.log("result", result.uri)
+                                console.log("result", result)
+
                                 albumPhotos.push(result.uri)
+                                console.log("album photos", albumPhotos)
+
+                                setRefresh(!refresh)
                             }
                         } else {
                             Alert.alert('Camera permission needed to perform this action')
@@ -100,8 +98,8 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element  {
                     <FlatList
                         keyExtractor={keyExtractor}
                         renderItem={renderItem}
-                        data={albumPhotos}
-                        extraData={props.layoutState.showPhotoListModal}
+                        data={props.photosState.selectedItems}
+                        extraData={refresh}
                         initialNumToRender={20}
                         numColumns={3}
                         contentContainerStyle={styles.items}
@@ -119,12 +117,12 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element  {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         alignContent: "center",
         backgroundColor: '#fff',
-        paddingTop: -10,
-        paddingBottom: 15,
-        marginBottom: 13,
-
+        paddingTop: 0,
+        marginTop: -5,
+        marginBottom: 0
     },
     items: {
         display: 'flex',
@@ -136,10 +134,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginTop: 15,
-        paddingVertical: 7,
+        marginTop: 20,
         paddingHorizontal: 20,
-        height: '8%'
+        height: '10%'
     },
     selectHeader: {
         display: 'flex',
@@ -148,7 +145,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         marginBottom: 5,
-        marginTop: 12,
+        marginTop: 0
 
     },
     selectPhotos: {

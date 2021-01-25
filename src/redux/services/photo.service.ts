@@ -5,7 +5,40 @@ import { IFile, IFolder } from '../../components/FileList';
 
 export const photoService = {
   getSortFunction,
+  setHeaders,
+  getAlbumContent
 };
+
+async function setHeaders() {
+  const token = await deviceStorage.getItem('xToken');
+  const user = JSON.parse(await deviceStorage.getItem('xUser') || '');
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    'Content-type': 'application/json; charset=utf-8',
+    'internxt-mnemonic': user.mnemonic
+  };
+
+  return headers;
+}
+
+
+
+// To obtain an AlbumView of an albumId
+function getAlbumContent(albumId: number): Promise<any> {
+  return new Promise(async (resolve, reject) => {
+    const headers = await setHeaders();
+
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/album/${albumId}`, {
+      method: 'GET',
+      headers
+    }).then(res => {
+      if (res.status !== 200) { throw res; }
+      return res.json();
+    }).then(resolve)
+      .catch(reject);
+  });
+}
+
 
 export type ArraySortFunction = (a: any, b: any) => boolean
 

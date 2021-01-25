@@ -8,7 +8,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 import { getLyticsData } from '../../helpers';
 import { getIcon } from '../../helpers/getIcon';
 import analytics from '../../helpers/lytics';
-import { fileActions, layoutActions, userActions } from '../../redux/actions';
+import { fileActions, layoutActions, PhotoActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
 
 interface AppMenuProps {
@@ -43,11 +43,11 @@ function AppMenu(props: AppMenuProps) {
     }
   }, [hasSpace])
 
-  const uploadFile = async (result: any, props: any) => {
+  const uploadPhoto = async (result: any, props: any) => {
 
-    const userData = await getLyticsData()
+    //const userData = await getLyticsData()
 
-    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => {})
+    //analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => {})
 
     try {
       // Set name for pics/photos
@@ -56,7 +56,7 @@ function AppMenu(props: AppMenuProps) {
       }
       //result.type = 'application/octet-stream';
 
-      props.dispatch(fileActions.uploadFileStart(result.name));
+      props.dispatch(PhotoActions.uploadPhotoStart(result.name));
       const body = new FormData();
       const token = props.authenticationState.token;
       const mnemonic = props.authenticationState.user.mnemonic;
@@ -79,7 +79,7 @@ function AppMenu(props: AppMenuProps) {
           { name: 'xphoto', filename: body._parts[0][1].name, data: finalUri }
         ] )
         .uploadProgress({ count: 10 }, (sent, total) => {
-          props.dispatch(fileActions.uploadFileSetProgress( sent / total ))
+          props.dispatch(PhotoActions.uploadPhotoSetProgress( sent / total ))
 
         })
         .then((res) => {
@@ -96,15 +96,15 @@ function AppMenu(props: AppMenuProps) {
             setHasSpace(false)
 
           } else if (res.res.respInfo.status === 201) {
-            analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => { })
-            props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
+            //analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => { })
+            props.dispatch(PhotoActions.getFolderContent(props.photosState.folderContent.currentFolder))
 
           } else {
             Alert.alert('Error', 'Cannot upload file');
           }
 
-          props.dispatch(fileActions.uploadFileSetProgress(0))
-          props.dispatch(fileActions.uploadFileFinished());
+          props.dispatch(PhotoActions.uploadPhotoSetProgress(0))
+          props.dispatch(PhotoActions.uploadPhotoFinished());
         })
         .catch((err) => {
           if (err.status === 401) {
@@ -118,10 +118,12 @@ function AppMenu(props: AppMenuProps) {
           props.dispatch(fileActions.uploadFileFinished());
         })
 
+        props.dispatch(PhotoActions.uploadPhotoSetProgress(0))
+        props.dispatch(PhotoActions.uploadPhotoFinished());
     } catch (error) {
-      analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => { })
-      props.dispatch(fileActions.uploadFileFailed());
-      props.dispatch(fileActions.uploadFileFinished());
+      //analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => { })
+      props.dispatch(PhotoActions.uploadPhotoSetProgress(0))
+      props.dispatch(PhotoActions.uploadPhotoFinished());
     }
   }
 
@@ -186,7 +188,8 @@ function AppMenu(props: AppMenuProps) {
                       const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All })
 
                       if (!result.cancelled) {
-                        uploadFile(result, props)
+                        props.dispatch(PhotoActions.add)
+                        //uploadFile(result, props)
                       }
                     } else {
                       Alert.alert('Camera permission needed to perform this action')
@@ -220,7 +223,7 @@ function AppMenu(props: AppMenuProps) {
             name="create"
             style={styles.mr10}
             onClickHandler={() => {
-              props.navigation.replace('CreateAlbum')
+              props.navigation.navigate('CreateAlbum')
             }} />
 
           {

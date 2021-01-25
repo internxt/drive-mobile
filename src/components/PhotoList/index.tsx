@@ -8,16 +8,16 @@ import PhotoItem from '../PhotoItem';
 
 
 export interface IPhoto {
-    id: number
-    photoId: number
-    albumId: number
-    bucket: string
-    uri: string
-    name: string
+    id?: number
+    photoId?: number
+    albumId?: number
+    bucket?: string
+    uri: any
+    name?: string
     type: string
-    size: number
-    createdAt: Date
-    updatedAt: Date
+    size?: number
+    createdAt?: Date
+    updatedAt?: Date
 }
 
 interface PhotoListProps {
@@ -37,7 +37,6 @@ function PhotoList(props: PhotoListProps) {
 
     let photoList: IPhoto[] = props.photos || [];
 
-    console.log("PHOTO LIST   ", props.photos)
 
     useEffect(() => {
         setRefreshing(false)
@@ -91,9 +90,6 @@ function PhotoList(props: PhotoListProps) {
             <PhotoItem isLoading={props.photosState.loading} item={item} />
         </Pressable>
     );
-
-    console.log("PHOTO LIST   ", props.photos)
-
 
     return (
         <View>

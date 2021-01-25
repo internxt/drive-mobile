@@ -9,8 +9,9 @@ export interface PhotoProps {
     filesState?: any
     layoutState?: any
     dispatch?: any
-    item: IPhoto
+    item?: IPhoto
     isLoading?: boolean
+    source?: any
 }
 
 async function handleLongPress(props: PhotoProps, isSelected: boolean) {
@@ -43,6 +44,13 @@ function PhotoItem(props: PhotoProps) {
         setUploadProgress(props.filesState.progress)
     }, [props.filesState.progress])
 
+    let img = '';
+
+    if(!props.item) {
+        img = props.source
+    } else {
+        img = props.item.uri
+    }
 
     return (
         <View>
@@ -56,10 +64,11 @@ function PhotoItem(props: PhotoProps) {
                     })*/
                 }}>
 
+
                 <View >
                     <Image
                         style={styles.bigIcon}
-                        source={{ uri: props.item.uri }}
+                        source={{ uri: props.item?.uri }}
                         resizeMode={'cover'}
                     />
                 </View>

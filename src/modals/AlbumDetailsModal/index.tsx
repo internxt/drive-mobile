@@ -136,11 +136,11 @@ function AlbumDetailsModal(props: AlbumDetailsProps) {
             />
 
             <OptionItem
-                text={'Sort'}
+                text={'Sort by'}
                 onClick={() => {
-                    //props.dispatch(closeAlbumModal())
+                    props.dispatch(layoutActions.closeAlbumModal())
 
-                    //props.dispatch(openSortModal());
+                    props.dispatch(layoutActions.openSortPhotoModal());
                 }}
             />
 

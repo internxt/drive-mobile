@@ -7,22 +7,24 @@ import Modal from 'react-native-modalbox'
 import { connect } from 'react-redux';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import PhotoItem from '../../components/PhotoItem';
-import { layoutActions } from '../../redux/actions';
+import { layoutActions, PhotoActions } from '../../redux/actions';
 //import analytics, { getLyticsData } from '../../helpers/lytics';
 import SourceList from '../../helpers/getAssets'
+import { IPhoto } from '../../components/PhotoList';
 
 interface SelectPhotoProps {
     layoutState?: any
+    photosState?: any
     dispatch?: any
 }
 
 function SelectPhotoModal(props: SelectPhotoProps) {
     const keyExtractor = (item: any, index: any) => index.toString();
 
-    const renderItem = ({ item }: {item: any}) => (
+    const renderItem = ({ item }: {item: IPhoto}) => (
         <Pressable
             onPress={() => {
-                //props.dispatch(selectPic(item))
+                props.dispatch(PhotoActions.selectPhoto(item))
 
                 console.log(item)
             }}
@@ -45,7 +47,7 @@ function SelectPhotoModal(props: SelectPhotoProps) {
             isOpen={props.layoutState.showSelectPhotoModal}
             onClosed={async () => {
                 const metadata: any = {}
-
+                props.dispatch(PhotoActions.setIsLoading(!props.photosState.loading))
                 /*if (pic.filename !== inputPhotoName) {
                     metadata.itemName = inputPhotoName
                     //await updateFileMetadata(metadata, file.fileId)
@@ -94,7 +96,7 @@ function SelectPhotoModal(props: SelectPhotoProps) {
             <FlatList
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
-                data={SourceList}
+                data={props.photosState.photos}
                 horizontal={false}
                 numColumns={3}
                 showsHorizontalScrollIndicator={false}
@@ -112,9 +114,9 @@ export default connect(mapStateToProps)(SelectPhotoModal)
 
 const styles = StyleSheet.create({
     modal: {
-        top: '0%',
+        top: '10%',
         alignContent: 'center',
-        paddingLeft: 5,
+        paddingLeft: 0,
         paddingTop: 5,
         borderRadius: 8
     },

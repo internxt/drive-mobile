@@ -19,6 +19,7 @@ public class BasePackageList {
         new expo.modules.lineargradient.LinearGradientPackage(),
         new expo.modules.localauthentication.LocalAuthenticationPackage(),
         new expo.modules.location.LocationPackage(),
+        new expo.modules.medialibrary.MediaLibraryPackage(),
         new expo.modules.permissions.PermissionsPackage(),
         new expo.modules.securestore.SecureStorePackage(),
         new expo.modules.splashscreen.SplashScreenPackage(),

@@ -91,6 +91,7 @@ function SettingsModal(props: SettingsModalProps) {
     backButtonClose={true}
     animationDuration={200}
     swipeToClose={true}
+    swipeArea={60}
     >
     <Text
       style={styles.nameText}

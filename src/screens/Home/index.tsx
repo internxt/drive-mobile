@@ -19,26 +19,51 @@ import AlbumCard from '../../components/AlbumCard';
 import { getPhotos } from '../../helpers/mediaAccess';
 import { PhotoActions } from '../../redux/actions/photo.actions';
 import PhotoList from '../../components/PhotoList';
+import { previewsStorage } from '../../helpers/previewsStorage';
+import { getAlbumList, getAllPhotos, getDeletedPhotos } from './init';
+
 interface HomeProps extends Reducers {
     navigation?: any
     dispatch?: any
     photosState: any
+    authenticationState: any
 }
 
 function Home(props: HomeProps): JSX.Element {
     const [selectedKeyId, setSelectedKeyId] = useState(0)
 
-    //const currentFolderId = props.navigation.state.params.folderId;
-    const parentFolderId = (() => {
-        if (props.filesState.folderContent) {
-            return props.filesState.folderContent.parentId || null
-        } else {
-            return null
-        }
-    })()
+    useEffect(() => {
+        const { user } = props.authenticationState;
+        const { token } = props.authenticationState;
+
+        console.log("USER", user)
+
+        getAlbumList(user.email, token, user.mnemonic).then((result) => {
+            props.dispatch(PhotoActions.getAlbumList(result))
+        }).catch(err => {
+            console.log("erralbum-------", err)
+        })
+
+        getAllPhotos(user.email, token, user.mnemonic).then((result) => {
+            props.dispatch(PhotoActions.getAllPhotos(result))
+        }).catch(err => {
+            console.log("errphotos-------", err)
+        })
+
+        getDeletedPhotos(user.email, token, user.mnemonic).then((result) => {
+            props.dispatch(PhotoActions.getDeletePhotos(result))
+        }).catch(err => {
+            console.log("errdeleted-------", err)
+        })
+
+        previewsStorage.getPreviews();
+    }, [])
+
 
     useEffect(() => {
         if (props.photosState.cursor === 0) {
+            previewsStorage.storePreview();
+
             getPhotos('0').then((dataResult) => {
                 props.dispatch(PhotoActions.updateCursor(20));
                 return props.dispatch(PhotoActions.setFolderContent(dataResult?.photos || []));
@@ -46,9 +71,9 @@ function Home(props: HomeProps): JSX.Element {
                 console.log("GETPHOTOS ERROR: ", err)
             })
         }
-    })
+    }, [props.photosState.cursor])
 
-    useEffect(() => {
+    /*useEffect(() => {
         const backAction = () => {
             if (parentFolderId) {
                 // eslint-disable-next-line no-console
@@ -65,10 +90,10 @@ function Home(props: HomeProps): JSX.Element {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
 
         return () => backHandler.remove();
-    }, []);
+    }, []);*/
 
     useEffect(() => {
-        parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(props.filesState.folderContent)) : null
+        //parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(props.filesState.folderContent)) : null
 
     }, [props.filesState.folderContent])
 
@@ -83,37 +108,6 @@ function Home(props: HomeProps): JSX.Element {
     }
 
     const keyExtractor = (item: any, index: any) => index.toString();
-    const renderAllPhotoItem = ({ item }: { item: any }) => (
-        <Pressable
-            onPress={() => { props.navigation.navigate('AlbumView', { title: 'All Photos' }) }}
-            onLongPress={() => {
-                //props.dispatch(fileActions.selectPhoto(item))
-            }}
-            style={{
-                display: "flex",
-                flex: 1,
-                backgroundColor: '#fff'
-            }}
-        >
-            <PhotoItem item={item} isLoading={props.photosState.loading} />
-        </Pressable>
-    );
-
-    const renderDeletedPhotoItem = ({ item }: { item: any }) => (
-        /*<TouchableHighlight
-          underlayColor="#fff"
-          onPress={() => { this.props.navigation.navigate('AlbumView', { title: 'Deleted Photos' }) }}
-          onLongPress={() => { this.selectPhoto(item) }}
-          style={{
-            display: "flex",
-            flex: 1,
-            backgroundColor: '#fff',
-          }}
-        >*/
-        <PhotoItem item={item} isLoading={props.photosState.loading} />
-        //</TouchableHighlight>
-    );
-
     // TODO: Recover all previews from device, 
     // when the server request finish
     const renderAlbumItem = ({ item }) => (
@@ -129,10 +123,10 @@ function Home(props: HomeProps): JSX.Element {
     );
 
     return <View style={styles.container}>
+
         <FileDetailsModal key={selectedKeyId} />
         <SettingsModal navigation={props.navigation} />
         <SortModal />
-
         <MoveFilesModal />
 
 
@@ -146,13 +140,14 @@ function Home(props: HomeProps): JSX.Element {
                 <Text style={styles.albumsTitle}>
                     Albums
                   </Text>
-                <TouchableHighlight
-                    onPress={() => { props.dispatch(layoutActions.openSortModal()) }}
+
+                <Pressable
+                    onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
                 >
                     <Text style={styles.albumsSort}>
-                        Name
-              </Text>
-                </TouchableHighlight>
+                        {props.photosState.sortType}
+                    </Text>
+                </Pressable>
 
             </View>
 
@@ -173,6 +168,14 @@ function Home(props: HomeProps): JSX.Element {
                 <Text style={styles.albumsTitle}>
                     All Photos
             </Text>
+                <Pressable
+                    onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
+                >
+                    <Text style={styles.albumsSort}>
+                        {props.photosState.sortType}
+                    </Text>
+                </Pressable>
+
             </View>
 
             <TouchableHighlight
@@ -192,13 +195,18 @@ function Home(props: HomeProps): JSX.Element {
             <TouchableHighlight
                 underlayColor="#FFF"
             >
-                <View
-
-                >
+                <View>
                     <View style={styles.albumHeader}>
                         <Text style={styles.albumsTitle}>
                             Deleted
-                </Text>
+                        </Text>
+                        <Pressable
+                            onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
+                        >
+                            <Text style={styles.albumsSort}>
+                                {props.photosState.sortType}
+                            </Text>
+                        </Pressable>
                     </View >
 
                     <TouchableHighlight
@@ -326,12 +334,9 @@ const styles = StyleSheet.create({
         letterSpacing: -0.13,
         paddingTop: 10,
         color: '#bfbfbf',
-        alignSelf: 'flex-start',
+        alignSelf: 'flex-end',
         height: 30,
-        width: 50,
-
-        borderColor: 'red',
-        borderWidth: 3
+        width: 50
     },
 
 
