@@ -12,6 +12,7 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		B162BE3B25C02EB10017D240 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B162BE3A25C02EB10017D240 /* GoogleService-Info.plist */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F0179492CB4F9CCB4066F5B8 /* libPods-drivemobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A41CBD9B630CB76BFF5E72F /* libPods-drivemobile.a */; };
 /* End PBXBuildFile section */
@@ -26,6 +27,7 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = drivemobile/main.m; sourceTree = "<group>"; };
 		2A41CBD9B630CB76BFF5E72F /* libPods-drivemobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-drivemobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = drivemobile/SplashScreen.storyboard; sourceTree = "<group>"; };
+		B162BE3A25C02EB10017D240 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		BABD52A2AC035780FF8D4AB0 /* Pods-drivemobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-drivemobile.release.xcconfig"; path = "Target Support Files/Pods-drivemobile/Pods-drivemobile.release.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		D4C766AD8D3D7184D060C0D4 /* Pods-drivemobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-drivemobile.debug.xcconfig"; path = "Target Support Files/Pods-drivemobile/Pods-drivemobile.debug.xcconfig"; sourceTree = "<group>"; };
@@ -48,6 +50,7 @@
 		13B07FAE1A68108700A75B9A /* drivemobile */ = {
 			isa = PBXGroup;
 			children = (
+				B162BE3A25C02EB10017D240 /* GoogleService-Info.plist */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
@@ -180,6 +183,7 @@
 			files = (
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				B162BE3B25C02EB10017D240 /* GoogleService-Info.plist in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 			);
