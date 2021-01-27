@@ -42,7 +42,14 @@ module.exports = {
     'curly': 'error',
     'ext/lines-between-object-properties': ['error', 'never'],
     'keyword-spacing': 'error',
-    'space-in-parens': ['error', 'never']
+    'space-in-parens': ['error', 'never'],
+    '@typescript-eslint/type-annotation-spacing': ['error', {
+      'before': false,
+      'after': true,
+      'overrides': {
+        'arrow': { 'before': true, 'after': true }
+      }
+    }]
   },
   'settings': {
     'react': {
