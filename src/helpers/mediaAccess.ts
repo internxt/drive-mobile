@@ -30,7 +30,7 @@ function hasMediaAccessPermissions() {
 }*/
 
 
-export async function getPhotos(cursor: string) {
+export async function getPhotos(rootAlbumId:any, cursor: string) {
     let data;
 
     const hasPermission = await hasMediaAccessPermissions();
@@ -41,22 +41,15 @@ export async function getPhotos(cursor: string) {
         if (permission.status !== 'granted') {
             console.log("[PERMISSIONS] No permissions to get photos.");
             return;
-        } else {
-            data = await MediaLibrary.getAssetsAsync({
-                sortBy: [MediaLibrary.SortBy.creationTime],
-                first: 20,
-                after: cursor.toString()
-            });
         }
-    } else {
-        data = await MediaLibrary.getAssetsAsync({
-            sortBy: [MediaLibrary.SortBy.creationTime],
-            first: 20,
-            after: cursor.toString()
-        });
     }
 
-    
+    data = await MediaLibrary.getAssetsAsync({
+        sortBy: [MediaLibrary.SortBy.creationTime],
+        first: 20,
+        after: cursor.toString()
+    });
+
 
     var photos: any[] = [];
 
@@ -64,21 +57,19 @@ export async function getPhotos(cursor: string) {
 
 
         let photo: any = {
-            id: parseInt(asset.id),
-            filename: asset.filename,
+            name: asset.filename,
             type: asset.mediaType,
             height: asset.height,
             width: asset.width,
-            creationTime: asset.creationTime,
+            createdAt: asset.creationTime,
             uri: asset.uri,
-            bucketId: 1, //TODO: Get bucket number
-            duration: asset.duration
+            bucketId: rootAlbumId
         }
-        
+
         photos.push(photo)
     })
-    
-    return { photos: photos, index: cursor};
+
+    return { photos: photos, index: cursor };
 }
 
 
