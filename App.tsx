@@ -36,7 +36,7 @@ export default function App(): JSX.Element {
 
   const handleOpenURL = (e) => {
     if (e.url) {
-      if ( e.url.match(/inxt:\/\/.*:\/*/g) ) {
+      if (e.url.match(/inxt:\/\/.*:\/*/g)) {
         const regex = /inxt:\/\//g
         const uri = e
         const finalUri = uri.url.replace(regex, '')

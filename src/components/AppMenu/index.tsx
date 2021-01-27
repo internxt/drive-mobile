@@ -50,16 +50,16 @@ const uploadFile = async (result: any, props: any) => {
 
     const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri)
 
-    RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
+    RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
       [
         { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
-      ] )
+      ])
       .uploadProgress({ count: 10 }, (sent, total) => {
-        props.dispatch(fileActions.uploadFileSetProgress( sent / total ))
+        props.dispatch(fileActions.uploadFileSetProgress(sent / total))
 
       })
       .then((res) => {
-        if ( res.respInfo.status === 401) {
+        if (res.respInfo.status === 401) {
           throw res;
         }
 

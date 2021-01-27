@@ -117,16 +117,16 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       const file = uri.replace(regex, '$2') // if iOS remove file://
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(uri)
 
-      RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers,
+      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers,
         [
           { name: 'xfile', filename: name, data: finalUri }
         ])
         .uploadProgress({ count: 10 }, (sent, total) => {
-          props.dispatch(fileActions.uploadFileSetProgress( sent / total ))
+          props.dispatch(fileActions.uploadFileSetProgress(sent / total))
 
         })
         .then((res) => {
-          if ( res.respInfo.status === 401) {
+          if (res.respInfo.status === 401) {
             throw res;
           }
           const data = res

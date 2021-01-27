@@ -40,7 +40,9 @@ module.exports = {
     'newline-after-var': ['error', 'always'],
     'no-multi-spaces': 'error',
     'curly': 'error',
-    'ext/lines-between-object-properties': ['error', 'never']
+    'ext/lines-between-object-properties': ['error', 'never'],
+    'keyword-spacing': 'error',
+    'space-in-parens': ['error', 'never']
   },
   'settings': {
     'react': {
