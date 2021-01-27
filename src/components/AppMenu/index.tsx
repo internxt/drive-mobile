@@ -45,23 +45,47 @@ function AppMenu(props: AppMenuProps) {
 
   const uploadPhoto = async (result: any, props: any) => {
 
+    console.log("UPLOAD PHOTO------------", result)
+
     //const userData = await getLyticsData()
 
     //analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => {})
 
     try {
+      let name = 'untitled';
       // Set name for pics/photos
-      if (!result.name) {
-        result.name = result.uri.split('/').pop();
+      if (!result.filename) {
+        const dateObj = new Date();
+        const day = dateObj.getDate();
+        const month = dateObj.getMonth() + 1;
+        const year = dateObj.getFullYear();
+        const hh = dateObj.getHours();
+        const mm = dateObj.getMinutes();
+        const ss = dateObj.getSeconds();
+
+        name = `CAMERA-${day}${month}${year}${hh}${mm}${ss}`;
       }
       //result.type = 'application/octet-stream';
+      const newPhoto = {
+        name: name,
+        type: result.type,
+        height: result.height,
+        width: result.width,
+        uri: result.uri,
+        bucketId: props.authenticationState.user.roorAlbumId,
+        createdAt: null
+      }
+
+      if (result.creationTime) {
+        newPhoto.createdAt = result.creationTime;
+      }
 
       props.dispatch(PhotoActions.uploadPhotoStart(result.name));
       const body = new FormData();
       const token = props.authenticationState.token;
       const mnemonic = props.authenticationState.user.mnemonic;
 
-      body.append('xphoto', result, result.name);
+      body.append('xphoto', newPhoto.uri, result.name);
 
       const headers = {
         'Authorization': `Bearer ${token}`,
@@ -74,16 +98,18 @@ function AppMenu(props: AppMenuProps) {
 
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri)
 
-      RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
+      console.log("final uri ----", finalUri);
+
+      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/upload`, headers,
         [
           { name: 'xphoto', filename: body._parts[0][1].name, data: finalUri }
-        ] )
+        ])
         .uploadProgress({ count: 10 }, (sent, total) => {
-          props.dispatch(PhotoActions.uploadPhotoSetProgress( sent / total ))
+          props.dispatch(PhotoActions.uploadPhotoSetProgress(sent / total))
 
         })
         .then((res) => {
-          if ( res.respInfo.status === 401) {
+          if (res.respInfo.status === 401) {
             throw res;
           }
 
@@ -97,8 +123,8 @@ function AppMenu(props: AppMenuProps) {
 
           } else if (res.res.respInfo.status === 201) {
             //analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => { })
-            props.dispatch(PhotoActions.getFolderContent(props.photosState.folderContent.currentFolder))
-
+            //props.dispatch(PhotoActions.getFolderContent(props.photosState.folderContent.currentFolder))
+            console.log("SERVER RES", res)
           } else {
             Alert.alert('Error', 'Cannot upload file');
           }
@@ -118,8 +144,8 @@ function AppMenu(props: AppMenuProps) {
           props.dispatch(fileActions.uploadFileFinished());
         })
 
-        props.dispatch(PhotoActions.uploadPhotoSetProgress(0))
-        props.dispatch(PhotoActions.uploadPhotoFinished());
+      props.dispatch(PhotoActions.uploadPhotoSetProgress(0))
+      props.dispatch(PhotoActions.uploadPhotoFinished());
     } catch (error) {
       //analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => { })
       props.dispatch(PhotoActions.uploadPhotoSetProgress(0))
@@ -188,8 +214,8 @@ function AppMenu(props: AppMenuProps) {
                       const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All })
 
                       if (!result.cancelled) {
-                        props.dispatch(PhotoActions.add)
-                        //uploadFile(result, props)
+                        //props.dispatch(PhotoActions.add)
+                        uploadPhoto(result, props)
                       }
                     } else {
                       Alert.alert('Camera permission needed to perform this action')
@@ -205,7 +231,7 @@ function AppMenu(props: AppMenuProps) {
                       const result = await launchCameraAsync()
 
                       if (!result.cancelled) {
-                        uploadFile(result, props)
+                        uploadPhoto(result, props)
                       }
                     }
                   }
