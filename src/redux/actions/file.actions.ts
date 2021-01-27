@@ -24,7 +24,8 @@ export const fileActions = {
   createFolder,
   updateFolderMetadata,
   moveFile,
-  setRootFolderContent
+  setRootFolderContent,
+  setUri
 };
 
 function downloadFileStart(fileId: string) {
@@ -228,6 +229,20 @@ function moveFile(fileId: string, destination: string) {
 
 function setRootFolderContent(folderContent: any) {
   return { type: fileActionTypes.SET_ROOTFOLDER_CONTENT, payload: folderContent }
+}
+
+function setUri(uri: string | Record<string, string> | undefined | null) {
+  if (uri) {
+    getLyticsData().then(user => {
+      analytics.track('share-to', {
+        email: user.email,
+        uri: uri.fileUri ? uri.fileUri : uri.toString && uri.toString()
+      }).catch(() => {
+      });
+    }).catch(() => {
+    });
+  }
+  return { type: fileActionTypes.SET_URI, payload: uri }
 }
 
 function updateFolderMetadata(metadata: any, folderId) {

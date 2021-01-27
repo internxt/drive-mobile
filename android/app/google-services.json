@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "407912627452",
+    "project_id": "drive-mobile-fd4b2",
+    "storage_bucket": "drive-mobile-fd4b2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:407912627452:android:68da0c685f7fece5a3ab79",
+        "android_client_info": {
+          "package_name": "com.internxt.cloud"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "407912627452-qqa4su8l5c6625nov4l4s4ospk7bb50q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.internxt.cloud",
+            "certificate_hash": "bcf5e74116af2886afbda23cb936b56d956a6f89"
+          }
+        },
+        {
+          "client_id": "407912627452-n5l9ipo6j0dnigtn876j7c8658vastgo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvtzTbDTpY-87AMCyR_65BVvNscSzOfto"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "407912627452-n5l9ipo6j0dnigtn876j7c8658vastgo.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "407912627452-s39p81ojes20f59q16ohbgik2vvthf5e.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.internxt.snacks",
+                "app_store_id": "1465869889"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

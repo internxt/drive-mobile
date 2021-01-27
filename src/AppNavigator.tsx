@@ -32,7 +32,7 @@ const routeConfig: RouteConfig = {
 };
 
 const navigatorOptions: NavigatorOptions = {
-  initialRouteName: 'Login',
+  initialRouteName: 'Register',
   headerMode: 'none'
 };
 

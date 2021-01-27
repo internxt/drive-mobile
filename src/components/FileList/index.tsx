@@ -61,10 +61,6 @@ function FileList(props: any) {
   const isUploading = props.filesState.isUploadingFileName
   const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && !isUploading
 
-  useEffect(() => {
-    //console.log('--- UPLOADING PROGRESS ON FILELIST ---', filesState.progress)
-
-  }, [filesState.progress])
   return (
     <ScrollView
       refreshControl={
