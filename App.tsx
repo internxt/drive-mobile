@@ -48,7 +48,7 @@ export default function App(): JSX.Element {
 
   // useEffect to receive shared file
   useEffect(() => {
-    if(Platform.OS === 'ios'){
+    if (Platform.OS === 'ios'){
       const regex = /inxt:\/\//g
 
       Linking.addEventListener('url', handleOpenURL);
@@ -58,7 +58,7 @@ export default function App(): JSX.Element {
           const uri = res
 
           // check if it's a file or it's an url redirect
-          if ( uri.match(/inxt:\/\/.*:\/*/g) ) {
+          if (uri.match(/inxt:\/\/.*:\/*/g)) {
             const finalUri = uri.replace(regex, '')
 
             store.dispatch(fileActions.setUri(finalUri))
