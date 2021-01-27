@@ -19,9 +19,90 @@ interface AppMenuProps {
   authenticationState?: any
 }
 
+const uploadFile = async (result: any, props: any) => {
+
+  const userData = await getLyticsData()
+
+  analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => {})
+
+  try {
+    // Set name for pics/photos
+    if (!result.name) {
+      result.name = result.uri.split('/').pop();
+    }
+    //result.type = 'application/octet-stream';
+
+    props.dispatch(fileActions.uploadFileStart(result.name));
+    const body = new FormData();
+    const token = props.authenticationState.token;
+    const mnemonic = props.authenticationState.user.mnemonic;
+
+    body.append('xfile', result, result.name);
+
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'internxt-mnemonic': mnemonic,
+      'Content-Type': 'multipart/form-data'
+    };
+
+    const regex = /^(.*:\/{0,2})\/?(.*)$/gm
+    const file = result.uri.replace(regex, '$2')
+
+    const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri)
+
+    RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
+      [
+        { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
+      ] )
+      .uploadProgress({ count: 10 }, (sent, total) => {
+        props.dispatch(fileActions.uploadFileSetProgress( sent / total ))
+
+      })
+      .then((res) => {
+        if ( res.respInfo.status === 401) {
+          throw res;
+        }
+
+        const data = res;
+
+        return { res: res, data };
+      })
+      .then(res => {
+        if (res.res.respInfo.status === 402) {
+          setHasSpace(false)
+
+        } else if (res.res.respInfo.status === 201) {
+          analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+          props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
+
+        } else {
+          Alert.alert('Error', 'Cannot upload file');
+        }
+
+        props.dispatch(fileActions.uploadFileSetProgress(0))
+        props.dispatch(fileActions.uploadFileFinished());
+      })
+      .catch((err) => {
+        if (err.status === 401) {
+          props.dispatch(userActions.signout())
+
+        } else {
+          Alert.alert('Error', 'Cannot upload file\n' + err)
+        }
+
+        props.dispatch(fileActions.uploadFileFailed());
+        props.dispatch(fileActions.uploadFileFinished());
+      })
+
+  } catch (error) {
+    analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+    props.dispatch(fileActions.uploadFileFailed());
+    props.dispatch(fileActions.uploadFileFinished());
+  }
+}
+
 function AppMenu(props: AppMenuProps) {
   const [activeSearchBox, setActiveSearchBox] = useState(false)
-  const [hasSpace, setHasSpace] = useState(true)
   const selectedItems = props.filesState.selectedItems;
   const textInput = useRef<TextInput>(null)
 
@@ -34,94 +115,6 @@ function AppMenu(props: AppMenuProps) {
   const closeSearch = () => {
     if (textInput && textInput.current) {
       textInput.current.blur();
-    }
-  }
-
-  useEffect(() => {
-    if (!hasSpace) {
-      props.navigation.replace('OutOfSpace')
-    }
-  }, [hasSpace])
-
-  const uploadFile = async (result: any, props: any) => {
-
-    const userData = await getLyticsData()
-
-    analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => {})
-
-    try {
-      // Set name for pics/photos
-      if (!result.name) {
-        result.name = result.uri.split('/').pop();
-      }
-      //result.type = 'application/octet-stream';
-
-      props.dispatch(fileActions.uploadFileStart(result.name));
-      const body = new FormData();
-      const token = props.authenticationState.token;
-      const mnemonic = props.authenticationState.user.mnemonic;
-
-      body.append('xfile', result, result.name);
-
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'internxt-mnemonic': mnemonic,
-        'Content-Type': 'multipart/form-data'
-      };
-
-      const regex = /^(.*:\/{0,2})\/?(.*)$/gm
-      const file = result.uri.replace(regex, '$2')
-
-      const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(result.uri)
-
-      RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
-        [
-          { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
-        ] )
-        .uploadProgress({ count: 10 }, (sent, total) => {
-          props.dispatch(fileActions.uploadFileSetProgress( sent / total ))
-
-        })
-        .then((res) => {
-          if ( res.respInfo.status === 401) {
-            throw res;
-          }
-
-          const data = res;
-
-          return { res: res, data };
-        })
-        .then(res => {
-          if (res.res.respInfo.status === 402) {
-            setHasSpace(false)
-
-          } else if (res.res.respInfo.status === 201) {
-            analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-            props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
-
-          } else {
-            Alert.alert('Error', 'Cannot upload file');
-          }
-
-          props.dispatch(fileActions.uploadFileSetProgress(0))
-          props.dispatch(fileActions.uploadFileFinished());
-        })
-        .catch((err) => {
-          if (err.status === 401) {
-            props.dispatch(userActions.signout())
-
-          } else {
-            Alert.alert('Error', 'Cannot upload file\n' + err)
-          }
-
-          props.dispatch(fileActions.uploadFileFailed());
-          props.dispatch(fileActions.uploadFileFinished());
-        })
-
-    } catch (error) {
-      analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-      props.dispatch(fileActions.uploadFileFailed());
-      props.dispatch(fileActions.uploadFileFinished());
     }
   }
 

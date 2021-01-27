@@ -12,10 +12,39 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		B1617F7725B0A5A1001E575D /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1617F7625B0A5A1001E575D /* ShareViewController.swift */; };
+		B1617F7A25B0A5A1001E575D /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B1617F7825B0A5A1001E575D /* MainInterface.storyboard */; };
+		B1617F7E25B0A5A1001E575D /* ShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B1617F7425B0A5A1001E575D /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B161803925B1892E001E575D /* Swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = B161803825B1892E001E575D /* Swift.swift */; };
+		B161803A25B1892E001E575D /* Swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = B161803825B1892E001E575D /* Swift.swift */; };
 		B162BE3B25C02EB10017D240 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B162BE3A25C02EB10017D240 /* GoogleService-Info.plist */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F0179492CB4F9CCB4066F5B8 /* libPods-drivemobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A41CBD9B630CB76BFF5E72F /* libPods-drivemobile.a */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B1617F7C25B0A5A1001E575D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B1617F7325B0A5A1001E575D;
+			remoteInfo = ShareExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B1617F7F25B0A5A1001E575D /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B1617F7E25B0A5A1001E575D /* ShareExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* snacks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = snacks.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -27,6 +56,14 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = drivemobile/main.m; sourceTree = "<group>"; };
 		2A41CBD9B630CB76BFF5E72F /* libPods-drivemobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-drivemobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = drivemobile/SplashScreen.storyboard; sourceTree = "<group>"; };
+		B1617F7425B0A5A1001E575D /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1617F7625B0A5A1001E575D /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		B1617F7925B0A5A1001E575D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
+		B1617F7B25B0A5A1001E575D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B1617F8525B0A766001E575D /* ShareExtensionRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShareExtensionRelease.entitlements; sourceTree = "<group>"; };
+		B1617F8625B0A7F2001E575D /* snacksRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = snacksRelease.entitlements; path = drivemobile/snacksRelease.entitlements; sourceTree = "<group>"; };
+		B161803725B1892D001E575D /* drivemobile-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "drivemobile-Bridging-Header.h"; sourceTree = "<group>"; };
+		B161803825B1892E001E575D /* Swift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift.swift; sourceTree = "<group>"; };
 		B162BE3A25C02EB10017D240 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		BABD52A2AC035780FF8D4AB0 /* Pods-drivemobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-drivemobile.release.xcconfig"; path = "Target Support Files/Pods-drivemobile/Pods-drivemobile.release.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
@@ -44,12 +81,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B1617F7125B0A5A1001E575D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		13B07FAE1A68108700A75B9A /* drivemobile */ = {
 			isa = PBXGroup;
 			children = (
+				B1617F8625B0A7F2001E575D /* snacksRelease.entitlements */,
 				B162BE3A25C02EB10017D240 /* GoogleService-Info.plist */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
@@ -83,11 +128,14 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				B161803825B1892E001E575D /* Swift.swift */,
 				13B07FAE1A68108700A75B9A /* drivemobile */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
+				B1617F7525B0A5A1001E575D /* ShareExtension */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				D65327D7A22EEC0BE12398D9 /* Pods */,
+				B161803725B1892D001E575D /* drivemobile-Bridging-Header.h */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -98,8 +146,20 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* snacks.app */,
+				B1617F7425B0A5A1001E575D /* ShareExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B1617F7525B0A5A1001E575D /* ShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				B1617F8525B0A766001E575D /* ShareExtensionRelease.entitlements */,
+				B1617F7625B0A5A1001E575D /* ShareViewController.swift */,
+				B1617F7825B0A5A1001E575D /* MainInterface.storyboard */,
+				B1617F7B25B0A5A1001E575D /* Info.plist */,
+			);
+			path = ShareExtension;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
@@ -134,15 +194,34 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				ED7A8BD741B3390BDC09D266 /* [CP] Copy Pods Resources */,
+				B1617F7F25B0A5A1001E575D /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B1617F7D25B0A5A1001E575D /* PBXTargetDependency */,
 			);
 			name = drivemobile;
 			productName = drivemobile;
 			productReference = 13B07F961A680F5B00A75B9A /* snacks.app */;
 			productType = "com.apple.product-type.application";
+		};
+		B1617F7325B0A5A1001E575D /* ShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B1617F8225B0A5A1001E575D /* Build configuration list for PBXNativeTarget "ShareExtension" */;
+			buildPhases = (
+				B1617F7025B0A5A1001E575D /* Sources */,
+				B1617F7125B0A5A1001E575D /* Frameworks */,
+				B1617F7225B0A5A1001E575D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ShareExtension;
+			productName = ShareExtension;
+			productReference = B1617F7425B0A5A1001E575D /* ShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -150,11 +229,17 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 1220;
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = JR4S3SY396;
-						LastSwiftMigration = 1120;
+						LastSwiftMigration = 1220;
+					};
+					B1617F7325B0A5A1001E575D = {
+						CreatedOnToolsVersion = 12.2;
+						DevelopmentTeam = JR4S3SY396;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -172,6 +257,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* drivemobile */,
+				B1617F7325B0A5A1001E575D /* ShareExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -186,6 +272,14 @@
 				B162BE3B25C02EB10017D240 /* GoogleService-Info.plist in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B1617F7225B0A5A1001E575D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1617F7A25B0A5A1001E575D /* MainInterface.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,11 +367,29 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
+				B161803925B1892E001E575D /* Swift.swift in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B1617F7025B0A5A1001E575D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1617F7725B0A5A1001E575D /* ShareViewController.swift in Sources */,
+				B161803A25B1892E001E575D /* Swift.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B1617F7D25B0A5A1001E575D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B1617F7325B0A5A1001E575D /* ShareExtension */;
+			targetProxy = B1617F7C25B0A5A1001E575D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		13B07FB11A68108700A75B9A /* LaunchScreen.xib */ = {
@@ -289,6 +401,14 @@
 			path = drivemobile;
 			sourceTree = "<group>";
 		};
+		B1617F7825B0A5A1001E575D /* MainInterface.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B1617F7925B0A5A1001E575D /* Base */,
+			);
+			name = MainInterface.storyboard;
+			sourceTree = "<group>";
+		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
@@ -296,6 +416,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D4C766AD8D3D7184D060C0D4 /* Pods-drivemobile.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = drivemobile/snacks.entitlements;
@@ -318,6 +439,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks;
 				PRODUCT_NAME = snacks;
+				SWIFT_OBJC_BRIDGING_HEADER = "drivemobile-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -329,9 +451,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BABD52A2AC035780FF8D4AB0 /* Pods-drivemobile.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = drivemobile/snacks.entitlements;
+				CODE_SIGN_ENTITLEMENTS = drivemobile/snacksRelease.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				INFOPLIST_FILE = drivemobile/Info.plist;
@@ -345,6 +468,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks;
 				PRODUCT_NAME = snacks;
+				SWIFT_OBJC_BRIDGING_HEADER = "drivemobile-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -401,11 +525,6 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
-				LIBRARY_SEARCH_PATHS = (
-					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
-					"\"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)\"",
-					"\"$(inherited)\"",
-				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -455,14 +574,68 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "/usr/lib/swift $(inherited)";
-				LIBRARY_SEARCH_PATHS = (
-					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
-					"\"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)\"",
-					"\"$(inherited)\"",
-				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B1617F8025B0A5A1001E575D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = JR4S3SY396;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = ShareExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				LIBRARY_SEARCH_PATHS = "\"$(inherited)\"";
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks.ShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B1617F8125B0A5A1001E575D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtensionRelease.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = JR4S3SY396;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = ShareExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks.ShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -483,6 +656,15 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B1617F8225B0A5A1001E575D /* Build configuration list for PBXNativeTarget "ShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1617F8025B0A5A1001E575D /* Debug */,
+				B1617F8125B0A5A1001E575D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
