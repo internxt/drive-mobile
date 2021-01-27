@@ -21,6 +21,7 @@ import { PhotoActions } from '../../redux/actions/photo.actions';
 import PhotoList from '../../components/PhotoList';
 import { previewsStorage } from '../../helpers/previewsStorage';
 import { getAlbumList, getAllPhotos, getDeletedPhotos } from './init';
+import * as FileSystem from 'expo-file-system';
 
 interface HomeProps extends Reducers {
     navigation?: any
@@ -32,39 +33,50 @@ interface HomeProps extends Reducers {
 function Home(props: HomeProps): JSX.Element {
     const [selectedKeyId, setSelectedKeyId] = useState(0)
 
+    const initializeHome = async (user, token) => {
+        const albums = await getAlbumList(user.email, token, user.mnemonic)
+            //props.dispatch(PhotoActions.getAlbumList(result))
+    
+        const photos = await getAllPhotos(user.email, token, user.mnemonic)
+            //props.dispatch(PhotoActions.getAllPhotos(result))
+       
+
+        getDeletedPhotos(user.email, token, user.mnemonic)
+            //props.dispatch(PhotoActions.getDeletePhotos(result))
+        
+    }
+
     useEffect(() => {
         const { user } = props.authenticationState;
         const { token } = props.authenticationState;
 
         console.log("USER", user)
 
-        getAlbumList(user.email, token, user.mnemonic).then((result) => {
-            props.dispatch(PhotoActions.getAlbumList(result))
-        }).catch(err => {
-            console.log("erralbum-------", err)
-        })
-
         getAllPhotos(user.email, token, user.mnemonic).then((result) => {
-            props.dispatch(PhotoActions.getAllPhotos(result))
-        }).catch(err => {
-            console.log("errphotos-------", err)
-        })
+            if (result) {
+                props.dispatch(PhotoActions.getAllPhotos(result));
+            }
+        }).catch((err) => console.log("get all photos --- ", err))
 
-        getDeletedPhotos(user.email, token, user.mnemonic).then((result) => {
-            props.dispatch(PhotoActions.getDeletePhotos(result))
-        }).catch(err => {
-            console.log("errdeleted-------", err)
-        })
-
-        previewsStorage.getPreviews();
+        /* async function existsPreviewFolder() {    
+            let folder = await FileSystem.getInfoAsync(FileSystem.documentDirectory + "previews");
+          
+            console.log("PREVIEWS FOLDER", folder)
+          
+            if (!folder.exists) {
+              return false;
+            } else {
+              return true;
+            }
+          } */
     }, [])
 
-
+    // Get device photos
     useEffect(() => {
         if (props.photosState.cursor === 0) {
-            previewsStorage.storePreview();
+            //previewsStorage.getPreviews();
 
-            getPhotos('0').then((dataResult) => {
+            getPhotos(props.authenticationState.user.rootAlbumId, '0').then((dataResult) => {
                 props.dispatch(PhotoActions.updateCursor(20));
                 return props.dispatch(PhotoActions.setFolderContent(dataResult?.photos || []));
             }).catch((err) => {

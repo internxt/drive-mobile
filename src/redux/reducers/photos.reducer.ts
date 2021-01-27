@@ -3,6 +3,7 @@ import { IAlbum } from '../../components/AlbumList';
 import { IPhoto } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
+import { photoService } from '../services/photo.service';
 
 export interface PhotosState {
   cursor: number
@@ -10,7 +11,7 @@ export interface PhotosState {
   loadingAlbums: boolean
   loadingPhotos: boolean
   loadingDeleted: boolean
-  photos: any
+  photos: any[]
   deleted: any
   albums: any
   deletedPhotos: any
@@ -34,9 +35,9 @@ const initialState: PhotosState = {
   loadingAlbums: true,
   loadingPhotos: true,
   loadingDeleted: true,
-  photos: null,
-  deleted: null,
-  albums: null,
+  photos: [],
+  deleted: [],
+  albums: [],
   deletedPhotos: null,
   albumContent: null,
   selectedPhoto: null,
@@ -89,7 +90,6 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       return {
         ...state,
         loadingPhotos: false,
-        photos: action.payload,
         selectedPhoto: null,
         selectedItems: []
       };
@@ -102,14 +102,14 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     case photoActionTypes.ADD_PHOTO_REQUEST:
       return {
         ...state,
-        loading: true,
+        loadingPhotos: true,
         isUploading: true,
         isUploadingPhotoName: action.payload
       };
     case photoActionTypes.ADD_PHOTO_SUCCESS:
       return {
         ...state,
-        loading: false,
+        loadingPhotos: false,
         isUploading: false,
         isUploadingPhotoName: null
       };

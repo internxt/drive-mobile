@@ -13,7 +13,7 @@ export interface IPhoto {
     albumId?: number
     bucket?: string
     uri: any
-    name?: string
+    name: string
     type: string
     size?: number
     createdAt?: Date
@@ -105,6 +105,7 @@ function PhotoList(props: PhotoListProps) {
                 <FlatList
                     keyExtractor={keyExtractor}
                     renderItem={renderAllPhotoItem}
+                    refreshing={props.photosState.loadingPhotos}
                     data={props.photosState.photos}
                     horizontal={true}
                     showsHorizontalScrollIndicator={false}
