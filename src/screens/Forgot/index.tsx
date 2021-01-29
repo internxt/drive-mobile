@@ -59,10 +59,6 @@ function Forgot(props: any): JSX.Element {
         >
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Image
-                style={styles.logo}
-                source={require('../../../assets/images/logo.png')}
-              />
               <Text style={styles.title}>Internxt Security</Text>
             </View>
             <Text style={styles.text}>
@@ -125,11 +121,6 @@ function Forgot(props: any): JSX.Element {
         >
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Image
-                style={styles.logo}
-                source={require('../../../assets/images/logo.png')}
-              />
-
               <Text style={styles.title}>Deactivation Email</Text>
             </View>
             <Text style={styles.text}>
@@ -159,7 +150,7 @@ function Forgot(props: any): JSX.Element {
             </View>
             <Text
               style={styles.signUp}
-              onPress={() => props.navigation.replace('Login')}
+              onPress={() => props.navigation.replace('Register')}
             >
                             Sign up
             </Text>
@@ -192,12 +183,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: normalize(600)
   },
-  logo: {
-    marginTop: normalize(-27),
-    height: normalize(32),
-    width: normalize(25),
-    marginRight: normalize(7)
-  },
   containerHeader: {
   },
   title: {
@@ -206,8 +191,7 @@ const styles = StyleSheet.create({
     letterSpacing: -1.5,
     color: '#000',
     marginBottom: normalize(15),
-    marginTop: normalize(-25),
-    marginLeft: normalize(3)
+    marginTop: normalize(-25)
   },
   text: {
     fontFamily: 'CerebriSans-Regular',
