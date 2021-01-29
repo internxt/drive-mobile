@@ -197,7 +197,7 @@ function Register(props: any): JSX.Element {
     const isValidStep = (password === confirmPassword) && isValidPassword;
 
     return (
-      <KeyboardAvoidingView behavior="padding" style={styles.container}>
+      <KeyboardAvoidingView behavior='height' style={styles.container}>
         <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>

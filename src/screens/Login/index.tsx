@@ -49,7 +49,7 @@ function Login(props: LoginProps): JSX.Element {
     }
   }, [props.authenticationState.loggedIn, props.authenticationState.token])
 
-  return <KeyboardAvoidingView behavior="padding" style={styles.container}>
+  return <KeyboardAvoidingView behavior='height' style={styles.container}>
     <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
       <View style={styles.containerHeader}>
         <View style={styles.flexRow}>
