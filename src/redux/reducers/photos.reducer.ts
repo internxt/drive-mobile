@@ -11,15 +11,16 @@ export interface PhotosState {
   loadingAlbums: boolean
   loadingPhotos: boolean
   loadingDeleted: boolean
-  photos: any[]
-  deleted: any
   albums: any
-  deletedPhotos: any
+  photos: any
+  devicePhotos: any
+  deleted: any
   albumContent: any
   selectedPhoto: IPhoto | null
   selectedAlbum: IAlbum | null
-  selectedItems: any[]
+  selectedItems: any
   sortType: string
+  albumListSortType: string
   sortFunction: ArraySortFunction | null
   searchString: string
   isUploading: boolean
@@ -36,14 +37,15 @@ const initialState: PhotosState = {
   loadingPhotos: true,
   loadingDeleted: true,
   photos: [],
+  devicePhotos: [],
   deleted: [],
   albums: [],
-  deletedPhotos: null,
   albumContent: null,
   selectedPhoto: null,
   selectedAlbum: null,
   selectedItems: [],
   sortType: 'Name',
+  albumListSortType: 'Name',
   sortFunction: null,
   searchString: '',
   isUploading: false,
@@ -59,10 +61,9 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
         ...state,
         cursor: action.payload
       };
-    case photoActionTypes.SET_FOLDER_CONTENT:
+    case photoActionTypes.SET_ALBUM_CONTENT:
       return {
         ...state,
-        loading: false,
         photos: action.payload
       };
     case photoActionTypes.GET_ALBUMS_SUCCESS:
@@ -91,7 +92,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
         ...state,
         loadingPhotos: false,
         selectedPhoto: null,
-        selectedItems: []
+        photos: action.payload
       };
     case photoActionTypes.GET_PHOTOS_FAILURE:
       return {

@@ -4,16 +4,18 @@ import React, { Fragment, useState, useRef, useEffect } from 'react'
 import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
+import axios from 'axios'
 import RNFetchBlob from 'rn-fetch-blob';
 import { getLyticsData } from '../../helpers';
 import { getIcon } from '../../helpers/getIcon';
 import analytics from '../../helpers/lytics';
-import { fileActions, layoutActions, PhotoActions, userActions } from '../../redux/actions';
+import { PhotoActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
 
 interface AppMenuProps {
   navigation?: any
   filesState?: any
+  photosState?: any
   dispatch?: any,
   layoutState?: any
   authenticationState?: any
@@ -22,7 +24,7 @@ interface AppMenuProps {
 function AppMenu(props: AppMenuProps) {
   const [activeSearchBox, setActiveSearchBox] = useState(false)
   const [hasSpace, setHasSpace] = useState(true)
-  const selectedItems = props.filesState.selectedItems;
+  const selectedItems = props.photosState.selectedItems;
   const textInput = useRef<TextInput>(null)
 
   const handleClickSearch = () => {
@@ -45,47 +47,23 @@ function AppMenu(props: AppMenuProps) {
 
   const uploadPhoto = async (result: any, props: any) => {
 
-    console.log("UPLOAD PHOTO------------", result)
+    const userData = await getLyticsData()
 
-    //const userData = await getLyticsData()
-
-    //analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => {})
+    analytics.track('photo-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
 
     try {
-      let name = 'untitled';
       // Set name for pics/photos
-      if (!result.filename) {
-        const dateObj = new Date();
-        const day = dateObj.getDate();
-        const month = dateObj.getMonth() + 1;
-        const year = dateObj.getFullYear();
-        const hh = dateObj.getHours();
-        const mm = dateObj.getMinutes();
-        const ss = dateObj.getSeconds();
-
-        name = `CAMERA-${day}${month}${year}${hh}${mm}${ss}`;
-      }
-      //result.type = 'application/octet-stream';
-      const newPhoto = {
-        name: name,
-        type: result.type,
-        height: result.height,
-        width: result.width,
-        uri: result.uri,
-        bucketId: props.authenticationState.user.roorAlbumId,
-        createdAt: null
+      if (!result.name) {
+        result.name = result.uri.split('/').pop();
       }
 
-      if (result.creationTime) {
-        newPhoto.createdAt = result.creationTime;
-      }
-
+      console.log("RESULT", result)
       props.dispatch(PhotoActions.uploadPhotoStart(result.name));
       const body = new FormData();
       const token = props.authenticationState.token;
       const mnemonic = props.authenticationState.user.mnemonic;
 
-      body.append('xphoto', newPhoto.uri, result.name);
+      body.append('xfile', result, result.name);
 
       const headers = {
         'Authorization': `Bearer ${token}`,
@@ -98,11 +76,9 @@ function AppMenu(props: AppMenuProps) {
 
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri)
 
-      console.log("final uri ----", finalUri);
-
-      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/upload`, headers,
+      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api//photos/storage/upload`, headers,
         [
-          { name: 'xphoto', filename: body._parts[0][1].name, data: finalUri }
+          { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
         ])
         .uploadProgress({ count: 10 }, (sent, total) => {
           props.dispatch(PhotoActions.uploadPhotoSetProgress(sent / total))
@@ -122,10 +98,11 @@ function AppMenu(props: AppMenuProps) {
             setHasSpace(false)
 
           } else if (res.res.respInfo.status === 201) {
-            //analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => { })
-            //props.dispatch(PhotoActions.getFolderContent(props.photosState.folderContent.currentFolder))
-            console.log("SERVER RES", res)
+            analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+            props.dispatch(PhotoActions.getFolderContent(props.authenticationState.user))
+
           } else {
+            console.log("3", res)
             Alert.alert('Error', 'Cannot upload file');
           }
 
@@ -140,15 +117,15 @@ function AppMenu(props: AppMenuProps) {
             Alert.alert('Error', 'Cannot upload file\n' + err)
           }
 
-          props.dispatch(fileActions.uploadFileFailed());
-          props.dispatch(fileActions.uploadFileFinished());
+          console.log("2", err)
+          props.dispatch(PhotoActions.uploadPhotoFailed());
+          props.dispatch(PhotoActions.uploadPhotoFinished());
         })
 
-      props.dispatch(PhotoActions.uploadPhotoSetProgress(0))
-      props.dispatch(PhotoActions.uploadPhotoFinished());
     } catch (error) {
-      //analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'photos' }).catch(() => { })
-      props.dispatch(PhotoActions.uploadPhotoSetProgress(0))
+      console.log("1", error)
+      analytics.track('photo-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+      props.dispatch(PhotoActions.uploadPhotoFailed());
       props.dispatch(PhotoActions.uploadPhotoFinished());
     }
   }
@@ -168,13 +145,13 @@ function AppMenu(props: AppMenuProps) {
         placeholder="Search"
         value={props.filesState.searchString}
         onChange={e => {
-          props.dispatch(fileActions.setSearchString(e.nativeEvent.text))
+          props.dispatch(PhotoActions.setSearchString(e.nativeEvent.text))
         }}
       />
 
       <TouchableWithoutFeedback
         onPress={() => {
-          props.dispatch(fileActions.setSearchString(''));
+          props.dispatch(PhotoActions.setSearchString(''));
           props.dispatch(layoutActions.closeSearch());
           setActiveSearchBox(false)
           closeSearch()

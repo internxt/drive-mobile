@@ -6,7 +6,8 @@ import { IFile, IFolder } from '../../components/FileList';
 export const photoService = {
   getSortFunction,
   setHeaders,
-  getAlbumContent
+  getAlbumContent,
+  getFolderContent
 };
 
 async function setHeaders() {
@@ -39,6 +40,20 @@ function getAlbumContent(albumId: number): Promise<any> {
   });
 }
 
+function getFolderContent(user: any): Promise<any> {
+  return new Promise(async (resolve, reject) => {
+    const headers = await setHeaders();
+
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/previews/${user.email}`, {
+      method: 'GET',
+      headers
+    }).then(res => {
+      if (res.status !== 200) { throw res; }
+      return res.json();
+    }).then(resolve)
+      .catch(reject);
+  });
+}
 
 export type ArraySortFunction = (a: any, b: any) => boolean
 
