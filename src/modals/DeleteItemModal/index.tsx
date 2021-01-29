@@ -37,7 +37,6 @@ function DeleteItemModal(props: DeleteItemModalProps) {
     >
       <View style={styles.textContainer}>
         <View style={styles.titleContainer}>
-          <Image source={require('../../../assets/images/logo.png')} style={styles.image} />
           <Text style={styles.title}>Delete item</Text>
         </View>
 

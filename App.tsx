@@ -97,7 +97,7 @@ export default function App(): JSX.Element {
         </View>
         : <View style={styles.container}>
           {loadError ? <Text>{loadError}</Text>
-            : <ActivityIndicator color={'#00f'} />}
+            : null}
         </View>
       }
     </NavigationContainer>

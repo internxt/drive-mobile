@@ -59,7 +59,6 @@ function Register(props: any): JSX.Element {
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Image style={styles.logo} source={require('../../../assets/images/logo.png')} />
               <Text style={styles.title}>Create an account</Text>
             </View>
 
@@ -136,10 +135,6 @@ function Register(props: any): JSX.Element {
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Image
-                style={styles.logo}
-                source={require('../../../assets/images/logo.png')}
-              />
               <Text style={styles.title}>Internxt Security</Text>
             </View>
 
@@ -206,10 +201,6 @@ function Register(props: any): JSX.Element {
         <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Image
-                style={styles.logo}
-                source={require('../../../assets/images/logo.png')}
-              />
               <Text style={styles.title}>Create an account</Text>
             </View>
           </View>
@@ -277,8 +268,7 @@ function Register(props: any): JSX.Element {
                           email: email,
                           platform: 'mobile'
                         }
-                      })
-                      setRegisterStep(4)
+                      }).then(() => props.navigation.replace('Login'))
                     }).catch(err => {
                       Alert.alert(err.message)
                     }).finally(() => {
@@ -295,65 +285,6 @@ function Register(props: any): JSX.Element {
       </KeyboardAvoidingView>
     );
   }
-
-  if (registerStep === 4) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.containerCentered}>
-          <View style={styles.containerHeader}>
-
-            <View style={styles.flexRow}>
-              <Image
-                style={styles.logo}
-                source={require('../../../assets/images/logo.png')}
-              />
-              <Text style={styles.title}>Activation Email</Text>
-            </View>
-
-            <View>
-              <Text style={styles.textEmailCheck}>
-                Please check your email and follow the instructions to
-                activate your account so you can start using Internxt Drive.
-              </Text>
-            </View>
-
-            <View style={styles.textAgreeContainer}>
-              <Text style={styles.textAgree}>
-                By creating an account, you are agreeing to our Terms &amp;
-                Conditions and Privacy Policy.
-              </Text>
-            </View>
-
-            <View style={styles.buttonFooterWrapper}>
-              <TouchableHighlight
-                style={[styles.button, styles.buttonBlock, { marginTop: normalize(15) }]}
-                underlayColor="#4585f5" onPress={() => {
-                  setRegisterButtonClicked(true)
-                  setIsLoading(true)
-                  resendActivationEmail(email).then(() => {
-                    Alert.alert(`Activation email sent to ${email}`)
-                  }).catch(err => {
-                    Alert.alert(err.message)
-                  }).finally(() => {
-                    setRegisterButtonClicked(false)
-                    setIsLoading(false)
-                  })
-                }}>
-                <Text style={styles.buttonOnLabel}>Re-send activation email</Text>
-              </TouchableHighlight>
-              <TouchableHighlight
-                activeOpacity={1}
-                underlayColor="#ffffff"
-                onPress={() => props.navigation.replace('Login')}>
-                <Text style={styles.link}>Sign in</Text>
-              </TouchableHighlight>
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  }
-
   return <></>;
 }
 
@@ -373,20 +304,13 @@ const styles = StyleSheet.create({
   containerHeader: {
     borderWidth: 0
   },
-  logo: {
-    resizeMode: 'contain',
-    height: normalize(50),
-    width: normalize(37),
-    marginLeft: -7
-  },
   title: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: normalize(22),
     letterSpacing: -1.7,
     color: '#000',
     marginBottom: normalize(30),
-    marginTop: normalize(12),
-    marginLeft: normalize(3)
+    marginTop: normalize(12)
   },
   buttonWrapper: {
     display: 'flex',
@@ -459,13 +383,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: normalize(15)
   },
-  link: {
-    fontFamily: 'CerebriSans-Regular',
-    textAlign: 'center',
-    color: '#737880',
-    fontSize: normalize(15),
-    marginTop: normalize(10)
-  },
   flexRow: {
     flexDirection: 'row'
   },
@@ -476,12 +393,6 @@ const styles = StyleSheet.create({
     textAlign: 'justify',
     letterSpacing: -0.1,
     marginTop: -15
-  },
-  textEmailCheck: {
-    fontSize: normalize(17),
-    color: '#737880',
-    fontFamily: 'CerebriSans-Regular',
-    marginTop: -10
   },
   textStorePasswordContainer: {
     backgroundColor: '#f7f7f7',
@@ -494,16 +405,6 @@ const styles = StyleSheet.create({
     color: '#737880',
     fontSize: normalize(15),
     fontFamily: 'CerebriSans-Regular'
-  },
-  textAgree: {
-    color: '#737880',
-    fontSize: normalize(17),
-    fontFamily: 'CerebriSans-Regular'
-  },
-  textAgreeContainer: {
-    backgroundColor: '#f7f7f7',
-    padding: normalize(23),
-    marginTop: normalize(30)
   },
   textTip: {
     flex: 1,
