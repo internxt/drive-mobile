@@ -14,6 +14,8 @@ import { colors } from '../../redux/constants';
 import analytics from '../../helpers/lytics';
 import { IFile, IFolder } from '../FileList';
 import { Reducers } from '../../redux/reducers/reducers';
+import { LinearGradient } from 'expo-linear-gradient';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 interface FileItemProps extends Reducers {
   isFolder: boolean
   item: IFile & IFolder
@@ -131,10 +133,10 @@ function FileItem(props: FileItemProps) {
 
   const [progress, setProgress] = useState(0)
   const progressPct = progress > 0 ? progress / props.item.size : 0
-  const progressWidth = Dimensions.get('screen').width * progressPct
+  const progressWidth = 40 * progressPct
 
   const [uploadProgress, setUploadProgress] = useState(0)
-  const uploadProgressWidth = Dimensions.get('screen').width * uploadProgress
+  const uploadProgressWidth = 40 * uploadProgress
 
   const [isLoading, setIsLoading] = useState(props.isLoading ? true : false)
 
@@ -150,97 +152,118 @@ function FileItem(props: FileItemProps) {
   const item = props.item
 
   return (
-    <View style={styles.progressIndicatorContainer}>
+    <View>
       <View style={[styles.container, extendStyles.containerBackground]}>
-        <View style={styles.fileDetails}>
-          <TouchableWithoutFeedback
-            style={styles.touchableItemArea}
-            onLongPress={() => { handleLongPress(props, isSelected) }}
-            onPress={() => {
-              setIsLoading(true)
-              handleClick(props, setProgress).finally(() => {
-                setProgress(0)
-                setIsLoading(false)
-              })
-            }}>
+        <View style={styles.mainContainer}>
+          <View style={styles.fileDetails}>
+            <TouchableWithoutFeedback
+              style={styles.touchableItemArea}
+              onLongPress={() => { handleLongPress(props, isSelected) }}
+              onPress={() => {
+                setIsLoading(true)
+                handleClick(props, setProgress).finally(() => {
+                  setProgress(0)
+                  setIsLoading(false)
+                })
+              }}>
 
-            <View style={styles.itemIcon}>
-              {
-                props.isFolder ?
-                  <View>
-                    <IconFolder color={props.item.color} />
-                    {
-                      props.isFolder && props.item.icon ?
+              <View style={styles.itemIcon}>
+                {
+                  props.isFolder ?
+                    <View>
+                      <IconFolder color={props.item.color} />
+                      {
+                        props.isFolder && props.item.icon ?
 
-                        <View style={styles.iconContainer}>
-                          <Icon
-                            name={props.item.icon.name}
-                            color={item.color ? colors[item.color].icon : colors['blue'].icon}
-                            width={24}
-                            height={24}
-                          />
-                        </View>
-                        :
-                        null
-                    }
-                  </View>
-                  :
-                  <IconFile label={props.item.type || ''} isLoading={isLoading} />
-              }
-            </View>
+                          <View style={styles.iconContainer}>
+                            <Icon
+                              name={props.item.icon.name}
+                              color={item.color ? colors[item.color].icon : colors['blue'].icon}
+                              width={24}
+                              height={24}
+                            />
+                          </View>
+                          :
+                          null
+                      }
+                    </View>
+                    :
+                    <IconFile label={props.item.type || ''} isLoading={isLoading} />
+                }
+              </View>
 
-            <View style={styles.nameAndTime}>
-              <Text
-                style={[styles.fileName, extendStyles.text]}
-                numberOfLines={1}
-              >{props.item.name}</Text>
+              <View style={styles.nameAndTime}>
+                <Text
+                  style={[styles.fileName, extendStyles.text]}
+                  numberOfLines={1}
+                >{props.item.name}</Text>
 
-              {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
-            </View>
-          </TouchableWithoutFeedback>
+                {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+
+          <View style={styles.buttonDetails}>
+            <TouchableWithoutFeedback
+              style={isSelectionMode ? styles.dNone : styles.dFlex}
+              onPress={() => {
+                props.dispatch(layoutActions.openItemModal(props.item))
+              }}>
+              <Icon name="details" />
+            </TouchableWithoutFeedback>
+          </View>
         </View>
 
-        <View style={styles.buttonDetails}>
-          <TouchableWithoutFeedback
-            style={isSelectionMode ? styles.dNone : styles.dFlex}
-            onPress={() => {
-              props.dispatch(layoutActions.openItemModal(props.item))
-            }}>
-            <Icon name="details" />
-          </TouchableWithoutFeedback>
+        <View style={styles.progressIndicatorContainer}>
+          {
+            progressWidth ?
+              <LinearGradient
+                colors={['#00b1ff', '#096dff']}
+                start={[0, 0.7]}
+                end={[0.7, 1]}
+                style={[styles.progressIndicator, { width: progressWidth }]} />
+              :
+              null
+          }
+
+          {
+            props.isLoading ?
+              <LinearGradient
+                colors={['#00b1ff', '#096dff']}
+                start={[0, 0.7]}
+                end={[0.7, 1]}
+                style={[styles.progressIndicator, { width: uploadProgressWidth }]} />
+              :
+              null
+          }
         </View>
       </View>
-      <View style={[styles.progressIndicator, { width: progressWidth }]}></View>
-      {
-        props.isLoading ?
-          <View style={[styles.progressIndicator, { width: uploadProgressWidth }]}></View>
-          :
-          null
-      }
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   progressIndicatorContainer: {
-    flexDirection: 'column',
-    alignItems: 'center'
+    position: 'absolute',
+    top: 65,
+    width: 40,
+    height: 3,
+    marginLeft: wp('6.7')
   },
   progressIndicator: {
     backgroundColor: '#87B7FF',
-    position: 'absolute',
-    top: 70,
-    left: 0,
-    right: 0,
-    height: 10,
-    width: 60,
+    height: 3,
     opacity: 0.6,
-    borderRadius: 1
+    borderRadius: 3,
+    marginBottom: 7
   },
   container: {
-    height: 80,
+    flexDirection: 'column',
     borderBottomWidth: 1,
-    borderColor: '#e6e6e6',
+    borderColor: '#e6e6e6'
+  },
+  mainContainer: {
+    height: 75,
     flexDirection: 'row',
     alignItems: 'center'
   },
