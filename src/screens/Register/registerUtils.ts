@@ -38,7 +38,6 @@ export async function doRegister(params: RegisterParams): Promise<any> {
   const encSalt = encryptText(hashObj.salt);
   const mnemonic = await getNewBits()
   const encMnemonic = encryptTextWithKey(mnemonic, params.password);
-  console.log('decrypto------------', encMnemonic)
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/register`, {
     method: 'post',

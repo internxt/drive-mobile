@@ -8,132 +8,142 @@ import PhotoItem from '../PhotoItem';
 
 
 export interface IPhoto {
-    id?: number
-    photoId?: number
-    albumId?: number
-    bucket?: string
-    uri: any
-    name: string
-    type: string
-    size?: number
-    createdAt?: Date
-    updatedAt?: Date
+  id?: number
+  photoId?: number
+  uri: any
+  name: string
+  type: string
+  size?: number
+  preview?: any
+  albumId?: number
+  bucket?: string
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 interface PhotoListProps {
-    title: string
-    photos: IPhoto[]
-    photosState?: any
-    authenticationState?: any
-    dispatch?: any
-    navigation: any
+  title: string
+  photos: IPhoto[]
+  photosState?: any
+  authenticationState?: any
+  dispatch?: any
+  navigation: any
 }
 
 function PhotoList(props: PhotoListProps) {
-    const [refreshing, setRefreshing] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
-    const { photosState } = props;
-    const { folderContent } = photosState;
+  const { photosState } = props;
+  const { folderContent } = photosState;
 
-    let photoList: IPhoto[] = props.photos || [];
+  let photoList: IPhoto[] = props.photos || [];
 
+  useEffect(() => {
+    setRefreshing(false)
+    photoList = props.photosState.photos;
+    console.log("PHOTOLIST", props.photosState.photos)
+  }, [props.photosState.photos])
 
-    useEffect(() => {
-        setRefreshing(false)
-    }, [props.photosState.folderContent])
+  const searchString = props.photosState.searchString
 
-    const searchString = props.photosState.searchString
+  if (searchString) {
+    photoList = photoList.filter((photo: IPhoto) => photo.name.toLowerCase().includes(searchString.toLowerCase()))
+  }
 
-    if (searchString) {
-        photoList = photoList.filter((photo: IPhoto) => photo.name.toLowerCase().includes(searchString.toLowerCase()))
+  const sortFunction = props.photosState.sortFunction
+
+  if (sortFunction) {
+    photoList.sort(sortFunction);
+  }
+
+  useEffect(() => {
+    if (!props.photosState.photos) {
+      const rootPreviewId = props.authenticationState.user.rootPreviewId
+
+      props.dispatch(PhotoActions.getFolderContent(rootPreviewId))
     }
+  }, [])
 
-    const sortFunction = props.photosState.sortFunction
+  const isUploading = props.photosState.isUploadingPhotoName
+  const isEmptyAlbum = photoList.length === 0 && !isUploading
 
-    if (sortFunction) {
-        photoList.sort(sortFunction);
-    }
+  useEffect(() => {
+    //console.log('--- UPLOADING PROGRESS ON photoList ---', photosState.progress)
 
-    /*useEffect(() => {
-        if (!props.photosState.folderContent) {
-            const rootFolderId = props.authenticationState.user.root_folder_id
+  }, [photosState.progress])
 
-            props.dispatch(PhotoActions.getFolderContent(rootFolderId))
-        }
-    }, [])*/
+  const keyExtractor = (item: any, index: any) => index.toString();
 
-    const isUploading = props.photosState.isUploadingPhotoName
-    const isEmptyAlbum = photoList.length === 0 && !isUploading
+  const renderAllPhotoItem = ({ item }: { item: IPhoto }) => (
+    <Pressable
+      onPress={() => {
+        props.navigation.navigate(props.title);
+      }}
+      onLongPress={() => {
+        //props.dispatch(fileActions.selectPhoto(item))
+      }}
+      style={{
+        display: "flex",
+        flex: 1,
+        backgroundColor: '#fff'
+      }}
+    >
+      <PhotoItem isLoading={props.photosState.loading} item={item} />
+    </Pressable>
+  );
 
-    useEffect(() => {
-        //console.log('--- UPLOADING PROGRESS ON photoList ---', photosState.progress)
+  return (
+    <View>
+      {
+        isEmptyAlbum ?
+          <EmptyAlbum />
+          :
+          <Text style={styles.dNone}></Text>
+      }
 
-    }, [photosState.progress])
+      {
+        isUploading ?
+          <PhotoItem
+            item={{ uri: '', name: '', type: '' }}
+            isLoading={props.photosState.loading}
+          />
+          :
+          null
+      }
 
+      <View style={styles.photoScroll}>
+        <FlatList
+          keyExtractor={keyExtractor}
+          renderItem={renderAllPhotoItem}
+          refreshing={props.photosState.loadingPhotos}
+          data={photoList}
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+        ></FlatList>
+      </View>
 
-    const keyExtractor = (item: any, index: any) => index.toString();
-
-    const renderAllPhotoItem = ({ item }: { item: IPhoto }) => (
-        <Pressable
-            onPress={() => { 
-                props.navigation.navigate(props.title);
-             }}
-            onLongPress={() => {
-                //props.dispatch(fileActions.selectPhoto(item))
-            }}
-            style={{
-                display: "flex",
-                flex: 1,
-                backgroundColor: '#fff'
-            }}
-        >
-            <PhotoItem isLoading={props.photosState.loading} item={item} />
-        </Pressable>
-    );
-
-    return (
-        <View>
-            {
-                isEmptyAlbum ?
-                    <EmptyAlbum />
-                    :
-                    <Text style={styles.dNone}></Text>
-            }
-
-
-            <View style={styles.photoScroll}>
-                <FlatList
-                    keyExtractor={keyExtractor}
-                    renderItem={renderAllPhotoItem}
-                    refreshing={props.photosState.loadingPhotos}
-                    data={props.photosState.photos}
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                ></FlatList>
-            </View>
-
-        </View>
-    )
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({
-    photoListContentsScrollView: {
-        flexGrow: 1,
-        justifyContent: 'center'
-    },
-    dNone: {
-        display: 'none'
-    },
-    photoScroll: {
-        display: "flex",
-        flexDirection: "row",
-        flexWrap: "nowrap",
-        marginTop: 0,
-    },
+  photoListContentsScrollView: {
+    flexGrow: 1,
+    justifyContent: 'center'
+  },
+  dNone: {
+    display: 'none'
+  },
+  photoScroll: {
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "nowrap",
+    marginTop: 0,
+  },
 })
 
 const mapStateToProps = (state: any) => {
-    return { ...state };
+  return { ...state };
 };
 
 export default connect(mapStateToProps)(PhotoList)
