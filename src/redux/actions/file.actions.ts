@@ -237,6 +237,16 @@ function setRootFolderContent(folderContent: any) {
 }
 
 function setUri(uri: string | Record<string, string> | undefined | null) {
+  if (uri) {
+    getLyticsData().then(user => {
+      analytics.track('share-to', {
+        email: user.email,
+        uri: uri.fileUri ? uri.fileUri : uri.toString && uri.toString()
+      }).catch(() => {
+      });
+    }).catch(() => {
+    });
+  }
   return { type: fileActionTypes.SET_URI, payload: uri }
 }
 

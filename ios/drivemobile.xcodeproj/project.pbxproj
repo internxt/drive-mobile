@@ -17,6 +17,7 @@
 		B1617F7E25B0A5A1001E575D /* ShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B1617F7425B0A5A1001E575D /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		B161803925B1892E001E575D /* Swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = B161803825B1892E001E575D /* Swift.swift */; };
 		B161803A25B1892E001E575D /* Swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = B161803825B1892E001E575D /* Swift.swift */; };
+		B162BE3B25C02EB10017D240 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B162BE3A25C02EB10017D240 /* GoogleService-Info.plist */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F0179492CB4F9CCB4066F5B8 /* libPods-drivemobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A41CBD9B630CB76BFF5E72F /* libPods-drivemobile.a */; };
 /* End PBXBuildFile section */
@@ -63,6 +64,7 @@
 		B1617F8625B0A7F2001E575D /* snacksRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = snacksRelease.entitlements; path = drivemobile/snacksRelease.entitlements; sourceTree = "<group>"; };
 		B161803725B1892D001E575D /* drivemobile-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "drivemobile-Bridging-Header.h"; sourceTree = "<group>"; };
 		B161803825B1892E001E575D /* Swift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift.swift; sourceTree = "<group>"; };
+		B162BE3A25C02EB10017D240 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		BABD52A2AC035780FF8D4AB0 /* Pods-drivemobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-drivemobile.release.xcconfig"; path = "Target Support Files/Pods-drivemobile/Pods-drivemobile.release.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		D4C766AD8D3D7184D060C0D4 /* Pods-drivemobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-drivemobile.debug.xcconfig"; path = "Target Support Files/Pods-drivemobile/Pods-drivemobile.debug.xcconfig"; sourceTree = "<group>"; };
@@ -93,6 +95,7 @@
 			isa = PBXGroup;
 			children = (
 				B1617F8625B0A7F2001E575D /* snacksRelease.entitlements */,
+				B162BE3A25C02EB10017D240 /* GoogleService-Info.plist */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
@@ -266,6 +269,7 @@
 			files = (
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				B162BE3B25C02EB10017D240 /* GoogleService-Info.plist in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 			);
@@ -427,7 +431,7 @@
 				INFOPLIST_FILE = drivemobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.2.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -456,7 +460,7 @@
 				INFOPLIST_FILE = drivemobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.2.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
