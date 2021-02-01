@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Image, Alert } from 'react-native';
+import React, { useState } from 'react'
+import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import { deviceStorage, normalize } from '../../helpers';
+import { normalize } from '../../helpers';
 import analytics from '../../helpers/lytics';
-import { userActions } from '../../redux/actions';
 import Intro from '../Intro'
 import { validateEmail } from '../Login/access';
-import { doRegister, isNullOrEmpty, isStrongPassword, resendActivationEmail } from './registerUtils';
+import { doRegister, isNullOrEmpty, isStrongPassword } from './registerUtils';
 
 function Register(props: any): JSX.Element {
   const [registerStep, setRegisterStep] = useState(1);
@@ -25,27 +24,6 @@ function Register(props: any): JSX.Element {
   const isValidEmail = validateEmail(email);
   const isValidFirstName = !isNullOrEmpty(firstName)
   const isValidLastName = !isNullOrEmpty(lastName)
-
-  useEffect(() => {
-    if (props.authenticationState.loggedIn === true) {
-      const rootFolderId = props.authenticationState.user.root_folder_id;
-
-      props.navigation.replace('FileExplorer', {
-        folderId: rootFolderId
-      })
-    } else {
-      (async () => {
-        const xToken = await deviceStorage.getItem('xToken')
-        const xUser = await deviceStorage.getItem('xUser')
-
-        if (xToken && xUser) {
-          props.dispatch(userActions.localSignIn(xToken, xUser))
-        } else {
-          setIsLoading(false)
-        }
-      })()
-    }
-  }, [props.authenticationState.loggedIn, props.authenticationState.token])
 
   if (showIntro) {
     return <Intro onFinish={() => setShowIntro(false)} />;
