@@ -1,53 +1,57 @@
 import { Console } from 'console';
 import * as FileSystem from 'expo-file-system';
+import * as ImageManipulator from 'expo-image-manipulator';
 
-export const previewsStorage = { 
-    existsPreviewFolder,
-    storePreview,
-    getPreviews
-  }
-  
+export const previewsStorage = {
+  existsPreviewFolder,
+  createPreview,
+  storePreview,
+  getPreviews
+}
+
 async function existsPreviewFolder() {
-    console.log("DIRECTORY: ---------------", FileSystem.documentDirectory)
+  let folder = await FileSystem.getInfoAsync(FileSystem.documentDirectory + 'previews');
 
-    let folder = await FileSystem.getInfoAsync(FileSystem.documentDirectory + "previews");
+  console.log("PREVIEWS FOLDER", folder)
 
-    console.log("PREVIEWS FOLDER", folder)
-
-    if (folder && !folder.exists) {
-      return false;
-    } else {
-      return true;
-    }
+  if (folder && !folder.exists) {
+    await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'previews');
+    return true;
+  } else {
+    return true;
   }
+}
 
-  
-async function storePreview(image?: any) {
-    if (!existsPreviewFolder()) {
-      console.log("CREATING PREVIEW FOLDER")
-      FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + "previews");
-    }
-    //const id = image.id.toString();
-  
-    /*const source = await FileSystem.readAsStringAsync(
-      image.uri
-    );
-  
-    /*let stored = await FileSystem.writeAsStringAsync(
-        FileSystem.documentDirectory + "previews/" + id + '.jpg',
-        image.uri,
-        { encoding: FileSystem.EncodingType.Base64 }
-    );*/
+function createPreview(imageUri: any) {
+  ImageManipulator.manipulateAsync(
+    imageUri,
+    [{ resize: { width: 110, height: 110 } }],
+    { compress: 0, format: ImageManipulator.SaveFormat.JPEG }
+  )
+    .then((result) => {
+      return result;
+    })
+    .catch((err) => {
+      console.log("[ ERROR CREATING PREVIEW ]", err)
+    })
+}
+
+async function storePreview(previewUri: any, name: string) {
+  const stored = await FileSystem.copyAsync({
+    from: previewUri,
+    to: FileSystem.documentDirectory + 'previews/' + name
+  });
+
+  return FileSystem.documentDirectory + 'previews/' + name;
 }
 
 async function getPreviews() {
-    let previews: any[] = [];
-    if (existsPreviewFolder()) {
-      let folder = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory + "previews");
-      folder.forEach((prev) => {
-        previews.push(prev);
-      })
-    }
-  
-    return previews;
-  }
+  let previews: any[] = [];
+
+  const folder = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory + "previews");
+
+  folder.forEach((prev) => {
+    previews.push(prev);
+  })
+  return previews;
+}
