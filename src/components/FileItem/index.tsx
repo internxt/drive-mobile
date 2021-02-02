@@ -12,13 +12,13 @@ import { deviceStorage, getLyticsData } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
 import { colors } from '../../redux/constants';
 import analytics from '../../helpers/lytics';
-import { IFile, IFolder } from '../FileList';
+import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { Reducers } from '../../redux/reducers/reducers';
 import * as FileSystem from 'expo-file-system'
 
 interface FileItemProps extends Reducers {
   isFolder: boolean
-  item: IFile & IFolder
+  item: IFile & IFolder | IUploadingFile
   dispatch?: any
   isLoading?: boolean
 }
@@ -48,7 +48,8 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
     // one tap on a file will download and preview the file
 
     // if the file is still uploading, do not do anything
-    if (props.isLoading) {
+    if (props.isLoading && !props.filesState.uploadFileUri) {
+      //console.log(props.filesState)
       console.log('--------------------CANT OPEN IT ITS LOADING--------------------------')
       return
     }
@@ -56,12 +57,9 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
     // once it stopped uploading
     if (props.filesState.uploadFileUri) {
       const fileInfo = await FileSystem.getInfoAsync(props.filesState.uploadFileUri)
-
+      console.log(fileInfo)
       if (fileInfo.exists) {
-        props.dispatch(fileActions.uploadFileSetUri(undefined))
         console.log('--- opening file ---')
-        console.log(fileInfo)
-        console.log('File exists')
         FileViewer.open(fileInfo.uri).catch(err => console.log('--- FILEVIEWER ERROR ---', err))
 
         return
@@ -168,8 +166,8 @@ function FileItem(props: FileItemProps) {
   });
 
   useEffect(() => {
-    setUploadProgress(props.filesState.progress)
-  }, [props.filesState.progress])
+    setUploadProgress(props.item.progress)
+  }, [props.item.progress])
 
   const item = props.item
 

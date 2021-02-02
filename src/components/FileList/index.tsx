@@ -1,3 +1,4 @@
+import { DocumentResult } from 'expo-document-picker';
 import React, { useEffect, useState } from 'react'
 import { ScrollView, Text, RefreshControl, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
@@ -10,6 +11,17 @@ export interface IFolder {
   id: number
   color: any
   icon: any
+}
+
+
+
+export interface IUploadingFile {
+  currentFolder: number
+  progress: number
+  name: string
+  size: number
+  type: string
+  uri: string
 }
 
 export interface IFile {
@@ -31,10 +43,15 @@ function FileList(props: any) {
   const { folderContent } = filesState;
   let folderList: IFolder[] = folderContent && folderContent.children || [];
   let fileList: IFile[] = folderContent && folderContent.files || [];
+  const [filesUploading, setFilesUploading] = useState([])
 
   useEffect(() => {
     setRefreshing(false)
   }, [props.filesState.folderContent])
+
+  useEffect(() => {
+    setFilesUploading(props.filesState.filesCurrentlyUploading)
+  }, [props.filesState.filesCurrentlyUploading])
 
   const searchString = props.filesState.searchString
 
@@ -59,7 +76,7 @@ function FileList(props: any) {
   }, [])
 
   const isUploading = props.filesState.isUploadingFileName
-  const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && !isUploading
+  const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && filesUploading.length === 0 && !isUploading
 
   return (
     <ScrollView
@@ -86,13 +103,15 @@ function FileList(props: any) {
       }
 
       {
-        isUploading ?
-          <FileItem
-            key={isUploading}
-            isFolder={false}
-            item={{ name: isUploading }}
-            isLoading={true}
-          />
+        filesUploading.length > 0 ?
+          filesUploading.map((file: IUploadingFile) =>
+            <FileItem
+              key={filesUploading.indexOf(file)}
+              isFolder={false}
+              item={file}
+              isLoading={true}
+            />
+          )
           :
           null
       }

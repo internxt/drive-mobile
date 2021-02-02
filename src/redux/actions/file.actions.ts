@@ -26,7 +26,11 @@ export const fileActions = {
   updateFolderMetadata,
   moveFile,
   setRootFolderContent,
-  setUri
+  setUri,
+  addUploadingFile,
+  addUploadedFile,
+  removeUploadingFile,
+  removeUploadedFile
 };
 
 function downloadFileStart(fileId: string) {
@@ -45,8 +49,24 @@ function downloadSelectedFileStop() {
   return { type: fileActionTypes.DOWNLOAD_SELECTED_FILE_STOP };
 }
 
-function uploadFileStart(fileName: string) {
-  return { type: fileActionTypes.ADD_FILE_REQUEST, payload: fileName };
+function uploadFileStart() {
+  return { type: fileActionTypes.ADD_FILE_REQUEST };
+}
+
+function addUploadingFile(file: any) {
+  return { type: fileActionTypes.ADD_UPLOADING_FILE, payload: file };
+}
+
+function addUploadedFile(file: any) {
+  return { type: fileActionTypes.ADD_UPLOADED_FILE, payload: file };
+}
+
+function removeUploadingFile(file: any) {
+  return { type: fileActionTypes.REMOVE_UPLOADING_FILE, payload: file };
+}
+
+function removeUploadedFile(file: any) {
+  return { type: fileActionTypes.REMOVE_UPLOADED_FILE, payload: file };
 }
 
 function uploadFileFinished() {
@@ -57,8 +77,10 @@ function uploadFileFailed() {
   return { type: fileActionTypes.ADD_FILE_FAILURE };
 }
 
-function uploadFileSetProgress(percentage: number) {
-  return { type: fileActionTypes.ADD_FILE_UPLOAD_PROGRESS, payload: percentage };
+function uploadFileSetProgress(progress: number, uri?: string) {
+  const payload = { progress, uri }
+
+  return { type: fileActionTypes.ADD_FILE_UPLOAD_PROGRESS, payload };
 }
 
 function uploadFileSetUri(uri: string | undefined) {
