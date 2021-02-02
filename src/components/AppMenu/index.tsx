@@ -209,8 +209,14 @@ function AppMenu(props: AppMenuProps) {
                     if (status === 'granted') {
                       const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All })
 
-                      console.log('This is a photo =>', result)
                       if (!result.cancelled) {
+                        const fileUploading: any = result
+
+                        fileUploading.progress = 0
+                        fileUploading.currentFolder = props.filesState.folderContent.currentFolder
+                        console.log('This is a photo =>', result)
+
+                        props.dispatch(fileActions.addUploadingFile(fileUploading))
                         uploadFile(result, props.filesState.folderContent.currentFolder)
                       }
                     } else {
