@@ -88,14 +88,15 @@ function AppMenu(props: AppMenuProps) {
             // setHasSpace
 
           } else if (res.respInfo.status === 201) {
-            props.dispatch(fileActions.uploadFileSetProgress(0))
-            props.dispatch(fileActions.uploadFileFinished())
             props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
 
           } else if (res.respInfo.status !== 502) {
             Alert.alert('Error', 'Cannot upload file');
           }
+
+          props.dispatch(fileActions.uploadFileFinished())
+          props.dispatch(fileActions.removeUploadingFile(result.name))
         })
         .catch((err) => {
           console.log(err)
@@ -108,6 +109,7 @@ function AppMenu(props: AppMenuProps) {
 
           props.dispatch(fileActions.uploadFileFailed())
           props.dispatch(fileActions.uploadFileFinished())
+          props.dispatch(fileActions.removeUploadingFile(result.name))
         })
 
     } catch (error) {
@@ -217,7 +219,7 @@ function AppMenu(props: AppMenuProps) {
                         console.log('This is a photo =>', result)
 
                         props.dispatch(fileActions.addUploadingFile(fileUploading))
-                        uploadFile(result, props.filesState.folderContent.currentFolder)
+                        uploadFile(fileUploading, props.filesState.folderContent.currentFolder)
                       }
                     } else {
                       Alert.alert('Camera permission needed to perform this action')
@@ -233,7 +235,14 @@ function AppMenu(props: AppMenuProps) {
                       const result = await launchCameraAsync()
 
                       if (!result.cancelled) {
-                        uploadFile(result, props.filesState.folderContent.currentFolder)
+                        const fileUploading: any = result
+
+                        fileUploading.progress = 0
+                        fileUploading.currentFolder = props.filesState.folderContent.currentFolder
+                        console.log('This is a taken photo =>', fileUploading)
+
+                        props.dispatch(fileActions.addUploadingFile(fileUploading))
+                        uploadFile(fileUploading, props.filesState.folderContent.currentFolder)
                       }
                     }
                   }
