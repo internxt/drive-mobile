@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { ScrollView, Text, RefreshControl, StyleSheet, Pressable, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
+import { previewsStorage } from '../../helpers/previewsStorage';
 import { PhotoActions } from '../../redux/actions';
 import EmptyAlbum from '../EmptyAlbum';
 import PhotoItem from '../PhotoItem';
@@ -41,7 +42,7 @@ function PhotoList(props: PhotoListProps) {
   useEffect(() => {
     setRefreshing(false)
     photoList = props.photosState.photos;
-    console.log("PHOTOLIST", props.photosState.photos)
+    previewsStorage.matchPreviews(photoList);
   }, [props.photosState.photos])
 
   const searchString = props.photosState.searchString
@@ -58,9 +59,9 @@ function PhotoList(props: PhotoListProps) {
 
   useEffect(() => {
     if (!props.photosState.photos) {
-      const rootPreviewId = props.authenticationState.user.rootPreviewId
+      const rootPreviewId = props.authenticationState.user.rootAlbumId
 
-      props.dispatch(PhotoActions.getFolderContent(rootPreviewId))
+      props.dispatch(PhotoActions.getAllPhotosContent(rootPreviewId))
     }
   }, [])
 
@@ -77,7 +78,7 @@ function PhotoList(props: PhotoListProps) {
   const renderAllPhotoItem = ({ item }: { item: IPhoto }) => (
     <Pressable
       onPress={() => {
-        props.navigation.navigate(props.title);
+        props.navigation.navigate('AlbumView');
       }}
       onLongPress={() => {
         //props.dispatch(fileActions.selectPhoto(item))

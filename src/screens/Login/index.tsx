@@ -5,7 +5,7 @@ import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/lytics';
-import { getPhotos } from '../../helpers/mediaAccess';
+import { getDevicePhotos } from '../../helpers/mediaAccess';
 import { normalize } from '../../helpers/normalize'
 import { PhotoActions, userActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
@@ -34,25 +34,6 @@ function Login(props: LoginProps): JSX.Element {
     if (props.authenticationState.loggedIn === true) {
       const user = props.authenticationState.user;
 
-      getAllPhotos(user.email, props.authenticationState.token, user.mnemonic)
-        .then(res => res.json()).then(res => {
-          console.log("RESULT GET----", res)
-          if (res) {
-            // TODO: map with previews
-            props.dispatch(PhotoActions.getAllPhotos(res));
-            props.dispatch(PhotoActions.setFolderContent(res))
-            return;
-          }
-        }).catch((err) => console.log("get all photos --- ", err))
-
-      getPhotos(props.authenticationState.user.rootAlbumId, '0').then((dataResult) => {
-        props.dispatch(PhotoActions.updateCursor(parseInt(dataResult?.index || '20')));
-        props.dispatch(PhotoActions.getAllPhotos(dataResult?.photos));
-        // TODO: Store previews on file://.../previews.
-      }).catch((err) => {
-        console.log("GETPHOTOS ERROR: ", err)
-      })
-
       props.navigation.replace('Home')
     } else {
       (async () => {
@@ -62,23 +43,6 @@ function Login(props: LoginProps): JSX.Element {
         if (xToken && xUser) {
           const localUser = JSON.parse(xUser);
 
-          getAllPhotos(localUser.email, xToken, localUser.mnemonic)
-            .then(res => res.json()).then(res => {
-              console.log("RESULT GET----", res)
-              if (res) {
-                // TODO: map with previews
-                props.dispatch(PhotoActions.setFolderContent(res))
-                return;
-              }
-            }).catch((err) => console.log("get all photos --- ", err))
-
-          getPhotos(props.authenticationState.user.rootAlbumId, '0').then((dataResult) => {
-            props.dispatch(PhotoActions.updateCursor(parseInt(dataResult?.index || '20')));
-            //props.dispatch(PhotoActions.getAllPhotos(dataResult?.photos));
-            // TODO: Store previews on file://.../previews.
-          }).catch((err) => {
-            console.log("GETPHOTOS ERROR: ", err)
-          })
           props.dispatch(userActions.localSignIn(xToken, xUser))
         } else {
           setIsLoading(false)

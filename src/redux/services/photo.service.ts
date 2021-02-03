@@ -2,12 +2,13 @@ import { deviceStorage } from '../../helpers';
 import { sortTypes } from '../constants';
 import { compare } from 'natural-orderby'
 import { IFile, IFolder } from '../../components/FileList';
+import { previewsStorage } from '../../helpers/previewsStorage';
 
 export const photoService = {
   getSortFunction,
   setHeaders,
   getAlbumContent,
-  getFolderContent
+  getAllPhotosContent
 };
 
 async function setHeaders() {
@@ -21,8 +22,6 @@ async function setHeaders() {
 
   return headers;
 }
-
-
 
 // To obtain an AlbumView of an albumId
 function getAlbumContent(albumId: number): Promise<any> {
@@ -40,7 +39,7 @@ function getAlbumContent(albumId: number): Promise<any> {
   });
 }
 
-function getFolderContent(user: any): Promise<any> {
+function getAllPhotosContent(user: any): Promise<any> {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
 
@@ -50,7 +49,15 @@ function getFolderContent(user: any): Promise<any> {
     }).then(res => {
       if (res.status !== 200) { throw res; }
       return res.json();
-    }).then(resolve)
+    }).then(async (res2) => {
+      if (res2) {
+        const completedPhotos = await previewsStorage.matchPreviews(res2);
+
+        console.log("completeeeeed-----", completedPhotos)
+        resolve(completedPhotos)
+      }
+      resolve('');
+    })
       .catch(reject);
   });
 }

@@ -16,7 +16,7 @@ import { Reducers } from '../../redux/reducers/reducers';
 import FileDetailsModal from '../../modals/FileDetailsModal';
 import PhotoItem from '../../components/PhotoItem';
 import AlbumCard from '../../components/AlbumCard';
-import { getPhotos } from '../../helpers/mediaAccess';
+import { getDevicePhotos } from '../../helpers/mediaAccess';
 import { PhotoActions } from '../../redux/actions/photo.actions';
 import PhotoList from '../../components/PhotoList';
 import { previewsStorage } from '../../helpers/previewsStorage';
@@ -37,13 +37,22 @@ function Home(props: HomeProps): JSX.Element {
     const { user } = props.authenticationState;
     const { token } = props.authenticationState;
 
-    props.dispatch(PhotoActions.getFolderContent(props.authenticationState.user))
+    props.dispatch(PhotoActions.getAllPhotosContent(props.authenticationState.user))
+
+    getDevicePhotos(props.authenticationState.user.rootAlbumId, '0').then((dataResult) => {
+      props.dispatch(PhotoActions.updateCursor(parseInt(dataResult?.index || '20')));
+      props.dispatch(PhotoActions.getDevicePhotos(dataResult?.photos));
+      // TODO: Store previews on file://.../previews.
+    }).catch((err) => {
+      console.log("GETPHOTOS ERROR: ", err)
+    })
   }, [])
 
   // Get device photos to upload new content
   useEffect(() => {
+    console.log("DEVICEEEEE------", props.photosState.devicePhotos)
     if (props.photosState.devicePhotos.length > 0) {
-
+      console.log("TODO--------------------------------\n")
     }
   }, [props.photosState.devicePhotos])
 

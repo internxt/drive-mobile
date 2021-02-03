@@ -20,7 +20,7 @@ export const PhotoActions = {
   getAllPhotos,
   getDevicePhotos,
   getDeletePhotos,
-  getFolderContent,
+  getAllPhotosContent,
   setFolderContent,
   selectPhoto,
   deselectPhoto,
@@ -91,11 +91,11 @@ function getDevicePhotos(photos: any) {
   return { type: photoActionTypes.GET_DEVICE_SUCCESS, payload: photos };
 }
 
-function getFolderContent(user: any) {
+function getAllPhotosContent(user: any) {
   return (dispatch: Dispatch) => {
     dispatch(request());
     photoService
-      .getFolderContent(user)
+      .getAllPhotosContent(user)
       .then((data: any) => {
         console.log("getfoldercontent......", data)
         dispatch(success(data));

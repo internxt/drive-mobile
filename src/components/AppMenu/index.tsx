@@ -118,7 +118,7 @@ function AppMenu(props: AppMenuProps) {
 
           } else if (res.res.respInfo.status === 201) {
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-            props.dispatch(PhotoActions.getFolderContent(props.authenticationState.user))
+            props.dispatch(PhotoActions.getAllPhotosContent(props.authenticationState.user))
 
           } else {
             console.log("3", res)
