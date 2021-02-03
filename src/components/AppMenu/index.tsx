@@ -76,7 +76,7 @@ function AppMenu(props: AppMenuProps) {
           if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
             props.dispatch(fileActions.removeUploadingFile(result.id))
             props.dispatch(fileActions.uploadFileSetUri(result.uri)) // Set the uri of the file so FileItem can get it as props
-            console.log('--- FINISHED ---', result.uri)
+            console.log('--- FINISHED ---')
           }
         })
         .then((res) => {
@@ -89,7 +89,10 @@ function AppMenu(props: AppMenuProps) {
             // setHasSpace
 
           } else if (res.respInfo.status === 201) {
-            props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
+            if (props.filesState.folderContent.currentFolder === currentFolder) {
+              props.dispatch(fileActions.getFolderContent(currentFolder.toString()))
+            }
+
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
 
           } else if (res.respInfo.status !== 502) {
