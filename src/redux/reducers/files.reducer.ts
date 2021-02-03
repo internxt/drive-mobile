@@ -77,7 +77,7 @@ export function filesReducer(state = initialState, action: any): FilesState {
   case fileActionTypes.REMOVE_UPLOADING_FILE:
     return {
       ...state,
-      filesCurrentlyUploading: state.filesCurrentlyUploading.filter(file => file.name !== action.payload)
+      filesCurrentlyUploading: state.filesCurrentlyUploading.filter(file => file.id !== action.payload)
     };
   case fileActionTypes.ADD_FILE_SUCCESS:
     return {
@@ -97,7 +97,7 @@ export function filesReducer(state = initialState, action: any): FilesState {
 
   case fileActionTypes.ADD_FILE_UPLOAD_PROGRESS:
     if (state.filesCurrentlyUploading.length > 0) {
-      const index = state.filesCurrentlyUploading.findIndex(x => x.uri === action.payload.uri);
+      const index = state.filesCurrentlyUploading.findIndex(x => x.id === action.payload.id);
 
       if (state.filesCurrentlyUploading[index]) {
         state.filesCurrentlyUploading[index].progress = action.payload.progress

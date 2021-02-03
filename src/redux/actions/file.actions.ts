@@ -1,5 +1,5 @@
 import { Dispatch } from 'redux';
-import { getLyticsData } from '../../helpers';
+import { deviceStorage, getLyticsData } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { fileActionTypes } from '../constants';
 import { fileService } from '../services';
@@ -61,8 +61,8 @@ function addUploadedFile(file: any) {
   return { type: fileActionTypes.ADD_UPLOADED_FILE, payload: file };
 }
 
-function removeUploadingFile(file: any) {
-  return { type: fileActionTypes.REMOVE_UPLOADING_FILE, payload: file };
+function removeUploadingFile(id: string) {
+  return { type: fileActionTypes.REMOVE_UPLOADING_FILE, payload: id };
 }
 
 function removeUploadedFile(file: any) {
@@ -77,8 +77,8 @@ function uploadFileFailed() {
   return { type: fileActionTypes.ADD_FILE_FAILURE };
 }
 
-function uploadFileSetProgress(progress: number, uri?: string) {
-  const payload = { progress, uri }
+function uploadFileSetProgress(progress: number, id: string) {
+  const payload = { progress, id }
 
   return { type: fileActionTypes.ADD_FILE_UPLOAD_PROGRESS, payload };
 }
@@ -88,7 +88,7 @@ function uploadFileSetUri(uri: string | undefined) {
 }
 
 function getFolderContent(folderId: string) {
-  const id = parseInt(folderId);
+  const id = parseInt(folderId)
 
   if (isNaN(id)) {
     return (dispatch: Dispatch) => {

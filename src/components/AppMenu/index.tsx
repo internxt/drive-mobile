@@ -1,6 +1,7 @@
 import { getDocumentAsync } from 'expo-document-picker';
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker';
-import React, { Fragment, useState, useRef, useEffect } from 'react'
+import { uniqueId } from 'lodash';
+import React, { Fragment, useState, useRef } from 'react'
 import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -69,12 +70,13 @@ function AppMenu(props: AppMenuProps) {
           { name: 'xfile', filename: result.name, data: finalUri }
         ] )
         .uploadProgress({ count: 10 }, async (sent, total) => {
-          props.dispatch(fileActions.uploadFileSetProgress( sent / total, result.uri ))
+          props.dispatch(fileActions.uploadFileSetProgress( sent / total, result.id ))
           //console.log('--- UPLOAD PROGRESS appmenu ---', sent / total, '(sent)', sent, '(total)', total )
 
           if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
-            props.dispatch(fileActions.removeUploadingFile(result.name))
+            props.dispatch(fileActions.removeUploadingFile(result.id))
             props.dispatch(fileActions.uploadFileSetUri(result.uri)) // Set the uri of the file so FileItem can get it as props
+            props.dispatch(fileActions.addUploadedFile(result))
             console.log('--- FINISHED ---', result.uri)
           }
         })
@@ -88,7 +90,7 @@ function AppMenu(props: AppMenuProps) {
             // setHasSpace
 
           } else if (res.respInfo.status === 201) {
-            props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
+            props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder, result))
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
 
           } else if (res.respInfo.status !== 502) {
@@ -193,6 +195,9 @@ function AppMenu(props: AppMenuProps) {
 
                         fileUploading.progress = 0
                         fileUploading.currentFolder = props.filesState.folderContent.currentFolder
+                        fileUploading.createdAt = new Date()
+                        fileUploading.id = uniqueId()
+
                         console.log('This is a document =>', fileUploading)
 
                         props.dispatch(fileActions.addUploadingFile(fileUploading))
@@ -216,6 +221,9 @@ function AppMenu(props: AppMenuProps) {
 
                         fileUploading.progress = 0
                         fileUploading.currentFolder = props.filesState.folderContent.currentFolder
+                        fileUploading.createdAt = new Date()
+                        fileUploading.id = uniqueId()
+
                         console.log('This is a photo =>', result)
 
                         props.dispatch(fileActions.addUploadingFile(fileUploading))
@@ -239,6 +247,9 @@ function AppMenu(props: AppMenuProps) {
 
                         fileUploading.progress = 0
                         fileUploading.currentFolder = props.filesState.folderContent.currentFolder
+                        fileUploading.createdAt = new Date()
+                        fileUploading.id = uniqueId()
+
                         console.log('This is a taken photo =>', fileUploading)
 
                         props.dispatch(fileActions.addUploadingFile(fileUploading))

@@ -49,19 +49,15 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
 
     // if the file is still uploading, do not do anything
     if (props.isLoading && !props.filesState.uploadFileUri) {
-      //console.log(props.filesState)
-      console.log('--------------------CANT OPEN IT ITS LOADING--------------------------')
       return
     }
 
     // once it stopped uploading
     if (props.filesState.uploadFileUri) {
       const fileInfo = await FileSystem.getInfoAsync(props.filesState.uploadFileUri)
-      console.log(fileInfo)
-      if (fileInfo.exists) {
-        console.log('--- opening file ---')
-        FileViewer.open(fileInfo.uri).catch(err => console.log('--- FILEVIEWER ERROR ---', err))
 
+      if (fileInfo.exists) {
+        FileViewer.open(fileInfo.uri).catch(() => {})
         return
       }
     }
@@ -166,6 +162,10 @@ function FileItem(props: FileItemProps) {
   });
 
   useEffect(() => {
+    console.log(props.item)
+  }, [])
+
+  useEffect(() => {
     setUploadProgress(props.item.progress)
   }, [props.item.progress])
 
@@ -207,16 +207,16 @@ function FileItem(props: FileItemProps) {
                         null
                     }
                   </View>
-                  :
-                  <IconFile label={props.item.type || ''} isLoading={isLoading} />
+                  : // once local upload implelemented, remove conditional
+                  <IconFile label={props.item.bucket ? props.item.type || '' : props.item.name.split('.').pop()} isLoading={isLoading} />
               }
             </View>
 
             <View style={styles.nameAndTime}>
               <Text
                 style={[styles.fileName, extendStyles.text]}
-                numberOfLines={1}
-              >{props.item.name}</Text>
+                numberOfLines={1} // once local upload implemented, remove conditional
+              >{props.item.bucket ? props.item.name : props.item.name.split('.').shift()}</Text>
 
               {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
             </View>
@@ -275,6 +275,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   itemIcon: {
+    borderWidth: 1
   },
   nameAndTime: {
     flexDirection: 'column',

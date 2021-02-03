@@ -1,4 +1,3 @@
-import { DocumentResult } from 'expo-document-picker';
 import React, { useEffect, useState } from 'react'
 import { ScrollView, Text, RefreshControl, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
@@ -13,9 +12,8 @@ export interface IFolder {
   icon: any
 }
 
-
-
 export interface IUploadingFile {
+  id: number
   currentFolder: number
   progress: number
   name: string
@@ -44,6 +42,7 @@ function FileList(props: any) {
   let folderList: IFolder[] = folderContent && folderContent.children || [];
   let fileList: IFile[] = folderContent && folderContent.files || [];
   const [filesUploading, setFilesUploading] = useState([])
+  const [filesUploaded, setFilesUploaded] = useState([])
 
   useEffect(() => {
     setRefreshing(false)
@@ -52,6 +51,10 @@ function FileList(props: any) {
   useEffect(() => {
     setFilesUploading(props.filesState.filesCurrentlyUploading)
   }, [props.filesState.filesCurrentlyUploading])
+
+  useEffect(() => {
+    setFilesUploaded(props.filesState.filesAlreadyUploaded)
+  }, [props.filesState.filesAlreadyUploaded])
 
   const searchString = props.filesState.searchString
 
@@ -135,6 +138,19 @@ function FileList(props: any) {
           />
         )
       }
+
+      {/* {
+        filesUploaded.length > 0 ?
+          filesUploaded.map((file: any) =>
+            <FileItem 
+              key={file.id}
+              isFolder={false}
+              item={file}
+            />
+          )
+          :
+          null
+      } */}
     </ScrollView>
   )
 }
