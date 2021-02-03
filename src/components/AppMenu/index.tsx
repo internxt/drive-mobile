@@ -3,6 +3,8 @@ import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCa
 import React, { Fragment, useState, useRef, useEffect } from 'react'
 import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import * as ImageManipulator from 'expo-image-manipulator';
+import * as FileSystem from 'expo-file-system';
 import { connect } from 'react-redux';
 import axios from 'axios'
 import RNFetchBlob from 'rn-fetch-blob';
@@ -11,6 +13,7 @@ import { getIcon } from '../../helpers/getIcon';
 import analytics from '../../helpers/lytics';
 import { PhotoActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
+import { previewsStorage } from '../../helpers/previewsStorage';
 
 interface AppMenuProps {
   navigation?: any
@@ -57,8 +60,24 @@ function AppMenu(props: AppMenuProps) {
         result.name = result.uri.split('/').pop();
       }
 
-      console.log("RESULT", result)
       props.dispatch(PhotoActions.uploadPhotoStart(result.name));
+
+      const exist = await previewsStorage.existsPreview(result.name);
+
+      if (!exist) {
+
+        const preview = await ImageManipulator.manipulateAsync(
+          result.uri,
+          [{ resize: { width: 220 } }],
+          { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
+        );
+
+        await FileSystem.copyAsync({
+          from: preview.uri,
+          to: FileSystem.documentDirectory + 'previews/' + result.name
+        });
+      }
+
       const body = new FormData();
       const token = props.authenticationState.token;
       const mnemonic = props.authenticationState.user.mnemonic;

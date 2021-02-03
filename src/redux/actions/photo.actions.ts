@@ -2,6 +2,7 @@ import { Dispatch } from 'redux';
 import { getLyticsData } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
+import { photoService } from '../services/photo.service';
 //import { PhotoService } from '../services';
 import { userActions } from './user.actions';
 
@@ -17,6 +18,7 @@ export const PhotoActions = {
   uploadPhotoSetProgress,
   getAlbumList,
   getAllPhotos,
+  getDevicePhotos,
   getDeletePhotos,
   getFolderContent,
   setFolderContent,
@@ -38,8 +40,8 @@ function setIsLoading(value: boolean) {
 }
 
 function updateCursor(newCursor: number) {
-    return { type: photoActionTypes.UPDATE_CURSOR, payload: newCursor };
-  }
+  return { type: photoActionTypes.UPDATE_CURSOR, payload: newCursor };
+}
 
 function downloadPhotoStart(photoId: string) {
   return { type: photoActionTypes.DOWNLOAD_PHOTO_START, payload: photoId };
@@ -85,7 +87,38 @@ function getDeletePhotos(photos: any) {
   return { type: photoActionTypes.GET_DELETE_SUCCESS, payload: photos };
 }
 
-function getFolderContent(folderId: string) {
+function getDevicePhotos(photos: any) {
+  return { type: photoActionTypes.GET_DEVICE_SUCCESS, payload: photos };
+}
+
+function getFolderContent(user: any) {
+  return (dispatch: Dispatch) => {
+    dispatch(request());
+    photoService
+      .getFolderContent(user)
+      .then((data: any) => {
+        console.log("getfoldercontent......", data)
+        dispatch(success(data));
+      }).catch(error => {
+        dispatch(failure(error));
+        if (error.status === 401) {
+          dispatch(userActions.signout());
+        }
+      });
+  };
+
+  function request() {
+    return { type: photoActionTypes.GET_PHOTOS_REQUEST };
+  }
+  function success(payload: any) {
+    return { type: photoActionTypes.GET_PHOTOS_SUCCESS, payload };
+  }
+  function failure(error: any) {
+    return { type: photoActionTypes.GET_PHOTOS_FAILURE, error };
+  }
+}
+
+function getAlbumContent(folderId: string) {
   const id = parseInt(folderId);
 
   if (isNaN(id)) {
@@ -121,7 +154,7 @@ function getFolderContent(folderId: string) {
 }
 
 function setFolderContent(photos: any[]) {
-    return { type: photoActionTypes.SET_FOLDER_CONTENT, payload: photos };
+    return { type: photoActionTypes.SET_ALBUM_CONTENT, payload: photos };
   }
 
 function deleteItems(items, folderToReload) {

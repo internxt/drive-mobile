@@ -1,6 +1,7 @@
 //import { IPhoto, IFolder } from '../../components/PhotoList';
 import { IAlbum } from '../../components/AlbumList';
 import { IPhoto } from '../../components/PhotoList';
+import { decryptText, decryptTextWithKey } from '../../helpers';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
 import { photoService } from '../services/photo.service';
@@ -56,17 +57,17 @@ const initialState: PhotosState = {
 
 export function PhotosReducer(state = initialState, action: any): PhotosState {
   switch (action.type) {
-    case photoActionTypes.UPDATE_CURSOR:
-      return {
+  case photoActionTypes.UPDATE_CURSOR:
+    return {
         ...state,
         cursor: action.payload
       };
-    case photoActionTypes.SET_ALBUM_CONTENT:
+  case photoActionTypes.SET_ALBUM_CONTENT:
       return {
         ...state,
         photos: action.payload
       };
-    case photoActionTypes.GET_ALBUMS_SUCCESS:
+  case photoActionTypes.GET_ALBUMS_SUCCESS:
       return {
         ...state,
         loadingAlbums: false,
@@ -74,7 +75,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
         selectedPhoto: null,
         selectedItems: []
       };
-    case photoActionTypes.GET_DELETE_SUCCESS:
+  case photoActionTypes.GET_DELETE_SUCCESS:
       return {
         ...state,
         loadingDeleted: false,
@@ -82,19 +83,25 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
         selectedPhoto: null,
         selectedItems: []
       };
-    case photoActionTypes.GET_PHOTOS_REQUEST:
+  case photoActionTypes.GET_DEVICE_SUCCESS:
+
+      return {
+        ...state,
+        devicePhotos: [...state.devicePhotos, action.payload]
+      };
+  case photoActionTypes.GET_PHOTOS_REQUEST:
       return {
         ...state,
         loading: true
       };
-    case photoActionTypes.GET_PHOTOS_SUCCESS:
+  case photoActionTypes.GET_PHOTOS_SUCCESS:
       return {
         ...state,
         loadingPhotos: false,
         selectedPhoto: null,
         photos: action.payload
       };
-    case photoActionTypes.GET_PHOTOS_FAILURE:
+  case photoActionTypes.GET_PHOTOS_FAILURE:
       return {
         ...state,
         loading: false,
@@ -132,9 +139,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     case photoActionTypes.SELECT_PHOTO:
       // Check if Photo object is already on selection list
       const isAlreadySelected = state.selectedItems.filter((element: any) => {
-        const elementIsFolder = !(element.PhotoId);
-
-        return elementIsFolder ? action.payload.id === element.id : action.payload.PhotoId === element.PhotoId
+        return action.payload.photoId === element.photoId
       }).length > 0;
 
       return {
