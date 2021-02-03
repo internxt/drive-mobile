@@ -275,7 +275,6 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   itemIcon: {
-    borderWidth: 1
   },
   nameAndTime: {
     flexDirection: 'column',

@@ -54,6 +54,7 @@ function FileList(props: any) {
 
   useEffect(() => {
     setFilesUploaded(props.filesState.filesAlreadyUploaded)
+    console.log('already', props.filesState.filesAlreadyUploaded)
   }, [props.filesState.filesAlreadyUploaded])
 
   const searchString = props.filesState.searchString
@@ -79,7 +80,7 @@ function FileList(props: any) {
   }, [])
 
   const isUploading = props.filesState.isUploadingFileName
-  const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && filesUploading.length === 0 && !isUploading
+  const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && filesUploading.length === 0 && filesUploaded.length === 0 && !isUploading
 
   return (
     <ScrollView
@@ -139,7 +140,7 @@ function FileList(props: any) {
         )
       }
 
-      {/* {
+      {
         filesUploaded.length > 0 ?
           filesUploaded.map((file: any) =>
             <FileItem 
@@ -150,7 +151,7 @@ function FileList(props: any) {
           )
           :
           null
-      } */}
+      }
     </ScrollView>
   )
 }

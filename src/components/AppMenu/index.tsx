@@ -76,12 +76,11 @@ function AppMenu(props: AppMenuProps) {
           if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
             props.dispatch(fileActions.removeUploadingFile(result.id))
             props.dispatch(fileActions.uploadFileSetUri(result.uri)) // Set the uri of the file so FileItem can get it as props
-            props.dispatch(fileActions.addUploadedFile(result))
             console.log('--- FINISHED ---', result.uri)
           }
         })
         .then((res) => {
-          console.log(res.respInfo.status)
+          //console.log(res.respInfo.status)
           props.dispatch(fileActions.uploadFileSetUri(undefined))
           if (res.respInfo.status === 401) {
             throw res;
@@ -90,15 +89,15 @@ function AppMenu(props: AppMenuProps) {
             // setHasSpace
 
           } else if (res.respInfo.status === 201) {
-            props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder, result))
+            props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
 
           } else if (res.respInfo.status !== 502) {
             Alert.alert('Error', 'Cannot upload file');
           }
 
-          props.dispatch(fileActions.uploadFileFinished())
-          props.dispatch(fileActions.removeUploadingFile(result.name))
+          props.dispatch(fileActions.uploadFileFinished(result.id))
+          //props.dispatch(fileActions.removeUploadingFile(result.id))
         })
         .catch((err) => {
           console.log(err)
@@ -110,8 +109,8 @@ function AppMenu(props: AppMenuProps) {
           }
 
           props.dispatch(fileActions.uploadFileFailed())
-          props.dispatch(fileActions.uploadFileFinished())
-          props.dispatch(fileActions.removeUploadingFile(result.name))
+          props.dispatch(fileActions.uploadFileFinished(result.id))
+          //props.dispatch(fileActions.removeUploadingFile(result.id))
         })
 
     } catch (error) {
@@ -245,6 +244,10 @@ function AppMenu(props: AppMenuProps) {
                       if (!result.cancelled) {
                         const fileUploading: any = result
 
+                        // Set name for pics/photos
+                        if (!fileUploading.name) {
+                          fileUploading.name = result.uri.split('/').pop()
+                        }
                         fileUploading.progress = 0
                         fileUploading.currentFolder = props.filesState.folderContent.currentFolder
                         fileUploading.createdAt = new Date()
