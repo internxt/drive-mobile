@@ -30,7 +30,7 @@ function hasMediaAccessPermissions() {
     return manipImg;
 }*/
 
-export async function getPhotos(rootAlbumId: any, cursor: string) {
+export async function getDevicePhotos(rootAlbumId: any, cursor: string) {
   let data;
 
   const hasPermission = await hasMediaAccessPermissions();
@@ -59,7 +59,7 @@ export async function getPhotos(rootAlbumId: any, cursor: string) {
     )
 
     await FileSystem.copyAsync({
-      from: asset.uri,
+      from: preview.uri,
       to: FileSystem.documentDirectory + 'previews/' + asset.filename
     });
 
@@ -77,9 +77,8 @@ export async function getPhotos(rootAlbumId: any, cursor: string) {
     return newDevicePhoto;
   }));
 
-  const previews = await previewsStorage.getPreviews();
+  // const previews = await previewsStorage.getPreviews();
 
-  console.log("PHOTOS", photos)
   return { photos: photos, index: data.endCursor };
 }
 

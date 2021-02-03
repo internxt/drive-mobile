@@ -5,6 +5,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 export const previewsStorage = {
   existsPreviewFolder,
   createPreview,
+  existsPreview,
   storePreview,
   getPreviews
 }
@@ -36,8 +37,35 @@ function createPreview(imageUri: any) {
     })
 }
 
+async function existsPreview(name: string) {
+  const exists = await FileSystem.readDirectoryAsync(
+    FileSystem.documentDirectory + 'previews'
+  );
+
+  if (exists.length > 0) {
+    const existingPrev = exists.find((x) => x === name);
+
+    if (existingPrev) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 async function storePreview(previewUri: any, name: string) {
-  const stored = await FileSystem.copyAsync({
+  const exists = await FileSystem.readDirectoryAsync(
+    FileSystem.documentDirectory + 'previews'
+  );
+
+  if (exists.length > 0) {
+    const existingPrev = exists.find((x) => x === name);
+
+    if (existingPrev) {
+      return;
+    }
+  }
+  await FileSystem.copyAsync({
     from: previewUri,
     to: FileSystem.documentDirectory + 'previews/' + name
   });
@@ -50,8 +78,12 @@ async function getPreviews() {
 
   const folder = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory + "previews");
 
-  folder.forEach((prev) => {
-    previews.push(prev);
+  folder.forEach((prevName) => {
+    const uri = FileSystem.documentDirectory + 'previews/' + prevName;
+
+    previews.push(uri);
   })
+
+  console.log("PREVIEW URIS---", previews)
   return previews;
 }
