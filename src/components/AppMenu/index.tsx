@@ -71,7 +71,7 @@ function AppMenu(props: AppMenuProps) {
         ] )
         .uploadProgress({ count: 10 }, async (sent, total) => {
           props.dispatch(fileActions.uploadFileSetProgress( sent / total, result.id ))
-          //console.log('--- UPLOAD PROGRESS appmenu ---', sent / total, '(sent)', sent, '(total)', total )
+          console.log('--- UPLOAD PROGRESS appmenu ---', sent / total, '(sent)', sent, '(total)', total )
 
           if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
             props.dispatch(fileActions.removeUploadingFile(result.id))
@@ -96,7 +96,7 @@ function AppMenu(props: AppMenuProps) {
             Alert.alert('Error', 'Cannot upload file');
           }
 
-          props.dispatch(fileActions.uploadFileFinished(result.id))
+          props.dispatch(fileActions.uploadFileFinished(result.name))
           //props.dispatch(fileActions.removeUploadingFile(result.id))
         })
         .catch((err) => {
@@ -109,14 +109,14 @@ function AppMenu(props: AppMenuProps) {
           }
 
           props.dispatch(fileActions.uploadFileFailed())
-          props.dispatch(fileActions.uploadFileFinished(result.id))
+          props.dispatch(fileActions.uploadFileFinished(result.name))
           //props.dispatch(fileActions.removeUploadingFile(result.id))
         })
 
     } catch (error) {
       analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
       props.dispatch(fileActions.uploadFileFailed())
-      props.dispatch(fileActions.uploadFileFinished())
+      props.dispatch(fileActions.uploadFileFinished(result.name))
       console.log(error)
     }
   }
@@ -218,6 +218,10 @@ function AppMenu(props: AppMenuProps) {
                       if (!result.cancelled) {
                         const fileUploading: any = result
 
+                        // Set name for pics/photos
+                        if (!fileUploading.name) {
+                          fileUploading.name = result.uri.split('/').pop()
+                        }
                         fileUploading.progress = 0
                         fileUploading.currentFolder = props.filesState.folderContent.currentFolder
                         fileUploading.createdAt = new Date()

@@ -69,8 +69,8 @@ function removeUploadedFile(file: any) {
   return { type: fileActionTypes.REMOVE_UPLOADED_FILE, payload: file };
 }
 
-function uploadFileFinished(id?: string) {
-  return { type: fileActionTypes.ADD_FILE_SUCCESS, payload: id };
+function uploadFileFinished(name: string) {
+  return { type: fileActionTypes.ADD_FILE_SUCCESS, payload: name };
 }
 
 function uploadFileFailed() {

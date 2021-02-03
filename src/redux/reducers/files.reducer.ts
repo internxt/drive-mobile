@@ -88,7 +88,8 @@ export function filesReducer(state = initialState, action: any): FilesState {
       loading: false,
       isUploading: false,
       isUploadingFileName: null,
-      filesAlreadyUploaded: state.filesAlreadyUploaded.filter(file => file.id !== action.payload)
+      filesCurrentlyUploading: state.filesCurrentlyUploading.filter(file => file.name !== action.payload),
+      filesAlreadyUploaded: state.filesAlreadyUploaded.filter(file => file.name !== action.payload)
     };
 
   case fileActionTypes.ADD_FILE_FAILURE:
