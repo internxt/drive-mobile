@@ -109,10 +109,9 @@ function closeAddItemModal() {
   };
 }
 
-function openSelectPhotoModal() {
+function openSelectPhotoModal(photo: any) {
   return (dispatch: Dispatch) => {
-    
-    dispatch({ type: layoutActionTypes.OPEN_SELECT_PHOTO_MODAL});
+    dispatch({ type: layoutActionTypes.OPEN_SELECT_PHOTO_MODAL, payload: photo });
   };
 }
 
