@@ -14,6 +14,7 @@ import analytics from '../../helpers/lytics';
 import { PhotoActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
 import { previewsStorage } from '../../helpers/previewsStorage';
+import { createNavigator } from 'react-navigation';
 
 interface AppMenuProps {
   navigation?: any
@@ -48,6 +49,53 @@ function AppMenu(props: AppMenuProps) {
     }
   }, [hasSpace])
 
+  const uploadPreview = async (preview: any, props: any, headers: any) => {
+    const body = new FormData();
+
+    preview.uri.replace('file:///', 'file:/');
+
+    body.append('xfile', preview, preview.name);
+    body.append('photoId', preview.photoId);
+
+    const regex = /^(.*:\/{0,2})\/?(.*)$/gm
+    const file = preview.uri.replace(regex, '$2')
+
+    const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(preview.uri);
+
+    RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
+      [
+        { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
+      ])
+      .uploadProgress({ count: 10 }, (sent, total) => {
+
+      })
+      .then((res) => {
+        if (res.respInfo.status === 401) {
+          throw res;
+        }
+
+        const data = res;
+
+        return { res: res, data };
+      })
+      .then(res => {
+        if (res.res.respInfo.status === 402) {
+
+        } else if (res.res.respInfo.status === 201) {
+          // PREVIEW UPLOADED
+        } else {
+
+        }
+      })
+      .catch((err) => {
+        if (err.status === 401) {
+          props.dispatch(userActions.signout())
+        } else {
+          console.log('Cannot upload photo\n' + err)
+        }
+      })
+  }
+
   const uploadPhoto = async (result: any, props: any) => {
 
     const userData = await getLyticsData()
@@ -60,27 +108,13 @@ function AppMenu(props: AppMenuProps) {
         result.name = result.uri.split('/').pop();
       }
 
-      props.dispatch(PhotoActions.uploadPhotoStart(result.name));
-
-      const exist = await previewsStorage.existsPreview(result.name);
-
-      if (!exist) {
-
-        const preview = await ImageManipulator.manipulateAsync(
-          result.uri,
-          [{ resize: { width: 220 } }],
-          { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
-        );
-
-        await FileSystem.copyAsync({
-          from: preview.uri,
-          to: FileSystem.documentDirectory + 'previews/' + result.name
-        });
-      }
-
-      const body = new FormData();
       const token = props.authenticationState.token;
       const mnemonic = props.authenticationState.user.mnemonic;
+
+      props.dispatch(PhotoActions.uploadPhotoStart(result.name));
+      const regex = /^(.*:\/{0,2})\/?(.*)$/gm
+
+      const body = new FormData();
 
       body.append('xfile', result, result.name);
 
@@ -90,12 +124,11 @@ function AppMenu(props: AppMenuProps) {
         'Content-Type': 'multipart/form-data'
       };
 
-      const regex = /^(.*:\/{0,2})\/?(.*)$/gm
       const file = result.uri.replace(regex, '$2')
 
-      const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri)
+      const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri);
 
-      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api//photos/storage/upload`, headers,
+      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photo/upload`, headers,
         [
           { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
         ])
@@ -106,26 +139,42 @@ function AppMenu(props: AppMenuProps) {
         .then((res) => {
           if (res.respInfo.status === 401) {
             throw res;
-          }
-
-          const data = res;
-
-          return { res: res, data };
-        })
-        .then(res => {
-          if (res.res.respInfo.status === 402) {
+          } else if (res.respInfo.status === 402) {
             setHasSpace(false)
 
-          } else if (res.res.respInfo.status === 201) {
-            analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-            props.dispatch(PhotoActions.getAllPhotosContent(props.authenticationState.user))
-
+          } else if (res.respInfo.status === 201) {
+            return res.json();
           } else {
-            console.log("3", res)
-            Alert.alert('Error', 'Cannot upload file');
+            Alert.alert('Error', 'Cannot upload photo');
           }
+        })
+        .then(async res => {
+          analytics.track('photo-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { });
 
-          props.dispatch(PhotoActions.uploadPhotoSetProgress(0))
+          // Create photo preview and store on device
+          const prev = await ImageManipulator.manipulateAsync(
+            result.uri,
+            [{ resize: { width: 220 } }],
+            { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
+          );
+
+          await FileSystem.copyAsync({
+            from: prev.uri,
+            to: FileSystem.documentDirectory + 'previews/' + result.name
+          });
+
+          const preview = {
+            uri: FileSystem.documentDirectory + 'previews/' + result.name,
+            height: prev.height,
+            widht: prev.width,
+            name: result.name,
+            photoId: res.id
+          };
+
+          uploadPreview(preview, props, headers);
+
+          props.dispatch(PhotoActions.getAllPhotosContent(props.authenticationState.user));
+          props.dispatch(PhotoActions.uploadPhotoSetProgress(0));
           props.dispatch(PhotoActions.uploadPhotoFinished());
         })
         .catch((err) => {

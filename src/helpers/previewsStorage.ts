@@ -7,7 +7,8 @@ export const previewsStorage = {
   createPreview,
   existsPreview,
   storePreview,
-  getPreviews
+  getPreviews,
+  matchPreviews
 }
 
 async function existsPreviewFolder() {
@@ -38,15 +39,18 @@ function createPreview(imageUri: any) {
 }
 
 async function existsPreview(name: string) {
-  const exists = await FileSystem.readDirectoryAsync(
+  const dir = await FileSystem.readDirectoryAsync(
     FileSystem.documentDirectory + 'previews'
   );
 
-  if (exists.length > 0) {
-    const existingPrev = exists.find((x) => x === name);
+  if (dir.length > 0) {
+    const existingPrev = dir.filter((x) => x === name);
 
-    if (existingPrev) {
-      return true;
+    if (existingPrev.length > 0) {
+      let uri = FileSystem.documentDirectory + 'previews/' + existingPrev[0];
+
+      uri = uri.replace('file:///', 'file://');
+      return uri;
     }
   }
 
@@ -86,4 +90,26 @@ async function getPreviews() {
 
   console.log("PREVIEW URIS---", previews)
   return previews;
+}
+
+async function matchPreviews(photos) {
+  const previews = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory + 'previews');
+
+  const prevPhotos = photos.map((photo) => {
+    if (!photo.preview) {
+      const exists = previews.filter((p) => p === (photo.name + '.' + photo.type));
+
+      if (exists.length > 0) {
+        console.log("PREVIEW FOUND")
+        photo.preview = FileSystem.documentDirectory + 'previews/' + photo.name + '.jpg';
+        photo.preview.replace('file:///', 'file://');
+      } else {
+        // TODO: Request preview to the network.
+        console.log("NOT PREVIEW FOR THIS PHOTO")
+      }
+    }
+    return photo;
+  })
+
+  return prevPhotos;
 }
