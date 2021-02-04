@@ -37,7 +37,7 @@ function AppMenu(props: AppMenuProps) {
     }
   }
 
-  const uploadFile = (result: any, currentFolder: number) => {
+  const uploadFile = (result: any, currentFolder: number | undefined) => {
     props.dispatch(fileActions.uploadFileStart())
 
     const userData = getLyticsData().then((res) => {
@@ -71,12 +71,12 @@ function AppMenu(props: AppMenuProps) {
         ] )
         .uploadProgress({ count: 10 }, async (sent, total) => {
           props.dispatch(fileActions.uploadFileSetProgress( sent / total, result.id ))
-          console.log('--- UPLOAD PROGRESS appmenu ---', sent / total, '(sent)', sent, '(total)', total )
+          //console.log('--- UPLOAD PROGRESS appmenu ---', sent / total, '(sent)', sent, '(total)', total )
 
           if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
             props.dispatch(fileActions.removeUploadingFile(result.id))
             props.dispatch(fileActions.uploadFileSetUri(result.uri)) // Set the uri of the file so FileItem can get it as props
-            console.log('--- FINISHED ---')
+            console.log('--- FINISHED ---', result.name)
           }
         })
         .then((res) => {
@@ -89,9 +89,7 @@ function AppMenu(props: AppMenuProps) {
             // setHasSpace
 
           } else if (res.respInfo.status === 201) {
-            if (props.filesState.folderContent.currentFolder === currentFolder) {
-              props.dispatch(fileActions.getFolderContent(currentFolder.toString()))
-            }
+            props.dispatch(fileActions.fetchIfSameFolder(result.currentFolder))
 
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
 
@@ -233,7 +231,7 @@ function AppMenu(props: AppMenuProps) {
                         console.log('This is a photo =>', result)
 
                         props.dispatch(fileActions.addUploadingFile(fileUploading))
-                        uploadFile(fileUploading, props.filesState.folderContent.currentFolder)
+                        uploadFile(fileUploading, fileUploading.currentFolder)
                       }
                     } else {
                       Alert.alert('Camera permission needed to perform this action')

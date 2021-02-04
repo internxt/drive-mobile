@@ -1,6 +1,7 @@
 import { Dispatch } from 'redux';
-import { deviceStorage, getLyticsData } from '../../helpers';
+import { getLyticsData } from '../../helpers';
 import analytics from '../../helpers/lytics';
+import { store } from '../../store';
 import { fileActionTypes } from '../constants';
 import { fileService } from '../services';
 import { userActions } from './user.actions';
@@ -30,7 +31,8 @@ export const fileActions = {
   addUploadingFile,
   addUploadedFile,
   removeUploadingFile,
-  removeUploadedFile
+  removeUploadedFile,
+  fetchIfSameFolder
 };
 
 function downloadFileStart(fileId: string) {
@@ -85,6 +87,16 @@ function uploadFileSetProgress(progress: number, id: string) {
 
 function uploadFileSetUri(uri: string | undefined) {
   return { type: fileActionTypes.SET_FILE_UPLOAD_URI, payload: uri };
+}
+
+function fetchIfSameFolder(fileFolder: number) {
+  return (dispatch: Dispatch) => {
+    const currentFoder = store.getState().filesState.folderContent.currentFolder
+
+    if (fileFolder === currentFoder) {
+      dispatch(getFolderContent(currentFoder))
+    }
+  }
 }
 
 function getFolderContent(folderId: string) {

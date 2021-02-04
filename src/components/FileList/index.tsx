@@ -43,9 +43,14 @@ function FileList(props: any) {
   let fileList: IFile[] = folderContent && folderContent.files || [];
   const [filesUploading, setFilesUploading] = useState([])
   const [filesUploaded, setFilesUploaded] = useState([])
+  const [folderId, setFolderId] = useState()
 
   useEffect(() => {
     setRefreshing(false)
+
+    if (props.filesState.folderContent && props.filesState.folderContent.currentFolder) {
+      setFolderId(props.filesState.folderContent.currentFolder)
+    }
   }, [props.filesState.folderContent])
 
   useEffect(() => {
@@ -54,7 +59,9 @@ function FileList(props: any) {
 
   useEffect(() => {
     setFilesUploaded(props.filesState.filesAlreadyUploaded)
-    console.log('already', props.filesState.filesAlreadyUploaded)
+    //console.log('file', props.filesState.filesAlreadyUploaded)
+    //console.log('folderId', props.filesState.folderContent.currentFolder)
+
   }, [props.filesState.filesAlreadyUploaded])
 
   const searchString = props.filesState.searchString
@@ -109,12 +116,17 @@ function FileList(props: any) {
       {
         filesUploading.length > 0 ?
           filesUploading.map((file: IUploadingFile) =>
-            <FileItem
-              key={filesUploading.indexOf(file)}
-              isFolder={false}
-              item={file}
-              isLoading={true}
-            />
+          {
+            return file.currentFolder === folderId ?
+              <FileItem
+                key={filesUploading.indexOf(file)}
+                isFolder={false}
+                item={file}
+                isLoading={true}
+              />
+              :
+              null
+          }
           )
           :
           null
@@ -141,16 +153,18 @@ function FileList(props: any) {
       }
 
       {
-        filesUploaded.length > 0 ?
-          filesUploaded.map((file: any) =>
-            <FileItem 
+        filesUploaded.map((file: any) =>
+        {
+          return file.currentFolder === folderId ?
+            <FileItem
               key={file.id}
               isFolder={false}
               item={file}
             />
-          )
-          :
-          null
+            :
+            null
+        }
+        )
       }
     </ScrollView>
   )

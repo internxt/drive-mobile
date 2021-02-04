@@ -162,10 +162,6 @@ function FileItem(props: FileItemProps) {
   });
 
   useEffect(() => {
-    console.log(props.item)
-  }, [])
-
-  useEffect(() => {
     setUploadProgress(props.item.progress)
   }, [props.item.progress])
 
