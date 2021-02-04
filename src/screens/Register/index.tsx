@@ -1,11 +1,12 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import { normalize } from '../../helpers';
+import { deviceStorage, normalize } from '../../helpers';
 import analytics from '../../helpers/lytics';
+import { userActions } from '../../redux/actions';
 import Intro from '../Intro'
-import { validateEmail } from '../Login/access';
+import { apiLogin, validateEmail } from '../Login/access';
 import { doRegister, isNullOrEmpty, isStrongPassword } from './registerUtils';
 
 function Register(props: any): JSX.Element {
@@ -20,10 +21,32 @@ function Register(props: any): JSX.Element {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
+  const twoFactorCode = ''
 
   const isValidEmail = validateEmail(email);
   const isValidFirstName = !isNullOrEmpty(firstName)
   const isValidLastName = !isNullOrEmpty(lastName)
+
+  useEffect(() => {
+    if (props.authenticationState.loggedIn === true) {
+      const rootFolderId = props.authenticationState.user.root_folder_id;
+
+      props.navigation.replace('FileExplorer', {
+        folderId: rootFolderId
+      })
+    } else {
+      (async () => {
+        const xToken = await deviceStorage.getItem('xToken')
+        const xUser = await deviceStorage.getItem('xUser')
+
+        if (xToken && xUser) {
+          props.dispatch(userActions.localSignIn(xToken, xUser))
+        } else {
+          setIsLoading(false)
+        }
+      })()
+    }
+  }, [props.authenticationState.loggedIn, props.authenticationState.token])
 
   if (showIntro) {
     return <Intro onFinish={() => setShowIntro(false)} />;
@@ -246,8 +269,18 @@ function Register(props: any): JSX.Element {
                           email: email,
                           platform: 'mobile'
                         }
-                      }).then(() => props.navigation.replace('Login'))
+                      })
+                    })
+                    .then(() => {
+                      apiLogin(email).then(userLoginData => {
+                        props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
+
+                      })
                     }).catch(err => {
+                      analytics.track('user-signin-attempted', {
+                        status: 'error',
+                        message: err.message
+                      }).catch(() => { })
                       Alert.alert(err.message)
                     }).finally(() => {
                       setIsLoading(false)

@@ -19,7 +19,7 @@
 		B161803A25B1892E001E575D /* Swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = B161803825B1892E001E575D /* Swift.swift */; };
 		B162BE3B25C02EB10017D240 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B162BE3A25C02EB10017D240 /* GoogleService-Info.plist */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		F0179492CB4F9CCB4066F5B8 /* libPods-drivemobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A41CBD9B630CB76BFF5E72F /* libPods-drivemobile.a */; };
+		C85C5B0705A46F5BB9C18263 /* libPods-drivemobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FD97CE3E5C0DA953B4186147 /* libPods-drivemobile.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,7 +54,7 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = drivemobile/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = drivemobile/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = drivemobile/main.m; sourceTree = "<group>"; };
-		2A41CBD9B630CB76BFF5E72F /* libPods-drivemobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-drivemobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A37DC1427FC408BB72825E3F /* Pods-drivemobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-drivemobile.release.xcconfig"; path = "Target Support Files/Pods-drivemobile/Pods-drivemobile.release.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = drivemobile/SplashScreen.storyboard; sourceTree = "<group>"; };
 		B1617F7425B0A5A1001E575D /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1617F7625B0A5A1001E575D /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
@@ -65,11 +65,11 @@
 		B161803725B1892D001E575D /* drivemobile-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "drivemobile-Bridging-Header.h"; sourceTree = "<group>"; };
 		B161803825B1892E001E575D /* Swift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift.swift; sourceTree = "<group>"; };
 		B162BE3A25C02EB10017D240 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		BABD52A2AC035780FF8D4AB0 /* Pods-drivemobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-drivemobile.release.xcconfig"; path = "Target Support Files/Pods-drivemobile/Pods-drivemobile.release.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		D4C766AD8D3D7184D060C0D4 /* Pods-drivemobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-drivemobile.debug.xcconfig"; path = "Target Support Files/Pods-drivemobile/Pods-drivemobile.debug.xcconfig"; sourceTree = "<group>"; };
+		EB1DCE3E84FC515F0F3E6092 /* Pods-drivemobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-drivemobile.debug.xcconfig"; path = "Target Support Files/Pods-drivemobile/Pods-drivemobile.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
+		FD97CE3E5C0DA953B4186147 /* libPods-drivemobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-drivemobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,7 +77,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F0179492CB4F9CCB4066F5B8 /* libPods-drivemobile.a in Frameworks */,
+				C85C5B0705A46F5BB9C18263 /* libPods-drivemobile.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,7 +113,7 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
-				2A41CBD9B630CB76BFF5E72F /* libPods-drivemobile.a */,
+				FD97CE3E5C0DA953B4186147 /* libPods-drivemobile.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -174,8 +174,8 @@
 		D65327D7A22EEC0BE12398D9 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				D4C766AD8D3D7184D060C0D4 /* Pods-drivemobile.debug.xcconfig */,
-				BABD52A2AC035780FF8D4AB0 /* Pods-drivemobile.release.xcconfig */,
+				EB1DCE3E84FC515F0F3E6092 /* Pods-drivemobile.debug.xcconfig */,
+				A37DC1427FC408BB72825E3F /* Pods-drivemobile.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -187,14 +187,14 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "drivemobile" */;
 			buildPhases = (
-				B2B4DCB58C8F0DFAB7FBD435 /* [CP] Check Pods Manifest.lock */,
+				607046C4E91A60660DF5E53B /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				ED7A8BD741B3390BDC09D266 /* [CP] Copy Pods Resources */,
 				B1617F7F25B0A5A1001E575D /* Embed App Extensions */,
+				05752DC45232C3845D2DD5C0 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -300,7 +300,25 @@
 			shellPath = /bin/sh;
 			shellScript = "export NODE_BINARY=/Users/internxt/.nvm/versions/node/v10.23.0/bin/node\n../node_modules/react-native/scripts/react-native-xcode.sh\n../node_modules/expo-updates/scripts/create-manifest-ios.sh\n";
 		};
-		B2B4DCB58C8F0DFAB7FBD435 /* [CP] Check Pods Manifest.lock */ = {
+		05752DC45232C3845D2DD5C0 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-drivemobile/Pods-drivemobile-resources.sh",
+				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-drivemobile/Pods-drivemobile-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		607046C4E91A60660DF5E53B /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -320,24 +338,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		ED7A8BD741B3390BDC09D266 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-drivemobile/Pods-drivemobile-resources.sh",
-				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-drivemobile/Pods-drivemobile-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		FD10A7F022414F080027D42C /* Start Packager */ = {
@@ -414,7 +414,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D4C766AD8D3D7184D060C0D4 /* Pods-drivemobile.debug.xcconfig */;
+			baseConfigurationReference = EB1DCE3E84FC515F0F3E6092 /* Pods-drivemobile.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -449,7 +449,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BABD52A2AC035780FF8D4AB0 /* Pods-drivemobile.release.xcconfig */;
+			baseConfigurationReference = A37DC1427FC408BB72825E3F /* Pods-drivemobile.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
