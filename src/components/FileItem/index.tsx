@@ -1,6 +1,6 @@
 import React, { SetStateAction, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, Dimensions } from 'react-native';
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, Alert } from 'react-native';
+import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
 import TimeAgo from 'react-native-timeago';
@@ -16,6 +16,8 @@ import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { Reducers } from '../../redux/reducers/reducers';
 import * as FileSystem from 'expo-file-system'
 
+import { LinearGradient } from 'expo-linear-gradient';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 interface FileItemProps extends Reducers {
   isFolder: boolean
   item: IFile & IFolder | IUploadingFile
@@ -149,10 +151,10 @@ function FileItem(props: FileItemProps) {
 
   const [progress, setProgress] = useState(0)
   const progressPct = progress > 0 ? progress / props.item.size : 0
-  const progressWidth = Dimensions.get('screen').width * progressPct
+  const progressWidth = 40 * progressPct
 
   const [uploadProgress, setUploadProgress] = useState(0)
-  const uploadProgressWidth = Dimensions.get('screen').width * uploadProgress
+  const uploadProgressWidth = 40 * uploadProgress
 
   const [isLoading, setIsLoading] = useState(props.isLoading ? true : false)
 
@@ -168,10 +170,10 @@ function FileItem(props: FileItemProps) {
   const item = props.item
 
   return (
-    <View style={styles.progressIndicatorContainer}>
+    <View>
       <View style={[styles.container, extendStyles.containerBackground]}>
         <View style={styles.fileDetails}>
-          <TouchableWithoutFeedback
+          <TouchableOpacity
             style={styles.touchableItemArea}
             onLongPress={() => { handleLongPress(props, isSelected) }}
             onPress={() => {
@@ -216,7 +218,7 @@ function FileItem(props: FileItemProps) {
 
               {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
             </View>
-          </TouchableWithoutFeedback>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.buttonDetails}>
@@ -229,39 +231,53 @@ function FileItem(props: FileItemProps) {
           </TouchableWithoutFeedback>
         </View>
       </View>
-      <View style={[styles.progressIndicator, { width: progressWidth }]}></View>
-      {
-        props.isLoading ?
-          <View style={[styles.progressIndicator, { width: uploadProgressWidth }]}></View>
-          :
-          null
-      }
+
+      <View style={styles.progressIndicatorContainer}>
+        {
+          progressWidth ?
+            <LinearGradient
+              colors={['#00b1ff', '#096dff']}
+              start={[0, 0.7]}
+              end={[0.7, 1]}
+              style={[styles.progressIndicator, { width: progressWidth }]} />
+            :
+            null
+        }
+
+        {
+          props.isLoading ?
+            <LinearGradient
+              colors={['#00b1ff', '#096dff']}
+              start={[0, 0.7]}
+              end={[0.7, 1]}
+              style={[styles.progressIndicator, { width: uploadProgressWidth }]} />
+            :
+            null
+        }
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   progressIndicatorContainer: {
-    flexDirection: 'column',
-    alignItems: 'center'
+    position: 'absolute',
+    top: 65,
+    width: 40,
+    height: 3,
+    marginLeft: wp('6.7')
   },
   progressIndicator: {
     backgroundColor: '#87B7FF',
-    position: 'absolute',
-    top: 70,
-    left: 0,
-    right: 0,
-    height: 10,
-    width: 60,
+    height: 3,
     opacity: 0.6,
-    borderRadius: 1
+    borderRadius: 3,
+    marginBottom: 7
   },
   container: {
-    height: 80,
+    flexDirection: 'column',
     borderBottomWidth: 1,
-    borderColor: '#e6e6e6',
-    flexDirection: 'row',
-    alignItems: 'center'
+    borderColor: '#e6e6e6'
   },
   fileDetails: {
     flexGrow: 1

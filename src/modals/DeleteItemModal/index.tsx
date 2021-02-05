@@ -37,7 +37,6 @@ function DeleteItemModal(props: DeleteItemModalProps) {
     >
       <View style={styles.textContainer}>
         <View style={styles.titleContainer}>
-          <Image source={require('../../../assets/images/logo.png')} style={styles.image} />
           <Text style={styles.title}>Delete item</Text>
         </View>
 
@@ -75,12 +74,6 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end'
-  },
-  image: {
-    height: 30,
-    width: 26,
-    marginRight: 10,
-    marginBottom: 4
   },
   title: {
     fontSize: 27,

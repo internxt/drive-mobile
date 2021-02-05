@@ -40,7 +40,16 @@ module.exports = {
     'newline-after-var': ['error', 'always'],
     'no-multi-spaces': 'error',
     'curly': 'error',
-    'ext/lines-between-object-properties': ['error', 'never']
+    'ext/lines-between-object-properties': ['error', 'never'],
+    'keyword-spacing': 'error',
+    'space-in-parens': ['error', 'never'],
+    '@typescript-eslint/type-annotation-spacing': ['error', {
+      'before': false,
+      'after': true,
+      'overrides': {
+        'arrow': { 'before': true, 'after': true }
+      }
+    }]
   },
   'settings': {
     'react': {

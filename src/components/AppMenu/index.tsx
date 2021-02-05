@@ -65,22 +65,20 @@ function AppMenu(props: AppMenuProps) {
 
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(result.uri)
 
-      RNFetchBlob.fetch( 'POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers,
+      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers,
         [
           { name: 'xfile', filename: result.name, data: finalUri }
-        ] )
+        ])
         .uploadProgress({ count: 10 }, async (sent, total) => {
-          props.dispatch(fileActions.uploadFileSetProgress( sent / total, result.id ))
+          props.dispatch(fileActions.uploadFileSetProgress(sent / total, result.id))
           //console.log('--- UPLOAD PROGRESS appmenu ---', sent / total, '(sent)', sent, '(total)', total )
 
           if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
             props.dispatch(fileActions.removeUploadingFile(result.id))
             props.dispatch(fileActions.uploadFileSetUri(result.uri)) // Set the uri of the file so FileItem can get it as props
-            console.log('--- FINISHED ---', result.name)
           }
         })
         .then((res) => {
-          //console.log(res.respInfo.status)
           props.dispatch(fileActions.uploadFileSetUri(undefined))
           if (res.respInfo.status === 401) {
             throw res;
@@ -98,10 +96,8 @@ function AppMenu(props: AppMenuProps) {
           }
 
           props.dispatch(fileActions.uploadFileFinished(result.name))
-          //props.dispatch(fileActions.removeUploadingFile(result.id))
         })
         .catch((err) => {
-          console.log(err)
           if (err.status === 401) {
             props.dispatch(userActions.signout())
 
@@ -111,14 +107,12 @@ function AppMenu(props: AppMenuProps) {
 
           props.dispatch(fileActions.uploadFileFailed())
           props.dispatch(fileActions.uploadFileFinished(result.name))
-          //props.dispatch(fileActions.removeUploadingFile(result.id))
         })
 
     } catch (error) {
       analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
       props.dispatch(fileActions.uploadFileFailed())
       props.dispatch(fileActions.uploadFileFinished(result.name))
-      console.log(error)
     }
   }
 
@@ -198,8 +192,6 @@ function AppMenu(props: AppMenuProps) {
                         fileUploading.createdAt = new Date()
                         fileUploading.id = uniqueId()
 
-                        console.log('This is a document =>', fileUploading)
-
                         props.dispatch(fileActions.addUploadingFile(fileUploading))
                         uploadFile(fileUploading, props.filesState.folderContent.currentFolder)
                       }
@@ -228,8 +220,6 @@ function AppMenu(props: AppMenuProps) {
                         fileUploading.createdAt = new Date()
                         fileUploading.id = uniqueId()
 
-                        console.log('This is a photo =>', result)
-
                         props.dispatch(fileActions.addUploadingFile(fileUploading))
                         uploadFile(fileUploading, fileUploading.currentFolder)
                       }
@@ -257,8 +247,6 @@ function AppMenu(props: AppMenuProps) {
                         fileUploading.currentFolder = props.filesState.folderContent.currentFolder
                         fileUploading.createdAt = new Date()
                         fileUploading.id = uniqueId()
-
-                        console.log('This is a taken photo =>', fileUploading)
 
                         props.dispatch(fileActions.addUploadingFile(fileUploading))
                         uploadFile(fileUploading, props.filesState.folderContent.currentFolder)

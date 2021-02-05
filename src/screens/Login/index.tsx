@@ -49,11 +49,10 @@ function Login(props: LoginProps): JSX.Element {
     }
   }, [props.authenticationState.loggedIn, props.authenticationState.token])
 
-  return <KeyboardAvoidingView behavior="padding" style={styles.container}>
+  return <KeyboardAvoidingView behavior='height' style={styles.container}>
     <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
       <View style={styles.containerHeader}>
         <View style={styles.flexRow}>
-          <Image style={styles.logo} source={require('../../../assets/images/logo.png')} />
           <Text style={styles.title}>Sign in to Internxt</Text>
         </View>
         <View style={styles.buttonWrapper}>
@@ -166,20 +165,13 @@ const styles = StyleSheet.create({
   },
   containerHeader: {
   },
-  logo: {
-    marginTop: normalize(59),
-    height: normalize(37),
-    width: normalize(28),
-    marginLeft: normalize(1)
-  },
   title: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: normalize(22),
     letterSpacing: -1.7,
     color: '#000',
     marginBottom: normalize(30),
-    marginTop: normalize(64),
-    marginLeft: normalize(7)
+    marginTop: normalize(64)
   },
   buttonWrapper: {
     display: 'flex',

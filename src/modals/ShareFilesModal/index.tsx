@@ -7,8 +7,9 @@ import { connect } from 'react-redux';
 import Separator from '../../components/Separator';
 import { layoutActions } from '../../redux/actions';
 import { getHeaders } from '../../helpers/headers';
-import { Reducers } from '../../redux/reducers/reducers';
 import { IFile, IFolder } from '../../components/FileList';
+import { Reducers } from '../../redux/reducers/reducers';
+import Clipboard from 'expo-clipboard'
 
 interface ShareFilesModalProps extends Reducers {
   dispatch?: any,
@@ -114,9 +115,10 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 
       <View style={styles.shareContainer}>
         <View style={styles.linkContainer}>
-          <TouchableWithoutFeedback onPress={() => {
-            // TODO: Handle clipboard, @react-native-community/clipboard
-            // WARNING: Cannot be implemented until next release
+          <TouchableWithoutFeedback disabled={isLoading} onPress={() => {
+            if (!isLoading) {
+              Clipboard.setString(link)
+            }
           }}>
             <Text style={styles.link}>
               {!isLoading ? link : 'Loading link...'}
