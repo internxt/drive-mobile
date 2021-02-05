@@ -92,7 +92,7 @@
   },
   "private": true,
   "name": "drive-mobile",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "husky": {
     "hooks": {
       "pre-commit": "yarn run lint --quiet"
