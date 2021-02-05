@@ -1,10 +1,12 @@
-import { IFile, IFolder } from '../../components/FileList';
+import { IFile, IFolder, IUploadingFile } from '../../components/FileList';
 import { fileActionTypes } from '../constants';
 import { ArraySortFunction } from '../services';
 
 export interface FilesState {
   loading: boolean
   items: any[]
+  filesCurrentlyUploading: IUploadingFile[]
+  filesAlreadyUploaded: any[]
   folderContent: any
   rootFolderContent: any
   selectedFile: IFile & IFolder | null
@@ -14,6 +16,7 @@ export interface FilesState {
   searchString: string
   isUploading: boolean
   isUploadingFileName: string | null
+  uploadFileUri: string | undefined | null
   progress: number
   startDownloadSelectedFile: boolean
   error?: string | null
@@ -23,6 +26,8 @@ export interface FilesState {
 const initialState: FilesState = {
   loading: false,
   items: [],
+  filesCurrentlyUploading: [],
+  filesAlreadyUploaded: [],
   folderContent: null,
   rootFolderContent: null,
   selectedFile: null,
@@ -32,6 +37,7 @@ const initialState: FilesState = {
   searchString: '',
   isUploading: false,
   isUploadingFileName: '',
+  uploadFileUri: '',
   progress: 0,
   startDownloadSelectedFile: false,
   uri: undefined
@@ -65,12 +71,25 @@ export function filesReducer(state = initialState, action: any): FilesState {
       isUploading: true,
       isUploadingFileName: action.payload
     };
+  case fileActionTypes.ADD_UPLOADING_FILE:
+    return {
+      ...state,
+      filesCurrentlyUploading: [...state.filesCurrentlyUploading, action.payload]
+    };
+  case fileActionTypes.REMOVE_UPLOADING_FILE:
+    return {
+      ...state,
+      filesAlreadyUploaded: [...state.filesAlreadyUploaded, state.filesCurrentlyUploading.find(file => file.id === action.payload)],
+      filesCurrentlyUploading: state.filesCurrentlyUploading.filter(file => file.id !== action.payload)
+    };
   case fileActionTypes.ADD_FILE_SUCCESS:
     return {
       ...state,
       loading: false,
       isUploading: false,
-      isUploadingFileName: null
+      isUploadingFileName: null,
+      filesCurrentlyUploading: state.filesCurrentlyUploading.filter(file => file.name !== action.payload),
+      filesAlreadyUploaded: state.filesAlreadyUploaded.filter(file => file.name !== action.payload)
     };
 
   case fileActionTypes.ADD_FILE_FAILURE:
@@ -82,9 +101,22 @@ export function filesReducer(state = initialState, action: any): FilesState {
     };
 
   case fileActionTypes.ADD_FILE_UPLOAD_PROGRESS:
+    if (state.filesCurrentlyUploading.length > 0) {
+      const index = state.filesCurrentlyUploading.findIndex(x => x.id === action.payload.id);
+
+      if (state.filesCurrentlyUploading[index]) {
+        state.filesCurrentlyUploading[index].progress = action.payload.progress
+      }
+    }
+
+    return {
+      ...state
+    };
+
+  case fileActionTypes.SET_FILE_UPLOAD_URI:
     return {
       ...state,
-      progress: action.payload
+      uploadFileUri: action.payload
     };
 
   case fileActionTypes.SELECT_FILE:

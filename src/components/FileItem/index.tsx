@@ -1,5 +1,5 @@
 import React, { SetStateAction, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
@@ -12,13 +12,15 @@ import { deviceStorage, getLyticsData } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
 import { colors } from '../../redux/constants';
 import analytics from '../../helpers/lytics';
-import { IFile, IFolder } from '../FileList';
+import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { Reducers } from '../../redux/reducers/reducers';
+import * as FileSystem from 'expo-file-system'
+
 import { LinearGradient } from 'expo-linear-gradient';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 interface FileItemProps extends Reducers {
   isFolder: boolean
-  item: IFile & IFolder
+  item: IFile & IFolder | IUploadingFile
   dispatch?: any
   isLoading?: boolean
 }
@@ -43,8 +45,24 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
       folder_id: props.item.id
     })
     props.dispatch(fileActions.getFolderContent(props.item.id.toString()))
+
   } else {
     // one tap on a file will download and preview the file
+
+    // if the file is still uploading, do not do anything
+    if (props.isLoading && !props.filesState.uploadFileUri) {
+      return
+    }
+
+    // once it stopped uploading
+    if (props.filesState.uploadFileUri) {
+      const fileInfo = await FileSystem.getInfoAsync(props.filesState.uploadFileUri)
+
+      if (fileInfo.exists) {
+        FileViewer.open(fileInfo.uri).catch(() => {})
+        return
+      }
+    }
 
     // Dispatch file download start
     props.dispatch(fileActions.downloadSelectedFileStart())
@@ -146,97 +164,96 @@ function FileItem(props: FileItemProps) {
   });
 
   useEffect(() => {
-    setUploadProgress(props.filesState.progress)
-  }, [props.filesState.progress])
+    setUploadProgress(props.item.progress)
+  }, [props.item.progress])
 
   const item = props.item
 
   return (
     <View>
       <View style={[styles.container, extendStyles.containerBackground]}>
-        <View style={styles.mainContainer}>
-          <View style={styles.fileDetails}>
-            <TouchableOpacity
-              style={styles.touchableItemArea}
-              onLongPress={() => { handleLongPress(props, isSelected) }}
-              onPress={() => {
-                setIsLoading(true)
-                handleClick(props, setProgress).finally(() => {
-                  setProgress(0)
-                  setIsLoading(false)
-                })
-              }}>
+        <View style={styles.fileDetails}>
+          <TouchableOpacity
+            style={styles.touchableItemArea}
+            onLongPress={() => { handleLongPress(props, isSelected) }}
+            onPress={() => {
+              setIsLoading(true)
+              handleClick(props, setProgress).finally(() => {
+                setProgress(0)
+                setIsLoading(false)
+              })
+            }}
+          >
 
-              <View style={styles.itemIcon}>
-                {
-                  props.isFolder ?
-                    <View>
-                      <IconFolder color={props.item.color} />
-                      {
-                        props.isFolder && props.item.icon ?
+            <View style={styles.itemIcon}>
+              {
+                props.isFolder ?
+                  <View>
+                    <IconFolder color={props.item.color} />
+                    {
+                      props.isFolder && props.item.icon ?
 
-                          <View style={styles.iconContainer}>
-                            <Icon
-                              name={props.item.icon.name}
-                              color={item.color ? colors[item.color].icon : colors['blue'].icon}
-                              width={24}
-                              height={24}
-                            />
-                          </View>
-                          :
-                          null
-                      }
-                    </View>
-                    :
-                    <IconFile label={props.item.type || ''} isLoading={isLoading} />
-                }
-              </View>
+                        <View style={styles.iconContainer}>
+                          <Icon
+                            name={props.item.icon.name}
+                            color={item.color ? colors[item.color].icon : colors['blue'].icon}
+                            width={24}
+                            height={24}
+                          />
+                        </View>
+                        :
+                        null
+                    }
+                  </View>
+                  : // once local upload implelemented, remove conditional
+                  <IconFile label={props.item.bucket ? props.item.type || '' : props.item.name.split('.').pop()} isLoading={isLoading} />
+              }
+            </View>
 
-              <View style={styles.nameAndTime}>
-                <Text
-                  style={[styles.fileName, extendStyles.text]}
-                  numberOfLines={1}
-                >{props.item.name}</Text>
+            <View style={styles.nameAndTime}>
+              <Text
+                style={[styles.fileName, extendStyles.text]}
+                numberOfLines={1} // once local upload implemented, remove conditional
+              >{props.item.bucket ? props.item.name : props.item.name.split('.').shift()}</Text>
 
-                {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.buttonDetails}>
-            <TouchableWithoutFeedback
-              style={isSelectionMode ? styles.dNone : styles.dFlex}
-              onPress={() => {
-                props.dispatch(layoutActions.openItemModal(props.item))
-              }}>
-              <Icon name="details" />
-            </TouchableWithoutFeedback>
-          </View>
+              {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
+            </View>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.progressIndicatorContainer}>
-          {
-            progressWidth ?
-              <LinearGradient
-                colors={['#00b1ff', '#096dff']}
-                start={[0, 0.7]}
-                end={[0.7, 1]}
-                style={[styles.progressIndicator, { width: progressWidth }]} />
-              :
-              null
-          }
-
-          {
-            props.isLoading ?
-              <LinearGradient
-                colors={['#00b1ff', '#096dff']}
-                start={[0, 0.7]}
-                end={[0.7, 1]}
-                style={[styles.progressIndicator, { width: uploadProgressWidth }]} />
-              :
-              null
-          }
+        <View style={styles.buttonDetails}>
+          <TouchableWithoutFeedback
+            style={isSelectionMode ? styles.dNone : styles.dFlex}
+            onPress={() => {
+              props.dispatch(layoutActions.openItemModal(props.item))
+            }}>
+            <Icon name="details" />
+          </TouchableWithoutFeedback>
         </View>
+      </View>
+
+      <View style={styles.progressIndicatorContainer}>
+        {
+          progressWidth ?
+            <LinearGradient
+              colors={['#00b1ff', '#096dff']}
+              start={[0, 0.7]}
+              end={[0.7, 1]}
+              style={[styles.progressIndicator, { width: progressWidth }]} />
+            :
+            null
+        }
+
+        {
+          props.isLoading ?
+            <LinearGradient
+              colors={['#00b1ff', '#096dff']}
+              start={[0, 0.7]}
+              end={[0.7, 1]}
+              style={[styles.progressIndicator, { width: uploadProgressWidth }]} />
+            :
+            null
+        }
       </View>
     </View>
   )
@@ -261,11 +278,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     borderBottomWidth: 1,
     borderColor: '#e6e6e6'
-  },
-  mainContainer: {
-    height: 75,
-    flexDirection: 'row',
-    alignItems: 'center'
   },
   fileDetails: {
     flexGrow: 1

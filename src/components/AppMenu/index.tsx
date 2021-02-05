@@ -1,6 +1,7 @@
 import { getDocumentAsync } from 'expo-document-picker';
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker';
-import React, { Fragment, useState, useRef, useEffect } from 'react'
+import { uniqueId } from 'lodash';
+import React, { Fragment, useState, useRef } from 'react'
 import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -19,88 +20,6 @@ interface AppMenuProps {
   authenticationState?: any
 }
 
-const uploadFile = async (result: any, props: any) => {
-
-  const userData = await getLyticsData()
-
-  analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => {})
-
-  try {
-    // Set name for pics/photos
-    if (!result.name) {
-      result.name = result.uri.split('/').pop();
-    }
-    //result.type = 'application/octet-stream';
-
-    props.dispatch(fileActions.uploadFileStart(result.name));
-    const body = new FormData();
-    const token = props.authenticationState.token;
-    const mnemonic = props.authenticationState.user.mnemonic;
-
-    body.append('xfile', result, result.name);
-
-    const headers = {
-      'Authorization': `Bearer ${token}`,
-      'internxt-mnemonic': mnemonic,
-      'Content-Type': 'multipart/form-data'
-    };
-
-    const regex = /^(.*:\/{0,2})\/?(.*)$/gm
-    const file = result.uri.replace(regex, '$2')
-
-    const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri)
-
-    RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${props.filesState.folderContent.currentFolder}/upload`, headers,
-      [
-        { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
-      ])
-      .uploadProgress({ count: 10 }, (sent, total) => {
-        props.dispatch(fileActions.uploadFileSetProgress(sent / total))
-
-      })
-      .then((res) => {
-        if (res.respInfo.status === 401) {
-          throw res;
-        }
-
-        const data = res;
-
-        return { res: res, data };
-      })
-      .then(res => {
-        if (res.res.respInfo.status === 402) {
-          setHasSpace(false)
-
-        } else if (res.res.respInfo.status === 201) {
-          analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-          props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
-
-        } else {
-          Alert.alert('Error', 'Cannot upload file');
-        }
-
-        props.dispatch(fileActions.uploadFileSetProgress(0))
-        props.dispatch(fileActions.uploadFileFinished());
-      })
-      .catch((err) => {
-        if (err.status === 401) {
-          props.dispatch(userActions.signout())
-
-        } else {
-          Alert.alert('Error', 'Cannot upload file\n' + err)
-        }
-
-        props.dispatch(fileActions.uploadFileFailed());
-        props.dispatch(fileActions.uploadFileFinished());
-      })
-
-  } catch (error) {
-    analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-    props.dispatch(fileActions.uploadFileFailed());
-    props.dispatch(fileActions.uploadFileFinished());
-  }
-}
-
 function AppMenu(props: AppMenuProps) {
   const [activeSearchBox, setActiveSearchBox] = useState(false)
   const selectedItems = props.filesState.selectedItems;
@@ -115,6 +34,85 @@ function AppMenu(props: AppMenuProps) {
   const closeSearch = () => {
     if (textInput && textInput.current) {
       textInput.current.blur();
+    }
+  }
+
+  const uploadFile = (result: any, currentFolder: number | undefined) => {
+    props.dispatch(fileActions.uploadFileStart())
+
+    const userData = getLyticsData().then((res) => {
+      analytics.track('file-upload-start', { userId: res.uuid, email: res.email, device: 'mobile' }).catch(() => {})
+    })
+
+    try {
+      // Set name for pics/photos
+      if (!result.name) {
+        result.name = result.uri.split('/').pop()
+      }
+      //result.type = 'application/octet-stream';
+
+      const token = props.authenticationState.token
+      const mnemonic = props.authenticationState.user.mnemonic
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'internxt-mnemonic': mnemonic,
+        'Content-Type': 'multipart/form-data'
+      };
+
+      const regex = /^(.*:\/{0,2})\/?(.*)$/gm
+      const file = result.uri.replace(regex, '$2')
+
+      const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(result.uri)
+
+      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers,
+        [
+          { name: 'xfile', filename: result.name, data: finalUri }
+        ])
+        .uploadProgress({ count: 10 }, async (sent, total) => {
+          props.dispatch(fileActions.uploadFileSetProgress(sent / total, result.id))
+          //console.log('--- UPLOAD PROGRESS appmenu ---', sent / total, '(sent)', sent, '(total)', total )
+
+          if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
+            props.dispatch(fileActions.removeUploadingFile(result.id))
+            props.dispatch(fileActions.uploadFileSetUri(result.uri)) // Set the uri of the file so FileItem can get it as props
+          }
+        })
+        .then((res) => {
+          props.dispatch(fileActions.uploadFileSetUri(undefined))
+          if (res.respInfo.status === 401) {
+            throw res;
+
+          } else if (res.respInfo.status === 402) {
+            // setHasSpace
+
+          } else if (res.respInfo.status === 201) {
+            props.dispatch(fileActions.fetchIfSameFolder(result.currentFolder))
+
+            analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+
+          } else if (res.respInfo.status !== 502) {
+            Alert.alert('Error', 'Cannot upload file');
+          }
+
+          props.dispatch(fileActions.uploadFileFinished(result.name))
+        })
+        .catch((err) => {
+          if (err.status === 401) {
+            props.dispatch(userActions.signout())
+
+          } else {
+            Alert.alert('Error', 'Cannot upload file\n' + err)
+          }
+
+          props.dispatch(fileActions.uploadFileFailed())
+          props.dispatch(fileActions.uploadFileFinished(result.name))
+        })
+
+    } catch (error) {
+      analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
+      props.dispatch(fileActions.uploadFileFailed())
+      props.dispatch(fileActions.uploadFileFinished(result.name))
     }
   }
 
@@ -187,7 +185,15 @@ function AppMenu(props: AppMenuProps) {
                       const result = await getDocumentAsync({ copyToCacheDirectory: false })
 
                       if (result.type !== 'cancel') {
-                        uploadFile(result, props)
+                        const fileUploading: any = result
+
+                        fileUploading.progress = 0
+                        fileUploading.currentFolder = props.filesState.folderContent.currentFolder
+                        fileUploading.createdAt = new Date()
+                        fileUploading.id = uniqueId()
+
+                        props.dispatch(fileActions.addUploadingFile(fileUploading))
+                        uploadFile(fileUploading, props.filesState.folderContent.currentFolder)
                       }
                     } else {
                       Alert.alert('Camera permission needed to perform this action')
@@ -203,7 +209,19 @@ function AppMenu(props: AppMenuProps) {
                       const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All })
 
                       if (!result.cancelled) {
-                        uploadFile(result, props)
+                        const fileUploading: any = result
+
+                        // Set name for pics/photos
+                        if (!fileUploading.name) {
+                          fileUploading.name = result.uri.split('/').pop()
+                        }
+                        fileUploading.progress = 0
+                        fileUploading.currentFolder = props.filesState.folderContent.currentFolder
+                        fileUploading.createdAt = new Date()
+                        fileUploading.id = uniqueId()
+
+                        props.dispatch(fileActions.addUploadingFile(fileUploading))
+                        uploadFile(fileUploading, fileUploading.currentFolder)
                       }
                     } else {
                       Alert.alert('Camera permission needed to perform this action')
@@ -219,7 +237,19 @@ function AppMenu(props: AppMenuProps) {
                       const result = await launchCameraAsync()
 
                       if (!result.cancelled) {
-                        uploadFile(result, props)
+                        const fileUploading: any = result
+
+                        // Set name for pics/photos
+                        if (!fileUploading.name) {
+                          fileUploading.name = result.uri.split('/').pop()
+                        }
+                        fileUploading.progress = 0
+                        fileUploading.currentFolder = props.filesState.folderContent.currentFolder
+                        fileUploading.createdAt = new Date()
+                        fileUploading.id = uniqueId()
+
+                        props.dispatch(fileActions.addUploadingFile(fileUploading))
+                        uploadFile(fileUploading, props.filesState.folderContent.currentFolder)
                       }
                     }
                   }
