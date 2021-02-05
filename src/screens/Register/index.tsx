@@ -242,6 +242,7 @@ function Register(props: any): JSX.Element {
               <TouchableHighlight
                 style={[styles.button, styles.buttonOn, styles.buttonRight]}
                 underlayColor="#4585f5"
+                disabled={registerButtonClicked}
                 onPress={() => {
                   if (!isValidPassword) {
                     Alert.alert(
@@ -282,13 +283,10 @@ function Register(props: any): JSX.Element {
                         message: err.message
                       }).catch(() => { })
                       Alert.alert(err.message)
-                    }).finally(() => {
-                      setIsLoading(false)
-                      setRegisterButtonClicked(false)
                     })
                 }}
               >
-                <Text style={styles.buttonOnLabel}>Continue</Text>
+                <Text style={styles.buttonOnLabel}>{registerButtonClicked ? 'Creating...' : 'Continue'}</Text>
               </TouchableHighlight>
             </View>
           </View>
