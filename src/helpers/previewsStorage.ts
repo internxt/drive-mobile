@@ -12,9 +12,7 @@ export const previewsStorage = {
 }
 
 async function existsPreviewFolder() {
-  let folder = await FileSystem.getInfoAsync(FileSystem.documentDirectory + 'previews');
-
-  console.log("PREVIEWS FOLDER", folder)
+  const folder = await FileSystem.getInfoAsync(FileSystem.documentDirectory + 'previews');
 
   if (folder && !folder.exists) {
     await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'previews');
@@ -100,12 +98,10 @@ async function matchPreviews(photos) {
       const exists = previews.filter((p) => p === (photo.name + '.' + photo.type));
 
       if (exists.length > 0) {
-        console.log("PREVIEW FOUND")
         photo.preview = FileSystem.documentDirectory + 'previews/' + photo.name + '.jpg';
         photo.preview.replace('file:///', 'file://');
       } else {
         // TODO: Request preview to the network.
-        console.log("NOT PREVIEW FOR THIS PHOTO")
       }
     }
     return photo;

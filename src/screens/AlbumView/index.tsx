@@ -27,35 +27,12 @@ interface AlbumViewProps {
 function AlbumView(props: AlbumViewProps): JSX.Element {
   const [refreshing, setRefreshing] = useState(false);
 
-  async function handleLongPress(item: any) {
-    const isSelected = props.photosState.selectedItems.contains(item.id)
-
-    if (isSelected) {
-      //props.dispatch(photoActions.deselectPhoto(item))
-    } else {
-      //props.dispatch(photoActions.selectPhoto(item))
-    }
-  }
-
   const keyExtractor = (item: any, index?: any) => index.toString();
   const renderItem = ({ item }: { item: any }) => (
-    <Pressable
-      onPress={() => {
-        console.log("open modal")
-        //props.dispatch(layoutActions.openPhotoModal(item))
-      }}
-      onLongPress={() => {
-        console.log("select")
-        handleLongPress(item);
-
-        //console.log("SELECTED LIST-----------------",this.props.picState.selectedPic)
-      }}
-      delayLongPress={5}
-    >
+    <Pressable>
       <PhotoItem item={item} isLoading={false} />
     </Pressable>
   );
-
 
   return (
     <View style={styles.container}>
