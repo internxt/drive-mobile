@@ -17,19 +17,6 @@ function hasMediaAccessPermissions() {
   }).catch((err) => { console.log("[MEDIALIBRARY]", err); return false; })
 }
 
-/*export async function generateThumbnail (uri: string) {
-    const manipImg = await ImageManipulator.manipulateAsync(
-        uri,
-        [{ resize: { width: 110 }}],
-        {
-            base64: false
-        }
-    )
-
-    //console.log('data:image/jpg;base64' + manipImg.base64)
-    return manipImg;
-}*/
-
 export async function getDevicePhotos(rootAlbumId: any, cursor: string) {
   let data;
 

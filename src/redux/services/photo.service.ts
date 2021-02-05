@@ -8,7 +8,9 @@ export const photoService = {
   getSortFunction,
   setHeaders,
   getAlbumContent,
-  getAllPhotosContent
+  getAllPhotosContent,
+  getDeletedPhotos,
+  deleteTempPhoto
 };
 
 async function setHeaders() {
@@ -53,11 +55,50 @@ function getAllPhotosContent(user: any): Promise<any> {
       if (res2) {
         const completedPhotos = await previewsStorage.matchPreviews(res2);
 
-        console.log("completeeeeed-----", completedPhotos)
+        console.log("REQUEST PHOTOS.....", completedPhotos);
         resolve(completedPhotos)
       }
       resolve('');
     })
+      .catch(reject);
+  });
+}
+
+function getDeletedPhotos(user: any): Promise<any> {
+  return new Promise(async (resolve, reject) => {
+    const headers = await setHeaders();
+
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/deletes/${user.email}`, {
+      method: 'GET',
+      headers
+    }).then(res => {
+      if (res.status !== 200) { throw res; }
+      return res.json();
+    }).then(async (res2) => {
+      if (res2) {
+        const completedPhotos = await previewsStorage.matchPreviews(res2);
+
+        console.log("REQUEST DELETED PHOTOS.....", completedPhotos);
+        resolve(completedPhotos)
+      }
+      resolve('');
+    })
+      .catch(reject);
+  });
+}
+
+function deleteTempPhoto(photoId: any): Promise<any> {
+  return new Promise(async (resolve, reject) => {
+    const headers = await setHeaders();
+
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/delete/temp/photo`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ photoId })
+    }).then(res => {
+      if (res.status !== 200) { throw res; }
+      return res.json();
+    }).then(resolve)
       .catch(reject);
   });
 }

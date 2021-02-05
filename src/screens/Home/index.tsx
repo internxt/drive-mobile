@@ -22,6 +22,8 @@ import PhotoList from '../../components/PhotoList';
 import { previewsStorage } from '../../helpers/previewsStorage';
 import { getAlbumList, getAllPhotos, getDeletedPhotos } from './init';
 import * as FileSystem from 'expo-file-system';
+import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
+import DeletedPhotoList from '../../components/PhotoList/DeletedPhotoList';
 
 interface HomeProps extends Reducers {
   navigation?: any
@@ -37,11 +39,13 @@ function Home(props: HomeProps): JSX.Element {
     const { user } = props.authenticationState;
     const { token } = props.authenticationState;
 
-    props.dispatch(PhotoActions.getAllPhotosContent(props.authenticationState.user))
+    props.dispatch(PhotoActions.getAllPhotosContent(props.authenticationState.user));
+    props.dispatch(PhotoActions.getDeletedPhotos(props.authenticationState.user));
 
     getDevicePhotos(props.authenticationState.user.rootAlbumId, '0').then((dataResult) => {
       props.dispatch(PhotoActions.updateCursor(parseInt(dataResult?.index || '20')));
       props.dispatch(PhotoActions.getDevicePhotos(dataResult?.photos));
+
       // TODO: Store previews on file://.../previews.
     }).catch((err) => {
       console.log("GETPHOTOS ERROR: ", err)
@@ -50,7 +54,6 @@ function Home(props: HomeProps): JSX.Element {
 
   // Get device photos to upload new content
   useEffect(() => {
-    console.log("DEVICEEEEE------", props.photosState.devicePhotos)
     if (props.photosState.devicePhotos.length > 0) {
       console.log("TODO--------------------------------\n")
     }
@@ -134,15 +137,21 @@ function Home(props: HomeProps): JSX.Element {
 
       </View>
 
-      <View style={styles.photoScroll}>
-        <FlatList
-          keyExtractor={keyExtractor}
-          renderItem={renderAlbumItem}
-          data={props.photosState.photos}
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-        ></FlatList>
-      </View>
+      {props.photosState.albums.length > 0 ?
+        <View style={styles.photoScroll}>
+          <FlatList
+            keyExtractor={keyExtractor}
+            renderItem={renderAlbumItem}
+            data={props.photosState.albums}
+            horizontal={true}
+            showsHorizontalScrollIndicator={false}
+          ></FlatList>
+        </View>
+        :
+        <View style={{ marginTop: 40 }}>
+          <CreateAlbumCard navigation={props.navigation} />
+        </View>
+      }
     </View>
 
 
@@ -197,9 +206,9 @@ function Home(props: HomeProps): JSX.Element {
             underlayColor="#fff"
             onPress={() => { props.navigation.navigate('AlbumView', { title: 'Deleted Photos' }) }}
           >
-            <PhotoList
+            <DeletedPhotoList
               title={'Deleted Photos'}
-              photos={props.photosState.photos}
+              deleted={props.photosState.deleted}
               navigation={props.navigation}
             />
           </TouchableHighlight>

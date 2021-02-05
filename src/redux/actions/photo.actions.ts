@@ -17,21 +17,18 @@ export const PhotoActions = {
   uploadPhotoFailed,
   uploadPhotoSetProgress,
   getAlbumList,
-  getAllPhotos,
+  getAlbumContent,
   getDevicePhotos,
-  getDeletePhotos,
   getAllPhotosContent,
   setFolderContent,
   selectPhoto,
   deselectPhoto,
   deselectAll,
-  deleteItems,
+  getDeletedPhotos,
   setSortFunction,
   setSearchString,
   createFolder,
-  updateFolderMetadata,
-  movePhoto,
-  setRootFolderContent,
+  deleteTempPhoto,
   setIsLoading
 };
 
@@ -79,16 +76,12 @@ function getAlbumList(albumList: any) {
   return { type: photoActionTypes.GET_ALBUMS_SUCCESS, payload: albumList };
 }
 
-function getAllPhotos(photos: any) {
-  return { type: photoActionTypes.GET_PHOTOS_SUCCESS, payload: photos };
-}
-
-function getDeletePhotos(photos: any) {
-  return { type: photoActionTypes.GET_DELETE_SUCCESS, payload: photos };
-}
-
 function getDevicePhotos(photos: any) {
   return { type: photoActionTypes.GET_DEVICE_SUCCESS, payload: photos };
+}
+
+function setFolderContent(photos: any[]) {
+  return { type: photoActionTypes.SET_ALBUM_CONTENT, payload: photos };
 }
 
 function getAllPhotosContent(user: any) {
@@ -97,7 +90,6 @@ function getAllPhotosContent(user: any) {
     photoService
       .getAllPhotosContent(user)
       .then((data: any) => {
-        console.log("getfoldercontent......", data)
         dispatch(success(data));
       }).catch(error => {
         dispatch(failure(error));
@@ -118,7 +110,7 @@ function getAllPhotosContent(user: any) {
   }
 }
 
-function getAlbumContent(folderId: string) {
+function getAlbumContent(folderId: any) {
   const id = parseInt(folderId);
 
   if (isNaN(id)) {
@@ -129,10 +121,10 @@ function getAlbumContent(folderId: string) {
 
   return (dispatch: Dispatch) => {
     dispatch(request());
-    PhotoService
-      .getFolderContent(id)
+    photoService
+      .getAlbumContent(id)
       .then((data: any) => {
-        data.currentFolder = id;
+        //data.currentFolder = id;
         dispatch(success(data));
       }).catch(error => {
         dispatch(failure(error));
@@ -143,49 +135,39 @@ function getAlbumContent(folderId: string) {
   };
 
   function request() {
-    return { type: photoActionTypes.GET_PHOTOS_REQUEST };
+    return { type: photoActionTypes.GET_DELETE_REQUEST };
   }
   function success(payload: any) {
-    return { type: photoActionTypes.GET_PHOTOS_SUCCESS, payload };
+    return { type: photoActionTypes.GET_DELETE_SUCCESS, payload };
   }
   function failure(error: any) {
-    return { type: photoActionTypes.GET_PHOTOS_FAILURE, error };
+    return { type: photoActionTypes.GET_DELETE_FAILURE, error };
   }
 }
 
-function setFolderContent(photos: any[]) {
-    return { type: photoActionTypes.SET_ALBUM_CONTENT, payload: photos };
-  }
-
-function deleteItems(items, folderToReload) {
-  return async (dispatch: Dispatch) => {
+function getDeletedPhotos(user: any) {
+  return (dispatch: Dispatch) => {
     dispatch(request());
-    PhotoService
-      .deleteItems(items)
-      .then(() => {
-        dispatch(requestSuccess());
-        setTimeout(() => {
-          dispatch(getFolderContent(folderToReload));
-        }, 1000);
-      })
-      .catch(() => {
-        dispatch(requestFailure());
-        setTimeout(() => {
-          dispatch(getFolderContent(folderToReload));
-        }, 1000);
+    photoService
+      .getDeletedPhotos(user)
+      .then((data: any) => {
+        dispatch(success(data));
+      }).catch(error => {
+        dispatch(failure(error));
+        if (error.status === 401) {
+          dispatch(userActions.signout());
+        }
       });
   };
 
   function request() {
-    return { type: photoActionTypes.DELETE_PHOTO_REQUEST, payload: items };
+    return { type: photoActionTypes.GET_DELETE_REQUEST };
   }
-
-  function requestFailure() {
-    return { type: photoActionTypes.DELETE_PHOTO_FAILURE };
+  function success(payload: any) {
+    return { type: photoActionTypes.GET_DELETE_SUCCESS, payload };
   }
-
-  function requestSuccess() {
-    return { type: photoActionTypes.DELETE_PHOTO_SUCCESS };
+  function failure(error: any) {
+    return { type: photoActionTypes.GET_DELETE_FAILURE, error };
   }
 }
 
@@ -231,7 +213,7 @@ function createFolder(parentFolderId: number, newFolderName: string) {
   return (dispatch: Dispatch) => {
     dispatch(request());
 
-    PhotoService.createFolder(parentFolderId, newFolderName).then(
+    photoService.createFolder(parentFolderId, newFolderName).then(
       (newFolderDetails: any) => {
         dispatch(success(newFolderDetails));
         dispatch(getFolderContent(parentFolderId + ''))
@@ -265,11 +247,11 @@ function createFolder(parentFolderId: number, newFolderName: string) {
   }
 }
 
-function movePhoto(photoId: string, destination: string) {
+function deleteTempPhoto(photoId: string) {
   return (dispatch: Dispatch) => {
     dispatch(request());
-    PhotoService.movePhoto(photoId, destination).then(result => {
-      dispatch(getFolderContent(destination))
+    photoService.deleteTempPhoto(photoId).then(result => {
+      //ndispatch(getFolderContent(destination))
       if (result === 1) {
         dispatch(success());
       } else {
@@ -286,34 +268,5 @@ function movePhoto(photoId: string, destination: string) {
   }
   function failure(payload: any) {
     return { type: photoActionTypes.MOVE_PHOTOS_FAILURE, payload };
-  }
-}
-
-function setRootFolderContent(folderContent: any) {
-  return { type: photoActionTypes.SET_ROOTALBUM_CONTENT, payload: folderContent }
-}
-
-function updateFolderMetadata(metadata: any, folderId) {
-  return (dispatch: Dispatch) => {
-    dispatch(request());
-
-    PhotoService
-      .updateFolderMetadata(metadata, folderId)
-      .then(() => {
-        dispatch(success());
-      })
-      .catch(error => {
-        dispatch(failure(error));
-      });
-  };
-
-  function request() {
-    return { type: photoActionTypes.UPDATE_ALBUM_METADATA_REQUEST };
-  }
-  function success() {
-    return { type: photoActionTypes.UPDATE_ALBUM_METADATA_SUCCESS };
-  }
-  function failure(payload: any) {
-    return { type: photoActionTypes.UPDATE_ALBUM_METADATA_FAILURE, payload };
   }
 }
