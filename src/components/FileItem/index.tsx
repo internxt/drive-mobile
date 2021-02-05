@@ -172,88 +172,89 @@ function FileItem(props: FileItemProps) {
   return (
     <View>
       <View style={[styles.container, extendStyles.containerBackground]}>
-        <View style={styles.fileDetails}>
-          <TouchableOpacity
-            style={styles.touchableItemArea}
-            onLongPress={() => { handleLongPress(props, isSelected) }}
-            onPress={() => {
-              setIsLoading(true)
-              handleClick(props, setProgress).finally(() => {
-                setProgress(0)
-                setIsLoading(false)
-              })
-            }}
-          >
+        <View style={styles.mainContainer}>
+          <View style={styles.fileDetails}>
+            <TouchableOpacity
+              style={styles.touchableItemArea}
+              onLongPress={() => { handleLongPress(props, isSelected) }}
+              onPress={() => {
+                setIsLoading(true)
+                handleClick(props, setProgress).finally(() => {
+                  setProgress(0)
+                  setIsLoading(false)
+                })
+              }}>
 
-            <View style={styles.itemIcon}>
-              {
-                props.isFolder ?
-                  <View>
-                    <IconFolder color={props.item.color} />
-                    {
-                      props.isFolder && props.item.icon ?
+              <View style={styles.itemIcon}>
+                {
+                  props.isFolder ?
+                    <View>
+                      <IconFolder color={props.item.color} />
+                      {
+                        props.isFolder && props.item.icon ?
 
-                        <View style={styles.iconContainer}>
-                          <Icon
-                            name={props.item.icon.name}
-                            color={item.color ? colors[item.color].icon : colors['blue'].icon}
-                            width={24}
-                            height={24}
-                          />
-                        </View>
-                        :
-                        null
-                    }
-                  </View>
-                  : // once local upload implelemented, remove conditional
-                  <IconFile label={props.item.bucket ? props.item.type || '' : props.item.name.split('.').pop()} isLoading={isLoading} />
-              }
-            </View>
+                          <View style={styles.iconContainer}>
+                            <Icon
+                              name={props.item.icon.name}
+                              color={item.color ? colors[item.color].icon : colors['blue'].icon}
+                              width={24}
+                              height={24}
+                            />
+                          </View>
+                          :
+                          null
+                      }
+                    </View>
+                    : // once local upload implelemented, remove conditional
+                    <IconFile label={props.item.bucket ? props.item.type || '' : props.item.name.split('.').pop()} isLoading={isLoading} />
+                }
+              </View>
 
-            <View style={styles.nameAndTime}>
-              <Text
-                style={[styles.fileName, extendStyles.text]}
-                numberOfLines={1} // once local upload implemented, remove conditional
-              >{props.item.bucket ? props.item.name : props.item.name.split('.').shift()}</Text>
+              <View style={styles.nameAndTime}>
+                <Text
+                  style={[styles.fileName, extendStyles.text]}
+                  numberOfLines={1} // once local upload implemented, remove conditional
+                >{props.item.bucket ? props.item.name : props.item.name.split('.').shift()}</Text>
 
-              {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
-            </View>
-          </TouchableOpacity>
+                {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.buttonDetails}>
+            <TouchableWithoutFeedback
+              style={isSelectionMode ? styles.dNone : styles.dFlex}
+              onPress={() => {
+                props.dispatch(layoutActions.openItemModal(props.item))
+              }}>
+              <Icon name="details" />
+            </TouchableWithoutFeedback>
+          </View>
         </View>
 
-        <View style={styles.buttonDetails}>
-          <TouchableWithoutFeedback
-            style={isSelectionMode ? styles.dNone : styles.dFlex}
-            onPress={() => {
-              props.dispatch(layoutActions.openItemModal(props.item))
-            }}>
-            <Icon name="details" />
-          </TouchableWithoutFeedback>
+        <View style={styles.progressIndicatorContainer}>
+          {
+            progressWidth ?
+              <LinearGradient
+                colors={['#00b1ff', '#096dff']}
+                start={[0, 0.7]}
+                end={[0.7, 1]}
+                style={[styles.progressIndicator, { width: progressWidth }]} />
+              :
+              null
+          }
+
+          {
+            props.isLoading ?
+              <LinearGradient
+                colors={['#00b1ff', '#096dff']}
+                start={[0, 0.7]}
+                end={[0.7, 1]}
+                style={[styles.progressIndicator, { width: uploadProgressWidth }]} />
+              :
+              null
+          }
         </View>
-      </View>
-
-      <View style={styles.progressIndicatorContainer}>
-        {
-          progressWidth ?
-            <LinearGradient
-              colors={['#00b1ff', '#096dff']}
-              start={[0, 0.7]}
-              end={[0.7, 1]}
-              style={[styles.progressIndicator, { width: progressWidth }]} />
-            :
-            null
-        }
-
-        {
-          props.isLoading ?
-            <LinearGradient
-              colors={['#00b1ff', '#096dff']}
-              start={[0, 0.7]}
-              end={[0.7, 1]}
-              style={[styles.progressIndicator, { width: uploadProgressWidth }]} />
-            :
-            null
-        }
       </View>
     </View>
   )
@@ -278,6 +279,11 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     borderBottomWidth: 1,
     borderColor: '#e6e6e6'
+  },
+  mainContainer: {
+    height: 75,
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   fileDetails: {
     flexGrow: 1
