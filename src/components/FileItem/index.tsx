@@ -1,6 +1,6 @@
 import React, { SetStateAction, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert, Dimensions } from 'react-native';
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
 import TimeAgo from 'react-native-timeago';
@@ -156,7 +156,7 @@ function FileItem(props: FileItemProps) {
       <View style={[styles.container, extendStyles.containerBackground]}>
         <View style={styles.mainContainer}>
           <View style={styles.fileDetails}>
-            <TouchableWithoutFeedback
+            <TouchableOpacity
               style={styles.touchableItemArea}
               onLongPress={() => { handleLongPress(props, isSelected) }}
               onPress={() => {
@@ -200,7 +200,7 @@ function FileItem(props: FileItemProps) {
 
                 {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
               </View>
-            </TouchableWithoutFeedback>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.buttonDetails}>

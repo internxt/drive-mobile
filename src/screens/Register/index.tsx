@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Image, Alert } from 'react-native';
+import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { deviceStorage, normalize } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { userActions } from '../../redux/actions';
 import Intro from '../Intro'
-import { validateEmail } from '../Login/access';
-import { doRegister, isNullOrEmpty, isStrongPassword, resendActivationEmail } from './registerUtils';
+import { apiLogin, validateEmail } from '../Login/access';
+import { doRegister, isNullOrEmpty, isStrongPassword } from './registerUtils';
 
 function Register(props: any): JSX.Element {
   const [registerStep, setRegisterStep] = useState(1);
@@ -21,6 +21,7 @@ function Register(props: any): JSX.Element {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
+  const twoFactorCode = ''
 
   const isValidEmail = validateEmail(email);
   const isValidFirstName = !isNullOrEmpty(firstName)
@@ -241,6 +242,7 @@ function Register(props: any): JSX.Element {
               <TouchableHighlight
                 style={[styles.button, styles.buttonOn, styles.buttonRight]}
                 underlayColor="#4585f5"
+                disabled={registerButtonClicked}
                 onPress={() => {
                   if (!isValidPassword) {
                     Alert.alert(
@@ -268,16 +270,23 @@ function Register(props: any): JSX.Element {
                           email: email,
                           platform: 'mobile'
                         }
-                      }).then(() => props.navigation.replace('Login'))
+                      })
+                    })
+                    .then(() => {
+                      apiLogin(email).then(userLoginData => {
+                        props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
+
+                      })
                     }).catch(err => {
+                      analytics.track('user-signin-attempted', {
+                        status: 'error',
+                        message: err.message
+                      }).catch(() => { })
                       Alert.alert(err.message)
-                    }).finally(() => {
-                      setIsLoading(false)
-                      setRegisterButtonClicked(false)
                     })
                 }}
               >
-                <Text style={styles.buttonOnLabel}>Continue</Text>
+                <Text style={styles.buttonOnLabel}>{registerButtonClicked ? 'Creating...' : 'Continue'}</Text>
               </TouchableHighlight>
             </View>
           </View>

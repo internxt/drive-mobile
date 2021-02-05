@@ -75,12 +75,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end'
   },
-  image: {
-    height: 30,
-    width: 26,
-    marginRight: 10,
-    marginBottom: 4
-  },
   title: {
     fontSize: 27,
     fontFamily: 'CerebriSans-Bold',
