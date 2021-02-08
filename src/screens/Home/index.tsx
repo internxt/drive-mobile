@@ -24,6 +24,8 @@ import { getAlbumList, getAllPhotos, getDeletedPhotos } from './init';
 import * as FileSystem from 'expo-file-system';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import DeletedPhotoList from '../../components/PhotoList/DeletedPhotoList';
+import SettingsModalPhotos from '../../modals/SettingsModal/SettingsModalPhotos';
+import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 
 interface HomeProps extends Reducers {
   navigation?: any
@@ -109,17 +111,13 @@ function Home(props: HomeProps): JSX.Element {
   );
 
   return <View style={styles.container}>
-
-    <FileDetailsModal key={selectedKeyId} />
-    <SettingsModal navigation={props.navigation} />
+    <SettingsModalPhotos navigation={props.navigation} />
     <SortModal />
     <MoveFilesModal />
 
-
     <View style={styles.platformSpecificHeight}></View>
 
-    <AppMenu navigation={props.navigation} />
-
+    <AppMenuPhotos navigation={props.navigation} />
 
     <View style={styles.albumsContainer}>
       <View style={styles.albumsHeader}>

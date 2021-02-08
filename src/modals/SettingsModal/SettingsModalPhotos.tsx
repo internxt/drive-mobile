@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, Linking, ActivityIndicator, Alert } from 'react-native';
-import Modal from 'react-native-modalbox'
-import ProgressBar from '../../components/ProgressBar';
-import { layoutActions, userActions } from '../../redux/actions';
-import SettingsItem from './SettingsItem';
-import prettysize from 'prettysize'
-import Separator from '../../components/Separator';
+import prettysize from 'prettysize';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Linking, StyleSheet, Text } from 'react-native';
+import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
-import { getHeaders } from '../../helpers/headers';
-import { deviceStorage } from '../../helpers';
-import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import Bold from '../../components/Bold';
+import ProgressBar from '../../components/ProgressBar';
+import Separator from '../../components/Separator';
+import { deviceStorage } from '../../helpers';
+import { getHeaders } from '../../helpers/headers';
+import analytics, { getLyticsUuid } from '../../helpers/lytics';
+import { layoutActions, userActions } from '../../redux/actions';
+import { layoutActionTypes } from '../../redux/constants';
+import SettingsItem from './SettingsItem';
+import SettingsItemPhotos from './SettingsItemPhotos';
 
 function identifyPlanName(bytes: number): string {
   return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
@@ -40,7 +42,7 @@ async function loadLimit(): Promise<number> {
   }).then(res => res.json()).then(res => res.maxSpaceBytes)
 }
 
-export async function loadValues(): Promise<{ usage: number, limit: number}> {
+export async function loadValues(): Promise<{ usage: number, limit: number }> {
   const limit = await loadLimit()
   const usage = await loadUsage()
 
@@ -56,14 +58,14 @@ export async function loadValues(): Promise<{ usage: number, limit: number}> {
   return { usage, limit }
 }
 
-interface SettingsModalProps {
+interface SettingsModalPhotosProps {
   authenticationState?: any
   layoutState?: any
   dispatch?: any,
   navigation?: any
 }
 
-function SettingsModal(props: SettingsModalProps) {
+function SettingsModalPhotos(props: SettingsModalPhotosProps) {
 
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
   const [isLoadingUsage, setIsLoadingUpdate] = useState(false)
@@ -84,16 +86,15 @@ function SettingsModal(props: SettingsModalProps) {
   return <Modal
     isOpen={props.layoutState.showSettingsModal}
     position={'bottom'}
-    swipeArea={20}
     style={styles.modalSettings}
     onClosed={() => {
       props.dispatch(layoutActions.closeSettings())
     }}
     backButtonClose={true}
-    animationDuration={200}>
-
-    <View style={styles.drawerKnob}></View>
-
+    animationDuration={200}
+    swipeToClose={true}
+    swipeArea={60}
+  >
     <Text
       style={styles.nameText}
     >
@@ -109,36 +110,49 @@ function SettingsModal(props: SettingsModalProps) {
     />
 
     {isLoadingUsage ? <ActivityIndicator color={'#00f'} /> : <Text
-      style={styles.usageText}
+      style={{
+        fontFamily: 'Averta-Regular',
+        fontSize: 15,
+        paddingLeft: 24,
+        paddingBottom: 0,
+        color: "#8a8a8e"
+      }}
     >
-      <Text>Used </Text>
-      <Bold>
-        {prettysize(usageValues.usage)}
-      </Bold>
-      <Text> of </Text>
-      <Bold>
-        {prettysize(usageValues.limit)}
-      </Bold>
+      <Text>Used</Text>
+      <Text >
+        {' '}
+        {prettysize(usageValues.usage)}{' '}
+      </Text>
+      <Text>of</Text>
+      <Text >
+        {' '}
+        {prettysize(usageValues.limit)}{' '}
+      </Text>
     </Text>
     }
 
-    <Separator />
-
-    <SettingsItem
-      text="More info"
-      onPress={() => Linking.openURL('https://internxt.com/drive')}
-    />
-
-    <SettingsItem
-      text="Storage"
-      onPress={() => {
+    <SettingsItemPhotos
+      text="Upgrade"
+      isUpgrade={true}
+      onPress={() => { 
         props.dispatch(layoutActions.closeSettings())
         props.navigation.replace('Storage')
       }}
     />
 
-    <SettingsItem
-      text="Contact"
+    <Separator />
+
+    <SettingsItemPhotos
+      text="Settings"
+      isUpgrade={false}
+      onPress={() => {
+        
+      }}
+    />
+
+    <SettingsItemPhotos
+      text="Contact us"
+      isUpgrade={false}
       onPress={() => {
         const emailUrl = 'mailto:support@internxt.zohodesk.eu'
 
@@ -150,8 +164,11 @@ function SettingsModal(props: SettingsModalProps) {
       }}
     />
 
-    <SettingsItem
+    <Separator />
+
+    <SettingsItemPhotos
       text="Sign out"
+      isUpgrade={false}
       onPress={() => {
         props.dispatch(layoutActions.closeSettings())
         props.dispatch(userActions.signout())
@@ -170,20 +187,32 @@ const styles = StyleSheet.create({
     marginTop: 10
   },
   modalSettings: {
-    height: 380
+    top: '40%',
+    paddingLeft: 15,
+    paddingRight: 15,
+    paddingTop: 25,
+    borderRadius: 8
+  },
+  upgradeButton: {
+    fontFamily: 'Averta-Regular',
+    fontWeight: 'bold',
+    color: "red",
+    fontSize: 19,
+    justifyContent: 'center'
   },
   nameText: {
     fontSize: 20,
-    fontWeight: 'bold',
     marginLeft: 26,
     marginTop: 10,
-    fontFamily: 'CerebriSans-Bold'
+    fontFamily: 'Averta-Bold',
+    color: 'black'
   },
   progressHeight: {
     height: 6
   },
   usageText: {
-    fontFamily: 'CerebriSans-Regular',
+    fontFamily: 'Averta-Regular',
+    color: '#8a8a8e',
     fontSize: 15,
     paddingLeft: 24,
     paddingBottom: 0
@@ -194,4 +223,4 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(SettingsModal);
+export default connect(mapStateToProps)(SettingsModalPhotos);

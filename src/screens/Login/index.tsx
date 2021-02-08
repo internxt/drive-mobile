@@ -124,7 +124,7 @@ function Login(props: LoginProps): JSX.Element {
               if (userLoginData.tfa && !twoFactorCode) {
                 setShowTwoFactor(true)
               } else {
-                props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
+                props.dispatch(userActions.signinPhotos(email, password, userLoginData.sKey, twoFactorCode))
               }
             }).catch(err => {
               analytics.track('user-signin-attempted', {
@@ -143,7 +143,7 @@ function Login(props: LoginProps): JSX.Element {
         <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>Forgot your password?</Text>
       </View>
     </View>
-    <Text style={styles.versionLabel}>Internxt Drive v1.2.2 (5)</Text>
+    <Text style={styles.versionLabel}>Internxt Photos v.0.0.1</Text>
   </KeyboardAvoidingView>
 }
 

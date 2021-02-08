@@ -15,6 +15,7 @@ import { layoutActions } from '../../redux/actions';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
+import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
 interface AlbumViewProps {
   route: any;
   navigation?: any
@@ -53,7 +54,7 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
           </Text>
         </View>
 
-        <MenuItem name={'details'} onClickHandler={() => {
+        <AlbumMenuItem name={'details'} onClickHandler={() => {
           props.dispatch(layoutActions.openAlbumModal(null));
         }} />
       </View>

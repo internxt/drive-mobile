@@ -15,7 +15,7 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
   return (dispatch: Dispatch) => {
     dispatchRequest();
     return userService
-      .signin(email, password, sKey, twoFactorCode)
+      .signinPhotos(email, password, sKey, twoFactorCode)
       .then(userData => {
         dispatch(success(userData));
       })
