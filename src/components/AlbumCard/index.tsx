@@ -3,8 +3,6 @@ import { FlatList, Image, StyleProp, StyleSheet, Text, TouchableHighlight, View,
 import { useLinkProps, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
-import SourceList from '../../helpers/getAssets';
-
 export interface AlbumProps {
   style?: StyleProp<ViewStyle>
   album?: any

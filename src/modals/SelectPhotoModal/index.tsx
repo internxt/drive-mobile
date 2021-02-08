@@ -9,7 +9,6 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import PhotoItem from '../../components/PhotoItem';
 import { layoutActions, PhotoActions } from '../../redux/actions';
 //import analytics, { getLyticsData } from '../../helpers/lytics';
-import SourceList from '../../helpers/getAssets'
 import { IPhoto } from '../../components/PhotoList';
 
 interface SelectPhotoProps {

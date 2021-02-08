@@ -3,12 +3,10 @@ import { FlatList, Pressable, SafeAreaView, StyleSheet, Text, TouchableHighlight
 //import { BackButton } from '../../components/BackButton';
 //import { SettingsButton } from '../../components/SettingsButton';
 import PhotoItem from '../../components/PhotoItem';
-//import SourceList from '../../lib/getAssets';
 //import { layoutActions, photoActions, updateCursor } from '../../redux/actions';
 import { connect, useDispatch } from 'react-redux';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 //import { IPhoto } from '../../components/FileList';
-import SourceList from '../../helpers/getAssets';
 import { BackButton } from '../../components/BackButton';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
