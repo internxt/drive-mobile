@@ -5,7 +5,7 @@ import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
 import SettingsModal from '../../modals/SettingsModal';
-import { TouchableHighlight } from 'react-native-gesture-handler';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { getIcon } from '../../helpers/getIcon';
 import FileDetailsModal from '../../modals/FileDetailsModal';
 import SortModal from '../../modals/SortModal';
@@ -215,8 +215,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
           : 'All Files'}
       </Text>
 
-      <TouchableHighlight
-        underlayColor="#FFF"
+      <TouchableOpacity
         onPress={() => {
           props.dispatch(fileActions.getFolderContent(parentFolderId))
         }}>
@@ -225,7 +224,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
 
           <Text style={styles.backLabel}>Back</Text>
         </View>
-      </TouchableHighlight>
+      </TouchableOpacity>
     </View>
 
     <FileList />
@@ -249,10 +248,11 @@ const styles = StyleSheet.create({
     flexWrap: 'nowrap',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     borderBottomColor: '#e6e6e6',
     borderBottomWidth: 1,
     marginTop: 15,
-    paddingBottom: 15
+    height: 40
   },
   breadcrumbsTitle: {
     fontFamily: 'CircularStd-Bold',
@@ -265,7 +265,9 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 20
+    marginRight: 20,
+    height: '100%',
+    width: '100%'
   },
   backIcon: {
     height: 12,
