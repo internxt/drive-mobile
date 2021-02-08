@@ -32,7 +32,6 @@ function createPreview(imageUri: any) {
       return result;
     })
     .catch((err) => {
-      console.log("[ ERROR CREATING PREVIEW ]", err)
     })
 }
 
@@ -76,9 +75,9 @@ async function storePreview(previewUri: any, name: string) {
 }
 
 async function getPreviews() {
-  let previews: any[] = [];
+  const previews: any[] = [];
 
-  const folder = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory + "previews");
+  const folder = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory + 'previews');
 
   folder.forEach((prevName) => {
     const uri = FileSystem.documentDirectory + 'previews/' + prevName;
@@ -86,7 +85,6 @@ async function getPreviews() {
     previews.push(uri);
   })
 
-  console.log("PREVIEW URIS---", previews)
   return previews;
 }
 

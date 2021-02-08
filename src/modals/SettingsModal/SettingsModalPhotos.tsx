@@ -115,7 +115,7 @@ function SettingsModalPhotos(props: SettingsModalPhotosProps) {
         fontSize: 15,
         paddingLeft: 24,
         paddingBottom: 0,
-        color: "#8a8a8e"
+        color: '#8a8a8e'
       }}
     >
       <Text>Used</Text>
@@ -134,7 +134,7 @@ function SettingsModalPhotos(props: SettingsModalPhotosProps) {
     <SettingsItemPhotos
       text="Upgrade"
       isUpgrade={true}
-      onPress={() => { 
+      onPress={() => {
         props.dispatch(layoutActions.closeSettings())
         props.navigation.replace('Storage')
       }}
@@ -146,7 +146,6 @@ function SettingsModalPhotos(props: SettingsModalPhotosProps) {
       text="Settings"
       isUpgrade={false}
       onPress={() => {
-        
       }}
     />
 
@@ -178,27 +177,12 @@ function SettingsModalPhotos(props: SettingsModalPhotosProps) {
 }
 
 const styles = StyleSheet.create({
-  drawerKnob: {
-    backgroundColor: '#d8d8d8',
-    width: 56,
-    height: 7,
-    borderRadius: 4,
-    alignSelf: 'center',
-    marginTop: 10
-  },
   modalSettings: {
     top: '40%',
     paddingLeft: 15,
     paddingRight: 15,
     paddingTop: 25,
     borderRadius: 8
-  },
-  upgradeButton: {
-    fontFamily: 'Averta-Regular',
-    fontWeight: 'bold',
-    color: "red",
-    fontSize: 19,
-    justifyContent: 'center'
   },
   nameText: {
     fontSize: 20,
@@ -209,13 +193,6 @@ const styles = StyleSheet.create({
   },
   progressHeight: {
     height: 6
-  },
-  usageText: {
-    fontFamily: 'Averta-Regular',
-    color: '#8a8a8e',
-    fontSize: 15,
-    paddingLeft: 24,
-    paddingBottom: 0
   }
 })
 

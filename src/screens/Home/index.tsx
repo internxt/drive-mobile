@@ -50,14 +50,14 @@ function Home(props: HomeProps): JSX.Element {
 
       // TODO: Store previews on file://.../previews.
     }).catch((err) => {
-      console.log("GETPHOTOS ERROR: ", err)
+
     })
   }, [])
 
   // Get device photos to upload new content
   useEffect(() => {
     if (props.photosState.devicePhotos.length > 0) {
-      console.log("TODO--------------------------------\n")
+
     }
   }, [props.photosState.devicePhotos])
 
@@ -152,7 +152,6 @@ function Home(props: HomeProps): JSX.Element {
       }
     </View>
 
-
     <View style={styles.albumsContainer}>
       <View style={styles.albumHeader}>
         <Text style={styles.albumsTitle}>
@@ -228,86 +227,32 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     backgroundColor: '#fff'
   },
-  breadcrumbs: {
-    display: 'flex',
-    flexWrap: 'nowrap',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderBottomColor: '#e6e6e6',
-    borderBottomWidth: 1,
-    marginTop: 15,
-    paddingBottom: 15
-  },
-  breadcrumbsTitle: {
-    fontFamily: 'Averta-Bold',
-    fontSize: 21,
-    letterSpacing: -0.2,
-    paddingLeft: 20,
-    color: '#000000'
-  },
-  backButtonWrapper: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 20
-  },
-  backIcon: {
-    height: 12,
-    width: 8,
-    marginRight: 5
-  },
-  backLabel: {
-    fontFamily: 'Averta-Medium',
-    fontSize: 19,
-    letterSpacing: -0.2,
-    color: '#000000'
-  },
-  backHidden: {
-    display: 'none'
-  },
-  platformSpecificHeight: {
-    height: Platform.OS === 'ios' ? '5%' : '0%'
-  },
-  container2: {
-    display: "flex",
-    flex: 1,
-    backgroundColor: '#fff',
-
-  },
   photoScroll: {
-    display: "flex",
-    flexDirection: "row",
-    flexWrap: "nowrap",
-    marginTop: 25,
-  },
-  drawerKnob: {
-    backgroundColor: '#d8d8d8',
-    width: 56,
-    height: 7,
-    borderRadius: 4,
-    alignSelf: 'center',
-    marginTop: 10
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    marginTop: 25
   },
   albumsContainer: {
-    display: "flex",
+    display: 'flex',
     paddingHorizontal: 0,
-    paddingVertical: 10,
+    paddingVertical: 10
 
   },
   albumsHeader: {
     flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 5,
-    paddingHorizontal: 10,
+    paddingHorizontal: 10
 
   },
   albumHeader: {
     flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 15,
-    paddingHorizontal: 10,
+    paddingHorizontal: 10
   },
   albumsTitle: {
     fontFamily: 'Averta-Bold',
@@ -316,7 +261,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     color: 'black',
     alignSelf: 'flex-start',
-    height: 30,
+    height: 30
   },
   albumsSort: {
     fontFamily: 'Averta-Semibold',
@@ -328,86 +273,7 @@ const styles = StyleSheet.create({
     height: 30,
     width: 50
   },
-
-
-  modalSettings: {
-    height: 350
-  },
-  modalSettingsFile: {
-    height: 420
-  },
-  modalSettingsProgressBar: {
-    height: 6.5,
-    marginLeft: 24,
-    marginRight: 24
-  },
-  modalMovePics: {
-    //height: hp('90%'),
-    //width: wp('90%'),
-    justifyContent: 'flex-start',
-    paddingTop: 30
-  },
-  sortOption: {
-    fontFamily: 'Averta-Regular',
-    fontSize: 18,
-    paddingTop: 13,
-    paddingBottom: 13,
-    paddingLeft: 28
-  },
-  sortMenu: {
-    borderWidth: 3,
-    borderColor: 'red',
-    height: 50,
-    width: 50
-  },
-  sortOptionSelected: {
-    fontFamily: 'Averta-Regular',
-    fontSize: 18,
-    color: '#0054ff',
-    paddingTop: 13,
-    paddingBottom: 13,
-    paddingLeft: 28
-  },
-  colorSelection: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginLeft: 15,
-    marginRight: 15
-  },
-  colorButton: {
-    height: 27,
-    width: 27,
-    borderRadius: 15,
-    marginLeft: 9,
-    marginRight: 9,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  iconSelection: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginLeft: 15,
-    marginRight: 15
-  },
-  iconButton: {
-    height: 43,
-    width: 43,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  iconImage: {
-    height: 25,
-    width: 25
-  },
-  itemList: {
-    marginLeft: 5,
-    marginRight: 5,
-    marginTop: 5,
-    flex: 1,
-    height: 25,
-    width: 25
-  },
+  platformSpecificHeight: {
+    height: Platform.OS === 'ios' ? '5%' : '0%'
+  }
 });

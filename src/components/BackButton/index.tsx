@@ -10,8 +10,6 @@ import {
 } from 'react-native';
 import { useLinkProps, useNavigation } from '@react-navigation/native';
 
-const backBtn = require("../../../assets/icons/icon-back.png");
-
 export interface BackButtonProps {
     style?: any
     navigation: any
@@ -22,6 +20,8 @@ export interface BackButtonProps {
 }
 
 export function BackButton(props: BackButtonProps): JSX.Element {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const backBtn = require('../../../assets/icons/icon-back.png');
   const [iconArrowBack, setIconArrowBack] = React.useState(backBtn);
   //const parentFolderId = useSelector(state => state.pic.folderContent.parentFolderId);
 
@@ -39,7 +39,7 @@ export function BackButton(props: BackButtonProps): JSX.Element {
       <Image style={styles.icon} source={iconArrowBack} />
     </Pressable>
   );
-};
+}
 
 const styles = StyleSheet.create({
   buttonWrapper: {

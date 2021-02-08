@@ -55,7 +55,7 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
         </View>
 
         <AlbumMenuItem name={'details'} onClickHandler={() => {
-          props.dispatch(layoutActions.openAlbumModal(null));
+          props.dispatch(layoutActions.openAlbumModal());
         }} />
       </View>
 
@@ -86,7 +86,7 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignContent: "center",
+    alignContent: 'center',
     backgroundColor: '#fff',
     paddingTop: 0,
     paddingBottom: 15,
@@ -98,26 +98,22 @@ const styles = StyleSheet.create({
     paddingLeft: 5
 
   },
-  selectedItem: {
-    borderWidth: 3,
-    borderColor: '#0084ff',
-  },
   albumHeader: {
     display: 'flex',
-    flexDirection: "row",
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 0,
     paddingVertical: 7,
     paddingHorizontal: 20,
-    height: '8%',
+    height: '8%'
   },
   albumTitle: {
     fontFamily: 'Averta-Semibold',
     fontSize: 18,
     letterSpacing: 0,
     color: '#000000',
-    textAlign: "center",
+    textAlign: 'center'
 
   },
   photosCount: {
@@ -126,7 +122,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     paddingTop: 5,
     color: '#bfbfbf',
-    textAlign: "center",
+    textAlign: 'center'
   },
   titleWrapper: {
     display: 'flex'

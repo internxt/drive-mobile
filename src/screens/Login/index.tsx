@@ -55,7 +55,6 @@ function Login(props: LoginProps): JSX.Element {
     <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
       <View style={styles.containerHeader}>
         <View style={styles.flexRow}>
-          <Image style={styles.logo} source={require('../../../assets/images/logo.png')} />
           <Text style={styles.title}>Welcome to Internxt</Text>
         </View>
         <View style={styles.buttonWrapper}>
@@ -124,7 +123,7 @@ function Login(props: LoginProps): JSX.Element {
               if (userLoginData.tfa && !twoFactorCode) {
                 setShowTwoFactor(true)
               } else {
-                props.dispatch(userActions.signinPhotos(email, password, userLoginData.sKey, twoFactorCode))
+                props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
               }
             }).catch(err => {
               analytics.track('user-signin-attempted', {

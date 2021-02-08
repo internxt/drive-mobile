@@ -7,7 +7,6 @@ import { PhotoActions } from '../../redux/actions';
 import EmptyAlbum from '../EmptyAlbum';
 import PhotoItem from '../PhotoItem';
 
-
 export interface IPhoto {
   id?: number
   photoId?: number
@@ -84,7 +83,7 @@ function PhotoList(props: PhotoListProps) {
         //props.dispatch(fileActions.selectPhoto(item))
       }}
       style={{
-        display: "flex",
+        display: 'flex',
         flex: 1,
         backgroundColor: '#fff'
       }}
@@ -128,19 +127,15 @@ function PhotoList(props: PhotoListProps) {
 }
 
 const styles = StyleSheet.create({
-  photoListContentsScrollView: {
-    flexGrow: 1,
-    justifyContent: 'center'
-  },
   dNone: {
     display: 'none'
   },
   photoScroll: {
-    display: "flex",
-    flexDirection: "row",
-    flexWrap: "nowrap",
-    marginTop: 0,
-  },
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    marginTop: 0
+  }
 })
 
 const mapStateToProps = (state: any) => {

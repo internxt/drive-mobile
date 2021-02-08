@@ -8,7 +8,6 @@ interface SettingsItemPhotosProps {
   isUpgrade: boolean
 }
 
-
 export default function SettingsItemPhotos(props: SettingsItemPhotosProps): JSX.Element {
   return <TouchableHighlight
     underlayColor="#FFFFFF"

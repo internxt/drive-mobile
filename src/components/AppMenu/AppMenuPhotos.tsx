@@ -6,7 +6,6 @@ import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system';
 import { connect } from 'react-redux';
-import axios from 'axios'
 import RNFetchBlob from 'rn-fetch-blob';
 import { getLyticsData } from '../../helpers';
 import { getIcon } from '../../helpers/getIcon';
@@ -91,7 +90,6 @@ function AppMenuPhotos(props: AppMenuProps) {
         if (err.status === 401) {
           props.dispatch(userActions.signout())
         } else {
-          console.log('Cannot upload photo\n' + err)
         }
       })
   }
@@ -185,13 +183,11 @@ function AppMenuPhotos(props: AppMenuProps) {
             Alert.alert('Error', 'Cannot upload file\n' + err)
           }
 
-          console.log("2", err)
           props.dispatch(PhotoActions.uploadPhotoFailed());
           props.dispatch(PhotoActions.uploadPhotoFinished());
         })
 
     } catch (error) {
-      console.log("1", error)
       analytics.track('photo-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
       props.dispatch(PhotoActions.uploadPhotoFailed());
       props.dispatch(PhotoActions.uploadPhotoFinished());

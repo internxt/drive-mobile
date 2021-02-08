@@ -55,7 +55,6 @@ function getAllPhotosContent(user: any): Promise<any> {
       if (res2) {
         const completedPhotos = await previewsStorage.matchPreviews(res2);
 
-        console.log("REQUEST PHOTOS.....", completedPhotos);
         resolve(completedPhotos)
       }
       resolve('');
@@ -78,7 +77,6 @@ function getDeletedPhotos(user: any): Promise<any> {
       if (res2) {
         const completedPhotos = await previewsStorage.matchPreviews(res2);
 
-        console.log("REQUEST DELETED PHOTOS.....", completedPhotos);
         resolve(completedPhotos)
       }
       resolve('');

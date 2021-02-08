@@ -1,191 +1,175 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState } from 'react'
 import prettysize from 'prettysize';
-import { Image, StyleSheet, Text, TextInput, TouchableHighlight, View } from "react-native"
-import Modal from "react-native-modalbox"
+import { Image, StyleSheet, Text, TextInput, TouchableHighlight, View } from 'react-native'
+import Modal from 'react-native-modalbox'
 //import TimeAgo from "react-native-timeago"
-import { connect, useDispatch, useSelector } from "react-redux"
-import Separator from "../../components/Separator"
-import { layoutActions } from "../../redux/actions";
-import SettingsItem from "../SettingsModal/SettingsItem";
-import OptionItem from "./OptionItem";
+import { connect, useDispatch, useSelector } from 'react-redux'
+import Separator from '../../components/Separator'
+import { layoutActions } from '../../redux/actions';
+import SettingsItem from '../SettingsModal/SettingsItem';
+import OptionItem from './OptionItem';
 
 interface AlbumDetailsProps {
-    dispatch?: any
-    photosState?: any
-    layoutState?: any
-  }
+  dispatch?: any
+  photosState?: any
+  layoutState?: any
+}
 
 function AlbumDetailsModal(props: AlbumDetailsProps) {
-    const [originalAlbumName, setOriginalAlbumName] = useState('')
+  const [originalAlbumName, setOriginalAlbumName] = useState('')
   const [newAlbumName, setNewAlbumName] = useState('')
 
-    useEffect(() => {
-        if (props.layoutState.showAlbumModal === true) {
-            //setOriginalAlbumName(file.name)
-            //setNewAlbumName(file.name)
-        }
-      }, [props.layoutState.showAlbumModal])
-      
-    return (
-        <Modal
-            position={'bottom'}
-            swipeArea={60}
-            style={styles.modalSettingsFile}
-            isOpen={props.layoutState.showAlbumModal}
-            onOpened={() => setOriginalAlbumName("Lake Trip")}
-            onClosed={async () => {
-                props.dispatch(layoutActions.closeAlbumModal())
+  useEffect(() => {
+    if (props.layoutState.showAlbumModal === true) {
+      //setOriginalAlbumName(file.name)
+      //setNewAlbumName(file.name)
+    }
+  }, [props.layoutState.showAlbumModal])
 
-                const metadata: any = {}
+  return (
+    <Modal
+      position={'bottom'}
+      swipeArea={60}
+      style={styles.modalSettingsFile}
+      isOpen={props.layoutState.showAlbumModal}
+      onOpened={() => setOriginalAlbumName('Lake Trip')}
+      onClosed={async () => {
+        props.dispatch(layoutActions.closeAlbumModal())
 
-                /*if (pic.filename !== inputPhotoName) {
-                    metadata.itemName = inputPhotoName
-                    //await updateFileMetadata(metadata, file.fileId)
-                    //dispatch(getFolderContent(props.picState.folderContent.currentFolder))
-                    //const userData = await getLyticsData()
-                    /*analytics.track('file-rename', {
-                        userId: userData.uuid,
-                        email: userData.email,
-                        platform: 'mobile',
-                        device: Platform.OS,
-                        folder_id: file.id
-                    }).catch(() => { })
-                }*/
-            }}
-            backButtonClose={true}
-            backdropPressToClose={true}
-            swipeToClose={true}
-            animationDuration={200}
-            backdropOpacity={0.5}
-        >
+        const metadata: any = {}
 
-            <TextInput
-                style={{
-                    fontFamily: 'Averta-Semibold',
-                    fontSize: 20,
-                    marginLeft: 26,
-                    marginTop: 38
-                }}
-                onChangeText={value => setOriginalAlbumName(value)}
-                value={originalAlbumName}
-            />
+        /*if (pic.filename !== inputPhotoName) {
+            metadata.itemName = inputPhotoName
+            //await updateFileMetadata(metadata, file.fileId)
+            //dispatch(getFolderContent(props.picState.folderContent.currentFolder))
+            //const userData = await getLyticsData()
+            /*analytics.track('file-rename', {
+                userId: userData.uuid,
+                email: userData.email,
+                platform: 'mobile',
+                device: Platform.OS,
+                folder_id: file.id
+            }).catch(() => { })
+        }*/
+      }}
+      backButtonClose={true}
+      backdropPressToClose={true}
+      swipeToClose={true}
+      animationDuration={200}
+      backdropOpacity={0.5}
+    >
 
-            <Separator />
+      <TextInput
+        style={{
+          fontFamily: 'Averta-Semibold',
+          fontSize: 20,
+          marginLeft: 26,
+          marginTop: 38
+        }}
+        onChangeText={value => setOriginalAlbumName(value)}
+        value={originalAlbumName}
+      />
 
-            <Text
-                style={{
-                    fontFamily: 'Averta-Semibold',
-                    fontSize: 17,
-                    paddingLeft: 26,
-                    paddingBottom: 6
-                }}
-            >
-                <Text
-                    style={styles.propText}
-                >Type: </Text>
-                <Text style={{ fontFamily: 'Averta-Semibold' }}>
-                    photo
-                    </Text>
-            </Text>
+      <Separator />
 
-            <Text
-                style={{
-                    fontFamily: 'Averta-Semibold',
-                    fontSize: 17,
-                    paddingLeft: 26,
-                    paddingBottom: 6
-                }}
-            >
-                <Text style={styles.propText} >Added: </Text>
-                <Text style={{ fontFamily: 'Averta-Semibold' }}>
-                    far far ago
-                    </Text>
-            </Text>
+      <Text
+        style={{
+          fontFamily: 'Averta-Semibold',
+          fontSize: 17,
+          paddingLeft: 26,
+          paddingBottom: 6
+        }}
+      >
+        <Text
+          style={styles.propText}
+        >Type: </Text>
+        <Text style={{ fontFamily: 'Averta-Semibold' }}>
+          photo
+        </Text>
+      </Text>
 
-            <Text
-                style={{
-                    fontFamily: 'Averta-Semibold',
-                    fontSize: 17,
-                    paddingLeft: 26,
-                    paddingBottom: 6
-                }}
-            >
-                <Text style={styles.propText} >Size: </Text>
-                <Text style={{ fontFamily: 'Averta-Semibold', color: "#2a2c35" }}>
-                    2344
-                    </Text>
-            </Text>
+      <Text
+        style={{
+          fontFamily: 'Averta-Semibold',
+          fontSize: 17,
+          paddingLeft: 26,
+          paddingBottom: 6
+        }}
+      >
+        <Text style={styles.propText} >Added: </Text>
+        <Text style={{ fontFamily: 'Averta-Semibold' }}>
+          far far ago
+        </Text>
+      </Text>
 
-            <Separator />
+      <Text
+        style={{
+          fontFamily: 'Averta-Semibold',
+          fontSize: 17,
+          paddingLeft: 26,
+          paddingBottom: 6
+        }}
+      >
+        <Text style={styles.propText} >Size: </Text>
+        <Text style={{ fontFamily: 'Averta-Semibold', color: '#2a2c35' }}>
+          2344
+        </Text>
+      </Text>
 
-            <OptionItem
-                text={'Download'}
-                onClick={() => {
-                    //dispatch(openMoveFilesModal());
-                }}
-            />
+      <Separator />
 
+      <OptionItem
+        text={'Download'}
+        onClick={() => {
+          //dispatch(openMoveFilesModal());
+        }}
+      />
 
-            <OptionItem
-                text={'Share'}
-                onClick={() => {
-                    //props.dispatch(closeAlbumModal())
-                    //props.dispatch(openShareModal())
-                    /*shareFile(props.filesState.selectedFile); */
-                }}
-            />
+      <OptionItem
+        text={'Share'}
+        onClick={() => {
+          //props.dispatch(closeAlbumModal())
+          //props.dispatch(openShareModal())
+          /*shareFile(props.filesState.selectedFile); */
+        }}
+      />
 
-            <OptionItem
-                text={'Sort by'}
-                onClick={() => {
-                    props.dispatch(layoutActions.closeAlbumModal())
+      <OptionItem
+        text={'Sort by'}
+        onClick={() => {
+          props.dispatch(layoutActions.closeAlbumModal())
 
-                    props.dispatch(layoutActions.openSortPhotoModal());
-                }}
-            />
+          props.dispatch(layoutActions.openSortPhotoModal());
+        }}
+      />
 
-
-
-            <OptionItem
-                text={'Delete'}
-                onClick={() => {
-                    /*
-                    modalDeleteFiles.current.open();
-                    */
-                    //dispatch(closeAlbumModal())
-                }}
-            /></Modal>);
+      <OptionItem
+        text={'Delete'}
+        onClick={() => {
+          /*
+          modalDeleteFiles.current.open();
+          */
+          //dispatch(closeAlbumModal())
+        }}
+      /></Modal>);
 }
 
 const mapStateToProps = (state: any) => {
-    return { ...state };
-  };
-  
+  return { ...state };
+};
+
 export default connect(mapStateToProps)(AlbumDetailsModal)
 
 const styles = StyleSheet.create({
-    modalSettingsFile: {
-        top: '33%',
-        borderRadius: 8,
-        paddingLeft: 15
-    },
-    colorButton: {
-        height: 27,
-        width: 27,
-        borderRadius: 15,
-        marginLeft: 9,
-        marginRight: 9,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    propText: {
-        color: '#9c9c9c',
-        fontFamily: 'Averta-Semibold',
-        fontSize: 17,
+  modalSettingsFile: {
+    top: '33%',
+    borderRadius: 8,
+    paddingLeft: 15
+  },
+  propText: {
+    color: '#9c9c9c',
+    fontFamily: 'Averta-Semibold',
+    fontSize: 17
 
-    },
-    iconImage: {
-        width: 25,
-        height: 25
-    }
+  }
 })

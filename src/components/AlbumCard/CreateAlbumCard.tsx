@@ -18,7 +18,7 @@ function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
       underlayColor="#fff"
       style={styles.albumCard}
       onPress={() => {
-        props.navigation.navigate("CreateAlbum")
+        props.navigation.navigate('CreateAlbum')
       }}
     >
       <View style={styles.card}>
@@ -31,11 +31,10 @@ function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
           color: 'black'
         }}>
           Create New Album
-                    </Text>
+        </Text>
 
       </View>
     </TouchableHighlight>
-
 
   )
 
@@ -44,7 +43,7 @@ function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
 const styles = StyleSheet.create({
   albumCard: {
     paddingHorizontal: 20,
-    paddingVertical: 5,
+    paddingVertical: 5
   },
   card: {
     display: 'flex',
@@ -54,17 +53,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderColor: 'white',
     borderWidth: 12,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 2
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-
     elevation: 5,
     marginHorizontal: 4
-  },
+  }
 });
 
 const mapStateToProps = (state: any) => {

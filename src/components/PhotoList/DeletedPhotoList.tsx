@@ -6,7 +6,6 @@ import { PhotoActions } from '../../redux/actions';
 import EmptyAlbum from '../EmptyAlbum';
 import PhotoItem from '../PhotoItem';
 
-
 export interface IPhoto {
   id?: number
   photoId?: number
@@ -32,7 +31,7 @@ interface DeletedPhotoListProps {
 function DeletedPhotoList(props: DeletedPhotoListProps) {
   const [refreshing, setRefreshing] = useState(false)
 
-  let photoList: IPhoto[] = props.deleted || [];
+  const photoList: IPhoto[] = props.deleted || [];
 
   useEffect(() => {
     setRefreshing(false)
@@ -50,8 +49,6 @@ function DeletedPhotoList(props: DeletedPhotoListProps) {
   if (sortFunction) {
     photoList.sort(sortFunction);
   }
-
-  console.log("DELETED LIST", photoList)
 
   useEffect(() => {
     if (!props.photosState.deleted) {
@@ -78,7 +75,7 @@ function DeletedPhotoList(props: DeletedPhotoListProps) {
         //props.dispatch(fileActions.selectPhoto(item))
       }}
       style={{
-        display: "flex",
+        display: 'flex',
         flex: 1,
         backgroundColor: '#fff'
       }}
@@ -96,7 +93,6 @@ function DeletedPhotoList(props: DeletedPhotoListProps) {
           <Text style={styles.dNone}></Text>
       }
 
-
       <View style={styles.photoScroll}>
         <FlatList
           keyExtractor={keyExtractor}
@@ -113,19 +109,15 @@ function DeletedPhotoList(props: DeletedPhotoListProps) {
 }
 
 const styles = StyleSheet.create({
-  photoListContentsScrollView: {
-    flexGrow: 1,
-    justifyContent: 'center'
-  },
   dNone: {
     display: 'none'
   },
   photoScroll: {
-    display: "flex",
-    flexDirection: "row",
-    flexWrap: "nowrap",
-    marginTop: 0,
-  },
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    marginTop: 0
+  }
 })
 
 const mapStateToProps = (state: any) => {

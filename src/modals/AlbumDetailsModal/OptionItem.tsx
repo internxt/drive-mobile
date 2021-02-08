@@ -4,11 +4,10 @@ import { getIcon } from '../../helpers/getIcon';
 
 interface OptionItemProps {
   text: any
-  onClick: Function
+  onClick: any
 }
 
 function OptionItem(props: OptionItemProps) {
-
 
   const handlePress = (e: any) => {
     if (props.onClick) {
@@ -24,15 +23,14 @@ function OptionItem(props: OptionItemProps) {
       style={styles.itemContainer}
       onPress={handlePress}
     >
-        <View style={styles.itemView}>
-            <Image source={icon} style={styles.itemImage}></Image>
-            <Text style={styles.itemText}>{props.text}</Text>
-        </View>
+      <View style={styles.itemView}>
+        <Image source={icon} style={styles.itemImage}></Image>
+        <Text style={styles.itemText}>{props.text}</Text>
+      </View>
     </TouchableHighlight>
   );
 
 }
-
 
 const styles = StyleSheet.create({
   itemContainer: {
@@ -42,8 +40,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   itemView: {
-    display: "flex",
-    flexDirection: "row"
+    display: 'flex',
+    flexDirection: 'row'
   },
   itemText: {
     fontFamily: 'Averta-Semibold',
@@ -54,11 +52,11 @@ const styles = StyleSheet.create({
     letterSpacing: -0.09
   },
   itemImage: {
-      height: 25,
-      width: 25,
-      resizeMode: 'contain',
-      tintColor:'#0084ff'
+    height: 25,
+    width: 25,
+    resizeMode: 'contain',
+    tintColor:'#0084ff'
   }
 });
 
-export default  OptionItem;
+export default OptionItem;

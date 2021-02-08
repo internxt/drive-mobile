@@ -24,13 +24,12 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
   const [inputAlbumTitle, setInputAlbumTitle] = useState('Untitled Album')
   const [refresh, setRefresh] = useState(false)
 
-  let albumPhotos = props.photosState.selectedItems;
+  const albumPhotos = props.photosState.selectedItems;
 
   const keyExtractor = (item: any, index: any) => index;
   const renderItem = ({ item }) => (
     <PhotoItem source={item} isLoading={false} />
   );
-
 
   return (
     <View style={styles.container}>
@@ -48,7 +47,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
         <TouchableHighlight style={styles.nextBtn}>
           <Text style={styles.nextText}>
             Next
-                    </Text>
+          </Text>
         </TouchableHighlight>
       </View>
 
@@ -58,24 +57,23 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
             onPress={() => { props.dispatch(layoutActions.openSelectPhotoModal()) }}>
             <Text style={styles.photosText}>
               Select Photos
-                        </Text>
+            </Text>
           </Pressable>
         </View>
-
 
         <TouchableHighlight
           style={styles.photoSelector}
           underlayColor="#FFF"
           onPress={async () => {
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
             if (status === 'granted') {
               const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.All });
+
               if (!result.cancelled) {
                 //uploadFile(result, props);
-                console.log("result", result)
 
                 albumPhotos.push(result.uri)
-                console.log("album photos", albumPhotos)
 
                 setRefresh(!refresh)
               }
@@ -89,7 +87,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
             fontSize: 15
           }}>
             Select from phone
-                        </Text>
+          </Text>
         </TouchableHighlight>
       </View>
 
@@ -114,11 +112,10 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignContent: "center",
+    alignContent: 'center',
     backgroundColor: '#fff',
     paddingTop: 0,
     marginTop: -5,
@@ -131,7 +128,7 @@ const styles = StyleSheet.create({
   },
   albumHeader: {
     display: 'flex',
-    flexDirection: "row",
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 0,
@@ -140,7 +137,7 @@ const styles = StyleSheet.create({
   },
   selectHeader: {
     display: 'flex',
-    flexDirection: "row",
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
@@ -157,7 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     letterSpacing: 0,
     color: '#000000',
-    textAlign: 'center',
+    textAlign: 'center'
   },
   photosText: {
     fontFamily: 'Averta-Bold',
@@ -169,13 +166,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     letterSpacing: -0.2,
     paddingTop: 5,
-    color: '#0084ff',
+    color: '#0084ff'
   },
   nextBtn: {
     paddingVertical: 6,
     paddingHorizontal: 18,
     backgroundColor: '#0084ff',
-    borderRadius: 23.8,
+    borderRadius: 23.8
   },
   nextText: {
     color: 'white',

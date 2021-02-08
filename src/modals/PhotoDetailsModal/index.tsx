@@ -9,9 +9,8 @@ import { connect } from 'react-redux';
 import RNFetchBlob from 'rn-fetch-blob';
 import PhotoItem from '../../components/PhotoItem';
 //import analytics, { getLyticsData } from '../../helpers/lytics';
-import Separator from "../../components/Separator"
+import Separator from '../../components/Separator'
 import { deviceStorage } from '../../helpers';
-import { getIcon } from "../../helpers/getIcon"
 import { layoutActions, PhotoActions } from '../../redux/actions';
 import OptionItem from '../AlbumDetailsModal/OptionItem';
 
@@ -218,13 +217,11 @@ function PhotoDetailsModal(props: PhotoDetailsProps) {
           //setIsLoading(true)
           handleDownload(props, setProgress).finally(() => {
             setProgress(0)
-            console.log("DOWNLOADED")
             //setIsLoading(false)
           })
         }}
 
       />
-
 
       <OptionItem
         text={'Share'}
@@ -269,19 +266,10 @@ const styles = StyleSheet.create({
     top: '25%',
     borderRadius: 8
   },
-  colorButton: {
-    height: 27,
-    width: 27,
-    borderRadius: 15,
-    marginLeft: 9,
-    marginRight: 9,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
   propText: {
     color: '#9c9c9c',
     fontFamily: 'Averta-Semibold',
-    fontSize: 16,
+    fontSize: 16
 
   },
   detailsText: {
@@ -289,9 +277,5 @@ const styles = StyleSheet.create({
     fontSize: 17,
     letterSpacing: -0.09,
     color: 'black'
-  },
-  iconImage: {
-    width: 22,
-    height: 22
   }
 })

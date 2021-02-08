@@ -1,24 +1,23 @@
-import { ImageComponent, PermissionsAndroid, Platform } from "react-native";
+import { ImageComponent, PermissionsAndroid, Platform } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import * as Permissions from 'expo-permissions';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { useDispatch, useSelector } from "react-redux";
-import { previewsStorage } from "./previewsStorage";
+import { useDispatch, useSelector } from 'react-redux';
+import { previewsStorage } from './previewsStorage';
 
 function hasMediaAccessPermissions() {
   return MediaLibrary.requestPermissionsAsync().then((res) => {
     if (res.status !== 'granted') {
-      console.log("[MEDIALIBRARY] Media device access denied.");
       return false;
     }
 
     return res.granted;
-  }).catch((err) => { console.log("[MEDIALIBRARY]", err); return false; })
+  }).catch((err) => { return false; })
 }
 
 export async function getDevicePhotos(rootAlbumId: any, cursor: string) {
-  let data;
+  const data;
 
   const hasPermission = await hasMediaAccessPermissions();
 
@@ -26,7 +25,6 @@ export async function getDevicePhotos(rootAlbumId: any, cursor: string) {
     const permission = await MediaLibrary.requestPermissionsAsync();
 
     if (permission.status !== 'granted') {
-      console.log("[PERMISSIONS] No permissions to get photos.");
       return;
     }
   }
@@ -38,7 +36,7 @@ export async function getDevicePhotos(rootAlbumId: any, cursor: string) {
   });
 
   previewsStorage.existsPreviewFolder();
-  let photos = await Promise.all(data.assets.map(async (asset: any) => {
+  const photos = await Promise.all(data.assets.map(async (asset: any) => {
     const preview = await ImageManipulator.manipulateAsync(
       asset.uri,
       [{ resize: { width: 220 } }],
@@ -71,7 +69,6 @@ export async function getDevicePhotos(rootAlbumId: any, cursor: string) {
 
 async function savePhoto(picUri: string) {
   if (!hasMediaAccessPermissions()) {
-    console.log("[MEDIALIBRARY] No permissions to save photos.");
     return;
   }
 

@@ -8,7 +8,6 @@ import EmptyAlbum from '../EmptyAlbum';
 import PhotoItem from '../PhotoItem';
 import { IPhoto } from '../PhotoList';
 
-
 export interface IAlbum {
     id: number
     albumId: number
@@ -29,30 +28,30 @@ interface AlbumListProps {
 }
 
 function AlbumList(props: AlbumListProps) {
-    const [refreshing, setRefreshing] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
-    const { photosState } = props;
-    const { folderContent } = photosState;
+  const { photosState } = props;
+  const { folderContent } = photosState;
 
-    let albumList: IPhoto[] = props.photos || [];
+  let albumList: IPhoto[] = props.photos || [];
 
-    useEffect(() => {
-        setRefreshing(false)
-    }, [props.photosState.folderContent])
+  useEffect(() => {
+    setRefreshing(false)
+  }, [props.photosState.folderContent])
 
-    const searchString = props.photosState.searchString
+  const searchString = props.photosState.searchString
 
-    if (searchString) {
-        albumList = albumList.filter((photo: IPhoto) => photo.name.toLowerCase().includes(searchString.toLowerCase()))
-    }
+  if (searchString) {
+    albumList = albumList.filter((photo: IPhoto) => photo.name.toLowerCase().includes(searchString.toLowerCase()))
+  }
 
-    const sortFunction = props.photosState.sortFunction
+  const sortFunction = props.photosState.sortFunction
 
-    if (sortFunction) {
-        albumList.sort(sortFunction);
-    }
+  if (sortFunction) {
+    albumList.sort(sortFunction);
+  }
 
-    /*useEffect(() => {
+  /*useEffect(() => {
         if (!props.photosState.folderContent) {
             const rootFolderId = props.authenticationState.user.root_folder_id
 
@@ -60,74 +59,65 @@ function AlbumList(props: AlbumListProps) {
         }
     }, [])*/
 
-    const isUploading = props.photosState.isUploadingPhotoName
-    const isEmptyAlbum = albumList.length === 0 && !isUploading
+  const isUploading = props.photosState.isUploadingPhotoName
+  const isEmptyAlbum = albumList.length === 0 && !isUploading
 
-    useEffect(() => {
-        //console.log('--- UPLOADING PROGRESS ON AlbumList ---', photosState.progress)
+  useEffect(() => {
+    //console.log('--- UPLOADING PROGRESS ON AlbumList ---', photosState.progress)
 
-    }, [photosState.progress])
+  }, [photosState.progress])
 
+  const keyExtractor = (item: any, index: any) => index.toString();
 
-    const keyExtractor = (item: any, index: any) => index.toString();
+  const renderAlbumItem = ({ item }) => (
+    <Pressable
+      onPress={() => {
+        props.navigation.navigate('AlbumView', { title: item.name })
+      }}
+      onLongPress={() => { }}
+    >
+      <AlbumCard withTitle={true} navigation={props.navigation} />
+    </Pressable>
 
-    const renderAlbumItem = ({ item }) => (
-        <Pressable
-            onPress={() => {
-                props.navigation.navigate('AlbumView', { title: item.name })
-            }}
-            onLongPress={() => { }}
-        >
-            <AlbumCard withTitle={true} navigation={props.navigation} />
-        </Pressable>
+  );
 
-    );
+  return (
+    <View>
+      {
+        isEmptyAlbum ?
+          <EmptyAlbum />
+          :
+          <Text style={styles.dNone}></Text>
+      }
 
-    console.log("PHOTO LIST   ", props.photos)
+      <View style={styles.photoScroll}>
+        <FlatList
+          keyExtractor={keyExtractor}
+          renderItem={renderAlbumItem}
+          data={props.photosState.photos}
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+        ></FlatList>
+      </View>
 
-
-    return (
-        <View>
-            {
-                isEmptyAlbum ?
-                    <EmptyAlbum />
-                    :
-                    <Text style={styles.dNone}></Text>
-            }
-
-
-            <View style={styles.photoScroll}>
-                <FlatList
-                    keyExtractor={keyExtractor}
-                    renderItem={renderAlbumItem}
-                    data={props.photosState.photos}
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                ></FlatList>
-            </View>
-
-        </View>
-    )
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({
-    AlbumListContentsScrollView: {
-        flexGrow: 1,
-        justifyContent: 'center'
-    },
-    dNone: {
-        display: 'none'
-    },
-    photoScroll: {
-        display: "flex",
-        flexDirection: "row",
-        flexWrap: "nowrap",
-        marginTop: 0,
-    },
+  dNone: {
+    display: 'none'
+  },
+  photoScroll: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    marginTop: 0
+  }
 })
 
 const mapStateToProps = (state: any) => {
-    return { ...state };
+  return { ...state };
 };
 
 export default connect(mapStateToProps)(AlbumList)

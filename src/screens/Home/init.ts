@@ -8,7 +8,7 @@ export async function getAlbumList(email: string, token: string, mnemonic: strin
     if (res.status === 200) {
       return res;
     } else {
-      console.log("\n---Error getting server albums", res)
+
     }
   })
 }
@@ -23,7 +23,7 @@ export async function getAllPhotos(email: string, token: string, mnemonic: strin
     } else if (res.status === 201) {
       return null;
     } else {
-      console.log("\n---Error getting server photos", res)
+
     }
   })
 }
@@ -36,7 +36,7 @@ export async function getDeletedPhotos(email: string, token: string, mnemonic: s
     if (res.status === 200) {
       return res;
     } else {
-      console.log("\n---Error getting server deleted", res)
+
     }
   })
 }

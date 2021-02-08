@@ -392,13 +392,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: normalize(15)
   },
-  link: {
-    fontFamily: 'Averta-Regular',
-    textAlign: 'center',
-    color: '#737880',
-    fontSize: normalize(15),
-    marginTop: normalize(10)
-  },
   flexRow: {
     flexDirection: 'row'
   },
@@ -409,12 +402,6 @@ const styles = StyleSheet.create({
     textAlign: 'justify',
     letterSpacing: -0.1,
     marginTop: -15
-  },
-  textEmailCheck: {
-    fontSize: normalize(17),
-    color: '#737880',
-    fontFamily: 'Averta-Regular',
-    marginTop: -10
   },
   textStorePasswordContainer: {
     backgroundColor: '#f7f7f7',
@@ -427,16 +414,6 @@ const styles = StyleSheet.create({
     color: '#737880',
     fontSize: normalize(15),
     fontFamily: 'Averta-Regular'
-  },
-  textAgree: {
-    color: '#737880',
-    fontSize: normalize(17),
-    fontFamily: 'Averta-Regular'
-  },
-  textAgreeContainer: {
-    backgroundColor: '#f7f7f7',
-    padding: normalize(23),
-    marginTop: normalize(30)
   },
   textTip: {
     flex: 1,

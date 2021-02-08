@@ -30,7 +30,7 @@ export function AlbumCard(props: AlbumProps): JSX.Element {
   const img1 = pics[1];
   const img2 = pics[2];
 
-  let newList = pics.slice(3, 12);
+  const newList = pics.slice(3, 12);
 
   return (
     <View style={props.withTitle ? styles.cont : styles.contModal}>
@@ -58,17 +58,14 @@ export function AlbumCard(props: AlbumProps): JSX.Element {
         </View>
       </View>
 
-
-
       { props.withTitle
         ? <View style={styles.albumTitle}>
           <Text>
             Utah Trip Last Summer
-                </Text>
+          </Text>
         </View>
         : <View></View>
       }
-
 
     </View>
   )
@@ -86,38 +83,37 @@ const styles = StyleSheet.create({
     paddingVertical: 19
   },
   containerModal: {
-    display: "flex",
+    display: 'flex',
     backgroundColor: '#fff',
     flexWrap: 'wrap',
-    flexDirection: "row",
+    flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 9,
     paddingTop: 12.6,
     paddingBottom: 12.6,
     paddingLeft: 12.6,
     paddingRight: 7.6,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-
     elevation: 5
   },
   container: {
-    display: "flex",
+    display: 'flex',
     backgroundColor: '#fff',
     flexWrap: 'wrap',
-    flexDirection: "row",
+    flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 9,
     paddingTop: 12.6,
     paddingBottom: 12.6,
     paddingLeft: 12.6,
     paddingRight: 7.6,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 5
@@ -161,8 +157,8 @@ const styles = StyleSheet.create({
   },
   photoGrid: {
     flex: 1,
-    alignContent: "flex-start",
-    flexWrap: "wrap"
+    alignContent: 'flex-start',
+    flexWrap: 'wrap'
   }
 });
 

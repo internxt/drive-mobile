@@ -73,14 +73,6 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(SortModal)
 
 const styles = StyleSheet.create({
-  drawerKnob: {
-    backgroundColor: '#d8d8d8',
-    width: 56,
-    height: 7,
-    borderRadius: 4,
-    alignSelf: 'center',
-    marginTop: 10
-  },
   sortOption: {
     fontFamily: 'Averta-Semibold',
     fontSize: 18,

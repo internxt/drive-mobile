@@ -1,7 +1,6 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native';
 
-
 function EmptyAlbum(props: any) {
   const message = 'Album is empty';
 
@@ -24,13 +23,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.8,
     color: '#000000',
     marginBottom: 10
-  },
-  subheading: {
-    fontFamily: 'Averta-Black',
-    fontSize: 17,
-    opacity: 0.84,
-    letterSpacing: -0.1,
-    color: '#404040'
   }
 });
 

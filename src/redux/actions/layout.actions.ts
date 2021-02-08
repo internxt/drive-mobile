@@ -85,8 +85,7 @@ function closeItemModal() {
 
 function openAlbumModal() {
   return (dispatch: Dispatch) => {
-    
-    dispatch({ type: layoutActionTypes.OPEN_ALBUM_MODAL});
+    dispatch({ type: layoutActionTypes.OPEN_ALBUM_MODAL });
   };
 }
 
@@ -98,8 +97,7 @@ function closeAlbumModal() {
 
 function openAddItemModal() {
   return (dispatch: Dispatch) => {
-    
-    dispatch({ type: layoutActionTypes.OPEN_ADD_ITEM_MODAL});
+    dispatch({ type: layoutActionTypes.OPEN_ADD_ITEM_MODAL });
   };
 }
 
