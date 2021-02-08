@@ -1,12 +1,13 @@
-import React, { useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Image, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react'
+import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import { normalize } from '../../helpers';
+import { deviceStorage, normalize } from '../../helpers';
 import analytics from '../../helpers/lytics';
+import { userActions } from '../../redux/actions';
 import Intro from '../Intro'
-import { validateEmail } from '../Login/access';
-import { doRegister, isNullOrEmpty, isStrongPassword, resendActivationEmail } from './registerUtils';
+import { apiLogin, validateEmail } from '../Login/access';
+import { doRegister, isNullOrEmpty, isStrongPassword } from './registerUtils';
 
 function Register(props: any): JSX.Element {
   const [registerStep, setRegisterStep] = useState(1);
@@ -20,10 +21,32 @@ function Register(props: any): JSX.Element {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
+  const twoFactorCode = ''
 
   const isValidEmail = validateEmail(email);
   const isValidFirstName = !isNullOrEmpty(firstName)
   const isValidLastName = !isNullOrEmpty(lastName)
+
+  useEffect(() => {
+    if (props.authenticationState.loggedIn === true) {
+      const rootFolderId = props.authenticationState.user.root_folder_id;
+
+      props.navigation.replace('FileExplorer', {
+        folderId: rootFolderId
+      })
+    } else {
+      (async () => {
+        const xToken = await deviceStorage.getItem('xToken')
+        const xUser = await deviceStorage.getItem('xUser')
+
+        if (xToken && xUser) {
+          props.dispatch(userActions.localSignIn(xToken, xUser))
+        } else {
+          setIsLoading(false)
+        }
+      })()
+    }
+  }, [props.authenticationState.loggedIn, props.authenticationState.token])
 
   if (showIntro) {
     return <Intro onFinish={() => setShowIntro(false)} />;
@@ -37,7 +60,6 @@ function Register(props: any): JSX.Element {
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Image style={styles.logo} source={require('../../../assets/images/logo.png')} />
               <Text style={styles.title}>Create an account</Text>
             </View>
 
@@ -114,10 +136,6 @@ function Register(props: any): JSX.Element {
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Image
-                style={styles.logo}
-                source={require('../../../assets/images/logo.png')}
-              />
               <Text style={styles.title}>Internxt Security</Text>
             </View>
 
@@ -180,14 +198,10 @@ function Register(props: any): JSX.Element {
     const isValidStep = (password === confirmPassword) && isValidPassword;
 
     return (
-      <KeyboardAvoidingView behavior="padding" style={styles.container}>
+      <KeyboardAvoidingView behavior='height' style={styles.container}>
         <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Image
-                style={styles.logo}
-                source={require('../../../assets/images/logo.png')}
-              />
               <Text style={styles.title}>Create an account</Text>
             </View>
           </View>
@@ -228,6 +242,7 @@ function Register(props: any): JSX.Element {
               <TouchableHighlight
                 style={[styles.button, styles.buttonOn, styles.buttonRight]}
                 underlayColor="#4585f5"
+                disabled={registerButtonClicked}
                 onPress={() => {
                   if (!isValidPassword) {
                     Alert.alert(
@@ -256,16 +271,22 @@ function Register(props: any): JSX.Element {
                           platform: 'mobile'
                         }
                       })
-                      setRegisterStep(4)
+                    })
+                    .then(() => {
+                      apiLogin(email).then(userLoginData => {
+                        props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
+
+                      })
                     }).catch(err => {
+                      analytics.track('user-signin-attempted', {
+                        status: 'error',
+                        message: err.message
+                      }).catch(() => { })
                       Alert.alert(err.message)
-                    }).finally(() => {
-                      setIsLoading(false)
-                      setRegisterButtonClicked(false)
                     })
                 }}
               >
-                <Text style={styles.buttonOnLabel}>Continue</Text>
+                <Text style={styles.buttonOnLabel}>{registerButtonClicked ? 'Creating...' : 'Continue'}</Text>
               </TouchableHighlight>
             </View>
           </View>
@@ -273,65 +294,6 @@ function Register(props: any): JSX.Element {
       </KeyboardAvoidingView>
     );
   }
-
-  if (registerStep === 4) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.containerCentered}>
-          <View style={styles.containerHeader}>
-
-            <View style={styles.flexRow}>
-              <Image
-                style={styles.logo}
-                source={require('../../../assets/images/logo.png')}
-              />
-              <Text style={styles.title}>Activation Email</Text>
-            </View>
-
-            <View>
-              <Text style={styles.textEmailCheck}>
-                Please check your email and follow the instructions to
-                activate your account so you can start using Internxt Drive.
-              </Text>
-            </View>
-
-            <View style={styles.textAgreeContainer}>
-              <Text style={styles.textAgree}>
-                By creating an account, you are agreeing to our Terms &amp;
-                Conditions and Privacy Policy.
-              </Text>
-            </View>
-
-            <View style={styles.buttonFooterWrapper}>
-              <TouchableHighlight
-                style={[styles.button, styles.buttonBlock, { marginTop: normalize(15) }]}
-                underlayColor="#4585f5" onPress={() => {
-                  setRegisterButtonClicked(true)
-                  setIsLoading(true)
-                  resendActivationEmail(email).then(() => {
-                    Alert.alert(`Activation email sent to ${email}`)
-                  }).catch(err => {
-                    Alert.alert(err.message)
-                  }).finally(() => {
-                    setRegisterButtonClicked(false)
-                    setIsLoading(false)
-                  })
-                }}>
-                <Text style={styles.buttonOnLabel}>Re-send activation email</Text>
-              </TouchableHighlight>
-              <TouchableHighlight
-                activeOpacity={1}
-                underlayColor="#ffffff"
-                onPress={() => props.navigation.replace('Login')}>
-                <Text style={styles.link}>Sign in</Text>
-              </TouchableHighlight>
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  }
-
   return <></>;
 }
 
@@ -351,20 +313,13 @@ const styles = StyleSheet.create({
   containerHeader: {
     borderWidth: 0
   },
-  logo: {
-    resizeMode: 'contain',
-    height: normalize(50),
-    width: normalize(37),
-    marginLeft: -7
-  },
   title: {
     fontFamily: 'Averta-Bold',
     fontSize: normalize(22),
     letterSpacing: -1.7,
     color: '#000',
     marginBottom: normalize(30),
-    marginTop: normalize(12),
-    marginLeft: normalize(3)
+    marginTop: normalize(12)
   },
   buttonWrapper: {
     display: 'flex',

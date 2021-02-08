@@ -12,6 +12,16 @@ export interface IFolder {
   icon: any
 }
 
+export interface IUploadingFile {
+  id: number
+  currentFolder: number
+  progress: number
+  name: string
+  size: number
+  type: string
+  uri: string
+}
+
 export interface IFile {
   bucket: string
   createdAt: Date
@@ -31,10 +41,28 @@ function FileList(props: any) {
   const { folderContent } = filesState;
   let folderList: IFolder[] = folderContent && folderContent.children || [];
   let fileList: IFile[] = folderContent && folderContent.files || [];
+  const [filesUploading, setFilesUploading] = useState([])
+  const [filesUploaded, setFilesUploaded] = useState([])
+  const [folderId, setFolderId] = useState()
 
   useEffect(() => {
     setRefreshing(false)
+
+    if (props.filesState.folderContent && props.filesState.folderContent.currentFolder) {
+      setFolderId(props.filesState.folderContent.currentFolder)
+    }
   }, [props.filesState.folderContent])
+
+  useEffect(() => {
+    setFilesUploading(props.filesState.filesCurrentlyUploading)
+  }, [props.filesState.filesCurrentlyUploading])
+
+  useEffect(() => {
+    setFilesUploaded(props.filesState.filesAlreadyUploaded)
+    //console.log('file', props.filesState.filesAlreadyUploaded)
+    //console.log('folderId', props.filesState.folderContent.currentFolder)
+
+  }, [props.filesState.filesAlreadyUploaded])
 
   const searchString = props.filesState.searchString
 
@@ -59,12 +87,8 @@ function FileList(props: any) {
   }, [])
 
   const isUploading = props.filesState.isUploadingFileName
-  const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && !isUploading
+  const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && filesUploading.length === 0 && filesUploaded.length === 0 && !isUploading
 
-  useEffect(() => {
-    //console.log('--- UPLOADING PROGRESS ON FILELIST ---', filesState.progress)
-
-  }, [filesState.progress])
   return (
     <ScrollView
       refreshControl={
@@ -90,13 +114,20 @@ function FileList(props: any) {
       }
 
       {
-        isUploading ?
-          <FileItem
-            key={isUploading}
-            isFolder={false}
-            item={{ name: isUploading }}
-            isLoading={true}
-          />
+        filesUploading.length > 0 ?
+          filesUploading.map((file: IUploadingFile) =>
+          {
+            return file.currentFolder === folderId ?
+              <FileItem
+                key={filesUploading.indexOf(file)}
+                isFolder={false}
+                item={file}
+                isLoading={true}
+              />
+              :
+              null
+          }
+          )
           :
           null
       }
@@ -118,6 +149,21 @@ function FileList(props: any) {
             isFolder={false}
             item={file}
           />
+        )
+      }
+
+      {
+        filesUploaded.map((file: any) =>
+        {
+          return file.currentFolder === folderId ?
+            <FileItem
+              key={file.id}
+              isFolder={false}
+              item={file}
+            />
+            :
+            null
+        }
         )
       }
     </ScrollView>

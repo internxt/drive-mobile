@@ -1,5 +1,6 @@
 import analytics from '@segment/analytics-react-native'
 import { deviceStorage } from './deviceStorage';
+import Firebase from '@segment/analytics-react-native-firebase'
 
 export async function analyticsSetup() {
   const WRITEKEY = process.env.NODE_ENV !== 'production' ? process.env.REACT_NATIVE_SEGMENT_API_DEV : process.env.REACT_NATIVE_SEGMENT_API
@@ -11,7 +12,8 @@ export async function analyticsSetup() {
   }
   await analytics.setup(WRITEKEY, {
     recordScreenViews: true,
-    trackAppLifecycleEvents: true
+    trackAppLifecycleEvents: true,
+    using: [Firebase]
   });
 }
 

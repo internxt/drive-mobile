@@ -1,6 +1,7 @@
 import { Dispatch } from 'redux';
 import { getLyticsData } from '../../helpers';
 import analytics from '../../helpers/lytics';
+import { store } from '../../store';
 import { fileActionTypes } from '../constants';
 import { fileService } from '../services';
 import { userActions } from './user.actions';
@@ -14,6 +15,7 @@ export const fileActions = {
   uploadFileFinished,
   uploadFileFailed,
   uploadFileSetProgress,
+  uploadFileSetUri,
   getFolderContent,
   selectFile,
   deselectFile,
@@ -24,7 +26,13 @@ export const fileActions = {
   createFolder,
   updateFolderMetadata,
   moveFile,
-  setRootFolderContent
+  setRootFolderContent,
+  setUri,
+  addUploadingFile,
+  addUploadedFile,
+  removeUploadingFile,
+  removeUploadedFile,
+  fetchIfSameFolder
 };
 
 function downloadFileStart(fileId: string) {
@@ -43,24 +51,56 @@ function downloadSelectedFileStop() {
   return { type: fileActionTypes.DOWNLOAD_SELECTED_FILE_STOP };
 }
 
-function uploadFileStart(fileName: string) {
-  return { type: fileActionTypes.ADD_FILE_REQUEST, payload: fileName };
+function uploadFileStart() {
+  return { type: fileActionTypes.ADD_FILE_REQUEST };
 }
 
-function uploadFileFinished() {
-  return { type: fileActionTypes.ADD_FILE_SUCCESS };
+function addUploadingFile(file: any) {
+  return { type: fileActionTypes.ADD_UPLOADING_FILE, payload: file };
+}
+
+function addUploadedFile(file: any) {
+  return { type: fileActionTypes.ADD_UPLOADED_FILE, payload: file };
+}
+
+function removeUploadingFile(id: string) {
+  return { type: fileActionTypes.REMOVE_UPLOADING_FILE, payload: id };
+}
+
+function removeUploadedFile(file: any) {
+  return { type: fileActionTypes.REMOVE_UPLOADED_FILE, payload: file };
+}
+
+function uploadFileFinished(name: string) {
+  return { type: fileActionTypes.ADD_FILE_SUCCESS, payload: name };
 }
 
 function uploadFileFailed() {
   return { type: fileActionTypes.ADD_FILE_FAILURE };
 }
 
-function uploadFileSetProgress(percentage: number) {
-  return { type: fileActionTypes.ADD_FILE_UPLOAD_PROGRESS, payload: percentage };
+function uploadFileSetProgress(progress: number, id: string) {
+  const payload = { progress, id }
+
+  return { type: fileActionTypes.ADD_FILE_UPLOAD_PROGRESS, payload };
+}
+
+function uploadFileSetUri(uri: string | undefined) {
+  return { type: fileActionTypes.SET_FILE_UPLOAD_URI, payload: uri };
+}
+
+function fetchIfSameFolder(fileFolder: number) {
+  return (dispatch: Dispatch) => {
+    const currentFoder = store.getState().filesState.folderContent.currentFolder
+
+    if (fileFolder === currentFoder) {
+      dispatch(getFolderContent(currentFoder))
+    }
+  }
 }
 
 function getFolderContent(folderId: string) {
-  const id = parseInt(folderId);
+  const id = parseInt(folderId)
 
   if (isNaN(id)) {
     return (dispatch: Dispatch) => {
@@ -228,6 +268,20 @@ function moveFile(fileId: string, destination: string) {
 
 function setRootFolderContent(folderContent: any) {
   return { type: fileActionTypes.SET_ROOTFOLDER_CONTENT, payload: folderContent }
+}
+
+function setUri(uri: string | Record<string, string> | undefined | null) {
+  if (uri) {
+    getLyticsData().then(user => {
+      analytics.track('share-to', {
+        email: user.email,
+        uri: uri.fileUri ? uri.fileUri : uri.toString && uri.toString()
+      }).catch(() => {
+      });
+    }).catch(() => {
+    });
+  }
+  return { type: fileActionTypes.SET_URI, payload: uri }
 }
 
 function updateFolderMetadata(metadata: any, folderId) {

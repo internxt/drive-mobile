@@ -17,11 +17,13 @@ import StorageWebView from './screens/StorageWebView';
 import Home from './screens/Home';
 import AlbumView from './screens/AlbumView';
 import CreateAlbum from './screens/CreateAlbum';
+import EntryGateway from './screens/EntryGateway';
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, unknown>
 type NavigatorOptions = CreateNavigatorConfig<StackNavigationConfig, NavigationStackRouterConfig, StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>>
 
 const routeConfig: RouteConfig = {
+  EntryPoint: { screen: EntryGateway },
   Register: { screen: Register },
   Login: { screen: Login },
   Intro: { screen: Intro },
@@ -38,7 +40,7 @@ const routeConfig: RouteConfig = {
 };
 
 const navigatorOptions: NavigatorOptions = {
-  initialRouteName: 'Login',
+  initialRouteName: 'EntryPoint',
   headerMode: 'none'
 };
 
@@ -54,7 +56,7 @@ function trackScreen(previousScreen: NavigationState, nextScreen: NavigationStat
   }
 }
 
-function AppNavigator(props: any): JSX.Element {
+function AppNavigator(): JSX.Element {
   return <App onNavigationStateChange={trackScreen} />
 }
 
