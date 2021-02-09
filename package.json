@@ -41,6 +41,7 @@
     "react-native-document-picker": "^4.1.0",
     "react-native-file-viewer": "^2.1.4",
     "react-native-gesture-handler": "~1.8.0",
+    "react-native-indicators": "^0.17.0",
     "react-native-modalbox": "^2.0.2",
     "react-native-receive-sharing-intent": "^1.1.0",
     "react-native-responsive-screen": "^1.4.1",
