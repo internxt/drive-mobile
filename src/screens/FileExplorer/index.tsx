@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Image, BackHandler, Platform, Alert } from 'react-native'
+import { Text, View, StyleSheet, Image, BackHandler, Platform, Alert, ActivityIndicator } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
@@ -15,6 +15,17 @@ import ShareFilesModal from '../../modals/ShareFilesModal';
 import { Reducers } from '../../redux/reducers/reducers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
 import RNFetchBlob from 'rn-fetch-blob';
+import {
+  BallIndicator,
+  BarIndicator,
+  DotIndicator,
+  MaterialIndicator,
+  PacmanIndicator,
+  PulseIndicator,
+  SkypeIndicator,
+  UIActivityIndicator,
+  WaveIndicator,
+} from 'react-native-indicators'
 
 interface FileExplorerProps extends Reducers {
   navigation?: any
@@ -228,7 +239,14 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       </TouchableHighlight>
     </View>
 
-    <FileList />
+    {
+      props.filesState.loading ?
+        <View style={styles.activityIndicator}>
+          <WaveIndicator color="#5291ff" size={80} />
+        </View>
+        :
+        <FileList />
+    }
   </View>
 }
 
@@ -243,6 +261,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     backgroundColor: '#fff'
+  },
+  activityIndicator: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   breadcrumbs: {
     display: 'flex',
