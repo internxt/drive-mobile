@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Image, BackHandler, Platform, Alert } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { Text, View, StyleSheet, Image, Platform, Alert, BackHandler } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
@@ -28,7 +28,6 @@ interface FileExplorerProps extends Reducers {
 function FileExplorer(props: FileExplorerProps): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
   const { filesState } = props
-  let count = 0
   const parentFolderId = (() => {
     if (filesState.folderContent) {
       return filesState.folderContent.parentId || null
@@ -36,6 +35,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       return null
     }
   })()
+  let count = 0
 
   // Check if everything is set up for file upload
   const validateUri = () => {
@@ -97,7 +97,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
 
     // BackHandler
     const backAction = () => {
-      if (filesState.folderContent && !filesState.folderContent.parentId) {
+      if (props.filesState.folderContent && !props.filesState.folderContent.parentId) {
         count++
         if (count < 2) {
           Toast.show('Try exiting again to close the app')
@@ -110,7 +110,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
           count = 0
         }, 4000)
       } else {
-        props.dispatch(fileActions.getFolderContent(filesState.folderContent.parentId))
+        props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.parentId))
       }
       return true
     }
