@@ -26,7 +26,7 @@ function SelectPhotoModal(props: SelectPhotoProps) {
         props.dispatch(PhotoActions.selectPhoto(item))
       }}
     >
-      <PhotoItem source={item} isLoading={false} />
+      <PhotoItem item={item} isLoading={false} />
     </Pressable>
   );
   /*const selectedItems = useSelector(state => state.pic.selectedPics)
@@ -44,7 +44,7 @@ function SelectPhotoModal(props: SelectPhotoProps) {
       onClosed={async () => {
         const metadata: any = {}
 
-        props.dispatch(PhotoActions.setIsLoading(!props.photosState.loading))
+        //props.dispatch(PhotoActions.setIsLoading(!props.photosState.loading))
         /*if (pic.filename !== inputPhotoName) {
             metadata.itemName = inputPhotoName
             //await updateFileMetadata(metadata, file.fileId)

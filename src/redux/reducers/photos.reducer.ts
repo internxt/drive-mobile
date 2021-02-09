@@ -167,13 +167,16 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     };
 
   case photoActionTypes.DELETE_PHOTO_REQUEST:
-    return { ...state, loading: true };
+    return { ...state, loadingDeleted: true };
 
   case photoActionTypes.DELETE_PHOTO_SUCCESS:
-    return { ...state, loading: false };
+    return {
+      ...state,
+      loadingDeleted: false
+    };
 
   case photoActionTypes.DELETE_PHOTO_FAILURE:
-    return { ...state, loading: false };
+    return { ...state, loadingDeleted: false };
 
   case photoActionTypes.SET_SORT_TYPE:
     return {

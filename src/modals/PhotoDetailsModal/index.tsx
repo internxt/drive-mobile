@@ -100,6 +100,7 @@ function PhotoDetailsModal(props: PhotoDetailsProps) {
   const [progress, setProgress] = useState(0)
 
   const photoItem = props.photosState.selectedPhoto;
+
   /*const selectedItems = useSelector(state => state.pic.selectedPics)
   const showModal = useSelector(state => state.layout.showPicModal) && selectedItems.length > 0
   const pic = selectedItems[0]
@@ -243,10 +244,8 @@ function PhotoDetailsModal(props: PhotoDetailsProps) {
       <OptionItem
         text={'Delete'}
         onClick={() => {
-          /*
-          modalDeleteFiles.current.open();
-          */
-          //props.dispatch(closePicModal())
+          props.dispatch(PhotoActions.deleteTempPhoto(photoItem.id));
+          props.dispatch(layoutActions.closeSelectPhotoModal());
         }}
 
       />

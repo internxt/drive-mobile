@@ -251,7 +251,6 @@ function deleteTempPhoto(photoId: string) {
   return (dispatch: Dispatch) => {
     dispatch(request());
     photoService.deleteTempPhoto(photoId).then(result => {
-      //ndispatch(getFolderContent(destination))
       if (result === 1) {
         dispatch(success());
       } else {
@@ -261,12 +260,12 @@ function deleteTempPhoto(photoId: string) {
   };
 
   function request() {
-    return { type: photoActionTypes.MOVE_PHOTOS_REQUEST };
+    return { type: photoActionTypes.DELETE_PHOTO_REQUEST };
   }
   function success() {
-    return { type: photoActionTypes.MOVE_PHOTOS_SUCCESS };
+    return { type: photoActionTypes.DELETE_PHOTO_SUCCESS };
   }
   function failure(payload: any) {
-    return { type: photoActionTypes.MOVE_PHOTOS_FAILURE, payload };
+    return { type: photoActionTypes.DELETE_PHOTO_FAILURE, payload };
   }
 }

@@ -6,6 +6,7 @@ import { previewsStorage } from '../../helpers/previewsStorage';
 import { PhotoActions } from '../../redux/actions';
 import EmptyAlbum from '../EmptyAlbum';
 import PhotoItem from '../PhotoItem';
+import EmptyPhotoItem from '../PhotoItem/EmptyPhotoItem';
 
 export interface IPhoto {
   id?: number
@@ -34,13 +35,13 @@ function PhotoList(props: PhotoListProps) {
   const [refreshing, setRefreshing] = useState(false)
 
   const { photosState } = props;
-  const { folderContent } = photosState;
 
   let photoList: IPhoto[] = props.photos || [];
 
   useEffect(() => {
     setRefreshing(false)
     photoList = props.photosState.photos;
+
     previewsStorage.matchPreviews(photoList);
   }, [props.photosState.photos])
 
@@ -77,7 +78,7 @@ function PhotoList(props: PhotoListProps) {
   const renderAllPhotoItem = ({ item }: { item: IPhoto }) => (
     <Pressable
       onPress={() => {
-        props.navigation.navigate('AlbumView');
+        props.navigation.navigate('AlbumView', { title: 'All Photos' });
       }}
       onLongPress={() => {
         //props.dispatch(fileActions.selectPhoto(item))

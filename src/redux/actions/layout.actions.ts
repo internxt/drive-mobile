@@ -29,7 +29,9 @@ export const layoutActions = {
   openUploadFileModal,
   closeUploadFileModal,
   openSortPhotoModal,
-  closeSortPhotoModal
+  closeSortPhotoModal,
+  openAllPhotosModal,
+  closeAllPhotosModal
 };
 
 function openSortPhotoModal() {
@@ -104,6 +106,18 @@ function openAddItemModal() {
 function closeAddItemModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_ADD_ITEM_MODAL });
+  };
+}
+
+function openAllPhotosModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.OPEN_PHOTOS_MODAL });
+  };
+}
+
+function closeAllPhotosModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_PHOTOS_MODAL });
   };
 }
 

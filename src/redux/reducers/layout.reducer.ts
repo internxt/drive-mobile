@@ -36,6 +36,16 @@ const initialState: LayoutState = {
 
 export function layoutReducer(state = initialState, action: any) {
   switch (action.type) {
+  case layoutActionTypes.OPEN_PHOTOS_MODAL:
+    return {
+      ...state,
+      showSelectPhotoModal: true
+    };
+  case layoutActionTypes.CLOSE_PHOTOS_MODAL:
+    return {
+      ...state,
+      showSelectPhotoModal: false
+    }
   case layoutActionTypes.OPEN_CREATE_FOLDER_FORM:
     return {
       searchActive: false,
@@ -99,7 +109,6 @@ export function layoutReducer(state = initialState, action: any) {
   case layoutActionTypes.OPEN_SELECT_PHOTO_MODAL: {
     return {
       ...state,
-      selectedPhoto: action.payload,
       showPhotoDetailsModal: true
     }
   }

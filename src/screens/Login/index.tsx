@@ -44,6 +44,7 @@ function Login(props: LoginProps): JSX.Element {
           const localUser = JSON.parse(xUser);
 
           props.dispatch(userActions.localSignIn(xToken, xUser))
+          props.navigation.replace('Home');
         } else {
           setIsLoading(false)
         }
