@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
   TextInput,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  BackHandler
 } from 'react-native';
 import { connect } from 'react-redux';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
@@ -38,6 +39,18 @@ const FolderIcon = () => (
 function CreateFolder(props: any): JSX.Element {
   const [folderName, setFolderName] = useState('')
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
+
+  useEffect(() => {
+    // BackHandler
+    const backAction = () => {
+      props.navigation.replace('FileExplorer')
+
+      return true
+    }
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction)
+
+    return () => backHandler.remove()
+  }, [])
 
   const onSave = () => {
     if (folderName) {
