@@ -150,6 +150,7 @@ function Storage(props: StorageProps): JSX.Element {
                             onPress={() => {
                               setChosenProduct(undefined)
                             }}
+                            style={styles.paymentBack}
                           >
                             <Image style={styles.paymentBackIcon} source={getIcon('back')} />
                           </TouchableOpacity>
@@ -203,7 +204,6 @@ const styles = StyleSheet.create({
     flex: 0.1
   },
   backTouchable: {
-    borderWidth: 1,
     width: wp('10'),
     height: wp('10'),
     alignItems: 'center',
@@ -281,21 +281,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12
   },
+  paymentBack: {
+    height: wp('6'),
+    width: wp('6'),
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   title: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: 18,
-    height: 32,
+    textAlignVertical: 'center',
     letterSpacing: 0,
     color: 'black',
-    marginRight: 10
+    marginRight: 10,
+    paddingBottom: Platform.OS === 'android' ? wp('1') : 0
   },
   titlePlan: {
     fontFamily: 'CerebriSans-Medium',
+    color: '#7e848c',
     fontSize: 18,
-    height: 32,
     paddingLeft: 10,
     borderLeftWidth: 1,
-    borderColor: '#eaeced'
+    borderColor: '#eaeced',
+    paddingBottom: Platform.OS === 'android' ? wp('1') : 0
   },
   paymentBackIcon: {
     width: 8,
