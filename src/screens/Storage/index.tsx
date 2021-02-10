@@ -12,7 +12,6 @@ import { Reducers } from '../../redux/reducers/reducers';
 import { loadValues } from '../../modals';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
- ''
 
 interface StorageProps extends Reducers {
   dispatch?: any,
