@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
 import { View, Text, StyleSheet, Image, ActivityIndicator, Platform } from 'react-native';
-import { TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import ProgressBar from '../../components/ProgressBar';
 import { getIcon } from '../../helpers/getIcon';
@@ -11,6 +11,7 @@ import { IPlan, IProduct, storageService } from '../../redux/services';
 import { Reducers } from '../../redux/reducers/reducers';
 import { loadValues } from '../../modals';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 interface StorageProps extends Reducers {
   dispatch?: any,
@@ -64,13 +65,14 @@ function Storage(props: StorageProps): JSX.Element {
       <View style={styles.container}>
         <View style={styles.navigatorContainer}>
           <View style={styles.backButton}>
-            <TouchableNativeFeedback
+            <TouchableOpacity
               onPress={() => {
                 props.navigation.replace('FileExplorer')
               }}
+              style={styles.backTouchable}
             >
               <Image style={styles.backIcon} source={getIcon('back')} />
-            </TouchableNativeFeedback>
+            </TouchableOpacity>
           </View>
 
           <Text style={styles.backText}>Storage</Text>
@@ -148,6 +150,7 @@ function Storage(props: StorageProps): JSX.Element {
                             onPress={() => {
                               setChosenProduct(undefined)
                             }}
+                            style={styles.paymentBack}
                           >
                             <Image style={styles.paymentBackIcon} source={getIcon('back')} />
                           </TouchableOpacity>
@@ -194,11 +197,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    paddingBottom: 20,
+    height: wp('10'),
     borderColor: '#f2f2f2'
   },
   backButton: {
-    flex: 0.1,
+    flex: 0.1
+  },
+  backTouchable: {
+    width: wp('10'),
+    height: wp('10'),
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -274,21 +281,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12
   },
+  paymentBack: {
+    height: wp('6'),
+    width: wp('6'),
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   title: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: 18,
-    height: 32,
+    textAlignVertical: 'center',
     letterSpacing: 0,
     color: 'black',
-    marginRight: 10
+    marginRight: 10,
+    paddingBottom: Platform.OS === 'android' ? wp('1') : 0
   },
   titlePlan: {
     fontFamily: 'CerebriSans-Medium',
+    color: '#7e848c',
     fontSize: 18,
-    height: 32,
     paddingLeft: 10,
     borderLeftWidth: 1,
-    borderColor: '#eaeced'
+    borderColor: '#eaeced',
+    paddingBottom: Platform.OS === 'android' ? wp('1') : 0
   },
   paymentBackIcon: {
     width: 8,

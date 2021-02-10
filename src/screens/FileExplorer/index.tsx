@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Image, BackHandler, Platform, Alert } from 'react-native'
+import { Text, View, StyleSheet, Image, BackHandler, Platform, Alert, ActivityIndicator } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
 import SettingsModal from '../../modals/SettingsModal';
-import { TouchableHighlight } from 'react-native-gesture-handler';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { getIcon } from '../../helpers/getIcon';
 import FileDetailsModal from '../../modals/FileDetailsModal';
 import SortModal from '../../modals/SortModal';
@@ -15,6 +15,7 @@ import ShareFilesModal from '../../modals/ShareFilesModal';
 import { Reducers } from '../../redux/reducers/reducers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
 import RNFetchBlob from 'rn-fetch-blob';
+import { WaveIndicator } from 'react-native-indicators'
 
 interface FileExplorerProps extends Reducers {
   navigation?: any
@@ -215,8 +216,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
           : 'All Files'}
       </Text>
 
-      <TouchableHighlight
-        underlayColor="#FFF"
+      <TouchableOpacity
         onPress={() => {
           props.dispatch(fileActions.getFolderContent(parentFolderId))
         }}>
@@ -225,10 +225,17 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
 
           <Text style={styles.backLabel}>Back</Text>
         </View>
-      </TouchableHighlight>
+      </TouchableOpacity>
     </View>
 
-    <FileList />
+    {
+      props.filesState.loading ?
+        <View style={styles.activityIndicator}>
+          <WaveIndicator color="#5291ff" size={80} />
+        </View>
+        :
+        <FileList />
+    }
   </View>
 }
 
@@ -244,15 +251,25 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     backgroundColor: '#fff'
   },
+  activityIndicator: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   breadcrumbs: {
     display: 'flex',
     flexWrap: 'nowrap',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     borderBottomColor: '#e6e6e6',
     borderBottomWidth: 1,
     marginTop: 15,
-    paddingBottom: 15
+    height: 40
   },
   breadcrumbsTitle: {
     fontFamily: 'CircularStd-Bold',
@@ -265,7 +282,9 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 20
+    marginRight: 20,
+    height: '100%',
+    width: '100%'
   },
   backIcon: {
     height: 12,
