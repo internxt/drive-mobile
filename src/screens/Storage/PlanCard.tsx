@@ -48,7 +48,7 @@ function PlanCard(props: PlanCardProps): JSX.Element {
                 props.currentPlan && props.size ?
                   <View>
                     {
-                      props.currentPlan.replace(/\D/g, '') === props.size.replace(/\D/g, '') ?
+                      props.currentPlan.replace(/\s/g, '') === props.size.replace(/\s/g, '') ?
                         <Image style={styles.checkmark} source={getIcon('checkmark')} />
                         :
                         null
