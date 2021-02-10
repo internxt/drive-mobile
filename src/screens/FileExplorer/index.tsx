@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Image, BackHandler, Platform, Alert, ActivityIndicator } from 'react-native'
+import { Text, View, StyleSheet, Image, Platform, Alert, BackHandler } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
@@ -16,6 +16,7 @@ import { Reducers } from '../../redux/reducers/reducers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
 import RNFetchBlob from 'rn-fetch-blob';
 import { WaveIndicator } from 'react-native-indicators'
+import Toast from 'react-native-simple-toast'
 
 interface FileExplorerProps extends Reducers {
   navigation?: any
@@ -28,7 +29,6 @@ interface FileExplorerProps extends Reducers {
 function FileExplorer(props: FileExplorerProps): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
   const { filesState } = props
-
   const parentFolderId = (() => {
     if (filesState.folderContent) {
       return filesState.folderContent.parentId || null
@@ -36,6 +36,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       return null
     }
   })()
+  let count = 0
 
   // Check if everything is set up for file upload
   const validateUri = () => {
@@ -46,11 +47,6 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       return filesState.uri.fileUri && filesState.folderContent && filesState.folderContent.currentFolder
     }
   }
-
-  // useEffect to set rootFolderContent for MoveFilesModal
-  useEffect(() => {
-    parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(filesState.folderContent)) : null
-  }, [filesState.folderContent])
 
   // useEffect to trigger uploadFile while app on background
   useEffect(() => {
@@ -96,6 +92,32 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
         }, 3000)
       }
     }
+
+    // Set rootfoldercontent for MoveFilesModal
+    parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(filesState.folderContent)) : null
+
+    // BackHandler
+    const backAction = () => {
+      if (props.filesState.folderContent && !props.filesState.folderContent.parentId) {
+        count++
+        if (count < 2) {
+          Toast.show('Try exiting again to close the app')
+        } else {
+          BackHandler.exitApp()
+        }
+
+        // Reset if some time passes
+        setTimeout(() => {
+          count = 0
+        }, 4000)
+      } else {
+        props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.parentId))
+      }
+      return true
+    }
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction)
+
+    return () => backHandler.remove()
   }, [filesState.folderContent])
 
   const uploadFile = async (uri: string, name: string, currentFolder: number) => {
@@ -167,25 +189,6 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       props.dispatch(fileActions.uploadFileFinished())
     }
   }
-
-  useEffect(() => {
-    const backAction = () => {
-      if (parentFolderId) {
-        // eslint-disable-next-line no-console
-        console.log('back') // do not delete
-        // Go to parent folder if exists
-        props.dispatch(fileActions.getFolderContent(parentFolderId))
-      } else {
-        // Exit application if root folder
-        BackHandler.exitApp()
-      }
-      return true;
-    };
-
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-    return () => backHandler.remove();
-  }, []);
 
   useEffect(() => {
     const keyId = filesState.selectedItems.length > 0 && filesState.selectedItems[0].id

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
-import { View, Text, StyleSheet, Image, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, ActivityIndicator, Platform, BackHandler } from 'react-native';
 import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import ProgressBar from '../../components/ProgressBar';
@@ -39,8 +39,17 @@ function Storage(props: StorageProps): JSX.Element {
     return plans
   }
 
-  useEffect(() => {
+  // BackHandler
+  const backAction = () => {
+    if (!chosenProduct) {
+      props.navigation.replace('FileExplorer')
+    } else {
+      setChosenProduct(undefined)
+    }
+    return true
+  }
 
+  useEffect(() => {
     loadValues().then(res => {
       setUsageValues(res)
     }).catch(() => { })
@@ -58,6 +67,10 @@ function Storage(props: StorageProps): JSX.Element {
         setIsLoading(false)
       })
     }
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction)
+
+    return () => backHandler.remove()
   }, [chosenProduct])
 
   return (

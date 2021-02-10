@@ -1,5 +1,5 @@
 import { getDocumentAsync } from 'expo-document-picker';
-import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker';
+import { getMediaLibraryPermissionsAsync, launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import { uniqueId } from 'lodash';
 import React, { Fragment, useState, useRef } from 'react'
 import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-native'
@@ -179,31 +179,25 @@ function AppMenu(props: AppMenuProps) {
                 {
                   text: 'Upload a document',
                   onPress: async () => {
-                    const { status } = await requestCameraPermissionsAsync()
+                    const result = await getDocumentAsync({ copyToCacheDirectory: false })
 
-                    if (status === 'granted') {
-                      const result = await getDocumentAsync({ copyToCacheDirectory: false })
+                    if (result.type !== 'cancel') {
+                      const fileUploading: any = result
 
-                      if (result.type !== 'cancel') {
-                        const fileUploading: any = result
+                      fileUploading.progress = 0
+                      fileUploading.currentFolder = props.filesState.folderContent.currentFolder
+                      fileUploading.createdAt = new Date()
+                      fileUploading.id = uniqueId()
 
-                        fileUploading.progress = 0
-                        fileUploading.currentFolder = props.filesState.folderContent.currentFolder
-                        fileUploading.createdAt = new Date()
-                        fileUploading.id = uniqueId()
-
-                        props.dispatch(fileActions.addUploadingFile(fileUploading))
-                        uploadFile(fileUploading, props.filesState.folderContent.currentFolder)
-                      }
-                    } else {
-                      Alert.alert('Camera permission needed to perform this action')
+                      props.dispatch(fileActions.addUploadingFile(fileUploading))
+                      uploadFile(fileUploading, props.filesState.folderContent.currentFolder)
                     }
                   }
                 },
                 {
                   text: 'Upload media',
                   onPress: async () => {
-                    const { status } = await requestCameraPermissionsAsync()
+                    const { status } = await requestMediaLibraryPermissionsAsync()
 
                     if (status === 'granted') {
                       const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All })
@@ -224,7 +218,7 @@ function AppMenu(props: AppMenuProps) {
                         uploadFile(fileUploading, fileUploading.currentFolder)
                       }
                     } else {
-                      Alert.alert('Camera permission needed to perform this action')
+                      Alert.alert('Camera roll permissions needed to perform this action')
                     }
                   }
                 },

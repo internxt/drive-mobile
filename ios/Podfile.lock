@@ -353,6 +353,9 @@ PODS:
     - React
   - react-native-safe-area-context (3.1.9):
     - React-Core
+  - react-native-simple-toast (1.1.3):
+    - React-Core
+    - Toast (~> 4.0.0)
   - react-native-webview (11.0.0):
     - React-Core
   - React-RCTActionSheet (0.63.4):
@@ -444,6 +447,7 @@ PODS:
     - Analytics
     - Firebase/Core (~> 6.2)
     - FirebaseAnalytics (~> 6.1)
+  - Toast (4.0.0)
   - UMAppLoader (1.4.0)
   - UMBarCodeScannerInterface (5.4.0)
   - UMCameraInterface (5.4.0)
@@ -522,6 +526,7 @@ DEPENDENCIES:
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-receive-sharing-intent (from `../node_modules/react-native-receive-sharing-intent`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - react-native-simple-toast (from `../node_modules/react-native-simple-toast`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
@@ -581,6 +586,7 @@ SPEC REPOS:
     - OpenSSL-Universal
     - PromisesObjC
     - Segment-Firebase
+    - Toast
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -654,6 +660,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-receive-sharing-intent"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-simple-toast:
+    :path: "../node_modules/react-native-simple-toast"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   React-RCTActionSheet:
@@ -779,6 +787,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: 44ecae7103090b6789cca010f06f5205fd1cb66e
   react-native-receive-sharing-intent: 648f1eb35ae70886a8733d6be949042aa5111ffb
   react-native-safe-area-context: b6e0e284002381d2ff29fa4fff42b4d8282e3c94
+  react-native-simple-toast: bf002828cf816775a6809f7a9ec3907509bce11f
   react-native-webview: 6b7950628616679d81bdd75747e50cf6de9b5a5f
   React-RCTActionSheet: 89a0ca9f4a06c1f93c26067af074ccdce0f40336
   React-RCTAnimation: 1bde3ecc0c104c55df246eda516e0deb03c4e49b
@@ -799,6 +808,7 @@ SPEC CHECKSUMS:
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   Segment-Firebase: 41677a446f58989db69912059949107afb0c3f38
+  Toast: 91b396c56ee72a5790816f40d3a94dd357abc196
   UMAppLoader: 92d044af52626af3d81a69796ad666fc7a9a7d78
   UMBarCodeScannerInterface: 3f6c1b09ef4b867ce752b8c0b3893bcf9cd85f32
   UMCameraInterface: d516032121192fee9a6c93bdfff0bb2cc7282796
