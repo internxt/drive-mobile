@@ -37,23 +37,12 @@ const slides = [
     key: 'intro003',
     text: (
       <Text>
-        For every year you&apos;re <B>subscribed</B> to one of Internxt
-        Drive&apos;s <B>premium</B> plans, you&apos;ll be helping deforestation
-        by <B>planting a tree</B> across the planet.
-      </Text>
-    ),
-    image: require('../../../assets/images/intro/intro03.png')
-  },
-  {
-    key: 'intro004',
-    text: (
-      <Text>
         Access Internxt Drive from <B>Desktop</B>, <B>Web</B> or{' '}
         <B>Mobile</B>. Start using Drive today with <B>2 GB</B> on
         us. <B>Upgrade your storage</B> when needed, free for a month, cancel anytime.
       </Text>
     ),
-    image: require('../../../assets/images/intro/intro04.png')
+    image: require('../../../assets/images/intro/intro03.png')
   }
 ];
 
