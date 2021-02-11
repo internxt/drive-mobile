@@ -1,25 +1,23 @@
+/* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { ScrollView, Text, RefreshControl, StyleSheet, Pressable, View } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { StyleSheet, View, Image, Platform } from 'react-native';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import { previewsStorage } from '../../helpers/previewsStorage';
-import { PhotoActions } from '../../redux/actions';
-import EmptyAlbum from '../EmptyAlbum';
-import PhotoItem from '../PhotoItem';
-import EmptyPhotoItem from '../PhotoItem/EmptyPhotoItem';
+import * as Permissions from 'expo-permissions';
+import * as MediaLibrary from 'expo-media-library';
+import FileViewer from 'react-native-file-viewer'
 
 export interface IPhoto {
-  id?: number
-  photoId?: number
+  id: string
+  modificationTime: string
   uri: any
-  name: string
-  type: string
-  size?: number
-  preview?: any
-  albumId?: number
+  filename: string
+  duration: number
+  width: string
+  heigh: number
   bucket?: string
-  createdAt?: Date
-  updatedAt?: Date
+  creationTime?: Date
+  mediaSubTypes: any
 }
 
 interface PhotoListProps {
@@ -32,110 +30,75 @@ interface PhotoListProps {
 }
 
 function PhotoList(props: PhotoListProps) {
-  const [refreshing, setRefreshing] = useState(false)
 
-  const { photosState } = props;
+  const photoList: IPhoto[] = props.photos || [];
 
-  let photoList: IPhoto[] = props.photos || [];
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [image, setImage] = useState<IPhoto[]>([]);
 
-  useEffect(() => {
-    setRefreshing(false)
-    photoList = props.photosState.photos;
-
-    previewsStorage.matchPreviews(photoList);
-  }, [props.photosState.photos])
-
-  const searchString = props.photosState.searchString
-
-  if (searchString) {
-    photoList = photoList.filter((photo: IPhoto) => photo.name.toLowerCase().includes(searchString.toLowerCase()))
-  }
-
-  const sortFunction = props.photosState.sortFunction
-
-  if (sortFunction) {
-    photoList.sort(sortFunction);
-  }
+  const getImages = () => {
+    return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
+      .then(() => {
+        return MediaLibrary.getAssetsAsync();
+      })
+      .then((result) => {
+        return result.assets;
+      });
+  };
 
   useEffect(() => {
-    if (!props.photosState.photos) {
-      const rootPreviewId = props.authenticationState.user.rootAlbumId
-
-      props.dispatch(PhotoActions.getAllPhotosContent(rootPreviewId))
+    // eslint-disable-next-line no-console
+    console.log('loading photos');
+    getImages().then((res) => {
+      setImages(res)
+      setIsLoading(false)
     }
-  }, [])
-
-  const isUploading = props.photosState.isUploadingPhotoName
-  const isEmptyAlbum = photoList.length === 0 && !isUploading
+    );
+  }, []);
 
   useEffect(() => {
-    //console.log('--- UPLOADING PROGRESS ON photoList ---', photosState.progress)
-
-  }, [photosState.progress])
-
-  const keyExtractor = (item: any, index: any) => index.toString();
-
-  const renderAllPhotoItem = ({ item }: { item: IPhoto }) => (
-    <Pressable
-      onPress={() => {
-        props.navigation.navigate('AlbumView', { title: 'All Photos' });
-      }}
-      onLongPress={() => {
-        //props.dispatch(fileActions.selectPhoto(item))
-      }}
-      style={{
-        display: 'flex',
-        flex: 1,
-        backgroundColor: '#fff'
-      }}
-    >
-      <PhotoItem isLoading={props.photosState.loading} item={item} />
-    </Pressable>
-  );
+  }, [images]);
 
   return (
     <View>
-      {
-        isEmptyAlbum ?
-          <EmptyAlbum />
-          :
-          <Text style={styles.dNone}></Text>
-      }
+      <FlatList
+        data={images}
+        renderItem={({ item }) => (
+          <View
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={{
+              flex: 1,
+              flexDirection: 'column',
+              margin: 1
+            }}>
+            <TouchableOpacity
+              style={styles.imageView}
+              key={item.id}
+              onPress={async () => {
+                const e = await MediaLibrary.getAssetInfoAsync(item)
 
-      {
-        isUploading ?
-          <PhotoItem
-            item={{ uri: '', name: '', type: '' }}
-            isLoading={props.photosState.loading}
-          />
-          :
-          null
-      }
-
-      <View style={styles.photoScroll}>
-        <FlatList
-          keyExtractor={keyExtractor}
-          renderItem={renderAllPhotoItem}
-          refreshing={props.photosState.loadingPhotos}
-          data={photoList}
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-        ></FlatList>
-      </View>
-
+                FileViewer.open(e.localUri)
+              }}>
+              <Image
+                style={{ width: 100, height: 100 }}
+                source={{ uri: item.uri }}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+        //Setting the number of column
+        horizontal={true}
+        keyExtractor={(item, index) => index.toString()}
+      />
     </View>
+
   )
 }
-
 const styles = StyleSheet.create({
-  dNone: {
-    display: 'none'
-  },
-  photoScroll: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'nowrap',
-    marginTop: 0
+  imageView: {
+    borderRadius: 2,
+    marginRight: 4
   }
 })
 

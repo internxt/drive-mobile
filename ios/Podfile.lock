@@ -24,6 +24,10 @@ PODS:
     - React-Core
     - UMCore
     - UMImageLoaderInterface
+  - EXImageManipulator (8.4.0):
+    - UMCore
+    - UMFileSystemInterface
+    - UMImageLoaderInterface
   - EXImagePicker (9.2.1):
     - UMCore
     - UMFileSystemInterface
@@ -434,6 +438,8 @@ PODS:
     - React
   - RNFileViewer (2.1.4):
     - React-Core
+  - RNFS (2.16.6):
+    - React
   - RNGestureHandler (1.8.0):
     - React
   - RNScreens (2.15.0):
@@ -479,6 +485,7 @@ DEPENDENCIES:
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
+  - EXImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - EXImagePicker (from `../node_modules/expo-image-picker/ios`)
   - EXKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - EXLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
@@ -544,6 +551,7 @@ DEPENDENCIES:
   - "RNAnalyticsIntegration-Firebase (from `../node_modules/@segment/analytics-react-native-firebase`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
+  - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
@@ -606,6 +614,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-font/ios"
   EXImageLoader:
     :path: "../node_modules/expo-image-loader/ios"
+  EXImageManipulator:
+    :path: "../node_modules/expo-image-manipulator/ios"
   EXImagePicker:
     :path: "../node_modules/expo-image-picker/ios"
   EXKeepAwake:
@@ -694,6 +704,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/masked-view"
   RNFileViewer:
     :path: "../node_modules/react-native-file-viewer"
+  RNFS:
+    :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNScreens:
@@ -742,6 +754,7 @@ SPEC CHECKSUMS:
   EXFileSystem: 0e4974ab77bff04cda68d2886d070cbe64b93a6b
   EXFont: 30c64ed8735a180e3f20046e4fdac4ea074d71d3
   EXImageLoader: f96ec9992733a4224418bbd9382e5485c8948944
+  EXImageManipulator: 77756def08b3f2bc2a0470c657fbd0d94f381fa4
   EXImagePicker: 82fb929fb57b38de8d0a2d7fc3ca49726b9b8f78
   EXKeepAwake: 615c5a6fca5c2afedf611bb6f7f2ca323246de94
   EXLinearGradient: c803fbd1aa974be038177b1e45524bc35759fe9c
@@ -804,6 +817,7 @@ SPEC CHECKSUMS:
   RNAnalyticsIntegration-Firebase: daed87b7ab56636ed0098326eb92e26fdfc198c2
   RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
   RNFileViewer: 83cc066ad795b1f986791d03b56fe0ee14b6a69f
+  RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e

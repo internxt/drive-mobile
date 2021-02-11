@@ -1,19 +1,17 @@
-import React, { Component, useState } from 'react';
-import { FlatList, Pressable, SafeAreaView, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
-//import { BackButton } from '../../components/BackButton';
-//import { SettingsButton } from '../../components/SettingsButton';
-import PhotoItem from '../../components/PhotoItem';
-//import { layoutActions, photoActions, updateCursor } from '../../redux/actions';
-import { connect, useDispatch } from 'react-redux';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-//import { IPhoto } from '../../components/FileList';
+import React, { useState, useEffect } from 'react';
+import { FlatList, TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
+import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
-import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
+import * as Permissions from 'expo-permissions';
+import * as MediaLibrary from 'expo-media-library';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import FileViewer from 'react-native-file-viewer'
+import AlbumImage from './AlbumImage'
 interface AlbumViewProps {
   route: any;
   navigation?: any
@@ -25,13 +23,31 @@ interface AlbumViewProps {
 
 function AlbumView(props: AlbumViewProps): JSX.Element {
   const [refreshing, setRefreshing] = useState(false);
+  const [images, setImages] = useState([]);
 
-  const keyExtractor = (item: any, index?: any) => index.toString();
-  const renderItem = ({ item }: { item: any }) => (
-    <Pressable>
-      <PhotoItem item={item} isLoading={false} />
-    </Pressable>
-  );
+  const getImages = () => {
+    return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
+      .then(() => {
+        return MediaLibrary.getAssetsAsync();
+      })
+      .then((result) => {
+        return result.assets;
+      });
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('loading photos');
+    getImages().then((res) => {
+      setImages(res)
+      setIsLoading(false)
+    }
+    );
+  }, []);
+
+  useEffect(() => {
+
+  }, [images]);
 
   return (
     <View style={styles.container}>
@@ -48,7 +64,7 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
             {props.navigation.state.params.title}
           </Text>
           <Text style={styles.photosCount}>
-            {props.photosState.photos.length} Photos
+            {images.length} Photos
           </Text>
         </View>
 
@@ -57,26 +73,13 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
         }} />
       </View>
 
-      <View >
-        <FlatList
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          data={props.photosState.photos}
-          contentContainerStyle={styles.items}
-          showsVerticalScrollIndicator={false}
-          horizontal={false}
-          numColumns={3}
-          refreshing={refreshing}
-          onRefresh={async () => {
-            setRefreshing(true)
-            //const index = props.filesState.cursor;
-            //const result = await getPhotos(index);
-            //updateCursor(result.index)
-            setRefreshing(false)
-          }}
-        ></FlatList>
-      </View>
-
+      <FlatList
+        data={images}
+        renderItem={({ item }) => <AlbumImage id={item.id} uri={item.uri} /> }
+        numColumns={3}
+        //Setting the number of column
+        keyExtractor={(item, index) => index.toString()}
+      />
     </View>
   );
 }
@@ -90,18 +93,12 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
     marginBottom: 0
   },
-  items: {
-    display: 'flex',
-    justifyContent: 'center',
-    paddingLeft: 5
-
-  },
   albumHeader: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 0,
+    marginTop: 45,
     paddingVertical: 7,
     paddingHorizontal: 20,
     height: '8%'

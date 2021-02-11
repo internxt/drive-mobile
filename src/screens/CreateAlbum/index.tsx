@@ -54,7 +54,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
       <View style={styles.selectHeader}>
         <View style={styles.selectPhotos}>
           <Pressable
-            onPress={() => { props.dispatch(layoutActions.openAllPhotosModal()) }}>
+            onPress={() => { }}>
             <Text style={styles.photosText}>
               Select Photos
             </Text>
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     backgroundColor: '#fff',
     paddingTop: 0,
-    marginTop: -5,
+    marginTop: 25,
     marginBottom: 0
   },
   items: {

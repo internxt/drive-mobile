@@ -36,11 +36,11 @@ const routeConfig: RouteConfig = {
   Forgot: { screen: Forgot },
   OutOfSpace: { screen: OutOfSpace },
   Storage: { screen: Storage },
-  StorageWebView: { screen: StorageWebView }
+  StorageWebView: { screen: StorageWebView },
 };
 
 const navigatorOptions: NavigatorOptions = {
-  initialRouteName: 'EntryPoint',
+  initialRouteName: 'Login',
   headerMode: 'none'
 };
 

@@ -13,6 +13,7 @@ import AlbumCard from '../../components/AlbumCard';
 import { useNavigation } from '@react-navigation/native';
 import { layoutActions } from '../../redux/actions';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
+import SourceList from '../../helpers/getAssets';
 
 interface AddItemToProps {
   navigation?: any
