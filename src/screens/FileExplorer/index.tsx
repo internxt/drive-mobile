@@ -229,7 +229,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
     </View>
 
     {
-      props.filesState.loading ?
+      props.filesState.loading && !props.filesState.isUploading ?
         <View style={styles.activityIndicator}>
           <WaveIndicator color="#5291ff" size={80} />
         </View>

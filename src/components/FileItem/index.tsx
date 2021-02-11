@@ -221,15 +221,20 @@ function FileItem(props: FileItemProps) {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.buttonDetails}>
-            <TouchableOpacity
-              style={isSelectionMode ? styles.dNone : styles.dFlex}
-              onPress={() => {
-                props.dispatch(layoutActions.openItemModal(props.item))
-              }}>
-              <Icon name="details" />
-            </TouchableOpacity>
-          </View>
+          {
+            props.item.bucket ?
+              <View style={styles.buttonDetails}>
+                <TouchableOpacity
+                  style={isSelectionMode ? styles.dNone : styles.dFlex}
+                  onPress={() => {
+                    props.dispatch(layoutActions.openItemModal(props.item))
+                  }}>
+                  <Icon name="details" />
+                </TouchableOpacity>
+              </View>
+              :
+              null
+          }
         </View>
 
         <View style={styles.progressIndicatorContainer}>
