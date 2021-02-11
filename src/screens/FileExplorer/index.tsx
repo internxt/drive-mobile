@@ -4,7 +4,7 @@ import AppMenu from '../../components/AppMenu'
 import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
-import SettingsModal from '../../modals/SettingsModal';
+import SettingsModal, { loadValues } from '../../modals/SettingsModal';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { getIcon } from '../../helpers/getIcon';
 import FileDetailsModal from '../../modals/FileDetailsModal';
@@ -48,6 +48,32 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       return filesState.uri.fileUri && filesState.folderContent && filesState.folderContent.currentFolder
     }
   }
+
+  useEffect(() => {
+    getLyticsData().then(userData => {
+      loadValues().then(res => {
+        const currentPlan = {
+          usage: parseInt(res.usage.toFixed(1)),
+          limit: parseInt(res.limit.toFixed(1)),
+          percentage: parseInt((res.usage / res.limit).toFixed(1))
+        }
+
+        props.dispatch(userActions.setUserStorage(currentPlan))
+        try {
+          if (res) {
+            analytics.identify(userData.uuid, {
+              userId: userData.uuid,
+              email: userData.email,
+              platform: 'mobile',
+              storage_used: currentPlan.usage,
+              storage_limit: currentPlan.limit,
+              storage_usage: currentPlan.percentage
+            }).catch(() => {})
+          }
+        } catch {}
+      })
+    })
+  }, [])
 
   // useEffect to trigger uploadFile while app on background
   useEffect(() => {
