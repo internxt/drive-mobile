@@ -7,8 +7,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { BackButton } from '../../components/BackButton';
 import { useLinkProps, useNavigation } from '@react-navigation/native';
 import PhotoItem from '../../components/PhotoItem';
-import { layoutActions } from '../../redux/actions';
+import { layoutActions, PhotoActions } from '../../redux/actions';
 import SelectPhotoModal from '../../modals/SelectPhotoModal';
+import { BackButtonPhotos } from '../../components/BackButton/BackButtonPhotos';
 //import PhotoListModal from '../../modals/PhotoListModal';
 
 interface CreateAlbumProps {
@@ -21,95 +22,157 @@ interface CreateAlbumProps {
 }
 
 function CreateAlbum(props: CreateAlbumProps): JSX.Element {
+  const [createStep, setCreateStep] = useState(1);
   const [inputAlbumTitle, setInputAlbumTitle] = useState('Untitled Album')
   const [refresh, setRefresh] = useState(false)
 
-  const albumPhotos = props.photosState.selectedItems;
+  let albumPhotos = props.photosState.selectedItems;
+
+  useEffect(() => {
+    albumPhotos = props.photosState.selectedItems;
+  }, [props.photosState.selectedItems])
+
+  useEffect(() => {
+    if (props.photosState.albumContent.length > 0 && props.photosState.loading === false) {
+      // When album is created, navigate to AlbumView and show new album
+      // albumContent(redux) contains the content of the focused album
+    }
+  }, [props.photosState.loading])
 
   const keyExtractor = (item: any, index: any) => index;
   const renderItem = ({ item }) => (
-    <PhotoItem source={item} isLoading={false} />
+    <PhotoItem item={item} isLoading={false} />
   );
 
-  return (
-    <View style={styles.container}>
-      <SelectPhotoModal />
-
-      <View style={styles.albumHeader}>
-        <BackButton navigation={props.navigation} ></BackButton>
-        <View style={{ alignSelf: 'center' }}>
-          <TextInput
-            style={styles.albumTitle}
-            onChangeText={value => setInputAlbumTitle(value)}
-            value={inputAlbumTitle}
-          />
-        </View>
-        <TouchableHighlight style={styles.nextBtn}>
-          <Text style={styles.nextText}>
-            Next
-          </Text>
-        </TouchableHighlight>
-      </View>
-
-      <View style={styles.selectHeader}>
-        <View style={styles.selectPhotos}>
-          <Pressable
-            onPress={() => { }}>
-            <Text style={styles.photosText}>
-              Select Photos
+  if (createStep === 1) {
+    return (
+      <View style={styles.container}>
+        <SelectPhotoModal />
+        <View style={styles.albumHeader}>
+          <BackButton navigation={props.navigation} ></BackButton>
+          <View style={{ alignSelf: 'center' }}>
+            <TextInput
+              style={styles.albumTitle}
+              onChangeText={value => setInputAlbumTitle(value)}
+              value={inputAlbumTitle}
+            />
+          </View>
+          <TouchableHighlight style={styles.nextBtn}
+            onPress={() => {
+              setCreateStep(2);
+            }}
+          >
+            <Text style={styles.nextText}>
+              Next
             </Text>
-          </Pressable>
+          </TouchableHighlight>
         </View>
 
-        <TouchableHighlight
-          style={styles.photoSelector}
-          underlayColor="#FFF"
-          onPress={async () => {
-            const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        <View style={styles.selectHeader}>
+          <View style={styles.selectPhotos}>
+            <Pressable
+              onPress={() => { props.dispatch(layoutActions.openAllPhotosModal()) }}>
+              <Text style={styles.photosText}>
+                Select Photos
+              </Text>
+            </Pressable>
+          </View>
 
-            if (status === 'granted') {
-              const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.All });
+          <TouchableHighlight
+            style={styles.photoSelector}
+            underlayColor="#FFF"
+            onPress={async () => {
+              const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
-              if (!result.cancelled) {
-                //uploadFile(result, props);
+              if (status === 'granted') {
+                const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images });
 
-                albumPhotos.push(result.uri)
+                if (!result.cancelled) {
+                  //uploadFile(result, props);
 
-                setRefresh(!refresh)
+                  albumPhotos.push(result.uri)
+
+                  setRefresh(!refresh)
+                }
+              } else {
+                Alert.alert('Camera permission needed to perform this action')
               }
-            } else {
-              Alert.alert('Camera permission needed to perform this action')
-            }
-          }}>
-          <Text style={{
-            fontFamily: 'Averta-Semibold',
-            color: '#0084ff',
-            fontSize: 15
-          }}>
-            Select from phone
-          </Text>
-        </TouchableHighlight>
-      </View>
-
-      {albumPhotos.length > 0
-        ? <View >
-          <FlatList
-            keyExtractor={keyExtractor}
-            renderItem={renderItem}
-            data={props.photosState.selectedItems}
-            extraData={refresh}
-            initialNumToRender={20}
-            numColumns={3}
-            contentContainerStyle={styles.items}
-            horizontal={false}
-          ></FlatList>
+            }}>
+            <Text style={{
+              fontFamily: 'Averta-Semibold',
+              color: '#0084ff',
+              fontSize: 15
+            }}>
+              Select from phone
+            </Text>
+          </TouchableHighlight>
         </View>
-        : <View style={styles.emptyBox}>
-          <Text style={styles.emptyText}> Album is Empty.</Text>
-        </View>}
 
-    </View>
-  );
+        {albumPhotos.length > 0
+          ? <View >
+            <FlatList
+              keyExtractor={keyExtractor}
+              renderItem={renderItem}
+              data={albumPhotos}
+              extraData={refresh}
+              initialNumToRender={20}
+              numColumns={3}
+              contentContainerStyle={styles.items}
+              horizontal={false}
+            ></FlatList>
+          </View>
+          : <View style={styles.emptyBox}>
+            <Text style={styles.emptyText}> Album is Empty.</Text>
+          </View>}
+
+      </View>
+    );
+  }
+
+  if (createStep === 2) {
+    return (
+      <View style={styles.container}>
+        <SelectPhotoModal />
+
+        <View style={styles.albumHeader}>
+          <BackButtonPhotos navigation={props.navigation} ></BackButtonPhotos>
+          <View style={{ alignSelf: 'center' }}>
+            <Text style={styles.albumTitle} >
+              {inputAlbumTitle}
+            </Text>
+          </View>
+          <TouchableHighlight style={styles.nextBtn}
+            onPress={() => {
+              // Create album and upload device selected photos
+              props.dispatch(PhotoActions.createAlbum(inputAlbumTitle, albumPhotos))
+            }}
+          >
+            <Text style={styles.nextText}>
+              Done
+            </Text>
+          </TouchableHighlight>
+        </View>
+
+        {albumPhotos.length > 0
+          ? <View >
+            <FlatList
+              keyExtractor={keyExtractor}
+              renderItem={renderItem}
+              data={albumPhotos}
+              extraData={refresh}
+              initialNumToRender={20}
+              numColumns={3}
+              contentContainerStyle={styles.items}
+              horizontal={false}
+            ></FlatList>
+          </View>
+          : <View style={styles.emptyBox}>
+            <Text style={styles.emptyText}> Album is Empty.</Text>
+          </View>}
+
+      </View>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
@@ -132,7 +195,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 0,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     height: '10%'
   },
   selectHeader: {
