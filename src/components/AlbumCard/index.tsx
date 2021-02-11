@@ -9,7 +9,7 @@ export interface AlbumProps {
   album?: any
   withTitle: boolean
   navigation: any
-  filesState?: any
+  photosState?: any
   dispatch?: any,
   layoutState?: any
   authenticationState?: any
@@ -18,18 +18,18 @@ export interface AlbumProps {
 // TODO: Add album param
 export function AlbumCard(props: AlbumProps): JSX.Element {
 
-  const pics = SourceList
+  const photos = props.photosState.photos;
 
   const keyExtractor = (item: any, index: any) => index;
   const renderItem = ({ item }) => (
     <Image style={styles.icon} source={item} />
   );
 
-  const bigImg = pics[0];
-  const img1 = pics[1];
-  const img2 = pics[2];
+  const bigImg = photos[0];
+  const img1 = photos[1];
+  const img2 = photos[2];
 
-  const newList = pics.slice(3, 12);
+  const newList = photos.slice(3, 12);
 
   return (
     <View style={props.withTitle ? styles.cont : styles.contModal}>

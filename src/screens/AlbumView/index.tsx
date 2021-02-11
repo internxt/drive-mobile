@@ -37,7 +37,7 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
 
   useEffect(() => {
     // eslint-disable-next-line no-console
-    console.log('loading photos');
+    //console.log('loading photos');
     getImages().then((res) => {
       setImages(res)
       setIsLoading(false)

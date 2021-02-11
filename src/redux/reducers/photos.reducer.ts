@@ -1,7 +1,7 @@
 //import { IPhoto, IFolder } from '../../components/PhotoList';
 import { IAlbum } from '../../components/AlbumList';
 import { IPhoto } from '../../components/PhotoList';
-import { decryptText, decryptTextWithKey } from '../../helpers';
+import { decryptText, decryptTextWithKey, deviceStorage } from '../../helpers';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
 import { photoService } from '../services/photo.service';
@@ -41,7 +41,7 @@ const initialState: PhotosState = {
   devicePhotos: [],
   deleted: [],
   albums: [],
-  albumContent: null,
+  albumContent: [],
   selectedPhoto: null,
   selectedAlbum: null,
   selectedItems: [],
@@ -65,7 +65,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
   case photoActionTypes.SET_ALBUM_CONTENT:
     return {
       ...state,
-      photos: action.payload
+      albumContent: action.payload
     };
   case photoActionTypes.GET_ALBUMS_SUCCESS:
     return {
@@ -86,7 +86,8 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
   case photoActionTypes.GET_DEVICE_SUCCESS:
     return {
       ...state,
-      devicePhotos: [...state.devicePhotos, action.payload]
+      cursor: action.payload.index,
+      devicePhotos: action.payload.photos
     };
   case photoActionTypes.GET_PHOTOS_REQUEST:
     return {
@@ -94,6 +95,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       loading: true
     };
   case photoActionTypes.GET_PHOTOS_SUCCESS:
+    //console.log('NETWORK ---- ', action.payload)
     return {
       ...state,
       loadingPhotos: false,
@@ -133,6 +135,19 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       progress: action.payload
+    };
+
+  case photoActionTypes.CREATE_ALBUM_REQUEST:
+    return {
+      ...state,
+      loading: true,
+      albumContent: action.payload
+    };
+
+  case photoActionTypes.CREATE_ALBUM_SUCCESS:
+    return {
+      ...state,
+      loading: false
     };
 
   case photoActionTypes.SELECT_PHOTO:
