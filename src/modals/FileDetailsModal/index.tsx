@@ -47,8 +47,9 @@ function FileDetailsModal(props: FileDetailsProps) {
       isFolder ?
         <Modal
           position={'bottom'}
-          swipeArea={20}
           isOpen={showModal}
+          swipeArea={100}
+          swipeToClose={true}
           style={styles.modalFolder}
           onClosed={async () => {
             props.dispatch(fileActions.deselectAll())

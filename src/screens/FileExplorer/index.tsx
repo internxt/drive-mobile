@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Image, BackHandler, Platform, Alert } from 'react-native'
+import { Text, View, StyleSheet, Image, Platform, Alert, BackHandler } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
 import SettingsModal from '../../modals/SettingsModal';
-import { TouchableHighlight } from 'react-native-gesture-handler';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { getIcon } from '../../helpers/getIcon';
 import FileDetailsModal from '../../modals/FileDetailsModal';
 import SortModal from '../../modals/SortModal';
@@ -15,6 +15,9 @@ import ShareFilesModal from '../../modals/ShareFilesModal';
 import { Reducers } from '../../redux/reducers/reducers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
 import RNFetchBlob from 'rn-fetch-blob';
+import { WaveIndicator } from 'react-native-indicators'
+import Toast from 'react-native-simple-toast'
+import FreeForYouModal from '../../modals/FreeForYouModal';
 
 interface FileExplorerProps extends Reducers {
   navigation?: any
@@ -27,7 +30,6 @@ interface FileExplorerProps extends Reducers {
 function FileExplorer(props: FileExplorerProps): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
   const { filesState } = props
-
   const parentFolderId = (() => {
     if (filesState.folderContent) {
       return filesState.folderContent.parentId || null
@@ -35,6 +37,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       return null
     }
   })()
+  let count = 0
 
   // Check if everything is set up for file upload
   const validateUri = () => {
@@ -45,11 +48,6 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       return filesState.uri.fileUri && filesState.folderContent && filesState.folderContent.currentFolder
     }
   }
-
-  // useEffect to set rootFolderContent for MoveFilesModal
-  useEffect(() => {
-    parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(filesState.folderContent)) : null
-  }, [filesState.folderContent])
 
   // useEffect to trigger uploadFile while app on background
   useEffect(() => {
@@ -95,6 +93,32 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
         }, 3000)
       }
     }
+
+    // Set rootfoldercontent for MoveFilesModal
+    parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(filesState.folderContent)) : null
+
+    // BackHandler
+    const backAction = () => {
+      if (props.filesState.folderContent && !props.filesState.folderContent.parentId) {
+        count++
+        if (count < 2) {
+          Toast.show('Try exiting again to close the app')
+        } else {
+          BackHandler.exitApp()
+        }
+
+        // Reset if some time passes
+        setTimeout(() => {
+          count = 0
+        }, 4000)
+      } else {
+        props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.parentId))
+      }
+      return true
+    }
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction)
+
+    return () => backHandler.remove()
   }, [filesState.folderContent])
 
   const uploadFile = async (uri: string, name: string, currentFolder: number) => {
@@ -168,25 +192,6 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
   }
 
   useEffect(() => {
-    const backAction = () => {
-      if (parentFolderId) {
-        // eslint-disable-next-line no-console
-        console.log('back') // do not delete
-        // Go to parent folder if exists
-        props.dispatch(fileActions.getFolderContent(parentFolderId))
-      } else {
-        // Exit application if root folder
-        BackHandler.exitApp()
-      }
-      return true;
-    };
-
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-    return () => backHandler.remove();
-  }, []);
-
-  useEffect(() => {
     const keyId = filesState.selectedItems.length > 0 && filesState.selectedItems[0].id
 
     setSelectedKeyId(keyId)
@@ -203,6 +208,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
     <DeleteItemModal />
     <MoveFilesModal />
     <ShareFilesModal />
+    <FreeForYouModal navigation={props.navigation} />
 
     <View style={styles.platformSpecificHeight}></View>
 
@@ -215,8 +221,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
           : 'All Files'}
       </Text>
 
-      <TouchableHighlight
-        underlayColor="#FFF"
+      <TouchableOpacity
         onPress={() => {
           props.dispatch(fileActions.getFolderContent(parentFolderId))
         }}>
@@ -225,10 +230,17 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
 
           <Text style={styles.backLabel}>Back</Text>
         </View>
-      </TouchableHighlight>
+      </TouchableOpacity>
     </View>
 
-    <FileList />
+    {
+      props.filesState.loading && !props.filesState.isUploading ?
+        <View style={styles.activityIndicator}>
+          <WaveIndicator color="#5291ff" size={80} />
+        </View>
+        :
+        <FileList />
+    }
   </View>
 }
 
@@ -244,15 +256,25 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     backgroundColor: '#fff'
   },
+  activityIndicator: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   breadcrumbs: {
     display: 'flex',
     flexWrap: 'nowrap',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     borderBottomColor: '#e6e6e6',
     borderBottomWidth: 1,
     marginTop: 15,
-    paddingBottom: 15
+    height: 40
   },
   breadcrumbsTitle: {
     fontFamily: 'CircularStd-Bold',
@@ -265,7 +287,9 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 20
+    marginRight: 20,
+    height: '100%',
+    width: '100%'
   },
   backIcon: {
     height: 12,

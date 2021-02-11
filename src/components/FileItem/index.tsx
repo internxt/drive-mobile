@@ -1,6 +1,6 @@
 import React, { SetStateAction, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
-import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
 import TimeAgo from 'react-native-timeago';
@@ -221,15 +221,20 @@ function FileItem(props: FileItemProps) {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.buttonDetails}>
-            <TouchableWithoutFeedback
-              style={isSelectionMode ? styles.dNone : styles.dFlex}
-              onPress={() => {
-                props.dispatch(layoutActions.openItemModal(props.item))
-              }}>
-              <Icon name="details" />
-            </TouchableWithoutFeedback>
-          </View>
+          {
+            props.item.bucket ?
+              <View style={styles.buttonDetails}>
+                <TouchableOpacity
+                  style={isSelectionMode ? styles.dNone : styles.dFlex}
+                  onPress={() => {
+                    props.dispatch(layoutActions.openItemModal(props.item))
+                  }}>
+                  <Icon name="details" />
+                </TouchableOpacity>
+              </View>
+              :
+              null
+          }
         </View>
 
         <View style={styles.progressIndicatorContainer}>
