@@ -20,7 +20,7 @@ import { getDevicePhotos } from '../../helpers/mediaAccess';
 import { PhotoActions } from '../../redux/actions/photo.actions';
 import PhotoList from '../../components/PhotoList';
 import { previewsStorage } from '../../helpers/previewsStorage';
-import { getAlbumList, getAllPhotos, getDeletedPhotos } from './init';
+import { getAlbumList, getAllLocalPhotos, getAllPhotos, getDeletedPhotos } from './init';
 import * as FileSystem from 'expo-file-system';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import DeletedPhotoList from '../../components/PhotoList/DeletedPhotoList';
@@ -36,6 +36,13 @@ interface HomeProps extends Reducers {
 
 function Home(props: HomeProps): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
+
+  useEffect(() => {
+    getAllLocalPhotos(props.dispatch)
+  }, [])
+
+  useEffect(() => {
+  }, [props.photosState.photos])
 
   useEffect(() => {
     const { user } = props.authenticationState;
@@ -60,25 +67,6 @@ function Home(props: HomeProps): JSX.Element {
 
     }
   }, [props.photosState.devicePhotos])
-
-  /*useEffect(() => {
-      const backAction = () => {
-          if (parentFolderId) {
-              // eslint-disable-next-line no-console
-              console.log('back') // do not delete
-              // Go to parent folder if exists
-              props.dispatch(fileActions.getFolderContent(parentFolderId))
-          } else {
-              // Exit application if root folder
-              BackHandler.exitApp()
-          }
-          return true;
-      };
-
-      const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-      return () => backHandler.remove();
-  }, []);*/
 
   useEffect(() => {
     //parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(props.filesState.folderContent)) : null

@@ -1,4 +1,5 @@
 import { Dispatch } from 'redux';
+import { IPhoto } from '../../components/PhotoList';
 import { getLyticsData } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
@@ -21,6 +22,7 @@ export const PhotoActions = {
   getAlbumContent,
   getDevicePhotos,
   getAllPhotosContent,
+  getAllLocalPhotos,
   createAlbum,
   setAlbumContent,
   selectPhoto,
@@ -149,6 +151,10 @@ function getAllPhotosContent(user: any) {
   function failure(error: any) {
     return { type: photoActionTypes.GET_PHOTOS_FAILURE, error };
   }
+}
+
+function getAllLocalPhotos(photos: IPhoto[]) {
+  return { type: photoActionTypes.GET_LOCAL_PHOTOS, payload: photos }
 }
 
 function getAlbumContent(folderId: any) {

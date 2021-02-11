@@ -13,7 +13,8 @@ export interface PhotosState {
   loadingPhotos: boolean
   loadingDeleted: boolean
   albums: any
-  photos: any
+  photos: IPhoto[]
+  isLoading: boolean
   devicePhotos: any
   deleted: any
   albumContent: any
@@ -38,6 +39,7 @@ const initialState: PhotosState = {
   loadingPhotos: true,
   loadingDeleted: true,
   photos: [],
+  isLoading: true,
   devicePhotos: [],
   deleted: [],
   albums: [],
@@ -57,6 +59,13 @@ const initialState: PhotosState = {
 
 export function PhotosReducer(state = initialState, action: any): PhotosState {
   switch (action.type) {
+  case photoActionTypes.GET_LOCAL_PHOTOS:
+    return {
+      ...state,
+      isLoading: false,
+      photos: action.payload
+    }
+
   case photoActionTypes.UPDATE_CURSOR:
     return {
       ...state,

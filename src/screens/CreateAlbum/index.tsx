@@ -9,7 +9,6 @@ import { useLinkProps, useNavigation } from '@react-navigation/native';
 import PhotoItem from '../../components/PhotoItem';
 import { layoutActions, PhotoActions } from '../../redux/actions';
 import SelectPhotoModal from '../../modals/SelectPhotoModal';
-import { BackButtonPhotos } from '../../components/BackButton/BackButtonPhotos';
 //import PhotoListModal from '../../modals/PhotoListModal';
 
 interface CreateAlbumProps {
@@ -135,7 +134,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
         <SelectPhotoModal />
 
         <View style={styles.albumHeader}>
-          <BackButtonPhotos navigation={props.navigation} ></BackButtonPhotos>
+          <BackButton navigation={props.navigation} ></BackButton>
           <View style={{ alignSelf: 'center' }}>
             <Text style={styles.albumTitle} >
               {inputAlbumTitle}
