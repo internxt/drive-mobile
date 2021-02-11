@@ -17,6 +17,7 @@ import analytics, { getLyticsData } from '../../helpers/lytics';
 import RNFetchBlob from 'rn-fetch-blob';
 import { WaveIndicator } from 'react-native-indicators'
 import Toast from 'react-native-simple-toast'
+import FreeForYouModal from '../../modals/FreeForYouModal';
 
 interface FileExplorerProps extends Reducers {
   navigation?: any
@@ -207,6 +208,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
     <DeleteItemModal />
     <MoveFilesModal />
     <ShareFilesModal />
+    <FreeForYouModal navigation={props.navigation} />
 
     <View style={styles.platformSpecificHeight}></View>
 

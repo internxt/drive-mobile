@@ -38,6 +38,11 @@ function AppMenu(props: AppMenuProps) {
   }
 
   const uploadFile = (result: any, currentFolder: number | undefined) => {
+    const random = Math.floor(Math.random() * Math.floor(5))
+
+    if (random === 2) {
+      props.dispatch(layoutActions.openFreeForYouModal())
+    }
     props.dispatch(fileActions.uploadFileStart())
 
     const userData = getLyticsData().then((res) => {
