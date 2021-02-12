@@ -72,7 +72,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
           }
         } catch {}
       })
-    })
+    }).catch(() => {})
   }, [])
 
   // useEffect to trigger uploadFile while app on background
