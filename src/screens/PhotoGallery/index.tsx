@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import { layoutActions } from '../../redux/actions';
@@ -7,12 +7,10 @@ import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
-import * as Permissions from 'expo-permissions';
-import * as MediaLibrary from 'expo-media-library';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import FileViewer from 'react-native-file-viewer'
 import AlbumImage from './AlbumImage'
-interface AlbumViewProps {
+import { WaveIndicator } from 'react-native-indicators'
+
+interface IPhotoGallery {
   route: any;
   navigation?: any
   photosState?: any
@@ -21,15 +19,14 @@ interface AlbumViewProps {
   authenticationState?: any
 }
 
-function AlbumView(props: AlbumViewProps): JSX.Element {
-  const [refreshing, setRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true)
+function PhotoGallery(props: IPhotoGallery): JSX.Element {
   const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     setImages(props.photosState.photos)
     setIsLoading(false)
-  }, [props.photosState.photos]);
+  }, [props.photosState.photos])
 
   return (
     <View style={styles.container}>
@@ -45,6 +42,7 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
           <Text style={styles.albumTitle}>
             {props.navigation.state.params.title}
           </Text>
+
           <Text style={styles.photosCount}>
             {images.length} Photos
           </Text>
@@ -55,13 +53,18 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
         }} />
       </View>
 
-      <FlatList
-        data={images}
-        renderItem={({ item }) => <AlbumImage id={item.id} uri={item.uri} /> }
-        numColumns={3}
-        //Setting the number of column
-        keyExtractor={(item, index) => index.toString()}
-      />
+      {
+        !isLoading ?
+          <FlatList
+            data={images}
+            renderItem={({ item }) => <AlbumImage id={item.id} uri={item.uri} /> }
+            numColumns={3}
+            //Setting the number of column
+            keyExtractor={(item, index) => index.toString()}
+          />
+          :
+          <WaveIndicator color="#5291ff" size={50} />
+      }
     </View>
   );
 }
@@ -110,4 +113,4 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(AlbumView);
+export default connect(mapStateToProps)(PhotoGallery);

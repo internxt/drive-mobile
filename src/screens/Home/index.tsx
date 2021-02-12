@@ -152,13 +152,12 @@ function Home(props: HomeProps): JSX.Element {
             {props.photosState.sortType}
           </Text>
         </Pressable>
-
       </View>
 
       <TouchableHighlight
         style={styles.photoScroll}
         underlayColor="#FFF"
-        onPress={() => { props.navigation.navigate('AlbumView', { title: 'All Photos' }) }}
+        onPress={() => { props.navigation.navigate('PhotoGallery', { title: 'All Photos' }) }}
       >
         <PhotoList
           title={'All Photos'}

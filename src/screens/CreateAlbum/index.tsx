@@ -121,7 +121,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
             ></FlatList>
           </View>
           : <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}> Album is Empty.</Text>
+            <Text style={styles.emptyText}> Album is empty.</Text>
           </View>}
 
       </View>
@@ -166,7 +166,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
             ></FlatList>
           </View>
           : <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}> Album is Empty.</Text>
+            <Text style={styles.emptyText}> Album is empty.</Text>
           </View>}
 
       </View>
