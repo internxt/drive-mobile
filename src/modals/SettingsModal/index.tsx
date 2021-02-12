@@ -129,13 +129,13 @@ function SettingsModal(props: SettingsModalProps) {
       onPress={() => Linking.openURL('https://internxt.com/drive')}
     />
 
-    <SettingsItem
+    {/* <SettingsItem
       text="Storage"
       onPress={() => {
         props.dispatch(layoutActions.closeSettings())
         props.navigation.replace('Storage')
       }}
-    />
+    /> */}
 
     <SettingsItem
       text="Contact"
