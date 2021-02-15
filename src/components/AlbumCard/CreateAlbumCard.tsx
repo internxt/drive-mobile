@@ -2,11 +2,32 @@ import * as React from 'react';
 import { FlatList, Image, StyleProp, StyleSheet, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
+import ImagePicker from 'react-native-image-crop-picker'
+import { Dispatch } from 'redux';
+import { PhotoActions } from '../../redux/actions';
 
 export interface CreateAlbumProps {
   style?: StyleProp<ViewStyle>
   album?: any
   navigation: any
+  dispatch: Dispatch
+}
+
+export interface ISelectedPhotos {
+  path: string
+  localIdentifier?: string
+  sourceURL?: string
+  filename?: string
+  width: number
+  height: number
+  mime: string
+  size: number
+  duration: number
+  data: string
+  exif: any
+  cropRect: any
+  creationDate?: string
+  modificationDate: string
 }
 
 // TODO: Add album param
@@ -18,7 +39,12 @@ function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
       underlayColor="#fff"
       style={styles.albumCard}
       onPress={() => {
-        props.navigation.navigate('CreateAlbum')
+        ImagePicker.openPicker({
+          multiple: true
+        }).then(res => {
+          props.dispatch(PhotoActions.setSelectedPhotos(res))
+          props.navigation.navigate('CreateAlbum')
+        }).catch(() => {})
       }}
     >
       <View style={styles.card}>

@@ -1,10 +1,8 @@
+import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
 import { IPhoto } from '../../components/PhotoList';
-import { getLyticsData } from '../../helpers';
-import analytics from '../../helpers/lytics';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { photoService } from '../services/photo.service';
-//import { PhotoService } from '../services';
 import { userActions } from './user.actions';
 
 export const PhotoActions = {
@@ -32,7 +30,8 @@ export const PhotoActions = {
   setSortFunction,
   setSearchString,
   deleteTempPhoto,
-  setIsLoading
+  setIsLoading,
+  setSelectedPhotos
 };
 
 function setIsLoading(value: boolean) {
@@ -270,7 +269,6 @@ function createAlbum(name: string, photos: any) {
 
     photoService.createAlbum(name, photos).then(
       () => {
-        //console.log('NEW ALBUM---')
         dispatch(success(photos));
       },
       error => {
@@ -323,4 +321,8 @@ function deleteTempPhoto(photoId: string) {
   function failure(payload: any) {
     return { type: photoActionTypes.DELETE_PHOTO_FAILURE, payload };
   }
+}
+
+function setSelectedPhotos(photos: ImageOrVideo[]) {
+  return { type: photoActionTypes.SET_SELECTED_PHOTOS, payload: photos }
 }

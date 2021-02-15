@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import { layoutActions } from '../../redux/actions';
@@ -7,11 +7,8 @@ import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
-import * as Permissions from 'expo-permissions';
-import * as MediaLibrary from 'expo-media-library';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import FileViewer from 'react-native-file-viewer'
 import AlbumImage from './AlbumImage'
+
 interface AlbumViewProps {
   route: any;
   navigation?: any
@@ -22,7 +19,6 @@ interface AlbumViewProps {
 }
 
 function AlbumView(props: AlbumViewProps): JSX.Element {
-  const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true)
   const [images, setImages] = useState([]);
 

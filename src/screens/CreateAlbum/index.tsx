@@ -1,15 +1,17 @@
 import React, { Component, useEffect, useState } from 'react';
 import { Alert, Button, FlatList, Pressable, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
-import { TextInput } from 'react-native-gesture-handler';
+import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import * as ImagePicker from 'expo-image-picker';
 import { BackButton } from '../../components/BackButton';
 import { useLinkProps, useNavigation } from '@react-navigation/native';
 import PhotoItem from '../../components/PhotoItem';
-import { layoutActions, PhotoActions } from '../../redux/actions';
+import { layoutActions, photoActions } from '../../redux/actions';
 import SelectPhotoModal from '../../modals/SelectPhotoModal';
-//import PhotoListModal from '../../modals/PhotoListModal';
+import { WaveIndicator } from 'react-native-indicators'
+import AlbumImage from '../PhotoGallery/AlbumImage';
+import ImageSelector from './ImageSelector';
 
 interface CreateAlbumProps {
   route: any;
@@ -22,10 +24,16 @@ interface CreateAlbumProps {
 
 function CreateAlbum(props: CreateAlbumProps): JSX.Element {
   const [createStep, setCreateStep] = useState(1);
-  const [inputAlbumTitle, setInputAlbumTitle] = useState('Untitled Album')
+  const [inputAlbumTitle, setInputAlbumTitle] = useState('')
   const [refresh, setRefresh] = useState(false)
-
+  const [isLoading, setIsLoading] = useState(true)
+  const [images, setImages] = useState([]);
   let albumPhotos = props.photosState.selectedItems;
+
+  useEffect(() => {
+    setImages(props.photosState.selectedPhotosForAlbum)
+    setIsLoading(false)
+  }, [props.photosState.selectedPhotosForAlbum])
 
   useEffect(() => {
     albumPhotos = props.photosState.selectedItems;
@@ -52,78 +60,38 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
           <View style={{ alignSelf: 'center' }}>
             <TextInput
               style={styles.albumTitle}
+              placeholder='Name your memories'
               onChangeText={value => setInputAlbumTitle(value)}
               value={inputAlbumTitle}
             />
           </View>
-          <TouchableHighlight style={styles.nextBtn}
+
+          <TouchableOpacity style={styles.nextBtn}
             onPress={() => {
-              setCreateStep(2);
+
             }}
           >
-            <Text style={styles.nextText}>
-              Next
-            </Text>
-          </TouchableHighlight>
+            <Text style={styles.nextText}>Done</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.selectHeader}>
-          <View style={styles.selectPhotos}>
-            <Pressable
-              onPress={() => { props.dispatch(layoutActions.openAllPhotosModal()) }}>
-              <Text style={styles.photosText}>
-                Select Photos
-              </Text>
-            </Pressable>
-          </View>
+        <Text style={styles.title}>
+          Selected Photos
+        </Text>
 
-          <TouchableHighlight
-            style={styles.photoSelector}
-            underlayColor="#FFF"
-            onPress={async () => {
-              const { status } = await ImagePicker.requestCameraPermissionsAsync();
-
-              if (status === 'granted') {
-                const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images });
-
-                if (!result.cancelled) {
-                  //uploadFile(result, props);
-
-                  albumPhotos.push(result.uri)
-
-                  setRefresh(!refresh)
-                }
-              } else {
-                Alert.alert('Camera permission needed to perform this action')
-              }
-            }}>
-            <Text style={{
-              fontFamily: 'Averta-Semibold',
-              color: '#0084ff',
-              fontSize: 15
-            }}>
-              Select from phone
-            </Text>
-          </TouchableHighlight>
-        </View>
-
-        {albumPhotos.length > 0
-          ? <View >
+        {
+          !isLoading ?
             <FlatList
-              keyExtractor={keyExtractor}
-              renderItem={renderItem}
-              data={albumPhotos}
-              extraData={refresh}
-              initialNumToRender={20}
+              data={images}
+              renderItem={({ item }) => {
+                return <AlbumImage id={item.localIdentifier} uri={item.sourceURL} />
+              }}
               numColumns={3}
-              contentContainerStyle={styles.items}
-              horizontal={false}
-            ></FlatList>
-          </View>
-          : <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}> Album is empty.</Text>
-          </View>}
-
+              keyExtractor={(item, index) => index.toString()}
+            />
+            :
+            <WaveIndicator color="#5291ff" size={50} />
+        }
       </View>
     );
   }
@@ -143,7 +111,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
           <TouchableHighlight style={styles.nextBtn}
             onPress={() => {
               // Create album and upload device selected photos
-              props.dispatch(PhotoActions.createAlbum(inputAlbumTitle, albumPhotos))
+              props.dispatch(photoActions.createAlbum(inputAlbumTitle, albumPhotos))
             }}
           >
             <Text style={styles.nextText}>
@@ -197,20 +165,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     height: '10%'
   },
-  selectHeader: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 5,
-    marginTop: 0
-
-  },
-  selectPhotos: {
-    borderColor: 'red',
-    borderRadius: 3
-  },
   albumTitle: {
     fontFamily: 'Averta-Semibold',
     fontSize: 17,
@@ -218,17 +172,12 @@ const styles = StyleSheet.create({
     color: '#000000',
     textAlign: 'center'
   },
-  photosText: {
+  title: {
     fontFamily: 'Averta-Bold',
     fontSize: 18,
-    color: 'black'
-  },
-  photoSelector: {
-    fontFamily: 'Averta-Regular',
-    fontSize: 15,
-    letterSpacing: -0.2,
-    paddingTop: 5,
-    color: '#0084ff'
+    color: 'black',
+    marginLeft: 16,
+    marginBottom: 16
   },
   nextBtn: {
     paddingVertical: 6,

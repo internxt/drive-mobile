@@ -11,7 +11,6 @@ export interface IAlbumImage {
 const deviceWidth = Dimensions.get('window').width
 
 function AlbumImage(props: IAlbumImage): JSX.Element {
-
   return (
     <TouchableOpacity
       key={props.id}

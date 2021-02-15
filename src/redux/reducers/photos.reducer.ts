@@ -1,10 +1,9 @@
 //import { IPhoto, IFolder } from '../../components/PhotoList';
+import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { IAlbum } from '../../components/AlbumList';
 import { IPhoto } from '../../components/PhotoList';
-import { decryptText, decryptTextWithKey, deviceStorage } from '../../helpers';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
-import { photoService } from '../services/photo.service';
 
 export interface PhotosState {
   cursor: number
@@ -14,6 +13,7 @@ export interface PhotosState {
   loadingDeleted: boolean
   albums: any
   photos: IPhoto[]
+  selectedPhotosForAlbum: ImageOrVideo[]
   isLoading: boolean
   devicePhotos: any
   deleted: any
@@ -39,6 +39,7 @@ const initialState: PhotosState = {
   loadingPhotos: true,
   loadingDeleted: true,
   photos: [],
+  selectedPhotosForAlbum: [],
   isLoading: true,
   devicePhotos: [],
   deleted: [],
@@ -64,6 +65,12 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       ...state,
       isLoading: false,
       photos: action.payload
+    }
+
+  case photoActionTypes.SET_SELECTED_PHOTOS:
+    return {
+      ...state,
+      selectedPhotosForAlbum: action.payload
     }
 
   case photoActionTypes.UPDATE_CURSOR:
