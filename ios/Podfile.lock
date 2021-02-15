@@ -441,10 +441,17 @@ PODS:
     - React
   - RNFileViewer (2.1.4):
     - React-Core
-  - RNFS (2.16.6):
-    - React
   - RNGestureHandler (1.8.0):
     - React
+  - RNImageCropPicker (0.35.3):
+    - React-Core
+    - React-RCTImage
+    - RNImageCropPicker/QBImagePickerController (= 0.35.3)
+    - TOCropViewController
+  - RNImageCropPicker/QBImagePickerController (0.35.3):
+    - React-Core
+    - React-RCTImage
+    - TOCropViewController
   - RNScreens (2.15.0):
     - React-Core
   - RNSVG (12.1.0):
@@ -459,6 +466,7 @@ PODS:
     - Firebase/Core (~> 6.2)
     - FirebaseAnalytics (~> 6.1)
   - Toast (4.0.0)
+  - TOCropViewController (2.6.0)
   - UMAppLoader (1.4.0)
   - UMBarCodeScannerInterface (5.4.0)
   - UMCameraInterface (5.4.0)
@@ -556,8 +564,8 @@ DEPENDENCIES:
   - "RNAnalyticsIntegration-Firebase (from `../node_modules/@segment/analytics-react-native-firebase`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
-  - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
@@ -601,6 +609,7 @@ SPEC REPOS:
     - PromisesObjC
     - Segment-Firebase
     - Toast
+    - TOCropViewController
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -712,10 +721,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/masked-view"
   RNFileViewer:
     :path: "../node_modules/react-native-file-viewer"
-  RNFS:
-    :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNImageCropPicker:
+    :path: "../node_modules/react-native-image-crop-picker"
   RNScreens:
     :path: "../node_modules/react-native-screens"
   RNSVG:
@@ -826,12 +835,13 @@ SPEC CHECKSUMS:
   RNAnalyticsIntegration-Firebase: daed87b7ab56636ed0098326eb92e26fdfc198c2
   RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
   RNFileViewer: 83cc066ad795b1f986791d03b56fe0ee14b6a69f
-  RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
+  RNImageCropPicker: 08ba3a2e2f4f8833d606f01906c371e382c4dea9
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   Segment-Firebase: 41677a446f58989db69912059949107afb0c3f38
   Toast: 91b396c56ee72a5790816f40d3a94dd357abc196
+  TOCropViewController: 3105367e808b7d3d886a74ff59bf4804e7d3ab38
   UMAppLoader: 92d044af52626af3d81a69796ad666fc7a9a7d78
   UMBarCodeScannerInterface: 3f6c1b09ef4b867ce752b8c0b3893bcf9cd85f32
   UMCameraInterface: d516032121192fee9a6c93bdfff0bb2cc7282796
