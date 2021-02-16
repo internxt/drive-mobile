@@ -12,8 +12,6 @@ export const layoutActions = {
   closeAlbumModal,
   openAddItemModal,
   closeAddItemModal,
-  openSelectPhotoModal,
-  closeSelectPhotoModal,
   openRunOutStorageModal,
   closeRunOutStorageModal,
   openFreeForYouModal,
@@ -28,23 +26,8 @@ export const layoutActions = {
   closeShareModal,
   openUploadFileModal,
   closeUploadFileModal,
-  openSortPhotoModal,
-  closeSortPhotoModal,
-  openAllPhotosModal,
-  closeAllPhotosModal
+  setCurrentApp
 };
-
-function openSortPhotoModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_SORT_PHOTO_MODAL });
-  };
-}
-
-function closeSortPhotoModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_SORT_PHOTO_MODAL });
-  };
-}
 
 function openSearch() {
   return (dispatch: Dispatch) => {
@@ -106,30 +89,6 @@ function openAddItemModal() {
 function closeAddItemModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_ADD_ITEM_MODAL });
-  };
-}
-
-function openAllPhotosModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_PHOTOS_MODAL });
-  };
-}
-
-function closeAllPhotosModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_PHOTOS_MODAL });
-  };
-}
-
-function openSelectPhotoModal(photo: any) {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_SELECT_PHOTO_MODAL, payload: photo });
-  };
-}
-
-function closeSelectPhotoModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_SELECT_PHOTO_MODAL });
   };
 }
 
@@ -215,4 +174,8 @@ function closeUploadFileModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_UPLOAD_FILE_MODAL });
   };
+}
+
+function setCurrentApp(app: string) {
+  return { type: layoutActionTypes.SET_CURRENT_APP, payload: app }
 }
