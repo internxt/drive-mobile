@@ -32,7 +32,7 @@ function Login(props: LoginProps): JSX.Element {
     if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
 
-      props.navigation.replace('Home', {
+      props.navigation.replace('FileExplorer', {
         folderId: rootFolderId
       })
     } else {
