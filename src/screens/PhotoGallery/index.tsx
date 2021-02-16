@@ -61,6 +61,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
             numColumns={3}
             //Setting the number of column
             keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={styles.flatList}
           />
           :
           <WaveIndicator color="#5291ff" size={50} />

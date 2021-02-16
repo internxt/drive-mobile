@@ -26,6 +26,7 @@ import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import DeletedPhotoList from '../../components/PhotoList/DeletedPhotoList';
 import SettingsModalPhotos from '../../modals/SettingsModal/SettingsModalPhotos';
 import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 interface HomeProps extends Reducers {
   navigation?: any
@@ -218,7 +219,8 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'nowrap',
-    marginTop: 25
+    marginTop: 25,
+    paddingHorizontal: wp('1')
   },
   albumsContainer: {
     display: 'flex',

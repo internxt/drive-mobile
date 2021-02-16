@@ -40,7 +40,8 @@ function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
       style={styles.albumCard}
       onPress={() => {
         ImagePicker.openPicker({
-          multiple: true
+          multiple: true,
+          maxFiles: 0
         }).then(res => {
           props.dispatch(PhotoActions.setSelectedPhotos(res))
           props.navigation.navigate('CreateAlbum')
