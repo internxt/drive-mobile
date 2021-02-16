@@ -25,7 +25,7 @@ export default function App(): JSX.Element {
   const prefix = 'inxt'
   const config = {
     screens: {
-      FileExplorer: '/'
+      Home: '/'
     }
   }
 
