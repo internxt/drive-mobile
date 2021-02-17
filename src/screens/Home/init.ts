@@ -26,7 +26,6 @@ export function syncPhotos(images: Asset[], props: any) {
   getArrayPhotos(images).then((res)=>{
 
     const result = mapSeries(res, (image, next) => {
-      console.log('Starting to upload')
       uploadPhoto(image, props).then(() => next(null)).catch(next)
     });
   });
@@ -129,7 +128,6 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
 
       } else if (res.res.respInfo.status === 201) {
         // PREVIEW UPLOADED
-        console.log('preview uploaded')
         return
       }
     })
