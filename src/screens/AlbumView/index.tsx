@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
+import { FlatList, TouchableOpacity, StyleSheet, Text, View, Image, Platform, Alert } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
-import { layoutActions } from '../../redux/actions';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
-import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import FileViewer from 'react-native-file-viewer'
 import AlbumImage from './AlbumImage'
+import { getImages, syncPhotos, uploadPhoto } from './helpers'
+import { layoutActions } from '../../redux/actions';
+
 interface AlbumViewProps {
   route: any;
   navigation?: any
@@ -22,32 +21,17 @@ interface AlbumViewProps {
 }
 
 function AlbumView(props: AlbumViewProps): JSX.Element {
-  const [refreshing, setRefreshing] = useState(false);
-  const [images, setImages] = useState([]);
-
-  const getImages = () => {
-    return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
-      .then(() => {
-        return MediaLibrary.getAssetsAsync();
-      })
-      .then((result) => {
-        return result.assets;
-      });
-  };
+  const [images, setImages] = useState<MediaLibrary.Asset[]>([]);
 
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('loading photos');
-    getImages().then((res) => {
-      setImages(res)
-      setIsLoading(false)
-    }
-    );
+    getImages().then((res)=>{setImages(res)})
   }, []);
 
   useEffect(() => {
 
   }, [images]);
+
+  syncPhotos(images, props)
 
   return (
     <View style={styles.container}>
@@ -75,7 +59,7 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
 
       <FlatList
         data={images}
-        renderItem={({ item }) => <AlbumImage id={item.id} uri={item.uri} /> }
+        renderItem={({ item }) => <AlbumImage id={item.id} uri={item.uri} authenticationState={props.authenticationState} dispatch={props.dispatch}/> }
         numColumns={3}
         //Setting the number of column
         keyExtractor={(item, index) => index.toString()}
