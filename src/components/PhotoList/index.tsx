@@ -47,7 +47,6 @@ function PhotoList(props: PhotoListProps) {
             data={photos}
             renderItem={({ item }) => (
               <View
-                // eslint-disable-next-line react-native/no-inline-styles
                 style={{
                   flex: 1,
                   flexDirection: 'column',

@@ -7,8 +7,8 @@ import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
-import AlbumImage from './AlbumImage'
-import { WaveIndicator } from 'react-native-indicators'
+import * as MediaLibrary from 'expo-media-library';
+import Photo from './Photo';
 
 interface IPhotoGallery {
   route: any;
@@ -20,14 +20,11 @@ interface IPhotoGallery {
 }
 
 function PhotoGallery(props: IPhotoGallery): JSX.Element {
-  const [images, setImages] = useState([]);
-  const [isLoading, setIsLoading] = useState(true)
+  const [images, setImages] = useState<MediaLibrary.Asset[]>([]);
 
   useEffect(() => {
     setImages(props.photosState.photos)
-    setIsLoading(false)
-  }, [props.photosState.photos])
-
+  }, [props.photosState.photos]);
   return (
     <View style={styles.container}>
 
@@ -53,19 +50,14 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
         }} />
       </View>
 
-      {
-        !isLoading ?
-          <FlatList
-            data={images}
-            renderItem={({ item }) => <AlbumImage id={item.id} uri={item.uri} /> }
-            numColumns={3}
-            //Setting the number of column
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={styles.flatList}
-          />
-          :
-          <WaveIndicator color="#5291ff" size={50} />
-      }
+      <FlatList
+        data={images}
+        renderItem={({ item }) => <Photo id={item.id} uri={item.uri} /> }
+        numColumns={3}
+        //Setting the number of column
+        keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={styles.flatList}
+      />
     </View>
   );
 }

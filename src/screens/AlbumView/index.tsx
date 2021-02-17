@@ -28,10 +28,8 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-
+    syncPhotos(images, props)
   }, [images]);
-
-  syncPhotos(images, props)
 
   return (
     <View style={styles.container}>

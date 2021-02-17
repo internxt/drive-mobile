@@ -150,6 +150,7 @@ function Storage(props: StorageProps): JSX.Element {
                     products && products.map((product: IProduct) => <TouchableWithoutFeedback
                       key={product.id}
                       onPress={async () => {
+                        console.log(product)
                         setIsLoading(true)
                         setChosenProduct(product)
                       }}>

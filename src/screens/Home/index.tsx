@@ -1,78 +1,38 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { Text, View, StyleSheet, Platform, FlatList, Pressable } from 'react-native'
 import { layoutActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import { TouchableHighlight } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
-import MoveFilesModal from '../../modals/MoveFilesModal';
 import { Reducers } from '../../redux/reducers/reducers';
 import AlbumCard from '../../components/AlbumCard';
-import { getDevicePhotos } from '../../helpers/mediaAccess';
-import { PhotoActions } from '../../redux/actions/photo.actions';
 import PhotoList from '../../components/PhotoList';
-import { getAllLocalPhotos } from './init';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
-import DeletedPhotoList from '../../components/PhotoList/DeletedPhotoList';
-import SettingsModalPhotos from '../../modals/SettingsModal/SettingsModalPhotos';
 import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
+import { Dispatch } from 'redux';
+import { PhotoActions } from '../../redux/actions/photo.actions';
+import { getLocalImages, syncPhotos } from './init'
 
 interface HomeProps extends Reducers {
   navigation?: any
-  dispatch?: any
+  dispatch: Dispatch
   photosState: any
   authenticationState: any
 }
 
 function Home(props: HomeProps): JSX.Element {
-  const [selectedKeyId, setSelectedKeyId] = useState(0)
 
   useEffect(() => {
-    getAllLocalPhotos(props.dispatch)
-  }, [])
-
-  useEffect(() => {
-  }, [props.photosState.photos])
-
-  useEffect(() => {
-    const { user } = props.authenticationState;
-    const { token } = props.authenticationState;
-
-    props.dispatch(PhotoActions.getAllPhotosContent(props.authenticationState.user));
-    props.dispatch(PhotoActions.getDeletedPhotos(props.authenticationState.user));
-
-    getDevicePhotos(props.authenticationState.user.rootAlbumId, '0').then((dataResult) => {
-      props.dispatch(PhotoActions.updateCursor(parseInt(dataResult?.index || '20')));
-      props.dispatch(PhotoActions.getDevicePhotos(dataResult?.photos));
-
-      // TODO: Store previews on file://.../previews.
-    }).catch((err) => {
-
+    getLocalImages().then((res)=>{
+      props.dispatch(PhotoActions.setAllLocalPhotos(res))
     })
-  }, [])
-
-  // Get device photos to upload new content
-  useEffect(() => {
-    if (props.photosState.devicePhotos.length > 0) {
-
-    }
-  }, [props.photosState.devicePhotos])
+  }, []);
 
   useEffect(() => {
-    //parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(props.filesState.folderContent)) : null
-
-  }, [props.photosState.albums])
-
-  useEffect(() => {
-    const keyId = props.photosState.selectedItems.length > 0 && props.photosState.selectedItems[0].id
-
-    setSelectedKeyId(keyId)
-  }, [props.photosState])
-
-  if (!props.authenticationState.loggedIn) {
-    props.navigation.replace('Login')
-  }
+    syncPhotos(props.photosState.photos, props)
+  }, [props.photosState.photos]);
 
   const keyExtractor = (item: any, index: any) => index.toString();
   // TODO: Recover all previews from device,
@@ -86,14 +46,12 @@ function Home(props: HomeProps): JSX.Element {
     >
       <AlbumCard withTitle={true} navigation={props.navigation} />
     </Pressable>
-
   );
 
   return (
     <View style={styles.container}>
       <SettingsModal navigation={props.navigation} />
       <SortModal />
-      <MoveFilesModal />
 
       <View style={styles.platformSpecificHeight}></View>
 
@@ -108,9 +66,7 @@ function Home(props: HomeProps): JSX.Element {
           <Pressable
             onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
           >
-            <Text style={styles.albumsSort}>
-              {props.photosState.sortType}
-            </Text>
+            <Text style={styles.albumsSort}>{props.photosState.sortType}</Text>
           </Pressable>
 
         </View>
@@ -160,34 +116,18 @@ function Home(props: HomeProps): JSX.Element {
       </View>
 
       <View style={styles.albumsContainer}>
-        <TouchableHighlight
-          underlayColor="#FFF"
-        >
-          <View>
-            <View style={styles.albumHeader}>
-              <Text style={styles.albumsTitle}>
+        <TouchableHighlight underlayColor="#FFF">
+          <View style={styles.albumHeader}>
+            <Text style={styles.albumsTitle}>
               Deleted
-              </Text>
-              <Pressable
-                onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
-              >
-                <Text style={styles.albumsSort}>
-                  {props.photosState.sortType}
-                </Text>
-              </Pressable>
-            </View >
-
-            <TouchableHighlight
-              style={styles.photoScroll}
-              underlayColor="#fff"
-              onPress={() => { props.navigation.navigate('AlbumView', { title: 'Deleted Photos' }) }}
+            </Text>
+            <Pressable
+              onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
             >
-              <DeletedPhotoList
-                title={'Deleted Photos'}
-                deleted={props.photosState.deleted}
-                navigation={props.navigation}
-              />
-            </TouchableHighlight>
+              <Text style={styles.albumsSort}>
+                {props.photosState.sortType}
+              </Text>
+            </Pressable>
           </View>
         </TouchableHighlight>
       </View>

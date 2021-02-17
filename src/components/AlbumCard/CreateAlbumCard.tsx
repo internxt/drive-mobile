@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { FlatList, Image, StyleProp, StyleSheet, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
+import { Image, StyleProp, StyleSheet, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
 import ImagePicker from 'react-native-image-crop-picker'
 import { Dispatch } from 'redux';
-import { PhotoActions } from '../../redux/actions';
+import { PhotoActions } from '../../redux/actions/photo.actions';
 
 export interface CreateAlbumProps {
   style?: StyleProp<ViewStyle>

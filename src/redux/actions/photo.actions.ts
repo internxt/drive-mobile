@@ -20,7 +20,6 @@ export const PhotoActions = {
   getAlbumContent,
   getDevicePhotos,
   getAllPhotosContent,
-  getAllLocalPhotos,
   createAlbum,
   setAlbumContent,
   selectPhoto,
@@ -31,6 +30,7 @@ export const PhotoActions = {
   setSearchString,
   deleteTempPhoto,
   setIsLoading,
+  setAllLocalPhotos,
   setSelectedPhotos
 };
 
@@ -150,10 +150,6 @@ function getAllPhotosContent(user: any) {
   function failure(error: any) {
     return { type: photoActionTypes.GET_PHOTOS_FAILURE, error };
   }
-}
-
-function getAllLocalPhotos(photos: IPhoto[]) {
-  return { type: photoActionTypes.GET_LOCAL_PHOTOS, payload: photos }
 }
 
 function getAlbumContent(folderId: any) {
@@ -325,4 +321,8 @@ function deleteTempPhoto(photoId: string) {
 
 function setSelectedPhotos(photos: ImageOrVideo[]) {
   return { type: photoActionTypes.SET_SELECTED_PHOTOS, payload: photos }
+}
+
+function setAllLocalPhotos(photos: IPhoto[]) {
+  return { type: photoActionTypes.GET_LOCAL_PHOTOS, payload: photos }
 }

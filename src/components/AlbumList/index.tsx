@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import { ScrollView, Text, RefreshControl, StyleSheet, Pressable, View } from 'react-native';
+import React from 'react'
+import { Text, StyleSheet, Pressable, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import { PhotoActions } from '../../redux/actions';
 import AlbumCard from '../AlbumCard';
 import EmptyAlbum from '../EmptyAlbum';
-import PhotoItem from '../PhotoItem';
 import { IPhoto } from '../PhotoList';
 
 export interface IAlbum {
@@ -28,16 +26,8 @@ interface AlbumListProps {
 }
 
 function AlbumList(props: AlbumListProps) {
-  const [refreshing, setRefreshing] = useState(false)
-
-  const { photosState } = props;
-  const { folderContent } = photosState;
 
   let albumList: IPhoto[] = props.photos || [];
-
-  useEffect(() => {
-    setRefreshing(false)
-  }, [props.photosState.folderContent])
 
   const searchString = props.photosState.searchString
 
@@ -51,21 +41,8 @@ function AlbumList(props: AlbumListProps) {
     albumList.sort(sortFunction);
   }
 
-  /*useEffect(() => {
-        if (!props.photosState.folderContent) {
-            const rootFolderId = props.authenticationState.user.root_folder_id
-
-            props.dispatch(PhotoActions.getFolderContent(rootFolderId))
-        }
-    }, [])*/
-
   const isUploading = props.photosState.isUploadingPhotoName
   const isEmptyAlbum = albumList.length === 0 && !isUploading
-
-  useEffect(() => {
-    //console.log('--- UPLOADING PROGRESS ON AlbumList ---', photosState.progress)
-
-  }, [photosState.progress])
 
   const keyExtractor = (item: any, index: any) => index.toString();
 
@@ -83,13 +60,6 @@ function AlbumList(props: AlbumListProps) {
 
   return (
     <View>
-      {
-        isEmptyAlbum ?
-          <EmptyAlbum />
-          :
-          <Text style={styles.dNone}></Text>
-      }
-
       <View style={styles.photoScroll}>
         <FlatList
           keyExtractor={keyExtractor}
@@ -99,15 +69,11 @@ function AlbumList(props: AlbumListProps) {
           showsHorizontalScrollIndicator={false}
         ></FlatList>
       </View>
-
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  dNone: {
-    display: 'none'
-  },
   photoScroll: {
     display: 'flex',
     flexDirection: 'row',

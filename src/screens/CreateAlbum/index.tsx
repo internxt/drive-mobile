@@ -5,12 +5,13 @@ import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import SelectPhotoModal from '../../modals/SelectPhotoModal';
 import { WaveIndicator } from 'react-native-indicators'
-import AlbumImage from '../PhotoGallery/AlbumImage';
+import AlbumImage from '../PhotoGallery/Photo';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
 import { PhotoActions } from '../../redux/actions/photo.actions';
+import Photo from '../PhotoGallery/Photo';
 
 interface CreateAlbumProps {
   route: any;
@@ -35,7 +36,6 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
 
   return (
     <SafeAreaView style={styles.container}>
-      <SelectPhotoModal />
       <View style={styles.albumHeader}>
         <BackButton navigation={props.navigation} ></BackButton>
 
@@ -71,7 +71,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
           <FlatList
             data={images}
             renderItem={({ item }) => {
-              return <AlbumImage id={item.localIdentifier} uri={item.sourceURL} />
+              return <Photo id={item.localIdentifier} uri={item.sourceURL} />
             }}
             numColumns={3}
             keyExtractor={(item, index) => index.toString()}

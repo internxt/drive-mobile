@@ -1,8 +1,5 @@
 import * as React from 'react';
-import { FlatList, Image, StyleProp, StyleSheet, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
-import { useLinkProps, useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
-import SourceList from '../../helpers/getAssets';
+import { FlatList, Image, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 export interface AlbumProps {
   style?: StyleProp<ViewStyle>
