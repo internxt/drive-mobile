@@ -19,8 +19,6 @@ const getArrayPhotos = async(images: Asset[]) => {
     next(null, file)
   });
 
-  result.then(res => console.log(res.length))
-
   return result;
 }
 
@@ -71,7 +69,6 @@ export async function uploadPhoto (result: any, props: any) {
         } else if (res.respInfo.status === 201) {
           return res.json();
         }
-        console.log('SE EMPIEZA A SUBIR FOTO')
         return
       })
       .then(async res => {
@@ -89,7 +86,6 @@ export async function uploadPhoto (result: any, props: any) {
           photoId: res.id
         };
 
-        console.log('SE HA SUBIDO FOTO Y SE HA CREADO PREVIEW')
         return uploadPreview(preview, props, headers);
       })
       .catch((err) => {
@@ -131,7 +127,6 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
 
       } else if (res.res.respInfo.status === 201) {
         // PREVIEW UPLOADED
-        console.log('RESUELVE UPLOAD PREVIEW')
         return
       }
     })
