@@ -42,6 +42,7 @@
     "react-native-app-intro-slider": "^4.0.4",
     "react-native-document-picker": "^4.1.0",
     "react-native-file-viewer": "^2.1.4",
+    "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "~1.8.0",
     "react-native-image-crop-picker": "^0.35.3",
     "react-native-indicators": "^0.17.0",
