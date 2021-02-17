@@ -59,8 +59,6 @@ function FileList(props: any) {
 
   useEffect(() => {
     setFilesUploaded(props.filesState.filesAlreadyUploaded)
-    //console.log('file', props.filesState.filesAlreadyUploaded)
-    //console.log('folderId', props.filesState.folderContent.currentFolder)
 
   }, [props.filesState.filesAlreadyUploaded])
 
