@@ -31,6 +31,7 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
         // Manage successfull login
         const user = body.user;
 
+        user.email = email;
         user.mnemonic = user.mnemonic ? decryptTextWithKey(user.mnemonic, password) : null
 
         if (!user.root_folder_id) {
