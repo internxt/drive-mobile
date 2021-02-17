@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, Linking, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, Linking, ActivityIndicator, Alert, Platform } from 'react-native';
 import Modal from 'react-native-modalbox'
 import ProgressBar from '../../components/ProgressBar';
 import { layoutActions, userActions } from '../../redux/actions';
@@ -81,83 +81,99 @@ function SettingsModal(props: SettingsModalProps) {
     }
   }, [props.layoutState.showSettingsModal])
 
-  return <Modal
-    isOpen={props.layoutState.showSettingsModal}
-    position={'bottom'}
-    swipeArea={20}
-    style={styles.modalSettings}
-    onClosed={() => {
-      props.dispatch(layoutActions.closeSettings())
-    }}
-    backButtonClose={true}
-    animationDuration={200}>
-
-    <View style={styles.drawerKnob}></View>
-
-    <Text
-      style={styles.nameText}
-    >
-      {props.authenticationState.user.name}{' '}
-      {props.authenticationState.user.lastname}
-    </Text>
-
-    <ProgressBar
-      styleBar={{}}
-      styleProgress={styles.progressHeight}
-      totalValue={usageValues.limit}
-      usedValue={usageValues.usage}
-    />
-
-    {isLoadingUsage ? <ActivityIndicator color={'#00f'} /> : <Text
-      style={styles.usageText}
-    >
-      <Text>Used </Text>
-      <Bold>
-        {prettysize(usageValues.usage)}
-      </Bold>
-      <Text> of </Text>
-      <Bold>
-        {prettysize(usageValues.limit)}
-      </Bold>
-    </Text>
+  // Check current screen to change settings Photos/Drive text
+  useEffect(() => {
+    if (props.navigation.state.routeName === 'Home' || props.navigation.state.routeName === 'FileExplorer') {
+      props.dispatch(layoutActions.setCurrentApp(props.navigation.state.routeName))
     }
+  }, [props.navigation.state])
 
-    <Separator />
-
-    <SettingsItem
-      text="More info"
-      onPress={() => Linking.openURL('https://internxt.com/drive')}
-    />
-
-    <SettingsItem
-      text="Storage"
-      onPress={() => {
+  return (
+    <Modal
+      isOpen={props.layoutState.showSettingsModal}
+      position={'bottom'}
+      swipeArea={20}
+      style={styles.modalSettings}
+      onClosed={() => {
         props.dispatch(layoutActions.closeSettings())
-        props.navigation.replace('Storage')
       }}
-    />
+      backButtonClose={true}
+      animationDuration={200}>
 
-    <SettingsItem
-      text="Contact"
-      onPress={() => {
-        const emailUrl = 'mailto:support@internxt.zohodesk.eu'
+      <View style={styles.drawerKnob}></View>
 
-        Linking.canOpenURL(emailUrl).then(() => {
-          Linking.openURL(emailUrl)
-        }).catch(() => {
-          Alert.alert('Info', 'Send us an email to: support@internxt.zohodesk.')
-        })
-      }}
-    />
+      <Text style={styles.nameText}>
+        {props.authenticationState.user.name}{' '}
+        {props.authenticationState.user.lastname}
+      </Text>
 
-    <SettingsItem
-      text="Sign out"
-      onPress={() => {
-        props.dispatch(layoutActions.closeSettings())
-        props.dispatch(userActions.signout())
-      }}
-    />
-  </Modal>
+      <ProgressBar
+        styleBar={{}}
+        styleProgress={styles.progressHeight}
+        totalValue={usageValues.limit}
+        usedValue={usageValues.usage}
+      />
+
+      {isLoadingUsage ?
+        <ActivityIndicator color={'#00f'} />
+        :
+        <Text style={styles.usageText}>
+          <Text>Used </Text>
+          <Bold>{prettysize(usageValues.usage)}</Bold>
+          <Text> of </Text>
+          <Bold>{prettysize(usageValues.limit)}</Bold>
+        </Text>
+      }
+
+      <Separator />
+
+      <SettingsItem
+        text="More info"
+        onPress={() => Linking.openURL('https://internxt.com/drive')}
+      />
+
+      <SettingsItem
+        text={props.layoutState.currentApp === 'Home' ? 'Drive' : 'Photos'}
+        onPress={() => {
+          props.dispatch(layoutActions.closeSettings())
+          if (props.layoutState.currentApp === 'Home') {
+            props.navigation.replace('FileExplorer')
+          } else {
+            props.navigation.replace('Home')
+          }
+        }}
+      />
+
+      <SettingsItem
+        text="Storage"
+        onPress={() => {
+          props.dispatch(layoutActions.closeSettings())
+          props.navigation.replace('Storage')
+        }}
+      />
+
+      <SettingsItem
+        text="Contact"
+        onPress={() => {
+          const emailUrl = 'mailto:support@internxt.zohodesk.eu'
+
+          Linking.canOpenURL(emailUrl).then(() => {
+            Linking.openURL(emailUrl)
+          }).catch(() => {
+            Alert.alert('Info', 'Send us an email to: support@internxt.zohodesk.')
+          })
+        }}
+      />
+
+      <SettingsItem
+        text="Sign out"
+        onPress={() => {
+          props.dispatch(layoutActions.closeSettings())
+          props.dispatch(userActions.signout())
+        }}
+      />
+    </Modal>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -170,7 +186,8 @@ const styles = StyleSheet.create({
     marginTop: 10
   },
   modalSettings: {
-    height: 380
+    height: 'auto',
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0
   },
   nameText: {
     fontSize: 20,

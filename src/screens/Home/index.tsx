@@ -1,31 +1,22 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Image, BackHandler, Platform, FlatList, Pressable } from 'react-native'
-import AppMenu from '../../components/AppMenu'
-import { layoutActions, fileActions } from '../../redux/actions';
+import { Text, View, StyleSheet, Platform, FlatList, Pressable } from 'react-native'
+import { layoutActions } from '../../redux/actions';
 import { connect } from 'react-redux';
-import FileList, { IFolder, IFile } from '../../components/FileList';
-import SettingsModal from '../../modals/SettingsModal';
 import { TouchableHighlight } from 'react-native-gesture-handler';
-import { getIcon } from '../../helpers/getIcon';
-//import FileDetailsModal from '../../modals/PhotoDetailsModal';
 import SortModal from '../../modals/SortModal';
-import DeleteItemModal from '../../modals/DeleteItemModal';
 import MoveFilesModal from '../../modals/MoveFilesModal';
-import ShareFilesModal from '../../modals/ShareFilesModal';
 import { Reducers } from '../../redux/reducers/reducers';
-import FileDetailsModal from '../../modals/FileDetailsModal';
-import PhotoItem from '../../components/PhotoItem';
 import AlbumCard from '../../components/AlbumCard';
 import { getDevicePhotos } from '../../helpers/mediaAccess';
 import { PhotoActions } from '../../redux/actions/photo.actions';
 import PhotoList from '../../components/PhotoList';
-import { previewsStorage } from '../../helpers/previewsStorage';
-import { getAlbumList, getAllPhotos, getDeletedPhotos } from './init';
-import * as FileSystem from 'expo-file-system';
+import { getAllLocalPhotos } from './init';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import DeletedPhotoList from '../../components/PhotoList/DeletedPhotoList';
 import SettingsModalPhotos from '../../modals/SettingsModal/SettingsModalPhotos';
 import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import SettingsModal from '../../modals/SettingsModal';
 
 interface HomeProps extends Reducers {
   navigation?: any
@@ -36,6 +27,13 @@ interface HomeProps extends Reducers {
 
 function Home(props: HomeProps): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
+
+  useEffect(() => {
+    getAllLocalPhotos(props.dispatch)
+  }, [])
+
+  useEffect(() => {
+  }, [props.photosState.photos])
 
   useEffect(() => {
     const { user } = props.authenticationState;
@@ -60,25 +58,6 @@ function Home(props: HomeProps): JSX.Element {
 
     }
   }, [props.photosState.devicePhotos])
-
-  /*useEffect(() => {
-      const backAction = () => {
-          if (parentFolderId) {
-              // eslint-disable-next-line no-console
-              console.log('back') // do not delete
-              // Go to parent folder if exists
-              props.dispatch(fileActions.getFolderContent(parentFolderId))
-          } else {
-              // Exit application if root folder
-              BackHandler.exitApp()
-          }
-          return true;
-      };
-
-      const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-      return () => backHandler.remove();
-  }, []);*/
 
   useEffect(() => {
     //parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(props.filesState.folderContent)) : null
@@ -110,109 +89,110 @@ function Home(props: HomeProps): JSX.Element {
 
   );
 
-  return <View style={styles.container}>
-    <SettingsModalPhotos navigation={props.navigation} />
-    <SortModal />
-    <MoveFilesModal />
+  return (
+    <View style={styles.container}>
+      <SettingsModal navigation={props.navigation} />
+      <SortModal />
+      <MoveFilesModal />
 
-    <View style={styles.platformSpecificHeight}></View>
+      <View style={styles.platformSpecificHeight}></View>
 
-    <AppMenuPhotos navigation={props.navigation} />
+      <AppMenuPhotos navigation={props.navigation} />
 
-    <View style={styles.albumsContainer}>
-      <View style={styles.albumsHeader}>
-        <Text style={styles.albumsTitle}>
+      <View style={styles.albumsContainer}>
+        <View style={styles.albumsHeader}>
+          <Text style={styles.albumsTitle}>
           Albums
-        </Text>
-
-        <Pressable
-          onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
-        >
-          <Text style={styles.albumsSort}>
-            {props.photosState.sortType}
           </Text>
-        </Pressable>
 
-      </View>
-
-      {props.photosState.albums.length > 0 ?
-        <View style={styles.photoScroll}>
-          <FlatList
-            keyExtractor={keyExtractor}
-            renderItem={renderAlbumItem}
-            data={props.photosState.albums}
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-          ></FlatList>
-        </View>
-        :
-        <View style={{ marginTop: 40 }}>
-          <CreateAlbumCard navigation={props.navigation} />
-        </View>
-      }
-    </View>
-
-    <View style={styles.albumsContainer}>
-      <View style={styles.albumHeader}>
-        <Text style={styles.albumsTitle}>
-          All Photos
-        </Text>
-        <Pressable
-          onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
-        >
-          <Text style={styles.albumsSort}>
-            {props.photosState.sortType}
-          </Text>
-        </Pressable>
-
-      </View>
-
-      <TouchableHighlight
-        style={styles.photoScroll}
-        underlayColor="#FFF"
-        onPress={() => { props.navigation.navigate('AlbumView', { title: 'All Photos' }) }}
-      >
-        <PhotoList
-          title={'All Photos'}
-          photos={props.photosState.photos}
-          navigation={props.navigation}
-        />
-      </TouchableHighlight>
-    </View>
-
-    <View style={styles.albumsContainer}>
-      <TouchableHighlight
-        underlayColor="#FFF"
-      >
-        <View>
-          <View style={styles.albumHeader}>
-            <Text style={styles.albumsTitle}>
-              Deleted
-            </Text>
-            <Pressable
-              onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
-            >
-              <Text style={styles.albumsSort}>
-                {props.photosState.sortType}
-              </Text>
-            </Pressable>
-          </View >
-
-          <TouchableHighlight
-            style={styles.photoScroll}
-            underlayColor="#fff"
-            onPress={() => { props.navigation.navigate('AlbumView', { title: 'Deleted Photos' }) }}
+          <Pressable
+            onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
           >
-            <DeletedPhotoList
-              title={'Deleted Photos'}
-              deleted={props.photosState.deleted}
-              navigation={props.navigation}
-            />
-          </TouchableHighlight>
+            <Text style={styles.albumsSort}>
+              {props.photosState.sortType}
+            </Text>
+          </Pressable>
+
         </View>
-      </TouchableHighlight>
+
+        {props.photosState.albums.length > 0 ?
+          <View style={styles.photoScroll}>
+            <FlatList
+              keyExtractor={keyExtractor}
+              renderItem={renderAlbumItem}
+              data={props.photosState.albums}
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+            ></FlatList>
+          </View>
+          :
+          <View style={{ marginTop: 40 }}>
+            <CreateAlbumCard navigation={props.navigation} />
+          </View>
+        }
+      </View>
+
+      <View style={styles.albumsContainer}>
+        <View style={styles.albumHeader}>
+          <Text style={styles.albumsTitle}>
+          All photos
+          </Text>
+          <Pressable
+            onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
+          >
+            <Text style={styles.albumsSort}>
+              {props.photosState.sortType}
+            </Text>
+          </Pressable>
+        </View>
+
+        <TouchableHighlight
+          style={styles.photoScroll}
+          underlayColor="#FFF"
+          onPress={() => { props.navigation.navigate('PhotoGallery', { title: 'All Photos' }) }}
+        >
+          <PhotoList
+            title={'All Photos'}
+            photos={props.photosState.photos}
+            navigation={props.navigation}
+          />
+        </TouchableHighlight>
+      </View>
+
+      <View style={styles.albumsContainer}>
+        <TouchableHighlight
+          underlayColor="#FFF"
+        >
+          <View>
+            <View style={styles.albumHeader}>
+              <Text style={styles.albumsTitle}>
+              Deleted
+              </Text>
+              <Pressable
+                onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
+              >
+                <Text style={styles.albumsSort}>
+                  {props.photosState.sortType}
+                </Text>
+              </Pressable>
+            </View >
+
+            <TouchableHighlight
+              style={styles.photoScroll}
+              underlayColor="#fff"
+              onPress={() => { props.navigation.navigate('AlbumView', { title: 'Deleted Photos' }) }}
+            >
+              <DeletedPhotoList
+                title={'Deleted Photos'}
+                deleted={props.photosState.deleted}
+                navigation={props.navigation}
+              />
+            </TouchableHighlight>
+          </View>
+        </TouchableHighlight>
+      </View>
     </View>
-  </View>
+  )
 }
 
 const mapStateToProps = (state: any) => {
@@ -231,7 +211,8 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'nowrap',
-    marginTop: 25
+    marginTop: 25,
+    paddingHorizontal: wp('1')
   },
   albumsContainer: {
     display: 'flex',

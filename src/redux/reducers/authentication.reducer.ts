@@ -5,13 +5,15 @@ export interface AuthenticationState {
   token: string
   user: any
   error: string
+  userStorage: any
 }
 
 const initialState: AuthenticationState = {
   loggedIn: false,
   token: '',
   user: {},
-  error: ''
+  error: '',
+  userStorage: { usage: 0, limit: 0, percentage: 0 }
 };
 
 export function authenticationReducer(state = initialState, action: any) {
@@ -44,6 +46,11 @@ export function authenticationReducer(state = initialState, action: any) {
       token: action.payload.token,
       user: JSON.parse(action.payload.user)
     };
+  case userActionTypes.SET_USER_STORAGE:
+    return {
+      ...state,
+      userStorage: action.payload
+    }
   default:
     return state;
   }

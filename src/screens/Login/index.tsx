@@ -5,11 +5,9 @@ import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/lytics';
-import { getDevicePhotos } from '../../helpers/mediaAccess';
 import { normalize } from '../../helpers/normalize'
-import { PhotoActions, userActions } from '../../redux/actions';
+import { userActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
-import { getAllPhotos } from '../Home/init';
 import { validate2FA, apiLogin } from './access';
 interface LoginProps extends Reducers {
   goToForm?: (screenName: string) => void
@@ -32,19 +30,18 @@ function Login(props: LoginProps): JSX.Element {
 
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
-      const user = props.authenticationState.user;
+      const rootFolderId = props.authenticationState.user.root_folder_id;
 
-      props.navigation.replace('Home')
+      props.navigation.replace('FileExplorer', {
+        folderId: rootFolderId
+      })
     } else {
       (async () => {
         const xToken = await deviceStorage.getItem('xToken')
         const xUser = await deviceStorage.getItem('xUser')
 
         if (xToken && xUser) {
-          const localUser = JSON.parse(xUser);
-
           props.dispatch(userActions.localSignIn(xToken, xUser))
-          props.navigation.replace('Home');
         } else {
           setIsLoading(false)
         }
@@ -56,7 +53,7 @@ function Login(props: LoginProps): JSX.Element {
     <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
       <View style={styles.containerHeader}>
         <View style={styles.flexRow}>
-          <Text style={styles.title}>Welcome to Internxt</Text>
+          <Text style={styles.title}>Sign in to Internxt</Text>
         </View>
         <View style={styles.buttonWrapper}>
           <TouchableHighlight
@@ -143,7 +140,7 @@ function Login(props: LoginProps): JSX.Element {
         <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>Forgot your password?</Text>
       </View>
     </View>
-    <Text style={styles.versionLabel}>Internxt Photos v.0.0.1</Text>
+    <Text style={styles.versionLabel}>Internxt Drive v1.2.5</Text>
   </KeyboardAvoidingView>
 }
 
@@ -169,7 +166,7 @@ const styles = StyleSheet.create({
   containerHeader: {
   },
   title: {
-    fontFamily: 'Averta-Bold',
+    fontFamily: 'CerebriSans-Bold',
     fontSize: normalize(22),
     letterSpacing: -1.7,
     color: '#000',
@@ -205,19 +202,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2'
   },
   buttonOnLabel: {
-    fontFamily: 'Averta-Regular',
+    fontFamily: 'CerebriSans-Medium',
     fontSize: normalize(15),
     textAlign: 'center',
     color: '#fff'
   },
   buttonOffLabel: {
-    fontFamily: 'Averta-Regular',
+    fontFamily: 'CerebriSans-Medium',
     fontSize: normalize(15),
     textAlign: 'center',
     color: '#5c5c5c'
   },
   input: {
-    fontFamily: 'Averta-Regular',
+    fontFamily: 'CerebriSans-Medium',
     letterSpacing: -0.2,
     fontSize: normalize(15),
     color: '#000',
@@ -239,7 +236,7 @@ const styles = StyleSheet.create({
     marginBottom: normalize(13)
   },
   versionLabel: {
-    fontFamily: 'Averta-Regular',
+    fontFamily: 'CerebriSans-Regular',
     alignSelf: 'center',
     color: '#999999',
     marginTop: normalize(30),

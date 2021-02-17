@@ -3,6 +3,7 @@ import { StyleSheet, Image, Dimensions, Platform } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import FileViewer from 'react-native-file-viewer';
 import * as MediaLibrary from 'expo-media-library';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 export interface IAlbumImage {
   id: string
@@ -11,7 +12,6 @@ export interface IAlbumImage {
 const deviceWidth = Dimensions.get('window').width
 
 function AlbumImage(props: IAlbumImage): JSX.Element {
-
   return (
     <TouchableOpacity
       key={props.id}
@@ -33,13 +33,15 @@ function AlbumImage(props: IAlbumImage): JSX.Element {
 
 const styles = StyleSheet.create({
   container: {
-    width: deviceWidth / 3,
-    height: deviceWidth / 3,
-    marginRight: 2
+    width: (deviceWidth - 20) / 3,
+    height: (deviceWidth - 20) / 3,
+    marginHorizontal: wp('0.5'),
+    marginBottom: wp('1')
   },
   image: {
-    width: deviceWidth / 3,
-    height: deviceWidth / 3
+    width: (deviceWidth - 20) / 3,
+    height: (deviceWidth - 20) / 3,
+    borderRadius: 10
   }
 })
 

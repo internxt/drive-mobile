@@ -10,10 +10,10 @@ export function isNullOrEmpty(input: string): boolean {
   return _.isEmpty(input)
 }
 interface RegisterParams {
-  firstName: string
-  lastName: string
-  email: string
-  password: string
+    firstName: string
+    lastName: string
+    email: string
+    password: string
 }
 
 export async function getNewBits(): Promise<string> {
@@ -39,7 +39,7 @@ export async function doRegister(params: RegisterParams): Promise<any> {
   const mnemonic = await getNewBits()
   const encMnemonic = encryptTextWithKey(mnemonic, params.password);
 
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/register`, {
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/register`, {
     method: 'post',
     headers: getHeaders(),
     body: JSON.stringify({

@@ -1,4 +1,8 @@
 import { getHeaders } from '../../helpers/headers'
+import * as Permissions from 'expo-permissions';
+import * as MediaLibrary from 'expo-media-library';
+import { Dispatch } from 'redux';
+import { PhotoActions } from '../../redux/actions';
 
 export async function getAlbumList(email: string, token: string, mnemonic: string) {
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/albums/${email}`, {
@@ -39,4 +43,14 @@ export async function getDeletedPhotos(email: string, token: string, mnemonic: s
 
     }
   })
+}
+
+export function getAllLocalPhotos(dispatch: Dispatch) {
+  return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
+    .then(() => {
+      return MediaLibrary.getAssetsAsync();
+    })
+    .then((res) => {
+      dispatch(PhotoActions.getAllLocalPhotos(res.assets))
+    })
 }
