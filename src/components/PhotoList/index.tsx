@@ -30,21 +30,18 @@ interface PhotoListProps {
 }
 
 function PhotoList(props: PhotoListProps) {
-  const [images, setImages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [photos, setPhotos] = useState<IPhoto[]>()
 
   useEffect(() => {
-    setPhotos(props.photosState.photos)
     setIsLoading(props.photosState.isLoading)
-  }, [props.photosState.photos]);
+  }, [props.photosState.localPhotos]);
 
   return (
     <View style={styles.container}>
       {
         !isLoading ?
           <FlatList
-            data={photos}
+            data={props.photos}
             renderItem={({ item }) => (
               <View
                 style={{

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Text, View, StyleSheet, Platform, FlatList, Pressable } from 'react-native'
 import { layoutActions } from '../../redux/actions';
 import { connect } from 'react-redux';
@@ -12,8 +12,7 @@ import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
 import { Dispatch } from 'redux';
-import { PhotoActions } from '../../redux/actions/photo.actions';
-import { getLocalImages, syncPhotos } from './init'
+import { getLocalImages, getUploadedPhotos, syncPhotos } from './init'
 
 interface HomeProps extends Reducers {
   navigation?: any
@@ -25,14 +24,19 @@ interface HomeProps extends Reducers {
 function Home(props: HomeProps): JSX.Element {
 
   useEffect(() => {
-    getLocalImages().then((res)=>{
-      props.dispatch(PhotoActions.setAllLocalPhotos(res))
-    })
+    getLocalImages(props.dispatch)
+
+    getUploadedPhotos(props.authenticationState, props.dispatch)
   }, []);
 
   useEffect(() => {
-    syncPhotos(props.photosState.photos, props)
-  }, [props.photosState.photos]);
+    syncPhotos(props.photosState.localPhotos, props)
+  }, [props.photosState.localPhotos]);
+
+  useEffect(() => {
+    //console.log('uploaded =>', props.photosState.uploadedPhotos[0])
+    //console.log('local =>', props.photosState.localPhotos[0])
+  }, [props.photosState.uploadedPhotos])
 
   const keyExtractor = (item: any, index: any) => index.toString();
   // TODO: Recover all previews from device,
@@ -109,13 +113,43 @@ function Home(props: HomeProps): JSX.Element {
         >
           <PhotoList
             title={'All Photos'}
-            photos={props.photosState.photos}
+            photos={props.photosState.localPhotos}
             navigation={props.navigation}
           />
         </TouchableHighlight>
       </View>
 
       <View style={styles.albumsContainer}>
+        <View style={styles.albumHeader}>
+          <Text style={styles.albumsTitle}>
+          Uploaded photos
+          </Text>
+
+          <Pressable
+            onPress={() => {
+
+            }}
+          >
+            <Text style={styles.albumsSort}>
+              {props.photosState.sortType}
+            </Text>
+          </Pressable>
+        </View>
+
+        <TouchableHighlight
+          style={styles.photoScroll}
+          underlayColor="#FFF"
+          onPress={() => { props.navigation.navigate('PhotoGallery', { title: 'Uploaded photos' }) }}
+        >
+          <PhotoList
+            title={'Uploaded photos'}
+            photos={props.photosState.uploadedPhotos}
+            navigation={props.navigation}
+          />
+        </TouchableHighlight>
+      </View>
+
+      {/* <View style={styles.albumsContainer}>
         <TouchableHighlight underlayColor="#FFF">
           <View style={styles.albumHeader}>
             <Text style={styles.albumsTitle}>
@@ -130,7 +164,7 @@ function Home(props: HomeProps): JSX.Element {
             </Pressable>
           </View>
         </TouchableHighlight>
-      </View>
+      </View> */}
     </View>
   )
 }

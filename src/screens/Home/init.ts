@@ -6,6 +6,10 @@ import RNFetchBlob from 'rn-fetch-blob';
 import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
+import { Dispatch } from 'redux';
+import { PhotoActions } from '../../redux/actions/photo.actions';
+import { PhotoActions } from '../../redux/actions/photo.actions';
+import { Dispatch } from 'redux';
 
 const getArrayPhotos = async(images: Asset[]) => {
   const result = mapSeries(images, async (image, next) => {
@@ -142,22 +146,22 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
     })
 }
 
-export function getLocalImages() {
+export function getLocalImages(dispatch: Dispatch) {
   return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
     .then(() => {
-      return MediaLibrary.getAssetsAsync();
+      return MediaLibrary.getAssetsAsync({ first: 1000000 });
     })
     .then((result) => {
-      return result.assets;
+      dispatch(PhotoActions.setAllLocalPhotos(result.assets))
     });
 }
 
-export function getUploadPhotos(props: any): Promise<any> {
+export function getUploadPhotos(authenticationState: any, dispatch: Dispatch): Promise<any> {
   return new Promise(async (resolve, reject) => {
 
-    const email = props.authenticationState.user.email
-    const token = props.authenticationState.token;
-    const mnemonic = props.authenticationState.user.mnemonic;
+    const email = authenticationState.user.email
+    const token = authenticationState.token;
+    const mnemonic = authenticationState.user.mnemonic;
 
     const headers = {
       'Authorization': `Bearer ${token}`,
@@ -172,6 +176,7 @@ export function getUploadPhotos(props: any): Promise<any> {
       if (res.status !== 200) { throw res; }
       return res.json();
     }).then(async (res2) => {
+      dispatch(PhotoActions.setAllUploadedPhotos(res))
       resolve(res2)
     })
       .catch(reject);
