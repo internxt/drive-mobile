@@ -78,6 +78,8 @@ function signinPhotos(email: string, password: string, sKey: string, twoFactorCo
         // Manage successfull login
         const user = body.user;
 
+        user.email = email;
+
         user.mnemonic = user.mnemonic ? decryptTextWithKey(user.mnemonic, password) : null
 
         if (!user.rootAlbumId) {

@@ -5,14 +5,19 @@ import { Platform } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
+import RNFS from 'react-native-fs';
 
 const getArrayPhotos = async(images: Asset[]) => {
   const result = mapSeries(images, async (image, next) => {
+
     const asset = await getAssetInfoAsync(image)
+
+    const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
 
     const file = {
       uri: asset.localUri,
       id: asset.id,
+      hash: sha256Id,
       name: asset.filename
     }
 
@@ -26,11 +31,11 @@ export function syncPhotos(images: Asset[], props: any) {
   getArrayPhotos(images).then((res)=>{
 
     const result = mapSeries(res, (image, next) => {
+
       uploadPhoto(image, props).then(() => next(null)).catch(next)
     });
   });
 }
-
 export async function uploadPhoto (result: any, props: any) {
 
   try {
@@ -59,7 +64,8 @@ export async function uploadPhoto (result: any, props: any) {
 
     return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photo/upload`, headers,
       [
-        { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
+        { name: 'xfile', filename: result.name, data: finalUri },
+        { name: 'hash', data: result.hash }
       ])
       .then((res) => {
         if (res.respInfo.status === 401) {
@@ -144,4 +150,30 @@ export function getLocalImages() {
     .then((result) => {
       return result.assets;
     });
+}
+
+export function getUploadPhotos(props: any): Promise<any> {
+  return new Promise(async (resolve, reject) => {
+
+    const email = props.authenticationState.user.email
+    const token = props.authenticationState.token;
+    const mnemonic = props.authenticationState.user.mnemonic;
+
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'internxt-mnemonic': mnemonic,
+      'Content-Type': 'application/json; charset=utf-8'
+    };
+
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/previews/${email}`, {
+      method: 'GET',
+      headers
+    }).then(res => {
+      if (res.status !== 200) { throw res; }
+      return res.json();
+    }).then(async (res2) => {
+      resolve(res2)
+    })
+      .catch(reject);
+  });
 }
