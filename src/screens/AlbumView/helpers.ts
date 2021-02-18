@@ -5,14 +5,19 @@ import { Platform } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
+import RNFS from 'react-native-fs';
 
 const getArrayPhotos = async(images: Asset[]) => {
   const result = mapSeries(images, async (image, next) => {
+
     const asset = await getAssetInfoAsync(image)
+
+    const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
 
     const file = {
       uri: asset.localUri,
       id: asset.id,
+      hash: sha256Id,
       name: asset.filename
     }
 
@@ -26,6 +31,7 @@ export function syncPhotos(images: Asset[], props: any) {
   getArrayPhotos(images).then((res)=>{
 
     const result = mapSeries(res, (image, next) => {
+
       uploadPhoto(image, props).then(() => next(null)).catch(next)
     });
   });
@@ -58,7 +64,8 @@ export async function uploadPhoto (result: any, props: any) {
 
     return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photo/upload`, headers,
       [
-        { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
+        { name: 'xfile', filename: result.name, data: finalUri },
+        { name: 'hash', data: result.hash }
       ])
       .then((res) => {
         if (res.respInfo.status === 401) {
