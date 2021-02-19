@@ -11,6 +11,9 @@ import { getHeaders } from '../../helpers/headers';
 import { deviceStorage } from '../../helpers';
 import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import Bold from '../../components/Bold';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { Dispatch } from 'redux';
+import { LayoutState } from '../../redux/reducers/layout.reducer';
 
 function identifyPlanName(bytes: number): string {
   return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
@@ -56,11 +59,52 @@ export async function loadValues(): Promise<{ usage: number, limit: number}> {
   return { usage, limit }
 }
 
+async function initializePhotosUser(token: string, mnemonic: string): Promise<any> {
+  const xUser = await deviceStorage.getItem('xUser')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const email = xUserJson.email
+
+  console.log('body =>', email, mnemonic)
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
+    method: 'POST',
+    headers: getHeaders(token, mnemonic),
+    body: JSON.stringify({
+      email: email,
+      mnemonic: mnemonic
+    })
+  }).then(res => {
+    console.log('res', res)
+    return res.json()
+  })
+}
+
+async function photosUserData(authenticationState: AuthenticationState): Promise<any> {
+  const token = authenticationState.token;
+  const mnemonic = authenticationState.user.mnemonic;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'internxt-mnemonic': mnemonic,
+    'Content-Type': 'application/json; charset=utf-8'
+  };
+
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/user`, {
+    method: 'GET',
+    headers
+  }).then(res => {
+    if (res.status === 400) {
+      return initializePhotosUser(token, mnemonic)
+    }
+    return res.json()
+  }).then(res => {
+    return res
+  })
+}
+
 interface SettingsModalProps {
-  authenticationState?: any
-  layoutState?: any
-  dispatch?: any,
-  navigation?: any
+  authenticationState: AuthenticationState
+  layoutState: LayoutState
+  dispatch: Dispatch,
+  navigation: any
 }
 
 function SettingsModal(props: SettingsModalProps) {
@@ -136,9 +180,15 @@ function SettingsModal(props: SettingsModalProps) {
         text={props.layoutState.currentApp === 'Home' ? 'Drive' : 'Photos'}
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
+
           if (props.layoutState.currentApp === 'Home') {
             props.navigation.replace('FileExplorer')
           } else {
+            photosUserData(props.authenticationState).then(res => {
+              console.log('res =>', res)
+            }).catch(err => {
+              console.log('err =>', err)
+            })
             props.navigation.replace('Home')
           }
         }}

@@ -31,15 +31,12 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
 
   useEffect(() => {
     setImages(props.photosState.localPhotos)
-    //console.log('images =>', images)
-
   }, [props.photosState.localPhotos])
 
   useEffect(() => {
     setUploadedImages(props.photosState.uploadedPhotos)
-    //console.log('uploaded photo =>', props.photosState.uploadedPhotos[0])
-    //console.log('local photo =>', props.photosState.localPhotos[0])
-
+    console.log('uploaded photo =>', props.photosState.uploadedPhotos[0])
+    console.log('local photo =>', props.photosState.localPhotos[0])
   }, [props.photosState.uploadedPhotos])
 
   useEffect(() => {

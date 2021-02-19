@@ -26,11 +26,11 @@ function Home(props: HomeProps): JSX.Element {
   useEffect(() => {
     getLocalImages(props.dispatch)
 
-    getUploadedPhotos(props.authenticationState, props.dispatch)
+    //getUploadedPhotos(props.authenticationState, props.dispatch)
   }, []);
 
   useEffect(() => {
-    syncPhotos(props.photosState.localPhotos, props)
+    //syncPhotos(props.photosState.localPhotos, props)
   }, [props.photosState.localPhotos]);
 
   useEffect(() => {

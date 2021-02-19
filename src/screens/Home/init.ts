@@ -8,8 +8,6 @@ import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 import { Dispatch } from 'redux';
 import { PhotoActions } from '../../redux/actions/photo.actions';
-import { PhotoActions } from '../../redux/actions/photo.actions';
-import { Dispatch } from 'redux';
 
 const getArrayPhotos = async(images: Asset[]) => {
   const result = mapSeries(images, async (image, next) => {
@@ -35,7 +33,6 @@ export function syncPhotos(images: Asset[], props: any) {
   getArrayPhotos(images).then((res)=>{
 
     const result = mapSeries(res, (image, next) => {
-
       uploadPhoto(image, props).then(() => next(null)).catch(next)
     });
   });
@@ -138,6 +135,7 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
 
       } else if (res.res.respInfo.status === 201) {
         // PREVIEW UPLOADED
+        console.log('preview uploaded')
         return
       }
     })
@@ -156,7 +154,7 @@ export function getLocalImages(dispatch: Dispatch) {
     });
 }
 
-export function getUploadPhotos(authenticationState: any, dispatch: Dispatch): Promise<any> {
+export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch): Promise<any> {
   return new Promise(async (resolve, reject) => {
 
     const email = authenticationState.user.email
@@ -175,9 +173,9 @@ export function getUploadPhotos(authenticationState: any, dispatch: Dispatch): P
     }).then(res => {
       if (res.status !== 200) { throw res; }
       return res.json();
-    }).then(async (res2) => {
+    }).then(res => {
       dispatch(PhotoActions.setAllUploadedPhotos(res))
-      resolve(res2)
+      resolve(res)
     })
       .catch(reject);
   });
