@@ -6,16 +6,16 @@ import { TouchableHighlight } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
 import { Reducers } from '../../redux/reducers/reducers';
 import AlbumCard from '../../components/AlbumCard';
-import PhotoList, { IPhoto } from '../../components/PhotoList';
+import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
 import { Dispatch } from 'redux';
-import { PhotoActions } from '../../redux/actions/photo.actions';
 import { getLocalImages, syncPhotos, syncPreviews } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { WaveIndicator } from 'react-native-indicators';
 
 interface HomeProps extends Reducers {
   navigation?: any
@@ -29,15 +29,13 @@ function Home(props: HomeProps): JSX.Element {
 
   useEffect(() => {
     syncPreviews(props).then((res)=>{
-      // eslint-disable-next-line no-console
-      //console.log('RESULT', res)
       setPreviews(res)
     })
     getLocalImages(props.dispatch)
   }, []);
 
   useEffect(() => {
-    //syncPhotos(props.photosState.localPhotos, props)
+    syncPhotos(props.photosState.localPhotos, props)
     //console.log('local =>', props.photosState.localPhotos)
   }, [props.photosState.localPhotos]);
 
@@ -149,11 +147,15 @@ function Home(props: HomeProps): JSX.Element {
           underlayColor="#FFF"
           onPress={() => { props.navigation.navigate('PhotoGallery', { title: 'Uploaded photos' }) }}
         >
-          <PhotoList
-            title={'Uploaded photos'}
-            photos={props.photosState.uploadedPhotos}
-            navigation={props.navigation}
-          />
+          { previews ?
+            <PhotoList
+              title={'Uploaded photos'}
+              photos={previews}
+              navigation={props.navigation}
+            />
+            :
+            <WaveIndicator color="#5291ff" size={50} />
+          }
         </TouchableHighlight>
       </View>
 

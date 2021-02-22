@@ -9,6 +9,7 @@ import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { PhotoActions } from '../../redux/actions';
 import { Dispatch } from 'redux';
+import { IPhoto } from '../../components/PhotoList';
 
 const getArrayPhotos = async(images: Asset[]) => {
   const result = mapSeries(images, async (image, next) => {
@@ -30,7 +31,7 @@ const getArrayPhotos = async(images: Asset[]) => {
   return result;
 }
 
-export function syncPhotos(images: Asset[], props: any) {
+export function syncPhotos(images: IPhoto[], props: any) {
   getArrayPhotos(images).then((res)=>{
 
     const result = mapSeries(res, (image, next) => {
@@ -218,14 +219,17 @@ const downloadPreview = async(preview: any, props: any) => {
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
   const typePreview = preview.type
+  const name = preview.name
 
   return RNFetchBlob.config({
-    path: RNFetchBlob.fs.dirs.PictureDir + '.' + typePreview,
+    path: RNFetchBlob.fs.dirs.PictureDir + name + '.' + typePreview,
     fileCache: true
   }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
   }).then((res) => {
+    console.log('preview =>', res)
+
     if (res.respInfo.status === 200) {
 
     }
@@ -236,7 +240,6 @@ const downloadPreview = async(preview: any, props: any) => {
     }
 
     return result;
-
   })
 }
 
@@ -267,12 +270,10 @@ const getArrayPreviews = async(props: any) => {
 
 export function syncPreviews(props: any): Promise<any> {
   return getArrayPreviews(props).then((res: any) => {
-
     const result = mapSeries(res, (preview, next) => {
       return downloadPreview(preview, props).then((res1) => {
 
         next(null, res1)
-
       });
     });
 
