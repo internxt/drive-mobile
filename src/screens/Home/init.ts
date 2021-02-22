@@ -7,7 +7,7 @@ import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
-import { PhotoActions } from '../../redux/actions';
+import { PhotoActions, userActions } from '../../redux/actions';
 import { Dispatch } from 'redux';
 import { IPhoto } from '../../components/PhotoList';
 

@@ -441,6 +441,8 @@ PODS:
     - React
   - RNFileViewer (2.1.4):
     - React-Core
+  - RNFS (2.16.6):
+    - React
   - RNGestureHandler (1.8.0):
     - React
   - RNImageCropPicker (0.35.3):
@@ -564,6 +566,7 @@ DEPENDENCIES:
   - "RNAnalyticsIntegration-Firebase (from `../node_modules/@segment/analytics-react-native-firebase`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
+  - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -721,6 +724,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/masked-view"
   RNFileViewer:
     :path: "../node_modules/react-native-file-viewer"
+  RNFS:
+    :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNImageCropPicker:
@@ -835,6 +840,7 @@ SPEC CHECKSUMS:
   RNAnalyticsIntegration-Firebase: daed87b7ab56636ed0098326eb92e26fdfc198c2
   RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
   RNFileViewer: 83cc066ad795b1f986791d03b56fe0ee14b6a69f
+  RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNImageCropPicker: 08ba3a2e2f4f8833d606f01906c371e382c4dea9
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
