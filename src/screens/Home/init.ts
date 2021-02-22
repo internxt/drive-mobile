@@ -228,7 +228,6 @@ const downloadPreview = async(preview: any, props: any) => {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
   }).then((res) => {
-    console.log('preview =>', res)
 
     if (res.respInfo.status === 200) {
 
