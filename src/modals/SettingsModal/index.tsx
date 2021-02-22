@@ -64,7 +64,7 @@ async function initializePhotosUser(token: string, mnemonic: string): Promise<an
   const xUserJson = JSON.parse(xUser || '{}')
   const email = xUserJson.email
 
-  console.log('body =>', email, mnemonic)
+  //console.log('body =>', email, mnemonic)
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
     method: 'POST',
     headers: getHeaders(token, mnemonic),
@@ -73,7 +73,7 @@ async function initializePhotosUser(token: string, mnemonic: string): Promise<an
       mnemonic: mnemonic
     })
   }).then(res => {
-    console.log('res', res)
+    //console.log('res', res)
     return res.json()
   })
 }
@@ -185,9 +185,9 @@ function SettingsModal(props: SettingsModalProps) {
             props.navigation.replace('FileExplorer')
           } else {
             photosUserData(props.authenticationState).then(res => {
-              console.log('res =>', res)
+              //console.log('res =>', res)
             }).catch(err => {
-              console.log('err =>', err)
+              //console.log('err =>', err)
             })
             props.navigation.replace('Home')
           }

@@ -6,8 +6,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
-import { Dispatch } from 'redux';
-import { PhotoActions } from '../../redux/actions/photo.actions';
+import { deviceStorage } from '../../helpers';
 
 const getArrayPhotos = async(images: Asset[]) => {
   const result = mapSeries(images, async (image, next) => {
@@ -135,7 +134,7 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
 
       } else if (res.res.respInfo.status === 201) {
         // PREVIEW UPLOADED
-        console.log('preview uploaded')
+        //console.log('preview uploaded')
         return
       }
     })
@@ -178,5 +177,104 @@ export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch):
       resolve(res)
     })
       .catch(reject);
+  });
+}
+
+const downloadPhoto = async(props: any) => {
+
+  const photoItem = props.photosState.selectedPhoto;
+
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUser = await deviceStorage.getItem('xUser')
+  const xUserJson = JSON.parse(xUser || '{}')
+
+  return RNFetchBlob.config({
+    path: RNFetchBlob.fs.dirs.PictureDir + '.jpg',
+    fileCache: true
+  }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photo/${'559e3a3c663b43bd6215b96c'}`, {
+    'Authorization': `Bearer ${xToken}`,
+    'internxt-mnemonic': xUserJson.mnemonic
+  }).then(async (res) => {
+
+    if (res.respInfo.status === 200) {
+      MediaLibrary.saveToLibraryAsync(res.path())
+
+      return
+    }
+    return
+
+  }).catch(async err => {
+    return
+  }).finally(() => {
+    return
+  })
+}
+
+const downloadPreview = async(preview: any, props: any) => {
+
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUser = await deviceStorage.getItem('xUser')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const typePreview = preview.type
+
+  return RNFetchBlob.config({
+    path: RNFetchBlob.fs.dirs.PictureDir + '.' + typePreview,
+    fileCache: true
+  }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
+    'Authorization': `Bearer ${xToken}`,
+    'internxt-mnemonic': xUserJson.mnemonic
+  }).then((res) => {
+    if (res.respInfo.status === 200) {
+
+    }
+    const result = {
+      uri: res.path(),
+      data: res.data,
+      info: res.type
+    }
+
+    return result;
+
+  })
+}
+
+const getArrayPreviews = async(props: any) => {
+  return new Promise(async (resolve, reject) => {
+
+    const token = props.authenticationState.token;
+    const mnemonic = props.authenticationState.user.mnemonic;
+
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'internxt-mnemonic': mnemonic,
+      'Content-Type': 'application/json; charset=utf-8'
+    };
+
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/previews/`, {
+      method: 'GET',
+      headers
+    }).then(res => {
+      if (res.status !== 200) { throw res; }
+      return res.json();
+    }).then(async (res2) => {
+      resolve(res2)
+    })
+      .catch(reject);
+  });
+}
+
+export function syncPreviews(props: any): Promise<any> {
+  return getArrayPreviews(props).then((res: any) => {
+
+    const result = mapSeries(res, (preview, next) => {
+      return downloadPreview(preview, props).then((res1) => {
+
+        next(null, res1)
+
+      });
+    });
+
+    return result
+
   });
 }

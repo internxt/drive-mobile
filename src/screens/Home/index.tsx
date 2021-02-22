@@ -12,7 +12,8 @@ import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
 import { Dispatch } from 'redux';
-import { getLocalImages, getUploadedPhotos, syncPhotos } from './init'
+import { PhotoActions } from '../../redux/actions/photo.actions';
+import { getLocalImages, syncPhotos, syncPreviews } from './init'
 
 interface HomeProps extends Reducers {
   navigation?: any
@@ -22,11 +23,17 @@ interface HomeProps extends Reducers {
 }
 
 function Home(props: HomeProps): JSX.Element {
+  const [previews, setPreviews] = useState([]);
 
   useEffect(() => {
-    getLocalImages(props.dispatch)
-
-    //getUploadedPhotos(props.authenticationState, props.dispatch)
+    syncPreviews(props).then((res)=>{
+      // eslint-disable-next-line no-console
+      //console.log('RESULT', res)
+      setPreviews(res)
+    })
+    getLocalImages().then((res)=>{
+      props.dispatch(PhotoActions.setAllLocalPhotos(res))
+    })
   }, []);
 
   useEffect(() => {
