@@ -6,7 +6,7 @@ import { TouchableHighlight } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
 import { Reducers } from '../../redux/reducers/reducers';
 import AlbumCard from '../../components/AlbumCard';
-import PhotoList from '../../components/PhotoList';
+import PhotoList, { IPhoto } from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -14,12 +14,14 @@ import SettingsModal from '../../modals/SettingsModal';
 import { Dispatch } from 'redux';
 import { PhotoActions } from '../../redux/actions/photo.actions';
 import { getLocalImages, syncPhotos, syncPreviews } from './init'
+import { PhotosState } from '../../redux/reducers/photos.reducer';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 
 interface HomeProps extends Reducers {
   navigation?: any
   dispatch: Dispatch
-  photosState: any
-  authenticationState: any
+  photosState: PhotosState
+  authenticationState: AuthenticationState
 }
 
 function Home(props: HomeProps): JSX.Element {
@@ -31,13 +33,12 @@ function Home(props: HomeProps): JSX.Element {
       //console.log('RESULT', res)
       setPreviews(res)
     })
-    getLocalImages().then((res)=>{
-      props.dispatch(PhotoActions.setAllLocalPhotos(res))
-    })
+    getLocalImages(props.dispatch)
   }, []);
 
   useEffect(() => {
     //syncPhotos(props.photosState.localPhotos, props)
+    //console.log('local =>', props.photosState.localPhotos)
   }, [props.photosState.localPhotos]);
 
   useEffect(() => {
