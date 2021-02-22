@@ -146,7 +146,8 @@ async function signout() {
     await Promise.all([
       deviceStorage.deleteItem('xToken'),
       deviceStorage.deleteItem('xUser'),
-      deviceStorage.deleteItem('xBiometric')
+      deviceStorage.deleteItem('xBiometric'),
+      deviceStorage.deleteItem('xPhotos')
     ]);
   } catch (error) {
   }
