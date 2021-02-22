@@ -27,12 +27,14 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
     }).then(async response => {
       return { response, data: await response.json() };
     }).then(async response => {
+
       const body = response.data;
 
       if (response.response.status === 200) {
         // Manage successfull login
         const user = body.user;
 
+        user.email = email;
         user.mnemonic = user.mnemonic ? decryptTextWithKey(user.mnemonic, password) : null
 
         if (!user.root_folder_id) {

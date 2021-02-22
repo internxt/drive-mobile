@@ -32,7 +32,6 @@ export function syncPhotos(images: Asset[], props: any) {
   getArrayPhotos(images).then((res)=>{
 
     const result = mapSeries(res, (image, next) => {
-
       uploadPhoto(image, props).then(() => next(null)).catch(next)
     });
   });
@@ -135,6 +134,7 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
 
       } else if (res.res.respInfo.status === 201) {
         // PREVIEW UPLOADED
+        //console.log('preview uploaded')
         return
       }
     })
@@ -143,22 +143,22 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
     })
 }
 
-export function getLocalImages() {
+export function getLocalImages(dispatch: Dispatch) {
   return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
     .then(() => {
-      return MediaLibrary.getAssetsAsync();
+      return MediaLibrary.getAssetsAsync({ first: 1000000 });
     })
     .then((result) => {
-      return result.assets;
+      dispatch(PhotoActions.setAllLocalPhotos(result.assets))
     });
 }
 
-export function getUploadPhotos(props: any): Promise<any> {
+export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch): Promise<any> {
   return new Promise(async (resolve, reject) => {
 
-    const email = props.authenticationState.user.email
-    const token = props.authenticationState.token;
-    const mnemonic = props.authenticationState.user.mnemonic;
+    const email = authenticationState.user.email
+    const token = authenticationState.token;
+    const mnemonic = authenticationState.user.mnemonic;
 
     const headers = {
       'Authorization': `Bearer ${token}`,
@@ -172,8 +172,9 @@ export function getUploadPhotos(props: any): Promise<any> {
     }).then(res => {
       if (res.status !== 200) { throw res; }
       return res.json();
-    }).then(async (res2) => {
-      resolve(res2)
+    }).then(res => {
+      dispatch(PhotoActions.setAllUploadedPhotos(res))
+      resolve(res)
     })
       .catch(reject);
   });

@@ -28,7 +28,7 @@ function Home(props: HomeProps): JSX.Element {
   useEffect(() => {
     syncPreviews(props).then((res)=>{
       // eslint-disable-next-line no-console
-      console.log('RESULT', res)
+      //console.log('RESULT', res)
       setPreviews(res)
     })
     getLocalImages().then((res)=>{
@@ -37,8 +37,13 @@ function Home(props: HomeProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    syncPhotos(props.photosState.photos, props)
-  }, [props.photosState.photos]);
+    //syncPhotos(props.photosState.localPhotos, props)
+  }, [props.photosState.localPhotos]);
+
+  useEffect(() => {
+    //console.log('uploaded =>', props.photosState.uploadedPhotos[0])
+    //console.log('local =>', props.photosState.localPhotos[0])
+  }, [props.photosState.uploadedPhotos])
 
   const keyExtractor = (item: any, index: any) => index.toString();
   // TODO: Recover all previews from device,
@@ -115,13 +120,43 @@ function Home(props: HomeProps): JSX.Element {
         >
           <PhotoList
             title={'All Photos'}
-            photos={props.photosState.photos}
+            photos={props.photosState.localPhotos}
             navigation={props.navigation}
           />
         </TouchableHighlight>
       </View>
 
       <View style={styles.albumsContainer}>
+        <View style={styles.albumHeader}>
+          <Text style={styles.albumsTitle}>
+          Uploaded photos
+          </Text>
+
+          <Pressable
+            onPress={() => {
+
+            }}
+          >
+            <Text style={styles.albumsSort}>
+              {props.photosState.sortType}
+            </Text>
+          </Pressable>
+        </View>
+
+        <TouchableHighlight
+          style={styles.photoScroll}
+          underlayColor="#FFF"
+          onPress={() => { props.navigation.navigate('PhotoGallery', { title: 'Uploaded photos' }) }}
+        >
+          <PhotoList
+            title={'Uploaded photos'}
+            photos={props.photosState.uploadedPhotos}
+            navigation={props.navigation}
+          />
+        </TouchableHighlight>
+      </View>
+
+      {/* <View style={styles.albumsContainer}>
         <TouchableHighlight underlayColor="#FFF">
           <View style={styles.albumHeader}>
             <Text style={styles.albumsTitle}>
@@ -136,7 +171,7 @@ function Home(props: HomeProps): JSX.Element {
             </Pressable>
           </View>
         </TouchableHighlight>
-      </View>
+      </View> */}
     </View>
   )
 }

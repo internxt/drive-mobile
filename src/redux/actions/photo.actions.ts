@@ -31,6 +31,7 @@ export const PhotoActions = {
   deleteTempPhoto,
   setIsLoading,
   setAllLocalPhotos,
+  setAllUploadedPhotos,
   setSelectedPhotos
 };
 
@@ -324,5 +325,9 @@ function setSelectedPhotos(photos: ImageOrVideo[]) {
 }
 
 function setAllLocalPhotos(photos: IPhoto[]) {
-  return { type: photoActionTypes.GET_LOCAL_PHOTOS, payload: photos }
+  return { type: photoActionTypes.SET_LOCAL_PHOTOS, payload: photos }
+}
+
+function setAllUploadedPhotos(photos: IPhoto[]) {
+  return { type: photoActionTypes.SET_UPLOADED_FOTOS, payload: photos }
 }

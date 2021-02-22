@@ -9,22 +9,42 @@ import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
 import * as MediaLibrary from 'expo-media-library';
 import Photo from './Photo';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { PhotosState } from '../../redux/reducers/photos.reducer';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { IPhoto } from '../../components/PhotoList';
+import { Dispatch } from 'redux';
+import { LayoutState } from '../../redux/reducers/layout.reducer';
 
 interface IPhotoGallery {
   route: any;
-  navigation?: any
-  photosState?: any
-  dispatch?: any,
-  layoutState?: any
-  authenticationState?: any
+  navigation: any
+  photosState: PhotosState
+  dispatch: Dispatch,
+  layoutState: LayoutState
+  authenticationState: AuthenticationState
 }
 
 function PhotoGallery(props: IPhotoGallery): JSX.Element {
-  const [images, setImages] = useState<MediaLibrary.Asset[]>([]);
+  const [images, setImages] = useState<IPhoto[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<IPhoto[]>([])
 
   useEffect(() => {
-    setImages(props.photosState.photos)
-  }, [props.photosState.photos]);
+    setImages(props.photosState.localPhotos)
+  }, [props.photosState.localPhotos])
+
+  useEffect(() => {
+    setUploadedImages(props.photosState.uploadedPhotos)
+    //console.log('uploaded photo =>', props.photosState.uploadedPhotos[0])
+    //console.log('local photo =>', props.photosState.localPhotos[0])
+  }, [props.photosState.uploadedPhotos])
+
+  useEffect(() => {
+    if (images && uploadedImages) {
+
+    }
+  }, [images, uploadedImages])
+
   return (
     <View style={styles.container}>
 
@@ -52,7 +72,10 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
 
       <FlatList
         data={images}
-        renderItem={({ item }) => <Photo id={item.id} uri={item.uri} /> }
+        renderItem={({ item }) => {
+
+          return <Photo id={item.id} uri={item.uri} />
+        } }
         numColumns={3}
         //Setting the number of column
         keyExtractor={(item, index) => index.toString()}
@@ -99,6 +122,9 @@ const styles = StyleSheet.create({
   },
   titleWrapper: {
     display: 'flex'
+  },
+  flatList: {
+    paddingHorizontal: wp('1')
   }
 });
 

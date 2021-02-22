@@ -18,6 +18,7 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
     return userService
       .signin(email, password, sKey, twoFactorCode)
       .then(userData => {
+        //console.log('userData =>', userData)
         dispatch(success(userData));
       })
       .catch(error => {

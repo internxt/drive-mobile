@@ -275,7 +275,6 @@ function Register(props: any): JSX.Element {
                     .then(() => {
                       apiLogin(email).then(userLoginData => {
                         props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
-
                       })
                     }).catch(err => {
                       analytics.track('user-signin-attempted', {
