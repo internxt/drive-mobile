@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Text, View, StyleSheet, Platform, FlatList, Pressable } from 'react-native'
 import { layoutActions } from '../../redux/actions';
 import { connect } from 'react-redux';
@@ -13,7 +13,7 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
 import { Dispatch } from 'redux';
 import { PhotoActions } from '../../redux/actions/photo.actions';
-import { getLocalImages, syncPhotos } from './init'
+import { getLocalImages, syncPhotos, syncPreviews } from './init'
 
 interface HomeProps extends Reducers {
   navigation?: any
@@ -23,8 +23,14 @@ interface HomeProps extends Reducers {
 }
 
 function Home(props: HomeProps): JSX.Element {
+  const [previews, setPreviews] = useState([]);
 
   useEffect(() => {
+    syncPreviews(props).then((res)=>{
+      // eslint-disable-next-line no-console
+      console.log('RESULT', res)
+      setPreviews(res)
+    })
     getLocalImages().then((res)=>{
       props.dispatch(PhotoActions.setAllLocalPhotos(res))
     })
