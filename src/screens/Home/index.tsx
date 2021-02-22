@@ -31,13 +31,11 @@ function Home(props: HomeProps): JSX.Element {
       //console.log('RESULT', res)
       setPreviews(res)
     })
-    getLocalImages().then((res)=>{
-      props.dispatch(PhotoActions.setAllLocalPhotos(res))
-    })
+    getLocalImages(props.dispatch)
   }, []);
 
   useEffect(() => {
-    //syncPhotos(props.photosState.localPhotos, props)
+    syncPhotos(props.photosState.localPhotos, props)
   }, [props.photosState.localPhotos]);
 
   useEffect(() => {

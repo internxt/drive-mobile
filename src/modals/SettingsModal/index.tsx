@@ -43,7 +43,7 @@ async function loadLimit(): Promise<number> {
   }).then(res => res.json()).then(res => res.maxSpaceBytes)
 }
 
-export async function loadValues(): Promise<{ usage: number, limit: number}> {
+export async function loadValues(): Promise<{ usage: number, limit: number }> {
   const limit = await loadLimit()
   const usage = await loadUsage()
 
@@ -178,18 +178,22 @@ function SettingsModal(props: SettingsModalProps) {
 
       <SettingsItem
         text={props.layoutState.currentApp === 'Home' ? 'Drive' : 'Photos'}
-        onPress={() => {
+        onPress={async () => {
           props.dispatch(layoutActions.closeSettings())
 
           if (props.layoutState.currentApp === 'Home') {
             props.navigation.replace('FileExplorer')
           } else {
-            photosUserData(props.authenticationState).then(res => {
-              //console.log('res =>', res)
-            }).catch(err => {
-              //console.log('err =>', err)
-            })
-            props.navigation.replace('Home')
+            const xPhotos = await deviceStorage.getItem('xPhotos')
+
+            if (xPhotos) {
+              props.navigation.replace('Home')
+            } else {
+              photosUserData(props.authenticationState).then(async res => {
+                await deviceStorage.saveItem('xPhotos', JSON.stringify(res));
+                props.navigation.replace('Home')
+              })
+            }
           }
         }}
       />
