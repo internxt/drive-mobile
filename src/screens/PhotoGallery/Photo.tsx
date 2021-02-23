@@ -19,7 +19,6 @@ function Photo(props: IAlbumImage): JSX.Element {
         const e: MediaLibrary.AssetInfo = await MediaLibrary.getAssetInfoAsync(props)
 
         FileViewer.open(e.localUri || '')
-
       }}
       style={styles.container}
     >

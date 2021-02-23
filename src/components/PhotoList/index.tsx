@@ -8,6 +8,7 @@ import * as MediaLibrary from 'expo-media-library';
 import FileViewer from 'react-native-file-viewer'
 import { WaveIndicator } from 'react-native-indicators'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { downloadPhoto } from '../../screens/Home/init';
 
 export interface IPhoto {
   id: string
@@ -53,9 +54,8 @@ function PhotoList(props: PhotoListProps) {
                   style={styles.imageView}
                   key={item.id}
                   onPress={async () => {
-                    const e = await MediaLibrary.getAssetInfoAsync(item)
 
-                    FileViewer.open(e.localUri)
+                    downloadPhoto(props, item)
                   }}>
                   <Image
                     style={{ width: 100, height: 100, borderRadius: 10 }}

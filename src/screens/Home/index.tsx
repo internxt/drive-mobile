@@ -28,6 +28,7 @@ function Home(props: HomeProps): JSX.Element {
   const [previews, setPreviews] = useState([]);
 
   useEffect(() => {
+    getUploadedPhotos(props.authenticationState, props.dispatch)
     syncPreviews(props).then((res)=>{
       setPreviews(res)
     })
@@ -98,7 +99,6 @@ function Home(props: HomeProps): JSX.Element {
             </Text>
           </Pressable>
         </View>
-
         <TouchableHighlight
           style={styles.photoScroll}
           underlayColor="#FFF"
@@ -120,7 +120,6 @@ function Home(props: HomeProps): JSX.Element {
 
           <Pressable
             onPress={() => {
-
             }}
           >
             <Text style={styles.albumsSort}>

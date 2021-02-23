@@ -7,7 +7,7 @@ import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
-import { PhotoActions } from '../../redux/actions';
+import { PhotoActions, userActions } from '../../redux/actions';
 import { Dispatch } from 'redux';
 
 export interface IHashedPhoto extends Asset {
@@ -186,7 +186,8 @@ export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch):
     }).then(res => {
       if (res.status !== 200) { throw res; }
       return res.json();
-    }).then(res => {
+    }).then(async res => {
+
       dispatch(PhotoActions.setAllUploadedPhotos(res))
       resolve(res)
     })
@@ -196,24 +197,25 @@ export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch):
   });
 }
 
-const downloadPhoto = async(props: any) => {
+export async function downloadPhoto(props: any, photo: any) {
 
   const photoItem = props.photosState.selectedPhoto;
 
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
+  const type = photo.type.toLowerCase()
 
   return RNFetchBlob.config({
-    path: RNFetchBlob.fs.dirs.PictureDir + '.jpg',
+    path: RNFetchBlob.fs.dirs.PictureDir + `.${type}`,
     fileCache: true
-  }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photo/${'559e3a3c663b43bd6215b96c'}`, {
+  }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/download/photo/${photo.photoId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
   }).then(async (res) => {
 
     if (res.respInfo.status === 200) {
-      MediaLibrary.saveToLibraryAsync(res.path())
+      await MediaLibrary.saveToLibraryAsync(res.path())
 
       return
     }
@@ -248,7 +250,8 @@ const downloadPreview = async(preview: any, props: any) => {
     const result = {
       uri: res.path(),
       data: res.data,
-      info: res.type
+      photoId: preview.photoId,
+      type: preview.type
     }
 
     return result;
