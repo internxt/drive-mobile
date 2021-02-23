@@ -4,6 +4,7 @@ import { IAlbum } from '../../components/AlbumList';
 import { IPhoto } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
+import { IHashedPhoto } from '../../screens/Home/init'
 
 export interface PhotosState {
   cursor: number
@@ -12,7 +13,7 @@ export interface PhotosState {
   loadingPhotos: boolean
   loadingDeleted: boolean
   albums: any
-  localPhotos: IPhoto[]
+  localPhotos: IHashedPhoto[]
   uploadedPhotos: IPhoto[]
   selectedPhotosForAlbum: ImageOrVideo[]
   isLoading: boolean

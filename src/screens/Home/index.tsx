@@ -12,7 +12,7 @@ import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
 import { Dispatch } from 'redux';
-import { getLocalImages, syncPhotos, syncPreviews } from './init'
+import { getLocalImages, getUploadedPhotos, syncPhotos, syncPreviews } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
@@ -32,31 +32,18 @@ function Home(props: HomeProps): JSX.Element {
       setPreviews(res)
     })
     getLocalImages(props.dispatch)
+    getUploadedPhotos(props.authenticationState, props.dispatch)
   }, []);
 
   useEffect(() => {
     syncPhotos(props.photosState.localPhotos, props)
-    //console.log('local =>', props.photosState.localPhotos)
+    //console.log('local =>', props.photosState.localPhotos[0])
   }, [props.photosState.localPhotos]);
 
   useEffect(() => {
     //console.log('uploaded =>', props.photosState.uploadedPhotos[0])
     //console.log('local =>', props.photosState.localPhotos[0])
   }, [props.photosState.uploadedPhotos])
-
-  const keyExtractor = (item: any, index: any) => index.toString();
-  // TODO: Recover all previews from device,
-  // when the server request finish
-  const renderAlbumItem = ({ item }) => (
-    <Pressable
-      onPress={() => {
-        props.navigation.navigate('AlbumView', { title: item.name })
-      }}
-      onLongPress={() => { }}
-    >
-      <AlbumCard withTitle={true} navigation={props.navigation} />
-    </Pressable>
-  );
 
   return (
     <View style={styles.container}>

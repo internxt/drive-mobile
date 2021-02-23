@@ -31,6 +31,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
 
   useEffect(() => {
     setImages(props.photosState.localPhotos)
+    //console.log('local =>', props.photosState.localPhotos[0])
   }, [props.photosState.localPhotos])
 
   useEffect(() => {

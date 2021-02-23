@@ -9,35 +9,44 @@ import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { PhotoActions } from '../../redux/actions';
 import { Dispatch } from 'redux';
-import { IPhoto } from '../../components/PhotoList';
+
+export interface IHashedPhoto extends Asset {
+  hash: string,
+  localUri: string | undefined
+}
 
 const getArrayPhotos = async(images: Asset[]) => {
-  const result = mapSeries(images, async (image, next) => {
+  const result: Promise<IHashedPhoto[]> = mapSeries(images, async (image, next) => {
 
     const asset = await getAssetInfoAsync(image)
 
     const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
 
-    const file = {
-      uri: asset.localUri,
-      id: asset.id,
+    const hashedImage = {
+      ...image,
       hash: sha256Id,
-      name: asset.filename
+      localUri: asset.localUri
     }
 
-    next(null, file)
+    //console.log('iiimage =>', hashedImage)
+    next(null, hashedImage)
   });
 
   return result;
 }
 
-export function syncPhotos(images: IPhoto[], props: any) {
-  getArrayPhotos(images).then((res)=>{
+export function syncPhotos(images: IHashedPhoto[], props: any) {
+  mapSeries(images, (image, next) => {
+    const photo = {
+      uri: image.localUri,
+      id: image.id,
+      hash: image.hash,
+      name: image.filename
+    }
 
-    const result = mapSeries(res, (image, next) => {
-      uploadPhoto(image, props).then(() => next(null)).catch(next)
-    });
-  });
+    //console.log('image =>', photo)
+    uploadPhoto(photo, props).then(() => next(null)).catch(next)
+  })
 }
 export async function uploadPhoto (result: any, props: any) {
 
@@ -151,9 +160,11 @@ export function getLocalImages(dispatch: Dispatch) {
     .then(() => {
       return MediaLibrary.getAssetsAsync({ first: 1000000 });
     })
-    .then((result) => {
-      dispatch(PhotoActions.setAllLocalPhotos(result.assets))
-    });
+    .then((res) => {
+      getArrayPhotos(res.assets).then(res => {
+        dispatch(PhotoActions.setAllLocalPhotos(res))
+      })
+    })
 }
 
 export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch): Promise<any> {
@@ -169,7 +180,7 @@ export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch):
       'Content-Type': 'application/json; charset=utf-8'
     };
 
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/previews/${email}`, {
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photos/${email}`, {
       method: 'GET',
       headers
     }).then(res => {
@@ -179,7 +190,9 @@ export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch):
       dispatch(PhotoActions.setAllUploadedPhotos(res))
       resolve(res)
     })
-      .catch(reject);
+      .catch(err => {
+        reject
+      });
   });
 }
 
