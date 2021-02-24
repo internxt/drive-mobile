@@ -173,7 +173,7 @@ export function getLocalImages(dispatch: Dispatch) {
       return MediaLibrary.getAssetsAsync({ first: 1000000 });
     })
     .then((res) => {
-      getArrayPhotos(res.assets).then(res => {
+      return getArrayPhotos(res.assets).then(res => {
         dispatch(PhotoActions.setAllLocalPhotos(res))
       })
     })
@@ -201,7 +201,7 @@ export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch):
     }).then(async res => {
 
       dispatch(PhotoActions.setAllUploadedPhotos(res))
-      resolve(res)
+      return resolve(res)
     })
       .catch(err => {
         reject
@@ -299,7 +299,7 @@ const getArrayPreviews = async(props: any) => {
   });
 }
 
-export function syncPreviews(props: any): Promise<any> {
+export function getPreviews(props: any): Promise<any> {
   return getArrayPreviews(props).then((res: any) => {
     const result = mapSeries(res, (preview, next) => {
       return downloadPreview(preview, props).then((res1) => {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Text, View, StyleSheet, Platform, FlatList, Pressable } from 'react-native'
 import { layoutActions } from '../../redux/actions';
 import { connect } from 'react-redux';
-import { TouchableHighlight } from 'react-native-gesture-handler';
+import { TouchableHighlight, TouchableOpacity } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
 import { Reducers } from '../../redux/reducers/reducers';
 import AlbumCard from '../../components/AlbumCard';
@@ -12,7 +12,7 @@ import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
 import { Dispatch } from 'redux';
-import { getLocalImages, getUploadedPhotos, syncPhotos, syncPreviews } from './init'
+import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
@@ -25,11 +25,21 @@ export interface IHomeProps extends Reducers {
 }
 
 function Home(props: IHomeProps): JSX.Element {
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+
+  const init = async () => {
+    await Promise.all([
+      getLocalImages(props.dispatch),
+      getUploadedPhotos(props.authenticationState, props.dispatch)
+    ]).then(() => {
+      setIsLoading(false)
+    })
+  }
 
   useEffect(() => {
-    getLocalImages(props.dispatch)
-    getUploadedPhotos(props.authenticationState, props.dispatch)
-    syncPreviews(props)
+    init()
+    getPreviews(props)
+
   }, []);
 
   useEffect(() => {
@@ -83,6 +93,7 @@ function Home(props: IHomeProps): JSX.Element {
           <Text style={styles.albumsTitle}>
           All photos
           </Text>
+
           <Pressable
             onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
           >
@@ -91,17 +102,20 @@ function Home(props: IHomeProps): JSX.Element {
             </Text>
           </Pressable>
         </View>
-        <TouchableHighlight
+
+        <TouchableOpacity
           style={styles.photoScroll}
-          underlayColor="#FFF"
-          onPress={() => { props.navigation.navigate('PhotoGallery', { title: 'All Photos' }) }}
+          onPress={() => {
+            props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
+          }}
+          disabled={isLoading}
         >
           <PhotoList
             title={'All Photos'}
             photos={props.photosState.localPhotos}
             navigation={props.navigation}
           />
-        </TouchableHighlight>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.albumsContainer}>

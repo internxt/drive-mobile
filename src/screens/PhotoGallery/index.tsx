@@ -7,14 +7,15 @@ import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
-import * as MediaLibrary from 'expo-media-library';
 import Photo from './Photo';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
-import { IPhoto } from '../../components/PhotoList';
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
+import { IHashedPhoto } from '../Home/init';
+import lodash from 'lodash'
+import { IPreview } from '../../components/PhotoList';
 
 interface IPhotoGallery {
   route: any;
@@ -26,25 +27,42 @@ interface IPhotoGallery {
 }
 
 function PhotoGallery(props: IPhotoGallery): JSX.Element {
-  const [images, setImages] = useState<IPhoto[]>([]);
-  const [uploadedImages, setUploadedImages] = useState<IPhoto[]>([])
+  const [localImages, setLocalImages] = useState<IHashedPhoto[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<IHashedPhoto[]>([])
+  const [previews, setPreviews] = useState<IPreview[]>([])
 
   useEffect(() => {
-    setImages(props.photosState.localPhotos)
-    //console.log('local =>', props.photosState.localPhotos[0])
-  }, [props.photosState.localPhotos])
+    setLocalImages(props.photosState.localPhotos)
+  }, [])
 
   useEffect(() => {
     setUploadedImages(props.photosState.uploadedPhotos)
-    //console.log('uploaded photo =>', props.photosState.uploadedPhotos[0])
+    //console.log('uploaded photos =>', props.photosState.uploadedPhotos.length)
     //console.log('local photo =>', props.photosState.localPhotos[0])
-  }, [props.photosState.uploadedPhotos])
+  }, [])
 
   useEffect(() => {
-    if (images && uploadedImages) {
+    if (props.photosState.localPhotos && props.photosState.uploadedPhotos) {
+      // Check if local and cloud
+      const synced = lodash.intersectionBy(localImages, uploadedImages, 'hash')
 
+      // Only on local or only on cloud
+      const notUploaded = lodash.differenceBy(localImages, uploadedImages, 'hash')
+      const notLocally = lodash.differenceBy(uploadedImages, localImages, 'hash')
+
+      //console.log('photos synced =>', synced.length, '\nphotos uploaded but not in local =>', notLocally.length, '\nphotos on local not yet uploaded =>', notUploaded.length)
+
+      const photos = synced.map(photo => ({ ...photo, isSynced: true, isUploaded: true }))
+      const uploadedPhotos = notLocally.map(photo => ({ ...photo, isSynced: false, isUploaded: true }))
+      const localPhotos = notUploaded.map(photo => ({ ...photo, isSynced: false, isUploaded: false }))
+      const allPhotos = lodash.concat(photos, uploadedPhotos, localPhotos)
+
+      //allPhotos.forEach(photo => { console.log('allPhotos =>', photo) })
+      //photos.forEach(photo => console.log('synced photos =>', photo))
+      //localPhotos.forEach(photo => console.log('local photos =>', photo))
+      //console.log('uploaded photos =>', uploadedPhotos[0])
     }
-  }, [images, uploadedImages])
+  }, [props.photosState.uploadedPhotos, props.photosState.localPhotos])
 
   return (
     <View style={styles.container}>
@@ -62,7 +80,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
           </Text>
 
           <Text style={styles.photosCount}>
-            {images.length} Photos
+            {localImages.length} Photos
           </Text>
         </View>
 
@@ -72,7 +90,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
       </View>
 
       <FlatList
-        data={images}
+        data={localImages}
         renderItem={({ item }) => {
 
           return <Photo id={item.id} uri={item.uri} />
