@@ -10,6 +10,7 @@ import { deviceStorage } from '../../helpers';
 import { PhotoActions, userActions } from '../../redux/actions';
 import { Dispatch } from 'redux';
 import { IHomeProps } from './'
+import { store } from '../../store';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -265,7 +266,7 @@ const downloadPreview = async(preview: any, props: IHomeProps) => {
       type: preview.type
     }
 
-    const currentPreviews = props.photosState.previews
+    const currentPreviews = store.getState().photosState.previews
 
     if (!currentPreviews.find(photo => photo.photoId === result.photoId)) {
       props.dispatch(PhotoActions.pushPreview(result))
