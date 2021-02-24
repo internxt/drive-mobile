@@ -9,17 +9,19 @@ import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { PhotoActions, userActions } from '../../redux/actions';
 import { Dispatch } from 'redux';
+import { IHomeProps } from './'
 
 export interface IHashedPhoto extends Asset {
   hash: string,
   localUri: string | undefined
+  isSynced?: boolean
+  isUploaded?: boolean
 }
 
 const getArrayPhotos = async(images: Asset[]) => {
   const result: Promise<IHashedPhoto[]> = mapSeries(images, async (image, next) => {
 
     const asset = await getAssetInfoAsync(image)
-
     const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
 
     const hashedImage = {
@@ -36,7 +38,9 @@ const getArrayPhotos = async(images: Asset[]) => {
 }
 
 export function syncPhotos(images: IHashedPhoto[], props: any) {
-  mapSeries(images, (image, next) => {
+  return mapSeries(images, (image, next) => {
+    //console.log('MAP SERIES', image.id)
+
     const photo = {
       uri: image.localUri,
       id: image.id,
@@ -44,11 +48,12 @@ export function syncPhotos(images: IHashedPhoto[], props: any) {
       name: image.filename
     }
 
-    //console.log('image =>', photo)
-    uploadPhoto(photo, props).then(() => next(null)).catch(next)
+    return uploadPhoto(photo, props).then(() => next(null)).catch(next)
   })
 }
+
 export async function uploadPhoto (result: any, props: any) {
+  //console.log('START UPLOAD', result.id)
 
   try {
     // Set name for pics/photos
@@ -81,16 +86,20 @@ export async function uploadPhoto (result: any, props: any) {
       ])
       .then((res) => {
         if (res.respInfo.status === 401) {
+          //console.log('FINISH UPLOAD', result.id)
           throw res;
         } else if (res.respInfo.status === 402) {
           //setHasSpace(false)
 
         } else if (res.respInfo.status === 201) {
+          //console.log('FINISH UPLOAD', result.id)
           return res.json();
         }
+        //console.log('FINISH UPLOAD RARO', res, result.id)
         return
       })
       .then(async res => {
+        //console.log(res)
         // Create photo preview and store on device
         const prev = await manipulateAsync(
           result.uri,
@@ -108,9 +117,12 @@ export async function uploadPhoto (result: any, props: any) {
         return uploadPreview(preview, props, headers);
       })
       .catch((err) => {
+        //console.log('err 2 =>', err)
+
       })
 
   } catch (err) {
+    //console.log('err =>', err)
     return
   }
 }
@@ -198,7 +210,6 @@ export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch):
 }
 
 export async function downloadPhoto(props: any, photo: any) {
-
   const photoItem = props.photosState.selectedPhoto;
 
   const xToken = await deviceStorage.getItem('xToken')
@@ -228,7 +239,7 @@ export async function downloadPhoto(props: any, photo: any) {
   })
 }
 
-const downloadPreview = async(preview: any, props: any) => {
+const downloadPreview = async(preview: any, props: IHomeProps) => {
 
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
@@ -254,7 +265,12 @@ const downloadPreview = async(preview: any, props: any) => {
       type: preview.type
     }
 
-    return result;
+    const currentPreviews = props.photosState.previews
+
+    if (!currentPreviews.find(photo => photo.photoId === result.photoId)) {
+      props.dispatch(PhotoActions.pushPreview(result))
+    }
+  }).catch(err => {
   })
 }
 
@@ -291,8 +307,5 @@ export function syncPreviews(props: any): Promise<any> {
         next(null, res1)
       });
     });
-
-    return result
-
   });
 }

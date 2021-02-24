@@ -1,6 +1,6 @@
 import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
-import { IPhoto } from '../../components/PhotoList';
+import { IPhoto, IPreview } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { photoService } from '../services/photo.service';
 import { userActions } from './user.actions';
@@ -32,7 +32,8 @@ export const PhotoActions = {
   setIsLoading,
   setAllLocalPhotos,
   setAllUploadedPhotos,
-  setSelectedPhotos
+  setSelectedPhotos,
+  pushPreview
 };
 
 function setIsLoading(value: boolean) {
@@ -330,4 +331,8 @@ function setAllLocalPhotos(photos: IPhoto[]) {
 
 function setAllUploadedPhotos(photos: IPhoto[]) {
   return { type: photoActionTypes.SET_UPLOADED_FOTOS, payload: photos }
+}
+
+function pushPreview(preview: IPreview) {
+  return { type: photoActionTypes.PUSH_PREVIEW, payload: preview }
 }

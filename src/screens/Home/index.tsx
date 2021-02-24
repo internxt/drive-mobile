@@ -17,34 +17,26 @@ import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
 
-interface HomeProps extends Reducers {
+export interface IHomeProps extends Reducers {
   navigation?: any
   dispatch: Dispatch
   photosState: PhotosState
   authenticationState: AuthenticationState
 }
 
-function Home(props: HomeProps): JSX.Element {
-  const [previews, setPreviews] = useState([]);
+function Home(props: IHomeProps): JSX.Element {
 
   useEffect(() => {
-    getUploadedPhotos(props.authenticationState, props.dispatch)
-    syncPreviews(props).then((res)=>{
-      setPreviews(res)
-    })
     getLocalImages(props.dispatch)
     getUploadedPhotos(props.authenticationState, props.dispatch)
+    syncPreviews(props)
   }, []);
 
   useEffect(() => {
-    syncPhotos(props.photosState.localPhotos, props)
-    //console.log('local =>', props.photosState.localPhotos[0])
+    if (props.photosState.localPhotos) {
+      syncPhotos(props.photosState.localPhotos, props)
+    }
   }, [props.photosState.localPhotos]);
-
-  useEffect(() => {
-    //console.log('uploaded =>', props.photosState.uploadedPhotos[0])
-    //console.log('local =>', props.photosState.localPhotos[0])
-  }, [props.photosState.uploadedPhotos])
 
   return (
     <View style={styles.container}>
@@ -133,10 +125,10 @@ function Home(props: HomeProps): JSX.Element {
           underlayColor="#FFF"
           onPress={() => { props.navigation.navigate('PhotoGallery', { title: 'Uploaded photos' }) }}
         >
-          { previews ?
+          { props.photosState.previews ?
             <PhotoList
               title={'Uploaded photos'}
-              photos={previews}
+              photos={props.photosState.previews}
               navigation={props.navigation}
             />
             :

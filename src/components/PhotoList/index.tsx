@@ -21,6 +21,13 @@ export interface IPhoto {
   creationTime?: number
 }
 
+export interface IPreview {
+  data: string
+  photoId: number
+  type: string
+  uri: string
+}
+
 interface PhotoListProps {
   title: string
   photos: IPhoto[]
@@ -54,7 +61,7 @@ function PhotoList(props: PhotoListProps) {
                   style={styles.imageView}
                   key={item.id}
                   onPress={async () => {
-
+                    //console.log('on Press =>', item)
                     downloadPhoto(props, item)
                   }}>
                   <Image
