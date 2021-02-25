@@ -27,42 +27,51 @@ interface IPhotoGallery {
 }
 
 function PhotoGallery(props: IPhotoGallery): JSX.Element {
-  const [localImages, setLocalImages] = useState<IHashedPhoto[]>([]);
-  const [uploadedImages, setUploadedImages] = useState<IHashedPhoto[]>([])
+  const localImages = props.photosState.localPhotos
+  const uploadedImages = props.photosState.uploadedPhotos
+  const [allPhotos, setAllPhotos] = useState<IHashedPhoto[]>([])
   const [previews, setPreviews] = useState<IPreview[]>([])
 
+  // everytime a preview gets fetched
   useEffect(() => {
-    setLocalImages(props.photosState.localPhotos)
-  }, [])
-
-  useEffect(() => {
-    setUploadedImages(props.photosState.uploadedPhotos)
-    //console.log('uploaded photos =>', props.photosState.uploadedPhotos.length)
-    //console.log('local photo =>', props.photosState.localPhotos[0])
-  }, [])
+    setPreviews(props.photosState.previews)
+    //console.log('previews =>', previews)
+  }, [props.photosState.previews])
 
   useEffect(() => {
     if (props.photosState.localPhotos && props.photosState.uploadedPhotos) {
-      // Check if local and cloud
+      // Photos currently on local and cloud
       const synced = lodash.intersectionBy(localImages, uploadedImages, 'hash')
 
-      // Only on local or only on cloud
+      // The photos stored on the gallery that have not been yet uploaded
       const notUploaded = lodash.differenceBy(localImages, uploadedImages, 'hash')
+
+      // The photos saved on the cloud that are not stored on the gallery
       const notLocally = lodash.differenceBy(uploadedImages, localImages, 'hash')
 
-      //console.log('photos synced =>', synced.length, '\nphotos uploaded but not in local =>', notLocally.length, '\nphotos on local not yet uploaded =>', notUploaded.length)
+      // Mapping the arrays to be able to show the different icons: Upload/Download/Synced
+      const locallyAndUploaded = synced.map(photo => ({ ...photo, isSynced: true, isUploaded: true }))
+      const onlyLocal = notUploaded.map(photo => ({ ...photo, isSynced: false, isUploaded: false }))
+      const onlyUploaded = notLocally.map(photo => ({ ...photo, isSynced: false, isUploaded: true }))
 
-      const photos = synced.map(photo => ({ ...photo, isSynced: true, isUploaded: true }))
-      const uploadedPhotos = notLocally.map(photo => ({ ...photo, isSynced: false, isUploaded: true }))
-      const localPhotos = notUploaded.map(photo => ({ ...photo, isSynced: false, isUploaded: false }))
-      const allPhotos = lodash.concat(photos, uploadedPhotos, localPhotos)
+      // Mapping of the downloaded previews that are not locally stored
+      const onlyUploadedParsed = onlyUploaded.map(photo => ({ ...photo, photoId: photo.id }))
+      // The downloaded previews that are not locally saved
+      const missingPhotos = lodash.intersectionBy(previews, onlyUploadedParsed, 'photoId')
 
-      //allPhotos.forEach(photo => { console.log('allPhotos =>', photo) })
-      //photos.forEach(photo => console.log('synced photos =>', photo))
-      //localPhotos.forEach(photo => console.log('local photos =>', photo))
-      //console.log('uploaded photos =>', uploadedPhotos[0])
+      const photosToRender = lodash.concat(missingPhotos, onlyLocal, locallyAndUploaded)
+
+      setAllPhotos(photosToRender)
+
+      //console.log('\n')
+      //console.log('photosToRender =>', photosToRender.length)
+      //console.log('locallyAndUploaded =>', locallyAndUploaded.length)
+      //console.log('onlyLocal =>', onlyLocal[0])
+      //console.log('onlyUploaded =>', onlyUploadedParsed[0])
+      //console.log('previews =>', previews.length)
+      //console.log('missingPhotos =>', missingPhotos[0])
     }
-  }, [props.photosState.uploadedPhotos, props.photosState.localPhotos])
+  }, [])
 
   return (
     <View style={styles.container}>
@@ -90,10 +99,10 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
       </View>
 
       <FlatList
-        data={localImages}
+        data={allPhotos}
         renderItem={({ item }) => {
-
-          return <Photo id={item.id} uri={item.uri} />
+          //console.log('item =>', item)
+          return <Photo id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
         } }
         numColumns={3}
         //Setting the number of column

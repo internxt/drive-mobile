@@ -260,7 +260,7 @@ const downloadPreview = async(preview: any, props: IHomeProps) => {
 
     }
     const result = {
-      uri: res.path(),
+      localUri: res.path(),
       data: res.data,
       photoId: preview.photoId,
       type: preview.type

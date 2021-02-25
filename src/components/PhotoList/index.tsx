@@ -13,7 +13,7 @@ import { downloadPhoto } from '../../screens/Home/init';
 export interface IPhoto {
   id: string
   modificationTime: number
-  uri: any
+  localUri: any
   filename: string
   duration: number
   width: number
@@ -25,7 +25,7 @@ export interface IPreview {
   data: string
   photoId: number
   type: string
-  uri: string
+  localUri: string
 }
 
 interface PhotoListProps {
@@ -66,7 +66,7 @@ function PhotoList(props: PhotoListProps) {
                   }}>
                   <Image
                     style={{ width: 100, height: 100, borderRadius: 10 }}
-                    source={{ uri: item.uri }}
+                    source={{ uri: item.localUri }}
                   />
                 </TouchableOpacity>
               </View>
