@@ -39,12 +39,11 @@ function Home(props: IHomeProps): JSX.Element {
   useEffect(() => {
     init()
     getPreviews(props)
-
   }, []);
 
   useEffect(() => {
     if (props.photosState.localPhotos) {
-      syncPhotos(props.photosState.localPhotos, props)
+      //syncPhotos(props.photosState.localPhotos, props)
     }
   }, [props.photosState.localPhotos]);
 

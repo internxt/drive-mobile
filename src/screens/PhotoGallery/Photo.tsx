@@ -6,7 +6,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 export interface IAlbumImage {
-  id: string
+  id?: string
   uri: string
   isSynced: string
   isUploaded: string
@@ -52,14 +52,14 @@ function Photo(props: IAlbumImage): JSX.Element {
 
 const styles = StyleSheet.create({
   container: {
-    width: (deviceWidth - 20) / 3,
-    height: (deviceWidth - 20) / 3,
+    width: (deviceWidth - 20) / 5,
+    height: (deviceWidth - 20) / 5,
     marginHorizontal: wp('0.5'),
     marginBottom: wp('1')
   },
   image: {
-    width: (deviceWidth - 20) / 3,
-    height: (deviceWidth - 20) / 3,
+    width: (deviceWidth - 20) / 5,
+    height: (deviceWidth - 20) / 5,
     borderRadius: 10
   },
   iconBackground: {

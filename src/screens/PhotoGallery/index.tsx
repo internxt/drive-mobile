@@ -16,6 +16,7 @@ import { LayoutState } from '../../redux/reducers/layout.reducer';
 import { IHashedPhoto } from '../Home/init';
 import lodash from 'lodash'
 import { IPreview } from '../../components/PhotoList';
+import { WaveIndicator } from 'react-native-indicators';
 
 interface IPhotoGallery {
   route: any;
@@ -27,51 +28,51 @@ interface IPhotoGallery {
 }
 
 function PhotoGallery(props: IPhotoGallery): JSX.Element {
+  const previewImages = props.photosState.previews
   const localImages = props.photosState.localPhotos
   const uploadedImages = props.photosState.uploadedPhotos
-  const [allPhotos, setAllPhotos] = useState<IHashedPhoto[]>([])
-  const [previews, setPreviews] = useState<IPreview[]>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [onlyUploaded, setOnlyUploaded] = useState<IHashedPhoto[]>([])
+  const [photosToRender, setPhotosToRender] = useState<IPreview[]>([])
 
-  // everytime a preview gets fetched
+  const doIntersections = () => {
+    // Photos currently on local and cloud *THEY MUST RENDER*
+    const synced = lodash.intersectionBy(localImages || [], uploadedImages || [], 'hash')
+
+    // The photos stored on the gallery that have not been yet uploaded *THEY MUST RENDER*
+    const onlyOnLocal = lodash.differenceBy(localImages || [], uploadedImages || [], 'hash')
+
+    // The photos saved on the cloud that are not stored on the gallery *ONLY TO FILTER DOWNLOADED PREVIEWS*
+    const onlyOnCloud = lodash.differenceBy(uploadedImages || [], localImages || [], 'hash')
+
+    return { synced, onlyOnLocal, onlyOnCloud }
+  }
+
+  function photosToRenderList() {
+    const res = doIntersections()
+
+    // Map the arrays to add a key to know later which icon it needs
+    const synced = res.synced.map(photo => ({ ...photo, isSynced: true, isUploaded: true }))
+    const onlyLocal = res.onlyOnLocal.map(photo => ({ ...photo, isSynced: false, isUploaded: false }))
+    // OnlyUploaded needs an extra prop to match the other objects
+    const onlyCloud = res.onlyOnCloud.map(photo => ({ ...photo, photoId: photo.id }))
+
+    //console.log('onlyCloud =>', onlyCloud.length)
+    //console.log('previews =>', previewImages.length)
+    const missingPhotos = lodash.intersectionBy(previewImages, onlyCloud, 'photoId').map(photo => ({ ...photo, isSynced: false, isUploaded: true }))
+    //console.log('missing =>', missingPhotos.length)
+
+    //console.log(uniqueMissingPhotos)
+
+    return lodash.concat(onlyLocal, synced, missingPhotos)
+  }
+
   useEffect(() => {
-    setPreviews(props.photosState.previews)
-    //console.log('previews =>', previews)
+    const x = photosToRenderList();
+
+    setPhotosToRender(x)
+    setIsLoading(false)
   }, [props.photosState.previews])
-
-  useEffect(() => {
-    if (props.photosState.localPhotos && props.photosState.uploadedPhotos) {
-      // Photos currently on local and cloud
-      const synced = lodash.intersectionBy(localImages, uploadedImages, 'hash')
-
-      // The photos stored on the gallery that have not been yet uploaded
-      const notUploaded = lodash.differenceBy(localImages, uploadedImages, 'hash')
-
-      // The photos saved on the cloud that are not stored on the gallery
-      const notLocally = lodash.differenceBy(uploadedImages, localImages, 'hash')
-
-      // Mapping the arrays to be able to show the different icons: Upload/Download/Synced
-      const locallyAndUploaded = synced.map(photo => ({ ...photo, isSynced: true, isUploaded: true }))
-      const onlyLocal = notUploaded.map(photo => ({ ...photo, isSynced: false, isUploaded: false }))
-      const onlyUploaded = notLocally.map(photo => ({ ...photo, isSynced: false, isUploaded: true }))
-
-      // Mapping of the downloaded previews that are not locally stored
-      const onlyUploadedParsed = onlyUploaded.map(photo => ({ ...photo, photoId: photo.id }))
-      // The downloaded previews that are not locally saved
-      const missingPhotos = lodash.intersectionBy(previews, onlyUploadedParsed, 'photoId')
-
-      const photosToRender = lodash.concat(missingPhotos, onlyLocal, locallyAndUploaded)
-
-      setAllPhotos(photosToRender)
-
-      //console.log('\n')
-      //console.log('photosToRender =>', photosToRender.length)
-      //console.log('locallyAndUploaded =>', locallyAndUploaded.length)
-      //console.log('onlyLocal =>', onlyLocal[0])
-      //console.log('onlyUploaded =>', onlyUploadedParsed[0])
-      //console.log('previews =>', previews.length)
-      //console.log('missingPhotos =>', missingPhotos[0])
-    }
-  }, [])
 
   return (
     <View style={styles.container}>
@@ -98,17 +99,22 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
         }} />
       </View>
 
-      <FlatList
-        data={allPhotos}
-        renderItem={({ item }) => {
-          //console.log('item =>', item)
-          return <Photo id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
-        } }
-        numColumns={3}
-        //Setting the number of column
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.flatList}
-      />
+      {
+        !isLoading ?
+          <FlatList
+            data={photosToRender}
+            renderItem={({ item }) => {
+              //console.log('item =>', item)
+              return <Photo id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
+            }}
+            numColumns={5}
+            //Setting the number of column
+            keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={styles.flatList}
+          />
+          :
+          <WaveIndicator color="#5291ff" size={50} />
+      }
     </View>
   );
 }
