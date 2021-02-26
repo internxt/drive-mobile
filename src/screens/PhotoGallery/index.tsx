@@ -32,7 +32,6 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
   const localImages = props.photosState.localPhotos
   const uploadedImages = props.photosState.uploadedPhotos
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [onlyUploaded, setOnlyUploaded] = useState<IHashedPhoto[]>([])
   const [photosToRender, setPhotosToRender] = useState<IPreview[]>([])
 
   const doIntersections = () => {
@@ -68,7 +67,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
   }
 
   useEffect(() => {
-    const x = photosToRenderList();
+    const x = photosToRenderList()
 
     setPhotosToRender(x)
     setIsLoading(false)
@@ -90,7 +89,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
           </Text>
 
           <Text style={styles.photosCount}>
-            {localImages.length} Photos
+            {photosToRender.length} Photos
           </Text>
         </View>
 
@@ -104,8 +103,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
           <FlatList
             data={photosToRender}
             renderItem={({ item }) => {
-              //console.log('item =>', item)
-              return <Photo id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
+              return <Photo id={item.photoId} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
             }}
             numColumns={5}
             //Setting the number of column

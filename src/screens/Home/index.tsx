@@ -16,6 +16,7 @@ import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews } from './in
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
+import ComingSoonModal from '../../modals/ComingSoonModal';
 
 export interface IHomeProps extends Reducers {
   navigation?: any
@@ -43,7 +44,7 @@ function Home(props: IHomeProps): JSX.Element {
 
   useEffect(() => {
     if (props.photosState.localPhotos) {
-      //syncPhotos(props.photosState.localPhotos, props)
+      syncPhotos(props.photosState.localPhotos, props)
     }
   }, [props.photosState.localPhotos]);
 
@@ -51,6 +52,7 @@ function Home(props: IHomeProps): JSX.Element {
     <View style={styles.container}>
       <SettingsModal navigation={props.navigation} />
       <SortModal />
+      <ComingSoonModal />
 
       <View style={styles.platformSpecificHeight}></View>
 
@@ -58,20 +60,18 @@ function Home(props: IHomeProps): JSX.Element {
 
       <View style={styles.albumsContainer}>
         <View style={styles.albumsHeader}>
-          <Text style={styles.albumsTitle}>
+          <Text style={styles.title}>
           Albums
           </Text>
 
-          <Pressable
-            onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
-          >
-            <Text style={styles.albumsSort}>{props.photosState.sortType}</Text>
-          </Pressable>
-
         </View>
 
-        {props.photosState.albums.length > 0 ?
-          <View style={styles.photoScroll}>
+        <View style={{ marginTop: 40 }}>
+          <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
+        </View>
+
+        {/* {props.photosState.albums.length > 0 ?
+          <View style={styles.titleButton}>
             <FlatList
               keyExtractor={keyExtractor}
               renderItem={renderAlbumItem}
@@ -84,42 +84,33 @@ function Home(props: IHomeProps): JSX.Element {
           <View style={{ marginTop: 40 }}>
             <CreateAlbumCard navigation={props.navigation} />
           </View>
-        }
+        } */}
       </View>
 
       <View style={styles.albumsContainer}>
-        <View style={styles.albumHeader}>
-          <Text style={styles.albumsTitle}>
-          All photos
-          </Text>
-
-          <Pressable
-            onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
-          >
-            <Text style={styles.albumsSort}>
-              {props.photosState.sortType}
-            </Text>
-          </Pressable>
-        </View>
-
-        <TouchableOpacity
-          style={styles.photoScroll}
+        <TouchableOpacity style={styles.titleButton}
           onPress={() => {
             props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
           }}
-          disabled={isLoading}
-        >
-          <PhotoList
-            title={'All Photos'}
-            photos={props.photosState.localPhotos}
-            navigation={props.navigation}
-          />
+          disabled={isLoading}>
+          <Text style={styles.title}>All photos</Text>
         </TouchableOpacity>
+
+        {
+          !isLoading ?
+            <PhotoList
+              title={'All Photos'}
+              photos={props.photosState.localPhotos}
+              navigation={props.navigation}
+            />
+            :
+            <WaveIndicator color="#5291ff" size={50} />
+        }
       </View>
 
-      <View style={styles.albumsContainer}>
+      {/* <View style={styles.albumsContainer}>
         <View style={styles.albumHeader}>
-          <Text style={styles.albumsTitle}>
+          <Text style={styles.title}>
           Uploaded photos
           </Text>
 
@@ -134,7 +125,7 @@ function Home(props: IHomeProps): JSX.Element {
         </View>
 
         <TouchableHighlight
-          style={styles.photoScroll}
+          style={styles.titleButton}
           underlayColor="#FFF"
           onPress={() => { props.navigation.navigate('PhotoGallery', { title: 'Uploaded photos' }) }}
         >
@@ -147,23 +138,6 @@ function Home(props: IHomeProps): JSX.Element {
             :
             <WaveIndicator color="#5291ff" size={50} />
           }
-        </TouchableHighlight>
-      </View>
-
-      {/* <View style={styles.albumsContainer}>
-        <TouchableHighlight underlayColor="#FFF">
-          <View style={styles.albumHeader}>
-            <Text style={styles.albumsTitle}>
-              Deleted
-            </Text>
-            <Pressable
-              onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
-            >
-              <Text style={styles.albumsSort}>
-                {props.photosState.sortType}
-              </Text>
-            </Pressable>
-          </View>
         </TouchableHighlight>
       </View> */}
     </View>
@@ -182,52 +156,31 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     backgroundColor: '#fff'
   },
-  photoScroll: {
+  titleButton: {
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'nowrap',
-    marginTop: 25,
-    paddingHorizontal: wp('1')
+    paddingHorizontal: wp('1'),
+    marginBottom: wp('1')
   },
   albumsContainer: {
     display: 'flex',
-    paddingHorizontal: 0,
-    paddingVertical: 10
-
+    paddingVertical: wp('3.5'),
+    paddingHorizontal: wp('1')
   },
   albumsHeader: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 5,
-    paddingHorizontal: 10
-
+    justifyContent: 'space-between'
   },
-  albumHeader: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-    paddingHorizontal: 10
-  },
-  albumsTitle: {
+  title: {
     fontFamily: 'Averta-Bold',
     fontSize: 18,
     letterSpacing: -0.13,
-    paddingTop: 10,
     color: 'black',
     alignSelf: 'flex-start',
-    height: 30
-  },
-  albumsSort: {
-    fontFamily: 'Averta-Semibold',
-    fontSize: 14,
-    letterSpacing: -0.13,
-    paddingTop: 10,
-    color: '#bfbfbf',
-    alignSelf: 'flex-end',
     height: 30,
-    width: 50
+    marginLeft: 7
   },
   platformSpecificHeight: {
     height: Platform.OS === 'ios' ? '5%' : '0%'
