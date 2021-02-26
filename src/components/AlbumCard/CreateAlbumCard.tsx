@@ -5,6 +5,7 @@ import { getIcon } from '../../helpers/getIcon';
 import ImagePicker from 'react-native-image-crop-picker'
 import { Dispatch } from 'redux';
 import { PhotoActions } from '../../redux/actions/photo.actions';
+import { layoutActions } from '../../redux/actions';
 
 export interface CreateAlbumProps {
   style?: StyleProp<ViewStyle>
@@ -28,10 +29,11 @@ export interface ISelectedPhotos {
   cropRect: any
   creationDate?: string
   modificationDate: string
+  dispatch: any
 }
 
 // TODO: Add album param
-function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
+function CreateAlbumCard(props: ISelectedPhotos): JSX.Element {
   const img = getIcon('create');
 
   return (
@@ -39,17 +41,17 @@ function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
       underlayColor="#fff"
       style={styles.albumCard}
       onPress={() => {
-        ImagePicker.openPicker({
+        props.dispatch(layoutActions.openComingSoonModal())
+        /* ImagePicker.openPicker({
           multiple: true,
           maxFiles: 0
         }).then(res => {
           props.dispatch(PhotoActions.setSelectedPhotos(res))
           props.navigation.navigate('CreateAlbum')
-        }).catch(() => {})
+        }).catch(() => {}) */
       }}
     >
       <View style={styles.card}>
-
         <Image source={img} style={{ height: 25, width: 38, backgroundColor: '#0084ff' }} />
         <Text style={{
           fontFamily: 'Averta-Semibold',
@@ -62,9 +64,7 @@ function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
 
       </View>
     </TouchableHighlight>
-
   )
-
 }
 
 const styles = StyleSheet.create({

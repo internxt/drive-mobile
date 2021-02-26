@@ -26,6 +26,8 @@ export const layoutActions = {
   closeShareModal,
   openUploadFileModal,
   closeUploadFileModal,
+  openComingSoonModal,
+  closeComingSoonModal,
   setCurrentApp
 };
 
@@ -173,6 +175,18 @@ function openUploadFileModal() {
 function closeUploadFileModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_UPLOAD_FILE_MODAL });
+  };
+}
+
+function openComingSoonModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.OPEN_COMING_SOON_MODAL });
+  };
+}
+
+function closeComingSoonModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_COMING_SOON_MODAL });
   };
 }
 

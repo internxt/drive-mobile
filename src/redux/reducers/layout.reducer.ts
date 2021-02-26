@@ -16,6 +16,7 @@ export interface LayoutState {
   showShareModal: boolean
   showUploadModal: boolean
   showFreeForYouModal: boolean
+  showComingSoonModal: boolean
   currentApp: string
 }
 
@@ -35,6 +36,7 @@ const initialState: LayoutState = {
   showShareModal: false,
   showUploadModal: false,
   showFreeForYouModal: false,
+  showComingSoonModal: false,
   currentApp: 'FileExplorer'
 };
 
@@ -157,6 +159,18 @@ export function layoutReducer(state = initialState, action: any) {
     return {
       ...state,
       currentApp: action.payload
+    }
+  }
+  case layoutActionTypes.OPEN_COMING_SOON_MODAL: {
+    return {
+      ...state,
+      showComingSoonModal: true
+    }
+  }
+  case layoutActionTypes.CLOSE_COMING_SOON_MODAL: {
+    return {
+      ...state,
+      showComingSoonModal: false
     }
   }
   default:
