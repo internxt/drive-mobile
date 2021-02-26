@@ -5,6 +5,7 @@ import { Platform } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system'
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { PhotoActions, userActions } from '../../redux/actions';
@@ -174,6 +175,7 @@ export function getLocalImages(dispatch: Dispatch) {
       return MediaLibrary.getAssetsAsync({ first: 1000000 });
     })
     .then((res) => {
+      //console.log('images on library =>', res.assets.length)
       return getArrayPhotos(res.assets).then(res => {
         dispatch(PhotoActions.setAllLocalPhotos(res))
       })
@@ -241,7 +243,6 @@ export async function downloadPhoto(props: any, photo: any) {
 }
 
 const downloadPreview = async(preview: any, props: IHomeProps) => {
-
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -249,16 +250,13 @@ const downloadPreview = async(preview: any, props: IHomeProps) => {
   const name = preview.name
 
   return RNFetchBlob.config({
-    path: RNFetchBlob.fs.dirs.PictureDir + name + '.' + typePreview,
+    path: Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir + name + '.' + typePreview : RNFetchBlob.fs.dirs.PictureDir + name + '.' + typePreview,
     fileCache: true
   }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
-  }).then((res) => {
+  }).then(async (res) => {
 
-    if (res.respInfo.status === 200) {
-
-    }
     const result = {
       localUri: res.path(),
       data: res.data,
@@ -271,6 +269,7 @@ const downloadPreview = async(preview: any, props: IHomeProps) => {
     if (!currentPreviews.find(photo => photo.photoId === result.photoId)) {
       props.dispatch(PhotoActions.pushPreview(result))
     }
+
   }).catch(err => {
   })
 }

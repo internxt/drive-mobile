@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import { layoutActions } from '../../redux/actions';
@@ -13,7 +13,7 @@ import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
-import { IHashedPhoto } from '../Home/init';
+import { getUploadedPhotos, IHashedPhoto } from '../Home/init';
 import lodash from 'lodash'
 import { IPreview } from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
@@ -59,9 +59,6 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
     //console.log('onlyCloud =>', onlyCloud.length)
     //console.log('previews =>', previewImages.length)
     const missingPhotos = lodash.intersectionBy(previewImages, onlyCloud, 'photoId').map(photo => ({ ...photo, isSynced: false, isUploaded: true }))
-    //console.log('missing =>', missingPhotos.length)
-
-    //console.log(uniqueMissingPhotos)
 
     return lodash.concat(onlyLocal, synced, missingPhotos)
   }
@@ -71,10 +68,17 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
 
     setPhotosToRender(x)
     setIsLoading(false)
+  }, [])
+
+  useEffect(() => {
+    const x = photosToRenderList()
+
+    setPhotosToRender(x)
+    setIsLoading(false)
   }, [props.photosState.previews])
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
 
       <AlbumDetailsModal />
       <AddItemToModal />
@@ -113,7 +117,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
           :
           <WaveIndicator color="#5291ff" size={50} />
       }
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -122,17 +126,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignContent: 'center',
     backgroundColor: '#fff',
-    paddingTop: 0,
-    paddingBottom: 15,
-    marginBottom: 0
+    paddingBottom: 15
   },
   albumHeader: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 45,
-    paddingVertical: 7,
+    paddingBottom: 15,
     paddingHorizontal: 20,
     height: '8%'
   },

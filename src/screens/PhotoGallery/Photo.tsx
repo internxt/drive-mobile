@@ -19,8 +19,13 @@ function Photo(props: IAlbumImage): JSX.Element {
     'upload'    : require('../../../assets/icons/photos-icon-upload.png')
   }
   const icon = props.isUploaded ? icons.download : icons.upload
+  const regEx = 'file:///'
+  const [uri, setUri] = useState(props.uri)
 
-  //console.log(props.isUploaded)
+  useEffect(() => {
+    uri.match(regEx) ? null : setUri(regEx + uri)
+  }, [])
+
   return (
     <View>
       <TouchableOpacity
@@ -34,7 +39,7 @@ function Photo(props: IAlbumImage): JSX.Element {
       >
         <Image
           style={styles.image}
-          source={{ uri: props.uri }}
+          source={{ uri: uri }}
         />
       </TouchableOpacity>
 
