@@ -50,7 +50,6 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
         <TouchableOpacity style={styles.nextBtn}
           onPress={() => {
             if (albumTitle) {
-              //console.log(images[0])
 
               //props.dispatch(PhotoActions.)
             } else {

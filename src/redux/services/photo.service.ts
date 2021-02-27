@@ -99,8 +99,6 @@ async function getDevicePhotos(user: any, cursor: any): Promise<any> {
   return new Promise(async (resolve, reject) => {
     getPhotos(user.rootAlbumId, cursor).then((dataResult) => {
 
-      //console.log('DEVICE PHOTOS---', dataResult?.photos)
-
       //dataResult.photos.map()
       resolve(dataResult)
     }).catch((err) => {
@@ -110,11 +108,8 @@ async function getDevicePhotos(user: any, cursor: any): Promise<any> {
 }
 
 function uploadPhotos(auth: any, photos: any) {
-  //console.log('AUTH', auth)
   return Promise.all(photos.map(async (photo: IPhoto) => {
-    //console.log('UPLOADING PHOTO....', photo)
     await uploadPhoto(auth.user, auth.token, photo);
-    //console.log('UPLOAD FINISHED')
   }))
 }
 
@@ -180,7 +175,6 @@ async function uploadPhoto(user: any, token: any, photo: any) {
 
         //uploadPreview(preview, headers)
 
-        //console.log('UPLOAAAD---', res)
         //uploadPreview(preview, props, headers);
 
         //props.dispatch(PhotoActions.getAllPhotosContent(props.authenticationState.user));
@@ -200,7 +194,6 @@ async function uploadPhoto(user: any, token: any, photo: any) {
       })
 
   } catch (error) {
-    //console.log('ERROR 1---', error)
     //analytics.track('photo-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
     //props.dispatch(PhotoActions.uploadPhotoFailed());
     //props.dispatch(PhotoActions.uploadPhotoFinished());

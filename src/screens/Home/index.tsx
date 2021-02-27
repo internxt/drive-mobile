@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Platform, FlatList, Pressable } from 'react-native'
-import { layoutActions } from '../../redux/actions';
+import { Text, View, StyleSheet, Platform } from 'react-native'
 import { connect } from 'react-redux';
-import { TouchableHighlight, TouchableOpacity } from 'react-native-gesture-handler';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
 import { Reducers } from '../../redux/reducers/reducers';
-import AlbumCard from '../../components/AlbumCard';
 import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';

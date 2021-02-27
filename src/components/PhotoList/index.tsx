@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Image, Text, ScrollView } from 'react-native';
+import { StyleSheet, View, Image, Text, ScrollView, Dimensions } from 'react-native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
@@ -34,9 +34,10 @@ interface PhotoListProps {
   navigation: any
 }
 
+const deviceWidth = Dimensions.get('window').width
+
 function PhotoList(props: PhotoListProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const numColums = Math.ceil(props.photos.length / 3) || 1
 
   useEffect(() => {
     setIsLoading(props.photosState.isLoading)
@@ -46,35 +47,29 @@ function PhotoList(props: PhotoListProps) {
     <View style={styles.container}>
       {
         !isLoading ?
-          <ScrollView
-            horizontal
-            showsVerticalScrollIndicator={false}
-          >
-            <FlatList
-              scrollEnabled={false}
-              contentContainerStyle={{ alignSelf: 'flex-start' }}
-              numColumns={numColums}
-              data={props.photos}
-              renderItem={({ item }) => {
-                return (
-                  <TouchableOpacity
-                    style={styles.imageView}
-                    key={item.id}
-                    onPress={async () => {
-                      //console.log('on Press =>', item)
-                      //downloadPhoto(props, item)
-                    }}
-                  >
-                    <Image
-                      style={styles.image}
-                      source={{ uri: item.localUri }}
-                    />
-                  </TouchableOpacity>
-                )
-              }}
-              keyExtractor={(item, index) => index.toString()}
-            />
-          </ScrollView>
+          <FlatList
+            data={props.photos}
+            renderItem={({ item }) => {
+              return (
+                <TouchableOpacity
+                  style={styles.imageView}
+                  key={item.id}
+                  onPress={async () => {
+                    //downloadPhoto(props, item)
+                  }}
+                >
+                  <Image
+                    style={styles.image}
+                    source={{ uri: item.localUri }}
+                  />
+                </TouchableOpacity>
+              )
+            }}
+            contentContainerStyle={styles.flatList}
+            keyExtractor={(item, index) => index.toString()}
+            numColumns={3}
+            horizontal={false}
+          />
           :
           <WaveIndicator color="#5291ff" size={50} />
       }
@@ -86,14 +81,16 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   imageView: {
-    borderRadius: 2,
     marginHorizontal: wp('0.5'),
     marginVertical: wp('0.5')
   },
   image: {
-    width: 100,
-    height: 100,
+    width: (deviceWidth - wp('6')) / 3,
+    height: (deviceWidth - wp('6')) / 3,
     borderRadius: 10
+  },
+  flatList: {
+    paddingHorizontal: wp('0.5')
   }
 })
 

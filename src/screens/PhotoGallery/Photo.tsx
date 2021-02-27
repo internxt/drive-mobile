@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, Image, Dimensions, View } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import FileViewer from 'react-native-file-viewer';
 import * as MediaLibrary from 'expo-media-library';
+import FileViewer from 'react-native-file-viewer';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { downloadPhoto } from '../Home/init';
 
 export interface IAlbumImage {
   id?: string
   uri: string
   isSynced: string
   isUploaded: string
+  photo: any
 }
+
 const deviceWidth = Dimensions.get('window').width
 
 function Photo(props: IAlbumImage): JSX.Element {
@@ -23,17 +26,25 @@ function Photo(props: IAlbumImage): JSX.Element {
   const [uri, setUri] = useState(props.uri)
 
   useEffect(() => {
-    uri.match(regEx) ? null : setUri(regEx + uri)
+    if (uri) {
+      uri.match(regEx) ? null : setUri(regEx + uri)
+    }
   }, [])
 
   return (
-    <View>
+    <View style={{ paddingHorizontal: wp('0.5') }}>
       <TouchableOpacity
         key={props.id}
         onPress={async () => {
-          const e: MediaLibrary.AssetInfo = await MediaLibrary.getAssetInfoAsync(props)
+          if (props.id) {
+            await MediaLibrary.getAssetInfoAsync(props).then((res) => {
+              FileViewer.open(res.localUri || '')
 
-          FileViewer.open(e.localUri || '')
+            }).catch(err => {})
+
+          } else {
+            downloadPhoto(props.photo)
+          }
         }}
         style={styles.container}
       >
@@ -57,14 +68,14 @@ function Photo(props: IAlbumImage): JSX.Element {
 
 const styles = StyleSheet.create({
   container: {
-    width: (deviceWidth - 20) / 5,
-    height: (deviceWidth - 20) / 5,
-    marginHorizontal: wp('0.5'),
-    marginBottom: wp('1')
+    width: (deviceWidth - wp('6')) / 4,
+    height: (deviceWidth - wp('6')) / 4,
+    marginHorizontal: wp('0.1'),
+    marginVertical: wp('0.5')
   },
   image: {
-    width: (deviceWidth - 20) / 5,
-    height: (deviceWidth - 20) / 5,
+    width: (deviceWidth - wp('6')) / 4,
+    height: (deviceWidth - wp('6')) / 4,
     borderRadius: 10
   },
   iconBackground: {
