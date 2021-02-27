@@ -43,6 +43,9 @@ module.exports = {
     'ext/lines-between-object-properties': ['error', 'never'],
     'keyword-spacing': 'error',
     'space-in-parens': ['error', 'never'],
+    'no-warning-comments': ['error', {
+      'terms': ['console.log']
+    }],
     '@typescript-eslint/type-annotation-spacing': ['error', {
       'before': false,
       'after': true,
