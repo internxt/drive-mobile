@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, StatusBar, View, Text, Platform, Linking, Alert } from 'react-native';
+import { StyleSheet, StatusBar, View, Text, Platform, Linking, Alert } from 'react-native';
 import { Provider } from 'react-redux'
 import { store } from './src/store'
 import AppNavigator from './src/AppNavigator';
@@ -25,7 +25,7 @@ export default function App(): JSX.Element {
   const prefix = 'inxt'
   const config = {
     screens: {
-      FileExplorer: '/'
+      Home: '/'
     }
   }
 

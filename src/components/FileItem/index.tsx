@@ -1,6 +1,6 @@
 import React, { SetStateAction, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
-import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import IconFolder from '../IconFolder';
 import TimeAgo from 'react-native-timeago';
@@ -206,7 +206,7 @@ function FileItem(props: FileItemProps) {
                       }
                     </View>
                     : // once local upload implelemented, remove conditional
-                    <IconFile label={props.item.bucket ? props.item.type || '' : props.item.name.split('.').pop()} isLoading={isLoading} />
+                    <IconFile label={props.item.bucket ? props.item.type || '' : props.item.name && props.item.name.split('.').pop()} isLoading={isLoading} />
                 }
               </View>
 
@@ -214,22 +214,27 @@ function FileItem(props: FileItemProps) {
                 <Text
                   style={[styles.fileName, extendStyles.text]}
                   numberOfLines={1} // once local upload implemented, remove conditional
-                >{props.item.bucket ? props.item.name : props.item.name.split('.').shift()}</Text>
+                >{props.item.bucket ? props.item.name : props.item.name && props.item.name.split('.').shift()}</Text>
 
                 {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
               </View>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.buttonDetails}>
-            <TouchableWithoutFeedback
-              style={isSelectionMode ? styles.dNone : styles.dFlex}
-              onPress={() => {
-                props.dispatch(layoutActions.openItemModal(props.item))
-              }}>
-              <Icon name="details" />
-            </TouchableWithoutFeedback>
-          </View>
+          {
+            props.item.bucket ?
+              <View style={styles.buttonDetails}>
+                <TouchableOpacity
+                  style={isSelectionMode ? styles.dNone : styles.dFlex}
+                  onPress={() => {
+                    props.dispatch(layoutActions.openItemModal(props.item))
+                  }}>
+                  <Icon name="details" />
+                </TouchableOpacity>
+              </View>
+              :
+              null
+          }
         </View>
 
         <View style={styles.progressIndicatorContainer}>

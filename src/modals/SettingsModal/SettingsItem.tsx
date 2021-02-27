@@ -4,7 +4,7 @@ import { TouchableHighlight } from 'react-native-gesture-handler'
 
 interface SettingsItemProps {
   onPress: (event: GestureResponderEvent) => void
-  text: JSX.Element
+  text: string
 }
 
 export default function SettingsItem(props: SettingsItemProps): JSX.Element {

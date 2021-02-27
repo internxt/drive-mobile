@@ -15,6 +15,9 @@ export interface LayoutState {
   showDeleteModal: boolean
   showShareModal: boolean
   showUploadModal: boolean
+  showFreeForYouModal: boolean
+  showComingSoonModal: boolean
+  currentApp: string
 }
 
 const initialState: LayoutState = {
@@ -31,21 +34,14 @@ const initialState: LayoutState = {
   showMoveModal: false,
   showDeleteModal: false,
   showShareModal: false,
-  showUploadModal: false
+  showUploadModal: false,
+  showFreeForYouModal: false,
+  showComingSoonModal: false,
+  currentApp: 'FileExplorer'
 };
 
 export function layoutReducer(state = initialState, action: any) {
   switch (action.type) {
-  case layoutActionTypes.OPEN_PHOTOS_MODAL:
-    return {
-      ...state,
-      showSelectPhotoModal: true
-    };
-  case layoutActionTypes.CLOSE_PHOTOS_MODAL:
-    return {
-      ...state,
-      showSelectPhotoModal: false
-    }
   case layoutActionTypes.OPEN_CREATE_FOLDER_FORM:
     return {
       searchActive: false,
@@ -86,38 +82,6 @@ export function layoutReducer(state = initialState, action: any) {
       ...state,
       showItemModal: false
     }
-  case layoutActionTypes.OPEN_ALBUM_MODAL:
-    return {
-      ...state,
-      showAlbumModal: true
-    }
-  case layoutActionTypes.CLOSE_ALBUM_MODAL:
-    return {
-      ...state,
-      showAlbumModal: false
-    }
-  case layoutActionTypes.OPEN_ADD_ITEM_MODAL:
-    return {
-      ...state,
-      showAddItemModal: true
-    }
-  case layoutActionTypes.CLOSE_ADD_ITEM_MODAL:
-    return {
-      ...state,
-      showAddItemModal: false
-    }
-  case layoutActionTypes.OPEN_SELECT_PHOTO_MODAL: {
-    return {
-      ...state,
-      showPhotoDetailsModal: true
-    }
-  }
-  case layoutActionTypes.CLOSE_SELECT_PHOTO_MODAL: {
-    return {
-      ...state,
-      showPhotoDetailsModal: false
-    }
-  }
   case layoutActionTypes.OPEN_SORT_MODAL: {
     return {
       ...state,
@@ -125,18 +89,6 @@ export function layoutReducer(state = initialState, action: any) {
     }
   }
   case layoutActionTypes.CLOSE_SORT_MODAL: {
-    return {
-      ...state,
-      showSortModal: false
-    }
-  }
-  case layoutActionTypes.OPEN_SORT_PHOTO_MODAL: {
-    return {
-      ...state,
-      showSortModal: true
-    }
-  }
-  case layoutActionTypes.CLOSE_SORT_PHOTO_MODAL: {
     return {
       ...state,
       showSortModal: false
@@ -188,6 +140,37 @@ export function layoutReducer(state = initialState, action: any) {
     return {
       ...state,
       showUploadModal: false
+    }
+  }
+
+  case layoutActionTypes.OPEN_FREEFORYOU_MODAL: {
+    return {
+      ...state,
+      showFreeForYouModal: true
+    }
+  }
+  case layoutActionTypes.CLOSE_FREEFORYOU_MODAL: {
+    return {
+      ...state,
+      showFreeForYouModal: false
+    }
+  }
+  case layoutActionTypes.SET_CURRENT_APP: {
+    return {
+      ...state,
+      currentApp: action.payload
+    }
+  }
+  case layoutActionTypes.OPEN_COMING_SOON_MODAL: {
+    return {
+      ...state,
+      showComingSoonModal: true
+    }
+  }
+  case layoutActionTypes.CLOSE_COMING_SOON_MODAL: {
+    return {
+      ...state,
+      showComingSoonModal: false
     }
   }
   default:

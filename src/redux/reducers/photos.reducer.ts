@@ -1,10 +1,10 @@
 //import { IPhoto, IFolder } from '../../components/PhotoList';
+import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { IAlbum } from '../../components/AlbumList';
-import { IPhoto } from '../../components/PhotoList';
-import { decryptText, decryptTextWithKey } from '../../helpers';
+import { IPhoto, IPreview } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
-import { photoService } from '../services/photo.service';
+import { IHashedPhoto } from '../../screens/Home/init'
 
 export interface PhotosState {
   cursor: number
@@ -13,7 +13,11 @@ export interface PhotosState {
   loadingPhotos: boolean
   loadingDeleted: boolean
   albums: any
-  photos: any
+  localPhotos: IHashedPhoto[]
+  uploadedPhotos: IHashedPhoto[]
+  previews: IPreview[]
+  selectedPhotosForAlbum: ImageOrVideo[]
+  isLoading: boolean
   devicePhotos: any
   deleted: any
   albumContent: any
@@ -37,11 +41,15 @@ const initialState: PhotosState = {
   loadingAlbums: true,
   loadingPhotos: true,
   loadingDeleted: true,
-  photos: [],
+  localPhotos: [],
+  uploadedPhotos: [],
+  previews: [],
+  selectedPhotosForAlbum: [],
+  isLoading: true,
   devicePhotos: [],
   deleted: [],
   albums: [],
-  albumContent: null,
+  albumContent: [],
   selectedPhoto: null,
   selectedAlbum: null,
   selectedItems: [],
@@ -57,6 +65,26 @@ const initialState: PhotosState = {
 
 export function PhotosReducer(state = initialState, action: any): PhotosState {
   switch (action.type) {
+  case photoActionTypes.SET_LOCAL_PHOTOS:
+    return {
+      ...state,
+      isLoading: false,
+      localPhotos: action.payload
+    }
+
+  case photoActionTypes.SET_UPLOADED_FOTOS:
+    return {
+      ...state,
+      isLoading: false,
+      uploadedPhotos: action.payload
+    }
+
+  case photoActionTypes.SET_SELECTED_PHOTOS:
+    return {
+      ...state,
+      selectedPhotosForAlbum: action.payload
+    }
+
   case photoActionTypes.UPDATE_CURSOR:
     return {
       ...state,
@@ -65,7 +93,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
   case photoActionTypes.SET_ALBUM_CONTENT:
     return {
       ...state,
-      photos: action.payload
+      albumContent: action.payload
     };
   case photoActionTypes.GET_ALBUMS_SUCCESS:
     return {
@@ -86,7 +114,8 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
   case photoActionTypes.GET_DEVICE_SUCCESS:
     return {
       ...state,
-      devicePhotos: [...state.devicePhotos, action.payload]
+      cursor: action.payload.index,
+      devicePhotos: action.payload.photos
     };
   case photoActionTypes.GET_PHOTOS_REQUEST:
     return {
@@ -94,6 +123,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       loading: true
     };
   case photoActionTypes.GET_PHOTOS_SUCCESS:
+    //console.log('NETWORK ---- ', action.payload)
     return {
       ...state,
       loadingPhotos: false,
@@ -133,6 +163,19 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       progress: action.payload
+    };
+
+  case photoActionTypes.CREATE_ALBUM_REQUEST:
+    return {
+      ...state,
+      loading: true,
+      albumContent: action.payload
+    };
+
+  case photoActionTypes.CREATE_ALBUM_SUCCESS:
+    return {
+      ...state,
+      loading: false
     };
 
   case photoActionTypes.SELECT_PHOTO:
@@ -256,6 +299,11 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       loading: action.payload
+    }
+  case photoActionTypes.PUSH_PREVIEW:
+    return {
+      ...state,
+      previews: [...state.previews, action.payload]
     }
   default:
     return state;

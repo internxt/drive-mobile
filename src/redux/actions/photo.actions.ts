@@ -1,9 +1,8 @@
+import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
-import { getLyticsData } from '../../helpers';
-import analytics from '../../helpers/lytics';
+import { IPhoto, IPreview } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { photoService } from '../services/photo.service';
-//import { PhotoService } from '../services';
 import { userActions } from './user.actions';
 
 export const PhotoActions = {
@@ -12,6 +11,7 @@ export const PhotoActions = {
   downloadPhotoEnd,
   downloadSelectedPhotoStart,
   downloadSelectedPhotoStop,
+  uploadPhotos,
   uploadPhotoStart,
   uploadPhotoFinished,
   uploadPhotoFailed,
@@ -20,16 +20,20 @@ export const PhotoActions = {
   getAlbumContent,
   getDevicePhotos,
   getAllPhotosContent,
-  setFolderContent,
+  createAlbum,
+  setAlbumContent,
   selectPhoto,
   deselectPhoto,
   deselectAll,
   getDeletedPhotos,
   setSortFunction,
   setSearchString,
-  createFolder,
   deleteTempPhoto,
-  setIsLoading
+  setIsLoading,
+  setAllLocalPhotos,
+  setAllUploadedPhotos,
+  setSelectedPhotos,
+  pushPreview
 };
 
 function setIsLoading(value: boolean) {
@@ -76,12 +80,52 @@ function getAlbumList(albumList: any) {
   return { type: photoActionTypes.GET_ALBUMS_SUCCESS, payload: albumList };
 }
 
-function getDevicePhotos(photos: any) {
-  return { type: photoActionTypes.GET_DEVICE_SUCCESS, payload: photos };
+function setAlbumContent(photos: any[]) {
+  return { type: photoActionTypes.SET_ALBUM_CONTENT, payload: photos };
 }
 
-function setFolderContent(photos: any[]) {
-  return { type: photoActionTypes.SET_ALBUM_CONTENT, payload: photos };
+function selectPhoto(photo: any) {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: photoActionTypes.SELECT_PHOTO, payload: photo });
+  };
+}
+
+function deselectPhoto(photo: any) {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: photoActionTypes.DESELECT_PHOTO, payload: photo });
+  };
+}
+
+function deselectAll() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: photoActionTypes.DESELECT_ALL });
+  };
+}
+
+function getDevicePhotos(user: any, cursor: any) {
+  return (dispatch: Dispatch) => {
+    dispatch(request());
+    photoService
+      .getDevicePhotos(user, cursor)
+      .then((data: any) => {
+        dispatch(success(data));
+      }).catch(error => {
+        dispatch(failure(error));
+        if (error.status === 401) {
+          dispatch(userActions.signout());
+        }
+      });
+  };
+
+  function request() {
+    return { type: photoActionTypes.GET_DEVICE_REQUEST };
+  }
+  function success(payload: any) {
+    return { type: photoActionTypes.GET_DEVICE_SUCCESS, payload };
+  }
+  function failure(error: any) {
+    return { type: photoActionTypes.GET_DEVICE_FAILURE, error };
+  }
 }
 
 function getAllPhotosContent(user: any) {
@@ -171,26 +215,34 @@ function getDeletedPhotos(user: any) {
   }
 }
 
-function selectPhoto(photo: any) {
+function uploadPhotos(user: any, photos: any) {
   return (dispatch: Dispatch) => {
-    dispatch({ type: photoActionTypes.SELECT_PHOTO, payload: photo });
+    dispatch(request());
+    photoService
+      .uploadPhotos(user, photos)
+      .then((data: any) => {
+        dispatch(success(data));
+      }).catch(error => {
+        dispatch(failure(error));
+        if (error.status === 401) {
+          dispatch(userActions.signout());
+        }
+      });
   };
-}
 
-function deselectPhoto(photo: any) {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: photoActionTypes.DESELECT_PHOTO, payload: photo });
-  };
-}
-
-function deselectAll() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: photoActionTypes.DESELECT_ALL });
-  };
+  function request() {
+    return { type: photoActionTypes.UPLOAD_PHOTOS };
+  }
+  function success(payload: any) {
+    return { type: photoActionTypes.GET_DEVICE_SUCCESS, payload };
+  }
+  function failure(error: any) {
+    return { type: photoActionTypes.GET_DEVICE_FAILURE, error };
+  }
 }
 
 function setSortFunction(sortType) {
-  const sortFunc = PhotoService.getSortFunction(sortType);
+  const sortFunc = photoService.getSortFunction(sortType);
 
   return (dispatch: Dispatch) => {
     dispatch({
@@ -209,14 +261,13 @@ function setSearchString(searchString: string) {
   };
 }
 
-function createFolder(parentFolderId: number, newFolderName: string) {
+function createAlbum(name: string, photos: any) {
   return (dispatch: Dispatch) => {
     dispatch(request());
 
-    photoService.createFolder(parentFolderId, newFolderName).then(
-      (newFolderDetails: any) => {
-        dispatch(success(newFolderDetails));
-        dispatch(getFolderContent(parentFolderId + ''))
+    photoService.createAlbum(name, photos).then(
+      () => {
+        dispatch(success(photos));
       },
       error => {
         dispatch(failure(error));
@@ -225,25 +276,25 @@ function createFolder(parentFolderId: number, newFolderName: string) {
   };
 
   function request() {
-    return { type: photoActionTypes.CREATE_ALBUM_REQUEST };
+    return { type: photoActionTypes.CREATE_ALBUM_REQUEST, payload: photos };
   }
-  function success(newFolderDetails: any) {
+  function success(newAlbumPhotos: any) {
     (async () => {
-      const userData = await getLyticsData()
+      //const userData = await getLyticsData()
 
-      analytics.track('folder-created', {
+      /*analytics.track('album-created', {
         userId: userData.uuid,
         platform: 'photos',
         email: userData.email
-      }).catch(() => { })
+      }).catch(() => { })*/
     })()
     return {
       type: photoActionTypes.CREATE_ALBUM_SUCCESS,
-      payload: newFolderDetails
+      payload: newAlbumPhotos
     };
   }
   function failure(payload: any) {
-    return { type: photoActionTypes.CREATE_ALBUM_FAILURE, payload };
+    return { type: photoActionTypes.CREATE_ALBUM_FAILURE };
   }
 }
 
@@ -268,4 +319,20 @@ function deleteTempPhoto(photoId: string) {
   function failure(payload: any) {
     return { type: photoActionTypes.DELETE_PHOTO_FAILURE, payload };
   }
+}
+
+function setSelectedPhotos(photos: ImageOrVideo[]) {
+  return { type: photoActionTypes.SET_SELECTED_PHOTOS, payload: photos }
+}
+
+function setAllLocalPhotos(photos: IPhoto[]) {
+  return { type: photoActionTypes.SET_LOCAL_PHOTOS, payload: photos }
+}
+
+function setAllUploadedPhotos(photos: IPhoto[]) {
+  return { type: photoActionTypes.SET_UPLOADED_FOTOS, payload: photos }
+}
+
+function pushPreview(preview: IPreview) {
+  return { type: photoActionTypes.PUSH_PREVIEW, payload: preview }
 }

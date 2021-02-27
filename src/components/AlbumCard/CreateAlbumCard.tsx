@@ -1,16 +1,39 @@
 import * as React from 'react';
-import { FlatList, Image, StyleProp, StyleSheet, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
+import { Image, StyleProp, StyleSheet, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
+import ImagePicker from 'react-native-image-crop-picker'
+import { Dispatch } from 'redux';
+import { PhotoActions } from '../../redux/actions/photo.actions';
+import { layoutActions } from '../../redux/actions';
 
 export interface CreateAlbumProps {
   style?: StyleProp<ViewStyle>
   album?: any
   navigation: any
+  dispatch: Dispatch
+}
+
+export interface ISelectedPhotos {
+  path: string
+  localIdentifier?: string
+  sourceURL?: string
+  filename?: string
+  width: number
+  height: number
+  mime: string
+  size: number
+  duration: number
+  data: string
+  exif: any
+  cropRect: any
+  creationDate?: string
+  modificationDate: string
+  dispatch: any
 }
 
 // TODO: Add album param
-function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
+function CreateAlbumCard(props: ISelectedPhotos): JSX.Element {
   const img = getIcon('create');
 
   return (
@@ -18,11 +41,17 @@ function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
       underlayColor="#fff"
       style={styles.albumCard}
       onPress={() => {
-        props.navigation.navigate('CreateAlbum')
+        props.dispatch(layoutActions.openComingSoonModal())
+        /* ImagePicker.openPicker({
+          multiple: true,
+          maxFiles: 0
+        }).then(res => {
+          props.dispatch(PhotoActions.setSelectedPhotos(res))
+          props.navigation.navigate('CreateAlbum')
+        }).catch(() => {}) */
       }}
     >
       <View style={styles.card}>
-
         <Image source={img} style={{ height: 25, width: 38, backgroundColor: '#0084ff' }} />
         <Text style={{
           fontFamily: 'Averta-Semibold',
@@ -35,9 +64,7 @@ function CreateAlbumCard(props: CreateAlbumProps): JSX.Element {
 
       </View>
     </TouchableHighlight>
-
   )
-
 }
 
 const styles = StyleSheet.create({

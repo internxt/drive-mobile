@@ -275,7 +275,6 @@ function Register(props: any): JSX.Element {
                     .then(() => {
                       apiLogin(email).then(userLoginData => {
                         props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
-
                       })
                     }).catch(err => {
                       analytics.track('user-signin-attempted', {
@@ -314,7 +313,7 @@ const styles = StyleSheet.create({
     borderWidth: 0
   },
   title: {
-    fontFamily: 'Averta-Bold',
+    fontFamily: 'CerebriSans-Bold',
     fontSize: normalize(22),
     letterSpacing: -1.7,
     color: '#000',
@@ -356,13 +355,13 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   buttonOnLabel: {
-    fontFamily: 'Averta-Regular',
+    fontFamily: 'CerebriSans-Medium',
     fontSize: normalize(15),
     textAlign: 'center',
     color: '#fff'
   },
   buttonOffLabel: {
-    fontFamily: 'Averta-Regular',
+    fontFamily: 'CerebriSans-Medium',
     fontSize: normalize(15),
     textAlign: 'center',
     color: '#5c5c5c'
@@ -374,7 +373,7 @@ const styles = StyleSheet.create({
     marginRight: normalize(10)
   },
   input: {
-    fontFamily: 'Averta-Regular',
+    fontFamily: 'CerebriSans-Medium',
     letterSpacing: -0.2,
     fontSize: normalize(15),
     color: '#000',
@@ -398,7 +397,7 @@ const styles = StyleSheet.create({
   textDisclaimer: {
     fontSize: normalize(15),
     color: '#737880',
-    fontFamily: 'Averta-Regular',
+    fontFamily: 'CerebriSans-Regular',
     textAlign: 'justify',
     letterSpacing: -0.1,
     marginTop: -15
@@ -413,14 +412,14 @@ const styles = StyleSheet.create({
     paddingLeft: normalize(9),
     color: '#737880',
     fontSize: normalize(15),
-    fontFamily: 'Averta-Regular'
+    fontFamily: 'CerebriSans-Regular'
   },
   textTip: {
     flex: 1,
     paddingLeft: normalize(9),
     color: '#737880',
     fontSize: normalize(15),
-    fontFamily: 'Averta-Regular'
+    fontFamily: 'CerebriSans-Regular'
   },
   halfOpacity: {
     opacity: 0.5

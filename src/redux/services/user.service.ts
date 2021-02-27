@@ -27,12 +27,14 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
     }).then(async response => {
       return { response, data: await response.json() };
     }).then(async response => {
+
       const body = response.data;
 
       if (response.response.status === 200) {
         // Manage successfull login
         const user = body.user;
 
+        user.email = email;
         user.mnemonic = user.mnemonic ? decryptTextWithKey(user.mnemonic, password) : null
 
         if (!user.root_folder_id) {
@@ -77,6 +79,8 @@ function signinPhotos(email: string, password: string, sKey: string, twoFactorCo
       if (response.response.status === 200) {
         // Manage successfull login
         const user = body.user;
+
+        user.email = email;
 
         user.mnemonic = user.mnemonic ? decryptTextWithKey(user.mnemonic, password) : null
 
@@ -142,7 +146,8 @@ async function signout() {
     await Promise.all([
       deviceStorage.deleteItem('xToken'),
       deviceStorage.deleteItem('xUser'),
-      deviceStorage.deleteItem('xBiometric')
+      deviceStorage.deleteItem('xBiometric'),
+      deviceStorage.deleteItem('xPhotos')
     ]);
   } catch (error) {
   }

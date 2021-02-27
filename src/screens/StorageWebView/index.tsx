@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Alert, ActivityIndicator, StyleSheet, Platform } from 'react-native';
+import { View, Alert, ActivityIndicator, StyleSheet, Platform, BackHandler } from 'react-native';
 import { getHeaders } from '../../helpers/headers';
 import { WebView } from 'react-native-webview'
 import { connect } from 'react-redux';
+import Toast from 'react-native-simple-toast'
 
 interface StorageWebView {
   navigation?: any
@@ -19,9 +20,29 @@ function StorageWebView(props: StorageWebView): JSX.Element {
     id: props.authenticationState.user.userId,
     token: props.authenticationState.token
   }
+  let count = 0
 
   useEffect(() => {
     getLink()
+
+    // BackHandler
+    const backAction = () => {
+      count++
+      if (count < 2) {
+        Toast.show('Try exiting again to go back')
+      } else {
+        props.navigation.replace('Storage')
+      }
+
+      setTimeout(() => {
+        count = 0
+      }, 4000);
+      return true
+    }
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction)
+
+    return () => backHandler.remove()
   }, [])
 
   const getLink = () => {

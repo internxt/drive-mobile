@@ -8,15 +8,17 @@ export const userActions = {
   signout,
   localSignIn,
   payment,
-  userInitializaation
+  userInitializaation,
+  setUserStorage
 };
 
 function signin(email: string, password: string, sKey: string, twoFactorCode: string) {
   return (dispatch: Dispatch) => {
     dispatchRequest();
     return userService
-      .signinPhotos(email, password, sKey, twoFactorCode)
+      .signin(email, password, sKey, twoFactorCode)
       .then(userData => {
+        //console.log('userData =>', userData)
         dispatch(success(userData));
       })
       .catch(error => {
@@ -46,6 +48,7 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
         userId: userData.user.uuid,
         platform: 'mobile'
       }).catch(() => { })
+
     }).catch(() => { })
     return { type: userActionTypes.SIGNIN_SUCCESS, payload: userData };
   }
@@ -97,4 +100,8 @@ function payment(token: any, planId: any) {
   function failure(error: Error) {
     return { type: userActionTypes.PAYMENT_FAILURE, payload: error };
   }
+}
+
+function setUserStorage(currentPlan: any) {
+  return { type: userActionTypes.SET_USER_STORAGE, payload: currentPlan }
 }

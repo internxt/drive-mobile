@@ -15,7 +15,7 @@ import OutOfSpace from './screens/OutOfSpace';
 import Storage from './screens/Storage';
 import StorageWebView from './screens/StorageWebView';
 import Home from './screens/Home';
-import AlbumView from './screens/AlbumView';
+import PhotoGallery from './screens/PhotoGallery';
 import CreateAlbum from './screens/CreateAlbum';
 import EntryGateway from './screens/EntryGateway';
 
@@ -28,7 +28,7 @@ const routeConfig: RouteConfig = {
   Login: { screen: Login },
   Intro: { screen: Intro },
   Home: { screen: Home },
-  AlbumView: { screen: AlbumView },
+  PhotoGallery: { screen: PhotoGallery },
   FileExplorer: { screen: FileExplorer },
   Biometric: { screen: Biometric },
   CreateAlbum: { screen: CreateAlbum },
@@ -36,7 +36,7 @@ const routeConfig: RouteConfig = {
   Forgot: { screen: Forgot },
   OutOfSpace: { screen: OutOfSpace },
   Storage: { screen: Storage },
-  StorageWebView: { screen: StorageWebView },
+  StorageWebView: { screen: StorageWebView }
 };
 
 const navigatorOptions: NavigatorOptions = {

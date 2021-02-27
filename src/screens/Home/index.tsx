@@ -1,218 +1,147 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Image, BackHandler, Platform, FlatList, Pressable } from 'react-native'
-import AppMenu from '../../components/AppMenu'
-import { layoutActions, fileActions } from '../../redux/actions';
+import { Text, View, StyleSheet, Platform, FlatList, Pressable } from 'react-native'
+import { layoutActions } from '../../redux/actions';
 import { connect } from 'react-redux';
-import FileList, { IFolder, IFile } from '../../components/FileList';
-import SettingsModal from '../../modals/SettingsModal';
-import { TouchableHighlight } from 'react-native-gesture-handler';
-import { getIcon } from '../../helpers/getIcon';
-//import FileDetailsModal from '../../modals/PhotoDetailsModal';
+import { TouchableHighlight, TouchableOpacity } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
-import DeleteItemModal from '../../modals/DeleteItemModal';
-import MoveFilesModal from '../../modals/MoveFilesModal';
-import ShareFilesModal from '../../modals/ShareFilesModal';
 import { Reducers } from '../../redux/reducers/reducers';
-import FileDetailsModal from '../../modals/FileDetailsModal';
-import PhotoItem from '../../components/PhotoItem';
 import AlbumCard from '../../components/AlbumCard';
-import { getDevicePhotos } from '../../helpers/mediaAccess';
-import { PhotoActions } from '../../redux/actions/photo.actions';
 import PhotoList from '../../components/PhotoList';
-import { previewsStorage } from '../../helpers/previewsStorage';
-import { getAlbumList, getAllPhotos, getDeletedPhotos } from './init';
-import * as FileSystem from 'expo-file-system';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
-import DeletedPhotoList from '../../components/PhotoList/DeletedPhotoList';
-import SettingsModalPhotos from '../../modals/SettingsModal/SettingsModalPhotos';
 import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import SettingsModal from '../../modals/SettingsModal';
+import { Dispatch } from 'redux';
+import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews } from './init'
+import { PhotosState } from '../../redux/reducers/photos.reducer';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { WaveIndicator } from 'react-native-indicators';
+import ComingSoonModal from '../../modals/ComingSoonModal';
 
-interface HomeProps extends Reducers {
+export interface IHomeProps extends Reducers {
   navigation?: any
-  dispatch?: any
-  photosState: any
-  authenticationState: any
+  dispatch: Dispatch
+  photosState: PhotosState
+  authenticationState: AuthenticationState
 }
 
-function Home(props: HomeProps): JSX.Element {
-  const [selectedKeyId, setSelectedKeyId] = useState(0)
+function Home(props: IHomeProps): JSX.Element {
+  const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  useEffect(() => {
-    const { user } = props.authenticationState;
-    const { token } = props.authenticationState;
-
-    props.dispatch(PhotoActions.getAllPhotosContent(props.authenticationState.user));
-    props.dispatch(PhotoActions.getDeletedPhotos(props.authenticationState.user));
-
-    getDevicePhotos(props.authenticationState.user.rootAlbumId, '0').then((dataResult) => {
-      props.dispatch(PhotoActions.updateCursor(parseInt(dataResult?.index || '20')));
-      props.dispatch(PhotoActions.getDevicePhotos(dataResult?.photos));
-
-      // TODO: Store previews on file://.../previews.
-    }).catch((err) => {
-
+  const init = async () => {
+    await Promise.all([
+      getLocalImages(props.dispatch),
+      getUploadedPhotos(props.authenticationState, props.dispatch)
+    ]).then(() => {
+      setIsLoading(false)
     })
-  }, [])
-
-  // Get device photos to upload new content
-  useEffect(() => {
-    if (props.photosState.devicePhotos.length > 0) {
-
-    }
-  }, [props.photosState.devicePhotos])
-
-  /*useEffect(() => {
-      const backAction = () => {
-          if (parentFolderId) {
-              // eslint-disable-next-line no-console
-              console.log('back') // do not delete
-              // Go to parent folder if exists
-              props.dispatch(fileActions.getFolderContent(parentFolderId))
-          } else {
-              // Exit application if root folder
-              BackHandler.exitApp()
-          }
-          return true;
-      };
-
-      const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-      return () => backHandler.remove();
-  }, []);*/
-
-  useEffect(() => {
-    //parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(props.filesState.folderContent)) : null
-
-  }, [props.photosState.albums])
-
-  useEffect(() => {
-    const keyId = props.photosState.selectedItems.length > 0 && props.photosState.selectedItems[0].id
-
-    setSelectedKeyId(keyId)
-  }, [props.photosState])
-
-  if (!props.authenticationState.loggedIn) {
-    props.navigation.replace('Login')
   }
 
-  const keyExtractor = (item: any, index: any) => index.toString();
-  // TODO: Recover all previews from device,
-  // when the server request finish
-  const renderAlbumItem = ({ item }) => (
-    <Pressable
-      onPress={() => {
-        props.navigation.navigate('AlbumView', { title: item.name })
-      }}
-      onLongPress={() => { }}
-    >
-      <AlbumCard withTitle={true} navigation={props.navigation} />
-    </Pressable>
+  useEffect(() => {
+    init()
+    getPreviews(props)
+  }, []);
 
-  );
+  useEffect(() => {
+    if (props.photosState.localPhotos) {
+      syncPhotos(props.photosState.localPhotos, props)
+    }
+  }, [props.photosState.localPhotos]);
 
-  return <View style={styles.container}>
-    <SettingsModalPhotos navigation={props.navigation} />
-    <SortModal />
-    <MoveFilesModal />
+  return (
+    <View style={styles.container}>
+      <SettingsModal navigation={props.navigation} />
+      <SortModal />
+      <ComingSoonModal />
 
-    <View style={styles.platformSpecificHeight}></View>
+      <View style={styles.platformSpecificHeight}></View>
 
-    <AppMenuPhotos navigation={props.navigation} />
+      <AppMenuPhotos navigation={props.navigation} />
 
-    <View style={styles.albumsContainer}>
-      <View style={styles.albumsHeader}>
-        <Text style={styles.albumsTitle}>
+      <View style={styles.albumsContainer}>
+        <View style={styles.albumsHeader}>
+          <Text style={styles.title}>
           Albums
-        </Text>
-
-        <Pressable
-          onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
-        >
-          <Text style={styles.albumsSort}>
-            {props.photosState.sortType}
           </Text>
-        </Pressable>
 
-      </View>
-
-      {props.photosState.albums.length > 0 ?
-        <View style={styles.photoScroll}>
-          <FlatList
-            keyExtractor={keyExtractor}
-            renderItem={renderAlbumItem}
-            data={props.photosState.albums}
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-          ></FlatList>
         </View>
-        :
+
         <View style={{ marginTop: 40 }}>
-          <CreateAlbumCard navigation={props.navigation} />
+          <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
         </View>
-      }
-    </View>
 
-    <View style={styles.albumsContainer}>
-      <View style={styles.albumHeader}>
-        <Text style={styles.albumsTitle}>
-          All Photos
-        </Text>
-        <Pressable
-          onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
-        >
-          <Text style={styles.albumsSort}>
-            {props.photosState.sortType}
-          </Text>
-        </Pressable>
-
+        {/* {props.photosState.albums.length > 0 ?
+          <View style={styles.titleButton}>
+            <FlatList
+              keyExtractor={keyExtractor}
+              renderItem={renderAlbumItem}
+              data={props.photosState.albums}
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+            ></FlatList>
+          </View>
+          :
+          <View style={{ marginTop: 40 }}>
+            <CreateAlbumCard navigation={props.navigation} />
+          </View>
+        } */}
       </View>
 
-      <TouchableHighlight
-        style={styles.photoScroll}
-        underlayColor="#FFF"
-        onPress={() => { props.navigation.navigate('AlbumView', { title: 'All Photos' }) }}
-      >
-        <PhotoList
-          title={'All Photos'}
-          photos={props.photosState.photos}
-          navigation={props.navigation}
-        />
-      </TouchableHighlight>
-    </View>
+      <View style={styles.albumsContainer}>
+        <TouchableOpacity style={styles.titleButton}
+          onPress={() => {
+            props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
+          }}
+          disabled={isLoading}>
+          <Text style={styles.title}>All photos</Text>
+        </TouchableOpacity>
 
-    <View style={styles.albumsContainer}>
-      <TouchableHighlight
-        underlayColor="#FFF"
-      >
-        <View>
-          <View style={styles.albumHeader}>
-            <Text style={styles.albumsTitle}>
-              Deleted
-            </Text>
-            <Pressable
-              onPress={() => { props.dispatch(layoutActions.openSortPhotoModal()) }}
-            >
-              <Text style={styles.albumsSort}>
-                {props.photosState.sortType}
-              </Text>
-            </Pressable>
-          </View >
-
-          <TouchableHighlight
-            style={styles.photoScroll}
-            underlayColor="#fff"
-            onPress={() => { props.navigation.navigate('AlbumView', { title: 'Deleted Photos' }) }}
-          >
-            <DeletedPhotoList
-              title={'Deleted Photos'}
-              deleted={props.photosState.deleted}
+        {
+          !isLoading ?
+            <PhotoList
+              title={'All Photos'}
+              photos={props.photosState.localPhotos}
               navigation={props.navigation}
             />
-          </TouchableHighlight>
+            :
+            <WaveIndicator color="#5291ff" size={50} />
+        }
+      </View>
+
+      {/* <View style={styles.albumsContainer}>
+        <View style={styles.albumHeader}>
+          <Text style={styles.title}>
+          Uploaded photos
+          </Text>
+
+          <Pressable
+            onPress={() => {
+            }}
+          >
+            <Text style={styles.albumsSort}>
+              {props.photosState.sortType}
+            </Text>
+          </Pressable>
         </View>
-      </TouchableHighlight>
+
+        <TouchableHighlight
+          style={styles.titleButton}
+          underlayColor="#FFF"
+          onPress={() => { props.navigation.navigate('PhotoGallery', { title: 'Uploaded photos' }) }}
+        >
+          { props.photosState.previews ?
+            <PhotoList
+              title={'Uploaded photos'}
+              photos={props.photosState.previews}
+              navigation={props.navigation}
+            />
+            :
+            <WaveIndicator color="#5291ff" size={50} />
+          }
+        </TouchableHighlight>
+      </View> */}
     </View>
-  </View>
+  )
 }
 
 const mapStateToProps = (state: any) => {
@@ -227,51 +156,31 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     backgroundColor: '#fff'
   },
-  photoScroll: {
+  titleButton: {
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'nowrap',
-    marginTop: 25
+    paddingHorizontal: wp('1'),
+    marginBottom: wp('1')
   },
   albumsContainer: {
     display: 'flex',
-    paddingHorizontal: 0,
-    paddingVertical: 10
-
+    paddingVertical: wp('3.5'),
+    paddingHorizontal: wp('1')
   },
   albumsHeader: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 5,
-    paddingHorizontal: 10
-
+    justifyContent: 'space-between'
   },
-  albumHeader: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-    paddingHorizontal: 10
-  },
-  albumsTitle: {
+  title: {
     fontFamily: 'Averta-Bold',
     fontSize: 18,
     letterSpacing: -0.13,
-    paddingTop: 10,
     color: 'black',
     alignSelf: 'flex-start',
-    height: 30
-  },
-  albumsSort: {
-    fontFamily: 'Averta-Semibold',
-    fontSize: 14,
-    letterSpacing: -0.13,
-    paddingTop: 10,
-    color: '#bfbfbf',
-    alignSelf: 'flex-end',
     height: 30,
-    width: 50
+    marginLeft: 7
   },
   platformSpecificHeight: {
     height: Platform.OS === 'ios' ? '5%' : '0%'

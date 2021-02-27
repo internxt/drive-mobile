@@ -1,23 +1,28 @@
 /* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Image, Platform } from 'react-native';
+import { StyleSheet, View, Image, Text, ScrollView } from 'react-native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import * as Permissions from 'expo-permissions';
-import * as MediaLibrary from 'expo-media-library';
-import FileViewer from 'react-native-file-viewer'
+import { WaveIndicator } from 'react-native-indicators'
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { downloadPhoto } from '../../screens/Home/init';
 
 export interface IPhoto {
   id: string
-  modificationTime: string
-  uri: any
+  modificationTime: number
+  localUri: any
   filename: string
   duration: number
-  width: string
-  heigh: number
+  width: number
   bucket?: string
-  creationTime?: Date
-  mediaSubTypes: any
+  creationTime?: number
+}
+
+export interface IPreview {
+  data: string
+  photoId: number
+  type: string
+  localUri: string
 }
 
 interface PhotoListProps {
@@ -30,75 +35,65 @@ interface PhotoListProps {
 }
 
 function PhotoList(props: PhotoListProps) {
-
-  const photoList: IPhoto[] = props.photos || [];
-
-  const [images, setImages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [image, setImage] = useState<IPhoto[]>([]);
-
-  const getImages = () => {
-    return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
-      .then(() => {
-        return MediaLibrary.getAssetsAsync();
-      })
-      .then((result) => {
-        return result.assets;
-      });
-  };
+  const numColums = Math.ceil(props.photos.length / 3) || 1
 
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('loading photos');
-    getImages().then((res) => {
-      setImages(res)
-      setIsLoading(false)
-    }
-    );
-  }, []);
-
-  useEffect(() => {
-  }, [images]);
+    setIsLoading(props.photosState.isLoading)
+  }, [props.photosState.localPhotos]);
 
   return (
-    <View>
-      <FlatList
-        data={images}
-        renderItem={({ item }) => (
-          <View
-            // eslint-disable-next-line react-native/no-inline-styles
-            style={{
-              flex: 1,
-              flexDirection: 'column',
-              margin: 1
-            }}>
-            <TouchableOpacity
-              style={styles.imageView}
-              key={item.id}
-              onPress={async () => {
-                const e = await MediaLibrary.getAssetInfoAsync(item)
-
-                FileViewer.open(e.localUri)
-              }}>
-              <Image
-                style={{ width: 100, height: 100 }}
-                source={{ uri: item.uri }}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-        //Setting the number of column
-        horizontal={true}
-        keyExtractor={(item, index) => index.toString()}
-      />
+    <View style={styles.container}>
+      {
+        !isLoading ?
+          <ScrollView
+            horizontal
+            showsVerticalScrollIndicator={false}
+          >
+            <FlatList
+              scrollEnabled={false}
+              contentContainerStyle={{ alignSelf: 'flex-start' }}
+              numColumns={numColums}
+              data={props.photos}
+              renderItem={({ item }) => {
+                return (
+                  <TouchableOpacity
+                    style={styles.imageView}
+                    key={item.id}
+                    onPress={async () => {
+                      //console.log('on Press =>', item)
+                      //downloadPhoto(props, item)
+                    }}
+                  >
+                    <Image
+                      style={styles.image}
+                      source={{ uri: item.localUri }}
+                    />
+                  </TouchableOpacity>
+                )
+              }}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          </ScrollView>
+          :
+          <WaveIndicator color="#5291ff" size={50} />
+      }
     </View>
-
   )
 }
 const styles = StyleSheet.create({
+  container: {
+    width: '100%'
+  },
   imageView: {
     borderRadius: 2,
-    marginRight: 4
+    marginHorizontal: wp('0.5'),
+    marginVertical: wp('0.5')
+  },
+  image: {
+    width: 100,
+    height: 100,
+    borderRadius: 10
   }
 })
 
