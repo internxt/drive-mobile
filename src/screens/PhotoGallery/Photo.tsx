@@ -5,6 +5,8 @@ import * as MediaLibrary from 'expo-media-library';
 import FileViewer from 'react-native-file-viewer';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { downloadPhoto } from '../Home/init';
+import { MaterialIndicator } from 'react-native-indicators';
+import { connect } from 'react-redux';
 
 export interface IAlbumImage {
   id?: string
@@ -12,11 +14,13 @@ export interface IAlbumImage {
   isSynced: string
   isUploaded: string
   photo: any
+  dispatch: any
 }
 
 const deviceWidth = Dimensions.get('window').width
 
 function Photo(props: IAlbumImage): JSX.Element {
+  const [isDownloading, setIsDownloading] = useState(false)
   const icons = {
     'download'  : require('../../../assets/icons/photos-icon-download.png'),
     'upload'    : require('../../../assets/icons/photos-icon-upload.png')
@@ -43,7 +47,12 @@ function Photo(props: IAlbumImage): JSX.Element {
             }).catch(err => {})
 
           } else {
-            downloadPhoto(props.photo)
+            setIsDownloading(true)
+            downloadPhoto(props.photo).then(() => {
+
+            }).finally(() => {
+              setIsDownloading(false)
+            })
           }
         }}
         style={styles.container}
@@ -56,9 +65,14 @@ function Photo(props: IAlbumImage): JSX.Element {
 
       {
         !props.isSynced ?
-          <View style={styles.iconBackground}>
-            <Image style={styles.icon} source={icon} />
-          </View>
+          isDownloading ?
+            <View style={[styles.iconBackground, styles.indicatorContainer]}>
+              <MaterialIndicator color='white' size={15} trackWidth={2} />
+            </View>
+            :
+            <View style={styles.iconBackground}>
+              <Image style={styles.icon} source={icon} />
+            </View>
           :
           null
       }
@@ -78,6 +92,9 @@ const styles = StyleSheet.create({
     height: (deviceWidth - wp('6')) / 4,
     borderRadius: 10
   },
+  indicatorContainer: {
+    position: 'absolute'
+  },
   iconBackground: {
     position: 'absolute',
     width: 30,
@@ -95,4 +112,8 @@ const styles = StyleSheet.create({
   }
 })
 
-export default Photo
+const mapStateToProps = (state: any) => {
+  return { ...state };
+};
+
+export default connect(mapStateToProps)(Photo);

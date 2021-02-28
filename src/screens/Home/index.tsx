@@ -158,9 +158,9 @@ export default connect(mapStateToProps)(Home)
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     justifyContent: 'flex-start',
-    backgroundColor: '#fff',
-    height: '100%'
+    backgroundColor: '#fff'
   },
   titleButton: {
     flexDirection: 'row',

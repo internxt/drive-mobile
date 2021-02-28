@@ -77,7 +77,7 @@ function PhotoList(props: PhotoListProps) {
 }
 const styles = StyleSheet.create({
   container: {
-    display: 'flex'
+    marginBottom: wp('5')
   },
   imageView: {
     marginHorizontal: wp('0.5'),
