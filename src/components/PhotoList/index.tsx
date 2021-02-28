@@ -68,7 +68,6 @@ function PhotoList(props: PhotoListProps) {
             contentContainerStyle={styles.flatList}
             keyExtractor={(item, index) => index.toString()}
             numColumns={3}
-            horizontal={false}
           />
           :
           <WaveIndicator color="#5291ff" size={50} />
@@ -78,7 +77,7 @@ function PhotoList(props: PhotoListProps) {
 }
 const styles = StyleSheet.create({
   container: {
-    width: '100%'
+    display: 'flex'
   },
   imageView: {
     marginHorizontal: wp('0.5'),

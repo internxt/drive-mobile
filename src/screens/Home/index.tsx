@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Platform } from 'react-native'
+import { Text, View, StyleSheet, Platform, SafeAreaView } from 'react-native'
 import { connect } from 'react-redux';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
 import { Reducers } from '../../redux/reducers/reducers';
 import PhotoList from '../../components/PhotoList';
@@ -47,12 +47,10 @@ function Home(props: IHomeProps): JSX.Element {
   }, [props.photosState.localPhotos]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <SettingsModal navigation={props.navigation} />
       <SortModal />
       <ComingSoonModal />
-
-      <View style={styles.platformSpecificHeight}></View>
 
       <AppMenuPhotos navigation={props.navigation} />
 
@@ -96,11 +94,21 @@ function Home(props: IHomeProps): JSX.Element {
 
         {
           !isLoading ?
-            <PhotoList
-              title={'All Photos'}
-              photos={props.photosState.localPhotos}
-              navigation={props.navigation}
-            />
+            <View>
+              {
+                props.photosState.localPhotos.length > 0 ?
+                  <PhotoList
+                    title={'All Photos'}
+                    photos={props.photosState.localPhotos}
+                    navigation={props.navigation}
+                  />
+                  :
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.heading}>We didn&apos;t detect any local photos on your phone.</Text>
+                    <Text style={styles.subheading}>Get some images to get started!</Text>
+                  </View>
+              }
+            </View>
             :
             <WaveIndicator color="#5291ff" size={50} />
         }
@@ -138,7 +146,7 @@ function Home(props: IHomeProps): JSX.Element {
           }
         </TouchableHighlight>
       </View> */}
-    </View>
+    </SafeAreaView>
   )
 }
 
@@ -150,19 +158,16 @@ export default connect(mapStateToProps)(Home)
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     justifyContent: 'flex-start',
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
+    height: '100%'
   },
   titleButton: {
-    display: 'flex',
     flexDirection: 'row',
-    flexWrap: 'nowrap',
     paddingHorizontal: wp('1'),
     marginBottom: wp('1')
   },
   albumsContainer: {
-    display: 'flex',
     paddingVertical: wp('3.5'),
     paddingHorizontal: wp('1')
   },
@@ -180,7 +185,23 @@ const styles = StyleSheet.create({
     height: 30,
     marginLeft: 7
   },
-  platformSpecificHeight: {
-    height: Platform.OS === 'ios' ? '5%' : '0%'
+  emptyContainer: {
+    alignItems: 'center',
+    backgroundColor: '#fff'
+  },
+  heading: {
+    fontFamily: 'Averta-Regular',
+    fontSize: wp('4.5'),
+    letterSpacing: -0.8,
+    color: '#000000',
+    marginTop: 10
+  },
+  subheading: {
+    fontFamily: 'CircularStd-Book',
+    fontSize: wp('4.1'),
+    marginTop: 10,
+    opacity: 0.84,
+    letterSpacing: -0.1,
+    color: '#404040'
   }
 });

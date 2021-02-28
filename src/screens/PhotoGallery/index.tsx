@@ -106,7 +106,6 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
               return <Photo photo={item} id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
             }}
             numColumns={4}
-            //Setting the number of column
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={styles.flatList}
           />
