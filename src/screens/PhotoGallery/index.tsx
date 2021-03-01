@@ -17,6 +17,7 @@ import lodash from 'lodash'
 import { IPreview } from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
 import { getLocalImages } from '../Home/init';
+import { copyFileAssets } from 'react-native-fs';
 
 interface IPhotoGallery {
   route: any;
@@ -29,10 +30,12 @@ interface IPhotoGallery {
 
 function PhotoGallery(props: IPhotoGallery): JSX.Element {
   const previewImages = props.photosState.previews
-  const localImages = props.photosState.localPhotos
+  const localImages = props.photosState.localPhotosGallery
   const uploadedImages = props.photosState.uploadedPhotos
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [photosToRender, setPhotosToRender] = useState<IPreview[]>([])
+  const [endCursor, setEndCursor] = useState('')
 
   const doIntersections = () => {
     // Map the arrays to add a key to know later which icon it needs
@@ -61,17 +64,16 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
   }
 
   useEffect(() => {
+    getLocalImages(props.dispatch, true).then(() => setIsLoading(false))
     const x = photosToRenderList()
 
     setPhotosToRender(x)
-    setIsLoading(false)
   }, [])
 
   useEffect(() => {
     const x = photosToRenderList()
 
     setPhotosToRender(x)
-    setIsLoading(false)
   }, [props.photosState.previews])
 
   return (
@@ -105,7 +107,13 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
             data={photosToRender}
             onEndReachedThreshold={0.1}
             onEndReached={() => {
-              getLocalImages(props.dispatch, props.photosState.localPhotos[props.photosState.localPhotos.length - 1].id)
+              setIsLoadingMore(true)
+              if (props.photosState.localPhotos) {
+                getLocalImages(props.dispatch, true, endCursor).then(res => {
+                  setEndCursor(res)
+                  setIsLoadingMore(false)
+                })
+              }
             }}
             renderItem={({ item }) => {
               return <Photo photo={item} id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
@@ -116,6 +124,14 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
           />
           :
           <WaveIndicator color="#5291ff" size={50} />
+      }
+      {
+        isLoadingMore ?
+          <View style={{ marginTop: 30 }}>
+            <WaveIndicator color="#5291ff" size={50} />
+          </View>
+          :
+          null
       }
     </SafeAreaView>
   );

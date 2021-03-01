@@ -163,7 +163,7 @@ export function getAssetAsyncLocalPhotos() {
 
 }
 
-export function getLocalImages(dispatch: Dispatch, after?: string) {
+export function getLocalImages(dispatch: Dispatch, gallery: boolean, after?: string) {
   return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
     .then(() => {
       if (after) {
@@ -172,10 +172,15 @@ export function getLocalImages(dispatch: Dispatch, after?: string) {
         return MediaLibrary.getAssetsAsync({ first: 39 });
       }
     })
-    .then((res) => {
-      return getArrayPhotos(res.assets).then(res => {
-        dispatch(PhotoActions.setAllLocalPhotos(res))
+    .then(async (res) => {
+      await getArrayPhotos(res.assets).then(res => {
+        if (gallery) {
+          dispatch(PhotoActions.setAllLocalPhotosGallery(res))
+        } else {
+          dispatch(PhotoActions.setAllLocalPhotos(res))
+        }
       })
+      return res.endCursor
     })
 }
 

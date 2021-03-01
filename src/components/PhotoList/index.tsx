@@ -54,7 +54,7 @@ function PhotoList(props: PhotoListProps) {
             data={props.photos}
             onEndReachedThreshold={0.1}
             onEndReached={() => {
-              getLocalImages(props.dispatch, props.photosState.localPhotos[props.photosState.localPhotos.length - 1].id)
+              getLocalImages(props.dispatch, false, props.photosState.localPhotos[props.photosState.localPhotos.length - 1].id)
             }}
             renderItem={({ item }) => {
               return (

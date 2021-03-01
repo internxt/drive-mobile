@@ -14,6 +14,7 @@ export interface PhotosState {
   loadingDeleted: boolean
   albums: any
   localPhotos: IHashedPhoto[]
+  localPhotosGallery: IHashedPhoto[]
   uploadedPhotos: IHashedPhoto[]
   previews: IPreview[]
   selectedPhotosForAlbum: ImageOrVideo[]
@@ -42,6 +43,7 @@ const initialState: PhotosState = {
   loadingPhotos: true,
   loadingDeleted: true,
   localPhotos: [],
+  localPhotosGallery: [],
   uploadedPhotos: [],
   previews: [],
   selectedPhotosForAlbum: [],
@@ -70,6 +72,13 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       ...state,
       isLoading: false,
       localPhotos: lodash.concat(state.localPhotos, action.payload)
+    }
+
+  case photoActionTypes.SET_LOCAL_PHOTOS_GALLERY:
+    return {
+      ...state,
+      isLoading: false,
+      localPhotosGallery: lodash.concat(state.localPhotosGallery, action.payload)
     }
 
   case photoActionTypes.SET_UPLOADED_FOTOS:
@@ -303,6 +312,11 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       previews: [...state.previews, action.payload]
+    }
+  case photoActionTypes.CLEAR_LOCAL_PHOTOS:
+    return {
+      ...state,
+      localPhotos: []
     }
   default:
     return state;

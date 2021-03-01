@@ -16,7 +16,7 @@ import { AuthenticationState } from '../../redux/reducers/authentication.reducer
 import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
-import { layoutActions } from '../../redux/actions';
+import { layoutActions, PhotoActions } from '../../redux/actions';
 
 export interface IHomeProps extends Reducers {
   navigation?: any
@@ -101,7 +101,9 @@ function Home(props: IHomeProps): JSX.Element {
       <View style={styles.allPhotosContainer}>
         <TouchableOpacity style={styles.titleButton}
           onPress={() => {
-            props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
+            getLocalImages(props.dispatch, false).then(() => {
+              props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
+            })
           }}
           disabled={isLoading}>
           <Text style={styles.title}>All photos</Text>
