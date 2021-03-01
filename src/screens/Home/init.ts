@@ -286,10 +286,17 @@ export const getArrayPreviews = async(props: any) => {
   });
 }
 
+let SHOULD_STOP = false;
+
+export function stopSync(): void {
+  SHOULD_STOP = true;
+}
+
 export function getPreviews(props: IHomeProps): Promise<any> {
+  SHOULD_STOP = false;
   return getArrayPreviews(props).then((res: any) => {
-    const result = mapSeries(res, (preview, next) => {
-      if (!props.authenticationState.loggedIn) {
+    return mapSeries(res, (preview, next) => {
+      if (SHOULD_STOP) {
         throw Error('Sign out')
       }
 

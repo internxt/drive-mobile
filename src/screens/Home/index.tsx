@@ -10,7 +10,7 @@ import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
 import { Dispatch } from 'redux';
-import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews } from './init'
+import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews, stopSync } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
@@ -48,6 +48,7 @@ function Home(props: IHomeProps): JSX.Element {
 
   useEffect(() => {
     if (!props.authenticationState.loggedIn) {
+      stopSync()
       props.navigation.replace('Login')
     }
   }, [props.authenticationState.loggedIn])
