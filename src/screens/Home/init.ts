@@ -229,7 +229,7 @@ export async function downloadPhoto(photo: any) {
   })
 }
 
-const downloadPreview = async(preview: any, props: IHomeProps) => {
+export const downloadPreview = async(preview: any, props: IHomeProps) => {
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -261,7 +261,7 @@ const downloadPreview = async(preview: any, props: IHomeProps) => {
   })
 }
 
-const getArrayPreviews = async(props: any) => {
+export const getArrayPreviews = async(props: any) => {
   return new Promise(async (resolve, reject) => {
 
     const token = props.authenticationState.token;
@@ -286,11 +286,14 @@ const getArrayPreviews = async(props: any) => {
   });
 }
 
-export function getPreviews(props: any): Promise<any> {
+export function getPreviews(props: IHomeProps): Promise<any> {
   return getArrayPreviews(props).then((res: any) => {
     const result = mapSeries(res, (preview, next) => {
-      return downloadPreview(preview, props).then((res1) => {
+      if (!props.authenticationState.loggedIn) {
+        throw Error('Sign out')
+      }
 
+      return downloadPreview(preview, props).then((res1) => {
         next(null, res1)
       });
     });
