@@ -44,7 +44,6 @@
     "react-native-file-viewer": "^2.1.4",
     "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "~1.8.0",
-    "react-native-image-crop-picker": "^0.35.3",
     "react-native-indicators": "^0.17.0",
     "react-native-modalbox": "^2.0.2",
     "react-native-receive-sharing-intent": "^1.1.0",

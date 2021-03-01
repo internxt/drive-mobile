@@ -78,7 +78,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
 
       <AlbumDetailsModal />
       <AddItemToModal />
-      <PhotoDetailsModal />
+      {/* <PhotoDetailsModal /> */}
 
       <View style={styles.albumHeader}>
         <BackButton navigation={props.navigation} />
@@ -149,7 +149,11 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   titleWrapper: {
-    display: 'flex'
+    display: 'flex',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: -2
   },
   flatList: {
     paddingHorizontal: wp('0.5')
