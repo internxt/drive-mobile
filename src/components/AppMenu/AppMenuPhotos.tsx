@@ -330,8 +330,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
     backgroundColor: '#fff',
-    paddingTop: 3,
-    marginTop: Platform.OS === 'ios' ? 30 : 0
+    paddingTop: 3
   },
   searchContainer: {
     position: 'relative',

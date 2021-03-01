@@ -123,7 +123,6 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       loading: true
     };
   case photoActionTypes.GET_PHOTOS_SUCCESS:
-    //console.log('NETWORK ---- ', action.payload)
     return {
       ...state,
       loadingPhotos: false,

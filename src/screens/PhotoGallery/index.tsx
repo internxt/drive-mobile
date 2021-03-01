@@ -13,7 +13,6 @@ import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
-import { getUploadedPhotos, IHashedPhoto } from '../Home/init';
 import lodash from 'lodash'
 import { IPreview } from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
@@ -35,14 +34,15 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
   const [photosToRender, setPhotosToRender] = useState<IPreview[]>([])
 
   const doIntersections = () => {
+    // Map the arrays to add a key to know later which icon it needs
     // Photos currently on local and cloud *THEY MUST RENDER*
-    const synced = lodash.intersectionBy(localImages || [], uploadedImages || [], 'hash')
+    const synced = lodash.intersectionBy(localImages || [], uploadedImages || [], 'hash').map(photo => ({ ...photo, isSynced: true, isUploaded: true }))
 
     // The photos stored on the gallery that have not been yet uploaded *THEY MUST RENDER*
-    const onlyOnLocal = lodash.differenceBy(localImages || [], uploadedImages || [], 'hash')
+    const onlyOnLocal = lodash.differenceBy(localImages || [], uploadedImages || [], 'hash').map(photo => ({ ...photo, isSynced: false, isUploaded: false }))
 
     // The photos saved on the cloud that are not stored on the gallery *ONLY TO FILTER DOWNLOADED PREVIEWS*
-    const onlyOnCloud = lodash.differenceBy(uploadedImages || [], localImages || [], 'hash')
+    const onlyOnCloud = lodash.differenceBy(uploadedImages || [], localImages || [], 'hash').map(photo => ({ ...photo, isSynced: false, isUploaded: true, photoId: photo.id }))
 
     return { synced, onlyOnLocal, onlyOnCloud }
   }
@@ -50,14 +50,10 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
   function photosToRenderList() {
     const res = doIntersections()
 
-    // Map the arrays to add a key to know later which icon it needs
-    const synced = res.synced.map(photo => ({ ...photo, isSynced: true, isUploaded: true }))
-    const onlyLocal = res.onlyOnLocal.map(photo => ({ ...photo, isSynced: false, isUploaded: false }))
-    // OnlyUploaded needs an extra prop to match the other objects
-    const onlyCloud = res.onlyOnCloud.map(photo => ({ ...photo, photoId: photo.id }))
+    const synced = res.synced
+    const onlyLocal = res.onlyOnLocal
+    const onlyCloud = res.onlyOnCloud
 
-    //console.log('onlyCloud =>', onlyCloud.length)
-    //console.log('previews =>', previewImages.length)
     const missingPhotos = lodash.intersectionBy(previewImages, onlyCloud, 'photoId').map(photo => ({ ...photo, isSynced: false, isUploaded: true }))
 
     return lodash.concat(onlyLocal, synced, missingPhotos)
@@ -107,10 +103,9 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
           <FlatList
             data={photosToRender}
             renderItem={({ item }) => {
-              return <Photo id={item.photoId} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
+              return <Photo photo={item} id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
             }}
-            numColumns={5}
-            //Setting the number of column
+            numColumns={4}
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={styles.flatList}
           />
@@ -157,7 +152,7 @@ const styles = StyleSheet.create({
     display: 'flex'
   },
   flatList: {
-    paddingHorizontal: wp('1')
+    paddingHorizontal: wp('0.5')
   }
 });
 

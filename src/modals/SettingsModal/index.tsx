@@ -64,7 +64,6 @@ async function initializePhotosUser(token: string, mnemonic: string): Promise<an
   const xUserJson = JSON.parse(xUser || '{}')
   const email = xUserJson.email
 
-  //console.log('body =>', email, mnemonic)
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
     method: 'POST',
     headers: getHeaders(token, mnemonic),
@@ -73,7 +72,6 @@ async function initializePhotosUser(token: string, mnemonic: string): Promise<an
       mnemonic: mnemonic
     })
   }).then(res => {
-    //console.log('res', res)
     return res.json()
   })
 }

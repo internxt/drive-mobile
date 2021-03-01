@@ -1,12 +1,12 @@
 /* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Image, Text, ScrollView } from 'react-native';
+import { StyleSheet, View, Image, Text, ScrollView, Dimensions } from 'react-native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { downloadPhoto } from '../../screens/Home/init';
-
+import * as MediaLibrary from 'expo-media-library';
+import FileViewer from 'react-native-file-viewer';
 export interface IPhoto {
   id: string
   modificationTime: number
@@ -34,9 +34,10 @@ interface PhotoListProps {
   navigation: any
 }
 
+const deviceWidth = Dimensions.get('window').width
+
 function PhotoList(props: PhotoListProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const numColums = Math.ceil(props.photos.length / 3) || 1
 
   useEffect(() => {
     setIsLoading(props.photosState.isLoading)
@@ -46,35 +47,31 @@ function PhotoList(props: PhotoListProps) {
     <View style={styles.container}>
       {
         !isLoading ?
-          <ScrollView
-            horizontal
-            showsVerticalScrollIndicator={false}
-          >
-            <FlatList
-              scrollEnabled={false}
-              contentContainerStyle={{ alignSelf: 'flex-start' }}
-              numColumns={numColums}
-              data={props.photos}
-              renderItem={({ item }) => {
-                return (
-                  <TouchableOpacity
-                    style={styles.imageView}
-                    key={item.id}
-                    onPress={async () => {
-                      //console.log('on Press =>', item)
-                      //downloadPhoto(props, item)
-                    }}
-                  >
-                    <Image
-                      style={styles.image}
-                      source={{ uri: item.localUri }}
-                    />
-                  </TouchableOpacity>
-                )
-              }}
-              keyExtractor={(item, index) => index.toString()}
-            />
-          </ScrollView>
+          <FlatList
+            data={props.photos}
+            renderItem={({ item }) => {
+              return (
+                <TouchableOpacity
+                  style={styles.imageView}
+                  key={item.id}
+                  onPress={async () => {
+                    await MediaLibrary.getAssetInfoAsync(item).then((res) => {
+                      FileViewer.open(res.localUri || '')
+
+                    }).catch(err => {})
+                  }}
+                >
+                  <Image
+                    style={styles.image}
+                    source={{ uri: item.localUri }}
+                  />
+                </TouchableOpacity>
+              )
+            }}
+            contentContainerStyle={styles.flatList}
+            keyExtractor={(item, index) => index.toString()}
+            numColumns={3}
+          />
           :
           <WaveIndicator color="#5291ff" size={50} />
       }
@@ -83,17 +80,19 @@ function PhotoList(props: PhotoListProps) {
 }
 const styles = StyleSheet.create({
   container: {
-    width: '100%'
+    marginBottom: wp('5')
   },
   imageView: {
-    borderRadius: 2,
     marginHorizontal: wp('0.5'),
     marginVertical: wp('0.5')
   },
   image: {
-    width: 100,
-    height: 100,
+    width: (deviceWidth - wp('6')) / 3,
+    height: (deviceWidth - wp('6')) / 3,
     borderRadius: 10
+  },
+  flatList: {
+    paddingHorizontal: wp('0.5')
   }
 })
 
