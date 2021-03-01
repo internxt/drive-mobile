@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Platform, SafeAreaView } from 'react-native'
+import { Text, View, StyleSheet, SafeAreaView } from 'react-native'
 import { connect } from 'react-redux';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
@@ -83,7 +83,7 @@ function Home(props: IHomeProps): JSX.Element {
         } */}
       </View>
 
-      <View style={styles.albumsContainer}>
+      <View style={styles.allPhotosContainer}>
         <TouchableOpacity style={styles.titleButton}
           onPress={() => {
             props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
@@ -158,7 +158,7 @@ export default connect(mapStateToProps)(Home)
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    height: '100%',
     justifyContent: 'flex-start',
     backgroundColor: '#fff'
   },
@@ -168,8 +168,13 @@ const styles = StyleSheet.create({
     marginBottom: wp('1')
   },
   albumsContainer: {
+    height: '40%',
     paddingVertical: wp('3.5'),
     paddingHorizontal: wp('1')
+  },
+  allPhotosContainer: {
+    flex: 1,
+    marginBottom: wp('5')
   },
   albumsHeader: {
     flex: 1,

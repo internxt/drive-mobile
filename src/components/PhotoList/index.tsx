@@ -5,8 +5,8 @@ import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { downloadPhoto } from '../../screens/Home/init';
-
+import * as MediaLibrary from 'expo-media-library';
+import FileViewer from 'react-native-file-viewer';
 export interface IPhoto {
   id: string
   modificationTime: number
@@ -55,7 +55,10 @@ function PhotoList(props: PhotoListProps) {
                   style={styles.imageView}
                   key={item.id}
                   onPress={async () => {
-                    //downloadPhoto(props, item)
+                    await MediaLibrary.getAssetInfoAsync(item).then((res) => {
+                      FileViewer.open(res.localUri || '')
+
+                    }).catch(err => {})
                   }}
                 >
                   <Image

@@ -209,7 +209,7 @@ export async function downloadPhoto(photo: any) {
   const type = photo.type.toLowerCase()
 
   return RNFetchBlob.config({
-    path: RNFetchBlob.fs.dirs.PictureDir + `.${type}`,
+    path: Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir + `.${type}` : RNFetchBlob.fs.dirs.PictureDir + `.${type}`,
     fileCache: true
   }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/download/photo/${photo.photoId}`, {
     'Authorization': `Bearer ${xToken}`,
