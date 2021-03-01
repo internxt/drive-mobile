@@ -15,10 +15,12 @@ import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
+import MenuItem from '../../components/MenuItem';
+import { layoutActions } from '../../redux/actions';
 
 export interface IHomeProps extends Reducers {
   navigation?: any
-  dispatch: Dispatch
+  dispatch: any
   photosState: PhotosState
   authenticationState: AuthenticationState
 }
@@ -59,7 +61,7 @@ function Home(props: IHomeProps): JSX.Element {
       <SortModal />
       <ComingSoonModal />
 
-      <AppMenuPhotos navigation={props.navigation} />
+      {/* <AppMenuPhotos navigation={props.navigation} /> */}
 
       <View style={styles.albumsContainer}>
         <View style={styles.albumsHeader}>
@@ -67,9 +69,15 @@ function Home(props: IHomeProps): JSX.Element {
           Albums
           </Text>
 
+          <MenuItem
+            name="settings"
+            onClickHandler={() => {
+              props.dispatch(layoutActions.openSettings());
+            }} />
+
         </View>
 
-        <View style={{ marginTop: 40 }}>
+        <View style={styles.createAlbumCard}>
           <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
         </View>
 
@@ -184,18 +192,22 @@ const styles = StyleSheet.create({
     marginBottom: wp('5')
   },
   albumsHeader: {
-    flex: 1,
+    height: 50,
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   title: {
     fontFamily: 'Averta-Bold',
     fontSize: 18,
     letterSpacing: -0.13,
     color: 'black',
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     height: 30,
     marginLeft: 7
+  },
+  createAlbumCard: {
+
   },
   emptyContainer: {
     alignItems: 'center',

@@ -1,7 +1,7 @@
 import { getDocumentAsync } from 'expo-document-picker';
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker';
 import React, { Fragment, useState, useRef, useEffect } from 'react'
-import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-native'
+import { View, StyleSheet, Platform, TextInput, Image, Alert, SafeAreaView } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system';
@@ -194,7 +194,7 @@ function AppMenuPhotos(props: AppMenuProps) {
     }
   }
 
-  return <View
+  return <SafeAreaView
     style={styles.container}>
 
     <View style={[styles.searchContainer, { display: activeSearchBox ? 'flex' : 'none' }]}>
@@ -310,7 +310,7 @@ function AppMenuPhotos(props: AppMenuProps) {
           }} />
       </View>
     </Fragment>
-  </View>
+  </SafeAreaView>
 }
 
 const styles = StyleSheet.create({
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     backgroundColor: '#fff',
     paddingTop: 3,
-    marginTop: Platform.OS === 'ios' ? 40 : 0,
+    marginTop: Platform.OS === 'ios' ? 50 : 0,
     position: 'absolute',
     width: '100%'
   },
