@@ -5,7 +5,7 @@ import { IPhoto, IPreview } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
 import { IHashedPhoto } from '../../screens/Home/init'
-
+import lodash from 'lodash'
 export interface PhotosState {
   cursor: number
   loading: boolean
@@ -69,7 +69,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       isLoading: false,
-      localPhotos: action.payload
+      localPhotos: lodash.concat(state.localPhotos, action.payload)
     }
 
   case photoActionTypes.SET_UPLOADED_FOTOS:

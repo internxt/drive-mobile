@@ -16,6 +16,7 @@ import { LayoutState } from '../../redux/reducers/layout.reducer';
 import lodash from 'lodash'
 import { IPreview } from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
+import { getLocalImages } from '../Home/init';
 
 interface IPhotoGallery {
   route: any;
@@ -102,6 +103,10 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
         !isLoading ?
           <FlatList
             data={photosToRender}
+            onEndReachedThreshold={0.1}
+            onEndReached={() => {
+              getLocalImages(props.dispatch, props.photosState.localPhotos[props.photosState.localPhotos.length - 1].id)
+            }}
             renderItem={({ item }) => {
               return <Photo photo={item} id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
             }}

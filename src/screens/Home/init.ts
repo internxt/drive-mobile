@@ -159,10 +159,18 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
     })
 }
 
-export function getLocalImages(dispatch: Dispatch) {
+export function getAssetAsyncLocalPhotos() {
+
+}
+
+export function getLocalImages(dispatch: Dispatch, after?: string) {
   return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
     .then(() => {
-      return MediaLibrary.getAssetsAsync({ first: 1000000 });
+      if (after) {
+        return MediaLibrary.getAssetsAsync({ first: 39, after });
+      } else {
+        return MediaLibrary.getAssetsAsync({ first: 39 });
+      }
     })
     .then((res) => {
       return getArrayPhotos(res.assets).then(res => {
