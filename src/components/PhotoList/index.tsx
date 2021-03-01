@@ -7,6 +7,9 @@ import { WaveIndicator } from 'react-native-indicators'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import * as MediaLibrary from 'expo-media-library';
 import FileViewer from 'react-native-file-viewer';
+import AlbumView from '../../screens/AlbumView';
+import { PhotosState } from '../../redux/reducers/photos.reducer';
+import { getLocalImages } from '../../screens/Home/init';
 export interface IPhoto {
   id: string
   modificationTime: number
@@ -28,7 +31,7 @@ export interface IPreview {
 interface PhotoListProps {
   title: string
   photos: IPhoto[]
-  photosState?: any
+  photosState: PhotosState
   authenticationState?: any
   dispatch?: any
   navigation: any
@@ -49,6 +52,10 @@ function PhotoList(props: PhotoListProps) {
         !isLoading ?
           <FlatList
             data={props.photos}
+            //onEndReachedThreshold={0.1}
+            //onEndReached={() => {
+            //  getLocalImages(props.dispatch, false, props.photosState.localPhotos[props.photosState.localPhotos.length - 1].id)
+            //}}
             renderItem={({ item }) => {
               return (
                 <TouchableOpacity
@@ -73,7 +80,10 @@ function PhotoList(props: PhotoListProps) {
             numColumns={3}
           />
           :
-          <WaveIndicator color="#5291ff" size={50} />
+          <View style={styles.emptyContainer}>
+            <Text style={styles.heading}>Loading photos from gallery...</Text>
+            <WaveIndicator color="#5291ff" size={50} />
+          </View>
       }
     </View>
   )
@@ -93,6 +103,17 @@ const styles = StyleSheet.create({
   },
   flatList: {
     paddingHorizontal: wp('0.5')
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    backgroundColor: '#fff'
+  },
+  heading: {
+    fontFamily: 'Averta-Regular',
+    fontSize: wp('4.5'),
+    letterSpacing: -0.8,
+    color: '#000000',
+    marginVertical: 10
   }
 })
 

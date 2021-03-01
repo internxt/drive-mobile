@@ -5,7 +5,7 @@ import { IPhoto, IPreview } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
 import { IHashedPhoto } from '../../screens/Home/init'
-
+import lodash from 'lodash'
 export interface PhotosState {
   cursor: number
   loading: boolean
@@ -14,6 +14,7 @@ export interface PhotosState {
   loadingDeleted: boolean
   albums: any
   localPhotos: IHashedPhoto[]
+  localPhotosGallery: IHashedPhoto[]
   uploadedPhotos: IHashedPhoto[]
   previews: IPreview[]
   selectedPhotosForAlbum: ImageOrVideo[]
@@ -42,6 +43,7 @@ const initialState: PhotosState = {
   loadingPhotos: true,
   loadingDeleted: true,
   localPhotos: [],
+  localPhotosGallery: [],
   uploadedPhotos: [],
   previews: [],
   selectedPhotosForAlbum: [],
@@ -69,7 +71,14 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       isLoading: false,
-      localPhotos: action.payload
+      localPhotos: lodash.concat(state.localPhotos, action.payload)
+    }
+
+  case photoActionTypes.SET_LOCAL_PHOTOS_GALLERY:
+    return {
+      ...state,
+      isLoading: false,
+      localPhotosGallery: lodash.concat(state.localPhotosGallery, action.payload)
     }
 
   case photoActionTypes.SET_UPLOADED_FOTOS:
@@ -303,6 +312,11 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       previews: [...state.previews, action.payload]
+    }
+  case photoActionTypes.CLEAR_LOCAL_PHOTOS:
+    return {
+      ...state,
+      localPhotos: []
     }
   default:
     return state;

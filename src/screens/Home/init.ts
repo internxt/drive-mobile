@@ -159,15 +159,28 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
     })
 }
 
-export function getLocalImages(dispatch: Dispatch) {
+export function getAssetAsyncLocalPhotos() {
+
+}
+
+export function getLocalImages(dispatch: Dispatch, gallery: boolean, after?: string) {
   return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
     .then(() => {
-      return MediaLibrary.getAssetsAsync({ first: 1000000 });
+      if (after) {
+        return MediaLibrary.getAssetsAsync({ first: 39, after });
+      }
+
+      return MediaLibrary.getAssetsAsync({ first: 100000 });
     })
-    .then((res) => {
-      return getArrayPhotos(res.assets).then(res => {
-        dispatch(PhotoActions.setAllLocalPhotos(res))
+    .then(async (res) => {
+      await getArrayPhotos(res.assets).then(res => {
+        if (gallery) {
+          dispatch(PhotoActions.setAllLocalPhotosGallery(res))
+        } else {
+          dispatch(PhotoActions.setAllLocalPhotos(res))
+        }
       })
+      return res.endCursor
     })
 }
 

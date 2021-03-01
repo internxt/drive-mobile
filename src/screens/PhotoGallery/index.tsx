@@ -16,6 +16,7 @@ import { LayoutState } from '../../redux/reducers/layout.reducer';
 import lodash from 'lodash'
 import { IPreview } from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
+import { getLocalImages } from '../Home/init';
 
 interface IPhotoGallery {
   route: any;
@@ -30,8 +31,10 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
   const previewImages = props.photosState.previews
   const localImages = props.photosState.localPhotos
   const uploadedImages = props.photosState.uploadedPhotos
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [photosToRender, setPhotosToRender] = useState<IPreview[]>([])
+  const [endCursor, setEndCursor] = useState('')
 
   const doIntersections = () => {
     // Map the arrays to add a key to know later which icon it needs
@@ -60,6 +63,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
   }
 
   useEffect(() => {
+    //getLocalImages(props.dispatch, true).then(() => setIsLoading(false))
     const x = photosToRenderList()
 
     setPhotosToRender(x)
@@ -70,7 +74,6 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
     const x = photosToRenderList()
 
     setPhotosToRender(x)
-    setIsLoading(false)
   }, [props.photosState.previews])
 
   return (
@@ -78,7 +81,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
 
       <AlbumDetailsModal />
       <AddItemToModal />
-      <PhotoDetailsModal />
+      {/* <PhotoDetailsModal /> */}
 
       <View style={styles.albumHeader}>
         <BackButton navigation={props.navigation} />
@@ -102,6 +105,16 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
         !isLoading ?
           <FlatList
             data={photosToRender}
+            //onEndReachedThreshold={0.1}
+            //onEndReached={() => {
+            //  setIsLoadingMore(true)
+            //  if (props.photosState.localPhotos) {
+            //    getLocalImages(props.dispatch, true, endCursor).then(res => {
+            //      setEndCursor(res)
+            //      setIsLoadingMore(false)
+            //    })
+            //  }
+            //}}
             renderItem={({ item }) => {
               return <Photo photo={item} id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
             }}
@@ -111,6 +124,14 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
           />
           :
           <WaveIndicator color="#5291ff" size={50} />
+      }
+      {
+        isLoadingMore ?
+          <View style={{ marginTop: 30 }}>
+            <WaveIndicator color="#5291ff" size={50} />
+          </View>
+          :
+          null
       }
     </SafeAreaView>
   );
@@ -149,7 +170,11 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   titleWrapper: {
-    display: 'flex'
+    display: 'flex',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: -2
   },
   flatList: {
     paddingHorizontal: wp('0.5')

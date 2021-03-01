@@ -33,7 +33,8 @@ export const PhotoActions = {
   setAllLocalPhotos,
   setAllUploadedPhotos,
   setSelectedPhotos,
-  pushPreview
+  pushPreview,
+  setAllLocalPhotosGallery
 };
 
 function setIsLoading(value: boolean) {
@@ -335,4 +336,8 @@ function setAllUploadedPhotos(photos: IPhoto[]) {
 
 function pushPreview(preview: IPreview) {
   return { type: photoActionTypes.PUSH_PREVIEW, payload: preview }
+}
+
+function setAllLocalPhotosGallery(photos: IPhoto[]) {
+  return { type: photoActionTypes.SET_LOCAL_PHOTOS_GALLERY, payload: photos }
 }

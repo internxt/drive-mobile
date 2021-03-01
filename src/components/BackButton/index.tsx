@@ -9,6 +9,7 @@ import {
   Pressable
 } from 'react-native';
 import { useLinkProps, useNavigation } from '@react-navigation/native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 export interface BackButtonProps {
     style?: any
@@ -32,12 +33,12 @@ export function BackButton(props: BackButtonProps): JSX.Element {
   }
 
   return (
-    <Pressable
+    <TouchableOpacity
       style={styles.buttonWrapper}
       onPress={goBack}
     >
       <Image style={styles.icon} source={iconArrowBack} />
-    </Pressable>
+    </TouchableOpacity>
   );
 }
 
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     justifyContent: 'center',
-    alignItems: 'flex-start'
+    alignItems: 'center'
   },
   icon: {
     height: 18,
