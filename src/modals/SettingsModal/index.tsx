@@ -196,13 +196,13 @@ function SettingsModal(props: SettingsModalProps) {
         }}
       />
 
-      <SettingsItem
+      {/* <SettingsItem
         text="Storage"
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
           props.navigation.replace('Storage')
         }}
-      />
+      /> */}
 
       <SettingsItem
         text="Contact"
