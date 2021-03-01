@@ -31,7 +31,7 @@ function Home(props: IHomeProps): JSX.Element {
   const init = async () => {
     getPreviews(props).catch(() => {})
     await Promise.all([
-      getLocalImages(props.dispatch),
+      getLocalImages(props.dispatch, false),
       getUploadedPhotos(props.authenticationState, props.dispatch)
     ]).then(() => {
       setIsLoading(false)
@@ -101,9 +101,9 @@ function Home(props: IHomeProps): JSX.Element {
       <View style={styles.allPhotosContainer}>
         <TouchableOpacity style={styles.titleButton}
           onPress={() => {
-            getLocalImages(props.dispatch, false).then(() => {
-              props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
-            })
+            //getLocalImages(props.dispatch, true).then(() => {
+            props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
+            //})
           }}
           disabled={isLoading}>
           <Text style={styles.title}>All photos</Text>
@@ -127,7 +127,10 @@ function Home(props: IHomeProps): JSX.Element {
               }
             </View>
             :
-            <WaveIndicator color="#5291ff" size={50} />
+            <View style={styles.emptyContainer}>
+              <Text style={styles.heading}>Loading photos from gallery...</Text>
+              <WaveIndicator color="#5291ff" size={50} />
+            </View>
         }
       </View>
 
@@ -220,7 +223,8 @@ const styles = StyleSheet.create({
     fontSize: wp('4.5'),
     letterSpacing: -0.8,
     color: '#000000',
-    marginTop: 10
+    marginTop: 10,
+    marginBottom: 30
   },
   subheading: {
     fontFamily: 'CircularStd-Book',

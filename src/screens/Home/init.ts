@@ -168,9 +168,9 @@ export function getLocalImages(dispatch: Dispatch, gallery: boolean, after?: str
     .then(() => {
       if (after) {
         return MediaLibrary.getAssetsAsync({ first: 39, after });
-      } else {
-        return MediaLibrary.getAssetsAsync({ first: 39 });
       }
+
+      return MediaLibrary.getAssetsAsync({ first: 100000 });
     })
     .then(async (res) => {
       await getArrayPhotos(res.assets).then(res => {
