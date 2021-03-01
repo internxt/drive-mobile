@@ -27,6 +27,7 @@ function Home(props: IHomeProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
   const init = async () => {
+    getPreviews(props).catch(() => {})
     await Promise.all([
       getLocalImages(props.dispatch),
       getUploadedPhotos(props.authenticationState, props.dispatch)
@@ -37,14 +38,19 @@ function Home(props: IHomeProps): JSX.Element {
 
   useEffect(() => {
     init()
-    getPreviews(props)
   }, []);
 
   useEffect(() => {
     if (props.photosState.localPhotos) {
       syncPhotos(props.photosState.localPhotos, props)
     }
-  }, [props.photosState.localPhotos]);
+  }, [props.photosState.localPhotos])
+
+  useEffect(() => {
+    if (!props.authenticationState.loggedIn) {
+      props.navigation.replace('Login')
+    }
+  }, [props.authenticationState.loggedIn])
 
   return (
     <SafeAreaView style={styles.container}>
