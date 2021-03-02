@@ -43,9 +43,9 @@ function Home(props: IHomeProps): JSX.Element {
     if (!xPhotos) {
       photosUserData(props.authenticationState).then(async res => {
         await deviceStorage.saveItem('xPhotos', JSON.stringify(res));
-        init()
       })
     }
+    init()
   }
 
   useEffect(()=>{
