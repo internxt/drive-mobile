@@ -82,7 +82,6 @@ function AppMenu(props: AppMenuProps) {
         ])
         .uploadProgress({ count: 10 }, async (sent, total) => {
           props.dispatch(fileActions.uploadFileSetProgress(sent / total, result.id))
-          //console.log('--- UPLOAD PROGRESS appmenu ---', sent / total, '(sent)', sent, '(total)', total )
 
           if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
             props.dispatch(fileActions.removeUploadingFile(result.id))

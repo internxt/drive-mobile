@@ -47,6 +47,7 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
         userId: userData.user.uuid,
         platform: 'mobile'
       }).catch(() => { })
+
     }).catch(() => { })
     return { type: userActionTypes.SIGNIN_SUCCESS, payload: userData };
   }
