@@ -13,6 +13,8 @@ import { Dispatch } from 'redux';
 import { IHomeProps } from './'
 import { store } from '../../store';
 import SimpleToast from 'react-native-simple-toast';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { getHeaders } from '../../helpers/headers';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -318,4 +320,39 @@ export function getPreviews(props: IHomeProps): Promise<any> {
       });
     });
   });
+}
+
+export async function initializePhotosUser(token: string, mnemonic: string): Promise<any> {
+  const xUser = await deviceStorage.getItem('xUser')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const email = xUserJson.email
+
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
+    method: 'POST',
+    headers: getHeaders(token, mnemonic),
+    body: JSON.stringify({
+      email: email,
+      mnemonic: mnemonic
+    })
+  }).then(res => {
+    return res.json()
+  })
+}
+
+export async function photosUserData(authenticationState: AuthenticationState): Promise<any> {
+  const token = authenticationState.token;
+  const mnemonic = authenticationState.user.mnemonic;
+  const headers = getHeaders(token, mnemonic)
+
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/user`, {
+    method: 'GET',
+    headers
+  }).then(res => {
+    if (res.status === 400) {
+      return initializePhotosUser(token, mnemonic)
+    }
+    return res.json()
+  }).then(res => {
+    return res
+  })
 }

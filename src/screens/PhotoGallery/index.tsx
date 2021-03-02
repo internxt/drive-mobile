@@ -108,7 +108,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
             //onEndReachedThreshold={0.1}
             //onEndReached={() => {
             //  setIsLoadingMore(true)
-            //  if (props.photosState.localPhotos) {
+            // if (props.photosState.localPhotos) {
             //    getLocalImages(props.dispatch, true, endCursor).then(res => {
             //      setEndCursor(res)
             //      setIsLoadingMore(false)

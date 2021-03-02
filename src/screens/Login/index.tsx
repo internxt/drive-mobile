@@ -140,7 +140,7 @@ function Login(props: LoginProps): JSX.Element {
         <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>Forgot your password?</Text>
       </View>
     </View>
-    <Text style={styles.versionLabel}>Internxt Drive v1.3.0</Text>
+    <Text style={styles.versionLabel}>Internxt Drive v1.3.0 (1)</Text>
   </KeyboardAvoidingView>
 }
 
