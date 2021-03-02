@@ -46,7 +46,6 @@ function Home(props: IHomeProps): JSX.Element {
         init()
       })
     }
-
   }
 
   useEffect(()=>{

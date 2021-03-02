@@ -172,7 +172,7 @@ export function getLocalImages(dispatch: Dispatch, gallery: boolean, after?: str
         return MediaLibrary.getAssetsAsync({ first: 39, after });
       }
 
-      return MediaLibrary.getAssetsAsync({ first: 39 });
+      return MediaLibrary.getAssetsAsync({ first: 100000 });
     })
     .then(async (res) => {
       await getArrayPhotos(res.assets).then(res => {
@@ -342,11 +342,7 @@ export async function initializePhotosUser(token: string, mnemonic: string): Pro
 export async function photosUserData(authenticationState: AuthenticationState): Promise<any> {
   const token = authenticationState.token;
   const mnemonic = authenticationState.user.mnemonic;
-  const headers = {
-    'Authorization': `Bearer ${token}`,
-    'internxt-mnemonic': mnemonic,
-    'Content-Type': 'application/json; charset=utf-8'
-  };
+  const headers = getHeaders(token, mnemonic)
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/user`, {
     method: 'GET',
