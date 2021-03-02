@@ -177,21 +177,14 @@ function SettingsModal(props: SettingsModalProps) {
       <SettingsItem
         text={props.layoutState.currentApp === 'Home' ? 'Drive' : 'Photos'}
         onPress={async () => {
+
           props.dispatch(layoutActions.closeSettings())
 
           if (props.layoutState.currentApp === 'Home') {
             props.navigation.replace('FileExplorer')
           } else {
-            const xPhotos = await deviceStorage.getItem('xPhotos')
+            props.navigation.replace('Home')
 
-            if (xPhotos) {
-              props.navigation.replace('Home')
-            } else {
-              photosUserData(props.authenticationState).then(async res => {
-                await deviceStorage.saveItem('xPhotos', JSON.stringify(res));
-                props.navigation.replace('Home')
-              })
-            }
           }
         }}
       />

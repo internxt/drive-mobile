@@ -29,7 +29,7 @@ interface IPhotoGallery {
 
 function PhotoGallery(props: IPhotoGallery): JSX.Element {
   const previewImages = props.photosState.previews
-  const localImages = props.photosState.localPhotos
+  const localImages = props.photosState.localPhotosGallery
   const uploadedImages = props.photosState.uploadedPhotos
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -59,11 +59,11 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
 
     const missingPhotos = lodash.intersectionBy(previewImages, onlyCloud, 'photoId').map(photo => ({ ...photo, isSynced: false, isUploaded: true }))
 
-    return lodash.concat(onlyLocal, synced, missingPhotos)
+    return lodash.concat(onlyLocal, synced)
   }
 
   useEffect(() => {
-    //getLocalImages(props.dispatch, true).then(() => setIsLoading(false))
+    getLocalImages(props.dispatch, true).then(() => setIsLoading(false))
     const x = photosToRenderList()
 
     setPhotosToRender(x)
@@ -105,16 +105,16 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
         !isLoading ?
           <FlatList
             data={photosToRender}
-            //onEndReachedThreshold={0.1}
-            //onEndReached={() => {
-            //  setIsLoadingMore(true)
-            //  if (props.photosState.localPhotos) {
-            //    getLocalImages(props.dispatch, true, endCursor).then(res => {
-            //      setEndCursor(res)
-            //      setIsLoadingMore(false)
-            //    })
-            //  }
-            //}}
+            onEndReachedThreshold={0.1}
+            onEndReached={() => {
+              setIsLoadingMore(true)
+              if (props.photosState.localPhotos) {
+                getLocalImages(props.dispatch, true, endCursor).then(res => {
+                  setEndCursor(res)
+                  setIsLoadingMore(false)
+                })
+              }
+            }}
             renderItem={({ item }) => {
               return <Photo photo={item} id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
             }}
