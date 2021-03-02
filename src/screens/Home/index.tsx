@@ -1,22 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import { Text, View, StyleSheet, SafeAreaView } from 'react-native'
 import { connect } from 'react-redux';
-import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
 import { Reducers } from '../../redux/reducers/reducers';
 import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
-import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { Dispatch } from 'redux';
-import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews, stopSync } from './init'
+import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews, stopSync, photosUserData } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
-import { layoutActions, PhotoActions } from '../../redux/actions';
+import { layoutActions } from '../../redux/actions';
+import { deviceStorage } from '../../helpers';
 
 export interface IHomeProps extends Reducers {
   navigation?: any
@@ -38,9 +37,20 @@ function Home(props: IHomeProps): JSX.Element {
     })
   }
 
-  useEffect(() => {
+  const initUser = async () =>{
+    const xPhotos = await deviceStorage.getItem('xPhotos')
+
+    if (!xPhotos) {
+      photosUserData(props.authenticationState).then(async res => {
+        await deviceStorage.saveItem('xPhotos', JSON.stringify(res));
+      })
+    }
     init()
-  }, []);
+  }
+
+  useEffect(()=>{
+    initUser()
+  }, [])
 
   useEffect(() => {
     if (props.photosState.localPhotos) {
@@ -108,7 +118,6 @@ function Home(props: IHomeProps): JSX.Element {
           disabled={isLoading}>
           <Text style={styles.title}>All photos</Text>
         </TouchableOpacity>
-
         {
           !isLoading ?
             <View>
