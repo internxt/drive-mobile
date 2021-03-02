@@ -17,8 +17,6 @@ function hasMediaAccessPermissions() {
 }
 
 export async function getDevicePhotos(rootAlbumId: any, cursor: string) {
-  const data;
-
   const hasPermission = await hasMediaAccessPermissions();
 
   if (!hasPermission) {
@@ -29,7 +27,7 @@ export async function getDevicePhotos(rootAlbumId: any, cursor: string) {
     }
   }
 
-  data = await MediaLibrary.getAssetsAsync({
+  const data = await MediaLibrary.getAssetsAsync({
     sortBy: [MediaLibrary.SortBy.creationTime],
     first: 20,
     after: cursor.toString()
