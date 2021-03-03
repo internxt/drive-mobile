@@ -23,7 +23,7 @@ export interface IHashedPhoto extends Asset {
   isUploaded?: boolean
 }
 
-const getArrayPhotos = async(images: Asset[]) => {
+const getArrayPhotos = async (images: Asset[]) => {
   const result: Promise<IHashedPhoto[]> = mapSeries(images, async (image, next) => {
     const asset = await getAssetInfoAsync(image)
     const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
@@ -54,7 +54,7 @@ export function syncPhotos(images: IHashedPhoto[], props: any) {
   })
 }
 
-export async function uploadPhoto (result: any, props: any) {
+export async function uploadPhoto(result: any, props: any) {
 
   try {
     // Set name for pics/photos
@@ -62,8 +62,8 @@ export async function uploadPhoto (result: any, props: any) {
       result.name = result.split('/').pop();
     }
 
-    const token = props.authenticationState.token;
-    const mnemonic = props.authenticationState.user.mnemonic;
+    const token = props.token;
+    const mnemonic = props.mnemonic;
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm
 
     const body = new FormData();
@@ -244,7 +244,7 @@ export async function downloadPhoto(photo: any) {
   })
 }
 
-export const downloadPreview = async(preview: any, props: IHomeProps) => {
+export const downloadPreview = async (preview: any, props: IHomeProps) => {
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -276,7 +276,7 @@ export const downloadPreview = async(preview: any, props: IHomeProps) => {
   })
 }
 
-export const getArrayPreviews = async(props: any) => {
+export const getArrayPreviews = async (props: any) => {
   return new Promise(async (resolve, reject) => {
 
     const token = props.authenticationState.token;
@@ -322,37 +322,60 @@ export function getPreviews(props: IHomeProps): Promise<any> {
   });
 }
 
-export async function initializePhotosUser(token: string, mnemonic: string): Promise<any> {
+export async function initializePhotosUser(): Promise<any> {
   const xUser = await deviceStorage.getItem('xUser')
+  const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
-  const email = xUserJson.email
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
-    method: 'POST',
-    headers: getHeaders(token, mnemonic),
-    body: JSON.stringify({
-      email: email,
-      mnemonic: mnemonic
-    })
-  }).then(res => {
-    return res.json()
-  })
+    method: 'GET',
+    headers: getHeaders(xToken || '', xUserJson.mnemonic)
+  }).then(res => res.json())
 }
 
-export async function photosUserData(authenticationState: AuthenticationState): Promise<any> {
-  const token = authenticationState.token;
-  const mnemonic = authenticationState.user.mnemonic;
-  const headers = getHeaders(token, mnemonic)
+export async function photosUserData(): Promise<any> {
+  const xUser = await deviceStorage.getItem('xUser')
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const headers = getHeaders(xToken || '', xUserJson.mnemonic)
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/user`, {
     method: 'GET',
     headers
   }).then(res => {
-    if (res.status === 400) {
-      return initializePhotosUser(token, mnemonic)
+    if (res.status !== 200) {
+      throw Error();
     }
     return res.json()
-  }).then(res => {
-    return res
   })
+}
+
+export async function isUserInitialized() {
+  return photosUserData()
+    .then((res) => {
+      if (!res.rootPreviewId || !res.rootAlbumId) {
+        return false;
+      }
+      return true;
+    })
+    .catch(() => false);
+}
+
+export async function initUser(): Promise<void> {
+
+  const xPhotos = await deviceStorage.getItem('xPhotos');
+
+  if (xPhotos) {
+    return;
+  }
+
+  const isInitialized = await isUserInitialized()
+
+  if (!isInitialized) {
+    await initializePhotosUser()
+  }
+
+  const infoUserPhoto = await photosUserData();
+
+  await deviceStorage.saveItem('xPhotos', JSON.stringify(infoUserPhoto))
 }

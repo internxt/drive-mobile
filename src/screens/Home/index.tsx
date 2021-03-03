@@ -8,7 +8,7 @@ import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews, stopSync, photosUserData } from './init'
+import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews, stopSync, photosUserData, initializePhotosUser, initUser } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
@@ -37,24 +37,13 @@ function Home(props: IHomeProps): JSX.Element {
     })
   }
 
-  const initUser = async () =>{
-    const xPhotos = await deviceStorage.getItem('xPhotos')
-
-    if (!xPhotos) {
-      photosUserData(props.authenticationState).then(async res => {
-        await deviceStorage.saveItem('xPhotos', JSON.stringify(res));
-      })
-    }
-    init()
-  }
-
   useEffect(()=>{
     initUser()
   }, [])
 
   useEffect(() => {
     if (props.photosState.localPhotos) {
-      syncPhotos(props.photosState.localPhotos, props)
+      //syncPhotos(props.photosState.localPhotos, props)
     }
   }, [props.photosState.localPhotos])
 
@@ -91,21 +80,6 @@ function Home(props: IHomeProps): JSX.Element {
           <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
         </View>
 
-        {/* {props.photosState.albums.length > 0 ?
-          <View style={styles.titleButton}>
-            <FlatList
-              keyExtractor={keyExtractor}
-              renderItem={renderAlbumItem}
-              data={props.photosState.albums}
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-            ></FlatList>
-          </View>
-          :
-          <View style={{ marginTop: 40 }}>
-            <CreateAlbumCard navigation={props.navigation} />
-          </View>
-        } */}
       </View>
 
       <View style={styles.allPhotosContainer}>
@@ -143,38 +117,6 @@ function Home(props: IHomeProps): JSX.Element {
         }
       </View>
 
-      {/* <View style={styles.albumsContainer}>
-        <View style={styles.albumHeader}>
-          <Text style={styles.title}>
-          Uploaded photos
-          </Text>
-
-          <Pressable
-            onPress={() => {
-            }}
-          >
-            <Text style={styles.albumsSort}>
-              {props.photosState.sortType}
-            </Text>
-          </Pressable>
-        </View>
-
-        <TouchableHighlight
-          style={styles.titleButton}
-          underlayColor="#FFF"
-          onPress={() => { props.navigation.navigate('PhotoGallery', { title: 'Uploaded photos' }) }}
-        >
-          { props.photosState.previews ?
-            <PhotoList
-              title={'Uploaded photos'}
-              photos={props.photosState.previews}
-              navigation={props.navigation}
-            />
-            :
-            <WaveIndicator color="#5291ff" size={50} />
-          }
-        </TouchableHighlight>
-      </View> */}
     </SafeAreaView>
   )
 }
