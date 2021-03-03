@@ -242,17 +242,6 @@ function uploadPhotos(user: any, photos: any) {
   }
 }
 
-function setSortFunction(sortType) {
-  const sortFunc = photoService.getSortFunction(sortType);
-
-  return (dispatch: Dispatch) => {
-    dispatch({
-      type: photoActionTypes.SET_SORT_TYPE,
-      payload: [sortType, sortFunc]
-    });
-  };
-}
-
 function setSearchString(searchString: string) {
   return (dispatch: Dispatch) => {
     dispatch({
@@ -340,4 +329,8 @@ function pushPreview(preview: IPreview) {
 
 function setAllLocalPhotosGallery(photos: IPhoto[]) {
   return { type: photoActionTypes.SET_LOCAL_PHOTOS_GALLERY, payload: photos }
+}
+
+function setSortFunction(sortType: string) {
+  return { type: photoActionTypes.SET_SORT_TYPE, payload: sortType }
 }

@@ -55,7 +55,7 @@ const initialState: PhotosState = {
   selectedPhoto: null,
   selectedAlbum: null,
   selectedItems: [],
-  sortType: 'Name',
+  sortType: 'all',
   albumListSortType: 'Name',
   sortFunction: null,
   searchString: '',
@@ -232,8 +232,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
   case photoActionTypes.SET_SORT_TYPE:
     return {
       ...state,
-      sortType: action.payload[0],
-      sortFunction: action.payload[1]
+      sortType: action.payload
     };
 
   case photoActionTypes.SET_SEARCH_STRING:
