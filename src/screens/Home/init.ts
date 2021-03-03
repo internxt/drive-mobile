@@ -165,24 +165,23 @@ export function getAssetAsyncLocalPhotos() {
 
 }
 
-export function getLocalImages(dispatch: Dispatch, gallery: boolean, after?: string) {
+export function getLocalImages(dispatch: Dispatch, after?: string) {
   return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
     .then(() => {
       if (after) {
         return MediaLibrary.getAssetsAsync({ first: 39, after });
       }
 
-      return MediaLibrary.getAssetsAsync({ first: 100000 });
+      return MediaLibrary.getAssetsAsync({ first: 39 });
     })
     .then(async (res) => {
-      await getArrayPhotos(res.assets).then(res => {
-        if (gallery) {
-          dispatch(PhotoActions.setAllLocalPhotosGallery(res))
-        } else {
-          dispatch(PhotoActions.setAllLocalPhotos(res))
-        }
+      const assets = res
+      let images: IHashedPhoto[] = []
+
+      await getArrayPhotos(res.assets).then(photos => {
+        images = photos
       })
-      return res.endCursor
+      return { assets, images }
     })
 }
 
@@ -252,7 +251,7 @@ export const downloadPreview = async(preview: any, props: IHomeProps) => {
   const name = preview.name
 
   return RNFetchBlob.config({
-    path: Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir + name + '.' + typePreview : RNFetchBlob.fs.dirs.PictureDir + name + '.' + typePreview,
+    path: Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir + name + '.' + typePreview : RNFetchBlob.fs.dirs.CacheDir + name + '.' + typePreview,
     fileCache: true
   }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
     'Authorization': `Bearer ${xToken}`,

@@ -30,7 +30,7 @@ function Home(props: IHomeProps): JSX.Element {
   const init = async () => {
     getPreviews(props).catch(() => {})
     await Promise.all([
-      getLocalImages(props.dispatch, false),
+      getLocalImages(props.dispatch),
       getUploadedPhotos(props.authenticationState, props.dispatch)
     ]).then(() => {
       setIsLoading(false)
@@ -54,7 +54,7 @@ function Home(props: IHomeProps): JSX.Element {
 
   useEffect(() => {
     if (props.photosState.localPhotos) {
-      syncPhotos(props.photosState.localPhotos, props)
+      //syncPhotos(props.photosState.localPhotos, props)
     }
   }, [props.photosState.localPhotos])
 
@@ -111,9 +111,7 @@ function Home(props: IHomeProps): JSX.Element {
       <View style={styles.allPhotosContainer}>
         <TouchableOpacity style={styles.titleButton}
           onPress={() => {
-            //getLocalImages(props.dispatch, true).then(() => {
             props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
-            //})
           }}
           disabled={isLoading}>
           <Text style={styles.title}>All photos</Text>
