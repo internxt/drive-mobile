@@ -4,7 +4,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import * as MediaLibrary from 'expo-media-library';
 import FileViewer from 'react-native-file-viewer';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { downloadPhoto } from '../Home/init';
+import { downloadPhoto, IHashedPhoto } from '../Home/init';
 import { MaterialIndicator } from 'react-native-indicators';
 import { connect } from 'react-redux';
 
@@ -15,6 +15,7 @@ export interface IAlbumImage {
   isUploaded: string
   photo: any
   dispatch: any
+  handleSelection: (photoUri: string) => void
 }
 
 const deviceWidth = Dimensions.get('window').width
@@ -41,10 +42,7 @@ function Photo(props: IAlbumImage): JSX.Element {
         key={props.id}
         onPress={async () => {
           if (props.id) {
-            await MediaLibrary.getAssetInfoAsync(props).then((res) => {
-              FileViewer.open(res.localUri || '')
-
-            }).catch(err => {})
+            props.handleSelection(props.uri)
 
           } else {
             setIsDownloading(true)

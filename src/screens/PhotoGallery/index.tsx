@@ -13,6 +13,8 @@ import lodash from 'lodash'
 import { WaveIndicator } from 'react-native-indicators';
 import { getLocalImages, IHashedPhoto } from '../Home/init';
 import SortModalPhotos from '../../modals/SortModal/SortModalPhotos';
+import ImageViewerModal from '../../modals/ImageViewerModal';
+import { IImageInfo } from 'react-native-image-zoom-viewer/built/image-viewer.type';
 
 interface IPhotoGallery {
   route: any;
@@ -34,6 +36,20 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
 
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+
+  const [isOpen, setIsOpen] = useState(false)
+  const [selectedPhotos, setSelectedPhotos] = useState<IImageInfo[]>([])
+
+  const handleSelection = (photoUri: string) => {
+    const photo = [{ url: photoUri }]
+
+    setSelectedPhotos(photo)
+    setIsOpen(true)
+  }
+
+  const handleClose = () => {
+    setIsOpen(false)
+  }
 
   // Map the arrays to add a key to know later which icon it needs
   const doIntersections = (photos: IHashedPhoto[]) => {
@@ -87,6 +103,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
       <AddItemToModal />
       <SortModalPhotos />
       {/* <PhotoDetailsModal /> */}
+      <ImageViewerModal isOpen={isOpen} handleClose={handleClose} photos={selectedPhotos} />
 
       <View style={styles.header}>
         <BackButton navigation={props.navigation} />
@@ -134,7 +151,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
               }
             }}
             renderItem={({ item }) => {
-              return <Photo photo={item} id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
+              return <Photo photo={item} id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} handleSelection={handleSelection} />
             }}
             numColumns={4}
             keyExtractor={(item, index) => index.toString()}
