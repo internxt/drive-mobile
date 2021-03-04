@@ -63,7 +63,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
     // Share link on native share system
     await Share.share({
       title: 'Internxt Drive file sharing',
-      message: `Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple, private and eco-friendly cloud storage service https://internxt.com/drive \nI wanted to share a file (${file.name}) with you through this private link (${inputValue} total uses) -no sign up required: ${link}`
+      message: `Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple and private cloud storage service https://internxt.com/drive \nI wanted to share a file (${file.name}) with you through this private link (${inputValue} total uses), no sign up required: ${link}`
     });
   };
 
@@ -182,11 +182,12 @@ const styles = StyleSheet.create({
   linkContainer: {
     flex: 0.8,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    borderWidth: 1
   },
   link: {
     fontSize: 14,
-    marginHorizontal: wp('2'),
+    marginHorizontal: 4,
     color: '#737880'
   },
   buttonContainer: {
