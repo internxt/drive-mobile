@@ -32,7 +32,7 @@ function Photos(props: IPhotosProps): JSX.Element {
     getLocalImages(after).then(res => {
       setEndCursor(res.endCursor);
       if (after) {
-        setPhotos([...photos, res.assets])
+        setPhotos(photos.concat(res.assets))
       } else {
         setPhotos(res.assets)
       }
@@ -102,6 +102,9 @@ function Photos(props: IPhotosProps): JSX.Element {
                     navigation={props.navigation}
                     onRefresh={() => {
                       getNextImages();
+                    }}
+                    onEndReached={() => {
+                      getNextImages(endCursor);
                     }}
                   />
                   :

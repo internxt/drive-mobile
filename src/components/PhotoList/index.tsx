@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Image, Text, ScrollView, Dimensions, RefreshControl } from 'react-native';
+import { StyleSheet, View, Image, Text, ScrollView, Dimensions, RefreshControl, FlatListProps } from 'react-native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
@@ -28,14 +28,13 @@ export interface IPreview {
   localUri: string
 }
 
-interface PhotoListProps {
+interface PhotoListProps extends FlatListProps<MediaLibrary.Asset> {
   title: string
   photos: IPhoto[]
   photosState: PhotosState
   authenticationState?: any
   dispatch?: any
   navigation: any
-  onRefresh?: any
 }
 
 const deviceWidth = Dimensions.get('window').width
@@ -59,10 +58,12 @@ function PhotoList(props: PhotoListProps) {
               }}
             />}
             data={props.photos}
-            //onEndReachedThreshold={0.1}
-            //onEndReached={() => {
-            //  getLocalImages(props.dispatch, false, props.photosState.localPhotos[props.photosState.localPhotos.length - 1].id)
-            //}}
+            onEndReachedThreshold={0.1}
+            onEndReached={(e) => {
+              if (props.onEndReached) {
+                props.onEndReached(e);
+              }
+            }}
             renderItem={({ item }) => {
               return (
                 <TouchableOpacity
@@ -82,7 +83,7 @@ function PhotoList(props: PhotoListProps) {
               )
             }}
             contentContainerStyle={styles.flatList}
-            keyExtractor={(item, index) => index.toString()}
+            keyExtractor={(item) => item.id}
             numColumns={3}
           />
           :
