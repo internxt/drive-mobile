@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Image, Text, ScrollView, Dimensions } from 'react-native';
+import { StyleSheet, View, Image, Text, ScrollView, Dimensions, RefreshControl } from 'react-native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
@@ -9,7 +9,7 @@ import * as MediaLibrary from 'expo-media-library';
 import FileViewer from 'react-native-file-viewer';
 import AlbumView from '../../screens/AlbumView';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
-import { getLocalImages } from '../../screens/Home/init';
+
 export interface IPhoto {
   id: string
   modificationTime: number
@@ -35,18 +35,29 @@ interface PhotoListProps {
   authenticationState?: any
   dispatch?: any
   navigation: any
+  onRefresh?: any
 }
 
 const deviceWidth = Dimensions.get('window').width
 
 function PhotoList(props: PhotoListProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   return (
     <View style={styles.container}>
       {
         !isLoading ?
           <FlatList
+            refreshControl={<RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                if (props.onRefresh) {
+                  props.onRefresh();
+                }
+                setRefreshing(false)
+              }}
+            />}
             data={props.photos}
             //onEndReachedThreshold={0.1}
             //onEndReached={() => {
@@ -60,7 +71,7 @@ function PhotoList(props: PhotoListProps) {
                   onPress={async () => {
                     await MediaLibrary.getAssetInfoAsync(item).then((res) => {
                       FileViewer.open(res.localUri || '')
-                    }).catch(err => {})
+                    }).catch(err => { })
                   }}
                 >
                   <Image
@@ -75,10 +86,16 @@ function PhotoList(props: PhotoListProps) {
             numColumns={3}
           />
           :
-          <View style={styles.emptyContainer}>
+          <ScrollView
+            style={styles.emptyContainer}
+            refreshControl={<RefreshControl refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(false)
+              }}
+            />}>
             <Text style={styles.heading}>Loading photos from gallery...</Text>
             <WaveIndicator color="#5291ff" size={50} />
-          </View>
+          </ScrollView>
       }
     </View>
   )
@@ -101,7 +118,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     alignItems: 'center',
-    backgroundColor: '#fff'
+    backgroundColor: '#f00'
   },
   heading: {
     fontFamily: 'Averta-Regular',

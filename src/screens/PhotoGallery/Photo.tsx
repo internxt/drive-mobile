@@ -4,7 +4,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import * as MediaLibrary from 'expo-media-library';
 import FileViewer from 'react-native-file-viewer';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { downloadPhoto } from '../Home/init';
+import { downloadPhoto } from '../Photos/init';
 import { MaterialIndicator } from 'react-native-indicators';
 import { connect } from 'react-redux';
 

@@ -165,7 +165,7 @@ export async function getAssetsAsync(opts: MediaLibrary.AssetsOptions) {
   return MediaLibrary.getAssetsAsync(opts);
 }
 
-type PhotosCallback = (data: MediaLibrary.PagedInfo<Asset>) => void;
+type PhotosCallback = (data: MediaLibrary.PagedInfo<Asset>, next: any) => void;
 
 export async function getLocalPhotosGenerator(cb: PhotosCallback) {
   // OJOCUIDAO: CHECK PERMISSIONS
@@ -173,37 +173,37 @@ export async function getLocalPhotosGenerator(cb: PhotosCallback) {
 
   let cursor: string | undefined = undefined;
 
-  const task = () => MediaLibrary.getAssetsAsync({ first: 1, after: cursor })
+  const task = (nextPhoto) => {
+    MediaLibrary.getAssetsAsync({ first: 1, after: cursor }).then(res => nextPhoto(null, res));
+  }
 
   const test = (results: MediaLibrary.PagedInfo<Asset>, next: any) => {
     const shouldContinue = !results.hasNextPage;
 
     cursor = results.endCursor;
 
-    cb(results);
-
-    next(null, shouldContinue);
+    cb(results, (err) => next(err, shouldContinue));
   }
 
   return async.doUntil(task, test)
 }
 
-export function getLocalImages(): Promise<any[]> {
+export function getLocalImages(after?: string | undefined) {
   const result = {
+    endCursor: undefined,
     assets: [],
-    hasNextPage: false,
-    endCursor: null
-  }
+    hasNextPage: false
+  };
 
   return Permissions.askAsync(Permissions.MEDIA_LIBRARY).then(() => {
-    // TODO: Revisar
-    return MediaLibrary.getAssetsAsync({ first: 2 });
+    return MediaLibrary.getAssetsAsync({ first: 30, after: after });
   }).then((res) => {
-    result.endCursor = res.endCursor;
     result.hasNextPage = res.hasNextPage;
+    result.endCursor = res.endCursor;
+
     return getArrayPhotos(res.assets)
   }).then(res => {
-    result.assets = res;
+    result.assets = res
     return result;
   });
 }

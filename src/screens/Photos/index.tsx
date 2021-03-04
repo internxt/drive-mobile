@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, SafeAreaView, AppState, AppStateStatus, Button } from 'react-native'
+import { Text, View, StyleSheet, SafeAreaView } from 'react-native'
 import { connect } from 'react-redux';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
@@ -8,14 +8,13 @@ import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews, stopSync, photosUserData, initializePhotosUser, initUser, IHashedPhoto, getLocalPhotosGenerator, getLocalPhotosIterator } from './init'
+import { stopSync, initUser, getLocalImages, IHashedPhoto } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
-import { Asset, getAssetInfoAsync } from 'expo-media-library';
 
 export interface IPhotosProps extends Reducers {
   navigation?: any
@@ -26,33 +25,22 @@ export interface IPhotosProps extends Reducers {
 
 function Photos(props: IPhotosProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [photos, setPhotos] = useState<Asset[]>([]);
+  const [photos, setPhotos] = useState<IHashedPhoto[]>([]);
+  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
 
-  const cursorTest = () => {
-    console.log('cursor test')
-    getLocalPhotosGenerator(async (data) => {
-      const newData = photos;
-
-      const newPhoto = await getAssetInfoAsync(data)
-
-      newData.push(...data.assets);
-
-      console.log('set photo')
-      setPhotos(newData);
-    });
-  };
-
-  const init = () => {
-    cursorTest();
-    /*
-    getLocalImages().then(res => {
-      setPhotos(res.assets)
+  const getNextImages = (after?: string | undefined) => {
+    getLocalImages(after).then(res => {
+      setEndCursor(res.endCursor);
+      if (after) {
+        setPhotos([...photos, res.assets])
+      } else {
+        setPhotos(res.assets)
+      }
     }).finally(() => setIsLoading(false));
-    */
   }
 
   const reloadLocalPhotos = () => {
-    initUser().finally(() => init());
+    initUser().finally(() => getNextImages());
   };
 
   useEffect(() => {
@@ -112,6 +100,9 @@ function Photos(props: IPhotosProps): JSX.Element {
                     title={'All Photos'}
                     photos={photos}
                     navigation={props.navigation}
+                    onRefresh={() => {
+                      getNextImages();
+                    }}
                   />
                   :
                   <View style={styles.emptyContainer}>

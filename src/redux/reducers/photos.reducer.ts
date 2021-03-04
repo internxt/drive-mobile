@@ -4,7 +4,7 @@ import { IAlbum } from '../../components/AlbumList';
 import { IPhoto, IPreview } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
-import { IHashedPhoto } from '../../screens/Home/init'
+import { IHashedPhoto } from '../../screens/Photos/init'
 import lodash from 'lodash'
 export interface PhotosState {
   cursor: number
