@@ -54,7 +54,7 @@ function Home(props: IHomeProps): JSX.Element {
   }, [props.authenticationState.loggedIn])
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.mainContainer}>
       <SettingsModal navigation={props.navigation} />
       <SortModal />
       <ComingSoonModal />
@@ -71,17 +71,17 @@ function Home(props: IHomeProps): JSX.Element {
             name="settings"
             onClickHandler={() => {
               props.dispatch(layoutActions.openSettings());
-            }} />
-
+            }}
+          />
         </View>
 
-        <View style={styles.createAlbumCard}>
+        <View style={styles.albumCardContainer}>
           <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
         </View>
 
       </View>
 
-      <View style={styles.allPhotosContainer}>
+      <View style={styles.allPhotos}>
         <TouchableOpacity style={styles.titleButton}
           onPress={() => {
             props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
@@ -89,6 +89,7 @@ function Home(props: IHomeProps): JSX.Element {
           disabled={isLoading}>
           <Text style={styles.title}>All photos</Text>
         </TouchableOpacity>
+
         {
           !isLoading ?
             <View>
@@ -125,42 +126,42 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(Home)
 
 const styles = StyleSheet.create({
-  container: {
-    height: '100%',
+  mainContainer: {
+    flex: 1,
     justifyContent: 'flex-start',
     backgroundColor: '#fff'
+  },
+  albumsContainer: {
+    flex: 0.4
+  },
+  albumsHeader: {
+    height: 50,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginLeft: 5
+  },
+  albumCardContainer: {
+    alignItems: 'center',
+    height: 'auto',
+    width: '100%',
+    marginTop: 24
+  },
+  allPhotos: {
+    flex: 0.6,
+    marginBottom: wp('5')
   },
   titleButton: {
     flexDirection: 'row',
     paddingHorizontal: wp('1'),
     marginBottom: wp('1')
   },
-  albumsContainer: {
-    height: '40%',
-    paddingVertical: wp('3.5'),
-    paddingHorizontal: wp('1')
-  },
-  allPhotosContainer: {
-    flex: 1,
-    marginBottom: wp('5')
-  },
-  albumsHeader: {
-    height: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
   title: {
     fontFamily: 'Averta-Bold',
     fontSize: 18,
     letterSpacing: -0.13,
     color: 'black',
-    alignSelf: 'center',
-    height: 30,
-    marginLeft: 7
-  },
-  createAlbumCard: {
-
+    alignSelf: 'flex-end',
+    marginLeft: wp('2')
   },
   emptyContainer: {
     alignItems: 'center',
