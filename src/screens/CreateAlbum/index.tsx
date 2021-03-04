@@ -3,36 +3,41 @@ import { Alert, FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-nat
 import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
-import SelectPhotoModal from '../../modals/SelectPhotoModal';
-import { WaveIndicator } from 'react-native-indicators'
-import AlbumImage from '../PhotoGallery/Photo';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
-import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
-import { PhotoActions } from '../../redux/actions/photo.actions';
-import Photo from '../PhotoGallery/Photo';
+import { LayoutState } from '../../redux/reducers/layout.reducer';
+import SelectivePhoto from './SelectivePhoto';
+import { IHashedPhoto } from '../Home/init';
 
 interface CreateAlbumProps {
   route: any;
-  navigation?: any
-  photosState?: PhotosState
+  navigation: any
+  photosState: PhotosState
   dispatch: Dispatch,
-  layoutState?: any
+  layoutState: LayoutState
   authenticationState?: any
 }
 
 function CreateAlbum(props: CreateAlbumProps): JSX.Element {
+  const photos = props.photosState.localPhotos
   const [albumTitle, setAlbumTitle] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-  const [images, setImages] = useState<ImageOrVideo[]>([]);
+  const [selectedPhotos, setSelectedPhotos] = useState<IHashedPhoto[]>([])
 
-  useEffect(() => {
-    if (props.photosState) {
-      setImages(props.photosState.selectedPhotosForAlbum)
-      setIsLoading(false)
+  const handleSelection = (selectedPhoto: IHashedPhoto) => {
+    const currentSelectedPhotos = selectedPhotos
+    const isAlreadySelected = currentSelectedPhotos.find(photo => photo === selectedPhoto)
+
+    if (isAlreadySelected) {
+      const newSelectedPhotos = currentSelectedPhotos.filter(photo => photo === selectedPhoto ? null : photo)
+
+      setSelectedPhotos(newSelectedPhotos)
+
+    } else {
+      currentSelectedPhotos.push(selectedPhoto)
+      setSelectedPhotos(currentSelectedPhotos)
     }
-  }, [props.photosState && props.photosState.selectedPhotosForAlbum])
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,7 +55,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
         <TouchableOpacity style={styles.nextBtn}
           onPress={() => {
             if (albumTitle) {
-
+              Alert.alert('Album name: ' + albumTitle + ' | Selected photos: ' + selectedPhotos.length)
               //props.dispatch(PhotoActions.)
             } else {
               Alert.alert('Album name is required')
@@ -66,18 +71,13 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
       </Text>
 
       {
-        !isLoading ?
-          <FlatList
-            data={images}
-            renderItem={({ item }) => {
-              return <Photo id={item.localIdentifier} uri={item.sourceURL} />
-            }}
-            numColumns={3}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={styles.flatList}
-          />
-          :
-          <WaveIndicator color="#5291ff" size={50} />
+        <FlatList
+          data={photos}
+          renderItem={({ item }) => <SelectivePhoto photo={item} handleSelection={handleSelection} />}
+          numColumns={4}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.flatList}
+        />
       }
     </SafeAreaView>
   );

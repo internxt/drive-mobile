@@ -30,6 +30,9 @@ export interface ISelectedPhotos {
   creationDate?: string
   modificationDate: string
   dispatch: any
+  style?: StyleProp<ViewStyle>
+  album?: any
+  navigation: any
 }
 
 // TODO: Add album param
@@ -41,14 +44,7 @@ function CreateAlbumCard(props: ISelectedPhotos): JSX.Element {
       underlayColor="#fff"
       style={styles.albumCard}
       onPress={() => {
-        props.dispatch(layoutActions.openComingSoonModal())
-        /* ImagePicker.openPicker({
-          multiple: true,
-          maxFiles: 0
-        }).then(res => {
-          props.dispatch(PhotoActions.setSelectedPhotos(res))
-          props.navigation.navigate('CreateAlbum')
-        }).catch(() => {}) */
+        props.navigation.push('CreateAlbum')
       }}
     >
       <View style={styles.card}>
