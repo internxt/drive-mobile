@@ -196,7 +196,7 @@ export function getLocalImages(after?: string | undefined) {
   };
 
   return Permissions.askAsync(Permissions.MEDIA_LIBRARY).then(() => {
-    return MediaLibrary.getAssetsAsync({ first: 30, after: after });
+    return MediaLibrary.getAssetsAsync({ first: 20, after: after });
   }).then((res) => {
     result.hasNextPage = res.hasNextPage;
     result.endCursor = res.endCursor;

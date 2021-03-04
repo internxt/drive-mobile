@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Image, Text, ScrollView, Dimensions, RefreshControl, FlatListProps } from 'react-native';
+import { StyleSheet, View, Image, Text, ScrollView, Dimensions, RefreshControl, FlatListProps, ActivityIndicator } from 'react-native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
@@ -42,50 +42,61 @@ const deviceWidth = Dimensions.get('window').width
 function PhotoList(props: PhotoListProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadMore, setLoadMore] = useState(true);
+
+  useEffect(() => {
+    setLoadMore(false);
+  }, [props.photos])
 
   return (
     <View style={styles.container}>
       {
         !isLoading ?
-          <FlatList
-            refreshControl={<RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => {
-                if (props.onRefresh) {
-                  props.onRefresh();
+          <>
+            <FlatList
+              refreshControl={<RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => {
+                  if (props.onRefresh) {
+                    props.onRefresh();
+                  }
+                  setRefreshing(false)
+                }}
+              />}
+              data={props.photos}
+              onEndReachedThreshold={0.1}
+              onEndReached={(e) => {
+                if (props.onEndReached) {
+                  setLoadMore(true);
+                  props.onEndReached(e);
                 }
-                setRefreshing(false)
               }}
-            />}
-            data={props.photos}
-            onEndReachedThreshold={0.1}
-            onEndReached={(e) => {
-              if (props.onEndReached) {
-                props.onEndReached(e);
-              }
-            }}
-            renderItem={({ item }) => {
-              return (
-                <TouchableOpacity
-                  style={styles.imageView}
-                  key={item.id}
-                  onPress={async () => {
-                    await MediaLibrary.getAssetInfoAsync(item).then((res) => {
-                      FileViewer.open(res.localUri || '')
-                    }).catch(err => { })
-                  }}
-                >
-                  <Image
-                    style={styles.image}
-                    source={{ uri: item.localUri }}
-                  />
-                </TouchableOpacity>
-              )
-            }}
-            contentContainerStyle={styles.flatList}
-            keyExtractor={(item) => item.id}
-            numColumns={3}
-          />
+              renderItem={({ item }) => {
+                return (
+                  <TouchableOpacity
+                    style={styles.imageView}
+                    key={item.id}
+                    onPress={async () => {
+                      await MediaLibrary.getAssetInfoAsync(item).then((res) => {
+                        FileViewer.open(res.localUri || '')
+                      }).catch(err => { })
+                    }}
+                  >
+                    <Image
+                      style={styles.image}
+                      source={{ uri: item.localUri }}
+                    />
+                  </TouchableOpacity>
+                )
+              }}
+              contentContainerStyle={styles.flatList}
+              keyExtractor={(item) => item.id}
+              numColumns={3}
+            />
+            <View>
+              {loadMore ? <ActivityIndicator /> : <></>}
+            </View>
+          </>
           :
           <ScrollView
             style={styles.emptyContainer}

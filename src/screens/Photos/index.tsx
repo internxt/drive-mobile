@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Text, View, StyleSheet, SafeAreaView } from 'react-native'
 import { connect } from 'react-redux';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -31,11 +31,7 @@ function Photos(props: IPhotosProps): JSX.Element {
   const getNextImages = (after?: string | undefined) => {
     getLocalImages(after).then(res => {
       setEndCursor(res.endCursor);
-      if (after) {
-        setPhotos(photos.concat(res.assets))
-      } else {
-        setPhotos(res.assets)
-      }
+      setPhotos(after ? photos.concat(res.assets) : res.assets)
     }).finally(() => setIsLoading(false));
   }
 
