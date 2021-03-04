@@ -102,6 +102,7 @@ function PhotoList(props: PhotoListProps) {
 }
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     marginBottom: wp('5')
   },
   imageView: {
