@@ -40,11 +40,7 @@ interface PhotoListProps {
 const deviceWidth = Dimensions.get('window').width
 
 function PhotoList(props: PhotoListProps) {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setIsLoading(props.photosState.isLoading)
-  }, [props.photosState.localPhotos]);
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -64,7 +60,6 @@ function PhotoList(props: PhotoListProps) {
                   onPress={async () => {
                     await MediaLibrary.getAssetInfoAsync(item).then((res) => {
                       FileViewer.open(res.localUri || '')
-
                     }).catch(err => {})
                   }}
                 >

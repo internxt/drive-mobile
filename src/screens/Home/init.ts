@@ -24,6 +24,7 @@ export interface IHashedPhoto extends Asset {
 }
 
 const getArrayPhotos = async (images: Asset[]) => {
+  // TODO: Revisar async/next
   const result: Promise<IHashedPhoto[]> = mapSeries(images, async (image, next) => {
     const asset = await getAssetInfoAsync(image)
     const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
@@ -165,25 +166,74 @@ export function getAssetAsyncLocalPhotos() {
 
 }
 
-export function getLocalImages(dispatch: Dispatch, gallery: boolean, after?: string) {
-  return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
-    .then(() => {
-      if (after) {
-        return MediaLibrary.getAssetsAsync({ first: 39, after });
-      }
+export async function* getLocalPhotosIterator() {
+  await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
 
-      return MediaLibrary.getAssetsAsync({ first: 100000 });
-    })
-    .then(async (res) => {
-      await getArrayPhotos(res.assets).then(res => {
-        if (gallery) {
-          dispatch(PhotoActions.setAllLocalPhotosGallery(res))
-        } else {
-          dispatch(PhotoActions.setAllLocalPhotos(res))
-        }
-      })
-      return res.endCursor
-    })
+  const fin = false;
+  const cursor = undefined;
+  let counter = 5;
+
+  while (counter > 0) {
+    /*
+    const photos: MediaLibrary.PagedInfo<Asset> = await MediaLibrary.getAssetsAsync({
+      first: 1,
+      after: cursor
+    });
+
+    fin = photos.hasNextPage;
+    cursor = photos.endCursor;
+    */
+    yield await Promise.resolve('photos');
+    counter--;
+  }
+}
+
+export async function* getLocalPhotosGenerator() {
+  await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
+
+  let cursor = undefined;
+  let end = false;
+
+  while (!end) {
+    const result = {
+      assets: [],
+      hasNextPage: false,
+      endCursor: null
+    }
+
+    const photos = await MediaLibrary.getAssetsAsync({ after: cursor }).then((res) => {
+      result.endCursor = res.endCursor;
+      result.hasNextPage = res.hasNextPage;
+      cursor = res.endCursor;
+      end = !res.hasNextPage;
+      return getArrayPhotos(res.assets)
+    }).then(res => {
+      result.assets = res;
+      return result;
+    });
+
+    yield photos;
+  }
+}
+
+export function getLocalImages(): Promise<IHashedPhoto[]> {
+  const result = {
+    assets: [],
+    hasNextPage: false,
+    endCursor: null
+  }
+
+  return Permissions.askAsync(Permissions.MEDIA_LIBRARY).then(() => {
+    // TODO: Revisar
+    return MediaLibrary.getAssetsAsync({ first: 2 });
+  }).then((res) => {
+    result.endCursor = res.endCursor;
+    result.hasNextPage = res.hasNextPage;
+    return getArrayPhotos(res.assets)
+  }).then(res => {
+    result.assets = res;
+    return result;
+  });
 }
 
 export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch): Promise<any> {
@@ -276,28 +326,21 @@ export const downloadPreview = async (preview: any, props: IHomeProps) => {
   })
 }
 
-export const getArrayPreviews = async (props: any) => {
-  return new Promise(async (resolve, reject) => {
+export function getArrayPreviews(props: any): Promise<any[]> {
+  const token = props.authenticationState.token;
+  const mnemonic = props.authenticationState.user.mnemonic;
 
-    const token = props.authenticationState.token;
-    const mnemonic = props.authenticationState.user.mnemonic;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'internxt-mnemonic': mnemonic,
+    'Content-Type': 'application/json; charset=utf-8'
+  };
 
-    const headers = {
-      'Authorization': `Bearer ${token}`,
-      'internxt-mnemonic': mnemonic,
-      'Content-Type': 'application/json; charset=utf-8'
-    };
-
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/previews/`, {
-      method: 'GET',
-      headers
-    }).then(res => {
-      if (res.status !== 200) { throw res; }
-      return res.json();
-    }).then(async (res2) => {
-      resolve(res2)
-    })
-      .catch(reject);
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/previews/`, {
+    method: 'GET', headers
+  }).then(res => {
+    if (res.status !== 200) { throw res; }
+    return res.json();
   });
 }
 

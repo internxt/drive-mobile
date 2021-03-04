@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, SafeAreaView } from 'react-native'
+import { Text, View, StyleSheet, SafeAreaView, AppState, AppStateStatus, Button } from 'react-native'
 import { connect } from 'react-redux';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
@@ -8,14 +8,13 @@ import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews, stopSync, photosUserData, initializePhotosUser, initUser } from './init'
+import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews, stopSync, photosUserData, initializePhotosUser, initUser, IHashedPhoto, getLocalPhotosGenerator, getLocalPhotosIterator } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
-import { deviceStorage } from '../../helpers';
 
 export interface IHomeProps extends Reducers {
   navigation?: any
@@ -24,28 +23,46 @@ export interface IHomeProps extends Reducers {
   authenticationState: AuthenticationState
 }
 
+function fetchUsers() {
+  // yield await Promise.resolve(['kadhgf'])
+  return {
+    [Symbol.iterator]: () => {
+      return {
+        next: function () {
+          return { done: true }
+        }
+      }
+    }
+  }
+}
+
 function Home(props: IHomeProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [photos, setPhotos] = useState<IHashedPhoto[]>([]);
 
-  const init = async () => {
-    getPreviews(props).catch(() => {})
-    await Promise.all([
-      getLocalImages(props.dispatch, false),
-      getUploadedPhotos(props.authenticationState, props.dispatch)
-    ]).then(() => {
-      setIsLoading(false)
-    })
+  const cursorTest = async () => {
+    const fn = fetchUsers();
+
+    for await (const r of fn) {
+    }
+  };
+
+  const init = () => {
+    cursorTest();
+    /*
+    getLocalImages().then(res => {
+      setPhotos(res.assets)
+    }).finally(() => setIsLoading(false));
+    */
   }
 
-  useEffect(()=>{
-    initUser()
-  }, [])
+  const reloadLocalPhotos = () => {
+    initUser().finally(() => init());
+  };
 
   useEffect(() => {
-    if (props.photosState.localPhotos) {
-      //syncPhotos(props.photosState.localPhotos, props)
-    }
-  }, [props.photosState.localPhotos])
+    reloadLocalPhotos();
+  }, [])
 
   useEffect(() => {
     if (!props.authenticationState.loggedIn) {
@@ -65,7 +82,7 @@ function Home(props: IHomeProps): JSX.Element {
       <View style={styles.albumsContainer}>
         <View style={styles.albumsHeader}>
           <Text style={styles.title}>
-          Albums
+            Albums
           </Text>
 
           <MenuItem
@@ -85,9 +102,7 @@ function Home(props: IHomeProps): JSX.Element {
       <View style={styles.allPhotosContainer}>
         <TouchableOpacity style={styles.titleButton}
           onPress={() => {
-            //getLocalImages(props.dispatch, true).then(() => {
             props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
-            //})
           }}
           disabled={isLoading}>
           <Text style={styles.title}>All photos</Text>
@@ -96,10 +111,10 @@ function Home(props: IHomeProps): JSX.Element {
           !isLoading ?
             <View>
               {
-                props.photosState.localPhotos.length > 0 ?
+                photos.length > 0 ?
                   <PhotoList
                     title={'All Photos'}
-                    photos={props.photosState.localPhotos}
+                    photos={photos}
                     navigation={props.navigation}
                   />
                   :
