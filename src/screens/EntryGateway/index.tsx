@@ -13,7 +13,7 @@ function EntryPointGateway (props: any): JSX.Element {
 
   async function isLogged () {
     if (props.authenticationState.loggedIn === true) {
-      props.navigation.replace('Home', {
+      props.navigation.replace('Photos', {
         folderId: rootFolderId
       })
     } else {

@@ -15,36 +15,31 @@ import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
+import { Asset, getAssetInfoAsync } from 'expo-media-library';
 
-export interface IHomeProps extends Reducers {
+export interface IPhotosProps extends Reducers {
   navigation?: any
   dispatch: any
   photosState: PhotosState
   authenticationState: AuthenticationState
 }
 
-function fetchUsers() {
-  // yield await Promise.resolve(['kadhgf'])
-  return {
-    [Symbol.iterator]: () => {
-      return {
-        next: function () {
-          return { done: true }
-        }
-      }
-    }
-  }
-}
-
-function Home(props: IHomeProps): JSX.Element {
+function Photos(props: IPhotosProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [photos, setPhotos] = useState<IHashedPhoto[]>([]);
+  const [photos, setPhotos] = useState<Asset[]>([]);
 
-  const cursorTest = async () => {
-    const fn = fetchUsers();
+  const cursorTest = () => {
+    console.log('cursor test')
+    getLocalPhotosGenerator(async (data) => {
+      const newData = photos;
 
-    for await (const r of fn) {
-    }
+      const newPhoto = await getAssetInfoAsync(data)
+
+      newData.push(...data.assets);
+
+      console.log('set photo')
+      setPhotos(newData);
+    });
   };
 
   const init = () => {
@@ -61,6 +56,7 @@ function Home(props: IHomeProps): JSX.Element {
   };
 
   useEffect(() => {
+    setPhotos([])
     reloadLocalPhotos();
   }, [])
 
@@ -140,7 +136,7 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(Home)
+export default connect(mapStateToProps)(Photos)
 
 const styles = StyleSheet.create({
   container: {

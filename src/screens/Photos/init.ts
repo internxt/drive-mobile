@@ -5,16 +5,15 @@ import { Platform } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system'
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { PhotoActions, userActions } from '../../redux/actions';
 import { Dispatch } from 'redux';
-import { IHomeProps } from './'
+import { IPhotosProps } from '.'
 import { store } from '../../store';
 import SimpleToast from 'react-native-simple-toast';
-import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { getHeaders } from '../../helpers/headers';
+import async from 'async'
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -162,61 +161,34 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
     })
 }
 
-export function getAssetAsyncLocalPhotos() {
-
+export async function getAssetsAsync(opts: MediaLibrary.AssetsOptions) {
+  return MediaLibrary.getAssetsAsync(opts);
 }
 
-export async function* getLocalPhotosIterator() {
+type PhotosCallback = (data: MediaLibrary.PagedInfo<Asset>) => void;
+
+export async function getLocalPhotosGenerator(cb: PhotosCallback) {
+  // OJOCUIDAO: CHECK PERMISSIONS
   await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
 
-  const fin = false;
-  const cursor = undefined;
-  let counter = 5;
+  let cursor: string | undefined = undefined;
 
-  while (counter > 0) {
-    /*
-    const photos: MediaLibrary.PagedInfo<Asset> = await MediaLibrary.getAssetsAsync({
-      first: 1,
-      after: cursor
-    });
+  const task = () => MediaLibrary.getAssetsAsync({ first: 1, after: cursor })
 
-    fin = photos.hasNextPage;
-    cursor = photos.endCursor;
-    */
-    yield await Promise.resolve('photos');
-    counter--;
+  const test = (results: MediaLibrary.PagedInfo<Asset>, next: any) => {
+    const shouldContinue = !results.hasNextPage;
+
+    cursor = results.endCursor;
+
+    cb(results);
+
+    next(null, shouldContinue);
   }
+
+  return async.doUntil(task, test)
 }
 
-export async function* getLocalPhotosGenerator() {
-  await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
-
-  let cursor = undefined;
-  let end = false;
-
-  while (!end) {
-    const result = {
-      assets: [],
-      hasNextPage: false,
-      endCursor: null
-    }
-
-    const photos = await MediaLibrary.getAssetsAsync({ after: cursor }).then((res) => {
-      result.endCursor = res.endCursor;
-      result.hasNextPage = res.hasNextPage;
-      cursor = res.endCursor;
-      end = !res.hasNextPage;
-      return getArrayPhotos(res.assets)
-    }).then(res => {
-      result.assets = res;
-      return result;
-    });
-
-    yield photos;
-  }
-}
-
-export function getLocalImages(): Promise<IHashedPhoto[]> {
+export function getLocalImages(): Promise<any[]> {
   const result = {
     assets: [],
     hasNextPage: false,
@@ -294,7 +266,7 @@ export async function downloadPhoto(photo: any) {
   })
 }
 
-export const downloadPreview = async (preview: any, props: IHomeProps) => {
+export const downloadPreview = async (preview: any, props: IPhotosProps) => {
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -350,7 +322,7 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export function getPreviews(props: IHomeProps): Promise<any> {
+export function getPreviews(props: IPhotosProps): Promise<any> {
   SHOULD_STOP = false;
   return getArrayPreviews(props).then((res: any) => {
     return mapSeries(res, (preview, next) => {
