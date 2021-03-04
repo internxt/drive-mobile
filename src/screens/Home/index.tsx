@@ -8,14 +8,13 @@ import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews, stopSync, photosUserData, initializePhotosUser, initUser } from './init'
+import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews, stopSync, initUser } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
-import { deviceStorage } from '../../helpers';
 
 export interface IHomeProps extends Reducers {
   navigation?: any
@@ -29,7 +28,7 @@ function Home(props: IHomeProps): JSX.Element {
 
   const init = async () => {
     getPreviews(props).catch(() => {})
-    await Promise.all([
+    Promise.all([
       getLocalImages(props.dispatch),
       getUploadedPhotos(props.authenticationState, props.dispatch)
     ]).then(() => {
@@ -38,7 +37,7 @@ function Home(props: IHomeProps): JSX.Element {
   }
 
   useEffect(()=>{
-    initUser()
+    initUser().then(() => init())
   }, [])
 
   useEffect(() => {

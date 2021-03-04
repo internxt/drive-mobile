@@ -179,6 +179,7 @@ export function getLocalImages(dispatch: Dispatch, after?: string) {
       let images: IHashedPhoto[] = []
 
       await getArrayPhotos(res.assets).then(photos => {
+        dispatch(PhotoActions.setAllLocalPhotos(photos))
         images = photos
       })
       return { assets, images }
