@@ -15,6 +15,7 @@ import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
+import AlbumList from '../../components/AlbumList';
 
 export interface IHomeProps extends Reducers {
   navigation?: any
@@ -64,11 +65,11 @@ function Home(props: IHomeProps): JSX.Element {
       <View style={styles.albumsContainer}>
         <View style={styles.albumsHeader}>
           <Text style={styles.title}>
-          Albums
+            Albums
           </Text>
 
           <MenuItem
-            name="settings"
+            name="  "
             onClickHandler={() => {
               props.dispatch(layoutActions.openSettings());
             }}
@@ -76,7 +77,12 @@ function Home(props: IHomeProps): JSX.Element {
         </View>
 
         <View style={styles.albumCardContainer}>
-          <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
+          {
+            props.photosState.albums.length > 0 ?
+              <AlbumList navigation={props.navigation} />
+              :
+              <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
+          }
         </View>
 
       </View>
@@ -142,9 +148,10 @@ const styles = StyleSheet.create({
   },
   albumCardContainer: {
     alignItems: 'center',
-    height: 'auto',
+    height: 230,
     width: '100%',
-    marginTop: 24
+    marginTop: 24,
+    borderWidth: 1
   },
   allPhotos: {
     flex: 0.6,

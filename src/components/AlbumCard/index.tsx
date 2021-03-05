@@ -1,43 +1,46 @@
 import * as React from 'react';
 import { FlatList, Image, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Dispatch } from 'redux';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { LayoutState } from '../../redux/reducers/layout.reducer';
+import { PhotosState } from '../../redux/reducers/photos.reducer';
 
 export interface AlbumProps {
   style?: StyleProp<ViewStyle>
   album?: any
   withTitle: boolean
   navigation: any
-  photosState?: any
-  dispatch?: any,
-  layoutState?: any
-  authenticationState?: any
+  photosState: PhotosState
+  dispatch: Dispatch
+  layoutState: LayoutState
+  authenticationState: AuthenticationState
 }
 
 // TODO: Add album param
 export function AlbumCard(props: AlbumProps): JSX.Element {
 
-  const photos = props.photosState.photos;
+  const photos = props.photosState && props.photosState.localPhotos;
 
   const keyExtractor = (item: any, index: any) => index;
   const renderItem = ({ item }) => (
     <Image style={styles.icon} source={item} />
   );
 
-  const bigImg = photos[0];
-  const img1 = photos[1];
-  const img2 = photos[2];
+  const bigImg = 'file:///Users/internxt/Library/Developer/CoreSimulator/Devices/5238DEFF-AC91-43B6-AF4D-185C87891566/data/Media/DCIM/100APPLE/IMG_0199.PNG';
+  const img1 = 'file:///Users/internxt/Library/Developer/CoreSimulator/Devices/5238DEFF-AC91-43B6-AF4D-185C87891566/data/Media/DCIM/100APPLE/IMG_0200.PNG';
+  const img2 = 'file:///Users/internxt/Library/Developer/CoreSimulator/Devices/5238DEFF-AC91-43B6-AF4D-185C87891566/data/Media/DCIM/100APPLE/IMG_0195.PNG';
 
-  const newList = photos.slice(3, 12);
+  //const newList = photos.slice(3, 12);
 
   return (
     <View style={props.withTitle ? styles.cont : styles.contModal}>
-
       <View style={styles.wrapContent}>
         <View style={props.withTitle ? styles.container : styles.containerModal}>
           <View>
-            <Image style={styles.bigIcon} source={bigImg} />
+            <Image style={styles.bigIcon} source={{ uri: bigImg }} />
             <View style={styles.downimg}>
-              <Image style={styles.icon} source={img1} />
-              <Image style={styles.icon} source={img2} />
+              <Image style={styles.icon} source={{ uri: img1 }} />
+              <Image style={styles.icon} source={{ uri: img2 }} />
             </View>
           </View>
 
@@ -46,10 +49,10 @@ export function AlbumCard(props: AlbumProps): JSX.Element {
               style={styles.photoGrid}
               keyExtractor={keyExtractor}
               renderItem={renderItem}
-              data={newList}
+              data={photos}
               horizontal={false}
               numColumns={3}
-            ></FlatList>
+            />
           </View>
         </View>
       </View>

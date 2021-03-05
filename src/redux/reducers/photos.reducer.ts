@@ -12,7 +12,6 @@ export interface PhotosState {
   loadingAlbums: boolean
   loadingPhotos: boolean
   loadingDeleted: boolean
-  albums: any
   localPhotos: IHashedPhoto[]
   localPhotosGallery: IHashedPhoto[]
   uploadedPhotos: IHashedPhoto[]
@@ -34,6 +33,7 @@ export interface PhotosState {
   progress: number
   startDownloadSelectedPhoto: boolean
   error?: string | null
+  albums: IAlbum[]
 }
 
 const initialState: PhotosState = {
@@ -316,6 +316,12 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       localPhotos: []
+    }
+  case photoActionTypes.SAVE_ALBUM:
+    console.log('reducer', action.payload)
+    return {
+      ...state,
+      albums: [...state.albums, action.payload]
     }
   default:
     return state;

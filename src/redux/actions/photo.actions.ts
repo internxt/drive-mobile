@@ -1,6 +1,7 @@
 import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
 import { IPhoto, IPreview } from '../../components/PhotoList';
+import { IAlbum } from '../../screens/CreateAlbum';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { photoService } from '../services/photo.service';
 import { userActions } from './user.actions';
@@ -34,7 +35,8 @@ export const PhotoActions = {
   setAllUploadedPhotos,
   setSelectedPhotos,
   pushPreview,
-  setAllLocalPhotosGallery
+  setAllLocalPhotosGallery,
+  saveAlbum
 };
 
 function setIsLoading(value: boolean) {
@@ -333,4 +335,9 @@ function setAllLocalPhotosGallery(photos: IPhoto[]) {
 
 function setSortFunction(sortType: string) {
   return { type: photoActionTypes.SET_SORT_TYPE, payload: sortType }
+}
+
+function saveAlbum(album: IAlbum) {
+  //console.log('wtf', album)
+  return { type: photoActionTypes.SAVE_ALBUM, payload: album }
 }

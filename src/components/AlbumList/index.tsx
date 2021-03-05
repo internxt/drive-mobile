@@ -1,9 +1,12 @@
 import React from 'react'
-import { Text, StyleSheet, Pressable, View } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { render } from 'react-dom';
+import { Text, StyleSheet, View } from 'react-native';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { PhotosState } from '../../redux/reducers/photos.reducer';
 import AlbumCard from '../AlbumCard';
-import EmptyAlbum from '../EmptyAlbum';
 import { IPhoto } from '../PhotoList';
 
 export interface IAlbum {
@@ -19,15 +22,14 @@ export interface IAlbum {
 interface AlbumListProps {
     title: string
     photos: IPhoto[]
-    photosState?: any
-    authenticationState?: any
-    dispatch?: any
+    photosState: PhotosState
+    authenticationState: AuthenticationState
+    dispatch: Dispatch
     navigation: any
 }
 
 function AlbumList(props: AlbumListProps) {
-
-  let albumList: IPhoto[] = props.photos || [];
+  /* let albumList: IPhoto[] = props.photos || [];
 
   const searchString = props.photosState.searchString
 
@@ -43,32 +45,30 @@ function AlbumList(props: AlbumListProps) {
 
   const isUploading = props.photosState.isUploadingPhotoName
   const isEmptyAlbum = albumList.length === 0 && !isUploading
-
-  const keyExtractor = (item: any, index: any) => index.toString();
-
-  const renderAlbumItem = ({ item }) => (
-    <Pressable
+ */
+  const keyExtractor = (item: any, index: any) => index.toString()
+  const renderItem = (item) => (
+    <TouchableOpacity
       onPress={() => {
-        props.navigation.navigate('AlbumView', { title: item.name })
+        props.navigation.push('AlbumView', { title: item.name })
       }}
       onLongPress={() => { }}
     >
       <AlbumCard withTitle={true} navigation={props.navigation} />
-    </Pressable>
+    </TouchableOpacity>
+  )
 
-  );
+  const albums = props.photosState.albums || []
 
   return (
-    <View>
-      <View style={styles.photoScroll}>
-        <FlatList
-          keyExtractor={keyExtractor}
-          renderItem={renderAlbumItem}
-          data={props.photosState.photos}
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-        ></FlatList>
-      </View>
+    <View style={styles.photoScroll}>
+      <FlatList
+        keyExtractor={keyExtractor}
+        data={albums}
+        renderItem={({ item }) => renderItem(item) }
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+      ></FlatList>
     </View>
   )
 }
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'nowrap',
-    marginTop: 0
+    borderWidth: 1
   }
 })
 

@@ -9,14 +9,18 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import SelectivePhoto from './SelectivePhoto';
 import { IHashedPhoto } from '../Home/init';
+import { PhotoActions } from '../../redux/actions';
 
 interface CreateAlbumProps {
-  route: any;
   navigation: any
   photosState: PhotosState
   dispatch: Dispatch,
   layoutState: LayoutState
-  authenticationState?: any
+}
+
+export interface IAlbum {
+  title: string
+  photos: IHashedPhoto[]
 }
 
 function CreateAlbum(props: CreateAlbumProps): JSX.Element {
@@ -39,6 +43,10 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
     }
   }
 
+  useEffect(() => {
+    console.log('albums =>', props.photosState.albums)
+  }, [props.photosState.albums])
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.albumHeader}>
@@ -55,8 +63,11 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
         <TouchableOpacity style={styles.nextBtn}
           onPress={() => {
             if (albumTitle) {
-              Alert.alert('Album name: ' + albumTitle + ' | Selected photos: ' + selectedPhotos.length)
-              //props.dispatch(PhotoActions.)
+              //Alert.alert('Album name: ' + albumTitle + ' | Selected photos: ' + selectedPhotos.length)
+              const album = { title: albumTitle, photos: selectedPhotos }
+
+              props.dispatch(PhotoActions.saveAlbum(album))
+              //setSelectedPhotos([])
             } else {
               Alert.alert('Album name is required')
             }
