@@ -5,6 +5,7 @@ import { BackButton } from '../../components/BackButton';
 import { layoutActions } from '../../redux/actions';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
+import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
 import Photo from './Photo';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -15,6 +16,8 @@ import { LayoutState } from '../../redux/reducers/layout.reducer';
 import lodash from 'lodash'
 import { IPreview } from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
+import { getOldLocalImages } from '../Photos/init';
+
 interface IPhotoGallery {
   route: any;
   navigation: any
@@ -31,6 +34,7 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [photosToRender, setPhotosToRender] = useState<IPreview[]>([])
+  const [endCursor, setEndCursor] = useState('')
 
   const doIntersections = () => {
     // Map the arrays to add a key to know later which icon it needs
@@ -59,7 +63,10 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
   }
 
   useEffect(() => {
-    //getLocalImages(props.dispatch, true).then(() => setIsLoading(false))
+    getOldLocalImages(props.dispatch, true).then(() => {
+      setPhotosToRender(props.photosState.localPhotosGallery)
+      setIsLoading(false)
+    })
     const x = photosToRenderList()
 
     setPhotosToRender(x)

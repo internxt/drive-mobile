@@ -7,7 +7,7 @@ import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
-import { PhotoActions, userActions } from '../../redux/actions';
+import { PhotoActions } from '../../redux/actions';
 import { Dispatch } from 'redux';
 import { IPhotosProps } from '.'
 import { store } from '../../store';
@@ -50,20 +50,21 @@ export function syncPhotos(images: IHashedPhoto[], props: any) {
       name: image.filename
     }
 
-    return uploadPhoto(photo, props).then(() => next(null)).catch(next)
+    uploadPhoto(photo).then(() => next(null)).catch(next)
   })
 }
 
-export async function uploadPhoto(result: any, props: any) {
-
+export async function uploadPhoto(result: any) {
   try {
     // Set name for pics/photos
     if (!result.name) {
       result.name = result.split('/').pop();
     }
 
-    const token = props.token;
-    const mnemonic = props.mnemonic;
+    const xUser = await deviceStorage.getItem('xUser')
+    const xToken = await deviceStorage.getItem('xToken')
+    const xUserJson = JSON.parse(xUser || '{}')
+
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm
 
     const body = new FormData();
@@ -71,8 +72,8 @@ export async function uploadPhoto(result: any, props: any) {
     body.append('xfile', result, result.name);
 
     const headers = {
-      'Authorization': `Bearer ${token}`,
-      'internxt-mnemonic': mnemonic,
+      'Authorization': `Bearer ${xToken}`,
+      'internxt-mnemonic': xUserJson.mnemonic,
       'Content-Type': 'multipart/form-data'
     };
 
@@ -111,10 +112,9 @@ export async function uploadPhoto(result: any, props: any) {
           photoId: res.id
         };
 
-        return uploadPreview(preview, props, headers);
+        return uploadPreview(preview);
       })
       .catch((err) => {
-
       })
 
   } catch (err) {
@@ -122,7 +122,7 @@ export async function uploadPhoto(result: any, props: any) {
   }
 }
 
-const uploadPreview = async (preview: any, props: any, headers: any) => {
+const uploadPreview = async (preview: any) => {
   const body = new FormData();
 
   preview.uri.replace('file:///', 'file:/');
@@ -132,6 +132,15 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
 
   const regex = /^(.*:\/{0,2})\/?(.*)$/gm
   const file = preview.uri.replace(regex, '$2')
+
+  const xUser = await deviceStorage.getItem('xUser')
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const headers = {
+    'Authorization': `Bearer ${xToken}`,
+    'internxt-mnemonic': xUserJson.mnemonic,
+    'Content-Type': 'multipart/form-data'
+  };
 
   const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(preview.uri);
 
@@ -208,34 +217,49 @@ export function getLocalImages(after?: string | undefined) {
   });
 }
 
-export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch): Promise<any> {
-  return new Promise(async (resolve, reject) => {
+export function getOldLocalImages(dispatch: Dispatch, gallery: boolean, after?: string) {
+  return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
+    .then(() => {
+      if (after) {
+        return MediaLibrary.getAssetsAsync({ first: 39, after });
+      }
 
-    const email = authenticationState.user.email
-    const token = authenticationState.token;
-    const mnemonic = authenticationState.user.mnemonic;
-
-    const headers = {
-      'Authorization': `Bearer ${token}`,
-      'internxt-mnemonic': mnemonic,
-      'Content-Type': 'application/json; charset=utf-8'
-    };
-
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photos/${email}`, {
-      method: 'GET',
-      headers
-    }).then(res => {
-      if (res.status !== 200) { throw res; }
-      return res.json();
-    }).then(async res => {
-
-      dispatch(PhotoActions.setAllUploadedPhotos(res))
-      return resolve(res)
+      return MediaLibrary.getAssetsAsync({ first: 100000 });
     })
-      .catch(err => {
-        reject
-      });
-  });
+    .then(async (res) => {
+      await getArrayPhotos(res.assets).then(res => {
+        if (gallery) {
+          dispatch(PhotoActions.setAllLocalPhotosGallery(res))
+        } else {
+          dispatch(PhotoActions.setAllLocalPhotos(res))
+        }
+      })
+      return res.endCursor
+    })
+}
+
+export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch): Promise<any> {
+  const token = authenticationState.token;
+  const mnemonic = authenticationState.user.mnemonic;
+
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'internxt-mnemonic': mnemonic,
+    'Content-Type': 'application/json; charset=utf-8'
+  };
+
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photos`, {
+    method: 'GET',
+    headers
+  }).then(res => {
+    if (res.status !== 200) { throw res; }
+    return res.json();
+  }).then(async res => {
+
+    // TODO: BORRAR
+    dispatch(PhotoActions.setAllUploadedPhotos(res))
+    return res
+  })
 }
 
 export async function downloadPhoto(photo: any) {

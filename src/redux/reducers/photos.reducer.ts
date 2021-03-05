@@ -78,7 +78,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       isLoading: false,
-      localPhotosGallery: lodash.concat(state.localPhotosGallery, action.payload)
+      localPhotosGallery: action.payload
     }
 
   case photoActionTypes.SET_UPLOADED_FOTOS:

@@ -8,7 +8,7 @@ import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { stopSync, initUser, getLocalImages, IHashedPhoto } from './init'
+import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos, getUploadedPhotos } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
@@ -32,7 +32,10 @@ function Photos(props: IPhotosProps): JSX.Element {
     getLocalImages(after).then(res => {
       setEndCursor(res.endCursor);
       setPhotos(after ? photos.concat(res.assets) : res.assets)
-    }).finally(() => setIsLoading(false));
+      // TODO: BORRAR
+      syncPhotos(res.assets, props);
+    }).then(() => getUploadedPhotos(props.authenticationState, props.dispatch))
+      .finally(() => setIsLoading(false));
   }
 
   const reloadLocalPhotos = () => {
