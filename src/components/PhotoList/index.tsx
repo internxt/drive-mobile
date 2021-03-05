@@ -1,13 +1,12 @@
 /* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Image, Text, ScrollView, Dimensions, RefreshControl, FlatListProps, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Image, Text, ScrollView, Dimensions, RefreshControl, FlatListProps, ActivityIndicator, Platform } from 'react-native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import * as MediaLibrary from 'expo-media-library';
 import FileViewer from 'react-native-file-viewer';
-import AlbumView from '../../screens/AlbumView';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 
 export interface IPhoto {
@@ -30,7 +29,6 @@ export interface IPreview {
 
 interface PhotoListProps extends FlatListProps<MediaLibrary.Asset> {
   title: string
-  photos: IPhoto[]
   photosState: PhotosState
   authenticationState?: any
   dispatch?: any
@@ -46,25 +44,27 @@ function PhotoList(props: PhotoListProps) {
 
   useEffect(() => {
     setLoadMore(false);
-  }, [props.photos])
+  }, [props.data]);
 
   return (
     <View style={styles.container}>
       {
         !isLoading ?
-          <>
+          <ScrollView
+            refreshControl={<RefreshControl
+              enabled={true}
+              refreshing={refreshing}
+              onRefresh={() => {
+                if (props.onRefresh) {
+                  props.onRefresh();
+                }
+                setRefreshing(false)
+              }}
+            />}
+          >
             <FlatList
-              refreshControl={<RefreshControl
-                refreshing={refreshing}
-                onRefresh={() => {
-                  if (props.onRefresh) {
-                    props.onRefresh();
-                  }
-                  setRefreshing(false)
-                }}
-              />}
-              data={props.photos}
-              onEndReachedThreshold={0.1}
+              style={{ height: 400 }}
+              data={props.data}
               onEndReached={(e) => {
                 if (props.onEndReached) {
                   setLoadMore(true);
@@ -96,7 +96,7 @@ function PhotoList(props: PhotoListProps) {
             <View>
               {loadMore ? <ActivityIndicator /> : <></>}
             </View>
-          </>
+          </ScrollView>
           :
           <ScrollView
             style={styles.emptyContainer}
@@ -114,7 +114,6 @@ function PhotoList(props: PhotoListProps) {
 }
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     marginBottom: wp('5')
   },
   imageView: {

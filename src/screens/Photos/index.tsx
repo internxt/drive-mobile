@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Text, View, StyleSheet, SafeAreaView } from 'react-native'
 import { connect } from 'react-redux';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -94,14 +94,10 @@ function Photos(props: IPhotosProps): JSX.Element {
                 photos.length > 0 ?
                   <PhotoList
                     title={'All Photos'}
-                    photos={photos}
+                    data={photos}
                     navigation={props.navigation}
-                    onRefresh={() => {
-                      getNextImages();
-                    }}
-                    onEndReached={() => {
-                      getNextImages(endCursor);
-                    }}
+                    onRefresh={() => getNextImages()}
+                    onEndReached={() => getNextImages(endCursor)}
                   />
                   :
                   <View style={styles.emptyContainer}>
