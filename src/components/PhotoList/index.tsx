@@ -6,8 +6,8 @@ import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import * as MediaLibrary from 'expo-media-library';
-import FileViewer from 'react-native-file-viewer';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
+import Photo from './Photo'
 
 export interface IPhoto {
   id: string
@@ -50,53 +50,35 @@ function PhotoList(props: PhotoListProps) {
     <View style={styles.container}>
       {
         !isLoading ?
-          <ScrollView
-            refreshControl={<RefreshControl
-              enabled={true}
-              refreshing={refreshing}
-              onRefresh={() => {
-                if (props.onRefresh) {
-                  props.onRefresh();
-                }
-                setRefreshing(false)
-              }}
-            />}
-          >
+          <>
             <FlatList
               style={{ height: 400 }}
               data={props.data}
+              refreshControl={<RefreshControl
+                enabled={true}
+                refreshing={refreshing}
+                onRefresh={() => {
+                  if (props.onRefresh) {
+                    props.onRefresh();
+                  }
+                  setRefreshing(false)
+                }}
+              />}
               onEndReached={(e) => {
                 if (props.onEndReached) {
                   setLoadMore(true);
                   props.onEndReached(e);
                 }
               }}
-              renderItem={({ item }) => {
-                return (
-                  <TouchableOpacity
-                    style={styles.imageView}
-                    key={item.id}
-                    onPress={async () => {
-                      await MediaLibrary.getAssetInfoAsync(item).then((res) => {
-                        FileViewer.open(res.localUri || '')
-                      }).catch(err => { })
-                    }}
-                  >
-                    <Image
-                      style={styles.image}
-                      source={{ uri: item.localUri }}
-                    />
-                  </TouchableOpacity>
-                )
-              }}
+              renderItem={({ item }) => <Photo item={item} />}
               contentContainerStyle={styles.flatList}
               keyExtractor={(item) => item.id}
               numColumns={3}
             />
             <View>
-              {loadMore ? <ActivityIndicator /> : <></>}
+              {loadMore ? <ActivityIndicator color="gray" size="small" /> : <></>}
             </View>
-          </ScrollView>
+          </>
           :
           <ScrollView
             style={styles.emptyContainer}
