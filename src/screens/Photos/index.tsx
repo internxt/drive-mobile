@@ -92,7 +92,7 @@ function Photos(props: IPhotosProps): JSX.Element {
         </TouchableOpacity>
         {
           !isLoading ?
-            <View style={{ flexGrow: 1 }}>
+            <View>
               {
                 photos.length > 0 ?
                   <PhotoList

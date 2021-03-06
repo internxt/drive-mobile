@@ -73,7 +73,7 @@ function PhotoList(props: PhotoListProps) {
               renderItem={({ item }) => <Photo item={item} />}
               contentContainerStyle={styles.flatList}
               keyExtractor={(item) => item.id}
-              numColumns={3}
+              numColumns={props.numColumns || 3}
             />
             <View>
               {loadMore ? <ActivityIndicator color="gray" size="small" /> : <></>}
