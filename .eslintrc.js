@@ -17,11 +17,12 @@ module.exports = {
   plugins: [
     'react',
     'react-native',
-    'ext'
+    'ext',
+    'unused-imports'
   ],
   rules: {
     '@typescript-eslint/no-use-before-define': 'off',
-    '@typescript-eslint/no-unused-vars': 'warn',
+    '@typescript-eslint/no-unused-vars': 'off',
     'no-console': 'error',
     'comma-dangle': ['error', 'never'],
     '@typescript-eslint/no-empty-function': 'off',
@@ -52,7 +53,8 @@ module.exports = {
       'overrides': {
         'arrow': { 'before': true, 'after': true }
       }
-    }]
+    }],
+    'unused-imports/no-unused-imports': 'error'
   },
   'settings': {
     'react': {

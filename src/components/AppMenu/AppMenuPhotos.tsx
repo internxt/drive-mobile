@@ -1,5 +1,3 @@
-import { getDocumentAsync } from 'expo-document-picker';
-import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker';
 import React, { Fragment, useState, useRef, useEffect } from 'react'
 import { View, StyleSheet, Platform, TextInput, Image, Alert, SafeAreaView } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
@@ -12,8 +10,6 @@ import { getIcon } from '../../helpers/getIcon';
 import analytics from '../../helpers/lytics';
 import { PhotoActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
-import { previewsStorage } from '../../helpers/previewsStorage';
-import { createNavigator } from 'react-navigation';
 
 interface AppMenuProps {
   navigation?: any

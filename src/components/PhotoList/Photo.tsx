@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { StyleSheet, Image, Dimensions, ActivityIndicator, Text, View } from 'react-native';
+import { StyleSheet, Image, Dimensions, ActivityIndicator, View } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import * as MediaLibrary from 'expo-media-library';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';

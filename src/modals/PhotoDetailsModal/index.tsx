@@ -1,14 +1,11 @@
-import prettysize from 'prettysize';
 import React, { useState } from 'react'
-import { Alert, Image, Platform, StyleSheet, Text, View } from 'react-native'
-import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
+import { Alert, StyleSheet, Text } from 'react-native'
+import { TextInput } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox'
 //import TimeAgo from 'react-native-timeago';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import RNFetchBlob from 'rn-fetch-blob';
-import PhotoItem from '../../components/PhotoItem';
-//import analytics, { getLyticsData } from '../../helpers/lytics';
+
 import Separator from '../../components/Separator'
 import { deviceStorage } from '../../helpers';
 import { layoutActions, PhotoActions } from '../../redux/actions';

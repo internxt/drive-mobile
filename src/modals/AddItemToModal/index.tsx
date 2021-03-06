@@ -1,16 +1,12 @@
-import prettysize from 'prettysize';
-import React, { useState } from 'react'
-import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
-import { FlatList, TextInput, TouchableHighlight } from 'react-native-gesture-handler';
+import React from 'react'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { FlatList, TouchableHighlight } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox'
 //import TimeAgo from 'react-native-timeago';
-import { connect, useDispatch, useSelector } from 'react-redux';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-//import analytics, { getLyticsData } from '../../helpers/lytics';
-import Separator from '../../components/Separator'
+import { connect } from 'react-redux';
+
 import AlbumCard from '../../components/AlbumCard';
 
-import { useNavigation } from '@react-navigation/native';
 import { layoutActions } from '../../redux/actions';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import SourceList from '../../helpers/getAssets';

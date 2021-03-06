@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Image, Text, ScrollView, Dimensions, RefreshControl, FlatListProps, ActivityIndicator, Platform } from 'react-native';
-import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import { StyleSheet, View, Text, ScrollView, Dimensions, RefreshControl, FlatListProps, ActivityIndicator } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import Separator from '../../components/Separator';
-import { getIcon } from '../../helpers/getIcon';
 import { fileActions, layoutActions } from '../../redux/actions';
 import Folder from './Folder';
 

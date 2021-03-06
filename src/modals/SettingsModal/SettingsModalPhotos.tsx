@@ -3,15 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, StyleSheet, Text } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
-import Bold from '../../components/Bold';
 import ProgressBar from '../../components/ProgressBar';
 import Separator from '../../components/Separator';
 import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import { layoutActions, userActions } from '../../redux/actions';
-import { layoutActionTypes } from '../../redux/constants';
-import SettingsItem from './SettingsItem';
 import SettingsItemPhotos from './SettingsItemPhotos';
 
 function identifyPlanName(bytes: number): string {

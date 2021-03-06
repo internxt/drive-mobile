@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import Modal from 'react-native-modalbox'
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';

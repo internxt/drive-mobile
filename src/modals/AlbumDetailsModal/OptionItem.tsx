@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import { StyleSheet, View, TouchableHighlight, Text, StyleProp, ViewStyle, Image } from 'react-native';
+import React from 'react';
+import { StyleSheet, View, TouchableHighlight, Text, Image } from 'react-native';
 import { getIcon } from '../../helpers/getIcon';
 
 interface OptionItemProps {

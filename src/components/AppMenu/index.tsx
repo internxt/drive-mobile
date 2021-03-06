@@ -1,5 +1,5 @@
 import { getDocumentAsync } from 'expo-document-picker';
-import { getMediaLibraryPermissionsAsync, launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
+import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import { uniqueId } from 'lodash';
 import prettysize from 'prettysize';
 import React, { Fragment, useState, useRef } from 'react'

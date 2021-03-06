@@ -1,7 +1,6 @@
 import { deviceStorage } from '../../helpers';
 import { sortTypes } from '../constants';
 import { compare } from 'natural-orderby'
-import * as FileSystem from 'expo-file-system';
 import { previewsStorage } from '../../helpers/previewsStorage';
 import { getPhotos } from '../../helpers/mediaAccess';
 import { Platform } from 'react-native';

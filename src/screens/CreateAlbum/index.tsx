@@ -3,14 +3,11 @@ import { Alert, FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-nat
 import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
-import SelectPhotoModal from '../../modals/SelectPhotoModal';
 import { WaveIndicator } from 'react-native-indicators'
-import AlbumImage from '../PhotoGallery/Photo';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
-import { PhotoActions } from '../../redux/actions/photo.actions';
 import Photo from '../PhotoGallery/Photo';
 
 interface CreateAlbumProps {

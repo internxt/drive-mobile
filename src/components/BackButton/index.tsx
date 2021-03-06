@@ -1,14 +1,8 @@
 import * as React from 'react';
-import { connect, useDispatch, useSelector } from 'react-redux';
 import {
   StyleSheet,
-  View,
-  Text,
-  TouchableHighlight,
-  Image,
-  Pressable
+  Image
 } from 'react-native';
-import { useLinkProps, useNavigation } from '@react-navigation/native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 export interface BackButtonProps {

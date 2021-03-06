@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, TouchableOpacity, StyleSheet, Text, View, Image, Platform, Alert } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
@@ -8,7 +8,7 @@ import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
 import * as MediaLibrary from 'expo-media-library';
 import AlbumImage from './AlbumImage'
-import { getImages, syncPhotos, uploadPhoto } from './helpers'
+import { getImages, syncPhotos } from './helpers'
 import { layoutActions } from '../../redux/actions';
 
 interface AlbumViewProps {

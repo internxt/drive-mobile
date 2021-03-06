@@ -2,9 +2,7 @@ import * as React from 'react';
 import { Image, StyleProp, StyleSheet, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
-import ImagePicker from 'react-native-image-crop-picker'
 import { Dispatch } from 'redux';
-import { PhotoActions } from '../../redux/actions/photo.actions';
 import { layoutActions } from '../../redux/actions';
 
 export interface CreateAlbumProps {

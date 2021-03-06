@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useState } from 'react';
-import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
+import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { deviceStorage } from '../../helpers';

@@ -2,7 +2,6 @@ import { isValidEmail, sendDeactivationsEmail } from './ForgotUtils';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   Alert,
   KeyboardAvoidingView,
