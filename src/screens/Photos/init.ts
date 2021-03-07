@@ -25,6 +25,11 @@ const getArrayPhotos = async (images: Asset[]) => {
   // TODO: Revisar async/next
   const result: Promise<IHashedPhoto[]> = mapSeries(images, async (image, next) => {
     const asset = await getAssetInfoAsync(image)
+
+    if (!asset.localUri) {
+      return next(Error('Missing localUri'));
+    }
+
     const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
 
     const hashedImage = {

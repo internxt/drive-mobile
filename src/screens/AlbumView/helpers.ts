@@ -7,7 +7,7 @@ import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 
-const getArrayPhotos = async(images: Asset[]) => {
+const getArrayPhotos = async (images: Asset[]) => {
   const result = mapSeries(images, async (image, next) => {
 
     const asset = await getAssetInfoAsync(image)
@@ -36,7 +36,7 @@ export function syncPhotos(images: Asset[], props: any) {
     });
   });
 }
-export async function uploadPhoto (result: any, props: any) {
+export async function uploadPhoto(result: any, props: any) {
 
   try {
     // Set name for pics/photos

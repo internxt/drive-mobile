@@ -4,14 +4,14 @@ import { connect } from 'react-redux';
 import { deviceStorage } from '../../helpers';
 import { userActions } from '../../redux/actions';
 
-function EntryPointGateway (props: any): JSX.Element {
+function EntryPointGateway(props: any): JSX.Element {
   const rootFolderId = props.authenticationState.user.root_folder_id;
 
   useEffect(() => {
     isLogged()
   }, [props.authenticationState.loggedIn])
 
-  async function isLogged () {
+  async function isLogged() {
     if (props.authenticationState.loggedIn === true) {
       props.navigation.replace('Photos', {
         folderId: rootFolderId

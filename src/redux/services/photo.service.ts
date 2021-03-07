@@ -185,7 +185,7 @@ async function uploadPhoto(user: any, token: any, photo: any) {
   }
 }
 
-function uploadPreview (preview: any, headers: any) {
+function uploadPreview(preview: any, headers: any) {
   const body = new FormData();
 
   preview.uri.replace('file:///', 'file:/');
@@ -231,7 +231,7 @@ function uploadPreview (preview: any, headers: any) {
     })
 }
 
-function createAlbum (name: any, photos: any): Promise<any> {
+function createAlbum(name: any, photos: any): Promise<any> {
   return new Promise(async (resolve, reject) => {
     const headers = await setHeaders();
 

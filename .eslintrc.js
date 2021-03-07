@@ -54,7 +54,12 @@ module.exports = {
         'arrow': { 'before': true, 'after': true }
       }
     }],
-    'unused-imports/no-unused-imports': 'error'
+    'unused-imports/no-unused-imports': 'error',
+    'space-before-function-paren': ['error', {
+      'anonymous': 'always',
+      'named': 'never',
+      'asyncArrow': 'always'
+    }]
   },
   'settings': {
     'react': {
