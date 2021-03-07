@@ -52,7 +52,7 @@ function PhotoList(props: PhotoListProps) {
         !isLoading ?
           <>
             <FlatList
-              style={{ height: 400 }}
+              style={{ flexGrow: 1 }}
               data={props.data}
               refreshControl={<RefreshControl
                 enabled={true}
@@ -96,6 +96,7 @@ function PhotoList(props: PhotoListProps) {
 }
 const styles = StyleSheet.create({
   container: {
+    flexGrow: 1,
     marginBottom: wp('5')
   },
   imageView: {

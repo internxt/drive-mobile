@@ -1,24 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import { layoutActions } from '../../redux/actions';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
-import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
-import Photo from './Photo';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
-import lodash from 'lodash'
-import { IPreview } from '../../components/PhotoList';
+import PhotoList, { IPreview } from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
 import { getOldLocalImages } from '../Photos/init';
 
-interface IPhotoGallery {
+interface PhotoGalleryProps {
   route: any;
   navigation: any
   photosState: PhotosState
@@ -27,64 +24,22 @@ interface IPhotoGallery {
   authenticationState: AuthenticationState
 }
 
-function PhotoGallery(props: IPhotoGallery): JSX.Element {
-  const previewImages = props.photosState.previews
-  const localImages = props.photosState.localPhotos
-  const uploadedImages = props.photosState.uploadedPhotos
+function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [photosToRender, setPhotosToRender] = useState<IPreview[]>([])
-  const [endCursor, setEndCursor] = useState('')
-
-  const doIntersections = () => {
-    // Map the arrays to add a key to know later which icon it needs
-    // Photos currently on local and cloud *THEY MUST RENDER*
-    const synced = lodash.intersectionBy(localImages || [], uploadedImages || [], 'hash').map(photo => ({ ...photo, isSynced: true, isUploaded: true }))
-
-    // The photos stored on the gallery that have not been yet uploaded *THEY MUST RENDER*
-    const onlyOnLocal = lodash.differenceBy(localImages || [], uploadedImages || [], 'hash').map(photo => ({ ...photo, isSynced: false, isUploaded: false }))
-
-    // The photos saved on the cloud that are not stored on the gallery *ONLY TO FILTER DOWNLOADED PREVIEWS*
-    const onlyOnCloud = lodash.differenceBy(uploadedImages || [], localImages || [], 'hash').map(photo => ({ ...photo, isSynced: false, isUploaded: true, photoId: photo.id }))
-
-    return { synced, onlyOnLocal, onlyOnCloud }
-  }
-
-  function photosToRenderList() {
-    const res = doIntersections()
-
-    const synced = res.synced
-    const onlyLocal = res.onlyOnLocal
-    const onlyCloud = res.onlyOnCloud
-
-    const missingPhotos = lodash.intersectionBy(previewImages, onlyCloud, 'photoId').map(photo => ({ ...photo, isSynced: false, isUploaded: true }))
-
-    return lodash.concat(onlyLocal, synced, missingPhotos)
-  }
 
   useEffect(() => {
     getOldLocalImages(props.dispatch, true).then(() => {
       setPhotosToRender(props.photosState.localPhotosGallery)
       setIsLoading(false)
     })
-    const x = photosToRenderList()
-
-    setPhotosToRender(x)
-    setIsLoading(false)
   }, [])
-
-  useEffect(() => {
-    const x = photosToRenderList()
-
-    setPhotosToRender(x)
-  }, [props.photosState.previews])
 
   return (
     <SafeAreaView style={styles.container}>
 
       <AlbumDetailsModal />
       <AddItemToModal />
-      {/* <PhotoDetailsModal /> */}
 
       <View style={styles.albumHeader}>
         <BackButton navigation={props.navigation} />
@@ -104,38 +59,19 @@ function PhotoGallery(props: IPhotoGallery): JSX.Element {
         }} />
       </View>
 
-      {
-        !isLoading ?
-          <FlatList
-            data={photosToRender}
-            //onEndReachedThreshold={0.1}
-            //onEndReached={() => {
-            //  setIsLoadingMore(true)
-            // if (props.photosState.localPhotos) {
-            //    getLocalImages(props.dispatch, true, endCursor).then(res => {
-            //      setEndCursor(res)
-            //      setIsLoadingMore(false)
-            //    })
-            //  }
-            //}}
-            renderItem={({ item }) => {
-              return <Photo photo={item} id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} />
-            }}
-            numColumns={4}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={styles.flatList}
-          />
-          :
-          <WaveIndicator color="#5291ff" size={50} />
-      }
-      {
-        isLoadingMore ?
-          <View style={{ marginTop: 30 }}>
+      <View style={{ flexGrow: 1 }}>
+        {
+          !isLoading ?
+            <PhotoList
+              data={photosToRender}
+              numColumns={4}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.flatList}
+            />
+            :
             <WaveIndicator color="#5291ff" size={50} />
-          </View>
-          :
-          null
-      }
+        }
+      </View>
     </SafeAreaView>
   );
 }

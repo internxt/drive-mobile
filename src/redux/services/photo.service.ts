@@ -2,7 +2,6 @@ import { deviceStorage } from '../../helpers';
 import { sortTypes } from '../constants';
 import { compare } from 'natural-orderby'
 import { previewsStorage } from '../../helpers/previewsStorage';
-import { getPhotos } from '../../helpers/mediaAccess';
 import { Platform } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import { IPhoto } from '../../components/PhotoList';
@@ -14,7 +13,6 @@ export const photoService = {
   getAllPhotosContent,
   getDeletedPhotos,
   deleteTempPhoto,
-  getDevicePhotos,
   uploadPhotos,
   uploadPhoto,
   uploadPreview,
@@ -91,18 +89,6 @@ function getDeletedPhotos(user: any): Promise<any> {
       resolve('');
     })
       .catch(reject);
-  });
-}
-
-async function getDevicePhotos(user: any, cursor: any): Promise<any> {
-  return new Promise(async (resolve, reject) => {
-    getPhotos(user.rootAlbumId, cursor).then((dataResult) => {
-
-      //dataResult.photos.map()
-      resolve(dataResult)
-    }).catch((err) => {
-      reject;
-    })
   });
 }
 

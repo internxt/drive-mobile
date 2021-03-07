@@ -33,7 +33,7 @@ function Photos(props: IPhotosProps): JSX.Element {
       setEndCursor(res.endCursor);
       setPhotos(after ? photos.concat(res.assets) : res.assets)
       // TODO: BORRAR
-      syncPhotos(res.assets, props);
+      syncPhotos(res.assets);
     }).then(() => getUploadedPhotos(props.authenticationState, props.dispatch))
       .finally(() => setIsLoading(false));
   }
@@ -59,8 +59,6 @@ function Photos(props: IPhotosProps): JSX.Element {
       <SettingsModal navigation={props.navigation} />
       <SortModal />
       <ComingSoonModal />
-
-      {/* <AppMenuPhotos navigation={props.navigation} /> */}
 
       <View style={styles.albumsContainer}>
         <View style={styles.albumsHeader}>
@@ -92,7 +90,7 @@ function Photos(props: IPhotosProps): JSX.Element {
         </TouchableOpacity>
         {
           !isLoading ?
-            <View>
+            <View style={{ flexGrow: 1 }}>
               {
                 photos.length > 0 ?
                   <PhotoList
@@ -116,7 +114,6 @@ function Photos(props: IPhotosProps): JSX.Element {
             </View>
         }
       </View>
-
     </SafeAreaView>
   )
 }
@@ -129,7 +126,7 @@ export default connect(mapStateToProps)(Photos)
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flexGrow: 1,
     justifyContent: 'flex-start',
     backgroundColor: '#fff'
   },
@@ -139,7 +136,7 @@ const styles = StyleSheet.create({
     marginBottom: wp('1')
   },
   albumsContainer: {
-    height: '40%',
+    height: '45%',
     paddingVertical: wp('3.5'),
     paddingHorizontal: wp('1')
   },

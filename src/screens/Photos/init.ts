@@ -13,7 +13,6 @@ import { IPhotosProps } from '.'
 import { store } from '../../store';
 import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
-import async from 'async'
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -40,7 +39,7 @@ const getArrayPhotos = async (images: Asset[]) => {
   return result;
 }
 
-export function syncPhotos(images: IHashedPhoto[], props: any) {
+export function syncPhotos(images: IHashedPhoto[]) {
   return mapSeries(images, (image, next) => {
 
     const photo = {
@@ -175,27 +174,6 @@ export async function getAssetsAsync(opts: MediaLibrary.AssetsOptions) {
 }
 
 type PhotosCallback = (data: MediaLibrary.PagedInfo<Asset>, next: any) => void;
-
-export async function getLocalPhotosGenerator(cb: PhotosCallback) {
-  // OJOCUIDAO: CHECK PERMISSIONS
-  await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
-
-  let cursor: string | undefined = undefined;
-
-  const task = (nextPhoto) => {
-    MediaLibrary.getAssetsAsync({ first: 1, after: cursor }).then(res => nextPhoto(null, res));
-  }
-
-  const test = (results: MediaLibrary.PagedInfo<Asset>, next: any) => {
-    const shouldContinue = !results.hasNextPage;
-
-    cursor = results.endCursor;
-
-    cb(results, (err) => next(err, shouldContinue));
-  }
-
-  return async.doUntil(task, test)
-}
 
 export function getLocalImages(after?: string | undefined) {
   const result = {
