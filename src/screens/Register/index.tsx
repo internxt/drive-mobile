@@ -297,48 +297,15 @@ function Register(props: any): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: normalize(20),
-    backgroundColor: '#FFFFFF'
-  },
-  containerCentered: {
-    justifyContent: 'center',
-    alignSelf: 'center',
-    width: '100%',
-    height: normalize(600)
-  },
-  containerHeader: {
-    borderWidth: 0
-  },
-  title: {
-    fontFamily: 'CerebriSans-Bold',
-    fontSize: normalize(22),
-    letterSpacing: -1.7,
-    color: '#000',
-    marginBottom: normalize(30),
-    marginTop: normalize(12)
-  },
-  buttonWrapper: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: normalize(30),
-    justifyContent: 'space-between'
-  },
-  buttonFooterWrapper: {
-    marginTop: normalize(20)
-  },
   button: {
-    alignSelf: 'stretch',
-    height: normalize(55),
-    width: normalize(130),
-    borderRadius: 3.4,
-    backgroundColor: '#4585f5',
-    marginBottom: normalize(10),
     alignItems: 'center',
-    justifyContent: 'center'
+    alignSelf: 'stretch',
+    backgroundColor: '#4585f5',
+    borderRadius: 3.4,
+    height: normalize(55),
+    justifyContent: 'center',
+    marginBottom: normalize(10),
+    width: normalize(130)
   },
   buttonBlock: {
     width: '100%'
@@ -346,83 +313,116 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.5
   },
-  buttonOn: {
-    backgroundColor: '#4585f5',
-    alignItems: 'center'
-  },
-  buttonOff: {
-    backgroundColor: '#f2f2f2',
-    alignItems: 'center'
-  },
-  buttonOnLabel: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    textAlign: 'center',
-    color: '#fff'
-  },
-  buttonOffLabel: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    textAlign: 'center',
-    color: '#5c5c5c'
-  },
-  buttonRight: {
-    marginLeft: normalize(10)
+  buttonFooterWrapper: {
+    marginTop: normalize(20)
   },
   buttonLeft: {
     marginRight: normalize(10)
   },
-  input: {
+  buttonOff: {
+    alignItems: 'center',
+    backgroundColor: '#f2f2f2'
+  },
+  buttonOffLabel: {
+    color: '#5c5c5c',
     fontFamily: 'CerebriSans-Medium',
-    letterSpacing: -0.2,
     fontSize: normalize(15),
-    color: '#000',
+    textAlign: 'center'
+  },
+  buttonOn: {
+    alignItems: 'center',
+    backgroundColor: '#4585f5'
+  },
+  buttonOnLabel: {
+    color: '#fff',
+    fontFamily: 'CerebriSans-Medium',
+    fontSize: normalize(15),
+    textAlign: 'center'
+  },
+  buttonRight: {
+    marginLeft: normalize(10)
+  },
+  buttonWrapper: {
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: normalize(30)
+  },
+  container: {
+    backgroundColor: '#FFFFFF',
     flex: 1,
-    paddingLeft: 20
-  },
-  showInputFieldsWrapper: {
-    justifyContent: 'center'
-  },
-  inputWrapper: {
-    height: normalize(55),
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#c9c9c9',
     justifyContent: 'center',
-    marginBottom: normalize(15)
+    padding: normalize(20)
+  },
+  containerCentered: {
+    alignSelf: 'center',
+    height: normalize(600),
+    justifyContent: 'center',
+    width: '100%'
+  },
+  containerHeader: {
+    borderWidth: 0
   },
   flexRow: {
     flexDirection: 'row'
   },
-  textDisclaimer: {
+  halfOpacity: {
+    opacity: 0.5
+  },
+  input: {
+    color: '#000',
+    flex: 1,
+    fontFamily: 'CerebriSans-Medium',
     fontSize: normalize(15),
+    letterSpacing: -0.2,
+    paddingLeft: 20
+  },
+  inputWrapper: {
+    borderColor: '#c9c9c9',
+    borderRadius: 5,
+    borderWidth: 1,
+    height: normalize(55),
+    justifyContent: 'center',
+    marginBottom: normalize(15)
+  },
+  showInputFieldsWrapper: {
+    justifyContent: 'center'
+  },
+  textDisclaimer: {
     color: '#737880',
     fontFamily: 'CerebriSans-Regular',
-    textAlign: 'justify',
+    fontSize: normalize(15),
     letterSpacing: -0.1,
-    marginTop: -15
+    marginTop: -15,
+    textAlign: 'justify'
+  },
+  textStorePassword: {
+    color: '#737880',
+    flex: 1,
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: normalize(15),
+    paddingLeft: normalize(9)
   },
   textStorePasswordContainer: {
     backgroundColor: '#f7f7f7',
-    padding: normalize(23),
-    marginTop: normalize(30)
-  },
-  textStorePassword: {
-    flex: 1,
-    paddingLeft: normalize(9),
-    color: '#737880',
-    fontSize: normalize(15),
-    fontFamily: 'CerebriSans-Regular'
+    marginTop: normalize(30),
+    padding: normalize(23)
   },
   textTip: {
-    flex: 1,
-    paddingLeft: normalize(9),
     color: '#737880',
+    flex: 1,
+    fontFamily: 'CerebriSans-Regular',
     fontSize: normalize(15),
-    fontFamily: 'CerebriSans-Regular'
+    paddingLeft: normalize(9)
   },
-  halfOpacity: {
-    opacity: 0.5
+  title: {
+    color: '#000',
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: normalize(22),
+    letterSpacing: -1.7,
+    marginBottom: normalize(30),
+    marginTop: normalize(12)
   }
 });
 

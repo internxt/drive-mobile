@@ -175,18 +175,18 @@ function SettingsModalPhotos(props: SettingsModalPhotosProps) {
 
 const styles = StyleSheet.create({
   modalSettings: {
-    top: '40%',
+    borderRadius: 8,
     paddingLeft: 15,
     paddingRight: 15,
     paddingTop: 25,
-    borderRadius: 8
+    top: '40%'
   },
   nameText: {
+    color: 'black',
+    fontFamily: 'Averta-Bold',
     fontSize: 20,
     marginLeft: 26,
-    marginTop: 10,
-    fontFamily: 'Averta-Bold',
-    color: 'black'
+    marginTop: 10
   },
   progressHeight: {
     height: 6

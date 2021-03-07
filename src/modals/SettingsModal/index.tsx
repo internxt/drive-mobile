@@ -222,23 +222,23 @@ function SettingsModal(props: SettingsModalProps) {
 
 const styles = StyleSheet.create({
   drawerKnob: {
-    backgroundColor: '#d8d8d8',
-    width: 56,
-    height: 7,
-    borderRadius: 4,
     alignSelf: 'center',
-    marginTop: 10
+    backgroundColor: '#d8d8d8',
+    borderRadius: 4,
+    height: 7,
+    marginTop: 10,
+    width: 56
   },
   modalSettings: {
     height: 'auto',
     paddingBottom: Platform.OS === 'ios' ? 20 : 0
   },
   nameText: {
+    fontFamily: 'CerebriSans-Bold',
     fontSize: 20,
     fontWeight: 'bold',
     marginLeft: 26,
-    marginTop: 10,
-    fontFamily: 'CerebriSans-Bold'
+    marginTop: 10
   },
   progressHeight: {
     height: 6
@@ -246,8 +246,8 @@ const styles = StyleSheet.create({
   usageText: {
     fontFamily: 'CerebriSans-Regular',
     fontSize: 15,
-    paddingLeft: 24,
-    paddingBottom: 0
+    paddingBottom: 0,
+    paddingLeft: 24
   }
 })
 

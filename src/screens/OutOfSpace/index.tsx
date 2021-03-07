@@ -47,52 +47,52 @@ function OutOfSpace(props: OutOfSpaceProps): JSX.Element {
 
 const styles = StyleSheet.create({
 
-  container: {
+  blue: {
+    backgroundColor: '#4585f5',
+    borderWidth: 0
+  },
+  button: {
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderColor: 'rgba(151, 151, 151, 0.2)',
+    borderRadius: 4,
+    borderWidth: 2,
+    height: 50,
     justifyContent: 'center',
-    height: '100%',
-    backgroundColor: 'white'
+    width: wp('42')
   },
-  titleContainer: {
-    alignSelf: 'flex-start',
-    marginHorizontal: wp('6'),
-    marginVertical: wp('15')
-  },
-  title: {
+  buttonText: {
+    color: '#5c6066',
     fontFamily: 'CerebriSans-Bold',
-    fontSize: 27,
-    letterSpacing: -0.5,
-    color: '#000000'
-  },
-  subtitle: {
-    fontFamily: 'CerebriSans-Regular',
-    fontSize: 17,
-    lineHeight: 23,
-    letterSpacing: -0.1,
-    marginTop: 15
+    fontSize: 16,
+    letterSpacing: -0.2
   },
   buttonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly'
   },
-  button: {
-    height: 50,
-    width: wp('42'),
-    borderRadius: 4,
-    borderWidth: 2,
-    backgroundColor: '#fff',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center'
+  container: {
+    backgroundColor: 'white',
+    height: '100%',
+    justifyContent: 'center'
   },
-  blue: {
-    backgroundColor: '#4585f5',
-    borderWidth: 0
+  subtitle: {
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: 17,
+    letterSpacing: -0.1,
+    lineHeight: 23,
+    marginTop: 15
   },
-  buttonText: {
+  title: {
+    color: '#000000',
     fontFamily: 'CerebriSans-Bold',
-    fontSize: 16,
-    letterSpacing: -0.2,
-    color: '#5c6066'
+    fontSize: 27,
+    letterSpacing: -0.5
+  },
+  titleContainer: {
+    alignSelf: 'flex-start',
+    marginHorizontal: wp('6'),
+    marginVertical: wp('15')
   },
   white: {
     color: 'white'

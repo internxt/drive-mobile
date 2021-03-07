@@ -159,8 +159,8 @@ function FileItem(props: FileItemProps) {
   const [isLoading, setIsLoading] = useState(props.isLoading ? true : false)
 
   const extendStyles = StyleSheet.create({
-    text: { color: '#000000' },
-    containerBackground: { backgroundColor: isSelected ? '#f2f5ff' : '#fff' }
+    containerBackground: { backgroundColor: isSelected ? '#f2f5ff' : '#fff' },
+    text: { color: '#000000' }
   });
 
   useEffect(() => {
@@ -266,55 +266,17 @@ function FileItem(props: FileItemProps) {
 }
 
 const styles = StyleSheet.create({
-  progressIndicatorContainer: {
-    position: 'absolute',
-    top: 65,
-    width: 40,
-    height: 3,
-    marginLeft: wp('6.7')
-  },
-  progressIndicator: {
-    backgroundColor: '#87B7FF',
-    height: 3,
-    opacity: 0.6,
-    borderRadius: 3,
-    marginBottom: 7
+  buttonDetails: {
+    alignItems: 'center',
+    borderRadius: 30,
+    height: 51,
+    justifyContent: 'center',
+    width: 51
   },
   container: {
-    flexDirection: 'column',
     borderBottomWidth: 1,
-    borderColor: '#e6e6e6'
-  },
-  mainContainer: {
-    height: 75,
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  fileDetails: {
-    flexGrow: 1
-  },
-  touchableItemArea: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  itemIcon: {
-  },
-  nameAndTime: {
-    flexDirection: 'column',
-    width: '56%'
-  },
-  fileName: {
-    fontFamily: 'CircularStd-Bold',
-    fontSize: 16,
-    letterSpacing: -0.1,
-    color: '#000000'
-  },
-  buttonDetails: {
-    borderRadius: 30,
-    width: 51,
-    height: 51,
-    alignItems: 'center',
-    justifyContent: 'center'
+    borderColor: '#e6e6e6',
+    flexDirection: 'column'
   },
   dFlex: {
     display: 'flex'
@@ -322,8 +284,46 @@ const styles = StyleSheet.create({
   dNone: {
     display: 'none'
   },
+  fileDetails: {
+    flexGrow: 1
+  },
+  fileName: {
+    color: '#000000',
+    fontFamily: 'CircularStd-Bold',
+    fontSize: 16,
+    letterSpacing: -0.1
+  },
   iconContainer: {
-    position: 'absolute', left: 35, top: 7
+    left: 35, position: 'absolute', top: 7
+  },
+  itemIcon: {
+  },
+  mainContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    height: 75
+  },
+  nameAndTime: {
+    flexDirection: 'column',
+    width: '56%'
+  },
+  progressIndicator: {
+    backgroundColor: '#87B7FF',
+    borderRadius: 3,
+    height: 3,
+    marginBottom: 7,
+    opacity: 0.6
+  },
+  progressIndicatorContainer: {
+    height: 3,
+    marginLeft: wp('6.7'),
+    position: 'absolute',
+    top: 65,
+    width: 40
+  },
+  touchableItemArea: {
+    alignItems: 'center',
+    flexDirection: 'row'
   }
 });
 

@@ -108,26 +108,25 @@ function MoveFilesModal(props: MoveFilesProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    height: '100%'
+  blue: {
+    backgroundColor: '#4585f5'
   },
   breadcrumbs: {
-    display: 'flex',
-    flexWrap: 'nowrap',
-    flexDirection: 'row',
     alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
     marginTop: Platform.OS === 'ios' ? wp('14') : 0
   },
-  title: {
-    height: 30,
-    fontFamily: 'CircularStd-Bold',
-    fontSize: 21,
-    letterSpacing: -0.2,
-    color: '#000000',
-    marginLeft: 20
-  },
-  folderList: {
-    height: '75%'
+  button: {
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderColor: 'rgba(151, 151, 151, 0.2)',
+    borderRadius: 8,
+    borderWidth: 2,
+    height: 50,
+    justifyContent: 'center',
+    width: wp('40')
   },
   buttonContainer: {
     flex: 1,
@@ -135,23 +134,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     alignItems: 'center'
   },
-  button: {
-    height: 50,
-    width: wp('40'),
-    borderRadius: 8,
-    borderWidth: 2,
-    backgroundColor: '#fff',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center'
+  container: {
+    height: '100%'
   },
-  blue: {
-    backgroundColor: '#4585f5'
+  folderList: {
+    height: '75%'
   },
   text: {
     color: '#5c6066',
     fontFamily: 'CerebriSans-Bold',
     fontSize: 16
+  },
+  title: {
+    color: '#000000',
+    fontFamily: 'CircularStd-Bold',
+    fontSize: 21,
+    height: 30,
+    letterSpacing: -0.2,
+    marginLeft: 20
   },
   white: {
     color: '#fff'

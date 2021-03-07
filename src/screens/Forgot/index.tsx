@@ -170,89 +170,61 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(Forgot)
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: normalize(20),
-    backgroundColor: '#FFFFFF'
-  },
-  containerCentered: {
-    justifyContent: 'center',
-    alignSelf: 'center',
-    width: '100%',
-    height: normalize(600)
-  },
-  containerHeader: {
-  },
-  title: {
-    fontFamily: 'CerebriSans-Bold',
-    fontSize: normalize(22),
-    letterSpacing: -1.5,
-    color: '#000',
-    marginBottom: normalize(15),
-    marginTop: normalize(-25)
-  },
-  text: {
-    fontFamily: 'CerebriSans-Regular',
-    fontSize: normalize(15),
-    color: '#737880',
-    textAlign: 'justify',
-    marginBottom: normalize(20)
-  },
   bold: {
     fontFamily: 'CerebriSans-Bold'
   },
-  inputWrapper: {
-    height: normalize(55),
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#c9c9c9',
-    justifyContent: 'center'
-  },
-  input: {
-    fontFamily: 'CerebriSans-Medium',
-    letterSpacing: -0.2,
-    fontSize: normalize(15),
-    color: '#000',
-    flex: 1,
-    paddingLeft: normalize(20)
-  },
-  buttonOnLabel: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    color: '#fff'
-  },
-  buttonOffLabel: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    color: '#5c5c5c'
-  },
   button: {
-    marginTop: normalize(10),
-    height: normalize(55),
+    alignItems: 'center',
     borderRadius: 3.4,
-    width: '45%',
-    // height: '35%',
+    height: normalize(55),
     justifyContent: 'center',
-    alignItems: 'center'
+    marginTop: normalize(10),
+    width: '45%'
   },
-  buttonOn: {
-    backgroundColor: '#4585f5',
-    flex: 1
+  buttonLeft: {
+    marginRight: normalize(10)
   },
   buttonOff: {
     backgroundColor: '#f2f2f2',
     flex: 1
   },
-  buttonWrapper: {
-    flexDirection: 'row',
-    marginTop: normalize(15)
+  buttonOffLabel: {
+    color: '#5c5c5c',
+    fontFamily: 'CerebriSans-Medium',
+    fontSize: normalize(15)
+  },
+  buttonOn: {
+    backgroundColor: '#4585f5',
+    flex: 1
+  },
+  buttonOnLabel: {
+    color: '#fff',
+    fontFamily: 'CerebriSans-Medium',
+    fontSize: normalize(15)
   },
   buttonRight: {
     marginLeft: normalize(10)
   },
-  buttonLeft: {
-    marginRight: normalize(10)
+  buttonWrapper: {
+    flexDirection: 'row',
+    marginTop: normalize(15)
+  },
+  container: {
+    backgroundColor: '#FFFFFF',
+    flex: 1,
+    justifyContent: 'center',
+    padding: normalize(20)
+  },
+  containerCentered: {
+    alignSelf: 'center',
+    height: normalize(600),
+    justifyContent: 'center',
+    width: '100%'
+  },
+  containerHeader: {
+  },
+  flexRow: {
+    flexDirection: 'row'
   },
   grayBox: {
     backgroundColor: '#f7f7f7',
@@ -260,21 +232,48 @@ const styles = StyleSheet.create({
   },
   grayBoxText: {
     color: '#737880',
-    fontSize: normalize(15),
-    fontFamily: 'CerebriSans-Regular'
-  },
-  signUp: {
     fontFamily: 'CerebriSans-Regular',
-    textAlign: 'center',
-    color: '#737880',
-    fontSize: normalize(15),
-    marginTop: normalize(10),
-    padding: normalize(20)
+    fontSize: normalize(15)
   },
   halfOpacity: {
     opacity: 0.5
   },
-  flexRow: {
-    flexDirection: 'row'
+  input: {
+    color: '#000',
+    flex: 1,
+    fontFamily: 'CerebriSans-Medium',
+    fontSize: normalize(15),
+    letterSpacing: -0.2,
+    paddingLeft: normalize(20)
+  },
+  inputWrapper: {
+    borderColor: '#c9c9c9',
+    borderRadius: 5,
+    borderWidth: 1,
+    height: normalize(55),
+    justifyContent: 'center'
+  },
+  signUp: {
+    color: '#737880',
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: normalize(15),
+    marginTop: normalize(10),
+    padding: normalize(20),
+    textAlign: 'center'
+  },
+  text: {
+    color: '#737880',
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: normalize(15),
+    marginBottom: normalize(20),
+    textAlign: 'justify'
+  },
+  title: {
+    color: '#000',
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: normalize(22),
+    letterSpacing: -1.5,
+    marginBottom: normalize(15),
+    marginTop: normalize(-25)
   }
 });

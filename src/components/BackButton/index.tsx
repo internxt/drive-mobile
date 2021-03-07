@@ -38,14 +38,14 @@ export function BackButton(props: BackButtonProps): JSX.Element {
 
 const styles = StyleSheet.create({
   buttonWrapper: {
-    width: 45,
+    alignItems: 'center',
     height: 45,
     justifyContent: 'center',
-    alignItems: 'center'
+    width: 45
   },
   icon: {
     height: 18,
-    width: 11,
-    tintColor: '#0084ff'
+    tintColor: '#0084ff',
+    width: 11
   }
 });

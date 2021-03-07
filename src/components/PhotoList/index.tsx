@@ -99,28 +99,28 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     marginBottom: wp('5')
   },
-  imageView: {
-    marginHorizontal: wp('0.5'),
-    marginVertical: wp('0.5')
-  },
-  image: {
-    width: (deviceWidth - wp('6')) / 3,
-    height: (deviceWidth - wp('6')) / 3,
-    borderRadius: 10
-  },
-  flatList: {
-    paddingHorizontal: wp('0.5')
-  },
   emptyContainer: {
     alignItems: 'center',
     backgroundColor: '#f00'
   },
+  flatList: {
+    paddingHorizontal: wp('0.5')
+  },
   heading: {
+    color: '#000000',
     fontFamily: 'Averta-Regular',
     fontSize: wp('4.5'),
     letterSpacing: -0.8,
-    color: '#000000',
     marginVertical: 10
+  },
+  image: {
+    borderRadius: 10,
+    height: (deviceWidth - wp('6')) / 3,
+    width: (deviceWidth - wp('6')) / 3
+  },
+  imageView: {
+    marginHorizontal: wp('0.5'),
+    marginVertical: wp('0.5')
   }
 })
 

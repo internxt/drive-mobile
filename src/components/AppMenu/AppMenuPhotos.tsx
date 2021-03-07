@@ -322,32 +322,32 @@ const styles = StyleSheet.create({
     flexGrow: 1
   }, */
   container: {
-    height: 54,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
     backgroundColor: '#fff',
-    paddingTop: 3,
+    flexDirection: 'row',
+    height: 54,
+    justifyContent: 'flex-start',
     marginTop: Platform.OS === 'ios' ? 50 : 0,
+    paddingTop: 3,
     position: 'absolute',
     width: '100%'
   },
   searchContainer: {
-    position: 'relative',
+    alignItems: 'center',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 30,
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f7f7f7',
     marginLeft: 20,
     marginRight: 20,
-    borderRadius: 30
+    position: 'relative'
   },
   searchInput: {
-    marginLeft: 15,
-    marginRight: 15,
+    flex: 1,
     fontFamily: 'Averta-Regular',
     fontSize: 17,
-    flex: 1
+    marginLeft: 15,
+    marginRight: 15
   }
   /* mr10: {
     marginRight: 10

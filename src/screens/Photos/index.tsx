@@ -125,39 +125,25 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(Photos)
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: 'flex-start',
-    backgroundColor: '#fff'
-  },
-  titleButton: {
-    flexDirection: 'row',
-    paddingHorizontal: wp('1'),
-    marginBottom: wp('1')
-  },
   albumsContainer: {
     height: '45%',
-    paddingVertical: wp('3.5'),
-    paddingHorizontal: wp('1')
+    paddingHorizontal: wp('1'),
+    paddingVertical: wp('3.5')
+  },
+  albumsHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    height: 50,
+    justifyContent: 'space-between'
   },
   allPhotosContainer: {
     flex: 1,
     marginBottom: wp('5')
   },
-  albumsHeader: {
-    height: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  title: {
-    fontFamily: 'Averta-Bold',
-    fontSize: 18,
-    letterSpacing: -0.13,
-    color: 'black',
-    alignSelf: 'center',
-    height: 30,
-    marginLeft: 7
+  container: {
+    backgroundColor: '#fff',
+    flexGrow: 1,
+    justifyContent: 'flex-start'
   },
   createAlbumCard: {
 
@@ -167,19 +153,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   heading: {
+    color: '#000000',
     fontFamily: 'Averta-Regular',
     fontSize: wp('4.5'),
     letterSpacing: -0.8,
-    color: '#000000',
-    marginTop: 10,
-    marginBottom: 30
+    marginBottom: 30,
+    marginTop: 10
   },
   subheading: {
+    color: '#404040',
     fontFamily: 'CircularStd-Book',
     fontSize: wp('4.1'),
-    marginTop: 10,
-    opacity: 0.84,
     letterSpacing: -0.1,
-    color: '#404040'
+    marginTop: 10,
+    opacity: 0.84
+  },
+  title: {
+    alignSelf: 'center',
+    color: 'black',
+    fontFamily: 'Averta-Bold',
+    fontSize: 18,
+    height: 30,
+    letterSpacing: -0.13,
+    marginLeft: 7
+  },
+  titleButton: {
+    flexDirection: 'row',
+    marginBottom: wp('1'),
+    paddingHorizontal: wp('1')
   }
 });

@@ -258,20 +258,20 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(PhotoDetailsModal)
 
 const styles = StyleSheet.create({
+  detailsText: {
+    color: 'black',
+    fontFamily: 'Averta-Bold',
+    fontSize: 17,
+    letterSpacing: -0.09
+  },
   modalSettingsFile: {
-    top: '25%',
-    borderRadius: 8
+    borderRadius: 8,
+    top: '25%'
   },
   propText: {
     color: '#9c9c9c',
     fontFamily: 'Averta-Semibold',
     fontSize: 16
 
-  },
-  detailsText: {
-    fontFamily: 'Averta-Bold',
-    fontSize: 17,
-    letterSpacing: -0.09,
-    color: 'black'
   }
 })

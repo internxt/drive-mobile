@@ -107,31 +107,31 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(SelectPhotoModal)
 
 const styles = StyleSheet.create({
-  modal: {
-    top: '10%',
-    alignContent: 'center',
-    paddingLeft: 0,
-    paddingTop: 5,
-    borderRadius: 8
-  },
   headerContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 40,
     paddingBottom: 5,
-    paddingHorizontal: 19
+    paddingHorizontal: 19,
+    paddingTop: 40
   },
-  upgradeBtn: {
-    paddingVertical: 5,
-    paddingHorizontal: 18,
-    backgroundColor: '#0084ff',
-    borderRadius: 23.8
+  modal: {
+    alignContent: 'center',
+    borderRadius: 8,
+    paddingLeft: 0,
+    paddingTop: 5,
+    top: '10%'
   },
   propText: {
     color: 'white',
     fontFamily: 'Averta-Semibold',
     fontSize: 16,
     lineHeight: 26.1
+  },
+  upgradeBtn: {
+    backgroundColor: '#0084ff',
+    borderRadius: 23.8,
+    paddingHorizontal: 18,
+    paddingVertical: 5
   }
 })

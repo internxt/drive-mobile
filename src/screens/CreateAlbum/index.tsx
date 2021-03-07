@@ -81,44 +81,44 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignContent: 'center',
-    backgroundColor: '#fff'
-  },
   albumHeader: {
+    alignItems: 'center',
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 15
   },
   albumTitle: {
+    color: '#000000',
     fontFamily: 'Averta-Semibold',
     fontSize: 17,
-    color: '#000000',
     textAlign: 'center'
   },
-  title: {
-    fontFamily: 'Averta-Bold',
-    fontSize: 18,
-    color: 'black',
-    marginLeft: 16,
-    marginVertical: 16
+  container: {
+    alignContent: 'center',
+    backgroundColor: '#fff',
+    flex: 1
+  },
+  flatList: {
+    paddingHorizontal: wp('1')
   },
   nextBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 18,
     backgroundColor: '#0084ff',
-    borderRadius: 23.8
+    borderRadius: 23.8,
+    paddingHorizontal: 18,
+    paddingVertical: 6
   },
   nextText: {
     color: 'white',
     fontFamily: 'Averta-Semibold',
     fontSize: 16
   },
-  flatList: {
-    paddingHorizontal: wp('1')
+  title: {
+    color: 'black',
+    fontFamily: 'Averta-Bold',
+    fontSize: 18,
+    marginLeft: 16,
+    marginVertical: 16
   }
 });
 

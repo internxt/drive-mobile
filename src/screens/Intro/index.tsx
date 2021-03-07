@@ -94,51 +94,51 @@ function Intro(props: IntroProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
+  activeDot: {
+    backgroundColor: '#a4a4a4'
+  },
   body: {
     backgroundColor: '#fff',
-    padding: normalize(31),
-    flex: 1
+    flex: 1,
+    padding: normalize(31)
+  },
+  buttonSkip: {
+    alignItems: 'center',
+    backgroundColor: '#007aff',
+    borderRadius: 23,
+    height: normalize(46),
+    justifyContent: 'center',
+    marginBottom: normalize(40),
+    marginLeft: normalize(27),
+    marginRight: normalize(27)
+  },
+  buttonSkipText: {
+    color: 'white',
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: normalize(18),
+    textAlign: 'center'
   },
   explanationText: {
+    color: '#7e7e7e',
     fontFamily: 'CerebriSans-Medium',
     fontSize: normalize(22),
-    textAlign: 'center',
     lineHeight: normalize(28),
-    color: '#7e7e7e',
-    marginTop: normalize(30)
+    marginTop: normalize(30),
+    textAlign: 'center'
+  },
+  image: {
+    aspectRatio: 1,
+    height: undefined,
+    justifyContent: 'center',
+    width: '90%'
   },
   imageContainer: {
     flex: 1,
     justifyContent: 'center',
     marginBottom: 100
   },
-  image: {
-    width: '90%',
-    height: undefined,
-    aspectRatio: 1,
-    justifyContent: 'center'
-  },
-  activeDot: {
-    backgroundColor: '#a4a4a4'
-  },
   inactiveDot: {
     backgroundColor: '#e8e8e8'
-  },
-  buttonSkip: {
-    borderRadius: 23,
-    backgroundColor: '#007aff',
-    height: normalize(46),
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: normalize(40),
-    marginRight: normalize(27),
-    marginLeft: normalize(27)
-  },
-  buttonSkipText: {
-    textAlign: 'center',
-    color: 'white',
-    fontSize: normalize(18),
-    fontFamily: 'CerebriSans-Regular'
   }
 });
 

@@ -27,7 +27,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
   >
     <Image
       onLoadEnd={() => setIsLoaded(true)}
-      style={[styles.image]}
+      style={styles.image}
       source={{ uri: item.localUri }}
     />
     {!isLoaded
@@ -39,18 +39,18 @@ export default function Photo(props: PhotoProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  imageView: {
-    marginHorizontal: wp('0.5'),
-    marginVertical: wp('0.5'),
-    backgroundColor: 'white',
-    borderRadius: 10
-  },
-  image: {
-    width: (deviceWidth - wp('3.5')) / 3,
-    height: (deviceWidth - wp('3.5')) / 3,
-    borderRadius: 10
-  },
   badge: {
     position: 'absolute'
+  },
+  image: {
+    borderRadius: 10,
+    height: (deviceWidth - wp('3.5')) / 3,
+    width: (deviceWidth - wp('3.5')) / 3
+  },
+  imageView: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    marginHorizontal: wp('0.5'),
+    marginVertical: wp('0.5')
   }
 });

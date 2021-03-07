@@ -107,24 +107,18 @@ function AddItemToModal(props: AddItemToProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  modal: {
-    top: '10%',
-    alignContent: 'center',
-    borderRadius: 8
-  },
   headerContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 39,
     paddingBottom: 10,
-    paddingHorizontal: 22
+    paddingHorizontal: 22,
+    paddingTop: 39
   },
-  upgradeBtn: {
-    paddingVertical: 5,
-    paddingHorizontal: 18,
-    backgroundColor: '#0084ff',
-    borderRadius: 23.8
+  modal: {
+    alignContent: 'center',
+    borderRadius: 8,
+    top: '10%'
   },
   propText: {
     color: 'white',
@@ -134,6 +128,12 @@ const styles = StyleSheet.create({
   },
   touch: {
     paddingHorizontal: 0
+  },
+  upgradeBtn: {
+    backgroundColor: '#0084ff',
+    borderRadius: 23.8,
+    paddingHorizontal: 18,
+    paddingVertical: 5
   }
 })
 

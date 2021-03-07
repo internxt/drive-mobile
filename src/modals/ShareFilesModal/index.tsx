@@ -139,78 +139,78 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 }
 
 const styles = StyleSheet.create({
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  buttonContainer: {
+    borderColor: 'rgba(151, 151, 151, 0.2)',
+    borderLeftWidth: 1,
+    flex: 0.2,
+    height: '100%',
+    justifyContent: 'center',
+    padding: 20
+  },
+  buttonText: {
+    color: '#4585f5',
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 18
+  },
+  buttonTextLoading: {
+    color: 'rgba(69, 133, 245, 0.7)',
+    fontFamily: 'CircularStd-Bold',
+    fontSize: 18
+  },
+  input: {
+    backgroundColor: '#f2f2f2',
+    color: '#737880',
+    fontSize: 12,
+    height: 37,
+    paddingLeft: 10,
+    width: '17%'
+  },
+  inputContainer: {
+    alignItems: 'flex-end',
+    flexDirection: 'row'
+  },
+  link: {
+    color: '#737880',
+    fontSize: 14,
+    marginHorizontal: 4
+  },
+  linkContainer: {
+    alignItems: 'center',
+    borderWidth: 1,
+    flex: 0.8,
+    justifyContent: 'center'
+  },
   modalContainer: {
     height: 'auto',
     paddingTop: 20
   },
-  title: {
-    fontSize: 18,
-    color: 'black',
-    fontFamily: 'CircularStd-Bold',
-    marginHorizontal: wp('6')
-  },
-  subtitle: {
-    fontSize: 16,
-    letterSpacing: 0.5,
-    lineHeight: 25,
-    color: '#737880',
-    marginLeft: wp('6')
+  shareContainer: {
+    alignItems: 'center',
+    borderColor: 'rgba(151, 151, 151, 0.2)',
+    borderWidth: 1,
+    flexDirection: 'row',
+    height: Platform.OS === 'ios' ? wp('19') : wp('15'),
+    marginTop: 12
   },
   short: {
     width: '70%'
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end'
-  },
-  input: {
-    width: '17%',
-    height: 37,
-    backgroundColor: '#f2f2f2',
-    fontSize: 12,
+  subtitle: {
     color: '#737880',
-    paddingLeft: 10
+    fontSize: 16,
+    letterSpacing: 0.5,
+    lineHeight: 25,
+    marginLeft: wp('6')
   },
-  shareContainer: {
-    flexDirection: 'row',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
-    alignItems: 'center',
-    marginTop: 12,
-    borderWidth: 1,
-    height: Platform.OS === 'ios' ? wp('19') : wp('15')
-  },
-  linkContainer: {
-    flex: 0.8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1
-  },
-  link: {
-    fontSize: 14,
-    marginHorizontal: 4,
-    color: '#737880'
-  },
-  buttonContainer: {
-    flex: 0.2,
-    borderLeftWidth: 1,
-    height: '100%',
-    justifyContent: 'center',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
-    padding: 20
-  },
-  button: {
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  buttonText: {
+  title: {
+    color: 'black',
+    fontFamily: 'CircularStd-Bold',
     fontSize: 18,
-    color: '#4585f5',
-    fontFamily: 'CerebriSans-Bold'
-  },
-  buttonTextLoading: {
-    fontSize: 18,
-    color: 'rgba(69, 133, 245, 0.7)',
-    fontFamily: 'CircularStd-Bold'
+    marginHorizontal: wp('6')
   }
 })
 

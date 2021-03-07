@@ -160,9 +160,9 @@ export default connect(mapStateToProps)(AlbumDetailsModal)
 
 const styles = StyleSheet.create({
   modalSettingsFile: {
-    top: '33%',
     borderRadius: 8,
-    paddingLeft: 15
+    paddingLeft: 15,
+    top: '33%'
   },
   propText: {
     color: '#9c9c9c',

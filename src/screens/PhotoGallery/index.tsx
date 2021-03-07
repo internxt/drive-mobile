@@ -77,46 +77,46 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignContent: 'center',
-    backgroundColor: '#fff',
-    paddingBottom: 15
-  },
   albumHeader: {
+    alignItems: 'center',
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
+    height: '8%',
     justifyContent: 'space-between',
     paddingBottom: 15,
-    paddingHorizontal: 20,
-    height: '8%'
+    paddingHorizontal: 20
   },
   albumTitle: {
+    color: '#000000',
     fontFamily: 'Averta-Semibold',
     fontSize: 18,
     letterSpacing: 0,
-    color: '#000000',
     textAlign: 'center'
 
   },
+  container: {
+    alignContent: 'center',
+    backgroundColor: '#fff',
+    flex: 1,
+    paddingBottom: 15
+  },
+  flatList: {
+    paddingHorizontal: wp('0.5')
+  },
   photosCount: {
+    color: '#bfbfbf',
     fontFamily: 'Averta-Regular',
     fontSize: 13,
     letterSpacing: 0,
     paddingTop: 5,
-    color: '#bfbfbf',
     textAlign: 'center'
   },
   titleWrapper: {
     display: 'flex',
-    position: 'absolute',
     left: 0,
+    position: 'absolute',
     right: 0,
     zIndex: -2
-  },
-  flatList: {
-    paddingHorizontal: wp('0.5')
   }
 });
 
