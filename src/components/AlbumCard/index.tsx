@@ -71,6 +71,9 @@ export function AlbumCard(props: AlbumProps): JSX.Element {
                 horizontal={false}
                 numColumns={3}
                 keyExtractor={keyExtractor}
+                getItemLayout={(data, index) => (
+                  { length: 58, offset: 58 * index, index }
+                )}
               />
             </View>
             :
