@@ -20,7 +20,6 @@ interface StorageProps extends Reducers {
 }
 
 function Storage(props: StorageProps): JSX.Element {
-  const userToken = props.authenticationState.token
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [products, setProducts] = useState<IProduct[]>([])
@@ -28,13 +27,13 @@ function Storage(props: StorageProps): JSX.Element {
   const [chosenProduct, setChosenProduct] = useState<IProduct>()
 
   const getProducts = async () => {
-    const products = await storageService.loadAvailableProducts(userToken)
+    const products = await storageService.loadAvailableProducts()
 
     return products
   }
 
   const getPlans = async (product: IProduct) => {
-    const plans = await storageService.loadAvailablePlans(userToken, product.id)
+    const plans = await storageService.loadAvailablePlans(product.id)
 
     return plans
   }

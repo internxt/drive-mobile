@@ -20,11 +20,9 @@ function identifyPlanName(bytes: number): string {
 }
 
 async function loadUsage(): Promise<number> {
-  const xToken = await deviceStorage.getItem('xToken') || undefined
-
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
     method: 'get',
-    headers: await getHeaders(xToken)
+    headers: await getHeaders()
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load usage') }
     return res
@@ -64,7 +62,7 @@ async function initializePhotosUser(token: string, mnemonic: string): Promise<an
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
     method: 'POST',
-    headers: await getHeaders(token, mnemonic),
+    headers: await getHeaders(),
     body: JSON.stringify({
       email: email,
       mnemonic: mnemonic

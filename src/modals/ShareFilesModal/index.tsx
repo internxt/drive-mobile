@@ -22,8 +22,6 @@ function ShareFilesModal(props: ShareFilesModalProps) {
   const [link, setLink] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [inputValue, setInputValue] = useState('1')
-  const xToken = props.authenticationState.token
-  const mnemonic = props.authenticationState.user.mnemonic;
 
   const handleInputChange = (e: string) => {
     setInputValue(e.replace(/[^0-9]/g, ''))
@@ -72,7 +70,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 
     return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/share/file/${fileId}`, {
       method: 'POST',
-      headers: await getHeaders(xToken, mnemonic),
+      headers: await getHeaders(),
       body: JSON.stringify({ 'isFolder': false, 'views': views })
     }).then(res => {
       if (res.status !== 200) {
