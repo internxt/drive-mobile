@@ -13,7 +13,8 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
-import { getLocalImages, getUploadedPhotos } from '../Photos/init';
+import { getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
+import _ from 'lodash'
 
 interface PhotoGalleryProps {
   route: any;
@@ -24,12 +25,26 @@ interface PhotoGalleryProps {
   authenticationState: AuthenticationState
 }
 
+function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
+  const localPhotodLabel = _.map(localPhotos, o => _.extend({ isLocal: true }, o))
+  const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
+
+  const union = _.unionBy([...localPhotodLabel, ...remotePhotosLabel], (o) => {
+    const a = localPhotodLabel.find(id => id.hash === o.hash)
+    const b = remotePhotosLabel.find(id => id.hash === o.hash)
+
+    return _.merge(a, b)
+  })
+
+  return union;
+}
+
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
-  const [localPhotos, setLocalPhotos] = useState<any[]>([]);
-  const [uploadedPhotos, setUploadedPhotos] = useState<any[]>([]);
+  const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
+  const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
 
-  const filteredPhotos = [...localPhotos, ...uploadedPhotos];
+  const filteredPhotos = setStatus(localPhotos, uploadedPhotos);
 
   const loadLocalPhotos = (after?: string) => {
     return getLocalImages(after).then(res => {
@@ -39,11 +54,14 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   }
 
   const loadUploadedPhotos = async () => {
-    return getUploadedPhotos()
+    getPreviews().then(res => {
+      setUploadedPhotos(res);
+    }).catch(() => {
+    })
   }
 
   const loadPhotos = (after?: string) => {
-    return Promise.all([
+    return Promise.race([
       loadLocalPhotos(after),
       loadUploadedPhotos()
     ])
@@ -86,6 +104,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
             <PhotoList
               data={filteredPhotos}
               numColumns={3}
+              onRefresh={() => {
+                setIsLoading(true);
+                loadPhotos().finally(() => setIsLoading(false));
+              }}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}
             />

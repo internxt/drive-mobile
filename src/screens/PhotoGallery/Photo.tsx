@@ -4,11 +4,10 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import * as MediaLibrary from 'expo-media-library';
 import FileViewer from 'react-native-file-viewer';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { downloadPhoto } from '../Photos/init';
 import { MaterialIndicator } from 'react-native-indicators';
 import { connect } from 'react-redux';
 
-interface IAlbumImage {
+interface PhotoProps {
   id?: string
   uri: string
   isSynced: string
@@ -19,11 +18,11 @@ interface IAlbumImage {
 
 const deviceWidth = Dimensions.get('window').width
 
-function Photo(props: IAlbumImage): JSX.Element {
+function Photo(props: PhotoProps): JSX.Element {
   const [isDownloading, setIsDownloading] = useState(false)
   const icons = {
-    'download'  : require('../../../assets/icons/photos-icon-download.png'),
-    'upload'    : require('../../../assets/icons/photos-icon-upload.png')
+    'download'  : require('../../../assets/icons/photos/photo-remote.svg'),
+    'upload'    : require('../../../assets/icons/photos/photo-local.svg')
   }
   const icon = props.isUploaded ? icons.download : icons.upload
   const regEx = 'file:///'
@@ -48,11 +47,6 @@ function Photo(props: IAlbumImage): JSX.Element {
 
           } else {
             setIsDownloading(true)
-            downloadPhoto(props.photo).then(() => {
-
-            }).finally(() => {
-              setIsDownloading(false)
-            })
           }
         }}
         style={styles.container}

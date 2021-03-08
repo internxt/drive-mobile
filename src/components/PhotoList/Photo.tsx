@@ -4,6 +4,7 @@ import { StyleSheet, Image, Dimensions, ActivityIndicator, View } from 'react-na
 import FileViewer from 'react-native-file-viewer';
 import * as MediaLibrary from 'expo-media-library';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import PhotoBadge from './PhotoBadge';
 
 const deviceWidth = Dimensions.get('window').width
 
@@ -33,7 +34,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
     {!isLoaded
       ? <ActivityIndicator color='gray' size='small' style={styles.badge} />
       : <View style={styles.badge}>
-        {props.badge || <></>}
+        {props.badge || <PhotoBadge isUploaded={props.item.isUploaded} isLocal={props.item.isLocal} />}
       </View>}
   </TouchableOpacity>
 }
