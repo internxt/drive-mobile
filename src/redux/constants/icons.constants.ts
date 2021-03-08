@@ -20,7 +20,9 @@ const icons: any = {
   share: require('../../../assets/icons/icon-share.png'),
   sort: require('../../../assets/icons/icon-sort.png'),
   move: require('../../../assets/icons/icon-move-file.png'),
-  download: require('../../../assets/icons/icon-download.png')
+  download: require('../../../assets/icons/icon-download.png'),
+  photoLocal: require('../../../assets/icons/photos/photo-local.png'),
+  photoCloud: require('../../../assets/icons/photos/photo-remote.png')
 };
 
 const folderIconsList = ['avatarcircleneutral', 'backup', 'barchart', 'bell', 'binoculars', 'book', 'camera', 'bowl', 'categories',

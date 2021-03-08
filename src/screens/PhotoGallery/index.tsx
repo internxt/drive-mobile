@@ -26,10 +26,16 @@ interface PhotoGalleryProps {
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
-  const [photos, setPhotos] = useState<any[]>([]);
+  const [localPhotos, setLocalPhotos] = useState<any[]>([]);
+  const [uploadedPhotos, setUploadedPhotos] = useState<any[]>([]);
+
+  const filteredPhotos = [...localPhotos, ...uploadedPhotos];
 
   const loadLocalPhotos = (after?: string) => {
-    return getLocalImages(after)
+    return getLocalImages(after).then(res => {
+      setLocalPhotos(res.assets)
+      return res;
+    })
   }
 
   const loadUploadedPhotos = async () => {
@@ -65,7 +71,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
           </Text>
 
           <Text style={styles.photosCount}>
-            {photos.length} Photos
+            {filteredPhotos.length} Photos
           </Text>
         </View>
 
@@ -78,8 +84,8 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         {
           !isLoading ?
             <PhotoList
-              data={photos}
-              numColumns={4}
+              data={filteredPhotos}
+              numColumns={3}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}
             />
