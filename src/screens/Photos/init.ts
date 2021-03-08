@@ -330,10 +330,7 @@ async function initializePhotosUser(): Promise<any> {
 }
 
 async function photosUserData(): Promise<any> {
-  const xUser = await deviceStorage.getItem('xUser')
-  const xToken = await deviceStorage.getItem('xToken')
-  const xUserJson = JSON.parse(xUser || '{}')
-  const headers = getHeaders(xToken || '', xUserJson.mnemonic)
+  const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/user`, {
     method: 'GET',

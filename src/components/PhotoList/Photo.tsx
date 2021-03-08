@@ -10,7 +10,10 @@ const deviceWidth = Dimensions.get('window').width
 
 interface PhotoProps {
   badge?: JSX.Element
-  item: MediaLibrary.Asset
+  item: MediaLibrary.Asset & {
+    isUploaded?: boolean
+    isLocal?: boolean
+  }
 }
 
 export default function Photo(props: PhotoProps): JSX.Element {
