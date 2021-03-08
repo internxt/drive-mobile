@@ -72,7 +72,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 
     return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/share/file/${fileId}`, {
       method: 'POST',
-      headers: getHeaders(xToken, mnemonic),
+      headers: await getHeaders(xToken, mnemonic),
       body: JSON.stringify({ 'isFolder': false, 'views': views })
     }).then(res => {
       if (res.status !== 200) {

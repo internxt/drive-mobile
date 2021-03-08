@@ -13,7 +13,7 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList, { IPreview } from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
-import { getOldLocalImages } from '../Photos/init';
+import { getLocalImages, getUploadedPhotos } from '../Photos/init';
 
 interface PhotoGalleryProps {
   route: any;
@@ -28,11 +28,21 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
   const [photosToRender, setPhotosToRender] = useState<IPreview[]>([])
 
+  const loadLocalPhotos = (after?: string) => {
+    getLocalImages(after)
+  }
+
+  const loadUploadedPhotos = () => {
+    getUploadedPhotos()
+  }
+
+  const loadPhotos = () => {
+    return loadLocalPhotos();
+  }
+
   useEffect(() => {
-    getOldLocalImages(props.dispatch, true).then(() => {
-      setPhotosToRender(props.photosState.localPhotosGallery)
-      setIsLoading(false)
-    })
+    setIsLoading(true);
+    loadPhotos();
   }, [])
 
   return (

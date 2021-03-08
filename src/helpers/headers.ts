@@ -1,4 +1,21 @@
-export function getHeaders(authToken?: string, mnemonic?: string) {
+import { deviceStorage } from './deviceStorage'
+
+export async function getHeaders(authToken?: string, mnemonic?: string) {
+
+  let storedAuthToken;
+
+  if (!authToken) {
+    storedAuthToken = await deviceStorage.getItem('xToken')
+  }
+
+  let storedMnemonic;
+
+  if (!mnemonic) {
+    const xUser = await deviceStorage.getItem('xUser')
+    const xUserJson = JSON.parse(xUser || '{}')
+
+    storedMnemonic = xUserJson.mnemonic;
+  }
 
   const headers = new Headers()
 
@@ -6,13 +23,8 @@ export function getHeaders(authToken?: string, mnemonic?: string) {
   headers.append('internxt-version', '1.0.0')
   headers.append('internxt-client', 'drive-mobile')
 
-  if (authToken) {
-    headers.append('Authorization', `Bearer ${authToken}`);
-  }
-
-  if (mnemonic) {
-    headers.append('internxt-mnemonic', mnemonic);
-  }
+  headers.append('Authorization', `Bearer ${authToken || storedAuthToken}`);
+  headers.append('internxt-mnemonic', mnemonic || storedMnemonic);
 
   return headers;
 }

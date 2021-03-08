@@ -24,7 +24,7 @@ async function loadUsage(): Promise<number> {
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
     method: 'get',
-    headers: getHeaders(xToken)
+    headers: await getHeaders(xToken)
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load usage') }
     return res
@@ -32,11 +32,9 @@ async function loadUsage(): Promise<number> {
 }
 
 async function loadLimit(): Promise<number> {
-  const xToken = await deviceStorage.getItem('xToken') || undefined
-
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
     method: 'get',
-    headers: getHeaders(xToken)
+    headers: await getHeaders()
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load limit') }
     return res
@@ -66,7 +64,7 @@ async function initializePhotosUser(token: string, mnemonic: string): Promise<an
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
     method: 'POST',
-    headers: getHeaders(token, mnemonic),
+    headers: await getHeaders(token, mnemonic),
     body: JSON.stringify({
       email: email,
       mnemonic: mnemonic

@@ -20,7 +20,7 @@ async function loadUsage(): Promise<number> {
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
     method: 'get',
-    headers: getHeaders(xToken)
+    headers: await getHeaders(xToken)
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load usage') }
     return res
@@ -32,7 +32,7 @@ async function loadLimit(): Promise<number> {
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
     method: 'get',
-    headers: getHeaders(xToken)
+    headers: await getHeaders(xToken)
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load limit') }
     return res

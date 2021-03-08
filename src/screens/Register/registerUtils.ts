@@ -41,7 +41,7 @@ export async function doRegister(params: RegisterParams): Promise<any> {
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/register`, {
     method: 'post',
-    headers: getHeaders(),
+    headers: await getHeaders(),
     body: JSON.stringify({
       name: params.firstName,
       lastname: params.lastName,

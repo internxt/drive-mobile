@@ -45,7 +45,7 @@ function StorageWebView(props: StorageWebView): JSX.Element {
     return () => backHandler.remove()
   }, [])
 
-  const getLink = () => {
+  const getLink = async () => {
     const body = {
       plan: plan.id,
       test: process.env.NODE_ENV === 'development',
@@ -56,7 +56,7 @@ function StorageWebView(props: StorageWebView): JSX.Element {
 
     fetch(`${process.env.REACT_NATIVE_API_URL}/api/stripe/session${(process.env.NODE_ENV === 'development' ? '?test=true' : '')}`, {
       method: 'POST',
-      headers: getHeaders(user.token),
+      headers: await getHeaders(user.token),
       body: JSON.stringify(body)
     }).then(result => result.json()).then(result => {
       if (result.error) {

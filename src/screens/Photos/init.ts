@@ -178,8 +178,6 @@ export async function getAssetsAsync(opts: MediaLibrary.AssetsOptions) {
   return MediaLibrary.getAssetsAsync(opts);
 }
 
-type PhotosCallback = (data: MediaLibrary.PagedInfo<Asset>, next: any) => void;
-
 export function getLocalImages(after?: string | undefined) {
   const result = {
     endCursor: undefined,
@@ -221,15 +219,8 @@ export function getOldLocalImages(dispatch: Dispatch, gallery: boolean, after?: 
     })
 }
 
-export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch): Promise<any> {
-  const token = authenticationState.token;
-  const mnemonic = authenticationState.user.mnemonic;
-
-  const headers = {
-    'Authorization': `Bearer ${token}`,
-    'internxt-mnemonic': mnemonic,
-    'Content-Type': 'application/json; charset=utf-8'
-  };
+export async function getUploadedPhotos() {
+  const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photos`, {
     method: 'GET',
@@ -351,7 +342,7 @@ export async function initializePhotosUser(): Promise<any> {
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
     method: 'GET',
-    headers: getHeaders(xToken || '', xUserJson.mnemonic)
+    headers: await getHeaders(xToken || '', xUserJson.mnemonic)
   }).then(res => res.json())
 }
 
