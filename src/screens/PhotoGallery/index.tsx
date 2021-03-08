@@ -11,7 +11,7 @@ import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
-import PhotoList, { IPreview } from '../../components/PhotoList';
+import PhotoList from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
 import { getLocalImages, getUploadedPhotos } from '../Photos/init';
 
@@ -26,23 +26,28 @@ interface PhotoGalleryProps {
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
-  const [photosToRender, setPhotosToRender] = useState<IPreview[]>([])
+  const [photos, setPhotos] = useState<any[]>([]);
 
   const loadLocalPhotos = (after?: string) => {
-    getLocalImages(after)
+    return getLocalImages(after)
   }
 
-  const loadUploadedPhotos = () => {
-    getUploadedPhotos()
+  const loadUploadedPhotos = async () => {
+    return getUploadedPhotos()
   }
 
-  const loadPhotos = () => {
-    return loadLocalPhotos();
+  const loadPhotos = (after?: string) => {
+    return Promise.all([
+      loadLocalPhotos(after),
+      loadUploadedPhotos()
+    ])
   }
 
   useEffect(() => {
     setIsLoading(true);
-    loadPhotos();
+    loadPhotos().finally(() => {
+      setIsLoading(false)
+    });
   }, [])
 
   return (
@@ -60,7 +65,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
           </Text>
 
           <Text style={styles.photosCount}>
-            {photosToRender.length} Photos
+            {photos.length} Photos
           </Text>
         </View>
 
@@ -73,7 +78,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         {
           !isLoading ?
             <PhotoList
-              data={photosToRender}
+              data={photos}
               numColumns={4}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}

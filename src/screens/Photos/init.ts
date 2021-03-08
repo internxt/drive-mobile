@@ -202,11 +202,6 @@ export async function getUploadedPhotos() {
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  }).then(async res => {
-
-    // TODO: BORRAR
-    dispatch(PhotoActions.setAllUploadedPhotos(res))
-    return res
   })
 }
 

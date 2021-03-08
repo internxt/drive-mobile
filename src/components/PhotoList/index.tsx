@@ -8,6 +8,7 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import * as MediaLibrary from 'expo-media-library';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import Photo from './Photo'
+import EmptyPhotoList from './EmptyPhotoList';
 
 export interface IPhoto {
   id: string
@@ -70,6 +71,7 @@ function PhotoList(props: PhotoListProps) {
                   props.onEndReached(e);
                 }
               }}
+              ListEmptyComponent={props.ListEmptyComponent || <EmptyPhotoList />}
               renderItem={({ item }) => <Photo item={item} />}
               contentContainerStyle={styles.flatList}
               keyExtractor={(item) => item.id}
