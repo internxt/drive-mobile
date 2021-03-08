@@ -36,7 +36,7 @@ export function syncPhotos(images: Asset[], props: any) {
     });
   });
 }
-export async function uploadPhoto(result: any, props: any) {
+async function uploadPhoto(result: any, props: any) {
 
   try {
     // Set name for pics/photos

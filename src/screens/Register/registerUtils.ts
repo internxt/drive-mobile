@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
+import { encryptText, encryptTextWithKey, passToHash } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 
 export function isStrongPassword(pwd: string): boolean {
@@ -14,14 +14,6 @@ interface RegisterParams {
     lastName: string
     email: string
     password: string
-}
-
-export async function getNewBits(): Promise<string> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/bits`)
-    .then(res => res.json())
-    .then(res => res.bits)
-    .then(bits => decryptText(bits))
-    .catch(() => null)
 }
 
 export function IsJsonString(str: string): any {
@@ -65,20 +57,4 @@ export async function doRegister(params: RegisterParams): Promise<any> {
       }
     }
   })
-}
-
-export async function resendActivationEmail(email: string): Promise<any> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/user/resend/${email.toLowerCase()}`)
-    .then(async res => {
-      if (res.status !== 200) {
-        const body = await res.text()
-        const json = IsJsonString(body)
-
-        if (json) {
-          throw Error(json.error ? json.error : json.message)
-        } else {
-          throw Error(body)
-        }
-      }
-    })
 }

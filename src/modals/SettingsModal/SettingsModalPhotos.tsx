@@ -39,7 +39,7 @@ async function loadLimit(): Promise<number> {
   }).then(res => res.json()).then(res => res.maxSpaceBytes)
 }
 
-export async function loadValues(): Promise<{ usage: number, limit: number }> {
+async function loadValues(): Promise<{ usage: number, limit: number }> {
   const limit = await loadLimit()
   const usage = await loadUsage()
 

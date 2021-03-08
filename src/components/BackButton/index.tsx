@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
-export interface BackButtonProps {
+interface BackButtonProps {
     style?: any
     navigation: any
     filesState?: any

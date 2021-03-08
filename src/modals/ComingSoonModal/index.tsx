@@ -6,14 +6,13 @@ import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { layoutActions } from '../../redux/actions';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
-
-export interface ComingSoon {
+interface ComingSoonProps {
     navigation: any
     layoutState: LayoutState
     dispatch: any
 }
 
-const ComingSoonModal = (props: ComingSoon) => {
+const ComingSoonModal = (props: ComingSoonProps) => {
   const [isOpen, setIsOpen] = useState(props.layoutState.showComingSoonModal)
 
   useEffect(() => {

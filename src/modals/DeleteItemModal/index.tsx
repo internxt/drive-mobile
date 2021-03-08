@@ -6,7 +6,7 @@ import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
-export interface DeleteItemModalProps extends Reducers {
+interface DeleteItemModalProps extends Reducers {
     dispatch?: any,
 }
 

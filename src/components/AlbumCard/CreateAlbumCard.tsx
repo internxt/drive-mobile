@@ -1,18 +1,9 @@
 import * as React from 'react';
-import { Image, StyleProp, StyleSheet, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
+import { Image, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
-import { Dispatch } from 'redux';
 import { layoutActions } from '../../redux/actions';
-
-export interface CreateAlbumProps {
-  style?: StyleProp<ViewStyle>
-  album?: any
-  navigation: any
-  dispatch: Dispatch
-}
-
-export interface ISelectedPhotos {
+interface ISelectedPhotos {
   path: string
   localIdentifier?: string
   sourceURL?: string

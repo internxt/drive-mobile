@@ -250,7 +250,7 @@ function deleteTempPhoto(photoId: any): Promise<any> {
   });
 }
 
-export type ArraySortFunction = (a: any, b: any) => boolean
+type ArraySortFunction = (a: any, b: any) => boolean
 
 function getSortFunction(sortType: string): ArraySortFunction | null {
   let sortFunc = null;

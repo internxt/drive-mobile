@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { IPlan, IProduct } from '../../redux/services';
 import { getIcon } from '../../helpers/getIcon';
 
-export interface PlanCardProps {
+interface PlanCardProps {
   size?: string
   price: string
   chosen?: boolean

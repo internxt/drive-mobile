@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FlatList, Image, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
-export interface AlbumProps {
+interface AlbumProps {
   style?: StyleProp<ViewStyle>
   album?: any
   withTitle: boolean
@@ -13,7 +13,7 @@ export interface AlbumProps {
 }
 
 // TODO: Add album param
-export function AlbumCard(props: AlbumProps): JSX.Element {
+function AlbumCard(props: AlbumProps): JSX.Element {
 
   const photos = props.photosState.photos;
 

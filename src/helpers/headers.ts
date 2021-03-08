@@ -1,6 +1,6 @@
 import { deviceStorage } from './deviceStorage'
 
-export async function getHeaders(authToken?: string, mnemonic?: string) {
+export async function getHeaders(authToken?: string, mnemonic?: string): Promise<Headers> {
 
   let storedAuthToken;
 

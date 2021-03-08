@@ -8,7 +8,7 @@ import { downloadPhoto } from '../Photos/init';
 import { MaterialIndicator } from 'react-native-indicators';
 import { connect } from 'react-redux';
 
-export interface IAlbumImage {
+interface IAlbumImage {
   id?: string
   uri: string
   isSynced: string

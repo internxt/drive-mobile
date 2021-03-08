@@ -8,7 +8,6 @@ import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { PhotoActions } from '../../redux/actions';
-import { Dispatch } from 'redux';
 import { IPhotosProps } from '.'
 import { store } from '../../store';
 import SimpleToast from 'react-native-simple-toast';
@@ -58,7 +57,7 @@ export function syncPhotos(images: IHashedPhoto[]) {
   })
 }
 
-export async function uploadPhoto(result: any) {
+async function uploadPhoto(result: any) {
   try {
     // Set name for pics/photos
     if (!result.name) {
@@ -174,10 +173,6 @@ const uploadPreview = async (preview: any) => {
     })
 }
 
-export async function getAssetsAsync(opts: MediaLibrary.AssetsOptions) {
-  return MediaLibrary.getAssetsAsync(opts);
-}
-
 export function getLocalImages(after?: string | undefined) {
   const result = {
     endCursor: undefined,
@@ -196,27 +191,6 @@ export function getLocalImages(after?: string | undefined) {
     result.assets = res
     return result;
   });
-}
-
-export function getOldLocalImages(dispatch: Dispatch, gallery: boolean, after?: string) {
-  return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
-    .then(() => {
-      if (after) {
-        return MediaLibrary.getAssetsAsync({ first: 39, after });
-      }
-
-      return MediaLibrary.getAssetsAsync({ first: 100000 });
-    })
-    .then(async (res) => {
-      await getArrayPhotos(res.assets).then(res => {
-        if (gallery) {
-          dispatch(PhotoActions.setAllLocalPhotosGallery(res))
-        } else {
-          dispatch(PhotoActions.setAllLocalPhotos(res))
-        }
-      })
-      return res.endCursor
-    })
 }
 
 export async function getUploadedPhotos() {
@@ -264,7 +238,7 @@ export async function downloadPhoto(photo: any) {
   })
 }
 
-export const downloadPreview = async (preview: any, props: IPhotosProps) => {
+const downloadPreview = async (preview: any, props: IPhotosProps) => {
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -296,7 +270,7 @@ export const downloadPreview = async (preview: any, props: IPhotosProps) => {
   })
 }
 
-export function getArrayPreviews(props: any): Promise<any[]> {
+function getArrayPreviews(props: any): Promise<any[]> {
   const token = props.authenticationState.token;
   const mnemonic = props.authenticationState.user.mnemonic;
 
@@ -335,7 +309,7 @@ export function getPreviews(props: IPhotosProps): Promise<any> {
   });
 }
 
-export async function initializePhotosUser(): Promise<any> {
+async function initializePhotosUser(): Promise<any> {
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -346,7 +320,7 @@ export async function initializePhotosUser(): Promise<any> {
   }).then(res => res.json())
 }
 
-export async function photosUserData(): Promise<any> {
+async function photosUserData(): Promise<any> {
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -363,7 +337,7 @@ export async function photosUserData(): Promise<any> {
   })
 }
 
-export async function isUserInitialized() {
+async function isUserInitialized() {
   return photosUserData()
     .then((res) => {
       if (!res.rootPreviewId || !res.rootAlbumId) {
