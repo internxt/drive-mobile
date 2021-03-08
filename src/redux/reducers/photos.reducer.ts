@@ -318,7 +318,6 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       localPhotos: []
     }
   case photoActionTypes.SAVE_ALBUM:
-    console.log('reducer', action.payload)
     return {
       ...state,
       albums: [...state.albums, action.payload]

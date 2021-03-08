@@ -18,6 +18,7 @@ import Home from './screens/Home';
 import PhotoGallery from './screens/PhotoGallery';
 import CreateAlbum from './screens/CreateAlbum';
 import EntryGateway from './screens/EntryGateway';
+import AlbumView from './screens/AlbumView';
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, unknown>
 type NavigatorOptions = CreateNavigatorConfig<StackNavigationConfig, NavigationStackRouterConfig, StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>>
@@ -29,6 +30,7 @@ const routeConfig: RouteConfig = {
   Intro: { screen: Intro },
   Home: { screen: Home },
   PhotoGallery: { screen: PhotoGallery },
+  AlbumView: { screen: AlbumView },
   FileExplorer: { screen: FileExplorer },
   Biometric: { screen: Biometric },
   CreateAlbum: { screen: CreateAlbum },

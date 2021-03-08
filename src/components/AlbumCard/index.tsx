@@ -1,143 +1,126 @@
-import * as React from 'react';
-import { FlatList, Image, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
 import { Dispatch } from 'redux';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
-import { LayoutState } from '../../redux/reducers/layout.reducer';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
+import { IAlbum } from '../../screens/CreateAlbum';
+import { IHashedPhoto } from '../../screens/Home/init';
 
 export interface AlbumProps {
-  style?: StyleProp<ViewStyle>
-  album?: any
-  withTitle: boolean
   navigation: any
-  photosState: PhotosState
-  dispatch: Dispatch
-  layoutState: LayoutState
-  authenticationState: AuthenticationState
+  photosState?: PhotosState
+  dispatch?: Dispatch
+  authenticationState?: AuthenticationState
+  album: IAlbum
 }
 
 // TODO: Add album param
 export function AlbumCard(props: AlbumProps): JSX.Element {
+  const photos = props.album.photos
+  const bigImg = photos[0].localUri
+  const [albumCoverPhotos, setAlbumCoverPhotos] = useState<Array<string | undefined>>([])
+  const [secondaryPhotos, setSecondaryPhotos] = useState<IHashedPhoto[]>()
 
-  const photos = props.photosState && props.photosState.localPhotos;
+  const keyExtractor = (item: IHashedPhoto, index: number) => index.toString()
+  const renderItem = (item: IHashedPhoto) => (<Image style={styles.image} source={{ uri: item.uri }} />)
 
-  const keyExtractor = (item: any, index: any) => index;
-  const renderItem = ({ item }) => (
-    <Image style={styles.icon} source={item} />
-  );
+  useEffect(() => {
+    let mainPhotos = []
+    let otherPhotos: IHashedPhoto[]
 
-  const bigImg = 'file:///Users/internxt/Library/Developer/CoreSimulator/Devices/5238DEFF-AC91-43B6-AF4D-185C87891566/data/Media/DCIM/100APPLE/IMG_0199.PNG';
-  const img1 = 'file:///Users/internxt/Library/Developer/CoreSimulator/Devices/5238DEFF-AC91-43B6-AF4D-185C87891566/data/Media/DCIM/100APPLE/IMG_0200.PNG';
-  const img2 = 'file:///Users/internxt/Library/Developer/CoreSimulator/Devices/5238DEFF-AC91-43B6-AF4D-185C87891566/data/Media/DCIM/100APPLE/IMG_0195.PNG';
+    if (photos.length >= 2) {
+      if (photos.length >= 3) {
+        mainPhotos = [photos[1].localUri, photos[2].localUri]
+        otherPhotos = photos.slice(3)
 
-  //const newList = photos.slice(3, 12);
-
-  return (
-    <View style={props.withTitle ? styles.cont : styles.contModal}>
-      <View style={styles.wrapContent}>
-        <View style={props.withTitle ? styles.container : styles.containerModal}>
-          <View>
-            <Image style={styles.bigIcon} source={{ uri: bigImg }} />
-            <View style={styles.downimg}>
-              <Image style={styles.icon} source={{ uri: img1 }} />
-              <Image style={styles.icon} source={{ uri: img2 }} />
-            </View>
-          </View>
-
-          <View>
-            <FlatList
-              style={styles.photoGrid}
-              keyExtractor={keyExtractor}
-              renderItem={renderItem}
-              data={photos}
-              horizontal={false}
-              numColumns={3}
-            />
-          </View>
-        </View>
-      </View>
-
-      { props.withTitle
-        ? <View style={styles.albumTitle}>
-          <Text>
-            Utah Trip Last Summer
-          </Text>
-        </View>
-        : <View></View>
+      } else {
+        mainPhotos = [photos[1].localUri]
+        otherPhotos = photos.slice(3)
       }
 
+      setAlbumCoverPhotos(mainPhotos)
+      setSecondaryPhotos(otherPhotos)
+    }
+  }, [])
+
+  return (
+    <View style={styles.mainContainer}>
+      <View style={[styles.card, styles.boxShadow]}>
+        <View style={styles.albumCover}>
+          <Image style={styles.bigimage} source={{ uri: bigImg }} />
+
+          {
+            albumCoverPhotos ?
+              <View style={styles.downimg}>
+                {
+                  albumCoverPhotos.map(photo => (<Image style={styles.image} source={{ uri: photo }} key={photo} />))
+                }
+              </View>
+              :
+              null
+          }
+        </View>
+
+        {
+          photos.length >= 3 ?
+            <View>
+              <FlatList
+                data={secondaryPhotos}
+                renderItem={({ item }) => renderItem(item)}
+                style={styles.photoGrid}
+                horizontal={false}
+                numColumns={3}
+                keyExtractor={keyExtractor}
+              />
+            </View>
+            :
+            null
+        }
+      </View>
+
+      <Text style={styles.albumTitle}>{props.album.title}</Text>
+      <Text style={styles.albumSubtitle}>{props.album.photos.length} photos</Text>
     </View>
   )
 
 }
 
 const styles = StyleSheet.create({
-  cont: {
-    marginTop: 22,
-    marginLeft: 10
+  mainContainer: {
+    marginHorizontal: 12,
+    marginTop: 12
   },
-  contModal: {
-    marginRight: 0,
-    paddingHorizontal: 19,
-    paddingVertical: 19
-  },
-  containerModal: {
-    display: 'flex',
-    backgroundColor: '#fff',
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 9,
-    paddingTop: 12.6,
-    paddingBottom: 12.6,
-    paddingLeft: 12.6,
-    paddingRight: 7.6,
+  boxShadow: {
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2
+      height: 4
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5
+    shadowOpacity: 0.27,
+    shadowRadius: 7.49,
+    elevation: 12
   },
-  container: {
-    display: 'flex',
+  card: {
     backgroundColor: '#fff',
-    flexWrap: 'wrap',
     flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 9,
-    paddingTop: 12.6,
-    paddingBottom: 12.6,
-    paddingLeft: 12.6,
-    paddingRight: 7.6,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 5
-    },
-    shadowOpacity: 0.36,
-    shadowRadius: 6.68,
-    elevation: 11
-
+    paddingTop: 6,
+    paddingBottom: 1,
+    paddingLeft: 6,
+    paddingRight: 1
   },
-  wrapContent: {
-    alignSelf: 'baseline'
+  albumCover: {
   },
-  icon: {
+  image: {
     width: 58,
     height: 58,
     resizeMode: 'cover',
-    borderRadius: 5,
     marginRight: 5,
     marginBottom: 5
   },
-  bigIcon: {
+  bigimage: {
     width: 121,
     height: 121,
-    resizeMode: 'cover',
-    borderRadius: 5
+    resizeMode: 'cover'
   },
   downimg: {
     display: 'flex',
@@ -146,18 +129,24 @@ const styles = StyleSheet.create({
     marginTop: 5
   },
   albumTitle: {
+    maxWidth: 300,
     fontFamily: 'Averta-Regular',
-    fontSize: 15,
+    fontSize: 22,
     letterSpacing: -0.14,
     marginLeft: 16,
     marginTop: 20,
-    marginBottom: 15,
+    marginBottom: 8,
     color: '#2a2c35'
   },
+  albumSubtitle: {
+    fontFamily: 'Averta-Regular',
+    letterSpacing: -0.14,
+    marginLeft: 16,
+    fontSize: 16,
+    color: '#b5b5b5'
+  },
   photoGrid: {
-    flex: 1,
-    alignContent: 'flex-start',
-    flexWrap: 'wrap'
+    flex: 1
   }
 });
 

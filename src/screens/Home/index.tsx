@@ -8,14 +8,13 @@ import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { getLocalImages, getUploadedPhotos, syncPhotos, getPreviews, stopSync, initUser } from './init'
+import { getLocalImages, getUploadedPhotos, getPreviews, stopSync, initUser } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
-import MenuItem from '../../components/MenuItem';
-import { layoutActions } from '../../redux/actions';
 import AlbumList from '../../components/AlbumList';
+import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 
 export interface IHomeProps extends Reducers {
   navigation?: any
@@ -60,20 +59,11 @@ function Home(props: IHomeProps): JSX.Element {
       <SortModal />
       <ComingSoonModal />
 
-      {/* <AppMenuPhotos navigation={props.navigation} /> */}
+      <AppMenuPhotos navigation={props.navigation} />
 
       <View style={styles.albumsContainer}>
         <View style={styles.albumsHeader}>
-          <Text style={styles.title}>
-            Albums
-          </Text>
-
-          <MenuItem
-            name="  "
-            onClickHandler={() => {
-              props.dispatch(layoutActions.openSettings());
-            }}
-          />
+          <Text style={styles.title}>Albums</Text>
         </View>
 
         <View style={styles.albumCardContainer}>
@@ -81,7 +71,7 @@ function Home(props: IHomeProps): JSX.Element {
             props.photosState.albums.length > 0 ?
               <AlbumList navigation={props.navigation} />
               :
-              <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
+              <CreateAlbumCard navigation={props.navigation} />
           }
         </View>
 
@@ -134,11 +124,11 @@ export default connect(mapStateToProps)(Home)
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    justifyContent: 'flex-start',
     backgroundColor: '#fff'
   },
   albumsContainer: {
-    flex: 0.4
+    flex: 0.5,
+    marginBottom: 24
   },
   albumsHeader: {
     height: 50,
@@ -148,13 +138,10 @@ const styles = StyleSheet.create({
   },
   albumCardContainer: {
     alignItems: 'center',
-    height: 230,
-    width: '100%',
-    marginTop: 24,
-    borderWidth: 1
+    width: '100%'
   },
   allPhotos: {
-    flex: 0.6,
+    flex: 0.5,
     marginBottom: wp('5')
   },
   titleButton: {

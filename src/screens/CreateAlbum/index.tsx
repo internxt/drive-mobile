@@ -23,6 +23,10 @@ export interface IAlbum {
   photos: IHashedPhoto[]
 }
 
+export interface IAlbumPhoto {
+  uri: string
+}
+
 function CreateAlbum(props: CreateAlbumProps): JSX.Element {
   const photos = props.photosState.localPhotos
   const [albumTitle, setAlbumTitle] = useState('')
@@ -63,11 +67,13 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
         <TouchableOpacity style={styles.nextBtn}
           onPress={() => {
             if (albumTitle) {
-              //Alert.alert('Album name: ' + albumTitle + ' | Selected photos: ' + selectedPhotos.length)
-              const album = { title: albumTitle, photos: selectedPhotos }
+              if (albumTitle.length > 30) {
+                Alert.alert('Maximum album length name is 30 characters')
+              } else {
+                const album = { title: albumTitle, photos: [...selectedPhotos] }
 
-              props.dispatch(PhotoActions.saveAlbum(album))
-              //setSelectedPhotos([])
+                props.dispatch(PhotoActions.saveAlbum(album))
+              }
             } else {
               Alert.alert('Album name is required')
             }

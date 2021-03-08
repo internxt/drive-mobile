@@ -34,7 +34,8 @@ function CreateAlbumCard(props: ICreateAlbum): JSX.Element {
 const styles = StyleSheet.create({
   albumCard: {
     width: wp('87'),
-    paddingBottom: 8
+    paddingBottom: 8,
+    marginTop: 24
   },
   card: {
     height: wp('50'),

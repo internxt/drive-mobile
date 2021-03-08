@@ -230,7 +230,7 @@ function AppMenuPhotos(props: AppMenuProps) {
 
     <Fragment>
       <View style={[styles.buttonContainer, { display: activeSearchBox ? 'none' : 'flex' }]}>
-        {/* <View style={styles.commonButtons}>
+        <View style={styles.commonButtons}>
           <MenuItem
             style={styles.mr10}
             name="search"
@@ -301,7 +301,7 @@ function AppMenuPhotos(props: AppMenuProps) {
               :
               null
           }
-        </View> */}
+        </View>
 
         <MenuItem
           name="settings"
@@ -321,18 +321,16 @@ const styles = StyleSheet.create({
     marginLeft: 17,
     marginRight: 10
   },
-  /* commonButtons: {
+  commonButtons: {
     flexDirection: 'row',
     flexGrow: 1
-  }, */
+  },
   container: {
     height: 54,
     flexDirection: 'row',
     justifyContent: 'flex-start',
     backgroundColor: '#fff',
     paddingTop: 3,
-    marginTop: Platform.OS === 'ios' ? 50 : 0,
-    position: 'absolute',
     width: '100%'
   },
   searchContainer: {
@@ -352,10 +350,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Averta-Regular',
     fontSize: 17,
     flex: 1
-  }
-  /* mr10: {
+  },
+  mr10: {
     marginRight: 10
-  } */
+  }
 });
 
 const mapStateToProps = (state: any) => {

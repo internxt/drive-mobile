@@ -338,6 +338,5 @@ function setSortFunction(sortType: string) {
 }
 
 function saveAlbum(album: IAlbum) {
-  //console.log('wtf', album)
   return { type: photoActionTypes.SAVE_ALBUM, payload: album }
 }
