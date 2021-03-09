@@ -53,11 +53,13 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
   const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
   const [isDownloading, setIsDownloading] = useState(true);
+  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const filteredPhotos = setStatus(localPhotos, uploadedPhotos);
 
   const loadLocalPhotos = (after?: string) => {
     return getLocalImages(after).then(res => {
-      setLocalPhotos(res.assets)
+      setLocalPhotos(after ? localPhotos.concat(res.assets) : res.assets)
+      setEndCursor(res.endCursor)
       return res;
     }).then(res => {
       setIsLoading(false);
@@ -67,7 +69,9 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   const loadUploadedPhotos = async () => {
     setIsDownloading(true);
-    getPreviews().then(res => {
+    getPreviews((newPreview) => {
+      setUploadedPhotos(uploadedPhotos.concat([newPreview]))
+    }).then(res => {
       checkExists(res).then(resExists => setUploadedPhotos(resExists))
     }).then(() => {
       setIsLoading(false)
@@ -85,6 +89,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   }
 
   useEffect(() => {
+    setEndCursor(undefined)
     setIsLoading(true);
     loadPhotos();
   }, [])
@@ -131,6 +136,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               }}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}
+              onEndReached={() => loadPhotos(endCursor)}
             />
             :
             <WaveIndicator color="#5291ff" size={50} />

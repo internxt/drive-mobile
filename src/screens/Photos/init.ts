@@ -307,7 +307,7 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export function getPreviews(): Promise<any> {
+export function getPreviews(cb?: (newPreview: IHashedPhoto) => void): Promise<any> {
   SHOULD_STOP = false;
   return getUploadedPhotos().then((res) => {
     return mapSeries(res, (photo, next) => {
@@ -315,7 +315,10 @@ export function getPreviews(): Promise<any> {
         throw Error('Sign out')
       }
 
-      return downloadPreview(photo.preview, photo).then((res1) => {
+      return downloadPreview(photo.preview, photo).then(() => {
+        if (cb) {
+          cb(photo)
+        }
         next(null, photo)
       }).catch(err => {
       });
