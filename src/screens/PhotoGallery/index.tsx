@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
@@ -14,6 +14,8 @@ import { WaveIndicator } from 'react-native-indicators';
 import { downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
+import async from 'async'
+import RNFS from 'react-native-fs'
 
 interface PhotoGalleryProps {
   route: any;
@@ -38,11 +40,19 @@ function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
   return union;
 }
 
+async function checkExists(photos: IHashedPhoto[]) {
+  return async.filter(photos, (photo, nextPhoto) => {
+    RNFS.exists(photo.localUri).then((exists) => {
+      nextPhoto(null, exists);
+    }).catch((err) => nextPhoto(err));
+  })
+}
+
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
   const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
   const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
-
+  const [isDownloading, setIsDownloading] = useState(true);
   const filteredPhotos = setStatus(localPhotos, uploadedPhotos);
 
   const loadLocalPhotos = (after?: string) => {
@@ -56,11 +66,14 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   }
 
   const loadUploadedPhotos = async () => {
+    setIsDownloading(true);
     getPreviews().then(res => {
-      setUploadedPhotos(res);
+      checkExists(res).then(resExists => setUploadedPhotos(resExists))
     }).then(() => {
       setIsLoading(false)
     }).catch(() => {
+    }).finally(() => {
+      setIsDownloading(false);
     })
   }
 
@@ -87,6 +100,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         <View style={styles.titleWrapper}>
           <Text style={styles.albumTitle}>
             {props.navigation.state.params.title}
+            {isDownloading ? <ActivityIndicator color="gray" /> : <></>}
           </Text>
 
           <Text style={styles.photosCount}>
@@ -112,7 +126,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                   }).catch((err) => {
                   })
                 } else {
-                  FileViewer.open(item .localUri || '')
+                  FileViewer.open(item.localUri || '')
                 }
               }}
               keyExtractor={(item) => item.id}
