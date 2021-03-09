@@ -14,6 +14,7 @@ import { WaveIndicator } from 'react-native-indicators';
 import { downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
+import async from 'async'
 
 interface PhotoGalleryProps {
   route: any;
@@ -49,12 +50,17 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     return getLocalImages(after).then(res => {
       setLocalPhotos(res.assets)
       return res;
+    }).then(res => {
+      setIsLoading(false);
+      return res;
     })
   }
 
   const loadUploadedPhotos = async () => {
     getPreviews().then(res => {
       setUploadedPhotos(res);
+    }).then(() => {
+      setIsLoading(false)
     }).catch(() => {
     })
   }
@@ -68,9 +74,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   useEffect(() => {
     setIsLoading(true);
-    loadPhotos().finally(() => {
-      setIsLoading(false)
-    });
+    loadPhotos();
   }, [])
 
   return (
