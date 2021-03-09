@@ -14,7 +14,6 @@ import { WaveIndicator } from 'react-native-indicators';
 import { downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
-import async from 'async'
 
 interface PhotoGalleryProps {
   route: any;

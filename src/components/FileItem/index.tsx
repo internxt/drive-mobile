@@ -59,7 +59,7 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
       const fileInfo = await FileSystem.getInfoAsync(props.filesState.uploadFileUri)
 
       if (fileInfo.exists) {
-        FileViewer.open(fileInfo.uri).catch(() => {})
+        FileViewer.open(fileInfo.uri).catch(() => { })
         return
       }
     }
@@ -78,7 +78,7 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
         folder_id: props.item.folderId,
         platform: 'mobile'
       })
-    } catch (error) {}
+    } catch (error) { }
 
     const xToken = await deviceStorage.getItem('xToken')
     const xUser = await deviceStorage.getItem('xUser')
@@ -113,7 +113,7 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
           folder_id: props.item.folderId,
           platform: 'mobile'
         })
-      } catch (error) {}
+      } catch (error) { }
 
     }).catch(async err => {
       try {
@@ -128,7 +128,7 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
           platform: 'mobile',
           msg: err && err.message
         })
-      } catch (error) {}
+      } catch (error) { }
 
     }).finally(() => {
       // Dispatch download file end
@@ -221,20 +221,15 @@ function FileItem(props: FileItemProps) {
             </TouchableOpacity>
           </View>
 
-          {
-            props.item.bucket ?
-              <View style={styles.buttonDetails}>
-                <TouchableOpacity
-                  style={isSelectionMode ? styles.dNone : styles.dFlex}
-                  onPress={() => {
-                    props.dispatch(layoutActions.openItemModal(props.item))
-                  }}>
-                  <Icon name="details" />
-                </TouchableOpacity>
-              </View>
-              :
-              null
-          }
+          <View style={styles.buttonDetails}>
+            <TouchableOpacity
+              style={isSelectionMode ? styles.dNone : styles.dFlex}
+              onPress={() => {
+                props.dispatch(layoutActions.openItemModal(props.item))
+              }}>
+              <Icon name="details" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.progressIndicatorContainer}>
