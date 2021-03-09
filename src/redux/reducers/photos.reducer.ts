@@ -1,11 +1,11 @@
 //import { IPhoto, IFolder } from '../../components/PhotoList';
 import { ImageOrVideo } from 'react-native-image-crop-picker';
-import { IAlbum } from '../../components/AlbumList';
 import { IPhoto, IPreview } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
 import { IHashedPhoto } from '../../screens/Home/init'
 import lodash from 'lodash'
+import { IAlbum } from '../../screens/CreateAlbum';
 export interface PhotosState {
   cursor: number
   loading: boolean
@@ -22,7 +22,6 @@ export interface PhotosState {
   deleted: any
   albumContent: any
   selectedPhoto: IPhoto | null
-  selectedAlbum: IAlbum | null
   selectedItems: any
   sortType: string
   albumListSortType: string
@@ -53,7 +52,6 @@ const initialState: PhotosState = {
   albums: [],
   albumContent: [],
   selectedPhoto: null,
-  selectedAlbum: null,
   selectedItems: [],
   sortType: 'all',
   albumListSortType: 'Name',
@@ -317,10 +315,10 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       ...state,
       localPhotos: []
     }
-  case photoActionTypes.SAVE_ALBUM:
+  case photoActionTypes.SET_ALBUMS:
     return {
       ...state,
-      albums: [...state.albums, action.payload]
+      albums: action.payload
     }
   default:
     return state;

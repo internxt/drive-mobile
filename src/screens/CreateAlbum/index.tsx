@@ -8,48 +8,85 @@ import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import SelectivePhoto from './SelectivePhoto';
-import { IHashedPhoto } from '../Home/init';
 import { PhotoActions } from '../../redux/actions';
+import { IPreview } from '../../components/PhotoList';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { getHeaders } from '../../helpers/headers';
 
 interface CreateAlbumProps {
   navigation: any
   photosState: PhotosState
   dispatch: Dispatch,
   layoutState: LayoutState
+  authenticationState: AuthenticationState
 }
 
 export interface IAlbum {
   title: string
-  photos: IHashedPhoto[]
+  createdAt?: string
+  updatedAt?: string
+  id?: number
+  name?: string
+  photos: IAlbumPhoto[]
+  userId?: string
 }
 
 export interface IAlbumPhoto {
-  uri: string
+  bucketId: string
+  fileId: string
+  id: number
+  userId: number
+  createdAt: string
+  updatedAt: string
+  name: string
+  hash: string
+  size: number
+  type: string
+  photosalbums: any
+  localUri?: string
 }
 
 function CreateAlbum(props: CreateAlbumProps): JSX.Element {
   const photos = props.photosState.localPhotos
+  const previews = props.photosState.previews
   const [albumTitle, setAlbumTitle] = useState('')
-  const [selectedPhotos, setSelectedPhotos] = useState<IHashedPhoto[]>([])
+  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
 
-  const handleSelection = (selectedPhoto: IHashedPhoto) => {
+  const uploadAlbum = async (): Promise<void> => {
+    const xToken = props.authenticationState.token
+    const mnemonic = props.authenticationState.user.mnemonic
+    const headers = await getHeaders(xToken, mnemonic)
+    const body = { name: albumTitle, photos: selectedPhotos }
+
+    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/album`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body)
+    }).then(res => {
+      return res.json()
+    })
+  }
+
+  const handleSelection = (selectedPhotoId: number) => {
     const currentSelectedPhotos = selectedPhotos
-    const isAlreadySelected = currentSelectedPhotos.find(photo => photo === selectedPhoto)
+    const isAlreadySelected = currentSelectedPhotos.find(photoId => photoId === selectedPhotoId)
 
     if (isAlreadySelected) {
-      const newSelectedPhotos = currentSelectedPhotos.filter(photo => photo === selectedPhoto ? null : photo)
+      const newSelectedPhotos = currentSelectedPhotos.filter(photoId => photoId === selectedPhotoId ? null : photoId)
 
       setSelectedPhotos(newSelectedPhotos)
 
     } else {
-      currentSelectedPhotos.push(selectedPhoto)
+      currentSelectedPhotos.push(selectedPhotoId)
       setSelectedPhotos(currentSelectedPhotos)
     }
   }
 
-  useEffect(() => {
-    console.log('albums =>', props.photosState.albums)
-  }, [props.photosState.albums])
+  const handlePress = () => {
+    // reset all selected photos
+  }
+
+  const renderItem = (item: IPreview) => (<SelectivePhoto photo={item} handleSelection={handleSelection} />)
 
   return (
     <SafeAreaView style={styles.container}>
@@ -73,6 +110,9 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
                 const album = { title: albumTitle, photos: [...selectedPhotos] }
 
                 props.dispatch(PhotoActions.saveAlbum(album))
+                uploadAlbum()
+                handlePress()
+                setSelectedPhotos([])
               }
             } else {
               Alert.alert('Album name is required')
@@ -84,13 +124,13 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
       </View>
 
       <Text style={styles.title}>
-          Selected Photos
+        Selected Photos
       </Text>
 
       {
         <FlatList
-          data={photos}
-          renderItem={({ item }) => <SelectivePhoto photo={item} handleSelection={handleSelection} />}
+          data={previews}
+          renderItem={({ item }) => renderItem(item)}
           numColumns={4}
           keyExtractor={(item, index) => index.toString()}
           contentContainerStyle={styles.flatList}

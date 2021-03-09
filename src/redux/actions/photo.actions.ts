@@ -36,7 +36,7 @@ export const PhotoActions = {
   setSelectedPhotos,
   pushPreview,
   setAllLocalPhotosGallery,
-  saveAlbum
+  setAlbums
 };
 
 function setIsLoading(value: boolean) {
@@ -337,6 +337,6 @@ function setSortFunction(sortType: string) {
   return { type: photoActionTypes.SET_SORT_TYPE, payload: sortType }
 }
 
-function saveAlbum(album: IAlbum) {
-  return { type: photoActionTypes.SAVE_ALBUM, payload: album }
+function setAlbums(albums: IAlbum[]) {
+  return { type: photoActionTypes.SET_ALBUMS, payload: albums }
 }

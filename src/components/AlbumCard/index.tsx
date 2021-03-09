@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Dispatch } from 'redux';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
-import { IAlbum } from '../../screens/CreateAlbum';
-import { IHashedPhoto } from '../../screens/Home/init';
+import { IAlbum, IAlbumPhoto } from '../../screens/CreateAlbum';
 
 export interface AlbumProps {
   navigation: any
@@ -14,28 +14,30 @@ export interface AlbumProps {
   album: IAlbum
 }
 
-// TODO: Add album param
 export function AlbumCard(props: AlbumProps): JSX.Element {
+  const album = props.album
   const photos = props.album.photos
-  const bigImg = photos[0].localUri
-  const [albumCoverPhotos, setAlbumCoverPhotos] = useState<Array<string | undefined>>([])
-  const [secondaryPhotos, setSecondaryPhotos] = useState<IHashedPhoto[]>()
+  const bigImg = photos[0]
+  const [albumCoverPhotos, setAlbumCoverPhotos] = useState<number[]>([])
+  const [secondaryPhotos, setSecondaryPhotos] = useState<number[]>()
+  const previews = props.previews
+  const regEx = 'file:///'
+  const [uri, setUri] = useState('')
 
-  const keyExtractor = (item: IHashedPhoto, index: number) => index.toString()
-  const renderItem = (item: IHashedPhoto) => (<Image style={styles.image} source={{ uri: item.uri }} />)
+  const renderItem = (item: IAlbumPhoto, index: number) => (<Image style={styles.image} source={{ uri: item.localUri }} key={index} />)
 
   useEffect(() => {
     let mainPhotos = []
-    let otherPhotos: IHashedPhoto[]
+    let otherPhotos: number[]
 
     if (photos.length >= 2) {
       if (photos.length >= 3) {
-        mainPhotos = [photos[1].localUri, photos[2].localUri]
+        mainPhotos = [photos[1], photos[2]]
         otherPhotos = photos.slice(3)
 
       } else {
-        mainPhotos = [photos[1].localUri]
-        otherPhotos = photos.slice(3)
+        mainPhotos = [photos[1]]
+        otherPhotos = photos.slice(2)
       }
 
       setAlbumCoverPhotos(mainPhotos)
@@ -44,48 +46,52 @@ export function AlbumCard(props: AlbumProps): JSX.Element {
   }, [])
 
   return (
-    <View style={styles.mainContainer}>
-      <View style={[styles.card, styles.boxShadow]}>
-        <View style={styles.albumCover}>
-          <Image style={styles.bigimage} source={{ uri: bigImg }} />
+    <TouchableOpacity
+      onPress={() => {
+        props.navigation.push('AlbumView')
+      }}
+    >
+      <View style={styles.mainContainer}>
+        <View style={[styles.card, styles.boxShadow]}>
+          <View style={styles.albumCover}>
+            <Image style={styles.bigimage} source={{ uri: bigImg }} />
+
+            {
+              albumCoverPhotos ?
+                <View style={styles.downimg}>
+                  {
+                    albumCoverPhotos.map((photo, index) => (<Image style={styles.image} source={{ uri: photo }} key={index} />))
+                  }
+                </View>
+                :
+                null
+            }
+          </View>
 
           {
-            albumCoverPhotos ?
-              <View style={styles.downimg}>
-                {
-                  albumCoverPhotos.map(photo => (<Image style={styles.image} source={{ uri: photo }} key={photo} />))
-                }
+            photos.length >= 3 ?
+              <View>
+                <FlatList
+                  data={album.photos}
+                  renderItem={({ item, index }) => renderItem(item, index)}
+                  style={styles.photoGrid}
+                  horizontal={false}
+                  numColumns={3}
+                  getItemLayout={(data, index) => (
+                    { length: 58, offset: 58 * index, index }
+                  )}
+                />
               </View>
               :
               null
           }
         </View>
 
-        {
-          photos.length >= 3 ?
-            <View>
-              <FlatList
-                data={secondaryPhotos}
-                renderItem={({ item }) => renderItem(item)}
-                style={styles.photoGrid}
-                horizontal={false}
-                numColumns={3}
-                keyExtractor={keyExtractor}
-                getItemLayout={(data, index) => (
-                  { length: 58, offset: 58 * index, index }
-                )}
-              />
-            </View>
-            :
-            null
-        }
+        <Text style={styles.albumTitle}>{props.album.name}</Text>
+        <Text style={styles.albumSubtitle}>{props.album.photos.length} photos</Text>
       </View>
-
-      <Text style={styles.albumTitle}>{props.album.title}</Text>
-      <Text style={styles.albumSubtitle}>{props.album.photos.length} photos</Text>
-    </View>
+    </TouchableOpacity>
   )
-
 }
 
 const styles = StyleSheet.create({

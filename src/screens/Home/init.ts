@@ -5,16 +5,15 @@ import { Platform } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system'
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
-import { PhotoActions, userActions } from '../../redux/actions';
+import { PhotoActions } from '../../redux/actions';
 import { Dispatch } from 'redux';
 import { IHomeProps } from './'
 import { store } from '../../store';
 import SimpleToast from 'react-native-simple-toast';
-import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { getHeaders } from '../../helpers/headers';
+import { IAlbum } from '../CreateAlbum';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -378,4 +377,17 @@ export async function initUser(): Promise<void> {
   const infoUserPhoto = await photosUserData();
 
   await deviceStorage.saveItem('xPhotos', JSON.stringify(infoUserPhoto))
+}
+
+export const getAlbums = async (xToken: string, mnemonic: string): Promise<IAlbum[]> => {
+  const headers = await getHeaders(xToken, mnemonic)
+
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photosalbum`, {
+    method: 'GET',
+    headers: headers
+  }).then(res => {
+    return res.json()
+  }).then((res: IAlbum[]) => {
+    return res
+  })
 }

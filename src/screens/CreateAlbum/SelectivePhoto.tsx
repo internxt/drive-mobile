@@ -3,11 +3,12 @@ import { StyleSheet, Image, Dimensions, View, Text } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import { IPreview } from '../../components/PhotoList';
 import { IHashedPhoto } from '../Home/init';
 
 export interface ISelectivePhoto {
-  photo: IHashedPhoto
-  handleSelection: (selectedPhoto: IHashedPhoto) => void
+  photo: IPreview
+  handleSelection: (selectedPhotoId: number) => void
 }
 
 const DEVICE_WIDTH = Dimensions.get('window').width
@@ -17,6 +18,10 @@ function SelectivePhoto(props: ISelectivePhoto): JSX.Element {
   const [uri, setUri] = useState(props.photo.localUri)
   const [isSelected, setIsSelected] = useState(false)
   const photo = props.photo
+
+  const clearSelection = () => {
+    setIsSelected(false)
+  }
 
   useEffect(() => {
     if (uri) {
@@ -28,7 +33,7 @@ function SelectivePhoto(props: ISelectivePhoto): JSX.Element {
     <TouchableOpacity style={styles.imageContainer}
       onPress={() => {
         setIsSelected(!isSelected)
-        props.handleSelection(photo)
+        props.handleSelection(photo.photoId)
       }}
     >
       <View style={isSelected ? styles.iconBackground : styles.hidden}>

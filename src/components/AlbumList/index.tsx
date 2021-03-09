@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { StyleSheet, View } from 'react-native';
-import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
@@ -9,32 +9,43 @@ import { IAlbum } from '../../screens/CreateAlbum';
 import AlbumCard from '../AlbumCard';
 
 interface AlbumListProps {
-    photosState?: PhotosState
-    authenticationState?: AuthenticationState
-    dispatch?: Dispatch
-    navigation: any
+  photosState?: PhotosState
+  authenticationState?: AuthenticationState
+  dispatch?: Dispatch
+  navigation: any
 }
 
 function AlbumList(props: AlbumListProps) {
-  const keyExtractor = (item: IAlbum, index: number) => index.toString()
-  const renderItem = (item: IAlbum) => (
-    <TouchableOpacity
-      onPress={() => {
-        props.navigation.push('AlbumView', { album: item })
-      }}
-    >
-      <AlbumCard navigation={props.navigation} album={item} />
-    </TouchableOpacity>
-  )
+  const albums = props.photosState && props.photosState.albums
+  const previews = props.photosState && props.photosState.previews
 
-  const albums = props.photosState && props.photosState.albums || []
+  const renderItem = (item: IAlbum, index: number) => (<AlbumCard navigation={props.navigation} album={item} key={index} />)
+
+  const filterPhotos = () => {
+    if (albums && previews) {
+      for (let i = 0; i < albums.length; i++) {
+        for (let j = 0; j < albums[i].photos.length; j++) {
+          if (previews[i] && albums[i].photos[j].id === previews[i].photoId) {
+            albums[i].photos[j].localUri = previews[i].localUri
+          }
+        }
+      }
+    }
+  }
+
+  useEffect(() => {
+    filterPhotos()
+  }, [])
+
+  useEffect(() => {
+    filterPhotos()
+  }, [props.photosState?.previews])
 
   return (
     <View style={styles.photoScroll}>
       <FlatList
-        keyExtractor={keyExtractor}
         data={albums}
-        renderItem={({ item }) => renderItem(item) }
+        renderItem={({ item, index }) => renderItem(item, index) }
         horizontal={true}
         showsHorizontalScrollIndicator={false}
       ></FlatList>

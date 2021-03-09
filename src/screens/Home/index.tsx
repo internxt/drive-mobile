@@ -8,13 +8,15 @@ import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { getLocalImages, getUploadedPhotos, getPreviews, stopSync, initUser } from './init'
+import { getLocalImages, getUploadedPhotos, getPreviews, stopSync, initUser, getAlbums } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import AlbumList from '../../components/AlbumList';
 import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
+import { PhotoActions } from '../../redux/actions';
+import { IAlbum } from '../CreateAlbum';
 
 export interface IHomeProps extends Reducers {
   navigation?: any
@@ -25,9 +27,16 @@ export interface IHomeProps extends Reducers {
 
 function Home(props: IHomeProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const xToken = props.authenticationState.token
+  const mnemonic = props.authenticationState.user.mnemonic
+  const [albums, setAlbums] = useState<IAlbum[]>([])
 
   const init = async () => {
     getPreviews(props).catch(() => {})
+    getAlbums(xToken, mnemonic).then(res => {
+      props.dispatch(PhotoActions.setAlbums(res))
+    }).catch(() => {})
+
     Promise.all([
       getLocalImages(props.dispatch),
       getUploadedPhotos(props.authenticationState, props.dispatch)
@@ -40,11 +49,13 @@ function Home(props: IHomeProps): JSX.Element {
     initUser().then(() => init())
   }, [])
 
+  useEffect(()=>{
+
+  }, [props.photosState.previews])
+
   useEffect(() => {
-    if (props.photosState.localPhotos) {
-      //syncPhotos(props.photosState.localPhotos, props)
-    }
-  }, [props.photosState.localPhotos])
+    setAlbums(props.photosState.albums)
+  }, [props.photosState.albums])
 
   useEffect(() => {
     if (!props.authenticationState.loggedIn) {
@@ -68,13 +79,12 @@ function Home(props: IHomeProps): JSX.Element {
 
         <View style={styles.albumCardContainer}>
           {
-            props.photosState.albums.length > 0 ?
+            albums.length > 0 && props.photosState.previews.length > 0 ?
               <AlbumList navigation={props.navigation} />
               :
               <CreateAlbumCard navigation={props.navigation} />
           }
         </View>
-
       </View>
 
       <View style={styles.allPhotos}>
