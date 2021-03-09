@@ -34,7 +34,7 @@ function Home(props: IHomeProps): JSX.Element {
   const init = async () => {
     getPreviews(props).catch(() => {})
     getAlbums(xToken, mnemonic).then(res => {
-      props.dispatch(PhotoActions.setAlbums(res))
+      setAlbums(res)
     }).catch(() => {})
 
     Promise.all([
@@ -48,14 +48,6 @@ function Home(props: IHomeProps): JSX.Element {
   useEffect(()=>{
     initUser().then(() => init())
   }, [])
-
-  useEffect(()=>{
-
-  }, [props.photosState.previews])
-
-  useEffect(() => {
-    setAlbums(props.photosState.albums)
-  }, [props.photosState.albums])
 
   useEffect(() => {
     if (!props.authenticationState.loggedIn) {
@@ -80,7 +72,7 @@ function Home(props: IHomeProps): JSX.Element {
         <View style={styles.albumCardContainer}>
           {
             albums.length > 0 && props.photosState.previews.length > 0 ?
-              <AlbumList navigation={props.navigation} />
+              <AlbumList navigation={props.navigation} albums={albums} />
               :
               <CreateAlbumCard navigation={props.navigation} />
           }

@@ -14,10 +14,11 @@ interface AlbumListProps {
   authenticationState?: AuthenticationState
   dispatch?: Dispatch
   navigation: any
+  albums: IAlbum[]
 }
 
 function AlbumList(props: AlbumListProps) {
-  const albums = props.photosState && props.photosState.albums
+  const albums = props.albums
   const previews = props.photosState && props.photosState.previews
 
   const renderItem = (item: IAlbum, index: number) => (<AlbumCard navigation={props.navigation} album={item} key={index} />)

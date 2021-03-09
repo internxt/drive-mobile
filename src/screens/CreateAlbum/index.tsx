@@ -86,7 +86,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
     // reset all selected photos
   }
 
-  const renderItem = (item: IPreview) => (<SelectivePhoto photo={item} handleSelection={handleSelection} />)
+  const renderItem = (item: IPreview, index: number) => (<SelectivePhoto photo={item} handleSelection={handleSelection} key={index} />)
 
   return (
     <SafeAreaView style={styles.container}>
@@ -107,9 +107,6 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
               if (albumTitle.length > 30) {
                 Alert.alert('Maximum album length name is 30 characters')
               } else {
-                const album = { title: albumTitle, photos: [...selectedPhotos] }
-
-                props.dispatch(PhotoActions.setAlbums(album))
                 uploadAlbum()
                 handlePress()
                 setSelectedPhotos([])
@@ -124,13 +121,13 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
       </View>
 
       <Text style={styles.title}>
-        Selected Photos
+        Select photos to create album
       </Text>
 
       {
         <FlatList
           data={previews}
-          renderItem={({ item }) => renderItem(item)}
+          renderItem={({ item, index }) => renderItem(item, index)}
           numColumns={4}
           keyExtractor={(item, index) => index.toString()}
           contentContainerStyle={styles.flatList}
