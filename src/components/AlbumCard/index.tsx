@@ -15,20 +15,17 @@ export interface AlbumProps {
 }
 
 export function AlbumCard(props: AlbumProps): JSX.Element {
-  const album = props.album
   const photos = props.album.photos
   const bigImg = photos[0]
-  const [albumCoverPhotos, setAlbumCoverPhotos] = useState<number[]>([])
-  const [secondaryPhotos, setSecondaryPhotos] = useState<number[]>()
-  const previews = props.previews
-  const regEx = 'file:///'
-  const [uri, setUri] = useState('')
+  const [albumCoverPhotos, setAlbumCoverPhotos] = useState<IAlbumPhoto[]>([])
+  const [secondaryPhotos, setSecondaryPhotos] = useState<IAlbumPhoto[]>()
 
   const renderItem = (item: IAlbumPhoto, index: number) => (<Image style={styles.image} source={{ uri: item.localUri }} key={index} />)
 
+  // set the three main photos of the album and remove them from the rest of the array
   useEffect(() => {
     let mainPhotos = []
-    let otherPhotos: number[]
+    let otherPhotos = []
 
     if (photos.length >= 2) {
       if (photos.length >= 3) {
@@ -48,19 +45,19 @@ export function AlbumCard(props: AlbumProps): JSX.Element {
   return (
     <TouchableOpacity
       onPress={() => {
-        props.navigation.push('AlbumView')
+        //props.navigation.push('AlbumView')
       }}
     >
       <View style={styles.mainContainer}>
         <View style={[styles.card, styles.boxShadow]}>
           <View style={styles.albumCover}>
-            <Image style={styles.bigimage} source={{ uri: bigImg }} />
+            <Image style={styles.bigimage} source={{ uri: bigImg.localUri }} />
 
             {
               albumCoverPhotos ?
                 <View style={styles.downimg}>
                   {
-                    albumCoverPhotos.map((photo, index) => (<Image style={styles.image} source={{ uri: photo }} key={index} />))
+                    albumCoverPhotos.map((photo, index) => (<Image style={styles.image} source={{ uri: photo.localUri }} key={index} />))
                   }
                 </View>
                 :
@@ -72,7 +69,7 @@ export function AlbumCard(props: AlbumProps): JSX.Element {
             photos.length >= 3 ?
               <View>
                 <FlatList
-                  data={album.photos}
+                  data={secondaryPhotos}
                   renderItem={({ item, index }) => renderItem(item, index)}
                   style={styles.photoGrid}
                   horizontal={false}

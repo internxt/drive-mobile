@@ -1,3 +1,4 @@
+import { indexOf } from 'lodash';
 import React, { useEffect } from 'react'
 import { StyleSheet, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
@@ -23,13 +24,15 @@ function AlbumList(props: AlbumListProps) {
 
   const filterPhotos = () => {
     if (albums && previews) {
-      for (let i = 0; i < albums.length; i++) {
-        for (let j = 0; j < albums[i].photos.length; j++) {
-          if (previews[i] && albums[i].photos[j].id === previews[i].photoId) {
-            albums[i].photos[j].localUri = previews[i].localUri
-          }
-        }
-      }
+      albums.forEach(album => {
+        album.photos.forEach(photo => {
+          previews.forEach(preview => {
+            if (preview.photoId === photo.id) {
+              photo.localUri = preview.localUri
+            }
+          })
+        })
+      })
     }
   }
 
@@ -45,6 +48,7 @@ function AlbumList(props: AlbumListProps) {
     <View style={styles.photoScroll}>
       <FlatList
         data={albums}
+        extraData={previews}
         renderItem={({ item, index }) => renderItem(item, index) }
         horizontal={true}
         showsHorizontalScrollIndicator={false}

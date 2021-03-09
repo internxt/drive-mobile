@@ -109,7 +109,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
               } else {
                 const album = { title: albumTitle, photos: [...selectedPhotos] }
 
-                props.dispatch(PhotoActions.saveAlbum(album))
+                props.dispatch(PhotoActions.setAlbums(album))
                 uploadAlbum()
                 handlePress()
                 setSelectedPhotos([])

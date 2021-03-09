@@ -184,20 +184,6 @@ const styles = StyleSheet.create({
     color: '#bfbfbf',
     textAlign: 'center'
   },
-  mr10: {
-    marginRight: 10
-  },
-  sortContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 60
-  },
-  sort: {
-    fontFamily: 'Averta-Regular',
-    fontSize: 13,
-    lineHeight: 16,
-    color: '#bfbfbf'
-  },
   titleWrapper: {
     display: 'flex',
     position: 'absolute',
