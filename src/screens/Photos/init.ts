@@ -232,7 +232,6 @@ export async function getLocalPhotosDir(): Promise<string> {
 }
 
 export async function downloadPhoto(photo: any) {
-
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -243,17 +242,16 @@ export async function downloadPhoto(photo: any) {
   return RNFetchBlob.config({
     path: `${tempDir}/${photo.photoId}.${type}`,
     fileCache: true
-  }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/download/photo/${photo.photoId}`, {
+  }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/download/photo/${photo.id}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
-  }).then(async (res) => {
-    if (res.respInfo.status === 200) {
-      await MediaLibrary.saveToLibraryAsync(res.path())
-      SimpleToast.show('Image downloaded!', 0.3)
-      return
+  }).then((res) => {
+    if (res.respInfo.status !== 200) {
+      throw Error('Unable to download picture')
     }
-    return
-
+    return res;
+  }).then(res => MediaLibrary.saveToLibraryAsync(res.path())).then(() => {
+    SimpleToast.show('Image downloaded!', 0.3)
   })
 }
 

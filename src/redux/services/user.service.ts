@@ -121,7 +121,7 @@ async function initializeUser(email: string, mnemonic: string, token: string) {
   })
 }
 
-async function initializeUserPhotos(email: string, mnemonic: any, token: any) {
+async function initializeUserPhotos(email: string, mnemonic: string, token: string) {
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
     method: 'POST',
     headers: await getHeaders(token, mnemonic),

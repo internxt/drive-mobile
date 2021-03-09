@@ -143,8 +143,8 @@ function Register(props: any): JSX.Element {
               <Text
                 style={styles.textDisclaimer}
               >
-                Internxt Drive uses your password to encrypt and decrypt your
-                files. Due to the secure nature of Internxt Drive, we don&apos;t
+                Internxt uses your password to encrypt and decrypt your
+                files. Due to the secure nature of Internxt, we don&apos;t
                 know your password. That means that if you ever forget it,
                 your files are gone forever. With us, you&apos;re the only owner of
                 your files. We strongly suggest you to:

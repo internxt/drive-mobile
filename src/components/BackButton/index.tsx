@@ -4,6 +4,7 @@ import {
   Image
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import backBtn from '../../../assets/icons/icon-back.png';
 
 interface BackButtonProps {
     style?: any
@@ -15,8 +16,6 @@ interface BackButtonProps {
 }
 
 export function BackButton(props: BackButtonProps): JSX.Element {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const backBtn = require('../../../assets/icons/icon-back.png');
   const [iconArrowBack, setIconArrowBack] = React.useState(backBtn);
   //const parentFolderId = useSelector(state => state.pic.folderContent.parentFolderId);
 

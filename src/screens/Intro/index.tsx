@@ -15,7 +15,7 @@ const slides = [
     key: 'intro001',
     text: (
       <Text>
-        <B>Internxt Drive</B> is a <B>different</B> cloud storage service. A{' '}
+        <B>Internxt</B> is a <B>different</B> cloud storage service. A{' '}
         <B>better</B> place for all your files. Welcome to the <B>revolution</B>
         . Welcome to <B>Internxt</B>.
       </Text>
@@ -37,7 +37,7 @@ const slides = [
     key: 'intro003',
     text: (
       <Text>
-        Access Internxt Drive from <B>Desktop</B>, <B>Web</B> or{' '}
+        Access Internxt from <B>Desktop</B>, <B>Web</B> or{' '}
         <B>Mobile</B>. Start using Drive today with <B>2 GB</B> on
         us. <B>Upgrade your storage</B> when needed, free for a month, cancel anytime.
       </Text>

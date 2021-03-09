@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { StyleSheet, Image, Dimensions, ActivityIndicator, View } from 'react-native';
+import { StyleSheet, Image, Dimensions, ActivityIndicator, View, GestureResponderEvent } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import * as MediaLibrary from 'expo-media-library';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -14,6 +14,7 @@ interface PhotoProps {
     isUploaded?: boolean
     isLocal?: boolean
   }
+  onPress?: (event: GestureResponderEvent, item: MediaLibrary.AssetInfo) => void
 }
 
 export default function Photo(props: PhotoProps): JSX.Element {
@@ -23,7 +24,10 @@ export default function Photo(props: PhotoProps): JSX.Element {
   return <TouchableOpacity
     style={styles.imageView}
     key={item.id}
-    onPress={() => {
+    onPress={(e) => {
+      if (props.onPress) {
+        return props.onPress(e, item)
+      }
       MediaLibrary.getAssetInfoAsync(item).then((res) => {
         FileViewer.open(res.localUri || '')
       }).catch(() => { })
@@ -37,7 +41,10 @@ export default function Photo(props: PhotoProps): JSX.Element {
     {!isLoaded
       ? <ActivityIndicator color='gray' size='small' style={styles.badge} />
       : <View style={styles.badge}>
-        {props.badge || <PhotoBadge isUploaded={props.item.isUploaded} isLocal={props.item.isLocal} />}
+        {props.badge
+          || <PhotoBadge
+            isUploaded={props.item.isUploaded}
+            isLocal={props.item.isLocal} />}
       </View>}
   </TouchableOpacity>
 }

@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
-import { layoutActions } from '../../redux/actions';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
-import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
@@ -13,8 +11,9 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
-import { getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
+import { downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
+import FileViewer from 'react-native-file-viewer'
 
 interface PhotoGalleryProps {
   route: any;
@@ -76,7 +75,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   return (
     <SafeAreaView style={styles.container}>
-
       <AlbumDetailsModal />
       <AddItemToModal />
 
@@ -92,10 +90,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
             {filteredPhotos.length} Photos
           </Text>
         </View>
-
-        <AlbumMenuItem name={'details'} onClickHandler={() => {
-          props.dispatch(layoutActions.openAlbumModal());
-        }} />
       </View>
 
       <View style={{ flexGrow: 1 }}>
@@ -107,6 +101,16 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               onRefresh={() => {
                 setIsLoading(true);
                 loadPhotos().finally(() => setIsLoading(false));
+              }}
+              onItemPress={(event, item) => {
+                if (item.isUploaded && !item.isLocal) {
+                  downloadPhoto(item).then(x => {
+                    loadPhotos();
+                  }).catch((err) => {
+                  })
+                } else {
+                  FileViewer.open(item .localUri || '')
+                }
               }}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}
@@ -125,9 +129,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     height: '8%',
-    justifyContent: 'space-between',
-    paddingBottom: 15,
-    paddingHorizontal: 20
+    justifyContent: 'space-between'
   },
   albumTitle: {
     color: '#000000',
@@ -135,7 +137,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     letterSpacing: 0,
     textAlign: 'center'
-
   },
   container: {
     alignContent: 'center',

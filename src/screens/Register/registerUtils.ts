@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { encryptText, encryptTextWithKey, passToHash } from '../../helpers';
+import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 
 export function isStrongPassword(pwd: string): boolean {
@@ -10,10 +10,17 @@ export function isNullOrEmpty(input: string): boolean {
   return _.isEmpty(input)
 }
 interface RegisterParams {
-    firstName: string
-    lastName: string
-    email: string
-    password: string
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+}
+
+export async function getNewBits(): Promise<string> {
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/bits`)
+    .then(res => res.json())
+    .then(res => res.bits)
+    .then(bits => decryptText(bits))
 }
 
 export function IsJsonString(str: string): any {

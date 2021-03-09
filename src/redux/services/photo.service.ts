@@ -85,7 +85,7 @@ function uploadPhotos(auth: any, photos: any) {
   }))
 }
 
-async function uploadPhoto(user: any, token: any, photo: any) {
+async function uploadPhoto(user: any, token: string, photo: any) {
 
   //const userData = await getLyticsData()
 
