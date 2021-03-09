@@ -178,7 +178,6 @@ const styles = StyleSheet.create({
   },
   linkContainer: {
     alignItems: 'center',
-    borderWidth: 1,
     flex: 0.8,
     justifyContent: 'center'
   },
