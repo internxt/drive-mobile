@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { StyleSheet, Image, Dimensions, ActivityIndicator, View, GestureResponderEvent } from 'react-native';
+import { StyleSheet, Image, Dimensions, ActivityIndicator, View, GestureResponderEvent, Platform } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import * as MediaLibrary from 'expo-media-library';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -21,6 +21,15 @@ export default function Photo(props: PhotoProps): JSX.Element {
   const [isLoaded, setIsLoaded] = useState(false);
   const item: MediaLibrary.AssetInfo = props.item;
 
+  try {
+    const urlEncoded = props.item.localUri.startsWith('file://')
+
+    if (Platform.OS === 'android' && props.item.isUploaded && !urlEncoded) {
+      props.item.localUri = 'file://' + props.item.localUri;
+    }
+
+  } catch { }
+
   return <TouchableOpacity
     style={styles.imageView}
     key={item.id}
@@ -28,6 +37,11 @@ export default function Photo(props: PhotoProps): JSX.Element {
       if (props.onPress) {
         return props.onPress(e, item)
       }
+
+      if (!item.localUri) {
+        return;
+      }
+
       MediaLibrary.getAssetInfoAsync(item).then((res) => {
         FileViewer.open(res.localUri || '')
       }).catch(() => { })

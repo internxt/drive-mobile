@@ -256,6 +256,9 @@ export async function downloadPhoto(photo: any) {
 }
 
 export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview) {
+  if (!preview) {
+    return Promise.resolve();
+  }
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -280,6 +283,9 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
   }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
+  }).catch(err => {
+    RNFS.unlink(tempPath)
+    throw err;
   })
 }
 
@@ -311,6 +317,7 @@ export function getPreviews(): Promise<any> {
 
       return downloadPreview(photo.preview, photo).then((res1) => {
         next(null, photo)
+      }).catch(err => {
       });
     });
   });

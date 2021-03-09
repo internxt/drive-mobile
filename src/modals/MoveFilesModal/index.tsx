@@ -133,10 +133,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    marginBottom: 25
+    marginBottom: Platform.OS === 'ios' ? 25 : 0
   },
   container: {
-    height: '100%'
+    flex: 1
   },
   folderList: {
     height: '75%'
@@ -150,9 +150,8 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontFamily: 'CircularStd-Bold',
     fontSize: 21,
-    height: 30,
     letterSpacing: -0.2,
-    marginLeft: 20
+    margin: 20
   },
   white: {
     color: '#fff'
