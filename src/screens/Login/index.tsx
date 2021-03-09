@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useState } from 'react';
-import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
+import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { deviceStorage } from '../../helpers';
@@ -151,105 +151,105 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(Login)
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: normalize(20),
-    backgroundColor: '#FFFFFF'
-  },
-  containerCentered: {
-    justifyContent: 'center',
-    alignSelf: 'center',
-    width: '100%',
-    height: 600
-  },
-  containerHeader: {
-  },
-  title: {
-    fontFamily: 'CerebriSans-Bold',
-    fontSize: normalize(22),
-    letterSpacing: -1.7,
-    color: '#000',
-    marginBottom: normalize(30),
-    marginTop: normalize(64)
-  },
-  buttonWrapper: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: normalize(30)
-  },
-  buttonFooterWrapper: {
-    marginTop: normalize(15)
-  },
   button: {
-    alignSelf: 'stretch',
-    height: normalize(55),
-    width: normalize(130),
-    borderRadius: 3.4,
-    backgroundColor: '#4585f5',
     alignItems: 'center',
-    justifyContent: 'center'
+    alignSelf: 'stretch',
+    backgroundColor: '#4585f5',
+    borderRadius: 3.4,
+    height: normalize(55),
+    justifyContent: 'center',
+    width: normalize(130)
   },
   buttonBlock: {
     width: '100%'
   },
-  buttonOn: {
-    backgroundColor: '#4585f5'
+  buttonFooterWrapper: {
+    marginTop: normalize(15)
   },
   buttonOff: {
     backgroundColor: '#f2f2f2'
   },
-  buttonOnLabel: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    textAlign: 'center',
-    color: '#fff'
-  },
   buttonOffLabel: {
+    color: '#5c5c5c',
     fontFamily: 'CerebriSans-Medium',
     fontSize: normalize(15),
-    textAlign: 'center',
-    color: '#5c5c5c'
+    textAlign: 'center'
   },
-  input: {
+  buttonOn: {
+    backgroundColor: '#4585f5'
+  },
+  buttonOnLabel: {
+    color: '#fff',
     fontFamily: 'CerebriSans-Medium',
-    letterSpacing: -0.2,
     fontSize: normalize(15),
-    color: '#000',
+    textAlign: 'center'
+  },
+  buttonWrapper: {
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: normalize(30)
+  },
+  container: {
+    backgroundColor: '#FFFFFF',
     flex: 1,
-    paddingLeft: normalize(20)
-  },
-  showInputFieldsWrapper: {
-    justifyContent: 'center'
-  },
-  hideInputFieldWrapper: {
-    display: 'none'
-  },
-  inputWrapper: {
-    height: normalize(55),
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#c9c9c9',
     justifyContent: 'center',
-    marginBottom: normalize(13)
+    padding: normalize(20)
   },
-  versionLabel: {
-    fontFamily: 'CerebriSans-Regular',
+  containerCentered: {
     alignSelf: 'center',
-    color: '#999999',
-    marginTop: normalize(30),
-    marginBottom: normalize(70)
+    height: 600,
+    justifyContent: 'center',
+    width: '100%'
   },
-  forgotPasswordText: {
-    marginTop: normalize(13),
-    color: '#a4a4a4'
+  containerHeader: {
   },
   flexRow: {
     flexDirection: 'row'
   },
+  forgotPasswordText: {
+    color: '#a4a4a4',
+    marginTop: normalize(13)
+  },
   halfOpacity: {
     opacity: 0.5
+  },
+  hideInputFieldWrapper: {
+    display: 'none'
+  },
+  input: {
+    color: '#000',
+    flex: 1,
+    fontFamily: 'CerebriSans-Medium',
+    fontSize: normalize(15),
+    letterSpacing: -0.2,
+    paddingLeft: normalize(20)
+  },
+  inputWrapper: {
+    borderColor: '#c9c9c9',
+    borderRadius: 5,
+    borderWidth: 1,
+    height: normalize(55),
+    justifyContent: 'center',
+    marginBottom: normalize(13)
+  },
+  showInputFieldsWrapper: {
+    justifyContent: 'center'
+  },
+  title: {
+    color: '#000',
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: normalize(22),
+    letterSpacing: -1.7,
+    marginBottom: normalize(30),
+    marginTop: normalize(64)
+  },
+  versionLabel: {
+    alignSelf: 'center',
+    color: '#999999',
+    fontFamily: 'CerebriSans-Regular',
+    marginBottom: normalize(70),
+    marginTop: normalize(30)
   }
 });

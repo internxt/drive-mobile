@@ -1,14 +1,11 @@
-import prettysize from 'prettysize';
 import React, { useState } from 'react'
-import { Alert, Image, Platform, StyleSheet, Text, View } from 'react-native'
-import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
+import { Alert, StyleSheet, Text } from 'react-native'
+import { TextInput } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox'
 //import TimeAgo from 'react-native-timeago';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import RNFetchBlob from 'rn-fetch-blob';
-import PhotoItem from '../../components/PhotoItem';
-//import analytics, { getLyticsData } from '../../helpers/lytics';
+
 import Separator from '../../components/Separator'
 import { deviceStorage } from '../../helpers';
 import { layoutActions, PhotoActions } from '../../redux/actions';
@@ -261,20 +258,20 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(PhotoDetailsModal)
 
 const styles = StyleSheet.create({
+  detailsText: {
+    color: 'black',
+    fontFamily: 'Averta-Bold',
+    fontSize: 17,
+    letterSpacing: -0.09
+  },
   modalSettingsFile: {
-    top: '25%',
-    borderRadius: 8
+    borderRadius: 8,
+    top: '25%'
   },
   propText: {
     color: '#9c9c9c',
     fontFamily: 'Averta-Semibold',
     fontSize: 16
 
-  },
-  detailsText: {
-    fontFamily: 'Averta-Bold',
-    fontSize: 17,
-    letterSpacing: -0.09,
-    color: 'black'
   }
 })

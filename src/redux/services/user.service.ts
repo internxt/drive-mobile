@@ -108,7 +108,7 @@ function signinPhotos(email: string, password: string, sKey: string, twoFactorCo
 async function initializeUser(email: string, mnemonic: string, token: string) {
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/initialize`, {
     method: 'POST',
-    headers: getHeaders(token, mnemonic),
+    headers: await getHeaders(token, mnemonic),
     body: JSON.stringify({
       email: email,
       mnemonic: mnemonic
@@ -121,10 +121,10 @@ async function initializeUser(email: string, mnemonic: string, token: string) {
   })
 }
 
-async function initializeUserPhotos(email: string, mnemonic: any, token: any) {
+async function initializeUserPhotos(email: string, mnemonic: string, token: string) {
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
     method: 'POST',
-    headers: getHeaders(token, mnemonic),
+    headers: await getHeaders(token, mnemonic),
     body: JSON.stringify({
       email: email,
       mnemonic: mnemonic

@@ -1,5 +1,5 @@
 import { getDocumentAsync } from 'expo-document-picker';
-import { getMediaLibraryPermissionsAsync, launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
+import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import { uniqueId } from 'lodash';
 import prettysize from 'prettysize';
 import React, { Fragment, useState, useRef } from 'react'
@@ -307,33 +307,33 @@ const styles = StyleSheet.create({
     flexGrow: 1
   },
   container: {
-    height: 54,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
     backgroundColor: '#fff',
-    paddingTop: 3,
-    marginTop: Platform.OS === 'ios' ? 30 : 0
-  },
-  searchContainer: {
-    position: 'relative',
-    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f7f7f7',
-    marginLeft: 20,
-    marginRight: 20,
-    borderRadius: 30
-  },
-  searchInput: {
-    marginLeft: 15,
-    marginRight: 15,
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: 17,
-    flex: 1
+    height: 54,
+    justifyContent: 'flex-start',
+    marginTop: Platform.OS === 'ios' ? 30 : 0,
+    paddingTop: 3
   },
   mr10: {
     marginRight: 10
+  },
+  searchContainer: {
+    alignItems: 'center',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 30,
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginLeft: 20,
+    marginRight: 20,
+    position: 'relative'
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: 'CerebriSans-Medium',
+    fontSize: 17,
+    marginLeft: 15,
+    marginRight: 15
   }
 });
 

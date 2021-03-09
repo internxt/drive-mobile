@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, TouchableOpacity, StyleSheet, Text, View, Image, Platform, Alert } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
@@ -8,7 +8,7 @@ import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
 import * as MediaLibrary from 'expo-media-library';
 import AlbumImage from './AlbumImage'
-import { getImages, syncPhotos, uploadPhoto } from './helpers'
+import { getImages, syncPhotos } from './helpers'
 import { layoutActions } from '../../redux/actions';
 
 interface AlbumViewProps {
@@ -67,38 +67,38 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignContent: 'center',
-    backgroundColor: '#fff',
-    paddingTop: 0,
-    paddingBottom: 15,
-    marginBottom: 0
-  },
   albumHeader: {
+    alignItems: 'center',
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
+    height: '8%',
     justifyContent: 'space-between',
     marginTop: 45,
-    paddingVertical: 7,
     paddingHorizontal: 20,
-    height: '8%'
+    paddingVertical: 7
   },
   albumTitle: {
+    color: '#000000',
     fontFamily: 'Averta-Semibold',
     fontSize: 18,
     letterSpacing: 0,
-    color: '#000000',
     textAlign: 'center'
 
   },
+  container: {
+    alignContent: 'center',
+    backgroundColor: '#fff',
+    flex: 1,
+    marginBottom: 0,
+    paddingBottom: 15,
+    paddingTop: 0
+  },
   photosCount: {
+    color: '#bfbfbf',
     fontFamily: 'Averta-Regular',
     fontSize: 13,
     letterSpacing: 0,
     paddingTop: 5,
-    color: '#bfbfbf',
     textAlign: 'center'
   },
   titleWrapper: {
