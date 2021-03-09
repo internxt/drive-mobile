@@ -43,7 +43,7 @@ async function handleDownload(props: PhotoDetailsProps, setProgress: React.Dispa
     appendExt: photoItem.type,
     path: RNFetchBlob.fs.dirs.DocumentDir + '/' + photoItem.name + '.' + photoItem.type,
     fileCache: true
-  }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photo/${photoItem.photoId}`, {
+  }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/${photoItem.photoId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
   }).progress((received) => {
