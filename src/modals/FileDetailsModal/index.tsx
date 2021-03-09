@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     marginTop: wp('12')
   },
   modalSettingsFile: {
-    height: Platform.OS === 'ios' ? '55%' : '55%'
+    height: hp('55%') < 300 ? 300 : Math.min(370, hp('55%'))
   },
   mr20: {
     marginRight: 20
