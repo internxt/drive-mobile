@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
@@ -11,6 +11,7 @@ import SelectivePhoto from './SelectivePhoto';
 import { IPreview } from '../../components/PhotoList';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { getHeaders } from '../../helpers/headers';
+import { getPreviews } from '../Photos/init';
 
 interface CreateAlbumProps {
   navigation: any
@@ -46,10 +47,14 @@ export interface IAlbumPhoto {
 }
 
 function CreateAlbum(props: CreateAlbumProps): JSX.Element {
-  const photos = props.photosState.localPhotos
-  const previews = props.photosState.previews
+  const [photos, setPhotos] = useState<IPreview[]>([])
   const [albumTitle, setAlbumTitle] = useState('')
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    getPreviews().then(res => setPhotos(res)).finally(() => setIsLoading(false))
+  }, [])
 
   const uploadAlbum = async (): Promise<void> => {
     const xToken = props.authenticationState.token
@@ -106,9 +111,12 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
               if (albumTitle.length > 30) {
                 Alert.alert('Maximum album length name is 30 characters')
               } else {
-                uploadAlbum()
-                handlePress()
-                setSelectedPhotos([])
+                if (selectedPhotos.length > 0) {
+                  uploadAlbum()
+                  handlePress()
+                } else {
+                  Alert.alert('You need to select at least one photo')
+                }
               }
             } else {
               Alert.alert('Album name is required')
@@ -125,7 +133,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
 
       {
         <FlatList
-          data={previews}
+          data={photos}
           renderItem={({ item, index }) => renderItem(item, index)}
           numColumns={4}
           keyExtractor={(item, index) => index.toString()}

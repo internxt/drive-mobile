@@ -36,8 +36,8 @@ const styles = StyleSheet.create({
   buttonWrapper: {
     height: 55,
     justifyContent: 'center',
-    width: 55,
-    width: 45
+    marginLeft: 24,
+    width: 55
   },
   icon: {
     height: 18,
