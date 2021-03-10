@@ -8,45 +8,51 @@ import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { getLocalImages, getUploadedPhotos, getPreviews, stopSync, initUser, getAlbums } from './init'
+import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos, getAlbums } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
+import { IAlbum } from '../CreateAlbum';
 import AlbumList from '../../components/AlbumList';
 import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
-import { PhotoActions } from '../../redux/actions';
-import { IAlbum } from '../CreateAlbum';
 
-export interface IHomeProps extends Reducers {
+export interface IPhotosProps extends Reducers {
   navigation?: any
   dispatch: any
   photosState: PhotosState
   authenticationState: AuthenticationState
 }
 
-function Home(props: IHomeProps): JSX.Element {
+function Photos(props: IPhotosProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [photos, setPhotos] = useState<IHashedPhoto[]>([]);
+  const [albums, setAlbums] = useState<IAlbum[]>([])
+  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const xToken = props.authenticationState.token
   const mnemonic = props.authenticationState.user.mnemonic
-  const [albums, setAlbums] = useState<IAlbum[]>([])
 
-  const init = async () => {
-    getPreviews(props).catch(() => {})
-    getAlbums(xToken, mnemonic).then(res => {
-      setAlbums(res)
-    }).catch(() => {})
-
-    Promise.all([
-      getLocalImages(props.dispatch),
-      getUploadedPhotos(props.authenticationState, props.dispatch)
-    ]).then(() => {
-      setIsLoading(false)
-    })
+  const getNextImages = (after?: string | undefined) => {
+    getLocalImages(after).then(res => {
+      setEndCursor(res.endCursor);
+      setPhotos(after ? photos.concat(res.assets) : res.assets)
+      // TODO: BORRAR
+      syncPhotos(res.assets);
+    }).finally(() => setIsLoading(false));
   }
 
-  useEffect(()=>{
-    initUser().then(() => init())
+  const reloadLocalPhotos = () => {
+    initUser().finally(() => {
+      getNextImages()
+      getAlbums(xToken, mnemonic).then(res => {
+        setAlbums(res)
+      })
+    });
+  };
+
+  useEffect(() => {
+    setPhotos([])
+    reloadLocalPhotos();
   }, [])
 
   useEffect(() => {
@@ -57,7 +63,7 @@ function Home(props: IHomeProps): JSX.Element {
   }, [props.authenticationState.loggedIn])
 
   return (
-    <SafeAreaView style={styles.mainContainer}>
+    <SafeAreaView style={styles.container}>
       <SettingsModal navigation={props.navigation} />
       <SortModal />
       <ComingSoonModal />
@@ -79,7 +85,7 @@ function Home(props: IHomeProps): JSX.Element {
         </View>
       </View>
 
-      <View style={styles.allPhotos}>
+      <View style={styles.allPhotosContainer}>
         <TouchableOpacity style={styles.titleButton}
           onPress={() => {
             props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
@@ -87,23 +93,16 @@ function Home(props: IHomeProps): JSX.Element {
           disabled={isLoading}>
           <Text style={styles.title}>All photos</Text>
         </TouchableOpacity>
-
         {
           !isLoading ?
-            <View>
-              {
-                props.photosState.localPhotos.length > 0 ?
-                  <PhotoList
-                    title={'All Photos'}
-                    photos={props.photosState.localPhotos}
-                    navigation={props.navigation}
-                  />
-                  :
-                  <View style={styles.emptyContainer}>
-                    <Text style={styles.heading}>We didn&apos;t detect any local photos on your phone.</Text>
-                    <Text style={styles.subheading}>Get some images to get started!</Text>
-                  </View>
-              }
+            <View style={{ flexGrow: 1 }}>
+              <PhotoList
+                title={'All Photos'}
+                data={photos}
+                navigation={props.navigation}
+                onRefresh={() => getNextImages()}
+                onEndReached={() => getNextImages(endCursor)}
+              />
             </View>
             :
             <View style={styles.emptyContainer}>
@@ -112,7 +111,6 @@ function Home(props: IHomeProps): JSX.Element {
             </View>
         }
       </View>
-
     </SafeAreaView>
   )
 }
@@ -121,62 +119,57 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(Home)
+export default connect(mapStateToProps)(Photos)
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: '#fff'
-  },
-  albumsContainer: {
-    flex: 0.5,
-    marginBottom: 24
-  },
-  albumsHeader: {
-    height: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginLeft: 5
-  },
   albumCardContainer: {
     alignItems: 'center',
     width: '100%'
   },
-  allPhotos: {
-    flex: 0.5,
+  albumsContainer: {
+    height: '45%',
+    paddingHorizontal: wp('1'),
+    paddingVertical: wp('3.5')
+  },
+  albumsHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    height: 50,
+    justifyContent: 'space-between'
+  },
+  allPhotosContainer: {
+    flex: 1,
     marginBottom: wp('5')
   },
-  titleButton: {
-    flexDirection: 'row',
-    paddingHorizontal: wp('1'),
-    marginBottom: wp('1')
-  },
-  title: {
-    fontFamily: 'Averta-Bold',
-    fontSize: 18,
-    letterSpacing: -0.13,
-    color: 'black',
-    alignSelf: 'flex-end',
-    marginLeft: wp('2')
+  container: {
+    backgroundColor: '#fff',
+    flexGrow: 1,
+    justifyContent: 'flex-start'
   },
   emptyContainer: {
     alignItems: 'center',
     backgroundColor: '#fff'
   },
   heading: {
+    color: '#000000',
     fontFamily: 'Averta-Regular',
     fontSize: wp('4.5'),
     letterSpacing: -0.8,
-    color: '#000000',
-    marginTop: 10,
-    marginBottom: 30
+    marginBottom: 30,
+    marginTop: 10
   },
-  subheading: {
-    fontFamily: 'CircularStd-Book',
-    fontSize: wp('4.1'),
-    marginTop: 10,
-    opacity: 0.84,
-    letterSpacing: -0.1,
-    color: '#404040'
+  title: {
+    alignSelf: 'center',
+    color: 'black',
+    fontFamily: 'Averta-Bold',
+    fontSize: 18,
+    height: 30,
+    letterSpacing: -0.13,
+    marginLeft: 7
+  },
+  titleButton: {
+    flexDirection: 'row',
+    marginBottom: wp('1'),
+    paddingHorizontal: wp('1')
   }
 });

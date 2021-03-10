@@ -70,49 +70,49 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignContent: 'center',
-    backgroundColor: '#fff',
-    paddingTop: 0,
-    paddingBottom: 15,
-    marginBottom: 0
-  },
   albumHeader: {
+    alignItems: 'center',
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
+    height: '8%',
     justifyContent: 'space-between',
     marginTop: 45,
-    paddingVertical: 7,
     paddingHorizontal: 20,
-    height: '8%'
+    paddingVertical: 7
   },
   albumTitle: {
+    color: '#000000',
     fontFamily: 'Averta-Semibold',
     fontSize: 18,
     letterSpacing: 0,
-    color: '#000000',
     textAlign: 'center'
 
   },
+  container: {
+    alignContent: 'center',
+    backgroundColor: '#fff',
+    flex: 1,
+    marginBottom: 0,
+    paddingBottom: 15,
+    paddingTop: 0
+  },
+  image: {
+    height: 58,
+    marginBottom: 5,
+    marginRight: 5,
+    resizeMode: 'cover',
+    width: 58
+  },
   photosCount: {
+    color: '#bfbfbf',
     fontFamily: 'Averta-Regular',
     fontSize: 13,
     letterSpacing: 0,
     paddingTop: 5,
-    color: '#bfbfbf',
     textAlign: 'center'
   },
   titleWrapper: {
     display: 'flex'
-  },
-  image: {
-    width: 58,
-    height: 58,
-    resizeMode: 'cover',
-    marginRight: 5,
-    marginBottom: 5
   }
 });
 

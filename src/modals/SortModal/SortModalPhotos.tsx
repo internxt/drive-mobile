@@ -1,9 +1,9 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import Modal from 'react-native-modalbox'
 import { connect } from 'react-redux';
-import { fileActions, layoutActions, PhotoActions } from '../../redux/actions';
-import { sortPhotoTypes, sortTypes } from '../../redux/constants';
+import { layoutActions, PhotoActions } from '../../redux/actions';
+import { sortPhotoTypes } from '../../redux/constants';
 
 function SortModalPhotos(props: any) {
 
@@ -68,25 +68,25 @@ export default connect(mapStateToProps)(SortModalPhotos)
 
 const styles = StyleSheet.create({
   modalContainer: {
-    height: 'auto',
-    justifyContent: 'center',
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
-    paddingTop: 10,
-    paddingBottom: 30
+    height: 'auto',
+    justifyContent: 'center',
+    paddingBottom: 30,
+    paddingTop: 10
   },
   sortOption: {
+    color: 'black',
     fontFamily: 'Averta-Semibold',
     fontSize: 18,
-    paddingTop: 25,
     paddingLeft: 40,
-    color: 'black'
+    paddingTop: 25
   },
   sortOptionSelected: {
+    color: '#0084ff',
     fontFamily: 'Averta-Semibold',
     fontSize: 18,
-    color: '#0084ff',
-    paddingTop: 25,
-    paddingLeft: 40
+    paddingLeft: 40,
+    paddingTop: 25
   }
 })

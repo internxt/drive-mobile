@@ -55,48 +55,48 @@ function FreeForYouModal(props: IFreeForYou) {
 }
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100%',
-    width: '100%'
-  },
-  textContainer: {
-    paddingHorizontal: 30
-  },
-  title: {
-    fontSize: 27,
-    fontFamily: 'CerebriSans-Bold',
-    color: 'black'
-  },
-  subtitle: {
-    fontSize: 17,
-    color: '#737880',
-    marginTop: 15
-  },
-  buttonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '80%',
-    marginTop: 20
-  },
-  button: {
-    height: 50,
-    width: wp('35'),
-    borderRadius: 4,
-    borderWidth: 2,
-    backgroundColor: '#fff',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
   blue: {
     backgroundColor: '#4585f5'
+  },
+  button: {
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderColor: 'rgba(151, 151, 151, 0.2)',
+    borderRadius: 4,
+    borderWidth: 2,
+    height: 50,
+    justifyContent: 'center',
+    width: wp('35')
   },
   buttonText: {
     color: '#5c6066',
     fontFamily: 'CerebriSans-Bold',
     fontSize: 16
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+    width: '80%'
+  },
+  mainContainer: {
+    alignItems: 'center',
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%'
+  },
+  subtitle: {
+    color: '#737880',
+    fontSize: 17,
+    marginTop: 15
+  },
+  textContainer: {
+    paddingHorizontal: 30
+  },
+  title: {
+    color: 'black',
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 27
   },
   white: {
     color: '#fff'

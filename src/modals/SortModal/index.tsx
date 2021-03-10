@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import Modal from 'react-native-modalbox'
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
@@ -28,9 +28,7 @@ function SortModal(props: any) {
           : styles.sortOption
       }
       onPress={() => {
-        props.dispatch(
-          fileActions.setSortFunction(sortTypes.DATE_ADDED)
-        );
+        props.dispatch(fileActions.setSortFunction(sortTypes.DATE_ADDED))
       }}>Date Added</Text>
     <Text
       style={
@@ -74,17 +72,17 @@ export default connect(mapStateToProps)(SortModal)
 
 const styles = StyleSheet.create({
   sortOption: {
+    color: 'black',
     fontFamily: 'Averta-Semibold',
     fontSize: 18,
-    paddingTop: 25,
     paddingLeft: 40,
-    color: 'black'
+    paddingTop: 25
   },
   sortOptionSelected: {
+    color: '#0084ff',
     fontFamily: 'Averta-Semibold',
     fontSize: 18,
-    color: '#0084ff',
-    paddingTop: 25,
-    paddingLeft: 40
+    paddingLeft: 40,
+    paddingTop: 25
   }
 })

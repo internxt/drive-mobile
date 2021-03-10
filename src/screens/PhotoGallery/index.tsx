@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
-import AddItemToModal from '../../modals/AddItemToModal';
-import Photo from './Photo';
+import AddItemToModal from '../../modals/AddItemToModal'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
-import lodash from 'lodash'
+import PhotoList from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
-import { getLocalImages, IHashedPhoto } from '../Home/init';
-import SortModalPhotos from '../../modals/SortModal/SortModalPhotos';
-import ImageViewerModal from '../../modals/ImageViewerModal';
-import { IImageInfo } from 'react-native-image-zoom-viewer/built/image-viewer.type';
+import { downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
+import _ from 'lodash'
+import FileViewer from 'react-native-file-viewer'
+import async from 'async'
+import RNFS from 'react-native-fs'
 
-interface IPhotoGallery {
+interface PhotoGalleryProps {
   route: any;
   navigation: any
   photosState: PhotosState
@@ -25,191 +25,164 @@ interface IPhotoGallery {
   authenticationState: AuthenticationState
 }
 
-function PhotoGallery(props: IPhotoGallery): JSX.Element {
-  const [localImages, setLocalImages] = useState<IHashedPhoto[]>([])
-  const uploadedImages = props.photosState.uploadedPhotos
-  const previewImages = props.photosState.previews
-  const [photosToRender, setPhotosToRender] = useState<IHashedPhoto[]>([])
+function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
+  const localPhotodLabel = _.map(localPhotos, o => _.extend({ isLocal: true }, o))
+  const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
 
-  const [endCursor, setEndCursor] = useState('')
-  const [hasNextPage, setHasNextPage] = useState(true)
+  const union = _.unionBy([...localPhotodLabel, ...remotePhotosLabel], (o) => {
+    const a = localPhotodLabel.find(id => id.hash === o.hash)
+    const b = remotePhotosLabel.find(id => id.hash === o.hash)
 
+    return _.merge(a, b)
+  })
+
+  return union;
+}
+
+async function checkExists(photos: IHashedPhoto[]) {
+  return async.filter(photos, (photo, nextPhoto) => {
+    RNFS.exists(photo.localUri).then((exists) => {
+      nextPhoto(null, exists);
+    }).catch((err) => nextPhoto(err));
+  })
+}
+
+function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
+  const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
+  const [isDownloading, setIsDownloading] = useState(true);
+  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
+  const filteredPhotos = setStatus(localPhotos, uploadedPhotos);
 
-  const [isOpen, setIsOpen] = useState(false)
-  const [selectedPhotos, setSelectedPhotos] = useState<IImageInfo[]>([])
-
-  const handleSelection = (photoUri: string) => {
-    const photo = [{ url: photoUri }]
-
-    setSelectedPhotos(photo)
-    setIsOpen(true)
-  }
-
-  const handleClose = () => {
-    setIsOpen(false)
-  }
-
-  // Map the arrays to add a key to know later which icon it needs
-  const doIntersections = (photos: IHashedPhoto[]) => {
-    // Photos currently on local and cloud *THEY MUST RENDER*
-    const synced = lodash.intersectionBy(photos || [], uploadedImages || [], 'hash').map(photo => ({ ...photo, isSynced: true, isUploaded: true }))
-
-    // The photos stored on the gallery that have not been yet uploaded *THEY MUST RENDER*
-    const onlyOnLocal = lodash.differenceBy(photos || [], uploadedImages || [], 'hash').map(photo => ({ ...photo, isSynced: false, isUploaded: false }))
-
-    // The photos saved on the cloud that are not stored on the gallery *ONLY TO FILTER DOWNLOADED PREVIEWS*
-    const onlyOnCloud = lodash.differenceBy(uploadedImages || [], photos || [], 'hash').map(photo => ({ ...photo, isSynced: false, isUploaded: true, photoId: photo.id }))
-
-    return { synced, onlyOnLocal, onlyOnCloud }
-  }
-
-  function photosToRenderList(photos: IHashedPhoto[] = []) {
-    const categorizedImages = doIntersections(photos)
-
-    const synced = categorizedImages.synced
-    const onlyLocal = categorizedImages.onlyOnLocal
-    const onlyCloud = categorizedImages.onlyOnCloud
-    const photosToRender = synced.concat(onlyLocal)
-    //const photosToRender = onlyLocal.concat(synced) // SI SE PONEN AL REVES SE DUPLICAN
-    //const missingPhotos = lodash.intersectionBy(previewImages, onlyCloud, 'photoId').map(photo => ({ ...photo, isSynced: false, isUploaded: true }))
-
-    return photosToRender
-  }
-
-  useEffect(() => {
-    getLocalImages(props.dispatch).then(res => {
-      const photosToRender = photosToRenderList(res.images)
-
-      setLocalImages(res.images)
-      setEndCursor(res.assets.endCursor)
-      setHasNextPage(res.assets.hasNextPage)
-      setPhotosToRender(photosToRender)
-      setIsLoading(false)
+  const loadLocalPhotos = (after?: string) => {
+    return getLocalImages(after).then(res => {
+      setLocalPhotos(after ? localPhotos.concat(res.assets) : res.assets)
+      setEndCursor(res.endCursor)
+      return res;
+    }).then(res => {
+      setIsLoading(false);
+      return res;
     })
-  }, [])
+  }
+
+  const loadUploadedPhotos = async () => {
+    setIsDownloading(true);
+    getPreviews((newPreview) => {
+      setUploadedPhotos(uploadedPhotos.concat([newPreview]))
+    }).then(res => {
+      checkExists(res).then(resExists => setUploadedPhotos(resExists))
+    }).then(() => {
+      setIsLoading(false)
+    }).catch(() => {
+    }).finally(() => {
+      setIsDownloading(false);
+    })
+  }
+
+  const loadPhotos = (after?: string) => {
+    return Promise.race([
+      loadLocalPhotos(after),
+      loadUploadedPhotos()
+    ])
+  }
 
   useEffect(() => {
-    const newPhotosToRender = photosToRenderList(localImages)
-
-    setPhotosToRender(newPhotosToRender)
-  }, [props.photosState.previews])
+    setEndCursor(undefined)
+    setIsLoading(true);
+    loadPhotos();
+  }, [])
 
   return (
     <SafeAreaView style={styles.container}>
-
       <AlbumDetailsModal />
       <AddItemToModal />
-      <SortModalPhotos />
-      {/* <PhotoDetailsModal /> */}
-      <ImageViewerModal isOpen={isOpen} handleClose={handleClose} photos={selectedPhotos} />
 
-      <View style={styles.header}>
+      <View style={styles.albumHeader}>
         <BackButton navigation={props.navigation} />
 
         <View style={styles.titleWrapper}>
           <Text style={styles.albumTitle}>
             {props.navigation.state.params.title}
+            {isDownloading ? <ActivityIndicator color="gray" /> : <></>}
           </Text>
 
           <Text style={styles.photosCount}>
-            {photosToRender.length} Photos
+            {filteredPhotos.length} Photos
           </Text>
         </View>
-
-        {/* <MenuItem
-          style={styles.mr10}
-          name="list"
-          onClickHandler={() => {
-            props.dispatch(layoutActions.openSortModal())
-          }} /> */}
       </View>
 
-      {
-        !isLoading ?
-          <FlatList
-            data={photosToRender}
-            onEndReachedThreshold={0.1}
-            onEndReached={() => {
-              if (hasNextPage) {
-                setIsLoadingMore(true)
-
-                // Gets next 39 local images of the phone
-                getLocalImages(props.dispatch, endCursor).then(res => {
-                  // Concat the new array of photos that you got to the end of the photos array you already have
-                  const newLocalPhotos = localImages.concat(res.images)
-                  const newPhotosToRender = photosToRenderList(newLocalPhotos)
-
-                  setPhotosToRender(newPhotosToRender)
-
-                  setLocalImages(newLocalPhotos)
-                  setHasNextPage(res.assets.hasNextPage)
-                  setEndCursor(res.assets.endCursor)
-                  setIsLoadingMore(false)
-                })
-              }
-            }}
-            renderItem={({ item }) => {
-              return <Photo photo={item} id={item.id} uri={item.localUri} isSynced={item.isSynced} isUploaded={item.isUploaded} handleSelection={handleSelection} />
-            }}
-            numColumns={4}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={styles.flatList}
-          />
-          :
-          <WaveIndicator color="#5291ff" size={50} />
-      }
-      {
-        isLoadingMore ?
-          <View style={{ marginTop: 30 }}>
+      <View style={{ flexGrow: 1 }}>
+        {
+          !isLoading ?
+            <PhotoList
+              data={filteredPhotos}
+              numColumns={3}
+              onRefresh={() => {
+                setIsLoading(true);
+                loadPhotos().finally(() => setIsLoading(false));
+              }}
+              onItemPress={(event, item) => {
+                if (item.isUploaded && !item.isLocal) {
+                  downloadPhoto(item).then(x => {
+                    loadPhotos();
+                  }).catch((err) => {
+                  })
+                } else {
+                  FileViewer.open(item.localUri || '')
+                }
+              }}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.flatList}
+              onEndReached={() => loadPhotos(endCursor)}
+            />
+            :
             <WaveIndicator color="#5291ff" size={50} />
-          </View>
-          :
-          null
-      }
+        }
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignContent: 'center',
-    backgroundColor: '#fff',
-    paddingBottom: 15
-  },
-  header: {
-    flexDirection: 'row',
+  albumHeader: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    height: '8%'
+    display: 'flex',
+    flexDirection: 'row',
+    height: '8%',
+    justifyContent: 'space-between'
   },
   albumTitle: {
+    color: '#000000',
     fontFamily: 'Averta-Semibold',
     fontSize: 18,
     letterSpacing: 0,
-    color: '#000000',
     textAlign: 'center'
   },
+  container: {
+    alignContent: 'center',
+    backgroundColor: '#fff',
+    flex: 1,
+    paddingBottom: 15
+  },
+  flatList: {
+    paddingHorizontal: wp('0.5')
+  },
   photosCount: {
+    color: '#bfbfbf',
     fontFamily: 'Averta-Regular',
     fontSize: 13,
     letterSpacing: 0,
     paddingTop: 5,
-    color: '#bfbfbf',
     textAlign: 'center'
   },
   titleWrapper: {
     display: 'flex',
-    position: 'absolute',
     left: 0,
+    position: 'absolute',
     right: 0,
     zIndex: -2
-  },
-  flatList: {
-    paddingHorizontal: wp('0.5')
   }
 });
 

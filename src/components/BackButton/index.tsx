@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { StyleSheet, Image } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import backBtn from '../../../assets/icons/icon-back.png';
 
-export interface BackButtonProps {
+interface BackButtonProps {
     style?: any
     navigation: any
     filesState?: any
@@ -12,8 +13,6 @@ export interface BackButtonProps {
 }
 
 export function BackButton(props: BackButtonProps): JSX.Element {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const backBtn = require('../../../assets/icons/icon-back.png');
   const [iconArrowBack, setIconArrowBack] = React.useState(backBtn);
   //const parentFolderId = useSelector(state => state.pic.folderContent.parentFolderId);
 
@@ -35,14 +34,14 @@ export function BackButton(props: BackButtonProps): JSX.Element {
 
 const styles = StyleSheet.create({
   buttonWrapper: {
-    width: 55,
     height: 55,
     justifyContent: 'center',
-    alignItems: 'center'
+    width: 55,
+    width: 45
   },
   icon: {
     height: 18,
-    width: 11,
-    tintColor: '#0084ff'
+    tintColor: '#0084ff',
+    width: 11
   }
 });

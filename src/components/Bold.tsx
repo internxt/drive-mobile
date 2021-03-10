@@ -15,6 +15,6 @@ export default function Bold(props: BoldProps): JSX.Element {
 
 const styles = StyleSheet.create({
   boldComponent: {
-    fontWeight: 'bold', color: '#2c2c2c'
+    color: '#2c2c2c', fontWeight: 'bold'
   }
 })

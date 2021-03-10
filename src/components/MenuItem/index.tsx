@@ -30,18 +30,18 @@ const mapStateToProps = (state: any) => {
 
 const styles = StyleSheet.create({
   button: {
-    display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    width: 48,
-    height: 48,
+    backgroundColor: '#f7f7f7',
     borderRadius: 25.5,
-    backgroundColor: '#f7f7f7'
+    display: 'flex',
+    height: 48,
+    justifyContent: 'center',
+    width: 48
   },
   icon: {
-    width: 25,
     height: 25,
-    resizeMode: 'contain'
+    resizeMode: 'contain',
+    width: 25
   }
 });
 

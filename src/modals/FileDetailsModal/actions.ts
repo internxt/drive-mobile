@@ -1,14 +1,7 @@
-import { deviceStorage } from '../../helpers';
-import { getHeaders } from '../../helpers/headers';
-
-async function setHeaders() {
-  const token = await deviceStorage.getItem('xToken');
-
-  return getHeaders(token || '')
-}
+import { getHeaders } from '../../helpers/headers'
 
 export async function updateFolderMetadata(metadata: any, folderId: number): Promise<void> {
-  const headers = await setHeaders()
+  const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}/meta`, {
     method: 'post',
@@ -23,7 +16,7 @@ export async function updateFolderMetadata(metadata: any, folderId: number): Pro
 }
 
 export async function updateFileMetadata(metadata: any, fileId: number): Promise<void> {
-  const headers = await setHeaders()
+  const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/file/${fileId}/meta`, {
     method: 'post',

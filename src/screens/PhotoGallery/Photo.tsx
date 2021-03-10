@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, Image, Dimensions, View } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import * as MediaLibrary from 'expo-media-library';
-import FileViewer from 'react-native-file-viewer';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { downloadPhoto, IHashedPhoto } from '../Home/init';
 import { MaterialIndicator } from 'react-native-indicators';
 import { connect } from 'react-redux';
 
-export interface IAlbumImage {
+interface PhotoProps {
   id?: string
   uri: string
   isSynced: string
@@ -20,11 +17,11 @@ export interface IAlbumImage {
 
 const deviceWidth = Dimensions.get('window').width
 
-function Photo(props: IAlbumImage): JSX.Element {
+function Photo(props: PhotoProps): JSX.Element {
   const [isDownloading, setIsDownloading] = useState(false)
   const icons = {
-    'download'  : require('../../../assets/icons/photos-icon-download.png'),
-    'upload'    : require('../../../assets/icons/photos-icon-upload.png')
+    'download'  : require('../../../assets/icons/photos/photo-remote.svg'),
+    'upload'    : require('../../../assets/icons/photos/photo-local.svg')
   }
   const icon = props.isUploaded ? icons.download : icons.upload
   const regEx = 'file:///'
@@ -46,11 +43,6 @@ function Photo(props: IAlbumImage): JSX.Element {
 
           } else {
             setIsDownloading(true)
-            downloadPhoto(props.photo).then(() => {
-
-            }).finally(() => {
-              setIsDownloading(false)
-            })
           }
         }}
         style={styles.container}
@@ -80,33 +72,33 @@ function Photo(props: IAlbumImage): JSX.Element {
 
 const styles = StyleSheet.create({
   container: {
-    width: (deviceWidth - wp('6')) / 4,
     height: (deviceWidth - wp('6')) / 4,
     marginHorizontal: wp('0.1'),
-    marginVertical: wp('0.5')
-  },
-  image: {
-    width: (deviceWidth - wp('6')) / 4,
-    height: (deviceWidth - wp('6')) / 4,
-    borderRadius: 10
-  },
-  indicatorContainer: {
-    position: 'absolute'
-  },
-  iconBackground: {
-    position: 'absolute',
-    width: 30,
-    height: 30,
-    borderRadius: 30 / 2,
-    backgroundColor: '#4385F4',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: wp('1'),
-    marginLeft: wp('1')
+    marginVertical: wp('0.5'),
+    width: (deviceWidth - wp('6')) / 4
   },
   icon: {
     height: 22,
     width: 22
+  },
+  iconBackground: {
+    alignItems: 'center',
+    backgroundColor: '#4385F4',
+    borderRadius: 30 / 2,
+    height: 30,
+    justifyContent: 'center',
+    marginLeft: wp('1'),
+    marginTop: wp('1'),
+    position: 'absolute',
+    width: 30
+  },
+  image: {
+    borderRadius: 10,
+    height: (deviceWidth - wp('6')) / 4,
+    width: (deviceWidth - wp('6')) / 4
+  },
+  indicatorContainer: {
+    position: 'absolute'
   }
 })
 

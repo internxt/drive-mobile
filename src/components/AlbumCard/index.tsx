@@ -92,41 +92,47 @@ export function AlbumCard(props: AlbumProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    marginHorizontal: 12,
-    marginTop: 12
+  albumCover: {
+  },
+  albumSubtitle: {
+    color: '#b5b5b5',
+    fontFamily: 'Averta-Regular',
+    fontSize: 16,
+    letterSpacing: -0.14,
+    marginLeft: 16
+  },
+  albumTitle: {
+    color: '#2a2c35',
+    fontFamily: 'Averta-Regular',
+    fontSize: 22,
+    letterSpacing: -0.14,
+    marginBottom: 8,
+    marginLeft: 16,
+    marginTop: 20,
+    maxWidth: 300
+  },
+  bigimage: {
+    height: 121,
+    resizeMode: 'cover',
+    width: 121
   },
   boxShadow: {
+    elevation: 12,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 4
     },
     shadowOpacity: 0.27,
-    shadowRadius: 7.49,
-    elevation: 12
+    shadowRadius: 7.49
   },
   card: {
     backgroundColor: '#fff',
     flexDirection: 'row',
-    paddingTop: 6,
     paddingBottom: 1,
     paddingLeft: 6,
-    paddingRight: 1
-  },
-  albumCover: {
-  },
-  image: {
-    width: 58,
-    height: 58,
-    resizeMode: 'cover',
-    marginRight: 5,
-    marginBottom: 5
-  },
-  bigimage: {
-    width: 121,
-    height: 121,
-    resizeMode: 'cover'
+    paddingRight: 1,
+    paddingTop: 6
   },
   downimg: {
     display: 'flex',
@@ -134,22 +140,16 @@ const styles = StyleSheet.create({
     marginRight: 1,
     marginTop: 5
   },
-  albumTitle: {
-    maxWidth: 300,
-    fontFamily: 'Averta-Regular',
-    fontSize: 22,
-    letterSpacing: -0.14,
-    marginLeft: 16,
-    marginTop: 20,
-    marginBottom: 8,
-    color: '#2a2c35'
+  image: {
+    height: 58,
+    marginBottom: 5,
+    marginRight: 5,
+    resizeMode: 'cover',
+    width: 58
   },
-  albumSubtitle: {
-    fontFamily: 'Averta-Regular',
-    letterSpacing: -0.14,
-    marginLeft: 16,
-    fontSize: 16,
-    color: '#b5b5b5'
+  mainContainer: {
+    marginHorizontal: 12,
+    marginTop: 12
   },
   photoGrid: {
     flex: 1

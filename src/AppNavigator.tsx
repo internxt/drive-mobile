@@ -14,7 +14,7 @@ import Forgot from './screens/Forgot';
 import OutOfSpace from './screens/OutOfSpace';
 import Storage from './screens/Storage';
 import StorageWebView from './screens/StorageWebView';
-import Home from './screens/Home';
+import Photos from './screens/Photos';
 import PhotoGallery from './screens/PhotoGallery';
 import CreateAlbum from './screens/CreateAlbum';
 import EntryGateway from './screens/EntryGateway';
@@ -28,7 +28,7 @@ const routeConfig: RouteConfig = {
   Register: { screen: Register },
   Login: { screen: Login },
   Intro: { screen: Intro },
-  Home: { screen: Home },
+  Photos: { screen: Photos },
   PhotoGallery: { screen: PhotoGallery },
   AlbumView: { screen: AlbumView },
   FileExplorer: { screen: FileExplorer },

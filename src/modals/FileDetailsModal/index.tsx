@@ -282,23 +282,17 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(FileDetailsModal)
 
 const styles = StyleSheet.create({
-  modalSettingsFile: {
-    height: Platform.OS === 'ios' ? '48%' : '55%'
+  cerebriSansBold: {
+    fontFamily: 'CerebriSans-Bold'
   },
-  modalFileItemContainer: {
-  },
-  drawerKnob: {
-    backgroundColor: '#d8d8d8',
-    width: 56,
-    height: 7,
-    borderRadius: 4,
-    alignSelf: 'center',
-    marginTop: 10,
-    marginBottom: 10
-  },
-  modalFolder: {
-    height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%')),
-    marginTop: wp('12')
+  colorButton: {
+    alignItems: 'center',
+    borderRadius: 15,
+    height: 27,
+    justifyContent: 'center',
+    marginLeft: 9,
+    marginRight: 9,
+    width: 27
   },
   colorSelection: {
     display: 'flex',
@@ -307,80 +301,86 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     marginRight: 15
   },
-  colorButton: {
-    height: 27,
-    width: 27,
-    borderRadius: 15,
-    marginLeft: 9,
-    marginRight: 9,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  iconSelection: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginLeft: 15,
-    marginRight: 15
-  },
-  iconButton: {
-    height: 43,
-    width: 43,
-    margin: hp('90%') < 600 ? 5 : 8,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  iconImage: {
-    height: 25,
-    width: 25
-  },
-  fileNameContainer: {
-    height: 'auto'
+  drawerKnob: {
+    alignSelf: 'center',
+    backgroundColor: '#d8d8d8',
+    borderRadius: 4,
+    height: 7,
+    marginBottom: 10,
+    marginTop: 10,
+    width: 56
   },
   fileName: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: 20,
     marginLeft: 26
   },
-  infoContainer: {
+  fileNameContainer: {
     height: 'auto'
-  },
-  optionsContainer: {
-    flex: 1,
-    marginBottom: 15,
-    minHeight: 129 // pixel perfect leave like this
-  },
-  textDefault: {
-    fontFamily: 'CerebriSans-Regular',
-    fontSize: 18,
-    paddingLeft: 24,
-    paddingBottom: 6,
-    fontWeight: 'bold'
   },
   folderName: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: 20,
     marginLeft: 26
   },
-  cerebriSansBold: {
-    fontFamily: 'CerebriSans-Bold'
+  iconButton: {
+    alignItems: 'center',
+    height: 43,
+    justifyContent: 'center',
+    margin: hp('90%') < 600 ? 5 : 8,
+    width: 43
   },
-  stylesColorFolder: {
-    fontFamily: 'CerebriSans-Bold',
-    fontWeight: 'bold',
-    paddingLeft: 24,
-    paddingBottom: 8,
-    fontSize: 17
+  iconImage: {
+    height: 25,
+    width: 25
   },
-  stylesCoverFolder: {
-    fontFamily: 'CerebriSans-Bold',
-    fontWeight: 'bold',
-    paddingLeft: 24,
-    paddingBottom: 5,
-    fontSize: 17
+  iconSelection: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginLeft: 15,
+    marginRight: 15
+  },
+  infoContainer: {
+    height: 'auto'
+  },
+  modalFileItemContainer: {
+  },
+  modalFolder: {
+    height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%')),
+    marginTop: wp('12')
+  },
+  modalSettingsFile: {
+    height: hp('55%') < 300 ? 300 : Math.min(370, hp('55%'))
   },
   mr20: {
     marginRight: 20
+  },
+  optionsContainer: {
+    flex: 1,
+    marginBottom: 15,
+    minHeight: 129 // pixel perfect leave like this
+  },
+  stylesColorFolder: {
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 17,
+    fontWeight: 'bold',
+    paddingBottom: 8,
+    paddingLeft: 24
+  },
+  stylesCoverFolder: {
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 17,
+    fontWeight: 'bold',
+    paddingBottom: 5,
+    paddingLeft: 24
+  },
+  textDefault: {
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: 18,
+    fontWeight: 'bold',
+    paddingBottom: 6,
+    paddingLeft: 24
   }
 })

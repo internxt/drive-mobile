@@ -9,7 +9,7 @@ interface LoginResponse {
 export async function apiLogin(email: string): Promise<LoginResponse> {
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/login`, {
     method: 'POST',
-    headers: getHeaders(),
+    headers: await getHeaders(),
     body: JSON.stringify({ email: email })
   }).then(async res => {
     const data = await res.text()

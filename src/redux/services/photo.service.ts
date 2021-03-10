@@ -1,45 +1,29 @@
-import { deviceStorage } from '../../helpers';
 import { sortTypes } from '../constants';
 import { compare } from 'natural-orderby'
-import * as FileSystem from 'expo-file-system';
 import { previewsStorage } from '../../helpers/previewsStorage';
-import { getPhotos } from '../../helpers/mediaAccess';
 import { Platform } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import { IPhoto } from '../../components/PhotoList';
+import { getHeaders } from '../../helpers/headers';
 
 export const photoService = {
   getSortFunction,
-  setHeaders,
   getAlbumContent,
   getAllPhotosContent,
   getDeletedPhotos,
   deleteTempPhoto,
-  getDevicePhotos,
   uploadPhotos,
   uploadPhoto,
   uploadPreview,
   createAlbum
 };
 
-async function setHeaders() {
-  const token = await deviceStorage.getItem('xToken');
-  const user = JSON.parse(await deviceStorage.getItem('xUser') || '');
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    'Content-type': 'application/json; charset=utf-8',
-    'internxt-mnemonic': user.mnemonic
-  };
-
-  return headers;
-}
-
 // To obtain an AlbumView of an albumId
 function getAlbumContent(albumId: number): Promise<any> {
   return new Promise(async (resolve, reject) => {
-    const headers = await setHeaders();
+    const headers = await getHeaders();
 
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/album/${albumId}`, {
+    fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/album/${albumId}`, {
       method: 'GET',
       headers
     }).then(res => {
@@ -52,9 +36,9 @@ function getAlbumContent(albumId: number): Promise<any> {
 
 function getAllPhotosContent(user: any): Promise<any> {
   return new Promise(async (resolve, reject) => {
-    const headers = await setHeaders();
+    const headers = await getHeaders();
 
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/previews/${user.email}`, {
+    fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${user.email}`, {
       method: 'GET',
       headers
     }).then(res => {
@@ -75,9 +59,9 @@ function getAllPhotosContent(user: any): Promise<any> {
 
 function getDeletedPhotos(user: any): Promise<any> {
   return new Promise(async (resolve, reject) => {
-    const headers = await setHeaders();
+    const headers = await getHeaders();
 
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/deletes/${user.email}`, {
+    fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/deletes/${user.email}`, {
       method: 'GET',
       headers
     }).then(res => {
@@ -95,25 +79,13 @@ function getDeletedPhotos(user: any): Promise<any> {
   });
 }
 
-async function getDevicePhotos(user: any, cursor: any): Promise<any> {
-  return new Promise(async (resolve, reject) => {
-    getPhotos(user.rootAlbumId, cursor).then((dataResult) => {
-
-      //dataResult.photos.map()
-      resolve(dataResult)
-    }).catch((err) => {
-      reject;
-    })
-  });
-}
-
 function uploadPhotos(auth: any, photos: any) {
   return Promise.all(photos.map(async (photo: IPhoto) => {
     await uploadPhoto(auth.user, auth.token, photo);
   }))
 }
 
-async function uploadPhoto(user: any, token: any, photo: any) {
+async function uploadPhoto(user: any, token: string, photo: any) {
 
   //const userData = await getLyticsData()
 
@@ -140,7 +112,7 @@ async function uploadPhoto(user: any, token: any, photo: any) {
 
     const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(photo.uri);
 
-    RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photo/upload`, headers,
+    RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
       [
         { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
       ])
@@ -200,7 +172,7 @@ async function uploadPhoto(user: any, token: any, photo: any) {
   }
 }
 
-function uploadPreview (preview: any, headers: any) {
+function uploadPreview(preview: any, headers: any) {
   const body = new FormData();
 
   preview.uri.replace('file:///', 'file:/');
@@ -213,7 +185,7 @@ function uploadPreview (preview: any, headers: any) {
 
   const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(preview.uri);
 
-  RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
+  RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
     [
       { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
     ])
@@ -246,11 +218,11 @@ function uploadPreview (preview: any, headers: any) {
     })
 }
 
-function createAlbum (name: any, photos: any): Promise<any> {
+function createAlbum(name: any, photos: any): Promise<any> {
   return new Promise(async (resolve, reject) => {
-    const headers = await setHeaders();
+    const headers = await getHeaders();
 
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/album`, {
+    fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/album`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ name, photos })
@@ -264,9 +236,9 @@ function createAlbum (name: any, photos: any): Promise<any> {
 
 function deleteTempPhoto(photoId: any): Promise<any> {
   return new Promise(async (resolve, reject) => {
-    const headers = await setHeaders();
+    const headers = await getHeaders();
 
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/delete/temp/photo`, {
+    fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/delete/temp/photo`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ photoId })
@@ -278,7 +250,7 @@ function deleteTempPhoto(photoId: any): Promise<any> {
   });
 }
 
-export type ArraySortFunction = (a: any, b: any) => boolean
+type ArraySortFunction = (a: any, b: any) => boolean
 
 function getSortFunction(sortType: string): ArraySortFunction | null {
   let sortFunc = null;

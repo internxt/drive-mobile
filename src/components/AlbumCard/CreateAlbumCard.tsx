@@ -33,38 +33,43 @@ function CreateAlbumCard(props: ICreateAlbum): JSX.Element {
 
 const styles = StyleSheet.create({
   albumCard: {
-    width: wp('87'),
+    marginTop: 24,
     paddingBottom: 8,
-    marginTop: 24
+    width: wp('87')
   },
   card: {
-    height: wp('50'),
     alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 9,
     backgroundColor: '#f5f5f5',
     borderColor: 'white',
+    borderRadius: 9,
+    borderRadius: 9,
     borderWidth: 12,
+    display: 'flex',
+    elevation: 5,
+    elevation: 5,
+    height: wp('50'),
+    justifyContent: 'center',
+    marginHorizontal: 4,
+    marginHorizontal: 4,
+    paddingVertical: 57,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2
     },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    marginHorizontal: 4
+    shadowRadius: 3.84
   },
   image: {
+    backgroundColor: '#0084ff',
     height: 25,
-    width: 38,
-    backgroundColor: '#0084ff'
+    width: 38
   },
   title: {
+    color: 'black',
     fontFamily: 'Averta-Semibold',
-    marginTop: 14,
     fontSize: 16,
-    color: 'black'
+    marginTop: 14
   }
 });
 

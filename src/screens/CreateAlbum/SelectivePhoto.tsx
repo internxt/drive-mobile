@@ -4,7 +4,6 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { IPreview } from '../../components/PhotoList';
-import { IHashedPhoto } from '../Home/init';
 
 export interface ISelectivePhoto {
   photo: IPreview
@@ -46,31 +45,31 @@ function SelectivePhoto(props: ISelectivePhoto): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  imageContainer: {
-    width: (DEVICE_WIDTH - wp('6')) / 4,
-    height: (DEVICE_WIDTH - wp('6')) / 4,
-    marginHorizontal: wp('0.5'),
-    marginVertical: wp('0.5')
-  },
-  image: {
-    width: (DEVICE_WIDTH - wp('6')) / 4,
-    height: (DEVICE_WIDTH - wp('6')) / 4,
-    borderRadius: 10
-  },
-  iconBackground: {
-    position: 'absolute',
-    width: 30,
-    height: 30,
-    borderRadius: 30 / 2,
-    backgroundColor: '#4385F4',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: wp('1'),
-    marginLeft: wp('1'),
-    zIndex: 1
-  },
   hidden: {
     display: 'none'
+  },
+  iconBackground: {
+    alignItems: 'center',
+    backgroundColor: '#4385F4',
+    borderRadius: 30 / 2,
+    height: 30,
+    justifyContent: 'center',
+    marginLeft: wp('1'),
+    marginTop: wp('1'),
+    position: 'absolute',
+    width: 30,
+    zIndex: 1
+  },
+  image: {
+    borderRadius: 10,
+    height: (DEVICE_WIDTH - wp('6')) / 4,
+    width: (DEVICE_WIDTH - wp('6')) / 4
+  },
+  imageContainer: {
+    height: (DEVICE_WIDTH - wp('6')) / 4,
+    marginHorizontal: wp('0.5'),
+    marginVertical: wp('0.5'),
+    width: (DEVICE_WIDTH - wp('6')) / 4
   }
 })
 

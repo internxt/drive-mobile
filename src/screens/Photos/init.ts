@@ -7,12 +7,9 @@ import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
-import { PhotoActions } from '../../redux/actions';
-import { Dispatch } from 'redux';
-import { IHomeProps } from './'
-import { store } from '../../store';
 import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
+import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { IAlbum } from '../CreateAlbum';
 
 export interface IHashedPhoto extends Asset {
@@ -23,8 +20,14 @@ export interface IHashedPhoto extends Asset {
 }
 
 const getArrayPhotos = async (images: Asset[]) => {
+  // TODO: Revisar async/next
   const result: Promise<IHashedPhoto[]> = mapSeries(images, async (image, next) => {
     const asset = await getAssetInfoAsync(image)
+
+    if (!asset.localUri) {
+      return next(Error('Missing localUri'));
+    }
+
     const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
 
     const hashedImage = {
@@ -39,7 +42,7 @@ const getArrayPhotos = async (images: Asset[]) => {
   return result;
 }
 
-export function syncPhotos(images: IHashedPhoto[], props: any) {
+export function syncPhotos(images: IHashedPhoto[]) {
   return mapSeries(images, (image, next) => {
 
     const photo = {
@@ -49,20 +52,21 @@ export function syncPhotos(images: IHashedPhoto[], props: any) {
       name: image.filename
     }
 
-    return uploadPhoto(photo, props).then(() => next(null)).catch(next)
+    uploadPhoto(photo).then(() => next(null)).catch(next)
   })
 }
 
-export async function uploadPhoto(result: any, props: any) {
-
+async function uploadPhoto(result: any) {
   try {
     // Set name for pics/photos
     if (!result.name) {
       result.name = result.split('/').pop();
     }
 
-    const token = props.token;
-    const mnemonic = props.mnemonic;
+    const xUser = await deviceStorage.getItem('xUser')
+    const xToken = await deviceStorage.getItem('xToken')
+    const xUserJson = JSON.parse(xUser || '{}')
+
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm
 
     const body = new FormData();
@@ -70,8 +74,8 @@ export async function uploadPhoto(result: any, props: any) {
     body.append('xfile', result, result.name);
 
     const headers = {
-      'Authorization': `Bearer ${token}`,
-      'internxt-mnemonic': mnemonic,
+      'Authorization': `Bearer ${xToken}`,
+      'internxt-mnemonic': xUserJson.mnemonic,
       'Content-Type': 'multipart/form-data'
     };
 
@@ -79,7 +83,7 @@ export async function uploadPhoto(result: any, props: any) {
 
     const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri);
 
-    return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photo/upload`, headers,
+    return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
       [
         { name: 'xfile', filename: result.name, data: finalUri },
         { name: 'hash', data: result.hash }
@@ -110,10 +114,9 @@ export async function uploadPhoto(result: any, props: any) {
           photoId: res.id
         };
 
-        return uploadPreview(preview, props, headers);
+        return uploadPreview(preview);
       })
       .catch((err) => {
-
       })
 
   } catch (err) {
@@ -121,7 +124,7 @@ export async function uploadPhoto(result: any, props: any) {
   }
 }
 
-const uploadPreview = async (preview: any, props: any, headers: any) => {
+const uploadPreview = async (preview: any) => {
   const body = new FormData();
 
   preview.uri.replace('file:///', 'file:/');
@@ -132,9 +135,18 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
   const regex = /^(.*:\/{0,2})\/?(.*)$/gm
   const file = preview.uri.replace(regex, '$2')
 
+  const xUser = await deviceStorage.getItem('xUser')
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const headers = {
+    'Authorization': `Bearer ${xToken}`,
+    'internxt-mnemonic': xUserJson.mnemonic,
+    'Content-Type': 'multipart/form-data'
+  };
+
   const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(preview.uri);
 
-  return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
+  return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
     [
       { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
     ])
@@ -160,143 +172,133 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
     })
 }
 
-export function getAssetAsyncLocalPhotos() {
+export function getLocalImages(after?: string | undefined) {
+  const result = {
+    endCursor: undefined,
+    assets: [],
+    hasNextPage: false
+  };
 
-}
+  return Permissions.askAsync(Permissions.MEDIA_LIBRARY).then(() => {
+    return MediaLibrary.getAssetsAsync({ first: 20, after: after });
+  }).then((res) => {
+    result.hasNextPage = res.hasNextPage;
+    result.endCursor = res.endCursor;
 
-export function getLocalImages(dispatch: Dispatch, after?: string) {
-  return Permissions.askAsync(Permissions.MEDIA_LIBRARY)
-    .then(() => {
-      if (after) {
-        return MediaLibrary.getAssetsAsync({ first: 39, after });
-      }
-
-      return MediaLibrary.getAssetsAsync({ first: 39 });
-    })
-    .then(async (res) => {
-      const assets = res
-      let images: IHashedPhoto[] = []
-
-      await getArrayPhotos(res.assets).then(photos => {
-        dispatch(PhotoActions.setAllLocalPhotos(photos))
-        images = photos
-      })
-      return { assets, images }
-    })
-}
-
-export function getUploadedPhotos(authenticationState: any, dispatch: Dispatch): Promise<any> {
-  return new Promise(async (resolve, reject) => {
-
-    const email = authenticationState.user.email
-    const token = authenticationState.token;
-    const mnemonic = authenticationState.user.mnemonic;
-
-    const headers = {
-      'Authorization': `Bearer ${token}`,
-      'internxt-mnemonic': mnemonic,
-      'Content-Type': 'application/json; charset=utf-8'
-    };
-
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photos/${email}`, {
-      method: 'GET',
-      headers
-    }).then(res => {
-      if (res.status !== 200) { throw res; }
-      return res.json();
-    }).then(async res => {
-
-      dispatch(PhotoActions.setAllUploadedPhotos(res))
-      return resolve(res)
-    })
-      .catch(err => {
-        reject
-      });
+    return getArrayPhotos(res.assets)
+  }).then(res => {
+    result.assets = res
+    return result;
   });
 }
 
-export async function downloadPhoto(photo: any) {
+export async function getUploadedPhotos(): Promise<IApiPhotoWithPreview[]> {
+  const headers = await getHeaders()
 
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photos`, {
+    method: 'GET',
+    headers
+  }).then(res => {
+    if (res.status !== 200) { throw res; }
+    return res.json();
+  })
+}
+
+export async function getUploadedPreviews(): Promise<IApiPreview[]> {
+  return getUploadedPhotos().then(uploadedPhotos => {
+    return uploadedPhotos.map((x) => x.preview);
+  })
+}
+
+export async function getLocalPreviewsDir(): Promise<string> {
+  const TempDir = (Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir : RNFetchBlob.fs.dirs.PictureDir) + '/drive-photos-previews';
+  const TempDirExists = await RNFetchBlob.fs.exists(TempDir);
+
+  if (!TempDirExists) {
+    RNFS.mkdir(TempDir)
+  }
+
+  return TempDir;
+}
+
+export async function getLocalPhotosDir(): Promise<string> {
+  const TempDir = (Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir : RNFetchBlob.fs.dirs.PictureDir) + '/drive-photos';
+  const TempDirExists = await RNFetchBlob.fs.exists(TempDir);
+
+  if (!TempDirExists) {
+    RNFS.mkdir(TempDir)
+  }
+
+  return TempDir;
+}
+
+export async function downloadPhoto(photo: any) {
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
   const type = photo.type.toLowerCase()
 
+  const tempDir = await getLocalPhotosDir();
+
   return RNFetchBlob.config({
-    path: Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir + `.${type}` : RNFetchBlob.fs.dirs.PictureDir + `.${type}`,
+    path: `${tempDir}/${photo.photoId}.${type}`,
     fileCache: true
-  }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/download/photo/${photo.photoId}`, {
+  }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/download/photo/${photo.id}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
-  }).then(async (res) => {
-    if (res.respInfo.status === 200) {
-      await MediaLibrary.saveToLibraryAsync(res.path())
-      SimpleToast.show('Image downloaded!', 0.3)
-      return
+  }).then((res) => {
+    if (res.respInfo.status !== 200) {
+      throw Error('Unable to download picture')
     }
-    return
-
-  }).catch(async err => {
-    return
-  }).finally(() => {
-    return
+    return res;
+  }).then(res => MediaLibrary.saveToLibraryAsync(res.path())).then(() => {
+    SimpleToast.show('Image downloaded!', 0.3)
   })
 }
 
-export const downloadPreview = async (preview: any, props: IHomeProps) => {
+export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview) {
+  if (!preview) {
+    return Promise.resolve();
+  }
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
   const typePreview = preview.type
-  const name = preview.name
+  const name = preview.fileId
+
+  const tempDir = await getLocalPreviewsDir()
+  const tempPath = tempDir + '/' + name + '.' + typePreview
+
+  const previewExists = await RNFS.exists(tempPath);
+
+  if (previewExists) {
+    const localPreview = await RNFS.stat(tempPath);
+
+    photo.localUri = localPreview.path;
+    return Promise.resolve();
+  }
 
   return RNFetchBlob.config({
-    path: Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir + name + '.' + typePreview : RNFetchBlob.fs.dirs.CacheDir + name + '.' + typePreview,
+    path: tempPath,
     fileCache: true
-  }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
+  }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
-  }).then(async (res) => {
-
-    const result = {
-      localUri: res.path(),
-      data: res.data,
-      photoId: preview.photoId,
-      type: preview.type
-    }
-
-    const currentPreviews = store.getState().photosState.previews
-
-    if (!currentPreviews.find(photo => photo.photoId === result.photoId)) {
-      props.dispatch(PhotoActions.pushPreview(result))
-    }
-
   }).catch(err => {
+    RNFS.unlink(tempPath)
+    throw err;
   })
 }
 
-export const getArrayPreviews = async (props: any) => {
-  return new Promise(async (resolve, reject) => {
+async function getArrayPreviews(): Promise<IApiPreview[]> {
+  const headers = await getHeaders();
 
-    const token = props.authenticationState.token;
-    const mnemonic = props.authenticationState.user.mnemonic;
-
-    const headers = {
-      'Authorization': `Bearer ${token}`,
-      'internxt-mnemonic': mnemonic,
-      'Content-Type': 'application/json; charset=utf-8'
-    };
-
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/previews/`, {
-      method: 'GET',
-      headers
-    }).then(res => {
-      if (res.status !== 200) { throw res; }
-      return res.json();
-    }).then(async (res2) => {
-      resolve(res2)
-    })
-      .catch(reject);
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/previews`, {
+    method: 'GET',
+    headers
+  }).then(res => {
+    if (res.status !== 200) { throw res; }
+    return res.json();
   });
 }
 
@@ -306,39 +308,40 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export function getPreviews(props: IHomeProps): Promise<any> {
+export function getPreviews(cb?: (newPreview: IHashedPhoto) => void): Promise<any> {
   SHOULD_STOP = false;
-  return getArrayPreviews(props).then((res: any) => {
-    return mapSeries(res, (preview, next) => {
+  return getUploadedPhotos().then((res) => {
+    return mapSeries(res, (photo, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }
 
-      return downloadPreview(preview, props).then((res1) => {
-        next(null, res1)
+      return downloadPreview(photo.preview, photo).then(() => {
+        if (cb) {
+          cb(photo)
+        }
+        next(null, photo)
+      }).catch(err => {
       });
     });
   });
 }
 
-export async function initializePhotosUser(): Promise<any> {
+async function initializePhotosUser(): Promise<any> {
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
 
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/initialize`, {
     method: 'GET',
-    headers: getHeaders(xToken || '', xUserJson.mnemonic)
+    headers: await getHeaders(xToken || '', xUserJson.mnemonic)
   }).then(res => res.json())
 }
 
-export async function photosUserData(): Promise<any> {
-  const xUser = await deviceStorage.getItem('xUser')
-  const xToken = await deviceStorage.getItem('xToken')
-  const xUserJson = JSON.parse(xUser || '{}')
-  const headers = getHeaders(xToken || '', xUserJson.mnemonic)
+async function photosUserData(): Promise<any> {
+  const headers = await getHeaders()
 
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/user`, {
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/user`, {
     method: 'GET',
     headers
   }).then(res => {
@@ -349,7 +352,7 @@ export async function photosUserData(): Promise<any> {
   })
 }
 
-export async function isUserInitialized() {
+async function isUserInitialized() {
   return photosUserData()
     .then((res) => {
       if (!res.rootPreviewId || !res.rootAlbumId) {
