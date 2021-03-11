@@ -1,5 +1,5 @@
 import { mapSeries } from 'async';
-import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import { ImageResult, manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { Asset, getAssetInfoAsync } from 'expo-media-library';
 import { Platform } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -48,88 +48,13 @@ export async function syncPhotos(images: IHashedPhoto[]): Promise<any> {
   const uploadedHashes = withPreviews.map(x => x.hash);
   const imagesToUpload = images.filter(x => uploadedHashes.indexOf(x.hash) < 0)
 
+  // Upload filtered photos
   return mapSeries(imagesToUpload, (image, next) => {
     uploadPhoto(image).then(() => next(null)).catch(next)
   })
 }
 
-async function uploadPhoto(result: any) {
-  try {
-    // Set name for pics/photos
-    if (!result.name) {
-      result.name = result.split('/').pop();
-    }
-
-    const xUser = await deviceStorage.getItem('xUser')
-    const xToken = await deviceStorage.getItem('xToken')
-    const xUserJson = JSON.parse(xUser || '{}')
-
-    const body = new FormData();
-
-    body.append('xfile', result, result.name);
-
-    const headers = {
-      'Authorization': `Bearer ${xToken}`,
-      'internxt-mnemonic': xUserJson.mnemonic,
-      'Content-Type': 'multipart/form-data'
-    };
-
-    const file = result.localUri
-
-    const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri);
-
-    return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
-      [
-        { name: 'xfile', filename: result.name, data: finalUri },
-        { name: 'hash', data: result.hash }
-      ])
-      .then((res) => {
-        if (res.respInfo.status === 401) {
-          throw res;
-        } else if (res.respInfo.status === 402) {
-          //setHasSpace(false)
-
-        } else if (res.respInfo.status === 201) {
-          return res.json();
-        }
-        return
-      })
-      .then(async res => {
-        // Create photo preview and store on device
-        const prev = await manipulateAsync(
-          result.uri,
-          [{ resize: { width: 220 } }],
-          { compress: 1, format: SaveFormat.JPEG }
-        )
-        const preview = {
-          uri: prev.uri,
-          height: prev.height,
-          widht: prev.width,
-          name: result.name,
-          photoId: res.id
-        };
-
-        return uploadPreview(preview);
-      })
-      .catch((err) => {
-      })
-
-  } catch (err) {
-    return
-  }
-}
-
-const uploadPreview = async (preview: any) => {
-  const body = new FormData();
-
-  preview.uri.replace('file:///', 'file:/');
-
-  body.append('xfile', preview, preview.name);
-  body.append('photoId', preview.photoId);
-
-  const regex = /^(.*:\/{0,2})\/?(.*)$/gm
-  const file = preview.uri.replace(regex, '$2')
-
+async function uploadPhoto(photo: IHashedPhoto) {
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -139,36 +64,76 @@ const uploadPreview = async (preview: any) => {
     'Content-Type': 'multipart/form-data'
   };
 
-  const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(preview.uri);
+  const parsedUri = photo.localUri.replace(/^file:\/\//, '');
 
-  return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
+  const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUri)) : RNFetchBlob.wrap(photo.uri)
+
+  return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
     [
-      { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
+      { name: 'xfile', filename: photo.filename, data: finalUri },
+      { name: 'hash', data: photo.hash }
     ])
     .then((res) => {
-      if (res.respInfo.status === 401) {
-        throw res;
-      }
+      const statusCode = res.respInfo.status;
 
-      const data = res;
-
-      return { res: res, data };
+      if (statusCode === 401) { throw res; }
+      if (statusCode === 201 || statusCode === 409) { return res.json(); }
+      throw res
     })
-    .then(res => {
-      if (res.res.respInfo.status === 402) {
+    .then(async res => {
 
-      } else if (res.res.respInfo.status === 201) {
-        // PREVIEW UPLOADED
-        return
+      if (!res.id) {
+        return;
       }
-    })
-    .catch((err) => {
-      return
+      // Create photo preview and store on device
+      const prev = await manipulateAsync(
+        photo.uri,
+        [{ resize: { width: 220 } }],
+        { compress: 1, format: SaveFormat.JPEG }
+      )
+
+      return uploadPreview(prev, res.id, photo);
     })
 }
 
-export function getLocalImages(after?: string | undefined) {
-  const result = {
+const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto) => {
+  const xUser = await deviceStorage.getItem('xUser')
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const headers = {
+    'Authorization': `Bearer ${xToken}`,
+    'internxt-mnemonic': xUserJson.mnemonic,
+    'Content-Type': 'multipart/form-data'
+  };
+
+  const parsedUri = preview.uri.replace(/^file:\/\//, '');
+
+  const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUri)) : RNFetchBlob.wrap(preview.uri)
+
+  return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/preview/upload/${photoId}`,
+    headers,
+    [
+      { name: 'xfile', filename: originalPhoto.filename, data: finalUri }
+    ])
+    .then(res => {
+      const statusCode = res.respInfo.status;
+
+      if (statusCode === 201 || statusCode === 409) {
+        return res.json();
+      }
+
+      throw res;
+    })
+}
+
+interface LocalImages {
+  endCursor: string | undefined
+  assets: IHashedPhoto[]
+  hasNextPage: boolean
+}
+
+export function getLocalImages(after?: string | undefined): Promise<LocalImages> {
+  const result: LocalImages = {
     endCursor: undefined,
     assets: [],
     hasNextPage: false
@@ -234,7 +199,7 @@ export async function cachePicture(item: MediaLibrary.AssetInfo): Promise<string
 
   const fileExists = await RNFS.exists(tempFile)
 
-  if (!fileExists) {
+  if (!fileExists && item.localUri) {
     await RNFS.copyFile(item.localUri, tempFile)
   }
 
