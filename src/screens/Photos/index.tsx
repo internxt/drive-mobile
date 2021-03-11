@@ -11,7 +11,6 @@ import SettingsModal from '../../modals/SettingsModal';
 import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos, getAlbums } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
-import { WaveIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import { IAlbum } from '../CreateAlbum';
 import AlbumList from '../../components/AlbumList';
