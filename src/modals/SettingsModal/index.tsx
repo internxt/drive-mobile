@@ -60,7 +60,7 @@ async function initializePhotosUser(token: string, mnemonic: string): Promise<an
   const xUserJson = JSON.parse(xUser || '{}')
   const email = xUserJson.email
 
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/initialize`, {
     method: 'POST',
     headers: await getHeaders(),
     body: JSON.stringify({
@@ -81,7 +81,7 @@ async function photosUserData(authenticationState: AuthenticationState): Promise
     'Content-Type': 'application/json; charset=utf-8'
   };
 
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/user`, {
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/user`, {
     method: 'GET',
     headers
   }).then(res => {

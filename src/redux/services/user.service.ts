@@ -63,7 +63,7 @@ function signinPhotos(email: string, password: string, sKey: string, twoFactorCo
     const hashObj = passToHash({ password, salt });
     const encPass = encryptText(hashObj.hash);
 
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/access`, {
+    fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/access`, {
       method: 'POST',
       headers: { 'content-type': 'application/json; charset=utf-8' },
       body: JSON.stringify({
@@ -122,7 +122,7 @@ async function initializeUser(email: string, mnemonic: string, token: string) {
 }
 
 async function initializeUserPhotos(email: string, mnemonic: string, token: string) {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/initialize`, {
     method: 'POST',
     headers: await getHeaders(token, mnemonic),
     body: JSON.stringify({
