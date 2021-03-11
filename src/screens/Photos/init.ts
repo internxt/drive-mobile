@@ -66,8 +66,6 @@ async function uploadPhoto(result: any) {
     const xToken = await deviceStorage.getItem('xToken')
     const xUserJson = JSON.parse(xUser || '{}')
 
-    const regex = /^(.*:\/{0,2})\/?(.*)$/gm
-
     const body = new FormData();
 
     body.append('xfile', result, result.name);
@@ -78,7 +76,7 @@ async function uploadPhoto(result: any) {
       'Content-Type': 'multipart/form-data'
     };
 
-    const file = result.uri.replace(regex, '$2')
+    const file = result.localUri
 
     const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri);
 
