@@ -11,7 +11,7 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
-import { downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
+import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
 import async from 'async'
@@ -131,7 +131,11 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                   }).catch((err) => {
                   })
                 } else {
-                  FileViewer.open(item.localUri || '')
+                  cachePicture(item).then(tempFile => {
+                    FileViewer.open(tempFile, {
+                      onDismiss: () => RNFS.unlink(tempFile)
+                    });
+                  })
                 }
               }}
               keyExtractor={(item) => item.id}
