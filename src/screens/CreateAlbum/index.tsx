@@ -14,6 +14,7 @@ import { getHeaders } from '../../helpers/headers';
 import { getPreviews } from '../Photos/init';
 import ImageViewerModal from '../../modals/ImageViewerModal';
 import { IImageInfo } from 'react-native-image-zoom-viewer/built/image-viewer.type';
+import Loading from '../../components/Loading';
 
 interface CreateAlbumProps {
   navigation: any
@@ -53,6 +54,7 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
   const [albumTitle, setAlbumTitle] = useState('')
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isCreatingAlbum, setIsCreatingAlbum] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState<IImageInfo[]>([])
 
@@ -121,14 +123,16 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
           autoCapitalize='none'
         />
 
-        <TouchableOpacity style={styles.nextBtn}
+        <TouchableOpacity style={!isCreatingAlbum ? styles.nextBtn : [styles.nextBtn, styles.disabled]}
+          disabled={isCreatingAlbum}
           onPress={() => {
             if (albumTitle) {
               if (albumTitle.length > 30) {
                 Alert.alert('Maximum album length name is 30 characters')
               } else {
                 if (selectedPhotos.length > 0) {
-                  uploadAlbum()
+                  setIsCreatingAlbum(true)
+                  uploadAlbum().finally(() => setIsCreatingAlbum(false))
                   handlePress()
                 } else {
                   Alert.alert('You need to select at least one photo')
@@ -148,13 +152,19 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
       </Text>
 
       {
-        <FlatList
-          data={photos}
-          renderItem={({ item, index }) => renderItem(item, index)}
-          numColumns={4}
-          keyExtractor={(item, index) => index.toString()}
-          contentContainerStyle={styles.flatList}
-        />
+        !isLoading ?
+          !isCreatingAlbum ?
+            <FlatList
+              data={photos}
+              renderItem={({ item, index }) => renderItem(item, index)}
+              numColumns={4}
+              keyExtractor={(item, index) => index.toString()}
+              contentContainerStyle={styles.flatList}
+            />
+            :
+            <Loading message={'Creating album...'} />
+          :
+          <Loading message={'Loading uploaded photos...'} />
       }
     </SafeAreaView>
   );
@@ -167,6 +177,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 15
+  },
+  disabled: {
+    backgroundColor: '#73bbff'
   },
   flatList: {
     paddingHorizontal: wp('1')

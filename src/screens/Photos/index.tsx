@@ -16,6 +16,7 @@ import ComingSoonModal from '../../modals/ComingSoonModal';
 import { IAlbum } from '../CreateAlbum';
 import AlbumList from '../../components/AlbumList';
 import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
+import Loading from '../../components/Loading';
 
 export interface IPhotosProps extends Reducers {
   navigation?: any
@@ -105,10 +106,7 @@ function Photos(props: IPhotosProps): JSX.Element {
               />
             </View>
             :
-            <View style={styles.emptyContainer}>
-              <Text style={styles.heading}>Loading photos from gallery...</Text>
-              <WaveIndicator color="#5291ff" size={50} />
-            </View>
+            <Loading message={'Loading photos from gallery...'} />
         }
       </View>
     </SafeAreaView>
@@ -145,18 +143,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flexGrow: 1,
     justifyContent: 'flex-start'
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    backgroundColor: '#fff'
-  },
-  heading: {
-    color: '#000000',
-    fontFamily: 'Averta-Regular',
-    fontSize: wp('4.5'),
-    letterSpacing: -0.8,
-    marginBottom: 30,
-    marginTop: 10
   },
   title: {
     alignSelf: 'center',
