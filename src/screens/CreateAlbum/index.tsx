@@ -12,6 +12,8 @@ import { IPreview } from '../../components/PhotoList';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { getHeaders } from '../../helpers/headers';
 import { getPreviews } from '../Photos/init';
+import ImageViewerModal from '../../modals/ImageViewerModal';
+import { IImageInfo } from 'react-native-image-zoom-viewer/built/image-viewer.type';
 
 interface CreateAlbumProps {
   navigation: any
@@ -51,6 +53,8 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
   const [albumTitle, setAlbumTitle] = useState('')
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
+  const [selectedPhoto, setSelectedPhoto] = useState<IImageInfo[]>([])
 
   useEffect(() => {
     getPreviews().then(res => setPhotos(res)).finally(() => setIsLoading(false))
@@ -90,10 +94,22 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
     // reset all selected photos
   }
 
-  const renderItem = (item: IPreview, index: number) => (<SelectivePhoto photo={item} handleSelection={handleSelection} key={index} />)
+  const handleClose = () => {
+    setIsOpen(false)
+  }
+
+  const handleLongPress = (photo: IImageInfo) => {
+    const selectedPhoto = [photo]
+
+    setSelectedPhoto(selectedPhoto)
+    setIsOpen(true)
+  }
+
+  const renderItem = (item: IPreview, index: number) => (<SelectivePhoto photo={item} handleSelection={handleSelection} handleLongPress={handleLongPress} key={index} />)
 
   return (
     <SafeAreaView style={styles.container}>
+      <ImageViewerModal isOpen={isOpen} photos={selectedPhoto} handleClose={handleClose} />
       <View style={styles.albumHeader}>
         <BackButton navigation={props.navigation} ></BackButton>
 

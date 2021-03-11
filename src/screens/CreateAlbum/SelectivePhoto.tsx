@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, Image, Dimensions, View, Text } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { IImageInfo } from 'react-native-image-zoom-viewer/built/image-viewer.type';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { IPreview } from '../../components/PhotoList';
@@ -8,6 +9,7 @@ import { IPreview } from '../../components/PhotoList';
 export interface ISelectivePhoto {
   photo: IPreview
   handleSelection: (selectedPhotoId: number) => void
+  handleLongPress: (selectedPhoto: IImageInfo) => void
 }
 
 const DEVICE_WIDTH = Dimensions.get('window').width
@@ -33,6 +35,11 @@ function SelectivePhoto(props: ISelectivePhoto): JSX.Element {
       onPress={() => {
         setIsSelected(!isSelected)
         props.handleSelection(photo.photoId)
+      }}
+      onLongPress={() => {
+        const selectedPhoto = { url: photo.localUri }
+
+        props.handleLongPress(selectedPhoto)
       }}
     >
       <View style={isSelected ? styles.iconBackground : styles.hidden}>
