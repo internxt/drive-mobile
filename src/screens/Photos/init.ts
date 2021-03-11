@@ -41,17 +41,15 @@ const getArrayPhotos = async (images: Asset[]) => {
   return result;
 }
 
-export function syncPhotos(images: IHashedPhoto[]) {
-  return mapSeries(images, (image, next) => {
+export async function syncPhotos(images: IHashedPhoto[]): Promise<any> {
+  // Skip uploaded photos with previews
+  const alreadyUploadedPhotos = await getUploadedPhotos();
+  const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview);
+  const uploadedHashes = withPreviews.map(x => x.hash);
+  const imagesToUpload = images.filter(x => uploadedHashes.indexOf(x.hash) < 0)
 
-    const photo = {
-      uri: image.localUri,
-      id: image.id,
-      hash: image.hash,
-      name: image.filename
-    }
-
-    uploadPhoto(photo).then(() => next(null)).catch(next)
+  return mapSeries(imagesToUpload, (image, next) => {
+    uploadPhoto(image).then(() => next(null)).catch(next)
   })
 }
 
