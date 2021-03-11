@@ -108,13 +108,13 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
   const renderItem = (item: IPreview, index: number) => (<SelectivePhoto photo={item} handleSelection={handleSelection} handleLongPress={handleLongPress} key={index} />)
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.mainContainer}>
       <ImageViewerModal isOpen={isOpen} photos={selectedPhoto} handleClose={handleClose} />
       <View style={styles.albumHeader}>
         <BackButton navigation={props.navigation} ></BackButton>
 
         <TextInput
-          style={styles.albumTitle}
+          style={styles.input}
           placeholder='Name your memories'
           onChangeText={value => setAlbumTitle(value)}
           value={albumTitle}
@@ -168,19 +168,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 15
   },
-  albumTitle: {
+  flatList: {
+    paddingHorizontal: wp('1')
+  },
+  input: {
     color: '#000000',
     fontFamily: 'Averta-Semibold',
     fontSize: 17,
-    textAlign: 'center'
+    textAlign: 'center',
+    width: 200
   },
-  container: {
+  mainContainer: {
     alignContent: 'center',
     backgroundColor: '#fff',
     flex: 1
-  },
-  flatList: {
-    paddingHorizontal: wp('1')
   },
   nextBtn: {
     backgroundColor: '#0084ff',
