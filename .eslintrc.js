@@ -17,11 +17,12 @@ module.exports = {
   plugins: [
     'react',
     'react-native',
-    'ext'
+    'ext',
+    'unused-imports'
   ],
   rules: {
     '@typescript-eslint/no-use-before-define': 'off',
-    '@typescript-eslint/no-unused-vars': 'warn',
+    '@typescript-eslint/no-unused-vars': 'off',
     'no-console': 'error',
     'comma-dangle': ['error', 'never'],
     '@typescript-eslint/no-empty-function': 'off',
@@ -31,6 +32,8 @@ module.exports = {
     'array-bracket-spacing': ['error', 'never'],
     'react-native/no-unused-styles': 'error',
     'react-native/no-inline-styles': 'warn',
+    'react-native/no-single-element-style-arrays': 'error',
+    'react-native/sort-styles': 'error',
     'eqeqeq': 'error',
     'comma-spacing': ['error', { 'before': false, 'after': true }],
     'no-trailing-spaces': ['error'],
@@ -52,6 +55,12 @@ module.exports = {
       'overrides': {
         'arrow': { 'before': true, 'after': true }
       }
+    }],
+    'unused-imports/no-unused-imports': 'error',
+    'space-before-function-paren': ['error', {
+      'anonymous': 'always',
+      'named': 'never',
+      'asyncArrow': 'always'
     }]
   },
   'settings': {

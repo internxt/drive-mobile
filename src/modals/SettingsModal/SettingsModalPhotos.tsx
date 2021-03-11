@@ -3,15 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, StyleSheet, Text } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
-import Bold from '../../components/Bold';
 import ProgressBar from '../../components/ProgressBar';
 import Separator from '../../components/Separator';
 import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import { layoutActions, userActions } from '../../redux/actions';
-import { layoutActionTypes } from '../../redux/constants';
-import SettingsItem from './SettingsItem';
 import SettingsItemPhotos from './SettingsItemPhotos';
 
 function identifyPlanName(bytes: number): string {
@@ -19,11 +16,9 @@ function identifyPlanName(bytes: number): string {
 }
 
 async function loadUsage(): Promise<number> {
-  const xToken = await deviceStorage.getItem('xToken') || undefined
-
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
     method: 'get',
-    headers: getHeaders(xToken)
+    headers: await getHeaders()
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load usage') }
     return res
@@ -35,14 +30,14 @@ async function loadLimit(): Promise<number> {
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
     method: 'get',
-    headers: getHeaders(xToken)
+    headers: await getHeaders()
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load limit') }
     return res
   }).then(res => res.json()).then(res => res.maxSpaceBytes)
 }
 
-export async function loadValues(): Promise<{ usage: number, limit: number }> {
+async function loadValues(): Promise<{ usage: number, limit: number }> {
   const limit = await loadLimit()
   const usage = await loadUsage()
 
@@ -178,18 +173,18 @@ function SettingsModalPhotos(props: SettingsModalPhotosProps) {
 
 const styles = StyleSheet.create({
   modalSettings: {
-    top: '40%',
+    borderRadius: 8,
     paddingLeft: 15,
     paddingRight: 15,
     paddingTop: 25,
-    borderRadius: 8
+    top: '40%'
   },
   nameText: {
+    color: 'black',
+    fontFamily: 'Averta-Bold',
     fontSize: 20,
     marginLeft: 26,
-    marginTop: 10,
-    fontFamily: 'Averta-Bold',
-    color: 'black'
+    marginTop: 10
   },
   progressHeight: {
     height: 6

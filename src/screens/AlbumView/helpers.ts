@@ -7,7 +7,7 @@ import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 
-const getArrayPhotos = async(images: Asset[]) => {
+const getArrayPhotos = async (images: Asset[]) => {
   const result = mapSeries(images, async (image, next) => {
 
     const asset = await getAssetInfoAsync(image)
@@ -36,7 +36,7 @@ export function syncPhotos(images: Asset[], props: any) {
     });
   });
 }
-export async function uploadPhoto (result: any, props: any) {
+async function uploadPhoto(result: any, props: any) {
 
   try {
     // Set name for pics/photos
@@ -62,7 +62,7 @@ export async function uploadPhoto (result: any, props: any) {
 
     const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri);
 
-    return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photo/upload`, headers,
+    return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
       [
         { name: 'xfile', filename: result.name, data: finalUri },
         { name: 'hash', data: result.hash }
@@ -116,7 +116,7 @@ const uploadPreview = async (preview: any, props: any, headers: any) => {
 
   const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(preview.uri);
 
-  return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
+  return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
     [
       { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
     ])

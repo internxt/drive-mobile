@@ -72,18 +72,25 @@ function Folder(props: FolderProps) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 80,
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderColor: '#e6e6e6',
     flexDirection: 'row',
-    alignItems: 'center'
+    height: 80
   },
   fileDetails: {
     flexGrow: 1
   },
-  touchableItemArea: {
-    flexDirection: 'row',
-    alignItems: 'center'
+  fileName: {
+    color: '#000000',
+    fontFamily: 'CircularStd-Bold',
+    fontSize: 16,
+    letterSpacing: -0.1
+  },
+  icon: {
+    left: 35,
+    position: 'absolute',
+    top: 7
   },
   itemIcon: {
   },
@@ -91,16 +98,9 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     width: 230
   },
-  fileName: {
-    fontFamily: 'CircularStd-Bold',
-    fontSize: 16,
-    letterSpacing: -0.1,
-    color: '#000000'
-  },
-  icon: {
-    position: 'absolute',
-    left: 35,
-    top: 7
+  touchableItemArea: {
+    alignItems: 'center',
+    flexDirection: 'row'
   }
 });
 

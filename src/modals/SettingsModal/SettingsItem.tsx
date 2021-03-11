@@ -20,16 +20,16 @@ export default function SettingsItem(props: SettingsItemProps): JSX.Element {
 
 const styles = StyleSheet.create({
   itemContainer: {
-    paddingTop: 13,
+    justifyContent: 'center',
     paddingBottom: 13,
     paddingLeft: 24,
-    justifyContent: 'center'
+    paddingTop: 13
   },
   itemText: {
+    color: '#000',
     fontFamily: 'CerebriSans-Bold',
     fontSize: 19,
     fontWeight: '500',
-    color: '#000',
     justifyContent: 'center'
   }
 });

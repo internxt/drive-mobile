@@ -1,5 +1,3 @@
-import { getDocumentAsync } from 'expo-document-picker';
-import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker';
 import React, { Fragment, useState, useRef, useEffect } from 'react'
 import { View, StyleSheet, Platform, TextInput, Image, Alert, SafeAreaView } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
@@ -12,8 +10,6 @@ import { getIcon } from '../../helpers/getIcon';
 import analytics from '../../helpers/lytics';
 import { PhotoActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
-import { previewsStorage } from '../../helpers/previewsStorage';
-import { createNavigator } from 'react-navigation';
 
 interface AppMenuProps {
   navigation?: any
@@ -61,7 +57,7 @@ function AppMenuPhotos(props: AppMenuProps) {
 
     const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(preview.uri);
 
-    RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
+    RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
       [
         { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
       ])
@@ -126,7 +122,7 @@ function AppMenuPhotos(props: AppMenuProps) {
 
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri);
 
-      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photo/upload`, headers,
+      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
         [
           { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
         ])
@@ -326,32 +322,32 @@ const styles = StyleSheet.create({
     flexGrow: 1
   }, */
   container: {
-    height: 54,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
     backgroundColor: '#fff',
-    paddingTop: 3,
+    flexDirection: 'row',
+    height: 54,
+    justifyContent: 'flex-start',
     marginTop: Platform.OS === 'ios' ? 50 : 0,
+    paddingTop: 3,
     position: 'absolute',
     width: '100%'
   },
   searchContainer: {
-    position: 'relative',
+    alignItems: 'center',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 30,
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f7f7f7',
     marginLeft: 20,
     marginRight: 20,
-    borderRadius: 30
+    position: 'relative'
   },
   searchInput: {
-    marginLeft: 15,
-    marginRight: 15,
+    flex: 1,
     fontFamily: 'Averta-Regular',
     fontSize: 17,
-    flex: 1
+    marginLeft: 15,
+    marginRight: 15
   }
   /* mr10: {
     marginRight: 10

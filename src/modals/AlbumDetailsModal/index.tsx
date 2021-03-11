@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import prettysize from 'prettysize';
-import { Image, StyleSheet, Text, TextInput, TouchableHighlight, View } from 'react-native'
+import { StyleSheet, Text, TextInput } from 'react-native'
 import Modal from 'react-native-modalbox'
 //import TimeAgo from "react-native-timeago"
-import { connect, useDispatch, useSelector } from 'react-redux'
+import { connect } from 'react-redux'
 import Separator from '../../components/Separator'
 import { layoutActions } from '../../redux/actions';
-import SettingsItem from '../SettingsModal/SettingsItem';
 import OptionItem from './OptionItem';
 
 interface AlbumDetailsProps {
@@ -162,9 +160,9 @@ export default connect(mapStateToProps)(AlbumDetailsModal)
 
 const styles = StyleSheet.create({
   modalSettingsFile: {
-    top: '33%',
     borderRadius: 8,
-    paddingLeft: 15
+    paddingLeft: 15,
+    top: '33%'
   },
   propText: {
     color: '#9c9c9c',

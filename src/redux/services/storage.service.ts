@@ -15,9 +15,9 @@ export interface IProduct {
   }
 }
 
-function loadAvailableProducts(userToken: string): Promise<IProduct[]> {
+async function loadAvailableProducts(): Promise<IProduct[]> {
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/stripe/products${(process.env.NODE_ENV === 'development' ? '?test=true' : '')}`, {
-    headers: getHeaders(userToken)
+    headers: await getHeaders()
   }).then(res => res.json()).then(res => {
     return res
   }).catch(() => [])
@@ -31,7 +31,7 @@ export interface IPlan {
   price: number
 }
 
-function loadAvailablePlans(userToken: string, productId: string): Promise<IPlan[]> {
+async function loadAvailablePlans(productId: string): Promise<IPlan[]> {
   const body = {
     product: productId,
     test: process.env.NODE_ENV === 'development'
@@ -39,7 +39,7 @@ function loadAvailablePlans(userToken: string, productId: string): Promise<IPlan
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/stripe/plans${(process.env.NODE_ENV === 'development' ? '?test=true' : '')}`, {
     method: 'post',
-    headers: getHeaders(userToken),
+    headers: await getHeaders(),
     body: JSON.stringify(body)
   })
     .then(res => {

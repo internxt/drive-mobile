@@ -169,12 +169,12 @@ function FileList(props: any) {
 }
 
 const styles = StyleSheet.create({
+  dNone: {
+    display: 'none'
+  },
   fileListContentsScrollView: {
     flexGrow: 1,
     justifyContent: 'center'
-  },
-  dNone: {
-    display: 'none'
   }
 })
 

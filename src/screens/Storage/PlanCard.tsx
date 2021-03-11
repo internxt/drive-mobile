@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { IPlan, IProduct } from '../../redux/services';
 import { getIcon } from '../../helpers/getIcon';
 
-export interface PlanCardProps {
+interface PlanCardProps {
   size?: string
   price: string
   chosen?: boolean
@@ -78,50 +78,50 @@ function PlanCard(props: PlanCardProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
+  borderRadius4: {
+    borderRadius: 4
+  },
+  checkmark: {
+    height: 12,
+    marginLeft: 10,
+    width: 15
+  },
+  circleGradient: {
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 4,
+    height: 57,
+    justifyContent: 'center',
+    margin: 1,
+    width: 94
+  },
+  grey: {
+    color: '#7e848c'
+  },
   planContainer: {
     flexDirection: 'row',
     marginBottom: 20
   },
-  circleGradient: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 4,
-    margin: 1,
-    height: 57,
-    width: 94
-  },
-  text: {
+  price: {
+    color: 'black',
     fontFamily: 'CircularStd-Bold',
     fontSize: 18,
-    letterSpacing: -0.43,
-    color: 'black'
+    letterSpacing: -0.13,
+    lineHeight: 28.5
+  },
+  priceBackground: {
+    alignItems: 'center',
+    flexDirection: 'row'
   },
   priceContainer: {
     justifyContent: 'center',
     marginLeft: 20
   },
-  priceBackground: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  price: {
+  text: {
+    color: 'black',
     fontFamily: 'CircularStd-Bold',
     fontSize: 18,
-    letterSpacing: -0.13,
-    lineHeight: 28.5,
-    color: 'black'
-  },
-  grey: {
-    color: '#7e848c'
-  },
-  borderRadius4: {
-    borderRadius: 4
-  },
-  checkmark: {
-    marginLeft: 10,
-    width: 15,
-    height: 12
+    letterSpacing: -0.43
   }
 })
 

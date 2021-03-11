@@ -19,18 +19,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   heading: {
+    color: '#000000',
     fontFamily: 'CircularStd-Black',
     fontSize: 25,
     letterSpacing: -0.8,
-    color: '#000000',
     marginBottom: 10
   },
   subheading: {
+    color: '#404040',
     fontFamily: 'CircularStd-Book',
     fontSize: 17,
-    opacity: 0.84,
     letterSpacing: -0.1,
-    color: '#404040'
+    opacity: 0.84
   }
 });
 
