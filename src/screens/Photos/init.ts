@@ -58,6 +58,7 @@ async function uploadPhoto(photo: IHashedPhoto) {
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
+
   const headers = {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic,
@@ -241,7 +242,7 @@ export async function downloadPhoto(photo: any) {
   })
 }
 
-export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview) {
+export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview): Promise<void> {
   if (!preview) {
     return Promise.resolve();
   }
@@ -269,7 +270,7 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
   }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
-  }).catch(err => {
+  }).then(() => { return; }).catch(err => {
     RNFS.unlink(tempPath)
     throw err;
   })

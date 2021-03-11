@@ -29,7 +29,6 @@ export default function Photo(props: PhotoProps): JSX.Element {
     if (Platform.OS === 'android' && props.item.isUploaded && !urlEncoded) {
       props.item.localUri = 'file://' + props.item.localUri;
     }
-
   } catch { }
 
   return <TouchableOpacity
@@ -54,7 +53,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
     <Image
       onLoadEnd={() => setIsLoaded(true)}
       style={styles.image}
-      source={{ uri: item.localUri }}
+      source={{ uri: item.galleryUri || item.localUri }}
     />
     {!isLoaded
       ? <ActivityIndicator color='gray' size='small' style={styles.badge} />
