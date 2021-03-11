@@ -5,6 +5,8 @@ import FileViewer from 'react-native-file-viewer';
 import * as MediaLibrary from 'expo-media-library';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import PhotoBadge from './PhotoBadge';
+import RNFS from 'react-native-fs'
+import { cachePicture } from '../../screens/Photos/init';
 
 const deviceWidth = Dimensions.get('window').width
 
@@ -33,7 +35,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
   return <TouchableOpacity
     style={styles.imageView}
     key={item.id}
-    onPress={(e) => {
+    onPress={async (e) => {
       if (props.onPress) {
         return props.onPress(e, item)
       }
@@ -42,9 +44,11 @@ export default function Photo(props: PhotoProps): JSX.Element {
         return;
       }
 
-      MediaLibrary.getAssetInfoAsync(item).then((res) => {
-        FileViewer.open(res.localUri || '')
-      }).catch(() => { })
+      const tempFile = await cachePicture(item);
+
+      FileViewer.open(tempFile, {
+        onDismiss: () => RNFS.unlink(tempFile)
+      });
     }}
   >
     <Image

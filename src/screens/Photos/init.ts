@@ -220,6 +220,31 @@ export async function getLocalPreviewsDir(): Promise<string> {
   return TempDir;
 }
 
+export async function getLocalViewerDir(): Promise<string> {
+  const TempDir = (Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir : RNFetchBlob.fs.dirs.CacheDir) + '/drive-photos-fileviewer';
+  const TempDirExists = await RNFetchBlob.fs.exists(TempDir);
+
+  if (!TempDirExists) {
+    RNFS.mkdir(TempDir)
+  }
+
+  return TempDir;
+}
+
+export async function cachePicture(item: MediaLibrary.AssetInfo): Promise<string> {
+  const tempPath = await getLocalViewerDir()
+
+  const tempFile = tempPath + '/' + item.filename;
+
+  const fileExists = await RNFS.exists(tempFile)
+
+  if (!fileExists) {
+    await RNFS.copyFile(item.localUri, tempFile)
+  }
+
+  return tempFile;
+}
+
 export async function getLocalPhotosDir(): Promise<string> {
   const TempDir = (Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir : RNFetchBlob.fs.dirs.PictureDir) + '/drive-photos';
   const TempDirExists = await RNFetchBlob.fs.exists(TempDir);
@@ -307,7 +332,7 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export function getPreviews(cb?: (newPreview: IHashedPhoto) => void): Promise<any> {
+export function getPreviews(): Promise<any> {
   SHOULD_STOP = false;
   return getUploadedPhotos().then((res) => {
     return mapSeries(res, (photo, next) => {
@@ -316,9 +341,6 @@ export function getPreviews(cb?: (newPreview: IHashedPhoto) => void): Promise<an
       }
 
       return downloadPreview(photo.preview, photo).then(() => {
-        if (cb) {
-          cb(photo)
-        }
         next(null, photo)
       }).catch(err => {
       });
