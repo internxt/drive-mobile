@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
@@ -7,8 +7,6 @@ import AddItemToModal from '../../modals/AddItemToModal'
 import PhotoDetailsModal from '../../modals/PhotoDetailsModal';
 import AlbumMenuItem from '../../components/MenuItem/AlbumMenuItem';
 import * as MediaLibrary from 'expo-media-library';
-import AlbumImage from './AlbumImage'
-import { getImages, syncPhotos } from './helpers'
 import { layoutActions } from '../../redux/actions';
 
 interface AlbumViewProps {
@@ -22,14 +20,6 @@ interface AlbumViewProps {
 
 function AlbumView(props: AlbumViewProps): JSX.Element {
   const [images, setImages] = useState<MediaLibrary.Asset[]>([]);
-
-  useEffect(() => {
-    getImages().then((res)=>{setImages(res)})
-  }, []);
-
-  useEffect(() => {
-    syncPhotos(images, props)
-  }, [images]);
 
   return (
     <View style={styles.container}>
@@ -54,14 +44,6 @@ function AlbumView(props: AlbumViewProps): JSX.Element {
           props.dispatch(layoutActions.openAlbumModal());
         }} />
       </View>
-
-      <FlatList
-        data={images}
-        renderItem={({ item }) => <AlbumImage id={item.id} uri={item.uri} authenticationState={props.authenticationState} dispatch={props.dispatch}/> }
-        numColumns={3}
-        //Setting the number of column
-        keyExtractor={(item, index) => index.toString()}
-      />
     </View>
   );
 }
