@@ -32,7 +32,6 @@ function Photos(props: IPhotosProps): JSX.Element {
     getLocalImages(after).then(res => {
       setEndCursor(res.endCursor);
       setPhotos(after ? photos.concat(res.assets) : res.assets)
-      // TODO: BORRAR
       syncPhotos(res.assets);
     }).finally(() => setIsLoading(false));
   }

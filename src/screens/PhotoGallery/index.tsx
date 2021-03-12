@@ -11,7 +11,7 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
-import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
+import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto, LocalImages } from '../Photos/init';
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
 import async from 'async'
@@ -27,14 +27,14 @@ interface PhotoGalleryProps {
 }
 
 function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
-  const localPhotodLabel = _.map(localPhotos, o => _.extend({ isLocal: true }, o))
+  const localPhotodLabel = _.map(localPhotos, o => _.extend({ isLocal: true, galleryUri: o.localUri }, o))
   const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
 
   const union = _.unionBy([...localPhotodLabel, ...remotePhotosLabel], (o) => {
     const a = localPhotodLabel.find(id => id.hash === o.hash)
     const b = remotePhotosLabel.find(id => id.hash === o.hash)
 
-    return _.merge(a, b)
+    return _.merge(a, b);
   })
 
   return union;
@@ -42,6 +42,9 @@ function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
 
 async function checkExists(photos: IHashedPhoto[]) {
   return async.filter(photos, (photo, nextPhoto) => {
+    if (!photo.localUri) {
+      return false;
+    }
     RNFS.exists(photo.localUri).then((exists) => {
       nextPhoto(null, exists);
     }).catch((err) => nextPhoto(err));
@@ -67,12 +70,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     })
   }
 
-  const loadUploadedPhotos = async () => {
+  const loadUploadedPhotos = async (matchImages?: LocalImages) => {
     setIsDownloading(true);
-    getPreviews((newPreview) => {
-      setUploadedPhotos(uploadedPhotos.concat([newPreview]))
-    }).then(res => {
-      checkExists(res).then(resExists => setUploadedPhotos(resExists))
+    getPreviews(matchImages).then(res => {
+      setUploadedPhotos(res)
     }).then(() => {
       setIsLoading(false)
     }).catch(() => {
@@ -83,8 +84,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   const loadPhotos = (after?: string) => {
     return Promise.race([
-      loadLocalPhotos(after),
-      loadUploadedPhotos()
+      loadLocalPhotos(after).then(res => loadUploadedPhotos(res))
     ])
   }
 
