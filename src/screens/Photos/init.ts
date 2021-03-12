@@ -127,7 +127,7 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
     })
 }
 
-interface LocalImages {
+export interface LocalImages {
   endCursor: string | undefined
   assets: IHashedPhoto[]
   hasNextPage: boolean
@@ -153,7 +153,26 @@ export function getLocalImages(after?: string | undefined): Promise<LocalImages>
   });
 }
 
-export async function getUploadedPhotos(): Promise<IApiPhotoWithPreview[]> {
+export async function getPartialUploadedPhotos(matchImages: LocalImages): Promise<IApiPhotoWithPreview[]> {
+  const headers = await getHeaders()
+
+  const hashList = matchImages.assets.map(x => x.hash);
+
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photos/partial`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(hashList)
+  }).then(res => {
+    if (res.status !== 200) { throw res; }
+    return res.json();
+  })
+}
+
+export async function getUploadedPhotos(matchImages?: LocalImages): Promise<IApiPhotoWithPreview[]> {
+  if (matchImages) {
+    return getPartialUploadedPhotos(matchImages);
+  }
+
   const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photos`, {
@@ -162,12 +181,6 @@ export async function getUploadedPhotos(): Promise<IApiPhotoWithPreview[]> {
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  })
-}
-
-export async function getUploadedPreviews(): Promise<IApiPreview[]> {
-  return getUploadedPhotos().then(uploadedPhotos => {
-    return uploadedPhotos.map((x) => x.preview);
   })
 }
 
@@ -294,9 +307,9 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export function getPreviews(): Promise<any> {
+export function getPreviews(matchImages?: LocalImages): Promise<any> {
   SHOULD_STOP = false;
-  return getUploadedPhotos().then((res) => {
+  return getUploadedPhotos(matchImages).then((res) => {
     return mapSeries(res, (photo, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')

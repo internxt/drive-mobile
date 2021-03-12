@@ -11,7 +11,7 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { WaveIndicator } from 'react-native-indicators';
-import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
+import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto, LocalImages } from '../Photos/init';
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
 import async from 'async'
@@ -70,10 +70,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     })
   }
 
-  const loadUploadedPhotos = async () => {
+  const loadUploadedPhotos = async (matchImages?: LocalImages) => {
     setIsDownloading(true);
-    getPreviews().then(res => {
-      checkExists(res).then(resExists => setUploadedPhotos(resExists))
+    getPreviews(matchImages).then(res => {
+      setUploadedPhotos(res)
     }).then(() => {
       setIsLoading(false)
     }).catch(() => {
@@ -84,8 +84,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   const loadPhotos = (after?: string) => {
     return Promise.race([
-      loadLocalPhotos(after),
-      loadUploadedPhotos()
+      loadLocalPhotos(after).then(res => loadUploadedPhotos(res))
     ])
   }
 
