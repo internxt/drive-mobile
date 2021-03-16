@@ -38,7 +38,7 @@ const slides = [
     text: (
       <Text>
         Access Internxt from <B>Desktop</B>, <B>Web</B> or{' '}
-        <B>Mobile</B>. Start using Drive today with <B>2 GB</B> on
+        <B>Mobile</B>. Start using Drive today with <B>10 GB</B> on
         us. <B>Upgrade your storage</B> when needed, free for a month, cancel anytime.
       </Text>
     ),
