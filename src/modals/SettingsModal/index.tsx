@@ -14,6 +14,7 @@ import Bold from '../../components/Bold';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 function identifyPlanName(bytes: number): string {
   return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
@@ -146,7 +147,6 @@ function SettingsModal(props: SettingsModalProps) {
       </Text>
 
       <ProgressBar
-        styleBar={{}}
         styleProgress={styles.progressHeight}
         totalValue={usageValues.limit}
         usedValue={usageValues.usage}
@@ -166,6 +166,14 @@ function SettingsModal(props: SettingsModalProps) {
       <Separator />
 
       <SettingsItem
+        text="Storage"
+        onPress={() => {
+          props.dispatch(layoutActions.closeSettings())
+          props.navigation.replace('Storage')
+        }}
+      />
+
+      <SettingsItem
         text="More info"
         onPress={() => Linking.openURL('https://internxt.com/drive')}
       />
@@ -183,14 +191,6 @@ function SettingsModal(props: SettingsModalProps) {
           }
         }}
       />
-
-      {/* <SettingsItem
-        text="Storage"
-        onPress={() => {
-          props.dispatch(layoutActions.closeSettings())
-          props.navigation.replace('Storage')
-        }}
-      /> */}
 
       <SettingsItem
         text="Contact"
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     width: 56
   },
   modalSettings: {
-    height: 'auto',
+    height: hp('55%') < 420 ? 420 : Math.min(420, hp('55%')),
     paddingBottom: Platform.OS === 'ios' ? 20 : 0
   },
   nameText: {
