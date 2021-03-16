@@ -11,7 +11,7 @@ import SettingsModal from '../../modals/SettingsModal';
 import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
-import { WaveIndicator } from 'react-native-indicators';
+import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
@@ -20,19 +20,21 @@ export interface IPhotosProps extends Reducers {
   navigation?: any
   dispatch: any
   photosState: PhotosState
-  authenticationState: AuthenticationState
+  authenticationState: AuthenticationState,
 }
 
 function Photos(props: IPhotosProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [photos, setPhotos] = useState<IHashedPhoto[]>([]);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
+  const [isUploading, setIsUploding] = useState<boolean>(true)
 
   const getNextImages = (after?: string | undefined) => {
+    setIsUploding(true)
     getLocalImages(after).then(res => {
       setEndCursor(res.endCursor);
       setPhotos(after ? photos.concat(res.assets) : res.assets)
-      syncPhotos(res.assets);
+      syncPhotos(res.assets)
     }).finally(() => setIsLoading(false));
   }
 
@@ -85,6 +87,18 @@ function Photos(props: IPhotosProps): JSX.Element {
           }}
           disabled={isLoading}>
           <Text style={styles.title}>All photos</Text>
+          {
+            !isUploading ?
+              null
+              :
+              <View style={styles.containerSync}>
+                <Text style={styles.syncText}>Syncing</Text>
+
+                <View>
+                  <MaterialIndicator style={styles.spinner} color="#5291ff" size={15} />
+                </View>
+              </View>
+          }
         </TouchableOpacity>
         {
           !isLoading ?
@@ -135,6 +149,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'flex-start'
   },
+  containerSync: {
+    flexDirection: 'row',
+    marginRight: 8
+  },
   createAlbumCard: {
 
   },
@@ -150,17 +168,25 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     marginTop: 10
   },
+  spinner: {
+  },
+  syncText: {
+    color: 'grey',
+    fontFamily: 'Averta-Bold',
+    marginRight: 8
+  },
   title: {
     alignSelf: 'center',
     color: 'black',
     fontFamily: 'Averta-Bold',
     fontSize: 18,
-    height: 30,
     letterSpacing: -0.13,
     marginLeft: 7
   },
   titleButton: {
+    alignItems: 'center',
     flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: wp('1'),
     paddingHorizontal: wp('1')
   }
