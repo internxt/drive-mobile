@@ -17,7 +17,7 @@ import { LayoutState } from '../../redux/reducers/layout.reducer';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 function identifyPlanName(bytes: number): string {
-  return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
+  return bytes === 0 ? 'Free 10GB' : prettysize(bytes)
 }
 
 async function loadUsage(): Promise<number> {

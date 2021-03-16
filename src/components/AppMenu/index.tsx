@@ -41,6 +41,7 @@ function AppMenu(props: AppMenuProps) {
   const uploadFile = (result: any, currentFolder: number | undefined) => {
     const userStorage = props.authenticationState.userStorage
 
+    // TODO: String literals is a horrible practice
     if (userStorage && prettysize(userStorage.limit) === '2 GB') {
       const random = Math.floor(Math.random() * 4)
 
