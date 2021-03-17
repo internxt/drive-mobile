@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
@@ -10,7 +10,7 @@ import { AuthenticationState } from '../../redux/reducers/authentication.reducer
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
-import { WaveIndicator } from 'react-native-indicators';
+import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
 import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto, LocalImages } from '../Photos/init';
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
@@ -58,6 +58,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isDownloading, setIsDownloading] = useState(true);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const filteredPhotos = setStatus(localPhotos, uploadedPhotos);
+  const [isUploading, setIsUploading] = useState(true);
 
   const loadLocalPhotos = (after?: string) => {
     return getLocalImages(after).then(res => {
@@ -105,13 +106,25 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         <View style={styles.titleWrapper}>
           <Text style={styles.albumTitle}>
             {props.navigation.state.params.title}
-            {isDownloading ? <ActivityIndicator color="gray" /> : <></>}
           </Text>
 
           <Text style={styles.photosCount}>
             {filteredPhotos.length} Photos
           </Text>
         </View>
+
+        {
+          !isUploading ?
+            null
+            :
+            <View style={styles.containerSync}>
+              <Text style={styles.syncText}>Syncing</Text>
+
+              <View>
+                <MaterialIndicator style={styles.spinner} color="#5291ff" size={15} />
+              </View>
+            </View>
+        }
       </View>
 
       <View style={{ flexGrow: 1 }}>
@@ -171,6 +184,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 15
   },
+  containerSync: {
+    flexDirection: 'row',
+    marginRight: 8
+  },
   flatList: {
     paddingHorizontal: wp('0.5')
   },
@@ -181,6 +198,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     paddingTop: 5,
     textAlign: 'center'
+  },
+  spinner: {
+  },
+  syncText: {
+    color: 'grey',
+    fontFamily: 'Averta-Bold',
+    marginRight: 8
   },
   titleWrapper: {
     display: 'flex',

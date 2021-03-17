@@ -59,7 +59,7 @@ function CreateAlbumCard(props: ISelectedPhotos): JSX.Element {
 const styles = StyleSheet.create({
   albumCard: {
     paddingHorizontal: 20,
-    paddingVertical: 5
+    paddingVertical: 15
   },
   card: {
     alignItems: 'center',
