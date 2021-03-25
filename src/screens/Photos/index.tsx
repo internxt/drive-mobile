@@ -28,13 +28,14 @@ function Photos(props: IPhotosProps): JSX.Element {
   const [photos, setPhotos] = useState<IHashedPhoto[]>([]);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const [isUploading, setIsUploding] = useState<boolean>(true)
+  const [isSync, setIsSync] = useState<boolean>(props.photosState.isSync)
 
   const getNextImages = (after?: string | undefined) => {
     setIsUploding(true)
     getLocalImages(after).then(res => {
       setEndCursor(res.endCursor);
       setPhotos(after ? photos.concat(res.assets) : res.assets)
-      syncPhotos(res.assets)
+      syncPhotos(res.assets, props.dispatch)
     }).finally(() => setIsLoading(false));
   }
 
@@ -46,6 +47,9 @@ function Photos(props: IPhotosProps): JSX.Element {
     setPhotos([])
     reloadLocalPhotos();
   }, [])
+
+  useEffect(() => {
+  }, [props.photosState.isSync])
 
   useEffect(() => {
     if (!props.authenticationState.loggedIn) {
@@ -88,7 +92,7 @@ function Photos(props: IPhotosProps): JSX.Element {
           disabled={isLoading}>
           <Text style={styles.title}>All photos</Text>
           {
-            !isUploading ?
+            !props.photosState.isSync ?
               null
               :
               <View style={styles.containerSync}>

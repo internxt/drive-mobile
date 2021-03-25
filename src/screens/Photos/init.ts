@@ -10,6 +10,7 @@ import { deviceStorage } from '../../helpers';
 import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
+import { PhotoActions } from '../../redux/actions';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -27,7 +28,11 @@ const getArrayPhotos = async (images: Asset[]) => {
       return next(Error('Missing localUri'));
     }
 
-    const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
+    const p = await manipulateAsync(asset.localUri,
+      [],
+      { compress: 1, format: SaveFormat.PNG }
+    )
+    const sha256Id = await RNFS.hash(p.uri, 'sha256')
 
     const hashedImage = {
       ...image,
@@ -41,20 +46,34 @@ const getArrayPhotos = async (images: Asset[]) => {
   return result;
 }
 
-export async function syncPhotos(images: IHashedPhoto[]): Promise<any> {
+export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<any> {
   // Skip uploaded photos with previews
   const alreadyUploadedPhotos = await getUploadedPhotos();
   const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview);
   const uploadedHashes = withPreviews.map(x => x.hash);
   const imagesToUpload = images.filter(x => uploadedHashes.indexOf(x.hash) < 0)
+  let last = false;
+  let onePhotoToUpload = false;
 
   // Upload filtered photos
   return mapSeries(imagesToUpload, (image, next) => {
-    uploadPhoto(image).then(() => next(null)).catch(next)
+    if (!(imagesToUpload[imagesToUpload.length-1] === imagesToUpload[0])){
+      if ((imagesToUpload[imagesToUpload.length-1].id) === image.id) {
+        last = true;
+      }
+    } else {
+      onePhotoToUpload = true;
+    }
+    uploadPhoto(image, dispatch, last, onePhotoToUpload).then(() => next(null)).catch(next)
   })
 }
 
-async function uploadPhoto(photo: IHashedPhoto) {
+async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) {
+
+  if (!last || !onePhotoToUpload) {
+    dispatch(PhotoActions.startSync());
+  }
+
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -93,11 +112,12 @@ async function uploadPhoto(photo: IHashedPhoto) {
         { compress: 1, format: SaveFormat.JPEG }
       )
 
-      return uploadPreview(prev, res.id, photo);
+      return uploadPreview(prev, res.id, photo, dispatch, last, onePhotoToUpload);
     })
 }
 
-const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto) => {
+const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) => {
+
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -117,6 +137,9 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
       { name: 'xfile', filename: originalPhoto.filename, data: finalUri }
     ])
     .then(res => {
+      if (last || onePhotoToUpload) {
+        dispatch(PhotoActions.stopSync());
+      }
       const statusCode = res.respInfo.status;
 
       if (statusCode === 201 || statusCode === 409) {
@@ -145,7 +168,6 @@ export function getLocalImages(after?: string | undefined): Promise<LocalImages>
   }).then((res) => {
     result.hasNextPage = res.hasNextPage;
     result.endCursor = res.endCursor;
-
     return getArrayPhotos(res.assets)
   }).then(res => {
     result.assets = res
@@ -191,7 +213,6 @@ export async function getLocalPreviewsDir(): Promise<string> {
   if (!TempDirExists) {
     RNFS.mkdir(TempDir)
   }
-
   return TempDir;
 }
 
@@ -227,7 +248,6 @@ export async function getLocalPhotosDir(): Promise<string> {
   if (!TempDirExists) {
     RNFS.mkdir(TempDir)
   }
-
   return TempDir;
 }
 
@@ -250,7 +270,15 @@ export async function downloadPhoto(photo: any) {
       throw Error('Unable to download picture')
     }
     return res;
-  }).then(res => MediaLibrary.saveToLibraryAsync(res.path())).then(() => {
+  }).then(async (res) => {
+
+    const p = await manipulateAsync(res.path(),
+      [],
+      { compress: 1, format: SaveFormat.PNG }
+    )
+
+    MediaLibrary.saveToLibraryAsync(p.uri)
+  }).then(() => {
     SimpleToast.show('Image downloaded!', 0.3)
   })
 }
@@ -283,7 +311,9 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
   }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
-  }).then(() => { return; }).catch(err => {
+  }).then(() => {
+    return;
+  }).catch(err => {
     RNFS.unlink(tempPath)
     throw err;
   })

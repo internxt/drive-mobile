@@ -58,7 +58,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isDownloading, setIsDownloading] = useState(true);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const filteredPhotos = setStatus(localPhotos, uploadedPhotos);
-  const [isUploading, setIsUploading] = useState(true);
 
   const loadLocalPhotos = (after?: string) => {
     return getLocalImages(after).then(res => {
@@ -73,7 +72,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   const loadUploadedPhotos = async (matchImages?: LocalImages) => {
     setIsDownloading(true);
-    getPreviews(matchImages).then(res => {
+    getPreviews().then(res => {
       setUploadedPhotos(res)
     }).then(() => {
       setIsLoading(false)
@@ -95,6 +94,9 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     loadPhotos();
   }, [])
 
+  useEffect(() => {
+  }, [props.photosState.isSync])
+
   return (
     <SafeAreaView style={styles.container}>
       <AlbumDetailsModal />
@@ -114,7 +116,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         </View>
 
         {
-          !isUploading ?
+          !props.photosState.isSync ?
             null
             :
             <View style={styles.containerSync}>
