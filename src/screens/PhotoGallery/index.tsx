@@ -16,6 +16,7 @@ import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
 import async from 'async'
 import RNFS from 'react-native-fs'
+import strings from '../../../assets/lang/strings';
 
 interface PhotoGalleryProps {
   route: any;
@@ -105,11 +106,11 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
         <View style={styles.titleWrapper}>
           <Text style={styles.albumTitle}>
-            {props.navigation.state.params.title}
+            {strings.screens.photos.screens.photo_gallery.title}
           </Text>
 
           <Text style={styles.photosCount}>
-            {filteredPhotos.length} Photos
+            {filteredPhotos.length} {strings.screens.photos.screens.photo_gallery.subtitle}
           </Text>
         </View>
 

@@ -1,14 +1,15 @@
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native';
+import strings from '../../../assets/lang/strings';
 
 function EmptyFolder(props: any) {
   const message = props.isRoot
     ? 'Your Internxt Drive is empty!'
-    : 'This folder is empty';
+    : strings.components.empty_folder.title
 
   return <View style={styles.container}>
     <Text style={styles.heading}>{message}</Text>
-    <Text style={styles.subheading}>Click the upload button to get started.</Text>
+    <Text style={styles.subheading}>{strings.components.empty_folder.subtitle}</Text>
   </View>
 
 }

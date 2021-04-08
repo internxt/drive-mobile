@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { normalize } from '../../helpers/normalize'
@@ -53,13 +54,13 @@ function Login(props: LoginProps): JSX.Element {
     <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
       <View style={styles.containerHeader}>
         <View style={styles.flexRow}>
-          <Text style={styles.title}>Sign in to Internxt</Text>
+          <Text style={styles.title}>{strings.screens.login_screen.title}</Text>
         </View>
         <View style={styles.buttonWrapper}>
           <TouchableHighlight
             style={[styles.button, styles.buttonOn]}
             underlayColor="#00aaff">
-            <Text style={styles.buttonOnLabel}>Sign in</Text>
+            <Text style={styles.buttonOnLabel}>{strings.components.buttons.sign_in}</Text>
           </TouchableHighlight>
 
           <TouchableHighlight
@@ -67,7 +68,7 @@ function Login(props: LoginProps): JSX.Element {
             style={[styles.button, styles.buttonOff]}
             underlayColor="#f2f2f2"
             onPress={() => props.navigation.replace('Register')}>
-            <Text style={styles.buttonOffLabel}>Create account</Text>
+            <Text style={styles.buttonOffLabel}>{strings.components.buttons.create}</Text>
           </TouchableHighlight>
         </View>
       </View>
@@ -78,7 +79,7 @@ function Login(props: LoginProps): JSX.Element {
             value={email}
             autoCapitalize={'none'}
             onChangeText={value => setEmail(value)}
-            placeholder="Email address"
+            placeholder={strings.components.inputs.email}
             placeholderTextColor="#666"
             maxLength={64}
             keyboardType="email-address"
@@ -90,7 +91,7 @@ function Login(props: LoginProps): JSX.Element {
             style={styles.input}
             value={password}
             onChangeText={value => setPassword(value)}
-            placeholder="Password"
+            placeholder={strings.components.inputs.password}
             placeholderTextColor="#666"
             secureTextEntry={true}
             textContentType="password"
@@ -135,9 +136,9 @@ function Login(props: LoginProps): JSX.Element {
               setIsLoading(false)
             })
           }}>
-          <Text style={styles.buttonOnLabel}>{isLoading ? 'Decrypting...' : 'Sign in'}</Text>
+          <Text style={styles.buttonOnLabel}>{isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}</Text>
         </TouchableHighlight>
-        <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>Forgot your password?</Text>
+        <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>{strings.screens.login_screen.forgot}</Text>
       </View>
     </View>
     <Text style={styles.versionLabel}>Internxt Drive v1.3.2 (2)</Text>

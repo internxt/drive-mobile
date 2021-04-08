@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient';
 import { IPlan, IProduct } from '../../redux/services';
 import { getIcon } from '../../helpers/getIcon';
+import strings from '../../../assets/lang/strings';
 
 interface PlanCardProps {
   size?: string
@@ -42,7 +43,7 @@ function PlanCard(props: PlanCardProps): JSX.Element {
             <View style={styles.priceBackground}>
               <Text style={styles.price}>€{props.price}</Text>
 
-              <Text style={[styles.price, styles.grey]}>/month</Text>
+              <Text style={[styles.price, styles.grey]}>/{strings.screens.storage.plans.month}</Text>
 
               {
                 props.currentPlan && props.size ?
@@ -60,14 +61,14 @@ function PlanCard(props: PlanCardProps): JSX.Element {
             </View>
             :
             <View style={styles.priceBackground}>
-              <Text style={styles.price}>{props.plan && props.plan.name === 'Monthly' ? 'Pay per ' : 'Prepay '}</Text>
+              <Text style={styles.price}>{props.plan && props.plan.name === 'Monthly' ? strings.screens.storage.plans.pay : strings.screens.storage.plans.pre_pay} </Text>
 
               <Text style={[styles.price, styles.grey]}>
                 {
                   props.plan && props.plan.name === 'Annually' ?
-                    '12 months'
+                    '12 ' + strings.screens.storage.plans.months
                     :
-                    <Text>{props.plan && props.plan.interval_count === 1 ? 'month' : `${props.plan && props.plan.interval_count} months`}</Text>
+                    <Text>{props.plan && props.plan.interval_count === 1 ? strings.screens.storage.plans.month : `${props.plan && props.plan.interval_count} ${strings.screens.storage.plans.months}`}</Text>
                 }
               </Text>
             </View>

@@ -4,6 +4,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import { fileActions, layoutActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
 interface DeleteItemModalProps extends Reducers {
@@ -37,24 +38,24 @@ function DeleteItemModal(props: DeleteItemModalProps) {
     >
       <View style={styles.textContainer}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Delete item</Text>
+          <Text style={styles.title}>{strings.modals.delete_modal.title}</Text>
         </View>
 
-        <Text style={styles.subtitle}>Please confirm you want to delete this item. This action can not be undone.</Text>
+        <Text style={styles.subtitle}>{strings.modals.delete_modal.subtitle}</Text>
       </View>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={() => {
           setIsOpen(false)
         }}>
-          <Text style={styles.text}>Cancel</Text>
+          <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, styles.blue]} onPress={() => {
           handleDeleteSelectedItem();
           setIsOpen(false)
         }}>
-          <Text style={[styles.text, styles.white]}>Confirm</Text>
+          <Text style={[styles.text, styles.white]}>{strings.components.buttons.confirm}</Text>
         </TouchableOpacity>
       </View>
     </Modal>

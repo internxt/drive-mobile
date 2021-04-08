@@ -9,9 +9,12 @@ const strings = new LocalizedStrings({
         "forgot": "Forgot your password?"
       },
       "register_screen": {
-        "first": "Internxt is a different cloud storage service. A better place for all your files. Welcome to the revolution. Welcome to Internxt.",
-        "second": "Files are encrypted on your device. There is no way we nor any other third_party can access them. Privacy, as it should have always been.",
-        "third": "Access Internxt from Desktop, Web or Mobile. Start using Drive today with 10 GB on us. Upgrade your storage when needed, free for a month, cancel anytime.",
+        "first": "{0} is a {1} cloud storage service. A {2} place for all your files. Welcome to the {3}. Welcome to {4}.",
+        "second": "Files are {0} on your device. There is {1} we nor any other third-party can access them. {2}, as it should have always been.",
+        "third": "Access Internxt from {7}, {8} or {9}. Start using Drive today with {10} on us. {11} when needed, free for a month, cancel anytime.",
+        "bold_first": ["Internxt", "different", "better", "revolution", "Internxt"],
+        "bold_second": ["encrypted", "no way", "Privacy"],
+        "bold_third": ["Desktop", "Web", "Mobile", "10 GB", "Upgrade your storage"],
         "security_title": "Internxt Security",
         "security_subtitle": "Internxt uses your password to encrypt and decrypt your files. Due to the secure nature of Internxt, we don't know your password. That means that if you ever forget it, your files are gone forever. With us, you're the only owner of your files. We strongly suggest you to:",
         "suggestion_1": "Store your password. Keep it safe and secure.",
@@ -20,12 +23,17 @@ const strings = new LocalizedStrings({
       },
       "forgot_password": {
         "title": "Internxt security",
-        "subtitle": "As specified during the sign up process, Internxt Drive encrypts your files, and only you have access to those. We never know your password, and thus, that way, only you can decrypt your account. For that reason, if you forget your password, we can't restore your account. What we can do, however, is to delete your account and erase all its files, so that you can sign up again. Please, if you still want to procede, enter your email below so that we can process the account removal."
+        "subtitle_1": "As specified during the sign up process, Internxt Drive encrypts your files, and only you have access to those. We never know your password, and thus, that way, only you can decrypt your account. For that reason, if you forget your password, we can't restore your account. What we can do, however, is to",
+        "bold": " delete your account and erase all its files",
+        "subtitle_2": ", so that you can sign up again. Please, if you still want to procede, enter your email below so that we can process the account removal."
       },
       "deactivation_screen": {
         "title": "Deactivation email",
         "subtitle_1": "Please check your email and follow the instructions to deactivate your account so you can start using Internxt again.",
         "subtitle_2": "Once you deactivate your account, you will be able to sign up using the same email address. Please store your password somewhere safe. With Internxt Drive, only you are the true owner of your files on the cloud. With great power there must also come great responsibility."
+      },
+      "file_explorer": {
+        "title": "All files"
       },
       "storage": {
         "title": "Storage",
@@ -42,9 +50,17 @@ const strings = new LocalizedStrings({
         },
         "plans": {
           "title": "Storage plans",
-          "title-2": "Payment length",
-          "current_plan": "You are subscribed to the"
+          "title_2": "Payment length",
+          "current_plan": "You are subscribed to the",
+          "pay": "Pay per",
+          "pre_pay": "Prepay",
+          "month": "month",
+          "months": "months"
+
         }
+      },
+      "create_folder": {
+        "input": "Enter folder name"
       },
       "photos": {
         "screens": {
@@ -53,9 +69,12 @@ const strings = new LocalizedStrings({
             "all_photos": "All photos"
           },
           "photo_gallery": {
-            "title": "title",
+            "title": "All photos",
             "subtitle": "Photos"
           }
+        },
+        "components": {
+          "loading": "Loading photos from gallery..."
         }
       }
     },
@@ -74,7 +93,8 @@ const strings = new LocalizedStrings({
         "cancel": "Cancel",
         "confirm": "Confirm",
         "move": "Move",
-        "share": "Share"
+        "share": "Share",
+        "upgrade": "Mejorar"
       },
       "inputs": {
         "email": "Email address",
@@ -97,10 +117,10 @@ const strings = new LocalizedStrings({
         },
         "upload": {
           "title": "Select type of file",
-          "documen": "Upload a document",
+          "document": "Upload a document",
           "media": "Upload media",
           "take_photo": "Take a photo",
-          "create_folder": "Folder name"
+          "cancel": "Cancel"
         },
         "settings": {
           "storage": "Storage",
@@ -114,8 +134,9 @@ const strings = new LocalizedStrings({
       "file_and_folder_options": {
         "styling": "Style color",
         "icons": "Cover icon",
-        "type": "Type",
-        "size": "Size",
+        "type": "Type: ",
+        "added": "Added: ",
+        "size": "Size: ",
         "move": "Move",
         "share": "Share",
         "delete": "Delete"
@@ -126,12 +147,18 @@ const strings = new LocalizedStrings({
         "title": "Choose a folder to move this file."
       },
       "share_modal": {
-        "title": "Share your Drive file with this private link and enter the number of times you would like the link to be valid:",
+        "title": "Share your Drive file with this private link",
+        "title2": "and enter the number of times you would like the link to be valid:",
+        "share": "Share",
         "loading": "Loading link..."
       },
       "delete_modal": {
         "title": "Delete item",
         "subtitle": "Please confirm you want to delete this item. This action can not be undone."
+      },
+      "out_of_space_modal": {
+        "title": "Run out of space",
+        "subtitle": "You have currently used 3GB of storage. To start uploading more files, please upgrade your storage plan."
       }
     }
   },
@@ -142,9 +169,12 @@ const strings = new LocalizedStrings({
         "forgot": "¿Has olvidado la contraseña?"
       },
       "register_screen": {
-        "first": "Internxt es un servicio en la nube diferente. El mejor lugar para todos tus archivos. Bienvenido a la revolución. Bienvenido a Internxt.",
-        "second": "Los archivos son encriptados en tu dispositivo. Ni nosotros ni ningún servicio de terceros podemos acceder a ellos. Privacidad, como siempre tuvo que haber sido.",
-        "third": "Puedes acceder a Internxt desde la aplicación de escritorio, web o móvil. Empieza a usar Drive hoy con 10 GB gratis. Mejora tu almacenamiento cuando lo necesites, gratis por un mes, cancela cuando quieras.",
+        "first": "{0} es un servicio en la nube {1}. El {2} lugar para todos tus archivos. Bienvenido a la {3}. Bienvenido a {4}.",
+        "second": "Los archivos son {4} en tu dispositivo. {5} de terceros podemos acceder a ellos. {6}, como siempre tuvo que haber sido.",
+        "third": "Puedes acceder a Internxt desde la aplicación de {7}, {8} o {9}. Empieza a usar Drive hoy con {10} gratis. {11} cuando lo necesites, gratis por un mes, cancela cuando quieras.",
+        "bold_first": ["Internxt", "diferente", "mejor", "revolución", "Internxt"],
+        "bold_second": ["encriptados", "Ni nosotros ni ningún servicio", "Privacidad"],
+        "bold_third": ["escritorio", "web", "móvil", "10 GB", "Mejora tu almacenamiento"],
         "security_title": "Internxt Security",
         "security_subtitle": "Interxt usa tu contraseña para encriptar y decriptar tus archivos. Debido a la segura naturaleza de nuestro servicio, nosotros no sabemos tu contraseña. Esto significa que si la llegas a perder, tus archivos se volverán inaccesibles. Con nosotros, tu eres el único propietario de tus archivos. Te recomendamos encarecidamente que:",
         "suggestion_1": "Guardes tu contraseña. Mantenla sana y salva.",
@@ -153,12 +183,17 @@ const strings = new LocalizedStrings({
       },
       "forgot_password": {
         "title": "Internxt security",
-        "subtitle": "Como se especificó durante el proceso de registro, Internxt Drive encripta tus archivos, y solo tú toenees acceso a ellos. Nosotros nunca llegamos a conocer tu contrasñea, y debido a esto, solo tú puedes desencryptar tus archivos. Si te has olvidado de la contraseña, no podemos restablecerla. Lo que sí que podemos hacer, es borrar tu cuenta y todos tus archivos, por lo que podrás volver a registrarte con el mismo correo electrónico. Por favor, introduce tu correo electrónico para que podamos procesar el borrado de tu cuenta."
+        "subtitle_1": "Como se especificó durante el proceso de registro, Internxt Drive encripta tus archivos, y solo tú toenees acceso a ellos. Nosotros nunca llegamos a conocer tu contrasñea, y debido a esto, solo tú puedes desencryptar tus archivos. Si te has olvidado de la contraseña, no podemos restablecerla. Lo que sí que podemos hacer, es",
+        "bold": " borrar tu cuenta y todos tus archivos",
+        "subtitle_2": ", por lo que podrás volver a registrarte con el mismo correo electrónico. Por favor, introduce tu correo electrónico para que podamos procesar el borrado de tu cuenta."
       },
       "deactivation_screen": {
         "title": "Email de desactivación",
         "subtitle_1": "Por favor, comprueba el email que te hemos enviado y sigue las intrucciones para desactivar tu cuenta para que puedas seguir usando Internxt Drive.",
         "subtitle_2": "Una vez desactives tu cuenta, podrás volver a registrarte usando el mismo correo electrónico. Por favor guarda tu contraseña en un lugar seguro. Con Internxt Drive, solo tú eres el propietario de tus archivos. Un gran poder convella una gran responsabilidad."
+      },
+      "file_explorer": {
+        "title": "Todos los archivos"
       },
       "storage": {
         "title": "Almacenamiento",
@@ -175,9 +210,16 @@ const strings = new LocalizedStrings({
         },
         "plans": {
           "title": "Planes de almacenamiento",
-          "title-2": "Duración del pago",
-          "current_plan": "Actualmente estás suscrito al plan de"
+          "title_2": "Duración del pago",
+          "current_plan": "Actualmente estás suscrito al plan de",
+          "pay": "Paga",
+          "pre_pay": "Prepaga",
+          "month": "al mes",
+          "months": "meses"
         }
+      },
+      "create_folder": {
+        "input": "Nombre de la carpeta"
       },
       "photos": {
         "screens": {
@@ -189,6 +231,9 @@ const strings = new LocalizedStrings({
             "title": "Todas tus fotos",
             "subtitle": "fotos"
           }
+        },
+        "components": {
+          "loading": "Cargando fotos de la galería..."
         }
       }
     },
@@ -207,7 +252,8 @@ const strings = new LocalizedStrings({
         "cancel": "Cancelar",
         "confirm": "Confirmar",
         "move": "Mover",
-        "share": "Compartir"
+        "share": "Compartir",
+        "upgrade": "Upgrade"
       },
       "inputs": {
         "email": "Correo electrónico",
@@ -230,10 +276,11 @@ const strings = new LocalizedStrings({
         },
         "upload": {
           "title": "Selecciona el tipo de archivo",
-          "documen": "Sube un documento",
+          "document": "Sube un documento",
           "media": "Sube multimedia",
           "take_photo": "Haz una foto",
-          "create_folder": "Nombre de la carpeta"
+          "create_folder": "Nombre de la carpeta",
+          "cancel": "Cancelar"
         },
         "settings": {
           "storage": "Almacenamiento",
@@ -247,8 +294,9 @@ const strings = new LocalizedStrings({
       "file_and_folder_options": {
         "styling": "Color de la carpeta",
         "icons": "Icono",
-        "type": "Tipo",
-        "size": "Tamaño",
+        "type": "Tipo: ",
+        "added": "Añadido: ",
+        "size": "Tamaño: ",
         "move": "Mover",
         "share": "Compartir",
         "delete": "Borrar"
@@ -259,13 +307,18 @@ const strings = new LocalizedStrings({
         "title": "Selecciona una carpeta a la que mover el archivo."
       },
       "share_modal": {
-        "title2": "Share your Drive file with this private link and enter the number of times you would like the link to be valid:",
-        "title": "Comparte este archivo con este link privado e introduce el limite de descargas posibles",
+        "title": "Comparte este archivo con este link privado",
+        "title2": "e introduce el limite de descargas posibles",
+        "share": "Compartir",
         "loading": "Cargando link..."
       },
       "delete_modal": {
         "title": "Borrar",
         "subtitle": "Por favor, confirma que realmente quieres borrar este objeto. Esta acción no puede deshacerse."
+      },
+      "out_of_space_modal": {
+        "title": "No tienes más espacio",
+        "subtitle": "Actualmente has usado 10GB de almaceniamiento. Para seguir subiendo más archivos, por favor, mejora tu plan de almacenamiento."
       }
     }
   }

@@ -18,6 +18,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 import { WaveIndicator } from 'react-native-indicators'
 import Toast from 'react-native-simple-toast'
 import FreeForYouModal from '../../modals/FreeForYouModal';
+import strings from '../../../assets/lang/strings';
 
 interface FileExplorerProps extends Reducers {
   navigation?: any
@@ -244,7 +245,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       <Text style={styles.breadcrumbsTitle}>
         {filesState.folderContent && filesState.folderContent.parentId
           ? filesState.folderContent.name
-          : 'All Files'}
+          : strings.screens.file_explorer.title}
       </Text>
 
       <TouchableOpacity
@@ -254,7 +255,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
         <View style={parentFolderId ? styles.backButtonWrapper : styles.backHidden}>
           <Image style={styles.backIcon} source={getIcon('back')} />
 
-          <Text style={styles.backLabel}>Back</Text>
+          <Text style={styles.backLabel}>{strings.components.buttons.back}</Text>
         </View>
       </TouchableOpacity>
     </View>
