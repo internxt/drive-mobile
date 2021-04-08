@@ -10,11 +10,10 @@ import { AuthenticationState } from '../../redux/reducers/authentication.reducer
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
-import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
-import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto, LocalImages } from '../Photos/init';
+import { MaterialIndicator } from 'react-native-indicators';
+import { cachePicture, downloadPhoto, getLocalImages, getPreviews, getSyncingDownloadPreviews, IHashedPhoto, setSyncingDownloadPreviews } from '../Photos/init';
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
-import async from 'async'
 import RNFS from 'react-native-fs'
 
 interface PhotoGalleryProps {
@@ -34,21 +33,20 @@ function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
     const a = localPhotodLabel.find(id => id.hash === o.hash)
     const b = remotePhotosLabel.find(id => id.hash === o.hash)
 
-    return _.merge(a, b);
+    return b;
   })
 
   return union;
 }
 
-async function checkExists(photos: IHashedPhoto[]) {
-  return async.filter(photos, (photo, nextPhoto) => {
-    if (!photo.localUri) {
-      return false;
-    }
-    RNFS.exists(photo.localUri).then((exists) => {
-      nextPhoto(null, exists);
-    }).catch((err) => nextPhoto(err));
-  })
+function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
+  const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
+  const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, galleryUri: o.localUri }, o))
+
+  const difference = _.differenceBy([...remotePhotosLabel], [...localPhotosLabel], 'hash')
+
+  return difference;
+
 }
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
@@ -57,7 +55,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
   const [isDownloading, setIsDownloading] = useState(true);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
-  const filteredPhotos = setStatus(localPhotos, uploadedPhotos);
+  const [offsetCursor, setOffsetCursor] = useState<number | undefined>(undefined);
+  const remotePhotos = setRemotePhotos(localPhotos, uploadedPhotos);
+  const [isStart, setIsStart] = useState(false)
+  let isDownloadingRemote = false;
 
   const loadLocalPhotos = (after?: string) => {
     return getLocalImages(after).then(res => {
@@ -70,32 +71,63 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     })
   }
 
-  const loadUploadedPhotos = async (matchImages?: LocalImages) => {
+  const loadUploadedPhotos = async (offset?: any) => {
     setIsDownloading(true);
-    getPreviews().then(res => {
-      setUploadedPhotos(res)
-    }).then(() => {
-      setIsLoading(false)
+    getPreviews(push, setOffset, offset, isDownloadingRemote).then((res) => {
+      isDownloadingRemote = false;
     }).catch(() => {
     }).finally(() => {
       setIsDownloading(false);
     })
   }
 
+  const push = (preview: any) => {
+    if (preview) {
+      const exists = uploadedPhotos.find(photo => photo.localUri === preview.localUri)
+
+      if (!exists) {
+        setUploadedPhotos(currentPhotos => [...currentPhotos, preview])
+      }
+    }
+  }
+
+  const setOffset = (offset: number) => {
+    if (offset) {
+      setOffsetCursor(offset)
+    }
+  }
+
   const loadPhotos = (after?: string) => {
+    const isSyncing = getSyncingDownloadPreviews();
+
+    if (isSyncing) {
+      return Promise.resolve();
+    }
+    setSyncingDownloadPreviews(true);
+
     return Promise.race([
       loadLocalPhotos(after).then(res => loadUploadedPhotos(res))
-    ])
+    ]).then(result => {
+      setSyncingDownloadPreviews(false);
+      return result;
+    })
+  }
+
+  const start = (offset?: any) => {
+    setIsStart(true)
+    return loadLocalPhotos().then(() => {
+      loadUploadedPhotos(offset).then((res) => {
+        return setRemotePhotos(localPhotos, uploadedPhotos)
+      })
+    })
   }
 
   useEffect(() => {
     setEndCursor(undefined)
+    setOffsetCursor(0)
     setIsLoading(true);
-    loadPhotos();
+    start().then(()=> { setIsStart(false)}).finally(() => { setIsLoading(false) })
   }, [])
-
-  useEffect(() => {
-  }, [props.photosState.isSync])
 
   return (
     <SafeAreaView style={styles.container}>
@@ -111,7 +143,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
           </Text>
 
           <Text style={styles.photosCount}>
-            {filteredPhotos.length} Photos
+            {remotePhotos.length} Photos
           </Text>
         </View>
 
@@ -131,34 +163,43 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
       <View style={{ flexGrow: 1 }}>
         {
-          !isLoading ?
-            <PhotoList
-              data={filteredPhotos}
-              numColumns={3}
-              onRefresh={() => {
-                setIsLoading(true);
-                loadPhotos().finally(() => setIsLoading(false));
-              }}
-              onItemPress={(event, item) => {
-                if (item.isUploaded && !item.isLocal) {
-                  downloadPhoto(item).then(x => {
-                    loadPhotos();
-                  }).catch((err) => {
-                  })
-                } else {
-                  cachePicture(item).then(tempFile => {
-                    FileViewer.open(tempFile, {
-                      onDismiss: () => RNFS.unlink(tempFile)
-                    });
-                  })
-                }
-              }}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.flatList}
-              onEndReached={() => loadPhotos(endCursor)}
-            />
-            :
-            <WaveIndicator color="#5291ff" size={50} />
+          <View>
+            {
+              <PhotoList
+                data={remotePhotos}
+                numColumns={3}
+                onRefresh={() => {
+                  setIsLoading(true)
+                  start()
+                }}
+                onItemPress={(event, item) => {
+
+                  if (item.isUploaded && !item.isLocal) {
+                    downloadPhoto(item).then(x => {
+
+                    }).catch((err) => {
+                    })
+                  } else {
+                    cachePicture(item).then(tempFile => {
+                      FileViewer.open(tempFile, {
+                        onDismiss: () => RNFS.unlink(tempFile)
+                      });
+                    })
+                  }
+                }}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.flatList}
+                onEndReached={() => {
+
+                  if (!isStart) {
+                    start(offsetCursor)
+                  }
+
+                  //start(offsetCursor)
+                }}
+              />
+            }
+          </View>
         }
       </View>
     </SafeAreaView>

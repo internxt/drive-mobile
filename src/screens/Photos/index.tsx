@@ -92,7 +92,7 @@ function Photos(props: IPhotosProps): JSX.Element {
           disabled={isLoading}>
           <Text style={styles.title}>All photos</Text>
           {
-            !props.photosState.isSync ?
+            isUploading?
               null
               :
               <View style={styles.containerSync}>

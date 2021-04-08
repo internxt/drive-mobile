@@ -10,7 +10,6 @@ import { deviceStorage } from '../../helpers';
 import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
-import { PhotoActions } from '../../redux/actions';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -46,6 +45,8 @@ const getArrayPhotos = async (images: Asset[]) => {
   return result;
 }
 
+let SYNCING_UPLOAD_PHOTOS = false;
+
 export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<any> {
   // Skip uploaded photos with previews
   const alreadyUploadedPhotos = await getUploadedPhotos();
@@ -54,6 +55,8 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
   const imagesToUpload = images.filter(x => uploadedHashes.indexOf(x.hash) < 0)
   let last = false;
   let onePhotoToUpload = false;
+
+  SYNCING_UPLOAD_PHOTOS = false;
 
   // Upload filtered photos
   return mapSeries(imagesToUpload, (image, next) => {
@@ -71,7 +74,7 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
 async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) {
 
   if (!last || !onePhotoToUpload) {
-    dispatch(PhotoActions.startSync());
+    SYNCING_UPLOAD_PHOTOS = true;
   }
 
   const xUser = await deviceStorage.getItem('xUser')
@@ -97,7 +100,12 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       const statusCode = res.respInfo.status;
 
       if (statusCode === 401) { throw res; }
-      if (statusCode === 201 || statusCode === 409) { return res.json(); }
+      if (statusCode === 201) {
+        return res.json();
+      }
+      if (statusCode === 409){
+        SYNCING_UPLOAD_PHOTOS = false;
+      }
       throw res
     })
     .then(async res => {
@@ -138,7 +146,7 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
     ])
     .then(res => {
       if (last || onePhotoToUpload) {
-        dispatch(PhotoActions.stopSync());
+        SYNCING_UPLOAD_PHOTOS = false;
       }
       const statusCode = res.respInfo.status;
 
@@ -148,6 +156,16 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
 
       throw res;
     })
+}
+
+export function syncingUploadPhotos(finish?: boolean): boolean {
+
+  if (finish) {
+    return SYNCING_UPLOAD_PHOTOS = false;
+  }
+
+  return SYNCING_UPLOAD_PHOTOS;
+
 }
 
 export interface LocalImages {
@@ -184,6 +202,19 @@ export async function getPartialUploadedPhotos(matchImages: LocalImages): Promis
     method: 'POST',
     headers,
     body: JSON.stringify(hashList)
+  }).then(res => {
+    if (res.status !== 200) { throw res; }
+    return res.json();
+  })
+}
+
+export async function getPartialRemotePhotos(offset? = 0, limit? = 20) {
+
+  const headers = await getHeaders()
+
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/remote/photos/${limit}/${offset}`, {
+    method: 'GET',
+    headers
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
@@ -283,10 +314,11 @@ export async function downloadPhoto(photo: any) {
   })
 }
 
-export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview): Promise<void> {
+export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview): Promise<any> {
   if (!preview) {
     return Promise.resolve();
   }
+  SYNCING_DOWNLOAD_PREVIEWS = true;
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -299,10 +331,11 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
   const previewExists = await RNFS.exists(tempPath);
 
   if (previewExists) {
+    SYNCING_DOWNLOAD_PREVIEWS = false;
     const localPreview = await RNFS.stat(tempPath);
 
     photo.localUri = localPreview.path;
-    return Promise.resolve();
+    return Promise.resolve(photo.localUri);
   }
 
   return RNFetchBlob.config({
@@ -311,8 +344,9 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
   }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
-  }).then(() => {
-    return;
+  }).then((res) => {
+    SYNCING_DOWNLOAD_PREVIEWS = false;
+    return res.path();
   }).catch(err => {
     RNFS.unlink(tempPath)
     throw err;
@@ -337,20 +371,49 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export function getPreviews(matchImages?: LocalImages): Promise<any> {
+let SYNCING_DOWNLOAD_PREVIEWS = false;
+
+export function getSyncingDownloadPreviews() {
+  return SYNCING_DOWNLOAD_PREVIEWS;
+}
+
+export function setSyncingDownloadPreviews(newValue: boolean) {
+  SYNCING_DOWNLOAD_PREVIEWS = newValue;
+}
+
+export function getPreviews(push: any, offset: any, i?: number, isDownloading?: boolean): Promise<any> {
   SHOULD_STOP = false;
-  return getUploadedPhotos(matchImages).then((res) => {
+  SYNCING_DOWNLOAD_PREVIEWS = false;
+  return getPartialRemotePhotos(i).then((res) => {
     return mapSeries(res, (photo, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }
+      offset(res.length)
 
-      return downloadPreview(photo.preview, photo).then(() => {
+      return downloadPreview(photo.preview, photo).then((res) => {
+        const newPhoto = {
+          ...photo,
+          localUri: res
+        }
+
+        push(newPhoto)
+        isDownloading = true;
         next(null, photo)
       }).catch(err => {
       });
     });
   });
+}
+
+export function syncingDownloadPreviews(finish?: boolean): boolean {
+
+  if (finish) {
+    return false;
+  }
+
+  return SYNCING_DOWNLOAD_PREVIEWS;
+
 }
 
 async function initializePhotosUser(): Promise<any> {
