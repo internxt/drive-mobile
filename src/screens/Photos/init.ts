@@ -318,7 +318,6 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
   if (!preview) {
     return Promise.resolve();
   }
-  SYNCING_DOWNLOAD_PREVIEWS = true;
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -331,7 +330,6 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
   const previewExists = await RNFS.exists(tempPath);
 
   if (previewExists) {
-    SYNCING_DOWNLOAD_PREVIEWS = false;
     const localPreview = await RNFS.stat(tempPath);
 
     photo.localUri = localPreview.path;
@@ -345,7 +343,6 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
   }).then((res) => {
-    SYNCING_DOWNLOAD_PREVIEWS = false;
     return res.path();
   }).catch(err => {
     RNFS.unlink(tempPath)
@@ -371,25 +368,13 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-let SYNCING_DOWNLOAD_PREVIEWS = false;
-
-export function getSyncingDownloadPreviews() {
-  return SYNCING_DOWNLOAD_PREVIEWS;
-}
-
-export function setSyncingDownloadPreviews(newValue: boolean) {
-  SYNCING_DOWNLOAD_PREVIEWS = newValue;
-}
-
-export function getPreviews(push: any, offset: any, i?: number, isDownloading?: boolean): Promise<any> {
+export function getPreviews(push: any, i?: number): Promise<any> {
   SHOULD_STOP = false;
-  SYNCING_DOWNLOAD_PREVIEWS = false;
   return getPartialRemotePhotos(i).then((res) => {
     return mapSeries(res, (photo, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }
-      offset(res.length)
 
       return downloadPreview(photo.preview, photo).then((res) => {
         const newPhoto = {
@@ -398,22 +383,11 @@ export function getPreviews(push: any, offset: any, i?: number, isDownloading?: 
         }
 
         push(newPhoto)
-        isDownloading = true;
         next(null, photo)
       }).catch(err => {
       });
     });
   });
-}
-
-export function syncingDownloadPreviews(finish?: boolean): boolean {
-
-  if (finish) {
-    return false;
-  }
-
-  return SYNCING_DOWNLOAD_PREVIEWS;
-
 }
 
 async function initializePhotosUser(): Promise<any> {

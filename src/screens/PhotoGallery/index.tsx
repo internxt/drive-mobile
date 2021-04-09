@@ -10,8 +10,8 @@ import { AuthenticationState } from '../../redux/reducers/authentication.reducer
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
-import { MaterialIndicator } from 'react-native-indicators';
-import { cachePicture, downloadPhoto, getLocalImages, getPreviews, getSyncingDownloadPreviews, IHashedPhoto, setSyncingDownloadPreviews } from '../Photos/init';
+import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
+import { cachePicture, downloadPhoto, getLocalImages, getPreviews, getUploadedPhotos, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
 import RNFS from 'react-native-fs'
@@ -33,13 +33,13 @@ function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
     const a = localPhotodLabel.find(id => id.hash === o.hash)
     const b = remotePhotosLabel.find(id => id.hash === o.hash)
 
-    return b;
+    return _.merge(a, b);
   })
 
   return union;
 }
 
-function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
+function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[], concatOthers?: boolean) {
   const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
   const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, galleryUri: o.localUri }, o))
 
@@ -55,10 +55,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
   const [isDownloading, setIsDownloading] = useState(true);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
-  const [offsetCursor, setOffsetCursor] = useState<number | undefined>(undefined);
   const remotePhotos = setRemotePhotos(localPhotos, uploadedPhotos);
-  const [isStart, setIsStart] = useState(false)
-  let isDownloadingRemote = false;
+  const [isStart, setIsStart] = useState(true)
+  const [offsetCursor, setOffsetCursor] = useState(0)
+  const [prevOffset, setPrevOffset] = useState(0)
 
   const loadLocalPhotos = (after?: string) => {
     return getLocalImages(after).then(res => {
@@ -71,14 +71,38 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     })
   }
 
-  const loadUploadedPhotos = async (offset?: any) => {
+  const loadUploadedPhotos = async (offset: number) => {
+    setPrevOffset(offset)
     setIsDownloading(true);
-    getPreviews(push, setOffset, offset, isDownloadingRemote).then((res) => {
-      isDownloadingRemote = false;
+    getPreviews(push, offset).then((res) => {
+      if (offset){
+
+        const a = offsetCursor + res.length
+
+        setOffsetCursor(a)
+        setPrevOffset(offset)
+      } else {
+        setPrevOffset(offset)
+        setOffsetCursor(res.length)
+      }
     }).catch(() => {
     }).finally(() => {
       setIsDownloading(false);
     })
+  }
+
+  const loadMoreData = () => {
+    if (!isStart) {
+      if (offsetCursor > prevOffset) {
+        getUploadedPhotos().then((res)=>{
+          if (offsetCursor >= res.length) {
+            setRemotePhotos(localPhotos, uploadedPhotos, true)
+          } else {
+            start(offsetCursor).then(()=>{setIsStart(false)})
+          }
+        })
+      }
+    }
   }
 
   const push = (preview: any) => {
@@ -91,29 +115,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     }
   }
 
-  const setOffset = (offset: number) => {
-    if (offset) {
-      setOffsetCursor(offset)
-    }
-  }
-
-  const loadPhotos = (after?: string) => {
-    const isSyncing = getSyncingDownloadPreviews();
-
-    if (isSyncing) {
-      return Promise.resolve();
-    }
-    setSyncingDownloadPreviews(true);
-
-    return Promise.race([
-      loadLocalPhotos(after).then(res => loadUploadedPhotos(res))
-    ]).then(result => {
-      setSyncingDownloadPreviews(false);
-      return result;
-    })
-  }
-
-  const start = (offset?: any) => {
+  const start = (offset: number) => {
     setIsStart(true)
     return loadLocalPhotos().then(() => {
       loadUploadedPhotos(offset).then((res) => {
@@ -123,10 +125,8 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   }
 
   useEffect(() => {
-    setEndCursor(undefined)
-    setOffsetCursor(0)
     setIsLoading(true);
-    start().then(()=> { setIsStart(false)}).finally(() => { setIsLoading(false) })
+    start(offsetCursor).then(()=>{setIsStart(false), setIsLoading(false)})
   }, [])
 
   return (
@@ -161,45 +161,39 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         }
       </View>
 
-      <View style={{ flexGrow: 1 }}>
+      <View style={{ flex: 1 }}>
         {
-          <View>
-            {
-              <PhotoList
-                data={remotePhotos}
-                numColumns={3}
-                onRefresh={() => {
-                  setIsLoading(true)
-                  start()
-                }}
-                onItemPress={(event, item) => {
+          !isLoading ?
+            <PhotoList
+              data={remotePhotos}
+              numColumns={3}
+              onRefresh={() => {
+                setIsLoading(true)
+              }}
+              onItemPress={(event, item) => {
 
-                  if (item.isUploaded && !item.isLocal) {
-                    downloadPhoto(item).then(x => {
+                if (item.isUploaded && !item.isLocal) {
+                  downloadPhoto(item).then(x => {
 
-                    }).catch((err) => {
-                    })
-                  } else {
-                    cachePicture(item).then(tempFile => {
-                      FileViewer.open(tempFile, {
-                        onDismiss: () => RNFS.unlink(tempFile)
-                      });
-                    })
-                  }
-                }}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.flatList}
-                onEndReached={() => {
-
-                  if (!isStart) {
-                    start(offsetCursor)
-                  }
-
-                  //start(offsetCursor)
-                }}
-              />
-            }
-          </View>
+                  }).catch((err) => {
+                  })
+                } else {
+                  cachePicture(item).then(tempFile => {
+                    FileViewer.open(tempFile, {
+                      onDismiss: () => RNFS.unlink(tempFile)
+                    });
+                  })
+                }
+              }}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.flatList}
+              onEndReached={() => {
+                loadMoreData()
+              }}
+              onEndReachedThreshold={0.2}
+            />
+            :
+            <WaveIndicator color="#5291ff" size={50} />
         }
       </View>
     </SafeAreaView>
