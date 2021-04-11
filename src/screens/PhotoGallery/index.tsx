@@ -26,11 +26,11 @@ interface PhotoGalleryProps {
 }
 
 function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
-  const localPhotodLabel = _.map(localPhotos, o => _.extend({ isLocal: true, galleryUri: o.localUri }, o))
+  const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, galleryUri: o.localUri }, o))
   const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
 
-  const union = _.unionBy([...localPhotodLabel, ...remotePhotosLabel], (o) => {
-    const a = localPhotodLabel.find(id => id.hash === o.hash)
+  const union = _.unionBy([...localPhotosLabel, ...remotePhotosLabel], (o) => {
+    const a = localPhotosLabel.find(id => id.hash === o.hash)
     const b = remotePhotosLabel.find(id => id.hash === o.hash)
 
     return _.merge(a, b);
@@ -39,13 +39,17 @@ function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
   return union;
 }
 
-function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
+function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[], loadStartLocalPhotos?: any) {
   const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
-  const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, galleryUri: o.localUri }, o))
+  const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, isUploaded: false, galleryUri: o.localUri }, o))
 
-  const difference = _.differenceBy([...remotePhotosLabel], [...localPhotosLabel], 'hash')
+  const remotes = _.differenceBy([...remotePhotosLabel], [...localPhotosLabel], 'hash')
+  const locals = _.differenceBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
+  const synced = _.intersectionBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
 
-  return difference;
+  const union = _.union(locals, synced, remotes)
+
+  return union;
 
 }
 
@@ -97,7 +101,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         getUploadedPhotos().then((res)=>{
           if (offsetCursor >= res.length) {
           } else {
-            start(offsetCursor).then(()=>{setIsStart(false)})
+            start(offsetCursor, endCursor).then(()=>{setIsStart(false)})
           }
         })
       }
@@ -114,10 +118,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     }
   }
 
-  const start = (offset: number) => {
+  const start = (offset: number, endCursor?: string) => {
     setIsStart(true)
-    return loadLocalPhotos().then(() => {
-      loadUploadedPhotos(offset).then((res) => {
+    return loadLocalPhotos(endCursor).then(() => {
+      loadUploadedPhotos(offset).then(() => {
         return setRemotePhotos(localPhotos, uploadedPhotos)
       })
     })
