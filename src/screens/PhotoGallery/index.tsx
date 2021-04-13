@@ -130,7 +130,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   useEffect(() => {
     setIsLoading(true);
-    start(offsetCursor).then(()=>{setIsStart(false), setIsLoading(false)})
+    start(offsetCursor).then(()=>{setIsStart(false), setIsLoading(false)}).catch(() => null);
   }, [])
 
   return (
