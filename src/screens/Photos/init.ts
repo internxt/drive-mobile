@@ -196,7 +196,7 @@ export async function getPartialUploadedPhotos(matchImages: LocalImages): Promis
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  })
+  }).catch(()=>{})
 }
 
 export async function getPartialRemotePhotos(offset? = 0, limit? = 20) {
@@ -209,7 +209,7 @@ export async function getPartialRemotePhotos(offset? = 0, limit? = 20) {
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  })
+  }).catch(()=>{})
 }
 
 export async function getUploadedPhotos(matchImages?: LocalImages): Promise<IApiPhotoWithPreview[]> {
