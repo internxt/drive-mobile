@@ -225,7 +225,7 @@ export async function getUploadedPhotos(matchImages?: LocalImages): Promise<IApi
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  })
+  }).catch(()=>{})
 }
 
 export async function getLocalPreviewsDir(): Promise<string> {
