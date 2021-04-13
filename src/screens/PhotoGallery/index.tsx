@@ -147,7 +147,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
           </Text>
 
           <Text style={styles.photosCount}>
-            {filteredPhotos.length} {strings.screens.photos.screens.photo_gallery.subtitle}
+            {remotePhotos.length} {strings.screens.photos.screens.photo_gallery.subtitle}
           </Text>
         </View>
 
