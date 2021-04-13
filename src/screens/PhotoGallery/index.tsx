@@ -102,7 +102,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         getUploadedPhotos().then((res)=>{
           if (offsetCursor >= res.length) {
           } else {
-            start(offsetCursor, endCursor).then(()=>{setIsStart(false)})
+            start(offsetCursor, endCursor).then(()=>{setIsStart(false)}).catch(()=>{})
           }
         })
       }
@@ -174,7 +174,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               onRefresh={() => {
                 setIsLoading(true)
                 setOffsetCursor(0)
-                start(offsetCursor).then(()=>{setIsStart(false)})
+                start(offsetCursor).then(()=>{setIsStart(false)}).catch(()=>{})
               }}
               onItemPress={(event, item) => {
 
