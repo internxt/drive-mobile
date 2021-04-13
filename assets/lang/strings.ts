@@ -74,7 +74,9 @@ const strings = new LocalizedStrings({
           }
         },
         "components": {
-          "loading": "Loading photos from gallery..."
+          "create_album_card": "Create new album",
+          "loading": "Loading photos from gallery...",
+          "syncing": "Sincronizando"
         }
       }
     },
@@ -159,6 +161,11 @@ const strings = new LocalizedStrings({
       "out_of_space_modal": {
         "title": "Run out of space",
         "subtitle": "You have currently used 3GB of storage. To start uploading more files, please upgrade your storage plan."
+      },
+      "coming_soon_modal": {
+        "title": "Coming soon!",
+        "subtitle": "Our fantastic devs are working on it, so stay tuned!",
+        "got_it": "Got it!"
       }
     }
   },
@@ -169,16 +176,16 @@ const strings = new LocalizedStrings({
         "forgot": "¿Has olvidado la contraseña?"
       },
       "register_screen": {
-        "first": "{0} es un servicio en la nube {1}. El {2} lugar para todos tus archivos. Bienvenido a la {3}. Bienvenido a {4}.",
-        "second": "Los archivos son {4} en tu dispositivo. {5} de terceros podemos acceder a ellos. {6}, como siempre tuvo que haber sido.",
-        "third": "Puedes acceder a Internxt desde la aplicación de {7}, {8} o {9}. Empieza a usar Drive hoy con {10} gratis. {11} cuando lo necesites, gratis por un mes, cancela cuando quieras.",
+        "first": "{0} es un servicio de almacenamiento en la nube {1}. Un lugar {2} para todos tus archivos. Bienvenido a la {3}. Bienvenido a {4}.",
+        "second": "Los archivos son {4} en tu dispositivo. {5} de terceros podemos acceder a ellos. {6}, como siempre tuvo que ser.",
+        "third": "Accede a Internxt desde {7}, {8} o {9}. Empieza a usar Drive hoy con {10} gratis. {11} cuando lo necesites, gratis por un mes, cancela cuando quieras.",
         "bold_first": ["Internxt", "diferente", "mejor", "revolución", "Internxt"],
         "bold_second": ["encriptados", "Ni nosotros ni ningún servicio", "Privacidad"],
         "bold_third": ["escritorio", "web", "móvil", "10 GB", "Mejora tu almacenamiento"],
         "security_title": "Internxt Security",
-        "security_subtitle": "Interxt usa tu contraseña para encriptar y decriptar tus archivos. Debido a la segura naturaleza de nuestro servicio, nosotros no sabemos tu contraseña. Esto significa que si la llegas a perder, tus archivos se volverán inaccesibles. Con nosotros, tu eres el único propietario de tus archivos. Te recomendamos encarecidamente que:",
+        "security_subtitle": "Interxt usa tu contraseña para encriptar y decriptar tus archivos. Debido a la segura naturaleza de nuestro servicio, nosotros no sabemos tu contraseña. Esto significa que si algún día la llegas a perder, tus archivos se volverán inaccesibles. Con nosotros, tú eres el único propietario de tus archivos. Te recomendamos encarecidamente que:",
         "suggestion_1": "Guardes tu contraseña. Mantenla sana y salva.",
-        "suggestion_2": "Mantén una copia local de todos tus archivos.",
+        "suggestion_2": "Guarda una copia local de todos tus archivos.",
         "create_account_title": "Crear cuenta"
       },
       "forgot_password": {
@@ -233,7 +240,9 @@ const strings = new LocalizedStrings({
           }
         },
         "components": {
-          "loading": "Cargando fotos de la galería..."
+          "create_album_card": "Crear nuevo álbum",
+          "loading": "Cargando fotos de la galería...",
+          "syncing": "Subiendo"
         }
       }
     },
@@ -319,6 +328,11 @@ const strings = new LocalizedStrings({
       "out_of_space_modal": {
         "title": "No tienes más espacio",
         "subtitle": "Actualmente has usado 10GB de almaceniamiento. Para seguir subiendo más archivos, por favor, mejora tu plan de almacenamiento."
+      },
+      "coming_soon_modal": {
+        "title": "¡Próximamente!",
+        "subtitle": "Nuestros fantásticos programadores están trabajando en ello, así que mantente al tanto!",
+        "got_it": "Entendido!"
       }
     }
   }

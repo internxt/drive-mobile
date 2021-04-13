@@ -119,7 +119,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
             null
             :
             <View style={styles.containerSync}>
-              <Text style={styles.syncText}>Syncing</Text>
+              <Text style={styles.syncText}>{strings.screens.photos.components.syncing}</Text>
 
               <View>
                 <MaterialIndicator style={styles.spinner} color="#5291ff" size={15} />
