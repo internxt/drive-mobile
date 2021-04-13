@@ -172,6 +172,8 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               numColumns={3}
               onRefresh={() => {
                 setIsLoading(true)
+                setOffsetCursor(0)
+                start(offsetCursor).then(()=>{setIsStart(false)})
               }}
               onItemPress={(event, item) => {
 
