@@ -15,6 +15,7 @@ import { AuthenticationState } from '../../redux/reducers/authentication.reducer
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import strings from '../../../assets/lang/strings';
 
 function identifyPlanName(bytes: number): string {
   return bytes === 0 ? 'Free 10GB' : prettysize(bytes)
@@ -156,9 +157,9 @@ function SettingsModal(props: SettingsModalProps) {
         <ActivityIndicator color={'#00f'} />
         :
         <Text style={styles.usageText}>
-          <Text>Used </Text>
+          <Text>{strings.screens.storage.space.used.used} </Text>
           <Bold>{prettysize(usageValues.usage)}</Bold>
-          <Text> of </Text>
+          <Text> {strings.screens.storage.space.used.of} </Text>
           <Bold>{prettysize(usageValues.limit)}</Bold>
         </Text>
       }
@@ -166,7 +167,7 @@ function SettingsModal(props: SettingsModalProps) {
       <Separator />
 
       <SettingsItem
-        text="Storage"
+        text={strings.components.app_menu.settings.storage}
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
           props.navigation.replace('Storage')
@@ -174,12 +175,12 @@ function SettingsModal(props: SettingsModalProps) {
       />
 
       <SettingsItem
-        text="More info"
+        text={strings.components.app_menu.settings.more}
         onPress={() => Linking.openURL('https://internxt.com/drive')}
       />
 
       <SettingsItem
-        text={props.layoutState.currentApp === 'Photos' ? 'Drive' : 'Photos'}
+        text={props.layoutState.currentApp === 'Photos' ? strings.components.app_menu.settings.drive : strings.components.app_menu.settings.photos}
         onPress={async () => {
 
           props.dispatch(layoutActions.closeSettings())
@@ -193,7 +194,7 @@ function SettingsModal(props: SettingsModalProps) {
       />
 
       <SettingsItem
-        text="Contact"
+        text={strings.components.app_menu.settings.contact}
         onPress={() => {
           const emailUrl = 'mailto:support@internxt.zohodesk.eu'
 
@@ -206,7 +207,7 @@ function SettingsModal(props: SettingsModalProps) {
       />
 
       <SettingsItem
-        text="Sign out"
+        text={strings.components.app_menu.settings.sign}
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
           props.dispatch(userActions.signout())

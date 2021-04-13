@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Image, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import { getIcon } from '../../helpers/getIcon';
 import { layoutActions } from '../../redux/actions';
 interface ISelectedPhotos {
@@ -48,7 +49,7 @@ function CreateAlbumCard(props: ISelectedPhotos): JSX.Element {
           fontSize: 16,
           color: 'black'
         }}>
-          Create New Album
+          {strings.screens.photos.components.create_album_card}
         </Text>
 
       </View>

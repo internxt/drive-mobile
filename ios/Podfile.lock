@@ -427,6 +427,8 @@ PODS:
     - React-Core (= 0.63.4)
     - React-cxxreact (= 0.63.4)
     - React-jsi (= 0.63.4)
+  - ReactNativeLocalization (2.1.6):
+    - React
   - rn-fetch-blob (0.11.2):
     - React-Core
   - RNAnalytics (1.3.2):
@@ -551,6 +553,7 @@ DEPENDENCIES:
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - ReactNativeLocalization (from `../node_modules/react-native-localization`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - "RNAnalytics (from `../node_modules/@segment/analytics-react-native`)"
   - "RNAnalyticsIntegration-Firebase (from `../node_modules/@segment/analytics-react-native-firebase`)"
@@ -702,6 +705,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Vibration"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  ReactNativeLocalization:
+    :path: "../node_modules/react-native-localization"
   rn-fetch-blob:
     :path: "../node_modules/rn-fetch-blob"
   RNAnalytics:
@@ -821,6 +826,7 @@ SPEC CHECKSUMS:
   React-RCTText: 5c51df3f08cb9dedc6e790161195d12bac06101c
   React-RCTVibration: ae4f914cfe8de7d4de95ae1ea6cc8f6315d73d9d
   ReactCommon: 73d79c7039f473b76db6ff7c6b159c478acbbb3b
+  ReactNativeLocalization: dbb269b27d8a84bb22b9c2cdec38ba780b51dd72
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
   RNAnalytics: ac18ac964dd53bac7f957994412963e8e2568c4d
   RNAnalyticsIntegration-Firebase: daed87b7ab56636ed0098326eb92e26fdfc198c2
@@ -850,4 +856,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 8bd3b9bd8f91b706af7f15c06842f6735c8d1bdc
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.10.0

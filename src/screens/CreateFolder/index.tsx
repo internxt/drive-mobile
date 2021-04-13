@@ -12,6 +12,7 @@ import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import MenuItem from '../../components/MenuItem';
 import { fileActions } from '../../redux/actions';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import strings from '../../../assets/lang/strings';
 
 const FolderIcon = () => (
   <Svg style={styles.icon} viewBox="0 0 99 78">
@@ -88,7 +89,7 @@ function CreateFolder(props: any): JSX.Element {
           style={styles.input}
           value={folderName}
           onChangeText={e => setFolderName(e)}
-          placeholder="Enter folder name"
+          placeholder={strings.screens.create_folder.input}
           placeholderTextColor="rgba(44, 107, 201, 0.5)"
           maxLength={24}
           clearTextOnFocus={true}
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
     marginLeft: wp(5),
     textAlign: 'left',
-    width: 219
+    width: 230
   }
 });
 

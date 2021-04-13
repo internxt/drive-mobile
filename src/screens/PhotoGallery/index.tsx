@@ -15,6 +15,7 @@ import { cachePicture, downloadPhoto, getLocalImages, getPreviews, getUploadedPh
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
 import RNFS from 'react-native-fs'
+import strings from '../../../assets/lang/strings';
 
 interface PhotoGalleryProps {
   route: any;
@@ -142,11 +143,11 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
         <View style={styles.titleWrapper}>
           <Text style={styles.albumTitle}>
-            {props.navigation.state.params.title}
+            {strings.screens.photos.screens.photo_gallery.title}
           </Text>
 
           <Text style={styles.photosCount}>
-            {remotePhotos.length} Photos
+            {filteredPhotos.length} {strings.screens.photos.screens.photo_gallery.subtitle}
           </Text>
         </View>
 
@@ -155,7 +156,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
             null
             :
             <View style={styles.containerSync}>
-              <Text style={styles.syncText}>Syncing</Text>
+              <Text style={styles.syncText}>{strings.screens.photos.components.syncing}</Text>
 
               <View>
                 <MaterialIndicator style={styles.spinner} color="#5291ff" size={15} />

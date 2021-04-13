@@ -15,6 +15,7 @@ import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
+import strings from '../../../assets/lang/strings';
 
 export interface IPhotosProps extends Reducers {
   navigation?: any
@@ -63,9 +64,7 @@ function Photos(props: IPhotosProps): JSX.Element {
 
       <View style={styles.albumsContainer}>
         <View style={styles.albumsHeader}>
-          <Text style={styles.title}>
-            Albums
-          </Text>
+          <Text style={styles.title}>{strings.screens.photos.screens.photos.albums}</Text>
 
           <MenuItem
             name="settings"
@@ -87,13 +86,13 @@ function Photos(props: IPhotosProps): JSX.Element {
             props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
           }}
           disabled={isLoading}>
-          <Text style={styles.title}>All photos</Text>
+          <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos}</Text>
           {
             !props.photosState.isSync?
               null
               :
               <View style={styles.containerSync}>
-                <Text style={styles.syncText}>Syncing</Text>
+                <Text style={styles.syncText}>{strings.screens.photos.components.syncing}</Text>
 
                 <View>
                   <MaterialIndicator style={styles.spinner} color="#5291ff" size={15} />
@@ -114,7 +113,7 @@ function Photos(props: IPhotosProps): JSX.Element {
             </View>
             :
             <View style={styles.emptyContainer}>
-              <Text style={styles.heading}>Loading photos from gallery...</Text>
+              <Text style={styles.heading}>{strings.screens.photos.components.loading}</Text>
               <WaveIndicator color="#5291ff" size={50} />
             </View>
         }
