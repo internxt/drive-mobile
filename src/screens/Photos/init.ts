@@ -10,6 +10,7 @@ import { deviceStorage } from '../../helpers';
 import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
+import { PhotoActions } from '../../redux/actions';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -45,8 +46,6 @@ const getArrayPhotos = async (images: Asset[]) => {
   return result;
 }
 
-let SYNCING_UPLOAD_PHOTOS = false;
-
 export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<any> {
   // Skip uploaded photos with previews
   const alreadyUploadedPhotos = await getUploadedPhotos();
@@ -55,8 +54,6 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
   const imagesToUpload = images.filter(x => uploadedHashes.indexOf(x.hash) < 0)
   let last = false;
   let onePhotoToUpload = false;
-
-  SYNCING_UPLOAD_PHOTOS = false;
 
   // Upload filtered photos
   return mapSeries(imagesToUpload, (image, next) => {
@@ -74,7 +71,7 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
 async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) {
 
   if (!last || !onePhotoToUpload) {
-    SYNCING_UPLOAD_PHOTOS = true;
+    dispatch(PhotoActions.startSync())
   }
 
   const xUser = await deviceStorage.getItem('xUser')
@@ -99,12 +96,15 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
     .then((res) => {
       const statusCode = res.respInfo.status;
 
-      if (statusCode === 401) { throw res; }
+      if (statusCode === 401) {
+        dispatch(PhotoActions.stopSync())
+        throw res;
+      }
       if (statusCode === 201) {
         return res.json();
       }
       if (statusCode === 409){
-        SYNCING_UPLOAD_PHOTOS = false;
+        dispatch(PhotoActions.stopSync())
       }
       throw res
     })
@@ -146,26 +146,17 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
     ])
     .then(res => {
       if (last || onePhotoToUpload) {
-        SYNCING_UPLOAD_PHOTOS = false;
+        dispatch(PhotoActions.stopSync())
       }
       const statusCode = res.respInfo.status;
 
       if (statusCode === 201 || statusCode === 409) {
+        dispatch(PhotoActions.stopSync())
         return res.json();
       }
 
       throw res;
     })
-}
-
-export function syncingUploadPhotos(finish?: boolean): boolean {
-
-  if (finish) {
-    return SYNCING_UPLOAD_PHOTOS = false;
-  }
-
-  return SYNCING_UPLOAD_PHOTOS;
-
 }
 
 export interface LocalImages {
