@@ -28,19 +28,30 @@ const getArrayPhotos = async (images: Asset[]) => {
       return next(Error('Missing localUri'));
     }
 
-    const p = await manipulateAsync(asset.localUri,
-      [],
-      { compress: 1, format: SaveFormat.PNG }
-    )
-    const sha256Id = await RNFS.hash(p.uri, 'sha256')
+    if (Platform.OS === 'ios') {
+      const p = await manipulateAsync(asset.localUri,
+        [],
+        { compress: 1, format: SaveFormat.PNG }
+      )
 
-    const hashedImage = {
-      ...image,
-      hash: sha256Id,
-      localUri: asset.localUri
+      const sha256Id = await RNFS.hash(p.uri, 'sha256')
+      const hashedImage = {
+        ...image,
+        hash: sha256Id,
+        localUri: asset.localUri
+      }
+
+      next(null, hashedImage)
+    } else {
+      const sha256Id = await RNFS.hash(asset.uri, 'sha256')
+      const hashedImage = {
+        ...image,
+        hash: sha256Id,
+        localUri: asset.localUri
+      }
+
+      next(null, hashedImage)
     }
-
-    next(null, hashedImage)
   });
 
   return result;
@@ -57,8 +68,8 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
 
   // Upload filtered photos
   return mapSeries(imagesToUpload, (image, next) => {
-    if (!(imagesToUpload[imagesToUpload.length-1] === imagesToUpload[0])){
-      if ((imagesToUpload[imagesToUpload.length-1].id) === image.id) {
+    if (!(imagesToUpload[imagesToUpload.length - 1] === imagesToUpload[0])) {
+      if ((imagesToUpload[imagesToUpload.length - 1].id) === image.id) {
         last = true;
       }
     } else {
@@ -103,7 +114,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       if (statusCode === 201) {
         return res.json();
       }
-      if (statusCode === 409){
+      if (statusCode === 409) {
         dispatch(PhotoActions.stopSync())
       }
       throw res
@@ -196,10 +207,10 @@ export async function getPartialUploadedPhotos(matchImages: LocalImages): Promis
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  }).catch(()=>{})
+  }).catch(() => { })
 }
 
-export async function getPartialRemotePhotos(offset? = 0, limit? = 20) {
+export async function getPartialRemotePhotos(offset?= 0, limit?= 20) {
 
   const headers = await getHeaders()
 
@@ -209,7 +220,7 @@ export async function getPartialRemotePhotos(offset? = 0, limit? = 20) {
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  }).catch(()=>{})
+  }).catch(() => { })
 }
 
 export async function getUploadedPhotos(matchImages?: LocalImages): Promise<IApiPhotoWithPreview[]> {
@@ -225,7 +236,7 @@ export async function getUploadedPhotos(matchImages?: LocalImages): Promise<IApi
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  }).catch(()=>{})
+  }).catch(() => { })
 }
 
 export async function getLocalPreviewsDir(): Promise<string> {
