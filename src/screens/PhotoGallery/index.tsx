@@ -58,30 +58,39 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
   const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
   const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
-  const [isDownloading, setIsDownloading] = useState(true);
-  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const remotePhotos = setRemotePhotos(localPhotos, uploadedPhotos);
-  const [isStart, setIsStart] = useState(true)
+  const [started, setStarted] = useState(true)
+  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const [offsetCursor, setOffsetCursor] = useState(0)
   const [prevOffset, setPrevOffset] = useState(0)
 
-  const loadLocalPhotos = (after?: string) => {
-    return getLocalImages(after).then(res => {
-      setLocalPhotos(after ? localPhotos.concat(res.assets) : res.assets)
-      setEndCursor(res.endCursor)
-      return res;
-    }).then(res => {
-      setIsLoading(false);
-      return res;
+  const start = (offset: number, endCursor?: string) => {
+    // eslint-disable-next-line no-console
+    console.log('start() \n\n')
+    setStarted(true)
+
+    return loadLocalPhotos(endCursor).then(() => {
+      // eslint-disable-next-line no-console
+      console.log('loadUploadedPhotos() offset:', offset, '\n\n')
+      return loadUploadedPhotos(offset)
     })
   }
 
-  const loadUploadedPhotos = async (offset: number) => {
-    setPrevOffset(offset)
-    setIsDownloading(true);
-    getPreviews(push, offset).then((res) => {
-      if (offset){
+  const loadLocalPhotos = (endCursor?: string) => {
+    return getLocalImages(endCursor).then(res => {
+      setEndCursor(res.endCursor)
+      setLocalPhotos(endCursor ? localPhotos.concat(res.assets) : res.assets)
+      // eslint-disable-next-line no-console
+      console.log('loadLocalPhotos() =>', res.assets.length)
+    })
+  }
 
+  const loadUploadedPhotos = (offset: number) => {
+    setPrevOffset(offset)
+    getPreviews(push, offset).then((res) => {
+      // eslint-disable-next-line no-console
+      console.log('getPreviews() finished =>', res.length, 'offset:', offset, '\n\n')
+      if (offset) {
         const a = offsetCursor + res.length
 
         setOffsetCursor(a)
@@ -90,22 +99,25 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         setPrevOffset(offset)
         setOffsetCursor(res.length)
       }
-    }).catch(() => {
-    }).finally(() => {
-      setIsDownloading(false);
+    }).then(() => {
+      setRemotePhotos(localPhotos, uploadedPhotos)
     })
   }
 
   const loadMoreData = () => {
-    if (!isStart) {
-      if (offsetCursor > prevOffset) {
-        getUploadedPhotos().then((res)=>{
-          if (offsetCursor >= res.length) {
-          } else {
-            start(offsetCursor, endCursor).then(()=>{setIsStart(false)}).catch(()=>{})
-          }
-        })
-      }
+    // eslint-disable-next-line no-console
+    console.log('isStart:', started, '\n\n')
+    if (!started) {
+      // eslint-disable-next-line no-console
+      console.log('prevOffset:', prevOffset, 'currentOffset:', offsetCursor, 'offsetCursor > prevOffset ? =>', offsetCursor > prevOffset, '\n\n')
+      //if (offsetCursor > prevOffset) {
+      getUploadedPhotos().then((res) => {
+        if (offsetCursor >= res.length) {
+        } else {
+          start(offsetCursor, endCursor).then(() => { setStarted(false) }).catch(() => { })
+        }
+      })
+      //}
     }
   }
 
@@ -119,18 +131,11 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     }
   }
 
-  const start = (offset: number, endCursor?: string) => {
-    setIsStart(true)
-    return loadLocalPhotos(endCursor).then(() => {
-      loadUploadedPhotos(offset).then(() => {
-        return setRemotePhotos(localPhotos, uploadedPhotos)
-      })
-    })
-  }
-
   useEffect(() => {
-    setIsLoading(true);
-    start(offsetCursor).then(()=>{setIsStart(false), setIsLoading(false)}).catch(() => null);
+    start(offsetCursor).finally(() => {
+      setStarted(false)
+      setIsLoading(false)
+    })
   }, [])
 
   return (
@@ -174,7 +179,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               onRefresh={() => {
                 setIsLoading(true)
                 setOffsetCursor(0)
-                start(offsetCursor).then(()=>{setIsStart(false)}).catch(()=>{})
+                start(offsetCursor).then(() => { setStarted(false) }).catch(() => { })
               }}
               onItemPress={(event, item) => {
 
@@ -194,7 +199,12 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}
               onEndReached={() => {
-                loadMoreData()
+                // eslint-disable-next-line no-console
+                console.log('onEndReached() =>', endCursor, '\n\n')
+                // change isLoading for another state, small indicator right on the bottom
+                //setIsLoading(true)
+                loadLocalPhotos(endCursor)
+                //loadMoreData()
               }}
               onEndReachedThreshold={0.2}
             />

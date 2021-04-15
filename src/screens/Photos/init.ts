@@ -99,6 +99,8 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
 
   const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUri)) : RNFetchBlob.wrap(photo.uri)
 
+  // eslint-disable-next-line no-console
+  console.log('uploadPhoto() right before fetch')
   return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
     [
       { name: 'xfile', filename: photo.filename, data: finalUri },
@@ -132,7 +134,8 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       )
 
       return uploadPreview(prev, res.id, photo, dispatch, last, onePhotoToUpload);
-    })
+    }).catch(err => // eslint-disable-next-line no-console
+      console.log('err =>'))
 }
 
 const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) => {
@@ -211,7 +214,6 @@ export async function getPartialUploadedPhotos(matchImages: LocalImages): Promis
 }
 
 export async function getPartialRemotePhotos(offset?= 0, limit?= 20) {
-
   const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/remote/photos/${limit}/${offset}`, {
@@ -220,7 +222,7 @@ export async function getPartialRemotePhotos(offset?= 0, limit?= 20) {
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  }).catch(() => { })
+  })
 }
 
 export async function getUploadedPhotos(matchImages?: LocalImages): Promise<IApiPhotoWithPreview[]> {
@@ -370,9 +372,11 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export function getPreviews(push: any, i?: number): Promise<any> {
+export function getPreviews(push: any, offset?: number): Promise<any> {
   SHOULD_STOP = false;
-  return getPartialRemotePhotos(i).then((res) => {
+  return getPartialRemotePhotos(offset).then((res) => {
+    // eslint-disable-next-line no-console
+    console.log('getPartialRemotePhotos() =>', res, '\n\n')
     return mapSeries(res, (photo, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')

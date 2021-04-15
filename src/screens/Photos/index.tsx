@@ -47,9 +47,6 @@ function Photos(props: IPhotosProps): JSX.Element {
   }, [])
 
   useEffect(() => {
-  }, [props.photosState.isSync])
-
-  useEffect(() => {
     if (!props.authenticationState.loggedIn) {
       stopSync()
       props.navigation.replace('Login')
@@ -88,7 +85,7 @@ function Photos(props: IPhotosProps): JSX.Element {
           disabled={isLoading}>
           <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos}</Text>
           {
-            !props.photosState.isSync?
+            !props.photosState.isSync ?
               null
               :
               <View style={styles.containerSync}>
