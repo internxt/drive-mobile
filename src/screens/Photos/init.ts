@@ -99,8 +99,6 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
 
   const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUri)) : RNFetchBlob.wrap(photo.uri)
 
-  // eslint-disable-next-line no-console
-  console.log('uploadPhoto() right before fetch')
   return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
     [
       { name: 'xfile', filename: photo.filename, data: finalUri },
@@ -134,8 +132,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       )
 
       return uploadPreview(prev, res.id, photo, dispatch, last, onePhotoToUpload);
-    }).catch(err => // eslint-disable-next-line no-console
-      console.log('err =>'))
+    })
 }
 
 const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) => {
@@ -187,7 +184,7 @@ export function getLocalImages(after?: string | undefined): Promise<LocalImages>
   };
 
   return Permissions.askAsync(Permissions.MEDIA_LIBRARY).then(() => {
-    return MediaLibrary.getAssetsAsync({ first: 20, after: after });
+    return MediaLibrary.getAssetsAsync({ first: 20, after: after, sortBy: [MediaLibrary.SortBy.modificationTime] });
   }).then((res) => {
     result.hasNextPage = res.hasNextPage;
     result.endCursor = res.endCursor;
@@ -375,8 +372,6 @@ export function stopSync(): void {
 export function getPreviews(push: any, offset?: number): Promise<any> {
   SHOULD_STOP = false;
   return getPartialRemotePhotos(offset).then((res) => {
-    // eslint-disable-next-line no-console
-    console.log('getPartialRemotePhotos() =>', res, '\n\n')
     return mapSeries(res, (photo, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')

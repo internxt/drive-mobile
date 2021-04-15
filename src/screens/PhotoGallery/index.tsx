@@ -65,13 +65,9 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [prevOffset, setPrevOffset] = useState(0)
 
   const start = (offset: number, endCursor?: string) => {
-    // eslint-disable-next-line no-console
-    console.log('start() \n\n')
     setStarted(true)
 
     return loadLocalPhotos(endCursor).then(() => {
-      // eslint-disable-next-line no-console
-      console.log('loadUploadedPhotos() offset:', offset, '\n\n')
       return loadUploadedPhotos(offset)
     })
   }
@@ -80,16 +76,12 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     return getLocalImages(endCursor).then(res => {
       setEndCursor(res.endCursor)
       setLocalPhotos(endCursor ? localPhotos.concat(res.assets) : res.assets)
-      // eslint-disable-next-line no-console
-      console.log('loadLocalPhotos() =>', res.assets.length)
     })
   }
 
   const loadUploadedPhotos = (offset: number) => {
     setPrevOffset(offset)
     getPreviews(push, offset).then((res) => {
-      // eslint-disable-next-line no-console
-      console.log('getPreviews() finished =>', res.length, 'offset:', offset, '\n\n')
       if (offset) {
         const a = offsetCursor + res.length
 
@@ -106,15 +98,12 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   const loadMoreData = () => {
     // eslint-disable-next-line no-console
-    console.log('isStart:', started, '\n\n')
     if (!started) {
-      // eslint-disable-next-line no-console
-      console.log('prevOffset:', prevOffset, 'currentOffset:', offsetCursor, 'offsetCursor > prevOffset ? =>', offsetCursor > prevOffset, '\n\n')
       //if (offsetCursor > prevOffset) {
       getUploadedPhotos().then((res) => {
         if (offsetCursor >= res.length) {
         } else {
-          start(offsetCursor, endCursor).then(() => { setStarted(false) }).catch(() => { })
+          start(offsetCursor, endCursor).then(() => setStarted(false))
         }
       })
       //}
@@ -199,8 +188,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}
               onEndReached={() => {
-                // eslint-disable-next-line no-console
-                console.log('onEndReached() =>', endCursor, '\n\n')
                 // change isLoading for another state, small indicator right on the bottom
                 //setIsLoading(true)
                 loadLocalPhotos(endCursor)
