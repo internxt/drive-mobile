@@ -59,13 +59,13 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
   const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
   const remotePhotos = setRemotePhotos(localPhotos, uploadedPhotos);
-  const [started, setStarted] = useState(true)
+  const [hasFinished, setHasFinished] = useState(true)
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const [offsetCursor, setOffsetCursor] = useState(0)
   const [prevOffset, setPrevOffset] = useState(0)
 
-  const start = (offset: number, endCursor?: string) => {
-    setStarted(true)
+  const start = (offset = 0, endCursor?: string) => {
+    setHasFinished(true)
 
     return loadLocalPhotos(endCursor).then(() => {
       return loadUploadedPhotos(offset)
@@ -98,12 +98,12 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   const loadMoreData = () => {
     // eslint-disable-next-line no-console
-    if (!started) {
+    if (!hasFinished) {
       //if (offsetCursor > prevOffset) {
       getUploadedPhotos().then((res) => {
         if (offsetCursor >= res.length) {
         } else {
-          start(offsetCursor, endCursor).then(() => setStarted(false))
+          start(offsetCursor, endCursor).then(() => setHasFinished(false))
         }
       })
       //}
@@ -121,8 +121,8 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   }
 
   useEffect(() => {
-    start(offsetCursor).finally(() => {
-      setStarted(false)
+    start().finally(() => {
+      setHasFinished(false)
       setIsLoading(false)
     })
   }, [])
@@ -168,7 +168,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               onRefresh={() => {
                 setIsLoading(true)
                 setOffsetCursor(0)
-                start(offsetCursor).then(() => { setStarted(false) }).catch(() => { })
+                start(offsetCursor).then(() => { setHasFinished(false) }).catch(() => { })
               }}
               onItemPress={(event, item) => {
 

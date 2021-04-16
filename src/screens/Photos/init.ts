@@ -120,7 +120,6 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       throw res
     })
     .then(async res => {
-
       if (!res.id) {
         return;
       }
@@ -132,7 +131,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       )
 
       return uploadPreview(prev, res.id, photo, dispatch, last, onePhotoToUpload);
-    })
+    }).catch(err => { })
 }
 
 const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) => {
@@ -304,12 +303,16 @@ export async function downloadPhoto(photo: any) {
     return res;
   }).then(async (res) => {
 
-    const p = await manipulateAsync(res.path(),
-      [],
-      { compress: 1, format: SaveFormat.PNG }
-    )
+    if (Platform.OS === 'ios') {
+      const p = await manipulateAsync(res.path(),
+        [],
+        { compress: 1, format: SaveFormat.PNG }
+      )
 
-    MediaLibrary.saveToLibraryAsync(p.uri)
+      MediaLibrary.saveToLibraryAsync(p.uri)
+    } else {
+      MediaLibrary.saveToLibraryAsync(res.path())
+    }
   }).then(() => {
     SimpleToast.show('Image downloaded!', 0.3)
   })
