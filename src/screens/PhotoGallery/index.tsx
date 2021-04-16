@@ -11,7 +11,7 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
-import { cachePicture, downloadPhoto, getLocalImages, getPreviews, getUploadedPhotos, IHashedPhoto } from '../Photos/init';
+import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
 import RNFS from 'react-native-fs'
@@ -95,10 +95,9 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   const loadMoreData = (offsetCursor: number, endCursor: string | undefined) => {
     setHasFinished(false)
-    loadLocalPhotos(endCursor)
-    return getUploadedPhotos().then((res) => {
-      return loadUploadedPhotos(offsetCursor)
-    })
+    if (offsetCursor > prevOffset) {
+      start(offsetCursor, endCursor).then(() => { setHasFinished(true) })
+    }
   }
 
   const push = (preview: any) => {
@@ -182,7 +181,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                 //setIsLoading(true)
                 //loadLocalPhotos(endCursor)
                 if (hasFinished) {
-                  loadMoreData(offsetCursor, endCursor).finally(() => setHasFinished(true))
+                  loadMoreData(offsetCursor, endCursor)
                 }
               }}
               onEndReachedThreshold={0.2}
