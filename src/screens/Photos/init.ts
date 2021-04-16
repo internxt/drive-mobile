@@ -99,10 +99,26 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
 
   const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUri)) : RNFetchBlob.wrap(photo.uri)
 
+  let creationTime;
+
+  if (Platform.OS === 'android') {
+    creationTime = photo.modificationTime
+  }
+  if (Platform.OS === 'ios') {
+    creationTime = photo.creationTime
+  }
+  if (creationTime) {
+    creationTime = new Date(creationTime).toString()
+  } else {
+    creationTime = new Date().toString()
+  }
+
   return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
     [
       { name: 'xfile', filename: photo.filename, data: finalUri },
-      { name: 'hash', data: photo.hash }
+      { name: 'hash', data: photo.hash },
+      { name: 'creationTime', data: creationTime }
+
     ])
     .then((res) => {
       const statusCode = res.respInfo.status;
@@ -114,7 +130,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       if (statusCode === 201) {
         return res.json();
       }
-      if (statusCode === 409) {
+      if (statusCode === 409 || statusCode === 500) {
         dispatch(PhotoActions.stopSync())
       }
       throw res

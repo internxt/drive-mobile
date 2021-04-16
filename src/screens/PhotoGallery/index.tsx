@@ -41,7 +41,7 @@ function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
 }
 
 function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[], loadStartLocalPhotos?: any) {
-  const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
+  const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isLocal: false, isUploaded: true }, o))
   const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, isUploaded: false, galleryUri: o.localUri }, o))
 
   const remotes = _.differenceBy([...remotePhotosLabel], [...localPhotosLabel], 'hash')
@@ -97,6 +97,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     setHasFinished(false)
     if (offsetCursor > prevOffset) {
       start(offsetCursor, endCursor).then(() => { setHasFinished(true) })
+    } else {
+      if (endCursor) {
+        loadLocalPhotos(endCursor).finally(() => setHasFinished(true))
+      }
     }
   }
 
