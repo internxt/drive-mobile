@@ -48,7 +48,9 @@ function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto
   const locals = _.differenceBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
   const synced = _.intersectionBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
 
-  const union = _.union(locals, synced, remotes)
+  const syncedUpdated = synced.map(photo => ({ ...photo, isUploaded: true }))
+
+  const union = _.union(locals, syncedUpdated, remotes)
 
   return union;
 
@@ -59,17 +61,17 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
   const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
   const remotePhotos = setRemotePhotos(localPhotos, uploadedPhotos);
-  const [hasFinished, setHasFinished] = useState(true)
+  const [hasFinished, setHasFinished] = useState(false)
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const [offsetCursor, setOffsetCursor] = useState(0)
   const [prevOffset, setPrevOffset] = useState(0)
 
   const start = (offset = 0, endCursor?: string) => {
-    setHasFinished(true)
+    setHasFinished(false)
 
     return loadLocalPhotos(endCursor).then(() => {
       return loadUploadedPhotos(offset)
-    })
+    }).finally(() => setHasFinished(true))
   }
 
   const loadLocalPhotos = (endCursor?: string) => {
@@ -82,32 +84,21 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const loadUploadedPhotos = (offset: number) => {
     setPrevOffset(offset)
     getPreviews(push, offset).then((res) => {
-      if (offset) {
-        const a = offsetCursor + res.length
+      const lastIndex = offsetCursor + res.length
 
-        setOffsetCursor(a)
-        setPrevOffset(offset)
-      } else {
-        setPrevOffset(offset)
-        setOffsetCursor(res.length)
-      }
+      setOffsetCursor(lastIndex)
+      setPrevOffset(offset)
     }).then(() => {
       setRemotePhotos(localPhotos, uploadedPhotos)
     })
   }
 
-  const loadMoreData = () => {
-    // eslint-disable-next-line no-console
-    if (!hasFinished) {
-      //if (offsetCursor > prevOffset) {
-      getUploadedPhotos().then((res) => {
-        if (offsetCursor >= res.length) {
-        } else {
-          start(offsetCursor, endCursor).then(() => setHasFinished(false))
-        }
-      })
-      //}
-    }
+  const loadMoreData = (offsetCursor: number, endCursor: string | undefined) => {
+    setHasFinished(false)
+    loadLocalPhotos(endCursor)
+    return getUploadedPhotos().then((res) => {
+      return loadUploadedPhotos(offsetCursor)
+    })
   }
 
   const push = (preview: any) => {
@@ -122,7 +113,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   useEffect(() => {
     start().finally(() => {
-      setHasFinished(false)
       setIsLoading(false)
     })
   }, [])
@@ -190,8 +180,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               onEndReached={() => {
                 // change isLoading for another state, small indicator right on the bottom
                 //setIsLoading(true)
-                loadLocalPhotos(endCursor)
-                //loadMoreData()
+                //loadLocalPhotos(endCursor)
+                if (hasFinished) {
+                  loadMoreData(offsetCursor, endCursor).finally(() => setHasFinished(true))
+                }
               }}
               onEndReachedThreshold={0.2}
             />

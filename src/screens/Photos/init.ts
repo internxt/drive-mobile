@@ -381,13 +381,16 @@ export function getPreviews(push: any, offset?: number): Promise<any> {
       }
 
       return downloadPreview(photo.preview, photo).then((res) => {
-        const newPhoto = {
-          ...photo,
-          localUri: res
-        }
+        if (res) {
+          const newPhoto = {
+            ...photo,
+            localUri: res
+          }
 
-        push(newPhoto)
+          push(newPhoto)
+        }
         next(null, photo)
+
       }).catch(err => {
       });
     });
