@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import { deviceStorage, normalize } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { userActions } from '../../redux/actions';
@@ -60,7 +61,7 @@ function Register(props: any): JSX.Element {
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Text style={styles.title}>Create an account</Text>
+              <Text style={styles.title}>{strings.screens.register_screen.create_account_title}</Text>
             </View>
 
             <View style={styles.buttonWrapper}>
@@ -70,11 +71,11 @@ function Register(props: any): JSX.Element {
                 underlayColor="#f2f2f2"
                 activeOpacity={1}
                 onPress={() => props.navigation.replace('Login')}>
-                <Text style={styles.buttonOffLabel}>Sign in</Text>
+                <Text style={styles.buttonOffLabel}>{strings.components.buttons.sign_in}</Text>
               </TouchableHighlight>
 
               <TouchableHighlight style={[styles.button, styles.buttonOn]}>
-                <Text style={styles.buttonOnLabel}>Create account</Text>
+                <Text style={styles.buttonOnLabel}>{strings.components.buttons.create}</Text>
               </TouchableHighlight>
 
             </View>
@@ -85,7 +86,7 @@ function Register(props: any): JSX.Element {
                 style={[styles.input, !isValidFirstName ? {} : {}]}
                 value={firstName}
                 onChangeText={value => setFirstName(value)}
-                placeholder="First name"
+                placeholder={strings.components.inputs.first_name}
                 placeholderTextColor="#666"
                 maxLength={64}
               />
@@ -95,7 +96,7 @@ function Register(props: any): JSX.Element {
                 style={[styles.input, !isValidLastName ? {} : {}]}
                 value={lastName}
                 onChangeText={value => setLastName(value)}
-                placeholder="Last name"
+                placeholder={strings.components.inputs.last_name}
                 placeholderTextColor="#666"
                 maxLength={64}
               />
@@ -106,7 +107,7 @@ function Register(props: any): JSX.Element {
                 style={[styles.input, isValidEmail ? {} : {}]}
                 value={email}
                 onChangeText={value => setEmail(value)}
-                placeholder="Email address"
+                placeholder={strings.components.inputs.email}
                 placeholderTextColor="#666"
                 maxLength={64}
                 keyboardType="email-address"
@@ -122,7 +123,7 @@ function Register(props: any): JSX.Element {
               onPress={() => {
                 setRegisterStep(2);
               }}>
-              <Text style={styles.buttonOnLabel}>Continue</Text>
+              <Text style={styles.buttonOnLabel}>{strings.components.buttons.continue}</Text>
             </TouchableHighlight>
           </View>
         </View>
@@ -136,35 +137,24 @@ function Register(props: any): JSX.Element {
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Text style={styles.title}>Internxt Security</Text>
+              <Text style={styles.title}>{strings.screens.register_screen.security_title}</Text>
             </View>
 
             <View>
-              <Text
-                style={styles.textDisclaimer}
-              >
-                Internxt Drive uses your password to encrypt and decrypt your
-                files. Due to the secure nature of Internxt Drive, we don&apos;t
-                know your password. That means that if you ever forget it,
-                your files are gone forever. With us, you&apos;re the only owner of
-                your files. We strongly suggest you to:
-              </Text>
+              <Text style={styles.textDisclaimer}>{strings.screens.register_screen.security_subtitle}</Text>
             </View>
 
             <View style={styles.textStorePasswordContainer}>
               <View style={[styles.flexRow, { marginBottom: 10 }]}>
                 <Text>{'\u2022'}</Text>
-                <Text
-                  style={styles.textStorePassword}
-                >
-                  Store your Password. Keep it safe and secure.
-                </Text>
+
+                <Text style={styles.textStorePassword}>{strings.screens.register_screen.suggestion_1}</Text>
               </View>
+
               <View style={styles.flexRow}>
                 <Text>{'\u2022'}</Text>
-                <Text style={styles.textTip}>
-                  Keep an offline backup of your password.
-                </Text>
+
+                <Text style={styles.textTip}>{strings.screens.register_screen.suggestion_2}</Text>
               </View>
             </View>
 
@@ -175,17 +165,17 @@ function Register(props: any): JSX.Element {
                   underlayColor="#f2f2f2"
                   onPress={() => setRegisterStep(1)}
                 >
-                  <Text style={styles.buttonOffLabel}>Back</Text>
+                  <Text style={styles.buttonOffLabel}>{strings.components.buttons.back}</Text>
                 </TouchableHighlight>
+
                 <TouchableHighlight
                   style={[styles.button, styles.buttonOn, styles.buttonRight]}
                   underlayColor="#4585f5"
                   onPress={() => setRegisterStep(3)}
                 >
-                  <Text style={styles.buttonOnLabel}>Continue</Text>
+                  <Text style={styles.buttonOnLabel}>{strings.components.buttons.continue}</Text>
                 </TouchableHighlight>
               </View>
-
             </View>
           </View>
         </View>
@@ -202,7 +192,7 @@ function Register(props: any): JSX.Element {
         <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Text style={styles.title}>Create an account</Text>
+              <Text style={styles.title}>{strings.screens.register_screen.create_account_title}</Text>
             </View>
           </View>
           <View style={[styles.showInputFieldsWrapper, { marginTop: -10 }]}>
@@ -212,24 +202,26 @@ function Register(props: any): JSX.Element {
                 style={[styles.input, !isValidPassword ? {} : {}]}
                 value={password}
                 onChangeText={value => setPassword(value)}
-                placeholder="Password"
+                placeholder={strings.components.inputs.password}
                 placeholderTextColor="#666"
                 secureTextEntry={true}
                 textContentType="password"
               />
             </View>
+
             <View style={styles.inputWrapper}>
               <TextInput
                 style={[styles.input, !isValidStep ? {} : {}]}
                 value={confirmPassword}
                 onChangeText={value => setConfirmPassword(value)}
-                placeholder="Confirm password"
+                placeholder={strings.components.inputs.confirm_password}
                 placeholderTextColor="#666"
                 secureTextEntry={true}
                 textContentType="password"
               />
             </View>
           </View>
+
           <View style={styles.buttonFooterWrapper}>
             <View style={styles.buttonWrapper}>
               <TouchableHighlight
@@ -237,8 +229,9 @@ function Register(props: any): JSX.Element {
                 underlayColor="#f2f2f2"
                 onPress={() => setRegisterStep(2)}
               >
-                <Text style={styles.buttonOffLabel}>Back</Text>
+                <Text style={styles.buttonOffLabel}>{strings.components.buttons.back}</Text>
               </TouchableHighlight>
+
               <TouchableHighlight
                 style={[styles.button, styles.buttonOn, styles.buttonRight]}
                 underlayColor="#4585f5"
@@ -273,7 +266,7 @@ function Register(props: any): JSX.Element {
                       })
                     })
                     .then(() => {
-                      apiLogin(email).then(userLoginData => {
+                      return apiLogin(email).then(userLoginData => {
                         props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
                       })
                     }).catch(err => {
@@ -282,10 +275,13 @@ function Register(props: any): JSX.Element {
                         message: err.message
                       }).catch(() => { })
                       Alert.alert(err.message)
+                    }).finally(() => {
+                      setIsLoading(false)
+                      setRegisterButtonClicked(false)
                     })
                 }}
               >
-                <Text style={styles.buttonOnLabel}>{registerButtonClicked ? 'Creating...' : 'Continue'}</Text>
+                <Text style={styles.buttonOnLabel}>{registerButtonClicked ? strings.components.buttons.creating_button : strings.components.buttons.continue}</Text>
               </TouchableHighlight>
             </View>
           </View>
@@ -297,48 +293,15 @@ function Register(props: any): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: normalize(20),
-    backgroundColor: '#FFFFFF'
-  },
-  containerCentered: {
-    justifyContent: 'center',
-    alignSelf: 'center',
-    width: '100%',
-    height: normalize(600)
-  },
-  containerHeader: {
-    borderWidth: 0
-  },
-  title: {
-    fontFamily: 'CerebriSans-Bold',
-    fontSize: normalize(22),
-    letterSpacing: -1.7,
-    color: '#000',
-    marginBottom: normalize(30),
-    marginTop: normalize(12)
-  },
-  buttonWrapper: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: normalize(30),
-    justifyContent: 'space-between'
-  },
-  buttonFooterWrapper: {
-    marginTop: normalize(20)
-  },
   button: {
-    alignSelf: 'stretch',
-    height: normalize(55),
-    width: normalize(130),
-    borderRadius: 3.4,
-    backgroundColor: '#4585f5',
-    marginBottom: normalize(10),
     alignItems: 'center',
-    justifyContent: 'center'
+    alignSelf: 'stretch',
+    backgroundColor: '#4585f5',
+    borderRadius: 3.4,
+    height: normalize(55),
+    justifyContent: 'center',
+    marginBottom: normalize(10),
+    width: normalize(130)
   },
   buttonBlock: {
     width: '100%'
@@ -346,83 +309,116 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.5
   },
-  buttonOn: {
-    backgroundColor: '#4585f5',
-    alignItems: 'center'
-  },
-  buttonOff: {
-    backgroundColor: '#f2f2f2',
-    alignItems: 'center'
-  },
-  buttonOnLabel: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    textAlign: 'center',
-    color: '#fff'
-  },
-  buttonOffLabel: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    textAlign: 'center',
-    color: '#5c5c5c'
-  },
-  buttonRight: {
-    marginLeft: normalize(10)
+  buttonFooterWrapper: {
+    marginTop: normalize(20)
   },
   buttonLeft: {
     marginRight: normalize(10)
   },
-  input: {
+  buttonOff: {
+    alignItems: 'center',
+    backgroundColor: '#f2f2f2'
+  },
+  buttonOffLabel: {
+    color: '#5c5c5c',
     fontFamily: 'CerebriSans-Medium',
-    letterSpacing: -0.2,
     fontSize: normalize(15),
-    color: '#000',
+    textAlign: 'center'
+  },
+  buttonOn: {
+    alignItems: 'center',
+    backgroundColor: '#4585f5'
+  },
+  buttonOnLabel: {
+    color: '#fff',
+    fontFamily: 'CerebriSans-Medium',
+    fontSize: normalize(15),
+    textAlign: 'center'
+  },
+  buttonRight: {
+    marginLeft: normalize(10)
+  },
+  buttonWrapper: {
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: normalize(30)
+  },
+  container: {
+    backgroundColor: '#FFFFFF',
     flex: 1,
-    paddingLeft: 20
-  },
-  showInputFieldsWrapper: {
-    justifyContent: 'center'
-  },
-  inputWrapper: {
-    height: normalize(55),
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#c9c9c9',
     justifyContent: 'center',
-    marginBottom: normalize(15)
+    padding: normalize(20)
+  },
+  containerCentered: {
+    alignSelf: 'center',
+    height: normalize(600),
+    justifyContent: 'center',
+    width: '100%'
+  },
+  containerHeader: {
+    borderWidth: 0
   },
   flexRow: {
     flexDirection: 'row'
   },
-  textDisclaimer: {
+  halfOpacity: {
+    opacity: 0.5
+  },
+  input: {
+    color: '#000',
+    flex: 1,
+    fontFamily: 'CerebriSans-Medium',
     fontSize: normalize(15),
+    letterSpacing: -0.2,
+    paddingLeft: 20
+  },
+  inputWrapper: {
+    borderColor: '#c9c9c9',
+    borderRadius: 5,
+    borderWidth: 1,
+    height: normalize(55),
+    justifyContent: 'center',
+    marginBottom: normalize(15)
+  },
+  showInputFieldsWrapper: {
+    justifyContent: 'center'
+  },
+  textDisclaimer: {
     color: '#737880',
     fontFamily: 'CerebriSans-Regular',
-    textAlign: 'justify',
+    fontSize: normalize(15),
     letterSpacing: -0.1,
-    marginTop: -15
+    marginTop: -15,
+    textAlign: 'justify'
+  },
+  textStorePassword: {
+    color: '#737880',
+    flex: 1,
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: normalize(15),
+    paddingLeft: normalize(9)
   },
   textStorePasswordContainer: {
     backgroundColor: '#f7f7f7',
-    padding: normalize(23),
-    marginTop: normalize(30)
-  },
-  textStorePassword: {
-    flex: 1,
-    paddingLeft: normalize(9),
-    color: '#737880',
-    fontSize: normalize(15),
-    fontFamily: 'CerebriSans-Regular'
+    marginTop: normalize(30),
+    padding: normalize(23)
   },
   textTip: {
-    flex: 1,
-    paddingLeft: normalize(9),
     color: '#737880',
+    flex: 1,
+    fontFamily: 'CerebriSans-Regular',
     fontSize: normalize(15),
-    fontFamily: 'CerebriSans-Regular'
+    paddingLeft: normalize(9)
   },
-  halfOpacity: {
-    opacity: 0.5
+  title: {
+    color: '#000',
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: normalize(22),
+    letterSpacing: -1.7,
+    marginBottom: normalize(30),
+    marginTop: normalize(12)
   }
 });
 

@@ -35,10 +35,10 @@ function IconFolder(props: IconFolderProps) {
 
 const styles = StyleSheet.create({
   icon: {
-    width: 44,
     height: 35,
     marginLeft: 25,
-    marginRight: 25
+    marginRight: 25,
+    width: 44
   }
 });
 

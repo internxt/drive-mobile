@@ -33,7 +33,10 @@ export const PhotoActions = {
   setAllLocalPhotos,
   setAllUploadedPhotos,
   setSelectedPhotos,
-  pushPreview
+  pushPreview,
+  setAllLocalPhotosGallery,
+  startSync,
+  stopSync
 };
 
 function setIsLoading(value: boolean) {
@@ -49,6 +52,14 @@ function downloadPhotoStart(photoId: string) {
 }
 function downloadPhotoEnd(photoId: string) {
   return { type: photoActionTypes.DOWNLOAD_PHOTO_END, payload: photoId };
+}
+
+function startSync() {
+  return { type: photoActionTypes.START_SYNC };
+}
+
+function stopSync() {
+  return { type: photoActionTypes.STOP_SYNC };
 }
 
 // Will only download the current selected Photo defined in props
@@ -335,4 +346,8 @@ function setAllUploadedPhotos(photos: IPhoto[]) {
 
 function pushPreview(preview: IPreview) {
   return { type: photoActionTypes.PUSH_PREVIEW, payload: preview }
+}
+
+function setAllLocalPhotosGallery(photos: IPhoto[]) {
+  return { type: photoActionTypes.SET_LOCAL_PHOTOS_GALLERY, payload: photos }
 }

@@ -1,20 +1,10 @@
 import * as React from 'react';
-import { Image, StyleProp, StyleSheet, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
+import { Image, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import { getIcon } from '../../helpers/getIcon';
-import ImagePicker from 'react-native-image-crop-picker'
-import { Dispatch } from 'redux';
-import { PhotoActions } from '../../redux/actions/photo.actions';
 import { layoutActions } from '../../redux/actions';
-
-export interface CreateAlbumProps {
-  style?: StyleProp<ViewStyle>
-  album?: any
-  navigation: any
-  dispatch: Dispatch
-}
-
-export interface ISelectedPhotos {
+interface ISelectedPhotos {
   path: string
   localIdentifier?: string
   sourceURL?: string
@@ -59,7 +49,7 @@ function CreateAlbumCard(props: ISelectedPhotos): JSX.Element {
           fontSize: 16,
           color: 'black'
         }}>
-          Create New Album
+          {strings.screens.photos.components.create_album_card}
         </Text>
 
       </View>
@@ -70,25 +60,25 @@ function CreateAlbumCard(props: ISelectedPhotos): JSX.Element {
 const styles = StyleSheet.create({
   albumCard: {
     paddingHorizontal: 20,
-    paddingVertical: 5
+    paddingVertical: 15
   },
   card: {
-    display: 'flex',
     alignItems: 'center',
-    borderRadius: 9,
-    paddingVertical: 57,
     backgroundColor: '#f5f5f5',
     borderColor: 'white',
+    borderRadius: 9,
     borderWidth: 12,
+    display: 'flex',
+    elevation: 5,
+    marginHorizontal: 4,
+    paddingVertical: 57,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2
     },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    marginHorizontal: 4
+    shadowRadius: 3.84
   }
 });
 

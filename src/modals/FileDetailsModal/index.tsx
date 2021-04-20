@@ -14,6 +14,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { colors, folderIconsList } from '../../redux/constants'
 import { updateFileMetadata, updateFolderMetadata } from './actions';
 import analytics, { getLyticsData } from '../../helpers/lytics';
+import strings from '../../../assets/lang/strings';
 
 interface FileDetailsProps {
   dispatch?: any
@@ -110,7 +111,7 @@ function FileDetailsModal(props: FileDetailsProps) {
           <Separator />
 
           <Text
-            style={styles.stylesColorFolder}>Style Color</Text>
+            style={styles.stylesColorFolder}>{strings.components.file_and_folder_options.styling}</Text>
           <View style={styles.colorSelection}>
             {Object.getOwnPropertyNames(colors).map((value, i) => {
               const localColor = selectedColor ? selectedColor : (folder ? folder.color : null);
@@ -134,7 +135,7 @@ function FileDetailsModal(props: FileDetailsProps) {
           <Separator />
 
           <Text
-            style={styles.stylesCoverFolder}>Cover Icon</Text>
+            style={styles.stylesCoverFolder}>{strings.components.file_and_folder_options.icons}</Text>
 
           <View style={styles.iconSelection} key={selectedIcon}>
             {folderIconsList.map((value, i) => {
@@ -208,21 +209,21 @@ function FileDetailsModal(props: FileDetailsProps) {
 
           <View style={styles.infoContainer}>
             <Text style={styles.textDefault}>
-              <Text>Type: </Text>
+              <Text>{strings.components.file_and_folder_options.type}</Text>
               <Text style={styles.cerebriSansBold}>
                 {file && file.type ? file.type.toUpperCase() : ''}
               </Text>
             </Text>
 
             <Text style={styles.textDefault}>
-              <Text>Added: </Text>
+              <Text>{strings.components.file_and_folder_options.added}</Text>
               <Text style={styles.cerebriSansBold}>
                 {file ? <TimeAgo time={file.created_at} /> : ''}
               </Text>
             </Text>
 
             <Text style={styles.textDefault}>
-              <Text>Size: </Text>
+              <Text>{strings.components.file_and_folder_options.size}</Text>
               <Text style={styles.cerebriSansBold}>
                 {file ? prettysize(file.size) : ''}
               </Text>
@@ -237,7 +238,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                 <Text style={styles.modalFileItemContainer}>
                   <Image source={getIcon('move')} style={{ width: 20, height: 20 }} />
                   <Text style={styles.mr20}> </Text>
-                  <Text style={styles.cerebriSansBold}> Move</Text>
+                  <Text style={styles.cerebriSansBold}> {strings.components.file_and_folder_options.move}</Text>
                 </Text>
               }
               onPress={() => {
@@ -250,7 +251,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                 <Text style={styles.modalFileItemContainer}>
                   <Image source={getIcon('share')} style={{ width: 20, height: 14 }} />
                   <Text style={styles.mr20}> </Text>
-                  <Text style={{}}> Share</Text>
+                  <Text style={{}}> {strings.components.file_and_folder_options.share}</Text>
                 </Text>
               }
               onPress={() => {
@@ -263,7 +264,7 @@ function FileDetailsModal(props: FileDetailsProps) {
               <Text style={styles.modalFileItemContainer}>
                 <Image source={getIcon('delete')} style={{ width: 16, height: 21 }} />
                 <Text style={styles.mr20}> </Text>
-                <Text style={styles.cerebriSansBold}> Delete</Text>
+                <Text style={styles.cerebriSansBold}>  {strings.components.file_and_folder_options.delete}</Text>
               </Text>
             }
             onPress={() => {
@@ -282,23 +283,17 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(FileDetailsModal)
 
 const styles = StyleSheet.create({
-  modalSettingsFile: {
-    height: Platform.OS === 'ios' ? '48%' : '55%'
+  cerebriSansBold: {
+    fontFamily: 'CerebriSans-Bold'
   },
-  modalFileItemContainer: {
-  },
-  drawerKnob: {
-    backgroundColor: '#d8d8d8',
-    width: 56,
-    height: 7,
-    borderRadius: 4,
-    alignSelf: 'center',
-    marginTop: 10,
-    marginBottom: 10
-  },
-  modalFolder: {
-    height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%')),
-    marginTop: wp('12')
+  colorButton: {
+    alignItems: 'center',
+    borderRadius: 15,
+    height: 27,
+    justifyContent: 'center',
+    marginLeft: 9,
+    marginRight: 9,
+    width: 27
   },
   colorSelection: {
     display: 'flex',
@@ -307,80 +302,86 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     marginRight: 15
   },
-  colorButton: {
-    height: 27,
-    width: 27,
-    borderRadius: 15,
-    marginLeft: 9,
-    marginRight: 9,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  iconSelection: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginLeft: 15,
-    marginRight: 15
-  },
-  iconButton: {
-    height: 43,
-    width: 43,
-    margin: hp('90%') < 600 ? 5 : 8,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  iconImage: {
-    height: 25,
-    width: 25
-  },
-  fileNameContainer: {
-    height: 'auto'
+  drawerKnob: {
+    alignSelf: 'center',
+    backgroundColor: '#d8d8d8',
+    borderRadius: 4,
+    height: 7,
+    marginBottom: 10,
+    marginTop: 10,
+    width: 56
   },
   fileName: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: 20,
     marginLeft: 26
   },
-  infoContainer: {
+  fileNameContainer: {
     height: 'auto'
-  },
-  optionsContainer: {
-    flex: 1,
-    marginBottom: 15,
-    minHeight: 129 // pixel perfect leave like this
-  },
-  textDefault: {
-    fontFamily: 'CerebriSans-Regular',
-    fontSize: 18,
-    paddingLeft: 24,
-    paddingBottom: 6,
-    fontWeight: 'bold'
   },
   folderName: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: 20,
     marginLeft: 26
   },
-  cerebriSansBold: {
-    fontFamily: 'CerebriSans-Bold'
+  iconButton: {
+    alignItems: 'center',
+    height: 43,
+    justifyContent: 'center',
+    margin: hp('90%') < 600 ? 5 : 8,
+    width: 43
   },
-  stylesColorFolder: {
-    fontFamily: 'CerebriSans-Bold',
-    fontWeight: 'bold',
-    paddingLeft: 24,
-    paddingBottom: 8,
-    fontSize: 17
+  iconImage: {
+    height: 25,
+    width: 25
   },
-  stylesCoverFolder: {
-    fontFamily: 'CerebriSans-Bold',
-    fontWeight: 'bold',
-    paddingLeft: 24,
-    paddingBottom: 5,
-    fontSize: 17
+  iconSelection: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginLeft: 15,
+    marginRight: 15
+  },
+  infoContainer: {
+    height: 'auto'
+  },
+  modalFileItemContainer: {
+  },
+  modalFolder: {
+    height: hp('90%') < 550 ? 550 : Math.min(600, hp('90%')),
+    marginTop: wp('12')
+  },
+  modalSettingsFile: {
+    height: hp('55%') < 300 ? 300 : Math.min(370, hp('55%'))
   },
   mr20: {
     marginRight: 20
+  },
+  optionsContainer: {
+    flex: 1,
+    marginBottom: 15,
+    minHeight: 129 // pixel perfect leave like this
+  },
+  stylesColorFolder: {
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 17,
+    fontWeight: 'bold',
+    paddingBottom: 8,
+    paddingLeft: 24
+  },
+  stylesCoverFolder: {
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 17,
+    fontWeight: 'bold',
+    paddingBottom: 5,
+    paddingLeft: 24
+  },
+  textDefault: {
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: 18,
+    fontWeight: 'bold',
+    paddingBottom: 6,
+    paddingLeft: 24
   }
 })

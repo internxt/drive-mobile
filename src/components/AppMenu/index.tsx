@@ -1,5 +1,5 @@
 import { getDocumentAsync } from 'expo-document-picker';
-import { getMediaLibraryPermissionsAsync, launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
+import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import { uniqueId } from 'lodash';
 import prettysize from 'prettysize';
 import React, { Fragment, useState, useRef } from 'react'
@@ -7,6 +7,7 @@ import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-nativ
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import RNFetchBlob from 'rn-fetch-blob';
+import strings from '../../../assets/lang/strings';
 import { getLyticsData } from '../../helpers';
 import { getIcon } from '../../helpers/getIcon';
 import analytics from '../../helpers/lytics';
@@ -41,6 +42,7 @@ function AppMenu(props: AppMenuProps) {
   const uploadFile = (result: any, currentFolder: number | undefined) => {
     const userStorage = props.authenticationState.userStorage
 
+    // TODO: String literals is a horrible practice
     if (userStorage && prettysize(userStorage.limit) === '2 GB') {
       const random = Math.floor(Math.random() * 4)
 
@@ -138,7 +140,7 @@ function AppMenu(props: AppMenuProps) {
       <TextInput
         ref={textInput}
         style={styles.searchInput}
-        placeholder="Search"
+        placeholder={strings.components.app_menu.search_box}
         value={props.filesState.searchString}
         onChange={e => {
           props.dispatch(fileActions.setSearchString(e.nativeEvent.text))
@@ -185,9 +187,9 @@ function AppMenu(props: AppMenuProps) {
             style={styles.mr10}
             name="upload"
             onClickHandler={() => {
-              Alert.alert('Select type of file', '', [
+              Alert.alert(strings.components.app_menu.upload.title, '', [
                 {
-                  text: 'Upload a document',
+                  text: strings.components.app_menu.upload.document,
                   onPress: async () => {
                     const result = await getDocumentAsync({ copyToCacheDirectory: false })
 
@@ -205,7 +207,7 @@ function AppMenu(props: AppMenuProps) {
                   }
                 },
                 {
-                  text: 'Upload media',
+                  text: strings.components.app_menu.upload.media,
                   onPress: async () => {
                     const { status } = await requestMediaLibraryPermissionsAsync()
 
@@ -233,7 +235,7 @@ function AppMenu(props: AppMenuProps) {
                   }
                 },
                 {
-                  text: 'Take a photo',
+                  text: strings.components.app_menu.upload.take_photo,
                   onPress: async () => {
                     const { status } = await requestCameraPermissionsAsync()
 
@@ -259,7 +261,7 @@ function AppMenu(props: AppMenuProps) {
                   }
                 },
                 {
-                  text: 'Cancel',
+                  text: strings.components.app_menu.upload.cancel,
                   style: 'destructive'
                 }
               ], {
@@ -307,33 +309,33 @@ const styles = StyleSheet.create({
     flexGrow: 1
   },
   container: {
-    height: 54,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
     backgroundColor: '#fff',
-    paddingTop: 3,
-    marginTop: Platform.OS === 'ios' ? 30 : 0
-  },
-  searchContainer: {
-    position: 'relative',
-    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f7f7f7',
-    marginLeft: 20,
-    marginRight: 20,
-    borderRadius: 30
-  },
-  searchInput: {
-    marginLeft: 15,
-    marginRight: 15,
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: 17,
-    flex: 1
+    height: 54,
+    justifyContent: 'flex-start',
+    marginTop: Platform.OS === 'ios' ? 30 : 0,
+    paddingTop: 3
   },
   mr10: {
     marginRight: 10
+  },
+  searchContainer: {
+    alignItems: 'center',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 30,
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginLeft: 20,
+    marginRight: 20,
+    position: 'relative'
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: 'CerebriSans-Medium',
+    fontSize: 17,
+    marginLeft: 15,
+    marginRight: 15
   }
 });
 

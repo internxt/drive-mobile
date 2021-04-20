@@ -69,13 +69,13 @@ function signout() {
   return { type: userActionTypes.SIGNOUT };
 }
 
-function localSignIn(token: any, user: any) {
+function localSignIn(token: string, user: any) {
   const data = { token, user };
 
   return { type: userActionTypes.LOCAL_SIGNIN, payload: data };
 }
 
-function payment(token: any, planId: any) {
+function payment(token: string, planId: any) {
   return (dispatch: Dispatch) => {
     dispatch(request());
     userService

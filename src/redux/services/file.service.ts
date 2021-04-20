@@ -1,7 +1,7 @@
-import { deviceStorage } from '../../helpers';
 import { sortTypes } from '../constants';
 import { compare } from 'natural-orderby'
 import { IFile, IFolder } from '../../components/FileList';
+import { getHeaders } from '../../helpers/headers';
 
 export const fileService = {
   getFolderContent,
@@ -12,21 +12,9 @@ export const fileService = {
   deleteItems
 };
 
-async function setHeaders() {
-  const token = await deviceStorage.getItem('xToken');
-  const user = JSON.parse(await deviceStorage.getItem('xUser') || '');
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    'Content-type': 'application/json; charset=utf-8',
-    'internxt-mnemonic': user.mnemonic
-  };
-
-  return headers;
-}
-
 function getFolderContent(folderId: number): Promise<any> {
   return new Promise(async (resolve, reject) => {
-    const headers = await setHeaders();
+    const headers = await getHeaders();
 
     fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}`, {
       method: 'GET',
@@ -41,7 +29,7 @@ function getFolderContent(folderId: number): Promise<any> {
 
 function createFolder(parentFolderId: number, folderName = 'Untitled folder'): Promise<void> {
   return new Promise(async (resolve, reject) => {
-    const headers = await setHeaders();
+    const headers = await getHeaders();
     const body = JSON.stringify({
       parentFolderId,
       folderName
@@ -66,7 +54,7 @@ function createFolder(parentFolderId: number, folderName = 'Untitled folder'): P
 
 function updateFolderMetadata(metadata: any, folderId: string): Promise<Response> {
   return new Promise(async (resolve, reject) => {
-    const headers = await setHeaders();
+    const headers = await getHeaders();
     const data = JSON.stringify({ metadata });
 
     fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}/meta`, {
@@ -83,7 +71,7 @@ function updateFolderMetadata(metadata: any, folderId: string): Promise<Response
 
 async function moveFile(fileId: string, destination: string) {
   try {
-    const headers = await setHeaders();
+    const headers = await getHeaders();
     const data = JSON.stringify({ fileId, destination });
 
     const res = await fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/moveFile`, {
@@ -110,7 +98,7 @@ function deleteItems(items: any[]): Promise<void> {
 
     items.forEach(async (item: IFile & IFolder) => {
       const isFolder = !item.fileId;
-      const headers = await setHeaders();
+      const headers = await getHeaders();
       const url = isFolder
         ? `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${item.id}`
         : `${process.env.REACT_NATIVE_API_URL}/api/storage/bucket/${item.bucket

@@ -1,9 +1,8 @@
 import React from 'react'
-import { Text, StyleSheet, Pressable, View } from 'react-native';
+import { StyleSheet, Pressable, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import AlbumCard from '../AlbumCard';
-import EmptyAlbum from '../EmptyAlbum';
 import { IPhoto } from '../PhotoList';
 
 export interface IAlbum {

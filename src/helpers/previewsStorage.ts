@@ -1,4 +1,3 @@
-import { Console } from 'console';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
 
@@ -7,7 +6,6 @@ export const previewsStorage = {
   createPreview,
   existsPreview,
   storePreview,
-  getPreviews,
   matchPreviews
 }
 
@@ -72,20 +70,6 @@ async function storePreview(previewUri: any, name: string) {
   });
 
   return FileSystem.documentDirectory + 'previews/' + name;
-}
-
-async function getPreviews() {
-  const previews: any[] = [];
-
-  const folder = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory + 'previews');
-
-  folder.forEach((prevName) => {
-    const uri = FileSystem.documentDirectory + 'previews/' + prevName;
-
-    previews.push(uri);
-  })
-
-  return previews;
 }
 
 async function matchPreviews(photos) {

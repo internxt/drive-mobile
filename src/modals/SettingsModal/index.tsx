@@ -14,17 +14,17 @@ import Bold from '../../components/Bold';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import strings from '../../../assets/lang/strings';
 
 function identifyPlanName(bytes: number): string {
-  return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
+  return bytes === 0 ? 'Free 10GB' : prettysize(bytes)
 }
 
 async function loadUsage(): Promise<number> {
-  const xToken = await deviceStorage.getItem('xToken') || undefined
-
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
     method: 'get',
-    headers: getHeaders(xToken)
+    headers: await getHeaders()
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load usage') }
     return res
@@ -32,11 +32,9 @@ async function loadUsage(): Promise<number> {
 }
 
 async function loadLimit(): Promise<number> {
-  const xToken = await deviceStorage.getItem('xToken') || undefined
-
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
     method: 'get',
-    headers: getHeaders(xToken)
+    headers: await getHeaders()
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load limit') }
     return res
@@ -64,9 +62,9 @@ async function initializePhotosUser(token: string, mnemonic: string): Promise<an
   const xUserJson = JSON.parse(xUser || '{}')
   const email = xUserJson.email
 
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/initialize`, {
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/initialize`, {
     method: 'POST',
-    headers: getHeaders(token, mnemonic),
+    headers: await getHeaders(),
     body: JSON.stringify({
       email: email,
       mnemonic: mnemonic
@@ -85,7 +83,7 @@ async function photosUserData(authenticationState: AuthenticationState): Promise
     'Content-Type': 'application/json; charset=utf-8'
   };
 
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/user`, {
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/user`, {
     method: 'GET',
     headers
   }).then(res => {
@@ -125,7 +123,7 @@ function SettingsModal(props: SettingsModalProps) {
 
   // Check current screen to change settings Photos/Drive text
   useEffect(() => {
-    if (props.navigation.state.routeName === 'Home' || props.navigation.state.routeName === 'FileExplorer') {
+    if (props.navigation.state.routeName === 'Photos' || props.navigation.state.routeName === 'FileExplorer') {
       props.dispatch(layoutActions.setCurrentApp(props.navigation.state.routeName))
     }
   }, [props.navigation.state])
@@ -150,7 +148,6 @@ function SettingsModal(props: SettingsModalProps) {
       </Text>
 
       <ProgressBar
-        styleBar={{}}
         styleProgress={styles.progressHeight}
         totalValue={usageValues.limit}
         usedValue={usageValues.usage}
@@ -160,9 +157,9 @@ function SettingsModal(props: SettingsModalProps) {
         <ActivityIndicator color={'#00f'} />
         :
         <Text style={styles.usageText}>
-          <Text>Used </Text>
+          <Text>{strings.screens.storage.space.used.used} </Text>
           <Bold>{prettysize(usageValues.usage)}</Bold>
-          <Text> of </Text>
+          <Text> {strings.screens.storage.space.used.of} </Text>
           <Bold>{prettysize(usageValues.limit)}</Bold>
         </Text>
       }
@@ -170,42 +167,34 @@ function SettingsModal(props: SettingsModalProps) {
       <Separator />
 
       <SettingsItem
-        text="More info"
-        onPress={() => Linking.openURL('https://internxt.com/drive')}
-      />
-
-      <SettingsItem
-        text={props.layoutState.currentApp === 'Home' ? 'Drive' : 'Photos'}
-        onPress={async () => {
-          props.dispatch(layoutActions.closeSettings())
-
-          if (props.layoutState.currentApp === 'Home') {
-            props.navigation.replace('FileExplorer')
-          } else {
-            const xPhotos = await deviceStorage.getItem('xPhotos')
-
-            if (xPhotos) {
-              props.navigation.replace('Home')
-            } else {
-              photosUserData(props.authenticationState).then(async res => {
-                await deviceStorage.saveItem('xPhotos', JSON.stringify(res));
-                props.navigation.replace('Home')
-              })
-            }
-          }
-        }}
-      />
-
-      {/* <SettingsItem
-        text="Storage"
+        text={strings.components.app_menu.settings.storage}
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
           props.navigation.replace('Storage')
         }}
-      /> */}
+      />
 
       <SettingsItem
-        text="Contact"
+        text={strings.components.app_menu.settings.more}
+        onPress={() => Linking.openURL('https://internxt.com/drive')}
+      />
+
+      <SettingsItem
+        text={props.layoutState.currentApp === 'Photos' ? strings.components.app_menu.settings.drive : strings.components.app_menu.settings.photos}
+        onPress={async () => {
+
+          props.dispatch(layoutActions.closeSettings())
+
+          if (props.layoutState.currentApp === 'Photos') {
+            props.navigation.replace('FileExplorer')
+          } else {
+            props.navigation.replace('Photos')
+          }
+        }}
+      />
+
+      <SettingsItem
+        text={strings.components.app_menu.settings.contact}
         onPress={() => {
           const emailUrl = 'mailto:support@internxt.zohodesk.eu'
 
@@ -218,7 +207,7 @@ function SettingsModal(props: SettingsModalProps) {
       />
 
       <SettingsItem
-        text="Sign out"
+        text={strings.components.app_menu.settings.sign}
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
           props.dispatch(userActions.signout())
@@ -230,23 +219,23 @@ function SettingsModal(props: SettingsModalProps) {
 
 const styles = StyleSheet.create({
   drawerKnob: {
-    backgroundColor: '#d8d8d8',
-    width: 56,
-    height: 7,
-    borderRadius: 4,
     alignSelf: 'center',
-    marginTop: 10
+    backgroundColor: '#d8d8d8',
+    borderRadius: 4,
+    height: 7,
+    marginTop: 10,
+    width: 56
   },
   modalSettings: {
-    height: 'auto',
+    height: hp('55%') < 420 ? 420 : Math.min(420, hp('55%')),
     paddingBottom: Platform.OS === 'ios' ? 20 : 0
   },
   nameText: {
+    fontFamily: 'CerebriSans-Bold',
     fontSize: 20,
     fontWeight: 'bold',
     marginLeft: 26,
-    marginTop: 10,
-    fontFamily: 'CerebriSans-Bold'
+    marginTop: 10
   },
   progressHeight: {
     height: 6
@@ -254,8 +243,8 @@ const styles = StyleSheet.create({
   usageText: {
     fontFamily: 'CerebriSans-Regular',
     fontSize: 15,
-    paddingLeft: 24,
-    paddingBottom: 0
+    paddingBottom: 0,
+    paddingLeft: 24
   }
 })
 

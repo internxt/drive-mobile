@@ -4,8 +4,8 @@ import { IAlbum } from '../../components/AlbumList';
 import { IPhoto, IPreview } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
-import { IHashedPhoto } from '../../screens/Home/init'
-
+import { IHashedPhoto } from '../../screens/Photos/init'
+import lodash from 'lodash'
 export interface PhotosState {
   cursor: number
   loading: boolean
@@ -14,6 +14,7 @@ export interface PhotosState {
   loadingDeleted: boolean
   albums: any
   localPhotos: IHashedPhoto[]
+  localPhotosGallery: IHashedPhoto[]
   uploadedPhotos: IHashedPhoto[]
   previews: IPreview[]
   selectedPhotosForAlbum: ImageOrVideo[]
@@ -33,6 +34,7 @@ export interface PhotosState {
   progress: number
   startDownloadSelectedPhoto: boolean
   error?: string | null
+  isSync: boolean
 }
 
 const initialState: PhotosState = {
@@ -42,6 +44,7 @@ const initialState: PhotosState = {
   loadingPhotos: true,
   loadingDeleted: true,
   localPhotos: [],
+  localPhotosGallery: [],
   uploadedPhotos: [],
   previews: [],
   selectedPhotosForAlbum: [],
@@ -60,7 +63,8 @@ const initialState: PhotosState = {
   isUploading: false,
   isUploadingPhotoName: '',
   progress: 0,
-  startDownloadSelectedPhoto: false
+  startDownloadSelectedPhoto: false,
+  isSync: false
 };
 
 export function PhotosReducer(state = initialState, action: any): PhotosState {
@@ -69,7 +73,14 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       isLoading: false,
-      localPhotos: action.payload
+      localPhotos: lodash.concat(state.localPhotos, action.payload)
+    }
+
+  case photoActionTypes.SET_LOCAL_PHOTOS_GALLERY:
+    return {
+      ...state,
+      isLoading: false,
+      localPhotosGallery: action.payload
     }
 
   case photoActionTypes.SET_UPLOADED_FOTOS:
@@ -121,6 +132,18 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       loading: true
+    };
+  case photoActionTypes.START_SYNC:
+    return {
+      ...state,
+      loading: true,
+      isSync: true
+    };
+  case photoActionTypes.STOP_SYNC:
+    return {
+      ...state,
+      loading: false,
+      isSync: false
     };
   case photoActionTypes.GET_PHOTOS_SUCCESS:
     return {
@@ -303,6 +326,11 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       previews: [...state.previews, action.payload]
+    }
+  case photoActionTypes.CLEAR_LOCAL_PHOTOS:
+    return {
+      ...state,
+      localPhotos: []
     }
   default:
     return state;

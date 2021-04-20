@@ -44,8 +44,8 @@
     "react-native-file-viewer": "^2.1.4",
     "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "~1.8.0",
-    "react-native-image-crop-picker": "^0.35.3",
     "react-native-indicators": "^0.17.0",
+    "react-native-localization": "^2.1.6",
     "react-native-modalbox": "^2.0.2",
     "react-native-receive-sharing-intent": "^1.1.0",
     "react-native-responsive-screen": "^1.4.1",
@@ -92,6 +92,7 @@
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
     "eslint-plugin-react-native": "^3.10.0",
+    "eslint-plugin-unused-imports": "^1.1.0",
     "husky": "^4.3.8",
     "jest": "~25.2.6",
     "prettier": "^2.2.1",
@@ -100,7 +101,7 @@
   },
   "private": true,
   "name": "drive-mobile",
-  "version": "1.2.5",
+  "version": "1.3.2",
   "husky": {
     "hooks": {
       "pre-commit": "yarn run lint --quiet"

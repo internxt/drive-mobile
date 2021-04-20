@@ -1,11 +1,14 @@
 /* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Image, Text, ScrollView, Dimensions } from 'react-native';
-import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import { StyleSheet, View, Text, ScrollView, Dimensions, RefreshControl, FlatListProps, ActivityIndicator, GestureResponderEvent } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { downloadPhoto } from '../../screens/Home/init';
+import * as MediaLibrary from 'expo-media-library';
+import { PhotosState } from '../../redux/reducers/photos.reducer';
+import Photo from './Photo'
+import EmptyPhotoList from './EmptyPhotoList';
 
 export interface IPhoto {
   id: string
@@ -25,72 +28,100 @@ export interface IPreview {
   localUri: string
 }
 
-interface PhotoListProps {
+interface PhotoListProps extends FlatListProps<MediaLibrary.Asset> {
   title: string
-  photos: IPhoto[]
-  photosState?: any
+  photosState: PhotosState
   authenticationState?: any
   dispatch?: any
   navigation: any
+  onItemPress?: (event: GestureResponderEvent, item: MediaLibrary.AssetInfo) => void
 }
 
 const deviceWidth = Dimensions.get('window').width
 
 function PhotoList(props: PhotoListProps) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadMore, setLoadMore] = useState(true);
 
   useEffect(() => {
-    setIsLoading(props.photosState.isLoading)
-  }, [props.photosState.localPhotos]);
+    setLoadMore(false);
+  }, [props.data]);
 
   return (
     <View style={styles.container}>
       {
         !isLoading ?
-          <FlatList
-            data={props.photos}
-            renderItem={({ item }) => {
-              return (
-                <TouchableOpacity
-                  style={styles.imageView}
-                  key={item.id}
-                  onPress={async () => {
-                    //downloadPhoto(props, item)
-                  }}
-                >
-                  <Image
-                    style={styles.image}
-                    source={{ uri: item.localUri }}
-                  />
-                </TouchableOpacity>
-              )
-            }}
-            contentContainerStyle={styles.flatList}
-            keyExtractor={(item, index) => index.toString()}
-            numColumns={3}
-            horizontal={false}
-          />
+          <>
+            <FlatList
+              data={props.data}
+              refreshControl={<RefreshControl
+                enabled={true}
+                refreshing={refreshing}
+                onRefresh={() => {
+                  if (props.onRefresh) {
+                    props.onRefresh();
+                  }
+                  setRefreshing(false)
+                }}
+              />}
+              onEndReached={(e) => {
+                if (props.onEndReached) {
+                  setLoadMore(true);
+                  props.onEndReached(e);
+                }
+              }}
+              onEndReachedThreshold={0.2}
+              ListEmptyComponent={props.ListEmptyComponent || <EmptyPhotoList />}
+              renderItem={({ item }) => <Photo onPress={props.onItemPress} item={item} />}
+              contentContainerStyle={styles.flatList}
+              keyExtractor={(item) => item.id}
+              numColumns={props.numColumns || 3}
+            />
+            <View>
+              {loadMore ? <ActivityIndicator color="gray" size="small" /> : <></>}
+            </View>
+          </>
           :
-          <WaveIndicator color="#5291ff" size={50} />
+          <ScrollView
+            style={styles.emptyContainer}
+            refreshControl={<RefreshControl refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(false)
+              }}
+            />}>
+            <Text style={styles.heading}>Loading photos from gallery...</Text>
+            <WaveIndicator color="#5291ff" size={50} />
+          </ScrollView>
       }
     </View>
   )
 }
 const styles = StyleSheet.create({
   container: {
-    width: '100%'
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    backgroundColor: '#f00'
+  },
+  flatList: {
+    paddingHorizontal: wp('0.5')
+  },
+  heading: {
+    color: '#000000',
+    fontFamily: 'Averta-Regular',
+    fontSize: wp('4.5'),
+    letterSpacing: -0.8,
+    marginVertical: 10
+  },
+  image: {
+    borderRadius: 10,
+    height: (deviceWidth - wp('6')) / 3,
+    width: (deviceWidth - wp('6')) / 3
   },
   imageView: {
     marginHorizontal: wp('0.5'),
     marginVertical: wp('0.5')
-  },
-  image: {
-    width: (deviceWidth - wp('6')) / 3,
-    height: (deviceWidth - wp('6')) / 3,
-    borderRadius: 10
-  },
-  flatList: {
-    paddingHorizontal: wp('0.5')
   }
 })
 

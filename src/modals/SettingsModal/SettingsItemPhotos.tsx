@@ -24,25 +24,25 @@ export default function SettingsItemPhotos(props: SettingsItemPhotosProps): JSX.
 
 const styles = StyleSheet.create({
   itemContainer: {
-    paddingTop: 13,
+    justifyContent: 'center',
     paddingBottom: 13,
     paddingLeft: 24,
-    justifyContent: 'center'
+    paddingTop: 13
   },
   itemText: {
+    color: '#000',
     fontFamily: 'Averta-Regular',
     fontSize: 18,
     fontWeight: '500',
-    color: '#000',
     justifyContent: 'center'
   },
   upgrade: {
+    color: '#0084ff',
     fontFamily: 'Averta-Bold',
     fontSize: 18,
     fontWeight: '700',
-    color: '#0084ff',
-    letterSpacing: 0.4,
     justifyContent: 'center',
+    letterSpacing: 0.4,
     marginTop: 7
   }
 });

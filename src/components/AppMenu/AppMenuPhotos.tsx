@@ -1,7 +1,5 @@
-import { getDocumentAsync } from 'expo-document-picker';
-import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync } from 'expo-image-picker';
 import React, { Fragment, useState, useRef, useEffect } from 'react'
-import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-native'
+import { View, StyleSheet, Platform, TextInput, Image, Alert, SafeAreaView } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system';
@@ -12,8 +10,6 @@ import { getIcon } from '../../helpers/getIcon';
 import analytics from '../../helpers/lytics';
 import { PhotoActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
-import { previewsStorage } from '../../helpers/previewsStorage';
-import { createNavigator } from 'react-navigation';
 
 interface AppMenuProps {
   navigation?: any
@@ -61,7 +57,7 @@ function AppMenuPhotos(props: AppMenuProps) {
 
     const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(preview.uri);
 
-    RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
+    RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/preview/upload/${preview.photoId}`, headers,
       [
         { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
       ])
@@ -126,7 +122,7 @@ function AppMenuPhotos(props: AppMenuProps) {
 
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(file) : RNFetchBlob.wrap(result.uri);
 
-      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photo/upload`, headers,
+      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
         [
           { name: 'xfile', filename: body._parts[0][1].name, data: finalUri }
         ])
@@ -194,7 +190,7 @@ function AppMenuPhotos(props: AppMenuProps) {
     }
   }
 
-  return <View
+  return <SafeAreaView
     style={styles.container}>
 
     <View style={[styles.searchContainer, { display: activeSearchBox ? 'flex' : 'none' }]}>
@@ -230,79 +226,6 @@ function AppMenuPhotos(props: AppMenuProps) {
 
     <Fragment>
       <View style={[styles.buttonContainer, { display: activeSearchBox ? 'none' : 'flex' }]}>
-        {/* <View style={styles.commonButtons}>
-          <MenuItem
-            style={styles.mr10}
-            name="search"
-            onClickHandler={() => {
-              setActiveSearchBox(true)
-              props.dispatch(layoutActions.openSearch())
-              handleClickSearch()
-
-            }} />
-
-          <MenuItem
-            style={styles.mr10}
-            name="upload"
-            onClickHandler={() => {
-              Alert.alert('Select media', '', [
-                {
-                  text: 'Upload media',
-                  onPress: async () => {
-                    const { status } = await requestCameraPermissionsAsync()
-
-                    if (status === 'granted') {
-                      const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All })
-
-                      if (!result.cancelled) {
-                        //props.dispatch(PhotoActions.add)
-                        uploadPhoto(result, props)
-                      }
-                    } else {
-                      Alert.alert('Camera permission needed to perform this action')
-                    }
-                  }
-                },
-                {
-                  text: 'Take a photo',
-                  onPress: async () => {
-                    const { status } = await requestCameraPermissionsAsync()
-
-                    if (status === 'granted') {
-                      const result = await launchCameraAsync()
-
-                      if (!result.cancelled) {
-                        uploadPhoto(result, props)
-                      }
-                    }
-                  }
-                },
-                {
-                  text: 'Cancel',
-                  style: 'destructive'
-                }
-              ], {
-                cancelable: Platform.OS === 'android'
-              })
-            }} />
-
-          <MenuItem
-            name="create"
-            style={styles.mr10}
-            onClickHandler={() => {
-              props.navigation.navigate('CreateAlbum')
-            }} />
-
-          {
-            selectedItems.length > 0 ?
-              <MenuItem name="delete" onClickHandler={() => {
-                props.dispatch(layoutActions.openDeleteModal())
-              }} />
-              :
-              null
-          }
-        </View> */}
-
         <MenuItem
           name="settings"
           onClickHandler={() => {
@@ -310,7 +233,7 @@ function AppMenuPhotos(props: AppMenuProps) {
           }} />
       </View>
     </Fragment>
-  </View>
+  </SafeAreaView>
 }
 
 const styles = StyleSheet.create({
@@ -326,32 +249,32 @@ const styles = StyleSheet.create({
     flexGrow: 1
   }, */
   container: {
-    height: 54,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
     backgroundColor: '#fff',
+    flexDirection: 'row',
+    height: 54,
+    justifyContent: 'flex-start',
+    marginTop: Platform.OS === 'ios' ? 50 : 0,
     paddingTop: 3,
-    marginTop: Platform.OS === 'ios' ? 40 : 0,
     position: 'absolute',
     width: '100%'
   },
   searchContainer: {
-    position: 'relative',
+    alignItems: 'center',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 30,
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f7f7f7',
     marginLeft: 20,
     marginRight: 20,
-    borderRadius: 30
+    position: 'relative'
   },
   searchInput: {
-    marginLeft: 15,
-    marginRight: 15,
+    flex: 1,
     fontFamily: 'Averta-Regular',
     fontSize: 17,
-    flex: 1
+    marginLeft: 15,
+    marginRight: 15
   }
   /* mr10: {
     marginRight: 10

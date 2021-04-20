@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Image, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import { layoutActions } from '../../redux/actions';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
-
-export interface ComingSoon {
+interface ComingSoonProps {
     navigation: any
     layoutState: LayoutState
     dispatch: any
 }
 
-const ComingSoonModal = (props: ComingSoon) => {
+const ComingSoonModal = (props: ComingSoonProps) => {
   const [isOpen, setIsOpen] = useState(props.layoutState.showComingSoonModal)
 
   useEffect(() => {
@@ -34,10 +34,10 @@ const ComingSoonModal = (props: ComingSoon) => {
     >
       <View style={styles.textContainer}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Coming soon!</Text>
+          <Text style={styles.title}>{strings.modals.coming_soon_modal.title}</Text>
         </View>
 
-        <Text style={styles.subtitle}>Our fantastic devs are working on it, so stay tuned!</Text>
+        <Text style={styles.subtitle}>{strings.modals.coming_soon_modal.subtitle}</Text>
       </View>
 
       <View style={styles.buttonContainer}>
@@ -45,7 +45,7 @@ const ComingSoonModal = (props: ComingSoon) => {
         <TouchableOpacity style={[styles.button, styles.blue]} onPress={() => {
           setIsOpen(false)
         }}>
-          <Text style={[styles.text, styles.white]}>Got it!</Text>
+          <Text style={[styles.text, styles.white]}>{strings.modals.coming_soon_modal.got_it}</Text>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -53,52 +53,52 @@ const ComingSoonModal = (props: ComingSoon) => {
 }
 
 const styles = StyleSheet.create({
-  modalContainer: {
-    justifyContent: 'center',
+  blue: {
+    backgroundColor: '#4585f5'
+  },
+  button: {
     alignItems: 'center',
-    height: '100%',
-    width: '100%'
-  },
-  textContainer: {
-    paddingHorizontal: 30
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end'
-  },
-  title: {
-    fontSize: 27,
-    fontFamily: 'CerebriSans-Bold',
-    color: 'black'
-  },
-  subtitle: {
-    fontSize: 17,
-    color: '#737880',
-    marginTop: 15
+    backgroundColor: '#fff',
+    borderColor: 'rgba(151, 151, 151, 0.2)',
+    borderRadius: 4,
+    borderWidth: 2,
+    height: 50,
+    justifyContent: 'center',
+    width: widthPercentageToDP('35')
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    width: '80%',
-    marginTop: 30
+    marginTop: 30,
+    width: '80%'
   },
-  button: {
-    height: 50,
-    width: widthPercentageToDP('35'),
-    borderRadius: 4,
-    borderWidth: 2,
-    backgroundColor: '#fff',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
+  modalContainer: {
+    alignItems: 'center',
+    height: '100%',
     justifyContent: 'center',
-    alignItems: 'center'
+    width: '100%'
   },
-  blue: {
-    backgroundColor: '#4585f5'
+  subtitle: {
+    color: '#737880',
+    fontSize: 17,
+    marginTop: 15
   },
   text: {
     color: '#5c6066',
     fontFamily: 'CerebriSans-Bold',
     fontSize: 16
+  },
+  textContainer: {
+    paddingHorizontal: 30
+  },
+  title: {
+    color: 'black',
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 27
+  },
+  titleContainer: {
+    alignItems: 'flex-end',
+    flexDirection: 'row'
   },
   white: {
     color: '#fff'
