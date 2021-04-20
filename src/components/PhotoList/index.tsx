@@ -55,7 +55,7 @@ function PhotoList(props: PhotoListProps) {
           <>
             <FlatList
               data={props.data}
-              refreshControl={<RefreshControl
+              /* refreshControl={<RefreshControl
                 enabled={true}
                 refreshing={refreshing}
                 onRefresh={() => {
@@ -64,7 +64,7 @@ function PhotoList(props: PhotoListProps) {
                   }
                   setRefreshing(false)
                 }}
-              />}
+              />} */
               onEndReached={(e) => {
                 if (props.onEndReached) {
                   setLoadMore(true);
