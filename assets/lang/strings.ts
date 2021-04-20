@@ -76,7 +76,7 @@ const strings = new LocalizedStrings({
         "components": {
           "create_album_card": "Create new album",
           "loading": "Loading photos from gallery...",
-          "syncing": "Sincronizando"
+          "syncing": "Syncing"
         }
       }
     },
