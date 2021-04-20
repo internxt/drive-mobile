@@ -10,12 +10,12 @@ import { AuthenticationState } from '../../redux/reducers/authentication.reducer
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
-import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
-import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto, LocalImages } from '../Photos/init';
+import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
+import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
-import async from 'async'
 import RNFS from 'react-native-fs'
+import strings from '../../../assets/lang/strings';
 
 interface PhotoGalleryProps {
   route: any;
@@ -27,11 +27,11 @@ interface PhotoGalleryProps {
 }
 
 function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
-  const localPhotodLabel = _.map(localPhotos, o => _.extend({ isLocal: true, galleryUri: o.localUri }, o))
+  const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, galleryUri: o.localUri }, o))
   const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
 
-  const union = _.unionBy([...localPhotodLabel, ...remotePhotosLabel], (o) => {
-    const a = localPhotodLabel.find(id => id.hash === o.hash)
+  const union = _.unionBy([...localPhotosLabel, ...remotePhotosLabel], (o) => {
+    const a = localPhotosLabel.find(id => id.hash === o.hash)
     const b = remotePhotosLabel.find(id => id.hash === o.hash)
 
     return _.merge(a, b);
@@ -40,59 +40,84 @@ function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
   return union;
 }
 
-async function checkExists(photos: IHashedPhoto[]) {
-  return async.filter(photos, (photo, nextPhoto) => {
-    if (!photo.localUri) {
-      return false;
-    }
-    RNFS.exists(photo.localUri).then((exists) => {
-      nextPhoto(null, exists);
-    }).catch((err) => nextPhoto(err));
-  })
+function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[], loadStartLocalPhotos?: any) {
+  const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isLocal: false, isUploaded: true }, o))
+  const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, isUploaded: false, galleryUri: o.localUri }, o))
+
+  const remotes = _.differenceBy([...remotePhotosLabel], [...localPhotosLabel], 'hash')
+  const locals = _.differenceBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
+  const synced = _.intersectionBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
+
+  const syncedUpdated = synced.map(photo => ({ ...photo, isUploaded: true }))
+
+  const union = _.union(locals, syncedUpdated, remotes)
+
+  return union;
+
 }
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
   const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
   const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
-  const [isDownloading, setIsDownloading] = useState(true);
+  const remotePhotos = setRemotePhotos(localPhotos, uploadedPhotos);
+  const [hasFinished, setHasFinished] = useState(false)
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
-  const filteredPhotos = setStatus(localPhotos, uploadedPhotos);
-  const [isUploading, setIsUploading] = useState(true);
+  const [offsetCursor, setOffsetCursor] = useState(0)
+  const [prevOffset, setPrevOffset] = useState(0)
 
-  const loadLocalPhotos = (after?: string) => {
-    return getLocalImages(after).then(res => {
-      setLocalPhotos(after ? localPhotos.concat(res.assets) : res.assets)
+  const start = (offset = 0, endCursor?: string) => {
+    setHasFinished(false)
+
+    return loadLocalPhotos(endCursor).then(() => {
+      return loadUploadedPhotos(offset)
+    }).finally(() => setHasFinished(true))
+  }
+
+  const loadLocalPhotos = (endCursor?: string) => {
+    return getLocalImages(endCursor).then(res => {
       setEndCursor(res.endCursor)
-      return res;
-    }).then(res => {
-      setIsLoading(false);
-      return res;
+      setLocalPhotos(endCursor ? localPhotos.concat(res.assets) : res.assets)
     })
   }
 
-  const loadUploadedPhotos = async (matchImages?: LocalImages) => {
-    setIsDownloading(true);
-    getPreviews(matchImages).then(res => {
-      setUploadedPhotos(res)
+  const loadUploadedPhotos = (offset: number) => {
+    setPrevOffset(offset)
+    getPreviews(push, offset).then((res) => {
+      const lastIndex = offsetCursor + res.length
+
+      setOffsetCursor(lastIndex)
+      setPrevOffset(offset)
     }).then(() => {
-      setIsLoading(false)
-    }).catch(() => {
-    }).finally(() => {
-      setIsDownloading(false);
+      setRemotePhotos(localPhotos, uploadedPhotos)
     })
   }
 
-  const loadPhotos = (after?: string) => {
-    return Promise.race([
-      loadLocalPhotos(after).then(res => loadUploadedPhotos(res))
-    ])
+  const loadMoreData = (offsetCursor: number, endCursor: string | undefined) => {
+    setHasFinished(false)
+    if (offsetCursor > prevOffset) {
+      start(offsetCursor, endCursor).then(() => { setHasFinished(true) })
+    } else {
+      if (endCursor) {
+        loadLocalPhotos(endCursor).finally(() => setHasFinished(true))
+      }
+    }
+  }
+
+  const push = (preview: any) => {
+    if (preview) {
+      const exists = uploadedPhotos.find(photo => photo.localUri === preview.localUri)
+
+      if (!exists) {
+        setUploadedPhotos(currentPhotos => [...currentPhotos, preview])
+      }
+    }
   }
 
   useEffect(() => {
-    setEndCursor(undefined)
-    setIsLoading(true);
-    loadPhotos();
+    start().finally(() => {
+      setIsLoading(false)
+    })
   }, [])
 
   return (
@@ -105,20 +130,20 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
         <View style={styles.titleWrapper}>
           <Text style={styles.albumTitle}>
-            {props.navigation.state.params.title}
+            {strings.screens.photos.screens.photo_gallery.title}
           </Text>
 
           <Text style={styles.photosCount}>
-            {filteredPhotos.length} Photos
+            {remotePhotos.length} {strings.screens.photos.screens.photo_gallery.subtitle}
           </Text>
         </View>
 
         {
-          !isUploading ?
+          !props.photosState.isSync ?
             null
             :
             <View style={styles.containerSync}>
-              <Text style={styles.syncText}>Syncing</Text>
+              <Text style={styles.syncText}>{strings.screens.photos.components.syncing}</Text>
 
               <View>
                 <MaterialIndicator style={styles.spinner} color="#5291ff" size={15} />
@@ -127,20 +152,22 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         }
       </View>
 
-      <View style={{ flexGrow: 1 }}>
+      <View style={{ flex: 1 }}>
         {
           !isLoading ?
             <PhotoList
-              data={filteredPhotos}
+              data={remotePhotos}
               numColumns={3}
               onRefresh={() => {
-                setIsLoading(true);
-                loadPhotos().finally(() => setIsLoading(false));
+                setIsLoading(true)
+                setOffsetCursor(0)
+                start(offsetCursor).then(() => { setHasFinished(false) }).catch(() => { })
               }}
               onItemPress={(event, item) => {
+
                 if (item.isUploaded && !item.isLocal) {
                   downloadPhoto(item).then(x => {
-                    loadPhotos();
+
                   }).catch((err) => {
                   })
                 } else {
@@ -153,7 +180,15 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               }}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}
-              onEndReached={() => loadPhotos(endCursor)}
+              onEndReached={() => {
+                // change isLoading for another state, small indicator right on the bottom
+                //setIsLoading(true)
+                //loadLocalPhotos(endCursor)
+                if (hasFinished) {
+                  loadMoreData(offsetCursor, endCursor)
+                }
+              }}
+              onEndReachedThreshold={0.2}
             />
             :
             <WaveIndicator color="#5291ff" size={50} />

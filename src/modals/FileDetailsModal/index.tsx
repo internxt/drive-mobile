@@ -14,6 +14,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { colors, folderIconsList } from '../../redux/constants'
 import { updateFileMetadata, updateFolderMetadata } from './actions';
 import analytics, { getLyticsData } from '../../helpers/lytics';
+import strings from '../../../assets/lang/strings';
 
 interface FileDetailsProps {
   dispatch?: any
@@ -110,7 +111,7 @@ function FileDetailsModal(props: FileDetailsProps) {
           <Separator />
 
           <Text
-            style={styles.stylesColorFolder}>Style Color</Text>
+            style={styles.stylesColorFolder}>{strings.components.file_and_folder_options.styling}</Text>
           <View style={styles.colorSelection}>
             {Object.getOwnPropertyNames(colors).map((value, i) => {
               const localColor = selectedColor ? selectedColor : (folder ? folder.color : null);
@@ -134,7 +135,7 @@ function FileDetailsModal(props: FileDetailsProps) {
           <Separator />
 
           <Text
-            style={styles.stylesCoverFolder}>Cover Icon</Text>
+            style={styles.stylesCoverFolder}>{strings.components.file_and_folder_options.icons}</Text>
 
           <View style={styles.iconSelection} key={selectedIcon}>
             {folderIconsList.map((value, i) => {
@@ -208,21 +209,21 @@ function FileDetailsModal(props: FileDetailsProps) {
 
           <View style={styles.infoContainer}>
             <Text style={styles.textDefault}>
-              <Text>Type: </Text>
+              <Text>{strings.components.file_and_folder_options.type}</Text>
               <Text style={styles.cerebriSansBold}>
                 {file && file.type ? file.type.toUpperCase() : ''}
               </Text>
             </Text>
 
             <Text style={styles.textDefault}>
-              <Text>Added: </Text>
+              <Text>{strings.components.file_and_folder_options.added}</Text>
               <Text style={styles.cerebriSansBold}>
                 {file ? <TimeAgo time={file.created_at} /> : ''}
               </Text>
             </Text>
 
             <Text style={styles.textDefault}>
-              <Text>Size: </Text>
+              <Text>{strings.components.file_and_folder_options.size}</Text>
               <Text style={styles.cerebriSansBold}>
                 {file ? prettysize(file.size) : ''}
               </Text>
@@ -237,7 +238,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                 <Text style={styles.modalFileItemContainer}>
                   <Image source={getIcon('move')} style={{ width: 20, height: 20 }} />
                   <Text style={styles.mr20}> </Text>
-                  <Text style={styles.cerebriSansBold}> Move</Text>
+                  <Text style={styles.cerebriSansBold}> {strings.components.file_and_folder_options.move}</Text>
                 </Text>
               }
               onPress={() => {
@@ -250,7 +251,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                 <Text style={styles.modalFileItemContainer}>
                   <Image source={getIcon('share')} style={{ width: 20, height: 14 }} />
                   <Text style={styles.mr20}> </Text>
-                  <Text style={{}}> Share</Text>
+                  <Text style={{}}> {strings.components.file_and_folder_options.share}</Text>
                 </Text>
               }
               onPress={() => {
@@ -263,7 +264,7 @@ function FileDetailsModal(props: FileDetailsProps) {
               <Text style={styles.modalFileItemContainer}>
                 <Image source={getIcon('delete')} style={{ width: 16, height: 21 }} />
                 <Text style={styles.mr20}> </Text>
-                <Text style={styles.cerebriSansBold}> Delete</Text>
+                <Text style={styles.cerebriSansBold}>  {strings.components.file_and_folder_options.delete}</Text>
               </Text>
             }
             onPress={() => {

@@ -15,6 +15,8 @@ interface PhotoProps {
   item: MediaLibrary.Asset & {
     isUploaded?: boolean
     isLocal?: boolean
+    preview?: any
+    localUri?: string
   }
   onPress?: (event: GestureResponderEvent, item: MediaLibrary.AssetInfo) => void
 }

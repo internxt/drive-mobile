@@ -10,6 +10,7 @@ import { getHeaders } from '../../helpers/headers';
 import { IFile, IFolder } from '../../components/FileList';
 import { Reducers } from '../../redux/reducers/reducers';
 import Clipboard from 'expo-clipboard'
+import strings from '../../../assets/lang/strings';
 
 interface ShareFilesModalProps extends Reducers {
   dispatch?: any,
@@ -96,10 +97,10 @@ function ShareFilesModal(props: ShareFilesModalProps) {
       <Separator />
 
       <View>
-        <Text style={styles.subtitle}>Share your Drive file with this private link</Text>
+        <Text style={styles.subtitle}>{strings.modals.share_modal.title}</Text>
 
         <View style={styles.inputContainer}>
-          <Text style={[styles.subtitle, styles.short]}>or enter the number of times you would like the link to be valid: </Text>
+          <Text style={[styles.subtitle, styles.short]}>{strings.modals.share_modal.title2} </Text>
           <TextInput
             style={styles.input}
             keyboardType='numeric'
@@ -119,7 +120,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
             }
           }}>
             <Text style={styles.link}>
-              {!isLoading ? link : 'Loading link...'}
+              {!isLoading ? link : strings.modals.share_modal.loading}
             </Text>
           </TouchableWithoutFeedback>
         </View>
@@ -128,7 +129,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
           <TouchableOpacity style={styles.button}
             onPress={() => { shareFile(selectedFile) }}
             disabled={isLoading}>
-            <Text style={!isLoading ? styles.buttonText : styles.buttonTextLoading}>Share</Text>
+            <Text style={!isLoading ? styles.buttonText : styles.buttonTextLoading}>{strings.modals.share_modal.share}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -144,10 +145,9 @@ const styles = StyleSheet.create({
   buttonContainer: {
     borderColor: 'rgba(151, 151, 151, 0.2)',
     borderLeftWidth: 1,
-    flex: 0.2,
+    flex: 0.4,
     height: '100%',
-    justifyContent: 'center',
-    padding: 20
+    justifyContent: 'center'
   },
   buttonText: {
     color: '#4585f5',
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   },
   link: {
     color: '#737880',
-    fontSize: 14,
+    fontSize: 12,
     marginHorizontal: 4
   },
   linkContainer: {

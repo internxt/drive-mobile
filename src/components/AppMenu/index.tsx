@@ -7,6 +7,7 @@ import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-nativ
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import RNFetchBlob from 'rn-fetch-blob';
+import strings from '../../../assets/lang/strings';
 import { getLyticsData } from '../../helpers';
 import { getIcon } from '../../helpers/getIcon';
 import analytics from '../../helpers/lytics';
@@ -139,7 +140,7 @@ function AppMenu(props: AppMenuProps) {
       <TextInput
         ref={textInput}
         style={styles.searchInput}
-        placeholder="Search"
+        placeholder={strings.components.app_menu.search_box}
         value={props.filesState.searchString}
         onChange={e => {
           props.dispatch(fileActions.setSearchString(e.nativeEvent.text))
@@ -186,9 +187,9 @@ function AppMenu(props: AppMenuProps) {
             style={styles.mr10}
             name="upload"
             onClickHandler={() => {
-              Alert.alert('Select type of file', '', [
+              Alert.alert(strings.components.app_menu.upload.title, '', [
                 {
-                  text: 'Upload a document',
+                  text: strings.components.app_menu.upload.document,
                   onPress: async () => {
                     const result = await getDocumentAsync({ copyToCacheDirectory: false })
 
@@ -206,7 +207,7 @@ function AppMenu(props: AppMenuProps) {
                   }
                 },
                 {
-                  text: 'Upload media',
+                  text: strings.components.app_menu.upload.media,
                   onPress: async () => {
                     const { status } = await requestMediaLibraryPermissionsAsync()
 
@@ -234,7 +235,7 @@ function AppMenu(props: AppMenuProps) {
                   }
                 },
                 {
-                  text: 'Take a photo',
+                  text: strings.components.app_menu.upload.take_photo,
                   onPress: async () => {
                     const { status } = await requestCameraPermissionsAsync()
 
@@ -260,7 +261,7 @@ function AppMenu(props: AppMenuProps) {
                   }
                 },
                 {
-                  text: 'Cancel',
+                  text: strings.components.app_menu.upload.cancel,
                   style: 'destructive'
                 }
               ], {

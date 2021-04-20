@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import { deviceStorage, normalize } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { userActions } from '../../redux/actions';
@@ -60,7 +61,7 @@ function Register(props: any): JSX.Element {
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Text style={styles.title}>Create an account</Text>
+              <Text style={styles.title}>{strings.screens.register_screen.create_account_title}</Text>
             </View>
 
             <View style={styles.buttonWrapper}>
@@ -70,11 +71,11 @@ function Register(props: any): JSX.Element {
                 underlayColor="#f2f2f2"
                 activeOpacity={1}
                 onPress={() => props.navigation.replace('Login')}>
-                <Text style={styles.buttonOffLabel}>Sign in</Text>
+                <Text style={styles.buttonOffLabel}>{strings.components.buttons.sign_in}</Text>
               </TouchableHighlight>
 
               <TouchableHighlight style={[styles.button, styles.buttonOn]}>
-                <Text style={styles.buttonOnLabel}>Create account</Text>
+                <Text style={styles.buttonOnLabel}>{strings.components.buttons.create}</Text>
               </TouchableHighlight>
 
             </View>
@@ -85,7 +86,7 @@ function Register(props: any): JSX.Element {
                 style={[styles.input, !isValidFirstName ? {} : {}]}
                 value={firstName}
                 onChangeText={value => setFirstName(value)}
-                placeholder="First name"
+                placeholder={strings.components.inputs.first_name}
                 placeholderTextColor="#666"
                 maxLength={64}
               />
@@ -95,7 +96,7 @@ function Register(props: any): JSX.Element {
                 style={[styles.input, !isValidLastName ? {} : {}]}
                 value={lastName}
                 onChangeText={value => setLastName(value)}
-                placeholder="Last name"
+                placeholder={strings.components.inputs.last_name}
                 placeholderTextColor="#666"
                 maxLength={64}
               />
@@ -106,7 +107,7 @@ function Register(props: any): JSX.Element {
                 style={[styles.input, isValidEmail ? {} : {}]}
                 value={email}
                 onChangeText={value => setEmail(value)}
-                placeholder="Email address"
+                placeholder={strings.components.inputs.email}
                 placeholderTextColor="#666"
                 maxLength={64}
                 keyboardType="email-address"
@@ -122,7 +123,7 @@ function Register(props: any): JSX.Element {
               onPress={() => {
                 setRegisterStep(2);
               }}>
-              <Text style={styles.buttonOnLabel}>Continue</Text>
+              <Text style={styles.buttonOnLabel}>{strings.components.buttons.continue}</Text>
             </TouchableHighlight>
           </View>
         </View>
@@ -136,35 +137,24 @@ function Register(props: any): JSX.Element {
         <View style={styles.containerCentered}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Text style={styles.title}>Internxt Security</Text>
+              <Text style={styles.title}>{strings.screens.register_screen.security_title}</Text>
             </View>
 
             <View>
-              <Text
-                style={styles.textDisclaimer}
-              >
-                Internxt uses your password to encrypt and decrypt your
-                files. Due to the secure nature of Internxt, we don&apos;t
-                know your password. That means that if you ever forget it,
-                your files are gone forever. With us, you&apos;re the only owner of
-                your files. We strongly suggest you to:
-              </Text>
+              <Text style={styles.textDisclaimer}>{strings.screens.register_screen.security_subtitle}</Text>
             </View>
 
             <View style={styles.textStorePasswordContainer}>
               <View style={[styles.flexRow, { marginBottom: 10 }]}>
                 <Text>{'\u2022'}</Text>
-                <Text
-                  style={styles.textStorePassword}
-                >
-                  Store your Password. Keep it safe and secure.
-                </Text>
+
+                <Text style={styles.textStorePassword}>{strings.screens.register_screen.suggestion_1}</Text>
               </View>
+
               <View style={styles.flexRow}>
                 <Text>{'\u2022'}</Text>
-                <Text style={styles.textTip}>
-                  Keep an offline backup of your password.
-                </Text>
+
+                <Text style={styles.textTip}>{strings.screens.register_screen.suggestion_2}</Text>
               </View>
             </View>
 
@@ -175,17 +165,17 @@ function Register(props: any): JSX.Element {
                   underlayColor="#f2f2f2"
                   onPress={() => setRegisterStep(1)}
                 >
-                  <Text style={styles.buttonOffLabel}>Back</Text>
+                  <Text style={styles.buttonOffLabel}>{strings.components.buttons.back}</Text>
                 </TouchableHighlight>
+
                 <TouchableHighlight
                   style={[styles.button, styles.buttonOn, styles.buttonRight]}
                   underlayColor="#4585f5"
                   onPress={() => setRegisterStep(3)}
                 >
-                  <Text style={styles.buttonOnLabel}>Continue</Text>
+                  <Text style={styles.buttonOnLabel}>{strings.components.buttons.continue}</Text>
                 </TouchableHighlight>
               </View>
-
             </View>
           </View>
         </View>
@@ -202,7 +192,7 @@ function Register(props: any): JSX.Element {
         <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Text style={styles.title}>Create an account</Text>
+              <Text style={styles.title}>{strings.screens.register_screen.create_account_title}</Text>
             </View>
           </View>
           <View style={[styles.showInputFieldsWrapper, { marginTop: -10 }]}>
@@ -212,24 +202,26 @@ function Register(props: any): JSX.Element {
                 style={[styles.input, !isValidPassword ? {} : {}]}
                 value={password}
                 onChangeText={value => setPassword(value)}
-                placeholder="Password"
+                placeholder={strings.components.inputs.password}
                 placeholderTextColor="#666"
                 secureTextEntry={true}
                 textContentType="password"
               />
             </View>
+
             <View style={styles.inputWrapper}>
               <TextInput
                 style={[styles.input, !isValidStep ? {} : {}]}
                 value={confirmPassword}
                 onChangeText={value => setConfirmPassword(value)}
-                placeholder="Confirm password"
+                placeholder={strings.components.inputs.confirm_password}
                 placeholderTextColor="#666"
                 secureTextEntry={true}
                 textContentType="password"
               />
             </View>
           </View>
+
           <View style={styles.buttonFooterWrapper}>
             <View style={styles.buttonWrapper}>
               <TouchableHighlight
@@ -237,8 +229,9 @@ function Register(props: any): JSX.Element {
                 underlayColor="#f2f2f2"
                 onPress={() => setRegisterStep(2)}
               >
-                <Text style={styles.buttonOffLabel}>Back</Text>
+                <Text style={styles.buttonOffLabel}>{strings.components.buttons.back}</Text>
               </TouchableHighlight>
+
               <TouchableHighlight
                 style={[styles.button, styles.buttonOn, styles.buttonRight]}
                 underlayColor="#4585f5"
@@ -288,7 +281,7 @@ function Register(props: any): JSX.Element {
                     })
                 }}
               >
-                <Text style={styles.buttonOnLabel}>{registerButtonClicked ? 'Creating...' : 'Continue'}</Text>
+                <Text style={styles.buttonOnLabel}>{registerButtonClicked ? strings.components.buttons.creating_button : strings.components.buttons.continue}</Text>
               </TouchableHighlight>
             </View>
           </View>

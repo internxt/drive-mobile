@@ -2,6 +2,7 @@ import React from 'react'
 import { StyleSheet, Text } from 'react-native';
 import Modal from 'react-native-modalbox'
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import { fileActions, layoutActions } from '../../redux/actions';
 import { sortTypes } from '../../redux/constants';
 
@@ -29,7 +30,7 @@ function SortModal(props: any) {
       }
       onPress={() => {
         props.dispatch(fileActions.setSortFunction(sortTypes.DATE_ADDED))
-      }}>Date Added</Text>
+      }}>{strings.components.app_menu.filter.date}</Text>
     <Text
       style={
         props.filesState.sortType === sortTypes.SIZE_ASC
@@ -40,7 +41,7 @@ function SortModal(props: any) {
         props.dispatch(
           fileActions.setSortFunction(sortTypes.SIZE_ASC)
         );
-      }}>Size</Text>
+      }}>{strings.components.app_menu.filter.size}</Text>
     <Text
       style={
         props.filesState.sortType === sortTypes.NAME_ASC
@@ -49,7 +50,7 @@ function SortModal(props: any) {
       }
       onPress={() => {
         props.dispatch(fileActions.setSortFunction(sortTypes.NAME_ASC));
-      }}>Name</Text>
+      }}>{strings.components.app_menu.filter.name}</Text>
     <Text
       style={
         props.filesState.sortType === sortTypes.FILETYPE_ASC
@@ -60,7 +61,7 @@ function SortModal(props: any) {
         props.dispatch(
           fileActions.setSortFunction(sortTypes.FILETYPE_ASC)
         );
-      }}>File Type</Text>
+      }}>{strings.components.app_menu.filter.type}</Text>
   </Modal>
 }
 

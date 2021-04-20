@@ -54,7 +54,6 @@ function PhotoList(props: PhotoListProps) {
         !isLoading ?
           <>
             <FlatList
-              style={{ flexGrow: 1 }}
               data={props.data}
               refreshControl={<RefreshControl
                 enabled={true}
@@ -72,6 +71,7 @@ function PhotoList(props: PhotoListProps) {
                   props.onEndReached(e);
                 }
               }}
+              onEndReachedThreshold={0.2}
               ListEmptyComponent={props.ListEmptyComponent || <EmptyPhotoList />}
               renderItem={({ item }) => <Photo onPress={props.onItemPress} item={item} />}
               contentContainerStyle={styles.flatList}
@@ -99,8 +99,6 @@ function PhotoList(props: PhotoListProps) {
 }
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    marginBottom: wp('5')
   },
   emptyContainer: {
     alignItems: 'center',

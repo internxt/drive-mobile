@@ -5,43 +5,33 @@ import { TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { normalize } from '../../helpers';
 import B from '../../components/Bold'
+import strings from '../../../assets/lang/strings';
 interface IntroProps {
   onFinish: () => void
   navigation?: any
 }
 
+const applyBoldStyle = (text: string, boldText: string[]) => {
+  let numberOfItemsAdded = 0
+  const result = text.split(/\{\d+\}/)
+
+  boldText.forEach((boldText, i) => result.splice(++numberOfItemsAdded + i, 0, <B>{boldText}</B>))
+  return <Text>{result}</Text>
+};
 const slides = [
   {
     key: 'intro001',
-    text: (
-      <Text>
-        <B>Internxt</B> is a <B>different</B> cloud storage service. A{' '}
-        <B>better</B> place for all your files. Welcome to the <B>revolution</B>
-        . Welcome to <B>Internxt</B>.
-      </Text>
-    ),
+    text: (applyBoldStyle(strings.screens.register_screen.first, strings.screens.register_screen.bold_first)),
     image: require('../../../assets/images/intro/intro01.png')
   },
   {
     key: 'intro002',
-    text: (
-      <Text>
-        Files are <B>encrypted</B> on your device. There is <B>no way</B> we nor
-        any other third-party can access them. <B>Privacy</B>, as it should have
-        always been.
-      </Text>
-    ),
+    text: (applyBoldStyle(strings.screens.register_screen.second, strings.screens.register_screen.bold_second)),
     image: require('../../../assets/images/intro/intro02.png')
   },
   {
     key: 'intro003',
-    text: (
-      <Text>
-        Access Internxt from <B>Desktop</B>, <B>Web</B> or{' '}
-        <B>Mobile</B>. Start using Drive today with <B>10 GB</B> on
-        us. <B>Upgrade your storage</B> when needed, free for a month, cancel anytime.
-      </Text>
-    ),
+    text: (applyBoldStyle(strings.screens.register_screen.third, strings.screens.register_screen.bold_third)),
     image: require('../../../assets/images/intro/intro03.png')
   }
 ];
@@ -50,6 +40,7 @@ function renderItem({ item }: any) {
   return (
     <View style={styles.body}>
       <Text style={styles.explanationText}>{item.text}</Text>
+
       <View style={styles.imageContainer}>
         <Image source={item.image} style={styles.image} />
       </View>
@@ -62,7 +53,7 @@ function renderNextButton(): ReactNode {
     <TouchableHighlight style={styles.buttonSkip}
       activeOpacity={1}
       underlayColor="#007aff">
-      <Text style={styles.buttonSkipText}>Next</Text>
+      <Text style={styles.buttonSkipText}>{strings.components.buttons.next}</Text>
     </TouchableHighlight>
   );
 }
@@ -72,7 +63,7 @@ function renderDoneButton() {
     <TouchableHighlight style={styles.buttonSkip}
       activeOpacity={1}
       underlayColor="#007aff">
-      <Text style={styles.buttonSkipText}>Get Started</Text>
+      <Text style={styles.buttonSkipText}>{strings.components.buttons.get_started}</Text>
     </TouchableHighlight>
   );
 }
@@ -90,7 +81,6 @@ function Intro(props: IntroProps): JSX.Element {
     activeDotStyle={styles.activeDot}
     dotStyle={styles.inactiveDot}
   />
-
 }
 
 const styles = StyleSheet.create({

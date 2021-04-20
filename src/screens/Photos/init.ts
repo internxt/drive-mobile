@@ -10,6 +10,7 @@ import { deviceStorage } from '../../helpers';
 import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
+import { PhotoActions } from '../../redux/actions';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -27,34 +28,63 @@ const getArrayPhotos = async (images: Asset[]) => {
       return next(Error('Missing localUri'));
     }
 
-    const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
+    if (Platform.OS === 'ios') {
+      const p = await manipulateAsync(asset.localUri,
+        [],
+        { compress: 1, format: SaveFormat.PNG }
+      )
 
-    const hashedImage = {
-      ...image,
-      hash: sha256Id,
-      localUri: asset.localUri
+      const sha256Id = await RNFS.hash(p.uri, 'sha256')
+      const hashedImage = {
+        ...image,
+        hash: sha256Id,
+        localUri: asset.localUri
+      }
+
+      next(null, hashedImage)
+    } else {
+      const sha256Id = await RNFS.hash(asset.uri, 'sha256')
+      const hashedImage = {
+        ...image,
+        hash: sha256Id,
+        localUri: asset.localUri
+      }
+
+      next(null, hashedImage)
     }
-
-    next(null, hashedImage)
   });
 
   return result;
 }
 
-export async function syncPhotos(images: IHashedPhoto[]): Promise<any> {
+export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<any> {
   // Skip uploaded photos with previews
   const alreadyUploadedPhotos = await getUploadedPhotos();
   const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview);
   const uploadedHashes = withPreviews.map(x => x.hash);
   const imagesToUpload = images.filter(x => uploadedHashes.indexOf(x.hash) < 0)
+  let last = false;
+  let onePhotoToUpload = false;
 
   // Upload filtered photos
   return mapSeries(imagesToUpload, (image, next) => {
-    uploadPhoto(image).then(() => next(null)).catch(next)
+    if (!(imagesToUpload[imagesToUpload.length - 1] === imagesToUpload[0])) {
+      if ((imagesToUpload[imagesToUpload.length - 1].id) === image.id) {
+        last = true;
+      }
+    } else {
+      onePhotoToUpload = true;
+    }
+    uploadPhoto(image, dispatch, last, onePhotoToUpload).then(() => next(null)).catch(next)
   })
 }
 
-async function uploadPhoto(photo: IHashedPhoto) {
+async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) {
+
+  if (!last || !onePhotoToUpload) {
+    dispatch(PhotoActions.startSync())
+  }
+
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -69,20 +99,43 @@ async function uploadPhoto(photo: IHashedPhoto) {
 
   const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUri)) : RNFetchBlob.wrap(photo.uri)
 
+  let creationTime;
+
+  if (Platform.OS === 'android') {
+    creationTime = photo.modificationTime
+  }
+  if (Platform.OS === 'ios') {
+    creationTime = photo.creationTime
+  }
+  if (creationTime) {
+    creationTime = new Date(creationTime).toString()
+  } else {
+    creationTime = new Date().toString()
+  }
+
   return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
     [
       { name: 'xfile', filename: photo.filename, data: finalUri },
-      { name: 'hash', data: photo.hash }
+      { name: 'hash', data: photo.hash },
+      { name: 'creationTime', data: creationTime }
+
     ])
     .then((res) => {
       const statusCode = res.respInfo.status;
 
-      if (statusCode === 401) { throw res; }
-      if (statusCode === 201 || statusCode === 409) { return res.json(); }
+      if (statusCode === 401) {
+        dispatch(PhotoActions.stopSync())
+        throw res;
+      }
+      if (statusCode === 201) {
+        return res.json();
+      }
+      if (statusCode === 409 || statusCode === 500) {
+        dispatch(PhotoActions.stopSync())
+      }
       throw res
     })
     .then(async res => {
-
       if (!res.id) {
         return;
       }
@@ -93,11 +146,12 @@ async function uploadPhoto(photo: IHashedPhoto) {
         { compress: 1, format: SaveFormat.JPEG }
       )
 
-      return uploadPreview(prev, res.id, photo);
-    })
+      return uploadPreview(prev, res.id, photo, dispatch, last, onePhotoToUpload);
+    }).catch(err => { })
 }
 
-const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto) => {
+const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) => {
+
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -117,9 +171,13 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
       { name: 'xfile', filename: originalPhoto.filename, data: finalUri }
     ])
     .then(res => {
+      if (last || onePhotoToUpload) {
+        dispatch(PhotoActions.stopSync())
+      }
       const statusCode = res.respInfo.status;
 
       if (statusCode === 201 || statusCode === 409) {
+        dispatch(PhotoActions.stopSync())
         return res.json();
       }
 
@@ -141,11 +199,10 @@ export function getLocalImages(after?: string | undefined): Promise<LocalImages>
   };
 
   return Permissions.askAsync(Permissions.MEDIA_LIBRARY).then(() => {
-    return MediaLibrary.getAssetsAsync({ first: 20, after: after });
+    return MediaLibrary.getAssetsAsync({ first: 20, after: after, sortBy: [MediaLibrary.SortBy.modificationTime] });
   }).then((res) => {
     result.hasNextPage = res.hasNextPage;
     result.endCursor = res.endCursor;
-
     return getArrayPhotos(res.assets)
   }).then(res => {
     result.assets = res
@@ -165,6 +222,18 @@ export async function getPartialUploadedPhotos(matchImages: LocalImages): Promis
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
+  }).catch(() => { })
+}
+
+export async function getPartialRemotePhotos(offset?= 0, limit?= 20) {
+  const headers = await getHeaders()
+
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/remote/photos/${limit}/${offset}`, {
+    method: 'GET',
+    headers
+  }).then(res => {
+    if (res.status !== 200) { throw res; }
+    return res.json();
   })
 }
 
@@ -181,7 +250,7 @@ export async function getUploadedPhotos(matchImages?: LocalImages): Promise<IApi
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  })
+  }).catch(() => { })
 }
 
 export async function getLocalPreviewsDir(): Promise<string> {
@@ -191,7 +260,6 @@ export async function getLocalPreviewsDir(): Promise<string> {
   if (!TempDirExists) {
     RNFS.mkdir(TempDir)
   }
-
   return TempDir;
 }
 
@@ -227,7 +295,6 @@ export async function getLocalPhotosDir(): Promise<string> {
   if (!TempDirExists) {
     RNFS.mkdir(TempDir)
   }
-
   return TempDir;
 }
 
@@ -250,12 +317,24 @@ export async function downloadPhoto(photo: any) {
       throw Error('Unable to download picture')
     }
     return res;
-  }).then(res => MediaLibrary.saveToLibraryAsync(res.path())).then(() => {
+  }).then(async (res) => {
+
+    if (Platform.OS === 'ios') {
+      const p = await manipulateAsync(res.path(),
+        [],
+        { compress: 1, format: SaveFormat.PNG }
+      )
+
+      MediaLibrary.saveToLibraryAsync(p.uri)
+    } else {
+      MediaLibrary.saveToLibraryAsync(res.path())
+    }
+  }).then(() => {
     SimpleToast.show('Image downloaded!', 0.3)
   })
 }
 
-export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview): Promise<void> {
+export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview): Promise<any> {
   if (!preview) {
     return Promise.resolve();
   }
@@ -274,7 +353,7 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
     const localPreview = await RNFS.stat(tempPath);
 
     photo.localUri = localPreview.path;
-    return Promise.resolve();
+    return Promise.resolve(photo.localUri);
   }
 
   return RNFetchBlob.config({
@@ -283,7 +362,9 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
   }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
-  }).then(() => { return; }).catch(err => {
+  }).then((res) => {
+    return res.path();
+  }).catch(err => {
     RNFS.unlink(tempPath)
     throw err;
   })
@@ -307,16 +388,25 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export function getPreviews(matchImages?: LocalImages): Promise<any> {
+export function getPreviews(push: any, offset?: number): Promise<any> {
   SHOULD_STOP = false;
-  return getUploadedPhotos(matchImages).then((res) => {
+  return getPartialRemotePhotos(offset).then((res) => {
     return mapSeries(res, (photo, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }
 
-      return downloadPreview(photo.preview, photo).then(() => {
+      return downloadPreview(photo.preview, photo).then((res) => {
+        if (res) {
+          const newPhoto = {
+            ...photo,
+            localUri: res
+          }
+
+          push(newPhoto)
+        }
         next(null, photo)
+
       }).catch(err => {
       });
     });
