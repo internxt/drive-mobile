@@ -104,7 +104,7 @@ function Photos(props: IPhotosProps): JSX.Element {
                 title={'All Photos'}
                 data={photos}
                 navigation={props.navigation}
-                onRefresh={() => getNextImages()}
+                //onRefresh={() => getNextImages()}
                 onEndReached={() => getNextImages(endCursor)}
               />
             </View>
