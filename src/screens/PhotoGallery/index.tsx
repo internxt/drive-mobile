@@ -50,11 +50,7 @@ function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto
 
   const syncedUpdated = synced.map(photo => ({ ...photo, isUploaded: true }))
 
-  let union = _.union(locals, syncedUpdated, remotes)
-
-  if (Platform.OS === 'ios'){
-    union = _.union(locals, syncedUpdated)
-  }
+  const union = _.union(locals, syncedUpdated, remotes)
 
   return union;
 
