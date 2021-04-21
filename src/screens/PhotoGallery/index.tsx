@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
