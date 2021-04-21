@@ -34,24 +34,16 @@ const getArrayPhotos = async (images: Asset[]) => {
       hash: '',
       localUri: asset.localUri
     }
+    const binary = Platform.OS === 'ios'
+      ? await RNFS.readFile(asset.localUri, 'base64').catch(() => { })
+      : await RNFS.readFile(asset.uri, 'base64').catch(() => { })
 
-    if (Platform.OS === 'ios') {
-      const binary = await RNFS.readFile(asset.localUri, 'base64').catch(() => { })
-
-      if (binary) {
-        await sha256(binary).then(res => {
-          hashedImage.hash = res
-        })
-      }
-    } else {
-      const binary = await RNFS.readFile(asset.uri, 'base64').catch(() => {})
-
-      if (binary) {
-        await sha256(binary).then(res => {
-          hashedImage.hash = res
-        })
-      }
+    if (binary) {
+      await sha256(binary).then(res => {
+        hashedImage.hash = res
+      })
     }
+
     next(null, hashedImage)
   });
 
@@ -319,17 +311,8 @@ export async function downloadPhoto(photo: any) {
     }
     return res;
   }).then(async (res) => {
+    return MediaLibrary.saveToLibraryAsync(res.path())
 
-    if (Platform.OS === 'ios') {
-      const p = await manipulateAsync(res.path(),
-        [],
-        { compress: 1, format: SaveFormat.PNG }
-      )
-
-      MediaLibrary.saveToLibraryAsync(p.uri)
-    } else {
-      MediaLibrary.saveToLibraryAsync(res.path())
-    }
   }).then(() => {
     SimpleToast.show('Image downloaded!', 0.3)
   })

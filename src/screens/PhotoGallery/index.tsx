@@ -52,12 +52,11 @@ function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto
 
   let union = _.union(locals, syncedUpdated, remotes)
 
-  if (Platform.OS === 'ios'){
-    union = _.union(locals, syncedUpdated)
+  if (Platform.OS === 'ios') {
+    union = _.union(locals, syncedUpdated, remotes)
   }
 
   return union;
-
 }
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
@@ -168,7 +167,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                 start(offsetCursor).then(() => { setHasFinished(false) }).catch(() => { })
               }}
               onItemPress={(event, item) => {
-
                 if (item.isUploaded && !item.isLocal) {
                   downloadPhoto(item).then(x => {
 
