@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
@@ -50,11 +50,7 @@ function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto
 
   const syncedUpdated = synced.map(photo => ({ ...photo, isUploaded: true }))
 
-  let union = _.union(locals, syncedUpdated, remotes)
-
-  if (Platform.OS === 'ios') {
-    union = _.union(locals, syncedUpdated, remotes)
-  }
+  const union = _.union(locals, syncedUpdated, remotes)
 
   return union;
 }

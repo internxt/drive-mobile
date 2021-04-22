@@ -247,7 +247,7 @@ export async function getUploadedPhotos(matchImages?: LocalImages): Promise<IApi
 }
 
 export async function getLocalPreviewsDir(): Promise<string> {
-  const TempDir = (Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir : RNFetchBlob.fs.dirs.PictureDir) + '/drive-photos-previews';
+  const TempDir = (Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir : RNFetchBlob.fs.dirs.DocumentDir) + '/drive-photos-previews';
   const TempDirExists = await RNFetchBlob.fs.exists(TempDir);
 
   if (!TempDirExists) {
@@ -282,7 +282,7 @@ export async function cachePicture(item: MediaLibrary.AssetInfo): Promise<string
 }
 
 export async function getLocalPhotosDir(): Promise<string> {
-  const TempDir = (Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir : RNFetchBlob.fs.dirs.PictureDir) + '/drive-photos';
+  const TempDir = (Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir : RNFetchBlob.fs.dirs.DocumentDir) + '/drive-photos';
   const TempDirExists = await RNFetchBlob.fs.exists(TempDir);
 
   if (!TempDirExists) {
