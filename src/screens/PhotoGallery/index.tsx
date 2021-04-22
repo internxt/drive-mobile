@@ -53,7 +53,6 @@ function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto
   const union = _.union(locals, syncedUpdated, remotes)
 
   return union;
-
 }
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
@@ -164,7 +163,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                 start(offsetCursor).then(() => { setHasFinished(false) }).catch(() => { })
               }}
               onItemPress={(event, item) => {
-
                 if (item.isUploaded && !item.isLocal) {
                   downloadPhoto(item).then(x => {
 

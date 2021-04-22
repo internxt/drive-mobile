@@ -11,6 +11,7 @@ import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { PhotoActions } from '../../redux/actions';
+import { sha256 } from 'react-native-sha256'
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -28,30 +29,22 @@ const getArrayPhotos = async (images: Asset[]) => {
       return next(Error('Missing localUri'));
     }
 
-    if (Platform.OS === 'ios') {
-      const p = await manipulateAsync(asset.localUri,
-        [],
-        { compress: 1, format: SaveFormat.PNG }
-      )
-
-      const sha256Id = await RNFS.hash(p.uri, 'sha256')
-      const hashedImage = {
-        ...image,
-        hash: sha256Id,
-        localUri: asset.localUri
-      }
-
-      next(null, hashedImage)
-    } else {
-      const sha256Id = await RNFS.hash(asset.uri, 'sha256')
-      const hashedImage = {
-        ...image,
-        hash: sha256Id,
-        localUri: asset.localUri
-      }
-
-      next(null, hashedImage)
+    const hashedImage = {
+      ...image,
+      hash: '',
+      localUri: asset.localUri
     }
+    const binary = Platform.OS === 'ios'
+      ? await RNFS.readFile(asset.localUri, 'base64').catch(() => { })
+      : await RNFS.readFile(asset.uri, 'base64').catch(() => { })
+
+    if (binary) {
+      await sha256(binary).then(res => {
+        hashedImage.hash = res
+      })
+    }
+
+    next(null, hashedImage)
   });
 
   return result;
@@ -318,17 +311,8 @@ export async function downloadPhoto(photo: any) {
     }
     return res;
   }).then(async (res) => {
+    return MediaLibrary.saveToLibraryAsync(res.path())
 
-    if (Platform.OS === 'ios') {
-      const p = await manipulateAsync(res.path(),
-        [],
-        { compress: 1, format: SaveFormat.PNG }
-      )
-
-      MediaLibrary.saveToLibraryAsync(p.uri)
-    } else {
-      MediaLibrary.saveToLibraryAsync(res.path())
-    }
   }).then(() => {
     SimpleToast.show('Image downloaded!', 0.3)
   })
