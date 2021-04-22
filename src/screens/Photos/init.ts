@@ -10,7 +10,7 @@ import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { PhotoActions } from '../../redux/actions';
-
+import { sha256 } from 'react-native-sha256'
 export interface IHashedPhoto extends Asset {
   hash: string,
   localUri: string | undefined
