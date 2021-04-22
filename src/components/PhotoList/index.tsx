@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Text, ScrollView, Dimensions, RefreshControl, FlatListProps, ActivityIndicator, GestureResponderEvent } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Dimensions, RefreshControl, FlatListProps, ActivityIndicator } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
@@ -34,7 +34,6 @@ interface PhotoListProps extends FlatListProps<MediaLibrary.Asset> {
   authenticationState?: any
   dispatch?: any
   navigation: any
-  onItemPress?: (event: GestureResponderEvent, item: MediaLibrary.AssetInfo) => void
 }
 
 const deviceWidth = Dimensions.get('window').width
@@ -73,7 +72,7 @@ function PhotoList(props: PhotoListProps) {
               }}
               onEndReachedThreshold={0.2}
               ListEmptyComponent={props.ListEmptyComponent || <EmptyPhotoList />}
-              renderItem={({ item }) => <Photo onPress={props.onItemPress} item={item} />}
+              renderItem={({ item }) => <Photo item={item} />}
               contentContainerStyle={styles.flatList}
               keyExtractor={(item) => item.id}
               numColumns={props.numColumns || 3}

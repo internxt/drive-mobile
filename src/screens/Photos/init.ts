@@ -7,11 +7,9 @@ import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
-import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { PhotoActions } from '../../redux/actions';
-import { sha256 } from 'react-native-sha256'
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -291,7 +289,7 @@ export async function getLocalPhotosDir(): Promise<string> {
   return TempDir;
 }
 
-export async function downloadPhoto(photo: any) {
+export async function downloadPhoto(photo: any, setProgress: (progress: number) => void) {
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -305,16 +303,16 @@ export async function downloadPhoto(photo: any) {
   }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/download/photo/${photo.id}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
+  }).progress((received: number, total: number) => {
+    setProgress(received / total)
   }).then((res) => {
+    setProgress(0)
     if (res.respInfo.status !== 200) {
       throw Error('Unable to download picture')
     }
     return res;
   }).then(async (res) => {
     return MediaLibrary.saveToLibraryAsync(res.path())
-
-  }).then(() => {
-    SimpleToast.show('Image downloaded!', 0.3)
   })
 }
 

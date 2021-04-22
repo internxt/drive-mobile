@@ -20,13 +20,14 @@ const deviceWidth = Dimensions.get('window').width
 
 function Photo(props: PhotoProps): JSX.Element {
   const [isDownloading, setIsDownloading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [uri, setUri] = useState(props.uri)
+  const regEx = 'file:///'
   const icons = {
     'download'  : require('../../../assets/icons/photos/photo-remote.svg'),
     'upload'    : require('../../../assets/icons/photos/photo-local.svg')
   }
   const icon = props.isUploaded ? icons.download : icons.upload
-  const regEx = 'file:///'
-  const [uri, setUri] = useState(props.uri)
 
   useEffect(() => {
     if (uri) {

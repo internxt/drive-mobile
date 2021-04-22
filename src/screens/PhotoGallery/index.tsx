@@ -11,10 +11,8 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
-import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
+import { getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
-import FileViewer from 'react-native-file-viewer'
-import RNFS from 'react-native-fs'
 import strings from '../../../assets/lang/strings';
 
 interface PhotoGalleryProps {
@@ -161,20 +159,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                 setIsLoading(true)
                 setOffsetCursor(0)
                 start(offsetCursor).then(() => { setHasFinished(false) }).catch(() => { })
-              }}
-              onItemPress={(event, item) => {
-                if (item.isUploaded && !item.isLocal) {
-                  downloadPhoto(item).then(x => {
-
-                  }).catch((err) => {
-                  })
-                } else {
-                  cachePicture(item).then(tempFile => {
-                    FileViewer.open(tempFile, {
-                      onDismiss: () => RNFS.unlink(tempFile)
-                    });
-                  })
-                }
               }}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}

@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { StyleSheet, Image, Dimensions, ActivityIndicator, View, GestureResponderEvent, Platform } from 'react-native';
+import { StyleSheet, Image, Dimensions, ActivityIndicator, View, Platform } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import * as MediaLibrary from 'expo-media-library';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import PhotoBadge from './PhotoBadge';
 import RNFS from 'react-native-fs'
-import { cachePicture } from '../../screens/Photos/init';
+import { cachePicture, downloadPhoto } from '../../screens/Photos/init';
+import { LinearGradient } from 'expo-linear-gradient';
+import SimpleToast from 'react-native-simple-toast';
 
 const deviceWidth = Dimensions.get('window').width
 
@@ -17,13 +19,15 @@ interface PhotoProps {
     isLocal?: boolean
     preview?: any
     localUri?: string
+    size?: number
   }
-  onPress?: (event: GestureResponderEvent, item: MediaLibrary.AssetInfo) => void
 }
 
 export default function Photo(props: PhotoProps): JSX.Element {
   const [isLoaded, setIsLoaded] = useState(false);
-  const item: MediaLibrary.AssetInfo = props.item;
+  const item = props.item;
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [progress, setProgress] = useState(0)
 
   try {
     const urlEncoded = props.item.localUri.startsWith('file://')
@@ -33,44 +37,73 @@ export default function Photo(props: PhotoProps): JSX.Element {
     }
   } catch { }
 
-  return <TouchableOpacity
-    style={styles.imageView}
-    key={item.id}
-    onPress={async (e) => {
-      if (props.onPress) {
-        return props.onPress(e, item)
+  return (
+    <TouchableOpacity
+      style={styles.imageView}
+      key={item.id}
+      onPress={() => {
+        if (!item.localUri) {
+          return;
+        }
+
+        if (item.isUploaded && !item.isLocal && !isDownloading) {
+          setIsDownloading(true)
+
+          downloadPhoto(item, setProgress).then(() => {
+            setIsDownloading(false)
+            SimpleToast.show('Image downloaded!', 0.15)
+          }).catch(() => SimpleToast.show('Could not download image'))
+            .finally(() => setIsDownloading(false))
+
+        } else {
+          cachePicture(item).then(tempFile => {
+            FileViewer.open(tempFile, {
+              onDismiss: () => RNFS.unlink(tempFile)
+            });
+          })
+        }
+      }}
+      disabled={isDownloading}
+    >
+      <Image
+        onLoadEnd={() => setIsLoaded(true)}
+        style={!isDownloading ? styles.image : [styles.image, styles.disabled]}
+        source={{ uri: item.galleryUri || item.localUri }}
+      />
+
+      {!isLoaded || isDownloading
+        ? <ActivityIndicator color='gray' size='small' style={styles.badge} />
+        : <View style={styles.badge}>
+          {props.badge ||
+            <PhotoBadge
+              isUploaded={props.item.isUploaded}
+              isLocal={props.item.isLocal} />
+          }
+        </View>
       }
 
-      if (!item.localUri) {
-        return;
-      }
-
-      const tempFile = await cachePicture(item);
-
-      FileViewer.open(tempFile, {
-        onDismiss: () => RNFS.unlink(tempFile)
-      });
-    }}
-  >
-    <Image
-      onLoadEnd={() => setIsLoaded(true)}
-      style={styles.image}
-      source={{ uri: item.galleryUri || item.localUri }}
-    />
-    {!isLoaded
-      ? <ActivityIndicator color='gray' size='small' style={styles.badge} />
-      : <View style={styles.badge}>
-        {props.badge
-          || <PhotoBadge
-            isUploaded={props.item.isUploaded}
-            isLocal={props.item.isLocal} />}
-      </View>}
-  </TouchableOpacity>
+      <View style={styles.progressIndicatorContainer}>
+        {
+          isDownloading ?
+            <LinearGradient
+              colors={['#47c7fd', '#096dff']}
+              start={[0, 0.7]}
+              end={[0.7, 1]}
+              style={[styles.progressIndicator, { width: (deviceWidth / 3.5) * progress }]} />
+            :
+            null
+        }
+      </View>
+    </TouchableOpacity>
+  )
 }
 
 const styles = StyleSheet.create({
   badge: {
     position: 'absolute'
+  },
+  disabled: {
+    opacity: 0.5
   },
   image: {
     borderRadius: 10,
@@ -82,5 +115,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: wp('0.5'),
     marginVertical: wp('0.5')
+  },
+  progressIndicator: {
+    backgroundColor: '#87B7FF',
+    borderRadius: 3,
+    height: 6
+  },
+  progressIndicatorContainer: {
+    alignSelf: 'center',
+    bottom: 0,
+    height: 17,
+    position: 'absolute',
+    width: '90%'
   }
 });
