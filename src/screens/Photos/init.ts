@@ -201,6 +201,13 @@ export function getLocalImages(after?: string | undefined): Promise<LocalImages>
   });
 }
 
+export const getRecentlyDownloadedImage = (): Promise<IHashedPhoto[]> => {
+  return MediaLibrary.getAssetsAsync({ first: 1, sortBy: [MediaLibrary.SortBy.modificationTime] })
+    .then(res => {
+      return getArrayPhotos(res.assets)
+    })
+}
+
 export async function getPartialUploadedPhotos(matchImages: LocalImages): Promise<IApiPhotoWithPreview[]> {
   const headers = await getHeaders()
 
@@ -372,8 +379,8 @@ export function stopSync(): void {
 
 export function getPreviews(push: any, offset?: number): Promise<any> {
   SHOULD_STOP = false;
-  return getPartialRemotePhotos(offset).then((res) => {
-    return mapSeries(res, (photo, next) => {
+  return getPartialRemotePhotos(offset).then((uploadedPhotos: IApiPhotoWithPreview[]) => {
+    return mapSeries(uploadedPhotos, (photo, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }

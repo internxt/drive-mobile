@@ -1,6 +1,8 @@
 export interface IAPIPhoto {
     bucketId: string
     createdAt: Date
+    creationTime: Date
+    device: string | null
     fileId: string
     hash: string
     id: number

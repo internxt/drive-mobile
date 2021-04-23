@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Image, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
-import { BackButton } from '../../components/BackButton';
+import '../../../assets/icons/icon-back.png';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -11,9 +11,10 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
-import { getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
+import { getLocalImages, getPreviews, getRecentlyDownloadedImage, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
 import strings from '../../../assets/lang/strings';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 interface PhotoGalleryProps {
   route: any;
@@ -22,20 +23,6 @@ interface PhotoGalleryProps {
   dispatch: Dispatch,
   layoutState: LayoutState
   authenticationState: AuthenticationState
-}
-
-function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
-  const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, galleryUri: o.localUri }, o))
-  const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
-
-  const union = _.unionBy([...localPhotosLabel, ...remotePhotosLabel], (o) => {
-    const a = localPhotosLabel.find(id => id.hash === o.hash)
-    const b = remotePhotosLabel.find(id => id.hash === o.hash)
-
-    return _.merge(a, b);
-  })
-
-  return union;
 }
 
 function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[], loadStartLocalPhotos?: any) {
@@ -55,11 +42,12 @@ function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
-  const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
+  const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>(props.navigation.state.params.photos);
+  const [endCursor, setEndCursor] = useState<string | undefined>(props.navigation.state.params.endCursor);
   const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
   const remotePhotos = setRemotePhotos(localPhotos, uploadedPhotos);
+  const [photosToRender, setPhotosToRender] = useState(setRemotePhotos(localPhotos, uploadedPhotos))
   const [hasFinished, setHasFinished] = useState(false)
-  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const [offsetCursor, setOffsetCursor] = useState(0)
   const [prevOffset, setPrevOffset] = useState(0)
 
@@ -86,8 +74,8 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
       setOffsetCursor(lastIndex)
       setPrevOffset(offset)
     }).then(() => {
-      setRemotePhotos(localPhotos, uploadedPhotos)
-    })
+      return setRemotePhotos(localPhotos, uploadedPhotos)
+    }).then(photos => setPhotosToRender(photos))
   }
 
   const loadMoreData = (offsetCursor: number, endCursor: string | undefined) => {
@@ -111,8 +99,21 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     }
   }
 
+  const addNewDownloadedImage = () => {
+    getRecentlyDownloadedImage().then(photos => {
+      const currentLocals = localPhotos
+
+      currentLocals.unshift(photos[0])
+      setLocalPhotos(currentLocals)
+    }).then(() => {
+      const newPhotosToRender = setRemotePhotos(localPhotos, uploadedPhotos)
+
+      setPhotosToRender(newPhotosToRender)
+    })
+  }
+
   useEffect(() => {
-    start().finally(() => {
+    start(0, endCursor).finally(() => {
       setIsLoading(false)
     })
   }, [])
@@ -123,7 +124,12 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
       <AddItemToModal />
 
       <View style={styles.albumHeader}>
-        <BackButton navigation={props.navigation} />
+        <TouchableOpacity
+          style={styles.buttonWrapper}
+          onPress={() => props.navigation.navigate('Photos', { photos: { localPhotos, endCursor } })}
+        >
+          <Image style={styles.icon} source={require('../../../assets/icons/icon-back.png')} />
+        </TouchableOpacity>
 
         <View style={styles.titleWrapper}>
           <Text style={styles.albumTitle}>
@@ -171,6 +177,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                 }
               }}
               onEndReachedThreshold={0.2}
+              onPhotoDownload={addNewDownloadedImage}
             />
             :
             <WaveIndicator color="#5291ff" size={50} />
@@ -187,6 +194,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: '8%',
     justifyContent: 'space-between'
+  },
+  buttonWrapper: {
+    alignItems: 'center',
+    height: 45,
+    justifyContent: 'center',
+    width: 45
+  },
+  icon: {
+    height: 18,
+    tintColor: '#0084ff',
+    width: 11
   },
   albumTitle: {
     color: '#000000',

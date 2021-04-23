@@ -21,6 +21,7 @@ interface PhotoProps {
     localUri?: string
     size?: number
   }
+  onPhotoDownload: () => void
 }
 
 export default function Photo(props: PhotoProps): JSX.Element {
@@ -48,9 +49,9 @@ export default function Photo(props: PhotoProps): JSX.Element {
 
         if (item.isUploaded && !item.isLocal && !isDownloading) {
           setIsDownloading(true)
-
           downloadPhoto(item, setProgress).then(() => {
             setIsDownloading(false)
+            props.onPhotoDownload()
             SimpleToast.show('Image downloaded!', 0.15)
           }).catch(() => SimpleToast.show('Could not download image'))
             .finally(() => setIsDownloading(false))

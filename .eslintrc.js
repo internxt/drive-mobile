@@ -33,7 +33,6 @@ module.exports = {
     'react-native/no-unused-styles': 'error',
     'react-native/no-inline-styles': 'warn',
     'react-native/no-single-element-style-arrays': 'error',
-    'react-native/sort-styles': 'error',
     'eqeqeq': 'error',
     'comma-spacing': ['error', { 'before': false, 'after': true }],
     'no-trailing-spaces': ['error'],
