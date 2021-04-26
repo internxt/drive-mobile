@@ -7,11 +7,10 @@ import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
-import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { PhotoActions } from '../../redux/actions';
-
+import { sha256 } from 'react-native-sha256'
 export interface IHashedPhoto extends Asset {
   hash: string,
   localUri: string | undefined
@@ -28,30 +27,22 @@ const getArrayPhotos = async (images: Asset[]) => {
       return next(Error('Missing localUri'));
     }
 
-    if (Platform.OS === 'ios') {
-      const p = await manipulateAsync(asset.localUri,
-        [],
-        { compress: 1, format: SaveFormat.PNG }
-      )
-
-      const sha256Id = await RNFS.hash(p.uri, 'sha256')
-      const hashedImage = {
-        ...image,
-        hash: sha256Id,
-        localUri: asset.localUri
-      }
-
-      next(null, hashedImage)
-    } else {
-      const sha256Id = await RNFS.hash(asset.uri, 'sha256')
-      const hashedImage = {
-        ...image,
-        hash: sha256Id,
-        localUri: asset.localUri
-      }
-
-      next(null, hashedImage)
+    const hashedImage = {
+      ...image,
+      hash: '',
+      localUri: asset.localUri
     }
+    const binary = Platform.OS === 'ios'
+      ? await RNFS.readFile(asset.localUri, 'base64').catch(() => { })
+      : await RNFS.readFile(asset.uri, 'base64').catch(() => { })
+
+    if (binary) {
+      await sha256(binary).then(res => {
+        hashedImage.hash = res
+      })
+    }
+
+    next(null, hashedImage)
   });
 
   return result;
@@ -210,6 +201,13 @@ export function getLocalImages(after?: string | undefined): Promise<LocalImages>
   });
 }
 
+export const getRecentlyDownloadedImage = (): Promise<IHashedPhoto[]> => {
+  return MediaLibrary.getAssetsAsync({ first: 1, sortBy: [MediaLibrary.SortBy.modificationTime] })
+    .then(res => {
+      return getArrayPhotos(res.assets)
+    })
+}
+
 export async function getPartialUploadedPhotos(matchImages: LocalImages): Promise<IApiPhotoWithPreview[]> {
   const headers = await getHeaders()
 
@@ -298,7 +296,7 @@ export async function getLocalPhotosDir(): Promise<string> {
   return TempDir;
 }
 
-export async function downloadPhoto(photo: any) {
+export async function downloadPhoto(photo: any, setProgress: (progress: number) => void) {
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -307,30 +305,23 @@ export async function downloadPhoto(photo: any) {
   const tempDir = await getLocalPhotosDir();
 
   return RNFetchBlob.config({
-    path: `${tempDir}/${photo.photoId}.${type}`,
+    path: `${tempDir}/${photo.id}.${type}`,
     fileCache: true
   }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/download/photo/${photo.id}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
+  }).progress((received: number, total: number) => {
+    setProgress(received / total)
   }).then((res) => {
+    setProgress(0)
     if (res.respInfo.status !== 200) {
       throw Error('Unable to download picture')
     }
     return res;
   }).then(async (res) => {
+    const path = res.path()
 
-    if (Platform.OS === 'ios') {
-      const p = await manipulateAsync(res.path(),
-        [],
-        { compress: 1, format: SaveFormat.PNG }
-      )
-
-      MediaLibrary.saveToLibraryAsync(p.uri)
-    } else {
-      MediaLibrary.saveToLibraryAsync(res.path())
-    }
-  }).then(() => {
-    SimpleToast.show('Image downloaded!', 0.3)
+    return MediaLibrary.saveToLibraryAsync(path).then(() => path)
   })
 }
 
@@ -390,8 +381,8 @@ export function stopSync(): void {
 
 export function getPreviews(push: any, offset?: number): Promise<any> {
   SHOULD_STOP = false;
-  return getPartialRemotePhotos(offset).then((res) => {
-    return mapSeries(res, (photo, next) => {
+  return getPartialRemotePhotos(offset).then((uploadedPhotos: IApiPhotoWithPreview[]) => {
+    return mapSeries(uploadedPhotos, (photo, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }

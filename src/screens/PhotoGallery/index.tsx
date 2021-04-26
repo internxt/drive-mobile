@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Image, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
-import { BackButton } from '../../components/BackButton';
+import '../../../assets/icons/icon-back.png';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -11,11 +11,10 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
-import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
+import { getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
-import FileViewer from 'react-native-file-viewer'
-import RNFS from 'react-native-fs'
 import strings from '../../../assets/lang/strings';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 interface PhotoGalleryProps {
   route: any;
@@ -26,21 +25,7 @@ interface PhotoGalleryProps {
   authenticationState: AuthenticationState
 }
 
-function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
-  const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, galleryUri: o.localUri }, o))
-  const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
-
-  const union = _.unionBy([...localPhotosLabel, ...remotePhotosLabel], (o) => {
-    const a = localPhotosLabel.find(id => id.hash === o.hash)
-    const b = remotePhotosLabel.find(id => id.hash === o.hash)
-
-    return _.merge(a, b);
-  })
-
-  return union;
-}
-
-function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[], loadStartLocalPhotos?: any) {
+function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
   const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isLocal: false, isUploaded: true }, o))
   const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, isUploaded: false, galleryUri: o.localUri }, o))
 
@@ -48,21 +33,20 @@ function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto
   const locals = _.differenceBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
   const synced = _.intersectionBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
 
-  const syncedUpdated = synced.map(photo => ({ ...photo, isUploaded: true }))
+  const syncedPhotosLabel = synced.map(photo => ({ ...photo, isUploaded: true }))
 
-  const union = _.union(locals, syncedUpdated, remotes)
+  const union = _.union(locals, syncedPhotosLabel, remotes)
 
   return union;
-
 }
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
   const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
+  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
   const remotePhotos = setRemotePhotos(localPhotos, uploadedPhotos);
   const [hasFinished, setHasFinished] = useState(false)
-  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const [offsetCursor, setOffsetCursor] = useState(0)
   const [prevOffset, setPrevOffset] = useState(0)
 
@@ -89,7 +73,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
       setOffsetCursor(lastIndex)
       setPrevOffset(offset)
     }).then(() => {
-      setRemotePhotos(localPhotos, uploadedPhotos)
+      return setRemotePhotos(localPhotos, uploadedPhotos)
     })
   }
 
@@ -115,7 +99,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   }
 
   useEffect(() => {
-    start().finally(() => {
+    start(0, endCursor).finally(() => {
       setIsLoading(false)
     })
   }, [])
@@ -126,7 +110,12 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
       <AddItemToModal />
 
       <View style={styles.albumHeader}>
-        <BackButton navigation={props.navigation} />
+        <TouchableOpacity
+          style={styles.buttonWrapper}
+          onPress={() => props.navigation.navigate('Photos')}
+        >
+          <Image style={styles.icon} source={require('../../../assets/icons/icon-back.png')} />
+        </TouchableOpacity>
 
         <View style={styles.titleWrapper}>
           <Text style={styles.albumTitle}>
@@ -163,21 +152,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                 setOffsetCursor(0)
                 start(offsetCursor).then(() => { setHasFinished(false) }).catch(() => { })
               }}
-              onItemPress={(event, item) => {
-
-                if (item.isUploaded && !item.isLocal) {
-                  downloadPhoto(item).then(x => {
-
-                  }).catch((err) => {
-                  })
-                } else {
-                  cachePicture(item).then(tempFile => {
-                    FileViewer.open(tempFile, {
-                      onDismiss: () => RNFS.unlink(tempFile)
-                    });
-                  })
-                }
-              }}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}
               onEndReached={() => {
@@ -205,6 +179,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: '8%',
     justifyContent: 'space-between'
+  },
+  buttonWrapper: {
+    alignItems: 'center',
+    height: 45,
+    justifyContent: 'center',
+    width: 45
+  },
+  icon: {
+    height: 18,
+    tintColor: '#0084ff',
+    width: 11
   },
   albumTitle: {
     color: '#000000',

@@ -18,7 +18,7 @@ import { layoutActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
 
 export interface IPhotosProps extends Reducers {
-  navigation?: any
+  navigation: any
   dispatch: any
   photosState: PhotosState
   authenticationState: AuthenticationState,
@@ -26,15 +26,15 @@ export interface IPhotosProps extends Reducers {
 
 function Photos(props: IPhotosProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [photos, setPhotos] = useState<IHashedPhoto[]>([]);
-  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
+  const [photos, setPhotos] = useState<IHashedPhoto[]>([])
+  const [endCursor, setEndCursor] = useState<string | undefined>(undefined)
 
   const getNextImages = (after?: string | undefined) => {
     getLocalImages(after).then(res => {
       setEndCursor(res.endCursor);
       setPhotos(after ? photos.concat(res.assets) : res.assets)
       syncPhotos(res.assets, props.dispatch)
-    }).finally(() => setIsLoading(false));
+    }).finally(() => setIsLoading(false))
   }
 
   const reloadLocalPhotos = () => {
@@ -80,7 +80,7 @@ function Photos(props: IPhotosProps): JSX.Element {
       <View style={styles.allPhotosContainer}>
         <TouchableOpacity style={styles.titleButton}
           onPress={() => {
-            props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
+            props.navigation.navigate('PhotoGallery')
           }}
           disabled={isLoading}>
           <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos}</Text>
