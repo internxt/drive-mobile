@@ -305,7 +305,7 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
   const tempDir = await getLocalPhotosDir();
 
   return RNFetchBlob.config({
-    path: `${tempDir}/${photo.photoId}.${type}`,
+    path: `${tempDir}/${photo.id}.${type}`,
     fileCache: true
   }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/download/photo/${photo.id}`, {
     'Authorization': `Bearer ${xToken}`,
@@ -319,7 +319,9 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
     }
     return res;
   }).then(async (res) => {
-    return MediaLibrary.saveToLibraryAsync(res.path())
+    const path = res.path()
+
+    return MediaLibrary.saveToLibraryAsync(path).then(() => path)
   })
 }
 

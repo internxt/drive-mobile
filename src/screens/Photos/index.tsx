@@ -42,9 +42,6 @@ function Photos(props: IPhotosProps): JSX.Element {
   };
 
   useEffect(() => {
-    if (props.navigation.state.params) {
-
-    }
     setPhotos([])
     reloadLocalPhotos();
   }, [])
@@ -83,7 +80,7 @@ function Photos(props: IPhotosProps): JSX.Element {
       <View style={styles.allPhotosContainer}>
         <TouchableOpacity style={styles.titleButton}
           onPress={() => {
-            props.navigation.navigate('PhotoGallery', { photos, endCursor })
+            props.navigation.navigate('PhotoGallery')
           }}
           disabled={isLoading}>
           <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos}</Text>
