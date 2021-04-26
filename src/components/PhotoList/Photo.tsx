@@ -5,8 +5,7 @@ import FileViewer from 'react-native-file-viewer';
 import * as MediaLibrary from 'expo-media-library';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import PhotoBadge from './PhotoBadge';
-import RNFS from 'react-native-fs'
-import { cachePicture, downloadPhoto } from '../../screens/Photos/init';
+import { downloadPhoto } from '../../screens/Photos/init';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
 
@@ -21,12 +20,14 @@ interface PhotoProps {
     localUri?: string
     size?: number
   }
-  onPhotoDownload: () => void
 }
 
 export default function Photo(props: PhotoProps): JSX.Element {
+  const [isLocal, setIsLocal] = useState(props.item.isLocal)
+  const [isUploaded, setIsUploaded] = useState(props.item.isUploaded)
   const [isLoaded, setIsLoaded] = useState(false);
-  const item = props.item;
+  const item = props.item
+  const [itemPath, setItemPath] = useState(props.item.localUri)
   const [isDownloading, setIsDownloading] = useState(false)
   const [progress, setProgress] = useState(0)
 
@@ -47,21 +48,20 @@ export default function Photo(props: PhotoProps): JSX.Element {
           return;
         }
 
-        if (item.isUploaded && !item.isLocal && !isDownloading) {
+        if (isUploaded && !isLocal && !isDownloading) {
           setIsDownloading(true)
-          downloadPhoto(item, setProgress).then(() => {
+          downloadPhoto(item, setProgress).then(path => {
             setIsDownloading(false)
-            props.onPhotoDownload()
+            setIsLocal(true)
+            setItemPath(path)
             SimpleToast.show('Image downloaded!', 0.15)
-          }).catch(() => SimpleToast.show('Could not download image'))
+          }).catch((err) => SimpleToast.show('Could not download image'))
             .finally(() => setIsDownloading(false))
 
         } else {
-          cachePicture(item).then(tempFile => {
-            FileViewer.open(tempFile, {
-              onDismiss: () => RNFS.unlink(tempFile)
-            });
-          })
+          if (itemPath) {
+            FileViewer.open(itemPath)
+          }
         }
       }}
       disabled={isDownloading}
@@ -77,8 +77,8 @@ export default function Photo(props: PhotoProps): JSX.Element {
         : <View style={styles.badge}>
           {props.badge ||
             <PhotoBadge
-              isUploaded={props.item.isUploaded}
-              isLocal={props.item.isLocal} />
+              isUploaded={isUploaded}
+              isLocal={isLocal} />
           }
         </View>
       }

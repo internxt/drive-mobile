@@ -11,7 +11,7 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
-import { getLocalImages, getPreviews, getRecentlyDownloadedImage, IHashedPhoto } from '../Photos/init';
+import { getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
 import _ from 'lodash'
 import strings from '../../../assets/lang/strings';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -25,7 +25,7 @@ interface PhotoGalleryProps {
   authenticationState: AuthenticationState
 }
 
-function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[], loadStartLocalPhotos?: any) {
+function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
   const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isLocal: false, isUploaded: true }, o))
   const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, isUploaded: false, galleryUri: o.localUri }, o))
 
@@ -33,20 +33,19 @@ function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto
   const locals = _.differenceBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
   const synced = _.intersectionBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
 
-  const syncedUpdated = synced.map(photo => ({ ...photo, isUploaded: true }))
+  const syncedPhotosLabel = synced.map(photo => ({ ...photo, isUploaded: true }))
 
-  const union = _.union(locals, syncedUpdated, remotes)
+  const union = _.union(locals, syncedPhotosLabel, remotes)
 
   return union;
 }
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
-  const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>(props.navigation.state.params.photos);
-  const [endCursor, setEndCursor] = useState<string | undefined>(props.navigation.state.params.endCursor);
+  const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
+  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
   const remotePhotos = setRemotePhotos(localPhotos, uploadedPhotos);
-  const [photosToRender, setPhotosToRender] = useState(setRemotePhotos(localPhotos, uploadedPhotos))
   const [hasFinished, setHasFinished] = useState(false)
   const [offsetCursor, setOffsetCursor] = useState(0)
   const [prevOffset, setPrevOffset] = useState(0)
@@ -75,7 +74,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
       setPrevOffset(offset)
     }).then(() => {
       return setRemotePhotos(localPhotos, uploadedPhotos)
-    }).then(photos => setPhotosToRender(photos))
+    })
   }
 
   const loadMoreData = (offsetCursor: number, endCursor: string | undefined) => {
@@ -99,19 +98,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     }
   }
 
-  const addNewDownloadedImage = () => {
-    getRecentlyDownloadedImage().then(photos => {
-      const currentLocals = localPhotos
-
-      currentLocals.unshift(photos[0])
-      setLocalPhotos(currentLocals)
-    }).then(() => {
-      const newPhotosToRender = setRemotePhotos(localPhotos, uploadedPhotos)
-
-      setPhotosToRender(newPhotosToRender)
-    })
-  }
-
   useEffect(() => {
     start(0, endCursor).finally(() => {
       setIsLoading(false)
@@ -126,7 +112,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
       <View style={styles.albumHeader}>
         <TouchableOpacity
           style={styles.buttonWrapper}
-          onPress={() => props.navigation.navigate('Photos', { photos: { localPhotos, endCursor } })}
+          onPress={() => props.navigation.navigate('Photos')}
         >
           <Image style={styles.icon} source={require('../../../assets/icons/icon-back.png')} />
         </TouchableOpacity>
@@ -177,7 +163,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                 }
               }}
               onEndReachedThreshold={0.2}
-              onPhotoDownload={addNewDownloadedImage}
             />
             :
             <WaveIndicator color="#5291ff" size={50} />
