@@ -25,4 +25,7 @@ export class Previews {
     @Column({ nullable: false })
     localUri: string;
 
+    @Column({ nullable: false })
+    userId: string;
+
 }

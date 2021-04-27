@@ -32,6 +32,11 @@ export class createInitTables20210422091200 implements MigrationInterface {
           name: 'photoId',
           type: 'int',
           isNullable: false
+        },
+        {
+          name: 'userId',
+          type: 'string',
+          isNullable: false
         }
       ]
     }), true)
@@ -65,6 +70,11 @@ export class createInitTables20210422091200 implements MigrationInterface {
         },
         {
           name:'uri',
+          type: 'string',
+          isNullable: false
+        },
+        {
+          name: 'userId',
           type: 'string',
           isNullable: false
         }

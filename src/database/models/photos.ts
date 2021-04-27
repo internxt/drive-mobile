@@ -20,4 +20,7 @@ export class Photos {
 
     @Column('int', { nullable: false })
     photoId: number;
+
+    @Column({ nullable: false })
+    userId: string;
 }
