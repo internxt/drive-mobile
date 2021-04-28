@@ -11,6 +11,9 @@ import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { PhotoActions } from '../../redux/actions';
+import { getRepository } from 'typeorm/browser';
+import { Photos } from '../../database/models/photos';
+import { Previews } from '../../database/models/previews';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -147,7 +150,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       )
 
       return uploadPreview(prev, res.id, photo, dispatch, last, onePhotoToUpload);
-    }).catch(err => { })
+    })
 }
 
 const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) => {
@@ -210,6 +213,15 @@ export function getLocalImages(after?: string | undefined): Promise<LocalImages>
   });
 }
 
+export function getLocalPhotosHash() {
+
+  return Permissions.askAsync(Permissions.MEDIA_LIBRARY).then(() => {
+    return MediaLibrary.getAssetsAsync({ first: 1000000 });
+  }).then((res) => {
+    return getArrayPhotos(res.assets)
+  })
+}
+
 export async function getPartialUploadedPhotos(matchImages: LocalImages): Promise<IApiPhotoWithPreview[]> {
   const headers = await getHeaders()
 
@@ -250,7 +262,9 @@ export async function getUploadedPhotos(matchImages?: LocalImages): Promise<IApi
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  }).catch(() => { })
+  }).catch((err) => {
+    return err;
+  })
 }
 
 export async function getLocalPreviewsDir(): Promise<string> {
@@ -370,6 +384,18 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
   })
 }
 
+export async function getListPreviews(){
+  const headers = await getHeaders()
+
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/previews`, {
+    method: 'GET',
+    headers
+  }).then(res => {
+    if (res.status !== 200) { throw res; }
+    return res.json();
+  }).catch(() => { })
+}
+
 async function getArrayPreviews(): Promise<IApiPreview[]> {
   const headers = await getHeaders();
 
@@ -388,10 +414,92 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
+export async function savePhotosAndPreviews(userId: string, photo: any, path: string) {
+  const photosRepository = await getRepository(Photos);
+
+  const previewsRepository = getRepository(Previews);
+
+  let photos = await photosRepository.find({
+    where: { userId: userId }
+  })
+
+  const newPhoto = new Photos()
+
+  newPhoto.photoId = photo.id
+  newPhoto.fileId = photo.fileId
+  newPhoto.hash = photo.hash
+  newPhoto.name = photo.name
+  newPhoto.type = photo.type
+  newPhoto.userId = userId
+
+  const existsPhotoFileId = await photosRepository.findOne({
+    where: {
+      fileId: photo.fileId
+    }
+  })
+
+  if (existsPhotoFileId === undefined){
+    await photosRepository.save(newPhoto);
+  }
+
+  photos = await photosRepository.find({
+    where: { userId: userId }
+  });
+
+  let previews = await previewsRepository.find({
+    where: {
+      userId: userId
+    }
+  })
+
+  const newPreview = new Previews();
+
+  newPreview.fileId = photo.preview.fileId;
+  newPreview.hash = photo.preview.hash;
+  newPreview.name = photo.preview.name;
+  newPreview.type = photo.preview.type;
+  newPreview.photoId = photo.preview.photoId;
+  newPreview.localUri = path;
+  newPreview.userId = userId
+
+  const existsfileId = await previewsRepository.findOne({
+    where: {
+      fileId: photo.preview.fileId
+    }
+  })
+
+  if (existsfileId === undefined){
+    await previewsRepository.save(newPreview);
+  }
+
+  previews = await previewsRepository.find({
+    where: {
+      userId: userId
+    }
+  });
+}
+
+export function getPreviewsUploaded(userId: string): Promise<any> {
+  SHOULD_STOP = false;
+  return getUploadedPhotos().then((res: IApiPhotoWithPreview[]) => {
+    return mapSeries(res, (preview, next) => {
+      if (SHOULD_STOP) {
+        throw Error('Sign out')
+      }
+      return downloadPreview(preview.preview, preview).then((res1) => {
+        savePhotosAndPreviews(userId, preview, res1).then(()=>{
+          next(null, res1)
+        })
+      });
+
+    });
+  });
+}
+
 export function getPreviews(push: any, offset?: number): Promise<any> {
   SHOULD_STOP = false;
   return getPartialRemotePhotos(offset).then((res) => {
-    return mapSeries(res, (photo, next) => {
+    return mapSeries(res, (photo: IApiPhotoWithPreview, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }

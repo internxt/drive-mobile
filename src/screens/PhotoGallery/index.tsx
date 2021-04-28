@@ -16,6 +16,10 @@ import _ from 'lodash'
 import FileViewer from 'react-native-file-viewer'
 import RNFS from 'react-native-fs'
 import strings from '../../../assets/lang/strings';
+import { getRepository } from 'typeorm/browser';
+import { Previews } from '../../database/models/previews';
+import { Photos } from '../../database/models/photos';
+import { LocalPhotos } from '../../database/models/localPhotos';
 
 interface PhotoGalleryProps {
   route: any;
@@ -38,6 +42,16 @@ function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
   })
 
   return union;
+}
+
+async function takeHashesLocalPhotos() {
+  const localPhotosRepository = await getRepository(LocalPhotos);
+
+  const result = await localPhotosRepository.find()
+
+  const hashList = result.map(x => x.hash);
+
+  return hashList
 }
 
 function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[], loadStartLocalPhotos?: any) {
@@ -71,7 +85,9 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
     return loadLocalPhotos(endCursor).then(() => {
       return loadUploadedPhotos(offset)
-    }).finally(() => setHasFinished(true))
+    }).finally(() => {
+      setHasFinished(true)
+    })
   }
 
   const loadLocalPhotos = (endCursor?: string) => {
@@ -104,9 +120,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     }
   }
 
-  const push = (preview: any) => {
+  const push = async (preview: any) => {
     if (preview) {
-      const exists = uploadedPhotos.find(photo => photo.localUri === preview.localUri)
+
+      const exists = await uploadedPhotos.find(photo => photo.localUri === preview.localUri)
 
       if (!exists) {
         setUploadedPhotos(currentPhotos => [...currentPhotos, preview])
@@ -114,11 +131,26 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     }
   }
 
+  const getRepositories = async () => {
+    const photosRepository = await getRepository(Photos);
+    const previewsRepository = await getRepository(Previews);
+
+    const photos = await photosRepository.find({
+      where: { userId: props.authenticationState.user.userId }
+    })
+
+    const previews = await previewsRepository.find({
+      where: { userId: props.authenticationState.user.userId }
+    })
+
+  }
+
   useEffect(() => {
+    getRepositories()
     start().finally(() => {
       setIsLoading(false)
     })
-  }, [])
+  }, [props.photosState.isConnectDB])
 
   return (
     <SafeAreaView style={styles.container}>

@@ -8,7 +8,7 @@ import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos } from './init'
+import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos, getPreviews, getLocalPhotosHash, getListPreviews, getPreviewsUploaded } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
@@ -16,6 +16,9 @@ import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
+import { IApiPhotoWithPreview } from '../../types/api/photos/IApiPhoto';
+import { getRepository } from 'typeorm/browser';
+import { LocalPhotos } from '../../database/models/localPhotos';
 
 export interface IPhotosProps extends Reducers {
   navigation?: any
@@ -28,12 +31,18 @@ function Photos(props: IPhotosProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [photos, setPhotos] = useState<IHashedPhoto[]>([]);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
+  const [offsetCursor, setOffsetCursor] = useState(0)
+  const [prevOffset, setPrevOffset] = useState(0)
+  const [uploadedPhotos, setUploadedPhotos] = useState<IApiPhotoWithPreview[]>([])
+  const [hasFinished, setHasFinished] = useState(false)
 
   const getNextImages = (after?: string | undefined) => {
     getLocalImages(after).then(res => {
       setEndCursor(res.endCursor);
       setPhotos(after ? photos.concat(res.assets) : res.assets)
-      syncPhotos(res.assets, props.dispatch)
+      syncPhotos(res.assets, props.dispatch).then(()=>{
+        getPreviewsUploaded(props.authenticationState.user.userId)
+      })
     }).finally(() => setIsLoading(false));
   }
 
@@ -41,7 +50,66 @@ function Photos(props: IPhotosProps): JSX.Element {
     initUser().finally(() => getNextImages());
   };
 
+  const loadUploadedPhotos = (offset: number) => {
+    setPrevOffset(offset)
+    getPreviews(getPhotos, offset).then((res) => {
+      const lastIndex = offsetCursor + res.length
+
+      setOffsetCursor(lastIndex)
+      setPrevOffset(offset)
+    }).then(() => {
+      setHasFinished(true)
+    })
+  }
+
+  const loadMoreUploadedPhotos = (offsetCursor: number) => {
+    setHasFinished(false)
+    if (offsetCursor > prevOffset) {
+      loadUploadedPhotos(offsetCursor)
+    }
+  }
+
+  const getPhotos = (preview: any) => {
+    if (preview){
+      setUploadedPhotos(preview)
+    }
+  }
+
+  const getHashLocalPhotos = () => {
+    return getLocalPhotosHash().then((res)=>{
+      return res.map((photo)=>{
+        saveHashLocalPhotos(photo.hash)
+      })
+    }).catch((err)=>{
+      // eslint-disable-next-line no-console
+      console.log('err', err)
+    })
+  }
+
+  const saveHashLocalPhotos = async (localHash: string) => {
+    const localPhotosRepository = await getRepository(LocalPhotos);
+
+    let result = await localPhotosRepository.find()
+
+    const hashes = new LocalPhotos()
+
+    hashes.hash = localHash
+
+    const existsHash = await localPhotosRepository.findOne({
+      where: { hash: hashes.hash }
+    })
+
+    if (existsHash === undefined){
+      await localPhotosRepository.save(hashes);
+    }
+
+    result = await localPhotosRepository.find();
+
+  }
+
   useEffect(() => {
+    getHashLocalPhotos()
+    getPreviewsUploaded(props.authenticationState.user.userId)
     setPhotos([])
     reloadLocalPhotos();
   }, [])
