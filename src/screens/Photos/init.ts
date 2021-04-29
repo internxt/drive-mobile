@@ -10,12 +10,13 @@ import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { PhotoActions } from '../../redux/actions';
-import { sha256 } from 'react-native-sha256'
+import { SetStateAction } from 'react';
+
 export interface IHashedPhoto extends Asset {
   hash: string,
   localUri: string | undefined
-  isSynced?: boolean
-  isUploaded?: boolean
+  isUploaded: boolean
+  isLocal: boolean
 }
 
 const getArrayPhotos = async (images: Asset[]) => {
@@ -26,24 +27,31 @@ const getArrayPhotos = async (images: Asset[]) => {
     if (!asset.localUri) {
       return next(Error('Missing localUri'));
     }
+    if (Platform.OS === 'ios') {
+      const p = await manipulateAsync(asset.localUri,
+        [],
+        { compress: 1, format: SaveFormat.PNG }
+      )
 
-    const hashedImage = {
-      ...image,
-      hash: '',
-      localUri: asset.localUri
+      const sha256Id = await RNFS.hash(p.uri, 'sha256')
+      const hashedImage = {
+        ...image,
+        hash: sha256Id,
+        localUri: asset.localUri
+      }
+
+      next(null, hashedImage)
+    } else {
+      const sha256Id = await RNFS.hash(asset.uri, 'sha256')
+      const hashedImage = {
+        ...image,
+        hash: sha256Id,
+        localUri: asset.localUri
+      }
+
+      next(null, hashedImage)
     }
-    const binary = Platform.OS === 'ios'
-      ? await RNFS.readFile(asset.localUri, 'base64').catch(() => { })
-      : await RNFS.readFile(asset.uri, 'base64').catch(() => { })
-
-    if (binary) {
-      await sha256(binary).then(res => {
-        hashedImage.hash = res
-      })
-    }
-
-    next(null, hashedImage)
-  });
+  })
 
   return result;
 }
@@ -87,8 +95,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
   };
 
   const parsedUri = photo.localUri.replace(/^file:\/\//, '');
-
-  const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUri)) : RNFetchBlob.wrap(photo.uri)
+  const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(parsedUri) : RNFetchBlob.wrap(photo.uri)
 
   let creationTime;
 
@@ -109,7 +116,6 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       { name: 'xfile', filename: photo.filename, data: finalUri },
       { name: 'hash', data: photo.hash },
       { name: 'creationTime', data: creationTime }
-
     ])
     .then((res) => {
       const statusCode = res.respInfo.status;
@@ -319,9 +325,16 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
     }
     return res;
   }).then(async (res) => {
-    const path = res.path()
+    if (Platform.OS === 'ios') {
+      const p = await manipulateAsync(res.path(),
+        [],
+        { compress: 1, format: SaveFormat.PNG }
+      )
 
-    return MediaLibrary.saveToLibraryAsync(path).then(() => path)
+      return MediaLibrary.saveToLibraryAsync(p.uri).then(() => res.path())
+    } else {
+      return MediaLibrary.saveToLibraryAsync(res.path()).then(() => res.path())
+    }
   })
 }
 
@@ -379,7 +392,7 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export function getPreviews(push: any, offset?: number): Promise<any> {
+export function getPreviews(setPreview: SetStateAction<any>, offset?: number): Promise<any> {
   SHOULD_STOP = false;
   return getPartialRemotePhotos(offset).then((uploadedPhotos: IApiPhotoWithPreview[]) => {
     return mapSeries(uploadedPhotos, (photo, next) => {
@@ -391,10 +404,12 @@ export function getPreviews(push: any, offset?: number): Promise<any> {
         if (res) {
           const newPhoto = {
             ...photo,
-            localUri: res
+            localUri: res,
+            isLocal: false,
+            isUploaded: true
           }
 
-          push(newPhoto)
+          setPreview(newPhoto)
         }
         next(null, photo)
 
