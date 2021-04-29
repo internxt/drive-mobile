@@ -10,15 +10,16 @@ interface PhotoBadgeProps {
 export default function PhotoBadge(props: PhotoBadgeProps): JSX.Element {
   const showView = (props.isLocal && !props.isUploaded) || (!props.isLocal && props.isUploaded);
 
-  return <View style={styles.viewFrame}>
-    {props.isLocal
-      && !props.isUploaded
-      && <Image source={getIcon('photoLocal')}
-        style={styles.imageIcon} />}
-    {!props.isLocal && props.isUploaded
-      && <Image source={getIcon('photoCloud')}
-        style={styles.imageIcon} />}
-  </View>
+  return (
+    <View style={styles.viewFrame}>
+      {props.isLocal && !props.isUploaded
+        && <Image source={getIcon('photoLocal')} style={styles.imageIcon} />
+      }
+      {!props.isLocal && props.isUploaded
+        && <Image source={getIcon('photoCloud')} style={styles.imageIcon} />
+      }
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({

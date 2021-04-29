@@ -12,7 +12,6 @@ import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
 import { getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
-import _ from 'lodash'
 import strings from '../../../assets/lang/strings';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
@@ -25,62 +24,72 @@ interface PhotoGalleryProps {
   authenticationState: AuthenticationState
 }
 
-function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
-  const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isLocal: false, isUploaded: true }, o))
-  const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, isUploaded: false, galleryUri: o.localUri }, o))
-
-  const remotes = _.differenceBy([...remotePhotosLabel], [...localPhotosLabel], 'hash')
-  const locals = _.differenceBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
-  const synced = _.intersectionBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
-
-  const syncedPhotosLabel = synced.map(photo => ({ ...photo, isUploaded: true }))
-
-  const union = _.union(locals, syncedPhotosLabel, remotes)
-
-  return union;
-}
-
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
-  const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
+  const [photosToRender, setPhotosToRender] = useState<IHashedPhoto[]>([])
+  const [uploadedPhoto, setUploadedPhoto] = useState<any>()
+  const [uploadedPhotos, setUploadedPhotos] = useState<any[]>([])
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
-  const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
-  const remotePhotos = setRemotePhotos(localPhotos, uploadedPhotos);
   const [hasFinished, setHasFinished] = useState(false)
   const [offsetCursor, setOffsetCursor] = useState(0)
   const [prevOffset, setPrevOffset] = useState(0)
 
-  const start = (offset = 0, endCursor?: string) => {
+  const getPhotosToRender = (offset = 0, endCursor?: string) => {
     setHasFinished(false)
 
     return loadLocalPhotos(endCursor).then(() => {
       return loadUploadedPhotos(offset)
-    }).finally(() => setHasFinished(true))
+    }).finally(() => {
+      setHasFinished(true)
+    })
   }
 
   const loadLocalPhotos = (endCursor?: string) => {
-    return getLocalImages(endCursor).then(res => {
-      setEndCursor(res.endCursor)
-      setLocalPhotos(endCursor ? localPhotos.concat(res.assets) : res.assets)
-    })
+    return getLocalImages(endCursor).then(localImages => {
+      const assets = localImages.assets.map(photo => ({ ...photo, isLocal: true, isUploaded: false }))
+      const photos = photosToRender.slice()
+
+      assets.forEach(asset => {
+        const index = photos.findIndex(photo => photo.hash === asset.hash)
+
+        if (index === -1) {
+          photos.push(asset)
+        } else {
+          if (photos[index].isUploaded === true && photos[index].isLocal === false) {
+            photos[index].isLocal = true
+          }
+        }
+      })
+
+      setEndCursor(localImages.endCursor)
+      setPhotosToRender(photos)
+    }).finally(() => setIsLoading(false))
   }
 
   const loadUploadedPhotos = (offset: number) => {
     setPrevOffset(offset)
-    getPreviews(push, offset).then((res) => {
-      const lastIndex = offsetCursor + res.length
+    getPreviews(setUploadedPhoto, offset).then((previews) => {
+      const lastIndex = offsetCursor + previews.length
 
       setOffsetCursor(lastIndex)
       setPrevOffset(offset)
-    }).then(() => {
-      return setRemotePhotos(localPhotos, uploadedPhotos)
     })
   }
 
-  const loadMoreData = (offsetCursor: number, endCursor: string | undefined) => {
+  const updateDownloadedImageStatus = (downloadedImage: any) => {
+    const index = photosToRender.findIndex(local => local.hash === downloadedImage.hash)
+    const items = photosToRender.slice()
+
+    items[index].isLocal = true
+
+    setPhotosToRender(items)
+  }
+
+  const loadMorePhotos = (offsetCursor: number, endCursor: string | undefined) => {
     setHasFinished(false)
+
     if (offsetCursor > prevOffset) {
-      start(offsetCursor, endCursor).then(() => { setHasFinished(true) })
+      getPhotosToRender(offsetCursor, endCursor)
     } else {
       if (endCursor) {
         loadLocalPhotos(endCursor).finally(() => setHasFinished(true))
@@ -88,18 +97,43 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     }
   }
 
-  const push = (preview: any) => {
-    if (preview) {
-      const exists = uploadedPhotos.find(photo => photo.localUri === preview.localUri)
+  useEffect(() => {
+    if (uploadedPhoto) {
+      setUploadedPhotos(prevPhotos => [...prevPhotos, uploadedPhoto])
+      const index = photosToRender.findIndex(local => local.hash === uploadedPhoto.hash)
 
-      if (!exists) {
-        setUploadedPhotos(currentPhotos => [...currentPhotos, preview])
+      if (index === -1) {
+        const downloadedPhoto = { ...uploadedPhoto, isLocal: false }
+
+        setPhotosToRender(currentPhotos => [...currentPhotos, downloadedPhoto])
+      } else {
+        const items = photosToRender.slice()
+
+        items[index].isUploaded = true
+        setPhotosToRender(items)
       }
     }
-  }
+  }, [uploadedPhoto])
 
   useEffect(() => {
-    start(0, endCursor).finally(() => {
+    if (hasFinished) {
+      const items = photosToRender.slice()
+
+      uploadedPhotos.forEach(uploaded => {
+        const index = items.findIndex(photo => photo.hash === uploaded.hash)
+
+        if (index !== -1) {
+          if (items[index].isLocal && !items[index].isUploaded) {
+            items[index].isUploaded = true
+            setPhotosToRender(items)
+          }
+        }
+      })
+    }
+  }, [hasFinished])
+
+  useEffect(() => {
+    getPhotosToRender(0, endCursor).finally(() => {
       setIsLoading(false)
     })
   }, [])
@@ -123,7 +157,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
           </Text>
 
           <Text style={styles.photosCount}>
-            {remotePhotos.length} {strings.screens.photos.screens.photo_gallery.subtitle}
+            {photosToRender.length} {strings.screens.photos.screens.photo_gallery.subtitle}
           </Text>
         </View>
 
@@ -145,12 +179,12 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         {
           !isLoading ?
             <PhotoList
-              data={remotePhotos}
+              data={photosToRender}
               numColumns={3}
               onRefresh={() => {
                 setIsLoading(true)
                 setOffsetCursor(0)
-                start(offsetCursor).then(() => { setHasFinished(false) }).catch(() => { })
+                getPhotosToRender(offsetCursor).then(() => { setHasFinished(false) }).catch(() => { })
               }}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}
@@ -159,10 +193,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                 //setIsLoading(true)
                 //loadLocalPhotos(endCursor)
                 if (hasFinished) {
-                  loadMoreData(offsetCursor, endCursor)
+                  loadMorePhotos(offsetCursor, endCursor)
                 }
               }}
-              onEndReachedThreshold={0.2}
+              updateDownloadedImageStatus={updateDownloadedImageStatus}
             />
             :
             <WaveIndicator color="#5291ff" size={50} />
