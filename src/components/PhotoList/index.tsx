@@ -34,7 +34,7 @@ interface PhotoListProps extends FlatListProps<MediaLibrary.Asset> {
   authenticationState?: any
   dispatch?: any
   navigation: any
-  onPhotoDownload: () => void
+  updateDownloadedImageStatus: (downloadedImage: any) => void
 }
 
 const deviceWidth = Dimensions.get('window').width
@@ -71,9 +71,9 @@ function PhotoList(props: PhotoListProps) {
                   props.onEndReached(e);
                 }
               }}
-              onEndReachedThreshold={0.2}
+              onEndReachedThreshold={0}
               ListEmptyComponent={props.ListEmptyComponent || <EmptyPhotoList />}
-              renderItem={({ item }) => <Photo item={item} onPhotoDownload={props.onPhotoDownload} />}
+              renderItem={({ item }) => <Photo item={item} updateDownloadedImageStatus={props.updateDownloadedImageStatus} key={item.hash} />}
               contentContainerStyle={styles.flatList}
               keyExtractor={(item) => item.id}
               numColumns={props.numColumns || 3}

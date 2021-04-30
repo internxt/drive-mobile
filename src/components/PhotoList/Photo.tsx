@@ -20,11 +20,10 @@ interface PhotoProps {
     localUri?: string
     size?: number
   }
+  updateDownloadedImageStatus: (downloadedImage: any) => void
 }
 
 export default function Photo(props: PhotoProps): JSX.Element {
-  const [isLocal, setIsLocal] = useState(props.item.isLocal)
-  const [isUploaded, setIsUploaded] = useState(props.item.isUploaded)
   const [isLoaded, setIsLoaded] = useState(false);
   const item = props.item
   const [itemPath, setItemPath] = useState(props.item.localUri)
@@ -42,17 +41,15 @@ export default function Photo(props: PhotoProps): JSX.Element {
   return (
     <TouchableOpacity
       style={styles.imageView}
-      key={item.id}
       onPress={() => {
         if (!item.localUri) {
           return;
         }
 
-        if (isUploaded && !isLocal && !isDownloading) {
+        if (props.item.isUploaded && !props.item.isLocal && !isDownloading) {
           setIsDownloading(true)
           downloadPhoto(item, setProgress).then(path => {
-            setIsDownloading(false)
-            setIsLocal(true)
+            props.updateDownloadedImageStatus(item)
             setItemPath(path)
             SimpleToast.show('Image downloaded!', 0.15)
           }).catch((err) => SimpleToast.show('Could not download image'))
@@ -69,7 +66,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
       <Image
         onLoadEnd={() => setIsLoaded(true)}
         style={!isDownloading ? styles.image : [styles.image, styles.disabled]}
-        source={{ uri: item.galleryUri || item.localUri }}
+        source={{ uri: item.localUri }}
       />
 
       {!isLoaded || isDownloading
@@ -77,8 +74,8 @@ export default function Photo(props: PhotoProps): JSX.Element {
         : <View style={styles.badge}>
           {props.badge ||
             <PhotoBadge
-              isUploaded={isUploaded}
-              isLocal={isLocal} />
+              isUploaded={props.item.isUploaded}
+              isLocal={props.item.isLocal} />
           }
         </View>
       }

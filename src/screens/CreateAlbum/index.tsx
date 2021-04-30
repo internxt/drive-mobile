@@ -8,7 +8,7 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
-import Photo from '../PhotoGallery/Photo';
+import Photo from '../../components/PhotoList/Photo';
 
 interface CreateAlbumProps {
   route: any;
