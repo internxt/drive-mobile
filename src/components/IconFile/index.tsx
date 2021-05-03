@@ -26,28 +26,28 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(IconFile);
 
 const styles = StyleSheet.create({
-  wrapper: {
-    position: 'relative',
-    width: 44,
-    height: 42,
-    marginLeft: 25,
-    marginRight: 25,
-    borderRadius: 3,
-    borderColor: '#5291ff',
-    borderWidth: 0.6,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
   text: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
     bottom: 5,
+    color: '#2e7bff',
     fontFamily: 'CircularStd-Bold',
     fontSize: 9,
+    left: 0,
     letterSpacing: -0.2,
-    color: '#2e7bff',
-    textAlign: 'center',
-    paddingHorizontal: 5
+    paddingHorizontal: 5,
+    position: 'absolute',
+    right: 0,
+    textAlign: 'center'
+  },
+  wrapper: {
+    alignItems: 'center',
+    borderColor: '#5291ff',
+    borderRadius: 3,
+    borderWidth: 0.6,
+    height: 42,
+    justifyContent: 'center',
+    marginLeft: 25,
+    marginRight: 25,
+    position: 'relative',
+    width: 44
   }
 });

@@ -3,11 +3,13 @@ import { combineReducers } from 'redux';
 import { authenticationReducer } from './authentication.reducer';
 import { filesReducer } from './files.reducer';
 import { layoutReducer } from './layout.reducer';
+import { PhotosReducer } from './photos.reducer';
 import { settingsReducer } from './settings.reducer';
 
 const appReducer = combineReducers({
   layoutState: layoutReducer,
   authenticationState: authenticationReducer,
+  photosState: PhotosReducer,
   filesState: filesReducer,
   settingsState: settingsReducer
 });

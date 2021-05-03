@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, Linking, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, Linking, ActivityIndicator, Alert, Platform } from 'react-native';
 import Modal from 'react-native-modalbox'
 import ProgressBar from '../../components/ProgressBar';
 import { layoutActions, userActions } from '../../redux/actions';
@@ -11,17 +11,20 @@ import { getHeaders } from '../../helpers/headers';
 import { deviceStorage } from '../../helpers';
 import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import Bold from '../../components/Bold';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { Dispatch } from 'redux';
+import { LayoutState } from '../../redux/reducers/layout.reducer';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import strings from '../../../assets/lang/strings';
 
 function identifyPlanName(bytes: number): string {
-  return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
+  return bytes === 0 ? 'Free 10GB' : prettysize(bytes)
 }
 
 async function loadUsage(): Promise<number> {
-  const xToken = await deviceStorage.getItem('xToken') || undefined
-
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
     method: 'get',
-    headers: getHeaders(xToken)
+    headers: await getHeaders()
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load usage') }
     return res
@@ -29,18 +32,16 @@ async function loadUsage(): Promise<number> {
 }
 
 async function loadLimit(): Promise<number> {
-  const xToken = await deviceStorage.getItem('xToken') || undefined
-
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
     method: 'get',
-    headers: getHeaders(xToken)
+    headers: await getHeaders()
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load limit') }
     return res
   }).then(res => res.json()).then(res => res.maxSpaceBytes)
 }
 
-export async function loadValues(): Promise<{ usage: number, limit: number}> {
+export async function loadValues(): Promise<{ usage: number, limit: number }> {
   const limit = await loadLimit()
   const usage = await loadUsage()
 
@@ -56,11 +57,50 @@ export async function loadValues(): Promise<{ usage: number, limit: number}> {
   return { usage, limit }
 }
 
+async function initializePhotosUser(token: string, mnemonic: string): Promise<any> {
+  const xUser = await deviceStorage.getItem('xUser')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const email = xUserJson.email
+
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/initialize`, {
+    method: 'POST',
+    headers: await getHeaders(),
+    body: JSON.stringify({
+      email: email,
+      mnemonic: mnemonic
+    })
+  }).then(res => {
+    return res.json()
+  })
+}
+
+async function photosUserData(authenticationState: AuthenticationState): Promise<any> {
+  const token = authenticationState.token;
+  const mnemonic = authenticationState.user.mnemonic;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'internxt-mnemonic': mnemonic,
+    'Content-Type': 'application/json; charset=utf-8'
+  };
+
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/user`, {
+    method: 'GET',
+    headers
+  }).then(res => {
+    if (res.status === 400) {
+      return initializePhotosUser(token, mnemonic)
+    }
+    return res.json()
+  }).then(res => {
+    return res
+  })
+}
+
 interface SettingsModalProps {
-  authenticationState?: any
-  layoutState?: any
-  dispatch?: any,
-  navigation?: any
+  authenticationState: AuthenticationState
+  layoutState: LayoutState
+  dispatch: Dispatch,
+  navigation: any
 }
 
 function SettingsModal(props: SettingsModalProps) {
@@ -81,103 +121,121 @@ function SettingsModal(props: SettingsModalProps) {
     }
   }, [props.layoutState.showSettingsModal])
 
-  return <Modal
-    isOpen={props.layoutState.showSettingsModal}
-    position={'bottom'}
-    swipeArea={20}
-    style={styles.modalSettings}
-    onClosed={() => {
-      props.dispatch(layoutActions.closeSettings())
-    }}
-    backButtonClose={true}
-    animationDuration={200}>
-
-    <View style={styles.drawerKnob}></View>
-
-    <Text
-      style={styles.nameText}
-    >
-      {props.authenticationState.user.name}{' '}
-      {props.authenticationState.user.lastname}
-    </Text>
-
-    <ProgressBar
-      styleBar={{}}
-      styleProgress={styles.progressHeight}
-      totalValue={usageValues.limit}
-      usedValue={usageValues.usage}
-    />
-
-    {isLoadingUsage ? <ActivityIndicator color={'#00f'} /> : <Text
-      style={styles.usageText}
-    >
-      <Text>Used </Text>
-      <Bold>
-        {prettysize(usageValues.usage)}
-      </Bold>
-      <Text> of </Text>
-      <Bold>
-        {prettysize(usageValues.limit)}
-      </Bold>
-    </Text>
+  // Check current screen to change settings Photos/Drive text
+  useEffect(() => {
+    if (props.navigation.state.routeName === 'Photos' || props.navigation.state.routeName === 'FileExplorer') {
+      props.dispatch(layoutActions.setCurrentApp(props.navigation.state.routeName))
     }
+  }, [props.navigation.state])
 
-    <Separator />
-
-    <SettingsItem
-      text="More info"
-      onPress={() => Linking.openURL('https://internxt.com/drive')}
-    />
-
-    <SettingsItem
-      text="Storage"
-      onPress={() => {
+  return (
+    <Modal
+      isOpen={props.layoutState.showSettingsModal}
+      position={'bottom'}
+      swipeArea={20}
+      style={styles.modalSettings}
+      onClosed={() => {
         props.dispatch(layoutActions.closeSettings())
-        props.navigation.replace('Storage')
       }}
-    />
+      backButtonClose={true}
+      animationDuration={200}>
 
-    <SettingsItem
-      text="Contact"
-      onPress={() => {
-        const emailUrl = 'mailto:support@internxt.zohodesk.eu'
+      <View style={styles.drawerKnob}></View>
 
-        Linking.canOpenURL(emailUrl).then(() => {
-          Linking.openURL(emailUrl)
-        }).catch(() => {
-          Alert.alert('Info', 'Send us an email to: support@internxt.zohodesk.')
-        })
-      }}
-    />
+      <Text style={styles.nameText}>
+        {props.authenticationState.user.name}{' '}
+        {props.authenticationState.user.lastname}
+      </Text>
 
-    <SettingsItem
-      text="Sign out"
-      onPress={() => {
-        props.dispatch(layoutActions.closeSettings())
-        props.dispatch(userActions.signout())
-      }}
-    />
-  </Modal>
+      <ProgressBar
+        styleProgress={styles.progressHeight}
+        totalValue={usageValues.limit}
+        usedValue={usageValues.usage}
+      />
+
+      {isLoadingUsage ?
+        <ActivityIndicator color={'#00f'} />
+        :
+        <Text style={styles.usageText}>
+          <Text>{strings.screens.storage.space.used.used} </Text>
+          <Bold>{prettysize(usageValues.usage)}</Bold>
+          <Text> {strings.screens.storage.space.used.of} </Text>
+          <Bold>{prettysize(usageValues.limit)}</Bold>
+        </Text>
+      }
+
+      <Separator />
+
+      {<SettingsItem
+        text={strings.components.app_menu.settings.storage}
+        onPress={() => {
+          props.dispatch(layoutActions.closeSettings())
+          props.navigation.replace('Storage')
+        }}
+      /> }
+
+      <SettingsItem
+        text={strings.components.app_menu.settings.more}
+        onPress={() => Linking.openURL('https://internxt.com/drive')}
+      />
+
+      <SettingsItem
+        text={props.layoutState.currentApp === 'Photos' ? strings.components.app_menu.settings.drive : strings.components.app_menu.settings.photos}
+        onPress={async () => {
+
+          props.dispatch(layoutActions.closeSettings())
+
+          if (props.layoutState.currentApp === 'Photos') {
+            props.navigation.replace('FileExplorer')
+          } else {
+            props.navigation.replace('Photos')
+          }
+        }}
+      />
+
+      <SettingsItem
+        text={strings.components.app_menu.settings.contact}
+        onPress={() => {
+          const emailUrl = 'mailto:support@internxt.zohodesk.eu'
+
+          Linking.canOpenURL(emailUrl).then(() => {
+            Linking.openURL(emailUrl)
+          }).catch(() => {
+            Alert.alert('Info', 'Send us an email to: support@internxt.zohodesk.')
+          })
+        }}
+      />
+
+      <SettingsItem
+        text={strings.components.app_menu.settings.sign}
+        onPress={() => {
+          props.dispatch(layoutActions.closeSettings())
+          props.dispatch(userActions.signout())
+        }}
+      />
+    </Modal>
+  )
 }
 
 const styles = StyleSheet.create({
   drawerKnob: {
-    backgroundColor: '#d8d8d8',
-    width: 56,
-    height: 7,
-    borderRadius: 4,
     alignSelf: 'center',
-    marginTop: 10
+    backgroundColor: '#d8d8d8',
+    borderRadius: 4,
+    height: 7,
+    marginTop: 10,
+    width: 56
   },
   modalSettings: {
-    height: 380
+    height: hp('55%') < 420 ? 420 : Math.min(420, hp('55%')),
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0
   },
   nameText: {
+    fontFamily: 'CerebriSans-Bold',
     fontSize: 20,
     fontWeight: 'bold',
     marginLeft: 26,
-    marginTop: 10,
-    fontFamily: 'CerebriSans-Bold'
+    marginTop: 10
   },
   progressHeight: {
     height: 6
@@ -185,8 +243,8 @@ const styles = StyleSheet.create({
   usageText: {
     fontFamily: 'CerebriSans-Regular',
     fontSize: 15,
-    paddingLeft: 24,
-    paddingBottom: 0
+    paddingBottom: 0,
+    paddingLeft: 24
   }
 })
 

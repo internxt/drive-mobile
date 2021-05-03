@@ -59,8 +59,6 @@ function FileList(props: any) {
 
   useEffect(() => {
     setFilesUploaded(props.filesState.filesAlreadyUploaded)
-    //console.log('file', props.filesState.filesAlreadyUploaded)
-    //console.log('folderId', props.filesState.folderContent.currentFolder)
 
   }, [props.filesState.filesAlreadyUploaded])
 
@@ -171,12 +169,12 @@ function FileList(props: any) {
 }
 
 const styles = StyleSheet.create({
+  dNone: {
+    display: 'none'
+  },
   fileListContentsScrollView: {
     flexGrow: 1,
     justifyContent: 'center'
-  },
-  dNone: {
-    display: 'none'
   }
 })
 

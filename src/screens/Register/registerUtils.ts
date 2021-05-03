@@ -10,10 +10,10 @@ export function isNullOrEmpty(input: string): boolean {
   return _.isEmpty(input)
 }
 interface RegisterParams {
-    firstName: string
-    lastName: string
-    email: string
-    password: string
+  firstName: string
+  lastName: string
+  email: string
+  password: string
 }
 
 export async function getNewBits(): Promise<string> {
@@ -21,7 +21,6 @@ export async function getNewBits(): Promise<string> {
     .then(res => res.json())
     .then(res => res.bits)
     .then(bits => decryptText(bits))
-    .catch(() => null)
 }
 
 export function IsJsonString(str: string): any {
@@ -41,7 +40,7 @@ export async function doRegister(params: RegisterParams): Promise<any> {
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/register`, {
     method: 'post',
-    headers: getHeaders(),
+    headers: await getHeaders(),
     body: JSON.stringify({
       name: params.firstName,
       lastname: params.lastName,
@@ -65,20 +64,4 @@ export async function doRegister(params: RegisterParams): Promise<any> {
       }
     }
   })
-}
-
-export async function resendActivationEmail(email: string): Promise<any> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/user/resend/${email.toLowerCase()}`)
-    .then(async res => {
-      if (res.status !== 200) {
-        const body = await res.text()
-        const json = IsJsonString(body)
-
-        if (json) {
-          throw Error(json.error ? json.error : json.message)
-        } else {
-          throw Error(body)
-        }
-      }
-    })
 }

@@ -10,6 +10,7 @@ import { getHeaders } from '../../helpers/headers';
 import { IFile, IFolder } from '../../components/FileList';
 import { Reducers } from '../../redux/reducers/reducers';
 import Clipboard from 'expo-clipboard'
+import strings from '../../../assets/lang/strings';
 
 interface ShareFilesModalProps extends Reducers {
   dispatch?: any,
@@ -22,8 +23,6 @@ function ShareFilesModal(props: ShareFilesModalProps) {
   const [link, setLink] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [inputValue, setInputValue] = useState('1')
-  const xToken = props.authenticationState.token
-  const mnemonic = props.authenticationState.user.mnemonic;
 
   const handleInputChange = (e: string) => {
     setInputValue(e.replace(/[^0-9]/g, ''))
@@ -63,7 +62,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
     // Share link on native share system
     await Share.share({
       title: 'Internxt Drive file sharing',
-      message: `Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple, private and eco-friendly cloud storage service https://internxt.com/drive \nI wanted to share a file (${file.name}) with you through this private link (${inputValue} total uses) -no sign up required: ${link}`
+      message: `Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple and private cloud storage service https://internxt.com/drive \nI wanted to share a file (${file.name}) with you through this private link (${inputValue} total uses), no sign up required: ${link}`
     });
   };
 
@@ -72,7 +71,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 
     return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/share/file/${fileId}`, {
       method: 'POST',
-      headers: getHeaders(xToken, mnemonic),
+      headers: await getHeaders(),
       body: JSON.stringify({ 'isFolder': false, 'views': views })
     }).then(res => {
       if (res.status !== 200) {
@@ -98,10 +97,10 @@ function ShareFilesModal(props: ShareFilesModalProps) {
       <Separator />
 
       <View>
-        <Text style={styles.subtitle}>Share your Drive file with this private link</Text>
+        <Text style={styles.subtitle}>{strings.modals.share_modal.title}</Text>
 
         <View style={styles.inputContainer}>
-          <Text style={[styles.subtitle, styles.short]}>or enter the number of times you would like the link to be valid: </Text>
+          <Text style={[styles.subtitle, styles.short]}>{strings.modals.share_modal.title2} </Text>
           <TextInput
             style={styles.input}
             keyboardType='numeric'
@@ -121,7 +120,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
             }
           }}>
             <Text style={styles.link}>
-              {!isLoading ? link : 'Loading link...'}
+              {!isLoading ? link : strings.modals.share_modal.loading}
             </Text>
           </TouchableWithoutFeedback>
         </View>
@@ -130,7 +129,7 @@ function ShareFilesModal(props: ShareFilesModalProps) {
           <TouchableOpacity style={styles.button}
             onPress={() => { shareFile(selectedFile) }}
             disabled={isLoading}>
-            <Text style={!isLoading ? styles.buttonText : styles.buttonTextLoading}>Share</Text>
+            <Text style={!isLoading ? styles.buttonText : styles.buttonTextLoading}>{strings.modals.share_modal.share}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -139,77 +138,76 @@ function ShareFilesModal(props: ShareFilesModalProps) {
 }
 
 const styles = StyleSheet.create({
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  buttonContainer: {
+    borderColor: 'rgba(151, 151, 151, 0.2)',
+    borderLeftWidth: 1,
+    flex: 0.4,
+    height: '100%',
+    justifyContent: 'center'
+  },
+  buttonText: {
+    color: '#4585f5',
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 18
+  },
+  buttonTextLoading: {
+    color: 'rgba(69, 133, 245, 0.7)',
+    fontFamily: 'CircularStd-Bold',
+    fontSize: 18
+  },
+  input: {
+    backgroundColor: '#f2f2f2',
+    color: '#737880',
+    fontSize: 12,
+    height: 37,
+    paddingLeft: 10,
+    width: '17%'
+  },
+  inputContainer: {
+    alignItems: 'flex-end',
+    flexDirection: 'row'
+  },
+  link: {
+    color: '#737880',
+    fontSize: 12,
+    marginHorizontal: 4
+  },
+  linkContainer: {
+    alignItems: 'center',
+    flex: 0.8,
+    justifyContent: 'center'
+  },
   modalContainer: {
     height: 'auto',
     paddingTop: 20
   },
-  title: {
-    fontSize: 18,
-    color: 'black',
-    fontFamily: 'CircularStd-Bold',
-    marginHorizontal: wp('6')
-  },
-  subtitle: {
-    fontSize: 16,
-    letterSpacing: 0.5,
-    lineHeight: 25,
-    color: '#737880',
-    marginLeft: wp('6')
+  shareContainer: {
+    alignItems: 'center',
+    borderColor: 'rgba(151, 151, 151, 0.2)',
+    borderWidth: 1,
+    flexDirection: 'row',
+    height: Platform.OS === 'ios' ? wp('19') : wp('15'),
+    marginTop: 12
   },
   short: {
     width: '70%'
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end'
-  },
-  input: {
-    width: '17%',
-    height: 37,
-    backgroundColor: '#f2f2f2',
-    fontSize: 12,
+  subtitle: {
     color: '#737880',
-    paddingLeft: 10
+    fontSize: 16,
+    letterSpacing: 0.5,
+    lineHeight: 25,
+    marginLeft: wp('6')
   },
-  shareContainer: {
-    flexDirection: 'row',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
-    alignItems: 'center',
-    marginTop: 12,
-    borderWidth: 1,
-    height: Platform.OS === 'ios' ? wp('19') : wp('15')
-  },
-  linkContainer: {
-    flex: 0.8,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  link: {
-    fontSize: 14,
-    marginHorizontal: wp('2'),
-    color: '#737880'
-  },
-  buttonContainer: {
-    flex: 0.2,
-    borderLeftWidth: 1,
-    height: '100%',
-    justifyContent: 'center',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
-    padding: 20
-  },
-  button: {
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  buttonText: {
+  title: {
+    color: 'black',
+    fontFamily: 'CircularStd-Bold',
     fontSize: 18,
-    color: '#4585f5',
-    fontFamily: 'CerebriSans-Bold'
-  },
-  buttonTextLoading: {
-    fontSize: 18,
-    color: 'rgba(69, 133, 245, 0.7)',
-    fontFamily: 'CircularStd-Bold'
+    marginHorizontal: wp('6')
   }
 })
 

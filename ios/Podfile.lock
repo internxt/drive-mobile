@@ -24,6 +24,10 @@ PODS:
     - React-Core
     - UMCore
     - UMImageLoaderInterface
+  - EXImageManipulator (8.4.0):
+    - UMCore
+    - UMFileSystemInterface
+    - UMImageLoaderInterface
   - EXImagePicker (9.2.1):
     - UMCore
     - UMFileSystemInterface
@@ -39,6 +43,11 @@ PODS:
     - UMCore
     - UMPermissionsInterface
     - UMTaskManagerInterface
+  - EXMediaLibrary (10.0.0):
+    - React-Core
+    - UMCore
+    - UMFileSystemInterface
+    - UMPermissionsInterface
   - EXPermissions (10.0.0):
     - UMCore
     - UMPermissionsInterface
@@ -418,6 +427,8 @@ PODS:
     - React-Core (= 0.63.4)
     - React-cxxreact (= 0.63.4)
     - React-jsi (= 0.63.4)
+  - ReactNativeLocalization (2.1.6):
+    - React
   - rn-fetch-blob (0.11.2):
     - React-Core
   - RNAnalytics (1.3.2):
@@ -432,10 +443,14 @@ PODS:
     - React
   - RNFileViewer (2.1.4):
     - React-Core
+  - RNFS (2.16.6):
+    - React
   - RNGestureHandler (1.8.0):
     - React
   - RNScreens (2.15.0):
     - React-Core
+  - RNSha256 (1.4.7):
+    - React
   - RNSVG (12.1.0):
     - React
   - Segment-Firebase (2.7.0):
@@ -478,11 +493,13 @@ DEPENDENCIES:
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
+  - EXImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - EXImagePicker (from `../node_modules/expo-image-picker/ios`)
   - EXKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - EXLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
   - EXLocalAuthentication (from `../node_modules/expo-local-authentication/ios`)
   - EXLocation (from `../node_modules/expo-location/ios`)
+  - EXMediaLibrary (from `../node_modules/expo-media-library/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - EXSecureStore (from `../node_modules/expo-secure-store/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
@@ -538,13 +555,16 @@ DEPENDENCIES:
   - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - ReactNativeLocalization (from `../node_modules/react-native-localization`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - "RNAnalytics (from `../node_modules/@segment/analytics-react-native`)"
   - "RNAnalyticsIntegration-Firebase (from `../node_modules/@segment/analytics-react-native-firebase`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
+  - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNSha256 (from `../node_modules/react-native-sha256`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - UMBarCodeScannerInterface (from `../node_modules/unimodules-barcode-scanner-interface/ios`)
@@ -606,6 +626,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-font/ios"
   EXImageLoader:
     :path: "../node_modules/expo-image-loader/ios"
+  EXImageManipulator:
+    :path: "../node_modules/expo-image-manipulator/ios"
   EXImagePicker:
     :path: "../node_modules/expo-image-picker/ios"
   EXKeepAwake:
@@ -616,6 +638,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-local-authentication/ios"
   EXLocation:
     :path: "../node_modules/expo-location/ios"
+  EXMediaLibrary:
+    :path: "../node_modules/expo-media-library/ios"
   EXPermissions:
     :path: "../node_modules/expo-permissions/ios"
   EXSecureStore:
@@ -684,6 +708,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Vibration"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  ReactNativeLocalization:
+    :path: "../node_modules/react-native-localization"
   rn-fetch-blob:
     :path: "../node_modules/rn-fetch-blob"
   RNAnalytics:
@@ -694,10 +720,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/masked-view"
   RNFileViewer:
     :path: "../node_modules/react-native-file-viewer"
+  RNFS:
+    :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSha256:
+    :path: "../node_modules/react-native-sha256"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   UMAppLoader:
@@ -742,11 +772,13 @@ SPEC CHECKSUMS:
   EXFileSystem: 0e4974ab77bff04cda68d2886d070cbe64b93a6b
   EXFont: 30c64ed8735a180e3f20046e4fdac4ea074d71d3
   EXImageLoader: f96ec9992733a4224418bbd9382e5485c8948944
+  EXImageManipulator: 77756def08b3f2bc2a0470c657fbd0d94f381fa4
   EXImagePicker: 82fb929fb57b38de8d0a2d7fc3ca49726b9b8f78
   EXKeepAwake: 615c5a6fca5c2afedf611bb6f7f2ca323246de94
   EXLinearGradient: c803fbd1aa974be038177b1e45524bc35759fe9c
   EXLocalAuthentication: acb740dcb15753d8f0ce90d93609322a2545cd41
   EXLocation: d55e2a37f61bcfb4eba9c813b3f4621d896c4c00
+  EXMediaLibrary: 580c097a85f9253deaaf7aaa75a8a2e692e9d8b9
   EXPermissions: 17d4846ad1880f6891c74ae58ca1acb43e47ed47
   EXSecureStore: 1b571851e6068b30b8ec097be848a04603c03bae
   EXSplashScreen: 8c7c1112ce7611a853486af4737fe2298eda7657
@@ -799,13 +831,16 @@ SPEC CHECKSUMS:
   React-RCTText: 5c51df3f08cb9dedc6e790161195d12bac06101c
   React-RCTVibration: ae4f914cfe8de7d4de95ae1ea6cc8f6315d73d9d
   ReactCommon: 73d79c7039f473b76db6ff7c6b159c478acbbb3b
+  ReactNativeLocalization: dbb269b27d8a84bb22b9c2cdec38ba780b51dd72
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
   RNAnalytics: ac18ac964dd53bac7f957994412963e8e2568c4d
   RNAnalyticsIntegration-Firebase: daed87b7ab56636ed0098326eb92e26fdfc198c2
   RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
   RNFileViewer: 83cc066ad795b1f986791d03b56fe0ee14b6a69f
+  RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
+  RNSha256: bf2c90a9e0cec6dcbcc4100e4e19715ae7feaa34
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   Segment-Firebase: 41677a446f58989db69912059949107afb0c3f38
   Toast: 91b396c56ee72a5790816f40d3a94dd357abc196

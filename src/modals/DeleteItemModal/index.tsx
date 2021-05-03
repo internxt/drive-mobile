@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Image, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import { fileActions, layoutActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
-export interface DeleteItemModalProps extends Reducers {
+interface DeleteItemModalProps extends Reducers {
     dispatch?: any,
 }
 
@@ -37,24 +38,24 @@ function DeleteItemModal(props: DeleteItemModalProps) {
     >
       <View style={styles.textContainer}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Delete item</Text>
+          <Text style={styles.title}>{strings.modals.delete_modal.title}</Text>
         </View>
 
-        <Text style={styles.subtitle}>Please confirm you want to delete this item. This action can not be undone.</Text>
+        <Text style={styles.subtitle}>{strings.modals.delete_modal.subtitle}</Text>
       </View>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={() => {
           setIsOpen(false)
         }}>
-          <Text style={styles.text}>Cancel</Text>
+          <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, styles.blue]} onPress={() => {
           handleDeleteSelectedItem();
           setIsOpen(false)
         }}>
-          <Text style={[styles.text, styles.white]}>Confirm</Text>
+          <Text style={[styles.text, styles.white]}>{strings.components.buttons.confirm}</Text>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -62,52 +63,52 @@ function DeleteItemModal(props: DeleteItemModalProps) {
 }
 
 const styles = StyleSheet.create({
-  modalContainer: {
-    justifyContent: 'center',
+  blue: {
+    backgroundColor: '#4585f5'
+  },
+  button: {
     alignItems: 'center',
-    height: '100%',
-    width: '100%'
-  },
-  textContainer: {
-    paddingHorizontal: 30
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end'
-  },
-  title: {
-    fontSize: 27,
-    fontFamily: 'CerebriSans-Bold',
-    color: 'black'
-  },
-  subtitle: {
-    fontSize: 17,
-    color: '#737880',
-    marginTop: 15
+    backgroundColor: '#fff',
+    borderColor: 'rgba(151, 151, 151, 0.2)',
+    borderRadius: 4,
+    borderWidth: 2,
+    height: 50,
+    justifyContent: 'center',
+    width: widthPercentageToDP('35')
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    width: '80%',
-    marginTop: 30
+    marginTop: 30,
+    width: '80%'
   },
-  button: {
-    height: 50,
-    width: widthPercentageToDP('35'),
-    borderRadius: 4,
-    borderWidth: 2,
-    backgroundColor: '#fff',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
+  modalContainer: {
+    alignItems: 'center',
+    height: '100%',
     justifyContent: 'center',
-    alignItems: 'center'
+    width: '100%'
   },
-  blue: {
-    backgroundColor: '#4585f5'
+  subtitle: {
+    color: '#737880',
+    fontSize: 17,
+    marginTop: 15
   },
   text: {
     color: '#5c6066',
     fontFamily: 'CerebriSans-Bold',
     fontSize: 16
+  },
+  textContainer: {
+    paddingHorizontal: 30
+  },
+  title: {
+    color: 'black',
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 27
+  },
+  titleContainer: {
+    alignItems: 'flex-end',
+    flexDirection: 'row'
   },
   white: {
     color: '#fff'

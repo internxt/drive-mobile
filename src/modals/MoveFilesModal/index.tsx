@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import Separator from '../../components/Separator';
-import { getIcon } from '../../helpers/getIcon';
 import { fileActions, layoutActions } from '../../redux/actions';
 import Folder from './Folder';
 
@@ -66,7 +66,7 @@ function MoveFilesModal(props: MoveFilesProps) {
       style={styles.container}
     >
       <View style={styles.breadcrumbs}>
-        <Text style={styles.title}>Choose a folder to move this file.</Text>
+        <Text style={styles.title}>{strings.modals.move_modal.title}</Text>
       </View>
 
       <Separator />
@@ -93,7 +93,7 @@ function MoveFilesModal(props: MoveFilesProps) {
             props.dispatch(fileActions.getFolderContent(firstfolder))
           }}
         >
-          <Text style={styles.text}>Cancel</Text>
+          <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, styles.blue]}
@@ -101,7 +101,7 @@ function MoveFilesModal(props: MoveFilesProps) {
             moveFile(currentfolderid)
           }}
         >
-          <Text style={[styles.text, styles.white]}>Move</Text>
+          <Text style={[styles.text, styles.white]}>{strings.components.buttons.move}</Text>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -109,50 +109,50 @@ function MoveFilesModal(props: MoveFilesProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    height: '100%'
+  blue: {
+    backgroundColor: '#4585f5'
   },
   breadcrumbs: {
-    display: 'flex',
-    flexWrap: 'nowrap',
-    flexDirection: 'row',
     alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
     marginTop: Platform.OS === 'ios' ? wp('14') : 0
   },
-  title: {
-    height: 30,
-    fontFamily: 'CircularStd-Bold',
-    fontSize: 21,
-    letterSpacing: -0.2,
-    color: '#000000',
-    marginLeft: 20
-  },
-  folderList: {
-    height: '75%'
+  button: {
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderColor: 'rgba(151, 151, 151, 0.2)',
+    borderRadius: 8,
+    borderWidth: 2,
+    height: 50,
+    justifyContent: 'center',
+    width: wp('40')
   },
   buttonContainer: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: Platform.OS === 'ios' ? 25 : 0
   },
-  button: {
-    height: 50,
-    width: wp('40'),
-    borderRadius: 8,
-    borderWidth: 2,
-    backgroundColor: '#fff',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center'
+  container: {
+    flex: 1
   },
-  blue: {
-    backgroundColor: '#4585f5'
+  folderList: {
+    height: '75%'
   },
   text: {
     color: '#5c6066',
     fontFamily: 'CerebriSans-Bold',
     fontSize: 16
+  },
+  title: {
+    color: '#000000',
+    fontFamily: 'CircularStd-Bold',
+    fontSize: 21,
+    letterSpacing: -0.2,
+    margin: 20
   },
   white: {
     color: '#fff'

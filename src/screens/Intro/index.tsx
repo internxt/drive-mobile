@@ -5,43 +5,33 @@ import { TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { normalize } from '../../helpers';
 import B from '../../components/Bold'
+import strings from '../../../assets/lang/strings';
 interface IntroProps {
   onFinish: () => void
   navigation?: any
 }
 
+const applyBoldStyle = (text: string, boldText: string[]) => {
+  let numberOfItemsAdded = 0
+  const result = text.split(/\{\d+\}/)
+
+  boldText.forEach((boldText, i) => result.splice(++numberOfItemsAdded + i, 0, <B>{boldText}</B>))
+  return <Text>{result}</Text>
+};
 const slides = [
   {
     key: 'intro001',
-    text: (
-      <Text>
-        <B>Internxt Drive</B> is a <B>different</B> cloud storage service. A{' '}
-        <B>better</B> place for all your files. Welcome to the <B>revolution</B>
-        . Welcome to <B>Internxt</B>.
-      </Text>
-    ),
+    text: (applyBoldStyle(strings.screens.register_screen.first, strings.screens.register_screen.bold_first)),
     image: require('../../../assets/images/intro/intro01.png')
   },
   {
     key: 'intro002',
-    text: (
-      <Text>
-        Files are <B>encrypted</B> on your device. There is <B>no way</B> we nor
-        any other third-party can access them. <B>Privacy</B>, as it should have
-        always been.
-      </Text>
-    ),
+    text: (applyBoldStyle(strings.screens.register_screen.second, strings.screens.register_screen.bold_second)),
     image: require('../../../assets/images/intro/intro02.png')
   },
   {
     key: 'intro003',
-    text: (
-      <Text>
-        Access Internxt Drive from <B>Desktop</B>, <B>Web</B> or{' '}
-        <B>Mobile</B>. Start using Drive today with <B>2 GB</B> on
-        us. <B>Upgrade your storage</B> when needed, free for a month, cancel anytime.
-      </Text>
-    ),
+    text: (applyBoldStyle(strings.screens.register_screen.third, strings.screens.register_screen.bold_third)),
     image: require('../../../assets/images/intro/intro03.png')
   }
 ];
@@ -50,6 +40,7 @@ function renderItem({ item }: any) {
   return (
     <View style={styles.body}>
       <Text style={styles.explanationText}>{item.text}</Text>
+
       <View style={styles.imageContainer}>
         <Image source={item.image} style={styles.image} />
       </View>
@@ -62,7 +53,7 @@ function renderNextButton(): ReactNode {
     <TouchableHighlight style={styles.buttonSkip}
       activeOpacity={1}
       underlayColor="#007aff">
-      <Text style={styles.buttonSkipText}>Next</Text>
+      <Text style={styles.buttonSkipText}>{strings.components.buttons.next}</Text>
     </TouchableHighlight>
   );
 }
@@ -72,7 +63,7 @@ function renderDoneButton() {
     <TouchableHighlight style={styles.buttonSkip}
       activeOpacity={1}
       underlayColor="#007aff">
-      <Text style={styles.buttonSkipText}>Get Started</Text>
+      <Text style={styles.buttonSkipText}>{strings.components.buttons.get_started}</Text>
     </TouchableHighlight>
   );
 }
@@ -90,55 +81,54 @@ function Intro(props: IntroProps): JSX.Element {
     activeDotStyle={styles.activeDot}
     dotStyle={styles.inactiveDot}
   />
-
 }
 
 const styles = StyleSheet.create({
+  activeDot: {
+    backgroundColor: '#a4a4a4'
+  },
   body: {
     backgroundColor: '#fff',
-    padding: normalize(31),
-    flex: 1
+    flex: 1,
+    padding: normalize(31)
+  },
+  buttonSkip: {
+    alignItems: 'center',
+    backgroundColor: '#007aff',
+    borderRadius: 23,
+    height: normalize(46),
+    justifyContent: 'center',
+    marginBottom: normalize(40),
+    marginLeft: normalize(27),
+    marginRight: normalize(27)
+  },
+  buttonSkipText: {
+    color: 'white',
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: normalize(18),
+    textAlign: 'center'
   },
   explanationText: {
+    color: '#7e7e7e',
     fontFamily: 'CerebriSans-Medium',
     fontSize: normalize(22),
-    textAlign: 'center',
     lineHeight: normalize(28),
-    color: '#7e7e7e',
-    marginTop: normalize(30)
+    marginTop: normalize(30),
+    textAlign: 'center'
+  },
+  image: {
+    aspectRatio: 1,
+    height: undefined,
+    justifyContent: 'center',
+    width: '90%'
   },
   imageContainer: {
     flex: 1,
     justifyContent: 'center',
     marginBottom: 100
   },
-  image: {
-    width: '90%',
-    height: undefined,
-    aspectRatio: 1,
-    justifyContent: 'center'
-  },
-  activeDot: {
-    backgroundColor: '#a4a4a4'
-  },
   inactiveDot: {
     backgroundColor: '#e8e8e8'
-  },
-  buttonSkip: {
-    borderRadius: 23,
-    backgroundColor: '#007aff',
-    height: normalize(46),
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: normalize(40),
-    marginRight: normalize(27),
-    marginLeft: normalize(27)
-  },
-  buttonSkipText: {
-    textAlign: 'center',
-    color: 'white',
-    fontSize: normalize(18),
-    fontFamily: 'CerebriSans-Regular'
   }
 });
 

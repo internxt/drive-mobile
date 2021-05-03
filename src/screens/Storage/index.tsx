@@ -12,6 +12,7 @@ import { Reducers } from '../../redux/reducers/reducers';
 import { loadValues } from '../../modals';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import strings from '../../../assets/lang/strings';
 
 interface StorageProps extends Reducers {
   dispatch?: any,
@@ -20,7 +21,6 @@ interface StorageProps extends Reducers {
 }
 
 function Storage(props: StorageProps): JSX.Element {
-  const userToken = props.authenticationState.token
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [products, setProducts] = useState<IProduct[]>([])
@@ -28,13 +28,13 @@ function Storage(props: StorageProps): JSX.Element {
   const [chosenProduct, setChosenProduct] = useState<IProduct>()
 
   const getProducts = async () => {
-    const products = await storageService.loadAvailableProducts(userToken)
+    const products = await storageService.loadAvailableProducts()
 
     return products
   }
 
   const getPlans = async (product: IProduct) => {
-    const plans = await storageService.loadAvailablePlans(userToken, product.id)
+    const plans = await storageService.loadAvailablePlans(product.id)
 
     return plans
   }
@@ -80,7 +80,11 @@ function Storage(props: StorageProps): JSX.Element {
           <View style={styles.backButton}>
             <TouchableOpacity
               onPress={() => {
-                props.navigation.replace('FileExplorer')
+                if (props.layoutState.currentApp === 'FileExplorer') {
+                  props.navigation.replace('FileExplorer')
+                } else {
+                  props.navigation.replace('Photos')
+                }
               }}
               style={styles.backTouchable}
             >
@@ -88,17 +92,17 @@ function Storage(props: StorageProps): JSX.Element {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.backText}>Storage</Text>
+          <Text style={styles.backText}>{strings.screens.storage.title}</Text>
         </View>
 
         <View style={styles.progressContainer}>
           <View style={styles.firstRow}>
-            <Text style={styles.progressTitle}>Storage Space</Text>
+            <Text style={styles.progressTitle}>{strings.screens.storage.space.title}</Text>
 
             <View style={styles.usedSapceContainer}>
-              <Text style={styles.usedSpace}>Used </Text>
+              <Text style={styles.usedSpace}>{strings.screens.storage.space.used.used} </Text>
               <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.usage)} </Text>
-              <Text style={styles.usedSpace}>of </Text>
+              <Text style={styles.usedSpace}>{strings.screens.storage.space.used.of} </Text>
               <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.limit)}</Text>
             </View>
           </View>
@@ -124,12 +128,12 @@ function Storage(props: StorageProps): JSX.Element {
                     style={styles.circle} />
               }
 
-              <Text style={styles.secondRowText}>Used space</Text>
+              <Text style={styles.secondRowText}>{strings.screens.storage.space.legend.used} </Text>
             </View>
 
             <View style={styles.legend}>
               <View style={styles.circle}></View>
-              <Text style={styles.secondRowText}>Unused space</Text>
+              <Text style={styles.secondRowText}>{strings.screens.storage.space.legend.unused}</Text>
             </View>
           </View>
         </View>
@@ -140,7 +144,7 @@ function Storage(props: StorageProps): JSX.Element {
               !chosenProduct ?
                 <View>
                   <View style={styles.titleContainer}>
-                    <Text style={styles.title}>Storage plans</Text>
+                    <Text style={styles.title}>{strings.screens.storage.plans.title}</Text>
                   </View>
                   {
                     products && products.map((product: IProduct) => <TouchableWithoutFeedback
@@ -168,7 +172,7 @@ function Storage(props: StorageProps): JSX.Element {
                             <Image style={styles.paymentBackIcon} source={getIcon('back')} />
                           </TouchableOpacity>
 
-                          <Text style={styles.title}>Payment length</Text>
+                          <Text style={styles.title}>{strings.screens.storage.plans.title_2}</Text>
 
                           <Text style={styles.titlePlan}>{chosenProduct.name}</Text>
                         </View>
@@ -192,7 +196,7 @@ function Storage(props: StorageProps): JSX.Element {
               </View>
           }
           <View>
-            <Text style={styles.footer}>You are subscribed to the {prettysize(usageValues.limit)} plan</Text>
+            <Text style={styles.footer}>{strings.screens.storage.plans.current_plan} {prettysize(usageValues.limit)} {strings.getLanguage() === 'es' ? null : 'plan'}</Text>
           </View>
         </View>
       </View>
@@ -201,55 +205,130 @@ function Storage(props: StorageProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'flex-start',
-    height: '100%',
-    backgroundColor: 'white'
-  },
-  navigatorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    height: wp('10'),
-    borderColor: '#f2f2f2'
-  },
   backButton: {
     flex: 0.1
-  },
-  backTouchable: {
-    width: wp('10'),
-    height: wp('10'),
-    alignItems: 'center',
-    justifyContent: 'center'
   },
   backIcon: {
     height: 14,
     width: 9
   },
   backText: {
+    color: 'black',
     flex: 0.8,
-    textAlign: 'center',
     fontFamily: 'CerebriSans-Medium',
     fontSize: 16,
-    color: 'black'
+    textAlign: 'center'
   },
-  progressContainer: {
+  backTouchable: {
+    alignItems: 'center',
+    height: wp('10'),
     justifyContent: 'center',
+    width: wp('10')
+  },
+  blue: {
+    backgroundColor: '#096dff'
+  },
+  bold: {
+    fontFamily: 'CerebriSans-Bold'
+  },
+  cardsContainer: {
+    flexGrow: 1,
+    marginLeft: 20,
+    paddingTop: 20
+  },
+  circle: {
+    backgroundColor: '#ededed',
+    borderRadius: 100,
+    height: 16,
+    marginRight: 6,
+    width: 16
+  },
+  container: {
+    backgroundColor: 'white',
+    height: '100%',
+    justifyContent: 'flex-start'
+  },
+  firstRow: {
+    alignItems: 'center',
+    flexDirection: 'row'
+  },
+  footer: {
+    color: '#7e848c',
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: 16,
+    letterSpacing: -0.1,
+    lineHeight: 22,
+    marginLeft: 0,
+    marginTop: 20
+  },
+  legend: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginRight: 30
+  },
+  navigatorContainer: {
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderColor: '#f2f2f2',
+    flexDirection: 'row',
+    height: wp('10')
+  },
+  paymentBack: {
+    alignItems: 'center',
+    height: wp('6'),
+    justifyContent: 'center',
+    width: wp('6')
+  },
+  paymentBackIcon: {
+    height: 13,
+    marginRight: 10,
+    width: 8
+  },
+  progressContainer: {
+    borderBottomWidth: 1,
+    borderColor: '#f2f2f2',
+    justifyContent: 'center',
     paddingBottom: 45,
     paddingTop: 30
   },
-  firstRow: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
   progressTitle: {
+    color: 'black',
     flex: 0.5,
     fontFamily: 'CerebriSans-Bold',
     fontSize: 18,
-    color: 'black',
     paddingLeft: 20
+  },
+  secondRow: {
+    flexDirection: 'row',
+    marginLeft: 20
+  },
+  secondRowText: {
+    color: '#7e848c',
+    fontFamily: 'CerebriSans-Regular',
+    fontSize: 13
+  },
+  title: {
+    color: 'black',
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: 18,
+    letterSpacing: 0,
+    marginRight: 10,
+    paddingBottom: Platform.OS === 'android' ? wp('1') : 0,
+    textAlignVertical: 'center'
+  },
+  titleContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: 12
+  },
+  titlePlan: {
+    borderColor: '#eaeced',
+    borderLeftWidth: 1,
+    color: '#7e848c',
+    fontFamily: 'CerebriSans-Medium',
+    fontSize: 18,
+    paddingBottom: Platform.OS === 'android' ? wp('1') : 0,
+    paddingLeft: 10
   },
   usedSapceContainer: {
     flexDirection: 'row',
@@ -258,84 +337,9 @@ const styles = StyleSheet.create({
     paddingRight: 20
   },
   usedSpace: {
-    fontFamily: 'CerebriSans-Regular',
     color: 'black',
+    fontFamily: 'CerebriSans-Regular',
     fontSize: 13
-  },
-  bold: {
-    fontFamily: 'CerebriSans-Bold'
-  },
-  secondRow: {
-    flexDirection: 'row',
-    marginLeft: 20
-  },
-  legend: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 30
-  },
-  circle: {
-    width: 16,
-    height: 16,
-    borderRadius: 100,
-    marginRight: 6,
-    backgroundColor: '#ededed'
-  },
-  blue: {
-    backgroundColor: '#096dff'
-  },
-  secondRowText: {
-    fontSize: 13,
-    fontFamily: 'CerebriSans-Regular',
-    color: '#7e848c'
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12
-  },
-  paymentBack: {
-    height: wp('6'),
-    width: wp('6'),
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  title: {
-    fontFamily: 'CerebriSans-Bold',
-    fontSize: 18,
-    textAlignVertical: 'center',
-    letterSpacing: 0,
-    color: 'black',
-    marginRight: 10,
-    paddingBottom: Platform.OS === 'android' ? wp('1') : 0
-  },
-  titlePlan: {
-    fontFamily: 'CerebriSans-Medium',
-    color: '#7e848c',
-    fontSize: 18,
-    paddingLeft: 10,
-    borderLeftWidth: 1,
-    borderColor: '#eaeced',
-    paddingBottom: Platform.OS === 'android' ? wp('1') : 0
-  },
-  paymentBackIcon: {
-    width: 8,
-    height: 13,
-    marginRight: 10
-  },
-  cardsContainer: {
-    paddingTop: 20,
-    marginLeft: 20,
-    flexGrow: 1
-  },
-  footer: {
-    fontFamily: 'CerebriSans-Regular',
-    fontSize: 16,
-    lineHeight: 22,
-    letterSpacing: -0.1,
-    marginLeft: 0,
-    marginTop: 20,
-    color: '#7e848c'
   }
 })
 

@@ -12,6 +12,7 @@ import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import MenuItem from '../../components/MenuItem';
 import { fileActions } from '../../redux/actions';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import strings from '../../../assets/lang/strings';
 
 const FolderIcon = () => (
   <Svg style={styles.icon} viewBox="0 0 99 78">
@@ -88,7 +89,7 @@ function CreateFolder(props: any): JSX.Element {
           style={styles.input}
           value={folderName}
           onChangeText={e => setFolderName(e)}
-          placeholder="Enter folder name"
+          placeholder={strings.screens.create_folder.input}
           placeholderTextColor="rgba(44, 107, 201, 0.5)"
           maxLength={24}
           clearTextOnFocus={true}
@@ -99,42 +100,42 @@ function CreateFolder(props: any): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'stretch',
-    backgroundColor: '#fff',
-    height: '100%'
-  },
   actionsWrapper: {
-    height: 51,
-    marginTop: Platform.select({ ios: 45, android: 20 }),
-    paddingLeft: 20,
-    paddingRight: 20,
+    alignSelf: 'stretch',
     display: 'flex',
     flexDirection: 'row',
+    height: 51,
     justifyContent: 'space-between',
-    alignSelf: 'stretch'
+    marginTop: Platform.select({ ios: 45, android: 20 }),
+    paddingLeft: 20,
+    paddingRight: 20
+  },
+  container: {
+    alignItems: 'stretch',
+    backgroundColor: '#fff',
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%'
   },
   folderWrapper: {
-    flexDirection: 'column',
     alignItems: 'center',
+    flexDirection: 'column',
     justifyContent: 'center'
   },
   icon: {
-    width: 219,
     height: 172,
     marginBottom: 15,
-    marginTop: 15
+    marginTop: 15,
+    width: 219
   },
   input: {
-    fontFamily: 'CircularStd-Bold',
-    letterSpacing: -0.2,
-    fontSize: 23,
     color: '#2c6bc9',
-    width: 219,
+    fontFamily: 'CircularStd-Bold',
+    fontSize: 23,
+    letterSpacing: -0.2,
+    marginLeft: wp(5),
     textAlign: 'left',
-    marginLeft: wp(5)
+    width: 230
   }
 });
 

@@ -4,7 +4,7 @@ import AppMenu from '../../components/AppMenu'
 import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
-import SettingsModal from '../../modals/SettingsModal';
+import SettingsModal, { loadValues } from '../../modals/SettingsModal';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { getIcon } from '../../helpers/getIcon';
 import FileDetailsModal from '../../modals/FileDetailsModal';
@@ -18,6 +18,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 import { WaveIndicator } from 'react-native-indicators'
 import Toast from 'react-native-simple-toast'
 import FreeForYouModal from '../../modals/FreeForYouModal';
+import strings from '../../../assets/lang/strings';
 
 interface FileExplorerProps extends Reducers {
   navigation?: any
@@ -48,6 +49,32 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       return filesState.uri.fileUri && filesState.folderContent && filesState.folderContent.currentFolder
     }
   }
+
+  useEffect(() => {
+    getLyticsData().then(userData => {
+      loadValues().then(res => {
+        const currentPlan = {
+          usage: parseInt(res.usage.toFixed(1)),
+          limit: parseInt(res.limit.toFixed(1)),
+          percentage: parseInt((res.usage / res.limit).toFixed(1))
+        }
+
+        props.dispatch(userActions.setUserStorage(currentPlan))
+        try {
+          if (res) {
+            analytics.identify(userData.uuid, {
+              userId: userData.uuid,
+              email: userData.email,
+              platform: 'mobile',
+              storage_used: currentPlan.usage,
+              storage_limit: currentPlan.limit,
+              storage_usage: currentPlan.percentage
+            }).catch(() => {})
+          }
+        } catch {}
+      })
+    }).catch(() => {})
+  }, [])
 
   // useEffect to trigger uploadFile while app on background
   useEffect(() => {
@@ -218,7 +245,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       <Text style={styles.breadcrumbsTitle}>
         {filesState.folderContent && filesState.folderContent.parentId
           ? filesState.folderContent.name
-          : 'All Files'}
+          : strings.screens.file_explorer.title}
       </Text>
 
       <TouchableOpacity
@@ -228,7 +255,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
         <View style={parentFolderId ? styles.backButtonWrapper : styles.backHidden}>
           <Image style={styles.backIcon} source={getIcon('back')} />
 
-          <Text style={styles.backLabel}>Back</Text>
+          <Text style={styles.backLabel}>{strings.components.buttons.back}</Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -251,59 +278,59 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(FileExplorer)
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    backgroundColor: '#fff'
-  },
   activityIndicator: {
-    position: 'absolute',
-    top: 0,
+    alignItems: 'center',
     bottom: 0,
+    justifyContent: 'center',
     left: 0,
+    position: 'absolute',
     right: 0,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  breadcrumbs: {
-    display: 'flex',
-    flexWrap: 'nowrap',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomColor: '#e6e6e6',
-    borderBottomWidth: 1,
-    marginTop: 15,
-    height: 40
-  },
-  breadcrumbsTitle: {
-    fontFamily: 'CircularStd-Bold',
-    fontSize: 21,
-    letterSpacing: -0.2,
-    paddingLeft: 20,
-    color: '#000000'
+    top: 0
   },
   backButtonWrapper: {
+    alignItems: 'center',
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 20,
     height: '100%',
+    marginRight: 20,
     width: '100%'
-  },
-  backIcon: {
-    height: 12,
-    width: 8,
-    marginRight: 5
-  },
-  backLabel: {
-    fontFamily: 'CircularStd-Medium',
-    fontSize: 19,
-    letterSpacing: -0.2,
-    color: '#000000'
   },
   backHidden: {
     display: 'none'
+  },
+  backIcon: {
+    height: 12,
+    marginRight: 5,
+    width: 8
+  },
+  backLabel: {
+    color: '#000000',
+    fontFamily: 'CircularStd-Medium',
+    fontSize: 19,
+    letterSpacing: -0.2
+  },
+  breadcrumbs: {
+    alignItems: 'center',
+    borderBottomColor: '#e6e6e6',
+    borderBottomWidth: 1,
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    height: 40,
+    justifyContent: 'space-between',
+    marginTop: 15
+  },
+  breadcrumbsTitle: {
+    color: '#000000',
+    fontFamily: 'CircularStd-Bold',
+    fontSize: 21,
+    letterSpacing: -0.2,
+    paddingLeft: 20
+  },
+  container: {
+    backgroundColor: '#fff',
+    flex: 1,
+    justifyContent: 'flex-start'
   },
   platformSpecificHeight: {
     height: Platform.OS === 'ios' ? '5%' : '0%'
