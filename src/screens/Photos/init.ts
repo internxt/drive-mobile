@@ -324,14 +324,14 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
       throw Error('Unable to download picture')
     }
     return res;
-  }).then(async (res) => {
+  }).then(res => {
     if (Platform.OS === 'ios') {
-      const p = await manipulateAsync(res.path(),
+      return manipulateAsync(res.path(),
         [],
         { compress: 1, format: SaveFormat.PNG }
-      )
-
-      return MediaLibrary.saveToLibraryAsync(p.uri).then(() => res.path())
+      ).then(p => {
+        return MediaLibrary.saveToLibraryAsync(p.uri).then(() => p.uri)
+      })
     } else {
       return MediaLibrary.saveToLibraryAsync(res.path()).then(() => res.path())
     }
