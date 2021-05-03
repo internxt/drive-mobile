@@ -5,9 +5,11 @@ import FileViewer from 'react-native-file-viewer';
 import * as MediaLibrary from 'expo-media-library';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import PhotoBadge from './PhotoBadge';
-import { downloadPhoto } from '../../screens/Photos/init';
+import { cachePicture, downloadPhoto, getRecentlyDownloadedImage, IHashedPhoto } from '../../screens/Photos/init';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
+import RNFS from 'react-native-fs'
+import { IApiPhotoWithPreview } from '../../types/api/photos/IApiPhoto';
 
 const deviceWidth = Dimensions.get('window').width
 
@@ -20,7 +22,7 @@ interface PhotoProps {
     localUri?: string
     size?: number
   }
-  updateDownloadedImageStatus: (downloadedImage: any) => void
+  updateDownloadedImageStatus: (remotePreview: IApiPhotoWithPreview, downloadedPhoto: IHashedPhoto) => void
 }
 
 export default function Photo(props: PhotoProps): JSX.Element {
@@ -49,15 +51,24 @@ export default function Photo(props: PhotoProps): JSX.Element {
         if (props.item.isUploaded && !props.item.isLocal && !isDownloading) {
           setIsDownloading(true)
           downloadPhoto(item, setProgress).then(path => {
-            props.updateDownloadedImageStatus(item)
-            setItemPath(path)
-            SimpleToast.show('Image downloaded!', 0.15)
-          }).catch((err) => SimpleToast.show('Could not download image'))
-            .finally(() => setIsDownloading(false))
+            getRecentlyDownloadedImage().then(photos => {
+              const downloadedPhoto = photos[0]
 
+              props.updateDownloadedImageStatus(item, downloadedPhoto)
+              setItemPath(path)
+            })
+          }).catch(() => SimpleToast.show('Could not download image'))
+            .finally(() => {
+              setIsDownloading(false)
+              SimpleToast.show('Image downloaded!', 0.15)
+            })
         } else {
           if (itemPath) {
-            FileViewer.open(itemPath)
+            cachePicture(item).then(res => {
+              FileViewer.open(res, {
+                onDismiss: () => RNFS.unlink(res)
+              })
+            })
           }
         }
       }}

@@ -14,6 +14,7 @@ import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
 import { getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
 import strings from '../../../assets/lang/strings';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { IApiPhotoWithPreview } from '../../types/api/photos/IApiPhoto';
 
 interface PhotoGalleryProps {
   route: any;
@@ -76,11 +77,14 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     })
   }
 
-  const updateDownloadedImageStatus = (downloadedImage: any) => {
-    const index = photosToRender.findIndex(local => local.hash === downloadedImage.hash)
+  const updateDownloadedImageStatus = (remotePreview: IApiPhotoWithPreview, downloadedPhoto: IHashedPhoto) => {
+    const index = photosToRender.findIndex(local => local.hash === remotePreview.hash)
     const items = photosToRender.slice()
+    const newLocal = downloadedPhoto
 
-    items[index].isLocal = true
+    newLocal.isLocal = true
+    newLocal.isUploaded = true
+    items[index] = newLocal
 
     setPhotosToRender(items)
   }
