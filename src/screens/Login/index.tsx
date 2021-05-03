@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react'
 import { useState } from 'react';
-import { Image, View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
+import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
 import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { normalize } from '../../helpers/normalize'
@@ -53,13 +54,13 @@ function Login(props: LoginProps): JSX.Element {
     <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
       <View style={styles.containerHeader}>
         <View style={styles.flexRow}>
-          <Text style={styles.title}>Sign in to Internxt</Text>
+          <Text style={styles.title}>{strings.screens.login_screen.title}</Text>
         </View>
         <View style={styles.buttonWrapper}>
           <TouchableHighlight
             style={[styles.button, styles.buttonOn]}
             underlayColor="#00aaff">
-            <Text style={styles.buttonOnLabel}>Sign in</Text>
+            <Text style={styles.buttonOnLabel}>{strings.components.buttons.sign_in}</Text>
           </TouchableHighlight>
 
           <TouchableHighlight
@@ -67,7 +68,7 @@ function Login(props: LoginProps): JSX.Element {
             style={[styles.button, styles.buttonOff]}
             underlayColor="#f2f2f2"
             onPress={() => props.navigation.replace('Register')}>
-            <Text style={styles.buttonOffLabel}>Create account</Text>
+            <Text style={styles.buttonOffLabel}>{strings.components.buttons.create}</Text>
           </TouchableHighlight>
         </View>
       </View>
@@ -78,7 +79,7 @@ function Login(props: LoginProps): JSX.Element {
             value={email}
             autoCapitalize={'none'}
             onChangeText={value => setEmail(value)}
-            placeholder="Email address"
+            placeholder={strings.components.inputs.email}
             placeholderTextColor="#666"
             maxLength={64}
             keyboardType="email-address"
@@ -90,7 +91,7 @@ function Login(props: LoginProps): JSX.Element {
             style={styles.input}
             value={password}
             onChangeText={value => setPassword(value)}
-            placeholder="Password"
+            placeholder={strings.components.inputs.password}
             placeholderTextColor="#666"
             secureTextEntry={true}
             textContentType="password"
@@ -135,12 +136,12 @@ function Login(props: LoginProps): JSX.Element {
               setIsLoading(false)
             })
           }}>
-          <Text style={styles.buttonOnLabel}>{isLoading ? 'Decrypting...' : 'Sign in'}</Text>
+          <Text style={styles.buttonOnLabel}>{isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}</Text>
         </TouchableHighlight>
-        <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>Forgot your password?</Text>
+        <Text style={styles.forgotPasswordText} onPress={() => props.navigation.replace('Forgot')}>{strings.screens.login_screen.forgot}</Text>
       </View>
     </View>
-    <Text style={styles.versionLabel}>Internxt Drive v1.2.4</Text>
+    <Text style={styles.versionLabel}>Internxt Drive v1.3.4</Text>
   </KeyboardAvoidingView>
 }
 
@@ -151,105 +152,105 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(Login)
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: normalize(20),
-    backgroundColor: '#FFFFFF'
-  },
-  containerCentered: {
-    justifyContent: 'center',
-    alignSelf: 'center',
-    width: '100%',
-    height: 600
-  },
-  containerHeader: {
-  },
-  title: {
-    fontFamily: 'CerebriSans-Bold',
-    fontSize: normalize(22),
-    letterSpacing: -1.7,
-    color: '#000',
-    marginBottom: normalize(30),
-    marginTop: normalize(64)
-  },
-  buttonWrapper: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: normalize(30)
-  },
-  buttonFooterWrapper: {
-    marginTop: normalize(15)
-  },
   button: {
-    alignSelf: 'stretch',
-    height: normalize(55),
-    width: normalize(130),
-    borderRadius: 3.4,
-    backgroundColor: '#4585f5',
     alignItems: 'center',
-    justifyContent: 'center'
+    alignSelf: 'stretch',
+    backgroundColor: '#4585f5',
+    borderRadius: 3.4,
+    height: normalize(55),
+    justifyContent: 'center',
+    width: normalize(130)
   },
   buttonBlock: {
     width: '100%'
   },
-  buttonOn: {
-    backgroundColor: '#4585f5'
+  buttonFooterWrapper: {
+    marginTop: normalize(15)
   },
   buttonOff: {
     backgroundColor: '#f2f2f2'
   },
-  buttonOnLabel: {
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    textAlign: 'center',
-    color: '#fff'
-  },
   buttonOffLabel: {
+    color: '#5c5c5c',
     fontFamily: 'CerebriSans-Medium',
     fontSize: normalize(15),
-    textAlign: 'center',
-    color: '#5c5c5c'
+    textAlign: 'center'
   },
-  input: {
+  buttonOn: {
+    backgroundColor: '#4585f5'
+  },
+  buttonOnLabel: {
+    color: '#fff',
     fontFamily: 'CerebriSans-Medium',
-    letterSpacing: -0.2,
     fontSize: normalize(15),
-    color: '#000',
+    textAlign: 'center'
+  },
+  buttonWrapper: {
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: normalize(30)
+  },
+  container: {
+    backgroundColor: '#FFFFFF',
     flex: 1,
-    paddingLeft: normalize(20)
-  },
-  showInputFieldsWrapper: {
-    justifyContent: 'center'
-  },
-  hideInputFieldWrapper: {
-    display: 'none'
-  },
-  inputWrapper: {
-    height: normalize(55),
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#c9c9c9',
     justifyContent: 'center',
-    marginBottom: normalize(13)
+    padding: normalize(20)
   },
-  versionLabel: {
-    fontFamily: 'CerebriSans-Regular',
+  containerCentered: {
     alignSelf: 'center',
-    color: '#999999',
-    marginTop: normalize(30),
-    marginBottom: normalize(70)
+    height: 600,
+    justifyContent: 'center',
+    width: '100%'
   },
-  forgotPasswordText: {
-    marginTop: normalize(13),
-    color: '#a4a4a4'
+  containerHeader: {
   },
   flexRow: {
     flexDirection: 'row'
   },
+  forgotPasswordText: {
+    color: '#a4a4a4',
+    marginTop: normalize(13)
+  },
   halfOpacity: {
     opacity: 0.5
+  },
+  hideInputFieldWrapper: {
+    display: 'none'
+  },
+  input: {
+    color: '#000',
+    flex: 1,
+    fontFamily: 'CerebriSans-Medium',
+    fontSize: normalize(15),
+    letterSpacing: -0.2,
+    paddingLeft: normalize(20)
+  },
+  inputWrapper: {
+    borderColor: '#c9c9c9',
+    borderRadius: 5,
+    borderWidth: 1,
+    height: normalize(55),
+    justifyContent: 'center',
+    marginBottom: normalize(13)
+  },
+  showInputFieldsWrapper: {
+    justifyContent: 'center'
+  },
+  title: {
+    color: '#000',
+    fontFamily: 'CerebriSans-Bold',
+    fontSize: normalize(22),
+    letterSpacing: -1.7,
+    marginBottom: normalize(30),
+    marginTop: normalize(64)
+  },
+  versionLabel: {
+    alignSelf: 'center',
+    color: '#999999',
+    fontFamily: 'CerebriSans-Regular',
+    marginBottom: normalize(70),
+    marginTop: normalize(30)
   }
 });

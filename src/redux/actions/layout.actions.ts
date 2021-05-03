@@ -8,6 +8,10 @@ export const layoutActions = {
   closeSettings,
   openItemModal,
   closeItemModal,
+  openAlbumModal,
+  closeAlbumModal,
+  openAddItemModal,
+  closeAddItemModal,
   openRunOutStorageModal,
   closeRunOutStorageModal,
   openFreeForYouModal,
@@ -21,7 +25,10 @@ export const layoutActions = {
   openShareModal,
   closeShareModal,
   openUploadFileModal,
-  closeUploadFileModal
+  closeUploadFileModal,
+  openComingSoonModal,
+  closeComingSoonModal,
+  setCurrentApp
 };
 
 function openSearch() {
@@ -60,6 +67,30 @@ function openItemModal(item: any) {
 function closeItemModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_ITEM_MODAL });
+  };
+}
+
+function openAlbumModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.OPEN_ALBUM_MODAL });
+  };
+}
+
+function closeAlbumModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_ALBUM_MODAL });
+  };
+}
+
+function openAddItemModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.OPEN_ADD_ITEM_MODAL });
+  };
+}
+
+function closeAddItemModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_ADD_ITEM_MODAL });
   };
 }
 
@@ -145,4 +176,20 @@ function closeUploadFileModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_UPLOAD_FILE_MODAL });
   };
+}
+
+function openComingSoonModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.OPEN_COMING_SOON_MODAL });
+  };
+}
+
+function closeComingSoonModal() {
+  return (dispatch: Dispatch) => {
+    dispatch({ type: layoutActionTypes.CLOSE_COMING_SOON_MODAL });
+  };
+}
+
+function setCurrentApp(app: string) {
+  return { type: layoutActionTypes.SET_CURRENT_APP, payload: app }
 }

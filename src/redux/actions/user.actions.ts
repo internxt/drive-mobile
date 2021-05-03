@@ -8,7 +8,8 @@ export const userActions = {
   signout,
   localSignIn,
   payment,
-  userInitializaation
+  userInitializaation,
+  setUserStorage
 };
 
 function signin(email: string, password: string, sKey: string, twoFactorCode: string) {
@@ -46,6 +47,7 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
         userId: userData.user.uuid,
         platform: 'mobile'
       }).catch(() => { })
+
     }).catch(() => { })
     return { type: userActionTypes.SIGNIN_SUCCESS, payload: userData };
   }
@@ -67,13 +69,13 @@ function signout() {
   return { type: userActionTypes.SIGNOUT };
 }
 
-function localSignIn(token: any, user: any) {
+function localSignIn(token: string, user: any) {
   const data = { token, user };
 
   return { type: userActionTypes.LOCAL_SIGNIN, payload: data };
 }
 
-function payment(token: any, planId: any) {
+function payment(token: string, planId: any) {
   return (dispatch: Dispatch) => {
     dispatch(request());
     userService
@@ -97,4 +99,8 @@ function payment(token: any, planId: any) {
   function failure(error: Error) {
     return { type: userActionTypes.PAYMENT_FAILURE, payload: error };
   }
+}
+
+function setUserStorage(currentPlan: any) {
+  return { type: userActionTypes.SET_USER_STORAGE, payload: currentPlan }
 }

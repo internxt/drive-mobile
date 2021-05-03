@@ -20,9 +20,9 @@ export default function ProgressBar(props: ProgressBarProps): JSX.Element {
     }
   };
 
-  return <View style={[styles.container]}>
+  return <View style={styles.container}>
     <LinearGradient
-      colors={['#4b66ff', '#538dff']}
+      colors={['#00b1ff', '#096dff']}
       start={[0.5, 0]}
       style={[
         styles.inner,
@@ -36,17 +36,17 @@ export default function ProgressBar(props: ProgressBarProps): JSX.Element {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative',
-    height: 7,
-    borderRadius: 3,
     backgroundColor: '#e8e8e8',
-    margin: 20
+    borderRadius: 3,
+    height: 7,
+    margin: 20,
+    position: 'relative'
   },
   inner: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
+    borderRadius: 3,
     height: 10,
-    borderRadius: 3
+    left: 0,
+    position: 'absolute',
+    top: 0
   }
 });

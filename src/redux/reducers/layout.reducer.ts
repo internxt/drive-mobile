@@ -5,11 +5,19 @@ export interface LayoutState {
   createFolderActive: boolean
   showSettingsModal: boolean
   showItemModal: boolean
+  showPhotoDetailsModal: boolean
+  showAlbumModal: boolean
+  showAddItemModal: boolean
+  showSelectPhotoModal: boolean
   showSortModal: boolean
+  showSortPhotoModal: boolean
   showMoveModal: boolean
   showDeleteModal: boolean
   showShareModal: boolean
   showUploadModal: boolean
+  showFreeForYouModal: boolean
+  showComingSoonModal: boolean
+  currentApp: string
 }
 
 const initialState: LayoutState = {
@@ -17,11 +25,19 @@ const initialState: LayoutState = {
   createFolderActive: false,
   showSettingsModal: false,
   showItemModal: false,
+  showPhotoDetailsModal: false,
+  showAlbumModal: false,
+  showAddItemModal: false,
+  showSelectPhotoModal: false,
   showSortModal: false,
+  showSortPhotoModal: false,
   showMoveModal: false,
   showDeleteModal: false,
   showShareModal: false,
-  showUploadModal: false
+  showUploadModal: false,
+  showFreeForYouModal: false,
+  showComingSoonModal: false,
+  currentApp: 'FileExplorer'
 };
 
 export function layoutReducer(state = initialState, action: any) {
@@ -78,7 +94,6 @@ export function layoutReducer(state = initialState, action: any) {
       showSortModal: false
     }
   }
-
   case layoutActionTypes.OPEN_MOVEFILES_MODAL: {
     return {
       ...state,
@@ -91,7 +106,6 @@ export function layoutReducer(state = initialState, action: any) {
       showMoveModal: false
     }
   }
-
   case layoutActionTypes.OPEN_DELETE_MODAL: {
     return {
       ...state,
@@ -104,7 +118,6 @@ export function layoutReducer(state = initialState, action: any) {
       showDeleteModal: false
     }
   }
-
   case layoutActionTypes.OPEN_SHARE_MODAL: {
     return {
       ...state,
@@ -117,7 +130,6 @@ export function layoutReducer(state = initialState, action: any) {
       showShareModal: false
     }
   }
-
   case layoutActionTypes.OPEN_UPLOAD_FILE_MODAL: {
     return {
       ...state,
@@ -128,6 +140,37 @@ export function layoutReducer(state = initialState, action: any) {
     return {
       ...state,
       showUploadModal: false
+    }
+  }
+
+  case layoutActionTypes.OPEN_FREEFORYOU_MODAL: {
+    return {
+      ...state,
+      showFreeForYouModal: true
+    }
+  }
+  case layoutActionTypes.CLOSE_FREEFORYOU_MODAL: {
+    return {
+      ...state,
+      showFreeForYouModal: false
+    }
+  }
+  case layoutActionTypes.SET_CURRENT_APP: {
+    return {
+      ...state,
+      currentApp: action.payload
+    }
+  }
+  case layoutActionTypes.OPEN_COMING_SOON_MODAL: {
+    return {
+      ...state,
+      showComingSoonModal: true
+    }
+  }
+  case layoutActionTypes.CLOSE_COMING_SOON_MODAL: {
+    return {
+      ...state,
+      showComingSoonModal: false
     }
   }
   default:

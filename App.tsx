@@ -25,7 +25,7 @@ export default function App(): JSX.Element {
   const prefix = 'inxt'
   const config = {
     screens: {
-      FileExplorer: '/'
+      Home: '/'
     }
   }
 
@@ -110,8 +110,8 @@ const styles = StyleSheet.create({
     flex: 1
   },
   container: {
-    flex: 1,
     alignItems: 'center',
+    flex: 1,
     justifyContent: 'center'
   }
 })
