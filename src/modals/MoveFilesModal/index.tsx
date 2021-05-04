@@ -10,10 +10,10 @@ import { fileActions, layoutActions } from '../../redux/actions';
 import Folder from './Folder';
 
 interface MoveFilesProps {
-    layoutState?: any
-    filesState?: any
-    authenticationState?: any
-    dispatch?: any
+  layoutState?: any
+  filesState?: any
+  authenticationState?: any
+  dispatch?: any
 }
 
 function MoveFilesModal(props: MoveFilesProps) {
@@ -119,6 +119,11 @@ const styles = StyleSheet.create({
     flexWrap: 'nowrap',
     marginTop: Platform.OS === 'ios' ? wp('14') : 0
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center'
+  },
   button: {
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -128,13 +133,6 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
     width: wp('40')
-  },
-  buttonContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    marginBottom: Platform.OS === 'ios' ? 25 : 0
   },
   container: {
     flex: 1

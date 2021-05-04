@@ -166,13 +166,13 @@ function SettingsModal(props: SettingsModalProps) {
 
       <Separator />
 
-      {/* {<SettingsItem
+      {<SettingsItem
         text={strings.components.app_menu.settings.storage}
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
           props.navigation.replace('Storage')
         }}
-      />} */}
+      />}
 
       <SettingsItem
         text={strings.components.app_menu.settings.more}
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     width: 56
   },
   modalSettings: {
-    height: hp('55%') < 420 ? 420 : Math.min(420, hp('55%')),
+    height: 'auto',
     paddingBottom: Platform.OS === 'ios' ? 20 : 0
   },
   nameText: {
