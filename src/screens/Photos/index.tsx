@@ -99,7 +99,7 @@ function Photos(props: IPhotosProps): JSX.Element {
         </TouchableOpacity>
         {
           !isLoading ?
-            <View style={{ flexGrow: 1 }}>
+            <View style={{ flex: 1 }}>
               <PhotoList
                 title={'All Photos'}
                 data={photos}
@@ -126,8 +126,13 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(Photos)
 
 const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#fff',
+    flexGrow: 1,
+    justifyContent: 'flex-start'
+  },
   albumsContainer: {
-    height: '45%',
+    height: 'auto',
     paddingHorizontal: wp('1'),
     paddingVertical: wp('3.5')
   },
@@ -138,13 +143,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   allPhotosContainer: {
-    flex: 1,
-    marginBottom: wp('5')
-  },
-  container: {
-    backgroundColor: '#fff',
-    flexGrow: 1,
-    justifyContent: 'flex-start'
+    flex: 1
   },
   containerSync: {
     flexDirection: 'row',
