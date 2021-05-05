@@ -32,3 +32,73 @@ export async function getRepositories(): Promise<Repositories> {
 
   return { photos, previews }
 }
+
+export async function savePhotosAndPreviews(photo: any, path: string) {
+
+  const userId = await getUserId()
+
+  const photosRepository = getRepository(Photos);
+
+  const previewsRepository = getRepository(Previews);
+
+  await photosRepository.find({
+    where: { userId: userId }
+  })
+
+  const newPhoto = new Photos()
+
+  newPhoto.photoId = photo.id
+  newPhoto.fileId = photo.fileId
+  newPhoto.hash = photo.hash
+  newPhoto.name = photo.name
+  newPhoto.type = photo.type
+  newPhoto.userId = userId
+
+  const existsPhotoFileId = await photosRepository.findOne({
+    where: {
+      fileId: photo.fileId
+    }
+  })
+
+  if (existsPhotoFileId === undefined) {
+    await photosRepository.save(newPhoto);
+  }
+
+  await photosRepository.find({
+    where: { userId: userId }
+  });
+
+  await previewsRepository.find({
+    where: {
+      userId: userId
+    }
+  })
+
+  const newPreview = new Previews();
+
+  newPreview.fileId = photo.preview.fileId;
+  newPreview.hash = photo.hash;
+  newPreview.name = photo.preview.name;
+  newPreview.type = photo.preview.type;
+  newPreview.photoId = photo.preview.photoId;
+  newPreview.localUri = path;
+  newPreview.userId = userId
+  newPreview.isLocal = false,
+  newPreview.isUploaded = true
+
+  const existsfileId = await previewsRepository.findOne({
+    where: {
+      fileId: photo.preview.fileId
+    }
+  })
+
+  if (existsfileId === undefined) {
+    await previewsRepository.save(newPreview);
+  }
+
+  await previewsRepository.find({
+    where: {
+      userId: userId
+    }
+  })
+}
