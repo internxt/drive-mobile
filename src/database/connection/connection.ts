@@ -1,5 +1,4 @@
 import { Connection, createConnection } from 'typeorm/browser';
-import { LocalPhotos } from '../models/localPhotos';
 import { Photos } from '../models/photos';
 import { Previews } from '../models/previews';
 
@@ -13,10 +12,10 @@ export function ConnectionDB(): Promise<Connection> {
       synchronize: true,
       entities: [
         Photos,
-        Previews,
-        LocalPhotos
+        Previews
       ],
-      migrationsRun: true
+      migrationsRun: true,
+      migrationsTransactionMode: 'all'
     });
   } catch (error) {
     // eslint-disable-next-line no-console
