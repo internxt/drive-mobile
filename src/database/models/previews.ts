@@ -1,5 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn } from 'typeorm';
-import { Photos } from './photos';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Previews {
@@ -27,5 +26,11 @@ export class Previews {
 
     @Column({ nullable: false })
     userId: string;
+
+    @Column({})
+    isLocal: boolean;
+
+    @Column({ nullable: false })
+    isUploaded: boolean;
 
 }

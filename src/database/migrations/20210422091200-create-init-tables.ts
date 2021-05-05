@@ -77,6 +77,14 @@ export class createInitTables20210422091200 implements MigrationInterface {
           name: 'userId',
           type: 'string',
           isNullable: false
+        },
+        {
+          name: 'isLocal',
+          type: 'boolean'
+        },
+        {
+          name: 'isUploaded',
+          type: 'boolean'
         }
       ]
     }), true);
