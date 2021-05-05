@@ -37,6 +37,7 @@
     "expo-status-bar": "~1.0.3",
     "expo-updates": "~0.4.1",
     "lodash": "^4.17.20",
+    "metro-minify-terser": "^0.66.0",
     "moment": "^2.29.1",
     "natural-orderby": "^2.0.3",
     "prettysize": "^2.0.0",

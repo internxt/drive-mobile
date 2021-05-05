@@ -9,6 +9,7 @@ import { fileActions } from './src/redux/actions';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import ConnectionDB from './src/database/connection/connection';
 import { getConnectionManager } from 'typeorm/browser';
+import 'reflect-metadata';
 
 export default function App(): JSX.Element {
   const [appInitialized, setAppInitialized] = useState(false);
