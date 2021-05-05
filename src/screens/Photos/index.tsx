@@ -16,6 +16,7 @@ import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
+import { queue } from 'async'
 
 export interface IPhotosProps extends Reducers {
   navigation: any
@@ -25,25 +26,30 @@ export interface IPhotosProps extends Reducers {
 }
 
 function Photos(props: IPhotosProps): JSX.Element {
-  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [photos, setPhotos] = useState<IHashedPhoto[]>([])
-  const [endCursor, setEndCursor] = useState<string | undefined>(undefined)
+  const newQueue = queue(async (task, callBack) => {
+    await task()
+    callBack()
+  }, 5)
 
   const getNextImages = (after?: string | undefined) => {
     getLocalImages(after).then(res => {
-      setEndCursor(res.endCursor);
-      setPhotos(after ? photos.concat(res.assets) : res.assets)
-      syncPhotos(res.assets, props.dispatch)
-    }).finally(() => setIsLoading(false))
+      newQueue.push(() => syncPhotos(res.assets, props.dispatch))
+      setPhotos(currentPhotos => currentPhotos.length > 0 ? currentPhotos.concat(res.assets) : res.assets)
+
+      if (res.hasNextPage) {
+        getNextImages(res.endCursor)
+      }
+    })
   }
 
-  const reloadLocalPhotos = () => {
-    initUser().finally(() => getNextImages());
-  };
+  const reloadLocalPhotos = async () => {
+    initUser().finally(() => getNextImages())
+  }
 
   useEffect(() => {
     setPhotos([])
-    reloadLocalPhotos();
+    reloadLocalPhotos()
   }, [])
 
   useEffect(() => {
@@ -82,7 +88,7 @@ function Photos(props: IPhotosProps): JSX.Element {
           onPress={() => {
             props.navigation.navigate('PhotoGallery')
           }}
-          disabled={isLoading}>
+        >
           <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos}</Text>
           {
             !props.photosState.isSync ?
@@ -98,14 +104,13 @@ function Photos(props: IPhotosProps): JSX.Element {
           }
         </TouchableOpacity>
         {
-          !isLoading ?
+          photos.length !== 0 ?
             <View style={{ flex: 1 }}>
               <PhotoList
                 title={'All Photos'}
                 data={photos}
                 navigation={props.navigation}
-                //onRefresh={() => getNextImages()}
-                onEndReached={() => getNextImages(endCursor)}
+              //onRefresh={() => getNextImages()}
               />
             </View>
             :
