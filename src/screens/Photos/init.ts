@@ -11,9 +11,7 @@ import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { PhotoActions } from '../../redux/actions';
-import { getRepository } from 'typeorm/browser';
-import { Photos } from '../../database/models/photos';
-import { Previews } from '../../database/models/previews';
+import { savePhotosAndPreviews } from '../../database/DBUtils.ts/utils';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -213,15 +211,6 @@ export function getLocalImages(after?: string | undefined): Promise<LocalImages>
   });
 }
 
-export function getLocalPhotosHash() {
-
-  return Permissions.askAsync(Permissions.MEDIA_LIBRARY).then(() => {
-    return MediaLibrary.getAssetsAsync({ first: 1000000 });
-  }).then((res) => {
-    return getArrayPhotos(res.assets)
-  })
-}
-
 export async function getPartialUploadedPhotos(matchImages: LocalImages): Promise<IApiPhotoWithPreview[]> {
   const headers = await getHeaders()
 
@@ -384,7 +373,7 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
   })
 }
 
-export async function getListPreviews(){
+export async function getListPreviews() {
   const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/previews`, {
@@ -393,7 +382,10 @@ export async function getListPreviews(){
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  }).catch(() => { })
+  }).catch((err) => {
+    // eslint-disable-next-line no-console
+    console.log('ERR getListPreviews', err)
+  })
 }
 
 async function getArrayPreviews(): Promise<IApiPreview[]> {
@@ -414,82 +406,22 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export async function savePhotosAndPreviews(userId: string, photo: any, path: string) {
-  const photosRepository = await getRepository(Photos);
-
-  const previewsRepository = getRepository(Previews);
-
-  let photos = await photosRepository.find({
-    where: { userId: userId }
-  })
-
-  const newPhoto = new Photos()
-
-  newPhoto.photoId = photo.id
-  newPhoto.fileId = photo.fileId
-  newPhoto.hash = photo.hash
-  newPhoto.name = photo.name
-  newPhoto.type = photo.type
-  newPhoto.userId = userId
-
-  const existsPhotoFileId = await photosRepository.findOne({
-    where: {
-      fileId: photo.fileId
-    }
-  })
-
-  if (existsPhotoFileId === undefined){
-    await photosRepository.save(newPhoto);
-  }
-
-  photos = await photosRepository.find({
-    where: { userId: userId }
-  });
-
-  let previews = await previewsRepository.find({
-    where: {
-      userId: userId
-    }
-  })
-
-  const newPreview = new Previews();
-
-  newPreview.fileId = photo.preview.fileId;
-  newPreview.hash = photo.preview.hash;
-  newPreview.name = photo.preview.name;
-  newPreview.type = photo.preview.type;
-  newPreview.photoId = photo.preview.photoId;
-  newPreview.localUri = path;
-  newPreview.userId = userId
-
-  const existsfileId = await previewsRepository.findOne({
-    where: {
-      fileId: photo.preview.fileId
-    }
-  })
-
-  if (existsfileId === undefined){
-    await previewsRepository.save(newPreview);
-  }
-
-  previews = await previewsRepository.find({
-    where: {
-      userId: userId
-    }
-  });
-}
-
 export function getPreviewsUploaded(userId: string): Promise<any> {
   SHOULD_STOP = false;
   return getUploadedPhotos().then((res: IApiPhotoWithPreview[]) => {
+    if (res.length === 0) {
+      return;
+    }
     return mapSeries(res, (preview, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }
       return downloadPreview(preview.preview, preview).then((res1) => {
-        savePhotosAndPreviews(userId, preview, res1).then(()=>{
-          next(null, res1)
-        })
+        if (res1) {
+          // eslint-disable-next-line no-console
+          savePhotosAndPreviews(preview, res1).then(() => { }).catch((err) => { console.error('ERR save photos on DB', err) })
+        }
+        next(null, res1)
       });
 
     });
