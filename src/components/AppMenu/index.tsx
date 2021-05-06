@@ -13,6 +13,7 @@ import { getIcon } from '../../helpers/getIcon';
 import analytics from '../../helpers/lytics';
 import { fileActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
+import PackageJson from '../../../package.json'
 
 interface AppMenuProps {
   navigation?: any
@@ -70,7 +71,9 @@ function AppMenu(props: AppMenuProps) {
       const headers = {
         'Authorization': `Bearer ${token}`,
         'internxt-mnemonic': mnemonic,
-        'Content-Type': 'multipart/form-data'
+        'Content-Type': 'multipart/form-data',
+        'internxt-version': PackageJson.version,
+        'internxt-client': 'drive-mobile'
       };
 
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm

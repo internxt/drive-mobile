@@ -14,7 +14,6 @@ import Bold from '../../components/Bold';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import strings from '../../../assets/lang/strings';
 
 function identifyPlanName(bytes: number): string {

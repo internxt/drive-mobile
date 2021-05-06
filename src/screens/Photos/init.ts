@@ -11,6 +11,7 @@ import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { PhotoActions } from '../../redux/actions';
 import { SetStateAction } from 'react';
+import PackageJson from '../../../package.json'
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -91,7 +92,9 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
   const headers = {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic,
-    'Content-Type': 'multipart/form-data'
+    'Content-Type': 'multipart/form-data',
+    'internxt-version': PackageJson.version,
+    'internxt-client': 'drive-mobile'
   };
 
   const parsedUri = photo.localUri.replace(/^file:\/\//, '');
@@ -155,7 +158,9 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
   const headers = {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic,
-    'Content-Type': 'multipart/form-data'
+    'Content-Type': 'multipart/form-data',
+    'internxt-version': PackageJson.version,
+    'internxt-client': 'drive-mobile'
   };
 
   const parsedUri = preview.uri.replace(/^file:\/\//, '');
@@ -315,7 +320,9 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
     fileCache: true
   }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/download/photo/${photo.id}`, {
     'Authorization': `Bearer ${xToken}`,
-    'internxt-mnemonic': xUserJson.mnemonic
+    'internxt-mnemonic': xUserJson.mnemonic,
+    'internxt-version': PackageJson.version,
+    'internxt-client': 'drive-mobile'
   }).progress((received: number, total: number) => {
     setProgress(received / total)
   }).then((res) => {
@@ -365,7 +372,9 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
     fileCache: true
   }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
     'Authorization': `Bearer ${xToken}`,
-    'internxt-mnemonic': xUserJson.mnemonic
+    'internxt-mnemonic': xUserJson.mnemonic,
+    'internxt-version': PackageJson.version,
+    'internxt-client': 'drive-mobile'
   }).then((res) => {
     return res.path();
   }).catch(err => {
