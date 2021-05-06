@@ -34,7 +34,7 @@ export interface PhotosState {
   progress: number
   startDownloadSelectedPhoto: boolean
   error?: string | null
-  isSync: boolean
+  isSyncing: boolean
 }
 
 const initialState: PhotosState = {
@@ -64,7 +64,7 @@ const initialState: PhotosState = {
   isUploadingPhotoName: '',
   progress: 0,
   startDownloadSelectedPhoto: false,
-  isSync: false
+  isSyncing: false
 };
 
 export function PhotosReducer(state = initialState, action: any): PhotosState {
@@ -137,13 +137,13 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       loading: true,
-      isSync: true
+      isSyncing: true
     };
   case photoActionTypes.STOP_SYNC:
     return {
       ...state,
       loading: false,
-      isSync: false
+      isSyncing: false
     };
   case photoActionTypes.GET_PHOTOS_SUCCESS:
     return {

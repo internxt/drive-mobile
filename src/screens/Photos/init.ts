@@ -9,7 +9,6 @@ import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
-import { PhotoActions } from '../../redux/actions';
 import { SetStateAction } from 'react';
 
 export interface IHashedPhoto extends Asset {
@@ -56,7 +55,7 @@ const getArrayPhotos = async (images: Asset[]) => {
   return result;
 }
 
-export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<any> {
+export async function syncPhotos(images: IHashedPhoto[]): Promise<void> {
   // Skip uploaded photos with previews
   const alreadyUploadedPhotos = await getUploadedPhotos();
   const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview);
@@ -66,7 +65,7 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
   let onePhotoToUpload = false;
 
   // Upload filtered photos
-  return mapSeries(imagesToUpload, (image, next) => {
+  await mapSeries(imagesToUpload, (image, next) => {
     if (!(imagesToUpload[imagesToUpload.length - 1] === imagesToUpload[0])) {
       if ((imagesToUpload[imagesToUpload.length - 1].id) === image.id) {
         last = true;
@@ -74,16 +73,11 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
     } else {
       onePhotoToUpload = true;
     }
-    uploadPhoto(image, dispatch, last, onePhotoToUpload).then(() => next(null)).catch(next)
+    uploadPhoto(image, last, onePhotoToUpload).then(() => next(null)).catch(() => next(null))
   })
 }
 
-async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) {
-
-  if (!last || !onePhotoToUpload) {
-    dispatch(PhotoActions.startSync())
-  }
-
+async function uploadPhoto(photo: IHashedPhoto, last: boolean, onePhotoToUpload: boolean) {
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -121,14 +115,10 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       const statusCode = res.respInfo.status;
 
       if (statusCode === 401) {
-        dispatch(PhotoActions.stopSync())
         throw res;
       }
       if (statusCode === 201) {
         return res.json();
-      }
-      if (statusCode === 409 || statusCode === 500) {
-        dispatch(PhotoActions.stopSync())
       }
       throw res
     })
@@ -143,11 +133,11 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
         { compress: 1, format: SaveFormat.JPEG }
       )
 
-      return uploadPreview(prev, res.id, photo, dispatch, last, onePhotoToUpload);
-    }).catch(err => { })
+      return uploadPreview(prev, res.id, photo);
+    })
 }
 
-const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) => {
+const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto) => {
 
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
@@ -168,13 +158,9 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
       { name: 'xfile', filename: originalPhoto.filename, data: finalUri }
     ])
     .then(res => {
-      if (last || onePhotoToUpload) {
-        dispatch(PhotoActions.stopSync())
-      }
       const statusCode = res.respInfo.status;
 
       if (statusCode === 201 || statusCode === 409) {
-        dispatch(PhotoActions.stopSync())
         return res.json();
       }
 

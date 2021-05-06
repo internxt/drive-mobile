@@ -14,8 +14,10 @@ import { AuthenticationState } from '../../redux/reducers/authentication.reducer
 import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
-import { layoutActions } from '../../redux/actions';
+import { layoutActions, PhotoActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
+import { queue } from 'async'
+import EmptyPhotoList from '../../components/PhotoList/EmptyPhotoList';
 
 export interface IPhotosProps extends Reducers {
   navigation: any
@@ -27,14 +29,41 @@ export interface IPhotosProps extends Reducers {
 function Photos(props: IPhotosProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [photos, setPhotos] = useState<IHashedPhoto[]>([])
-  const [endCursor, setEndCursor] = useState<string | undefined>(undefined)
+  const [hasMoreLocals, setHasMoreLocals] = useState(true)
 
-  const getNextImages = (after?: string | undefined) => {
-    getLocalImages(after).then(res => {
-      setEndCursor(res.endCursor);
-      setPhotos(after ? photos.concat(res.assets) : res.assets)
-      syncPhotos(res.assets, props.dispatch)
-    }).finally(() => setIsLoading(false))
+  const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
+    await task()
+    callBack()
+  }, 5)
+
+  const getNextImages = async (after?: string | undefined) => {
+    let finished = false
+    let next = after
+    const syncActions: Promise<unknown>[] = []
+
+    props.dispatch(PhotoActions.startSync())
+
+    while (!finished) {
+      const res = await getLocalImages(next)
+
+      const syncAction = () => new Promise<unknown>(resolved => {
+        syncQueue.push(() => syncPhotos(res.assets), resolved)
+      })
+
+      setPhotos(currentPhotos => currentPhotos.length > 0 ? currentPhotos.concat(res.assets) : res.assets)
+      syncActions.push(syncAction())
+
+      if (res.hasNextPage) {
+        next = res.endCursor
+      } else {
+        finished = true
+        setHasMoreLocals(false)
+      }
+    }
+
+    await Promise.all(syncActions).then(() => {
+      props.dispatch(PhotoActions.stopSync())
+    })
   }
 
   const reloadLocalPhotos = () => {
@@ -82,12 +111,10 @@ function Photos(props: IPhotosProps): JSX.Element {
           onPress={() => {
             props.navigation.navigate('PhotoGallery')
           }}
-          disabled={isLoading}>
-          <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos}</Text>
+        >
+          <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos} <Text style={styles.photosCount}>- {photos.length}</Text></Text>
           {
-            !props.photosState.isSync ?
-              null
-              :
+            props.photosState.isSyncing ?
               <View style={styles.containerSync}>
                 <Text style={styles.syncText}>{strings.screens.photos.components.syncing}</Text>
 
@@ -95,23 +122,27 @@ function Photos(props: IPhotosProps): JSX.Element {
                   <MaterialIndicator style={styles.spinner} color="#5291ff" size={15} />
                 </View>
               </View>
+              :
+              null
           }
         </TouchableOpacity>
         {
-          !isLoading ?
-            <View style={{ flexGrow: 1 }}>
+          photos.length === 0 ?
+            hasMoreLocals ?
+              <View style={styles.emptyContainer}>
+                <Text style={styles.heading}>{strings.screens.photos.components.loading}</Text>
+                <WaveIndicator color="#5291ff" size={50} />
+              </View>
+              :
+              <EmptyPhotoList />
+            :
+            <View style={{ flex: 1 }}>
               <PhotoList
                 title={'All Photos'}
                 data={photos}
                 navigation={props.navigation}
                 //onRefresh={() => getNextImages()}
-                onEndReached={() => getNextImages(endCursor)}
               />
-            </View>
-            :
-            <View style={styles.emptyContainer}>
-              <Text style={styles.heading}>{strings.screens.photos.components.loading}</Text>
-              <WaveIndicator color="#5291ff" size={50} />
             </View>
         }
       </View>
@@ -179,6 +210,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     letterSpacing: -0.13,
     marginLeft: 7
+  },
+  photosCount: {
+    color: 'grey',
+    fontFamily: 'Averta-Bold',
+    fontSize: 15
   },
   titleButton: {
     alignItems: 'center',

@@ -23,6 +23,7 @@ interface PhotoGalleryProps {
   dispatch: Dispatch,
   layoutState: LayoutState
   authenticationState: AuthenticationState
+  isSyncing: boolean
 }
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
@@ -166,7 +167,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         </View>
 
         {
-          !props.photosState.isSync ?
+          !props.photosState.isSyncing ?
             null
             :
             <View style={styles.containerSync}>
