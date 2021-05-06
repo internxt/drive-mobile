@@ -73,7 +73,7 @@ function PhotoList(props: PhotoListProps) {
                   props.onEndReached(e);
                 }
               }}
-              onEndReachedThreshold={0}
+              onEndReachedThreshold={0.1}
               ListEmptyComponent={props.ListEmptyComponent || <EmptyPhotoList />}
               renderItem={({ item }) => <Photo item={item} updateDownloadedImageStatus={props.updateDownloadedImageStatus} key={item.hash} />}
               contentContainerStyle={styles.flatList}
@@ -101,6 +101,7 @@ function PhotoList(props: PhotoListProps) {
 }
 const styles = StyleSheet.create({
   container: {
+    flex: 1
   },
   emptyContainer: {
     alignItems: 'center',

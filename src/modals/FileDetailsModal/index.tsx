@@ -99,19 +99,20 @@ function FileDetailsModal(props: FileDetailsProps) {
         >
           <View style={styles.drawerKnob}></View>
 
-          <View style={{ flexDirection: 'row', paddingRight: 22 }}>
-            <TextInput
-              style={styles.folderName}
-              onChangeText={value => {
-                setNewFileName(value)
-              }}
-              value={newfilename}
-            />
-          </View>
+          <TextInput
+            style={styles.folderName}
+            onChangeText={value => {
+              setNewFileName(value)
+            }}
+            value={newfilename}
+          />
+
           <Separator />
 
-          <Text
-            style={styles.stylesColorFolder}>{strings.components.file_and_folder_options.styling}</Text>
+          <Text style={styles.stylesColorFolder}>
+            {strings.components.file_and_folder_options.styling}
+          </Text>
+
           <View style={styles.colorSelection}>
             {Object.getOwnPropertyNames(colors).map((value, i) => {
               const localColor = selectedColor ? selectedColor : (folder ? folder.color : null);
@@ -134,8 +135,7 @@ function FileDetailsModal(props: FileDetailsProps) {
 
           <Separator />
 
-          <Text
-            style={styles.stylesCoverFolder}>{strings.components.file_and_folder_options.icons}</Text>
+          <Text style={styles.stylesCoverFolder}>{strings.components.file_and_folder_options.icons}</Text>
 
           <View style={styles.iconSelection} key={selectedIcon}>
             {folderIconsList.map((value, i) => {
@@ -197,13 +197,11 @@ function FileDetailsModal(props: FileDetailsProps) {
         >
           <View style={styles.drawerKnob}></View>
 
-          <View style={styles.fileNameContainer}>
-            <TextInput
-              style={styles.fileName}
-              onChangeText={value => setNewFileName(value)}
-              value={newfilename}
-            />
-          </View>
+          <TextInput
+            style={styles.fileName}
+            onChangeText={value => setNewFileName(value)}
+            value={newfilename}
+          />
 
           <Separator />
 
@@ -260,16 +258,17 @@ function FileDetailsModal(props: FileDetailsProps) {
               }}
             />
 
-            <SettingsItem text={
-              <Text style={styles.modalFileItemContainer}>
-                <Image source={getIcon('delete')} style={{ width: 16, height: 21 }} />
-                <Text style={styles.mr20}> </Text>
-                <Text style={styles.cerebriSansBold}>  {strings.components.file_and_folder_options.delete}</Text>
-              </Text>
-            }
-            onPress={() => {
-              props.dispatch(layoutActions.openDeleteModal())
-            }}
+            <SettingsItem
+              text={
+                <Text style={styles.modalFileItemContainer}>
+                  <Image source={getIcon('delete')} style={{ width: 16, height: 21 }} />
+                  <Text style={styles.mr20}> </Text>
+                  <Text style={styles.cerebriSansBold}>  {strings.components.file_and_folder_options.delete}</Text>
+                </Text>
+              }
+              onPress={() => {
+                props.dispatch(layoutActions.openDeleteModal())
+              }}
             />
           </View>
         </Modal>}
@@ -312,17 +311,17 @@ const styles = StyleSheet.create({
     width: 56
   },
   fileName: {
+    width: wp(92),
+    alignSelf: 'center',
     fontFamily: 'CerebriSans-Bold',
     fontSize: 20,
-    marginLeft: 26
-  },
-  fileNameContainer: {
-    height: 'auto'
+    padding: 0 // remove default padding on Android
   },
   folderName: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: 20,
-    marginLeft: 26
+    marginLeft: 26,
+    padding: 0 // Remove default padding Android
   },
   iconButton: {
     alignItems: 'center',
@@ -336,12 +335,10 @@ const styles = StyleSheet.create({
     width: 25
   },
   iconSelection: {
-    display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginLeft: 15,
-    marginRight: 15
+    marginHorizontal: 15
   },
   infoContainer: {
     height: 'auto'
@@ -353,15 +350,13 @@ const styles = StyleSheet.create({
     marginTop: wp('12')
   },
   modalSettingsFile: {
-    height: hp('55%') < 300 ? 300 : Math.min(370, hp('55%'))
+    height: 'auto'
   },
   mr20: {
     marginRight: 20
   },
   optionsContainer: {
-    flex: 1,
-    marginBottom: 15,
-    minHeight: 129 // pixel perfect leave like this
+    marginBottom: 15
   },
   stylesColorFolder: {
     fontFamily: 'CerebriSans-Bold',
