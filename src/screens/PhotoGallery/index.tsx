@@ -11,7 +11,7 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
-import { getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
+import { getPreviews, IHashedPhoto } from '../Photos/init';
 import strings from '../../../assets/lang/strings';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { IApiPhotoWithPreview } from '../../types/api/photos/IApiPhoto';
@@ -27,56 +27,45 @@ interface PhotoGalleryProps {
 }
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
-  const [isLoading, setIsLoading] = useState(true)
-  const [photosToRender, setPhotosToRender] = useState<IHashedPhoto[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [photosToRender, setPhotosToRender] = useState<IHashedPhoto[]>(props.photosState.photosToRender.photos)
   const [uploadedPhoto, setUploadedPhoto] = useState<any>()
-  const [uploadedPhotos, setUploadedPhotos] = useState<any[]>([])
-  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
-  const [hasFinished, setHasFinished] = useState(false)
-  const [offsetCursor, setOffsetCursor] = useState(0)
-  const [prevOffset, setPrevOffset] = useState(0)
 
-  const getPhotosToRender = (offset = 0, endCursor?: string) => {
-    setHasFinished(false)
+  const loadUploadedPhotos = async () => {
+    let finished = false
+    let offset = 0
+    let lastIndex = 0
 
-    return loadLocalPhotos(endCursor).then(() => {
-      return loadUploadedPhotos(offset)
-    }).finally(() => {
-      setHasFinished(true)
-    })
+    while (!finished) {
+      const previews = await getPreviews(setUploadedPhoto, lastIndex)
+
+      lastIndex = offset + previews.length
+
+      if (lastIndex <= offset) {
+        finished = true
+      } else {
+        offset = lastIndex
+      }
+    }
   }
 
-  const loadLocalPhotos = (endCursor?: string) => {
-    return getLocalImages(endCursor).then(localImages => {
-      const assets = localImages.assets.map(photo => ({ ...photo, isLocal: true, isUploaded: false }))
-      const photos = photosToRender.slice()
+  useEffect(() => {
+    const currentPhotos = photosToRender.slice()
+    const newPhotos = props.photosState.photosToRender.photos
 
-      assets.forEach(asset => {
-        const index = photos.findIndex(photo => photo.hash === asset.hash)
+    newPhotos.forEach(newPhoto => {
+      const index = currentPhotos.findIndex(currPhoto => currPhoto.hash === newPhoto.hash)
 
-        if (index === -1) {
-          photos.push(asset)
-        } else {
-          if (photos[index].isUploaded === true && photos[index].isLocal === false) {
-            photos[index].isLocal = true
-          }
+      if (index === -1) {
+        currentPhotos.push(newPhoto)
+      } else {
+        if (currentPhotos[index].isUploaded && !currentPhotos[index].isLocal) {
+          currentPhotos[index].isLocal = true
         }
-      })
-
-      setEndCursor(localImages.endCursor)
-      setPhotosToRender(photos)
-    }).finally(() => setIsLoading(false))
-  }
-
-  const loadUploadedPhotos = (offset: number) => {
-    setPrevOffset(offset)
-    getPreviews(setUploadedPhoto, offset).then((previews) => {
-      const lastIndex = offsetCursor + previews.length
-
-      setOffsetCursor(lastIndex)
-      setPrevOffset(offset)
+      }
     })
-  }
+    setPhotosToRender(currentPhotos)
+  }, [props.photosState.photosToRender])
 
   const updateDownloadedImageStatus = (remotePreview: IApiPhotoWithPreview, downloadedPhoto: IHashedPhoto) => {
     const index = photosToRender.findIndex(local => local.hash === remotePreview.hash)
@@ -90,21 +79,8 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     setPhotosToRender(items)
   }
 
-  const loadMorePhotos = (offsetCursor: number, endCursor: string | undefined) => {
-    setHasFinished(false)
-
-    if (offsetCursor > prevOffset) {
-      getPhotosToRender(offsetCursor, endCursor)
-    } else {
-      if (endCursor) {
-        loadLocalPhotos(endCursor).finally(() => setHasFinished(true))
-      }
-    }
-  }
-
   useEffect(() => {
     if (uploadedPhoto) {
-      setUploadedPhotos(prevPhotos => [...prevPhotos, uploadedPhoto])
       const index = photosToRender.findIndex(local => local.hash === uploadedPhoto.hash)
 
       if (index === -1) {
@@ -121,26 +97,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   }, [uploadedPhoto])
 
   useEffect(() => {
-    if (hasFinished) {
-      const items = photosToRender.slice()
-
-      uploadedPhotos.forEach(uploaded => {
-        const index = items.findIndex(photo => photo.hash === uploaded.hash)
-
-        if (index !== -1) {
-          if (items[index].isLocal && !items[index].isUploaded) {
-            items[index].isUploaded = true
-            setPhotosToRender(items)
-          }
-        }
-      })
-    }
-  }, [hasFinished])
-
-  useEffect(() => {
-    getPhotosToRender(0, endCursor).finally(() => {
-      setIsLoading(false)
-    })
+    loadUploadedPhotos()
   }, [])
 
   return (
@@ -186,20 +143,15 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
             <PhotoList
               data={photosToRender}
               numColumns={3}
-              onRefresh={() => {
-                setIsLoading(true)
-                setOffsetCursor(0)
-                getPhotosToRender(offsetCursor).then(() => { setHasFinished(false) }).catch(() => { })
-              }}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}
               onEndReached={() => {
                 // change isLoading for another state, small indicator right on the bottom
                 //setIsLoading(true)
                 //loadLocalPhotos(endCursor)
-                if (hasFinished) {
+                /* if (hasFinished) {
                   loadMorePhotos(offsetCursor, endCursor)
-                }
+                } */
               }}
               updateDownloadedImageStatus={updateDownloadedImageStatus}
             />

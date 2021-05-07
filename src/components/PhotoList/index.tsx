@@ -67,13 +67,6 @@ function PhotoList(props: PhotoListProps) {
                   setRefreshing(false)
                 }}
               />} */
-              onEndReached={(e) => {
-                if (props.onEndReached) {
-                  setLoadMore(true);
-                  props.onEndReached(e);
-                }
-              }}
-              onEndReachedThreshold={0.1}
               ListEmptyComponent={props.ListEmptyComponent || <EmptyPhotoList />}
               renderItem={({ item }) => <Photo item={item} updateDownloadedImageStatus={props.updateDownloadedImageStatus} key={item.hash} />}
               contentContainerStyle={styles.flatList}

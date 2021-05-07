@@ -8,7 +8,7 @@ import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos } from './init'
+import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos, LocalImages } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
@@ -26,6 +26,11 @@ export interface IPhotosProps extends Reducers {
   authenticationState: AuthenticationState,
 }
 
+export interface IPhotosToRender {
+  photos: IHashedPhoto[]
+  hasNextPage: boolean
+}
+
 function Photos(props: IPhotosProps): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [photos, setPhotos] = useState<IHashedPhoto[]>([])
@@ -36,15 +41,16 @@ function Photos(props: IPhotosProps): JSX.Element {
     callBack()
   }, 5)
 
-  const getNextImages = async (after?: string | undefined) => {
+  const getPhotosToRender = async () => {
     let finished = false
-    let next = after
+    let lastPickedImage: string | undefined = undefined
+    let photos: IHashedPhoto[] = []
     const syncActions: Promise<unknown>[] = []
 
     props.dispatch(PhotoActions.startSync())
 
     while (!finished) {
-      const res = await getLocalImages(next)
+      const res: LocalImages = await getLocalImages(lastPickedImage)
 
       const syncAction = () => new Promise<unknown>(resolved => {
         syncQueue.push(() => syncPhotos(res.assets), resolved)
@@ -53,8 +59,13 @@ function Photos(props: IPhotosProps): JSX.Element {
       setPhotos(currentPhotos => currentPhotos.length > 0 ? currentPhotos.concat(res.assets) : res.assets)
       syncActions.push(syncAction())
 
+      photos = (photos.length > 0 ? photos.concat(res.assets) : res.assets).map(photo => ({ ...photo, isLocal: true, isUploaded: false }))
+      const payload: IPhotosToRender = { photos, hasNextPage: res.hasNextPage }
+
+      props.dispatch(PhotoActions.setPhotosToRender(payload))
+
       if (res.hasNextPage) {
-        next = res.endCursor
+        lastPickedImage = res.endCursor
       } else {
         finished = true
         setHasMoreLocals(false)
@@ -67,7 +78,7 @@ function Photos(props: IPhotosProps): JSX.Element {
   }
 
   const reloadLocalPhotos = () => {
-    initUser().finally(() => getNextImages());
+    initUser().finally(() => getPhotosToRender());
   };
 
   useEffect(() => {

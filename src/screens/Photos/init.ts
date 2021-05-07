@@ -66,7 +66,7 @@ export async function syncPhotos(images: IHashedPhoto[]): Promise<void> {
   let onePhotoToUpload = false;
 
   // Upload filtered photos
-  await mapSeries(imagesToUpload, (image, next) => {
+  await mapSeries(imagesToUpload, async (image, next) => {
     if (!(imagesToUpload[imagesToUpload.length - 1] === imagesToUpload[0])) {
       if ((imagesToUpload[imagesToUpload.length - 1].id) === image.id) {
         last = true;
@@ -74,7 +74,7 @@ export async function syncPhotos(images: IHashedPhoto[]): Promise<void> {
     } else {
       onePhotoToUpload = true;
     }
-    uploadPhoto(image, last, onePhotoToUpload).then(() => next(null)).catch(() => next(null))
+    await uploadPhoto(image, last, onePhotoToUpload).then(() => next(null)).catch(() => next(null))
   })
 }
 
@@ -220,7 +220,7 @@ export async function getPartialUploadedPhotos(matchImages: LocalImages): Promis
   }).catch(() => { })
 }
 
-export async function getPartialRemotePhotos(offset?= 0, limit?= 20) {
+export async function getPartialRemotePhotos(offset = 0, limit = 20) {
   const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/remote/photos/${limit}/${offset}`, {
@@ -395,11 +395,11 @@ export function getPreviews(setPreview: SetStateAction<any>, offset?: number): P
         throw Error('Sign out')
       }
 
-      return downloadPreview(photo.preview, photo).then((res) => {
-        if (res) {
+      return downloadPreview(photo.preview, photo).then((path) => {
+        if (path) {
           const newPhoto = {
             ...photo,
-            localUri: res,
+            localUri: path,
             isLocal: false,
             isUploaded: true
           }
@@ -407,9 +407,7 @@ export function getPreviews(setPreview: SetStateAction<any>, offset?: number): P
           setPreview(newPhoto)
         }
         next(null, photo)
-
-      }).catch(err => {
-      });
+      })
     });
   });
 }
