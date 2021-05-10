@@ -10,7 +10,6 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
 import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos, LocalImages } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
-import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
@@ -23,7 +22,8 @@ export interface IPhotosProps extends Reducers {
   navigation: any
   dispatch: any
   photosState: PhotosState
-  authenticationState: AuthenticationState,
+  loggedIn: boolean
+  isSyncing: boolean
 }
 
 export interface IPhotosToRender {
@@ -87,11 +87,11 @@ function Photos(props: IPhotosProps): JSX.Element {
   }, [])
 
   useEffect(() => {
-    if (!props.authenticationState.loggedIn) {
+    if (!props.loggedIn) {
       stopSync()
       props.navigation.replace('Login')
     }
-  }, [props.authenticationState.loggedIn])
+  }, [props.loggedIn])
 
   return (
     <SafeAreaView style={styles.container}>
@@ -125,7 +125,7 @@ function Photos(props: IPhotosProps): JSX.Element {
         >
           <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos} <Text style={styles.photosCount}>- {photos.length}</Text></Text>
           {
-            props.photosState.isSyncing ?
+            props.isSyncing ?
               <View style={styles.containerSync}>
                 <Text style={styles.syncText}>{strings.screens.photos.components.syncing}</Text>
 
@@ -162,8 +162,11 @@ function Photos(props: IPhotosProps): JSX.Element {
 }
 
 const mapStateToProps = (state: any) => {
-  return { ...state };
-};
+  return {
+    loggedIn: state.authenticationState.loggedIn,
+    isSyncing: state.photosState.isSyncing
+  }
+}
 
 export default connect(mapStateToProps)(Photos)
 

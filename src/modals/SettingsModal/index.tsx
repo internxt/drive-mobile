@@ -96,7 +96,7 @@ async function photosUserData(authenticationState: AuthenticationState): Promise
 }
 
 interface SettingsModalProps {
-  authenticationState: AuthenticationState
+  user: any
   layoutState: LayoutState
   dispatch: Dispatch,
   navigation: any
@@ -142,8 +142,8 @@ function SettingsModal(props: SettingsModalProps) {
       <View style={styles.drawerKnob}></View>
 
       <Text style={styles.nameText}>
-        {props.authenticationState.user.name}{' '}
-        {props.authenticationState.user.lastname}
+        {props.user.name}{' '}
+        {props.user.lastname}
       </Text>
 
       <ProgressBar
@@ -248,7 +248,10 @@ const styles = StyleSheet.create({
 })
 
 const mapStateToProps = (state: any) => {
-  return { ...state };
+  return {
+    user: state.authenticationState.user,
+    layoutState: state.layoutState
+  };
 };
 
 export default connect(mapStateToProps)(SettingsModal);
