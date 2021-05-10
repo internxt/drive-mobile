@@ -1,14 +1,15 @@
+/* eslint-disable camelcase */
 module.exports = {
   transformer: {
     assetPlugins: ['expo-asset/tools/hashAssetFiles'],
     minifierPath: 'metro-minify-terser',
     minifierConfig: {
-      keepClassnames: true, // FIX typeorm
-      keepFnames: true, // FIX typeorm
+      keep_classnames: true, // FIX typeorm
+      keep_fnames: true, // FIX typeorm
       mangle: {
         // toplevel: false,
-        keepClassnames: true, // FIX typeorm
-        keepFnames: true // FIX typeorm
+        keep_classnames: true, // FIX typeorm
+        keep_fnames: true // FIX typeorm
       }
     }
   }
