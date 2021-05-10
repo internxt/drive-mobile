@@ -36,7 +36,9 @@ export const PhotoActions = {
   pushPreview,
   setAllLocalPhotosGallery,
   startSync,
-  stopSync
+  stopSync,
+  startSaveDB,
+  viewDB
 };
 
 function setIsLoading(value: boolean) {
@@ -60,6 +62,14 @@ function startSync() {
 
 function stopSync() {
   return { type: photoActionTypes.STOP_SYNC };
+}
+
+function startSaveDB() {
+  return { type: photoActionTypes.START_SAVE_DB };
+}
+
+function viewDB() {
+  return { type: photoActionTypes.VIEW_DB };
 }
 
 // Will only download the current selected Photo defined in props

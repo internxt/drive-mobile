@@ -39,7 +39,6 @@ function Photos(props: IPhotosProps): JSX.Element {
       setEndCursor(res.endCursor);
       setPhotos(after ? photos.concat(res.assets) : res.assets)
       syncPhotos(res.assets, props.dispatch).then(()=>{
-        getPreviewsUploaded(props.authenticationState.user.userId)
       })
     }).finally(() => setIsLoading(false));
   }
@@ -74,7 +73,7 @@ function Photos(props: IPhotosProps): JSX.Element {
   }
 
   useEffect(() => {
-    getPreviewsUploaded(props.authenticationState.user.userId)
+    getPreviewsUploaded(props.dispatch)
     setPhotos([])
     reloadLocalPhotos();
   }, [])

@@ -9,6 +9,8 @@ import * as MediaLibrary from 'expo-media-library';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import Photo from './Photo'
 import EmptyPhotoList from './EmptyPhotoList';
+import { Previews } from '../../database/models/previews';
+import { IHashedPhoto } from '../../screens/Photos/init';
 
 export interface IPhoto {
   id: string
@@ -35,6 +37,7 @@ interface PhotoListProps extends FlatListProps<MediaLibrary.Asset> {
   dispatch?: any
   navigation: any
   onItemPress?: (event: GestureResponderEvent, item: MediaLibrary.AssetInfo) => void
+  updateDownloadedImageStatus: (remotePreview: Previews, downloadedPhoto: IHashedPhoto) => void
 }
 
 const deviceWidth = Dimensions.get('window').width
@@ -73,7 +76,7 @@ function PhotoList(props: PhotoListProps) {
               }}
               onEndReachedThreshold={0.2}
               ListEmptyComponent={props.ListEmptyComponent || <EmptyPhotoList />}
-              renderItem={({ item }) => <Photo onPress={props.onItemPress} item={item} />}
+              renderItem={({ item }) => <Photo onPress={props.onItemPress} updateDownloadedImageStatus={props.updateDownloadedImageStatus} item={item} />}
               contentContainerStyle={styles.flatList}
               keyExtractor={(item) => item.id}
               numColumns={props.numColumns || 3}

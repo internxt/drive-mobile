@@ -7,17 +7,16 @@ import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
-import SimpleToast from 'react-native-simple-toast';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { PhotoActions } from '../../redux/actions';
-import { savePhotosAndPreviews } from '../../database/DBUtils.ts/utils';
+import { getRepositories, savePhotosAndPreviews } from '../../database/DBUtils.ts/utils';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
   localUri: string | undefined
-  isSynced?: boolean
-  isUploaded?: boolean
+  isUploaded: boolean
+  isLocal: boolean
 }
 
 const getArrayPhotos = async (images: Asset[]) => {
@@ -76,7 +75,7 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
     } else {
       onePhotoToUpload = true;
     }
-    uploadPhoto(image, dispatch, last, onePhotoToUpload).then(() => next(null)).catch(next)
+    uploadPhoto(image, dispatch, last, onePhotoToUpload).then(() => next(null)).catch(()=>{next(null)})
   })
 }
 
@@ -183,6 +182,8 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
       }
 
       throw res;
+    }).then((res)=>{
+      getPreviewsUploaded(dispatch)
     })
 }
 
@@ -209,6 +210,13 @@ export function getLocalImages(after?: string | undefined): Promise<LocalImages>
     result.assets = res
     return result;
   });
+}
+
+export const getRecentlyDownloadedImage = (): Promise<IHashedPhoto[]> => {
+  return MediaLibrary.getAssetsAsync({ first: 1, sortBy: [MediaLibrary.SortBy.modificationTime] })
+    .then(res => {
+      return getArrayPhotos(res.assets)
+    })
 }
 
 export async function getPartialUploadedPhotos(matchImages: LocalImages): Promise<IApiPhotoWithPreview[]> {
@@ -301,7 +309,7 @@ export async function getLocalPhotosDir(): Promise<string> {
   return TempDir;
 }
 
-export async function downloadPhoto(photo: any) {
+export async function downloadPhoto(photo: any, setProgress: (progress: number) => void) {
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -310,30 +318,30 @@ export async function downloadPhoto(photo: any) {
   const tempDir = await getLocalPhotosDir();
 
   return RNFetchBlob.config({
-    path: `${tempDir}/${photo.photoId}.${type}`,
+    path: `${tempDir}/${photo.id}.${type}`,
     fileCache: true
-  }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/download/photo/${photo.id}`, {
+  }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/download/photo/${photo.photoId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
+  }).progress((received: number, total: number) => {
+    setProgress(received / total)
   }).then((res) => {
+    setProgress(0)
     if (res.respInfo.status !== 200) {
       throw Error('Unable to download picture')
     }
     return res;
-  }).then(async (res) => {
-
+  }).then(res => {
     if (Platform.OS === 'ios') {
-      const p = await manipulateAsync(res.path(),
+      return manipulateAsync(res.path(),
         [],
         { compress: 1, format: SaveFormat.PNG }
-      )
-
-      MediaLibrary.saveToLibraryAsync(p.uri)
+      ).then(p => {
+        return MediaLibrary.saveToLibraryAsync(p.uri).then(() => p.uri)
+      })
     } else {
-      MediaLibrary.saveToLibraryAsync(res.path())
+      return MediaLibrary.saveToLibraryAsync(res.path()).then(() => res.path())
     }
-  }).then(() => {
-    SimpleToast.show('Image downloaded!', 0.3)
   })
 }
 
@@ -406,20 +414,29 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export function getPreviewsUploaded(userId: string): Promise<any> {
+export async function getPreviewsUploaded(dispatch: any): Promise<any> {
   SHOULD_STOP = false;
   return getUploadedPhotos().then((res: IApiPhotoWithPreview[]) => {
     if (res.length === 0) {
       return;
     }
-    return mapSeries(res, (preview, next) => {
+    return mapSeries(res, async (preview, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }
+      const listPhotosOnDB = await getRepositories()
+      const photos = listPhotosOnDB.previews
+
+      photos.forEach((res)=> {
+        if (res.hash === preview.hash) {
+          return;
+        }
+      })
+
       return downloadPreview(preview.preview, preview).then((res1) => {
         if (res1) {
           // eslint-disable-next-line no-console
-          savePhotosAndPreviews(preview, res1).then(() => { }).catch((err) => { console.error('ERR save photos on DB', err) })
+          savePhotosAndPreviews(preview, res1, dispatch).then().catch((err) => { console.error('ERR save photos on DB', err) })
         }
         next(null, res1)
       });

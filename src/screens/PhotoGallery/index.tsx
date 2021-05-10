@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Image, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
-import { BackButton } from '../../components/BackButton';
+import '../../../assets/icons/icon-back.png';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -11,15 +11,12 @@ import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 import PhotoList from '../../components/PhotoList';
 import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
-import { cachePicture, downloadPhoto, getLocalImages, getPreviews, IHashedPhoto } from '../Photos/init';
-import _ from 'lodash'
-import FileViewer from 'react-native-file-viewer'
-import RNFS from 'react-native-fs'
+import { getLocalImages, IHashedPhoto } from '../Photos/init';
 import strings from '../../../assets/lang/strings';
-import { getRepository } from 'typeorm/browser';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { getRepositories } from '../../database/DBUtils.ts/utils';
 import { Previews } from '../../database/models/previews';
-import { Photos } from '../../database/models/photos';
-import { LocalPhotos } from '../../database/models/localPhotos';
+import { PhotoActions } from '../../redux/actions';
 
 interface PhotoGalleryProps {
   route: any;
@@ -30,127 +27,131 @@ interface PhotoGalleryProps {
   authenticationState: AuthenticationState
 }
 
-function setStatus(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[]) {
-  const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, galleryUri: o.localUri }, o))
-  const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isUploaded: true }, o))
-
-  const union = _.unionBy([...localPhotosLabel, ...remotePhotosLabel], (o) => {
-    const a = localPhotosLabel.find(id => id.hash === o.hash)
-    const b = remotePhotosLabel.find(id => id.hash === o.hash)
-
-    return _.merge(a, b);
-  })
-
-  return union;
-}
-
-async function takeHashesLocalPhotos() {
-  const localPhotosRepository = await getRepository(LocalPhotos);
-
-  const result = await localPhotosRepository.find()
-
-  const hashList = result.map(x => x.hash);
-
-  return hashList
-}
-
-function setRemotePhotos(localPhotos: IHashedPhoto[], remotePhotos: IHashedPhoto[], loadStartLocalPhotos?: any) {
-  const remotePhotosLabel = _.map(remotePhotos, o => _.extend({ isLocal: false, isUploaded: true }, o))
-  const localPhotosLabel = _.map(localPhotos, o => _.extend({ isLocal: true, isUploaded: false, galleryUri: o.localUri }, o))
-
-  const remotes = _.differenceBy([...remotePhotosLabel], [...localPhotosLabel], 'hash')
-  const locals = _.differenceBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
-  const synced = _.intersectionBy([...localPhotosLabel], [...remotePhotosLabel], 'hash')
-
-  const syncedUpdated = synced.map(photo => ({ ...photo, isUploaded: true }))
-
-  const union = _.union(locals, syncedUpdated, remotes)
-
-  return union;
-
-}
-
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
-  const [localPhotos, setLocalPhotos] = useState<IHashedPhoto[]>([]);
-  const [uploadedPhotos, setUploadedPhotos] = useState<IHashedPhoto[]>([]);
-  const remotePhotos = setRemotePhotos(localPhotos, uploadedPhotos);
-  const [hasFinished, setHasFinished] = useState(false)
+  const [photosToRender, setPhotosToRender] = useState<any[]>([])
+  const [uploadedPhoto, setUploadedPhoto] = useState<any>()
+  const [uploadedPhotos, setUploadedPhotos] = useState<any[]>([])
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
+  const [hasFinished, setHasFinished] = useState(false)
   const [offsetCursor, setOffsetCursor] = useState(0)
   const [prevOffset, setPrevOffset] = useState(0)
+  const [uploadedPreviews, setUploadedPreviews] = useState<Previews[]>([])
 
-  const start = (offset = 0, endCursor?: string) => {
+  const getPhotosToRender = (offset = 0, endCursor?: string) => {
     setHasFinished(false)
 
     return loadLocalPhotos(endCursor).then(() => {
-      return loadUploadedPhotos(offset)
     }).finally(() => {
       setHasFinished(true)
     })
   }
 
+  const startGettingRepositories = () => {
+    return getRepositories().then((res) => {
+      props.dispatch(PhotoActions.viewDB())
+      setUploadedPreviews(res.previews)
+      return res;
+    })
+  }
+
   const loadLocalPhotos = (endCursor?: string) => {
-    return getLocalImages(endCursor).then(res => {
-      setEndCursor(res.endCursor)
-      setLocalPhotos(endCursor ? localPhotos.concat(res.assets) : res.assets)
-    })
+    return getLocalImages(endCursor).then(localImages => {
+      const assets = localImages.assets.map(photo => ({ ...photo, isLocal: true, isUploaded: false }))
+      const photos = photosToRender.slice()
+
+      assets.forEach(asset => {
+        const index = photos.findIndex(photo => photo.hash === asset.hash)
+
+        if (index === -1) {
+          photos.push(asset)
+        } else {
+          if (photos[index].isUploaded === true && photos[index].isLocal === false) {
+            photos[index].isLocal = true
+          }
+        }
+      })
+
+      setEndCursor(localImages.endCursor)
+      setPhotosToRender(photos)
+    }).finally(() => setIsLoading(false))
   }
 
-  const loadUploadedPhotos = (offset: number) => {
-    setPrevOffset(offset)
-    getPreviews(push, offset).then((res) => {
-      const lastIndex = offsetCursor + res.length
+  const checkSynced = () => {
+    const items = photosToRender.slice()
 
-      setOffsetCursor(lastIndex)
-      setPrevOffset(offset)
-    }).then(() => {
-      setRemotePhotos(localPhotos, uploadedPhotos)
-    })
-  }
+    uploadedPreviews.map((preview) => {
+      const index = items.findIndex(photo => photo.hash === preview.hash)
 
-  const loadMoreData = (offsetCursor: number, endCursor: string | undefined) => {
-    setHasFinished(false)
-    if (offsetCursor > prevOffset) {
-      start(offsetCursor, endCursor).then(() => { setHasFinished(true) })
-    } else {
-      if (endCursor) {
-        loadLocalPhotos(endCursor).finally(() => setHasFinished(true))
+      if (index !== -1) {
+        if (items[index].isLocal && !items[index].isUploaded) {
+          items[index].isUploaded = true
+          setPhotosToRender(items)
+        }
+      } else {
+        setPhotosToRender(currentPhotos => [...currentPhotos, preview])
       }
-    }
+    })
   }
 
-  const push = async (preview: any) => {
-    if (preview) {
+  const checkPhotosDB = (listPreviews: Previews[]) => {
+    listPreviews.map((preview) => {
+      const index = photosToRender.findIndex(local => local.hash === preview.hash)
 
-      const exists = await uploadedPhotos.find(photo => photo.localUri === preview.localUri)
+      if (index === -1) {
 
-      if (!exists) {
-        setUploadedPhotos(currentPhotos => [...currentPhotos, preview])
+        preview.isLocal = false
+        const downloadedPhoto = { ...preview }
+
+        setPhotosToRender(currentPhotos => [...currentPhotos, downloadedPhoto])
+      } else {
+        const items = photosToRender.slice()
+
+        items[index].isUploaded = true
+        setPhotosToRender(items)
       }
-    }
+
+    })
   }
 
-  const getRepositories = async () => {
-    const photosRepository = await getRepository(Photos);
-    const previewsRepository = await getRepository(Previews);
+  const updateDownloadedImageStatus = (remotePreview: Previews, downloadedPhoto: IHashedPhoto) => {
+    const index = photosToRender.findIndex(local => local.hash === remotePreview.hash)
+    const items = photosToRender.slice()
+    const newLocal = downloadedPhoto
 
-    const photos = await photosRepository.find({
-      where: { userId: props.authenticationState.user.userId }
-    })
+    newLocal.isLocal = true
+    newLocal.isUploaded = true
+    items[index] = newLocal
 
-    const previews = await previewsRepository.find({
-      where: { userId: props.authenticationState.user.userId }
-    })
-
+    setPhotosToRender(items)
   }
 
+  //USE EFFECT TO START GETTING DATA
   useEffect(() => {
-    getRepositories()
-    start().finally(() => {
+    getPhotosToRender(0, endCursor).finally(() => {
       setIsLoading(false)
     })
-  }, [props.photosState.isConnectDB])
+
+    startGettingRepositories().then((res) => {
+    })
+  }, [])
+
+  //USE EFFECT TO LISTEN DB CHANGES
+  useEffect(() => {
+    if (props.photosState.isSaveDB) {
+      getRepositories().then((res) => {
+        setUploadedPreviews(res.previews)
+        setPhotosToRender(res.previews)
+        props.dispatch(PhotoActions.viewDB())
+        checkPhotosDB(res.previews)
+      })
+    }
+  }, [props.photosState.isSaveDB])
+
+  //USE EFFECT FOR CHECK THE SYNCED
+  useEffect(() => {
+    checkSynced()
+  }, [photosToRender, uploadedPreviews])
 
   return (
     <SafeAreaView style={styles.container}>
@@ -158,7 +159,12 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
       <AddItemToModal />
 
       <View style={styles.albumHeader}>
-        <BackButton navigation={props.navigation} />
+        <TouchableOpacity
+          style={styles.buttonWrapper}
+          onPress={() => props.navigation.navigate('Photos')}
+        >
+          <Image style={styles.icon} source={require('../../../assets/icons/icon-back.png')} />
+        </TouchableOpacity>
 
         <View style={styles.titleWrapper}>
           <Text style={styles.albumTitle}>
@@ -166,7 +172,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
           </Text>
 
           <Text style={styles.photosCount}>
-            {remotePhotos.length} {strings.screens.photos.screens.photo_gallery.subtitle}
+            {photosToRender.length} {strings.screens.photos.screens.photo_gallery.subtitle}
           </Text>
         </View>
 
@@ -188,39 +194,20 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         {
           !isLoading ?
             <PhotoList
-              data={remotePhotos}
+              data={photosToRender}
               numColumns={3}
               onRefresh={() => {
                 setIsLoading(true)
                 setOffsetCursor(0)
-                start(offsetCursor).then(() => { setHasFinished(false) }).catch(() => { })
-              }}
-              onItemPress={(event, item) => {
-
-                if (item.isUploaded && !item.isLocal) {
-                  downloadPhoto(item).then(x => {
-
-                  }).catch((err) => {
-                  })
-                } else {
-                  cachePicture(item).then(tempFile => {
-                    FileViewer.open(tempFile, {
-                      onDismiss: () => RNFS.unlink(tempFile)
-                    });
-                  })
-                }
+                getPhotosToRender().then(() => { setHasFinished(false) }).catch(() => { })
               }}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.flatList}
               onEndReached={() => {
-                // change isLoading for another state, small indicator right on the bottom
-                //setIsLoading(true)
-                //loadLocalPhotos(endCursor)
-                if (hasFinished) {
-                  loadMoreData(offsetCursor, endCursor)
-                }
+                loadLocalPhotos(endCursor)
+
               }}
-              onEndReachedThreshold={0.2}
+              updateDownloadedImageStatus={updateDownloadedImageStatus}
             />
             :
             <WaveIndicator color="#5291ff" size={50} />
@@ -245,6 +232,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     textAlign: 'center'
   },
+  buttonWrapper: {
+    alignItems: 'center',
+    height: 45,
+    justifyContent: 'center',
+    width: 45
+  },
   container: {
     alignContent: 'center',
     backgroundColor: '#fff',
@@ -257,6 +250,11 @@ const styles = StyleSheet.create({
   },
   flatList: {
     paddingHorizontal: wp('0.5')
+  },
+  icon: {
+    height: 18,
+    tintColor: '#0084ff',
+    width: 11
   },
   photosCount: {
     color: '#bfbfbf',
