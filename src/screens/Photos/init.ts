@@ -9,7 +9,6 @@ import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
-import { PhotoActions } from '../../redux/actions';
 import { SetStateAction } from 'react';
 import PackageJson from '../../../package.json'
 
@@ -57,7 +56,7 @@ const getArrayPhotos = async (images: Asset[]) => {
   return result;
 }
 
-export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<any> {
+export async function syncPhotos(images: IHashedPhoto[]): Promise<void> {
   // Skip uploaded photos with previews
   const alreadyUploadedPhotos = await getUploadedPhotos();
   const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview);
@@ -67,7 +66,7 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
   let onePhotoToUpload = false;
 
   // Upload filtered photos
-  return mapSeries(imagesToUpload, (image, next) => {
+  await mapSeries(imagesToUpload, async (image, next) => {
     if (!(imagesToUpload[imagesToUpload.length - 1] === imagesToUpload[0])) {
       if ((imagesToUpload[imagesToUpload.length - 1].id) === image.id) {
         last = true;
@@ -75,16 +74,11 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
     } else {
       onePhotoToUpload = true;
     }
-    uploadPhoto(image, dispatch, last, onePhotoToUpload).then(() => next(null)).catch(next)
+    await uploadPhoto(image, last, onePhotoToUpload).then(() => next(null)).catch(() => next(null))
   })
 }
 
-async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) {
-
-  if (!last || !onePhotoToUpload) {
-    dispatch(PhotoActions.startSync())
-  }
-
+async function uploadPhoto(photo: IHashedPhoto, last: boolean, onePhotoToUpload: boolean) {
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -124,14 +118,10 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       const statusCode = res.respInfo.status;
 
       if (statusCode === 401) {
-        dispatch(PhotoActions.stopSync())
         throw res;
       }
       if (statusCode === 201) {
         return res.json();
-      }
-      if (statusCode === 409 || statusCode === 500) {
-        dispatch(PhotoActions.stopSync())
       }
       throw res
     })
@@ -146,11 +136,11 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
         { compress: 1, format: SaveFormat.JPEG }
       )
 
-      return uploadPreview(prev, res.id, photo, dispatch, last, onePhotoToUpload);
-    }).catch(err => { })
+      return uploadPreview(prev, res.id, photo);
+    })
 }
 
-const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) => {
+const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto) => {
 
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
@@ -173,13 +163,9 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
       { name: 'xfile', filename: originalPhoto.filename, data: finalUri }
     ])
     .then(res => {
-      if (last || onePhotoToUpload) {
-        dispatch(PhotoActions.stopSync())
-      }
       const statusCode = res.respInfo.status;
 
       if (statusCode === 201 || statusCode === 409) {
-        dispatch(PhotoActions.stopSync())
         return res.json();
       }
 
@@ -234,7 +220,7 @@ export async function getPartialUploadedPhotos(matchImages: LocalImages): Promis
   }).catch(() => { })
 }
 
-export async function getPartialRemotePhotos(offset?= 0, limit?= 20) {
+export async function getPartialRemotePhotos(offset = 0, limit = 20) {
   const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/remote/photos/${limit}/${offset}`, {
@@ -409,11 +395,11 @@ export function getPreviews(setPreview: SetStateAction<any>, offset?: number): P
         throw Error('Sign out')
       }
 
-      return downloadPreview(photo.preview, photo).then((res) => {
-        if (res) {
+      return downloadPreview(photo.preview, photo).then((path) => {
+        if (path) {
           const newPhoto = {
             ...photo,
-            localUri: res,
+            localUri: path,
             isLocal: false,
             isUploaded: true
           }
@@ -421,9 +407,7 @@ export function getPreviews(setPreview: SetStateAction<any>, offset?: number): P
           setPreview(newPhoto)
         }
         next(null, photo)
-
-      }).catch(err => {
-      });
+      })
     });
   });
 }
