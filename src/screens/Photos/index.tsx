@@ -123,14 +123,22 @@ function Photos(props: IPhotosProps): JSX.Element {
             props.navigation.navigate('PhotoGallery')
           }}
         >
-          <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos} <Text style={styles.photosCount}>- {photos.length}</Text></Text>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos}</Text>
+            <Text> - {photos.length}</Text>
+            {hasMoreLocals
+              ? <View><MaterialIndicator style={styles.photosSpinner} color='grey' size={10} /></View>
+              : null
+            }
+          </View>
+
           {
             props.isSyncing ?
               <View style={styles.containerSync}>
                 <Text style={styles.syncText}>{strings.screens.photos.components.syncing}</Text>
 
                 <View>
-                  <MaterialIndicator style={styles.spinner} color="#5291ff" size={15} />
+                  <MaterialIndicator color="#5291ff" size={15} />
                 </View>
               </View>
               :
@@ -152,7 +160,7 @@ function Photos(props: IPhotosProps): JSX.Element {
                 title={'All Photos'}
                 data={photos}
                 navigation={props.navigation}
-                //onRefresh={() => getNextImages()}
+              //onRefresh={() => getNextImages()}
               />
             </View>
         }
@@ -190,12 +198,12 @@ const styles = StyleSheet.create({
   allPhotosContainer: {
     flex: 1
   },
+  titleContainer: {
+    flexDirection: 'row'
+  },
   containerSync: {
     flexDirection: 'row',
     marginRight: 8
-  },
-  createAlbumCard: {
-
   },
   emptyContainer: {
     alignItems: 'center',
@@ -209,14 +217,13 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     marginTop: 10
   },
-  spinner: {
-  },
   syncText: {
     color: 'grey',
     fontFamily: 'Averta-Bold',
     marginRight: 8
   },
   title: {
+    flexDirection: 'row',
     alignSelf: 'center',
     color: 'black',
     fontFamily: 'Averta-Bold',
@@ -224,7 +231,11 @@ const styles = StyleSheet.create({
     letterSpacing: -0.13,
     marginLeft: 7
   },
+  photosSpinner: {
+    marginLeft: 6
+  },
   photosCount: {
+    flexDirection: 'row',
     color: 'grey',
     fontFamily: 'Averta-Bold',
     fontSize: 15
