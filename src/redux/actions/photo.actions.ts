@@ -1,6 +1,7 @@
 import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
-import { IPhoto, IPreview } from '../../components/PhotoList';
+import { IPhotosToRender } from '../../screens/Photos';
+import { IHashedPhoto } from '../../screens/Photos/init';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { photoService } from '../services/photo.service';
 import { userActions } from './user.actions';
@@ -11,15 +12,12 @@ export const PhotoActions = {
   downloadPhotoEnd,
   downloadSelectedPhotoStart,
   downloadSelectedPhotoStop,
-  uploadPhotos,
   uploadPhotoStart,
   uploadPhotoFinished,
   uploadPhotoFailed,
   uploadPhotoSetProgress,
   getAlbumList,
   getAlbumContent,
-  getDevicePhotos,
-  getAllPhotosContent,
   createAlbum,
   setAlbumContent,
   selectPhoto,
@@ -30,13 +28,11 @@ export const PhotoActions = {
   setSearchString,
   deleteTempPhoto,
   setIsLoading,
-  setAllLocalPhotos,
-  setAllUploadedPhotos,
   setSelectedPhotos,
-  pushPreview,
-  setAllLocalPhotosGallery,
   startSync,
-  stopSync
+  stopSync,
+  setPhotosToRender,
+  pushDownloadedPhoto
 };
 
 function setIsLoading(value: boolean) {
@@ -113,58 +109,6 @@ function deselectAll() {
   };
 }
 
-function getDevicePhotos(user: any, cursor: any) {
-  return (dispatch: Dispatch) => {
-    dispatch(request());
-    photoService
-      .getDevicePhotos(user, cursor)
-      .then((data: any) => {
-        dispatch(success(data));
-      }).catch(error => {
-        dispatch(failure(error));
-        if (error.status === 401) {
-          dispatch(userActions.signout());
-        }
-      });
-  };
-
-  function request() {
-    return { type: photoActionTypes.GET_DEVICE_REQUEST };
-  }
-  function success(payload: any) {
-    return { type: photoActionTypes.GET_DEVICE_SUCCESS, payload };
-  }
-  function failure(error: any) {
-    return { type: photoActionTypes.GET_DEVICE_FAILURE, error };
-  }
-}
-
-function getAllPhotosContent(user: any) {
-  return (dispatch: Dispatch) => {
-    dispatch(request());
-    photoService
-      .getAllPhotosContent(user)
-      .then((data: any) => {
-        dispatch(success(data));
-      }).catch(error => {
-        dispatch(failure(error));
-        if (error.status === 401) {
-          dispatch(userActions.signout());
-        }
-      });
-  };
-
-  function request() {
-    return { type: photoActionTypes.GET_PHOTOS_REQUEST };
-  }
-  function success(payload: any) {
-    return { type: photoActionTypes.GET_PHOTOS_SUCCESS, payload };
-  }
-  function failure(error: any) {
-    return { type: photoActionTypes.GET_PHOTOS_FAILURE, error };
-  }
-}
-
 function getAlbumContent(folderId: any) {
   const id = parseInt(folderId);
 
@@ -223,32 +167,6 @@ function getDeletedPhotos(user: any) {
   }
   function failure(error: any) {
     return { type: photoActionTypes.GET_DELETE_FAILURE, error };
-  }
-}
-
-function uploadPhotos(user: any, photos: any) {
-  return (dispatch: Dispatch) => {
-    dispatch(request());
-    photoService
-      .uploadPhotos(user, photos)
-      .then((data: any) => {
-        dispatch(success(data));
-      }).catch(error => {
-        dispatch(failure(error));
-        if (error.status === 401) {
-          dispatch(userActions.signout());
-        }
-      });
-  };
-
-  function request() {
-    return { type: photoActionTypes.UPLOAD_PHOTOS };
-  }
-  function success(payload: any) {
-    return { type: photoActionTypes.GET_DEVICE_SUCCESS, payload };
-  }
-  function failure(error: any) {
-    return { type: photoActionTypes.GET_DEVICE_FAILURE, error };
   }
 }
 
@@ -336,18 +254,10 @@ function setSelectedPhotos(photos: ImageOrVideo[]) {
   return { type: photoActionTypes.SET_SELECTED_PHOTOS, payload: photos }
 }
 
-function setAllLocalPhotos(photos: IPhoto[]) {
-  return { type: photoActionTypes.SET_LOCAL_PHOTOS, payload: photos }
+function setPhotosToRender(payload: IPhotosToRender) {
+  return { type: photoActionTypes.SET_PHOTOS_TO_RENDER, payload }
 }
 
-function setAllUploadedPhotos(photos: IPhoto[]) {
-  return { type: photoActionTypes.SET_UPLOADED_FOTOS, payload: photos }
-}
-
-function pushPreview(preview: IPreview) {
-  return { type: photoActionTypes.PUSH_PREVIEW, payload: preview }
-}
-
-function setAllLocalPhotosGallery(photos: IPhoto[]) {
-  return { type: photoActionTypes.SET_LOCAL_PHOTOS_GALLERY, payload: photos }
+function pushDownloadedPhoto(photo: IHashedPhoto) {
+  return { type: photoActionTypes.PUSH_DOWNLOADED_PHOTO, payload: photo }
 }
