@@ -11,6 +11,8 @@ import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { PhotoActions } from '../../redux/actions';
 import { getRepositories, savePhotosAndPreviews } from '../../database/DBUtils.ts/utils';
+import _ from 'lodash';
+import CameraRoll from '@react-native-community/cameraroll';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -28,30 +30,15 @@ const getArrayPhotos = async (images: Asset[]) => {
       return next(Error('Missing localUri'));
     }
 
-    if (Platform.OS === 'ios') {
-      const p = await manipulateAsync(asset.localUri,
-        [],
-        { compress: 1, format: SaveFormat.PNG }
-      )
-
-      const sha256Id = await RNFS.hash(p.uri, 'sha256')
-      const hashedImage = {
-        ...image,
-        hash: sha256Id,
-        localUri: asset.localUri
-      }
-
-      next(null, hashedImage)
-    } else {
-      const sha256Id = await RNFS.hash(asset.uri, 'sha256')
-      const hashedImage = {
-        ...image,
-        hash: sha256Id,
-        localUri: asset.localUri
-      }
-
-      next(null, hashedImage)
+    const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
+    const hashedImage = {
+      ...image,
+      hash: sha256Id,
+      localUri: asset.localUri
     }
+
+    next(null, hashedImage)
+
   });
 
   return result;
@@ -75,7 +62,7 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
     } else {
       onePhotoToUpload = true;
     }
-    uploadPhoto(image, dispatch, last, onePhotoToUpload).then(() => next(null)).catch(()=>{next(null)})
+    uploadPhoto(image, dispatch, last, onePhotoToUpload).then(() => next(null)).catch(() => { next(null) })
   })
 }
 
@@ -182,7 +169,7 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
       }
 
       throw res;
-    }).then((res)=>{
+    }).then((res) => {
       getPreviewsUploaded(dispatch)
     })
 }
@@ -332,16 +319,9 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
     }
     return res;
   }).then(res => {
-    if (Platform.OS === 'ios') {
-      return manipulateAsync(res.path(),
-        [],
-        { compress: 1, format: SaveFormat.PNG }
-      ).then(p => {
-        return MediaLibrary.saveToLibraryAsync(p.uri).then(() => p.uri)
-      })
-    } else {
-      return MediaLibrary.saveToLibraryAsync(res.path()).then(() => res.path())
-    }
+
+    return CameraRoll.save(res.path()).then(()=> res.path())
+
   })
 }
 
@@ -427,8 +407,11 @@ export async function getPreviewsUploaded(dispatch: any): Promise<any> {
       const listPhotosOnDB = await getRepositories()
       const photos = listPhotosOnDB.previews
 
-      photos.forEach((res)=> {
-        if (res.hash === preview.hash) {
+      photos.forEach((res) => {
+        const intersection = _.intersectionBy(res, preview, 'hash')
+
+        if (intersection.length !== 0) {
+
           return;
         }
       })
