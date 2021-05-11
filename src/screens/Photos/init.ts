@@ -317,17 +317,19 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
       throw Error('Unable to download picture')
     }
     return res;
-  }).then(res => {
+  }).then(async res => {
+    let asset: Asset
+
     if (Platform.OS === 'ios') {
-      return manipulateAsync(res.path(),
-        [],
-        { compress: 1, format: SaveFormat.PNG }
-      ).then(p => {
-        return MediaLibrary.saveToLibraryAsync(p.uri).then(() => p.uri)
-      })
+      asset = await manipulateAsync(res.path(), [], { compress: 1, format: SaveFormat.PNG }).then(res => MediaLibrary.createAssetAsync(res.uri))
     } else {
-      return MediaLibrary.saveToLibraryAsync(res.path()).then(() => res.path())
+      asset = await MediaLibrary.createAssetAsync(res.path())
     }
+    return getArrayPhotos([asset]).then(photos => {
+      const photo: IHashedPhoto = { ...photos[0], isLocal: true, isUploaded: true }
+
+      return photo
+    })
   })
 }
 

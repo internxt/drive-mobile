@@ -5,6 +5,7 @@ import { IPhoto } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
 import { IPhotosToRender } from '../../screens/Photos';
+
 export interface PhotosState {
   cursor: number
   loading: boolean
@@ -65,8 +66,13 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
   case photoActionTypes.SET_PHOTOS_TO_RENDER:
     return {
       ...state,
-      isLoading: false,
       photosToRender: action.payload
+    }
+
+  case photoActionTypes.PUSH_DOWNLOADED_PHOTO:
+    return {
+      ...state,
+      photosToRender: { photos: [action.payload, ...state.photosToRender.photos], hasNextPage: state.photosToRender.hasNextPage }
     }
 
   case photoActionTypes.SET_SELECTED_PHOTOS:
