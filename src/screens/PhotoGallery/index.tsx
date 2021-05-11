@@ -1,35 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Image, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import '../../../assets/icons/icon-back.png';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { PhotosState } from '../../redux/reducers/photos.reducer';
-import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { Dispatch } from 'redux';
-import { LayoutState } from '../../redux/reducers/layout.reducer';
-import PhotoList from '../../components/PhotoList';
 import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
 import { getPreviews, IHashedPhoto } from '../Photos/init';
 import strings from '../../../assets/lang/strings';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { IApiPhotoWithPreview } from '../../types/api/photos/IApiPhoto';
+import Photo from '../../components/PhotoList/Photo';
+import { IPhotosToRender } from '../Photos';
+import { PhotoActions } from '../../redux/actions';
 
 interface PhotoGalleryProps {
-  route: any;
   navigation: any
-  photosState: PhotosState
+  photosToRender: IPhotosToRender
   dispatch: Dispatch,
-  layoutState: LayoutState
-  authenticationState: AuthenticationState
   isSyncing: boolean
 }
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
-  const [isLoading, setIsLoading] = useState(false)
-  const [photosToRender, setPhotosToRender] = useState<IHashedPhoto[]>(props.photosState.photosToRender.photos)
-  const [uploadedPhoto, setUploadedPhoto] = useState<any>()
+  const [photosToRender, setPhotosToRender] = useState<IHashedPhoto[]>(props.photosToRender.photos)
+  const [downloadedPhoto, setDownloadedPhoto] = useState<any>()
 
   const loadUploadedPhotos = async () => {
     let finished = false
@@ -37,7 +31,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     let lastIndex = 0
 
     while (!finished) {
-      const previews = await getPreviews(setUploadedPhoto, lastIndex)
+      const previews = await getPreviews(setDownloadedPhoto, lastIndex)
 
       lastIndex = offset + previews.length
 
@@ -49,9 +43,11 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     }
   }
 
+  const pushDownloadedPhoto = (photo: IHashedPhoto) => props.dispatch(PhotoActions.pushDownloadedPhoto(photo))
+
   useEffect(() => {
     const currentPhotos = photosToRender.slice()
-    const newPhotos = props.photosState.photosToRender.photos
+    const newPhotos = props.photosToRender.photos
 
     newPhotos.forEach(newPhoto => {
       const index = currentPhotos.findIndex(currPhoto => currPhoto.hash === newPhoto.hash)
@@ -65,28 +61,16 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
       }
     })
     setPhotosToRender(currentPhotos)
-  }, [props.photosState.photosToRender])
-
-  const updateDownloadedImageStatus = (remotePreview: IApiPhotoWithPreview, downloadedPhoto: IHashedPhoto) => {
-    const index = photosToRender.findIndex(local => local.hash === remotePreview.hash)
-    const items = photosToRender.slice()
-    const newLocal = downloadedPhoto
-
-    newLocal.isLocal = true
-    newLocal.isUploaded = true
-    items[index] = newLocal
-
-    setPhotosToRender(items)
-  }
+  }, [props.photosToRender.photos])
 
   useEffect(() => {
-    if (uploadedPhoto) {
-      const index = photosToRender.findIndex(local => local.hash === uploadedPhoto.hash)
+    if (downloadedPhoto) {
+      const index = photosToRender.findIndex(local => local.hash === downloadedPhoto.hash)
 
       if (index === -1) {
-        const downloadedPhoto = { ...uploadedPhoto, isLocal: false }
+        const photo = { ...downloadedPhoto, isLocal: false }
 
-        setPhotosToRender(currentPhotos => [...currentPhotos, downloadedPhoto])
+        setPhotosToRender(currentPhotos => [...currentPhotos, photo])
       } else {
         const items = photosToRender.slice()
 
@@ -94,7 +78,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         setPhotosToRender(items)
       }
     }
-  }, [uploadedPhoto])
+  }, [downloadedPhoto])
 
   useEffect(() => {
     loadUploadedPhotos()
@@ -124,7 +108,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         </View>
 
         {
-          !props.photosState.isSyncing ?
+          !props.isSyncing ?
             null
             :
             <View style={styles.containerSync}>
@@ -139,21 +123,13 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
       <View style={{ flex: 1 }}>
         {
-          !isLoading ?
-            <PhotoList
+          photosToRender.length ?
+            <FlatList
               data={photosToRender}
               numColumns={3}
-              keyExtractor={(item) => item.id}
+              keyExtractor={item => item.hash}
               contentContainerStyle={styles.flatList}
-              onEndReached={() => {
-                // change isLoading for another state, small indicator right on the bottom
-                //setIsLoading(true)
-                //loadLocalPhotos(endCursor)
-                /* if (hasFinished) {
-                  loadMorePhotos(offsetCursor, endCursor)
-                } */
-              }}
-              updateDownloadedImageStatus={updateDownloadedImageStatus}
+              renderItem={({ item }) => <Photo item={item} key={item.hash} pushDownloadedPhoto={pushDownloadedPhoto} />}
             />
             :
             <WaveIndicator color="#5291ff" size={50} />
@@ -227,7 +203,10 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state: any) => {
-  return { ...state };
+  return {
+    photosToRender: state.photosState.photosToRender,
+    isSyncing: state.photosState.isSyncing
+  };
 };
 
 export default connect(mapStateToProps)(PhotoGallery);

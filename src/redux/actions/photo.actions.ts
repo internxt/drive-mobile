@@ -1,6 +1,7 @@
 import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
 import { IPhotosToRender } from '../../screens/Photos';
+import { IHashedPhoto } from '../../screens/Photos/init';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { photoService } from '../services/photo.service';
 import { userActions } from './user.actions';
@@ -30,7 +31,8 @@ export const PhotoActions = {
   setSelectedPhotos,
   startSync,
   stopSync,
-  setPhotosToRender
+  setPhotosToRender,
+  pushDownloadedPhoto
 };
 
 function setIsLoading(value: boolean) {
@@ -254,4 +256,8 @@ function setSelectedPhotos(photos: ImageOrVideo[]) {
 
 function setPhotosToRender(payload: IPhotosToRender) {
   return { type: photoActionTypes.SET_PHOTOS_TO_RENDER, payload }
+}
+
+function pushDownloadedPhoto(photo: IHashedPhoto) {
+  return { type: photoActionTypes.PUSH_DOWNLOADED_PHOTO, payload: photo }
 }

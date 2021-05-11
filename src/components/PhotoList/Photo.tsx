@@ -2,38 +2,30 @@ import React, { useState } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { StyleSheet, Image, Dimensions, ActivityIndicator, View, Platform } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
-import * as MediaLibrary from 'expo-media-library';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import PhotoBadge from './PhotoBadge';
-import { cachePicture, downloadPhoto, getRecentlyDownloadedImage, IHashedPhoto } from '../../screens/Photos/init';
+import { cachePicture, downloadPhoto, IHashedPhoto } from '../../screens/Photos/init';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
 import RNFS from 'react-native-fs'
-import { IApiPhotoWithPreview } from '../../types/api/photos/IApiPhoto';
 
 const deviceWidth = Dimensions.get('window').width
 
 interface PhotoProps {
   badge?: JSX.Element
-  item: MediaLibrary.Asset & {
-    isUploaded?: boolean
-    isLocal?: boolean
-    preview?: any
-    localUri?: string
-    size?: number
-  }
-  updateDownloadedImageStatus: (remotePreview: IApiPhotoWithPreview, downloadedPhoto: IHashedPhoto) => void
+  item: IHashedPhoto
+  pushDownloadedPhoto?: (downloadedPhoto: IHashedPhoto) => void
 }
 
 export default function Photo(props: PhotoProps): JSX.Element {
   const [isLoaded, setIsLoaded] = useState(false);
-  const item = props.item
-  const [itemPath, setItemPath] = useState(props.item.localUri)
   const [isDownloading, setIsDownloading] = useState(false)
   const [progress, setProgress] = useState(0)
 
+  const [item, setItem] = useState(props.item)
+
   try {
-    const urlEncoded = props.item.localUri.startsWith('file://')
+    const urlEncoded = item.localUri.startsWith('file://')
 
     if (Platform.OS === 'android' && props.item.isUploaded && !urlEncoded) {
       props.item.localUri = 'file://' + props.item.localUri;
@@ -48,28 +40,24 @@ export default function Photo(props: PhotoProps): JSX.Element {
           return;
         }
 
-        if (props.item.isUploaded && !props.item.isLocal && !isDownloading) {
+        if (item.isUploaded && !item.isLocal && !isDownloading) {
           setIsDownloading(true)
-          downloadPhoto(item, setProgress).then(path => {
-            getRecentlyDownloadedImage().then(photos => {
-              const downloadedPhoto = photos[0]
+          downloadPhoto(item, setProgress).then(photo => {
+            setItem(photo)
+            if (props.pushDownloadedPhoto) {
+              props.pushDownloadedPhoto(photo)
+            }
 
-              props.updateDownloadedImageStatus(item, downloadedPhoto)
-              setItemPath(path)
-            })
-          }).catch(() => SimpleToast.show('Could not download image'))
-            .finally(() => {
-              setIsDownloading(false)
-              SimpleToast.show('Image downloaded!', 0.15)
-            })
+            SimpleToast.show('Image downloaded!', 0.15)
+          }).catch(() => {
+            SimpleToast.show('Could not download image', 0.15)
+          }).finally(() => setIsDownloading(false))
         } else {
-          if (itemPath) {
-            cachePicture(item).then(res => {
-              FileViewer.open(res, {
-                onDismiss: () => RNFS.unlink(res)
-              })
+          cachePicture(item).then(res => {
+            FileViewer.open(res, {
+              onDismiss: () => RNFS.unlink(res)
             })
-          }
+          }).catch(() => SimpleToast.show('Could not open the image', 0.15))
         }
       }}
       disabled={isDownloading}
@@ -85,8 +73,8 @@ export default function Photo(props: PhotoProps): JSX.Element {
         : <View style={styles.badge}>
           {props.badge ||
             <PhotoBadge
-              isUploaded={props.item.isUploaded}
-              isLocal={props.item.isLocal} />
+              isUploaded={item.isUploaded}
+              isLocal={item.isLocal} />
           }
         </View>
       }

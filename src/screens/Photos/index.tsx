@@ -32,7 +32,6 @@ export interface IPhotosToRender {
 }
 
 function Photos(props: IPhotosProps): JSX.Element {
-  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [photos, setPhotos] = useState<IHashedPhoto[]>([])
   const [hasMoreLocals, setHasMoreLocals] = useState(true)
 
@@ -111,7 +110,7 @@ function Photos(props: IPhotosProps): JSX.Element {
 
         </View>
 
-        <View style={styles.createAlbumCard}>
+        <View>
           <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
         </View>
 
@@ -233,12 +232,6 @@ const styles = StyleSheet.create({
   },
   photosSpinner: {
     marginLeft: 6
-  },
-  photosCount: {
-    flexDirection: 'row',
-    color: 'grey',
-    fontFamily: 'Averta-Bold',
-    fontSize: 15
   },
   titleButton: {
     alignItems: 'center',
