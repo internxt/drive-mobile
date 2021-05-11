@@ -140,8 +140,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   useEffect(() => {
     if (props.photosState.isSaveDB) {
       getRepositories().then((res) => {
-        setUploadedPreviews(res.previews)
-        setPhotosToRender(res.previews)
+        setPhotosToRender(prevPhotos => [...prevPhotos, res.previews])
         props.dispatch(PhotoActions.viewDB())
         checkPhotosDB(res.previews)
       })
