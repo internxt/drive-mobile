@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
-import { TextInput, TouchableHighlight, TouchableOpacity } from 'react-native-gesture-handler';
+import { StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
-import strings from '../../../assets/lang/strings';
 import { deviceStorage, normalize } from '../../helpers';
-import analytics from '../../helpers/lytics';
 import { userActions } from '../../redux/actions';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import Intro from '../Intro'
-import { apiLogin, validateEmail } from '../Login/access';
-import { doRegister, isNullOrEmpty, isStrongPassword } from './registerUtils';
+import { validateEmail } from '../Login/access';
+import RegisterStep1 from './RegisterStep1';
+import RegisterStep2 from './RegisterStep2';
+import RegisterStep3 from './RegisterStep3';
+import { isNullOrEmpty, isStrongPassword } from './registerUtils';
 
 interface RegisterProps {
   authenticationState: AuthenticationState
@@ -17,10 +17,36 @@ interface RegisterProps {
   dispatch: any
 }
 
+export interface IRegisterScreenStyles {
+  button: any
+  buttonBlock: any
+  buttonDisabled: any
+  buttonFooterWrapper: any
+  buttonLeft: any
+  buttonOff: any
+  buttonOffLabel: any
+  buttonOn: any
+  buttonOnLabel: any
+  buttonRight: any
+  buttonWrapper: any
+  container: any
+  containerCentered: any
+  containerHeader: any
+  flexRow: any
+  halfOpacity: any
+  input: any
+  inputWrapper: any
+  showInputFieldsWrapper: any
+  textDisclaimer: any
+  textStorePassword: any
+  textStorePasswordContainer: any
+  textTip: any
+  title: any
+}
+
 function Register(props: RegisterProps): JSX.Element {
   const [registerStep, setRegisterStep] = useState(1);
   const [showIntro, setShowIntro] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Register form fields
   const [firstName, setFirstName] = useState('');
@@ -28,8 +54,6 @@ function Register(props: RegisterProps): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
-  const twoFactorCode = ''
 
   const isValidEmail = validateEmail(email);
   const isValidFirstName = !isNullOrEmpty(firstName)
@@ -49,8 +73,6 @@ function Register(props: RegisterProps): JSX.Element {
 
         if (xToken && xUser) {
           props.dispatch(userActions.localSignIn(xToken, xUser))
-        } else {
-          setIsLoading(false)
         }
       })()
     }
@@ -64,238 +86,52 @@ function Register(props: RegisterProps): JSX.Element {
     const isValidStep = isValidFirstName && isValidLastName && isValidEmail;
 
     return (
-      <KeyboardAvoidingView behavior="padding" style={styles.container}>
-        <View style={styles.containerCentered}>
-          <View style={styles.containerHeader}>
-            <View style={styles.flexRow}>
-              <Text style={styles.title}>{strings.screens.register_screen.create_account_title}</Text>
-            </View>
-
-            <View style={styles.buttonWrapper}>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonOff]}
-                onPress={() => props.navigation.replace('Login')}>
-                <Text style={styles.buttonOffLabel}>{strings.components.buttons.sign_in}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[styles.button, styles.buttonOn]}>
-                <Text style={styles.buttonOnLabel}>{strings.components.buttons.create}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.showInputFieldsWrapper}>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.input, !isValidFirstName ? {} : {}]}
-                value={firstName}
-                onChangeText={value => setFirstName(value)}
-                placeholder={strings.components.inputs.first_name}
-                placeholderTextColor="#666"
-                maxLength={64}
-                autoCapitalize='words'
-                autoCompleteType='off'
-                autoCorrect={false}
-              />
-            </View>
-
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.input, !isValidLastName ? {} : {}]}
-                value={lastName}
-                onChangeText={value => setLastName(value)}
-                placeholder={strings.components.inputs.last_name}
-                placeholderTextColor="#666"
-                maxLength={64}
-                autoCapitalize='words'
-                autoCompleteType='off'
-                autoCorrect={false}
-              />
-            </View>
-
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.input, isValidEmail ? {} : {}]}
-                value={email}
-                onChangeText={value => setEmail(value)}
-                placeholder={strings.components.inputs.email}
-                placeholderTextColor="#666"
-                maxLength={64}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCompleteType="off"
-                autoCorrect={false}
-                textContentType="emailAddress"
-              />
-            </View>
-          </View>
-
-          <View style={styles.buttonFooterWrapper}>
-            <TouchableOpacity
-              style={[styles.button, styles.buttonBlock, isValidStep ? {} : styles.buttonDisabled]}
-              disabled={!isValidStep}
-              onPress={() => setRegisterStep(2)}
-            >
-              <Text style={styles.buttonOnLabel}>{strings.components.buttons.continue}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    );
+      <RegisterStep1
+        styles={styles}
+        firstName={firstName}
+        setFirstName={setFirstName}
+        lastName={lastName}
+        setLastName={setLastName}
+        email={email}
+        setEmail={setEmail}
+        isValidFirstName={isValidFirstName}
+        isValidLastName={isValidLastName}
+        isValidEmail={isValidEmail}
+        isvalidStep={isValidStep}
+        setRegisterStep={setRegisterStep}
+        navigation={props.navigation}
+      />
+    )
   }
 
   if (registerStep === 2) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.containerCentered}>
-          <View style={styles.containerHeader}>
-            <View style={styles.flexRow}>
-              <Text style={styles.title}>{strings.screens.register_screen.security_title}</Text>
-            </View>
-
-            <View>
-              <Text style={styles.textDisclaimer}>{strings.screens.register_screen.security_subtitle}</Text>
-            </View>
-
-            <View style={styles.textStorePasswordContainer}>
-              <View style={[styles.flexRow, { marginBottom: 10 }]}>
-                <Text>{'\u2022'}</Text>
-
-                <Text style={styles.textStorePassword}>{strings.screens.register_screen.suggestion_1}</Text>
-              </View>
-
-              <View style={styles.flexRow}>
-                <Text>{'\u2022'}</Text>
-
-                <Text style={styles.textTip}>{strings.screens.register_screen.suggestion_2}</Text>
-              </View>
-            </View>
-
-            <View style={[styles.buttonFooterWrapper, { marginTop: 42 }]}>
-              <View style={styles.buttonWrapper}>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonOff, styles.buttonLeft]}
-                  onPress={() => setRegisterStep(1)}
-                >
-                  <Text style={styles.buttonOffLabel}>{strings.components.buttons.back}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonOn, styles.buttonRight]}
-                  onPress={() => setRegisterStep(3)}
-                >
-                  <Text style={styles.buttonOnLabel}>{strings.components.buttons.continue}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
-    );
+    return <RegisterStep2 styles={styles} setRegisterStep={setRegisterStep} />
   }
 
   if (registerStep === 3) {
     const isValidPassword = isStrongPassword(password);
     const isValidStep = (password === confirmPassword) && isValidPassword;
 
-    const handleOnPress = async () => {
-      if (!isValidPassword) return Alert.alert('', 'Please make sure your password contains at least six characters, a number, and a letter')
-      if (password !== confirmPassword) return Alert.alert('', 'Please make sure your passwords match')
-      if (registerButtonClicked || isLoading) return
-
-      setRegisterButtonClicked(true)
-      setIsLoading(true)
-
-      try {
-        const userData = await doRegister({ firstName, lastName, email, password })
-        await Promise.all([
-          analytics.identify(userData.uuid, { email }),
-          analytics.track('user-signup', {
-            properties: {
-              userId: userData.uuid,
-              email: email,
-              platform: 'mobile'
-            }
-          })
-        ])
-
-        const userLoginData = await apiLogin(email)
-        await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
-
-      } catch (err) {
-        await analytics.track('user-signin-attempted', {
-          status: 'error',
-          message: err.message
-        })
-        setIsLoading(false)
-        setRegisterButtonClicked(false)
-
-        Alert.alert('Error while registering', err.message)
-      }
-    }
-
     return (
-      <KeyboardAvoidingView behavior='height' style={styles.container}>
-        <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
-          <View style={styles.containerHeader}>
-            <View style={styles.flexRow}>
-              <Text style={styles.title}>{strings.screens.register_screen.create_account_title}</Text>
-            </View>
-          </View>
-
-          <View style={[styles.showInputFieldsWrapper, { marginTop: -10 }]}>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.input, !isValidPassword ? {} : {}]}
-                value={password}
-                onChangeText={value => setPassword(value)}
-                placeholder={strings.components.inputs.password}
-                placeholderTextColor="#666"
-                textContentType="password"
-                autoCapitalize="none"
-                autoCompleteType="password"
-                autoCorrect={false}
-                secureTextEntry={true}
-              />
-            </View>
-
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.input, !isValidStep ? {} : {}]}
-                value={confirmPassword}
-                onChangeText={value => setConfirmPassword(value)}
-                placeholder={strings.components.inputs.confirm_password}
-                placeholderTextColor="#666"
-                secureTextEntry={true}
-                textContentType="password"
-              />
-            </View>
-          </View>
-
-          <View style={styles.buttonFooterWrapper}>
-            <View style={styles.buttonWrapper}>
-              <TouchableOpacity
-                style={[styles.button, styles.buttonOff, styles.buttonLeft]}
-                onPress={() => setRegisterStep(2)}
-                disabled={registerButtonClicked}
-              >
-                <Text style={styles.buttonOffLabel}>{strings.components.buttons.back}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.button, styles.buttonOn, styles.buttonRight]}
-                onPress={() => handleOnPress()}
-                disabled={registerButtonClicked}
-              >
-                <Text style={styles.buttonOnLabel}>{registerButtonClicked ? strings.components.buttons.creating_button : strings.components.buttons.continue}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    );
+      <RegisterStep3
+        styles={styles}
+        firstName={firstName}
+        lastName={lastName}
+        email={email}
+        password={password}
+        setPassword={setPassword}
+        confirmPassword={confirmPassword}
+        setConfirmPassword={setConfirmPassword}
+        isValidStep={isValidStep}
+        isValidPassword={isValidPassword}
+        isStrongPassword={isStrongPassword}
+        setRegisterStep={setRegisterStep}
+        navigation={props.navigation}
+        dispatch={props.dispatch}
+      />
+    )
   }
-  return <></>;
+  return <></>
 }
 
 const styles = StyleSheet.create({
