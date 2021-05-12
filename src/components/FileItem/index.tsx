@@ -229,10 +229,7 @@ function FileItem(props: FileItemProps) {
               <View style={styles.buttonDetails}>
                 <TouchableOpacity
                   style={isSelectionMode ? styles.dNone : styles.dFlex}
-                  onPress={() => {
-                    console.log('item =>', item)
-                    props.dispatch(layoutActions.openItemModal(props.item))
-                  }}>
+                  onPress={() => props.dispatch(layoutActions.openItemModal(props.item))}>
                   <Icon name="details" />
                 </TouchableOpacity>
               </View>

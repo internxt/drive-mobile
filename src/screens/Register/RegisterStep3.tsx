@@ -26,7 +26,6 @@ interface RegisterStep3Props {
 }
 
 const RegisterStep3 = (props: RegisterStep3Props) => {
-  console.log('isValidStep:', props.isValidStep, 'isValidPassword:', props.isValidPassword)
   const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const twoFactorCode = ''

@@ -24,7 +24,6 @@ interface FileDetailsProps {
 }
 
 function FileDetailsModal(props: FileDetailsProps) {
-  console.log(props.selectedItems)
   const [originalfilename, setOriginalFileName] = useState('')
   const [newfilename, setNewFileName] = useState('')
 

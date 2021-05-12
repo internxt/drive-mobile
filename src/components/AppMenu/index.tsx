@@ -81,7 +81,6 @@ function AppMenu(props: AppMenuProps) {
 
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(result.uri)
 
-      console.log('before Fetch')
       RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers,
         [
           { name: 'xfile', filename: result.name, data: finalUri }
@@ -95,7 +94,6 @@ function AppMenu(props: AppMenuProps) {
         })
         .then((res) => {
           props.dispatch(fileActions.removeUploadingFile(result.id))
-          console.log('first then')
           props.dispatch(fileActions.updateUploadingFile(result.id))
           props.dispatch(fileActions.uploadFileSetUri(undefined))
           if (res.respInfo.status === 401) {

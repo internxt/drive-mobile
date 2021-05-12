@@ -22,7 +22,7 @@ interface RegisterStep1Props {
 
 const RegisterStep1 = (props: RegisterStep1Props) => {
   const isValidStep = props.isValidFirstName && props.isValidLastName && props.isValidEmail
-  console.log('isValidStep:', props.isValidFirstName, 'isValidLastName:', props.isValidLastName, 'isValidEmail:', props.isValidEmail)
+
   return (
     <KeyboardAvoidingView behavior="padding" style={props.styles.container}>
       <View style={props.styles.containerCentered}>
