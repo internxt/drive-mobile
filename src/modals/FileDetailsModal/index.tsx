@@ -18,30 +18,32 @@ import strings from '../../../assets/lang/strings';
 
 interface FileDetailsProps {
   dispatch?: any
-  filesState?: any
-  layoutState?: any
+  showItemModal: boolean
+  selectedItems: any[]
+  folderContent: any
 }
 
 function FileDetailsModal(props: FileDetailsProps) {
+  console.log(props.selectedItems)
   const [originalfilename, setOriginalFileName] = useState('')
   const [newfilename, setNewFileName] = useState('')
 
   const [selectedColor, setSelectedColor] = useState('')
   const [selectedIcon, setSelectedIcon] = useState(0)
 
-  const selectedItems = props.filesState.selectedItems
-  const showModal = props.layoutState.showItemModal && selectedItems.length > 0
+  const selectedItems = props.selectedItems
+  const showModal = props.showItemModal && selectedItems.length > 0
 
   const file = selectedItems.length > 0 && selectedItems[0]
   const isFolder = file && !selectedItems[0].fileId
   const folder = isFolder && file
 
   useEffect(() => {
-    if (props.layoutState.showItemModal === true) {
+    if (props.showItemModal === true) {
       setOriginalFileName(file.name)
       setNewFileName(file.name)
     }
-  }, [props.layoutState.showItemModal])
+  }, [props.showItemModal])
 
   return <>
     {
@@ -179,7 +181,7 @@ function FileDetailsModal(props: FileDetailsProps) {
             if (newfilename !== originalfilename) {
               metadata.itemName = newfilename
               await updateFileMetadata(metadata, file.fileId)
-              props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
+              props.dispatch(fileActions.getFolderContent(props.folderContent.currentFolder))
               const userData = await getLyticsData()
 
               analytics.track('file-rename', {
@@ -276,8 +278,12 @@ function FileDetailsModal(props: FileDetailsProps) {
 }
 
 const mapStateToProps = (state: any) => {
-  return { ...state };
-};
+  return { 
+    folderContent: state.filesState.folderContent,
+    showItemModal: state.layoutState.showItemModal,
+    selectedItems: state.filesState.selectedItems
+  }
+}
 
 export default connect(mapStateToProps)(FileDetailsModal)
 

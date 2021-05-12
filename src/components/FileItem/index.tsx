@@ -223,16 +223,21 @@ function FileItem(props: FileItemProps) {
               </View>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.buttonDetails}>
-            <TouchableOpacity
-              style={isSelectionMode ? styles.dNone : styles.dFlex}
-              onPress={() => {
-                props.dispatch(layoutActions.openItemModal(props.item))
-              }}>
-              <Icon name="details" />
-            </TouchableOpacity>
-          </View>
+          {
+            // REMOVE ONCE LOCAL UPLOAD
+            !item.isUploaded ?
+              <View style={styles.buttonDetails}>
+                <TouchableOpacity
+                  style={isSelectionMode ? styles.dNone : styles.dFlex}
+                  onPress={() => {
+                    console.log('item =>', item)
+                    props.dispatch(layoutActions.openItemModal(props.item))
+                  }}>
+                  <Icon name="details" />
+                </TouchableOpacity>
+              </View>
+              : null
+          }
         </View>
 
         <View style={styles.progressIndicatorContainer}>
