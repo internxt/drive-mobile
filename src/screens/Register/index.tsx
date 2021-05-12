@@ -134,6 +134,7 @@ function Register(props: RegisterProps): JSX.Element {
   return <></>
 }
 
+/* eslint-disable react-native/no-unused-styles */
 const styles = StyleSheet.create({
   button: {
     alignItems: 'center',

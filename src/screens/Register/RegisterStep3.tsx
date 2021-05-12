@@ -1,12 +1,12 @@
-import React, { SetStateAction, useState } from "react";
-import { Alert, KeyboardAvoidingView, Text, TextInput, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import { IRegisterScreenStyles } from ".";
-import strings from "../../../assets/lang/strings";
-import analytics from "../../helpers/lytics";
-import { userActions } from "../../redux/actions";
-import { apiLogin } from "../Login/access";
-import { doRegister } from "./registerUtils";
+import React, { SetStateAction, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Text, TextInput, View } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { IRegisterScreenStyles } from '.';
+import strings from '../../../assets/lang/strings';
+import analytics from '../../helpers/lytics';
+import { userActions } from '../../redux/actions';
+import { apiLogin } from '../Login/access';
+import { doRegister } from './registerUtils';
 
 interface RegisterStep3Props {
   styles: IRegisterScreenStyles
@@ -31,15 +31,16 @@ const RegisterStep3 = (props: RegisterStep3Props) => {
   const twoFactorCode = ''
 
   const handleOnPress = async () => {
-    if (!props.isValidPassword) return Alert.alert('', 'Please make sure your password contains at least six characters, a number, and a letter')
-    if (props.password !== props.confirmPassword) return Alert.alert('', 'Please make sure your passwords match')
-    if (registerButtonClicked || isLoading) return
+    if (!props.isValidPassword) {return Alert.alert('', 'Please make sure your password contains at least six characters, a number, and a letter')}
+    if (props.password !== props.confirmPassword) {return Alert.alert('', 'Please make sure your passwords match')}
+    if (registerButtonClicked || isLoading) {return}
 
     setRegisterButtonClicked(true)
     setIsLoading(true)
 
     try {
       const userData = await doRegister({ firstName: props.firstName, lastName: props.lastName, email: props.email, password: props.password })
+
       await Promise.all([
         analytics.identify(userData.uuid, { email: props.email }),
         analytics.track('user-signup', {
@@ -52,6 +53,7 @@ const RegisterStep3 = (props: RegisterStep3Props) => {
       ])
 
       const userLoginData = await apiLogin(props.email)
+
       await props.dispatch(userActions.signin(props.email, props.password, userLoginData.sKey, twoFactorCode))
 
     } catch (err) {

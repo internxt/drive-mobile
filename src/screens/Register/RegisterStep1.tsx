@@ -1,8 +1,8 @@
-import React, { SetStateAction } from "react";
-import { KeyboardAvoidingView, Text, TextInput, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import { IRegisterScreenStyles } from ".";
-import strings from "../../../assets/lang/strings";
+import React, { SetStateAction } from 'react';
+import { KeyboardAvoidingView, Text, TextInput, View } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { IRegisterScreenStyles } from '.';
+import strings from '../../../assets/lang/strings';
 
 interface RegisterStep1Props {
   styles: IRegisterScreenStyles
@@ -13,7 +13,7 @@ interface RegisterStep1Props {
   email: string
   setEmail: React.Dispatch<React.SetStateAction<string>>
   isValidFirstName: boolean
-  isValidLastName: boolean 
+  isValidLastName: boolean
   isValidEmail: boolean
   isvalidStep: boolean
   setRegisterStep: React.Dispatch<SetStateAction<number>>

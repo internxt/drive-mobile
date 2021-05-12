@@ -32,8 +32,8 @@ function Login(props: LoginProps): JSX.Element {
     try {
       const userLoginData = await apiLogin(email)
 
-      if (userLoginData.tfa && !twoFactorCode) setShowTwoFactor(true)
-      else await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
+      if (userLoginData.tfa && !twoFactorCode) {setShowTwoFactor(true)}
+      else {await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))}
 
     } catch (err) {
       analytics.track('user-signin-attempted', {

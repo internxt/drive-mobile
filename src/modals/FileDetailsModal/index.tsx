@@ -277,7 +277,7 @@ function FileDetailsModal(props: FileDetailsProps) {
 }
 
 const mapStateToProps = (state: any) => {
-  return { 
+  return {
     folderContent: state.filesState.folderContent,
     showItemModal: state.layoutState.showItemModal,
     selectedItems: state.filesState.selectedItems
