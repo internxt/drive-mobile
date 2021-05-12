@@ -55,7 +55,7 @@ function AppMenu(props: AppMenuProps) {
     props.dispatch(fileActions.uploadFileStart())
 
     const userData = getLyticsData().then((res) => {
-      analytics.track('file-upload-start', { userId: res.uuid, email: res.email, device: 'mobile' }).catch(() => {})
+      analytics.track('file-upload-start', { userId: res.uuid, email: res.email, device: 'mobile' }).catch(() => { })
     })
 
     try {
@@ -89,11 +89,12 @@ function AppMenu(props: AppMenuProps) {
           props.dispatch(fileActions.uploadFileSetProgress(sent / total, result.id))
 
           if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
-            props.dispatch(fileActions.removeUploadingFile(result.id))
             props.dispatch(fileActions.uploadFileSetUri(result.uri)) // Set the uri of the file so FileItem can get it as props
           }
         })
         .then((res) => {
+          props.dispatch(fileActions.removeUploadingFile(result.id))
+          props.dispatch(fileActions.updateUploadingFile(result.id))
           props.dispatch(fileActions.uploadFileSetUri(undefined))
           if (res.respInfo.status === 401) {
             throw res;
@@ -102,7 +103,8 @@ function AppMenu(props: AppMenuProps) {
             // setHasSpace
 
           } else if (res.respInfo.status === 201) {
-            props.dispatch(fileActions.fetchIfSameFolder(result.currentFolder))
+            // CHECK THIS METHOD ONCE LOCAL UPLOAD
+            //props.dispatch(fileActions.fetchIfSameFolder(result.currentFolder))
 
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
 
@@ -110,6 +112,7 @@ function AppMenu(props: AppMenuProps) {
             Alert.alert('Error', 'Cannot upload file');
           }
 
+          // CHECK ONCE LOCAL UPLOAD
           props.dispatch(fileActions.uploadFileFinished(result.name))
         })
         .catch((err) => {
@@ -120,13 +123,13 @@ function AppMenu(props: AppMenuProps) {
             Alert.alert('Error', 'Cannot upload file\n' + err)
           }
 
-          props.dispatch(fileActions.uploadFileFailed())
+          props.dispatch(fileActions.uploadFileFailed(result.id))
           props.dispatch(fileActions.uploadFileFinished(result.name))
         })
 
     } catch (error) {
       analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-      props.dispatch(fileActions.uploadFileFailed())
+      props.dispatch(fileActions.uploadFileFailed(result.id))
       props.dispatch(fileActions.uploadFileFinished(result.name))
     }
   }

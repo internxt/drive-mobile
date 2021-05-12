@@ -82,7 +82,7 @@ function Photos(props: IPhotosProps): JSX.Element {
 
   useEffect(() => {
     setPhotos([])
-    reloadLocalPhotos();
+    reloadLocalPhotos()
   }, [])
 
   useEffect(() => {

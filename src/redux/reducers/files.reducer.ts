@@ -56,7 +56,9 @@ export function filesReducer(state = initialState, action: any): FilesState {
       loading: false,
       folderContent: action.payload,
       selectedFile: null,
-      selectedItems: []
+      selectedItems: [],
+      // REMOVE ONCE LOCAL UPLOAD
+      filesAlreadyUploaded: state.filesAlreadyUploaded.filter(file => file.isUploaded === false)
     };
   case fileActionTypes.GET_FILES_FAILURE:
     return {
@@ -87,9 +89,7 @@ export function filesReducer(state = initialState, action: any): FilesState {
       ...state,
       loading: false,
       isUploading: false,
-      isUploadingFileName: null,
-      filesCurrentlyUploading: state.filesCurrentlyUploading.filter(file => file.name !== action.payload),
-      filesAlreadyUploaded: state.filesAlreadyUploaded.filter(file => file.name !== action.payload)
+      isUploadingFileName: null
     };
 
   case fileActionTypes.ADD_FILE_FAILURE:
@@ -97,7 +97,8 @@ export function filesReducer(state = initialState, action: any): FilesState {
       ...state,
       loading: false,
       error: action.error,
-      isUploading: false
+      isUploading: false,
+      filesCurrentlyUploading: state.filesCurrentlyUploading.filter(file => file.id !== action.payload)
     };
 
   case fileActionTypes.ADD_FILE_UPLOAD_PROGRESS:
@@ -244,6 +245,11 @@ export function filesReducer(state = initialState, action: any): FilesState {
     return {
       ...state,
       uri: action.payload
+    }
+  case fileActionTypes.UPDATE_UPLOADING_FILE:
+    return {
+      ...state,
+      filesAlreadyUploaded: state.filesAlreadyUploaded.map(file => file.id === action.payload ? ({ ...file, isUploaded: true }) : file)
     }
   default:
     return state;
