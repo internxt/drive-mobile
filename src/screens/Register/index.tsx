@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
-import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
+import { TextInput, TouchableHighlight, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import { deviceStorage, normalize } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { userActions } from '../../redux/actions';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import Intro from '../Intro'
 import { apiLogin, validateEmail } from '../Login/access';
 import { doRegister, isNullOrEmpty, isStrongPassword } from './registerUtils';
 
-function Register(props: any): JSX.Element {
+interface RegisterProps {
+  authenticationState: AuthenticationState
+  navigation: any
+  dispatch: any
+}
+
+function Register(props: RegisterProps): JSX.Element {
   const [registerStep, setRegisterStep] = useState(1);
   const [showIntro, setShowIntro] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,21 +72,18 @@ function Register(props: any): JSX.Element {
             </View>
 
             <View style={styles.buttonWrapper}>
-
-              <TouchableHighlight
+              <TouchableOpacity
                 style={[styles.button, styles.buttonOff]}
-                underlayColor="#f2f2f2"
-                activeOpacity={1}
                 onPress={() => props.navigation.replace('Login')}>
                 <Text style={styles.buttonOffLabel}>{strings.components.buttons.sign_in}</Text>
-              </TouchableHighlight>
+              </TouchableOpacity>
 
-              <TouchableHighlight style={[styles.button, styles.buttonOn]}>
+              <TouchableOpacity style={[styles.button, styles.buttonOn]}>
                 <Text style={styles.buttonOnLabel}>{strings.components.buttons.create}</Text>
-              </TouchableHighlight>
-
+              </TouchableOpacity>
             </View>
           </View>
+
           <View style={styles.showInputFieldsWrapper}>
             <View style={styles.inputWrapper}>
               <TextInput
@@ -89,8 +93,12 @@ function Register(props: any): JSX.Element {
                 placeholder={strings.components.inputs.first_name}
                 placeholderTextColor="#666"
                 maxLength={64}
+                autoCapitalize='words'
+                autoCompleteType='off'
+                autoCorrect={false}
               />
             </View>
+
             <View style={styles.inputWrapper}>
               <TextInput
                 style={[styles.input, !isValidLastName ? {} : {}]}
@@ -99,11 +107,14 @@ function Register(props: any): JSX.Element {
                 placeholder={strings.components.inputs.last_name}
                 placeholderTextColor="#666"
                 maxLength={64}
+                autoCapitalize='words'
+                autoCompleteType='off'
+                autoCorrect={false}
               />
             </View>
+
             <View style={styles.inputWrapper}>
               <TextInput
-                autoCapitalize="none"
                 style={[styles.input, isValidEmail ? {} : {}]}
                 value={email}
                 onChangeText={value => setEmail(value)}
@@ -111,20 +122,22 @@ function Register(props: any): JSX.Element {
                 placeholderTextColor="#666"
                 maxLength={64}
                 keyboardType="email-address"
+                autoCapitalize="none"
+                autoCompleteType="off"
+                autoCorrect={false}
                 textContentType="emailAddress"
               />
             </View>
           </View>
+
           <View style={styles.buttonFooterWrapper}>
-            <TouchableHighlight
+            <TouchableOpacity
               style={[styles.button, styles.buttonBlock, isValidStep ? {} : styles.buttonDisabled]}
-              underlayColor="#4585f5"
               disabled={!isValidStep}
-              onPress={() => {
-                setRegisterStep(2);
-              }}>
+              onPress={() => setRegisterStep(2)}
+            >
               <Text style={styles.buttonOnLabel}>{strings.components.buttons.continue}</Text>
-            </TouchableHighlight>
+            </TouchableOpacity>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -160,21 +173,19 @@ function Register(props: any): JSX.Element {
 
             <View style={[styles.buttonFooterWrapper, { marginTop: 42 }]}>
               <View style={styles.buttonWrapper}>
-                <TouchableHighlight
+                <TouchableOpacity
                   style={[styles.button, styles.buttonOff, styles.buttonLeft]}
-                  underlayColor="#f2f2f2"
                   onPress={() => setRegisterStep(1)}
                 >
                   <Text style={styles.buttonOffLabel}>{strings.components.buttons.back}</Text>
-                </TouchableHighlight>
+                </TouchableOpacity>
 
-                <TouchableHighlight
+                <TouchableOpacity
                   style={[styles.button, styles.buttonOn, styles.buttonRight]}
-                  underlayColor="#4585f5"
                   onPress={() => setRegisterStep(3)}
                 >
                   <Text style={styles.buttonOnLabel}>{strings.components.buttons.continue}</Text>
-                </TouchableHighlight>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -187,6 +198,42 @@ function Register(props: any): JSX.Element {
     const isValidPassword = isStrongPassword(password);
     const isValidStep = (password === confirmPassword) && isValidPassword;
 
+    const handleOnPress = async () => {
+      if (!isValidPassword) return Alert.alert('', 'Please make sure your password contains at least six characters, a number, and a letter')
+      if (password !== confirmPassword) return Alert.alert('', 'Please make sure your passwords match')
+      if (registerButtonClicked || isLoading) return
+
+      setRegisterButtonClicked(true)
+      setIsLoading(true)
+
+      try {
+        const userData = await doRegister({ firstName, lastName, email, password })
+        await Promise.all([
+          analytics.identify(userData.uuid, { email }),
+          analytics.track('user-signup', {
+            properties: {
+              userId: userData.uuid,
+              email: email,
+              platform: 'mobile'
+            }
+          })
+        ])
+
+        const userLoginData = await apiLogin(email)
+        await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
+
+      } catch (err) {
+        await analytics.track('user-signin-attempted', {
+          status: 'error',
+          message: err.message
+        })
+        setIsLoading(false)
+        setRegisterButtonClicked(false)
+
+        Alert.alert('Error while registering', err.message)
+      }
+    }
+
     return (
       <KeyboardAvoidingView behavior='height' style={styles.container}>
         <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
@@ -195,17 +242,20 @@ function Register(props: any): JSX.Element {
               <Text style={styles.title}>{strings.screens.register_screen.create_account_title}</Text>
             </View>
           </View>
+
           <View style={[styles.showInputFieldsWrapper, { marginTop: -10 }]}>
             <View style={styles.inputWrapper}>
               <TextInput
-                autoCapitalize="none"
                 style={[styles.input, !isValidPassword ? {} : {}]}
                 value={password}
                 onChangeText={value => setPassword(value)}
                 placeholder={strings.components.inputs.password}
                 placeholderTextColor="#666"
-                secureTextEntry={true}
                 textContentType="password"
+                autoCapitalize="none"
+                autoCompleteType="password"
+                autoCorrect={false}
+                secureTextEntry={true}
               />
             </View>
 
@@ -224,65 +274,21 @@ function Register(props: any): JSX.Element {
 
           <View style={styles.buttonFooterWrapper}>
             <View style={styles.buttonWrapper}>
-              <TouchableHighlight
+              <TouchableOpacity
                 style={[styles.button, styles.buttonOff, styles.buttonLeft]}
-                underlayColor="#f2f2f2"
                 onPress={() => setRegisterStep(2)}
+                disabled={registerButtonClicked}
               >
                 <Text style={styles.buttonOffLabel}>{strings.components.buttons.back}</Text>
-              </TouchableHighlight>
+              </TouchableOpacity>
 
-              <TouchableHighlight
+              <TouchableOpacity
                 style={[styles.button, styles.buttonOn, styles.buttonRight]}
-                underlayColor="#4585f5"
+                onPress={() => handleOnPress()}
                 disabled={registerButtonClicked}
-                onPress={() => {
-                  if (!isValidPassword) {
-                    Alert.alert(
-                      '',
-                      'Please make sure your password contains at least six characters, a number, and a letter'
-                    );
-                    return
-                  }
-                  if (password !== confirmPassword) {
-                    Alert.alert('', 'Please make sure your passwords match');
-                    return
-                  }
-                  if (registerButtonClicked || isLoading) {
-                    return;
-                  }
-                  setRegisterButtonClicked(true)
-                  setIsLoading(true)
-
-                  doRegister({ firstName, lastName, email, password })
-                    .then((userData) => {
-                      analytics.identify(userData.uuid, { email }).catch(() => { })
-                      analytics.track('user-signup', {
-                        properties: {
-                          userId: userData.uuid,
-                          email: email,
-                          platform: 'mobile'
-                        }
-                      })
-                    })
-                    .then(() => {
-                      return apiLogin(email).then(userLoginData => {
-                        props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
-                      })
-                    }).catch(err => {
-                      analytics.track('user-signin-attempted', {
-                        status: 'error',
-                        message: err.message
-                      }).catch(() => { })
-                      Alert.alert(err.message)
-                    }).finally(() => {
-                      setIsLoading(false)
-                      setRegisterButtonClicked(false)
-                    })
-                }}
               >
                 <Text style={styles.buttonOnLabel}>{registerButtonClicked ? strings.components.buttons.creating_button : strings.components.buttons.continue}</Text>
-              </TouchableHighlight>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -423,7 +429,7 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state: any) => {
-  return { ...state };
+  return { authenticationState: state.authenticationState };
 };
 
 export default connect(mapStateToProps)(Register)
