@@ -1679,6 +1679,24 @@
 	"font-black": {
 		"fontWeight": "900"
 	},
+  "font-averta-black": {
+    "fontFamily": "Averta-Black"
+  },
+  "font-averta-bold": {
+    "fontFamily": "Averta-Bold"
+  },
+  "font-averta-extra-bold": {
+    "fontFamily": "Averta-Extra-Bold"
+  },
+  "font-averta-light": {
+    "fontFamily": "Averta-Light"
+  },
+  "font-averta-regular": {
+    "fontFamily": "Averta-Regular"
+  },
+  "font-averta-semibold": {
+    "fontFamily": "Averta-Semibold"
+  },
 	"h-0": {
 		"height": 0
 	},
@@ -1832,6 +1850,9 @@
 	"h-full": {
 		"height": "100%"
 	},
+  "h-auto": {
+
+  },
 	"text-xs": {
 		"fontSize": 12,
 		"lineHeight": 16
