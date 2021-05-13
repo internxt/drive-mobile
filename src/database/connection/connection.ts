@@ -1,4 +1,6 @@
 import { Connection, createConnection } from 'typeorm/browser';
+import { Albums } from '../models/albums';
+import { PhotoAlbums } from '../models/photoAlbums';
 import { Photos } from '../models/photos';
 import { Previews } from '../models/previews';
 
@@ -12,7 +14,9 @@ export function ConnectionDB(): Promise<Connection> {
       synchronize: true,
       entities: [
         Photos,
-        Previews
+        Previews,
+        Albums,
+        PhotoAlbums
       ],
       migrationsRun: true,
       migrationsTransactionMode: 'all'
