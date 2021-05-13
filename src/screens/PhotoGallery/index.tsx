@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, Image, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import '../../../assets/icons/icon-back.png';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
 import AddItemToModal from '../../modals/AddItemToModal'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { Dispatch } from 'redux';
-import { MaterialIndicator, WaveIndicator } from 'react-native-indicators';
+import { WaveIndicator } from 'react-native-indicators';
 import { getPreviews, IHashedPhoto } from '../Photos/init';
 import strings from '../../../assets/lang/strings';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import Photo from '../../components/PhotoList/Photo';
 import { IPhotosToRender } from '../Photos';
 import { PhotoActions } from '../../redux/actions';
+import { tailwind } from '../../tailwind'
+import Syncing from '../../../assets/icons/photos/syncing.svg'
 
 interface PhotoGalleryProps {
   navigation: any
@@ -85,28 +86,39 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   }, [])
 
   return (
-    <SafeAreaView style={styles.container}>
-      <AlbumDetailsModal />
-      <AddItemToModal />
+    <View style={styles.container}>
+      <SafeAreaView>
+        <AlbumDetailsModal />
+        <AddItemToModal />
 
-      <View style={styles.albumHeader}>
-        <TouchableOpacity
-          style={styles.buttonWrapper}
-          onPress={() => props.navigation.navigate('Photos')}
-        >
-          <Image style={styles.icon} source={require('../../../assets/icons/icon-back.png')} />
-        </TouchableOpacity>
+        <View style={tailwind('flex-col')}>
+          <View style={styles.titleContainer}>
+            <Text numberOfLines={1} style={styles.title}>
+              {strings.screens.photos.screens.photo_gallery.title}
+            </Text>
 
-        <View style={styles.titleWrapper}>
-          <Text style={styles.albumTitle}>
-            {strings.screens.photos.screens.photo_gallery.title}
-          </Text>
+            <View style={styles.headerButtonsContainer}>
+              <Syncing width={20} height={20} />
+              <Syncing width={20} height={20} />
+              <Syncing width={20} height={20} />
+            </View>
+          </View>
 
-          <Text style={styles.photosCount}>
-            {photosToRender.length} {strings.screens.photos.screens.photo_gallery.subtitle}
-          </Text>
+          <View style={styles.filterContainer}>
+            <View style={styles.filterButton}>
+              <Syncing width={20} height={20} />
+            </View>
+
+            <View style={styles.filterButton}>
+              <Syncing width={20} height={20} />
+            </View>
+
+            <View style={styles.filterButton}>
+              <Syncing width={20} height={20} />
+            </View>
+          </View>
         </View>
-
+        {/*
         {
           !props.isSyncing ?
             null
@@ -118,10 +130,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                 <MaterialIndicator style={styles.spinner} color="#5291ff" size={15} />
               </View>
             </View>
-        }
-      </View>
-
-      <View style={{ flex: 1 }}>
+        } */}
         {
           photosToRender.length ?
             <FlatList
@@ -134,71 +143,43 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
             :
             <WaveIndicator color="#5291ff" size={50} />
         }
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  albumHeader: {
-    alignItems: 'center',
-    display: 'flex',
-    flexDirection: 'row',
-    height: '8%',
-    justifyContent: 'space-between'
-  },
-  buttonWrapper: {
-    alignItems: 'center',
-    height: 45,
-    justifyContent: 'center',
-    width: 45
-  },
-  icon: {
-    height: 18,
-    tintColor: '#0084ff',
-    width: 11
-  },
-  albumTitle: {
-    color: '#000000',
-    fontFamily: 'Averta-Semibold',
-    fontSize: 18,
-    letterSpacing: 0,
-    textAlign: 'center'
-  },
   container: {
-    alignContent: 'center',
-    backgroundColor: '#fff',
     flex: 1,
-    paddingBottom: 15
+    paddingHorizontal: wp(4)
   },
-  containerSync: {
+  titleContainer: {
     flexDirection: 'row',
-    marginRight: 8
+    borderWidth: 1,
+    borderColor: 'red'
+  },
+  title: {
+    textAlign: 'center',
+    color: '#5E6C84',
+    fontFamily: 'Averta-Regular',
+    fontSize: 18,
+    borderWidth: 1
+  },
+  headerButtonsContainer: {
+    borderWidth: 1,
+    flexDirection: 'row'
+  },
+  filterContainer: {
+    flexDirection: 'row'
+  },
+  filterButton: {
+    flex: (1 / 3),
+    height: 20,
+    backgroundColor: 'white',
+    borderWidth: 1
   },
   flatList: {
     paddingHorizontal: wp('0.5')
-  },
-  photosCount: {
-    color: '#bfbfbf',
-    fontFamily: 'Averta-Regular',
-    fontSize: 13,
-    letterSpacing: 0,
-    paddingTop: 5,
-    textAlign: 'center'
-  },
-  spinner: {
-  },
-  syncText: {
-    color: 'grey',
-    fontFamily: 'Averta-Bold',
-    marginRight: 8
-  },
-  titleWrapper: {
-    display: 'flex',
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    zIndex: -2
   }
 });
 

@@ -66,10 +66,10 @@ const strings = new LocalizedStrings({
         "screens": {
           "photos": {
             "albums": "Albums",
-            "all_photos": "All photos"
+            "all_photos": "INTERNXT PHOTOS"
           },
           "photo_gallery": {
-            "title": "All photos",
+            "title": "INTERNXT PHOTOS",
             "subtitle": "Photos"
           }
         },
@@ -232,7 +232,7 @@ const strings = new LocalizedStrings({
         "screens": {
           "photos": {
             "albums": "Álbumes",
-            "all_photos": "Todas tus fotos"
+            "all_photos": "INTERNXT PHOTOS"
           },
           "photo_gallery": {
             "title": "Todas tus fotos",
