@@ -104,14 +104,12 @@ const styles = StyleSheet.create({
   },
   image: {
     borderRadius: 10,
-    height: (deviceWidth - wp('3.5')) / 3,
-    width: (deviceWidth - wp('3.5')) / 3
+    height: (deviceWidth - wp('30')) / 3,
+    width: (deviceWidth - wp('11')) / 3
   },
   imageView: {
     backgroundColor: 'white',
-    borderRadius: 10,
-    marginHorizontal: wp('0.5'),
-    marginVertical: wp('0.5')
+    borderRadius: 10
   },
   progressIndicator: {
     backgroundColor: '#87B7FF',
