@@ -1,89 +1,97 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Text, View, StyleSheet, SafeAreaView } from 'react-native'
 import { connect } from 'react-redux';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
 import { Reducers } from '../../redux/reducers/reducers';
-import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos, getPreviews, getPreviewsUploaded } from './init'
+import { initUser, getLocalImages, IHashedPhoto, syncPhotos, LocalImages } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
-import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
-import { layoutActions } from '../../redux/actions';
+import { layoutActions, PhotoActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
-import { IApiPhotoWithPreview } from '../../types/api/photos/IApiPhoto';
+import { queue } from 'async'
+import EmptyPhotoList from '../../components/PhotoList/EmptyPhotoList';
 
 export interface IPhotosProps extends Reducers {
-  navigation?: any
+  navigation: any
   dispatch: any
   photosState: PhotosState
-  authenticationState: AuthenticationState,
+  loggedIn: boolean
+  isSyncing: boolean
+}
+
+export interface IPhotosToRender {
+  photos: IHashedPhoto[]
+  hasNextPage: boolean
 }
 
 function Photos(props: IPhotosProps): JSX.Element {
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [photos, setPhotos] = useState<IHashedPhoto[]>([]);
-  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
-  const [offsetCursor, setOffsetCursor] = useState(0)
-  const [prevOffset, setPrevOffset] = useState(0)
-  const [uploadedPhotos, setUploadedPhotos] = useState<IApiPhotoWithPreview[]>([])
-  const [hasFinished, setHasFinished] = useState(false)
+  const [photos, setPhotos] = useState<IHashedPhoto[]>([])
+  const [hasMoreLocals, setHasMoreLocals] = useState(true)
 
-  const getNextImages = (after?: string | undefined) => {
-    getLocalImages(after).then(res => {
-      setEndCursor(res.endCursor);
-      setPhotos(after ? photos.concat(res.assets) : res.assets)
-      syncPhotos(res.assets, props.dispatch).then(()=>{
+  const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
+    await task()
+    callBack()
+  }, 5)
+
+  const getPhotosToRender = async () => {
+    let finished = false
+    let lastPickedImage: string | undefined = undefined
+    let photos: IHashedPhoto[] = []
+    const syncActions: Promise<unknown>[] = []
+
+    props.dispatch(PhotoActions.startSync())
+
+    while (!finished) {
+      const res: LocalImages = await getLocalImages(lastPickedImage)
+
+      const syncAction = () => new Promise<unknown>(resolved => {
+        syncQueue.push(() => syncPhotos(res.assets, props.dispatch), resolved)
       })
-    }).finally(() => setIsLoading(false));
-  }
 
-  const reloadLocalPhotos = () => {
-    initUser().finally(() => getNextImages());
-  };
+      setPhotos(currentPhotos => currentPhotos.length > 0 ? currentPhotos.concat(res.assets) : res.assets)
+      syncActions.push(syncAction())
 
-  const loadUploadedPhotos = (offset: number) => {
-    setPrevOffset(offset)
-    getPreviews(getPhotos, offset).then((res) => {
-      const lastIndex = offsetCursor + res.length
+      photos = (photos.length > 0 ? photos.concat(res.assets) : res.assets).map(photo => ({ ...photo, isLocal: true, isUploaded: false }))
+      const payload: IPhotosToRender = { photos, hasNextPage: res.hasNextPage }
 
-      setOffsetCursor(lastIndex)
-      setPrevOffset(offset)
-    }).then(() => {
-      setHasFinished(true)
+      props.dispatch(PhotoActions.setPhotosToRender(payload))
+
+      if (res.hasNextPage) {
+        lastPickedImage = res.endCursor
+      } else {
+        finished = true
+        setHasMoreLocals(false)
+      }
+    }
+
+    await Promise.all(syncActions).then(() => {
+      props.dispatch(PhotoActions.stopSync())
     })
   }
 
-  const loadMoreUploadedPhotos = (offsetCursor: number) => {
-    setHasFinished(false)
-    if (offsetCursor > prevOffset) {
-      loadUploadedPhotos(offsetCursor)
-    }
-  }
-
-  const getPhotos = (preview: any) => {
-    if (preview){
-      setUploadedPhotos(preview)
-    }
-  }
-
+  const reloadLocalPhotos = () => {
+    initUser().finally(() => getPhotosToRender());
+  };
+  /*
   useEffect(() => {
-    getPreviewsUploaded(props.dispatch)
+    getPreviews(props.dispatch)
     setPhotos([])
     reloadLocalPhotos();
   }, [])
 
   useEffect(() => {
-    if (!props.authenticationState.loggedIn) {
+    if (!props.loggedIn) {
       stopSync()
       props.navigation.replace('Login')
     }
-  }, [props.authenticationState.loggedIn])
+  }, [props.loggedIn])
+  */
 
   return (
     <SafeAreaView style={styles.container}>
@@ -103,7 +111,7 @@ function Photos(props: IPhotosProps): JSX.Element {
 
         </View>
 
-        <View style={styles.createAlbumCard}>
+        <View>
           <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
         </View>
 
@@ -112,38 +120,43 @@ function Photos(props: IPhotosProps): JSX.Element {
       <View style={styles.allPhotosContainer}>
         <TouchableOpacity style={styles.titleButton}
           onPress={() => {
-            props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
+            props.navigation.navigate('PhotoGallery')
           }}
-          disabled={isLoading}>
-          <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos}</Text>
+        >
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos}</Text>
+            <Text> - {photos.length}</Text>
+            {hasMoreLocals
+              ? <View><MaterialIndicator style={styles.photosSpinner} color='grey' size={10} /></View>
+              : null
+            }
+          </View>
+
           {
-            !props.photosState.isSync ?
-              null
-              :
+            props.isSyncing ?
               <View style={styles.containerSync}>
                 <Text style={styles.syncText}>{strings.screens.photos.components.syncing}</Text>
 
                 <View>
-                  <MaterialIndicator style={styles.spinner} color="#5291ff" size={15} />
+                  <MaterialIndicator color="#5291ff" size={15} />
                 </View>
               </View>
+              :
+              null
           }
         </TouchableOpacity>
         {
-          !isLoading ?
-            <View style={{ flexGrow: 1 }}>
-              <PhotoList
-                title={'All Photos'}
-                data={photos}
-                navigation={props.navigation}
-                //onRefresh={() => getNextImages()}
-                onEndReached={() => getNextImages(endCursor)}
-              />
-            </View>
+          photos.length === 0 ?
+            hasMoreLocals ?
+              <View style={styles.emptyContainer}>
+                <Text style={styles.heading}>{strings.screens.photos.components.loading}</Text>
+                <WaveIndicator color="#5291ff" size={50} />
+              </View>
+              :
+              <EmptyPhotoList />
             :
-            <View style={styles.emptyContainer}>
-              <Text style={styles.heading}>{strings.screens.photos.components.loading}</Text>
-              <WaveIndicator color="#5291ff" size={50} />
+            <View style={{ flex: 1 }}>
+
             </View>
         }
       </View>
@@ -152,14 +165,17 @@ function Photos(props: IPhotosProps): JSX.Element {
 }
 
 const mapStateToProps = (state: any) => {
-  return { ...state };
-};
+  return {
+    loggedIn: state.authenticationState.loggedIn,
+    isSyncing: state.photosState.isSyncing
+  }
+}
 
 export default connect(mapStateToProps)(Photos)
 
 const styles = StyleSheet.create({
   albumsContainer: {
-    height: '45%',
+    height: 'auto',
     paddingHorizontal: wp('1'),
     paddingVertical: wp('3.5')
   },
@@ -170,8 +186,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   allPhotosContainer: {
-    flex: 1,
-    marginBottom: wp('5')
+    flex: 1
   },
   container: {
     backgroundColor: '#fff',
@@ -181,9 +196,6 @@ const styles = StyleSheet.create({
   containerSync: {
     flexDirection: 'row',
     marginRight: 8
-  },
-  createAlbumCard: {
-
   },
   emptyContainer: {
     alignItems: 'center',
@@ -197,7 +209,8 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     marginTop: 10
   },
-  spinner: {
+  photosSpinner: {
+    marginLeft: 6
   },
   syncText: {
     color: 'grey',
@@ -207,6 +220,7 @@ const styles = StyleSheet.create({
   title: {
     alignSelf: 'center',
     color: 'black',
+    flexDirection: 'row',
     fontFamily: 'Averta-Bold',
     fontSize: 18,
     letterSpacing: -0.13,
@@ -218,5 +232,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: wp('1'),
     paddingHorizontal: wp('1')
+  },
+  titleContainer: {
+    flexDirection: 'row'
   }
 });

@@ -2,26 +2,19 @@ import React, { useState } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { StyleSheet, Image, Dimensions, ActivityIndicator, View, Platform } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
-import * as MediaLibrary from 'expo-media-library';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import PhotoBadge from './PhotoBadge';
-import RNFS from 'react-native-fs'
 import { cachePicture, downloadPhoto, getRecentlyDownloadedImage, IHashedPhoto } from '../../screens/Photos/init';
+import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
+import RNFS from 'react-native-fs'
 import { Previews } from '../../database/models/previews';
-import { LinearGradient } from 'react-native-svg';
 
 const deviceWidth = Dimensions.get('window').width
 
 interface PhotoProps {
   badge?: JSX.Element
-  item: MediaLibrary.Asset & {
-    isUploaded?: boolean
-    isLocal?: boolean
-    preview?: any
-    localUri?: string
-    size?: number
-  }
+  item: any
   updateDownloadedImageStatus: (remotePreview: Previews, downloadedPhoto: IHashedPhoto) => void
 }
 

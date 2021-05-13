@@ -188,7 +188,7 @@ function SettingsModal(props: SettingsModalProps) {
           if (props.layoutState.currentApp === 'Photos') {
             props.navigation.replace('FileExplorer')
           } else {
-            props.navigation.replace('Photos')
+            props.navigation.replace('PhotoGallery')
           }
         }}
       />

@@ -9,10 +9,10 @@ import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
-import { PhotoActions } from '../../redux/actions';
 import { getRepositories, savePhotosAndPreviews } from '../../database/DBUtils.ts/utils';
 import _ from 'lodash';
 import CameraRoll from '@react-native-community/cameraroll';
+import PackageJson from '../../../package.json'
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -44,7 +44,7 @@ const getArrayPhotos = async (images: Asset[]) => {
   return result;
 }
 
-export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<any> {
+export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<void> {
   // Skip uploaded photos with previews
   const alreadyUploadedPhotos = await getUploadedPhotos();
   const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview);
@@ -54,7 +54,7 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
   let onePhotoToUpload = false;
 
   // Upload filtered photos
-  return mapSeries(imagesToUpload, (image, next) => {
+  await mapSeries(imagesToUpload, async (image, next) => {
     if (!(imagesToUpload[imagesToUpload.length - 1] === imagesToUpload[0])) {
       if ((imagesToUpload[imagesToUpload.length - 1].id) === image.id) {
         last = true;
@@ -62,16 +62,11 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
     } else {
       onePhotoToUpload = true;
     }
-    uploadPhoto(image, dispatch, last, onePhotoToUpload).then(() => next(null)).catch(() => { next(null) })
+    await uploadPhoto(image, last, onePhotoToUpload, dispatch).then(() => next(null)).catch(() => next(null))
   })
 }
 
-async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) {
-
-  if (!last || !onePhotoToUpload) {
-    dispatch(PhotoActions.startSync())
-  }
-
+async function uploadPhoto(photo: IHashedPhoto, last: boolean, onePhotoToUpload: boolean, dispatch: any) {
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -79,12 +74,13 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
   const headers = {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic,
-    'Content-Type': 'multipart/form-data'
+    'Content-Type': 'multipart/form-data',
+    'internxt-version': PackageJson.version,
+    'internxt-client': 'drive-mobile'
   };
 
   const parsedUri = photo.localUri.replace(/^file:\/\//, '');
-
-  const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUri)) : RNFetchBlob.wrap(photo.uri)
+  const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(parsedUri) : RNFetchBlob.wrap(photo.uri)
 
   let creationTime;
 
@@ -105,27 +101,25 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
       { name: 'xfile', filename: photo.filename, data: finalUri },
       { name: 'hash', data: photo.hash },
       { name: 'creationTime', data: creationTime }
-
     ])
     .then((res) => {
+
       const statusCode = res.respInfo.status;
 
       if (statusCode === 401) {
-        dispatch(PhotoActions.stopSync())
         throw res;
       }
       if (statusCode === 201) {
         return res.json();
       }
-      if (statusCode === 409 || statusCode === 500) {
-        dispatch(PhotoActions.stopSync())
-      }
-      throw res
+      return res
     })
     .then(async res => {
+
       if (!res.id) {
         return;
       }
+
       // Create photo preview and store on device
       const prev = await manipulateAsync(
         photo.uri,
@@ -133,11 +127,11 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any, last: boolean, on
         { compress: 1, format: SaveFormat.JPEG }
       )
 
-      return uploadPreview(prev, res.id, photo, dispatch, last, onePhotoToUpload);
+      return uploadPreview(prev, res.id, photo, dispatch, res);
     })
 }
 
-const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, last: boolean, onePhotoToUpload: boolean) => {
+const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, photo: any) => {
 
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
@@ -145,7 +139,9 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
   const headers = {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic,
-    'Content-Type': 'multipart/form-data'
+    'Content-Type': 'multipart/form-data',
+    'internxt-version': PackageJson.version,
+    'internxt-client': 'drive-mobile'
   };
 
   const parsedUri = preview.uri.replace(/^file:\/\//, '');
@@ -158,19 +154,16 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
       { name: 'xfile', filename: originalPhoto.filename, data: finalUri }
     ])
     .then(res => {
-      if (last || onePhotoToUpload) {
-        dispatch(PhotoActions.stopSync())
-      }
       const statusCode = res.respInfo.status;
 
       if (statusCode === 201 || statusCode === 409) {
-        dispatch(PhotoActions.stopSync())
         return res.json();
       }
 
       throw res;
     }).then((res) => {
-      getPreviewsUploaded(dispatch)
+      getPreviewAfterUpload(res, dispatch, photo)
+      //getPreviewsUploaded(dispatch)
     })
 }
 
@@ -318,9 +311,10 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
       throw Error('Unable to download picture')
     }
     return res;
-  }).then(res => {
+  }).then(async res => {
 
-    return CameraRoll.save(res.path()).then(()=> res.path())
+    await CameraRoll.save(res.path());
+    return res.path();
 
   })
 }
@@ -345,6 +339,42 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
 
     photo.localUri = localPreview.path;
     return Promise.resolve(photo.localUri);
+  }
+
+  return RNFetchBlob.config({
+    path: tempPath,
+    fileCache: true
+  }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
+    'Authorization': `Bearer ${xToken}`,
+    'internxt-mnemonic': xUserJson.mnemonic
+  }).then((res) => {
+    return res.path();
+  }).catch(err => {
+    RNFS.unlink(tempPath)
+    throw err;
+  })
+}
+
+export async function downloadPreviewAfterUpload(preview: any): Promise<any> {
+  if (!preview) {
+    return Promise.resolve();
+  }
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUser = await deviceStorage.getItem('xUser')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const typePreview = preview.type
+  const name = preview.fileId
+
+  const tempDir = await getLocalPreviewsDir()
+  const tempPath = tempDir + '/' + name + '.' + typePreview
+
+  const previewExists = await RNFS.exists(tempPath);
+
+  if (previewExists) {
+    const localPreview = await RNFS.stat(tempPath);
+
+    preview.localUri = localPreview.path;
+    return Promise.resolve(preview.localUri);
   }
 
   return RNFetchBlob.config({
@@ -400,6 +430,7 @@ export async function getPreviewsUploaded(dispatch: any): Promise<any> {
     if (res.length === 0) {
       return;
     }
+
     return mapSeries(res, async (preview, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
@@ -425,6 +456,22 @@ export async function getPreviewsUploaded(dispatch: any): Promise<any> {
       });
 
     });
+  });
+}
+
+export async function getPreviewAfterUpload(preview: any, dispatch: any, photo: any): Promise<any> {
+
+  return downloadPreviewAfterUpload(preview).then((res1) => {
+    if (res1) {
+      const photos = {
+        ...photo,
+        preview: preview
+      }
+
+      // eslint-disable-next-line no-console
+      savePhotosAndPreviews(photos, res1, dispatch).then().catch((err) => { console.error('ERR save photos on DB', err) })
+    }
+
   });
 }
 

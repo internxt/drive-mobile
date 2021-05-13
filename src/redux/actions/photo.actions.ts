@@ -1,6 +1,7 @@
 import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
 import { IPhoto, IPreview } from '../../components/PhotoList';
+import { IPhotosToRender } from '../../screens/Photos';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { photoService } from '../services/photo.service';
 import { userActions } from './user.actions';
@@ -38,7 +39,8 @@ export const PhotoActions = {
   startSync,
   stopSync,
   startSaveDB,
-  viewDB
+  viewDB,
+  setPhotosToRender
 };
 
 function setIsLoading(value: boolean) {
@@ -344,6 +346,10 @@ function deleteTempPhoto(photoId: string) {
 
 function setSelectedPhotos(photos: ImageOrVideo[]) {
   return { type: photoActionTypes.SET_SELECTED_PHOTOS, payload: photos }
+}
+
+function setPhotosToRender(payload: IPhotosToRender) {
+  return { type: photoActionTypes.SET_PHOTOS_TO_RENDER, payload }
 }
 
 function setAllLocalPhotos(photos: IPhoto[]) {

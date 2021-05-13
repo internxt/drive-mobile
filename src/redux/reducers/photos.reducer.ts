@@ -6,13 +6,15 @@ import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
 import { IHashedPhoto } from '../../screens/Photos/init'
 import lodash from 'lodash'
+import { IPhotosToRender } from '../../screens/Photos';
 export interface PhotosState {
   cursor: number
   loading: boolean
   loadingAlbums: boolean
   loadingPhotos: boolean
   loadingDeleted: boolean
-  albums: any
+  albums: any,
+  photosToRender: IPhotosToRender
   localPhotos: IHashedPhoto[]
   localPhotosGallery: IHashedPhoto[]
   uploadedPhotos: IHashedPhoto[]
@@ -34,8 +36,8 @@ export interface PhotosState {
   progress: number
   startDownloadSelectedPhoto: boolean
   error?: string | null
-  isSync: boolean
-  isSaveDB: boolean
+  isSyncing: boolean
+  isSaveDB: boolean,
 }
 
 const initialState: PhotosState = {
@@ -53,6 +55,7 @@ const initialState: PhotosState = {
   devicePhotos: [],
   deleted: [],
   albums: [],
+  photosToRender: { photos: [], hasNextPage: true },
   albumContent: [],
   selectedPhoto: null,
   selectedAlbum: null,
@@ -65,12 +68,19 @@ const initialState: PhotosState = {
   isUploadingPhotoName: '',
   progress: 0,
   startDownloadSelectedPhoto: false,
-  isSync: false,
+  isSyncing: false,
   isSaveDB: false
 };
 
 export function PhotosReducer(state = initialState, action: any): PhotosState {
   switch (action.type) {
+
+  case photoActionTypes.SET_PHOTOS_TO_RENDER:
+    return {
+      ...state,
+      photosToRender: action.payload
+    }
+
   case photoActionTypes.SET_LOCAL_PHOTOS:
     return {
       ...state,
@@ -139,13 +149,13 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       loading: true,
-      isSync: true
+      isSyncing: true
     };
   case photoActionTypes.STOP_SYNC:
     return {
       ...state,
       loading: false,
-      isSync: false
+      isSyncing: false
     };
   case photoActionTypes.START_SAVE_DB:
     return {
