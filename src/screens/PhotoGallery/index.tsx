@@ -15,7 +15,7 @@ import { PhotoActions } from '../../redux/actions';
 import { tailwind } from '../../tailwind'
 import Syncing from '../../../assets/icons/photos/syncing.svg'
 import UploadBlue from '../../../assets/icons/photos/upload-file-blue.svg'
-import DownloadGray from '../../../assets/icons/photos/download-pending-gray.svg'
+import CloudDownload from '../../../assets/icons/photos/cloud-download-gray.svg'
 import AlbumGray from '../../../assets/icons/photos/create-album-gray.svg'
 import Filter from '../../../assets/icons/photos/open-filters.svg'
 import Home from '../../../assets/icons/photos/home.svg'
@@ -31,7 +31,6 @@ interface PhotoGalleryProps {
   isSyncing: boolean
 }
 
-const DEVICE_WIDTH = Dimensions.get('window').width
 const DEVICE_HEIGHT = Dimensions.get('window').height
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
@@ -128,7 +127,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
           <View style={tailwind('flex-row h-6 mt-1')}>
             <View style={tailwind('flex-row w-1/3 bg-white rounded-l-md items-center justify-center')}>
-              <DownloadGray width={15} height={15} />
+              <CloudDownload width={15} height={15} />
               <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-2')}>Download</Text>
             </View>
 

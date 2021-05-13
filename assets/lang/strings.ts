@@ -11,7 +11,7 @@ const strings = new LocalizedStrings({
       "register_screen": {
         "first": "{0} is a {1} cloud storage service. A {2} place for all your files. Welcome to the {3}. Welcome to {4}.",
         "second": "Files are {0} on your device. There is {1} we nor any other third-party can access them. {2}, as it should have always been.",
-        "third": "Access Internxt from {7}, {8} or {9}. Start using Drive today with {10} on us. {11} when needed, free for a month, cancel anytime.",
+        "third": "Access Internxt from {7}, {8} or {9}. Start using Internxt today with {10} on us. {11} when needed, free for a month, cancel anytime.",
         "bold_first": ["Internxt", "different", "better", "revolution", "Internxt"],
         "bold_second": ["encrypted", "no way", "Privacy"],
         "bold_third": ["Desktop", "Web", "Mobile", "10 GB", "Upgrade your storage"],
@@ -178,7 +178,7 @@ const strings = new LocalizedStrings({
       "register_screen": {
         "first": "{0} es un servicio de almacenamiento en la nube {1}. Un lugar {2} para todos tus archivos. Bienvenido a la {3}. Bienvenido a {4}.",
         "second": "Los archivos son {4} en tu dispositivo. {5} de terceros podemos acceder a ellos. {6}, como siempre tuvo que ser.",
-        "third": "Accede a Internxt desde {7}, {8} o {9}. Empieza a usar Drive hoy con {10} gratis. {11} cuando lo necesites, gratis por un mes, cancela cuando quieras.",
+        "third": "Accede a Internxt desde {7}, {8} o {9}. Empieza a usar Internxt hoy con {10} gratis. {11} cuando lo necesites, gratis por un mes, cancela cuando quieras.",
         "bold_first": ["Internxt", "diferente", "mejor", "revolución", "Internxt"],
         "bold_second": ["encriptados", "Ni nosotros ni ningún servicio", "Privacidad"],
         "bold_third": ["escritorio", "web", "móvil", "10 GB", "Mejora tu almacenamiento"],

@@ -1,6 +1,6 @@
 import React from 'react'
-import { Image, StyleSheet, View } from 'react-native'
-import { getIcon } from '../../helpers/getIcon'
+import { StyleSheet, View } from 'react-native'
+import Downloading from '../../../assets/icons/photos/downloading.svg'
 
 interface PhotoBadgeProps {
   isUploaded?: boolean
@@ -13,21 +13,16 @@ export default function PhotoBadge(props: PhotoBadgeProps): JSX.Element {
   return (
     <View style={styles.viewFrame}>
       {props.isLocal && !props.isUploaded
-        && <Image source={getIcon('photoLocal')} style={styles.imageIcon} />
+        && <Downloading width={30} height={30} />
       }
       {!props.isLocal && props.isUploaded
-        && <Image source={getIcon('photoCloud')} style={styles.imageIcon} />
+        && <Downloading width={30} height={30} />
       }
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  imageIcon: {
-    height: 25,
-    margin: 3,
-    width: 25
-  },
   viewFrame: {
   }
 })
