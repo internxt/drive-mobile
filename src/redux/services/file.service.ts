@@ -112,7 +112,7 @@ function deleteItems(items: any[]): Promise<void> {
       fetchArray.push(fetchObj);
     });
 
-    Promise.all(fetchArray)
+    return Promise.all(fetchArray)
       .then(() => resolve())
       .catch(err => reject(err));
   });

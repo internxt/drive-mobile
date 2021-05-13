@@ -144,13 +144,13 @@ function deleteItems(items, folderToReload) {
         dispatch(requestSuccess());
         setTimeout(() => {
           dispatch(getFolderContent(folderToReload));
-        }, 1000);
+        }, 3000);
       })
-      .catch(() => {
+      .catch((err) => {
         dispatch(requestFailure());
         setTimeout(() => {
           dispatch(getFolderContent(folderToReload));
-        }, 1000);
+        }, 3000);
       });
   };
 
