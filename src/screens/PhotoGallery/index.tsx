@@ -21,6 +21,7 @@ import LensThinBlue from '../../../assets/icons/photos/lens-thin-blue.svg'
 import SquareWithCrossBlue from '../../../assets/icons/photos/square-with-cross-blue.svg'
 import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
 import CreateAlbumModal from '../../modals/CreateAlbumModal';
+import SelectPhotosModal from '../../modals/CreateAlbumModal/SelectPhotosModal';
 
 interface PhotoGalleryProps {
   navigation: any
@@ -97,6 +98,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   return (
     <View style={tailwind('flex-1')}>
       <CreateAlbumModal />
+      <SelectPhotosModal />
 
       <View style={tailwind('px-5')}>
         <SafeAreaView style={tailwind('h-full')}>

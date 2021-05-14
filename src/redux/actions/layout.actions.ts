@@ -10,6 +10,8 @@ export const layoutActions = {
   closeItemModal,
   openCreateAlbumModal,
   closeCreateAlbumModal,
+  openSelectPhotosForAlbumModal,
+  closeSelectPhotosForAlbumModal,
   openAddItemModal,
   closeAddItemModal,
   openRunOutStorageModal,
@@ -192,4 +194,12 @@ function closeComingSoonModal() {
 
 function setCurrentApp(app: string) {
   return { type: layoutActionTypes.SET_CURRENT_APP, payload: app }
+}
+
+function openSelectPhotosForAlbumModal() {
+  return (dispatch: Dispatch): void => { dispatch({ type: layoutActionTypes.OPEN_SELECT_PHOTOS_FOR_ALBUM_MODAL }) }
+}
+
+function closeSelectPhotosForAlbumModal() {
+  return (dispatch: Dispatch): void => { dispatch({ type: layoutActionTypes.CLOSE_SELECT_PHOTOS_FOR_ALBUM_MODAL }) }
 }
