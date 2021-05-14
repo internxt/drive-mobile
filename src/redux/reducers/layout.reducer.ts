@@ -40,28 +40,8 @@ const initialState: LayoutState = {
   currentApp: 'FileExplorer'
 };
 
-export function layoutReducer(state = initialState, action: any) {
+export function layoutReducer(state = initialState, action: any): LayoutState {
   switch (action.type) {
-  case layoutActionTypes.OPEN_CREATE_FOLDER_FORM:
-    return {
-      searchActive: false,
-      createFolderActive: true
-    };
-  case layoutActionTypes.CLOSE_CREATE_FOLDER_FORM:
-    return {
-      ...state,
-      createFolderActive: false
-    };
-  case layoutActionTypes.OPEN_SEARCH_FORM:
-    return {
-      ...state,
-      searchActive: true
-    };
-  case layoutActionTypes.CLOSE_SEARCH_FORM:
-    return {
-      ...state,
-      searchActive: false
-    };
   case layoutActionTypes.OPEN_SETTINGS_MODAL:
     return {
       ...state,
@@ -173,6 +153,19 @@ export function layoutReducer(state = initialState, action: any) {
       showComingSoonModal: false
     }
   }
+  case layoutActionTypes.OPEN_ALBUM_MODAL: {
+    return {
+      ...state,
+      showAlbumModal: true
+    }
+  }
+  case layoutActionTypes.CLOSE_ALBUM_MODAL: {
+    return {
+      ...state,
+      showAlbumModal: false
+    }
+  }
+
   default:
     return state;
   }

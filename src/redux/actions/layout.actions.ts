@@ -8,8 +8,8 @@ export const layoutActions = {
   closeSettings,
   openItemModal,
   closeItemModal,
-  openAlbumModal,
-  closeAlbumModal,
+  openCreateAlbumModal,
+  closeCreateAlbumModal,
   openAddItemModal,
   closeAddItemModal,
   openRunOutStorageModal,
@@ -70,14 +70,14 @@ function closeItemModal() {
   };
 }
 
-function openAlbumModal() {
-  return (dispatch: Dispatch) => {
+function openCreateAlbumModal() {
+  return (dispatch: Dispatch): void => {
     dispatch({ type: layoutActionTypes.OPEN_ALBUM_MODAL });
   };
 }
 
-function closeAlbumModal() {
-  return (dispatch: Dispatch) => {
+function closeCreateAlbumModal() {
+  return (dispatch: Dispatch): void => {
     dispatch({ type: layoutActionTypes.CLOSE_ALBUM_MODAL });
   };
 }
