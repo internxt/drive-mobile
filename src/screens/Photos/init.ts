@@ -17,6 +17,8 @@ export interface IHashedPhoto extends Asset {
   localUri: string | undefined
   isUploaded: boolean
   isLocal: boolean
+  isDownloading: boolean
+  isUploading: boolean
 }
 
 const getArrayPhotos = async (images: Asset[]) => {

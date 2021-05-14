@@ -73,28 +73,25 @@ export default function Photo(props: PhotoProps): JSX.Element {
         </View>
 
         {!isLoaded || isDownloading ?
-          <ActivityIndicator color='gray' size='small' style={styles.badge} />
+          <ActivityIndicator color='gray' size='small' style={tailwind('absolute')} />
           :
-          <View style={styles.badge}>
-            {props.badge ||
-              <PhotoBadge
-                isUploaded={true}
-                //isUploaded={item.isUploaded}
-                isLocal={false}
-                //isLocal={item.isLocal}
-              />
-            }
-          </View>
+          props.badge ||
+          <PhotoBadge
+            isUploaded={item.isUploaded}
+            isLocal={item.isLocal}
+            isDownloading={item.isDownloading}
+            isUploading={item.isUploading}
+          />
         }
 
-        <View style={styles.progressIndicatorContainer}>
+        <View style={tailwind('absolute bottom-0 self-center w-11/12 mb-4 pl-1')}>
           {
-            isDownloading ?
+            true ?
               <LinearGradient
                 colors={['#47c7fd', '#096dff']}
                 start={[0, 0.7]}
                 end={[0.7, 1]}
-                style={[styles.progressIndicator, { width: (DEVICE_WIDTH / 3.5) * progress }]} />
+                style={[styles.progressIndicator, { width: (DEVICE_WIDTH / 3.5 - 40) * progress }]} />
               :
               null
           }
@@ -105,19 +102,9 @@ export default function Photo(props: PhotoProps): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  badge: {
-    position: 'absolute'
-  },
   progressIndicator: {
     backgroundColor: '#87B7FF',
     borderRadius: 3,
     height: 6
-  },
-  progressIndicatorContainer: {
-    alignSelf: 'center',
-    bottom: 0,
-    height: 17,
-    position: 'absolute',
-    width: '90%'
   }
 });

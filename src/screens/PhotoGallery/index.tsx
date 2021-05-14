@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, SafeAreaView, Text, View, StyleSheet, Dimensions } from 'react-native';
+import { FlatList, SafeAreaView, Text, View, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import '../../../assets/icons/icon-back.png';
 import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
@@ -14,14 +14,14 @@ import { IPhotosToRender } from '../Photos';
 import { PhotoActions } from '../../redux/actions';
 import { tailwind } from '../../tailwind'
 import Syncing from '../../../assets/icons/photos/syncing.svg'
-import UploadBlue from '../../../assets/icons/photos/upload-file-blue.svg'
-import CloudDownload from '../../../assets/icons/photos/cloud-download-gray.svg'
-import AlbumGray from '../../../assets/icons/photos/create-album-gray.svg'
-import Filter from '../../../assets/icons/photos/open-filters.svg'
-import Home from '../../../assets/icons/photos/home.svg'
+import CloudUploadBlue from '../../../assets/icons/photos/cloud-upload-blue.svg'
+import CloudDownloadGray from '../../../assets/icons/photos/cloud-download-gray.svg'
+import FolderWithCross from '../../../assets/icons/photos/folder-with-cross-gray.svg'
+import TwoDotsBlue from '../../../assets/icons/photos/two-dots-blue.svg'
+import HomeBlue from '../../../assets/icons/photos/home-blue.svg'
 import FolderBlue from '../../../assets/icons/photos/folder-blue.svg'
-import SearchThinBlue from '../../../assets/icons/photos/search-thin-blue.svg'
-import AddMoreBlue from '../../../assets/icons/photos/add-more-blue.svg'
+import LensThinBlue from '../../../assets/icons/photos/lens-thin-blue.svg'
+import SquareWithCrossBlue from '../../../assets/icons/photos/square-with-cross-blue.svg'
 import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
 
 interface PhotoGalleryProps {
@@ -116,28 +116,28 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               </View>
 
               <View style={tailwind('bg-white h-6 w-6 rounded-sm items-center justify-center ml-2')}>
-                <UploadBlue width={20} height={15} />
+                <CloudUploadBlue width={20} height={15} />
               </View>
 
               <View style={tailwind('bg-white h-6 w-6 rounded-sm items-center justify-center ml-1')}>
-                <Filter width={20} height={13} />
+                <TwoDotsBlue width={20} height={13} />
               </View>
             </View>
           </View>
 
           <View style={tailwind('flex-row h-6 mt-1')}>
             <View style={tailwind('flex-row w-1/3 bg-white rounded-l-md items-center justify-center')}>
-              <CloudDownload width={15} height={15} />
+              <CloudDownloadGray width={15} height={15} />
               <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-2')}>Download</Text>
             </View>
 
             <View style={tailwind('flex-row w-1/3 bg-white items-center justify-center ml-px mr-px')}>
-              <UploadBlue width={15} height={15} />
+              <CloudUploadBlue width={15} height={15} />
               <Text style={tailwind('text-xs text-blue-60 font-averta-light ml-2')}>Upload pending</Text>
             </View>
 
             <View style={tailwind('flex-row w-1/3 bg-white rounded-r-md items-center justify-center')}>
-              <AlbumGray width={15} height={14} />
+              <FolderWithCross width={15} height={14} />
               <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-1')}>Album</Text>
             </View>
           </View>
@@ -157,10 +157,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
         }
 
         <View style={tailwind('flex-row h-12 justify-between mt-6 pl-2')}>
-          <Home width={20} height={20} />
+          <HomeBlue width={20} height={20} />
           <FolderBlue width={20} height={20} />
-          <SearchThinBlue width={20} height={20} />
-          <AddMoreBlue width={20} height={20} />
+          <LensThinBlue width={20} height={20} />
+          <SquareWithCrossBlue width={20} height={20} />
 
           <TouchableOpacity style={tailwind('flex-row h-6 w-20 px-2 bg-blue-60 rounded-xl items-center justify-around')}>
             <CrossWhite width={12} height={12} />
@@ -171,10 +171,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-
-})
 
 const mapStateToProps = (state: any) => {
   return {
