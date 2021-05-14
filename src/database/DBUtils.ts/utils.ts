@@ -3,10 +3,14 @@ import { Photos } from '../../database/models/photos';
 import { Previews } from '../../database/models/previews';
 import { deviceStorage } from '../../helpers';
 import { PhotoActions } from '../../redux/actions';
+import { Albums } from '../models/albums';
+import { PhotoAlbums } from '../models/photoAlbums';
 
 export interface Repositories {
   photos: Photos[];
   previews: Previews[];
+  albums: Albums[];
+  albumsWithPreviews: PhotoAlbums[];
 }
 
 export async function getUserId() {
@@ -22,6 +26,9 @@ export async function getRepositories(): Promise<Repositories> {
 
   const photosRepository = await getRepository(Photos);
   const previewsRepository = await getRepository(Previews);
+  const albumsRepository = await getRepository(Albums);
+  const photoAlbumsRepository = await getRepository(PhotoAlbums);
+  const albumsWithPreviews = []
 
   const photos = await photosRepository.find({
     where: { userId: userId }
@@ -31,7 +38,20 @@ export async function getRepositories(): Promise<Repositories> {
     where: { userId: userId }
   })
 
-  return { photos, previews }
+  const albums = await albumsRepository.find(({
+    where: { userId: userId }
+  }))
+
+  albums.map(async (res)=>{
+    const photoAlbums = await photoAlbumsRepository.find(({
+      where: { albumId: res.id }
+    }))
+
+    albumsWithPreviews.push(photoAlbums)
+
+  })
+
+  return { photos, previews, albums, albumsWithPreviews }
 }
 
 export async function savePhotosAndPreviews(photo: any, path: string, dispatch: any) {
@@ -104,4 +124,41 @@ export async function savePhotosAndPreviews(photo: any, path: string, dispatch: 
       userId: userId
     }
   })
+}
+
+export async function saveAlbums(listPhotos: Previews[], name: string) {
+  const userId = await getUserId()
+
+  const albumRepository = getRepository(Albums);
+
+  const albumPhotosRepository = getRepository(PhotoAlbums);
+
+  await albumRepository.find({
+    where: { userId: userId }
+  })
+
+  const newAlbum = new Albums()
+
+  newAlbum.userId = userId
+  newAlbum.name = name
+
+  await albumRepository.save(newAlbum);
+
+  await albumRepository.find({
+    where: { userId: userId }
+  });
+
+  await albumPhotosRepository.find({})
+
+  const newPhotosAlbum = new PhotoAlbums();
+
+  listPhotos.map((res) => {
+
+    newPhotosAlbum.albumId = newAlbum.id
+    newPhotosAlbum.previewId = res.photoId
+  })
+
+  await albumPhotosRepository.save(newPhotosAlbum);
+
+  await albumPhotosRepository.find({})
 }
