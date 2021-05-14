@@ -470,3 +470,16 @@ export async function initUser(): Promise<void> {
 
   await deviceStorage.saveItem('xPhotos', JSON.stringify(infoUserPhoto))
 }
+
+export const getAlbums = async (xToken: string, mnemonic: string): Promise<IAlbum[]> => {
+  const headers = await getHeaders(xToken, mnemonic)
+
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photosalbum`, {
+    method: 'GET',
+    headers: headers
+  }).then(res => {
+    return res.json()
+  }).then((res: IAlbum[]) => {
+    return res
+  })
+}

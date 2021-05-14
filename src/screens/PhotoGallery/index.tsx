@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { FlatList, SafeAreaView, Text, View, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import '../../../assets/icons/icon-back.png';
-import AlbumDetailsModal from '../../modals/AlbumDetailsModal';
-import AddItemToModal from '../../modals/AddItemToModal'
-import { Dispatch } from 'redux';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { WaveIndicator } from 'react-native-indicators';
 import { getPreviews, IHashedPhoto } from '../Photos/init';
 import strings from '../../../assets/lang/strings';
 import Photo from '../../components/PhotoList/Photo';
 import { IPhotosToRender } from '../Photos';
-import { PhotoActions } from '../../redux/actions';
+import { layoutActions, PhotoActions } from '../../redux/actions';
 import { tailwind } from '../../tailwind'
 import Syncing from '../../../assets/icons/photos/syncing.svg'
 import CloudUploadBlue from '../../../assets/icons/photos/cloud-upload-blue.svg'
@@ -23,11 +20,13 @@ import FolderBlue from '../../../assets/icons/photos/folder-blue.svg'
 import LensThinBlue from '../../../assets/icons/photos/lens-thin-blue.svg'
 import SquareWithCrossBlue from '../../../assets/icons/photos/square-with-cross-blue.svg'
 import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
+import CreateAlbumModal from '../../modals/CreateAlbumModal';
+import SelectPhotosModal from '../../modals/CreateAlbumModal/SelectPhotosModal';
 
 interface PhotoGalleryProps {
   navigation: any
   photosToRender: IPhotosToRender
-  dispatch: Dispatch,
+  dispatch: any,
   isSyncing: boolean
 }
 
@@ -97,77 +96,82 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   }, [])
 
   return (
-    <View style={tailwind('flex-1 px-5')}>
-      <SafeAreaView>
-        <AlbumDetailsModal />
-        <AddItemToModal />
+    <View style={tailwind('flex-1')}>
+      <CreateAlbumModal />
+      <SelectPhotosModal />
 
-        <View style={tailwind('flex-col')}>
-          <View style={tailwind('flex-row')}>
-            <View style={tailwind('w-1/5')}></View>
+      <View style={tailwind('px-5')}>
+        <SafeAreaView style={tailwind('h-full')}>
 
-            <Text style={tailwind('w-3/5 text-center text-xl text-gray-80 font-averta-regular')}>
-              {strings.screens.photos.screens.photo_gallery.title}
-            </Text>
+          <View style={tailwind('flex-col')}>
+            <View style={tailwind('flex-row')}>
+              <View style={tailwind('w-1/5')}></View>
 
-            <View style={tailwind('flex-row w-1/5 justify-end')}>
-              <View style={tailwind('items-center justify-center mb-1')}>
-                <Syncing width={17} height={17} />
+              <Text style={tailwind('w-3/5 text-center text-xl text-gray-80 font-averta-regular')}>
+                {strings.screens.photos.screens.photo_gallery.title}
+              </Text>
+
+              <View style={tailwind('flex-row w-1/5 justify-end')}>
+                <View style={tailwind('items-center justify-center mb-1')}>
+                  <Syncing width={17} height={17} />
+                </View>
+
+                <View style={tailwind('bg-white h-6 w-6 rounded-sm items-center justify-center ml-2')}>
+                  <CloudUploadBlue width={20} height={15} />
+                </View>
+
+                <View style={tailwind('bg-white h-6 w-6 rounded-sm items-center justify-center ml-1')}>
+                  <TwoDotsBlue width={20} height={13} />
+                </View>
+              </View>
+            </View>
+
+            <View style={tailwind('flex-row h-6 mt-1')}>
+              <View style={tailwind('flex-row w-1/3 bg-white rounded-l-md items-center justify-center')}>
+                <CloudDownloadGray width={15} height={15} />
+                <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-2')}>Download</Text>
               </View>
 
-              <View style={tailwind('bg-white h-6 w-6 rounded-sm items-center justify-center ml-2')}>
-                <CloudUploadBlue width={20} height={15} />
+              <View style={tailwind('flex-row w-1/3 bg-white items-center justify-center ml-px mr-px')}>
+                <CloudUploadBlue width={15} height={15} />
+                <Text style={tailwind('text-xs text-blue-60 font-averta-light ml-2')}>Upload pending</Text>
               </View>
 
-              <View style={tailwind('bg-white h-6 w-6 rounded-sm items-center justify-center ml-1')}>
-                <TwoDotsBlue width={20} height={13} />
+              <View style={tailwind('flex-row w-1/3 bg-white rounded-r-md items-center justify-center')}>
+                <FolderWithCross width={15} height={14} />
+                <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-1')}>Album</Text>
               </View>
             </View>
           </View>
 
-          <View style={tailwind('flex-row h-6 mt-1')}>
-            <View style={tailwind('flex-row w-1/3 bg-white rounded-l-md items-center justify-center')}>
-              <CloudDownloadGray width={15} height={15} />
-              <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-2')}>Download</Text>
-            </View>
+          {
+            photosToRender.length ?
+              <FlatList
+                data={photosToRender}
+                numColumns={3}
+                keyExtractor={item => item.hash}
+                renderItem={({ item }) => <Photo item={item} key={item.hash} pushDownloadedPhoto={pushDownloadedPhoto} />}
+                style={[tailwind('mt-2'), { height: DEVICE_HEIGHT * 0.8 }]}
+              />
+              :
+              <WaveIndicator color="#5291ff" size={50} />
+          }
 
-            <View style={tailwind('flex-row w-1/3 bg-white items-center justify-center ml-px mr-px')}>
-              <CloudUploadBlue width={15} height={15} />
-              <Text style={tailwind('text-xs text-blue-60 font-averta-light ml-2')}>Upload pending</Text>
-            </View>
+          <View style={tailwind('flex-row h-12 justify-between items-center mt-6 pl-2')}>
+            <HomeBlue width={20} height={20} />
+            <FolderBlue width={20} height={20} />
+            <LensThinBlue width={20} height={20} />
+            <SquareWithCrossBlue width={20} height={20} />
 
-            <View style={tailwind('flex-row w-1/3 bg-white rounded-r-md items-center justify-center')}>
-              <FolderWithCross width={15} height={14} />
-              <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-1')}>Album</Text>
-            </View>
+            <TouchableOpacity style={tailwind('flex-row h-6 w-20 px-2 bg-blue-60 rounded-xl items-center justify-between')}
+              onPress={() => props.dispatch(layoutActions.openCreateAlbumModal())}
+            >
+              <CrossWhite width={10} height={10} />
+              <Text style={tailwind('text-white font-averta-regular text-sm')}>Album</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-
-        {
-          photosToRender.length ?
-            <FlatList
-              data={photosToRender}
-              numColumns={3}
-              keyExtractor={item => item.hash}
-              renderItem={({ item }) => <Photo item={item} key={item.hash} pushDownloadedPhoto={pushDownloadedPhoto} />}
-              style={[tailwind('mt-2'), { height: DEVICE_HEIGHT * 0.78 }]}
-            />
-            :
-            <WaveIndicator color="#5291ff" size={50} />
-        }
-
-        <View style={tailwind('flex-row h-12 justify-between mt-6 pl-2')}>
-          <HomeBlue width={20} height={20} />
-          <FolderBlue width={20} height={20} />
-          <LensThinBlue width={20} height={20} />
-          <SquareWithCrossBlue width={20} height={20} />
-
-          <TouchableOpacity style={tailwind('flex-row h-6 w-20 px-2 bg-blue-60 rounded-xl items-center justify-around')}>
-            <CrossWhite width={12} height={12} />
-            <Text style={tailwind('text-white font-averta-regular text-sm')}>Album</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
     </View>
   );
 }
