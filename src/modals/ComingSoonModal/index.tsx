@@ -4,6 +4,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import { layoutActions } from '../../redux/actions';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
 interface ComingSoonProps {
@@ -33,10 +34,10 @@ const ComingSoonModal = (props: ComingSoonProps) => {
     >
       <View style={styles.textContainer}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Coming soon!</Text>
+          <Text style={styles.title}>{strings.modals.coming_soon_modal.title}</Text>
         </View>
 
-        <Text style={styles.subtitle}>Our fantastic devs are working on it, so stay tuned!</Text>
+        <Text style={styles.subtitle}>{strings.modals.coming_soon_modal.subtitle}</Text>
       </View>
 
       <View style={styles.buttonContainer}>
@@ -44,7 +45,7 @@ const ComingSoonModal = (props: ComingSoonProps) => {
         <TouchableOpacity style={[styles.button, styles.blue]} onPress={() => {
           setIsOpen(false)
         }}>
-          <Text style={[styles.text, styles.white]}>Got it!</Text>
+          <Text style={[styles.text, styles.white]}>{strings.modals.coming_soon_modal.got_it}</Text>
         </TouchableOpacity>
       </View>
     </Modal>

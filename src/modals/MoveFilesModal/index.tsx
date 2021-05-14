@@ -4,15 +4,16 @@ import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 import Separator from '../../components/Separator';
 import { fileActions, layoutActions } from '../../redux/actions';
 import Folder from './Folder';
 
 interface MoveFilesProps {
-    layoutState?: any
-    filesState?: any
-    authenticationState?: any
-    dispatch?: any
+  layoutState?: any
+  filesState?: any
+  authenticationState?: any
+  dispatch?: any
 }
 
 function MoveFilesModal(props: MoveFilesProps) {
@@ -65,7 +66,7 @@ function MoveFilesModal(props: MoveFilesProps) {
       style={styles.container}
     >
       <View style={styles.breadcrumbs}>
-        <Text style={styles.title}>Choose a folder to move this file.</Text>
+        <Text style={styles.title}>{strings.modals.move_modal.title}</Text>
       </View>
 
       <Separator />
@@ -92,7 +93,7 @@ function MoveFilesModal(props: MoveFilesProps) {
             props.dispatch(fileActions.getFolderContent(firstfolder))
           }}
         >
-          <Text style={styles.text}>Cancel</Text>
+          <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, styles.blue]}
@@ -100,7 +101,7 @@ function MoveFilesModal(props: MoveFilesProps) {
             moveFile(currentfolderid)
           }}
         >
-          <Text style={[styles.text, styles.white]}>Move</Text>
+          <Text style={[styles.text, styles.white]}>{strings.components.buttons.move}</Text>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -118,6 +119,11 @@ const styles = StyleSheet.create({
     flexWrap: 'nowrap',
     marginTop: Platform.OS === 'ios' ? wp('14') : 0
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center'
+  },
   button: {
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -127,13 +133,6 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
     width: wp('40')
-  },
-  buttonContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    marginBottom: Platform.OS === 'ios' ? 25 : 0
   },
   container: {
     flex: 1

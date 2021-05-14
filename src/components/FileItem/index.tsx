@@ -18,6 +18,7 @@ import * as FileSystem from 'expo-file-system'
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import PackageJson from '../../../package.json'
 interface FileItemProps extends Reducers {
   isFolder: boolean
   item: IFile & IFolder | IUploadingFile
@@ -90,7 +91,9 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
       fileCache: true
     }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${props.item.fileId}`, {
       'Authorization': `Bearer ${xToken}`,
-      'internxt-mnemonic': xUserJson.mnemonic
+      'internxt-mnemonic': xUserJson.mnemonic,
+      'internxt-version': PackageJson.version,
+      'internxt-client': 'drive-mobile'
     }).progress((received) => {
       setProgress(received)
     }).then(async (res) => {
@@ -220,16 +223,18 @@ function FileItem(props: FileItemProps) {
               </View>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.buttonDetails}>
-            <TouchableOpacity
-              style={isSelectionMode ? styles.dNone : styles.dFlex}
-              onPress={() => {
-                props.dispatch(layoutActions.openItemModal(props.item))
-              }}>
-              <Icon name="details" />
-            </TouchableOpacity>
-          </View>
+          {
+            // REMOVE ONCE LOCAL UPLOAD
+            !item.isUploaded ?
+              <View style={styles.buttonDetails}>
+                <TouchableOpacity
+                  style={isSelectionMode ? styles.dNone : styles.dFlex}
+                  onPress={() => props.dispatch(layoutActions.openItemModal(props.item))}>
+                  <Icon name="details" />
+                </TouchableOpacity>
+              </View>
+              : null
+          }
         </View>
 
         <View style={styles.progressIndicatorContainer}>

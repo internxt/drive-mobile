@@ -32,7 +32,8 @@ export const fileActions = {
   addUploadedFile,
   removeUploadingFile,
   removeUploadedFile,
-  fetchIfSameFolder
+  fetchIfSameFolder,
+  updateUploadingFile
 };
 
 function downloadFileStart(fileId: string) {
@@ -75,8 +76,8 @@ function uploadFileFinished(name: string) {
   return { type: fileActionTypes.ADD_FILE_SUCCESS, payload: name };
 }
 
-function uploadFileFailed() {
-  return { type: fileActionTypes.ADD_FILE_FAILURE };
+function uploadFileFailed(id: number) {
+  return { type: fileActionTypes.ADD_FILE_FAILURE, payload: id };
 }
 
 function uploadFileSetProgress(progress: number, id: string) {
@@ -307,4 +308,8 @@ function updateFolderMetadata(metadata: any, folderId) {
   function failure(payload: any) {
     return { type: fileActionTypes.UPDATE_FOLDER_METADATA_FAILURE, payload };
   }
+}
+
+function updateUploadingFile(id: number) {
+  return { type: fileActionTypes.UPDATE_UPLOADING_FILE, payload: id };
 }

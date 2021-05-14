@@ -8,59 +8,91 @@ import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
-import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos, getAlbums } from './init'
+import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos, LocalImages } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
-import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
-import { IAlbum } from '../CreateAlbum';
-import AlbumList from '../../components/AlbumList';
+import MenuItem from '../../components/MenuItem';
+import { layoutActions, PhotoActions } from '../../redux/actions';
+import strings from '../../../assets/lang/strings';
+import { queue } from 'async'
+import EmptyPhotoList from '../../components/PhotoList/EmptyPhotoList';
 import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
-import Loading from '../../components/Loading';
 
 export interface IPhotosProps extends Reducers {
-  navigation?: any
+  navigation: any
   dispatch: any
   photosState: PhotosState
-  authenticationState: AuthenticationState
+  loggedIn: boolean
+  isSyncing: boolean
+}
+
+export interface IPhotosToRender {
+  photos: IHashedPhoto[]
+  hasNextPage: boolean
 }
 
 function Photos(props: IPhotosProps): JSX.Element {
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [photos, setPhotos] = useState<IHashedPhoto[]>([]);
+  const [photos, setPhotos] = useState<IHashedPhoto[]>([])
+  const [hasMoreLocals, setHasMoreLocals] = useState(true)
   const [albums, setAlbums] = useState<IAlbum[]>([])
-  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
-  const xToken = props.authenticationState.token
-  const mnemonic = props.authenticationState.user.mnemonic
 
-  const getNextImages = (after?: string | undefined) => {
-    getLocalImages(after).then(res => {
-      setEndCursor(res.endCursor);
-      setPhotos(after ? photos.concat(res.assets) : res.assets)
-      // TODO: BORRAR
-      syncPhotos(res.assets);
-    }).finally(() => setIsLoading(false));
+  const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
+    await task()
+    callBack()
+  }, 5)
+
+  const getPhotosToRender = async () => {
+    let finished = false
+    let lastPickedImage: string | undefined = undefined
+    let photos: IHashedPhoto[] = []
+    const syncActions: Promise<unknown>[] = []
+
+    props.dispatch(PhotoActions.startSync())
+
+    while (!finished) {
+      const res: LocalImages = await getLocalImages(lastPickedImage)
+
+      const syncAction = () => new Promise<unknown>(resolved => {
+        syncQueue.push(() => syncPhotos(res.assets), resolved)
+      })
+
+      setPhotos(currentPhotos => currentPhotos.length > 0 ? currentPhotos.concat(res.assets) : res.assets)
+      syncActions.push(syncAction())
+
+      photos = (photos.length > 0 ? photos.concat(res.assets) : res.assets).map(photo => ({ ...photo, isLocal: true, isUploaded: false }))
+      const payload: IPhotosToRender = { photos, hasNextPage: res.hasNextPage }
+
+      props.dispatch(PhotoActions.setPhotosToRender(payload))
+
+      if (res.hasNextPage) {
+        lastPickedImage = res.endCursor
+      } else {
+        finished = true
+        setHasMoreLocals(false)
+      }
+    }
+
+    await Promise.all(syncActions).then(() => {
+      props.dispatch(PhotoActions.stopSync())
+    })
   }
 
   const reloadLocalPhotos = () => {
-    initUser().finally(() => {
-      getNextImages()
-      getAlbums(xToken, mnemonic).then(res => {
-        setAlbums(res)
-      })
-    });
+    initUser().finally(() => getPhotosToRender());
   };
 
   useEffect(() => {
     setPhotos([])
-    reloadLocalPhotos();
+    reloadLocalPhotos()
   }, [])
 
   useEffect(() => {
-    if (!props.authenticationState.loggedIn) {
+    if (!props.loggedIn) {
       stopSync()
       props.navigation.replace('Login')
     }
-  }, [props.authenticationState.loggedIn])
+  }, [props.loggedIn])
 
   return (
     <SafeAreaView style={styles.container}>
@@ -72,40 +104,67 @@ function Photos(props: IPhotosProps): JSX.Element {
 
       <View style={styles.albumsContainer}>
         <View style={styles.albumsHeader}>
-          <Text style={styles.title}>Albums</Text>
+          <Text style={styles.title}>{strings.screens.photos.screens.photos.albums}</Text>
+
+          <MenuItem
+            name="settings"
+            onClickHandler={() => {
+              props.dispatch(layoutActions.openSettings());
+            }} />
+
         </View>
 
-        <View style={styles.albumCardContainer}>
-          {
-            albums.length > 0 && props.photosState.previews.length > 0 ?
-              <AlbumList navigation={props.navigation} albums={albums} />
-              :
-              <CreateAlbumCard navigation={props.navigation} />
-          }
+        <View>
+          <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
         </View>
       </View>
 
       <View style={styles.allPhotosContainer}>
         <TouchableOpacity style={styles.titleButton}
           onPress={() => {
-            props.navigation.navigate('PhotoGallery', { title: 'All Photos' })
+            props.navigation.navigate('PhotoGallery')
           }}
-          disabled={isLoading}>
-          <Text style={styles.title}>All photos</Text>
+        >
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{strings.screens.photos.screens.photos.all_photos}</Text>
+            <Text> - {photos.length}</Text>
+            {hasMoreLocals
+              ? <View><MaterialIndicator style={styles.photosSpinner} color='grey' size={10} /></View>
+              : null
+            }
+          </View>
+
+          {
+            props.isSyncing ?
+              <View style={styles.containerSync}>
+                <Text style={styles.syncText}>{strings.screens.photos.components.syncing}</Text>
+
+                <View>
+                  <MaterialIndicator color="#5291ff" size={15} />
+                </View>
+              </View>
+              :
+              null
+          }
         </TouchableOpacity>
         {
-          !isLoading ?
-            <View style={{ flexGrow: 1 }}>
+          photos.length === 0 ?
+            hasMoreLocals ?
+              <View style={styles.emptyContainer}>
+                <Text style={styles.heading}>{strings.screens.photos.components.loading}</Text>
+                <WaveIndicator color="#5291ff" size={50} />
+              </View>
+              :
+              <EmptyPhotoList />
+            :
+            <View style={{ flex: 1 }}>
               <PhotoList
                 title={'All Photos'}
                 data={photos}
                 navigation={props.navigation}
-                onRefresh={() => getNextImages()}
-                onEndReached={() => getNextImages(endCursor)}
+              //onRefresh={() => getNextImages()}
               />
             </View>
-            :
-            <Loading message={'Loading photos from gallery...'} />
         }
       </View>
     </SafeAreaView>
@@ -113,18 +172,22 @@ function Photos(props: IPhotosProps): JSX.Element {
 }
 
 const mapStateToProps = (state: any) => {
-  return { ...state };
-};
+  return {
+    loggedIn: state.authenticationState.loggedIn,
+    isSyncing: state.photosState.isSyncing
+  }
+}
 
 export default connect(mapStateToProps)(Photos)
 
 const styles = StyleSheet.create({
-  albumCardContainer: {
-    alignItems: 'center',
-    width: '100%'
+  container: {
+    backgroundColor: '#fff',
+    flexGrow: 1,
+    justifyContent: 'flex-start'
   },
   albumsContainer: {
-    height: '45%',
+    height: 'auto',
     paddingHorizontal: wp('1'),
     paddingVertical: wp('3.5')
   },
@@ -135,25 +198,48 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   allPhotosContainer: {
-    flex: 1,
-    marginBottom: wp('5')
+    flex: 1
   },
-  container: {
-    backgroundColor: '#fff',
-    flexGrow: 1,
-    justifyContent: 'flex-start'
+  titleContainer: {
+    flexDirection: 'row'
+  },
+  containerSync: {
+    flexDirection: 'row',
+    marginRight: 8
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    backgroundColor: '#fff'
+  },
+  heading: {
+    color: '#000000',
+    fontFamily: 'Averta-Regular',
+    fontSize: wp('4.5'),
+    letterSpacing: -0.8,
+    marginBottom: 30,
+    marginTop: 10
+  },
+  syncText: {
+    color: 'grey',
+    fontFamily: 'Averta-Bold',
+    marginRight: 8
   },
   title: {
+    flexDirection: 'row',
     alignSelf: 'center',
     color: 'black',
     fontFamily: 'Averta-Bold',
     fontSize: 18,
-    height: 30,
     letterSpacing: -0.13,
     marginLeft: 7
   },
+  photosSpinner: {
+    marginLeft: 6
+  },
   titleButton: {
+    alignItems: 'center',
     flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: wp('1'),
     paddingHorizontal: wp('1')
   }

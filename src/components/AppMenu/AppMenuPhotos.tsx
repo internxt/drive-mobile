@@ -226,79 +226,6 @@ function AppMenuPhotos(props: AppMenuProps) {
 
     <Fragment>
       <View style={[styles.buttonContainer, { display: activeSearchBox ? 'none' : 'flex' }]}>
-        <View style={styles.commonButtons}>
-          <MenuItem
-            style={styles.mr10}
-            name="search"
-            onClickHandler={() => {
-              setActiveSearchBox(true)
-              props.dispatch(layoutActions.openSearch())
-              handleClickSearch()
-
-            }} />
-
-          <MenuItem
-            style={styles.mr10}
-            name="upload"
-            onClickHandler={() => {
-              Alert.alert('Select media', '', [
-                {
-                  text: 'Upload media',
-                  onPress: async () => {
-                    const { status } = await requestCameraPermissionsAsync()
-
-                    if (status === 'granted') {
-                      const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All })
-
-                      if (!result.cancelled) {
-                        //props.dispatch(PhotoActions.add)
-                        uploadPhoto(result, props)
-                      }
-                    } else {
-                      Alert.alert('Camera permission needed to perform this action')
-                    }
-                  }
-                },
-                {
-                  text: 'Take a photo',
-                  onPress: async () => {
-                    const { status } = await requestCameraPermissionsAsync()
-
-                    if (status === 'granted') {
-                      const result = await launchCameraAsync()
-
-                      if (!result.cancelled) {
-                        uploadPhoto(result, props)
-                      }
-                    }
-                  }
-                },
-                {
-                  text: 'Cancel',
-                  style: 'destructive'
-                }
-              ], {
-                cancelable: Platform.OS === 'android'
-              })
-            }} />
-
-          <MenuItem
-            name="create"
-            style={styles.mr10}
-            onClickHandler={() => {
-              props.navigation.navigate('CreateAlbum')
-            }} />
-
-          {
-            selectedItems.length > 0 ?
-              <MenuItem name="delete" onClickHandler={() => {
-                props.dispatch(layoutActions.openDeleteModal())
-              }} />
-              :
-              null
-          }
-        </View>
-
         <MenuItem
           name="settings"
           onClickHandler={() => {
@@ -317,21 +244,13 @@ const styles = StyleSheet.create({
     marginLeft: 17,
     marginRight: 10
   },
-  commonButtons: {
-    flexDirection: 'row',
-    flexGrow: 1
-  },
   container: {
-    backgroundColor: '#fff',
     backgroundColor: '#fff',
     flexDirection: 'row',
     height: 54,
     justifyContent: 'flex-start',
     paddingTop: 3,
     width: '100%'
-  },
-  mr10: {
-    marginRight: 10
   },
   searchContainer: {
     alignItems: 'center',
@@ -345,7 +264,6 @@ const styles = StyleSheet.create({
     position: 'relative'
   },
   searchInput: {
-    flex: 1,
     flex: 1,
     fontFamily: 'Averta-Regular',
     fontSize: 17

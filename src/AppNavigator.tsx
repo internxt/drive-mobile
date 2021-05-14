@@ -62,8 +62,4 @@ function AppNavigator(): JSX.Element {
   return <App onNavigationStateChange={trackScreen} />
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(AppNavigator)
+export default AppNavigator

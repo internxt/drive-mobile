@@ -7,11 +7,13 @@ import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-nativ
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import RNFetchBlob from 'rn-fetch-blob';
+import strings from '../../../assets/lang/strings';
 import { getLyticsData } from '../../helpers';
 import { getIcon } from '../../helpers/getIcon';
 import analytics from '../../helpers/lytics';
 import { fileActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
+import PackageJson from '../../../package.json'
 
 interface AppMenuProps {
   navigation?: any
@@ -41,6 +43,7 @@ function AppMenu(props: AppMenuProps) {
   const uploadFile = (result: any, currentFolder: number | undefined) => {
     const userStorage = props.authenticationState.userStorage
 
+    // TODO: String literals is a horrible practice
     if (userStorage && prettysize(userStorage.limit) === '2 GB') {
       const random = Math.floor(Math.random() * 4)
 
@@ -52,7 +55,7 @@ function AppMenu(props: AppMenuProps) {
     props.dispatch(fileActions.uploadFileStart())
 
     const userData = getLyticsData().then((res) => {
-      analytics.track('file-upload-start', { userId: res.uuid, email: res.email, device: 'mobile' }).catch(() => {})
+      analytics.track('file-upload-start', { userId: res.uuid, email: res.email, device: 'mobile' }).catch(() => { })
     })
 
     try {
@@ -68,7 +71,9 @@ function AppMenu(props: AppMenuProps) {
       const headers = {
         'Authorization': `Bearer ${token}`,
         'internxt-mnemonic': mnemonic,
-        'Content-Type': 'multipart/form-data'
+        'Content-Type': 'multipart/form-data',
+        'internxt-version': PackageJson.version,
+        'internxt-client': 'drive-mobile'
       };
 
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm
@@ -84,11 +89,12 @@ function AppMenu(props: AppMenuProps) {
           props.dispatch(fileActions.uploadFileSetProgress(sent / total, result.id))
 
           if (sent / total >= 1) { // Once upload is finished (on small files it almost never reaches 100% as it uploads really fast)
-            props.dispatch(fileActions.removeUploadingFile(result.id))
             props.dispatch(fileActions.uploadFileSetUri(result.uri)) // Set the uri of the file so FileItem can get it as props
           }
         })
         .then((res) => {
+          props.dispatch(fileActions.removeUploadingFile(result.id))
+          props.dispatch(fileActions.updateUploadingFile(result.id))
           props.dispatch(fileActions.uploadFileSetUri(undefined))
           if (res.respInfo.status === 401) {
             throw res;
@@ -97,7 +103,8 @@ function AppMenu(props: AppMenuProps) {
             // setHasSpace
 
           } else if (res.respInfo.status === 201) {
-            props.dispatch(fileActions.fetchIfSameFolder(result.currentFolder))
+            // CHECK THIS METHOD ONCE LOCAL UPLOAD
+            //props.dispatch(fileActions.fetchIfSameFolder(result.currentFolder))
 
             analytics.track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
 
@@ -105,6 +112,7 @@ function AppMenu(props: AppMenuProps) {
             Alert.alert('Error', 'Cannot upload file');
           }
 
+          // CHECK ONCE LOCAL UPLOAD
           props.dispatch(fileActions.uploadFileFinished(result.name))
         })
         .catch((err) => {
@@ -115,13 +123,13 @@ function AppMenu(props: AppMenuProps) {
             Alert.alert('Error', 'Cannot upload file\n' + err)
           }
 
-          props.dispatch(fileActions.uploadFileFailed())
+          props.dispatch(fileActions.uploadFileFailed(result.id))
           props.dispatch(fileActions.uploadFileFinished(result.name))
         })
 
     } catch (error) {
       analytics.track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-      props.dispatch(fileActions.uploadFileFailed())
+      props.dispatch(fileActions.uploadFileFailed(result.id))
       props.dispatch(fileActions.uploadFileFinished(result.name))
     }
   }
@@ -138,7 +146,7 @@ function AppMenu(props: AppMenuProps) {
       <TextInput
         ref={textInput}
         style={styles.searchInput}
-        placeholder="Search"
+        placeholder={strings.components.app_menu.search_box}
         value={props.filesState.searchString}
         onChange={e => {
           props.dispatch(fileActions.setSearchString(e.nativeEvent.text))
@@ -185,9 +193,9 @@ function AppMenu(props: AppMenuProps) {
             style={styles.mr10}
             name="upload"
             onClickHandler={() => {
-              Alert.alert('Select type of file', '', [
+              Alert.alert(strings.components.app_menu.upload.title, '', [
                 {
-                  text: 'Upload a document',
+                  text: strings.components.app_menu.upload.document,
                   onPress: async () => {
                     const result = await getDocumentAsync({ copyToCacheDirectory: false })
 
@@ -205,7 +213,7 @@ function AppMenu(props: AppMenuProps) {
                   }
                 },
                 {
-                  text: 'Upload media',
+                  text: strings.components.app_menu.upload.media,
                   onPress: async () => {
                     const { status } = await requestMediaLibraryPermissionsAsync()
 
@@ -233,7 +241,7 @@ function AppMenu(props: AppMenuProps) {
                   }
                 },
                 {
-                  text: 'Take a photo',
+                  text: strings.components.app_menu.upload.take_photo,
                   onPress: async () => {
                     const { status } = await requestCameraPermissionsAsync()
 
@@ -259,7 +267,7 @@ function AppMenu(props: AppMenuProps) {
                   }
                 },
                 {
-                  text: 'Cancel',
+                  text: strings.components.app_menu.upload.cancel,
                   style: 'destructive'
                 }
               ], {

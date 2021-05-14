@@ -1,18 +1,52 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, KeyboardAvoidingView, StyleSheet, Alert } from 'react-native';
-import { TextInput, TouchableHighlight } from 'react-native-gesture-handler';
+import { StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
 import { deviceStorage, normalize } from '../../helpers';
-import analytics from '../../helpers/lytics';
 import { userActions } from '../../redux/actions';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import Intro from '../Intro'
-import { apiLogin, validateEmail } from '../Login/access';
-import { doRegister, isNullOrEmpty, isStrongPassword } from './registerUtils';
+import { validateEmail } from '../Login/access';
+import RegisterStep1 from './RegisterStep1';
+import RegisterStep2 from './RegisterStep2';
+import RegisterStep3 from './RegisterStep3';
+import { isNullOrEmpty, isStrongPassword } from './registerUtils';
 
-function Register(props: any): JSX.Element {
+interface RegisterProps {
+  authenticationState: AuthenticationState
+  navigation: any
+  dispatch: any
+}
+
+export interface IRegisterScreenStyles {
+  button: any
+  buttonBlock: any
+  buttonDisabled: any
+  buttonFooterWrapper: any
+  buttonLeft: any
+  buttonOff: any
+  buttonOffLabel: any
+  buttonOn: any
+  buttonOnLabel: any
+  buttonRight: any
+  buttonWrapper: any
+  container: any
+  containerCentered: any
+  containerHeader: any
+  flexRow: any
+  halfOpacity: any
+  input: any
+  inputWrapper: any
+  showInputFieldsWrapper: any
+  textDisclaimer: any
+  textStorePassword: any
+  textStorePasswordContainer: any
+  textTip: any
+  title: any
+}
+
+function Register(props: RegisterProps): JSX.Element {
   const [registerStep, setRegisterStep] = useState(1);
   const [showIntro, setShowIntro] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Register form fields
   const [firstName, setFirstName] = useState('');
@@ -20,8 +54,6 @@ function Register(props: any): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
-  const twoFactorCode = ''
 
   const isValidEmail = validateEmail(email);
   const isValidFirstName = !isNullOrEmpty(firstName)
@@ -41,8 +73,6 @@ function Register(props: any): JSX.Element {
 
         if (xToken && xUser) {
           props.dispatch(userActions.localSignIn(xToken, xUser))
-        } else {
-          setIsLoading(false)
         }
       })()
     }
@@ -56,141 +86,26 @@ function Register(props: any): JSX.Element {
     const isValidStep = isValidFirstName && isValidLastName && isValidEmail;
 
     return (
-      <KeyboardAvoidingView behavior="padding" style={styles.container}>
-        <View style={styles.containerCentered}>
-          <View style={styles.containerHeader}>
-            <View style={styles.flexRow}>
-              <Text style={styles.title}>Create an account</Text>
-            </View>
-
-            <View style={styles.buttonWrapper}>
-
-              <TouchableHighlight
-                style={[styles.button, styles.buttonOff]}
-                underlayColor="#f2f2f2"
-                activeOpacity={1}
-                onPress={() => props.navigation.replace('Login')}>
-                <Text style={styles.buttonOffLabel}>Sign in</Text>
-              </TouchableHighlight>
-
-              <TouchableHighlight style={[styles.button, styles.buttonOn]}>
-                <Text style={styles.buttonOnLabel}>Create account</Text>
-              </TouchableHighlight>
-
-            </View>
-          </View>
-          <View style={styles.showInputFieldsWrapper}>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.input, !isValidFirstName ? {} : {}]}
-                value={firstName}
-                onChangeText={value => setFirstName(value)}
-                placeholder="First name"
-                placeholderTextColor="#666"
-                maxLength={64}
-              />
-            </View>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.input, !isValidLastName ? {} : {}]}
-                value={lastName}
-                onChangeText={value => setLastName(value)}
-                placeholder="Last name"
-                placeholderTextColor="#666"
-                maxLength={64}
-              />
-            </View>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                autoCapitalize="none"
-                style={[styles.input, isValidEmail ? {} : {}]}
-                value={email}
-                onChangeText={value => setEmail(value)}
-                placeholder="Email address"
-                placeholderTextColor="#666"
-                maxLength={64}
-                keyboardType="email-address"
-                textContentType="emailAddress"
-              />
-            </View>
-          </View>
-          <View style={styles.buttonFooterWrapper}>
-            <TouchableHighlight
-              style={[styles.button, styles.buttonBlock, isValidStep ? {} : styles.buttonDisabled]}
-              underlayColor="#4585f5"
-              disabled={!isValidStep}
-              onPress={() => {
-                setRegisterStep(2);
-              }}>
-              <Text style={styles.buttonOnLabel}>Continue</Text>
-            </TouchableHighlight>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    );
+      <RegisterStep1
+        styles={styles}
+        firstName={firstName}
+        setFirstName={setFirstName}
+        lastName={lastName}
+        setLastName={setLastName}
+        email={email}
+        setEmail={setEmail}
+        isValidFirstName={isValidFirstName}
+        isValidLastName={isValidLastName}
+        isValidEmail={isValidEmail}
+        isvalidStep={isValidStep}
+        setRegisterStep={setRegisterStep}
+        navigation={props.navigation}
+      />
+    )
   }
 
   if (registerStep === 2) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.containerCentered}>
-          <View style={styles.containerHeader}>
-            <View style={styles.flexRow}>
-              <Text style={styles.title}>Internxt Security</Text>
-            </View>
-
-            <View>
-              <Text
-                style={styles.textDisclaimer}
-              >
-                Internxt uses your password to encrypt and decrypt your
-                files. Due to the secure nature of Internxt, we don&apos;t
-                know your password. That means that if you ever forget it,
-                your files are gone forever. With us, you&apos;re the only owner of
-                your files. We strongly suggest you to:
-              </Text>
-            </View>
-
-            <View style={styles.textStorePasswordContainer}>
-              <View style={[styles.flexRow, { marginBottom: 10 }]}>
-                <Text>{'\u2022'}</Text>
-                <Text
-                  style={styles.textStorePassword}
-                >
-                  Store your Password. Keep it safe and secure.
-                </Text>
-              </View>
-              <View style={styles.flexRow}>
-                <Text>{'\u2022'}</Text>
-                <Text style={styles.textTip}>
-                  Keep an offline backup of your password.
-                </Text>
-              </View>
-            </View>
-
-            <View style={[styles.buttonFooterWrapper, { marginTop: 42 }]}>
-              <View style={styles.buttonWrapper}>
-                <TouchableHighlight
-                  style={[styles.button, styles.buttonOff, styles.buttonLeft]}
-                  underlayColor="#f2f2f2"
-                  onPress={() => setRegisterStep(1)}
-                >
-                  <Text style={styles.buttonOffLabel}>Back</Text>
-                </TouchableHighlight>
-                <TouchableHighlight
-                  style={[styles.button, styles.buttonOn, styles.buttonRight]}
-                  underlayColor="#4585f5"
-                  onPress={() => setRegisterStep(3)}
-                >
-                  <Text style={styles.buttonOnLabel}>Continue</Text>
-                </TouchableHighlight>
-              </View>
-
-            </View>
-          </View>
-        </View>
-      </View>
-    );
+    return <RegisterStep2 styles={styles} setRegisterStep={setRegisterStep} />
   }
 
   if (registerStep === 3) {
@@ -198,107 +113,28 @@ function Register(props: any): JSX.Element {
     const isValidStep = (password === confirmPassword) && isValidPassword;
 
     return (
-      <KeyboardAvoidingView behavior='height' style={styles.container}>
-        <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
-          <View style={styles.containerHeader}>
-            <View style={styles.flexRow}>
-              <Text style={styles.title}>Create an account</Text>
-            </View>
-          </View>
-          <View style={[styles.showInputFieldsWrapper, { marginTop: -10 }]}>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                autoCapitalize="none"
-                style={[styles.input, !isValidPassword ? {} : {}]}
-                value={password}
-                onChangeText={value => setPassword(value)}
-                placeholder="Password"
-                placeholderTextColor="#666"
-                secureTextEntry={true}
-                textContentType="password"
-              />
-            </View>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.input, !isValidStep ? {} : {}]}
-                value={confirmPassword}
-                onChangeText={value => setConfirmPassword(value)}
-                placeholder="Confirm password"
-                placeholderTextColor="#666"
-                secureTextEntry={true}
-                textContentType="password"
-              />
-            </View>
-          </View>
-          <View style={styles.buttonFooterWrapper}>
-            <View style={styles.buttonWrapper}>
-              <TouchableHighlight
-                style={[styles.button, styles.buttonOff, styles.buttonLeft]}
-                underlayColor="#f2f2f2"
-                onPress={() => setRegisterStep(2)}
-              >
-                <Text style={styles.buttonOffLabel}>Back</Text>
-              </TouchableHighlight>
-              <TouchableHighlight
-                style={[styles.button, styles.buttonOn, styles.buttonRight]}
-                underlayColor="#4585f5"
-                disabled={registerButtonClicked}
-                onPress={() => {
-                  if (!isValidPassword) {
-                    Alert.alert(
-                      '',
-                      'Please make sure your password contains at least six characters, a number, and a letter'
-                    );
-                    return
-                  }
-                  if (password !== confirmPassword) {
-                    Alert.alert('', 'Please make sure your passwords match');
-                    return
-                  }
-                  if (registerButtonClicked || isLoading) {
-                    return;
-                  }
-                  setRegisterButtonClicked(true)
-                  setIsLoading(true)
-
-                  doRegister({ firstName, lastName, email, password })
-                    .then((userData) => {
-                      analytics.identify(userData.uuid, { email }).catch(() => { })
-                      analytics.track('user-signup', {
-                        properties: {
-                          userId: userData.uuid,
-                          email: email,
-                          platform: 'mobile'
-                        }
-                      })
-                    })
-                    .then(() => {
-                      return apiLogin(email).then(userLoginData => {
-                        props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
-                      })
-                    }).catch(err => {
-                      analytics.track('user-signin-attempted', {
-                        status: 'error',
-                        message: err.message
-                      }).catch(() => { })
-                      Alert.alert(err.message)
-                    }).finally(() => {
-                      setIsLoading(false)
-                      setRegisterButtonClicked(false)
-                    })
-                }}
-              >
-                <Text style={styles.buttonOnLabel}>{registerButtonClicked ? 'Creating...' : 'Continue'}</Text>
-              </TouchableHighlight>
-            </View>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    );
+      <RegisterStep3
+        styles={styles}
+        firstName={firstName}
+        lastName={lastName}
+        email={email}
+        password={password}
+        setPassword={setPassword}
+        confirmPassword={confirmPassword}
+        setConfirmPassword={setConfirmPassword}
+        isValidStep={isValidStep}
+        isValidPassword={isValidPassword}
+        isStrongPassword={isStrongPassword}
+        setRegisterStep={setRegisterStep}
+        navigation={props.navigation}
+        dispatch={props.dispatch}
+      />
+    )
   }
-  return <></>;
+  return <></>
 }
 
+/* eslint-disable react-native/no-unused-styles */
 const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
@@ -430,7 +266,7 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state: any) => {
-  return { ...state };
+  return { authenticationState: state.authenticationState };
 };
 
 export default connect(mapStateToProps)(Register)

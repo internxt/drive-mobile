@@ -14,9 +14,10 @@ import Bold from '../../components/Bold';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
+import strings from '../../../assets/lang/strings';
 
 function identifyPlanName(bytes: number): string {
-  return bytes === 0 ? 'Free 2GB' : prettysize(bytes)
+  return bytes === 0 ? 'Free 10GB' : prettysize(bytes)
 }
 
 async function loadUsage(): Promise<number> {
@@ -95,7 +96,7 @@ async function photosUserData(authenticationState: AuthenticationState): Promise
 }
 
 interface SettingsModalProps {
-  authenticationState: AuthenticationState
+  user: any
   layoutState: LayoutState
   dispatch: Dispatch,
   navigation: any
@@ -141,12 +142,11 @@ function SettingsModal(props: SettingsModalProps) {
       <View style={styles.drawerKnob}></View>
 
       <Text style={styles.nameText}>
-        {props.authenticationState.user.name}{' '}
-        {props.authenticationState.user.lastname}
+        {props.user.name}{' '}
+        {props.user.lastname}
       </Text>
 
       <ProgressBar
-        styleBar={{}}
         styleProgress={styles.progressHeight}
         totalValue={usageValues.limit}
         usedValue={usageValues.usage}
@@ -156,22 +156,30 @@ function SettingsModal(props: SettingsModalProps) {
         <ActivityIndicator color={'#00f'} />
         :
         <Text style={styles.usageText}>
-          <Text>Used </Text>
+          <Text>{strings.screens.storage.space.used.used} </Text>
           <Bold>{prettysize(usageValues.usage)}</Bold>
-          <Text> of </Text>
+          <Text> {strings.screens.storage.space.used.of} </Text>
           <Bold>{prettysize(usageValues.limit)}</Bold>
         </Text>
       }
 
       <Separator />
 
+      {<SettingsItem
+        text={strings.components.app_menu.settings.storage}
+        onPress={() => {
+          props.dispatch(layoutActions.closeSettings())
+          props.navigation.replace('Storage')
+        }}
+      />}
+
       <SettingsItem
-        text="More info"
+        text={strings.components.app_menu.settings.more}
         onPress={() => Linking.openURL('https://internxt.com/drive')}
       />
 
       <SettingsItem
-        text={props.layoutState.currentApp === 'Photos' ? 'Drive' : 'Photos'}
+        text={props.layoutState.currentApp === 'Photos' ? strings.components.app_menu.settings.drive : strings.components.app_menu.settings.photos}
         onPress={async () => {
 
           props.dispatch(layoutActions.closeSettings())
@@ -184,16 +192,8 @@ function SettingsModal(props: SettingsModalProps) {
         }}
       />
 
-      {/* <SettingsItem
-        text="Storage"
-        onPress={() => {
-          props.dispatch(layoutActions.closeSettings())
-          props.navigation.replace('Storage')
-        }}
-      /> */}
-
       <SettingsItem
-        text="Contact"
+        text={strings.components.app_menu.settings.contact}
         onPress={() => {
           const emailUrl = 'mailto:support@internxt.zohodesk.eu'
 
@@ -206,7 +206,7 @@ function SettingsModal(props: SettingsModalProps) {
       />
 
       <SettingsItem
-        text="Sign out"
+        text={strings.components.app_menu.settings.sign}
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
           props.dispatch(userActions.signout())
@@ -248,7 +248,10 @@ const styles = StyleSheet.create({
 })
 
 const mapStateToProps = (state: any) => {
-  return { ...state };
+  return {
+    user: state.authenticationState.user,
+    layoutState: state.layoutState
+  };
 };
 
 export default connect(mapStateToProps)(SettingsModal);

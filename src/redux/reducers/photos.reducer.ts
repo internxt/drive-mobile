@@ -1,21 +1,18 @@
 //import { IPhoto, IFolder } from '../../components/PhotoList';
 import { ImageOrVideo } from 'react-native-image-crop-picker';
-import { IPhoto, IPreview } from '../../components/PhotoList';
+import { IPhoto } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
-import { IHashedPhoto } from '../../screens/Photos/init'
-import lodash from 'lodash'
-import { IAlbum } from '../../screens/CreateAlbum';
+import { IPhotosToRender } from '../../screens/Photos';
+
 export interface PhotosState {
   cursor: number
   loading: boolean
   loadingAlbums: boolean
   loadingPhotos: boolean
   loadingDeleted: boolean
-  localPhotos: IHashedPhoto[]
-  localPhotosGallery: IHashedPhoto[]
-  uploadedPhotos: IHashedPhoto[]
-  previews: IPreview[]
+  albums: any
+  photosToRender: IPhotosToRender
   selectedPhotosForAlbum: ImageOrVideo[]
   isLoading: boolean
   devicePhotos: any
@@ -32,7 +29,7 @@ export interface PhotosState {
   progress: number
   startDownloadSelectedPhoto: boolean
   error?: string | null
-  albums: IAlbum[]
+  isSyncing: boolean
 }
 
 const initialState: PhotosState = {
@@ -41,15 +38,12 @@ const initialState: PhotosState = {
   loadingAlbums: true,
   loadingPhotos: true,
   loadingDeleted: true,
-  localPhotos: [],
-  localPhotosGallery: [],
-  uploadedPhotos: [],
-  previews: [],
   selectedPhotosForAlbum: [],
   isLoading: true,
   devicePhotos: [],
   deleted: [],
   albums: [],
+  photosToRender: { photos: [], hasNextPage: true },
   albumContent: [],
   selectedPhoto: null,
   selectedItems: [],
@@ -60,30 +54,22 @@ const initialState: PhotosState = {
   isUploading: false,
   isUploadingPhotoName: '',
   progress: 0,
-  startDownloadSelectedPhoto: false
+  startDownloadSelectedPhoto: false,
+  isSyncing: false
 };
 
 export function PhotosReducer(state = initialState, action: any): PhotosState {
   switch (action.type) {
-  case photoActionTypes.SET_LOCAL_PHOTOS:
+  case photoActionTypes.SET_PHOTOS_TO_RENDER:
     return {
       ...state,
-      isLoading: false,
-      localPhotos: lodash.concat(state.localPhotos, action.payload)
+      photosToRender: action.payload
     }
 
-  case photoActionTypes.SET_LOCAL_PHOTOS_GALLERY:
+  case photoActionTypes.PUSH_DOWNLOADED_PHOTO:
     return {
       ...state,
-      isLoading: false,
-      localPhotosGallery: action.payload
-    }
-
-  case photoActionTypes.SET_UPLOADED_FOTOS:
-    return {
-      ...state,
-      isLoading: false,
-      uploadedPhotos: action.payload
+      photosToRender: { photos: [action.payload, ...state.photosToRender.photos], hasNextPage: state.photosToRender.hasNextPage }
     }
 
   case photoActionTypes.SET_SELECTED_PHOTOS:
@@ -129,19 +115,19 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       ...state,
       loading: true
     };
-  case photoActionTypes.GET_PHOTOS_SUCCESS:
+  case photoActionTypes.START_SYNC:
     return {
       ...state,
-      loadingPhotos: false,
-      selectedPhoto: null,
-      photos: action.payload
+      loading: true,
+      isSyncing: true
     };
-  case photoActionTypes.GET_PHOTOS_FAILURE:
+  case photoActionTypes.STOP_SYNC:
     return {
       ...state,
       loading: false,
-      error: action.error
+      isSyncing: false
     };
+
   case photoActionTypes.ADD_PHOTO_REQUEST:
     return {
       ...state,
@@ -304,21 +290,6 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       loading: action.payload
-    }
-  case photoActionTypes.PUSH_PREVIEW:
-    return {
-      ...state,
-      previews: [...state.previews, action.payload]
-    }
-  case photoActionTypes.CLEAR_LOCAL_PHOTOS:
-    return {
-      ...state,
-      localPhotos: []
-    }
-  case photoActionTypes.SET_ALBUMS:
-    return {
-      ...state,
-      albums: action.payload
     }
   default:
     return state;

@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-unused-styles */
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, View, Text, ScrollView, Dimensions, RefreshControl, FlatListProps, ActivityIndicator, GestureResponderEvent } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, Dimensions, RefreshControl, FlatListProps, ActivityIndicator } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { WaveIndicator } from 'react-native-indicators'
@@ -9,6 +9,8 @@ import * as MediaLibrary from 'expo-media-library';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
 import Photo from './Photo'
 import EmptyPhotoList from './EmptyPhotoList';
+import { IApiPhotoWithPreview } from '../../types/api/photos/IApiPhoto';
+import { IHashedPhoto } from '../../screens/Photos/init';
 
 export interface IPhoto {
   id: string
@@ -34,7 +36,7 @@ interface PhotoListProps extends FlatListProps<MediaLibrary.Asset> {
   authenticationState?: any
   dispatch?: any
   navigation: any
-  onItemPress?: (event: GestureResponderEvent, item: MediaLibrary.AssetInfo) => void
+  updateDownloadedImageStatus: (remotePreview: IApiPhotoWithPreview, downloadedPhoto: IHashedPhoto) => void
 }
 
 const deviceWidth = Dimensions.get('window').width
@@ -54,9 +56,8 @@ function PhotoList(props: PhotoListProps) {
         !isLoading ?
           <>
             <FlatList
-              style={{ flexGrow: 1 }}
               data={props.data}
-              refreshControl={<RefreshControl
+              /* refreshControl={<RefreshControl
                 enabled={true}
                 refreshing={refreshing}
                 onRefresh={() => {
@@ -65,15 +66,9 @@ function PhotoList(props: PhotoListProps) {
                   }
                   setRefreshing(false)
                 }}
-              />}
-              onEndReached={(e) => {
-                if (props.onEndReached) {
-                  setLoadMore(true);
-                  props.onEndReached(e);
-                }
-              }}
+              />} */
               ListEmptyComponent={props.ListEmptyComponent || <EmptyPhotoList />}
-              renderItem={({ item }) => <Photo onPress={props.onItemPress} item={item} />}
+              renderItem={({ item }) => <Photo item={item} updateDownloadedImageStatus={props.updateDownloadedImageStatus} key={item.hash} />}
               contentContainerStyle={styles.flatList}
               keyExtractor={(item) => item.id}
               numColumns={props.numColumns || 3}
@@ -99,8 +94,7 @@ function PhotoList(props: PhotoListProps) {
 }
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    marginBottom: wp('5')
+    flex: 1
   },
   emptyContainer: {
     alignItems: 'center',

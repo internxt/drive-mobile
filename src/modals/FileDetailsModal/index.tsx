@@ -14,11 +14,13 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { colors, folderIconsList } from '../../redux/constants'
 import { updateFileMetadata, updateFolderMetadata } from './actions';
 import analytics, { getLyticsData } from '../../helpers/lytics';
+import strings from '../../../assets/lang/strings';
 
 interface FileDetailsProps {
   dispatch?: any
-  filesState?: any
-  layoutState?: any
+  showItemModal: boolean
+  selectedItems: any[]
+  folderContent: any
 }
 
 function FileDetailsModal(props: FileDetailsProps) {
@@ -28,19 +30,19 @@ function FileDetailsModal(props: FileDetailsProps) {
   const [selectedColor, setSelectedColor] = useState('')
   const [selectedIcon, setSelectedIcon] = useState(0)
 
-  const selectedItems = props.filesState.selectedItems
-  const showModal = props.layoutState.showItemModal && selectedItems.length > 0
+  const selectedItems = props.selectedItems
+  const showModal = props.showItemModal && selectedItems.length > 0
 
   const file = selectedItems.length > 0 && selectedItems[0]
   const isFolder = file && !selectedItems[0].fileId
   const folder = isFolder && file
 
   useEffect(() => {
-    if (props.layoutState.showItemModal === true) {
+    if (props.showItemModal === true) {
       setOriginalFileName(file.name)
       setNewFileName(file.name)
     }
-  }, [props.layoutState.showItemModal])
+  }, [props.showItemModal])
 
   return <>
     {
@@ -98,19 +100,20 @@ function FileDetailsModal(props: FileDetailsProps) {
         >
           <View style={styles.drawerKnob}></View>
 
-          <View style={{ flexDirection: 'row', paddingRight: 22 }}>
-            <TextInput
-              style={styles.folderName}
-              onChangeText={value => {
-                setNewFileName(value)
-              }}
-              value={newfilename}
-            />
-          </View>
+          <TextInput
+            style={styles.folderName}
+            onChangeText={value => {
+              setNewFileName(value)
+            }}
+            value={newfilename}
+          />
+
           <Separator />
 
-          <Text
-            style={styles.stylesColorFolder}>Style Color</Text>
+          <Text style={styles.stylesColorFolder}>
+            {strings.components.file_and_folder_options.styling}
+          </Text>
+
           <View style={styles.colorSelection}>
             {Object.getOwnPropertyNames(colors).map((value, i) => {
               const localColor = selectedColor ? selectedColor : (folder ? folder.color : null);
@@ -133,8 +136,7 @@ function FileDetailsModal(props: FileDetailsProps) {
 
           <Separator />
 
-          <Text
-            style={styles.stylesCoverFolder}>Cover Icon</Text>
+          <Text style={styles.stylesCoverFolder}>{strings.components.file_and_folder_options.icons}</Text>
 
           <View style={styles.iconSelection} key={selectedIcon}>
             {folderIconsList.map((value, i) => {
@@ -178,7 +180,7 @@ function FileDetailsModal(props: FileDetailsProps) {
             if (newfilename !== originalfilename) {
               metadata.itemName = newfilename
               await updateFileMetadata(metadata, file.fileId)
-              props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.currentFolder))
+              props.dispatch(fileActions.getFolderContent(props.folderContent.currentFolder))
               const userData = await getLyticsData()
 
               analytics.track('file-rename', {
@@ -196,33 +198,31 @@ function FileDetailsModal(props: FileDetailsProps) {
         >
           <View style={styles.drawerKnob}></View>
 
-          <View style={styles.fileNameContainer}>
-            <TextInput
-              style={styles.fileName}
-              onChangeText={value => setNewFileName(value)}
-              value={newfilename}
-            />
-          </View>
+          <TextInput
+            style={styles.fileName}
+            onChangeText={value => setNewFileName(value)}
+            value={newfilename}
+          />
 
           <Separator />
 
           <View style={styles.infoContainer}>
             <Text style={styles.textDefault}>
-              <Text>Type: </Text>
+              <Text>{strings.components.file_and_folder_options.type}</Text>
               <Text style={styles.cerebriSansBold}>
                 {file && file.type ? file.type.toUpperCase() : ''}
               </Text>
             </Text>
 
             <Text style={styles.textDefault}>
-              <Text>Added: </Text>
+              <Text>{strings.components.file_and_folder_options.added}</Text>
               <Text style={styles.cerebriSansBold}>
                 {file ? <TimeAgo time={file.created_at} /> : ''}
               </Text>
             </Text>
 
             <Text style={styles.textDefault}>
-              <Text>Size: </Text>
+              <Text>{strings.components.file_and_folder_options.size}</Text>
               <Text style={styles.cerebriSansBold}>
                 {file ? prettysize(file.size) : ''}
               </Text>
@@ -237,7 +237,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                 <Text style={styles.modalFileItemContainer}>
                   <Image source={getIcon('move')} style={{ width: 20, height: 20 }} />
                   <Text style={styles.mr20}> </Text>
-                  <Text style={styles.cerebriSansBold}> Move</Text>
+                  <Text style={styles.cerebriSansBold}> {strings.components.file_and_folder_options.move}</Text>
                 </Text>
               }
               onPress={() => {
@@ -250,7 +250,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                 <Text style={styles.modalFileItemContainer}>
                   <Image source={getIcon('share')} style={{ width: 20, height: 14 }} />
                   <Text style={styles.mr20}> </Text>
-                  <Text style={{}}> Share</Text>
+                  <Text style={{}}> {strings.components.file_and_folder_options.share}</Text>
                 </Text>
               }
               onPress={() => {
@@ -259,16 +259,17 @@ function FileDetailsModal(props: FileDetailsProps) {
               }}
             />
 
-            <SettingsItem text={
-              <Text style={styles.modalFileItemContainer}>
-                <Image source={getIcon('delete')} style={{ width: 16, height: 21 }} />
-                <Text style={styles.mr20}> </Text>
-                <Text style={styles.cerebriSansBold}> Delete</Text>
-              </Text>
-            }
-            onPress={() => {
-              props.dispatch(layoutActions.openDeleteModal())
-            }}
+            <SettingsItem
+              text={
+                <Text style={styles.modalFileItemContainer}>
+                  <Image source={getIcon('delete')} style={{ width: 16, height: 21 }} />
+                  <Text style={styles.mr20}> </Text>
+                  <Text style={styles.cerebriSansBold}>  {strings.components.file_and_folder_options.delete}</Text>
+                </Text>
+              }
+              onPress={() => {
+                props.dispatch(layoutActions.openDeleteModal())
+              }}
             />
           </View>
         </Modal>}
@@ -276,8 +277,12 @@ function FileDetailsModal(props: FileDetailsProps) {
 }
 
 const mapStateToProps = (state: any) => {
-  return { ...state };
-};
+  return {
+    folderContent: state.filesState.folderContent,
+    showItemModal: state.layoutState.showItemModal,
+    selectedItems: state.filesState.selectedItems
+  }
+}
 
 export default connect(mapStateToProps)(FileDetailsModal)
 
@@ -311,17 +316,17 @@ const styles = StyleSheet.create({
     width: 56
   },
   fileName: {
+    width: wp(92),
+    alignSelf: 'center',
     fontFamily: 'CerebriSans-Bold',
     fontSize: 20,
-    marginLeft: 26
-  },
-  fileNameContainer: {
-    height: 'auto'
+    padding: 0 // remove default padding on Android
   },
   folderName: {
     fontFamily: 'CerebriSans-Bold',
     fontSize: 20,
-    marginLeft: 26
+    marginLeft: 26,
+    padding: 0 // Remove default padding Android
   },
   iconButton: {
     alignItems: 'center',
@@ -335,12 +340,10 @@ const styles = StyleSheet.create({
     width: 25
   },
   iconSelection: {
-    display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginLeft: 15,
-    marginRight: 15
+    marginHorizontal: 15
   },
   infoContainer: {
     height: 'auto'
@@ -352,15 +355,13 @@ const styles = StyleSheet.create({
     marginTop: wp('12')
   },
   modalSettingsFile: {
-    height: hp('55%') < 300 ? 300 : Math.min(370, hp('55%'))
+    height: 'auto'
   },
   mr20: {
     marginRight: 20
   },
   optionsContainer: {
-    flex: 1,
-    marginBottom: 15,
-    minHeight: 129 // pixel perfect leave like this
+    marginBottom: 15
   },
   stylesColorFolder: {
     fontFamily: 'CerebriSans-Bold',

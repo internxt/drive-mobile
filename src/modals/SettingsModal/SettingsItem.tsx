@@ -21,9 +21,9 @@ export default function SettingsItem(props: SettingsItemProps): JSX.Element {
 const styles = StyleSheet.create({
   itemContainer: {
     justifyContent: 'center',
-    paddingBottom: 13,
-    paddingLeft: 24,
-    paddingTop: 13
+    paddingBottom: 15,
+    paddingTop: 5,
+    paddingLeft: 24
   },
   itemText: {
     color: '#000',

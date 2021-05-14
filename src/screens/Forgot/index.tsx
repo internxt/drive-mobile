@@ -11,6 +11,7 @@ import {
 import React, { useEffect, useState } from 'react'
 import { normalize } from '../../helpers';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 
 function Forgot(props: any): JSX.Element {
   const [currentContainer, setCurrentCointainer] = useState(1);
@@ -47,7 +48,6 @@ function Forgot(props: any): JSX.Element {
   }
 
   if (currentContainer === 1) {
-
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
         <View
@@ -58,48 +58,48 @@ function Forgot(props: any): JSX.Element {
         >
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Text style={styles.title}>Internxt Security</Text>
+              <Text style={styles.title}>{strings.screens.forgot_password.title}</Text>
             </View>
+
             <Text style={styles.text}>
-                            As specified during the sign up process, Internxt Drive encrypts
-                            your files, and only you have access to those. We never know
-                            your password, and thus, that way, only you can decrypt your
-                            account. For that reason, if you forget your password, we can&apos;t
-                    restore your account. What we can do, however, is to{' '}
-              <Text style={styles.bold}>
-                                delete your account and erase all its files
-              </Text>
-                    , so that you can sign up again. Please enter your email below
-                    so that we can process the account removal.
+              {strings.screens.forgot_password.subtitle_1}
+
+              <Text style={styles.bold}>{strings.screens.forgot_password.bold}</Text>
+
+              {strings.screens.forgot_password.subtitle_2}
             </Text>
+
             <View style={styles.inputWrapper}>
               <TextInput
                 style={styles.input}
                 value={email}
                 onChangeText={(value) => setIsEmail(value)}
-                placeholder="Email address"
+                placeholder={strings.components.inputs.email}
                 placeholderTextColor="#666666"
                 maxLength={64}
                 keyboardType="email-address"
                 textContentType="emailAddress"
               />
             </View>
+
             <View style={styles.buttonWrapper}>
               <TouchableHighlight
                 style={[styles.button, styles.buttonOff, styles.buttonLeft]}
                 underlayColor="#f2f2f2"
                 onPress={() => props.navigation.replace('Login')}
               >
-                <Text style={styles.buttonOffLabel}>Back</Text>
+                <Text style={styles.buttonOffLabel}>{strings.components.buttons.back}</Text>
               </TouchableHighlight>
+
               <TouchableHighlight
                 style={[styles.button, styles.buttonOn, styles.buttonRight]}
                 underlayColor="#4585f5"
-                onPress={() => {sendDeactivationEmail()
+                onPress={() => {
+                  sendDeactivationEmail()
                 }
                 }
               >
-                <Text style={styles.buttonOnLabel}>Continue</Text>
+                <Text style={styles.buttonOnLabel}>{strings.components.buttons.continue}</Text>
               </TouchableHighlight>
             </View>
           </View>
@@ -120,22 +120,19 @@ function Forgot(props: any): JSX.Element {
         >
           <View style={styles.containerHeader}>
             <View style={styles.flexRow}>
-              <Text style={styles.title}>Deactivation Email</Text>
+              <Text style={styles.title}>{strings.screens.deactivation_screen.title}</Text>
             </View>
+
             <Text style={styles.text}>
-                            Please check your email and follow the instructions to
-                            deactivate your account so you can start using Internxt Drive
-                            again.
+              {strings.screens.deactivation_screen.subtitle_1}
             </Text>
+
             <View style={styles.grayBox}>
               <Text style={styles.grayBoxText}>
-                                Once you deactivate your account, you will be able to sign up
-                                using the same email address. Please store your password
-                                somewhere safe. With Internxt Drive, only you are the true
-                                owner of your files on the cloud. With great power there must
-                                also come great responsibility.
+                {strings.screens.deactivation_screen.subtitle_2}
               </Text>
             </View>
+
             <View style={styles.buttonWrapper}>
               <TouchableHighlight
                 style={[styles.button, styles.buttonOn]}
@@ -143,15 +140,16 @@ function Forgot(props: any): JSX.Element {
                 onPress={() => sendDeactivationEmail()}
               >
                 <Text style={styles.buttonOnLabel}>
-                                    Re-send deactivation email
+                  {strings.components.buttons.deactivation}
                 </Text>
               </TouchableHighlight>
             </View>
+
             <Text
               style={styles.signUp}
               onPress={() => props.navigation.replace('Register')}
             >
-                            Sign up
+              {strings.components.buttons.sing_up}
             </Text>
           </View>
         </View>

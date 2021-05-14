@@ -3,10 +3,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
+import strings from '../../../assets/lang/strings';
 
 interface OutOfSpaceProps {
-    dispatch?: any,
-    navigation?: any
+  dispatch?: any,
+  navigation?: any
 }
 
 // TODO: This should be a modal, not a new screen
@@ -15,13 +16,9 @@ function OutOfSpace(props: OutOfSpaceProps): JSX.Element {
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>
-                    Run out of space
-        </Text>
+        <Text style={styles.title}>{strings.modals.out_of_space_modal.title} </Text>
 
-        <Text style={styles.subtitle}>
-                    You have currently used 3GB of storage. To start uploading more files, please upgrade your storage plan.
-        </Text>
+        <Text style={styles.subtitle}>{strings.modals.out_of_space_modal.subtitle}</Text>
       </View>
 
       <View style={styles.buttonsContainer}>
@@ -30,7 +27,7 @@ function OutOfSpace(props: OutOfSpaceProps): JSX.Element {
             props.navigation.replace('FileExplorer')
           }}
         >
-          <Text style={styles.buttonText}>Close</Text>
+          <Text style={styles.buttonText}>{strings.components.buttons.cancel}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, styles.blue]}
@@ -38,7 +35,7 @@ function OutOfSpace(props: OutOfSpaceProps): JSX.Element {
             props.navigation.replace('Storage')
           }}
         >
-          <Text style={[styles.buttonText, styles.white]}>Upgrade</Text>
+          <Text style={[styles.buttonText, styles.white]}>{strings.components.buttons.upgrade}</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -12,6 +12,7 @@ import { Reducers } from '../../redux/reducers/reducers';
 import { loadValues } from '../../modals';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import strings from '../../../assets/lang/strings';
 
 interface StorageProps extends Reducers {
   dispatch?: any,
@@ -91,17 +92,17 @@ function Storage(props: StorageProps): JSX.Element {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.backText}>Storage</Text>
+          <Text style={styles.backText}>{strings.screens.storage.title}</Text>
         </View>
 
         <View style={styles.progressContainer}>
           <View style={styles.firstRow}>
-            <Text style={styles.progressTitle}>Storage Space</Text>
+            <Text style={styles.progressTitle}>{strings.screens.storage.space.title}</Text>
 
             <View style={styles.usedSapceContainer}>
-              <Text style={styles.usedSpace}>Used </Text>
+              <Text style={styles.usedSpace}>{strings.screens.storage.space.used.used} </Text>
               <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.usage)} </Text>
-              <Text style={styles.usedSpace}>of </Text>
+              <Text style={styles.usedSpace}>{strings.screens.storage.space.used.of} </Text>
               <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.limit)}</Text>
             </View>
           </View>
@@ -127,12 +128,12 @@ function Storage(props: StorageProps): JSX.Element {
                     style={styles.circle} />
               }
 
-              <Text style={styles.secondRowText}>Used space</Text>
+              <Text style={styles.secondRowText}>{strings.screens.storage.space.legend.used} </Text>
             </View>
 
             <View style={styles.legend}>
               <View style={styles.circle}></View>
-              <Text style={styles.secondRowText}>Unused space</Text>
+              <Text style={styles.secondRowText}>{strings.screens.storage.space.legend.unused}</Text>
             </View>
           </View>
         </View>
@@ -143,7 +144,7 @@ function Storage(props: StorageProps): JSX.Element {
               !chosenProduct ?
                 <View>
                   <View style={styles.titleContainer}>
-                    <Text style={styles.title}>Storage plans</Text>
+                    <Text style={styles.title}>{strings.screens.storage.plans.title}</Text>
                   </View>
                   {
                     products && products.map((product: IProduct) => <TouchableWithoutFeedback
@@ -171,7 +172,7 @@ function Storage(props: StorageProps): JSX.Element {
                             <Image style={styles.paymentBackIcon} source={getIcon('back')} />
                           </TouchableOpacity>
 
-                          <Text style={styles.title}>Payment length</Text>
+                          <Text style={styles.title}>{strings.screens.storage.plans.title_2}</Text>
 
                           <Text style={styles.titlePlan}>{chosenProduct.name}</Text>
                         </View>
@@ -195,7 +196,7 @@ function Storage(props: StorageProps): JSX.Element {
               </View>
           }
           <View>
-            <Text style={styles.footer}>You are subscribed to the {prettysize(usageValues.limit)} plan</Text>
+            <Text style={styles.footer}>{strings.screens.storage.plans.current_plan} {prettysize(usageValues.limit)} {strings.getLanguage() === 'es' ? null : 'plan'}</Text>
           </View>
         </View>
       </View>
