@@ -3,52 +3,141 @@ import { Alert, FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-nat
 import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { BackButton } from '../../components/BackButton';
-import { WaveIndicator } from 'react-native-indicators'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
-import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { Dispatch } from 'redux';
-import Photo from '../../components/PhotoList/Photo';
+import { LayoutState } from '../../redux/reducers/layout.reducer';
+import SelectivePhoto from './SelectivePhoto';
+import { IPreview } from '../../components/PhotoList';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { getHeaders } from '../../helpers/headers';
+import { getPreviews } from '../Photos/init';
+import ImageViewerModal from '../../modals/ImageViewerModal';
+import { IImageInfo } from 'react-native-image-zoom-viewer/built/image-viewer.type';
+import Loading from '../../components/Loading';
 
 interface CreateAlbumProps {
-  route: any;
-  navigation?: any
-  photosState?: PhotosState
+  navigation: any
+  photosState: PhotosState
   dispatch: Dispatch,
-  layoutState?: any
-  authenticationState?: any
+  layoutState: LayoutState
+  authenticationState: AuthenticationState
+}
+
+export interface IAlbum {
+  title: string
+  createdAt?: string
+  updatedAt?: string
+  id?: number
+  name?: string
+  photos: IAlbumPhoto[]
+  userId?: string
+}
+
+export interface IAlbumPhoto {
+  bucketId: string
+  fileId: string
+  id: number
+  userId: number
+  createdAt: string
+  updatedAt: string
+  name: string
+  hash: string
+  size: number
+  type: string
+  photosalbums: any
+  localUri?: string
 }
 
 function CreateAlbum(props: CreateAlbumProps): JSX.Element {
+  const [photos, setPhotos] = useState<IPreview[]>([])
   const [albumTitle, setAlbumTitle] = useState('')
+  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [images, setImages] = useState<ImageOrVideo[]>([]);
+  const [isCreatingAlbum, setIsCreatingAlbum] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [selectedPhoto, setSelectedPhoto] = useState<IImageInfo[]>([])
 
   useEffect(() => {
-    if (props.photosState) {
-      setImages(props.photosState.selectedPhotosForAlbum)
-      setIsLoading(false)
+    getPreviews().then(res => setPhotos(res)).finally(() => setIsLoading(false))
+  }, [])
+
+  const uploadAlbum = async (): Promise<void> => {
+    const xToken = props.authenticationState.token
+    const mnemonic = props.authenticationState.user.mnemonic
+    const headers = await getHeaders(xToken, mnemonic)
+    const body = { name: albumTitle, photos: selectedPhotos }
+
+    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/album`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body)
+    }).then(res => {
+      return res.json()
+    })
+  }
+
+  const handleSelection = (selectedPhotoId: number) => {
+    const currentSelectedPhotos = selectedPhotos
+    const isAlreadySelected = currentSelectedPhotos.find(photoId => photoId === selectedPhotoId)
+
+    if (isAlreadySelected) {
+      const newSelectedPhotos = currentSelectedPhotos.filter(photoId => photoId === selectedPhotoId ? null : photoId)
+
+      setSelectedPhotos(newSelectedPhotos)
+
+    } else {
+      currentSelectedPhotos.push(selectedPhotoId)
+      setSelectedPhotos(currentSelectedPhotos)
     }
-  }, [props.photosState && props.photosState.selectedPhotosForAlbum])
+  }
+
+  const handlePress = () => {
+    // reset all selected photos
+  }
+
+  const handleClose = () => {
+    setIsOpen(false)
+  }
+
+  const handleLongPress = (photo: IImageInfo) => {
+    const selectedPhoto = [photo]
+
+    setSelectedPhoto(selectedPhoto)
+    setIsOpen(true)
+  }
+
+  const renderItem = (item: IPreview, index: number) => (<SelectivePhoto photo={item} handleSelection={handleSelection} handleLongPress={handleLongPress} key={index} />)
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.mainContainer}>
+      <ImageViewerModal isOpen={isOpen} photos={selectedPhoto} handleClose={handleClose} />
       <View style={styles.albumHeader}>
         <BackButton navigation={props.navigation} ></BackButton>
 
         <TextInput
-          style={styles.albumTitle}
+          style={styles.input}
           placeholder='Name your memories'
           onChangeText={value => setAlbumTitle(value)}
           value={albumTitle}
           autoCapitalize='none'
         />
 
-        <TouchableOpacity style={styles.nextBtn}
+        <TouchableOpacity style={!isCreatingAlbum ? styles.nextBtn : [styles.nextBtn, styles.disabled]}
+          disabled={isCreatingAlbum}
           onPress={() => {
             if (albumTitle) {
-
-              //props.dispatch(PhotoActions.)
+              if (albumTitle.length > 30) {
+                Alert.alert('Maximum album length name is 30 characters')
+              } else {
+                if (selectedPhotos.length > 0) {
+                  setIsCreatingAlbum(true)
+                  uploadAlbum().finally(() => setIsCreatingAlbum(false))
+                  handlePress()
+                } else {
+                  Alert.alert('You need to select at least one photo')
+                }
+              }
             } else {
               Alert.alert('Album name is required')
             }
@@ -59,22 +148,23 @@ function CreateAlbum(props: CreateAlbumProps): JSX.Element {
       </View>
 
       <Text style={styles.title}>
-          Selected Photos
+        Select photos to create album
       </Text>
 
       {
         !isLoading ?
-          <FlatList
-            data={images}
-            renderItem={({ item }) => {
-              return <Photo id={item.localIdentifier} uri={item.sourceURL} />
-            }}
-            numColumns={3}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={styles.flatList}
-          />
+          !isCreatingAlbum ?
+            <FlatList
+              data={photos}
+              renderItem={({ item, index }) => renderItem(item, index)}
+              numColumns={4}
+              keyExtractor={(item, index) => index.toString()}
+              contentContainerStyle={styles.flatList}
+            />
+            :
+            <Loading message={'Creating album...'} />
           :
-          <WaveIndicator color="#5291ff" size={50} />
+          <Loading message={'Loading uploaded photos...'} />
       }
     </SafeAreaView>
   );
@@ -88,19 +178,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 15
   },
-  albumTitle: {
-    color: '#000000',
-    fontFamily: 'Averta-Semibold',
-    fontSize: 17,
-    textAlign: 'center'
-  },
-  container: {
-    alignContent: 'center',
-    backgroundColor: '#fff',
-    flex: 1
+  disabled: {
+    backgroundColor: '#73bbff'
   },
   flatList: {
     paddingHorizontal: wp('1')
+  },
+  input: {
+    color: '#000000',
+    fontFamily: 'Averta-Semibold',
+    fontSize: 17,
+    textAlign: 'center',
+    width: 200
+  },
+  mainContainer: {
+    alignContent: 'center',
+    backgroundColor: '#fff',
+    flex: 1
   },
   nextBtn: {
     backgroundColor: '#0084ff',

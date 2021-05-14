@@ -7,8 +7,8 @@ export interface LayoutState {
   showItemModal: boolean
   showPhotoDetailsModal: boolean
   showAlbumModal: boolean
+  showSelectPhotosModal: boolean
   showAddItemModal: boolean
-  showSelectPhotoModal: boolean
   showSortModal: boolean
   showSortPhotoModal: boolean
   showMoveModal: boolean
@@ -27,8 +27,8 @@ const initialState: LayoutState = {
   showItemModal: false,
   showPhotoDetailsModal: false,
   showAlbumModal: false,
+  showSelectPhotosModal: false,
   showAddItemModal: false,
-  showSelectPhotoModal: false,
   showSortModal: false,
   showSortPhotoModal: false,
   showMoveModal: false,
@@ -40,28 +40,8 @@ const initialState: LayoutState = {
   currentApp: 'FileExplorer'
 };
 
-export function layoutReducer(state = initialState, action: any) {
+export function layoutReducer(state = initialState, action: any): LayoutState {
   switch (action.type) {
-  case layoutActionTypes.OPEN_CREATE_FOLDER_FORM:
-    return {
-      searchActive: false,
-      createFolderActive: true
-    };
-  case layoutActionTypes.CLOSE_CREATE_FOLDER_FORM:
-    return {
-      ...state,
-      createFolderActive: false
-    };
-  case layoutActionTypes.OPEN_SEARCH_FORM:
-    return {
-      ...state,
-      searchActive: true
-    };
-  case layoutActionTypes.CLOSE_SEARCH_FORM:
-    return {
-      ...state,
-      searchActive: false
-    };
   case layoutActionTypes.OPEN_SETTINGS_MODAL:
     return {
       ...state,
@@ -173,6 +153,31 @@ export function layoutReducer(state = initialState, action: any) {
       showComingSoonModal: false
     }
   }
+  case layoutActionTypes.OPEN_ALBUM_MODAL: {
+    return {
+      ...state,
+      showAlbumModal: true
+    }
+  }
+  case layoutActionTypes.CLOSE_ALBUM_MODAL: {
+    return {
+      ...state,
+      showAlbumModal: false
+    }
+  }
+  case layoutActionTypes.OPEN_SELECT_PHOTOS_FOR_ALBUM_MODAL: {
+    return {
+      ...state,
+      showSelectPhotosModal: true
+    }
+  }
+  case layoutActionTypes.CLOSE_SELECT_PHOTOS_FOR_ALBUM_MODAL: {
+    return {
+      ...state,
+      showSelectPhotosModal: false
+    }
+  }
+
   default:
     return state;
   }

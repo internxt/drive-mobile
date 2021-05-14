@@ -1,6 +1,5 @@
 //import { IPhoto, IFolder } from '../../components/PhotoList';
 import { ImageOrVideo } from 'react-native-image-crop-picker';
-import { IAlbum } from '../../components/AlbumList';
 import { IPhoto } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
@@ -20,7 +19,6 @@ export interface PhotosState {
   deleted: any
   albumContent: any
   selectedPhoto: IPhoto | null
-  selectedAlbum: IAlbum | null
   selectedItems: any
   sortType: string
   albumListSortType: string
@@ -48,9 +46,8 @@ const initialState: PhotosState = {
   photosToRender: { photos: [], hasNextPage: true },
   albumContent: [],
   selectedPhoto: null,
-  selectedAlbum: null,
   selectedItems: [],
-  sortType: 'Name',
+  sortType: 'all',
   albumListSortType: 'Name',
   sortFunction: null,
   searchString: '',
@@ -219,8 +216,7 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
   case photoActionTypes.SET_SORT_TYPE:
     return {
       ...state,
-      sortType: action.payload[0],
-      sortFunction: action.payload[1]
+      sortType: action.payload
     };
 
   case photoActionTypes.SET_SEARCH_STRING:

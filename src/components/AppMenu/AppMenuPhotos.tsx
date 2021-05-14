@@ -244,18 +244,12 @@ const styles = StyleSheet.create({
     marginLeft: 17,
     marginRight: 10
   },
-  /* commonButtons: {
-    flexDirection: 'row',
-    flexGrow: 1
-  }, */
   container: {
     backgroundColor: '#fff',
     flexDirection: 'row',
     height: 54,
     justifyContent: 'flex-start',
-    marginTop: Platform.OS === 'ios' ? 50 : 0,
     paddingTop: 3,
-    position: 'absolute',
     width: '100%'
   },
   searchContainer: {
@@ -272,13 +266,8 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontFamily: 'Averta-Regular',
-    fontSize: 17,
-    marginLeft: 15,
-    marginRight: 15
+    fontSize: 17
   }
-  /* mr10: {
-    marginRight: 10
-  } */
 });
 
 const mapStateToProps = (state: any) => {

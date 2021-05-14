@@ -14,16 +14,21 @@ interface PhotoProps {
   badge?: JSX.Element
   item: IHashedPhoto
   pushDownloadedPhoto?: (downloadedPhoto: IHashedPhoto) => void
+  photoSelection?: boolean
 }
 
 export default function Photo(props: PhotoProps): JSX.Element {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false)
   const [progress, setProgress] = useState(0)
-
+  const [isSelected, setIsSelected] = useState(false)
   const [item, setItem] = useState(props.item)
 
   const handleOnPress = () => {
+    if (props.photoSelection) {
+      return setIsSelected(prevState => !prevState)
+    }
+
     if (!item.localUri) {
       return;
     }
@@ -81,6 +86,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
             isLocal={item.isLocal}
             isDownloading={item.isDownloading}
             isUploading={item.isUploading}
+            isSelected={isSelected}
           />
         }
 

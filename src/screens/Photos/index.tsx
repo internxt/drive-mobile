@@ -4,19 +4,18 @@ import { connect } from 'react-redux';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import SortModal from '../../modals/SortModal';
 import { Reducers } from '../../redux/reducers/reducers';
-import PhotoList from '../../components/PhotoList';
 import CreateAlbumCard from '../../components/AlbumCard/CreateAlbumCard';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import SettingsModal from '../../modals/SettingsModal';
 import { stopSync, initUser, getLocalImages, IHashedPhoto, syncPhotos, LocalImages } from './init'
 import { PhotosState } from '../../redux/reducers/photos.reducer';
-import { WaveIndicator, MaterialIndicator } from 'react-native-indicators';
+import { MaterialIndicator } from 'react-native-indicators';
 import ComingSoonModal from '../../modals/ComingSoonModal';
 import MenuItem from '../../components/MenuItem';
 import { layoutActions, PhotoActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
 import { queue } from 'async'
-import EmptyPhotoList from '../../components/PhotoList/EmptyPhotoList';
+import AppMenuPhotos from '../../components/AppMenu/AppMenuPhotos';
 
 export interface IPhotosProps extends Reducers {
   navigation: any
@@ -98,6 +97,8 @@ function Photos(props: IPhotosProps): JSX.Element {
       <SortModal />
       <ComingSoonModal />
 
+      <AppMenuPhotos navigation={props.navigation} />
+
       <View style={styles.albumsContainer}>
         <View style={styles.albumsHeader}>
           <Text style={styles.title}>{strings.screens.photos.screens.photos.albums}</Text>
@@ -113,7 +114,6 @@ function Photos(props: IPhotosProps): JSX.Element {
         <View>
           <CreateAlbumCard navigation={props.navigation} dispatch={props.dispatch} />
         </View>
-
       </View>
 
       <View style={styles.allPhotosContainer}>
@@ -144,25 +144,6 @@ function Photos(props: IPhotosProps): JSX.Element {
               null
           }
         </TouchableOpacity>
-        {
-          photos.length === 0 ?
-            hasMoreLocals ?
-              <View style={styles.emptyContainer}>
-                <Text style={styles.heading}>{strings.screens.photos.components.loading}</Text>
-                <WaveIndicator color="#5291ff" size={50} />
-              </View>
-              :
-              <EmptyPhotoList />
-            :
-            <View style={{ flex: 1 }}>
-              <PhotoList
-                title={'All Photos'}
-                data={photos}
-                navigation={props.navigation}
-              //onRefresh={() => getNextImages()}
-              />
-            </View>
-        }
       </View>
     </SafeAreaView>
   )
@@ -203,18 +184,6 @@ const styles = StyleSheet.create({
   containerSync: {
     flexDirection: 'row',
     marginRight: 8
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    backgroundColor: '#fff'
-  },
-  heading: {
-    color: '#000000',
-    fontFamily: 'Averta-Regular',
-    fontSize: wp('4.5'),
-    letterSpacing: -0.8,
-    marginBottom: 30,
-    marginTop: 10
   },
   syncText: {
     color: 'grey',

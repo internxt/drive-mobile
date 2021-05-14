@@ -1,75 +1,55 @@
 import * as React from 'react';
-import { Image, StyleSheet, Text, TouchableHighlight, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { connect } from 'react-redux';
-import strings from '../../../assets/lang/strings';
 import { getIcon } from '../../helpers/getIcon';
-import { layoutActions } from '../../redux/actions';
-interface ISelectedPhotos {
-  path: string
-  localIdentifier?: string
-  sourceURL?: string
-  filename?: string
-  width: number
-  height: number
-  mime: string
-  size: number
-  duration: number
-  data: string
-  exif: any
-  cropRect: any
-  creationDate?: string
-  modificationDate: string
-  dispatch: any
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+
+export interface ICreateAlbum {
+  navigation: any
 }
 
 // TODO: Add album param
-function CreateAlbumCard(props: ISelectedPhotos): JSX.Element {
+function CreateAlbumCard(props: ICreateAlbum): JSX.Element {
   const img = getIcon('create');
 
   return (
-    <TouchableHighlight
-      underlayColor="#fff"
+    <TouchableOpacity
       style={styles.albumCard}
       onPress={() => {
-        props.dispatch(layoutActions.openComingSoonModal())
-        /* ImagePicker.openPicker({
-          multiple: true,
-          maxFiles: 0
-        }).then(res => {
-          props.dispatch(PhotoActions.setSelectedPhotos(res))
-          props.navigation.navigate('CreateAlbum')
-        }).catch(() => {}) */
+        props.navigation.push('CreateAlbum')
       }}
     >
       <View style={styles.card}>
-        <Image source={img} style={{ height: 25, width: 38, backgroundColor: '#0084ff' }} />
-        <Text style={{
-          fontFamily: 'Averta-Semibold',
-          marginTop: 14,
-          fontSize: 16,
-          color: 'black'
-        }}>
-          {strings.screens.photos.components.create_album_card}
+        <Image source={img} style={styles.image} />
+        <Text style={styles.title}>
+          Create New Album
         </Text>
 
       </View>
-    </TouchableHighlight>
+    </TouchableOpacity>
   )
 }
 
 const styles = StyleSheet.create({
   albumCard: {
-    paddingHorizontal: 20,
-    paddingVertical: 15
+    marginTop: 24,
+    paddingBottom: 8,
+    width: wp('87')
   },
   card: {
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
     borderColor: 'white',
     borderRadius: 9,
+    borderRadius: 9,
     borderWidth: 12,
     display: 'flex',
     elevation: 5,
+    elevation: 5,
+    height: wp('50'),
+    justifyContent: 'center',
+    marginHorizontal: 4,
     marginHorizontal: 4,
     paddingVertical: 57,
     shadowColor: '#000',
@@ -79,6 +59,17 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84
+  },
+  image: {
+    backgroundColor: '#0084ff',
+    height: 25,
+    width: 38
+  },
+  title: {
+    color: 'black',
+    fontFamily: 'Averta-Semibold',
+    fontSize: 16,
+    marginTop: 14
   }
 });
 
