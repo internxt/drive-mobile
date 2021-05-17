@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { StyleSheet, Image, ActivityIndicator, View, Platform, Dimensions } from 'react-native';
+import { StyleSheet, Image, ActivityIndicator, View, Platform } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import PhotoBadge from './PhotoBadge';
 import { cachePicture, downloadPhoto, IHashedPhoto } from '../../screens/Photos/init';
@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
 import RNFS from 'react-native-fs'
 import { tailwind } from '../../tailwind'
+import { DEVICE_WIDTH } from '../../screens/PhotoGallery';
 
 interface PhotoProps {
   badge?: JSX.Element
@@ -15,9 +16,6 @@ interface PhotoProps {
   pushDownloadedPhoto?: (downloadedPhoto: IHashedPhoto) => void
   photoSelection?: boolean
 }
-
-export const DEVICE_WIDTH = Dimensions.get('window').width
-export const DEVICE_HEIGHT = Dimensions.get('window').height
 
 export default function Photo(props: PhotoProps): JSX.Element {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -44,7 +42,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
         }
 
         SimpleToast.show('Image downloaded!', 0.15)
-      }).catch(() => {
+      }).catch(err => {
         SimpleToast.show('Could not download image', 0.15)
       }).finally(() => setIsDownloading(false))
     } else {
@@ -79,14 +77,14 @@ export default function Photo(props: PhotoProps): JSX.Element {
           />
         </View>
 
-        {!isLoaded || isDownloading ?
+        {!isLoaded ?
           <ActivityIndicator color='gray' size='small' style={tailwind('absolute')} />
           :
           props.badge ||
           <PhotoBadge
             isUploaded={item.isUploaded}
             isLocal={item.isLocal}
-            isDownloading={item.isDownloading}
+            isDownloading={isDownloading}
             isUploading={item.isUploading}
             isSelected={isSelected}
           />

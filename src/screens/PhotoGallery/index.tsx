@@ -2,29 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { FlatList, SafeAreaView, Text, View, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import '../../../assets/icons/icon-back.png';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { WaveIndicator } from 'react-native-indicators';
+import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { getPreviews, IHashedPhoto } from '../Photos/init';
-import strings from '../../../assets/lang/strings';
 import Photo from '../../components/PhotoList/Photo';
 import { IPhotosToRender } from '../Photos';
 import { layoutActions, PhotoActions } from '../../redux/actions';
-import { tailwind } from '../../tailwind'
-import Syncing from '../../../assets/icons/photos/syncing.svg'
-import CloudUploadBlue from '../../../assets/icons/photos/cloud-upload-blue.svg'
-import CloudUploadGray from '../../../assets/icons/photos/cloud-upload-gray.svg'
-import CloudDownloadBlue from '../../../assets/icons/photos/cloud-download-blue.svg'
-import CloudDownloadGray from '../../../assets/icons/photos/cloud-download-gray.svg'
-import FolderWithCrossBlue from '../../../assets/icons/photos/folder-with-cross-blue.svg'
-import FolderWithCrossGray from '../../../assets/icons/photos/folder-with-cross-gray.svg'
-import TwoDotsBlue from '../../../assets/icons/photos/two-dots-blue.svg'
+import { tailwind, getColor } from '../../tailwind'
 import HomeBlue from '../../../assets/icons/photos/home-blue.svg'
 import FolderBlue from '../../../assets/icons/photos/folder-blue.svg'
 import LensThinBlue from '../../../assets/icons/photos/lens-thin-blue.svg'
+import Lens from '../../../assets/icons/photos/lens.svg';
 import SquareWithCrossBlue from '../../../assets/icons/photos/square-with-cross-blue.svg'
 import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
 import CreateAlbumModal from '../../modals/CreateAlbumModal';
 import SelectPhotosModal from '../../modals/CreateAlbumModal/SelectPhotosModal';
+import FilterButton from './FilterButton';
+import Header from './Header';
+import AlbumCard from '../../components/AlbumCard';
 
 interface PhotoGalleryProps {
   navigation: any
@@ -33,13 +27,16 @@ interface PhotoGalleryProps {
   isSyncing: boolean
 }
 
-const DEVICE_HEIGHT = Dimensions.get('window').height
+export const DEVICE_WIDTH = Dimensions.get('window').width
+export const DEVICE_HEIGHT = Dimensions.get('window').height
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [photosToRender, setPhotosToRender] = useState<IHashedPhoto[]>(props.photosToRender.photos)
   const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<IHashedPhoto[]>(props.photosToRender.photos)
   const [downloadedPhoto, setDownloadedPhoto] = useState<any>()
   const [selectedFilter, setSelectedFilter] = useState('none')
+  const [headerTitle, setHeaderTitle] = useState('INTERNXT PHOTOS')
+  const [searchString, setSearchString] = useState('')
 
   const loadUploadedPhotos = async () => {
     let finished = false
@@ -63,6 +60,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   const selectFilter = (filterName: string) => {
     selectedFilter === filterName ? setSelectedFilter('none') : setSelectedFilter(filterName)
+
     const photos = photosToRender.slice()
     let newPhotosToRender
 
@@ -77,10 +75,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
       return setFilteredPhotosToRender(newPhotosToRender)
 
+      // if clicked on the same filter restore array
     case filterName === selectedFilter:
       return setFilteredPhotosToRender(photos)
     }
-
   }
 
   useEffect(() => {
@@ -130,110 +128,88 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
       <View style={tailwind('px-5')}>
         <SafeAreaView style={tailwind('h-full')}>
-          <View style={tailwind('flex-col')}>
-            <View style={tailwind('flex-row')}>
-              <View style={tailwind('w-1/5')}></View>
+          <Header title={headerTitle} />
 
-              <Text style={tailwind('w-3/5 text-center text-xl text-gray-80 font-averta-regular')}>
-                {strings.screens.photos.screens.photo_gallery.title}
-              </Text>
+          {headerTitle === 'INTERNXT PHOTOS' ?
+            <View style={tailwind('flex-row mt-3 items-center justify-center')}>
+              <FilterButton width='w-1/3' corners='rounded-l' text='Download' filter='download' selectFilter={selectFilter} activeFilter={selectedFilter} />
+              <FilterButton width='w-4/10' corners='' text='Upload pending' filter='upload' selectFilter={selectFilter} activeFilter={selectedFilter} />
+              <FilterButton width='w-3/10' corners='rounded-r' text='Albums' filter='albums' selectFilter={selectFilter} activeFilter={selectedFilter} />
+            </View>
+            :
+            <View style={tailwind('flex-row mt-3 items-center justify-center')}>
+              <View style={tailwind('w-1/10 h-8 items-center justify-center bg-white rounded-l-md')}>
+                <Lens width={19} height={19} />
+              </View>
 
-              <View style={tailwind('flex-row w-1/5 justify-end')}>
-                <View style={tailwind('items-center justify-center mb-1')}>
-                  <Syncing width={17} height={17} />
-                </View>
+              <View style={tailwind('w-7/12 h-8 ml-px mr-1')}>
+                <TextInput
+                  style={tailwind('w-full h-full bg-white text-sm font-averta-regular pl-2 pb-1')}
+                  placeholderTextColor={getColor('gray-30')}
+                  placeholder='Search a memory'
+                  onChangeText={value => setSearchString(value)}
+                  value={searchString}
+                  autoCapitalize='none'
+                  autoCorrect={false}
+                />
+              </View>
 
-                <View style={tailwind('bg-white h-6 w-6 rounded-sm items-center justify-center ml-2')}>
-                  <CloudUploadBlue width={20} height={15} />
-                </View>
-
-                <View style={tailwind('bg-white h-6 w-6 rounded-sm items-center justify-center ml-1')}>
-                  <TwoDotsBlue width={20} height={13} />
-                </View>
+              <View style={tailwind('w-1/3')}>
+                <TouchableOpacity style={tailwind('flex-row h-8 px-2 bg-blue-60 rounded-r-md items-center justify-around')}
+                  onPress={() => props.dispatch(layoutActions.openCreateAlbumModal())}
+                >
+                  <CrossWhite width={10} height={10} />
+                  <Text style={tailwind('text-white font-averta-regular text-sm')}>Add album</Text>
+                </TouchableOpacity>
               </View>
             </View>
-
-            <View style={tailwind('flex-row h-6 mt-1 items-center justify-center')}>
-              {selectedFilter === 'download' ?
-                <View style={tailwind('w-1/3')}>
-                  <TouchableOpacity style={tailwind('flex-row rounded-l bg-white items-center justify-center ml-px mr-px')}
-                    onPress={() => selectFilter('download')}
-                  >
-                    <CloudDownloadBlue width={15} height={15} />
-                    <Text style={tailwind('text-xs text-blue-60 font-averta-light ml-2')}>Download</Text>
-                  </TouchableOpacity>
-                </View>
-                :
-                <View style={tailwind('w-1/3')}>
-                  <TouchableOpacity style={tailwind('flex-row rounded-l bg-white items-center justify-center ml-px mr-px')}
-                    onPress={() => selectFilter('download')}
-                  >
-                    <CloudDownloadGray width={15} height={15} />
-                    <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-2')}>Download</Text>
-                  </TouchableOpacity>
-                </View>
-              }
-
-              {selectedFilter === 'upload' ?
-                <View style={tailwind('w-4/10')}>
-                  <TouchableOpacity style={tailwind('flex-row bg-white items-center justify-center ml-px mr-px')}
-                    onPress={() => selectFilter('upload')}
-                  >
-                    <CloudUploadBlue width={15} height={15} />
-                    <Text style={tailwind('text-xs text-blue-60 font-averta-light ml-2')}>Upload pending</Text>
-                  </TouchableOpacity>
-                </View>
-                :
-                <View style={tailwind('w-4/10')}>
-                  <TouchableOpacity style={tailwind('flex-row bg-white items-center justify-center ml-px mr-px')}
-                    onPress={() => selectFilter('upload')}
-                  >
-                    <CloudUploadGray width={15} height={15} />
-                    <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-2')}>Upload pending</Text>
-                  </TouchableOpacity>
-                </View>
-              }
-
-              {selectedFilter === 'albums' ?
-                <View style={tailwind('w-1/4')}>
-                  <TouchableOpacity style={tailwind('flex-row rounded-r bg-white items-center justify-center ml-px mr-px')}
-                    onPress={() => selectFilter('albums')}
-                  >
-                    <FolderWithCrossBlue width={15} height={14} />
-                    <Text style={tailwind('text-xs text-blue-60 font-averta-light ml-2')}>Album</Text>
-                  </TouchableOpacity>
-                </View>
-                :
-                <View style={tailwind('w-1/4')}>
-                  <TouchableOpacity style={tailwind('flex-row rounded-r bg-white items-center justify-center ml-px mr-px')}
-                    onPress={() => selectFilter('albums')}
-                  >
-                    <FolderWithCrossGray width={15} height={14} />
-                    <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-2')}>Album</Text>
-                  </TouchableOpacity>
-                </View>
-              }
-            </View>
-          </View>
+          }
 
           {
-            photosToRender.length ?
+            headerTitle === 'INTERNXT PHOTOS' && photosToRender.length ?
               <FlatList
                 data={filteredPhotosToRender}
                 numColumns={3}
                 keyExtractor={item => item.hash}
                 renderItem={({ item }) => <Photo item={item} key={item.hash} pushDownloadedPhoto={pushDownloadedPhoto} />}
-                style={[tailwind('mt-2'), { height: DEVICE_HEIGHT * 0.8 }]}
+                style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
               />
               :
-              <WaveIndicator color="#5291ff" size={50} />
+              <FlatList
+                data={[1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, 12, 13, 14, 15, 16, 17]}
+                numColumns={3}
+                //keyExtractor={item => item.hash}
+                renderItem={({ item }) => <AlbumCard item={item} key={item} />}
+                style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+              />
           }
 
-          <View style={tailwind('flex-row h-12 justify-between items-center mt-6 pl-2')}>
-            <HomeBlue width={20} height={20} />
-            <FolderBlue width={20} height={20} />
-            <LensThinBlue width={20} height={20} />
-            <SquareWithCrossBlue width={20} height={20} />
+          <View style={tailwind('flex-row h-12 justify-between items-center my-3 pl-2')}>
+            <TouchableOpacity style={tailwind('w-10 h-10 items-center justify-center')}
+              onPress={() => {
+                setHeaderTitle('INTERNXT PHOTOS')
+              }}
+            >
+              <HomeBlue width={20} height={20} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={tailwind('w-10 h-10 items-center justify-center')}
+              onPress={() => {
+                setHeaderTitle('Albums')
+              }}
+            >
+              <FolderBlue width={20} height={20} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={tailwind('w-10 h-10 items-center justify-center')}
+            >
+              <LensThinBlue width={20} height={20} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={tailwind('w-10 h-10 items-center justify-center')}
+            >
+              <SquareWithCrossBlue width={20} height={20} />
+            </TouchableOpacity>
 
             <TouchableOpacity style={tailwind('flex-row h-6 w-20 px-2 bg-blue-60 rounded-xl items-center justify-between')}
               onPress={() => props.dispatch(layoutActions.openCreateAlbumModal())}

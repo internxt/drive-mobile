@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Image, Text, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { Dispatch } from 'redux';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { PhotosState } from '../../redux/reducers/photos.reducer';
-import { IAlbum, IAlbumPhoto } from '../../screens/CreateAlbum';
+import { IAlbum } from '../../screens/CreateAlbum';
+import { DEVICE_WIDTH } from '../../screens/PhotoGallery';
+import { tailwind } from '../../tailwind'
+import img from '../../../assets/images/img.jpg'
 
 export interface AlbumProps {
   navigation: any
@@ -12,11 +15,12 @@ export interface AlbumProps {
   dispatch?: Dispatch
   authenticationState?: AuthenticationState
   album: IAlbum
+  item: number
 }
 
 export function AlbumCard(props: AlbumProps): JSX.Element {
-  const photos = props.album.photos
-  const bigImg = photos[0]
+  const item = props.item
+  /* const bigImg = photos[0]
   const [albumCoverPhotos, setAlbumCoverPhotos] = useState<IAlbumPhoto[]>([])
   const [secondaryPhotos, setSecondaryPhotos] = useState<IAlbumPhoto[]>()
 
@@ -41,9 +45,36 @@ export function AlbumCard(props: AlbumProps): JSX.Element {
       setSecondaryPhotos(otherPhotos)
     }
   }, [])
+ */
+  const [isLoaded, setIsLoaded] = useState(false);
 
   return (
-    <TouchableOpacity
+    <TouchableOpacity onPress={() => { }}>
+      <View style={{ width: (DEVICE_WIDTH - 40) / 3, height: (DEVICE_WIDTH + 10) / 3 }}>
+        <View style={tailwind('m-0.5')}>
+          <Image
+            onLoadEnd={() => setIsLoaded(true)}
+            style={tailwind('self-center rounded-md w-full h-24')}
+            resizeMode='cover'
+            source={img}
+          />
+        </View>
+
+        {!isLoaded ?
+          <ActivityIndicator color='gray' size='small' style={tailwind('absolute')} />
+          : null
+        }
+
+        <Text numberOfLines={1} style={tailwind('font-averta-semibold text-gray-80 text-sm -mb-1 ml-1')}>
+          Photos main
+        </Text>
+
+        <Text numberOfLines={1} style={tailwind('font-averta-regular text-gray-50 text-sm ml-1')} >
+          12.350 photos
+        </Text>
+      </View>
+    </TouchableOpacity>
+    /* <TouchableOpacity
       onPress={() => {
         //props.navigation.push('AlbumView')
       }}
@@ -87,10 +118,10 @@ export function AlbumCard(props: AlbumProps): JSX.Element {
         <Text style={styles.albumTitle}>{props.album.name}</Text>
         <Text style={styles.albumSubtitle}>{props.album.photos.length} photos</Text>
       </View>
-    </TouchableOpacity>
+    </TouchableOpacity> */
   )
 }
-
+/*
 const styles = StyleSheet.create({
   albumCover: {
   },
@@ -154,6 +185,6 @@ const styles = StyleSheet.create({
   photoGrid: {
     flex: 1
   }
-});
+}); */
 
 export default AlbumCard;
