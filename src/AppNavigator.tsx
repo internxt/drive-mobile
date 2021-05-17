@@ -2,7 +2,6 @@ import React from 'react'
 import { createAppContainer, CreateNavigatorConfig, NavigationParams, NavigationRoute, NavigationRouteConfigMap, NavigationStackRouterConfig, NavigationState } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { StackNavigationConfig, StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
-import { connect } from 'react-redux';
 import analytics from './helpers/lytics';
 import Biometric from './screens/Biometric';
 import CreateFolder from './screens/CreateFolder';
@@ -16,7 +15,6 @@ import Storage from './screens/Storage';
 import StorageWebView from './screens/StorageWebView';
 import Photos from './screens/Photos';
 import PhotoGallery from './screens/PhotoGallery';
-import CreateAlbum from './screens/CreateAlbum';
 import EntryGateway from './screens/EntryGateway';
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, unknown>
@@ -31,7 +29,6 @@ const routeConfig: RouteConfig = {
   PhotoGallery: { screen: PhotoGallery },
   FileExplorer: { screen: FileExplorer },
   Biometric: { screen: Biometric },
-  CreateAlbum: { screen: CreateAlbum },
   CreateFolder: { screen: CreateFolder },
   Forgot: { screen: Forgot },
   OutOfSpace: { screen: OutOfSpace },
