@@ -10,9 +10,10 @@ import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { getRepositories, savePhotosAndPreviews } from '../../database/DBUtils.ts/utils';
-import _ from 'lodash';
+import _, { uniqueId } from 'lodash';
 import CameraRoll from '@react-native-community/cameraroll';
 import PackageJson from '../../../package.json'
+import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -50,23 +51,14 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
   const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview);
   const uploadedHashes = withPreviews.map(x => x.hash);
   const imagesToUpload = images.filter(x => uploadedHashes.indexOf(x.hash) < 0)
-  let last = false;
-  let onePhotoToUpload = false;
 
   // Upload filtered photos
   await mapSeries(imagesToUpload, async (image, next) => {
-    if (!(imagesToUpload[imagesToUpload.length - 1] === imagesToUpload[0])) {
-      if ((imagesToUpload[imagesToUpload.length - 1].id) === image.id) {
-        last = true;
-      }
-    } else {
-      onePhotoToUpload = true;
-    }
-    await uploadPhoto(image, last, onePhotoToUpload, dispatch).then(() => next(null)).catch(() => next(null))
+    await uploadPhoto(image, dispatch).then(() => next(null)).catch(() => next(null))
   })
 }
 
-async function uploadPhoto(photo: IHashedPhoto, last: boolean, onePhotoToUpload: boolean, dispatch: any) {
+async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -553,4 +545,57 @@ export async function initUser(): Promise<void> {
   const infoUserPhoto = await photosUserData();
 
   await deviceStorage.saveItem('xPhotos', JSON.stringify(infoUserPhoto))
+}
+
+export function uploadOnePhoto(photo: IHashedPhoto, dispatch: any) {
+
+  if (!photo) {
+    return;
+  }
+  return uploadPhoto(photo, dispatch)
+}
+
+export async function uploadOnePhotoMedia(dispatch: any) {
+
+  const { status } = await requestMediaLibraryPermissionsAsync()
+
+  if (status === 'granted') {
+    const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All })
+
+    if (!result.cancelled) {
+      const fileUploading: any = result
+
+      // Set name for pics/photos
+      if (!fileUploading.name) {
+        fileUploading.name = result.uri.split('/').pop()
+      }
+      fileUploading.createdAt = new Date()
+      fileUploading.id = uniqueId()
+      return uploadPhoto(fileUploading, dispatch)
+    }
+  } else {
+    return status;
+  }
+}
+
+export async function uploadPhotoFromCamera(dispatch: any) {
+
+  const { status } = await requestMediaLibraryPermissionsAsync()
+
+  if (status === 'granted') {
+    const result = await launchCameraAsync()
+
+    if (!result.cancelled) {
+      const fileUploading: any = result
+
+      // Set name for pics/photos
+      if (!fileUploading.name) {
+        fileUploading.name = result.uri.split('/').pop()
+      }
+      fileUploading.createdAt = new Date()
+      fileUploading.id = uniqueId()
+
+      uploadPhoto(fileUploading, dispatch)
+    }
+  }
 }
