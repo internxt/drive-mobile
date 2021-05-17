@@ -1,5 +1,5 @@
 import { getRepository } from 'typeorm/browser'
-import { deleteAlbumDB, deletePhotoFromAlbumDB, saveAlbumsDB, updateNameAlbumDB } from '../../database/DBUtils.ts/utils'
+import { addPhotoToAlbumDB, deleteAlbumDB, deletePhotoFromAlbumDB, saveAlbumsDB, updateNameAlbumDB } from '../../database/DBUtils.ts/utils'
 import { Photos } from '../../database/models/photos'
 import { Previews } from '../../database/models/previews'
 import { deviceStorage } from '../../helpers'
@@ -12,6 +12,7 @@ export async function getItemsLocalStorage() {
 
   return { xToken, xUserJson }
 }
+
 export async function uploadAlbum(albumTitle: string, selectedPhotos: Previews[]): Promise<void> {
 
   const items = await getItemsLocalStorage()
@@ -40,7 +41,7 @@ export async function uploadAlbum(albumTitle: string, selectedPhotos: Previews[]
     body: JSON.stringify(body)
   }).then(res => {
     if (res.status === 200) {
-      saveAlbumsDB(listphotos, albumTitle)
+      return saveAlbumsDB(listphotos, albumTitle)
     }
     return res.json()
   })
@@ -58,7 +59,7 @@ export async function deleteAlbum(albumId: number): Promise<void> {
     headers: headers
   }).then(res => {
     if (res.status === 204) {
-      deleteAlbumDB(albumId)
+      return deleteAlbumDB(albumId)
     }
     return res.json()
   })
@@ -76,7 +77,7 @@ export async function deletePhotoAlbum(albumId: number, photoId: number): Promis
     headers: headers
   }).then(res => {
     if (res.status === 204) {
-      deletePhotoFromAlbumDB(albumId, photoId)
+      return deletePhotoFromAlbumDB(albumId, photoId)
     }
     return res.json()
   })
@@ -93,6 +94,20 @@ export async function updateNameAlbum(name: string, id: number): Promise<void> {
     if (res.status === 200) {
       return updateNameAlbumDB(id, name)
     }
-    throw Error(res.statusText)
+    return res.json()
+  })
+}
+
+export async function addPhotoToAlbum(albumId: number, photoId: number) {
+  const headers = await getHeaders()
+
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/photos/album/photo/${albumId}/${photoId}`, {
+    method: 'post',
+    headers: headers
+  }).then(res => {
+    if (res.status === 200) {
+      return addPhotoToAlbumDB(albumId, photoId)
+    }
+    return res.json()
   })
 }
