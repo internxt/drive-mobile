@@ -12,8 +12,11 @@ import { layoutActions, PhotoActions } from '../../redux/actions';
 import { tailwind } from '../../tailwind'
 import Syncing from '../../../assets/icons/photos/syncing.svg'
 import CloudUploadBlue from '../../../assets/icons/photos/cloud-upload-blue.svg'
+import CloudUploadGray from '../../../assets/icons/photos/cloud-upload-gray.svg'
+import CloudDownloadBlue from '../../../assets/icons/photos/cloud-download-blue.svg'
 import CloudDownloadGray from '../../../assets/icons/photos/cloud-download-gray.svg'
-import FolderWithCross from '../../../assets/icons/photos/folder-with-cross-gray.svg'
+import FolderWithCrossBlue from '../../../assets/icons/photos/folder-with-cross-blue.svg'
+import FolderWithCrossGray from '../../../assets/icons/photos/folder-with-cross-gray.svg'
 import TwoDotsBlue from '../../../assets/icons/photos/two-dots-blue.svg'
 import HomeBlue from '../../../assets/icons/photos/home-blue.svg'
 import FolderBlue from '../../../assets/icons/photos/folder-blue.svg'
@@ -34,7 +37,9 @@ const DEVICE_HEIGHT = Dimensions.get('window').height
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [photosToRender, setPhotosToRender] = useState<IHashedPhoto[]>(props.photosToRender.photos)
+  const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<IHashedPhoto[]>(props.photosToRender.photos)
   const [downloadedPhoto, setDownloadedPhoto] = useState<any>()
+  const [selectedFilter, setSelectedFilter] = useState('none')
 
   const loadUploadedPhotos = async () => {
     let finished = false
@@ -56,6 +61,28 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   const pushDownloadedPhoto = (photo: IHashedPhoto) => props.dispatch(PhotoActions.pushDownloadedPhoto(photo))
 
+  const selectFilter = (filterName: string) => {
+    selectedFilter === filterName ? setSelectedFilter('none') : setSelectedFilter(filterName)
+    const photos = photosToRender.slice()
+    let newPhotosToRender
+
+    switch (true) {
+    case filterName === 'upload' && (selectedFilter === 'none' || selectedFilter === 'download'):
+      newPhotosToRender = photos.filter(photo => !photo.isUploaded && photo.isLocal)
+
+      return setFilteredPhotosToRender(newPhotosToRender)
+
+    case filterName === 'download' && (selectedFilter === 'none' || selectedFilter === 'upload'):
+      newPhotosToRender = photos.filter(photo => photo.isUploaded && !photo.isLocal)
+
+      return setFilteredPhotosToRender(newPhotosToRender)
+
+    case filterName === selectedFilter:
+      return setFilteredPhotosToRender(photos)
+    }
+
+  }
+
   useEffect(() => {
     const currentPhotos = photosToRender.slice()
     const newPhotos = props.photosToRender.photos
@@ -72,6 +99,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
       }
     })
     setPhotosToRender(currentPhotos)
+    setFilteredPhotosToRender(currentPhotos)
   }, [props.photosToRender.photos])
 
   useEffect(() => {
@@ -102,7 +130,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
       <View style={tailwind('px-5')}>
         <SafeAreaView style={tailwind('h-full')}>
-
           <View style={tailwind('flex-col')}>
             <View style={tailwind('flex-row')}>
               <View style={tailwind('w-1/5')}></View>
@@ -126,28 +153,73 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
               </View>
             </View>
 
-            <View style={tailwind('flex-row h-6 mt-1')}>
-              <View style={tailwind('flex-row w-1/3 bg-white rounded-l-md items-center justify-center')}>
-                <CloudDownloadGray width={15} height={15} />
-                <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-2')}>Download</Text>
-              </View>
+            <View style={tailwind('flex-row h-6 mt-1 items-center justify-center')}>
+              {selectedFilter === 'download' ?
+                <View style={tailwind('w-1/3')}>
+                  <TouchableOpacity style={tailwind('flex-row rounded-l bg-white items-center justify-center ml-px mr-px')}
+                    onPress={() => selectFilter('download')}
+                  >
+                    <CloudDownloadBlue width={15} height={15} />
+                    <Text style={tailwind('text-xs text-blue-60 font-averta-light ml-2')}>Download</Text>
+                  </TouchableOpacity>
+                </View>
+                :
+                <View style={tailwind('w-1/3')}>
+                  <TouchableOpacity style={tailwind('flex-row rounded-l bg-white items-center justify-center ml-px mr-px')}
+                    onPress={() => selectFilter('download')}
+                  >
+                    <CloudDownloadGray width={15} height={15} />
+                    <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-2')}>Download</Text>
+                  </TouchableOpacity>
+                </View>
+              }
 
-              <View style={tailwind('flex-row w-1/3 bg-white items-center justify-center ml-px mr-px')}>
-                <CloudUploadBlue width={15} height={15} />
-                <Text style={tailwind('text-xs text-blue-60 font-averta-light ml-2')}>Upload pending</Text>
-              </View>
+              {selectedFilter === 'upload' ?
+                <View style={tailwind('w-4/10')}>
+                  <TouchableOpacity style={tailwind('flex-row bg-white items-center justify-center ml-px mr-px')}
+                    onPress={() => selectFilter('upload')}
+                  >
+                    <CloudUploadBlue width={15} height={15} />
+                    <Text style={tailwind('text-xs text-blue-60 font-averta-light ml-2')}>Upload pending</Text>
+                  </TouchableOpacity>
+                </View>
+                :
+                <View style={tailwind('w-4/10')}>
+                  <TouchableOpacity style={tailwind('flex-row bg-white items-center justify-center ml-px mr-px')}
+                    onPress={() => selectFilter('upload')}
+                  >
+                    <CloudUploadGray width={15} height={15} />
+                    <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-2')}>Upload pending</Text>
+                  </TouchableOpacity>
+                </View>
+              }
 
-              <View style={tailwind('flex-row w-1/3 bg-white rounded-r-md items-center justify-center')}>
-                <FolderWithCross width={15} height={14} />
-                <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-1')}>Album</Text>
-              </View>
+              {selectedFilter === 'albums' ?
+                <View style={tailwind('w-1/4')}>
+                  <TouchableOpacity style={tailwind('flex-row rounded-r bg-white items-center justify-center ml-px mr-px')}
+                    onPress={() => selectFilter('albums')}
+                  >
+                    <FolderWithCrossBlue width={15} height={14} />
+                    <Text style={tailwind('text-xs text-blue-60 font-averta-light ml-2')}>Album</Text>
+                  </TouchableOpacity>
+                </View>
+                :
+                <View style={tailwind('w-1/4')}>
+                  <TouchableOpacity style={tailwind('flex-row rounded-r bg-white items-center justify-center ml-px mr-px')}
+                    onPress={() => selectFilter('albums')}
+                  >
+                    <FolderWithCrossGray width={15} height={14} />
+                    <Text style={tailwind('text-xs text-gray-80 font-averta-light ml-2')}>Album</Text>
+                  </TouchableOpacity>
+                </View>
+              }
             </View>
           </View>
 
           {
             photosToRender.length ?
               <FlatList
-                data={photosToRender}
+                data={filteredPhotosToRender}
                 numColumns={3}
                 keyExtractor={item => item.hash}
                 renderItem={({ item }) => <Photo item={item} key={item.hash} pushDownloadedPhoto={pushDownloadedPhoto} />}

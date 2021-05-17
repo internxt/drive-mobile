@@ -1,13 +1,12 @@
 import React, { useState } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { StyleSheet, Image, ActivityIndicator, View, Platform } from 'react-native';
+import { StyleSheet, Image, ActivityIndicator, View, Platform, Dimensions } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import PhotoBadge from './PhotoBadge';
 import { cachePicture, downloadPhoto, IHashedPhoto } from '../../screens/Photos/init';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
 import RNFS from 'react-native-fs'
-import { DEVICE_WIDTH } from '../../../App';
 import { tailwind } from '../../tailwind'
 
 interface PhotoProps {
@@ -16,6 +15,9 @@ interface PhotoProps {
   pushDownloadedPhoto?: (downloadedPhoto: IHashedPhoto) => void
   photoSelection?: boolean
 }
+
+export const DEVICE_WIDTH = Dimensions.get('window').width
+export const DEVICE_HEIGHT = Dimensions.get('window').height
 
 export default function Photo(props: PhotoProps): JSX.Element {
   const [isLoaded, setIsLoaded] = useState(false);
