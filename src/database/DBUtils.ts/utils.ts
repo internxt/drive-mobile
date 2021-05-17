@@ -169,7 +169,7 @@ export async function deleteAlbum(id: number) {
   const photoAlbumsRepository = getRepository(PhotoAlbums);
   const userId = getUserId()
 
-  const albums = await albumsRepository.find(({
+  const albums = await albumsRepository.findOne(({
     where: {
       userId: userId,
       id: id
@@ -197,7 +197,7 @@ export async function deleteAlbum(id: number) {
 export async function deletePhotoFromAlbum(albumId: number, photoId: number) {
   const photoAlbumsRepository = getRepository(PhotoAlbums);
 
-  const photosAlbums = await photoAlbumsRepository.find(({
+  const photosAlbums = await photoAlbumsRepository.findOne(({
     where: {
       albumId: albumId,
       photoId: photoId
@@ -228,4 +228,19 @@ export async function addPhotoToAlbum(albumId: number, photoId: number) {
   await photoAlbumsRepository.save(newPhotoToAlbum);
 
   await photoAlbumsRepository.find({})
+}
+
+export async function updateNameAlbum(albumId: number, name: string) {
+  const albumsRepository = getRepository(Albums);
+
+  const albums = await albumsRepository.findOne(({
+    where: {
+      albumId: albumId
+    }
+  }))
+
+  albums.name = name;
+  await albumsRepository.save(albums);
+
+  return albums;
 }

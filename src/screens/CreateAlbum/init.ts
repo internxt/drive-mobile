@@ -63,3 +63,18 @@ export async function deleteAlbum(albumId: number): Promise<void> {
     return res.json()
   })
 }
+
+export async function updateNameAlbum(name: string, id: number): Promise<void> {
+  const headers = await getHeaders()
+
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/photos/album/metadata/${id}`, {
+    method: 'post',
+    headers: headers,
+    body: JSON.stringify({ name })
+  }).then(res => {
+    if (res.status === 200) {
+      return updateNameAlbum(name, id)
+    }
+    throw Error(res.statusText)
+  })
+}
