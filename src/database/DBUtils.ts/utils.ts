@@ -21,7 +21,7 @@ export async function getUserId() {
   return user;
 }
 
-export async function getRepositories(): Promise<Repositories> {
+export async function getRepositoriesDB(): Promise<Repositories> {
   const userId = await getUserId()
 
   const photosRepository = getRepository(Photos);
@@ -55,7 +55,7 @@ export async function getRepositories(): Promise<Repositories> {
   return { photos, previews, albums, albumsWithPreviews }
 }
 
-export async function savePhotosAndPreviews(photo: any, path: string, dispatch: any) {
+export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch: any) {
   dispatch(PhotoActions.viewDB())
 
   const userId = await getUserId()
@@ -127,7 +127,7 @@ export async function savePhotosAndPreviews(photo: any, path: string, dispatch: 
   })
 }
 
-export async function saveAlbums(listPhotos: Previews[], name: string) {
+export async function saveAlbumsDB(listPhotos: Previews[], name: string) {
   const userId = await getUserId()
 
   const albumRepository = getRepository(Albums);
@@ -164,7 +164,7 @@ export async function saveAlbums(listPhotos: Previews[], name: string) {
   await albumPhotosRepository.find({})
 }
 
-export async function deleteAlbum(id: number) {
+export async function deleteAlbumDB(id: number) {
   const albumsRepository = getRepository(Albums);
   const photoAlbumsRepository = getRepository(PhotoAlbums);
   const userId = getUserId()
@@ -189,12 +189,9 @@ export async function deleteAlbum(id: number) {
   const removePhotosAlbums = await photoAlbumsRepository.remove(photosAlbums)
 
   await photoAlbumsRepository.find({})
-
-  return { removeAlbum, removePhotosAlbums }
-
 }
 
-export async function deletePhotoFromAlbum(albumId: number, photoId: number) {
+export async function deletePhotoFromAlbumDB(albumId: number, photoId: number) {
   const photoAlbumsRepository = getRepository(PhotoAlbums);
 
   const photosAlbums = await photoAlbumsRepository.findOne(({
@@ -207,11 +204,9 @@ export async function deletePhotoFromAlbum(albumId: number, photoId: number) {
   const removePhoto = await photoAlbumsRepository.remove(photosAlbums)
 
   await photoAlbumsRepository.find({})
-
-  return removePhoto
 }
 
-export async function addPhotoToAlbum(albumId: number, photoId: number) {
+export async function addPhotoToAlbumDB(albumId: number, photoId: number) {
   const photoAlbumsRepository = getRepository(PhotoAlbums);
 
   await photoAlbumsRepository.find(({
@@ -230,7 +225,7 @@ export async function addPhotoToAlbum(albumId: number, photoId: number) {
   await photoAlbumsRepository.find({})
 }
 
-export async function updateNameAlbum(albumId: number, name: string) {
+export async function updateNameAlbumDB(albumId: number, name: string) {
   const albumsRepository = getRepository(Albums);
 
   const albums = await albumsRepository.findOne(({
@@ -241,6 +236,4 @@ export async function updateNameAlbum(albumId: number, name: string) {
 
   albums.name = name;
   await albumsRepository.save(albums);
-
-  return albums;
 }

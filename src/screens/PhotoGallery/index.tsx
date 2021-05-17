@@ -13,7 +13,7 @@ import { MaterialIndicator } from 'react-native-indicators';
 import { getLocalImages, getPreviewsUploaded, IHashedPhoto, initUser, LocalImages, stopSync, syncPhotos } from '../Photos/init';
 import strings from '../../../assets/lang/strings';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
-import { getRepositories } from '../../database/DBUtils.ts/utils';
+import { getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { Previews } from '../../database/models/previews';
 import { PhotoActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
@@ -107,7 +107,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   }, [props.loggedIn])
 
   const startGettingRepositories = () => {
-    return getRepositories().then((res) => {
+    return getRepositoriesDB().then((res) => {
       props.dispatch(PhotoActions.viewDB())
       setUploadedPreviews(res.previews)
       return res;
@@ -184,7 +184,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   //USE EFFECT TO LISTEN DB CHANGES
   useEffect(() => {
     if (props.isSaveDB) {
-      getRepositories().then((res) => {
+      getRepositoriesDB().then((res) => {
         setPhotosToRender(prevPhotos => [...prevPhotos, res.previews])
         props.dispatch(PhotoActions.viewDB())
         checkPhotosDB(res.previews)

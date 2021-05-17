@@ -9,7 +9,7 @@ import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
-import { getRepositories, savePhotosAndPreviews } from '../../database/DBUtils.ts/utils';
+import { getRepositoriesDB, savePhotosAndPreviewsDB } from '../../database/DBUtils.ts/utils';
 import _, { uniqueId } from 'lodash';
 import CameraRoll from '@react-native-community/cameraroll';
 import PackageJson from '../../../package.json'
@@ -427,7 +427,7 @@ export async function getPreviewsUploaded(dispatch: any): Promise<any> {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }
-      const listPhotosOnDB = await getRepositories()
+      const listPhotosOnDB = await getRepositoriesDB()
       const photos = listPhotosOnDB.previews
 
       photos.forEach((res) => {
@@ -442,7 +442,7 @@ export async function getPreviewsUploaded(dispatch: any): Promise<any> {
       return downloadPreview(preview.preview, preview).then((res1) => {
         if (res1) {
           // eslint-disable-next-line no-console
-          savePhotosAndPreviews(preview, res1, dispatch).then().catch((err) => { console.error('ERR save photos on DB', err) })
+          savePhotosAndPreviewsDB(preview, res1, dispatch).then().catch((err) => { console.error('ERR save photos on DB', err) })
         }
         next(null, res1)
       });
@@ -461,7 +461,7 @@ export async function getPreviewAfterUpload(preview: any, dispatch: any, photo: 
       }
 
       // eslint-disable-next-line no-console
-      savePhotosAndPreviews(photos, res1, dispatch).then().catch((err) => { console.error('ERR save photos on DB', err) })
+      savePhotosAndPreviewsDB(photos, res1, dispatch).then().catch((err) => { console.error('ERR save photos on DB', err) })
     }
 
   });

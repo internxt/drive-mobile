@@ -1,5 +1,5 @@
 import { getRepository } from 'typeorm/browser'
-import { saveAlbums } from '../../database/DBUtils.ts/utils'
+import { deleteAlbumDB, deletePhotoFromAlbumDB, saveAlbumsDB, updateNameAlbumDB } from '../../database/DBUtils.ts/utils'
 import { Photos } from '../../database/models/photos'
 import { Previews } from '../../database/models/previews'
 import { deviceStorage } from '../../helpers'
@@ -40,7 +40,7 @@ export async function uploadAlbum(albumTitle: string, selectedPhotos: Previews[]
     body: JSON.stringify(body)
   }).then(res => {
     if (res.status === 200) {
-      saveAlbums(listphotos, albumTitle)
+      saveAlbumsDB(listphotos, albumTitle)
     }
     return res.json()
   })
@@ -58,25 +58,25 @@ export async function deleteAlbum(albumId: number): Promise<void> {
     headers: headers
   }).then(res => {
     if (res.status === 204) {
-      deleteAlbum(albumId)
+      deleteAlbumDB(albumId)
     }
     return res.json()
   })
 }
 
-export async function deletePhotoAlbum(albumId: number): Promise<void> {
+export async function deletePhotoAlbum(albumId: number, photoId: number): Promise<void> {
 
   const items = await getItemsLocalStorage()
   const mnemonic = items.xUserJson.mnemonic
   const xToken = items.xToken
   const headers = await getHeaders(xToken, mnemonic)
 
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/delete/album/${albumId}`, {
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/delete/album/${albumId}/${photoId}`, {
     method: 'DELETE',
     headers: headers
   }).then(res => {
     if (res.status === 204) {
-      deletePhotoAlbum(albumId)
+      deletePhotoFromAlbumDB(albumId, photoId)
     }
     return res.json()
   })
@@ -91,7 +91,7 @@ export async function updateNameAlbum(name: string, id: number): Promise<void> {
     body: JSON.stringify({ name })
   }).then(res => {
     if (res.status === 200) {
-      return updateNameAlbum(name, id)
+      return updateNameAlbumDB(id, name)
     }
     throw Error(res.statusText)
   })
