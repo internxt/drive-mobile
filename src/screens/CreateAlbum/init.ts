@@ -72,7 +72,7 @@ export async function deletePhotoAlbum(albumId: number, photoId: number): Promis
   const xToken = items.xToken
   const headers = await getHeaders(xToken, mnemonic)
 
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/delete/album/${albumId}/${photoId}`, {
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/delete/photo/album/${albumId}/${photoId}`, {
     method: 'DELETE',
     headers: headers
   }).then(res => {
