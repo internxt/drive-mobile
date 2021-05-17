@@ -45,3 +45,21 @@ export async function uploadAlbum(albumTitle: string, selectedPhotos: Previews[]
     return res.json()
   })
 }
+
+export async function deleteAlbum(albumId: number): Promise<void> {
+
+  const items = await getItemsLocalStorage()
+  const mnemonic = items.xUserJson.mnemonic
+  const xToken = items.xToken
+  const headers = await getHeaders(xToken, mnemonic)
+
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/delete/album/${albumId}`, {
+    method: 'DELETE',
+    headers: headers
+  }).then(res => {
+    if (res.status === 204) {
+      deleteAlbum(albumId)
+    }
+    return res.json()
+  })
+}
