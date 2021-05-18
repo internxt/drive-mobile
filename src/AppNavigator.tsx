@@ -13,7 +13,6 @@ import Forgot from './screens/Forgot';
 import OutOfSpace from './screens/OutOfSpace';
 import Storage from './screens/Storage';
 import StorageWebView from './screens/StorageWebView';
-import Photos from './screens/Photos';
 import PhotoGallery from './screens/PhotoGallery';
 import EntryGateway from './screens/EntryGateway';
 
@@ -25,7 +24,6 @@ const routeConfig: RouteConfig = {
   Register: { screen: Register },
   Login: { screen: Login },
   Intro: { screen: Intro },
-  Photos: { screen: Photos },
   PhotoGallery: { screen: PhotoGallery },
   FileExplorer: { screen: FileExplorer },
   Biometric: { screen: Biometric },

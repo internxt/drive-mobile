@@ -9,16 +9,17 @@ import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
-import { SetStateAction } from 'react';
+import { getRepositoriesDB, savePhotosAndPreviewsDB } from '../../database/DBUtils.ts/utils';
+import _, { uniqueId } from 'lodash';
+import CameraRoll from '@react-native-community/cameraroll';
 import PackageJson from '../../../package.json'
+import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
   localUri: string | undefined
   isUploaded: boolean
   isLocal: boolean
-  isDownloading: boolean
-  isUploading: boolean
 }
 
 const getArrayPhotos = async (images: Asset[]) => {
@@ -29,58 +30,35 @@ const getArrayPhotos = async (images: Asset[]) => {
     if (!asset.localUri) {
       return next(Error('Missing localUri'));
     }
-    if (Platform.OS === 'ios') {
-      const p = await manipulateAsync(asset.localUri,
-        [],
-        { compress: 1, format: SaveFormat.PNG }
-      )
 
-      const sha256Id = await RNFS.hash(p.uri, 'sha256')
-      const hashedImage = {
-        ...image,
-        hash: sha256Id,
-        localUri: asset.localUri
-      }
-
-      next(null, hashedImage)
-    } else {
-      const sha256Id = await RNFS.hash(asset.uri, 'sha256')
-      const hashedImage = {
-        ...image,
-        hash: sha256Id,
-        localUri: asset.localUri
-      }
-
-      next(null, hashedImage)
+    const sha256Id = await RNFS.hash(asset.localUri, 'sha256')
+    const hashedImage = {
+      ...image,
+      hash: sha256Id,
+      localUri: asset.localUri
     }
-  })
+
+    next(null, hashedImage)
+
+  });
 
   return result;
 }
 
-export async function syncPhotos(images: IHashedPhoto[]): Promise<void> {
+export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<void> {
   // Skip uploaded photos with previews
   const alreadyUploadedPhotos = await getUploadedPhotos();
   const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview);
   const uploadedHashes = withPreviews.map(x => x.hash);
   const imagesToUpload = images.filter(x => uploadedHashes.indexOf(x.hash) < 0)
-  let last = false;
-  let onePhotoToUpload = false;
 
   // Upload filtered photos
   await mapSeries(imagesToUpload, async (image, next) => {
-    if (!(imagesToUpload[imagesToUpload.length - 1] === imagesToUpload[0])) {
-      if ((imagesToUpload[imagesToUpload.length - 1].id) === image.id) {
-        last = true;
-      }
-    } else {
-      onePhotoToUpload = true;
-    }
-    await uploadPhoto(image, last, onePhotoToUpload).then(() => next(null)).catch(() => next(null))
+    await uploadPhoto(image, dispatch).then(() => next(null)).catch(() => next(null))
   })
 }
 
-async function uploadPhoto(photo: IHashedPhoto, last: boolean, onePhotoToUpload: boolean) {
+async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -117,6 +95,7 @@ async function uploadPhoto(photo: IHashedPhoto, last: boolean, onePhotoToUpload:
       { name: 'creationTime', data: creationTime }
     ])
     .then((res) => {
+
       const statusCode = res.respInfo.status;
 
       if (statusCode === 401) {
@@ -125,12 +104,14 @@ async function uploadPhoto(photo: IHashedPhoto, last: boolean, onePhotoToUpload:
       if (statusCode === 201) {
         return res.json();
       }
-      throw res
+      return res
     })
     .then(async res => {
+
       if (!res.id) {
         return;
       }
+
       // Create photo preview and store on device
       const prev = await manipulateAsync(
         photo.uri,
@@ -138,11 +119,11 @@ async function uploadPhoto(photo: IHashedPhoto, last: boolean, onePhotoToUpload:
         { compress: 1, format: SaveFormat.JPEG }
       )
 
-      return uploadPreview(prev, res.id, photo);
+      return uploadPreview(prev, res.id, photo, dispatch, res);
     })
 }
 
-const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto) => {
+const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, photo: any) => {
 
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
@@ -172,6 +153,9 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
       }
 
       throw res;
+    }).then((res) => {
+      getPreviewAfterUpload(res, dispatch, photo)
+      //getPreviewsUploaded(dispatch)
     })
 }
 
@@ -222,7 +206,7 @@ export async function getPartialUploadedPhotos(matchImages: LocalImages): Promis
   }).catch(() => { })
 }
 
-export async function getPartialRemotePhotos(offset = 0, limit = 20) {
+export async function getPartialRemotePhotos(offset?= 0, limit?= 20) {
   const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/remote/photos/${limit}/${offset}`, {
@@ -247,7 +231,9 @@ export async function getUploadedPhotos(matchImages?: LocalImages): Promise<IApi
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  }).catch(() => { })
+  }).catch((err) => {
+    return err;
+  })
 }
 
 export async function getLocalPreviewsDir(): Promise<string> {
@@ -306,11 +292,9 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
   return RNFetchBlob.config({
     path: `${tempDir}/${photo.id}.${type}`,
     fileCache: true
-  }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/download/photo/${photo.id}`, {
+  }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/download/photo/${photo.photoId}`, {
     'Authorization': `Bearer ${xToken}`,
-    'internxt-mnemonic': xUserJson.mnemonic,
-    'internxt-version': PackageJson.version,
-    'internxt-client': 'drive-mobile'
+    'internxt-mnemonic': xUserJson.mnemonic
   }).progress((received: number, total: number) => {
     setProgress(received / total)
   }).then((res) => {
@@ -320,18 +304,10 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
     }
     return res;
   }).then(async res => {
-    let asset: Asset
 
-    if (Platform.OS === 'ios') {
-      asset = await manipulateAsync(res.path(), [], { compress: 1, format: SaveFormat.PNG }).then(res => MediaLibrary.createAssetAsync(res.uri))
-    } else {
-      asset = await MediaLibrary.createAssetAsync(res.path())
-    }
-    return getArrayPhotos([asset]).then(photos => {
-      const photo: IHashedPhoto = { ...photos[0], isLocal: true, isUploaded: true }
+    await CameraRoll.save(res.path());
+    return res.path();
 
-      return photo
-    })
   })
 }
 
@@ -362,14 +338,63 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
     fileCache: true
   }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
     'Authorization': `Bearer ${xToken}`,
-    'internxt-mnemonic': xUserJson.mnemonic,
-    'internxt-version': PackageJson.version,
-    'internxt-client': 'drive-mobile'
+    'internxt-mnemonic': xUserJson.mnemonic
   }).then((res) => {
     return res.path();
   }).catch(err => {
     RNFS.unlink(tempPath)
     throw err;
+  })
+}
+
+export async function downloadPreviewAfterUpload(preview: any): Promise<any> {
+  if (!preview) {
+    return Promise.resolve();
+  }
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUser = await deviceStorage.getItem('xUser')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const typePreview = preview.type
+  const name = preview.fileId
+
+  const tempDir = await getLocalPreviewsDir()
+  const tempPath = tempDir + '/' + name + '.' + typePreview
+
+  const previewExists = await RNFS.exists(tempPath);
+
+  if (previewExists) {
+    const localPreview = await RNFS.stat(tempPath);
+
+    preview.localUri = localPreview.path;
+    return Promise.resolve(preview.localUri);
+  }
+
+  return RNFetchBlob.config({
+    path: tempPath,
+    fileCache: true
+  }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
+    'Authorization': `Bearer ${xToken}`,
+    'internxt-mnemonic': xUserJson.mnemonic
+  }).then((res) => {
+    return res.path();
+  }).catch(err => {
+    RNFS.unlink(tempPath)
+    throw err;
+  })
+}
+
+export async function getListPreviews() {
+  const headers = await getHeaders()
+
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/previews`, {
+    method: 'GET',
+    headers
+  }).then(res => {
+    if (res.status !== 200) { throw res; }
+    return res.json();
+  }).catch((err) => {
+    // eslint-disable-next-line no-console
+    console.log('ERR getListPreviews', err)
   })
 }
 
@@ -391,27 +416,78 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export function getPreviews(setPreview: SetStateAction<any>, offset?: number): Promise<any> {
+export async function getPreviewsUploaded(dispatch: any): Promise<any> {
   SHOULD_STOP = false;
-  return getPartialRemotePhotos(offset).then((uploadedPhotos: IApiPhotoWithPreview[]) => {
-    return mapSeries(uploadedPhotos, (photo, next) => {
+  return getUploadedPhotos().then((res: IApiPhotoWithPreview[]) => {
+    if (res.length === 0) {
+      return;
+    }
+
+    return mapSeries(res, async (preview, next) => {
+      if (SHOULD_STOP) {
+        throw Error('Sign out')
+      }
+      const listPhotosOnDB = await getRepositoriesDB()
+      const photos = listPhotosOnDB.previews
+
+      photos.forEach((res) => {
+        const intersection = _.intersectionBy(res, preview, 'hash')
+
+        if (intersection.length !== 0) {
+
+          return;
+        }
+      })
+
+      return downloadPreview(preview.preview, preview).then((res1) => {
+        if (res1) {
+          // eslint-disable-next-line no-console
+          savePhotosAndPreviewsDB(preview, res1, dispatch).then().catch((err) => { console.error('ERR save photos on DB', err) })
+        }
+        next(null, res1)
+      });
+
+    });
+  });
+}
+
+export async function getPreviewAfterUpload(preview: any, dispatch: any, photo: any): Promise<any> {
+
+  return downloadPreviewAfterUpload(preview).then((res1) => {
+    if (res1) {
+      const photos = {
+        ...photo,
+        preview: preview
+      }
+
+      // eslint-disable-next-line no-console
+      savePhotosAndPreviewsDB(photos, res1, dispatch).then().catch((err) => { console.error('ERR save photos on DB', err) })
+    }
+
+  });
+}
+
+export function getPreviews(push: any, offset?: number): Promise<any> {
+  SHOULD_STOP = false;
+  return getPartialRemotePhotos(offset).then((res) => {
+    return mapSeries(res, (photo: IApiPhotoWithPreview, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }
 
-      return downloadPreview(photo.preview, photo).then((path) => {
-        if (path) {
+      return downloadPreview(photo.preview, photo).then((res) => {
+        if (res) {
           const newPhoto = {
             ...photo,
-            localUri: path,
-            isLocal: false,
-            isUploaded: true
+            localUri: res
           }
 
-          setPreview(newPhoto)
+          push(newPhoto)
         }
         next(null, photo)
-      })
+
+      }).catch(err => {
+      });
     });
   });
 }
@@ -471,15 +547,55 @@ export async function initUser(): Promise<void> {
   await deviceStorage.saveItem('xPhotos', JSON.stringify(infoUserPhoto))
 }
 
-export const getAlbums = async (xToken: string, mnemonic: string): Promise<IAlbum[]> => {
-  const headers = await getHeaders(xToken, mnemonic)
+export function uploadOnePhoto(photo: IHashedPhoto, dispatch: any) {
 
-  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photosalbum`, {
-    method: 'GET',
-    headers: headers
-  }).then(res => {
-    return res.json()
-  }).then((res: IAlbum[]) => {
-    return res
-  })
+  if (!photo) {
+    return;
+  }
+  return uploadPhoto(photo, dispatch)
+}
+
+export async function uploadOnePhotoMedia(dispatch: any) {
+
+  const { status } = await requestMediaLibraryPermissionsAsync()
+
+  if (status === 'granted') {
+    const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All })
+
+    if (!result.cancelled) {
+      const fileUploading: any = result
+
+      // Set name for pics/photos
+      if (!fileUploading.name) {
+        fileUploading.name = result.uri.split('/').pop()
+      }
+      fileUploading.createdAt = new Date()
+      fileUploading.id = uniqueId()
+      return uploadPhoto(fileUploading, dispatch)
+    }
+  } else {
+    return status;
+  }
+}
+
+export async function uploadPhotoFromCamera(dispatch: any) {
+
+  const { status } = await requestMediaLibraryPermissionsAsync()
+
+  if (status === 'granted') {
+    const result = await launchCameraAsync()
+
+    if (!result.cancelled) {
+      const fileUploading: any = result
+
+      // Set name for pics/photos
+      if (!fileUploading.name) {
+        fileUploading.name = result.uri.split('/').pop()
+      }
+      fileUploading.createdAt = new Date()
+      fileUploading.id = uniqueId()
+
+      uploadPhoto(fileUploading, dispatch)
+    }
+  }
 }

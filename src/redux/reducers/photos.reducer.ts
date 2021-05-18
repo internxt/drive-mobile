@@ -4,15 +4,17 @@ import { IPhoto } from '../../components/PhotoList';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
 import { IPhotosToRender } from '../../screens/Photos';
-
+import { IHashedPhoto } from '../../screens/Photos/init'
 export interface PhotosState {
   cursor: number
   loading: boolean
   loadingAlbums: boolean
   loadingPhotos: boolean
   loadingDeleted: boolean
-  albums: any
+  albums: any,
   photosToRender: IPhotosToRender
+  uploadedPhotos: IHashedPhoto[]
+  previews: IPreview[]
   selectedPhotosForAlbum: ImageOrVideo[]
   isLoading: boolean
   devicePhotos: any
@@ -30,6 +32,7 @@ export interface PhotosState {
   startDownloadSelectedPhoto: boolean
   error?: string | null
   isSyncing: boolean
+  isSaveDB: boolean,
 }
 
 const initialState: PhotosState = {
@@ -55,12 +58,20 @@ const initialState: PhotosState = {
   isUploadingPhotoName: '',
   progress: 0,
   startDownloadSelectedPhoto: false,
-  isSyncing: false
+  isSyncing: false,
+  isSaveDB: false
 };
 
 export function PhotosReducer(state = initialState, action: any): PhotosState {
   switch (action.type) {
+
   case photoActionTypes.SET_PHOTOS_TO_RENDER:
+    return {
+      ...state,
+      photosToRender: action.payload
+    }
+
+  case photoActionTypes.SET_LOCAL_PHOTOS:
     return {
       ...state,
       photosToRender: action.payload
@@ -127,7 +138,18 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       loading: false,
       isSyncing: false
     };
-
+  case photoActionTypes.START_SAVE_DB:
+    return {
+      ...state,
+      loading: true,
+      isSaveDB: true
+    };
+  case photoActionTypes.VIEW_DB:
+    return {
+      ...state,
+      loading: true,
+      isSaveDB: false
+    };
   case photoActionTypes.ADD_PHOTO_REQUEST:
     return {
       ...state,

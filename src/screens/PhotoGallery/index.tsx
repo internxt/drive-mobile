@@ -1,62 +1,180 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, SafeAreaView, Text, View, Dimensions } from 'react-native';
+import { Dimensions, SafeAreaView, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import '../../../assets/icons/icon-back.png';
-import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
-import { getPreviews, IHashedPhoto } from '../Photos/init';
-import Photo from '../../components/PhotoList/Photo';
-import { IPhotosToRender } from '../Photos';
+import { PhotosState } from '../../redux/reducers/photos.reducer';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { Dispatch } from 'redux';
+import { LayoutState } from '../../redux/reducers/layout.reducer';
+import { getLocalImages, getPreviewsUploaded, IHashedPhoto, initUser, LocalImages, stopSync, syncPhotos } from './init'
+import { FlatList, TextInput, TouchableOpacity } from 'react-native-gesture-handler';
+import { getRepositoriesDB } from '../../database/DBUtils.ts/utils';
+import { Previews } from '../../database/models/previews';
 import { layoutActions, PhotoActions } from '../../redux/actions';
-import { tailwind, getColor } from '../../tailwind'
+import { Reducers } from '../../redux/reducers/reducers';
+import { queue } from 'async';
+import Photo from '../../components/PhotoList/Photo';
+import Header from './Header';
+import CreateAlbumModal from '../../modals/CreateAlbumModal';
+import SelectPhotosModal from '../../modals/CreateAlbumModal/SelectPhotosModal';
+import FilterButton from './FilterButton';
+import { tailwind, getColor } from '../../tailwind.js'
+import AlbumCard from '../../components/AlbumCard';
 import HomeBlue from '../../../assets/icons/photos/home-blue.svg'
 import FolderBlue from '../../../assets/icons/photos/folder-blue.svg'
 import LensThinBlue from '../../../assets/icons/photos/lens-thin-blue.svg'
 import Lens from '../../../assets/icons/photos/lens.svg';
 import SquareWithCrossBlue from '../../../assets/icons/photos/square-with-cross-blue.svg'
 import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
-import CreateAlbumModal from '../../modals/CreateAlbumModal';
-import SelectPhotosModal from '../../modals/CreateAlbumModal/SelectPhotosModal';
-import FilterButton from './FilterButton';
-import Header from './Header';
-import AlbumCard from '../../components/AlbumCard';
 
-interface PhotoGalleryProps {
+export interface IPhotoGalleryProps extends Reducers {
+  route: any;
   navigation: any
-  photosToRender: IPhotosToRender
-  dispatch: any,
+  photosState: PhotosState
+  dispatch: Dispatch,
+  layoutState: LayoutState
+  authenticationState: AuthenticationState
+  loggedIn: boolean
   isSyncing: boolean
+  isSaveDB: boolean
+  photosToRender: IPhotosToRender
+}
+export interface IPhotosToRender {
+  photos: IHashedPhoto[]
+  hasNextPage: boolean
 }
 
 export const DEVICE_WIDTH = Dimensions.get('window').width
 export const DEVICE_HEIGHT = Dimensions.get('window').height
 
-function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
-  const [photosToRender, setPhotosToRender] = useState<IHashedPhoto[]>(props.photosToRender.photos)
-  const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<IHashedPhoto[]>(props.photosToRender.photos)
-  const [downloadedPhoto, setDownloadedPhoto] = useState<any>()
+function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
+  const [photosToRender, setPhotosToRender] = useState<any[]>([])
+  const [uploadedPreviews, setUploadedPreviews] = useState<Previews[]>([])
+  const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<any[]>([])
   const [selectedFilter, setSelectedFilter] = useState('none')
   const [headerTitle, setHeaderTitle] = useState('INTERNXT PHOTOS')
   const [searchString, setSearchString] = useState('')
 
-  const loadUploadedPhotos = async () => {
+  const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
+    await task()
+    callBack()
+  }, 5)
+
+  const getPhotosToRender = async () => {
     let finished = false
-    let offset = 0
-    let lastIndex = 0
+    let lastPickedImage: string | undefined = undefined
+    let photos: IHashedPhoto[] = []
+    const syncActions: Promise<unknown>[] = []
+
+    props.dispatch(PhotoActions.startSync())
 
     while (!finished) {
-      const previews = await getPreviews(setDownloadedPhoto, lastIndex)
+      const res: LocalImages = await getLocalImages(lastPickedImage)
 
-      lastIndex = offset + previews.length
+      const syncAction = () => new Promise<unknown>(resolved => {
+        syncQueue.push(() => syncPhotos(res.assets, props.dispatch), resolved)
+      })
 
-      if (lastIndex <= offset) {
-        finished = true
+      syncActions.push(syncAction())
+
+      photos = (photos.length > 0 ? photos.concat(res.assets) : res.assets).map(photo => ({ ...photo, isLocal: true, isUploaded: false }))
+      const payload: IPhotosToRender = { photos, hasNextPage: res.hasNextPage }
+
+      props.dispatch(PhotoActions.setPhotosToRender(payload))
+
+      if (res.hasNextPage) {
+        lastPickedImage = res.endCursor
       } else {
-        offset = lastIndex
+        finished = true
       }
     }
+
+    await Promise.all(syncActions).then(() => {
+      props.dispatch(PhotoActions.stopSync())
+    })
   }
 
-  const pushDownloadedPhoto = (photo: IHashedPhoto) => props.dispatch(PhotoActions.pushDownloadedPhoto(photo))
+  const reloadLocalPhotos = () => {
+    initUser().finally(() => getPhotosToRender());
+  };
+
+  //USE EFFECT TO START GETTING DATA
+  useEffect(() => {
+    getPreviewsUploaded(props.dispatch)
+    reloadLocalPhotos();
+    startGettingRepositories()
+  }, [])
+
+  //USE EFFECT FOR THE USER DO SIGNOUT
+  useEffect(() => {
+    if (!props.loggedIn) {
+      stopSync()
+      props.navigation.replace('Login')
+    }
+  }, [props.loggedIn])
+
+  const startGettingRepositories = () => {
+    return getRepositoriesDB().then((res) => {
+      props.dispatch(PhotoActions.viewDB())
+      setUploadedPreviews(res.previews)
+      return res;
+    })
+  }
+
+  const checkSynced = () => {
+    const items = photosToRender.slice()
+
+    uploadedPreviews.map((preview) => {
+      const index = items.findIndex(photo => photo.hash === preview.hash)
+
+      if (index !== -1) {
+        if (items[index].isLocal && !items[index].isUploaded) {
+          items[index].isUploaded = true
+          setPhotosToRender(items)
+        }
+      } else {
+        setPhotosToRender(currentPhotos => [...currentPhotos, preview])
+      }
+    })
+  }
+
+  const checkPhotosDB = (listPreviews: Previews[]) => {
+    listPreviews.map((preview) => {
+      const index = photosToRender.findIndex(local => local.hash === preview.hash)
+
+      if (index === -1) {
+
+        preview.isLocal = false
+        const downloadedPhoto = { ...preview }
+
+        setPhotosToRender(currentPhotos => [...currentPhotos, downloadedPhoto])
+      } else {
+        const items = photosToRender.slice()
+
+        items[index].isUploaded = true
+        setPhotosToRender(items)
+      }
+
+    })
+  }
+
+  const check = () => {
+    const currentPhotos = photosToRender.slice()
+    const newPhotos = props.photosToRender.photos
+
+    newPhotos.forEach(newPhoto => {
+      const index = currentPhotos.findIndex(currPhoto => currPhoto.hash === newPhoto.hash)
+
+      if (index === -1) {
+        currentPhotos.push(newPhoto)
+      } else {
+        if (currentPhotos[index].isUploaded && !currentPhotos[index].isLocal) {
+          currentPhotos[index].isLocal = true
+        }
+      }
+    })
+    setPhotosToRender(currentPhotos)
+  }
 
   const selectFilter = (filterName: string) => {
     selectedFilter === filterName ? setSelectedFilter('none') : setSelectedFilter(filterName)
@@ -81,45 +199,25 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     }
   }
 
+  //USE EFFECT TO LISTEN DB CHANGES
   useEffect(() => {
-    const currentPhotos = photosToRender.slice()
-    const newPhotos = props.photosToRender.photos
-
-    newPhotos.forEach(newPhoto => {
-      const index = currentPhotos.findIndex(currPhoto => currPhoto.hash === newPhoto.hash)
-
-      if (index === -1) {
-        currentPhotos.push(newPhoto)
-      } else {
-        if (currentPhotos[index].isUploaded && !currentPhotos[index].isLocal) {
-          currentPhotos[index].isLocal = true
-        }
-      }
-    })
-    setPhotosToRender(currentPhotos)
-    setFilteredPhotosToRender(currentPhotos)
-  }, [props.photosToRender.photos])
-
-  useEffect(() => {
-    if (downloadedPhoto) {
-      const index = photosToRender.findIndex(local => local.hash === downloadedPhoto.hash)
-
-      if (index === -1) {
-        const photo = { ...downloadedPhoto, isLocal: false }
-
-        setPhotosToRender(currentPhotos => [...currentPhotos, photo])
-      } else {
-        const items = photosToRender.slice()
-
-        items[index].isUploaded = true
-        setPhotosToRender(items)
-      }
+    if (props.isSaveDB) {
+      getRepositoriesDB().then((res) => {
+        setPhotosToRender(prevPhotos => [...prevPhotos, res.previews])
+        props.dispatch(PhotoActions.viewDB())
+        checkPhotosDB(res.previews)
+      })
     }
-  }, [downloadedPhoto])
+  }, [props.isSaveDB])
+
+  //USE EFFECT FOR CHECK THE SYNCED
+  useEffect(() => {
+    checkSynced()
+  }, [photosToRender, uploadedPreviews])
 
   useEffect(() => {
-    loadUploadedPhotos()
-  }, [])
+    check()
+  }, [props.photosToRender.photos])
 
   return (
     <View style={tailwind('flex-1')}>
@@ -168,10 +266,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
           {
             headerTitle === 'INTERNXT PHOTOS' && photosToRender.length ?
               <FlatList
-                data={filteredPhotosToRender}
+                data={photosToRender}
                 numColumns={3}
                 keyExtractor={item => item.hash}
-                renderItem={({ item }) => <Photo item={item} key={item.hash} pushDownloadedPhoto={pushDownloadedPhoto} />}
+                renderItem={({ item }) => <Photo item={item} key={item.hash} />}
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
               />
               :
@@ -226,9 +324,11 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
 const mapStateToProps = (state: any) => {
   return {
-    photosToRender: state.photosState.photosToRender,
-    isSyncing: state.photosState.isSyncing
+    isSyncing: state.photosState.isSyncing,
+    loggedIn: state.authenticationState.loggedIn,
+    isSaveDB: state.photosState.isSaveDB,
+    photosToRender: state.photosState.photosToRender
   };
-};
+}
 
-export default connect(mapStateToProps)(PhotoGallery);
+export default connect(mapStateToProps)(PhotoGallery)

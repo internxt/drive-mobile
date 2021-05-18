@@ -122,7 +122,7 @@ function SettingsModal(props: SettingsModalProps) {
 
   // Check current screen to change settings Photos/Drive text
   useEffect(() => {
-    if (props.navigation.state.routeName === 'Photos' || props.navigation.state.routeName === 'FileExplorer') {
+    if (props.navigation.state.routeName === 'PhotoGallery' || props.navigation.state.routeName === 'FileExplorer') {
       props.dispatch(layoutActions.setCurrentApp(props.navigation.state.routeName))
     }
   }, [props.navigation.state])
@@ -187,7 +187,7 @@ function SettingsModal(props: SettingsModalProps) {
           if (props.layoutState.currentApp === 'Photos') {
             props.navigation.replace('FileExplorer')
           } else {
-            props.navigation.replace('Photos')
+            props.navigation.replace('PhotoGallery')
           }
         }}
       />
