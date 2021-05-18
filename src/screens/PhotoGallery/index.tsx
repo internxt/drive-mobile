@@ -121,23 +121,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     })
   }
 
-  const checkSynced = () => {
-    const items = photosToRender.slice()
-
-    uploadedPreviews.map((preview) => {
-      const index = items.findIndex(photo => photo.hash === preview.hash)
-
-      if (index !== -1) {
-        if (items[index].isLocal && !items[index].isUploaded) {
-          items[index].isUploaded = true
-          setPhotosToRender(items)
-        }
-      } else {
-        setPhotosToRender(currentPhotos => [...currentPhotos, preview])
-      }
-    })
-  }
-
   const checkPhotosDB = (listPreviews: Previews[]) => {
     listPreviews.map((preview) => {
       const index = photosToRender.findIndex(local => local.hash === preview.hash)
@@ -156,24 +139,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       }
 
     })
-  }
-
-  const check = () => {
-    const currentPhotos = photosToRender.slice()
-    const newPhotos = props.photosToRender.photos
-
-    newPhotos.forEach(newPhoto => {
-      const index = currentPhotos.findIndex(currPhoto => currPhoto.hash === newPhoto.hash)
-
-      if (index === -1) {
-        currentPhotos.push(newPhoto)
-      } else {
-        if (currentPhotos[index].isUploaded && !currentPhotos[index].isLocal) {
-          currentPhotos[index].isLocal = true
-        }
-      }
-    })
-    setPhotosToRender(currentPhotos)
   }
 
   const selectFilter = (filterName: string) => {
@@ -212,11 +177,38 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
   //USE EFFECT FOR CHECK THE SYNCED
   useEffect(() => {
-    checkSynced()
-  }, [photosToRender, uploadedPreviews])
+    const items = photosToRender.slice()
+
+    uploadedPreviews.map((preview) => {
+      const index = items.findIndex(photo => photo.hash === preview.hash)
+
+      if (index !== -1) {
+        if (items[index].isLocal && !items[index].isUploaded) {
+          items[index].isUploaded = true
+          setPhotosToRender(items)
+        }
+      } else {
+        setPhotosToRender(currentPhotos => [...currentPhotos, preview])
+      }
+    })
+  }, [uploadedPreviews])
 
   useEffect(() => {
-    check()
+    const currentPhotos = photosToRender.slice()
+    const newPhotos = props.photosToRender.photos
+
+    newPhotos.forEach(newPhoto => {
+      const index = currentPhotos.findIndex(currPhoto => currPhoto.hash === newPhoto.hash)
+
+      if (index === -1) {
+        currentPhotos.push(newPhoto)
+      } else {
+        if (currentPhotos[index].isUploaded && !currentPhotos[index].isLocal) {
+          currentPhotos[index] = { ...newPhoto, isUploaded: true }
+        }
+      }
+    })
+    setPhotosToRender(currentPhotos)
   }, [props.photosToRender.photos])
 
   return (

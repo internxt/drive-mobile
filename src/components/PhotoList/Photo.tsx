@@ -22,7 +22,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
   const [isDownloading, setIsDownloading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [isSelected, setIsSelected] = useState(false)
-  const [item, setItem] = useState(props.item)
+  const item = props.item
 
   const handleOnPress = () => {
     if (props.photoSelection) {
@@ -35,12 +35,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
 
     if (item.isUploaded && !item.isLocal && !isDownloading) {
       setIsDownloading(true)
-      downloadPhoto(item, setProgress).then(photo => {
-        setItem(photo)
-        if (props.pushDownloadedPhoto) {
-          props.pushDownloadedPhoto(photo)
-        }
-
+      downloadPhoto(item, setProgress).then(() => {
         SimpleToast.show('Image downloaded!', 0.15)
       }).catch(err => {
         SimpleToast.show('Could not download image', 0.15)
