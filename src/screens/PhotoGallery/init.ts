@@ -54,7 +54,7 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
 
   // Upload filtered photos
   await mapSeries(imagesToUpload, async (image, next) => {
-    await uploadPhoto(image, dispatch).then(() => next(null)).catch(() => next(null))
+    await uploadPhoto(image, dispatch).then(() => next(null)).catch((err) => next(null))
   })
 }
 
@@ -95,7 +95,6 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
       { name: 'creationTime', data: creationTime }
     ])
     .then((res) => {
-
       const statusCode = res.respInfo.status;
 
       if (statusCode === 401) {
@@ -124,7 +123,6 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
 }
 
 const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, photo: any) => {
-
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -155,7 +153,6 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
       throw res;
     }).then((res) => {
       getPreviewAfterUpload(res, dispatch, photo)
-      //getPreviewsUploaded(dispatch)
     })
 }
 
@@ -247,7 +244,7 @@ export async function getLocalPreviewsDir(): Promise<string> {
 }
 
 export async function getLocalViewerDir(): Promise<string> {
-  const TempDir = (Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir : RNFetchBlob.fs.dirs.CacheDir) + '/drive-photos-fileviewer';
+  const TempDir = RNFetchBlob.fs.dirs.CacheDir + '/drive-photos-fileviewer';
   const TempDirExists = await RNFetchBlob.fs.exists(TempDir);
 
   if (!TempDirExists) {
@@ -257,15 +254,13 @@ export async function getLocalViewerDir(): Promise<string> {
   return TempDir;
 }
 
-export async function cachePicture(item: MediaLibrary.AssetInfo): Promise<string> {
+export async function cachePicture(filename: string, localUri: string): Promise<string> {
   const tempPath = await getLocalViewerDir()
-
-  const tempFile = tempPath + '/' + item.filename;
-
+  const tempFile = tempPath + '/' + filename
   const fileExists = await RNFS.exists(tempFile)
 
-  if (!fileExists && item.localUri) {
-    await RNFS.copyFile(item.localUri, tempFile)
+  if (!fileExists && localUri) {
+    await RNFS.copyFile(localUri, tempFile)
   }
 
   return tempFile;
@@ -304,10 +299,8 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
     }
     return res;
   }).then(async res => {
-
     await CameraRoll.save(res.path());
-    return res.path();
-
+    return res.data
   })
 }
 
@@ -392,9 +385,6 @@ export async function getListPreviews() {
   }).then(res => {
     if (res.status !== 200) { throw res; }
     return res.json();
-  }).catch((err) => {
-    // eslint-disable-next-line no-console
-    console.log('ERR getListPreviews', err)
   })
 }
 
@@ -416,7 +406,7 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export async function getPreviewsUploaded(dispatch: any): Promise<any> {
+export async function getPreviews(dispatch: any): Promise<any> {
   SHOULD_STOP = false;
   return getUploadedPhotos().then((res: IApiPhotoWithPreview[]) => {
     if (res.length === 0) {
@@ -452,7 +442,6 @@ export async function getPreviewsUploaded(dispatch: any): Promise<any> {
 }
 
 export async function getPreviewAfterUpload(preview: any, dispatch: any, photo: any): Promise<any> {
-
   return downloadPreviewAfterUpload(preview).then((res1) => {
     if (res1) {
       const photos = {
@@ -464,31 +453,6 @@ export async function getPreviewAfterUpload(preview: any, dispatch: any, photo: 
       savePhotosAndPreviewsDB(photos, res1, dispatch).then().catch((err) => { console.error('ERR save photos on DB', err) })
     }
 
-  });
-}
-
-export function getPreviews(push: any, offset?: number): Promise<any> {
-  SHOULD_STOP = false;
-  return getPartialRemotePhotos(offset).then((res) => {
-    return mapSeries(res, (photo: IApiPhotoWithPreview, next) => {
-      if (SHOULD_STOP) {
-        throw Error('Sign out')
-      }
-
-      return downloadPreview(photo.preview, photo).then((res) => {
-        if (res) {
-          const newPhoto = {
-            ...photo,
-            localUri: res
-          }
-
-          push(newPhoto)
-        }
-        next(null, photo)
-
-      }).catch(err => {
-      });
-    });
   });
 }
 
