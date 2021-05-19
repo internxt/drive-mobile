@@ -26,6 +26,7 @@ import LensThinBlue from '../../../assets/icons/photos/lens-thin-blue.svg'
 import Lens from '../../../assets/icons/photos/lens.svg';
 import SquareWithCrossBlue from '../../../assets/icons/photos/square-with-cross-blue.svg'
 import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
+import { IApiPreview } from '../../types/api/photos/IApiPhoto';
 
 export interface IPhotoGalleryProps extends Reducers {
   route: any;
@@ -50,10 +51,12 @@ export const DEVICE_HEIGHT = Dimensions.get('window').height
 function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [photosToRender, setPhotosToRender] = useState<any[]>([])
   const [uploadedPreviews, setUploadedPreviews] = useState<Previews[]>([])
-  const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<any[]>([])
   const [selectedFilter, setSelectedFilter] = useState('none')
   const [headerTitle, setHeaderTitle] = useState('INTERNXT PHOTOS')
   const [searchString, setSearchString] = useState('')
+  const [downloadablePhotos, setDownloadablePhotos] = useState<IHashedPhoto[]>([])
+  const [uploadPendingPhotos, setUploadPendingPhotos] = useState<IApiPreview[]>([])
+  const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<any[]>([]);
 
   const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
     await task()
@@ -93,21 +96,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     })
   }
 
-  useEffect(() => {
-    initUser().then(() => {
-      getLocalPhotos()
-      getPreviews(props.dispatch)
-      startGettingRepositories()
-    })
-  }, [])
-
-  useEffect(() => {
-    if (!props.loggedIn) {
-      stopSync()
-      props.navigation.replace('Login')
-    }
-  }, [props.loggedIn])
-
   const startGettingRepositories = () => {
     return getRepositoriesDB().then((res) => {
       props.dispatch(PhotoActions.viewDB())
@@ -137,25 +125,30 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const selectFilter = (filterName: string) => {
     selectedFilter === filterName ? setSelectedFilter('none') : setSelectedFilter(filterName)
 
-    const photos = photosToRender.slice()
+    const currentPhotos = photosToRender.slice()
     let newPhotosToRender
 
     switch (true) {
-    case filterName === 'upload' && (selectedFilter === 'none' || selectedFilter === 'download'):
-      newPhotosToRender = photos.filter(photo => !photo.isUploaded && photo.isLocal)
+    case filterName === 'upload' && (selectedFilter === 'none' || selectedFilter === 'download' || selectedFilter === 'albums'):
+      newPhotosToRender = currentPhotos.filter(photo => !photo.isUploaded && photo.isLocal)
 
       return setFilteredPhotosToRender(newPhotosToRender)
 
     case filterName === 'download' && (selectedFilter === 'none' || selectedFilter === 'upload'):
-      newPhotosToRender = photos.filter(photo => photo.isUploaded && !photo.isLocal)
+      newPhotosToRender = currentPhotos.filter(photo => photo.isUploaded && !photo.isLocal)
 
       return setFilteredPhotosToRender(newPhotosToRender)
 
       // if clicked on the same filter restore array
     case filterName === selectedFilter:
-      return setFilteredPhotosToRender(photos)
+      return setFilteredPhotosToRender(currentPhotos)
     }
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log('filtered photos =>', filteredPhotosToRender[0], 'length:', filteredPhotosToRender.length)
+  }, [filteredPhotosToRender])
 
   const pushDownloadedPhoto = (photo: IHashedPhoto) => props.dispatch(PhotoActions.pushDownloadedPhoto(photo))
 
@@ -188,6 +181,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     })
   }, [uploadedPreviews])
 
+  // check if the new locals are already uploaded
   useEffect(() => {
     const currentPhotos = photosToRender.slice()
     const newPhotos = props.photosToRender.photos
@@ -205,6 +199,21 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     })
     setPhotosToRender(currentPhotos)
   }, [props.photosToRender.photos])
+
+  useEffect(() => {
+    initUser().then(() => {
+      getLocalPhotos()
+      getPreviews(props.dispatch)
+      startGettingRepositories()
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!props.loggedIn) {
+      stopSync()
+      props.navigation.replace('Login')
+    }
+  }, [props.loggedIn])
 
   return (
     <View style={tailwind('flex-1')}>
@@ -253,7 +262,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
           {
             headerTitle === 'INTERNXT PHOTOS' && photosToRender.length ?
               <FlatList
-                data={photosToRender}
+                data={selectedFilter === 'none' ? photosToRender : filteredPhotosToRender}
                 numColumns={3}
                 keyExtractor={item => item.hash}
                 renderItem={({ item }) => <Photo item={item} key={item.hash} pushDownloadedPhoto={pushDownloadedPhoto} />}
