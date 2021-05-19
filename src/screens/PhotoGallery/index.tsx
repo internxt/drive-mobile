@@ -6,7 +6,7 @@ import { PhotosState } from '../../redux/reducers/photos.reducer';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
 import { Dispatch } from 'redux';
 import { LayoutState } from '../../redux/reducers/layout.reducer';
-import { getLocalImages, getPreviewsUploaded, IHashedPhoto, initUser, LocalImages, stopSync, syncPhotos } from './init'
+import { getLocalImages, getPreviews, IHashedPhoto, initUser, LocalImages, stopSync, syncPhotos } from './init'
 import { FlatList, TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { Previews } from '../../database/models/previews';
@@ -60,7 +60,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     callBack()
   }, 5)
 
-  const getPhotosToRender = async () => {
+  const getLocalPhotos = async () => {
     let finished = false
     let lastPickedImage: string | undefined = undefined
     let photos: IHashedPhoto[] = []
@@ -70,7 +70,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
     while (!finished) {
       const res: LocalImages = await getLocalImages(lastPickedImage)
-
       const syncAction = () => new Promise<unknown>(resolved => {
         syncQueue.push(() => syncPhotos(res.assets, props.dispatch), resolved)
       })
@@ -94,18 +93,14 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     })
   }
 
-  const reloadLocalPhotos = () => {
-    initUser().finally(() => getPhotosToRender());
-  };
-
-  //USE EFFECT TO START GETTING DATA
   useEffect(() => {
-    getPreviewsUploaded(props.dispatch)
-    reloadLocalPhotos();
-    startGettingRepositories()
+    initUser().then(() => {
+      getLocalPhotos()
+      getPreviews(props.dispatch)
+      startGettingRepositories()
+    })
   }, [])
 
-  //USE EFFECT FOR THE USER DO SIGNOUT
   useEffect(() => {
     if (!props.loggedIn) {
       stopSync()
@@ -126,7 +121,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       const index = photosToRender.findIndex(local => local.hash === preview.hash)
 
       if (index === -1) {
-
         preview.isLocal = false
         const downloadedPhoto = { ...preview }
 
@@ -137,7 +131,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         items[index].isUploaded = true
         setPhotosToRender(items)
       }
-
     })
   }
 
@@ -163,6 +156,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       return setFilteredPhotosToRender(photos)
     }
   }
+
+  const pushDownloadedPhoto = (photo: IHashedPhoto) => props.dispatch(PhotoActions.pushDownloadedPhoto(photo))
 
   //USE EFFECT TO LISTEN DB CHANGES
   useEffect(() => {
@@ -204,7 +199,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         currentPhotos.push(newPhoto)
       } else {
         if (currentPhotos[index].isUploaded && !currentPhotos[index].isLocal) {
-          currentPhotos[index] = { ...newPhoto, isUploaded: true }
+          currentPhotos[index] = { ...newPhoto, isLocal: true, isUploaded: true }
         }
       }
     })
@@ -261,7 +256,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                 data={photosToRender}
                 numColumns={3}
                 keyExtractor={item => item.hash}
-                renderItem={({ item }) => <Photo item={item} key={item.hash} />}
+                renderItem={({ item }) => <Photo item={item} key={item.hash} pushDownloadedPhoto={pushDownloadedPhoto} />}
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
               />
               :

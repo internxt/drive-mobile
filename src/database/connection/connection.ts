@@ -10,7 +10,7 @@ export function ConnectionDB(): Promise<Connection> {
       type: 'react-native',
       database: 'xPhotos',
       location: 'default',
-      logging: ['error', 'query', 'schema'],
+      //logging: ['error', 'query', 'schema'],
       synchronize: true,
       entities: [
         Photos,

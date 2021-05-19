@@ -33,7 +33,8 @@ export const PhotoActions = {
   stopSync,
   startSaveDB,
   viewDB,
-  setPhotosToRender
+  setPhotosToRender,
+  pushDownloadedPhoto
 };
 
 function setIsLoading(value: boolean) {

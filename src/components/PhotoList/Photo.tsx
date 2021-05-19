@@ -6,9 +6,9 @@ import PhotoBadge from './PhotoBadge';
 import { cachePicture, downloadPhoto, IHashedPhoto } from '../../screens/PhotoGallery/init';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
-import RNFS from 'react-native-fs'
 import { tailwind } from '../../tailwind'
 import { DEVICE_WIDTH } from '../../screens/PhotoGallery';
+import { unlink } from 'react-native-fs';
 
 interface PhotoProps {
   badge?: JSX.Element
@@ -23,6 +23,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
   const [progress, setProgress] = useState(0)
   const [isSelected, setIsSelected] = useState(false)
   const item = props.item
+  const [path, setPath] = useState(props.item.localUri)
 
   const handleOnPress = () => {
     if (props.photoSelection) {
@@ -35,17 +36,36 @@ export default function Photo(props: PhotoProps): JSX.Element {
 
     if (item.isUploaded && !item.isLocal && !isDownloading) {
       setIsDownloading(true)
-      downloadPhoto(item, setProgress).then(() => {
+      downloadPhoto(item, setProgress).then((path) => {
+        /* if (props.pushDownloadedPhoto) {
+          props.pushDownloadedPhoto(asset)
+        } */
+        setPath(path)
+        item.isLocal = true
         SimpleToast.show('Image downloaded!', 0.15)
       }).catch(err => {
         SimpleToast.show('Could not download image', 0.15)
       }).finally(() => setIsDownloading(false))
     } else {
-      cachePicture(item).then(res => {
-        FileViewer.open(res, {
-          onDismiss: () => RNFS.unlink(res)
+      let filename = ''
+      let localUri = ''
+
+      if (item.filename) {
+        filename = item.filename
+        localUri = item.localUri
+      }
+      else {
+        filename = item.photoId + '.' + item.type
+        localUri = path
+      }
+
+      cachePicture(filename, localUri).then(path => {
+        FileViewer.open(path, {
+          onDismiss: () => unlink(path)
         })
-      }).catch(() => SimpleToast.show('Could not open the image', 0.15))
+      }).catch((err) => {
+        SimpleToast.show('Could not open the image', 0.15)
+      })
     }
   }
 
