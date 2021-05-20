@@ -97,7 +97,7 @@ function Register(props: RegisterProps): JSX.Element {
         isValidFirstName={isValidFirstName}
         isValidLastName={isValidLastName}
         isValidEmail={isValidEmail}
-        isvalidStep={isValidStep}
+        isValidStep={isValidStep}
         setRegisterStep={setRegisterStep}
         navigation={props.navigation}
       />
