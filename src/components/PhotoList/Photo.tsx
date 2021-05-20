@@ -37,11 +37,12 @@ export default function Photo(props: PhotoProps): JSX.Element {
     if (item.isUploaded && !item.isLocal && !isDownloading) {
       setIsDownloading(true)
       downloadPhoto(item, setProgress).then((path) => {
-        /* if (props.pushDownloadedPhoto) {
-          props.pushDownloadedPhoto(asset)
-        } */
         setPath(path)
-        item.isLocal = true
+        item.localUri = path
+
+        if (props.pushDownloadedPhoto) {
+          props.pushDownloadedPhoto(item)
+        }
         SimpleToast.show('Image downloaded!', 0.15)
       }).catch(err => {
         SimpleToast.show('Could not download image', 0.15)
@@ -99,7 +100,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
           <PhotoBadge
             isUploaded={item.isUploaded}
             isLocal={item.isLocal}
-            isDownloading={isDownloading}
+            isDownloading={item.isDownloading}
             isUploading={item.isUploading}
             isSelected={isSelected}
           />

@@ -2,7 +2,7 @@ import { getRepository } from 'typeorm/browser';
 import { Photos } from '../../database/models/photos';
 import { Previews } from '../../database/models/previews';
 import { deviceStorage } from '../../helpers';
-import { PhotoActions } from '../../redux/actions';
+import { photoActions } from '../../redux/actions';
 import { Albums } from '../models/albums';
 import { PhotoAlbums } from '../models/photoAlbums';
 
@@ -55,8 +55,8 @@ export async function getRepositoriesDB(): Promise<Repositories> {
   return { photos, previews, albums, albumsWithPreviews }
 }
 
-export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch: any) {
-  dispatch(PhotoActions.viewDB())
+export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch: any): Promise<void> {
+  dispatch(photoActions.viewDB())
 
   const userId = await getUserId()
 
@@ -117,7 +117,7 @@ export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch
 
   if (existsfileId === undefined) {
     await previewsRepository.save(newPreview);
-    dispatch(PhotoActions.startSaveDB())
+    dispatch(photoActions.startSaveDB())
   }
 
   await previewsRepository.find({

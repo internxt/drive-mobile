@@ -10,7 +10,7 @@ import { getLocalImages, getPreviews, IHashedPhoto, initUser, LocalImages, stopS
 import { FlatList, TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { Previews } from '../../database/models/previews';
-import { layoutActions, PhotoActions } from '../../redux/actions';
+import { layoutActions, photoActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
 import { queue } from 'async';
 import Photo from '../../components/PhotoList/Photo';
@@ -26,7 +26,7 @@ import LensThinBlue from '../../../assets/icons/photos/lens-thin-blue.svg'
 import Lens from '../../../assets/icons/photos/lens.svg';
 import SquareWithCrossBlue from '../../../assets/icons/photos/square-with-cross-blue.svg'
 import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
-import { IApiPreview } from '../../types/api/photos/IApiPhoto';
+import { IStoreReducers } from '../../types/redux';
 
 export interface IPhotoGalleryProps extends Reducers {
   route: any;
@@ -39,6 +39,8 @@ export interface IPhotoGalleryProps extends Reducers {
   isSyncing: boolean
   isSaveDB: boolean
   photosToRender: IPhotosToRender
+  currentlyDownloadingPhotos: string[]
+  currentlyUploadingPhotos: string[]
 }
 export interface IPhotosToRender {
   photos: IHashedPhoto[]
@@ -49,14 +51,13 @@ export const DEVICE_WIDTH = Dimensions.get('window').width
 export const DEVICE_HEIGHT = Dimensions.get('window').height
 
 function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
-  const [photosToRender, setPhotosToRender] = useState<any[]>([])
+  const [photosToRender, setPhotosToRender] = useState<IHashedPhoto[]>([])
   const [uploadedPreviews, setUploadedPreviews] = useState<Previews[]>([])
   const [selectedFilter, setSelectedFilter] = useState('none')
   const [headerTitle, setHeaderTitle] = useState('INTERNXT PHOTOS')
   const [searchString, setSearchString] = useState('')
-  const [downloadablePhotos, setDownloadablePhotos] = useState<IHashedPhoto[]>([])
-  const [uploadPendingPhotos, setUploadPendingPhotos] = useState<IApiPreview[]>([])
-  const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<any[]>([]);
+  const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<IHashedPhoto[]>([])
+  const [currentlyUploadingPhotos, setCurrentlyUploadingPhotos] = useState<string[]>([])
 
   const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
     await task()
@@ -69,20 +70,20 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     let photos: IHashedPhoto[] = []
     const syncActions: Promise<unknown>[] = []
 
-    props.dispatch(PhotoActions.startSync())
-
     while (!finished) {
       const res: LocalImages = await getLocalImages(lastPickedImage)
+
+      props.dispatch(photoActions.startSync())
       const syncAction = () => new Promise<unknown>(resolved => {
         syncQueue.push(() => syncPhotos(res.assets, props.dispatch), resolved)
       })
 
       syncActions.push(syncAction())
 
-      photos = (photos.length > 0 ? photos.concat(res.assets) : res.assets).map(photo => ({ ...photo, isLocal: true, isUploaded: false }))
+      photos = (photos.length > 0 ? photos.concat(res.assets) : res.assets).map(photo => ({ ...photo, isLocal: true, isUploaded: false, isDownloading: false }))
       const payload: IPhotosToRender = { photos, hasNextPage: res.hasNextPage }
 
-      props.dispatch(PhotoActions.setPhotosToRender(payload))
+      props.dispatch(photoActions.setPhotosToRender(payload))
 
       if (res.hasNextPage) {
         lastPickedImage = res.endCursor
@@ -91,14 +92,14 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       }
     }
 
-    await Promise.all(syncActions).then(() => {
-      props.dispatch(PhotoActions.stopSync())
+    await Promise.allSettled(syncActions).then(() => {
+      props.dispatch(photoActions.stopSync())
     })
   }
 
   const startGettingRepositories = () => {
     return getRepositoriesDB().then((res) => {
-      props.dispatch(PhotoActions.viewDB())
+      props.dispatch(photoActions.viewDB())
       setUploadedPreviews(res.previews)
       return res;
     })
@@ -145,19 +146,14 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     }
   }
 
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('filtered photos =>', filteredPhotosToRender[0], 'length:', filteredPhotosToRender.length)
-  }, [filteredPhotosToRender])
-
-  const pushDownloadedPhoto = (photo: IHashedPhoto) => props.dispatch(PhotoActions.pushDownloadedPhoto(photo))
+  const pushDownloadedPhoto = (photo: IHashedPhoto) => props.dispatch(photoActions.pushDownloadedPhoto(photo))
 
   //USE EFFECT TO LISTEN DB CHANGES
   useEffect(() => {
     if (props.isSaveDB) {
       getRepositoriesDB().then((res) => {
         setPhotosToRender(prevPhotos => [...prevPhotos, res.previews])
-        props.dispatch(PhotoActions.viewDB())
+        props.dispatch(photoActions.viewDB())
         checkPhotosDB(res.previews)
       })
     }
@@ -184,16 +180,20 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   // check if the new locals are already uploaded
   useEffect(() => {
     const currentPhotos = photosToRender.slice()
+    let currentFiltered = filteredPhotosToRender.slice()
     const newPhotos = props.photosToRender.photos
 
     newPhotos.forEach(newPhoto => {
       const index = currentPhotos.findIndex(currPhoto => currPhoto.hash === newPhoto.hash)
 
-      if (index === -1) {
-        currentPhotos.push(newPhoto)
-      } else {
+      if (index === -1) { currentPhotos.push(newPhoto) }
+      else {
         if (currentPhotos[index].isUploaded && !currentPhotos[index].isLocal) {
-          currentPhotos[index] = { ...newPhoto, isLocal: true, isUploaded: true }
+          currentPhotos[index] = { ...newPhoto, isLocal: true }
+          if (selectedFilter !== 'none' && selectedFilter === 'download') {
+            currentFiltered = currentFiltered.filter(photo => newPhoto.hash !== photo.hash)
+            setFilteredPhotosToRender(currentFiltered)
+          }
         }
       }
     })
@@ -261,13 +261,22 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
           {
             headerTitle === 'INTERNXT PHOTOS' && photosToRender.length ?
-              <FlatList
-                data={selectedFilter === 'none' ? photosToRender : filteredPhotosToRender}
-                numColumns={3}
-                keyExtractor={item => item.hash}
-                renderItem={({ item }) => <Photo item={item} key={item.hash} pushDownloadedPhoto={pushDownloadedPhoto} />}
-                style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
-              />
+              selectedFilter === 'none' ?
+                <FlatList
+                  data={photosToRender}
+                  numColumns={3}
+                  keyExtractor={item => item.hash}
+                  renderItem={({ item }) => <Photo item={item} key={item.hash} pushDownloadedPhoto={pushDownloadedPhoto} />}
+                  style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+                />
+                :
+                <FlatList
+                  data={filteredPhotosToRender}
+                  numColumns={3}
+                  keyExtractor={item => item.hash}
+                  renderItem={({ item }) => <Photo item={item} key={item.hash} pushDownloadedPhoto={pushDownloadedPhoto} />}
+                  style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+                />
               :
               <FlatList
                 data={[1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, 12, 13, 14, 15, 16, 17]}
@@ -318,12 +327,14 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: any) => {
+const mapStateToProps = (state: IStoreReducers) => {
   return {
     isSyncing: state.photosState.isSyncing,
     loggedIn: state.authenticationState.loggedIn,
     isSaveDB: state.photosState.isSaveDB,
-    photosToRender: state.photosState.photosToRender
+    photosToRender: state.photosState.photosToRender,
+    currentlyUploadingPhotos: state.photosState.currentlyUploadingPhotos,
+    currentlyDownloadingPhotos: state.photosState.currentlyDownloadingPhotos
   };
 }
 
