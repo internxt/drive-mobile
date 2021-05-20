@@ -1,4 +1,4 @@
-import React, { SetStateAction, useEffect } from 'react';
+import React, { SetStateAction } from 'react';
 import { KeyboardAvoidingView, Text, TextInput, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { IRegisterScreenStyles } from '.';
