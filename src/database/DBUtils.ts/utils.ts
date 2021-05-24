@@ -118,6 +118,7 @@ export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch
   if (existsfileId === undefined) {
     await previewsRepository.save(newPreview);
     dispatch(photoActions.startSaveDB())
+    dispatch(photoActions.updatePhotoStatusUpload(photo.hash, true))
   }
 
   await previewsRepository.find({

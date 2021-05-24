@@ -9,44 +9,38 @@ import SimpleToast from 'react-native-simple-toast';
 import { tailwind } from '../../tailwind'
 import { DEVICE_WIDTH } from '../../screens/PhotoGallery';
 import { unlink } from 'react-native-fs';
+import { photoActions } from '../../redux/actions';
 
 interface PhotoProps {
   badge?: JSX.Element
   item: IHashedPhoto
-  pushDownloadedPhoto?: (downloadedPhoto: IHashedPhoto) => void
+  dispatch?: any
   photoSelection?: boolean
 }
 
 export default function Photo(props: PhotoProps): JSX.Element {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [isSelected, setIsSelected] = useState(false)
   const item = props.item
   const [path, setPath] = useState(props.item.localUri)
 
   const handleOnPress = () => {
-    if (props.photoSelection) {
-      return setIsSelected(prevState => !prevState)
-    }
+    if (props.photoSelection) { return setIsSelected(prevState => !prevState) }
 
-    if (!item.localUri) {
-      return;
-    }
+    if (!item.localUri) { return }
 
-    if (item.isUploaded && !item.isLocal && !isDownloading) {
-      setIsDownloading(true)
+    if (item.isUploaded && !item.isLocal && !item.isDownloading) {
+      props.dispatch(photoActions.updatePhotoStatusDownload(item.hash, false))
+
       downloadPhoto(item, setProgress).then((path) => {
         setPath(path)
         item.localUri = path
-
-        if (props.pushDownloadedPhoto) {
-          props.pushDownloadedPhoto(item)
-        }
         SimpleToast.show('Image downloaded!', 0.15)
       }).catch(err => {
+        props.dispatch(photoActions.updatePhotoStatusDownload(item.hash, false))
         SimpleToast.show('Could not download image', 0.15)
-      }).finally(() => setIsDownloading(false))
+      })
     } else {
       let filename = ''
       let localUri = ''
@@ -81,7 +75,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
   return (
     <TouchableOpacity
       onPress={() => handleOnPress()}
-      disabled={isDownloading}
+      disabled={item.isDownloading}
     >
       <View style={{ width: (DEVICE_WIDTH - 40) / 3, height: (DEVICE_WIDTH - 80) / 3 }}>
         <View style={tailwind('m-0.5')}>

@@ -1,10 +1,9 @@
 //import { IPhoto, IFolder } from '../../components/PhotoList';
 import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { IPhoto } from '../../components/PhotoList';
+import { IPhotosToRender } from '../../screens/PhotoGallery';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
-import { IHashedPhoto } from '../../screens/PhotoGallery/init';
-import { IPhotosToRender } from '../../screens/PhotoGallery';
 
 export interface PhotosState {
   cursor: number
@@ -13,9 +12,6 @@ export interface PhotosState {
   loadingPhotos: boolean
   loadingDeleted: boolean
   albums: any,
-  photosToRender: IPhotosToRender
-  currentlyUploadingPhotos: IHashedPhoto[]
-  currentlyDownloadingPhotos: IHashedPhoto[]
   selectedPhotosForAlbum: ImageOrVideo[]
   isLoading: boolean
   devicePhotos: any
@@ -33,7 +29,8 @@ export interface PhotosState {
   startDownloadSelectedPhoto: boolean
   error?: string | null
   isSyncing: boolean
-  isSaveDB: boolean,
+  isSaveDB: boolean
+  photosToRender: IPhotosToRender
 }
 
 const initialState: PhotosState = {
@@ -47,9 +44,6 @@ const initialState: PhotosState = {
   devicePhotos: [],
   deleted: [],
   albums: [],
-  photosToRender: { photos: [], hasNextPage: true },
-  currentlyUploadingPhotos: [],
-  currentlyDownloadingPhotos: [],
   albumContent: [],
   selectedPhoto: null,
   selectedItems: [],
@@ -62,50 +56,12 @@ const initialState: PhotosState = {
   progress: 0,
   startDownloadSelectedPhoto: false,
   isSyncing: false,
-  isSaveDB: false
+  isSaveDB: false,
+  photosToRender: {}
 };
 
 export function PhotosReducer(state = initialState, action: any): PhotosState {
   switch (action.type) {
-  case photoActionTypes.SET_PHOTOS_TO_RENDER:
-    return {
-      ...state,
-      photosToRender: action.payload
-    }
-
-  case photoActionTypes.START_PHOTO_UPLOAD:
-    return {
-      ...state,
-      currentlyUploadingPhotos: [...state.currentlyUploadingPhotos, action.payload]
-    }
-  case photoActionTypes.STOP_PHOTO_UPLOAD:
-    return {
-      ...state,
-      currentlyUploadingPhotos: [...state.currentlyDownloadingPhotos.filter(photo => photo.hash !== action.payload)],
-      photosToRender: {
-        photos: [...state.photosToRender.photos.map(photo => photo.hash === action.payload ? ({ ...photo, isUploading: false }) : photo)],
-        hasNextPage: state.photosToRender.hasNextPage
-      }
-    }
-
-  case photoActionTypes.START_PHOTO_DOWNLOAD:
-    return {
-      ...state,
-      currentlyDownloadingPhotos: [...state.currentlyDownloadingPhotos, action.payload]
-    }
-  case photoActionTypes.STOP_PHOTO_DOWNLOAD:
-    const downloadingPhotos = state.currentlyDownloadingPhotos.filter(photo => photo.hash !== action.payload)
-
-    return {
-      ...state,
-      currentlyDownloadingPhotos: downloadingPhotos
-    }
-
-  case photoActionTypes.PUSH_DOWNLOADED_PHOTO:
-    return {
-      ...state,
-      photosToRender: { photos: [action.payload, ...state.photosToRender.photos], hasNextPage: state.photosToRender.hasNextPage }
-    }
   case photoActionTypes.START_SYNC:
     return {
       ...state,
@@ -129,7 +85,31 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       ...state,
       loading: true,
       isSaveDB: false
-    };
+    }
+
+  case photoActionTypes.ADD_PHOTOS_TO_RENDER:
+    return {
+      ...state,
+      photosToRender: { ...state.photosToRender, ...action.payload }
+    }
+
+  case photoActionTypes.PHOTO_UPLOAD_UPDATE:
+    return {
+      ...state,
+      photosToRender: {
+        ...state.photosToRender,
+        [action.payload.hash]: { ...state.photosToRender[action.payload.hash], isUploading: action.payload.hasFinished ? false : true }
+      }
+    }
+
+  case photoActionTypes.PHOTO_DOWNLOAD_UPDATE:
+    return {
+      ...state,
+      photosToRender: {
+        ...state.photosToRender,
+        [action.payload.hash]: { ...state.photosToRender[action.payload.hash], isDownloading: action.payload.hasFinished ? false : true }
+      }
+    }
 
   default:
     return state;

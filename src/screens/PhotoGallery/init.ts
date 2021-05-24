@@ -61,7 +61,7 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
 }
 
 async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
-  dispatch(photoActions.startPhotoUpload(photo.hash))
+  dispatch(photoActions.updatePhotoStatusUpload(photo.hash, false))
 
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
@@ -101,13 +101,14 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
       const statusCode = res.respInfo.status;
 
       if (statusCode !== 201) {
-        dispatch(photoActions.stopPhotoUpload(photo.hash))
+        dispatch(photoActions.updatePhotoStatusUpload(photo.hash, true))
         throw res
       }
       return res.json()
     })
     .then(async (res: IAPIPhoto) => {
       if (!res.id) {
+        dispatch(photoActions.updatePhotoStatusUpload(photo.hash, true))
         return;
       }
 
@@ -149,11 +150,12 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
       if (statusCode === 201 || statusCode === 409) {
         return res.json();
       }
- 
+
+      dispatch(photoActions.updatePhotoStatusUpload(originalPhoto.hash, true))
       throw res;
     }).then((preview: IApiPreview) => {
       getPreviewAfterUpload(preview, dispatch, apiPhoto)
-    }).finally(() => dispatch(photoActions.stopPhotoUpload(originalPhoto.hash)))
+    })
 }
 
 export async function getPreviewAfterUpload(preview: IApiPreview, dispatch: any, apiPhoto: IAPIPhoto): Promise<any> {
@@ -165,14 +167,17 @@ export async function getPreviewAfterUpload(preview: IApiPreview, dispatch: any,
       }
 
       // eslint-disable-next-line no-console
-      return savePhotosAndPreviewsDB(photos, path, dispatch).then().catch((err) => { console.error('ERR save photos on DB', err) })
+      return savePhotosAndPreviewsDB(photos, path, dispatch).catch((err) => {
+        console.error('ERR save photos on DB', err)
+        dispatch(photoActions.updatePhotoStatusUpload(preview.hash, true))
+      })
     }
-  });
+  })
 }
 
 export async function downloadPreviewAfterUpload(preview: IApiPreview, dispatch: any): Promise<any> {
-  dispatch(photoActions.startPhotoDownload(preview.hash))
   if (!preview) {
+    dispatch(photoActions.updatePhotoStatusUpload(preview.hash, true))
     return Promise.resolve();
   }
   const xToken = await deviceStorage.getItem('xToken')
@@ -190,7 +195,8 @@ export async function downloadPreviewAfterUpload(preview: IApiPreview, dispatch:
     const localPreview = await RNFS.stat(tempPath);
 
     preview.localUri = localPreview.path;
-    return Promise.resolve(preview.localUri);
+    dispatch(photoActions.updatePhotoStatusUpload(preview.hash, true))
+    return Promise.resolve(preview.localUri)
   }
 
   return RNFetchBlob.config({

@@ -146,7 +146,7 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
 }
 
 const mapStateToProps = (state: any) => {
-  return { showSelectPhotosModal: state.layoutState.showSelectPhotosModal, photos: state.photosState.photosToRender.photos };
+  return { showSelectPhotosModal: state.layoutState.showSelectPhotosModal, photos: state.photosState.photosToRender };
 };
 
 export default connect(mapStateToProps)(SelectPhotosModal);
