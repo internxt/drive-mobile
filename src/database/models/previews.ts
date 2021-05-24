@@ -30,7 +30,9 @@ export class Previews {
     @Column({})
     isLocal: boolean;
 
-    @Column({ nullable: false })
+    @Column({ })
     isUploaded: boolean;
 
+    @Column({ })
+    isDownloading: boolean;
 }
