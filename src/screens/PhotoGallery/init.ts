@@ -168,7 +168,6 @@ export async function getPreviewAfterUpload(preview: IApiPreview, dispatch: any,
 
       // eslint-disable-next-line no-console
       return savePhotosAndPreviewsDB(photos, path, dispatch).catch((err) => {
-        console.error('ERR save photos on DB', err)
         dispatch(photoActions.updatePhotoStatusUpload(preview.hash, true))
       })
     }
@@ -206,6 +205,7 @@ export async function downloadPreviewAfterUpload(preview: IApiPreview, dispatch:
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
   }).then((res) => {
+    dispatch(photoActions.updatePhotoStatusUpload(preview.hash, true))
     return res.path();
   }).catch(err => {
     RNFS.unlink(tempPath)
@@ -453,7 +453,7 @@ export async function getPreviews(dispatch: any): Promise<any> {
       return downloadPreview(preview.preview, preview).then((res1) => {
         if (res1) {
           // eslint-disable-next-line no-console
-          savePhotosAndPreviewsDB(preview, res1, dispatch).then().catch((err) => { console.error('ERR save photos on DB', err) })
+          savePhotosAndPreviewsDB(preview, res1, dispatch)
         }
         next(null, res1)
       });

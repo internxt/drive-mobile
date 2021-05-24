@@ -26,7 +26,11 @@ const updatePhotoStatusUpload = (hash: string, hasFinished: boolean) => {
 }
 
 const updatePhotoStatusDownload = (hash: string, hasFinished: boolean) => {
-  return { type: photoActionTypes.PHOTO_DOWNLOAD_UPDATE, payload: { hash, hasFinished} }
+  return { type: photoActionTypes.PHOTO_DOWNLOAD_UPDATE, payload: { hash, hasFinished } }
+}
+
+const updatePhotoStatus = (hash: string, isLocal: boolean, isUploaded: boolean) => {
+  return { type: photoActionTypes.PHOTO_DOWNLOAD_UPDATE, payload: { hash, isLocal, isUploaded } }
 }
 
 export const photoActions = {
@@ -36,5 +40,6 @@ export const photoActions = {
   viewDB,
   addPhotosToRender,
   updatePhotoStatusUpload,
-  updatePhotoStatusDownload
+  updatePhotoStatusDownload,
+  updatePhotoStatus
 }

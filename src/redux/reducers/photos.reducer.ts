@@ -111,6 +111,19 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       }
     }
 
+  case photoActionTypes.PHOTO_STATUS_UPDATE:
+    return {
+      ...state,
+      photosToRender: {
+        ...state.photosToRender,
+        [action.payload.hash]: {
+          ...state.photosToRender[action.payload.hash],
+          isLocal: action.payload.isLocal,
+          isUploaded: action.payloadIsUploaded
+        }
+      }
+    }
+
   default:
     return state;
   }

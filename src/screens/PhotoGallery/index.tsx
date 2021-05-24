@@ -24,6 +24,7 @@ import Lens from '../../../assets/icons/photos/lens.svg';
 import SquareWithCrossBlue from '../../../assets/icons/photos/square-with-cross-blue.svg'
 import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
 import { IStoreReducers } from '../../types/redux';
+import { store } from '../../store';
 
 interface IPhotoGalleryProps extends Reducers {
   route: any;
@@ -58,8 +59,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<IHashedPhoto[]>([])
 
   const [testPhotosToRender, setTestPhotosToRender] = useState<IHashedPhoto[]>([])
-  const [next20, setNext20] = useState<IHashedPhoto[]>([]);
-  const [array, setArray] = useState(props.photosToRender)
 
   const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
     await task()
@@ -101,15 +100,35 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     })
   }
 
-  useEffect(() => {
-
-  }), [props.photosToRender]
-
-  const startGettingRepositories = () => {
-    return getRepositoriesDB().then((res) => {
+  const startGettingRepositories = async () => {
+    await getRepositoriesDB().then((res) => {
       props.dispatch(photoActions.viewDB())
-      setUploadedPreviews(res.previews)
-      return res;
+      //setUploadedPreviews(res.previews)
+      const currentPhotos: IPhotosToRender = store.getState().photosState.photosToRender
+      const previews = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
+
+      Object.keys(previews).forEach(key => {
+        if (currentPhotos[key]) {
+          if (currentPhotos[key].isLocal && !currentPhotos[key].isUploaded) { // este if sobra?
+            props.dispatch(photoActions.updatePhotoStatus(key, true, true))
+          }
+        } else {
+          props.dispatch(photoActions.addPhotosToRender(previews[key]))
+        }
+      })
+
+      /* res.previews.map((preview) => {
+        const index = currentPhotos.findIndex(photo => photo.hash === preview.hash)
+
+        if (index !== -1) {
+          if (currentPhotos[index].isLocal && !currentPhotos[index].isUploaded) {
+            currentPhotos[index].isUploaded = true
+            setPhotosToRender(currentPhotos)
+          }
+        } else {
+          setPhotosToRender(prevPhotos => [...prevPhotos, preview])
+        }
+      }) */
     })
   }
 
@@ -121,45 +140,43 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     let newPhotosToRender
 
     switch (true) {
-      case filterName === 'upload' && (selectedFilter === 'none' || selectedFilter === 'download' || selectedFilter === 'albums'):
-        newPhotosToRender = currentPhotos.filter(photo => !photo.isUploaded && photo.isLocal)
+    case filterName === 'upload' && (selectedFilter === 'none' || selectedFilter === 'download' || selectedFilter === 'albums'):
+      newPhotosToRender = currentPhotos.filter(photo => !photo.isUploaded && photo.isLocal)
 
-        return setFilteredPhotosToRender(newPhotosToRender)
+      return setFilteredPhotosToRender(newPhotosToRender)
 
-      case filterName === 'download' && (selectedFilter === 'none' || selectedFilter === 'upload'):
-        newPhotosToRender = currentPhotos.filter(photo => photo.isUploaded && !photo.isLocal)
+    case filterName === 'download' && (selectedFilter === 'none' || selectedFilter === 'upload'):
+      newPhotosToRender = currentPhotos.filter(photo => photo.isUploaded && !photo.isLocal)
 
-        return setFilteredPhotosToRender(newPhotosToRender)
+      return setFilteredPhotosToRender(newPhotosToRender)
 
       // if clicked on the same filter restore array
-      case filterName === selectedFilter:
-        return setFilteredPhotosToRender(currentPhotos)
+    case filterName === selectedFilter:
+      return setFilteredPhotosToRender(currentPhotos)
     }
   }
 
-  //USE EFFECT TO LISTEN DB CHANGES
+  useEffect(() => {
+    initUser().then(() => {
+      getLocalPhotos()
+      getPreviews(props.dispatch)
+      startGettingRepositories()
+    })
+  }, [])
+
+  // update/push photo on preview download
   useEffect(() => {
     if (props.isSaveDB) {
       getRepositoriesDB().then((res) => {
         props.dispatch(photoActions.viewDB())
-
         //const currentPhotos = photosToRender.slice()
-        const currentPhotos = testPhotosToRender.slice()
 
-        res.previews.map((preview) => {
-          const index = currentPhotos.findIndex(local => local.hash === preview.hash)
+        const currentPhotos = store.getState().photosState.photosToRender
+        const previews = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
 
-          if (index === -1) {
-            preview.isLocal = false
-            const downloadedPhoto = { ...preview }
-
-            //setPhotosToRender(prevPhotos => [...prevPhotos, downloadedPhoto])
-            setTestPhotosToRender(prevPhotos => [...prevPhotos, downloadedPhoto])
-          } else {
-            currentPhotos[index].isUploaded = true
-            //setPhotosToRender(currentPhotos)
-            setTestPhotosToRender(currentPhotos)
-          }
+        Object.keys(previews).forEach(key => {
+          if (currentPhotos[key]) { props.dispatch(photoActions.updatePhotoStatus(key, true, true)) }
+          else { props.dispatch(photoActions.addPhotosToRender(previews[key])) }
         })
       })
     }
@@ -168,7 +185,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   // check if the photo is already uploaded
   useEffect(() => {
     //const currentPhotos = photosToRender.slice()
-    const currentPhotos = testPhotosToRender.slice()
+    const currentPhotos = store.getState().photosState.photosToRender
 
     uploadedPreviews.map((preview) => {
       const index = currentPhotos.findIndex(photo => photo.hash === preview.hash)
@@ -176,64 +193,13 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       if (index !== -1) {
         if (currentPhotos[index].isLocal && !currentPhotos[index].isUploaded) {
           currentPhotos[index].isUploaded = true
-          //setPhotosToRender(currentPhotos)
-          setTestPhotosToRender(currentPhotos)
+          setPhotosToRender(currentPhotos)
         }
       } else {
-        //setPhotosToRender(prevPhotos => [...prevPhotos, preview])
-        setTestPhotosToRender(prevPhotos => [...prevPhotos, preview])
+        setPhotosToRender(prevPhotos => [...prevPhotos, preview])
       }
     })
   }, [uploadedPreviews])
-
-  useEffect(() => {
-    const currentPhotos = testPhotosToRender.slice()
-    const currentFiltered = filteredPhotosToRender.slice()
-    const newPhotos = next20.slice()
-
-    newPhotos.forEach(newPhoto => {
-      const index = currentPhotos.findIndex(photo => photo.hash === newPhoto.hash)
-
-      if (index === -1) { currentPhotos.push(newPhoto) }
-      else {
-        if (currentPhotos[index].isUploaded && !currentPhotos[index].isLocal) {
-          currentPhotos[index] = { ...newPhoto, isLocal: true }
-        }
-      }
-    })
-    setTestPhotosToRender(currentPhotos)
-  }, [next20])
-
-  // check if the new locals are already uploaded
-  /* useEffect(() => {
-    const currentPhotos = photosToRender.slice()
-    let currentFiltered = filteredPhotosToRender.slice()
-    const newPhotos = props.photosToRender.photos
-
-    newPhotos.forEach(newPhoto => {
-      const index = currentPhotos.findIndex(currPhoto => currPhoto.hash === newPhoto.hash)
-
-      if (index === -1) { currentPhotos.push(newPhoto) }
-      else {
-        if (currentPhotos[index].isUploaded && !currentPhotos[index].isLocal) {
-          currentPhotos[index] = { ...newPhoto, isLocal: true }
-          if (selectedFilter === 'download') {
-            currentFiltered = currentFiltered.filter(photo => newPhoto.hash !== photo.hash)
-            setFilteredPhotosToRender(currentFiltered)
-          }
-        }
-      }
-    })
-    setPhotosToRender(currentPhotos)
-  }, [props.photosToRender.photos])
- */
-  useEffect(() => {
-    initUser().then(() => {
-      getLocalPhotos()
-      getPreviews(props.dispatch)
-      startGettingRepositories()
-    })
-  }, [])
 
   useEffect(() => {
     if (!props.loggedIn) {
@@ -287,7 +253,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
           }
 
           {
-            headerTitle === 'INTERNXT PHOTOS' && Object.keys(props.photosToRender).length ?
+            headerTitle === 'INTERNXT PHOTOS' && Object.keys(props.photosToRender).length > 0 ?
               selectedFilter === 'none' ?
                 <FlatList
                   data={Object.keys(props.photosToRender)}

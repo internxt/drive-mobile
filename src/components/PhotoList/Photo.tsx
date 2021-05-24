@@ -23,7 +23,6 @@ export default function Photo(props: PhotoProps): JSX.Element {
   const [progress, setProgress] = useState(0)
   const [isSelected, setIsSelected] = useState(false)
   const item = props.item
-  const [path, setPath] = useState(props.item.localUri)
 
   const handleOnPress = () => {
     if (props.photoSelection) { return setIsSelected(prevState => !prevState) }
@@ -51,7 +50,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
       }
       else {
         filename = item.photoId + '.' + item.type
-        localUri = path
+        localUri = item.localUri
       }
 
       cachePicture(filename, localUri).then(path => {
