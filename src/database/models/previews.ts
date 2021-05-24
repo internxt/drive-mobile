@@ -33,6 +33,9 @@ export class Previews {
     @Column({ })
     isUploaded: boolean;
 
-    @Column({ })
+    @Column({ nullable: true })
     isDownloading: boolean;
+
+    @Column({ nullable: true })
+    isUploading: boolean;
 }

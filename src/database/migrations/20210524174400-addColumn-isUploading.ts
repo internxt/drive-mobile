@@ -1,17 +1,17 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export class addColumnPreviews20210520173100 implements MigrationInterface {
+export class addColumnisUploading20210524174400 implements MigrationInterface {
 
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.addColumn('previews', new TableColumn({
-      name: 'isDownloading',
+      name: 'isUploading',
       type: 'boolean',
       isNullable: true
     }))
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropColumn('previews', 'isDownloading');
+    await queryRunner.dropColumn('previews', 'isUploading');
   }
 
 }

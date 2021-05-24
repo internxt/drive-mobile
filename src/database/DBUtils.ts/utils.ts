@@ -107,7 +107,9 @@ export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch
   newPreview.localUri = path;
   newPreview.userId = userId
   newPreview.isLocal = false,
-  newPreview.isUploaded = true
+  newPreview.isUploaded = true,
+  newPreview.isDownloading = false
+  newPreview.isUploading = false
 
   const existsfileId = await previewsRepository.findOne({
     where: {
