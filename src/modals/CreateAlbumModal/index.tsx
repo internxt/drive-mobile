@@ -8,6 +8,7 @@ import { tailwind, getColor } from '../../tailwind'
 import { layoutActions } from '../../redux/actions';
 import CrossBlue from '../../../assets/icons/photos/cross-blue.svg'
 import FolderWithCross from '../../../assets/icons/photos/folder-with-cross-blue.svg'
+import { IStoreReducers } from '../../types/redux';
 
 interface CreateAlbumProps {
   dispatch: any
@@ -94,7 +95,7 @@ function CreateAlbumModal(props: CreateAlbumProps): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: any) => {
+const mapStateToProps = (state: IStoreReducers) => {
   return { showAlbumModal: state.layoutState.showAlbumModal };
 };
 

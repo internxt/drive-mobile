@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Dimensions, SafeAreaView, Text, View } from 'react-native';
 import { connect } from 'react-redux';
-import '../../../assets/icons/icon-back.png';
 import { Dispatch } from 'redux';
-import { getLocalImages, getPreviews, IHashedPhoto, initUser, LocalImages, stopSync, syncPhotos } from './init'
+import { getLocalImages, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos } from './init'
 import { FlatList, TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { getRepositoriesDB } from '../../database/DBUtils.ts/utils';
-import { Previews } from '../../database/models/previews';
 import { layoutActions, photoActions } from '../../redux/actions';
-import { Reducers } from '../../redux/reducers/reducers';
 import { queue } from 'async';
 import Photo from '../../components/PhotoList/Photo';
 import Header from './Header';
@@ -26,7 +23,7 @@ import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
 import { IStoreReducers } from '../../types/redux';
 import { store } from '../../store';
 
-interface IPhotoGalleryProps extends Reducers {
+interface IPhotoGalleryProps {
   route: any;
   navigation: any
   dispatch: Dispatch,
@@ -51,15 +48,10 @@ export const DEVICE_WIDTH = Dimensions.get('window').width
 export const DEVICE_HEIGHT = Dimensions.get('window').height
 
 function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
-  const [photosToRender, setPhotosToRender] = useState<IHashedPhoto[]>([])
-  const [uploadedPreviews, setUploadedPreviews] = useState<Previews[]>([])
   const [selectedFilter, setSelectedFilter] = useState('none')
   const [headerTitle, setHeaderTitle] = useState('INTERNXT PHOTOS')
   const [searchString, setSearchString] = useState('')
-  const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<IHashedPhoto[]>([])
-
-  const [testPhotosToRender, setTestPhotosToRender] = useState<IHashedPhoto[]>([])
-
+  const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<IPhotosToRender>(props.photosToRender)
   const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
     await task()
     callBack()
@@ -71,7 +63,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     const syncActions: Promise<unknown>[] = []
 
     while (!finished) {
-      const localPhotos: LocalImages = await getLocalImages(lastPickedImage)
+      const localPhotos = await getLocalImages(lastPickedImage)
 
       props.dispatch(photoActions.startSync())
       const syncAction = () => new Promise<unknown>(resolved => {
@@ -80,13 +72,25 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
       syncActions.push(syncAction())
 
-      //photos = (photos.length > 0 ? photos.concat(localPhotos.assets) : localPhotos.assets).map(photo => ({ ...photo, isLocal: true, isUploaded: false, isDownloading: false }))
       const newNext20 = localPhotos.assets.map(photo => ({ ...photo, isLocal: true, isUploaded: false, isDownloading: false, isUploading: false }))
-      const photos = newNext20.reduce((acc, photo) => {
+      const newPhotos: IPhotosToRender = newNext20.reduce((acc, photo) => {
         return { ...acc, [photo.hash]: photo }
       }, {})
+      const currentPhotos: IPhotosToRender = store.getState().photosState.photosToRender
 
-      props.dispatch(photoActions.addPhotosToRender(photos))
+      Object.keys(newPhotos).forEach(key => {
+        if (currentPhotos[key]) {
+          if (!currentPhotos[key].isLocal && currentPhotos[key].isUploaded) {
+            const pathToLocalImage = newPhotos[key].localUri
+
+            props.dispatch(photoActions.updatePhotoStatus(key, true, true, pathToLocalImage))
+          }
+        } else {
+          const photoObj = { [key]: newPhotos[key] }
+
+          props.dispatch(photoActions.addPhotosToRender(photoObj))
+        }
+      })
 
       if (localPhotos.hasNextPage) {
         lastPickedImage = localPhotos.endCursor
@@ -95,15 +99,14 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       }
     }
 
-    await Promise.all(syncActions).then(() => {
+    await Promise.all(syncActions).finally(() => {
       props.dispatch(photoActions.stopSync())
     })
   }
 
-  const startGettingRepositories = async () => {
+  const getRepositories = async () => {
     await getRepositoriesDB().then((res) => {
       props.dispatch(photoActions.viewDB())
-      //setUploadedPreviews(res.previews)
       const currentPhotos: IPhotosToRender = store.getState().photosState.photosToRender
       const previews = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
 
@@ -113,41 +116,29 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             props.dispatch(photoActions.updatePhotoStatus(key, true, true))
           }
         } else {
-          props.dispatch(photoActions.addPhotosToRender(previews[key]))
+          const previewObj = { [key]: previews[key] }
+
+          props.dispatch(photoActions.addPhotosToRender(previewObj))
         }
       })
-
-      /* res.previews.map((preview) => {
-        const index = currentPhotos.findIndex(photo => photo.hash === preview.hash)
-
-        if (index !== -1) {
-          if (currentPhotos[index].isLocal && !currentPhotos[index].isUploaded) {
-            currentPhotos[index].isUploaded = true
-            setPhotosToRender(currentPhotos)
-          }
-        } else {
-          setPhotosToRender(prevPhotos => [...prevPhotos, preview])
-        }
-      }) */
     })
   }
 
+  // Array.prototype.filter version for Objects
+  const objectFilter = (obj, predicate) => Object.fromEntries(Object.entries(obj).filter(predicate))
   const selectFilter = (filterName: string) => {
     selectedFilter === filterName ? setSelectedFilter('none') : setSelectedFilter(filterName)
 
-    //const currentPhotos = photosToRender.slice()
-    const currentPhotos = testPhotosToRender.slice()
+    const currentPhotos = store.getState().photosState.photosToRender
     let newPhotosToRender
 
     switch (true) {
     case filterName === 'upload' && (selectedFilter === 'none' || selectedFilter === 'download' || selectedFilter === 'albums'):
-      newPhotosToRender = currentPhotos.filter(photo => !photo.isUploaded && photo.isLocal)
-
+      newPhotosToRender = objectFilter(currentPhotos, ([hash, value]) => !value.isUploaded && value.isLocal)
       return setFilteredPhotosToRender(newPhotosToRender)
 
     case filterName === 'download' && (selectedFilter === 'none' || selectedFilter === 'upload'):
-      newPhotosToRender = currentPhotos.filter(photo => photo.isUploaded && !photo.isLocal)
-
+      newPhotosToRender = objectFilter(currentPhotos, ([hash, value]) => value.isUploaded && !value.isLocal)
       return setFilteredPhotosToRender(newPhotosToRender)
 
       // if clicked on the same filter restore array
@@ -160,17 +151,35 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     initUser().then(() => {
       getLocalPhotos()
       getPreviews(props.dispatch)
-      startGettingRepositories()
+      getRepositories()
     })
   }, [])
+
+  // update the data everytime a photo gets downloaded/synced
+  useEffect(() => {
+    if (selectedFilter === 'download') {
+      const newFiltered = objectFilter(props.photosToRender, ([key, value]) => !value.isLocal && value.isUploaded) as IPhotosToRender
+
+      setFilteredPhotosToRender(newFiltered)
+    }
+
+    if (selectedFilter === 'upload') {
+      const newFiltered = objectFilter(props.photosToRender, ([key, value]) => value.isLocal && !value.isUploaded) as IPhotosToRender
+
+      setFilteredPhotosToRender(newFiltered)
+    }
+
+    if (selectedFilter === 'none') {
+      setFilteredPhotosToRender(props.photosToRender)
+    }
+
+  }, [props.photosToRender])
 
   // update/push photo on preview download
   useEffect(() => {
     if (props.isSaveDB) {
       getRepositoriesDB().then((res) => {
         props.dispatch(photoActions.viewDB())
-        //const currentPhotos = photosToRender.slice()
-
         const currentPhotos = store.getState().photosState.photosToRender
         const previews = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
 
@@ -181,25 +190,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       })
     }
   }, [props.isSaveDB])
-
-  // check if the photo is already uploaded
-  useEffect(() => {
-    //const currentPhotos = photosToRender.slice()
-    const currentPhotos = store.getState().photosState.photosToRender
-
-    uploadedPreviews.map((preview) => {
-      const index = currentPhotos.findIndex(photo => photo.hash === preview.hash)
-
-      if (index !== -1) {
-        if (currentPhotos[index].isLocal && !currentPhotos[index].isUploaded) {
-          currentPhotos[index].isUploaded = true
-          setPhotosToRender(currentPhotos)
-        }
-      } else {
-        setPhotosToRender(prevPhotos => [...prevPhotos, preview])
-      }
-    })
-  }, [uploadedPreviews])
 
   useEffect(() => {
     if (!props.loggedIn) {
@@ -254,22 +244,13 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
           {
             headerTitle === 'INTERNXT PHOTOS' && Object.keys(props.photosToRender).length > 0 ?
-              selectedFilter === 'none' ?
-                <FlatList
-                  data={Object.keys(props.photosToRender)}
-                  numColumns={3}
-                  keyExtractor={item => item}
-                  renderItem={({ item }) => <Photo item={props.photosToRender[item]} key={item} />}
-                  style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
-                />
-                :
-                <FlatList
-                  data={filteredPhotosToRender}
-                  numColumns={3}
-                  keyExtractor={item => item.hash}
-                  renderItem={({ item }) => <Photo item={item} key={item.hash} />}
-                  style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
-                />
+              <FlatList
+                data={Object.keys(filteredPhotosToRender)}
+                numColumns={3}
+                keyExtractor={item => item}
+                renderItem={({ item }) => <Photo item={filteredPhotosToRender[item]} key={item} dispatch={props.dispatch} />}
+                style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+              />
               :
               <FlatList
                 data={[1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, 12, 13, 14, 15, 16, 17]}

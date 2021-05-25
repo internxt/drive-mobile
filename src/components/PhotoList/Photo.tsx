@@ -31,14 +31,17 @@ export default function Photo(props: PhotoProps): JSX.Element {
 
     if (item.isUploaded && !item.isLocal && !item.isDownloading) {
       props.dispatch(photoActions.updatePhotoStatusDownload(item.hash, false))
+      let error = false
 
       downloadPhoto(item, setProgress).then((path) => {
-        setPath(path)
         item.localUri = path
         SimpleToast.show('Image downloaded!', 0.15)
       }).catch(err => {
-        props.dispatch(photoActions.updatePhotoStatusDownload(item.hash, false))
+        error = true
         SimpleToast.show('Could not download image', 0.15)
+      }).finally(() => {
+        props.dispatch(photoActions.updatePhotoStatusDownload(item.hash, true))
+        if (!error) { props.dispatch(photoActions.updatePhotoStatus(item.hash, true, true)) }
       })
     } else {
       let filename = ''

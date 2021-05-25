@@ -119,7 +119,8 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
         [action.payload.hash]: {
           ...state.photosToRender[action.payload.hash],
           isLocal: action.payload.isLocal,
-          isUploaded: action.payloadIsUploaded
+          isUploaded: action.payload.isUploaded,
+          localUri: action.payload.pathToLocalImage ? action.payload.pathToLocalImage : state.photosToRender[action.payload.hash].localUri
         }
       }
     }
