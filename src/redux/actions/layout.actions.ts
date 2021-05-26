@@ -73,13 +73,13 @@ function closeItemModal() {
 }
 
 function openCreateAlbumModal() {
-  return (dispatch: Dispatch): void => {
+  return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.OPEN_ALBUM_MODAL });
   };
 }
 
 function closeCreateAlbumModal() {
-  return (dispatch: Dispatch): void => {
+  return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_ALBUM_MODAL });
   };
 }

@@ -9,8 +9,8 @@ import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { IAPIPhoto, IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
-import { getRepositoriesDB, savePhotosAndPreviewsDB } from '../../database/DBUtils.ts/utils';
-import _, { uniqueId } from 'lodash';
+import { savePhotosAndPreviewsDB } from '../../database/DBUtils.ts/utils';
+import { uniqueId } from 'lodash';
 import CameraRoll from '@react-native-community/cameraroll';
 import PackageJson from '../../../package.json'
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
@@ -408,18 +408,6 @@ export async function getListPreviews() {
     if (res.status !== 200) { throw res; }
     return res.json();
   })
-}
-
-async function getArrayPreviews(): Promise<IApiPreview[]> {
-  const headers = await getHeaders();
-
-  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/previews`, {
-    method: 'GET',
-    headers
-  }).then(res => {
-    if (res.status !== 200) { throw res; }
-    return res.json();
-  });
 }
 
 let SHOULD_STOP = false;

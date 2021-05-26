@@ -4,7 +4,6 @@ import { tailwind } from '../../tailwind'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import HomeBlue from '../../../assets/icons/photos/home-blue.svg'
 import FolderBlue from '../../../assets/icons/photos/folder-blue.svg'
-import LensThinBlue from '../../../assets/icons/photos/lens-thin-blue.svg'
 import TwoDotsBlue from '../../../assets/icons/photos/two-dots-blue.svg'
 import { layoutActions } from '../../redux/actions'
 
@@ -24,17 +23,13 @@ const Footer = (props: FooterProps): JSX.Element => {
   )
 
   return (
-    <View style={tailwind('flex-row h-12 justify-between items-center my-3 pl-2')}>
+    <View style={tailwind('flex-row h-12 justify-around items-center mt-3 pl-2')}>
       <FooterButton onPress={() => props.setHeaderTitle('INTERNXT PHOTOS')}>
         <HomeBlue width={ICON_SIZE} height={ICON_SIZE} />
       </FooterButton>
 
       <FooterButton onPress={() => props.setHeaderTitle('Albums')}>
         <FolderBlue width={ICON_SIZE} height={ICON_SIZE} />
-      </FooterButton>
-
-      <FooterButton onPress={() => props.setHeaderTitle('Albums')}>
-        <LensThinBlue width={ICON_SIZE} height={ICON_SIZE} />
       </FooterButton>
 
       <FooterButton onPress={() => props.dispatch(layoutActions.openSettings())}>

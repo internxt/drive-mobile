@@ -127,6 +127,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
   // Array.prototype.filter version for Objects
   const objectFilter = (obj, predicate) => Object.fromEntries(Object.entries(obj).filter(predicate))
+  const handleOnPressFilter = () => props.dispatch(layoutActions.openCreateAlbumModal())
   const selectFilter = (filterName: string) => {
     selectedFilter === filterName ? setSelectedFilter('none') : setSelectedFilter(filterName)
 
@@ -217,7 +218,14 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             <View style={tailwind('flex-row mt-3 items-center justify-center')}>
               <FilterButton width='w-1/3' corners='rounded-l' text='Download' filter='download' selectFilter={selectFilter} activeFilter={selectedFilter} />
               <FilterButton width='w-4/10' corners='' text='Upload pending' filter='upload' selectFilter={selectFilter} activeFilter={selectedFilter} />
-              <FilterButton width='w-3/10' corners='rounded-r' text='Albums' filter='albums' selectFilter={selectFilter} activeFilter={selectedFilter} />
+              <FilterButton width='w-3/10'
+                corners='rounded-r'
+                text='Albums'
+                filter='albums'
+                selectFilter={selectFilter}
+                activeFilter={selectedFilter}
+                onPress={handleOnPressFilter}
+              />
             </View>
             :
             <View style={tailwind('flex-row mt-3 items-center justify-center')}>
