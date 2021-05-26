@@ -2,10 +2,7 @@ import React from 'react'
 import { Text, View } from 'react-native'
 import { tailwind } from '../../tailwind'
 import Syncing from '../../../assets/icons/photos/syncing.svg'
-import TwoDotsBlue from '../../../assets/icons/photos/two-dots-blue.svg'
 import { connect } from 'react-redux'
-import { TouchableOpacity } from 'react-native-gesture-handler'
-import { layoutActions } from '../../redux/actions'
 
 interface HeaderProps {
   isSyncing: boolean
@@ -22,18 +19,11 @@ const Header = ({ isSyncing, title, dispatch }: HeaderProps): JSX.Element => {
         {title}
       </Text>
 
-      <View style={tailwind('w-1/5 flex-row justify-end items-center')}>
-        <View style={tailwind('items-center justify-center mr-4 mb-1')}>
+      <View style={tailwind('w-1/5 justify-center items-end')}>
+        <View style={tailwind('items-center justify-center mr-2 mb-1')}>
           <Syncing width={25} height={25} />
         </View>
-
-        <TouchableOpacity style={tailwind('w-8 h-8 bg-white items-center justify-center rounded')}
-          onPress={() => dispatch(layoutActions.openSettings())}
-        >
-          <TwoDotsBlue width={22} height={22} />
-        </TouchableOpacity>
       </View>
-
     </View>
   )
 }
