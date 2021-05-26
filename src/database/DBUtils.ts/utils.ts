@@ -51,7 +51,6 @@ export async function getRepositoriesDB(): Promise<Repositories> {
     albumsWithPreviews.push(photoAlbums)
 
   })
-
   return { photos, previews, albums, albumsWithPreviews }
 }
 
@@ -130,10 +129,13 @@ export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch
   })
 }
 
-export async function saveAlbumsDB(listPhotos: Previews[], name: string) {
+export async function saveAlbumsDB(listPhotos: number[], name: string, albumId: number): Promise<void> {
   const userId = await getUserId()
-
   const albumRepository = getRepository(Albums);
+
+  const album = await albumRepository.find({
+    where: { albumId: albumId }
+  })
 
   await albumRepository.find({
     where: { userId: userId }
@@ -145,7 +147,6 @@ export async function saveAlbumsDB(listPhotos: Previews[], name: string) {
   newAlbum.name = name
 
   await albumRepository.save(newAlbum);
-
   await albumRepository.find({
     where: { userId: userId }
   });
@@ -153,17 +154,14 @@ export async function saveAlbumsDB(listPhotos: Previews[], name: string) {
   const albumPhotosRepository = getRepository(PhotoAlbums);
 
   await albumPhotosRepository.find({})
-
   const newPhotosAlbum = new PhotoAlbums();
 
-  listPhotos.map((res) => {
+  listPhotos.map((id) => {
 
     newPhotosAlbum.albumId = newAlbum.id
-    newPhotosAlbum.previewId = res.photoId
+    newPhotosAlbum.previewId = id
   })
-
   await albumPhotosRepository.save(newPhotosAlbum);
-
   await albumPhotosRepository.find({})
 }
 
