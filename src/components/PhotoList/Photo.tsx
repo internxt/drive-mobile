@@ -3,19 +3,20 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { StyleSheet, Image, ActivityIndicator, View, Platform } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import PhotoBadge from './PhotoBadge';
-import { cachePicture, downloadPhoto, IHashedPhoto } from '../../screens/PhotoGallery/init';
+import { cachePicture, downloadPhoto } from '../../screens/PhotoGallery/init';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
 import { tailwind } from '../../tailwind'
-import { DEVICE_WIDTH } from '../../screens/PhotoGallery';
+import { DEVICE_WIDTH, IPhotoToRender } from '../../screens/PhotoGallery';
 import { unlink } from 'react-native-fs';
 import { photoActions } from '../../redux/actions';
 
 interface PhotoProps {
   badge?: JSX.Element
-  item: IHashedPhoto
+  item: IPhotoToRender
   dispatch?: any
   photoSelection?: boolean
+  handleSelection?: (photoId: number) => void
 }
 
 export default function Photo(props: PhotoProps): JSX.Element {
@@ -25,7 +26,10 @@ export default function Photo(props: PhotoProps): JSX.Element {
   const item = props.item
 
   const handleOnPress = () => {
-    if (props.photoSelection) { return setIsSelected(prevState => !prevState) }
+    if (props.photoSelection) {
+      props.handleSelection(item.photoId)
+      return setIsSelected(prevState => !prevState)
+    }
 
     if (!item.localUri) { return }
 
@@ -50,8 +54,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
       if (item.filename) {
         filename = item.filename
         localUri = item.localUri
-      }
-      else {
+      } else {
         filename = item.photoId + '.' + item.type
         localUri = item.localUri
       }
@@ -99,6 +102,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
             isDownloading={item.isDownloading}
             isUploading={item.isUploading}
             isSelected={isSelected}
+            photoSelection={props.photoSelection}
           />
         }
 

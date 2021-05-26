@@ -1,9 +1,7 @@
-import { getRepository } from 'typeorm/browser'
 import { addPhotoToAlbumDB, deleteAlbumDB, deletePhotoFromAlbumDB, saveAlbumsDB, updateNameAlbumDB } from '../../database/DBUtils.ts/utils'
-import { Photos } from '../../database/models/photos'
-import { Previews } from '../../database/models/previews'
 import { deviceStorage } from '../../helpers'
 import { getHeaders } from '../../helpers/headers'
+import { IAPIAlbum } from './index'
 
 export async function getItemsLocalStorage() {
   const xUser = await deviceStorage.getItem('xUser')
@@ -13,26 +11,35 @@ export async function getItemsLocalStorage() {
   return { xToken, xUserJson }
 }
 
-export async function uploadAlbum(albumTitle: string, selectedPhotos: Previews[]): Promise<void> {
-
+export async function getAlbums(): Promise<any> {
   const items = await getItemsLocalStorage()
   const mnemonic = items.xUserJson.mnemonic
   const xToken = items.xToken
   const headers = await getHeaders(xToken, mnemonic)
 
-  const photosRepository = getRepository(Photos);
-  const listphotos = [];
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/storage/photosalbum`, {
+    method: 'GET',
+    headers: headers
+  }).then(res => {
+    if (res.status !== 200) {
+      throw res
+    }
 
-  selectedPhotos.map(async (res) => {
-    const photos = await photosRepository.find({
-      where: {
-        userId: items.xUserJson.userId
-      }
-    })
+    return res.json()
+  }).then(async (albums: IAPIAlbum[]) => {
+    for (const album of albums) {
+      const photos = album.photos.map(photo => photo.id)
 
-    listphotos.push(photos)
+      await saveAlbumsDB(photos, album.name)
+    }
   })
+}
 
+export async function uploadAlbum(albumTitle: string, selectedPhotos: number[]): Promise<void> {
+  const items = await getItemsLocalStorage()
+  const mnemonic = items.xUserJson.mnemonic
+  const xToken = items.xToken
+  const headers = await getHeaders(xToken, mnemonic)
   const body = { name: albumTitle, photos: selectedPhotos }
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/album`, {
@@ -41,14 +48,13 @@ export async function uploadAlbum(albumTitle: string, selectedPhotos: Previews[]
     body: JSON.stringify(body)
   }).then(res => {
     if (res.status === 200) {
-      return saveAlbumsDB(listphotos, albumTitle)
+      return saveAlbumsDB(selectedPhotos, albumTitle)
     }
     return res.json()
   })
 }
 
 export async function deleteAlbum(albumId: number): Promise<void> {
-
   const items = await getItemsLocalStorage()
   const mnemonic = items.xUserJson.mnemonic
   const xToken = items.xToken
@@ -66,7 +72,6 @@ export async function deleteAlbum(albumId: number): Promise<void> {
 }
 
 export async function deletePhotoAlbum(albumId: number, photoId: number): Promise<void> {
-
   const items = await getItemsLocalStorage()
   const mnemonic = items.xUserJson.mnemonic
   const xToken = items.xToken
@@ -98,7 +103,7 @@ export async function updateNameAlbum(name: string, id: number): Promise<void> {
   })
 }
 
-export async function addPhotoToAlbum(albumId: number, photoId: number) {
+export async function addPhotoToAlbum(albumId: number, photoId: number): Promise<void> {
   const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/photos/album/photo/${albumId}/${photoId}`, {

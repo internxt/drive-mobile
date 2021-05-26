@@ -23,6 +23,7 @@ export interface IHashedPhoto extends Asset {
   isLocal: boolean
   isUploading: boolean
   isDownloading: boolean
+  photoId: number
 }
 
 const getArrayPhotos = async (images: Asset[]) => {
@@ -429,15 +430,16 @@ export function stopSync(): void {
 
 export async function getPreviews(dispatch: any): Promise<any> {
   SHOULD_STOP = false;
-  return getUploadedPhotos().then((res: IApiPhotoWithPreview[]) => {
-    if (res.length === 0) {
+  return getUploadedPhotos().then((uploadedPhotos: IApiPhotoWithPreview[]) => {
+    if (uploadedPhotos.length === 0) {
       return;
     }
 
-    return mapSeries(res, async (preview, next) => {
+    return mapSeries(uploadedPhotos, async (preview, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }
+
       const listPhotosOnDB = await getRepositoriesDB()
       const photos = listPhotosOnDB.previews
 
@@ -445,21 +447,18 @@ export async function getPreviews(dispatch: any): Promise<any> {
         const intersection = _.intersectionBy(res, preview, 'hash')
 
         if (intersection.length !== 0) {
-
           return;
         }
       })
 
       return downloadPreview(preview.preview, preview).then((res1) => {
         if (res1) {
-          // eslint-disable-next-line no-console
           savePhotosAndPreviewsDB(preview, res1, dispatch)
         }
         next(null, res1)
-      });
-
-    });
-  });
+      })
+    })
+  })
 }
 
 async function initializePhotosUser(): Promise<any> {

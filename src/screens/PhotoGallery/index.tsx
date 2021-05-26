@@ -22,6 +22,7 @@ import SquareWithCrossBlue from '../../../assets/icons/photos/square-with-cross-
 import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
 import { IStoreReducers } from '../../types/redux';
 import { store } from '../../store';
+import { getAlbums } from '../../modals/CreateAlbumModal/init';
 
 interface IPhotoGalleryProps {
   route: any;
@@ -50,8 +51,10 @@ export const DEVICE_HEIGHT = Dimensions.get('window').height
 function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [selectedFilter, setSelectedFilter] = useState('none')
   const [headerTitle, setHeaderTitle] = useState('INTERNXT PHOTOS')
+  const [albumTitle, setAlbumTitle] = useState('')
   const [searchString, setSearchString] = useState('')
   const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<IPhotosToRender>(props.photosToRender)
+  const [photosForAlbumCreation, setPhotosForAlbumCreation] = useState<IPhotosToRender>({})
   const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
     await task()
     callBack()
@@ -151,6 +154,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     initUser().then(() => {
       getLocalPhotos()
       getPreviews(props.dispatch)
+      getAlbums()
       getRepositories()
     })
   }, [])
@@ -173,6 +177,9 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       setFilteredPhotosToRender(props.photosToRender)
     }
 
+    const photosForAlbumCreation = objectFilter(props.photosToRender, ([hash, value]) => value.isUploaded === true) as IPhotosToRender
+
+    setPhotosForAlbumCreation(photosForAlbumCreation)
   }, [props.photosToRender])
 
   // update/push photo on preview download
@@ -200,8 +207,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
   return (
     <View style={tailwind('flex-1')}>
-      <CreateAlbumModal />
-      <SelectPhotosModal />
+      <CreateAlbumModal albumTitle={albumTitle} setAlbumTitle={setAlbumTitle} />
+      <SelectPhotosModal albumTitle={albumTitle} photos={photosForAlbumCreation} />
 
       <View style={tailwind('px-5')}>
         <SafeAreaView style={tailwind('h-full')}>
@@ -289,7 +296,10 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             </TouchableOpacity>
 
             <TouchableOpacity style={tailwind('flex-row h-6 w-20 px-2 bg-blue-60 rounded-xl items-center justify-between')}
-              onPress={() => props.dispatch(layoutActions.openCreateAlbumModal())}
+              onPress={() => {
+                setAlbumTitle('')
+                props.dispatch(layoutActions.openCreateAlbumModal())
+              }}
             >
               <CrossWhite width={10} height={10} />
               <Text style={tailwind('text-white font-averta-regular text-sm')}>Album</Text>

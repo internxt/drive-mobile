@@ -39,7 +39,6 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
     }
   })()
   let count = 0
-
   // Check if everything is set up for file upload
   const validateUri = () => {
     if (Platform.OS === 'ios') {

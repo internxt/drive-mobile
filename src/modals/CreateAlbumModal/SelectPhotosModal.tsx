@@ -1,22 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Text, View } from 'react-native';
+import { FlatList, Text, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import { IPreview } from '../../components/PhotoList';
-import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
-import { getHeaders } from '../../helpers/headers';
 import { IImageInfo } from 'react-native-image-zoom-viewer/built/image-viewer.type';
 import Modal from 'react-native-modalbox';
 import { tailwind } from '../../tailwind'
 import { layoutActions } from '../../redux/actions';
-import { IHashedPhoto } from '../../screens/Photos/init';
 import Photo from '../../components/PhotoList/Photo';
+import { IStoreReducers } from '../../types/redux';
+import { IPhotosToRender } from '../../screens/PhotoGallery';
+import { uploadAlbum } from './init';
+import SimpleToast from 'react-native-simple-toast';
 
 interface SelectPhotosModalProps {
   dispatch: any
   showSelectPhotosModal: boolean
-  authenticationState: AuthenticationState
-  photos: IHashedPhoto[]
+  token: string
+  user: any
+  photos: IPhotosToRender
+  albumTitle: string
 }
 
 export interface IAlbum {
@@ -45,36 +47,17 @@ export interface IAlbumPhoto {
 }
 
 function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
-  const [photos, setPhotos] = useState<IPreview[]>([])
-  const [albumTitle, setAlbumTitle] = useState('')
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [isCreatingAlbum, setIsCreatingAlbum] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState<IImageInfo[]>([])
   const [isOpen, setIsOpen] = useState(props.showSelectPhotosModal)
-  const [step, setStep] = useState(1)
 
   useEffect(() => {
     setIsOpen(props.showSelectPhotosModal)
   }, [props.showSelectPhotosModal])
 
-  const uploadAlbum = async (): Promise<void> => {
-    const xToken = props.authenticationState.token
-    const mnemonic = props.authenticationState.user.mnemonic
-    const headers = await getHeaders(xToken, mnemonic)
-    const body = { name: albumTitle, photos: selectedPhotos }
-
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/album`, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(body)
-    }).then(res => {
-      return res.json()
-    })
-  }
-
   const handleSelection = (selectedPhotoId: number) => {
-    const currentSelectedPhotos = selectedPhotos
+    const currentSelectedPhotos = selectedPhotos.slice()
     const isAlreadySelected = currentSelectedPhotos.find(photoId => photoId === selectedPhotoId)
 
     if (isAlreadySelected) {
@@ -89,19 +72,13 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
   }
 
   const handleAlbumCreation = () => {
-    if (albumTitle) {
-      if (albumTitle.length > 30) {
-        Alert.alert('Maximum album length name is 30 characters')
-      } else {
-        if (selectedPhotos.length > 0) {
-          setIsCreatingAlbum(true)
-          uploadAlbum().finally(() => setIsCreatingAlbum(false))
-        } else {
-          Alert.alert('You need to select at least one photo')
-        }
-      }
+    if (selectedPhotos.length > 0) {
+      setIsCreatingAlbum(true)
+      uploadAlbum(props.albumTitle, selectedPhotos)
+        .catch(() => SimpleToast.show('Could not create album'))
+        .finally(() => setIsCreatingAlbum(false))
     } else {
-      Alert.alert('Album name is required')
+      SimpleToast.show('You need to select at least one photo')
     }
   }
 
@@ -120,33 +97,42 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
     >
       <View style={tailwind('self-center bg-blue-60 rounded h-1 w-24 mt-5')} />
 
-      <Text style={tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5')}>Add photos to ALBUM_NAME</Text>
+      <Text style={tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5')}>Add photos to {props.albumTitle}</Text>
 
       <View style={tailwind('flex-row justify-between mt-5')}>
-        <TouchableOpacity>
-          <Text style={tailwind('text-blue-60 font-averta-regular text-base')}>Cancel</Text>
+        <TouchableOpacity onPress={closeModal} disabled={isCreatingAlbum}>
+          <Text style={!isCreatingAlbum ? tailwind('text-blue-60 font-averta-regular text-base') : tailwind('text-blue-40 font-averta-regular text-base')}>Cancel</Text>
         </TouchableOpacity>
 
         <Text style={tailwind('text-gray-70 font-averta-regular text-base')}>All photos</Text>
 
-        <TouchableOpacity>
-          <Text style={tailwind('text-blue-60 font-averta-regular text-base')}>Done</Text>
+        <TouchableOpacity onPress={handleAlbumCreation}>
+          <Text style={!isCreatingAlbum ? tailwind('text-blue-60 font-averta-regular text-base') : tailwind('text-blue-40 font-averta-regular text-base')}>Done</Text>
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={props.photos}
-        numColumns={3}
-        keyExtractor={item => item.hash}
-        renderItem={({ item }) => <Photo item={item} key={item.hash} photoSelection={true} />}
-        style={tailwind('h-8/10 mt-2 mb-8')}
-      />
+      {
+        Object.keys(props.photos).length > 0 ?
+          <FlatList
+            data={Object.keys(props.photos)}
+            numColumns={3}
+            keyExtractor={item => item}
+            renderItem={({ item }) => <Photo item={props.photos[item]} key={item} photoSelection={true} handleSelection={handleSelection} />}
+            style={tailwind('h-8/10 mt-2 mb-8')}
+          />
+          :
+          null
+      }
     </Modal>
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return { showSelectPhotosModal: state.layoutState.showSelectPhotosModal, photos: state.photosState.photosToRender };
+const mapStateToProps = (state: IStoreReducers) => {
+  return {
+    showSelectPhotosModal: state.layoutState.showSelectPhotosModal,
+    token: state.authenticationState.token,
+    user: state.authenticationState.user
+  }
 };
 
 export default connect(mapStateToProps)(SelectPhotosModal);
