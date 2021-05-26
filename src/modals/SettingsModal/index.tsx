@@ -179,12 +179,12 @@ function SettingsModal(props: SettingsModalProps) {
       />
 
       <SettingsItem
-        text={props.layoutState.currentApp === 'Photos' ? strings.components.app_menu.settings.drive : strings.components.app_menu.settings.photos}
+        text={props.layoutState.currentApp === 'PhotoGallery' ? strings.components.app_menu.settings.drive : strings.components.app_menu.settings.photos}
         onPress={async () => {
 
           props.dispatch(layoutActions.closeSettings())
 
-          if (props.layoutState.currentApp === 'Photos') {
+          if (props.layoutState.currentApp === 'PhotoGallery') {
             props.navigation.replace('FileExplorer')
           } else {
             props.navigation.replace('PhotoGallery')

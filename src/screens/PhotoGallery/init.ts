@@ -434,22 +434,10 @@ export async function getPreviews(dispatch: any): Promise<any> {
     if (uploadedPhotos.length === 0) {
       return;
     }
-
     return mapSeries(uploadedPhotos, async (preview, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }
-
-      const listPhotosOnDB = await getRepositoriesDB()
-      const photos = listPhotosOnDB.previews
-
-      photos.forEach((res) => {
-        const intersection = _.intersectionBy(res, preview, 'hash')
-
-        if (intersection.length !== 0) {
-          return;
-        }
-      })
 
       return downloadPreview(preview.preview, preview).then((res1) => {
         if (res1) {

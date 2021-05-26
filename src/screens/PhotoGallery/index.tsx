@@ -20,6 +20,7 @@ import { IStoreReducers } from '../../types/redux';
 import { store } from '../../store';
 import { getAlbums } from '../../modals/CreateAlbumModal/init';
 import Footer from './Footer';
+import SettingsModal from '../../modals/SettingsModal';
 
 interface IPhotoGalleryProps {
   route: any;
@@ -206,6 +207,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     <View style={tailwind('flex-1')}>
       <CreateAlbumModal albumTitle={albumTitle} setAlbumTitle={setAlbumTitle} />
       <SelectPhotosModal albumTitle={albumTitle} photos={photosForAlbumCreation} />
+      <SettingsModal navigation={props.navigation} />
 
       <View style={tailwind('px-5')}>
         <SafeAreaView style={tailwind('h-full')}>
