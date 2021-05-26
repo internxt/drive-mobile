@@ -11,7 +11,4 @@ export class Albums {
 
     @Column({ nullable: false })
     userId: string;
-
-    @Column('int', { nullable: true })
-    albumId: number;
 }

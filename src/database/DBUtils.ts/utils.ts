@@ -129,13 +129,9 @@ export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch
   })
 }
 
-export async function saveAlbumsDB(listPhotos: number[], name: string, albumId: number): Promise<void> {
+export async function saveAlbumsDB(listPhotos: number[], name: string): Promise<void> {
   const userId = await getUserId()
   const albumRepository = getRepository(Albums);
-
-  const album = await albumRepository.find({
-    where: { albumId: albumId }
-  })
 
   await albumRepository.find({
     where: { userId: userId }
