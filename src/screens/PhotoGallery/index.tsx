@@ -14,15 +14,12 @@ import SelectPhotosModal from '../../modals/CreateAlbumModal/SelectPhotosModal';
 import FilterButton from './FilterButton';
 import { tailwind, getColor } from '../../tailwind.js'
 import AlbumCard from '../../components/AlbumCard';
-import HomeBlue from '../../../assets/icons/photos/home-blue.svg'
-import FolderBlue from '../../../assets/icons/photos/folder-blue.svg'
-import LensThinBlue from '../../../assets/icons/photos/lens-thin-blue.svg'
 import Lens from '../../../assets/icons/photos/lens.svg';
-import SquareWithCrossBlue from '../../../assets/icons/photos/square-with-cross-blue.svg'
 import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
 import { IStoreReducers } from '../../types/redux';
 import { store } from '../../store';
 import { getAlbums } from '../../modals/CreateAlbumModal/init';
+import Footer from './Footer';
 
 interface IPhotoGalleryProps {
   route: any;
@@ -268,43 +265,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
               />
           }
 
-          <View style={tailwind('flex-row h-12 justify-between items-center my-3 pl-2')}>
-            <TouchableOpacity style={tailwind('w-10 h-10 items-center justify-center')}
-              onPress={() => {
-                setHeaderTitle('INTERNXT PHOTOS')
-              }}
-            >
-              <HomeBlue width={20} height={20} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={tailwind('w-10 h-10 items-center justify-center')}
-              onPress={() => {
-                setHeaderTitle('Albums')
-              }}
-            >
-              <FolderBlue width={20} height={20} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={tailwind('w-10 h-10 items-center justify-center')}
-            >
-              <LensThinBlue width={20} height={20} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={tailwind('w-10 h-10 items-center justify-center')}
-            >
-              <SquareWithCrossBlue width={20} height={20} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={tailwind('flex-row h-6 w-20 px-2 bg-blue-60 rounded-xl items-center justify-between')}
-              onPress={() => {
-                setAlbumTitle('')
-                props.dispatch(layoutActions.openCreateAlbumModal())
-              }}
-            >
-              <CrossWhite width={10} height={10} />
-              <Text style={tailwind('text-white font-averta-regular text-sm')}>Album</Text>
-            </TouchableOpacity>
-          </View>
+          <Footer setHeaderTitle={setHeaderTitle} dispatch={props.dispatch} />
         </SafeAreaView>
       </View>
     </View>
