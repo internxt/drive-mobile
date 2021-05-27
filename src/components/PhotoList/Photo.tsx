@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { StyleSheet, Image, ActivityIndicator, View, Platform } from 'react-native';
+import { StyleSheet, ActivityIndicator, View, Platform } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import PhotoBadge from './PhotoBadge';
 import { cachePicture, downloadPhoto } from '../../screens/PhotoGallery/init';
@@ -10,6 +10,7 @@ import { tailwind } from '../../tailwind'
 import { DEVICE_WIDTH, IPhotoToRender } from '../../screens/PhotoGallery';
 import { unlink } from 'react-native-fs';
 import { photoActions } from '../../redux/actions';
+import FastImage from 'react-native-fast-image'
 
 interface PhotoProps {
   badge?: JSX.Element
@@ -19,13 +20,14 @@ interface PhotoProps {
   handleSelection?: (photoId: number) => void
 }
 
-export default function Photo(props: PhotoProps): JSX.Element {
+const Photo = (props: PhotoProps): JSX.Element => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [progress, setProgress] = useState(0)
   const [isSelected, setIsSelected] = useState(false)
   const item = props.item
 
   const handleOnPress = () => {
+    console.log(item)
     if (props.photoSelection) {
       props.handleSelection(item.photoId)
       return setIsSelected(prevState => !prevState)
@@ -84,7 +86,7 @@ export default function Photo(props: PhotoProps): JSX.Element {
     >
       <View style={{ width: (DEVICE_WIDTH - 40) / 3, height: (DEVICE_WIDTH - 80) / 3 }}>
         <View style={tailwind('m-0.5')}>
-          <Image
+          <FastImage
             onLoadEnd={() => setIsLoaded(true)}
             style={tailwind('self-center rounded-md w-full h-full')}
             resizeMode='cover'
@@ -130,3 +132,5 @@ const styles = StyleSheet.create({
     height: 6
   }
 });
+
+export default React.memo(Photo)

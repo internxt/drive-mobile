@@ -39,4 +39,4 @@ const Footer = (props: FooterProps): JSX.Element => {
   )
 }
 
-export default Footer
+export default React.memo(Footer)
