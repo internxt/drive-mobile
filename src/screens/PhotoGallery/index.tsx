@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dimensions, SafeAreaView, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -54,7 +54,10 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [headerTitle, setHeaderTitle] = useState('INTERNXT PHOTOS')
   const [albumTitle, setAlbumTitle] = useState('')
   const [searchString, setSearchString] = useState('')
-  const [filteredPhotosToRender, setFilteredPhotosToRender] = useState<IPhotosToRender>(props.photosToRender)
+  const [downloadReadyPhotos, setDownloadReadyPhotos] = useState<IPhotosToRender>({})
+  const [uploadPendingPhotos, setUploadPendingPhotos] = useState<IPhotosToRender>({})
+  const [normalPhotos, setNormalPhotos] = useState<IPhotosToRender>(props.photosToRender)
+  const [photosToRender, setPhotosToRender] = useState<IPhotosToRender>(props.photosToRender)
   const [photosForAlbumCreation, setPhotosForAlbumCreation] = useState<IPhotosToRender>({})
   const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
     await task()
@@ -129,24 +132,20 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   }
 
   const handleOnPressFilter = () => props.dispatch(layoutActions.openCreateAlbumModal())
-  const selectFilter = (filterName: string) => {
+  // filter the photos
+  const handleFilterSelection = (filterName: string) => {
     selectedFilter === filterName ? setSelectedFilter('none') : setSelectedFilter(filterName)
 
-    const currentPhotos = store.getState().photosState.photosToRender
-    let newPhotosToRender
-
     switch (true) {
-      case filterName === 'upload' && (selectedFilter === 'none' || selectedFilter === 'download' || selectedFilter === 'albums'):
-        newPhotosToRender = objectFilter(currentPhotos, ([hash, value]) => !value.isUploaded && value.isLocal)
-        return setFilteredPhotosToRender(newPhotosToRender)
+    case filterName === 'upload' && (selectedFilter !== 'upload'):
+      return setPhotosToRender(uploadPendingPhotos)
 
-      case filterName === 'download' && (selectedFilter === 'none' || selectedFilter === 'upload'):
-        newPhotosToRender = objectFilter(currentPhotos, ([hash, value]) => value.isUploaded && !value.isLocal)
-        return setFilteredPhotosToRender(newPhotosToRender)
+    case filterName === 'download' && (selectedFilter !== 'download'):
+      return setPhotosToRender(downloadReadyPhotos)
 
       // if clicked on the same filter restore array
-      case filterName === selectedFilter:
-        return setFilteredPhotosToRender(currentPhotos)
+    case filterName === selectedFilter:
+      return setPhotosToRender(normalPhotos)
     }
   }
 
@@ -159,27 +158,20 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     })
   }, [])
 
-  // update the data everytime a photo gets downloaded/synced
+  // update the data at real time everytime a photo gets downloaded/synced
   useEffect(() => {
-    if (selectedFilter === 'download') {
-      const newFiltered = objectFilter(props.photosToRender, ([key, value]) => !value.isLocal && value.isUploaded) as IPhotosToRender
+    const uploadPending = objectFilter(props.photosToRender, ([key, value]) => value.isLocal && !value.isUploaded) as IPhotosToRender
+    const downloadReady = objectFilter(props.photosToRender, ([key, value]) => !value.isLocal && value.isUploaded) as IPhotosToRender
+    const selectivePhotos = objectFilter(props.photosToRender, ([key, value]) => value.isUploaded === true) as IPhotosToRender
 
-      setFilteredPhotosToRender(newFiltered)
-    }
+    setUploadPendingPhotos(uploadPending)
+    setDownloadReadyPhotos(downloadReady)
+    setPhotosForAlbumCreation(selectivePhotos)
+    setNormalPhotos(props.photosToRender)
 
-    if (selectedFilter === 'upload') {
-      const newFiltered = objectFilter(props.photosToRender, ([key, value]) => value.isLocal && !value.isUploaded) as IPhotosToRender
-
-      setFilteredPhotosToRender(newFiltered)
-    }
-
-    if (selectedFilter === 'none') {
-      setFilteredPhotosToRender(props.photosToRender)
-    }
-
-    const photosForAlbumCreation = objectFilter(props.photosToRender, ([hash, value]) => value.isUploaded === true) as IPhotosToRender
-
-    setPhotosForAlbumCreation(photosForAlbumCreation)
+    if (selectedFilter === 'none') { setPhotosToRender(props.photosToRender) }
+    if (selectedFilter === 'upload') { setPhotosToRender(uploadPending) }
+    if (selectedFilter === 'download') { setPhotosToRender(downloadReady) }
   }, [props.photosToRender])
 
   // after a preview gets downloaded and saved to the db...
@@ -195,6 +187,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
           if (currentPhotos[key]) {
             // update only if it's a local image
             if (currentPhotos[key].isLocal && !currentPhotos[key].isUploaded) {
+              props.dispatch(photoActions.updatePhotoStatusUpload(key, true))
               props.dispatch(photoActions.updatePhotoStatus(key, true, true))
             }
           }
@@ -217,6 +210,10 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     }
   }, [props.loggedIn])
 
+  const renderItem = useCallback(({ item }) => <Photo item={item} dispatch={props.dispatch} />, [])
+  const keyExtractor = useCallback((item: IPhotoToRender) => item.hash, [])
+  const getItemLayout = useCallback((data, index) => ({ length: (DEVICE_WIDTH - 80) / 3, offset: ((DEVICE_WIDTH - 80) / 3) * index, index }), [])
+
   return (
     <View style={tailwind('flex-1')}>
       <CreateAlbumModal albumTitle={albumTitle} setAlbumTitle={setAlbumTitle} />
@@ -225,17 +222,17 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
       <View style={tailwind('px-5')}>
         <SafeAreaView style={tailwind('h-full')}>
-          <Header title={headerTitle} />
+          <Header isSyncing={props.isSyncing} title={headerTitle} />
 
           {headerTitle === 'INTERNXT PHOTOS' ?
             <View style={tailwind('flex-row mt-3 items-center justify-center')}>
-              <FilterButton width='w-1/3' corners='rounded-l' text='Download' filter='download' selectFilter={selectFilter} activeFilter={selectedFilter} />
-              <FilterButton width='w-4/10' corners='' text='Upload pending' filter='upload' selectFilter={selectFilter} activeFilter={selectedFilter} />
+              <FilterButton width='w-1/3' corners='rounded-l' text='Download' filter='download' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
+              <FilterButton width='w-4/10' corners='' text='Upload pending' filter='upload' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
               <FilterButton width='w-3/10'
                 corners='rounded-r'
                 text='Albums'
                 filter='albums'
-                selectFilter={selectFilter}
+                handleFilterSelection={handleFilterSelection}
                 activeFilter={selectedFilter}
                 onPress={handleOnPressFilter}
               />
@@ -270,13 +267,17 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
           }
 
           {
-            headerTitle === 'INTERNXT PHOTOS' && Object.values(filteredPhotosToRender).length > 0 ?
+            headerTitle === 'INTERNXT PHOTOS' && Object.values(props.photosToRender).length > 0 ?
               <FlatList
-                data={Object.values(filteredPhotosToRender)}
+                data={Object.values(photosToRender)}
+                extraData={props.photosToRender}
                 numColumns={3}
-                keyExtractor={item => item.hash}
-                renderItem={({ item }) => <Photo item={item} key={item.hash} dispatch={props.dispatch} />}
+                keyExtractor={keyExtractor}
+                renderItem={renderItem}
+                getItemLayout={getItemLayout}
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+                //maxToRenderPerBatch={48} // CHECK THIS PROPERLY
+                windowSize={21} // CHECK THIS PROPERLY
               />
               :
               <FlatList

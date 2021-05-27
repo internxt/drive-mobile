@@ -27,7 +27,6 @@ const Photo = (props: PhotoProps): JSX.Element => {
   const item = props.item
 
   const handleOnPress = () => {
-    console.log(item)
     if (props.photoSelection) {
       props.handleSelection(item.photoId)
       return setIsSelected(prevState => !prevState)
