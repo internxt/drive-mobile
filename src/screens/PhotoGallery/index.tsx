@@ -46,6 +46,9 @@ export interface IPhotoToRender extends IHashedPhoto {
 export const DEVICE_WIDTH = Dimensions.get('window').width
 export const DEVICE_HEIGHT = Dimensions.get('window').height
 
+export const objectFilter = (obj, predicate) => Object.fromEntries(Object.entries(obj).filter(predicate))
+export const objectMap = (obj, fn) => Object.fromEntries(Object.entries(obj).map(([key, value], i) => [key, fn(value, key, i)]))
+
 function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [selectedFilter, setSelectedFilter] = useState('none')
   const [headerTitle, setHeaderTitle] = useState('INTERNXT PHOTOS')
@@ -125,8 +128,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     })
   }
 
-  // Array.prototype.filter version for Objects
-  const objectFilter = (obj, predicate) => Object.fromEntries(Object.entries(obj).filter(predicate))
   const handleOnPressFilter = () => props.dispatch(layoutActions.openCreateAlbumModal())
   const selectFilter = (filterName: string) => {
     selectedFilter === filterName ? setSelectedFilter('none') : setSelectedFilter(filterName)
@@ -135,17 +136,17 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     let newPhotosToRender
 
     switch (true) {
-    case filterName === 'upload' && (selectedFilter === 'none' || selectedFilter === 'download' || selectedFilter === 'albums'):
-      newPhotosToRender = objectFilter(currentPhotos, ([hash, value]) => !value.isUploaded && value.isLocal)
-      return setFilteredPhotosToRender(newPhotosToRender)
+      case filterName === 'upload' && (selectedFilter === 'none' || selectedFilter === 'download' || selectedFilter === 'albums'):
+        newPhotosToRender = objectFilter(currentPhotos, ([hash, value]) => !value.isUploaded && value.isLocal)
+        return setFilteredPhotosToRender(newPhotosToRender)
 
-    case filterName === 'download' && (selectedFilter === 'none' || selectedFilter === 'upload'):
-      newPhotosToRender = objectFilter(currentPhotos, ([hash, value]) => value.isUploaded && !value.isLocal)
-      return setFilteredPhotosToRender(newPhotosToRender)
+      case filterName === 'download' && (selectedFilter === 'none' || selectedFilter === 'upload'):
+        newPhotosToRender = objectFilter(currentPhotos, ([hash, value]) => value.isUploaded && !value.isLocal)
+        return setFilteredPhotosToRender(newPhotosToRender)
 
       // if clicked on the same filter restore array
-    case filterName === selectedFilter:
-      return setFilteredPhotosToRender(currentPhotos)
+      case filterName === selectedFilter:
+        return setFilteredPhotosToRender(currentPhotos)
     }
   }
 
@@ -181,7 +182,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     setPhotosForAlbumCreation(photosForAlbumCreation)
   }, [props.photosToRender])
 
-  // update/push photo on preview download
+  // after a preview gets downloaded and saved to the db...
   useEffect(() => {
     if (props.isSaveDB) {
       getRepositoriesDB().then((res) => {
@@ -190,8 +191,20 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         const previews = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
 
         Object.keys(previews).forEach(key => {
-          if (currentPhotos[key]) { props.dispatch(photoActions.updatePhotoStatus(key, true, true)) }
-          else { props.dispatch(photoActions.addPhotosToRender(previews[key])) }
+          // if there's already a photo with the same hash rendered
+          if (currentPhotos[key]) {
+            // update only if it's a local image
+            if (currentPhotos[key].isLocal && !currentPhotos[key].isUploaded) {
+              props.dispatch(photoActions.updatePhotoStatus(key, true, true))
+            }
+          }
+          else {
+            const prevObj = {
+              [key]: previews[key]
+            }
+
+            props.dispatch(photoActions.addPhotosToRender(prevObj))
+          }
         })
       })
     }
@@ -257,12 +270,12 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
           }
 
           {
-            headerTitle === 'INTERNXT PHOTOS' && Object.keys(props.photosToRender).length > 0 ?
+            headerTitle === 'INTERNXT PHOTOS' && Object.values(filteredPhotosToRender).length > 0 ?
               <FlatList
-                data={Object.keys(filteredPhotosToRender)}
+                data={Object.values(filteredPhotosToRender)}
                 numColumns={3}
-                keyExtractor={item => item}
-                renderItem={({ item }) => <Photo item={filteredPhotosToRender[item]} key={item} dispatch={props.dispatch} />}
+                keyExtractor={item => item.hash}
+                renderItem={({ item }) => <Photo item={item} key={item.hash} dispatch={props.dispatch} />}
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
               />
               :
