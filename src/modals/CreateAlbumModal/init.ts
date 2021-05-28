@@ -50,7 +50,7 @@ export async function uploadAlbum(albumTitle: string, selectedPhotos: number[]):
     if (res.status === 200) {
       return saveAlbumsDB(selectedPhotos, albumTitle)
     }
-    return res.json()
+    throw res
   })
 }
 

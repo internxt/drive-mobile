@@ -80,9 +80,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       syncActions.push(syncAction())
 
       const newNext20 = localPhotos.assets.map(photo => ({ ...photo, isLocal: true, isUploaded: false, isDownloading: false, isUploading: false }))
-      const newPhotos: IPhotosToRender = newNext20.reduce((acc, photo) => {
-        return { ...acc, [photo.hash]: photo }
-      }, {})
+      const newPhotos: IPhotosToRender = newNext20.reduce((acc, photo) => ({ ...acc, [photo.hash]: photo }), {})
       const currentPhotos: IPhotosToRender = store.getState().photosState.photosToRender
 
       Object.keys(newPhotos).forEach(key => {
@@ -128,10 +126,14 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
           props.dispatch(photoActions.addPhotosToRender(previewObj))
         }
       })
+
     })
   }
 
-  const handleOnPressFilter = () => props.dispatch(layoutActions.openCreateAlbumModal())
+  const handleOnPressFilter = () => {
+    setAlbumTitle('')
+    props.dispatch(layoutActions.openCreateAlbumModal())
+  }
   // filter the photos
   const handleFilterSelection = (filterName: string) => {
     selectedFilter === filterName ? setSelectedFilter('none') : setSelectedFilter(filterName)
@@ -158,7 +160,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     })
   }, [])
 
-  // update the data at real time everytime a photo gets downloaded/synced
+  // update the data at real time everytime a photo gets downloaded/synced/loaded
   useEffect(() => {
     const uploadPending = objectFilter(props.photosToRender, ([key, value]) => value.isLocal && !value.isUploaded) as IPhotosToRender
     const downloadReady = objectFilter(props.photosToRender, ([key, value]) => !value.isLocal && value.isUploaded) as IPhotosToRender
@@ -232,7 +234,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                 corners='rounded-r'
                 text='Albums'
                 filter='albums'
-                handleFilterSelection={handleFilterSelection}
                 activeFilter={selectedFilter}
                 onPress={handleOnPressFilter}
               />
@@ -270,7 +271,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             headerTitle === 'INTERNXT PHOTOS' && Object.values(props.photosToRender).length > 0 ?
               <FlatList
                 data={Object.values(photosToRender)}
-                extraData={props.photosToRender}
                 numColumns={3}
                 keyExtractor={keyExtractor}
                 renderItem={renderItem}
@@ -289,7 +289,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
               />
           }
 
-          <Footer setHeaderTitle={setHeaderTitle} dispatch={props.dispatch} />
+          <Footer setSelectedFilter={setSelectedFilter} setHeaderTitle={setHeaderTitle} dispatch={props.dispatch} />
         </SafeAreaView>
       </View>
     </View>

@@ -117,7 +117,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
       const prev = await manipulateAsync(
         photo.uri,
         [{ resize: { width: 220 } }],
-        { compress: 1, format: SaveFormat.JPEG }
+        { compress: 0.8, format: SaveFormat.JPEG }
       )
 
       return uploadPreview(prev, res.id, photo, dispatch, res);

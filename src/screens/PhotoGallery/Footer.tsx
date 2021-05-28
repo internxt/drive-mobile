@@ -10,6 +10,7 @@ import { layoutActions } from '../../redux/actions'
 interface FooterProps {
   dispatch: any
   setHeaderTitle: React.Dispatch<React.SetStateAction<string>>
+  setSelectedFilter: React.Dispatch<React.SetStateAction<string>>
 }
 
 const ICON_SIZE = 25
@@ -17,14 +18,17 @@ const ICON_SIZE = 25
 const Footer = (props: FooterProps): JSX.Element => {
 
   const FooterButton = ({ children, onPress }: { children: JSX.Element, onPress: () => void }): JSX.Element => (
-    <TouchableOpacity onPress={() => onPress()} style={tailwind('w-11 h-11 items-center justify-center')}>
+    <TouchableOpacity onPress={() => onPress()} style={tailwind('w-20 border h-11 items-center justify-center')}>
       {children}
     </TouchableOpacity>
   )
 
   return (
-    <View style={tailwind('flex-row h-12 justify-around items-center mt-3 pl-2')}>
-      <FooterButton onPress={() => props.setHeaderTitle('INTERNXT PHOTOS')}>
+    <View style={tailwind('flex-row h-12 justify-around items-center my-1 pl-2')}>
+      <FooterButton onPress={() => {
+        props.setSelectedFilter('none')
+        props.setHeaderTitle('INTERNXT PHOTOS')
+      }}>
         <HomeBlue width={ICON_SIZE} height={ICON_SIZE} />
       </FooterButton>
 

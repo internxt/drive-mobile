@@ -15,7 +15,7 @@ interface FilterButtonProps {
   text: string,
   filter: string,
   activeFilter: string
-  handleFilterSelection: (filterName: string) => void
+  handleFilterSelection?: (filterName: string) => void
   onPress?: () => void
 }
 
