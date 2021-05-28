@@ -47,14 +47,6 @@ export async function getRepositoriesDB(): Promise<Repositories> {
 
     albumsWithPreviews.push(photoAlbums)
   }
-
-  /* albums.map(async (res) => {
-    const photoAlbums = await photoAlbumsRepository.find(({
-      where: { albumId: res.id }
-    }))
-
-    albumsWithPreviews.push(photoAlbums)
-  }) */
   return { photos, previews, albums, albumsWithPreviews }
 }
 
@@ -153,16 +145,17 @@ export async function saveAlbumsDB(listPhotos: number[], name: string): Promise<
   const albumPhotosRepository = getRepository(PhotoAlbums);
 
   await albumPhotosRepository.find({})
-  const newPhotosAlbum = new PhotoAlbums();
 
   for (const id of listPhotos) {
+    const newPhotosAlbum = new PhotoAlbums();
+
     newPhotosAlbum.albumId = newAlbum.id
     newPhotosAlbum.previewId = id
 
     await albumPhotosRepository.save(newPhotosAlbum)
   }
 
-  //await albumPhotosRepository.find({})
+  await albumPhotosRepository.find({})
 }
 
 export async function deleteAlbumDB(id: number) {
@@ -237,4 +230,19 @@ export async function updateNameAlbumDB(albumId: number, name: string) {
 
   albums.name = name;
   await albumsRepository.save(albums);
+}
+
+export async function checkExistsAlbumDB(name: string) {
+  const albumsRepository = getRepository(Albums);
+
+  const album = await albumsRepository.findOne(({
+    where: {
+      name: name
+    }
+  }))
+
+  if (!album) {
+    return false;
+  }
+  return true;
 }
