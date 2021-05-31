@@ -15,10 +15,11 @@ interface FilterButtonProps {
   text: string,
   filter: string,
   activeFilter: string
-  selectFilter: (filterName: string) => void
+  handleFilterSelection?: (filterName: string) => void
+  onPress?: () => void
 }
 
-const FilterButton = ({ width, corners, text, filter, selectFilter, activeFilter }: FilterButtonProps): JSX.Element => {
+const FilterButton = ({ width, corners, text, filter, handleFilterSelection, onPress, activeFilter }: FilterButtonProps): JSX.Element => {
 
   const SelectedText = ({ text }: { text: string }) => (
     <Text style={tailwind('text-sm text-blue-60 font-averta-light ml-2')}>{text}</Text>
@@ -32,7 +33,7 @@ const FilterButton = ({ width, corners, text, filter, selectFilter, activeFilter
   return (
     <View style={tailwind(width)}>
       <TouchableOpacity style={tailwind(`flex-row h-8 ${corners} bg-white items-center justify-center ml-px mr-px`)}
-        onPress={() => selectFilter(filter)}
+        onPress={() => onPress ? onPress() : handleFilterSelection(filter)}
       >
         {filter === 'download' ?
           activeFilter === 'download' ?
@@ -83,4 +84,4 @@ const FilterButton = ({ width, corners, text, filter, selectFilter, activeFilter
   )
 }
 
-export default FilterButton
+export default React.memo(FilterButton)

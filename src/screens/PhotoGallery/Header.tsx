@@ -2,15 +2,13 @@ import React from 'react'
 import { Text, View } from 'react-native'
 import { tailwind } from '../../tailwind'
 import Syncing from '../../../assets/icons/photos/syncing.svg'
-import { connect } from 'react-redux'
 
 interface HeaderProps {
   isSyncing: boolean
   title: string
-  dispatch: any
 }
 
-const Header = ({ isSyncing, title, dispatch }: HeaderProps): JSX.Element => {
+const Header = ({ isSyncing, title }: HeaderProps): JSX.Element => {
   return (
     <View style={tailwind('flex-row items-center mt-4')}>
       <View style={tailwind('w-1/5')}></View>
@@ -28,10 +26,4 @@ const Header = ({ isSyncing, title, dispatch }: HeaderProps): JSX.Element => {
   )
 }
 
-const mapStateToProps = (state: any) => {
-  return {
-    isSyncing: state.photosState.isSyncing
-  };
-};
-
-export default connect(mapStateToProps)(Header);
+export default React.memo(Header);

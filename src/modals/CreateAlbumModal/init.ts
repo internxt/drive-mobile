@@ -1,4 +1,4 @@
-import { addPhotoToAlbumDB, deleteAlbumDB, deletePhotoFromAlbumDB, saveAlbumsDB, updateNameAlbumDB } from '../../database/DBUtils.ts/utils'
+import { addPhotoToAlbumDB, checkExistsAlbumDB, deleteAlbumDB, deletePhotoFromAlbumDB, saveAlbumsDB, updateNameAlbumDB } from '../../database/DBUtils.ts/utils'
 import { deviceStorage } from '../../helpers'
 import { getHeaders } from '../../helpers/headers'
 import { IAPIAlbum } from './index'
@@ -28,9 +28,13 @@ export async function getAlbums(): Promise<any> {
     return res.json()
   }).then(async (albums: IAPIAlbum[]) => {
     for (const album of albums) {
-      const photos = album.photos.map(photo => photo.id)
+      const exists = await checkExistsAlbumDB(album.name);
 
-      await saveAlbumsDB(photos, album.name)
+      if (!exists) {
+        const photos = album.photos.map(photo => photo.id)
+
+        await saveAlbumsDB(photos, album.name)
+      }
     }
   })
 }
@@ -50,7 +54,7 @@ export async function uploadAlbum(albumTitle: string, selectedPhotos: number[]):
     if (res.status === 200) {
       return saveAlbumsDB(selectedPhotos, albumTitle)
     }
-    return res.json()
+    throw res
   })
 }
 

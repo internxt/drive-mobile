@@ -8763,6 +8763,11 @@ react-native-document-picker@^4.1.0:
   resolved "https://registry.yarnpkg.com/react-native-document-picker/-/react-native-document-picker-4.2.0.tgz#2d6f560fd902c5f9034c287941a9505f037b6eeb"
   integrity sha512-bZlQ3ooOO+2G0J0vSvcWWv1OojMwhEhiF5M7gCKp3LT/VPikZnmzIGgCkhcu8HexxWLuaGToSAQAUL2VcSo5oQ==
 
+react-native-fast-image@^8.3.4:
+  version "8.3.4"
+  resolved "https://registry.yarnpkg.com/react-native-fast-image/-/react-native-fast-image-8.3.4.tgz#79edca177e30311b19d59ff335625bcbe22650d7"
+  integrity sha512-LpzAdjUphihUpVEBn5fEv5AILe55rHav0YiZroPZ1rumKDhAl4u2cG01ku2Pb7l8sayjTsNu7FuURAlXUUDsow==
+
 react-native-file-viewer@^2.1.4:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/react-native-file-viewer/-/react-native-file-viewer-2.1.4.tgz#987b2902f0f0ac87b42f3ac3d3037c8ae98f17a6"

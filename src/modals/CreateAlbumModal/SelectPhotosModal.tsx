@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, Text, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import { IImageInfo } from 'react-native-image-zoom-viewer/built/image-viewer.type';
 import Modal from 'react-native-modalbox';
 import { tailwind } from '../../tailwind'
 import { layoutActions } from '../../redux/actions';
 import Photo from '../../components/PhotoList/Photo';
 import { IStoreReducers } from '../../types/redux';
-import { IPhotosToRender } from '../../screens/PhotoGallery';
+import { DEVICE_WIDTH, IPhotosToRender, IPhotoToRender } from '../../screens/PhotoGallery';
 import { uploadAlbum } from './init';
 import SimpleToast from 'react-native-simple-toast';
 
@@ -49,7 +48,6 @@ export interface IAlbumPhoto {
 function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
   const [isCreatingAlbum, setIsCreatingAlbum] = useState(false)
-  const [selectedPhoto, setSelectedPhoto] = useState<IImageInfo[]>([])
   const [isOpen, setIsOpen] = useState(props.showSelectPhotosModal)
 
   useEffect(() => {
@@ -57,26 +55,30 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
   }, [props.showSelectPhotosModal])
 
   const handleSelection = (selectedPhotoId: number) => {
-    const currentSelectedPhotos = selectedPhotos.slice()
-    const isAlreadySelected = currentSelectedPhotos.find(photoId => photoId === selectedPhotoId)
+    const currentIds = selectedPhotos.slice()
+    const exists = currentIds.find(id => id === selectedPhotoId)
 
-    if (isAlreadySelected) {
-      const newSelectedPhotos = currentSelectedPhotos.filter(photoId => photoId === selectedPhotoId ? null : photoId)
-
-      setSelectedPhotos(newSelectedPhotos)
-
+    if (exists) {
+      //const newSelectedPhotos = currentSelectedPhotos.filter(photoId => photoId === selectedPhotoId ? null : photoId)
+      setSelectedPhotos(prevIds => prevIds.filter(id => id !== selectedPhotoId))
     } else {
-      currentSelectedPhotos.push(selectedPhotoId)
-      setSelectedPhotos(currentSelectedPhotos)
+      setSelectedPhotos(prevIds => [...prevIds, selectedPhotoId])
     }
   }
 
   const handleAlbumCreation = () => {
     if (selectedPhotos.length > 0) {
       setIsCreatingAlbum(true)
-      uploadAlbum(props.albumTitle, selectedPhotos)
-        .catch(() => SimpleToast.show('Could not create album'))
-        .finally(() => setIsCreatingAlbum(false))
+
+      uploadAlbum(props.albumTitle, selectedPhotos).then(() =>
+        SimpleToast.show('Album saved successfully')
+      ).catch((err) => {
+        if (err.status === 409) {
+          return SimpleToast.show('An album with the same name already exists')
+        }
+        return SimpleToast.show('Could not create album')
+
+      }).finally(() => setTimeout(() => setIsCreatingAlbum(false), 3000))
     } else {
       SimpleToast.show('You need to select at least one photo')
     }
@@ -86,6 +88,10 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
     props.dispatch(layoutActions.closeSelectPhotosForAlbumModal())
     setIsOpen(false)
   }
+
+  const renderItem = useCallback(({ item }) => <Photo item={item} dispatch={props.dispatch} photoSelection={true} handleSelection={handleSelection} />, [selectedPhotos])
+  const keyExtractor = useCallback((item: IPhotoToRender) => item.hash, [])
+  const getItemLayout = useCallback((data, index) => ({ length: (DEVICE_WIDTH - 80) / 3, offset: ((DEVICE_WIDTH - 80) / 3) * index, index }), [])
 
   return (
     <Modal
@@ -106,7 +112,7 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
 
         <Text style={tailwind('text-gray-70 font-averta-regular text-base')}>All photos</Text>
 
-        <TouchableOpacity onPress={handleAlbumCreation}>
+        <TouchableOpacity onPress={handleAlbumCreation} disabled={isCreatingAlbum}>
           <Text style={!isCreatingAlbum ? tailwind('text-blue-60 font-averta-regular text-base') : tailwind('text-blue-40 font-averta-regular text-base')}>Done</Text>
         </TouchableOpacity>
       </View>
@@ -114,10 +120,11 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
       {
         Object.keys(props.photos).length > 0 ?
           <FlatList
-            data={Object.keys(props.photos)}
+            data={Object.values(props.photos)}
             numColumns={3}
-            keyExtractor={item => item}
-            renderItem={({ item }) => <Photo item={props.photos[item]} key={item} photoSelection={true} handleSelection={handleSelection} />}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            getItemLayout={getItemLayout}
             style={tailwind('h-8/10 mt-2 mb-8')}
           />
           :

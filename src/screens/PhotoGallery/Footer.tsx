@@ -4,13 +4,13 @@ import { tailwind } from '../../tailwind'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import HomeBlue from '../../../assets/icons/photos/home-blue.svg'
 import FolderBlue from '../../../assets/icons/photos/folder-blue.svg'
-import LensThinBlue from '../../../assets/icons/photos/lens-thin-blue.svg'
 import TwoDotsBlue from '../../../assets/icons/photos/two-dots-blue.svg'
 import { layoutActions } from '../../redux/actions'
 
 interface FooterProps {
   dispatch: any
   setHeaderTitle: React.Dispatch<React.SetStateAction<string>>
+  setSelectedFilter: React.Dispatch<React.SetStateAction<string>>
 }
 
 const ICON_SIZE = 25
@@ -18,23 +18,22 @@ const ICON_SIZE = 25
 const Footer = (props: FooterProps): JSX.Element => {
 
   const FooterButton = ({ children, onPress }: { children: JSX.Element, onPress: () => void }): JSX.Element => (
-    <TouchableOpacity onPress={() => onPress()} style={tailwind('w-11 h-11 items-center justify-center')}>
+    <TouchableOpacity onPress={() => onPress()} style={tailwind('w-20 border h-11 items-center justify-center')}>
       {children}
     </TouchableOpacity>
   )
 
   return (
-    <View style={tailwind('flex-row h-12 justify-between items-center my-3 pl-2')}>
-      <FooterButton onPress={() => props.setHeaderTitle('INTERNXT PHOTOS')}>
+    <View style={tailwind('flex-row h-12 justify-around items-center my-1 pl-2')}>
+      <FooterButton onPress={() => {
+        props.setSelectedFilter('none')
+        props.setHeaderTitle('INTERNXT PHOTOS')
+      }}>
         <HomeBlue width={ICON_SIZE} height={ICON_SIZE} />
       </FooterButton>
 
       <FooterButton onPress={() => props.setHeaderTitle('Albums')}>
         <FolderBlue width={ICON_SIZE} height={ICON_SIZE} />
-      </FooterButton>
-
-      <FooterButton onPress={() => props.setHeaderTitle('Albums')}>
-        <LensThinBlue width={ICON_SIZE} height={ICON_SIZE} />
       </FooterButton>
 
       <FooterButton onPress={() => props.dispatch(layoutActions.openSettings())}>
@@ -44,4 +43,4 @@ const Footer = (props: FooterProps): JSX.Element => {
   )
 }
 
-export default Footer
+export default React.memo(Footer)

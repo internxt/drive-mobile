@@ -1,7 +1,7 @@
 //import { IPhoto, IFolder } from '../../components/PhotoList';
 import { ImageOrVideo } from 'react-native-image-crop-picker';
 import { IPhoto } from '../../components/PhotoList';
-import { IPhotosToRender } from '../../screens/PhotoGallery';
+import { IPhotosToRender, IPhotoToRender, objectMap } from '../../screens/PhotoGallery';
 import { photoActionTypes } from '../constants/photoActionTypes.constants';
 import { ArraySortFunction } from '../services';
 
@@ -96,33 +96,39 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
   case photoActionTypes.PHOTO_UPLOAD_UPDATE:
     return {
       ...state,
-      photosToRender: {
-        ...state.photosToRender,
-        [action.payload.hash]: { ...state.photosToRender[action.payload.hash], isUploading: action.payload.hasFinished ? false : true }
-      }
+      photosToRender: objectMap({ ...state.photosToRender }, (value: IPhotoToRender) => {
+        if (value.hash === action.payload.hash) {
+          return { ...value, isUploading: !action.payload.hasFinished }
+        }
+        return value
+      })
     }
 
   case photoActionTypes.PHOTO_DOWNLOAD_UPDATE:
     return {
       ...state,
-      photosToRender: {
-        ...state.photosToRender,
-        [action.payload.hash]: { ...state.photosToRender[action.payload.hash], isDownloading: action.payload.hasFinished ? false : true }
-      }
+      photosToRender: objectMap({ ...state.photosToRender }, (value: IPhotoToRender) => {
+        if (value.hash === action.payload.hash) {
+          return { ...value, isDownloading: !action.payload.hasFinished }
+        }
+        return value
+      })
     }
 
   case photoActionTypes.PHOTO_STATUS_UPDATE:
     return {
       ...state,
-      photosToRender: {
-        ...state.photosToRender,
-        [action.payload.hash]: {
-          ...state.photosToRender[action.payload.hash],
-          isLocal: action.payload.isLocal,
-          isUploaded: action.payload.isUploaded,
-          localUri: action.payload.pathToLocalImage ? action.payload.pathToLocalImage : state.photosToRender[action.payload.hash].localUri
+      photosToRender: objectMap({ ...state.photosToRender }, (value: IPhotoToRender) => {
+        if (value.hash === action.payload.hash) {
+          return {
+            ...value,
+            isLocal: action.payload.isLocal,
+            isUploaded: action.payload.isUploaded,
+            localUri: action.payload.pathToLocalImage ? action.payload.pathToLocalImage : value.localUri
+          }
         }
-      }
+        return value
+      })
     }
 
   default:
