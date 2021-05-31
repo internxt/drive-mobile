@@ -3,14 +3,17 @@ import { Photos } from '../../database/models/photos';
 import { Previews } from '../../database/models/previews';
 import { deviceStorage } from '../../helpers';
 import { photoActions } from '../../redux/actions';
+import { IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { Albums } from '../models/albums';
 import { PhotoAlbums } from '../models/photoAlbums';
+import { UrisTrash } from '../models/urisTrash';
 
 export interface Repositories {
   photos: Photos[];
   previews: Previews[];
   albums: Albums[];
   albumsWithPreviews: PhotoAlbums[];
+  urisTrash: UrisTrash[];
 }
 
 export async function getUserId() {
@@ -245,4 +248,86 @@ export async function checkExistsAlbumDB(name: string) {
     return false;
   }
   return true;
+}
+
+export async function saveUrisTrash(fileId: string, path: string) {
+  const urisTrashRepository = getRepository(UrisTrash);
+  const userId = await getUserId()
+
+  await urisTrashRepository.findOne(({
+    where: {
+      userId: userId
+    }
+  }))
+
+  const newUri = new UrisTrash()
+
+  newUri.uri = path
+  newUri.userId = userId
+  newUri.fileId = fileId
+
+  const existsPhotoFileId = await urisTrashRepository.findOne({
+    where: {
+      fileId: fileId
+    }
+  })
+
+  if (existsPhotoFileId === undefined) {
+    await urisTrashRepository.save(newUri);
+  }
+
+  await urisTrashRepository.find({
+    where: {
+      userId: userId
+    }
+  })
+}
+
+export async function updateLocalUriPreviews(preview: IApiPreview, path: string) {
+  const previwesRepository = getRepository(Previews);
+  const userId = await getUserId();
+
+  const previews = await previwesRepository.findOne(({
+    where: {
+      fileId: preview.fileId,
+      userId: userId
+    }
+  }))
+
+  previews.localUri = path;
+  await previwesRepository.save(previews);
+}
+
+export async function removeUrisFromUrisTrash(fileId: string) {
+  const urisTrashRepository = getRepository(UrisTrash);
+  const userId = await getUserId()
+
+  const uris = await urisTrashRepository.findOne(({
+    where: {
+      userId: userId,
+      fileId: fileId
+    }
+  }))
+
+  await urisTrashRepository.remove(uris)
+  await urisTrashRepository.find({})
+  return uris;
+}
+
+export async function checkExistsUriTrash(fileId: string) {
+  const urisTrashRepository = getRepository(UrisTrash);
+  const userId = await getUserId()
+
+  const uris = await urisTrashRepository.findOne(({
+    where: {
+      userId: userId,
+      fileId: fileId
+    }
+  }))
+
+  if (uris === undefined) {
+    return false;
+  }
+
+  return uris;
 }

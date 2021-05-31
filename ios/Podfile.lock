@@ -181,6 +181,15 @@ PODS:
     - GoogleUtilities/Logger
   - GoogleUtilities/UserDefaults (6.7.2):
     - GoogleUtilities/Logger
+  - libwebp (1.2.0):
+    - libwebp/demux (= 1.2.0)
+    - libwebp/mux (= 1.2.0)
+    - libwebp/webp (= 1.2.0)
+  - libwebp/demux (1.2.0):
+    - libwebp/webp
+  - libwebp/mux (1.2.0):
+    - libwebp/demux
+  - libwebp/webp (1.2.0)
   - nanopb (1.30906.0):
     - nanopb/decode (= 1.30906.0)
     - nanopb/encode (= 1.30906.0)
@@ -445,6 +454,10 @@ PODS:
     - Segment-Firebase
   - RNCMaskedView (0.1.10):
     - React
+  - RNFastImage (8.3.4):
+    - React-Core
+    - SDWebImage (~> 5.8)
+    - SDWebImageWebPCoder (~> 0.6.1)
   - RNFileViewer (2.1.4):
     - React-Core
   - RNFS (2.16.6):
@@ -457,6 +470,12 @@ PODS:
     - React
   - RNSVG (12.1.0):
     - React
+  - SDWebImage (5.11.1):
+    - SDWebImage/Core (= 5.11.1)
+  - SDWebImage/Core (5.11.1)
+  - SDWebImageWebPCoder (0.6.1):
+    - libwebp (~> 1.0)
+    - SDWebImage/Core (~> 5.7)
   - Segment-Firebase (2.7.0):
     - Analytics
     - Firebase/Core (~> 6.2)
@@ -566,6 +585,7 @@ DEPENDENCIES:
   - "RNAnalytics (from `../node_modules/@segment/analytics-react-native`)"
   - "RNAnalyticsIntegration-Firebase (from `../node_modules/@segment/analytics-react-native-firebase`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
+  - RNFastImage (from `../node_modules/react-native-fast-image`)
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
@@ -608,9 +628,12 @@ SPEC REPOS:
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
+    - libwebp
     - nanopb
     - OpenSSL-Universal
     - PromisesObjC
+    - SDWebImage
+    - SDWebImageWebPCoder
     - Segment-Firebase
     - Toast
     - YogaKit
@@ -728,6 +751,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@segment/analytics-react-native-firebase"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
+  RNFastImage:
+    :path: "../node_modules/react-native-fast-image"
   RNFileViewer:
     :path: "../node_modules/react-native-file-viewer"
   RNFS:
@@ -813,6 +838,7 @@ SPEC CHECKSUMS:
   GoogleAppMeasurement: a6a3a066369828db64eda428cb2856dc1cdc7c4e
   GoogleDataTransport: f56af7caa4ed338dc8e138a5d7c5973e66440833
   GoogleUtilities: 7f2f5a07f888cdb145101d6042bc4422f57e70b3
+  libwebp: e90b9c01d99205d03b6bb8f2c8c415e5a4ef66f0
   nanopb: 59317e09cf1f1a0af72f12af412d54edf52603fc
   OpenSSL-Universal: ff34003318d5e1163e9529b08470708e389ffcdd
   PromisesObjC: 3113f7f76903778cf4a0586bd1ab89329a0b7b97
@@ -848,12 +874,15 @@ SPEC CHECKSUMS:
   RNAnalytics: ac18ac964dd53bac7f957994412963e8e2568c4d
   RNAnalyticsIntegration-Firebase: daed87b7ab56636ed0098326eb92e26fdfc198c2
   RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
+  RNFastImage: d4870d58f5936111c56218dbd7fcfc18e65b58ff
   RNFileViewer: 83cc066ad795b1f986791d03b56fe0ee14b6a69f
   RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: 7a5833d0f788dbd107fbb913e09aa0c1ff333c39
   RNScreens: 2ad555d4d9fa10b91bb765ca07fe9b29d59573f0
   RNSha256: bf2c90a9e0cec6dcbcc4100e4e19715ae7feaa34
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
+  SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
+  SDWebImageWebPCoder: d0dac55073088d24b2ac1b191a71a8f8d0adac21
   Segment-Firebase: 41677a446f58989db69912059949107afb0c3f38
   Toast: 91b396c56ee72a5790816f40d3a94dd357abc196
   UMAppLoader: 92d044af52626af3d81a69796ad666fc7a9a7d78

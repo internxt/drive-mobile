@@ -3,6 +3,7 @@ import { Albums } from '../models/albums';
 import { PhotoAlbums } from '../models/photoAlbums';
 import { Photos } from '../models/photos';
 import { Previews } from '../models/previews';
+import { UrisTrash } from '../models/urisTrash';
 
 export function ConnectionDB(): Promise<Connection> {
   try {
@@ -16,7 +17,8 @@ export function ConnectionDB(): Promise<Connection> {
         Photos,
         Previews,
         Albums,
-        PhotoAlbums
+        PhotoAlbums,
+        UrisTrash
       ],
       migrationsRun: true,
       migrationsTransactionMode: 'all'

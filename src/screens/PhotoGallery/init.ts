@@ -9,7 +9,7 @@ import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { IAPIPhoto, IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
-import { savePhotosAndPreviewsDB } from '../../database/DBUtils.ts/utils';
+import { checkExistsUriTrash, removeUrisFromUrisTrash, savePhotosAndPreviewsDB, updateLocalUriPreviews } from '../../database/DBUtils.ts/utils';
 import { uniqueId } from 'lodash';
 import CameraRoll from '@react-native-community/cameraroll';
 import PackageJson from '../../../package.json'
@@ -96,17 +96,8 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
   const prev = await manipulateAsync(
     photo.uri,
     [{ resize: { width: 220 } }],
-    { compress: 0.8, format: SaveFormat.JPEG }
+    { compress: 0.5, format: SaveFormat.JPEG }
   )
-
-  const parsedUriPreview = prev.uri.replace(/^file:\/\//, '');
-
-  const finalUriPreview = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUriPreview)) : RNFetchBlob.wrap(prev.uri)
-
-  const object = {
-    photo: finalUri,
-    preview: finalUriPreview
-  }
 
   return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
     [
@@ -139,7 +130,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
     })
 }
 
-const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: IHashedPhoto, dispatch: any, apiPhoto: IAPIPhoto) => {
+const uploadPreview = async (preview: ImageResult, photoId: number, originalPhoto: any, dispatch: any, apiPhoto: IAPIPhoto) => {
   const xUser = await deviceStorage.getItem('xUser')
   const xToken = await deviceStorage.getItem('xToken')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -169,24 +160,42 @@ const uploadPreview = async (preview: ImageResult, photoId: number, originalPhot
 
       dispatch(photoActions.updatePhotoStatusUpload(originalPhoto.hash, true))
       throw res;
-    }).then((preview: IApiPreview) => {
-      getPreviewAfterUpload(preview, dispatch, apiPhoto)
+    }).then(async (res: IApiPreview) => {
+
+      const photo = {
+        ...apiPhoto,
+        preview: res
+      }
+      /*
+      return savePhotosAndPreviewsDB(photo, preview.uri, dispatch).then(() => {
+        saveUrisTrash(res.fileId, preview.uri).then(() => {
+          getPreviewAfterUpload(res, dispatch, preview.uri).then()
+        })
+      }).catch((err) => {
+        console.log('err', err)
+        dispatch(photoActions.updatePhotoStatusUpload(apiPhoto.hash, true))
+      })
+      //
+      */
     })
 }
 
-export async function getPreviewAfterUpload(preview: IApiPreview, dispatch: any, apiPhoto: IAPIPhoto): Promise<any> {
+export async function getPreviewAfterUpload(preview: IApiPreview, dispatch: any, pathToRemove: string): Promise<any> {
   return downloadPreviewAfterUpload(preview, dispatch).then((path) => {
     if (path) {
-      const photos = {
-        ...apiPhoto,
-        preview: preview
-      }
+      return updateLocalUriPreviews(preview, path).then(() => {
+        RNFS.unlink(pathToRemove).then(() => {
+          removeUrisFromUrisTrash(preview.fileId).then(() => {
+            RNFS.exists(pathToRemove).then((res) => {
+              console.log('EXISTEE', res)
+            })
+          });
+        })
 
+      });
       // eslint-disable-next-line no-console
-      return savePhotosAndPreviewsDB(photos, path, dispatch).catch((err) => {
-        dispatch(photoActions.updatePhotoStatusUpload(preview.hash, true))
-      })
     }
+    return path;
   })
 }
 
@@ -349,7 +358,7 @@ export async function getLocalPhotosDir(): Promise<string> {
   return TempDir;
 }
 
-export async function downloadPhoto(photo: any, setProgress: (progress: number) => void) {
+export async function downloadPhoto(photo: any, setProgress?: (progress: number) => void) {
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
@@ -377,6 +386,31 @@ export async function downloadPhoto(photo: any, setProgress: (progress: number) 
   })
 }
 
+export async function downloadPhotoWithOutProgress(photo: any) {
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUser = await deviceStorage.getItem('xUser')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const type = photo.type.toLowerCase()
+
+  const tempDir = await getLocalPhotosDir();
+
+  return RNFetchBlob.config({
+    path: `${tempDir}/${photo.id}.${type}`,
+    fileCache: true
+  }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/download/photo/${photo.id}`, {
+    'Authorization': `Bearer ${xToken}`,
+    'internxt-mnemonic': xUserJson.mnemonic
+  }).then((res) => {
+    if (res.respInfo.status !== 200) {
+      throw Error('Unable to download picture')
+    }
+    return res;
+  }).then(async res => {
+    await CameraRoll.save(res.path());
+    return res.path()
+  })
+}
+
 export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview): Promise<any> {
   if (!preview) {
     return Promise.resolve();
@@ -392,7 +426,10 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
 
   const previewExists = await RNFS.exists(tempPath);
 
+  console.log('PREVIEW EXISTS', previewExists)
+
   if (previewExists) {
+    console.log('exists');
     const localPreview = await RNFS.stat(tempPath);
 
     photo.localUri = localPreview.path;
@@ -440,6 +477,16 @@ export async function getPreviews(dispatch: any): Promise<any> {
     return mapSeries(uploadedPhotos, async (preview, next) => {
       if (SHOULD_STOP) {
         throw Error('Sign out')
+      }
+      if (preview.preview === null) {
+        return;
+      }
+      const checkExistUri = await checkExistsUriTrash(preview.preview.fileId);
+
+      if (checkExistUri) {
+        return getPreviewAfterUpload(preview.preview, dispatch, checkExistUri.uri).then((res1) => {
+          next(null, res1)
+        })
       }
 
       return downloadPreview(preview.preview, preview).then((res1) => {
@@ -558,4 +605,18 @@ export async function uploadPhotoFromCamera(dispatch: any) {
       uploadPhoto(fileUploading, dispatch)
     }
   }
+}
+
+async function previewExists(photo: IHashedPhoto) {
+  const headers = await getHeaders()
+
+  console.log('PHOTO', photo)
+
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/exists/preview/${photo.photoId}`, {
+    method: 'GET',
+    headers
+  }).then(res => {
+    console.log('REEEEES', res);
+  })
+
 }
