@@ -92,9 +92,26 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
     creationTime = new Date().toString()
   }
 
+  // Create photo preview and store on device
+  const prev = await manipulateAsync(
+    photo.uri,
+    [{ resize: { width: 220 } }],
+    { compress: 0.8, format: SaveFormat.JPEG }
+  )
+
+  const parsedUriPreview = prev.uri.replace(/^file:\/\//, '');
+
+  const finalUriPreview = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUriPreview)) : RNFetchBlob.wrap(prev.uri)
+
+  const object = {
+    photo: finalUri,
+    preview: finalUriPreview
+  }
+
   return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
     [
-      { name: 'xfile', filename: photo.filename, data: finalUri },
+      { name: 'xfiles', filename: photo.filename, data: finalUri },
+      { name: 'xfiles', filename: `preview-${photo.filename}`, data: finalUriPreview },
       { name: 'hash', data: photo.hash },
       { name: 'creationTime', data: creationTime }
     ])
@@ -105,22 +122,20 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
         dispatch(photoActions.updatePhotoStatusUpload(photo.hash, true))
         throw res
       }
-      return res.json()
+      if (statusCode === 201 || statusCode === 409) {
+        return res.json();
+      }
+
+      dispatch(photoActions.updatePhotoStatusUpload(photo.hash, true))
+      throw res;
     })
-    .then(async (res: IAPIPhoto) => {
-      if (!res.id) {
+    .then(async (res: any) => {
+      if (!res.photo.id) {
         dispatch(photoActions.updatePhotoStatusUpload(photo.hash, true))
         return;
       }
+      await getPreviewAfterUpload(res.preview, dispatch, res.photo)
 
-      // Create photo preview and store on device
-      const prev = await manipulateAsync(
-        photo.uri,
-        [{ resize: { width: 220 } }],
-        { compress: 0.8, format: SaveFormat.JPEG }
-      )
-
-      return uploadPreview(prev, res.id, photo, dispatch, res);
     })
 }
 
