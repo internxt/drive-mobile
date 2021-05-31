@@ -6,6 +6,7 @@ import HomeBlue from '../../../assets/icons/photos/home-blue.svg'
 import FolderBlue from '../../../assets/icons/photos/folder-blue.svg'
 import TwoDotsBlue from '../../../assets/icons/photos/two-dots-blue.svg'
 import { layoutActions } from '../../redux/actions'
+import { getAlbumsRepository } from '../../database/DBUtils.ts/utils'
 
 interface FooterProps {
   dispatch: any
@@ -17,8 +18,12 @@ const ICON_SIZE = 25
 
 const Footer = (props: FooterProps): JSX.Element => {
 
+  const handleOnPressAlbums = async () => {
+    const albums = await getAlbumsRepository()
+  }
+
   const FooterButton = ({ children, onPress }: { children: JSX.Element, onPress: () => void }): JSX.Element => (
-    <TouchableOpacity onPress={() => onPress()} style={tailwind('w-20 border h-11 items-center justify-center')}>
+    <TouchableOpacity onPress={() => onPress()} style={tailwind('w-20 h-11 items-center justify-center')}>
       {children}
     </TouchableOpacity>
   )
@@ -32,7 +37,10 @@ const Footer = (props: FooterProps): JSX.Element => {
         <HomeBlue width={ICON_SIZE} height={ICON_SIZE} />
       </FooterButton>
 
-      <FooterButton onPress={() => props.setHeaderTitle('Albums')}>
+      <FooterButton onPress={() => {
+        handleOnPressAlbums()
+        props.setHeaderTitle('Albums')
+      }}>
         <FolderBlue width={ICON_SIZE} height={ICON_SIZE} />
       </FooterButton>
 

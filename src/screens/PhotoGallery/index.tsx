@@ -113,12 +113,12 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     await getRepositoriesDB().then((res) => {
       props.dispatch(photoActions.viewDB())
       const currentPhotos: IPhotosToRender = store.getState().photosState.photosToRender
-      const previews = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
+      const previews: IPhotosToRender = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
 
       Object.keys(previews).forEach(key => {
         if (currentPhotos[key]) {
           if (currentPhotos[key].isLocal && !currentPhotos[key].isUploaded) { // este if sobra?
-            props.dispatch(photoActions.updatePhotoStatus(key, true, true))
+            props.dispatch(photoActions.updatePhotoStatus(key, true, true, undefined, previews[key].photoId))
           }
         } else {
           const previewObj = { [key]: previews[key] }

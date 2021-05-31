@@ -124,7 +124,8 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
             ...value,
             isLocal: action.payload.isLocal,
             isUploaded: action.payload.isUploaded,
-            localUri: action.payload.pathToLocalImage ? action.payload.pathToLocalImage : value.localUri
+            localUri: action.payload.pathToLocalImage || value.localUri,
+            photoId: action.payload.photoId || value.photoId
           }
         }
         return value

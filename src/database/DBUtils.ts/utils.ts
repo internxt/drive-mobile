@@ -13,7 +13,12 @@ export interface Repositories {
   albumsWithPreviews: PhotoAlbums[];
 }
 
-export async function getUserId() {
+interface AlbumsRepository {
+  albums: Albums[]
+  albumsWithPreviews: PhotoAlbums[]
+}
+
+export async function getUserId(): Promise<string> {
   const xUser = await deviceStorage.getItem('xUser');
   const xUserJson = JSON.parse(xUser || '{}');
   const user = xUserJson.userId;
@@ -48,6 +53,25 @@ export async function getRepositoriesDB(): Promise<Repositories> {
     albumsWithPreviews.push(photoAlbums)
   }
   return { photos, previews, albums, albumsWithPreviews }
+}
+
+export const getAlbumsRepository = async (): Promise<AlbumsRepository> => {
+  const userId = await getUserId()
+
+  const albumsRepository = getRepository(Albums)
+  const albums = await albumsRepository.find(({ where: { userId: userId } }))
+
+  const photoAlbumsRepository = getRepository(PhotoAlbums)
+  const albumsWithPreviews = []
+
+  for (const album of albums) {
+    const photoAlbums = await photoAlbumsRepository.find(({ where: { albumId: album.id } }))
+
+    albumsWithPreviews.push(photoAlbums)
+  }
+  const repo: AlbumsRepository = { albums, albumsWithPreviews }
+
+  return repo
 }
 
 export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch: any): Promise<void> {
