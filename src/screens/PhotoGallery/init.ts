@@ -567,13 +567,13 @@ export async function uploadPhotoFromCamera(dispatch: any) {
   }
 }
 
-async function previewExists(photo: IHashedPhoto) {
+export async function GetNullPreviews() {
   const headers = await getHeaders()
 
-  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/exists/preview/${photo.photoId}`, {
+  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/exists/previews`, {
     method: 'GET',
     headers
   }).then(res => {
+    return res.json()
   })
-
 }
