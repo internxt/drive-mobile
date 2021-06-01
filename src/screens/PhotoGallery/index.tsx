@@ -64,6 +64,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [photosToRender, setPhotosToRender] = useState<IPhotosToRender>(props.photosToRender)
   const [albums, setAlbums] = useState<IAlbumsToRender>({})
   const [photosForAlbumCreation, setPhotosForAlbumCreation] = useState<IPhotosToRender>({})
+  const [isAlbumSelected, setIsAlbumSelected] = useState(false)
   const [finishLocals, setFinishLocals] = useState<boolean>(false)
   const [nullablePreviews, setNullablePreviews] = useState<any>([])
   const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
@@ -319,7 +320,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
           }
 
           {
-            headerTitle === 'INTERNXT PHOTOS' && Object.values(props.photosToRender).length > 0 ?
+            headerTitle === 'INTERNXT PHOTOS' ?
               <FlatList
                 data={Object.values(photosToRender)}
                 numColumns={3}
@@ -331,14 +332,24 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                 windowSize={21} // CHECK THIS PROPERLY
               />
               :
-              <FlatList
-                data={Object.values(albums)}
-                numColumns={3}
-                keyExtractor={keyExtractorAlbum}
-                renderItem={renderItemAlbum}
-                getItemLayout={getItemLayoutAlbum}
-                style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
-              />
+              !isAlbumSelected ?
+                <FlatList
+                  data={Object.values(albums)}
+                  numColumns={3}
+                  keyExtractor={keyExtractorAlbum}
+                  renderItem={renderItemAlbum}
+                  getItemLayout={getItemLayoutAlbum}
+                  style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+                />
+                :
+                <FlatList
+                  data={Object.values(albums)}
+                  numColumns={3}
+                  keyExtractor={keyExtractorAlbum}
+                  renderItem={renderItemAlbum}
+                  getItemLayout={getItemLayoutAlbum}
+                  style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+                />
           }
 
           <Footer setSelectedFilter={setSelectedFilter} setHeaderTitle={setHeaderTitle} dispatch={props.dispatch} />

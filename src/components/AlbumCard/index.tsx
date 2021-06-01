@@ -5,14 +5,14 @@ import { DEVICE_WIDTH, IPhotosToRender } from '../../screens/PhotoGallery';
 import { tailwind } from '../../tailwind'
 import { IStoreReducers } from '../../types/redux';
 import { connect } from 'react-redux';
+import img from '../../../assets/images/img.jpg'
 export interface AlbumProps {
   album: { hashes: string[], name: string }
   photosToRender: IPhotosToRender
 }
 
 export function AlbumCard({ album, photosToRender }: AlbumProps): JSX.Element {
-  const [localUri, setLocalUri] = useState('')
-  const [albums, setAlbums] = useState<IPhotosToRender>({})
+  const [albumPhotos, setAlbumPhotos] = useState<IPhotosToRender>({})
   const [albumCover, setAlbumCover] = useState('')
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -23,21 +23,22 @@ export function AlbumCard({ album, photosToRender }: AlbumProps): JSX.Element {
 
       return acc
     }, {})
-    const cover = albumPhotos[album.hashes[0]].localUri
+    const cover = albumPhotos[album.hashes[0]] ? albumPhotos[album.hashes[0]].localUri : undefined
 
     setAlbumCover(cover)
-    setAlbums(albumPhotos)
+    setAlbumPhotos(albumPhotos)
   }, [])
 
   return (
-    <TouchableOpacity onPress={() => { }}>
+    <TouchableOpacity onPress={() => {
+    }}>
       <View style={{ width: (DEVICE_WIDTH - 40) / 3, height: (DEVICE_WIDTH + 10) / 3 }}>
         <View style={tailwind('m-0.5')}>
           <Image
             onLoadEnd={() => setIsLoaded(true)}
             style={tailwind('self-center rounded-md w-full h-24')}
             resizeMode='cover'
-            source={{ uri: albumCover }}
+            source={albumCover ? { uri: albumCover } : img}
           />
         </View>
 
@@ -47,11 +48,11 @@ export function AlbumCard({ album, photosToRender }: AlbumProps): JSX.Element {
         }
 
         <Text numberOfLines={1} style={tailwind('font-averta-semibold text-gray-80 text-sm -mb-1 ml-1')}>
-          Photos main
+          {album.name}
         </Text>
 
         <Text numberOfLines={1} style={tailwind('font-averta-regular text-gray-50 text-sm ml-1')} >
-          12.350 photos
+          {album.hashes.length}
         </Text>
       </View>
     </TouchableOpacity>
