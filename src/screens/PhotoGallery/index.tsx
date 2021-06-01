@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Dimensions, SafeAreaView, Text, View } from 'react-native';
+import { Dimensions, SafeAreaView, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
-import { FlatList, TextInput, TouchableOpacity } from 'react-native-gesture-handler';
+import { FlatList } from 'react-native-gesture-handler';
 import { getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { layoutActions, photoActions } from '../../redux/actions';
 import { queue } from 'async';
@@ -11,11 +11,8 @@ import Photo from '../../components/PhotoList/Photo';
 import Header from './Header';
 import CreateAlbumModal from '../../modals/CreateAlbumModal';
 import SelectPhotosModal from '../../modals/CreateAlbumModal/SelectPhotosModal';
-import FilterButton from './FilterButton';
-import { tailwind, getColor } from '../../tailwind.js'
+import { tailwind } from '../../tailwind.js'
 import AlbumCard from '../../components/AlbumCard';
-import Lens from '../../../assets/icons/photos/lens.svg';
-import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
 import { IStoreReducers } from '../../types/redux';
 import { store } from '../../store';
 import { getAlbums } from '../../modals/CreateAlbumModal/init';
@@ -284,48 +281,18 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
       <View style={tailwind('px-5')}>
         <SafeAreaView style={tailwind('h-full')}>
-          <Header isSyncing={props.isSyncing} isAlbumSelected={isAlbumSelected} setIsAlbumSelected={setIsAlbumSelected} title={headerTitle} />
-
-          {headerTitle === 'INTERNXT PHOTOS' ?
-            <View style={tailwind('flex-row mt-3 items-center justify-center')}>
-              <FilterButton width='w-1/3' corners='rounded-l' text='Download' filter='download' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
-              <FilterButton width='w-4/10' corners='' text='Upload pending' filter='upload' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
-              <FilterButton width='w-3/10'
-                corners='rounded-r'
-                text='Albums'
-                filter='albums'
-                activeFilter={selectedFilter}
-                onPress={handleOnPressFilter}
-              />
-            </View>
-            :
-            <View style={tailwind('flex-row mt-3 items-center justify-center')}>
-              <View style={tailwind('w-1/10 h-8 items-center justify-center bg-white rounded-l-md')}>
-                <Lens width={19} height={19} />
-              </View>
-
-              <View style={tailwind('w-7/12 h-8 ml-px mr-1')}>
-                <TextInput
-                  style={tailwind('w-full h-full bg-white text-sm font-averta-regular pl-2 pb-1')}
-                  placeholderTextColor={getColor('gray-30')}
-                  placeholder='Search a memory'
-                  onChangeText={value => setSearchString(value)}
-                  value={searchString}
-                  autoCapitalize='none'
-                  autoCorrect={false}
-                />
-              </View>
-
-              <View style={tailwind('w-1/3')}>
-                <TouchableOpacity style={tailwind('flex-row h-8 px-2 bg-blue-60 rounded-r-md items-center justify-around')}
-                  onPress={() => props.dispatch(layoutActions.openCreateAlbumModal())}
-                >
-                  <CrossWhite width={10} height={10} />
-                  <Text style={tailwind('text-white font-averta-regular text-sm')}>Add album</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          }
+          <Header
+            dispatch={props.dispatch}
+            title={headerTitle}
+            isSyncing={props.isSyncing}
+            isAlbumSelected={isAlbumSelected}
+            setIsAlbumSelected={setIsAlbumSelected}
+            selectedFilter={selectedFilter}
+            handleOnPressFilter={handleOnPressFilter}
+            handleFilterSelection={handleFilterSelection}
+            searchString={searchString}
+            setSearchString={setSearchString}
+          />
 
           {
             headerTitle === 'INTERNXT PHOTOS' ?
