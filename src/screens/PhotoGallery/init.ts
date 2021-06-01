@@ -83,6 +83,9 @@ const separatePhotos = async (images: IHashedPhoto[], withPreviews: IApiPhotoWit
 export async function syncPreviews(imagesToUpload: any[], dispatch) {
 
   await mapSeries(imagesToUpload, (image, next) => {
+    if (image === undefined) {
+      return;
+    }
     return uploadPreviewIfNull(image.photo.id, image, dispatch, image.photo).then(() => next(null)).catch((err) => next(null))
   })
 
