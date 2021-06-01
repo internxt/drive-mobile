@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Dimensions, SafeAreaView, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { getLocalImages, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos } from './init'
+import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
 import { FlatList, TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { layoutActions, photoActions } from '../../redux/actions';
@@ -64,6 +64,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [photosToRender, setPhotosToRender] = useState<IPhotosToRender>(props.photosToRender)
   const [albums, setAlbums] = useState<IAlbumsToRender>({})
   const [photosForAlbumCreation, setPhotosForAlbumCreation] = useState<IPhotosToRender>({})
+  const [finishLocals, setFinishLocals] = useState<boolean>(false)
+  const [nullablePreviews, setNullablePreviews] = useState<any>([])
   const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
     await task()
     callBack()
@@ -106,12 +108,31 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         lastPickedImage = localPhotos.endCursor
       } else {
         finished = true
+        setFinishLocals(true)
       }
     }
 
     await Promise.all(syncActions).finally(() => {
       props.dispatch(photoActions.stopSync())
     })
+  }
+
+  const uploadPreviewsNull = async (nullPreviews, localPhotos: any) => {
+    if (nullPreviews.length === 0 || nullPreviews === null) {
+      return;
+    }
+    const newPhotos = localPhotos
+    const nulls = nullPreviews.reduce((acc, photo) => ({ ...acc, [photo.hash]: photo }), {})
+
+    const result = []
+
+    Object.keys(nulls).forEach(key => {
+      if (newPhotos[key]) {
+        newPhotos[key].photo = nulls[key]
+      }
+      result.push(newPhotos[key]);
+    })
+    return result;
   }
 
   const getRepositories = async () => {
@@ -167,11 +188,22 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   }
 
   useEffect(() => {
+    if (finishLocals) {
+      uploadPreviewsNull(nullablePreviews, props.photosToRender).then((res) => {
+        syncPreviews(res, props.dispatch).then()
+      })
+    }
+  }, [finishLocals])
+
+  useEffect(() => {
     initUser().then(() => {
       getLocalPhotos()
       getPreviews(props.dispatch)
       getAlbums()
       getRepositories()
+      getNullPreviews().then((res) => {
+        setNullablePreviews(res)
+      })
     })
   }, [])
 
