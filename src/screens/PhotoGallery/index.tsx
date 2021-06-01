@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Dimensions, SafeAreaView, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { getLocalImages, GetNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
+import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
 import { FlatList, TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { layoutActions, photoActions } from '../../redux/actions';
@@ -186,7 +186,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       getPreviews(props.dispatch)
       getAlbums()
       getRepositories()
-      GetNullPreviews().then((res) => {
+      getNullPreviews().then((res) => {
         setNullablePreviews(res)
       })
     })

@@ -15,6 +15,7 @@ import CameraRoll from '@react-native-community/cameraroll';
 import PackageJson from '../../../package.json'
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import { photoActions } from '../../redux/actions';
+import _ from 'lodash';
 
 export interface IHashedPhoto extends Asset {
   hash: string,
@@ -52,8 +53,7 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
   // Skip uploaded photos with previews
   const alreadyUploadedPhotos = await getUploadedPhotos();
   const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview);
-  const uploadedHashes = withPreviews.map(x => x.hash);
-  const imagesToUpload = images.filter(x => uploadedHashes.indexOf(x.hash) < 0)
+  const imagesToUpload = await separatePhotos(images, withPreviews, alreadyUploadedPhotos);
 
   // Upload filtered photos
   await mapSeries(imagesToUpload, async (image, next) => {
@@ -61,10 +61,29 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
   })
 }
 
+const separatePhotos = async (images: IHashedPhoto[], withPreviews: IApiPhotoWithPreview[], alreadyUploadedPhotos: IApiPhotoWithPreview[]) =>{
+
+  if (withPreviews.length === 0) {
+
+    const difference = _.differenceBy([...images], [...alreadyUploadedPhotos], 'hash')
+
+    return difference;
+
+  } else {
+    const uploadedHashes = withPreviews.map(x => x.hash);
+
+    const photos = images.filter(x => uploadedHashes.indexOf(x.hash) < 0)
+
+    const difference = _.differenceBy([...photos], [...alreadyUploadedPhotos], 'hash')
+
+    return difference;
+  }
+}
+
 export async function syncPreviews(imagesToUpload: any[], dispatch) {
 
   await mapSeries(imagesToUpload, (image, next) => {
-    return uploadPreview(image.photo.id, image, dispatch, image.photo).then(() => next(null)).catch((err) => next(null))
+    return uploadPreviewIfNull(image.photo.id, image, dispatch, image.photo).then(() => next(null)).catch((err) => next(null))
   })
 
 }
@@ -151,7 +170,9 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
     })
 }
 
-export async function uploadPreview(photoId: number, originalPhoto: IHashedPhoto, dispatch: any, apiPhoto: IAPIPhoto) {
+export async function uploadPreviewIfNull(photoId: number, originalPhoto: IHashedPhoto, dispatch: any, apiPhoto: IAPIPhoto) {
+  dispatch(photoActions.updatePhotoStatusUpload(originalPhoto.hash, false))
+
   const prev = await manipulateAsync(
     originalPhoto.uri,
     [{ resize: { width: 220 } }],
@@ -194,6 +215,7 @@ export async function uploadPreview(photoId: number, originalPhoto: IHashedPhoto
       }
 
       return savePhotosAndPreviewsDB(photo, prev.uri, dispatch).then(() => {
+        dispatch(photoActions.updatePhotoStatusUpload(photo.hash, true))
         saveUrisTrash(preview.fileId, prev.uri).then(() => {
           getPreviewAfterUpload(preview, dispatch, prev.uri).then()
         })
@@ -627,7 +649,7 @@ export async function uploadPhotoFromCamera(dispatch: any) {
   }
 }
 
-export async function GetNullPreviews() {
+export async function getNullPreviews() {
   const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/exists/previews`, {
