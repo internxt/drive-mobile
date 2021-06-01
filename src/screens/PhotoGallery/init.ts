@@ -61,6 +61,13 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
   })
 }
 
+export async function syncPreviews(imagesToUpload: any[], dispatch) {
+
+  await mapSeries(imagesToUpload, (image, next) => {
+    return uploadPreview(image.photo.id, image, dispatch, image.photo).then(() => next(null)).catch((err) => next(null))
+  })
+
+}
 async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
   dispatch(photoActions.updatePhotoStatusUpload(photo.hash, false))
 
@@ -140,6 +147,59 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
       }).catch((err) => {
 
         dispatch(photoActions.updatePhotoStatusUpload(res.photo.hash, true))
+      })
+    })
+}
+
+export async function uploadPreview(photoId: number, originalPhoto: IHashedPhoto, dispatch: any, apiPhoto: IAPIPhoto) {
+  const prev = await manipulateAsync(
+    originalPhoto.uri,
+    [{ resize: { width: 220 } }],
+    { compress: 0.5, format: SaveFormat.JPEG }
+  )
+
+  const xUser = await deviceStorage.getItem('xUser')
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const headers = {
+    'Authorization': `Bearer ${xToken}`,
+    'internxt-mnemonic': xUserJson.mnemonic,
+    'Content-Type': 'multipart/form-data',
+    'internxt-version': PackageJson.version,
+    'internxt-client': 'drive-mobile'
+  };
+
+  const parsedUri = prev.uri.replace(/^file:\/\//, '');
+
+  const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUri)) : RNFetchBlob.wrap(prev.uri)
+
+  return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/preview/upload/${photoId}`,
+    headers,
+    [
+      { name: 'xfile', filename: originalPhoto.filename, data: finalUri }
+    ])
+    .then(res => {
+      const statusCode = res.respInfo.status;
+
+      if (statusCode === 201 || statusCode === 409) {
+        return res.json();
+      }
+
+      dispatch(photoActions.updatePhotoStatusUpload(originalPhoto.hash, true))
+      throw res;
+    }).then((preview: IApiPreview) => {
+      const photo = {
+        ...apiPhoto,
+        preview: preview
+      }
+
+      return savePhotosAndPreviewsDB(photo, prev.uri, dispatch).then(() => {
+        saveUrisTrash(preview.fileId, prev.uri).then(() => {
+          getPreviewAfterUpload(preview, dispatch, prev.uri).then()
+        })
+      }).catch((err) => {
+
+        dispatch(photoActions.updatePhotoStatusUpload(photo.hash, true))
       })
     })
 }
@@ -575,5 +635,7 @@ export async function GetNullPreviews() {
     headers
   }).then(res => {
     return res.json()
+  }).then((res) => {
+    return res;
   })
 }
