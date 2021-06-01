@@ -2,6 +2,7 @@ import { addPhotoToAlbumDB, checkExistsAlbumDB, deleteAlbumDB, deletePhotoFromAl
 import { deviceStorage } from '../../helpers'
 import { getHeaders } from '../../helpers/headers'
 import { IAPIAlbum } from './index'
+import { ISelectedPhoto } from './SelectPhotosModal'
 
 export async function getItemsLocalStorage() {
   const xUser = await deviceStorage.getItem('xUser')
@@ -31,7 +32,7 @@ export async function getAlbums(): Promise<any> {
       const exists = await checkExistsAlbumDB(album.name);
 
       if (!exists) {
-        const photos = album.photos.map(photo => photo.id)
+        const photos = album.photos.map(photo => ({ hash: photo.hash, photoId: photo.id }))
 
         await saveAlbumsDB(photos, album.name)
       }
@@ -39,12 +40,13 @@ export async function getAlbums(): Promise<any> {
   })
 }
 
-export async function uploadAlbum(albumTitle: string, selectedPhotos: number[]): Promise<void> {
+export async function uploadAlbum(albumTitle: string, selectedPhotos: ISelectedPhoto[]): Promise<void> {
   const items = await getItemsLocalStorage()
   const mnemonic = items.xUserJson.mnemonic
   const xToken = items.xToken
   const headers = await getHeaders(xToken, mnemonic)
-  const body = { name: albumTitle, photos: selectedPhotos }
+  const photoIds = selectedPhotos.map(photo => photo.photoId)
+  const body = { name: albumTitle, photos: photoIds }
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/photos/album`, {
     method: 'POST',

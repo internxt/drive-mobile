@@ -36,6 +36,10 @@ export interface IPhotosToRender {
   [hash: string]: IPhotoToRender
 }
 
+export interface IAlbumsToRender {
+  [albumId: string]: number[]
+}
+
 export interface IPhotoToRender extends IHashedPhoto {
   isLocal: boolean,
   isUploaded: boolean,
@@ -58,6 +62,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [uploadPendingPhotos, setUploadPendingPhotos] = useState<IPhotosToRender>({})
   const [normalPhotos, setNormalPhotos] = useState<IPhotosToRender>(props.photosToRender)
   const [photosToRender, setPhotosToRender] = useState<IPhotosToRender>(props.photosToRender)
+  const [albums, setAlbums] = useState<IAlbumsToRender>({})
   const [photosForAlbumCreation, setPhotosForAlbumCreation] = useState<IPhotosToRender>({})
   const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
     await task()
@@ -127,6 +132,16 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         }
       })
 
+      const albumsWithPreviews = res.albumsWithPreviews.flatMap(x => x)
+      const albums = res.albums.reduce((acc, album) => {
+        acc[album.id] = {
+          name: album.name,
+          hashes: albumsWithPreviews.filter(preview => preview.albumId === album.id).map(preview => preview.hash)
+        }
+        return acc
+      }, {})
+
+      setAlbums(albums)
     })
   }
 
@@ -190,7 +205,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             // update only if it's a local image
             if (currentPhotos[key].isLocal && !currentPhotos[key].isUploaded) {
               props.dispatch(photoActions.updatePhotoStatusUpload(key, true))
-              props.dispatch(photoActions.updatePhotoStatus(key, true, true))
+              props.dispatch(photoActions.updatePhotoStatus(key, true, true, undefined, previews[key].photoId))
             }
           }
           else {
@@ -212,9 +227,13 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     }
   }, [props.loggedIn])
 
-  const renderItem = useCallback(({ item }) => <Photo item={item} dispatch={props.dispatch} />, [])
-  const keyExtractor = useCallback((item: IPhotoToRender) => item.hash, [])
-  const getItemLayout = useCallback((data, index) => ({ length: (DEVICE_WIDTH - 80) / 3, offset: ((DEVICE_WIDTH - 80) / 3) * index, index }), [])
+  const renderItemPhoto = useCallback(({ item }) => <Photo item={item} dispatch={props.dispatch} />, [])
+  const keyExtractorPhoto = useCallback((item: IPhotoToRender) => item.hash, [])
+  const getItemLayoutPhoto = useCallback((data, index) => ({ length: (DEVICE_WIDTH - 80) / 3, offset: ((DEVICE_WIDTH - 80) / 3) * index, index }), [])
+
+  const renderItemAlbum = useCallback(({ item }) => <AlbumCard album={item} />, [albums])
+  const keyExtractorAlbum = useCallback((item, index) => index, [albums])
+  const getItemLayoutAlbum = useCallback((data, index) => ({ length: (DEVICE_WIDTH - 80) / 3, offset: ((DEVICE_WIDTH - 80) / 3) * index, index }), [])
 
   return (
     <View style={tailwind('flex-1')}>
@@ -272,19 +291,20 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
               <FlatList
                 data={Object.values(photosToRender)}
                 numColumns={3}
-                keyExtractor={keyExtractor}
-                renderItem={renderItem}
-                getItemLayout={getItemLayout}
+                keyExtractor={keyExtractorPhoto}
+                renderItem={renderItemPhoto}
+                getItemLayout={getItemLayoutPhoto}
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
                 //maxToRenderPerBatch={48} // CHECK THIS PROPERLY
                 windowSize={21} // CHECK THIS PROPERLY
               />
               :
               <FlatList
-                data={[1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, 12, 13, 14, 15, 16, 17]}
+                data={Object.values(albums)}
                 numColumns={3}
-                //keyExtractor={item => item.hash}
-                renderItem={({ item }) => <AlbumCard item={item} key={item} />}
+                keyExtractor={keyExtractorAlbum}
+                renderItem={renderItemAlbum}
+                getItemLayout={getItemLayoutAlbum}
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
               />
           }

@@ -41,18 +41,13 @@ function CreateAlbumModal(props: CreateAlbumProps): JSX.Element {
     setIsOpen(props.showAlbumModal)
   }, [props.showAlbumModal])
 
-  const closeModal = () => {
-    props.dispatch(layoutActions.closeCreateAlbumModal())
-    setIsOpen(false)
-  }
-
   return (
     <Modal
       isOpen={isOpen}
       position='bottom'
       swipeArea={40}
       style={tailwind('h-64 rounded-t-3xl px-10')}
-      onClosed={() => closeModal()}
+      onClosed={() => props.dispatch(layoutActions.closeCreateAlbumModal())}
     >
       <View style={tailwind('self-center bg-blue-60 rounded h-1 w-24 mt-5')} />
 
@@ -63,7 +58,7 @@ function CreateAlbumModal(props: CreateAlbumProps): JSX.Element {
 
         <View style={tailwind('w-1/4 items-end')}>
           <TouchableOpacity style={tailwind('w-14 h-8  items-end justify-center')}
-            onPress={() => closeModal()}>
+            onPress={() => setIsOpen(false)}>
             <CrossBlue height={13} width={13} style={tailwind('mr-2')} />
           </TouchableOpacity>
         </View>
@@ -91,7 +86,7 @@ function CreateAlbumModal(props: CreateAlbumProps): JSX.Element {
             SimpleToast.show('The album name can not be empty')
             return
           }
-          closeModal()
+          setIsOpen(false)
           props.dispatch(layoutActions.openSelectPhotosForAlbumModal())
         }}
       >

@@ -2,6 +2,7 @@ import { getRepository } from 'typeorm/browser';
 import { Photos } from '../../database/models/photos';
 import { Previews } from '../../database/models/previews';
 import { deviceStorage } from '../../helpers';
+import { ISelectedPhoto } from '../../modals/CreateAlbumModal/SelectPhotosModal';
 import { photoActions } from '../../redux/actions';
 import { IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { Albums } from '../models/albums';
@@ -12,7 +13,7 @@ export interface Repositories {
   photos: Photos[];
   previews: Previews[];
   albums: Albums[];
-  albumsWithPreviews: PhotoAlbums[];
+  albumsWithPreviews: PhotoAlbums[][];
   urisTrash: UrisTrash[];
 }
 
@@ -103,7 +104,7 @@ export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch
     }
   })
 
-  if (existsPhotoFileId === undefined) {
+  if (!existsPhotoFileId) {
     await photosRepository.save(newPhoto);
   }
 
@@ -139,7 +140,7 @@ export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch
     }
   })
 
-  if (existsfileId === undefined) {
+  if (!existsfileId) {
     await previewsRepository.save(newPreview);
     dispatch(photoActions.startSaveDB())
   }
@@ -151,7 +152,7 @@ export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch
   })
 }
 
-export async function saveAlbumsDB(listPhotos: number[], name: string): Promise<void> {
+export async function saveAlbumsDB(selectedPhotos: ISelectedPhoto[], name: string): Promise<void> {
   const userId = await getUserId()
   const albumRepository = getRepository(Albums);
 
@@ -173,11 +174,12 @@ export async function saveAlbumsDB(listPhotos: number[], name: string): Promise<
 
   await albumPhotosRepository.find({})
 
-  for (const id of listPhotos) {
+  for (const photo of selectedPhotos) {
     const newPhotosAlbum = new PhotoAlbums();
 
     newPhotosAlbum.albumId = newAlbum.id
-    newPhotosAlbum.previewId = id
+    newPhotosAlbum.previewId = photo.photoId
+    newPhotosAlbum.hash = photo.hash
 
     await albumPhotosRepository.save(newPhotosAlbum)
   }
@@ -296,7 +298,7 @@ export async function saveUrisTrash(fileId: string, path: string) {
     }
   })
 
-  if (existsPhotoFileId === undefined) {
+  if (!existsPhotoFileId) {
     await urisTrashRepository.save(newUri);
   }
 

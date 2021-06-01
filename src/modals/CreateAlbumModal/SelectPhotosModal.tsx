@@ -45,24 +45,29 @@ export interface IAlbumPhoto {
   localUri?: string
 }
 
+export interface ISelectedPhoto {
+  hash: string
+  photoId: number
+}
+
 function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
-  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([])
+  const [selectedPhotos, setSelectedPhotos] = useState<ISelectedPhoto[]>([])
   const [isCreatingAlbum, setIsCreatingAlbum] = useState(false)
   const [isOpen, setIsOpen] = useState(props.showSelectPhotosModal)
 
   useEffect(() => {
+    setSelectedPhotos([])
     setIsOpen(props.showSelectPhotosModal)
   }, [props.showSelectPhotosModal])
 
-  const handleSelection = (selectedPhotoId: number) => {
+  const handleSelection = (selectedPhoto: ISelectedPhoto) => {
     const currentIds = selectedPhotos.slice()
-    const exists = currentIds.find(id => id === selectedPhotoId)
+    const exists = currentIds.find(photo => photo.hash === selectedPhoto.hash)
 
     if (exists) {
-      //const newSelectedPhotos = currentSelectedPhotos.filter(photoId => photoId === selectedPhotoId ? null : photoId)
-      setSelectedPhotos(prevIds => prevIds.filter(id => id !== selectedPhotoId))
+      setSelectedPhotos(prevPhotos => prevPhotos.filter(photo => photo.hash !== selectedPhoto.hash))
     } else {
-      setSelectedPhotos(prevIds => [...prevIds, selectedPhotoId])
+      setSelectedPhotos(prevPhotos => [...prevPhotos, selectedPhoto])
     }
   }
 
@@ -77,16 +82,14 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
           return SimpleToast.show('An album with the same name already exists')
         }
         return SimpleToast.show('Could not create album')
-
-      }).finally(() => setTimeout(() => setIsCreatingAlbum(false), 3000))
+      }).finally(() => {
+        props.dispatch(layoutActions.closeSelectPhotosForAlbumModal())
+        props.dispatch(layoutActions.openCreateAlbumModal())
+        setTimeout(() => setIsCreatingAlbum(false), 3000)
+      })
     } else {
       SimpleToast.show('You need to select at least one photo')
     }
-  }
-
-  const closeModal = () => {
-    props.dispatch(layoutActions.closeSelectPhotosForAlbumModal())
-    setIsOpen(false)
   }
 
   const renderItem = useCallback(({ item }) => <Photo item={item} dispatch={props.dispatch} photoSelection={true} handleSelection={handleSelection} />, [selectedPhotos])
@@ -99,14 +102,14 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
       position='bottom'
       swipeArea={40}
       style={tailwind('h-9/10 rounded-t-3xl px-5')}
-      onClosed={() => closeModal()}
+      onClosed={() => props.dispatch(layoutActions.closeSelectPhotosForAlbumModal())}
     >
       <View style={tailwind('self-center bg-blue-60 rounded h-1 w-24 mt-5')} />
 
       <Text style={tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5')}>Add photos to {props.albumTitle}</Text>
 
       <View style={tailwind('flex-row justify-between mt-5')}>
-        <TouchableOpacity onPress={closeModal} disabled={isCreatingAlbum}>
+        <TouchableOpacity onPress={() => setIsOpen(false)} disabled={isCreatingAlbum}>
           <Text style={!isCreatingAlbum ? tailwind('text-blue-60 font-averta-regular text-base') : tailwind('text-blue-40 font-averta-regular text-base')}>Cancel</Text>
         </TouchableOpacity>
 

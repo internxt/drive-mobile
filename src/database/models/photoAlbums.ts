@@ -11,4 +11,7 @@ export class PhotoAlbums {
 
     @Column()
     albumId: number;
+
+    @Column({ nullable: true })
+    hash: string;
 }

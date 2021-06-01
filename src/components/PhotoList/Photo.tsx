@@ -11,13 +11,14 @@ import { DEVICE_WIDTH, IPhotoToRender } from '../../screens/PhotoGallery';
 import { unlink } from 'react-native-fs';
 import { photoActions } from '../../redux/actions';
 import FastImage from 'react-native-fast-image'
+import { ISelectedPhoto } from '../../modals/CreateAlbumModal/SelectPhotosModal';
 
 interface PhotoProps {
   badge?: JSX.Element
   item: IPhotoToRender
   dispatch?: any
   photoSelection?: boolean
-  handleSelection?: (photoId: number) => void
+  handleSelection?: (selectedItem: ISelectedPhoto) => void
 }
 
 const Photo = (props: PhotoProps): JSX.Element => {
@@ -28,7 +29,9 @@ const Photo = (props: PhotoProps): JSX.Element => {
 
   const handleOnPress = () => {
     if (props.photoSelection) {
-      props.handleSelection(item.photoId)
+      const photoObj = { hash: item.hash, photoId: item.photoId }
+
+      props.handleSelection(photoObj, setIsSelected)
       return setIsSelected(prevState => !prevState)
     }
 
