@@ -12,12 +12,12 @@ interface FooterProps {
   dispatch: any
   setHeaderTitle: React.Dispatch<React.SetStateAction<string>>
   setSelectedFilter: React.Dispatch<React.SetStateAction<string>>
+  setIsAlbumSelected: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const ICON_SIZE = 25
 
-const Footer = (props: FooterProps): JSX.Element => {
-
+const Footer = ({ dispatch, setHeaderTitle, setSelectedFilter, setIsAlbumSelected }: FooterProps): JSX.Element => {
   const handleOnPressAlbums = async () => {
     const albums = await getAlbumsRepository()
   }
@@ -31,20 +31,21 @@ const Footer = (props: FooterProps): JSX.Element => {
   return (
     <View style={tailwind('flex-row h-12 justify-around items-center my-1 pl-2')}>
       <FooterButton onPress={() => {
-        props.setSelectedFilter('none')
-        props.setHeaderTitle('INTERNXT PHOTOS')
+        setSelectedFilter('none')
+        setHeaderTitle('INTERNXT PHOTOS')
+        setIsAlbumSelected(false)
       }}>
         <HomeBlue width={ICON_SIZE} height={ICON_SIZE} />
       </FooterButton>
 
       <FooterButton onPress={() => {
         handleOnPressAlbums()
-        props.setHeaderTitle('Albums')
+        setHeaderTitle('Albums')
       }}>
         <FolderBlue width={ICON_SIZE} height={ICON_SIZE} />
       </FooterButton>
 
-      <FooterButton onPress={() => props.dispatch(layoutActions.openSettings())}>
+      <FooterButton onPress={() => dispatch(layoutActions.openSettings())}>
         <TwoDotsBlue width={ICON_SIZE} height={ICON_SIZE} />
       </FooterButton>
     </View>

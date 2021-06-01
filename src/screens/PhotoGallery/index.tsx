@@ -62,9 +62,12 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [uploadPendingPhotos, setUploadPendingPhotos] = useState<IPhotosToRender>({})
   const [normalPhotos, setNormalPhotos] = useState<IPhotosToRender>(props.photosToRender)
   const [photosToRender, setPhotosToRender] = useState<IPhotosToRender>(props.photosToRender)
+
   const [albums, setAlbums] = useState<IAlbumsToRender>({})
   const [photosForAlbumCreation, setPhotosForAlbumCreation] = useState<IPhotosToRender>({})
   const [isAlbumSelected, setIsAlbumSelected] = useState(false)
+  const [albumPhotosToRender, setAlbumPhotosToRender] = useState<IPhotosToRender>({})
+
   const [finishLocals, setFinishLocals] = useState<boolean>(false)
   const [nullablePreviews, setNullablePreviews] = useState<any>([])
   const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
@@ -188,6 +191,11 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     }
   }
 
+  const handleAlbumOnPress = (albumPhotos: IPhotosToRender) => {
+    setIsAlbumSelected(true)
+    setAlbumPhotosToRender(albumPhotos)
+  }
+
   useEffect(() => {
     if (finishLocals) {
       uploadPreviewsNull(nullablePreviews, props.photosToRender).then((res) => {
@@ -264,7 +272,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const keyExtractorPhoto = useCallback((item: IPhotoToRender) => item.hash, [])
   const getItemLayoutPhoto = useCallback((data, index) => ({ length: (DEVICE_WIDTH - 80) / 3, offset: ((DEVICE_WIDTH - 80) / 3) * index, index }), [])
 
-  const renderItemAlbum = useCallback(({ item }) => <AlbumCard album={item} />, [albums])
+  const renderItemAlbum = useCallback(({ item }) => <AlbumCard album={item} handleAlbumOnPress={handleAlbumOnPress} />, [albums])
   const keyExtractorAlbum = useCallback((item, index) => index, [albums])
   const getItemLayoutAlbum = useCallback((data, index) => ({ length: (DEVICE_WIDTH - 80) / 3, offset: ((DEVICE_WIDTH - 80) / 3) * index, index }), [])
 
@@ -276,7 +284,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
       <View style={tailwind('px-5')}>
         <SafeAreaView style={tailwind('h-full')}>
-          <Header isSyncing={props.isSyncing} title={headerTitle} />
+          <Header isSyncing={props.isSyncing} isAlbumSelected={isAlbumSelected} setIsAlbumSelected={setIsAlbumSelected} title={headerTitle} />
 
           {headerTitle === 'INTERNXT PHOTOS' ?
             <View style={tailwind('flex-row mt-3 items-center justify-center')}>
@@ -343,16 +351,16 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                 />
                 :
                 <FlatList
-                  data={Object.values(albums)}
+                  data={Object.values(albumPhotosToRender)}
                   numColumns={3}
-                  keyExtractor={keyExtractorAlbum}
-                  renderItem={renderItemAlbum}
-                  getItemLayout={getItemLayoutAlbum}
+                  keyExtractor={keyExtractorPhoto}
+                  renderItem={renderItemPhoto}
+                  getItemLayout={getItemLayoutPhoto}
                   style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
                 />
           }
 
-          <Footer setSelectedFilter={setSelectedFilter} setHeaderTitle={setHeaderTitle} dispatch={props.dispatch} />
+          <Footer setSelectedFilter={setSelectedFilter} setHeaderTitle={setHeaderTitle} setIsAlbumSelected={setIsAlbumSelected} dispatch={props.dispatch} />
         </SafeAreaView>
       </View>
     </View>
