@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Dimensions, RefreshControl, SafeAreaView, View } from 'react-native';
+import { BackHandler, Dimensions, RefreshControl, SafeAreaView, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
@@ -18,6 +18,7 @@ import { store } from '../../store';
 import { getAlbums } from '../../modals/CreateAlbumModal/init';
 import Footer from './Footer';
 import SettingsModal from '../../modals/SettingsModal';
+import SimpleToast from 'react-native-simple-toast';
 
 interface IPhotoGalleryProps {
   navigation: any
@@ -202,7 +203,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     setAlbumPhotosToRender(albumPhotos)
   }
 
-  const start = () =>{
+  const start = () => {
     getLocalPhotos()
     getPreviews(props.dispatch)
     getAlbums()
@@ -211,14 +212,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       setNullablePreviews(res)
     })
   }
-
-  useEffect(() => {
-    if (finishLocals) {
-      uploadPreviewsNull(nullablePreviews, props.photosToRender).then((res) => {
-        syncPreviews(res, props.dispatch).then()
-      })
-    }
-  }, [finishLocals])
 
   useEffect(() => {
     initUser().then(() => {
@@ -277,6 +270,44 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       props.navigation.replace('Login')
     }
   }, [props.loggedIn])
+
+  useEffect(() => {
+    let count = 0
+    // BackHandler
+    const backAction = () => {
+      if (selectedFilter !== 'none') { setSelectedFilter('none'); return true }
+      if (headerTitle !== 'INTERNXT PHOTOS') { setHeaderTitle('INTERNXT PHOTOS'); return true }
+      if (b || props.showSelectPhotosModal) {
+        props.dispatch(layoutActions.closeCreateAlbumModal())
+        props.dispatch(layoutActions.closeSelectPhotosForAlbumModal())
+        return true
+      }
+
+      count++
+      if (count < 2) {
+        SimpleToast.show('Try exiting again to close the app')
+      } else {
+        BackHandler.exitApp()
+      }
+
+      // Reset if some time passes
+      setTimeout(() => {
+        count = 0
+      }, 4000)
+      return true
+    }
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction)
+
+    return () => backHandler.remove()
+  }, [selectedFilter, headerTitle, props.showAlbumModal, props.showSelectPhotosModal])
+
+  useEffect(() => {
+    if (finishLocals) {
+      uploadPreviewsNull(nullablePreviews, props.photosToRender).then((res) => {
+        syncPreviews(res, props.dispatch).then()
+      })
+    }
+  }, [finishLocals])
 
   const renderItemPhoto = useCallback(({ item }) => <Photo item={item} dispatch={props.dispatch} />, [])
   const keyExtractorPhoto = useCallback((item: IPhotoToRender) => item.hash, [])
