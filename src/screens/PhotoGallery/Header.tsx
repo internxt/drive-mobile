@@ -20,6 +20,7 @@ interface HeaderProps {
   handleFilterSelection: (filterName: string) => void
   searchString: string
   setSearchString: React.Dispatch<React.SetStateAction<string>>
+  setAlbumTitle: React.Dispatch<React.SetStateAction<string>>
 }
 
 const Header = ({
@@ -32,7 +33,8 @@ const Header = ({
   handleOnPressFilter,
   handleFilterSelection,
   searchString,
-  setSearchString
+  setSearchString,
+  setAlbumTitle
 }: HeaderProps): JSX.Element => {
   return (
     <View style={tailwind('flex-col items-center')}>
@@ -94,7 +96,10 @@ const Header = ({
 
               <View style={tailwind('w-1/3')}>
                 <TouchableOpacity style={tailwind('flex-row h-8 px-2 bg-blue-60 rounded-r-md items-center justify-around')}
-                  onPress={() => dispatch(layoutActions.openCreateAlbumModal())}
+                  onPress={() => {
+                    setAlbumTitle('')
+                    dispatch(layoutActions.openCreateAlbumModal())}
+                  }
                 >
                   <CrossWhite width={10} height={10} />
                   <Text style={tailwind('text-white font-averta-regular text-sm')}>Add album</Text>

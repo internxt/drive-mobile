@@ -34,7 +34,6 @@ function CreateAlbumModal({ dispatch, showAlbumModal, albumTitle, setAlbumTitle 
   const [isOpen, setIsOpen] = useState(showAlbumModal)
 
   useEffect(() => {
-    setAlbumTitle('')
     setIsOpen(showAlbumModal)
   }, [showAlbumModal])
 

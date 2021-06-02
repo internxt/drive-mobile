@@ -277,7 +277,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   return (
     <View style={tailwind('flex-1')}>
       <CreateAlbumModal showAlbumModal={props.showAlbumModal} albumTitle={albumTitle} setAlbumTitle={setAlbumTitle} dispatch={props.dispatch} />
-      <SelectPhotosModal showSelectPhotosModal={props.showSelectPhotosModal} albumTitle={albumTitle} photos={photosForAlbumCreation} dispatch={props.dispatch} />
+      <SelectPhotosModal showSelectPhotosModal={props.showSelectPhotosModal} albumTitle={albumTitle} setAlbumTitle={setAlbumTitle} photos={photosForAlbumCreation} dispatch={props.dispatch} />
       <SettingsModal navigation={props.navigation} />
 
       <View style={tailwind('px-5')}>
@@ -293,6 +293,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             handleFilterSelection={handleFilterSelection}
             searchString={searchString}
             setSearchString={setSearchString}
+            setAlbumTitle={setAlbumTitle}
           />
 
           {

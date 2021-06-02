@@ -14,6 +14,7 @@ interface SelectPhotosModalProps {
   showSelectPhotosModal: boolean
   photos: IPhotosToRender
   albumTitle: string
+  setAlbumTitle: React.Dispatch<React.SetStateAction<string>>
 }
 
 export interface ISelectedPhoto {
@@ -21,7 +22,7 @@ export interface ISelectedPhoto {
   photoId: number
 }
 
-function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle }: SelectPhotosModalProps): JSX.Element {
+function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle, setAlbumTitle }: SelectPhotosModalProps): JSX.Element {
   const [selectedPhotos, setSelectedPhotos] = useState<ISelectedPhoto[]>([])
   const [isCreatingAlbum, setIsCreatingAlbum] = useState(false)
   const [isOpen, setIsOpen] = useState(showSelectPhotosModal)
@@ -46,9 +47,10 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
     if (selectedPhotos.length > 0) {
       setIsCreatingAlbum(true)
 
-      uploadAlbum(albumTitle, selectedPhotos).then(() =>
+      uploadAlbum(albumTitle, selectedPhotos).then(() => {
         SimpleToast.show('Album saved successfully')
-      ).catch((err) => {
+        setAlbumTitle('')
+      }).catch((err) => {
         if (err.status === 409) {
           return SimpleToast.show('An album with the same name already exists')
         }
