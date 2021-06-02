@@ -125,7 +125,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
   const prev = await manipulateAsync(
     photo.uri,
     [{ resize: { width: 220 } }],
-    { compress: 0.5, format: SaveFormat.JPEG }
+    { compress: 0.8, format: SaveFormat.JPEG }
   )
   const parsedUriPreview = prev.uri.replace(/^file:\/\//, '');
 
