@@ -21,15 +21,15 @@ export interface ISelectedPhoto {
   photoId: number
 }
 
-function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
+function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle }: SelectPhotosModalProps): JSX.Element {
   const [selectedPhotos, setSelectedPhotos] = useState<ISelectedPhoto[]>([])
   const [isCreatingAlbum, setIsCreatingAlbum] = useState(false)
-  const [isOpen, setIsOpen] = useState(props.showSelectPhotosModal)
+  const [isOpen, setIsOpen] = useState(showSelectPhotosModal)
 
   useEffect(() => {
     setSelectedPhotos([])
-    setIsOpen(props.showSelectPhotosModal)
-  }, [props.showSelectPhotosModal])
+    setIsOpen(showSelectPhotosModal)
+  }, [showSelectPhotosModal])
 
   const handleSelection = (selectedPhoto: ISelectedPhoto) => {
     const currentIds = selectedPhotos.slice()
@@ -46,7 +46,7 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
     if (selectedPhotos.length > 0) {
       setIsCreatingAlbum(true)
 
-      uploadAlbum(props.albumTitle, selectedPhotos).then(() =>
+      uploadAlbum(albumTitle, selectedPhotos).then(() =>
         SimpleToast.show('Album saved successfully')
       ).catch((err) => {
         if (err.status === 409) {
@@ -54,8 +54,8 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
         }
         return SimpleToast.show('Could not create album')
       }).finally(() => {
-        props.dispatch(layoutActions.closeSelectPhotosForAlbumModal())
-        props.dispatch(layoutActions.openCreateAlbumModal())
+        dispatch(layoutActions.closeSelectPhotosForAlbumModal())
+        dispatch(layoutActions.openCreateAlbumModal())
         setTimeout(() => setIsCreatingAlbum(false), 3000)
       })
     } else {
@@ -63,7 +63,7 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
     }
   }
 
-  const renderItem = useCallback(({ item }) => <Photo item={item} dispatch={props.dispatch} photoSelection={true} handleSelection={handleSelection} />, [selectedPhotos])
+  const renderItem = useCallback(({ item }) => <Photo item={item} dispatch={dispatch} photoSelection={true} handleSelection={handleSelection} />, [selectedPhotos])
   const keyExtractor = useCallback((item: IPhotoToRender) => item.hash, [])
   const getItemLayout = useCallback((data, index) => ({ length: (DEVICE_WIDTH - 80) / 3, offset: ((DEVICE_WIDTH - 80) / 3) * index, index }), [])
 
@@ -73,11 +73,11 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
       position='bottom'
       swipeArea={40}
       style={tailwind('h-9/10 rounded-t-3xl px-5')}
-      onClosed={() => props.dispatch(layoutActions.closeSelectPhotosForAlbumModal())}
+      onClosed={() => dispatch(layoutActions.closeSelectPhotosForAlbumModal())}
     >
       <View style={tailwind('self-center bg-blue-60 rounded h-1 w-24 mt-5')} />
 
-      <Text style={tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5')}>Add photos to {props.albumTitle}</Text>
+      <Text style={tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5')}>Add photos to {albumTitle}</Text>
 
       <View style={tailwind('flex-row justify-between mt-5')}>
         <TouchableOpacity onPress={() => setIsOpen(false)} disabled={isCreatingAlbum}>
@@ -92,9 +92,9 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
       </View>
 
       {
-        Object.keys(props.photos).length > 0 ?
+        Object.keys(photos).length > 0 ?
           <FlatList
-            data={Object.values(props.photos)}
+            data={Object.values(photos)}
             numColumns={3}
             keyExtractor={keyExtractor}
             renderItem={renderItem}

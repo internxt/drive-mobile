@@ -30,12 +30,13 @@ export interface ISaveableAlbum {
   photos: number[]
 }
 
-function CreateAlbumModal(props: CreateAlbumProps): JSX.Element {
-  const [isOpen, setIsOpen] = useState(props.showAlbumModal)
+function CreateAlbumModal({ dispatch, showAlbumModal, albumTitle, setAlbumTitle }: CreateAlbumProps): JSX.Element {
+  const [isOpen, setIsOpen] = useState(showAlbumModal)
 
   useEffect(() => {
-    setIsOpen(props.showAlbumModal)
-  }, [props.showAlbumModal])
+    setAlbumTitle('')
+    setIsOpen(showAlbumModal)
+  }, [showAlbumModal])
 
   return (
     <Modal
@@ -43,7 +44,7 @@ function CreateAlbumModal(props: CreateAlbumProps): JSX.Element {
       position='bottom'
       swipeArea={40}
       style={tailwind('h-64 rounded-t-3xl px-10')}
-      onClosed={() => props.dispatch(layoutActions.closeCreateAlbumModal())}
+      onClosed={() => dispatch(layoutActions.closeCreateAlbumModal())}
     >
       <View style={tailwind('self-center bg-blue-60 rounded h-1 w-24 mt-5')} />
 
@@ -69,8 +70,8 @@ function CreateAlbumModal(props: CreateAlbumProps): JSX.Element {
           style={tailwind('w-full h-8 bg-gray-10 text-sm font-averta-regular pl-10 pb-1 ')}
           placeholderTextColor={getColor('gray-50')}
           placeholder='Name your memories'
-          onChangeText={value => props.setAlbumTitle(value)}
-          value={props.albumTitle}
+          onChangeText={value => setAlbumTitle(value)}
+          value={albumTitle}
           autoCapitalize='none'
           autoCorrect={false}
         />
@@ -78,12 +79,12 @@ function CreateAlbumModal(props: CreateAlbumProps): JSX.Element {
 
       <TouchableOpacity style={tailwind('self-center mt-8 bg-blue-60 px-4 py-3 rounded-full')}
         onPress={() => {
-          if (!props.albumTitle) {
+          if (!albumTitle) {
             SimpleToast.show('The album name can not be empty')
             return
           }
           setIsOpen(false)
-          props.dispatch(layoutActions.openSelectPhotosForAlbumModal())
+          dispatch(layoutActions.openSelectPhotosForAlbumModal())
         }}
       >
         <Text style={tailwind('text-center text-base text-white font-averta-regular')}>Add photos to album</Text>
