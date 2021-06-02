@@ -131,7 +131,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
 
   const finalUriPreview = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUriPreview)) : RNFetchBlob.wrap(prev.uri)
 
-  return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/upload`, headers,
+  return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/preview/upload`, headers,
     [
       { name: 'xfiles', filename: photo.filename, data: finalUri },
       { name: 'xfiles', filename: `preview-${photo.filename}`, data: finalUriPreview },
@@ -167,7 +167,6 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
           getPreviewAfterUpload(res.preview, dispatch, prev.uri).then()
         })
       }).catch((err) => {
-
         dispatch(photoActions.updatePhotoStatusUpload(res.photo.hash, true))
       })
     })
