@@ -21,6 +21,10 @@ const addPhotosToRender = (photos: IPhotosToRender) => {
   return { type: photoActionTypes.ADD_PHOTOS_TO_RENDER, payload: photos }
 }
 
+const clearPhotosToRender = () => {
+  return { type: photoActionTypes.CLEAR_PHOTOS_TO_RENDER }
+}
+
 const updatePhotoStatusUpload = (hash: string, hasFinished: boolean) => {
   return { type: photoActionTypes.PHOTO_UPLOAD_UPDATE, payload: { hash, hasFinished } }
 }
@@ -41,5 +45,6 @@ export const photoActions = {
   addPhotosToRender,
   updatePhotoStatusUpload,
   updatePhotoStatusDownload,
-  updatePhotoStatus
+  updatePhotoStatus,
+  clearPhotosToRender
 }

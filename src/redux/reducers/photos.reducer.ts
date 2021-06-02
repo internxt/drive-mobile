@@ -81,6 +81,12 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       })
     }
 
+  case photoActionTypes.CLEAR_PHOTOS_TO_RENDER:
+    return {
+      ...state,
+      photosToRender: {}
+    };
+
   default:
     return state;
   }
