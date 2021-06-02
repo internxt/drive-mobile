@@ -3,7 +3,7 @@ import { FlatList, Text, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Modal from 'react-native-modalbox';
 import { tailwind } from '../../tailwind'
-import { layoutActions } from '../../redux/actions';
+import { layoutActions, photoActions } from '../../redux/actions';
 import Photo from '../../components/PhotoList/Photo';
 import { DEVICE_WIDTH, IPhotosToRender, IPhotoToRender } from '../../screens/PhotoGallery';
 import { uploadAlbum } from './init';
@@ -75,14 +75,17 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
       position='bottom'
       swipeArea={40}
       style={tailwind('h-9/10 rounded-t-3xl px-5')}
-      onClosed={() => dispatch(layoutActions.closeSelectPhotosForAlbumModal())}
+      onClosed={() => {
+        dispatch(photoActions.clearSelectedPhotos())
+        dispatch(layoutActions.closeSelectPhotosForAlbumModal())
+      }}
     >
       <View style={tailwind('self-center bg-blue-60 rounded h-1 w-24 mt-5')} />
 
-      <Text style={tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5')}>Add photos to {albumTitle}</Text>
+      <Text style={tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5')}>Add photos to &quot;{albumTitle}&quot;</Text>
 
       <View style={tailwind('flex-row justify-between mt-5')}>
-        <TouchableOpacity onPress={() => setIsOpen(false)} disabled={isCreatingAlbum}>
+        <TouchableOpacity disabled={isCreatingAlbum} onPress={() => setIsOpen(false)}>
           <Text style={!isCreatingAlbum ? tailwind('text-blue-60 font-averta-regular text-base') : tailwind('text-blue-40 font-averta-regular text-base')}>Cancel</Text>
         </TouchableOpacity>
 

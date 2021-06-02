@@ -30,7 +30,7 @@ export default function PhotoBadge(props: PhotoBadgeProps): JSX.Element {
         <ArrowUp width={22} height={22} />
         : null
       }
-      {props.isSelected ?
+      {props.photoSelection && props.isSelected ?
         <Tick width={22} height={22} />
         : null
       }

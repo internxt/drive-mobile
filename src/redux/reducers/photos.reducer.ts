@@ -64,6 +64,23 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
       })
     }
 
+  case photoActionTypes.PHOTO_SELECTION_UPDATE:
+    return {
+      ...state,
+      photosToRender: objectMap({ ...state.photosToRender }, (value: IPhotoToRender) => {
+        if (value.hash === action.payload.hash) {
+          return { ...value, isSelected: !value.isSelected }
+        }
+        return value
+      })
+    }
+
+  case photoActionTypes.PHOTO_SELECTION_CLEAR:
+    return {
+      ...state,
+      photosToRender: objectMap({ ...state.photosToRender }, (value: IPhotoToRender) => value.isSelected ? ({ ...value, isSelected: false }) : value)
+    }
+
   case photoActionTypes.PHOTO_STATUS_UPDATE:
     return {
       ...state,

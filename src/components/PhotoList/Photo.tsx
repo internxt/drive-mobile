@@ -21,24 +21,22 @@ interface PhotoProps {
   handleSelection?: (selectedItem: ISelectedPhoto) => void
 }
 
-const Photo = (props: PhotoProps): JSX.Element => {
+const Photo = ({ badge, item, dispatch, photoSelection, handleSelection }: PhotoProps): JSX.Element => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [progress, setProgress] = useState(0)
-  const [isSelected, setIsSelected] = useState(false)
-  const item = props.item
 
   const handleOnPress = () => {
-    if (props.photoSelection) {
+    if (photoSelection) {
       const photoObj = { hash: item.hash, photoId: item.photoId }
 
-      props.handleSelection(photoObj, setIsSelected)
-      return setIsSelected(prevState => !prevState)
+      handleSelection(photoObj)
+      return dispatch(photoActions.updatePhotoStatusSelection(item.hash))
     }
 
     if (!item.localUri) { return }
 
     if (item.isUploaded && !item.isLocal && !item.isDownloading) {
-      props.dispatch(photoActions.updatePhotoStatusDownload(item.hash, false))
+      dispatch(photoActions.updatePhotoStatusDownload(item.hash, false))
       let error = false
 
       downloadPhoto(item, setProgress).then((path) => {
@@ -48,8 +46,8 @@ const Photo = (props: PhotoProps): JSX.Element => {
         error = true
         SimpleToast.show('Could not download image', 0.15)
       }).finally(() => {
-        props.dispatch(photoActions.updatePhotoStatusDownload(item.hash, true))
-        if (!error) { props.dispatch(photoActions.updatePhotoStatus(item.hash, true, true)) }
+        dispatch(photoActions.updatePhotoStatusDownload(item.hash, true))
+        if (!error) { dispatch(photoActions.updatePhotoStatus(item.hash, true, true)) }
       })
     } else {
       let filename = ''
@@ -76,8 +74,8 @@ const Photo = (props: PhotoProps): JSX.Element => {
   try {
     const urlEncoded = item.localUri.startsWith('file://')
 
-    if (Platform.OS === 'android' && props.item.isUploaded && !urlEncoded) {
-      props.item.localUri = 'file://' + props.item.localUri;
+    if (Platform.OS === 'android' && item.isUploaded && !urlEncoded) {
+      item.localUri = 'file://' + item.localUri;
     }
   } catch { }
 
@@ -99,14 +97,14 @@ const Photo = (props: PhotoProps): JSX.Element => {
         {!isLoaded ?
           <ActivityIndicator color='gray' size='small' style={tailwind('absolute')} />
           :
-          props.badge ||
+          badge ||
           <PhotoBadge
             isUploaded={item.isUploaded}
             isLocal={item.isLocal}
             isDownloading={item.isDownloading}
             isUploading={item.isUploading}
-            isSelected={isSelected}
-            photoSelection={props.photoSelection}
+            isSelected={item.isSelected}
+            photoSelection={photoSelection}
           />
         }
 

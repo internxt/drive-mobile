@@ -33,6 +33,9 @@ const updatePhotoStatusDownload = (hash: string, hasFinished: boolean) => {
   return { type: photoActionTypes.PHOTO_DOWNLOAD_UPDATE, payload: { hash, hasFinished } }
 }
 
+const updatePhotoStatusSelection = (hash: string) => ({ type: photoActionTypes.PHOTO_SELECTION_UPDATE, payload: { hash } })
+const clearSelectedPhotos = () => ({ type: photoActionTypes.PHOTO_SELECTION_CLEAR })
+
 const updatePhotoStatus = (hash: string, isLocal: boolean, isUploaded: boolean, pathToLocalImage?: string, photoId?: number) => {
   return { type: photoActionTypes.PHOTO_STATUS_UPDATE, payload: { hash, isLocal, isUploaded, pathToLocalImage, photoId } }
 }
@@ -45,6 +48,8 @@ export const photoActions = {
   addPhotosToRender,
   updatePhotoStatusUpload,
   updatePhotoStatusDownload,
+  updatePhotoStatusSelection,
+  clearSelectedPhotos,
   updatePhotoStatus,
   clearPhotosToRender
 }

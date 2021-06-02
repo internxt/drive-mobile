@@ -42,14 +42,15 @@ export interface IPhotoToRender extends IHashedPhoto {
   isLocal: boolean,
   isUploaded: boolean,
   isDownloading: boolean,
-  isUploading: boolean
+  isUploading: boolean,
+  isSelected: boolean
 }
 
 export const DEVICE_WIDTH = Dimensions.get('window').width
 export const DEVICE_HEIGHT = Dimensions.get('window').height
 
-export const objectFilter = (obj: Record<string | number, unknown>, fn): Record<string | number, unknown> => Object.fromEntries(Object.entries(obj).filter(fn))
-export const objectMap = (obj: Record<string | number, unknown>, fn): Record<string | number, unknown> => Object.fromEntries(Object.entries(obj).map(([key, value], i) => [key, fn(value, key, i)]))
+export const objectFilter = (obj: Record<any, any>, fn): Record<any, any> => Object.fromEntries(Object.entries(obj).filter(fn))
+export const objectMap = (obj: Record<any, any>, fn): Record<any, any> => Object.fromEntries(Object.entries(obj).map(([key, value], i) => [key, fn(value, key, i)]))
 
 function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [selectedFilter, setSelectedFilter] = useState('none')
@@ -88,7 +89,14 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
       syncActions.push(syncAction())
 
-      const newNext20 = localPhotos.assets.map(photo => ({ ...photo, isLocal: true, isUploaded: false, isDownloading: false, isUploading: false }))
+      const newNext20 = localPhotos.assets.map(photo => ({
+        ...photo,
+        isLocal: true,
+        isUploaded: false,
+        isDownloading: false,
+        isUploading: false,
+        isSelected: false
+      }))
       const newPhotos: IPhotosToRender = newNext20.reduce((acc, photo) => ({ ...acc, [photo.hash]: photo }), {})
       const currentPhotos: IPhotosToRender = store.getState().photosState.photosToRender
 
@@ -280,8 +288,19 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
   return (
     <View style={tailwind('flex-1')}>
-      <CreateAlbumModal showAlbumModal={props.showAlbumModal} albumTitle={albumTitle} setAlbumTitle={setAlbumTitle} dispatch={props.dispatch} />
-      <SelectPhotosModal showSelectPhotosModal={props.showSelectPhotosModal} albumTitle={albumTitle} setAlbumTitle={setAlbumTitle} photos={photosForAlbumCreation} dispatch={props.dispatch} />
+      <CreateAlbumModal
+        showAlbumModal={props.showAlbumModal}
+        albumTitle={albumTitle}
+        setAlbumTitle={setAlbumTitle}
+        dispatch={props.dispatch}
+      />
+      <SelectPhotosModal
+        showSelectPhotosModal={props.showSelectPhotosModal}
+        albumTitle={albumTitle}
+        setAlbumTitle={setAlbumTitle}
+        photos={photosForAlbumCreation}
+        dispatch={props.dispatch}
+      />
       <SettingsModal navigation={props.navigation} />
 
       <View style={tailwind('px-5')}>
@@ -313,7 +332,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                 windowSize={21} // CHECK THIS PROPERLY
                 refreshControl={
                   <RefreshControl
-                    //refresh control used for the Pull to Refresh
                     refreshing={false}
                     onRefresh={() => {
                       props.dispatch(photoActions.clearPhotosToRender())
