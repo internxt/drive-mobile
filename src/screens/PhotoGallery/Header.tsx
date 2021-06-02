@@ -8,6 +8,7 @@ import FilterButton from './FilterButton'
 import { layoutActions } from '../../redux/actions'
 import Lens from '../../../assets/icons/photos/lens.svg';
 import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
+import { normalize } from '../../helpers'
 
 interface HeaderProps {
   dispatch: any
@@ -51,7 +52,7 @@ const Header = ({
           <View style={tailwind('w-1/5')}></View>
         }
 
-        <Text style={tailwind('w-3/5 text-center text-xl text-gray-80 font-averta-regular')}>
+        <Text style={[tailwind('w-3/5 text-center text-xl text-gray-80 font-averta-regular'), { fontSize: normalize(20) }]}>
           {title}
         </Text>
 
@@ -79,12 +80,12 @@ const Header = ({
           !isAlbumSelected ?
             <View style={tailwind('flex-row mt-3 items-center justify-center')}>
               <View style={tailwind('w-1/10 h-8 items-center justify-center bg-white rounded-l-md')}>
-                <Lens width={19} height={19} />
+                <Lens width={normalize(19)} height={normalize(19)} />
               </View>
 
               <View style={tailwind('w-7/12 h-8 ml-px mr-1')}>
                 <TextInput
-                  style={tailwind('w-full h-full bg-white text-sm font-averta-regular pl-2 pb-1')}
+                  style={[tailwind('w-full h-full bg-white text-sm font-averta-regular pl-2 pb-1'), { fontSize: normalize(14) }]}
                   placeholderTextColor={getColor('gray-30')}
                   placeholder='Search a memory'
                   onChangeText={value => setSearchString(value)}
@@ -98,11 +99,12 @@ const Header = ({
                 <TouchableOpacity style={tailwind('flex-row h-8 px-2 bg-blue-60 rounded-r-md items-center justify-around')}
                   onPress={() => {
                     setAlbumTitle('')
-                    dispatch(layoutActions.openCreateAlbumModal())}
+                    dispatch(layoutActions.openCreateAlbumModal())
+                  }
                   }
                 >
-                  <CrossWhite width={10} height={10} />
-                  <Text style={tailwind('text-white font-averta-regular text-sm')}>Add album</Text>
+                  <CrossWhite width={normalize(10)} height={normalize(10)} />
+                  <Text style={[tailwind('text-white font-averta-regular text-sm'), { fontSize: normalize(14) }]}>Add album</Text>
                 </TouchableOpacity>
               </View>
             </View>

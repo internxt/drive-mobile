@@ -31,10 +31,10 @@ export function AlbumCard({ album, photosToRender, handleAlbumOnPress }: AlbumPr
   }, [])
 
   return (
-    <TouchableOpacity onPress={() => {
+    <TouchableOpacity style={tailwind('mb-0.5')} onPress={() => {
       handleAlbumOnPress(albumPhotos)
     }}>
-      <View style={{ width: (DEVICE_WIDTH - 40) / 3, height: (DEVICE_WIDTH + 10) / 3 }}>
+      <View style={{ width: (DEVICE_WIDTH - 40) / 3 }}>
         <View style={tailwind('m-0.5')}>
           <Image
             onLoadEnd={() => setIsLoaded(true)}
@@ -53,7 +53,7 @@ export function AlbumCard({ album, photosToRender, handleAlbumOnPress }: AlbumPr
           {album.name}
         </Text>
 
-        <Text numberOfLines={1} style={tailwind('font-averta-regular text-gray-50 text-sm ml-1')} >
+        <Text numberOfLines={1} style={tailwind('font-averta-regular text-gray-50 text-sm ml-1 mt-0.5')} >
           {album.hashes.length}
         </Text>
       </View>

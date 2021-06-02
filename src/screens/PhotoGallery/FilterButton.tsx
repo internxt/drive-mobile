@@ -8,6 +8,7 @@ import CloudUploadBlue from '../../../assets/icons/photos/cloud-upload-blue.svg'
 import CloudUploadGray from '../../../assets/icons/photos/cloud-upload-gray.svg'
 import FolderWithCrossBlue from '../../../assets/icons/photos/folder-with-cross-blue.svg'
 import FolderWithCrossGray from '../../../assets/icons/photos/folder-with-cross-gray.svg'
+import { normalize } from '../../helpers'
 
 interface FilterButtonProps {
   width: string,
@@ -22,13 +23,13 @@ interface FilterButtonProps {
 const FilterButton = ({ width, corners, text, filter, handleFilterSelection, onPress, activeFilter }: FilterButtonProps): JSX.Element => {
 
   const SelectedText = ({ text }: { text: string }) => (
-    <Text style={tailwind('text-sm text-blue-60 font-averta-light ml-2')}>{text}</Text>
+    <Text style={[tailwind('text-sm text-blue-60 font-averta-light ml-2'), { fontSize: normalize(14), marginLeft: normalize(8) }]}>{text}</Text>
   )
   const NormalText = ({ text }: { text: string }) => (
-    <Text style={tailwind('text-sm text-gray-80 font-averta-light ml-2')}>{text}</Text>
+    <Text style={[tailwind('text-sm text-gray-80 font-averta-light ml-2'), { fontSize: normalize(14), marginLeft: normalize(8) }]}>{text}</Text>
   )
 
-  const ICON_SIZE = 19
+  const ICON_SIZE = normalize(19)
 
   return (
     <View style={tailwind(width)}>
