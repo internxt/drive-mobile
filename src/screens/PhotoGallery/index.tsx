@@ -20,13 +20,14 @@ import Footer from './Footer';
 import SettingsModal from '../../modals/SettingsModal';
 
 interface IPhotoGalleryProps {
-  route: any;
   navigation: any
   dispatch: Dispatch,
   loggedIn: boolean
   isSyncing: boolean
   isSaveDB: boolean
   photosToRender: IPhotosToRender
+  showSelectPhotosModal: boolean
+  showAlbumModal: boolean
 }
 
 export interface IPhotosToRender {
@@ -47,8 +48,8 @@ export interface IPhotoToRender extends IHashedPhoto {
 export const DEVICE_WIDTH = Dimensions.get('window').width
 export const DEVICE_HEIGHT = Dimensions.get('window').height
 
-export const objectFilter = (obj, predicate) => Object.fromEntries(Object.entries(obj).filter(predicate))
-export const objectMap = (obj, fn) => Object.fromEntries(Object.entries(obj).map(([key, value], i) => [key, fn(value, key, i)]))
+export const objectFilter = (obj: Record<string | number, unknown>, fn): Record<string | number, unknown> => Object.fromEntries(Object.entries(obj).filter(fn))
+export const objectMap = (obj: Record<string | number, unknown>, fn): Record<string | number, unknown> => Object.fromEntries(Object.entries(obj).map(([key, value], i) => [key, fn(value, key, i)]))
 
 function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [selectedFilter, setSelectedFilter] = useState('none')
@@ -275,8 +276,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
   return (
     <View style={tailwind('flex-1')}>
-      <CreateAlbumModal albumTitle={albumTitle} setAlbumTitle={setAlbumTitle} />
-      <SelectPhotosModal albumTitle={albumTitle} photos={photosForAlbumCreation} />
+      <CreateAlbumModal showAlbumModal={props.showAlbumModal} albumTitle={albumTitle} setAlbumTitle={setAlbumTitle} dispatch={props.dispatch} />
+      <SelectPhotosModal showSelectPhotosModal={props.showSelectPhotosModal} albumTitle={albumTitle} photos={photosForAlbumCreation} dispatch={props.dispatch} />
       <SettingsModal navigation={props.navigation} />
 
       <View style={tailwind('px-5')}>
@@ -339,7 +340,9 @@ const mapStateToProps = (state: IStoreReducers) => {
     isSyncing: state.photosState.isSyncing,
     loggedIn: state.authenticationState.loggedIn,
     isSaveDB: state.photosState.isSaveDB,
-    photosToRender: state.photosState.photosToRender
+    photosToRender: state.photosState.photosToRender,
+    showSelectPhotosModal: state.layoutState.showSelectPhotosModal,
+    showAlbumModal: state.layoutState.showAlbumModal
   };
 }
 

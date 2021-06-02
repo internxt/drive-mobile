@@ -1,21 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
-import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
-import { connect } from 'react-redux';
-import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { TextInput, TouchableOpacity } from 'react-native-gesture-handler'
 import Modal from 'react-native-modalbox';
 import { tailwind, getColor } from '../../tailwind'
 import { layoutActions } from '../../redux/actions';
 import CrossBlue from '../../../assets/icons/photos/cross-blue.svg'
 import FolderWithCross from '../../../assets/icons/photos/folder-with-cross-blue.svg'
-import { IStoreReducers } from '../../types/redux';
 import SimpleToast from 'react-native-simple-toast';
 import { IAPIPhoto } from '../../types/api/photos/IApiPhoto';
 
 interface CreateAlbumProps {
   dispatch: any
   showAlbumModal: boolean
-  authenticationState: AuthenticationState
   albumTitle: string
   setAlbumTitle: React.Dispatch<React.SetStateAction<string>>
 }
@@ -96,8 +92,4 @@ function CreateAlbumModal(props: CreateAlbumProps): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: IStoreReducers) => {
-  return { showAlbumModal: state.layoutState.showAlbumModal };
-};
-
-export default connect(mapStateToProps)(CreateAlbumModal);
+export default React.memo(CreateAlbumModal)

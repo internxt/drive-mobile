@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, Text, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { connect } from 'react-redux';
 import Modal from 'react-native-modalbox';
 import { tailwind } from '../../tailwind'
 import { layoutActions } from '../../redux/actions';
 import Photo from '../../components/PhotoList/Photo';
-import { IStoreReducers } from '../../types/redux';
 import { DEVICE_WIDTH, IPhotosToRender, IPhotoToRender } from '../../screens/PhotoGallery';
 import { uploadAlbum } from './init';
 import SimpleToast from 'react-native-simple-toast';
@@ -14,35 +12,8 @@ import SimpleToast from 'react-native-simple-toast';
 interface SelectPhotosModalProps {
   dispatch: any
   showSelectPhotosModal: boolean
-  token: string
-  user: any
   photos: IPhotosToRender
   albumTitle: string
-}
-
-export interface IAlbum {
-  title: string
-  createdAt?: string
-  updatedAt?: string
-  id?: number
-  name?: string
-  photos: IAlbumPhoto[]
-  userId?: string
-}
-
-export interface IAlbumPhoto {
-  bucketId: string
-  fileId: string
-  id: number
-  userId: number
-  createdAt: string
-  updatedAt: string
-  name: string
-  hash: string
-  size: number
-  type: string
-  photosalbums: any
-  localUri?: string
 }
 
 export interface ISelectedPhoto {
@@ -137,12 +108,4 @@ function SelectPhotosModal(props: SelectPhotosModalProps): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: IStoreReducers) => {
-  return {
-    showSelectPhotosModal: state.layoutState.showSelectPhotosModal,
-    token: state.authenticationState.token,
-    user: state.authenticationState.user
-  }
-};
-
-export default connect(mapStateToProps)(SelectPhotosModal);
+export default React.memo(SelectPhotosModal)
