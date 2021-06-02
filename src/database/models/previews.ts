@@ -38,4 +38,7 @@ export class Previews {
 
     @Column({ nullable: true })
     isUploading: boolean;
+
+    @Column({ nullable: true })
+    isSelected: boolean;
 }
