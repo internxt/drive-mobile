@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Dimensions, SafeAreaView, View } from 'react-native';
+import { Dimensions, RefreshControl, SafeAreaView, View } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
@@ -193,6 +193,16 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     setAlbumPhotosToRender(albumPhotos)
   }
 
+  const start = () =>{
+    getLocalPhotos()
+    getPreviews(props.dispatch)
+    getAlbums()
+    getRepositories()
+    getNullPreviews().then((res) => {
+      setNullablePreviews(res)
+    })
+  }
+
   useEffect(() => {
     if (finishLocals) {
       uploadPreviewsNull(nullablePreviews, props.photosToRender).then((res) => {
@@ -203,13 +213,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
   useEffect(() => {
     initUser().then(() => {
-      getLocalPhotos()
-      getPreviews(props.dispatch)
-      getAlbums()
-      getRepositories()
-      getNullPreviews().then((res) => {
-        setNullablePreviews(res)
-      })
+      start()
     })
   }, [])
 
@@ -305,6 +309,16 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
                 //maxToRenderPerBatch={48} // CHECK THIS PROPERLY
                 windowSize={21} // CHECK THIS PROPERLY
+                refreshControl={
+                  <RefreshControl
+                    //refresh control used for the Pull to Refresh
+                    refreshing={false}
+                    onRefresh={() => {
+                      props.dispatch(photoActions.clearPhotosToRender())
+                      start()
+                    }}
+                  />
+                }
               />
               :
               !isAlbumSelected ?
