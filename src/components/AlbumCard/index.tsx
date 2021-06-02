@@ -9,9 +9,10 @@ import img from '../../../assets/images/img.jpg'
 export interface AlbumProps {
   album: { hashes: string[], name: string }
   photosToRender: IPhotosToRender
+  handleAlbumOnPress: (albumPhotos: IPhotosToRender) => void
 }
 
-export function AlbumCard({ album, photosToRender }: AlbumProps): JSX.Element {
+export function AlbumCard({ album, photosToRender, handleAlbumOnPress }: AlbumProps): JSX.Element {
   const [albumPhotos, setAlbumPhotos] = useState<IPhotosToRender>({})
   const [albumCover, setAlbumCover] = useState('')
   const [isLoaded, setIsLoaded] = useState(false);
@@ -31,6 +32,7 @@ export function AlbumCard({ album, photosToRender }: AlbumProps): JSX.Element {
 
   return (
     <TouchableOpacity onPress={() => {
+      handleAlbumOnPress(albumPhotos)
     }}>
       <View style={{ width: (DEVICE_WIDTH - 40) / 3, height: (DEVICE_WIDTH + 10) / 3 }}>
         <View style={tailwind('m-0.5')}>
