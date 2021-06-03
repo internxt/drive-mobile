@@ -23,13 +23,13 @@ interface FilterButtonProps {
 const FilterButton = ({ width, corners, text, filter, handleFilterSelection, onPress, activeFilter }: FilterButtonProps): JSX.Element => {
 
   const SelectedText = ({ text }: { text: string }) => (
-    <Text style={[tailwind('text-sm text-blue-60 font-averta-light ml-2'), { fontSize: normalize(14), marginLeft: normalize(8) }]}>{text}</Text>
+    <Text style={[tailwind('text-sm text-blue-60 font-averta-light ml-2'), { fontSize: normalize(12), marginLeft: normalize(4) }]}>{text}</Text>
   )
   const NormalText = ({ text }: { text: string }) => (
-    <Text style={[tailwind('text-sm text-gray-80 font-averta-light ml-2'), { fontSize: normalize(14), marginLeft: normalize(8) }]}>{text}</Text>
+    <Text style={[tailwind('text-sm text-gray-80 font-averta-light ml-2'), { fontSize: normalize(12), marginLeft: normalize(4) }]}>{text}</Text>
   )
 
-  const ICON_SIZE = normalize(19)
+  const ICON_SIZE = normalize(17)
 
   return (
     <View style={tailwind(width)}>

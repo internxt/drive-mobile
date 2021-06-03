@@ -8,6 +8,7 @@ import Photo from '../../components/PhotoList/Photo';
 import { DEVICE_WIDTH, IPhotosToRender, IPhotoToRender } from '../../screens/PhotoGallery';
 import { uploadAlbum } from './init';
 import SimpleToast from 'react-native-simple-toast';
+import { normalize } from '../../helpers';
 
 interface SelectPhotosModalProps {
   dispatch: any
@@ -82,17 +83,17 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
     >
       <View style={tailwind('self-center bg-blue-60 rounded h-1 w-24 mt-5')} />
 
-      <Text style={tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5')}>Add photos to &quot;{albumTitle}&quot;</Text>
+      <Text style={[tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5'), { fontSize: normalize(14) }]}>Add photos to &quot;{albumTitle}&quot;</Text>
 
       <View style={tailwind('flex-row justify-between mt-5')}>
         <TouchableOpacity disabled={isCreatingAlbum} onPress={() => setIsOpen(false)}>
-          <Text style={!isCreatingAlbum ? tailwind('text-blue-60 font-averta-regular text-base') : tailwind('text-blue-40 font-averta-regular text-base')}>Cancel</Text>
+          <Text style={!isCreatingAlbum ? [tailwind('text-blue-60 font-averta-regular text-base'), { fontSize: normalize(14) }] : [tailwind('text-blue-40 font-averta-regular text-base'), { fontSize: normalize(14) }]}>Cancel</Text>
         </TouchableOpacity>
 
-        <Text style={tailwind('text-gray-70 font-averta-regular text-base')}>All photos</Text>
+        <Text style={[tailwind('text-gray-70 font-averta-regular text-base'), { fontSize: normalize(14) }]}>All photos</Text>
 
         <TouchableOpacity onPress={handleAlbumCreation} disabled={isCreatingAlbum}>
-          <Text style={!isCreatingAlbum ? tailwind('text-blue-60 font-averta-regular text-base') : tailwind('text-blue-40 font-averta-regular text-base')}>Done</Text>
+          <Text style={!isCreatingAlbum ? [tailwind('text-blue-60 font-averta-regular text-base'), { fontSize: normalize(14) }] : [tailwind('text-blue-40 font-averta-regular text-base'), { fontSize: normalize(14) }]}>Done</Text>
         </TouchableOpacity>
       </View>
 

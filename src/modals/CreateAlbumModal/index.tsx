@@ -63,11 +63,11 @@ function CreateAlbumModal({ dispatch, showAlbumModal, albumTitle, setAlbumTitle 
 
       <View style={tailwind('mt-4')}>
         <View style={tailwind('absolute z-10 mt-1.5 ml-3')}>
-          <FolderWithCross width={20} height={20} />
+          <FolderWithCross width={normalize(17)} height={normalize(17)} />
         </View>
 
         <TextInput
-          style={[tailwind('w-full h-8 bg-gray-10 text-sm font-averta-regular pl-10 pb-1'), { fontSize: normalize(14) }]}
+          style={[tailwind('w-full h-8 bg-gray-10 text-sm font-averta-regular pl-10'), { fontSize: normalize(13) }]}
           placeholderTextColor={getColor('gray-50')}
           placeholder='Name your memories'
           onChangeText={value => setAlbumTitle(value)}
@@ -87,7 +87,7 @@ function CreateAlbumModal({ dispatch, showAlbumModal, albumTitle, setAlbumTitle 
           dispatch(layoutActions.openSelectPhotosForAlbumModal())
         }}
       >
-        <Text style={[tailwind('text-center text-base text-white font-averta-regular'), { fontSize: normalize(16) }]}>Add photos to album</Text>
+        <Text style={[tailwind('text-center text-base text-white font-averta-regular'), { fontSize: normalize(14) }]}>Add photos to album</Text>
       </TouchableOpacity>
     </Modal>
   );

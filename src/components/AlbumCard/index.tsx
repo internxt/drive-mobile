@@ -6,6 +6,7 @@ import { tailwind } from '../../tailwind'
 import { IStoreReducers } from '../../types/redux';
 import { connect } from 'react-redux';
 import img from '../../../assets/images/img.jpg'
+import { normalize } from '../../helpers';
 export interface AlbumProps {
   album: { hashes: string[], name: string }
   photosToRender: IPhotosToRender
@@ -49,11 +50,11 @@ export function AlbumCard({ album, photosToRender, handleAlbumOnPress }: AlbumPr
           : null
         }
 
-        <Text numberOfLines={1} style={tailwind('font-averta-semibold text-gray-80 text-sm -mb-1 ml-1')}>
+        <Text numberOfLines={1} style={[tailwind('font-averta-semibold text-gray-80 text-sm -mb-1 ml-1'), { fontSize: normalize(12) }]}>
           {album.name}
         </Text>
 
-        <Text numberOfLines={1} style={tailwind('font-averta-regular text-gray-50 text-sm ml-1 mt-0.5')} >
+        <Text numberOfLines={1} style={[tailwind('font-averta-regular text-gray-50 text-sm ml-1 mt-0.5'), { fontSize: normalize(12) }]} >
           {album.hashes.length}
         </Text>
       </View>

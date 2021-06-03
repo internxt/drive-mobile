@@ -42,7 +42,7 @@ const Header = ({
       <View style={tailwind('flex-row items-center mt-4')}>
         {isAlbumSelected ?
           <View style={tailwind('w-1/5 items-start justify-center')}>
-            <TouchableOpacity style={tailwind('w-12 pl-2 border')}
+            <TouchableOpacity style={tailwind('w-12 pl-2')}
               onPress={() => setIsAlbumSelected(false)}
             >
               <Back width={25} height={25} />
@@ -52,7 +52,7 @@ const Header = ({
           <View style={tailwind('w-1/5')}></View>
         }
 
-        <Text style={[tailwind('w-3/5 text-center text-xl text-gray-80 font-averta-regular'), { fontSize: normalize(20) }]}>
+        <Text style={[tailwind('w-3/5 text-center text-xl text-gray-80 font-averta-regular'), { fontSize: normalize(16) }]}>
           {title}
         </Text>
 
@@ -66,26 +66,19 @@ const Header = ({
       <View>
         {title === 'INTERNXT PHOTOS' ?
           <View style={tailwind('flex-row mt-3 items-center justify-center')}>
-            <FilterButton width='w-1/3' corners='rounded-l' text='Download' filter='download' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
-            <FilterButton width='w-4/10' corners='' text='Upload pending' filter='upload' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
-            <FilterButton width='w-3/10'
-              corners='rounded-r'
-              text='Albums'
-              filter='albums'
-              activeFilter={selectedFilter}
-              onPress={handleOnPressFilter}
-            />
+            <FilterButton width='w-2/4' corners='rounded-l' text='Download' filter='download' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
+            <FilterButton width='w-2/4' corners='' text='Upload pending' filter='upload' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
           </View>
           :
           !isAlbumSelected ?
             <View style={tailwind('flex-row mt-3 items-center justify-center')}>
               <View style={tailwind('w-1/10 h-8 items-center justify-center bg-white rounded-l-md')}>
-                <Lens width={normalize(19)} height={normalize(19)} />
+                <Lens width={normalize(16)} height={normalize(16)} />
               </View>
 
               <View style={tailwind('w-7/12 h-8 ml-px mr-1')}>
                 <TextInput
-                  style={[tailwind('w-full h-full bg-white text-sm font-averta-regular pl-2 pb-1'), { fontSize: normalize(14) }]}
+                  style={[tailwind('w-full h-full bg-white text-sm font-averta-regular pl-2 pb-1'), { fontSize: normalize(12) }]}
                   placeholderTextColor={getColor('gray-30')}
                   placeholder='Search a memory'
                   onChangeText={value => setSearchString(value)}
@@ -103,8 +96,8 @@ const Header = ({
                   }
                   }
                 >
-                  <CrossWhite width={normalize(10)} height={normalize(10)} />
-                  <Text style={[tailwind('text-white font-averta-regular text-sm'), { fontSize: normalize(14) }]}>Add album</Text>
+                  <CrossWhite width={normalize(10)} height={normalize(9)} />
+                  <Text style={[tailwind('text-white font-averta-regular text-sm'), { fontSize: normalize(12) }]}>Add album</Text>
                 </TouchableOpacity>
               </View>
             </View>
