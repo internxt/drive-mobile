@@ -48,7 +48,7 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
     if (selectedPhotos.length > 0) {
       setIsCreatingAlbum(true)
 
-      uploadAlbum(albumTitle, selectedPhotos).then(() => {
+      uploadAlbum(albumTitle, selectedPhotos, dispatch).then(() => {
         SimpleToast.show('Album saved successfully')
         setAlbumTitle('')
       }).catch((err) => {

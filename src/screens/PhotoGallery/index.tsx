@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
 import { FlatList } from 'react-native-gesture-handler';
-import { getRepositoriesDB } from '../../database/DBUtils.ts/utils';
+import { getAlbumsRepository, getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { layoutActions, photoActions } from '../../redux/actions';
 import { queue } from 'async';
 import Photo from '../../components/PhotoList/Photo';
@@ -25,10 +25,11 @@ interface IPhotoGalleryProps {
   dispatch: Dispatch,
   loggedIn: boolean
   isSyncing: boolean
-  isSaveDB: boolean
+  isSavePhotosPreviewsDB: boolean
   photosToRender: IPhotosToRender
   showSelectPhotosModal: boolean
   showAlbumModal: boolean
+  isSaveAlbumsDB: boolean
 }
 
 export interface IPhotosToRender {
@@ -153,6 +154,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const getRepositories = async () => {
     await getRepositoriesDB().then((res) => {
       props.dispatch(photoActions.viewDB())
+      props.dispatch(photoActions.viewAlbumsDB())
       const currentPhotos: IPhotosToRender = store.getState().photosState.photosToRender
       const previews: IPhotosToRender = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
 
@@ -211,7 +213,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const start = () => {
     getLocalPhotos()
     getPreviews(props.dispatch)
-    getAlbums()
+    getAlbums(props.dispatch)
     getRepositories()
     getNullPreviews().then((res) => {
       setNullablePreviews(res)
@@ -248,7 +250,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
   // after a preview gets downloaded and saved to the db...
   useEffect(() => {
-    if (props.isSaveDB) {
+    if (props.isSavePhotosPreviewsDB) {
       getRepositoriesDB().then((res) => {
         props.dispatch(photoActions.viewDB())
         const currentPhotos = store.getState().photosState.photosToRender
@@ -273,7 +275,26 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         })
       })
     }
-  }, [props.isSaveDB])
+  }, [props.isSavePhotosPreviewsDB])
+
+  useEffect(() => {
+    props.dispatch(photoActions.viewAlbumsDB())
+    if (props.isSaveAlbumsDB) {
+      getAlbumsRepository().then(res => {
+        const albumsWithPreviews = res.albumsWithPreviews.flatMap(x => x)
+        const albums = res.albums.reduce((acc, album) => {
+          acc[album.id] = {
+            name: album.name,
+            hashes: albumsWithPreviews.filter(preview => preview.albumId === album.id).map(preview => preview.hash)
+          }
+          return acc
+        }, {})
+
+        setAlbums(albums)
+      })
+    }
+
+  }, [props.isSaveAlbumsDB])
 
   useEffect(() => {
     if (!props.loggedIn) {
@@ -418,10 +439,11 @@ const mapStateToProps = (state: IStoreReducers) => {
   return {
     isSyncing: state.photosState.isSyncing,
     loggedIn: state.authenticationState.loggedIn,
-    isSaveDB: state.photosState.isSaveDB,
+    isSavePhotosPreviewsDB: state.photosState.isSavePhotosPreviewsDB,
     photosToRender: state.photosState.photosToRender,
     showSelectPhotosModal: state.layoutState.showSelectPhotosModal,
-    showAlbumModal: state.layoutState.showAlbumModal
+    showAlbumModal: state.layoutState.showAlbumModal,
+    isSaveAlbumsDB: state.photosState.isSaveAlbumsDB
   };
 }
 

@@ -152,7 +152,9 @@ export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch
   })
 }
 
-export async function saveAlbumsDB(selectedPhotos: ISelectedPhoto[], name: string): Promise<void> {
+export async function saveAlbumsDB(selectedPhotos: ISelectedPhoto[], name: string, dispatch): Promise<void> {
+  dispatch(photoActions.viewAlbumsDB())
+
   const userId = await getUserId()
   const albumRepository = getRepository(Albums);
 
@@ -182,6 +184,7 @@ export async function saveAlbumsDB(selectedPhotos: ISelectedPhoto[], name: strin
     newPhotosAlbum.hash = photo.hash
 
     await albumPhotosRepository.save(newPhotosAlbum)
+    dispatch(photoActions.startSaveAlbumsDB())
   }
 
   await albumPhotosRepository.find({})
