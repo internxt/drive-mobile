@@ -276,8 +276,12 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     // BackHandler
     const backAction = () => {
       if (selectedFilter !== 'none') { setSelectedFilter('none'); return true }
-      if (headerTitle !== 'INTERNXT PHOTOS') { setHeaderTitle('INTERNXT PHOTOS'); return true }
-      if (b || props.showSelectPhotosModal) {
+      if (headerTitle !== 'INTERNXT PHOTOS') {
+        if (isAlbumSelected) { setIsAlbumSelected(false); return true }
+        setHeaderTitle('INTERNXT PHOTOS')
+        return true
+      }
+      if (props.showAlbumModal || props.showSelectPhotosModal) {
         props.dispatch(layoutActions.closeCreateAlbumModal())
         props.dispatch(layoutActions.closeSelectPhotosForAlbumModal())
         return true
