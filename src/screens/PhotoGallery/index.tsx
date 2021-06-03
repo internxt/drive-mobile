@@ -36,7 +36,10 @@ export interface IPhotosToRender {
 }
 
 export interface IAlbumsToRender {
-  [albumId: string]: number[]
+  [albumId: string]: {
+    hashes: string[],
+    name: string
+  }
 }
 
 export interface IPhotoToRender extends IHashedPhoto {
@@ -64,6 +67,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [photosToRender, setPhotosToRender] = useState<IPhotosToRender>(props.photosToRender)
 
   const [albums, setAlbums] = useState<IAlbumsToRender>({})
+  const [filteredAlbums, setFilteredAlbums] = useState<IAlbumsToRender>({})
   const [photosForAlbumCreation, setPhotosForAlbumCreation] = useState<IPhotosToRender>({})
   const [isAlbumSelected, setIsAlbumSelected] = useState(false)
   const [albumPhotosToRender, setAlbumPhotosToRender] = useState<IPhotosToRender>({})
@@ -174,6 +178,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       }, {})
 
       setAlbums(albums)
+      setFilteredAlbums(albums)
     })
   }
 
@@ -212,6 +217,12 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       setNullablePreviews(res)
     })
   }
+
+  useEffect(() => {
+    const newFilteredAlbums = objectFilter(albums, ([key, album]) => album.name.search(searchString) !== -1)
+
+    setFilteredAlbums(newFilteredAlbums)
+  }, [searchString])
 
   useEffect(() => {
     initUser().then(() => {
@@ -378,7 +389,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
               :
               !isAlbumSelected ?
                 <FlatList
-                  data={Object.values(albums)}
+                  data={Object.values(filteredAlbums)}
                   numColumns={3}
                   keyExtractor={keyExtractorAlbum}
                   renderItem={renderItemAlbum}
