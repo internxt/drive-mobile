@@ -3,14 +3,16 @@ import { photoActionTypes } from '../constants/photoActionTypes.constants';
 
 export interface PhotosState {
   isSyncing: boolean
-  isSaveDB: boolean
+  isSavePhotosPreviewsDB: boolean
   photosToRender: IPhotosToRender
+  isSaveAlbumsDB: boolean
 }
 
 const initialState: PhotosState = {
   isSyncing: false,
-  isSaveDB: false,
-  photosToRender: {}
+  isSavePhotosPreviewsDB: false,
+  photosToRender: {},
+  isSaveAlbumsDB: false
 };
 
 export function PhotosReducer(state = initialState, action: any): PhotosState {
@@ -28,12 +30,12 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
   case photoActionTypes.START_SAVE_DB:
     return {
       ...state,
-      isSaveDB: true
+      isSavePhotosPreviewsDB: true
     };
   case photoActionTypes.VIEW_DB:
     return {
       ...state,
-      isSaveDB: false
+      isSavePhotosPreviewsDB: false
     }
 
   case photoActionTypes.ADD_PHOTOS_TO_RENDER:
@@ -102,6 +104,18 @@ export function PhotosReducer(state = initialState, action: any): PhotosState {
     return {
       ...state,
       photosToRender: {}
+    };
+
+  case photoActionTypes.START_SAVE_ALBUMS:
+    return {
+      ...state,
+      isSaveAlbumsDB: true
+    };
+
+  case photoActionTypes.VIEW_ALBUMS_DB:
+    return {
+      ...state,
+      isSaveAlbumsDB: false
     };
 
   default:

@@ -40,6 +40,14 @@ const updatePhotoStatus = (hash: string, isLocal: boolean, isUploaded: boolean, 
   return { type: photoActionTypes.PHOTO_STATUS_UPDATE, payload: { hash, isLocal, isUploaded, pathToLocalImage, photoId } }
 }
 
+function startSaveAlbumsDB() {
+  return { type: photoActionTypes.START_SAVE_ALBUMS };
+}
+
+function viewAlbumsDB() {
+  return { type: photoActionTypes.VIEW_ALBUMS_DB };
+}
+
 export const photoActions = {
   startSync,
   stopSync,
@@ -51,5 +59,7 @@ export const photoActions = {
   updatePhotoStatusSelection,
   clearSelectedPhotos,
   updatePhotoStatus,
-  clearPhotosToRender
+  clearPhotosToRender,
+  startSaveAlbumsDB,
+  viewAlbumsDB
 }
