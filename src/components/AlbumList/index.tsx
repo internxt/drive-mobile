@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react'
-import { StyleSheet, View } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import { StyleSheet, View, FlatList } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { AuthenticationState } from '../../redux/reducers/authentication.reducer';

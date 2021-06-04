@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
-import { TextInput, TouchableOpacity } from 'react-native-gesture-handler'
+import { Text, View, TouchableOpacity, TextInput } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { tailwind, getColor } from '../../tailwind'
 import { layoutActions } from '../../redux/actions';

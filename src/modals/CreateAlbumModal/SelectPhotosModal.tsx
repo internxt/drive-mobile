@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, Text, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import Modal from 'react-native-modalbox';
 import { tailwind } from '../../tailwind'
 import { layoutActions, photoActions } from '../../redux/actions';
 import Photo from '../../components/PhotoList/Photo';
@@ -9,6 +8,7 @@ import { DEVICE_WIDTH, IPhotosToRender, IPhotoToRender } from '../../screens/Pho
 import { uploadAlbum } from './init';
 import SimpleToast from 'react-native-simple-toast';
 import { normalize } from '../../helpers';
+import Modal from 'react-native-modal';
 
 interface SelectPhotosModalProps {
   dispatch: any
@@ -72,15 +72,18 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
 
   return (
     <Modal
-      isOpen={isOpen}
-      position='bottom'
-      swipeArea={40}
-      style={tailwind('h-9/10 rounded-t-3xl px-5')}
-      onClosed={() => {
+      isVisible={isOpen}
+      style={tailwind('h-9/10 rounded-t-3xl px-4 mt-24 mb-0	ml-0 bg-white w-full')}
+      onModalHide={() => {
         dispatch(photoActions.clearSelectedPhotos())
         dispatch(layoutActions.closeSelectPhotosForAlbumModal())
       }}
+      coverScreen={false}
+      swipeDirection={'down'}
+      onSwipeComplete={(e) => { setIsOpen(false) }}
+      swipeThreshold={150}
     >
+
       <View style={tailwind('self-center bg-blue-60 rounded h-1 w-24 mt-5')} />
 
       <Text style={[tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5'), { fontSize: normalize(14) }]}>Add photos to &quot;{albumTitle}&quot;</Text>

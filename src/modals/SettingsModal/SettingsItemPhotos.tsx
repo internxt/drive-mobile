@@ -1,6 +1,5 @@
 import React from 'react'
-import { GestureResponderEvent, StyleSheet, Text } from 'react-native';
-import { TouchableHighlight } from 'react-native-gesture-handler'
+import { GestureResponderEvent, StyleSheet, Text, TouchableHighlight } from 'react-native';
 
 interface SettingsItemPhotosProps {
   onPress: (event: GestureResponderEvent) => void
