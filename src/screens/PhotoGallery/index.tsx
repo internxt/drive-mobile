@@ -164,6 +164,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         if (currentPhotos[key]) {
           if (currentPhotos[key].isLocal && !currentPhotos[key].isUploaded) { // este if sobra?
             props.dispatch(photoActions.updatePhotoStatus(key, true, true, undefined, previews[key].photoId))
+            setIsLoading(false)
+
           }
         } else {
           const previewObj = { [key]: previews[key] }
@@ -265,6 +267,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             if (currentPhotos[key].isLocal && !currentPhotos[key].isUploaded) {
               props.dispatch(photoActions.updatePhotoStatusUpload(key, true))
               props.dispatch(photoActions.updatePhotoStatus(key, true, true, undefined, previews[key].photoId))
+              setIsLoading(false)
+
             }
           }
           else {
