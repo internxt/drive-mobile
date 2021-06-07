@@ -59,7 +59,7 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
       }).finally(() => {
         dispatch(layoutActions.closeSelectPhotosForAlbumModal())
         dispatch(layoutActions.openCreateAlbumModal())
-        setTimeout(() => setIsCreatingAlbum(false), 3000)
+        setTimeout(() => setIsCreatingAlbum(false), 1000)
       })
     } else {
       SimpleToast.show('You need to select at least one photo')

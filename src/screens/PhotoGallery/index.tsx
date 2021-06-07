@@ -18,6 +18,7 @@ import { getAlbums } from '../../modals/CreateAlbumModal/init';
 import Footer from './Footer';
 import SettingsModal from '../../modals/SettingsModal';
 import SimpleToast from 'react-native-simple-toast';
+import { WaveIndicator } from 'react-native-indicators';
 
 interface IPhotoGalleryProps {
   navigation: any
@@ -65,6 +66,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [uploadPendingPhotos, setUploadPendingPhotos] = useState<IPhotosToRender>({})
   const [normalPhotos, setNormalPhotos] = useState<IPhotosToRender>(props.photosToRender)
   const [photosToRender, setPhotosToRender] = useState<IPhotosToRender>(props.photosToRender)
+  const [isLoading, setIsLoading] = useState(false)
 
   const [albums, setAlbums] = useState<IAlbumsToRender>({})
   const [filteredAlbums, setFilteredAlbums] = useState<IAlbumsToRender>({})
@@ -111,6 +113,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             const pathToLocalImage = newPhotos[key].localUri
 
             props.dispatch(photoActions.updatePhotoStatus(key, true, true, pathToLocalImage))
+            setIsLoading(false)
           }
         } else {
           const photoObj = { [key]: newPhotos[key] }
@@ -386,45 +389,49 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
           />
 
           {
-            headerTitle === 'INTERNXT PHOTOS' ?
-              <FlatList
-                data={Object.values(photosToRender)}
-                numColumns={3}
-                keyExtractor={keyExtractorPhoto}
-                renderItem={renderItemPhoto}
-                getItemLayout={getItemLayoutPhoto}
-                style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
-                //maxToRenderPerBatch={48} // CHECK THIS PROPERLY
-                windowSize={21} // CHECK THIS PROPERLY
-                refreshControl={
-                  <RefreshControl
-                    refreshing={false}
-                    onRefresh={() => {
-                      props.dispatch(photoActions.clearPhotosToRender())
-                      start()
-                    }}
-                  />
-                }
-              />
-              :
-              !isAlbumSelected ?
+            !isLoading ?
+              headerTitle === 'INTERNXT PHOTOS' ?
                 <FlatList
-                  data={Object.values(filteredAlbums)}
-                  numColumns={3}
-                  keyExtractor={keyExtractorAlbum}
-                  renderItem={renderItemAlbum}
-                  getItemLayout={getItemLayoutAlbum}
-                  style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
-                />
-                :
-                <FlatList
-                  data={Object.values(albumPhotosToRender)}
+                  data={Object.values(photosToRender)}
                   numColumns={3}
                   keyExtractor={keyExtractorPhoto}
                   renderItem={renderItemPhoto}
                   getItemLayout={getItemLayoutPhoto}
                   style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+                  //maxToRenderPerBatch={48} // CHECK THIS PROPERLY
+                  windowSize={21} // CHECK THIS PROPERLY
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={false}
+                      onRefresh={() => {
+                        setIsLoading(true)
+                        props.dispatch(photoActions.clearPhotosToRender())
+                        start()
+                      }}
+                    />
+                  }
                 />
+                :
+                !isAlbumSelected ?
+                  <FlatList
+                    data={Object.values(filteredAlbums)}
+                    numColumns={3}
+                    keyExtractor={keyExtractorAlbum}
+                    renderItem={renderItemAlbum}
+                    getItemLayout={getItemLayoutAlbum}
+                    style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+                  />
+                  :
+                  <FlatList
+                    data={Object.values(albumPhotosToRender)}
+                    numColumns={3}
+                    keyExtractor={keyExtractorPhoto}
+                    renderItem={renderItemPhoto}
+                    getItemLayout={getItemLayoutPhoto}
+                    style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+                  />
+              :
+              <WaveIndicator color="#5291ff" size={50} />
           }
 
           <Footer setSelectedFilter={setSelectedFilter} setHeaderTitle={setHeaderTitle} setIsAlbumSelected={setIsAlbumSelected} dispatch={props.dispatch} />
