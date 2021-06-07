@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { TouchableOpacity } from 'react-native-gesture-handler'
-import { StyleSheet, ActivityIndicator, View, Platform } from 'react-native';
+import { StyleSheet, ActivityIndicator, View, Platform, TouchableOpacity } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import PhotoBadge from './PhotoBadge';
 import { cachePicture, downloadPhoto } from '../../screens/PhotoGallery/init';

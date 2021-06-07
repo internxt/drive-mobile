@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BackHandler, Dimensions, RefreshControl, SafeAreaView, View } from 'react-native';
+import { BackHandler, Dimensions, RefreshControl, SafeAreaView, View, FlatList } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
-import { FlatList } from 'react-native-gesture-handler';
 import { getAlbumsRepository, getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { layoutActions, photoActions } from '../../redux/actions';
 import { queue } from 'async';
@@ -278,7 +277,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   }, [props.isSavePhotosPreviewsDB])
 
   useEffect(() => {
-    props.dispatch(photoActions.viewAlbumsDB())
     if (props.isSaveAlbumsDB) {
       getAlbumsRepository().then(res => {
         const albumsWithPreviews = res.albumsWithPreviews.flatMap(x => x)
@@ -291,6 +289,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         }, {})
 
         setAlbums(albums)
+        setFilteredAlbums(albums)
       })
     }
 

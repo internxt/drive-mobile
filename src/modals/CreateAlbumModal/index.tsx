@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
-import { TextInput, TouchableOpacity } from 'react-native-gesture-handler'
+import { Text, View, TouchableOpacity, TextInput } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { tailwind, getColor } from '../../tailwind'
 import { layoutActions } from '../../redux/actions';
@@ -62,12 +61,12 @@ function CreateAlbumModal({ dispatch, showAlbumModal, albumTitle, setAlbumTitle 
       </View>
 
       <View style={tailwind('mt-4')}>
-        <View style={tailwind('absolute z-10 mt-1.5 ml-3')}>
+        <View style={tailwind('absolute z-10 mt-2 ml-3')}>
           <FolderWithCross width={normalize(17)} height={normalize(17)} />
         </View>
 
         <TextInput
-          style={[tailwind('w-full h-8 bg-gray-10 text-sm font-averta-regular pl-10'), { fontSize: normalize(13) }]}
+          style={[tailwind('w-full h-9 bg-gray-10 text-xs font-averta-regular pl-10'), { fontSize: normalize(13) }]}
           placeholderTextColor={getColor('gray-50')}
           placeholder='Name your memories'
           onChangeText={value => setAlbumTitle(value)}
