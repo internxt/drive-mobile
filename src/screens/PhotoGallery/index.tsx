@@ -289,6 +289,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         }, {})
 
         setAlbums(albums)
+        setFilteredAlbums(albums)
       })
     }
 
