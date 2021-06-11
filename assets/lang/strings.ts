@@ -106,7 +106,7 @@ const strings = new LocalizedStrings({
         "last_name": "Last name"
       },
       "empty_folder": {
-        "title": "This folder is empty",
+        "title": "This looks empty!",
         "subtitle": "Click the upload button to get started."
       },
       "app_menu": {
@@ -272,7 +272,7 @@ const strings = new LocalizedStrings({
         "last_name": "Primer apellido"
       },
       "empty_folder": {
-        "title": "Esta carpeta está vacía",
+        "title": "¡Esto se ve vacío!",
         "subtitle": "Aprieta en el botón de subida para empezar."
       },
       "app_menu": {
