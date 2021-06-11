@@ -49,6 +49,18 @@ function Storage(props: StorageProps): JSX.Element {
     return true
   }
 
+  const putLimitUsage = () => {
+    if (usageValues.limit > 0) {
+      if (usageValues.limit < 108851651149824) {
+        return prettysize(usageValues.limit);
+      } else if (usageValues.limit >= 108851651149824) {
+        return '\u221E';
+      } else {
+        return '...';
+      }
+    }
+  }
+
   useEffect(() => {
     loadValues().then(res => {
       setUsageValues(res)
@@ -103,7 +115,7 @@ function Storage(props: StorageProps): JSX.Element {
               <Text style={styles.usedSpace}>{strings.screens.storage.space.used.used} </Text>
               <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.usage)} </Text>
               <Text style={styles.usedSpace}>{strings.screens.storage.space.used.of} </Text>
-              <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.limit)}</Text>
+              <Text style={[styles.usedSpace, styles.bold]}>{putLimitUsage()}</Text>
             </View>
           </View>
 

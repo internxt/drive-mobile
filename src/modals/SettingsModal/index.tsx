@@ -27,7 +27,7 @@ async function loadUsage(): Promise<number> {
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load usage') }
     return res
-  }).then(res => res.json()).then(res => res.total)
+  }).then(res => res.json()).then(res => { return res.total; })
 }
 
 async function loadLimit(): Promise<number> {
@@ -37,7 +37,7 @@ async function loadLimit(): Promise<number> {
   }).then(res => {
     if (res.status !== 200) { throw Error('Cannot load limit') }
     return res
-  }).then(res => res.json()).then(res => res.maxSpaceBytes)
+  }).then(res => res.json()).then(res => { return res.maxSpaceBytes })
 }
 
 export async function loadValues(): Promise<{ usage: number, limit: number }> {
@@ -112,13 +112,24 @@ function SettingsModal(props: SettingsModalProps) {
       setIsLoadingUpdate(true)
       loadValues().then(values => {
         setUsageValues(values)
-      }).catch(() => {
-
-      }).finally(() => {
-        setIsLoadingUpdate(false)
-      })
+      }).catch(() => { })
+        .finally(() => {
+          setIsLoadingUpdate(false)
+        })
     }
   }, [props.layoutState.showSettingsModal])
+
+  const putLimitUsage = () => {
+    if (usageValues.limit > 0) {
+      if (usageValues.limit < 108851651149824) {
+        return prettysize(usageValues.limit);
+      } else if (usageValues.limit >= 108851651149824) {
+        return '\u221E';
+      } else {
+        return '...';
+      }
+    }
+  }
 
   // Check current screen to change settings Photos/Drive text
   useEffect(() => {
@@ -159,7 +170,7 @@ function SettingsModal(props: SettingsModalProps) {
           <Text>{strings.screens.storage.space.used.used} </Text>
           <Bold>{prettysize(usageValues.usage)}</Bold>
           <Text> {strings.screens.storage.space.used.of} </Text>
-          <Bold>{prettysize(usageValues.limit)}</Bold>
+          <Bold>{putLimitUsage()}</Bold>
         </Text>
       }
 
