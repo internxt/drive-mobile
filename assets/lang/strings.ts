@@ -272,7 +272,7 @@ const strings = new LocalizedStrings({
         "last_name": "Primer apellido"
       },
       "empty_folder": {
-        "title": "¡Esto se ve vacío!",
+        "title": "¡Esto parece vacío!",
         "subtitle": "Aprieta en el botón de subida para empezar."
       },
       "app_menu": {
