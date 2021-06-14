@@ -3,7 +3,7 @@ import { View } from 'react-native'
 import { tailwind } from '../../tailwind'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import HomeBlue from '../../../assets/icons/photos/home-blue.svg'
-import FolderBlue from '../../../assets/icons/photos/folder-blue.svg'
+import Albums from '../../../assets/icons/photos/albums-blue.svg'
 import TwoDotsBlue from '../../../assets/icons/photos/two-dots-blue.svg'
 import { layoutActions } from '../../redux/actions'
 import { getAlbumsRepository } from '../../database/DBUtils.ts/utils'
@@ -42,7 +42,7 @@ const Footer = ({ dispatch, setHeaderTitle, setSelectedFilter, setIsAlbumSelecte
         handleOnPressAlbums()
         setHeaderTitle('Albums')
       }}>
-        <FolderBlue width={ICON_SIZE} height={ICON_SIZE} />
+        <Albums width={ICON_SIZE} height={ICON_SIZE} />
       </FooterButton>
 
       <FooterButton onPress={() => dispatch(layoutActions.openSettings())}>

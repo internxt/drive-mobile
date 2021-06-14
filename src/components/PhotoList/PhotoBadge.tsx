@@ -1,8 +1,8 @@
 import React from 'react'
 import { View } from 'react-native'
-import CloudUploadBgBlue from '../../../assets/icons/photos/cloud-upload-bg-blue.svg'
-import ArrowUp from '../../../assets/icons/photos/arrow-up-gray.svg'
-import ArrowDown from '../../../assets/icons/photos/arrow-down-gray.svg'
+import DownloadingPhoto from '../../../assets/icons/photos/downloading-photo.svg'
+import UploadingPhoto from '../../../assets/icons/photos/uploading-photo.svg'
+import UploadedFile from '../../../assets/icons/photos/uploaded-file.svg'
 import Tick from '../../../assets/icons/photos/tick-bg-blue.svg'
 import { tailwind } from '../../tailwind'
 
@@ -16,24 +16,30 @@ interface PhotoBadgeProps {
 }
 
 export default function PhotoBadge(props: PhotoBadgeProps): JSX.Element {
+  const ICON_SIZE = 28
+
+  const Icon = (): JSX.Element => {
+    switch (true) {
+    case props.isSelected:
+      return <Tick width={ICON_SIZE} height={ICON_SIZE} />
+
+    case props.isDownloading:
+      return <DownloadingPhoto width={ICON_SIZE} height={ICON_SIZE} />
+
+    case props.isUploading:
+      return <UploadingPhoto width={ICON_SIZE} height={ICON_SIZE} />
+
+    case !props.isLocal && props.isUploaded:
+      return <UploadedFile width={ICON_SIZE} height={ICON_SIZE} />
+
+    default:
+      return <View></View>
+    }
+  }
+
   return (
     <View style={tailwind('absolute bottom-0 right-0 mr-2 mb-2')}>
-      {props.isLocal && props.isUploaded && !props.photoSelection ?
-        <CloudUploadBgBlue width={22} height={22} />
-        : null
-      }
-      {props.isDownloading && !props.photoSelection ?
-        <ArrowDown width={22} height={22} />
-        : null
-      }
-      {props.isUploading && !props.photoSelection ?
-        <ArrowUp width={22} height={22} />
-        : null
-      }
-      {props.photoSelection && props.isSelected ?
-        <Tick width={22} height={22} />
-        : null
-      }
+      <Icon />
     </View>
   )
 }

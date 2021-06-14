@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BackHandler, Dimensions, RefreshControl, SafeAreaView, View, FlatList } from 'react-native';
+import { BackHandler, Dimensions, SafeAreaView, View, FlatList, Text } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
@@ -359,6 +359,17 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const keyExtractorAlbum = useCallback((item, index) => index, [albums])
   const getItemLayoutAlbum = useCallback((data, index) => ({ length: (DEVICE_WIDTH - 80) / 3, offset: ((DEVICE_WIDTH - 80) / 3) * index, index }), [])
 
+  const EmptyPhotosToRenderList = (): JSX.Element => (
+    <View>
+      {
+        selectedFilter === 'download' ?
+          <Text style={tailwind('font-light text-center text-base')}>Here will appear the photos you have uploaded to our cloud and no longer have on your phones gallery.</Text>
+          :
+          <Text style={tailwind('font-light text-center text-base')}>Here will appear the photos from your gallery that have not been uploaded yet.</Text>
+      }
+    </View>
+  )
+
   return (
     <View style={tailwind('flex-1')}>
       <CreateAlbumModal
@@ -401,10 +412,11 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                   keyExtractor={keyExtractorPhoto}
                   renderItem={renderItemPhoto}
                   getItemLayout={getItemLayoutPhoto}
+                  ListEmptyComponent={EmptyPhotosToRenderList}
                   style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
                   //maxToRenderPerBatch={48} // CHECK THIS PROPERLY
                   windowSize={21} // CHECK THIS PROPERLY
-                  refreshControl={
+                  /* refreshControl={
                     <RefreshControl
                       refreshing={false}
                       onRefresh={() => {
@@ -413,7 +425,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                         start()
                       }}
                     />
-                  }
+                  } */
                 />
                 :
                 !isAlbumSelected ?
