@@ -1,7 +1,6 @@
 import { getDocumentAsync } from 'expo-document-picker';
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import { uniqueId } from 'lodash';
-import prettysize from 'prettysize';
 import React, { Fragment, useState, useRef } from 'react'
 import { View, StyleSheet, Platform, TextInput, Image, Alert } from 'react-native'
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
@@ -41,17 +40,6 @@ function AppMenu(props: AppMenuProps) {
   }
 
   const uploadFile = (result: any, currentFolder: number | undefined) => {
-    const userStorage = props.authenticationState.userStorage
-
-    // TODO: String literals is a horrible practice
-    if (userStorage && prettysize(userStorage.limit) === '2 GB') {
-      const random = Math.floor(Math.random() * 4)
-
-      if (random === 2) {
-        props.dispatch(layoutActions.openFreeForYouModal())
-      }
-    }
-
     props.dispatch(fileActions.uploadFileStart())
 
     const userData = getLyticsData().then((res) => {

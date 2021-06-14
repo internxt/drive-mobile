@@ -54,10 +54,9 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
     if (props.isLoading && !props.filesState.uploadFileUri) {
       return
     }
-
     // once it stopped uploading
-    if (props.filesState.uploadFileUri) {
-      const fileInfo = await FileSystem.getInfoAsync(props.filesState.uploadFileUri)
+    if (props.item.isUploaded && props.item.uri) {
+      const fileInfo = await FileSystem.getInfoAsync(props.item.uri)
 
       if (fileInfo.exists) {
         FileViewer.open(fileInfo.uri).catch(() => { })

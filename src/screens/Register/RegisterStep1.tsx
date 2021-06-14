@@ -15,14 +15,12 @@ interface RegisterStep1Props {
   isValidFirstName: boolean
   isValidLastName: boolean
   isValidEmail: boolean
-  isvalidStep: boolean
+  isValidStep: boolean
   setRegisterStep: React.Dispatch<SetStateAction<number>>
   navigation: any
 }
 
 const RegisterStep1 = (props: RegisterStep1Props) => {
-  const isValidStep = props.isValidFirstName && props.isValidLastName && props.isValidEmail
-
   return (
     <KeyboardAvoidingView behavior="padding" style={props.styles.container}>
       <View style={props.styles.containerCentered}>
@@ -92,8 +90,8 @@ const RegisterStep1 = (props: RegisterStep1Props) => {
 
         <View style={props.styles.buttonFooterWrapper}>
           <TouchableOpacity
-            style={[props.styles.button, props.styles.buttonBlock, isValidStep ? {} : props.styles.buttonDisabled]}
-            disabled={!isValidStep}
+            style={[props.styles.button, props.styles.buttonBlock]}
+            disabled={!props.isValidStep}
             onPress={() => props.setRegisterStep(2)}
           >
             <Text style={props.styles.buttonOnLabel}>{strings.components.buttons.continue}</Text>
