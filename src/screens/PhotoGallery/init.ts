@@ -57,11 +57,14 @@ export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise
 
   // Upload filtered photos
   await mapSeries(imagesToUpload, async (image, next) => {
-    await uploadPhoto(image, dispatch).then(() => next(null)).catch((err) => next(null))
+    await uploadPhoto(image, dispatch).then(() => next(null)).catch((err) => {
+      dispatch(photoActions.updatePhotoStatusUpload(image.hash, true))
+      next(null)
+    })
   })
 }
 
-const separatePhotos = async (images: IHashedPhoto[], withPreviews: IApiPhotoWithPreview[], alreadyUploadedPhotos: IApiPhotoWithPreview[]) =>{
+const separatePhotos = async (images: IHashedPhoto[], withPreviews: IApiPhotoWithPreview[], alreadyUploadedPhotos: IApiPhotoWithPreview[]) => {
 
   if (withPreviews.length === 0) {
 
