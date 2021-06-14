@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, Linking, ActivityIndicator, Alert, Platform } from 'react-native';
 import Modal from 'react-native-modalbox'
 import ProgressBar from '../../components/ProgressBar';
-import { layoutActions, userActions } from '../../redux/actions';
+import { layoutActions, photoActions, userActions } from '../../redux/actions';
 import SettingsItem from './SettingsItem';
 import prettysize from 'prettysize'
 import Separator from '../../components/Separator';
@@ -221,6 +221,7 @@ function SettingsModal(props: SettingsModalProps) {
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
           props.dispatch(userActions.signout())
+          props.dispatch(photoActions.clearPhotosToRender());
         }}
       />
     </Modal>
