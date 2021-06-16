@@ -18,7 +18,6 @@ import { getAlbums } from '../../modals/CreateAlbumModal/init';
 import Footer from './Footer';
 import SettingsModal from '../../modals/SettingsModal';
 import SimpleToast from 'react-native-simple-toast';
-import { WaveIndicator } from 'react-native-indicators';
 
 interface IPhotoGalleryProps {
   navigation: any
@@ -113,7 +112,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             const pathToLocalImage = newPhotos[key].localUri
 
             props.dispatch(photoActions.updatePhotoStatus(key, true, true, pathToLocalImage))
-            setIsLoading(false)
           }
         } else {
           const photoObj = { [key]: newPhotos[key] }
@@ -160,15 +158,13 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       const currentPhotos: IPhotosToRender = store.getState().photosState.photosToRender
       const previews: IPhotosToRender = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
 
-      Object.keys(previews).forEach(key => {
-        if (currentPhotos[key]) {
-          if (currentPhotos[key].isLocal && !currentPhotos[key].isUploaded) { // este if sobra?
-            props.dispatch(photoActions.updatePhotoStatus(key, true, true, undefined, previews[key].photoId))
-            setIsLoading(false)
-
+      Object.keys(previews).forEach(hash => {
+        if (currentPhotos[hash]) {
+          if (currentPhotos[hash].isLocal && !currentPhotos[hash].isUploaded) { // este if sobra?
+            props.dispatch(photoActions.updatePhotoStatus(hash, true, true, undefined, previews[hash].photoId))
           }
         } else {
-          const previewObj = { [key]: previews[key] }
+          const previewObj = { [hash]: previews[hash] }
 
           props.dispatch(photoActions.addPhotosToRender(previewObj))
         }
@@ -203,7 +199,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     case filterName === 'download' && (selectedFilter !== 'download'):
       return setPhotosToRender(downloadReadyPhotos)
 
-      // if clicked on the same filter restore array
+    // if clicked on the same filter restore array
     case filterName === selectedFilter:
       return setPhotosToRender(normalPhotos)
     }
@@ -267,14 +263,10 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             if (currentPhotos[key].isLocal && !currentPhotos[key].isUploaded) {
               props.dispatch(photoActions.updatePhotoStatusUpload(key, true))
               props.dispatch(photoActions.updatePhotoStatus(key, true, true, undefined, previews[key].photoId))
-              setIsLoading(false)
-
             }
           }
           else {
-            const prevObj = {
-              [key]: previews[key]
-            }
+            const prevObj = { [key]: previews[key] }
 
             props.dispatch(photoActions.addPhotosToRender(prevObj))
           }
@@ -404,53 +396,56 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
           />
 
           {
-            !isLoading ?
-              headerTitle === 'INTERNXT PHOTOS' ?
+            headerTitle === 'INTERNXT PHOTOS' ?
+              <FlatList
+                data={Object.values(photosToRender)}
+                numColumns={3}
+                keyExtractor={keyExtractorPhoto}
+                renderItem={renderItemPhoto}
+                getItemLayout={getItemLayoutPhoto}
+                ListEmptyComponent={EmptyPhotosToRenderList}
+                style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+                //maxToRenderPerBatch={48} // CHECK THIS PROPERLY
+                windowSize={21} // CHECK THIS PROPERLY
+              /* refreshControl={
+                <RefreshControl
+                  refreshing={false}
+                  onRefresh={() => {
+                    setIsLoading(true)
+                    props.dispatch(photoActions.clearPhotosToRender())
+                    start()
+                  }}
+                />
+              } */
+              />
+              :
+              !isAlbumSelected ?
                 <FlatList
-                  data={Object.values(photosToRender)}
+                  data={Object.values(filteredAlbums)}
+                  numColumns={3}
+                  keyExtractor={keyExtractorAlbum}
+                  renderItem={renderItemAlbum}
+                  getItemLayout={getItemLayoutAlbum}
+                  style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+                />
+                :
+                <FlatList
+                  data={Object.values(albumPhotosToRender)}
                   numColumns={3}
                   keyExtractor={keyExtractorPhoto}
                   renderItem={renderItemPhoto}
                   getItemLayout={getItemLayoutPhoto}
-                  ListEmptyComponent={EmptyPhotosToRenderList}
                   style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
-                  //maxToRenderPerBatch={48} // CHECK THIS PROPERLY
-                  windowSize={21} // CHECK THIS PROPERLY
-                  /* refreshControl={
-                    <RefreshControl
-                      refreshing={false}
-                      onRefresh={() => {
-                        setIsLoading(true)
-                        props.dispatch(photoActions.clearPhotosToRender())
-                        start()
-                      }}
-                    />
-                  } */
                 />
-                :
-                !isAlbumSelected ?
-                  <FlatList
-                    data={Object.values(filteredAlbums)}
-                    numColumns={3}
-                    keyExtractor={keyExtractorAlbum}
-                    renderItem={renderItemAlbum}
-                    getItemLayout={getItemLayoutAlbum}
-                    style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
-                  />
-                  :
-                  <FlatList
-                    data={Object.values(albumPhotosToRender)}
-                    numColumns={3}
-                    keyExtractor={keyExtractorPhoto}
-                    renderItem={renderItemPhoto}
-                    getItemLayout={getItemLayoutPhoto}
-                    style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
-                  />
-              :
-              <WaveIndicator color="#5291ff" size={50} />
+
           }
 
-          <Footer setSelectedFilter={setSelectedFilter} setHeaderTitle={setHeaderTitle} setIsAlbumSelected={setIsAlbumSelected} dispatch={props.dispatch} />
+          <Footer
+            setSelectedFilter={setSelectedFilter}
+            setHeaderTitle={setHeaderTitle}
+            setIsAlbumSelected={setIsAlbumSelected}
+            dispatch={props.dispatch}
+          />
         </SafeAreaView>
       </View>
     </View>

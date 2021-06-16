@@ -525,10 +525,11 @@ export async function getPreviews(dispatch: any): Promise<any> {
       if (SHOULD_STOP) {
         throw Error('Sign out')
       }
+
       if (preview.preview === null) {
-        return;
+        return next(null)
       }
-      const checkExistUri = await checkExistsUriTrash(preview.preview.fileId);
+      const checkExistUri = await checkExistsUriTrash(preview.preview.fileId)
 
       if (checkExistUri) {
         return getPreviewAfterUpload(preview.preview, dispatch, checkExistUri.uri).then((res1) => {
@@ -541,6 +542,8 @@ export async function getPreviews(dispatch: any): Promise<any> {
           savePhotosAndPreviewsDB(preview, res1, dispatch)
         }
         next(null, res1)
+      }).catch(err => {
+        next(null)
       })
     })
   })

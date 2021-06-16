@@ -31,7 +31,6 @@ const Photo = ({ badge, item, dispatch, photoSelection, handleSelection }: Photo
       handleSelection(photoObj)
       return dispatch(photoActions.updatePhotoStatusSelection(item.hash))
     }
-
     if (!item.localUri) { return }
 
     if (item.isUploaded && !item.isLocal && !item.isDownloading) {
@@ -85,6 +84,7 @@ const Photo = ({ badge, item, dispatch, photoSelection, handleSelection }: Photo
     >
       <View style={{ width: (DEVICE_WIDTH - 40) / 3, height: (DEVICE_WIDTH - 80) / 3 }}>
         <View style={tailwind('m-0.5')}>
+          <View style={item.isUploading || item.isDownloading ? tailwind('absolute bg-gray-70 bg-opacity-40 w-full h-full rounded-md z-10') : ''} />
           <FastImage
             onLoadEnd={() => setIsLoaded(true)}
             style={tailwind('self-center rounded-md w-full h-full')}
