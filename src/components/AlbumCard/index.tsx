@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Text, View, TouchableOpacity, Image } from 'react-native';
 import { DEVICE_WIDTH, IPhotosToRender } from '../../screens/PhotoGallery';
 import { tailwind } from '../../tailwind'
 import { IStoreReducers } from '../../types/redux';
 import { connect } from 'react-redux';
+import img from '../../../assets/images/img.jpg'
 import { normalize } from '../../helpers';
-import FastImage from 'react-native-fast-image';
 export interface AlbumProps {
   album: { hashes: string[], name: string }
   photosToRender: IPhotosToRender
@@ -36,11 +36,11 @@ export function AlbumCard({ album, photosToRender, handleAlbumOnPress }: AlbumPr
     }}>
       <View style={{ width: (DEVICE_WIDTH - 40) / 3 }}>
         <View style={tailwind('m-0.5')}>
-          <FastImage
+          <Image
             onLoadEnd={() => setIsLoaded(true)}
             style={tailwind('self-center rounded-md w-full h-24')}
             resizeMode='cover'
-            source={albumCover ? { uri: albumCover } : { uri: '' }}
+            source={albumCover ? { uri: albumCover } : img}
           />
         </View>
 
