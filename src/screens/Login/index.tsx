@@ -49,6 +49,7 @@ function Login(props: LoginProps): JSX.Element {
   useEffect(() => {
     if (props.authenticationState.error) {
       Alert.alert('Login error', props.authenticationState.error)
+      setIsLoading(false)
     }
   }, [props.authenticationState])
 
@@ -157,7 +158,7 @@ function Login(props: LoginProps): JSX.Element {
         </View>
       </View>
 
-      <Text style={styles.versionLabel}>Internxt Drive v1.3.4 (11)</Text>
+      <Text style={styles.versionLabel}>Internxt Drive v1.3.5</Text>
     </KeyboardAvoidingView>
   )
 }

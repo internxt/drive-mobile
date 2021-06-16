@@ -39,7 +39,6 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
     }
   })()
   let count = 0
-
   // Check if everything is set up for file upload
   const validateUri = () => {
     if (Platform.OS === 'ios') {
@@ -69,11 +68,11 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
               storage_used: currentPlan.usage,
               storage_limit: currentPlan.limit,
               storage_usage: currentPlan.percentage
-            }).catch(() => {})
+            }).catch(() => { })
           }
-        } catch {}
+        } catch { }
       })
-    }).catch(() => {})
+    }).catch(() => { })
   }, [])
 
   // useEffect to trigger uploadFile while app on background
@@ -162,7 +161,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       }
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm
 
-      analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => {})
+      analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
       props.dispatch(fileActions.uploadFileStart(name))
 
       const file = uri.replace(regex, '$2') // if iOS remove file://
@@ -242,21 +241,20 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
     <AppMenu navigation={props.navigation} />
 
     <View style={styles.breadcrumbs}>
-      <Text style={styles.breadcrumbsTitle}>
+      <Text numberOfLines={1} style={styles.breadcrumbsTitle}>
         {filesState.folderContent && filesState.folderContent.parentId
           ? filesState.folderContent.name
           : strings.screens.file_explorer.title}
       </Text>
 
       <TouchableOpacity
+        style={parentFolderId ? styles.backButtonWrapper : styles.backHidden}
         onPress={() => {
           props.dispatch(fileActions.getFolderContent(parentFolderId))
         }}>
-        <View style={parentFolderId ? styles.backButtonWrapper : styles.backHidden}>
-          <Image style={styles.backIcon} source={getIcon('back')} />
+        <Image style={styles.backIcon} source={getIcon('back')} />
 
-          <Text style={styles.backLabel}>{strings.components.buttons.back}</Text>
-        </View>
+        <Text style={styles.backLabel}>{strings.components.buttons.back}</Text>
       </TouchableOpacity>
     </View>
 
@@ -289,11 +287,10 @@ const styles = StyleSheet.create({
   },
   backButtonWrapper: {
     alignItems: 'center',
-    display: 'flex',
     flexDirection: 'row',
     height: '100%',
     marginRight: 20,
-    width: '100%'
+    width: '80%'
   },
   backHidden: {
     display: 'none'
@@ -321,6 +318,7 @@ const styles = StyleSheet.create({
     marginTop: 15
   },
   breadcrumbsTitle: {
+    width: '80%',
     color: '#000000',
     fontFamily: 'CircularStd-Bold',
     fontSize: 21,

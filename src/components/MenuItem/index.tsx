@@ -1,6 +1,6 @@
 import React from 'react'
 import { Image, StyleSheet } from 'react-native'
-import { TouchableHighlight } from 'react-native-gesture-handler';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { getIcon } from '../../helpers/getIcon';
 
@@ -13,14 +13,15 @@ interface MenuItemProps {
 function MenuItem(props: MenuItemProps) {
   const imageSource = getIcon(props.name)
 
-  return <TouchableHighlight
-    underlayColor="#fff"
-    onPress={props.onClickHandler}
-    style={[styles.button, props.style ? { ...props.style } : {}]}>
-    <Image
-      style={styles.icon}
-      source={imageSource} />
-  </TouchableHighlight>
+  return (
+    <TouchableOpacity
+      onPress={props.onClickHandler}
+      style={[styles.button, props.style ? { ...props.style } : {}]}>
+      <Image
+        style={styles.icon}
+        source={imageSource} />
+    </TouchableOpacity>
+  )
 }
 
 const mapStateToProps = (state: any) => {

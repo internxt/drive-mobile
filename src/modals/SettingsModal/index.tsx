@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, Linking, ActivityIndicator, Alert, Platform } from 'react-native';
 import Modal from 'react-native-modalbox'
 import ProgressBar from '../../components/ProgressBar';
-import { layoutActions, userActions } from '../../redux/actions';
+import { layoutActions, photoActions, userActions } from '../../redux/actions';
 import SettingsItem from './SettingsItem';
 import prettysize from 'prettysize'
 import Separator from '../../components/Separator';
@@ -133,7 +133,7 @@ function SettingsModal(props: SettingsModalProps) {
 
   // Check current screen to change settings Photos/Drive text
   useEffect(() => {
-    if (props.navigation.state.routeName === 'Photos' || props.navigation.state.routeName === 'FileExplorer') {
+    if (props.navigation.state.routeName === 'PhotoGallery' || props.navigation.state.routeName === 'FileExplorer') {
       props.dispatch(layoutActions.setCurrentApp(props.navigation.state.routeName))
     }
   }, [props.navigation.state])
@@ -190,15 +190,15 @@ function SettingsModal(props: SettingsModalProps) {
       />
 
       <SettingsItem
-        text={props.layoutState.currentApp === 'Photos' ? strings.components.app_menu.settings.drive : strings.components.app_menu.settings.photos}
+        text={props.layoutState.currentApp === 'PhotoGallery' ? strings.components.app_menu.settings.drive : strings.components.app_menu.settings.photos}
         onPress={async () => {
 
           props.dispatch(layoutActions.closeSettings())
 
-          if (props.layoutState.currentApp === 'Photos') {
+          if (props.layoutState.currentApp === 'PhotoGallery') {
             props.navigation.replace('FileExplorer')
           } else {
-            props.navigation.replace('Photos')
+            props.navigation.replace('PhotoGallery')
           }
         }}
       />
@@ -221,6 +221,7 @@ function SettingsModal(props: SettingsModalProps) {
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
           props.dispatch(userActions.signout())
+          props.dispatch(photoActions.clearPhotosToRender());
         }}
       />
     </Modal>

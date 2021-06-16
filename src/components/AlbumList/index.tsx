@@ -1,83 +1,65 @@
-import React from 'react'
-import { StyleSheet, Pressable, View } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import React, { useEffect } from 'react'
+import { StyleSheet, View, FlatList } from 'react-native';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
+import { AuthenticationState } from '../../redux/reducers/authentication.reducer';
+import { PhotosState } from '../../redux/reducers/photos.reducer';
+import { IAlbum } from '../../screens/CreateAlbum';
 import AlbumCard from '../AlbumCard';
-import { IPhoto } from '../PhotoList';
-
-export interface IAlbum {
-    id: number
-    albumId: number
-    bucket: string
-    name: string
-    content: any[]
-    createdAt: Date
-    updatedAt: Date
-}
 
 interface AlbumListProps {
-    title: string
-    photos: IPhoto[]
-    photosState?: any
-    authenticationState?: any
-    dispatch?: any
-    navigation: any
+  photosState?: PhotosState
+  authenticationState?: AuthenticationState
+  dispatch?: Dispatch
+  navigation: any
+  albums: IAlbum[]
 }
 
 function AlbumList(props: AlbumListProps) {
+  const albums = props.albums
+  const previews = props.photosState && props.photosState.previews
 
-  let albumList: IPhoto[] = props.photos || [];
+  const renderItem = (item: IAlbum, index: number) => (<AlbumCard navigation={props.navigation} album={item} key={index} />)
 
-  const searchString = props.photosState.searchString
-
-  if (searchString) {
-    albumList = albumList.filter((photo: IPhoto) => photo.name.toLowerCase().includes(searchString.toLowerCase()))
+  const filterPhotos = () => {
+    if (albums && previews) {
+      albums.forEach(album => {
+        album.photos.forEach(photo => {
+          previews.forEach(preview => {
+            if (preview.photoId === photo.id) {
+              photo.localUri = preview.localUri
+            }
+          })
+        })
+      })
+    }
   }
 
-  const sortFunction = props.photosState.sortFunction
+  useEffect(() => {
+    filterPhotos()
+  }, [])
 
-  if (sortFunction) {
-    albumList.sort(sortFunction);
-  }
-
-  const isUploading = props.photosState.isUploadingPhotoName
-  const isEmptyAlbum = albumList.length === 0 && !isUploading
-
-  const keyExtractor = (item: any, index: any) => index.toString();
-
-  const renderAlbumItem = ({ item }) => (
-    <Pressable
-      onPress={() => {
-        props.navigation.navigate('AlbumView', { title: item.name })
-      }}
-      onLongPress={() => { }}
-    >
-      <AlbumCard withTitle={true} navigation={props.navigation} />
-    </Pressable>
-
-  );
+  useEffect(() => {
+    filterPhotos()
+  }, [props.photosState?.previews])
 
   return (
-    <View>
-      <View style={styles.photoScroll}>
-        <FlatList
-          keyExtractor={keyExtractor}
-          renderItem={renderAlbumItem}
-          data={props.photosState.photos}
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-        ></FlatList>
-      </View>
+    <View style={styles.photoScroll}>
+      <FlatList
+        data={albums}
+        extraData={previews}
+        renderItem={({ item, index }) => renderItem(item, index) }
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+      ></FlatList>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   photoScroll: {
-    display: 'flex',
     flexDirection: 'row',
-    flexWrap: 'nowrap',
-    marginTop: 0
+    padding: 16
   }
 })
 

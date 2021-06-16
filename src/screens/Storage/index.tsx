@@ -95,7 +95,7 @@ function Storage(props: StorageProps): JSX.Element {
                 if (props.layoutState.currentApp === 'FileExplorer') {
                   props.navigation.replace('FileExplorer')
                 } else {
-                  props.navigation.replace('Photos')
+                  props.navigation.replace('PhotoGallery')
                 }
               }}
               style={styles.backTouchable}

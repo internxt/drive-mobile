@@ -1,161 +1,70 @@
-import * as React from 'react';
-import { FlatList, Image, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-
-interface AlbumProps {
-  style?: StyleProp<ViewStyle>
-  album?: any
-  withTitle: boolean
-  navigation: any
-  photosState?: any
-  dispatch?: any,
-  layoutState?: any
-  authenticationState?: any
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, View, TouchableOpacity } from 'react-native';
+import { DEVICE_WIDTH, IPhotosToRender } from '../../screens/PhotoGallery';
+import { tailwind } from '../../tailwind'
+import { IStoreReducers } from '../../types/redux';
+import { connect } from 'react-redux';
+import { normalize } from '../../helpers';
+import FastImage from 'react-native-fast-image';
+export interface AlbumProps {
+  album: { hashes: string[], name: string }
+  photosToRender: IPhotosToRender
+  handleAlbumOnPress: (albumPhotos: IPhotosToRender) => void
 }
 
-// TODO: Add album param
-function AlbumCard(props: AlbumProps): JSX.Element {
+export function AlbumCard({ album, photosToRender, handleAlbumOnPress }: AlbumProps): JSX.Element {
+  const [albumPhotos, setAlbumPhotos] = useState<IPhotosToRender>({})
+  const [albumCover, setAlbumCover] = useState('')
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const photos = props.photosState.photos;
+  useEffect(() => {
+    const currentPhotos = photosToRender
+    const albumPhotos: IPhotosToRender = album.hashes.reduce((acc, hash) => {
+      acc[hash] = currentPhotos[hash]
 
-  const keyExtractor = (item: any, index: any) => index;
-  const renderItem = ({ item }) => (
-    <Image style={styles.icon} source={item} />
-  );
+      return acc
+    }, {})
+    const cover = albumPhotos[album.hashes[0]] ? albumPhotos[album.hashes[0]].localUri : undefined
 
-  const bigImg = photos[0];
-  const img1 = photos[1];
-  const img2 = photos[2];
-
-  const newList = photos.slice(3, 12);
+    setAlbumCover(cover)
+    setAlbumPhotos(albumPhotos)
+  }, [])
 
   return (
-    <View style={props.withTitle ? styles.cont : styles.contModal}>
-
-      <View style={styles.wrapContent}>
-        <View style={props.withTitle ? styles.container : styles.containerModal}>
-          <View>
-            <Image style={styles.bigIcon} source={bigImg} />
-            <View style={styles.downimg}>
-              <Image style={styles.icon} source={img1} />
-              <Image style={styles.icon} source={img2} />
-            </View>
-          </View>
-
-          <View>
-            <FlatList
-              style={styles.photoGrid}
-              keyExtractor={keyExtractor}
-              renderItem={renderItem}
-              data={newList}
-              horizontal={false}
-              numColumns={3}
-            ></FlatList>
-          </View>
+    <TouchableOpacity style={tailwind('mb-0.5')} onPress={() => {
+      handleAlbumOnPress(albumPhotos)
+    }}>
+      <View style={{ width: (DEVICE_WIDTH - 40) / 3 }}>
+        <View style={tailwind('m-0.5')}>
+          <FastImage
+            onLoadEnd={() => setIsLoaded(true)}
+            style={tailwind('self-center rounded-md w-full h-24')}
+            resizeMode='cover'
+            source={albumCover ? { uri: albumCover } : { uri: '' }}
+          />
         </View>
+
+        {!isLoaded ?
+          <ActivityIndicator color='gray' size='small' style={tailwind('absolute')} />
+          : null
+        }
+
+        <Text numberOfLines={1} style={[tailwind('font-averta-semibold text-gray-80 text-sm -mb-1 ml-1'), { fontSize: normalize(12) }]}>
+          {album.name}
+        </Text>
+
+        <Text numberOfLines={1} style={[tailwind('font-averta-regular text-gray-50 text-sm ml-1 mt-0.5'), { fontSize: normalize(12) }]} >
+          {album.hashes.length}
+        </Text>
       </View>
-
-      { props.withTitle
-        ? <View style={styles.albumTitle}>
-          <Text>
-            Utah Trip Last Summer
-          </Text>
-        </View>
-        : <View></View>
-      }
-
-    </View>
+    </TouchableOpacity>
   )
-
 }
 
-const styles = StyleSheet.create({
-  albumTitle: {
-    color: '#2a2c35',
-    fontFamily: 'Averta-Regular',
-    fontSize: 15,
-    letterSpacing: -0.14,
-    marginBottom: 15,
-    marginLeft: 16,
-    marginTop: 20
-  },
-  bigIcon: {
-    borderRadius: 5,
-    height: 121,
-    resizeMode: 'cover',
-    width: 121
-  },
-  cont: {
-    marginLeft: 10,
-    marginTop: 22
-  },
-  contModal: {
-    marginRight: 0,
-    paddingHorizontal: 19,
-    paddingVertical: 19
-  },
-  container: {
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 9,
-    display: 'flex',
-    elevation: 11,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingBottom: 12.6,
-    paddingLeft: 12.6,
-    paddingRight: 7.6,
-    paddingTop: 12.6,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 5
-    },
-    shadowOpacity: 0.36,
-    shadowRadius: 6.68
+const mapStateToProps = (state: IStoreReducers) => {
+  return {
+    photosToRender: state.photosState.photosToRender
+  };
+}
 
-  },
-  containerModal: {
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 9,
-    display: 'flex',
-    elevation: 5,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingBottom: 12.6,
-    paddingLeft: 12.6,
-    paddingRight: 7.6,
-    paddingTop: 12.6,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84
-  },
-  downimg: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginRight: 1,
-    marginTop: 5
-  },
-  icon: {
-    borderRadius: 5,
-    height: 58,
-    marginBottom: 5,
-    marginRight: 5,
-    resizeMode: 'cover',
-    width: 58
-  },
-  photoGrid: {
-    alignContent: 'flex-start',
-    flex: 1,
-    flexWrap: 'wrap'
-  },
-  wrapContent: {
-    alignSelf: 'baseline'
-  }
-});
-
-export default AlbumCard;
+export default connect(mapStateToProps)(AlbumCard);

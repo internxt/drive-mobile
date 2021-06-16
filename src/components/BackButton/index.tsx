@@ -1,8 +1,5 @@
 import * as React from 'react';
-import {
-  StyleSheet,
-  Image
-} from 'react-native';
+import { StyleSheet, Image } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import backBtn from '../../../assets/icons/icon-back.png';
 
@@ -37,10 +34,10 @@ export function BackButton(props: BackButtonProps): JSX.Element {
 
 const styles = StyleSheet.create({
   buttonWrapper: {
-    alignItems: 'center',
-    height: 45,
+    height: 55,
     justifyContent: 'center',
-    width: 45
+    marginLeft: 24,
+    width: 55
   },
   icon: {
     height: 18,

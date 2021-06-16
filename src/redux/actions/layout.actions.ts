@@ -8,8 +8,10 @@ export const layoutActions = {
   closeSettings,
   openItemModal,
   closeItemModal,
-  openAlbumModal,
-  closeAlbumModal,
+  openCreateAlbumModal,
+  closeCreateAlbumModal,
+  openSelectPhotosForAlbumModal,
+  closeSelectPhotosForAlbumModal,
   openAddItemModal,
   closeAddItemModal,
   openRunOutStorageModal,
@@ -70,13 +72,13 @@ function closeItemModal() {
   };
 }
 
-function openAlbumModal() {
+function openCreateAlbumModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.OPEN_ALBUM_MODAL });
   };
 }
 
-function closeAlbumModal() {
+function closeCreateAlbumModal() {
   return (dispatch: Dispatch) => {
     dispatch({ type: layoutActionTypes.CLOSE_ALBUM_MODAL });
   };
@@ -192,4 +194,12 @@ function closeComingSoonModal() {
 
 function setCurrentApp(app: string) {
   return { type: layoutActionTypes.SET_CURRENT_APP, payload: app }
+}
+
+function openSelectPhotosForAlbumModal() {
+  return (dispatch: Dispatch): void => { dispatch({ type: layoutActionTypes.OPEN_SELECT_PHOTOS_FOR_ALBUM_MODAL }) }
+}
+
+function closeSelectPhotosForAlbumModal() {
+  return (dispatch: Dispatch): void => { dispatch({ type: layoutActionTypes.CLOSE_SELECT_PHOTOS_FOR_ALBUM_MODAL }) }
 }

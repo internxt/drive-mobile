@@ -1,128 +1,135 @@
 import React, { useState } from 'react'
-import { TouchableOpacity } from 'react-native-gesture-handler'
-import { StyleSheet, Image, Dimensions, ActivityIndicator, View, Platform } from 'react-native';
+import { StyleSheet, ActivityIndicator, View, Platform, TouchableOpacity } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import PhotoBadge from './PhotoBadge';
-import { cachePicture, downloadPhoto, IHashedPhoto } from '../../screens/Photos/init';
+import { cachePicture, downloadPhoto } from '../../screens/PhotoGallery/init';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
-import RNFS from 'react-native-fs'
-
-const deviceWidth = Dimensions.get('window').width
+import { tailwind } from '../../tailwind'
+import { DEVICE_WIDTH, IPhotoToRender } from '../../screens/PhotoGallery';
+import { unlink } from 'react-native-fs';
+import { photoActions } from '../../redux/actions';
+import FastImage from 'react-native-fast-image'
+import { ISelectedPhoto } from '../../modals/CreateAlbumModal/SelectPhotosModal';
 
 interface PhotoProps {
   badge?: JSX.Element
-  item: IHashedPhoto
-  pushDownloadedPhoto?: (downloadedPhoto: IHashedPhoto) => void
+  item: IPhotoToRender
+  dispatch?: any
+  photoSelection?: boolean
+  handleSelection?: (selectedItem: ISelectedPhoto) => void
 }
 
-export default function Photo(props: PhotoProps): JSX.Element {
+const Photo = ({ badge, item, dispatch, photoSelection, handleSelection }: PhotoProps): JSX.Element => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  const [item, setItem] = useState(props.item)
+  const handleOnPress = () => {
+    if (photoSelection) {
+      const photoObj = { hash: item.hash, photoId: item.photoId }
+
+      handleSelection(photoObj)
+      return dispatch(photoActions.updatePhotoStatusSelection(item.hash))
+    }
+    if (!item.localUri) { return }
+
+    if (item.isUploaded && !item.isLocal && !item.isDownloading) {
+      dispatch(photoActions.updatePhotoStatusDownload(item.hash, false))
+      let error = false
+
+      downloadPhoto(item, setProgress).then((path) => {
+        item.localUri = path
+        SimpleToast.show('Image downloaded!', 0.15)
+      }).catch(err => {
+        error = true
+        SimpleToast.show('Could not download image', 0.15)
+      }).finally(() => {
+        dispatch(photoActions.updatePhotoStatusDownload(item.hash, true))
+        if (!error) { dispatch(photoActions.updatePhotoStatus(item.hash, true, true)) }
+      })
+    } else {
+      let filename = ''
+      let localUri = ''
+
+      if (item.filename) {
+        filename = item.filename
+        localUri = item.localUri
+      } else {
+        filename = item.photoId + '.' + item.type
+        localUri = item.localUri
+      }
+
+      cachePicture(filename, localUri).then(path => {
+        FileViewer.open(path, {
+          onDismiss: () => unlink(path)
+        })
+      }).catch((err) => {
+        SimpleToast.show('Could not open the image', 0.15)
+      })
+    }
+  }
 
   try {
     const urlEncoded = item.localUri.startsWith('file://')
 
-    if (Platform.OS === 'android' && props.item.isUploaded && !urlEncoded) {
-      props.item.localUri = 'file://' + props.item.localUri;
+    if (Platform.OS === 'android' && item.isUploaded && !urlEncoded) {
+      item.localUri = 'file://' + item.localUri;
     }
   } catch { }
 
   return (
     <TouchableOpacity
-      style={styles.imageView}
-      onPress={() => {
-        if (!item.localUri) {
-          return;
-        }
-
-        if (item.isUploaded && !item.isLocal && !isDownloading) {
-          setIsDownloading(true)
-          downloadPhoto(item, setProgress).then(photo => {
-            setItem(photo)
-            if (props.pushDownloadedPhoto) {
-              props.pushDownloadedPhoto(photo)
-            }
-
-            SimpleToast.show('Image downloaded!', 0.15)
-          }).catch(() => {
-            SimpleToast.show('Could not download image', 0.15)
-          }).finally(() => setIsDownloading(false))
-        } else {
-          cachePicture(item).then(res => {
-            FileViewer.open(res, {
-              onDismiss: () => RNFS.unlink(res)
-            })
-          }).catch(() => SimpleToast.show('Could not open the image', 0.15))
-        }
-      }}
-      disabled={isDownloading}
+      onPress={() => handleOnPress()}
+      disabled={item.isDownloading}
     >
-      <Image
-        onLoadEnd={() => setIsLoaded(true)}
-        style={!isDownloading ? styles.image : [styles.image, styles.disabled]}
-        source={{ uri: item.localUri }}
-      />
+      <View style={{ width: (DEVICE_WIDTH - 40) / 3, height: (DEVICE_WIDTH - 80) / 3 }}>
+        <View style={tailwind('m-0.5')}>
+          <View style={item.isUploading || item.isDownloading ? tailwind('absolute bg-gray-70 bg-opacity-50 w-full h-full rounded-md z-10') : ''} />
+          <FastImage
+            onLoadEnd={() => setIsLoaded(true)}
+            style={tailwind('self-center rounded-md w-full h-full')}
+            resizeMode='cover'
+            source={{ uri: item.localUri }}
+          />
+        </View>
 
-      {!isLoaded || isDownloading
-        ? <ActivityIndicator color='gray' size='small' style={styles.badge} />
-        : <View style={styles.badge}>
-          {props.badge ||
-            <PhotoBadge
-              isUploaded={item.isUploaded}
-              isLocal={item.isLocal} />
+        {!isLoaded ?
+          <ActivityIndicator color='gray' size='small' style={tailwind('absolute')} />
+          :
+          badge ||
+          <PhotoBadge
+            isUploaded={item.isUploaded}
+            isLocal={item.isLocal}
+            isDownloading={item.isDownloading}
+            isUploading={item.isUploading}
+            isSelected={item.isSelected}
+            photoSelection={photoSelection}
+          />
+        }
+
+        <View style={tailwind('absolute bottom-0 self-center w-11/12 mb-4 pl-1')}>
+          {
+            true ?
+              <LinearGradient
+                colors={['#47c7fd', '#096dff']}
+                start={[0, 0.7]}
+                end={[0.7, 1]}
+                style={[styles.progressIndicator, { width: (DEVICE_WIDTH / 3.5 - 40) * progress }]} />
+              :
+              null
           }
         </View>
-      }
-
-      <View style={styles.progressIndicatorContainer}>
-        {
-          isDownloading ?
-            <LinearGradient
-              colors={['#47c7fd', '#096dff']}
-              start={[0, 0.7]}
-              end={[0.7, 1]}
-              style={[styles.progressIndicator, { width: (deviceWidth / 3.5) * progress }]} />
-            :
-            null
-        }
       </View>
     </TouchableOpacity>
   )
 }
 
 const styles = StyleSheet.create({
-  badge: {
-    position: 'absolute'
-  },
-  disabled: {
-    opacity: 0.5
-  },
-  image: {
-    borderRadius: 10,
-    height: (deviceWidth - wp('3.5')) / 3,
-    width: (deviceWidth - wp('3.5')) / 3
-  },
-  imageView: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    marginHorizontal: wp('0.5'),
-    marginVertical: wp('0.5')
-  },
   progressIndicator: {
     backgroundColor: '#87B7FF',
     borderRadius: 3,
     height: 6
-  },
-  progressIndicatorContainer: {
-    alignSelf: 'center',
-    bottom: 0,
-    height: 17,
-    position: 'absolute',
-    width: '90%'
   }
 });
+
+export default React.memo(Photo)

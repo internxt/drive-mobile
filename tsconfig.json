@@ -7,6 +7,8 @@
     "noEmit": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "strict": true
+    "strict": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   }
 }
