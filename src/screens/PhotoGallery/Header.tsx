@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Text, View } from 'react-native'
 import { tailwind, getColor } from '../../tailwind'
 import Syncing from '../../../assets/icons/photos/syncing.svg'

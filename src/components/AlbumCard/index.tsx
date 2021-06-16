@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Text, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Text, View, TouchableOpacity } from 'react-native';
 import { DEVICE_WIDTH, IPhotosToRender } from '../../screens/PhotoGallery';
 import { tailwind } from '../../tailwind'
 import { IStoreReducers } from '../../types/redux';
