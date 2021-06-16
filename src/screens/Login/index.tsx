@@ -49,6 +49,7 @@ function Login(props: LoginProps): JSX.Element {
   useEffect(() => {
     if (props.authenticationState.error) {
       Alert.alert('Login error', props.authenticationState.error)
+      setIsLoading(false)
     }
   }, [props.authenticationState])
 

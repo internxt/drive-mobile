@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, Text, View } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { tailwind } from '../../tailwind'
 import { layoutActions, photoActions } from '../../redux/actions';
 import Photo from '../../components/PhotoList/Photo';
@@ -57,6 +56,7 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
         }
         return SimpleToast.show('Could not create album')
       }).finally(() => {
+        dispatch(photoActions.clearSelectedPhotos())
         dispatch(layoutActions.closeSelectPhotosForAlbumModal())
         dispatch(layoutActions.openCreateAlbumModal())
         setTimeout(() => setIsCreatingAlbum(false), 1000)
@@ -75,7 +75,6 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
       isVisible={isOpen}
       style={tailwind('rounded-t-3xl justify-end py-0 mb-0 bg-transparent ml-0 w-full')}
       onModalHide={() => {
-        dispatch(photoActions.clearSelectedPhotos())
         dispatch(layoutActions.closeSelectPhotosForAlbumModal())
       }}
       coverScreen={false}
@@ -83,39 +82,36 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
       onSwipeComplete={(e) => { setIsOpen(false) }}
       swipeThreshold={150}
     >
-      <View style={tailwind('h-9/10 w-full bg-white flex-col rounded-3xl items-center justify-center')}>
+      <View style={tailwind('h-9/10 w-full bg-white flex-col rounded-3xl items-center')}>
+        <View style={tailwind('self-center bg-blue-60 rounded h-1 w-24 mt-5')} />
 
-        <View>
-          <View style={tailwind('self-center bg-blue-60 rounded h-1 w-24 mt-5')} />
+        <Text style={[tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5'), { fontSize: normalize(14) }]}>Add photos to &quot;{albumTitle}&quot;</Text>
 
-          <Text style={[tailwind('text-center text-sm font-averta-regular text-gray-50 mt-5'), { fontSize: normalize(14) }]}>Add photos to &quot;{albumTitle}&quot;</Text>
+        <View style={tailwind('flex-row w-full px-5 justify-between mt-5')}>
+          <TouchableOpacity disabled={isCreatingAlbum} onPress={() => setIsOpen(false)}>
+            <Text style={!isCreatingAlbum ? [tailwind('text-blue-60 font-averta-regular text-base'), { fontSize: normalize(14) }] : [tailwind('text-blue-40 font-averta-regular text-base'), { fontSize: normalize(14) }]}>Cancel</Text>
+          </TouchableOpacity>
 
-          <View style={tailwind('flex-row justify-between mt-5')}>
-            <TouchableOpacity disabled={isCreatingAlbum} onPress={() => setIsOpen(false)}>
-              <Text style={!isCreatingAlbum ? [tailwind('text-blue-60 font-averta-regular text-base'), { fontSize: normalize(14) }] : [tailwind('text-blue-40 font-averta-regular text-base'), { fontSize: normalize(14) }]}>Cancel</Text>
-            </TouchableOpacity>
+          <Text style={[tailwind('text-gray-70 font-averta-regular text-base'), { fontSize: normalize(14) }]}>All photos</Text>
 
-            <Text style={[tailwind('text-gray-70 font-averta-regular text-base'), { fontSize: normalize(14) }]}>All photos</Text>
-
-            <TouchableOpacity onPress={handleAlbumCreation} disabled={isCreatingAlbum}>
-              <Text style={!isCreatingAlbum ? [tailwind('text-blue-60 font-averta-regular text-base'), { fontSize: normalize(14) }] : [tailwind('text-blue-40 font-averta-regular text-base'), { fontSize: normalize(14) }]}>Done</Text>
-            </TouchableOpacity>
-          </View>
-
-          {
-            Object.keys(photos).length > 0 ?
-              <FlatList
-                data={Object.values(photos)}
-                numColumns={3}
-                keyExtractor={keyExtractor}
-                renderItem={renderItem}
-                getItemLayout={getItemLayout}
-                style={tailwind('h-8/10 mt-2 mb-8')}
-              />
-              :
-              null
-          }
+          <TouchableOpacity onPress={handleAlbumCreation} disabled={isCreatingAlbum}>
+            <Text style={!isCreatingAlbum ? [tailwind('text-blue-60 font-averta-regular text-base'), { fontSize: normalize(14) }] : [tailwind('text-blue-40 font-averta-regular text-base'), { fontSize: normalize(14) }]}>Done</Text>
+          </TouchableOpacity>
         </View>
+
+        {
+          Object.keys(photos).length > 0 ?
+            <FlatList
+              data={Object.values(photos)}
+              numColumns={3}
+              keyExtractor={keyExtractor}
+              renderItem={renderItem}
+              getItemLayout={getItemLayout}
+              style={tailwind('h-8/10 mt-2 mb-8')}
+            />
+            :
+            null
+        }
       </View>
 
     </Modal>

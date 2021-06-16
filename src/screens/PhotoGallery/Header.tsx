@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Text, View } from 'react-native'
 import { tailwind, getColor } from '../../tailwind'
 import Syncing from '../../../assets/icons/photos/syncing.svg'
@@ -17,7 +17,6 @@ interface HeaderProps {
   isAlbumSelected: boolean
   setIsAlbumSelected: React.Dispatch<React.SetStateAction<boolean>>
   selectedFilter: string
-  handleOnPressFilter: () => void
   handleFilterSelection: (filterName: string) => void
   searchString: string
   setSearchString: React.Dispatch<React.SetStateAction<string>>
@@ -31,12 +30,12 @@ const Header = ({
   isAlbumSelected,
   setIsAlbumSelected,
   selectedFilter,
-  handleOnPressFilter,
   handleFilterSelection,
   searchString,
   setSearchString,
   setAlbumTitle
 }: HeaderProps): JSX.Element => {
+
   return (
     <View style={tailwind('flex-col items-center')}>
       <View style={tailwind('flex-row items-center mt-4')}>
@@ -57,9 +56,12 @@ const Header = ({
         </Text>
 
         <View style={tailwind('w-1/5 justify-center items-end')}>
-          <View style={tailwind('items-center justify-center mr-2 mb-1')}>
-            <Syncing width={25} height={25} />
-          </View>
+          {isSyncing ?
+            <View style={tailwind('items-center justify-center mr-2 mb-1')}>
+              <Syncing width={25} height={25} />
+            </View>
+            : null
+          }
         </View>
       </View>
 
@@ -67,7 +69,7 @@ const Header = ({
         {title === 'INTERNXT PHOTOS' ?
           <View style={tailwind('flex-row mt-3 items-center justify-center')}>
             <FilterButton width='w-2/4' corners='rounded-l' text='Download' filter='download' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
-            <FilterButton width='w-2/4' corners='' text='Upload pending' filter='upload' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
+            <FilterButton width='w-2/4' corners='rounded-r' text='Upload pending' filter='upload' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
           </View>
           :
           !isAlbumSelected ?

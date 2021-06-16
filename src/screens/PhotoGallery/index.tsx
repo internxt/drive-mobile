@@ -184,10 +184,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     })
   }
 
-  const handleOnPressFilter = () => {
-    setAlbumTitle('')
-    props.dispatch(layoutActions.openCreateAlbumModal())
-  }
   // filter the photos
   const handleFilterSelection = (filterName: string) => {
     selectedFilter === filterName ? setSelectedFilter('none') : setSelectedFilter(filterName)
@@ -291,7 +287,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         setFilteredAlbums(albums)
       })
     }
-
   }, [props.isSaveAlbumsDB])
 
   useEffect(() => {
@@ -388,7 +383,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             isAlbumSelected={isAlbumSelected}
             setIsAlbumSelected={setIsAlbumSelected}
             selectedFilter={selectedFilter}
-            handleOnPressFilter={handleOnPressFilter}
             handleFilterSelection={handleFilterSelection}
             searchString={searchString}
             setSearchString={setSearchString}
