@@ -1,17 +1,15 @@
 import React, { useState } from 'react'
-import { StyleSheet, ActivityIndicator, View, Platform, TouchableOpacity } from 'react-native';
+import { StyleSheet, ActivityIndicator, View, Platform, TouchableOpacity, Dimensions, Image } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import PhotoBadge from './PhotoBadge';
 import { cachePicture, downloadPhoto } from '../../screens/PhotoGallery/init';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
 import { tailwind } from '../../tailwind'
-import { DEVICE_WIDTH, IPhotoToRender } from '../../screens/PhotoGallery';
+import { IPhotoToRender } from '../../screens/PhotoGallery';
 import { unlink } from 'react-native-fs';
 import { photoActions } from '../../redux/actions';
-import FastImage from 'react-native-fast-image'
 import { ISelectedPhoto } from '../../modals/CreateAlbumModal/SelectPhotosModal';
-
 interface PhotoProps {
   badge?: JSX.Element
   item: IPhotoToRender
@@ -23,6 +21,7 @@ interface PhotoProps {
 const Photo = ({ badge, item, dispatch, photoSelection, handleSelection }: PhotoProps): JSX.Element => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [progress, setProgress] = useState(0)
+  const DEVICE_WIDTH = Dimensions.get('window').width
 
   const handleOnPress = () => {
     if (photoSelection) {
@@ -85,7 +84,7 @@ const Photo = ({ badge, item, dispatch, photoSelection, handleSelection }: Photo
       <View style={{ width: (DEVICE_WIDTH - 40) / 3, height: (DEVICE_WIDTH - 80) / 3 }}>
         <View style={tailwind('m-0.5')}>
           <View style={item.isUploading || item.isDownloading ? tailwind('absolute bg-gray-70 bg-opacity-50 w-full h-full rounded-md z-10') : ''} />
-          <FastImage
+          <Image
             onLoadEnd={() => setIsLoaded(true)}
             style={tailwind('self-center rounded-md w-full h-full')}
             resizeMode='cover'

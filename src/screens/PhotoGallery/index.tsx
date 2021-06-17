@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BackHandler, Dimensions, SafeAreaView, View, FlatList, Text } from 'react-native';
+import { BackHandler, SafeAreaView, View, FlatList, Text, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
@@ -13,7 +13,6 @@ import SelectPhotosModal from '../../modals/CreateAlbumModal/SelectPhotosModal';
 import { tailwind } from '../../tailwind.js'
 import AlbumCard from '../../components/AlbumCard';
 import { IStoreReducers } from '../../types/redux';
-import { store } from '../../store';
 import { getAlbums } from '../../modals/CreateAlbumModal/init';
 import Footer from './Footer';
 import SettingsModal from '../../modals/SettingsModal';
@@ -50,11 +49,10 @@ export interface IPhotoToRender extends IHashedPhoto {
   isSelected: boolean
 }
 
-export const DEVICE_WIDTH = Dimensions.get('window').width
-export const DEVICE_HEIGHT = Dimensions.get('window').height
-
 export const objectFilter = (obj: Record<any, any>, fn): Record<any, any> => Object.fromEntries(Object.entries(obj).filter(fn))
 export const objectMap = (obj: Record<any, any>, fn): Record<any, any> => Object.fromEntries(Object.entries(obj).map(([key, value], i) => [key, fn(value, key, i)]))
+const DEVICE_WIDTH = Dimensions.get('window').width
+const DEVICE_HEIGHT = Dimensions.get('window').height
 
 function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [selectedFilter, setSelectedFilter] = useState('none')
@@ -65,7 +63,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [uploadPendingPhotos, setUploadPendingPhotos] = useState<IPhotosToRender>({})
   const [normalPhotos, setNormalPhotos] = useState<IPhotosToRender>(props.photosToRender)
   const [photosToRender, setPhotosToRender] = useState<IPhotosToRender>(props.photosToRender)
-  const [isLoading, setIsLoading] = useState(false)
 
   const [albums, setAlbums] = useState<IAlbumsToRender>({})
   const [filteredAlbums, setFilteredAlbums] = useState<IAlbumsToRender>({})
@@ -104,7 +101,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         isSelected: false
       }))
       const newPhotos: IPhotosToRender = newNext20.reduce((acc, photo) => ({ ...acc, [photo.hash]: photo }), {})
-      const currentPhotos: IPhotosToRender = store.getState().photosState.photosToRender
+      const currentPhotos: IPhotosToRender = props.photosToRender
 
       Object.keys(newPhotos).forEach(key => {
         if (currentPhotos[key]) {
@@ -155,7 +152,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     await getRepositoriesDB().then((res) => {
       props.dispatch(photoActions.viewDB())
       props.dispatch(photoActions.viewAlbumsDB())
-      const currentPhotos: IPhotosToRender = store.getState().photosState.photosToRender
+      const currentPhotos: IPhotosToRender = props.photosToRender
       const previews: IPhotosToRender = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
 
       Object.keys(previews).forEach(hash => {
@@ -249,7 +246,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     if (props.isSavePhotosPreviewsDB) {
       getRepositoriesDB().then((res) => {
         props.dispatch(photoActions.viewDB())
-        const currentPhotos = store.getState().photosState.photosToRender
+        const currentPhotos = props.photosToRender
         const previews = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
 
         Object.keys(previews).forEach(key => {
@@ -350,7 +347,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     <View>
       {
         selectedFilter === 'download' ?
-          <Text style={tailwind('font-light text-center text-base')}>Here will appear the photos you have uploaded to our cloud and no longer have on your phones gallery.</Text>
+          <Text style={tailwind('font-light text-center text-base')}>Here will appear the photos that you have uploaded to our cloud and no longer have on your phone gallery.</Text>
           :
           <Text style={tailwind('font-light text-center text-base')}>Here will appear the photos from your gallery that have not been uploaded yet.</Text>
       }
@@ -400,7 +397,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                 ListEmptyComponent={EmptyPhotosToRenderList}
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
                 //maxToRenderPerBatch={48} // CHECK THIS PROPERLY
-                windowSize={21} // CHECK THIS PROPERLY
               /* refreshControl={
                 <RefreshControl
                   refreshing={false}

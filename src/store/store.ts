@@ -4,8 +4,8 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 import reducer from '../redux/reducers';
 
 const lightweightLoggerMiddleware: Middleware = () => (next: Dispatch<AnyAction>) => (action) => {
-  // eslint-disable-next-line no-console
-  console.log('[REDUX LOG] Action: ', action.type);
+  // eslint-disable-next-line
+  //console.log('[REDUX LOG] Action: ', action.type);
   return next(action);
 }
 
