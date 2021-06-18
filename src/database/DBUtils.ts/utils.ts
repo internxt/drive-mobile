@@ -4,6 +4,7 @@ import { Previews } from '../../database/models/previews';
 import { deviceStorage } from '../../helpers';
 import { ISelectedPhoto } from '../../modals/CreateAlbumModal/SelectPhotosModal';
 import { photoActions } from '../../redux/actions';
+import { store } from '../../store';
 import { IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { Albums } from '../models/albums';
 import { PhotoAlbums } from '../models/photoAlbums';
@@ -78,8 +79,8 @@ export const getAlbumsRepository = async (): Promise<AlbumsRepository> => {
   return repo
 }
 
-export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch: any): Promise<void> {
-  dispatch(photoActions.viewDB())
+export async function savePhotosAndPreviewsDB(photo: any, path: string): Promise<void> {
+  store.dispatch(photoActions.viewDB())
 
   const userId = await getUserId()
 
@@ -142,7 +143,7 @@ export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch
 
   if (!existsfileId) {
     await previewsRepository.save(newPreview);
-    dispatch(photoActions.startSaveDB())
+    store.dispatch(photoActions.startSaveDB())
   }
 
   await previewsRepository.find({
@@ -152,8 +153,8 @@ export async function savePhotosAndPreviewsDB(photo: any, path: string, dispatch
   })
 }
 
-export async function saveAlbumsDB(selectedPhotos: ISelectedPhoto[], name: string, dispatch): Promise<void> {
-  dispatch(photoActions.viewAlbumsDB())
+export async function saveAlbumsDB(selectedPhotos: ISelectedPhoto[], name: string): Promise<void> {
+  store.dispatch(photoActions.viewAlbumsDB())
 
   const userId = await getUserId()
   const albumRepository = getRepository(Albums);
@@ -184,7 +185,7 @@ export async function saveAlbumsDB(selectedPhotos: ISelectedPhoto[], name: strin
     newPhotosAlbum.hash = photo.hash
 
     await albumPhotosRepository.save(newPhotosAlbum)
-    dispatch(photoActions.startSaveAlbumsDB())
+    store.dispatch(photoActions.startSaveAlbumsDB())
   }
 
   await albumPhotosRepository.find({})

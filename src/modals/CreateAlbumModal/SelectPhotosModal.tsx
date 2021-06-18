@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { tailwind } from '../../tailwind'
 import { layoutActions, photoActions } from '../../redux/actions';
 import Photo from '../../components/PhotoList/Photo';
-import { DEVICE_WIDTH, IPhotosToRender, IPhotoToRender } from '../../screens/PhotoGallery';
+import { IPhotosToRender, IPhotoToRender } from '../../screens/PhotoGallery';
 import { uploadAlbum } from './init';
 import SimpleToast from 'react-native-simple-toast';
 import { normalize } from '../../helpers';
@@ -21,6 +21,8 @@ export interface ISelectedPhoto {
   hash: string
   photoId: number
 }
+
+const DEVICE_WIDTH = Dimensions.get('window').width
 
 function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle, setAlbumTitle }: SelectPhotosModalProps): JSX.Element {
   const [selectedPhotos, setSelectedPhotos] = useState<ISelectedPhoto[]>([])

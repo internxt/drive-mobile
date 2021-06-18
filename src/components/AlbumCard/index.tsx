@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View, TouchableOpacity, Image } from 'react-native';
-import { DEVICE_WIDTH, IPhotosToRender } from '../../screens/PhotoGallery';
+import { ActivityIndicator, Text, View, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { IPhotosToRender } from '../../screens/PhotoGallery';
 import { tailwind } from '../../tailwind'
 import { IStoreReducers } from '../../types/redux';
 import { connect } from 'react-redux';
@@ -11,6 +11,7 @@ export interface AlbumProps {
   photosToRender: IPhotosToRender
   handleAlbumOnPress: (albumPhotos: IPhotosToRender) => void
 }
+export const DEVICE_WIDTH = Dimensions.get('window').width
 
 export function AlbumCard({ album, photosToRender, handleAlbumOnPress }: AlbumProps): JSX.Element {
   const [albumPhotos, setAlbumPhotos] = useState<IPhotosToRender>({})
