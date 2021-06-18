@@ -206,12 +206,12 @@ function SettingsModal(props: SettingsModalProps) {
       <SettingsItem
         text={strings.components.app_menu.settings.contact}
         onPress={() => {
-          const emailUrl = 'mailto:support@internxt.zohodesk.eu'
+          const emailUrl = 'mailto:idajggytsuz7jivosite@jivo-mail.com'
 
           Linking.canOpenURL(emailUrl).then(() => {
             Linking.openURL(emailUrl)
           }).catch(() => {
-            Alert.alert('Info', 'Send us an email to: support@internxt.zohodesk.')
+            Alert.alert('Info', 'Send us an email to: idajggytsuz7jivosite@jivo-mail.com.')
           })
         }}
       />
