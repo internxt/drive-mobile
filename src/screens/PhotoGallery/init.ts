@@ -3,7 +3,6 @@ import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { Asset, getAssetInfoAsync } from 'expo-media-library';
 import { Platform } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
-import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
@@ -301,7 +300,7 @@ export function getLocalImages(after?: string | undefined): Promise<LocalImages>
     hasNextPage: false
   };
 
-  return Permissions.askAsync(Permissions.MEDIA_LIBRARY).then(() => {
+  return MediaLibrary.requestPermissionsAsync().then(() => {
     return MediaLibrary.getAssetsAsync({ first: 20, after: after, sortBy: [MediaLibrary.SortBy.modificationTime] });
   }).then((res) => {
     result.hasNextPage = res.hasNextPage;
