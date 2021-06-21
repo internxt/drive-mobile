@@ -185,9 +185,9 @@ export async function saveAlbumsDB(selectedPhotos: ISelectedPhoto[], name: strin
     newPhotosAlbum.hash = photo.hash
 
     await albumPhotosRepository.save(newPhotosAlbum)
-    store.dispatch(photoActions.startSaveAlbumsDB())
   }
 
+  store.dispatch(photoActions.startSaveAlbumsDB())
   await albumPhotosRepository.find({})
 }
 

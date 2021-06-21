@@ -34,13 +34,13 @@ export async function getAlbums(dispatch): Promise<any> {
       if (!exists) {
         const photos = album.photos.map(photo => ({ hash: photo.hash, photoId: photo.id }))
 
-        await saveAlbumsDB(photos, album.name, dispatch)
+        await saveAlbumsDB(photos, album.name)
       }
     }
   })
 }
 
-export async function uploadAlbum(albumTitle: string, selectedPhotos: ISelectedPhoto[], dispatch): Promise<void> {
+export async function uploadAlbum(albumTitle: string, selectedPhotos: ISelectedPhoto[]): Promise<void> {
   const items = await getItemsLocalStorage()
   const mnemonic = items.xUserJson.mnemonic
   const xToken = items.xToken
@@ -54,7 +54,7 @@ export async function uploadAlbum(albumTitle: string, selectedPhotos: ISelectedP
     body: JSON.stringify(body)
   }).then(res => {
     if (res.status === 200) {
-      return saveAlbumsDB(selectedPhotos, albumTitle, dispatch)
+      return saveAlbumsDB(selectedPhotos, albumTitle)
     }
     throw res
   })
