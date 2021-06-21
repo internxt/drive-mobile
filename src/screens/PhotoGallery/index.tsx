@@ -70,14 +70,14 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [isAlbumSelected, setIsAlbumSelected] = useState(false)
   const [albumPhotosToRender, setAlbumPhotosToRender] = useState<IPhotosToRender>({})
 
-  const [finishLocals, setFinishLocals] = useState<boolean>(false)
+  const [hasMoreLocals, setHasMoreLocals] = useState<boolean>(false)
   const [nullablePreviews, setNullablePreviews] = useState<any>([])
   const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
     await task()
     callBack()
   }, 5)
 
-  const getLocalPhotos = async () => {
+  const startSyncProcess = async () => {
     let finished = false
     let lastPickedImage: string | undefined = undefined
     const syncActions: Promise<unknown>[] = []
@@ -121,7 +121,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         lastPickedImage = localPhotos.endCursor
       } else {
         finished = true
-        setFinishLocals(true)
+        setHasMoreLocals(true)
       }
     }
 
@@ -148,37 +148,37 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     return result;
   }
 
-  const getRepositories = async () => {
-    await getRepositoriesDB().then((res) => {
-      props.dispatch(photoActions.viewDB())
-      props.dispatch(photoActions.viewAlbumsDB())
-      const currentPhotos: IPhotosToRender = props.photosToRender
-      const previews: IPhotosToRender = res.previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {})
+  const loadDataFromLocalDB = async () => {
+    const { albums, albumsWithPreviews, previews } = await getRepositoriesDB()
+    const currentPhotos = props.photosToRender
 
-      Object.keys(previews).forEach(hash => {
-        if (currentPhotos[hash]) {
-          if (currentPhotos[hash].isLocal && !currentPhotos[hash].isUploaded) { // este if sobra?
-            props.dispatch(photoActions.updatePhotoStatus(hash, true, true, undefined, previews[hash].photoId))
-          }
-        } else {
-          const previewObj = { [hash]: previews[hash] }
+    props.dispatch(photoActions.viewDB())
+    props.dispatch(photoActions.viewAlbumsDB())
 
-          props.dispatch(photoActions.addPhotosToRender(previewObj))
+    const keyedAlbums = albums.reduce((acc, album) => {
+      acc[album.id] = {
+        name: album.name,
+        hashes: normalizedAlbumsWithPreviews.filter(preview => preview.albumId === album.id).map(preview => preview.hash)
+      }
+      return acc
+    }, {})
+    const normalizedAlbumsWithPreviews = albumsWithPreviews.flatMap(x => x)
+    const keyedPreviews = previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {}) as IPhotosToRender
+
+    Object.keys(keyedPreviews).forEach(key => {
+      if (currentPhotos[key]) {
+        if (currentPhotos[key].isLocal && !currentPhotos[key].isUploaded) {
+          props.dispatch(photoActions.updatePhotoStatus(key, true, true, undefined, keyedPreviews[key].photoId))
         }
-      })
+      } else {
+        const previewObj = { [key]: keyedPreviews[key] }
 
-      const albumsWithPreviews = res.albumsWithPreviews.flatMap(x => x)
-      const albums = res.albums.reduce((acc, album) => {
-        acc[album.id] = {
-          name: album.name,
-          hashes: albumsWithPreviews.filter(preview => preview.albumId === album.id).map(preview => preview.hash)
-        }
-        return acc
-      }, {})
-
-      setAlbums(albums)
-      setFilteredAlbums(albums)
+        props.dispatch(photoActions.addPhotosToRender(previewObj))
+      }
     })
+
+    setAlbums(keyedAlbums)
+    setFilteredAlbums(keyedAlbums)
   }
 
   // filter the photos
@@ -203,27 +203,22 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     setAlbumPhotosToRender(albumPhotos)
   }
 
-  const start = () => {
-    getLocalPhotos()
-    getPreviews(props.dispatch)
-    getAlbums(props.dispatch)
-    getRepositories()
-    getNullPreviews().then((res) => {
-      setNullablePreviews(res)
+  useEffect(() => {
+    initUser().then(() => {
+      loadDataFromLocalDB().finally(() => startSyncProcess())
+      getPreviews(props.dispatch)
+      getAlbums(props.dispatch)
+      getNullPreviews().then((res) => {
+        setNullablePreviews(res)
+      })
     })
-  }
+  }, [])
 
   useEffect(() => {
     const newFilteredAlbums = objectFilter(albums, ([key, album]) => album.name.search(searchString) !== -1)
 
     setFilteredAlbums(newFilteredAlbums)
   }, [searchString])
-
-  useEffect(() => {
-    initUser().then(() => {
-      start()
-    })
-  }, [])
 
   // update the data at real time everytime a photo gets downloaded/synced/loaded
   useEffect(() => {
@@ -328,12 +323,12 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   }, [selectedFilter, headerTitle, props.showAlbumModal, props.showSelectPhotosModal])
 
   useEffect(() => {
-    if (finishLocals) {
+    if (!hasMoreLocals) {
       uploadPreviewsNull(nullablePreviews, props.photosToRender).then((res) => {
         syncPreviews(res, props.dispatch).then()
       })
     }
-  }, [finishLocals])
+  }, [hasMoreLocals])
 
   const renderItemPhoto = useCallback(({ item }) => <Photo item={item} dispatch={props.dispatch} />, [])
   const keyExtractorPhoto = useCallback((item: IPhotoToRender) => item.hash, [])
@@ -396,17 +391,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                 getItemLayout={getItemLayoutPhoto}
                 ListEmptyComponent={EmptyPhotosToRenderList}
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
-                //maxToRenderPerBatch={48} // CHECK THIS PROPERLY
-              /* refreshControl={
-                <RefreshControl
-                  refreshing={false}
-                  onRefresh={() => {
-                    setIsLoading(true)
-                    props.dispatch(photoActions.clearPhotosToRender())
-                    start()
-                  }}
-                />
-              } */
               />
               :
               !isAlbumSelected ?
