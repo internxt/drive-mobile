@@ -176,13 +176,13 @@ function SettingsModal(props: SettingsModalProps) {
 
       <Separator />
 
-      {<SettingsItem
+      <SettingsItem
         text={strings.components.app_menu.settings.storage}
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
           props.navigation.replace('Storage')
         }}
-      />}
+      />
 
       <SettingsItem
         text={strings.components.app_menu.settings.more}
@@ -206,12 +206,12 @@ function SettingsModal(props: SettingsModalProps) {
       <SettingsItem
         text={strings.components.app_menu.settings.contact}
         onPress={() => {
-          const emailUrl = 'mailto:support@internxt.zohodesk.eu'
+          const emailUrl = 'mailto:hello@internxt.com'
 
           Linking.canOpenURL(emailUrl).then(() => {
             Linking.openURL(emailUrl)
           }).catch(() => {
-            Alert.alert('Info', 'Send us an email to: support@internxt.zohodesk.')
+            Alert.alert('Info', 'Send us an email to: hello@internxt.com.')
           })
         }}
       />
