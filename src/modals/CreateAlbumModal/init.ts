@@ -12,7 +12,7 @@ export async function getItemsLocalStorage() {
   return { xToken, xUserJson }
 }
 
-export async function getAlbums(dispatch): Promise<any> {
+export async function getAlbums(): Promise<any> {
   const items = await getItemsLocalStorage()
   const mnemonic = items.xUserJson.mnemonic
   const xToken = items.xToken

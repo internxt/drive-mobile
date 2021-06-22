@@ -207,7 +207,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const start = () => {
     getLocalPhotos()
     getPreviews(props.dispatch)
-    getAlbums(props.dispatch)
+    getAlbums()
     getRepositories()
     getNullPreviews().then((res) => {
       setNullablePreviews(res)
@@ -377,7 +377,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
           <Header
             title={headerTitle}
             setHeaderTitle={setHeaderTitle}
-            isSyncing={props.isSyncing}
             isAlbumSelected={isAlbumSelected}
             setIsAlbumSelected={setIsAlbumSelected}
             selectedFilter={selectedFilter}
@@ -433,7 +432,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
 const mapStateToProps = (state: IStoreReducers) => {
   return {
-    isSyncing: state.photosState.isSyncing,
     loggedIn: state.authenticationState.loggedIn,
     isSavePhotosPreviewsDB: state.photosState.isSavePhotosPreviewsDB,
     photosToRender: state.photosState.photosToRender,

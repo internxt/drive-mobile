@@ -1,7 +1,6 @@
 import React from 'react'
 import { Text, View, TextInput, TouchableOpacity } from 'react-native'
 import { tailwind, getColor } from '../../tailwind'
-import Syncing from '../../../assets/icons/photos/syncing.svg'
 import Back from '../../../assets/icons/photos/back-blue.svg'
 import FilterButton from './FilterButton'
 import Lens from '../../../assets/icons/photos/lens.svg';
@@ -13,7 +12,6 @@ import strings from '../../../assets/lang/strings'
 interface HeaderProps {
   title: string
   setHeaderTitle: React.Dispatch<React.SetStateAction<string>>
-  isSyncing: boolean
   isAlbumSelected: boolean
   setIsAlbumSelected: React.Dispatch<React.SetStateAction<boolean>>
   selectedFilter: string
@@ -25,7 +23,6 @@ interface HeaderProps {
 const Header = ({
   title,
   setHeaderTitle,
-  isSyncing,
   isAlbumSelected,
   setIsAlbumSelected,
   selectedFilter,
@@ -60,14 +57,7 @@ const Header = ({
 
         {
           title === 'INTERNXT PHOTOS' ?
-            <View style={tailwind('w-1/5 justify-center items-end')}>
-              {isSyncing ?
-                <View style={tailwind('items-center justify-center mr-2 mb-1')}>
-                  <Syncing width={25} height={25} />
-                </View>
-                : null
-              }
-            </View>
+            <View style={tailwind('w-1/5 justify-center items-end')} />
             :
             <View style={tailwind('w-1/5 relative')}>
               <TouchableOpacity onPress={() => store.dispatch(layoutActions.openCreateAlbumModal())}>
