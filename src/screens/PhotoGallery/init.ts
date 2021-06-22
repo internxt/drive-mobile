@@ -539,7 +539,7 @@ export async function getPreviews(dispatch: any): Promise<any> {
 
       return downloadPreview(preview.preview, preview).then((res1) => {
         if (res1) {
-          savePhotosAndPreviewsDB(preview, res1, dispatch)
+          savePhotosAndPreviewsDB(preview, res1)
         }
         next(null, res1)
       }).catch(err => {
