@@ -1,18 +1,17 @@
 import React from 'react'
-import { Text, View } from 'react-native'
+import { Text, View, TextInput, TouchableOpacity } from 'react-native'
 import { tailwind, getColor } from '../../tailwind'
 import Syncing from '../../../assets/icons/photos/syncing.svg'
 import Back from '../../../assets/icons/photos/back-blue.svg'
-import { TextInput, TouchableOpacity } from 'react-native-gesture-handler'
 import FilterButton from './FilterButton'
-import { layoutActions } from '../../redux/actions'
 import Lens from '../../../assets/icons/photos/lens.svg';
-import CrossWhite from '../../../assets/icons/photos/cross-white.svg'
 import { normalize } from '../../helpers'
+import { store } from '../../store'
+import { layoutActions } from '../../redux/actions'
 
 interface HeaderProps {
-  dispatch: any
   title: string
+  setHeaderTitle: React.Dispatch<React.SetStateAction<string>>
   isSyncing: boolean
   isAlbumSelected: boolean
   setIsAlbumSelected: React.Dispatch<React.SetStateAction<boolean>>
@@ -24,8 +23,8 @@ interface HeaderProps {
 }
 
 const Header = ({
-  dispatch,
   title,
+  setHeaderTitle,
   isSyncing,
   isAlbumSelected,
   setIsAlbumSelected,
@@ -39,10 +38,15 @@ const Header = ({
   return (
     <View style={tailwind('flex-col items-center')}>
       <View style={tailwind('flex-row items-center mt-4')}>
-        {isAlbumSelected ?
+        {title === 'Albums' ?
           <View style={tailwind('w-1/5 items-start justify-center')}>
             <TouchableOpacity style={tailwind('w-12 pl-2')}
-              onPress={() => setIsAlbumSelected(false)}
+              onPress={() => {
+                if (!isAlbumSelected) {
+                  setHeaderTitle('INTERNXT PHOTOS')
+                }
+                setIsAlbumSelected(false)
+              }}
             >
               <Back width={25} height={25} />
             </TouchableOpacity>
@@ -55,58 +59,50 @@ const Header = ({
           {title}
         </Text>
 
-        <View style={tailwind('w-1/5 justify-center items-end')}>
-          {isSyncing ?
-            <View style={tailwind('items-center justify-center mr-2 mb-1')}>
-              <Syncing width={25} height={25} />
-            </View>
-            : null
-          }
-        </View>
-      </View>
-
-      <View>
-        {title === 'INTERNXT PHOTOS' ?
-          <View style={tailwind('flex-row mt-3 items-center justify-center')}>
-            <FilterButton width='w-2/4' corners='rounded-l' text='Download' filter='download' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
-            <FilterButton width='w-2/4' corners='rounded-r' text='Upload pending' filter='upload' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
-          </View>
-          :
-          !isAlbumSelected ?
-            <View style={tailwind('flex-row mt-3 items-center justify-center')}>
-              <View style={tailwind('w-1/10 h-8 items-center justify-center bg-white rounded-l-md')}>
-                <Lens width={normalize(16)} height={normalize(16)} />
-              </View>
-
-              <View style={tailwind('w-7/12 h-8 ml-px mr-1')}>
-                <TextInput
-                  style={[tailwind('w-full h-full bg-white text-sm font-averta-regular pl-2 pb-1'), { fontSize: normalize(12) }]}
-                  placeholderTextColor={getColor('gray-30')}
-                  placeholder='Search a memory'
-                  onChangeText={value => setSearchString(value)}
-                  value={searchString}
-                  autoCapitalize='none'
-                  autoCorrect={false}
-                />
-              </View>
-
-              <View style={tailwind('w-1/3')}>
-                <TouchableOpacity style={tailwind('flex-row h-8 px-2 bg-blue-60 rounded-r-md items-center justify-around')}
-                  onPress={() => {
-                    setAlbumTitle('')
-                    dispatch(layoutActions.openCreateAlbumModal())
-                  }
-                  }
-                >
-                  <CrossWhite width={normalize(10)} height={normalize(9)} />
-                  <Text style={[tailwind('text-white font-averta-regular text-sm'), { fontSize: normalize(12) }]}>Add album</Text>
-                </TouchableOpacity>
-              </View>
+        {
+          title === 'INTERNXT PHOTOS' ?
+            <View style={tailwind('w-1/5 justify-center items-end')}>
+              {isSyncing ?
+                <View style={tailwind('items-center justify-center mr-2 mb-1')}>
+                  <Syncing width={25} height={25} />
+                </View>
+                : null
+              }
             </View>
             :
-            null
+            <View style={tailwind('w-1/5 relative')}>
+              <TouchableOpacity onPress={() => store.dispatch(layoutActions.openCreateAlbumModal())}>
+                <Text style={tailwind('absolute w-24 text-blue-60 text-lg -bottom-3.5 -right-2')}>Add album</Text>
+              </TouchableOpacity>
+            </View>
         }
       </View>
+
+      {title === 'INTERNXT PHOTOS' ?
+        <View style={tailwind('flex-row mt-3 items-center justify-center')}>
+          <FilterButton width='w-2/4' corners='rounded-l' text='Download' filter='download' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
+          <FilterButton width='w-2/4' corners='rounded-r' text='Upload pending' filter='upload' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
+        </View>
+        :
+        !isAlbumSelected ?
+          <View style={tailwind('flex-row w-full mt-3 items-center justify-center relative')}>
+            <View style={tailwind('absolute left-2 z-10')}>
+              <Lens width={normalize(16)} height={normalize(16)} />
+            </View>
+
+            <TextInput
+              style={[tailwind('w-full h-full bg-white text-sm font-averta-regular pl-9 pb-1 rounded-md'), { fontSize: normalize(12) }]}
+              placeholderTextColor={getColor('gray-30')}
+              placeholder='Search a memory'
+              onChangeText={value => setSearchString(value)}
+              value={searchString}
+              autoCapitalize='none'
+              autoCorrect={false}
+            />
+          </View>
+          :
+          null
+      }
     </View>
   )
 }

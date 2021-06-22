@@ -374,8 +374,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       <View style={tailwind('px-5')}>
         <SafeAreaView style={tailwind('h-full')}>
           <Header
-            dispatch={props.dispatch}
             title={headerTitle}
+            setHeaderTitle={setHeaderTitle}
             isSyncing={props.isSyncing}
             isAlbumSelected={isAlbumSelected}
             setIsAlbumSelected={setIsAlbumSelected}
@@ -432,6 +432,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
           <Footer
             setSelectedFilter={setSelectedFilter}
+            headerTitle={headerTitle}
             setHeaderTitle={setHeaderTitle}
             setIsAlbumSelected={setIsAlbumSelected}
             dispatch={props.dispatch}

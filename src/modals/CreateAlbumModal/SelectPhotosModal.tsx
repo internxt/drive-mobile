@@ -49,7 +49,7 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
     if (selectedPhotos.length > 0) {
       setIsCreatingAlbum(true)
 
-      uploadAlbum(albumTitle, selectedPhotos, dispatch).then(() => {
+      uploadAlbum(albumTitle, selectedPhotos).then(() => {
         SimpleToast.show('Album saved successfully')
         setAlbumTitle('')
       }).catch((err) => {
@@ -78,6 +78,7 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
       style={tailwind('rounded-t-3xl justify-end py-0 mb-0 bg-transparent ml-0 w-full')}
       onModalHide={() => {
         dispatch(layoutActions.closeSelectPhotosForAlbumModal())
+        dispatch(photoActions.clearSelectedPhotos())
       }}
       coverScreen={false}
       swipeDirection={'down'}
