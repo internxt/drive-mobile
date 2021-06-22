@@ -66,17 +66,32 @@ const strings = new LocalizedStrings({
         "screens": {
           "photos": {
             "albums": "Albums",
-            "all_photos": "INTERNXT PHOTOS"
-          },
-          "photo_gallery": {
-            "title": "INTERNXT PHOTOS",
-            "subtitle": "Photos"
+            "all_photos": "INTERNXT PHOTOS",
+            "download_filter": "Download",
+            "upload_filter": "Upload pending",
+            "empty_download_filter": "Here you can see the photos that you have uploaded to Internxt Photos but are no longer stored on your phone's gallery.",
+            "empty_upload_filter": "Here you can see the photos from your gallery that have not yet been uploaded to Internxt Photos.",
+            "add_album": "Add album",
+            "search_input": "Search a memory"
           }
         },
-        "components": {
-          "create_album_card": "Create new album",
-          "loading": "Loading photos from gallery...",
-          "syncing": "Syncing"
+        "modals": {
+          "create_album": {
+            "title": "Create new album",
+            "name_input": "Name your memories",
+            "button": "Add photos to album",
+            "name_error": "The album name can not be empty."
+          },
+          "selectable_photos": {
+            "cancel_button": "Cancel",
+            "title": "Add photos to ",
+            "subtitle": "Uploaded photos",
+            "done_button": "Done",
+            "success_message": "Album saved successfully.",
+            "already_exists_error": "An album with the same name already exists.",
+            "other_error": "Could not create album.",
+            "select_error": "You need to select at least one photo."
+          }
         }
       }
     },
@@ -232,17 +247,32 @@ const strings = new LocalizedStrings({
         "screens": {
           "photos": {
             "albums": "Álbumes",
-            "all_photos": "INTERNXT PHOTOS"
-          },
-          "photo_gallery": {
-            "title": "Todas tus fotos",
-            "subtitle": "fotos"
+            "all_photos": "INTERNXT PHOTOS",
+            "download_filter": "Descargar",
+            "upload_filter": "Por subir",
+            "empty_download_filter": "Aquí podrás ver todas las fotos que has subido a Internxt Photos pero que ya no tienes disponibles en la galería de tu móvil.",
+            "empty_upload_filter": "Aqui podrás ver todas las fotos de la galería de tu móvil que todavía no se han subido a Internxt Photos.",
+            "add_album": "Crear álbum",
+            "search_input": "Busca un recuerdo"
           }
         },
-        "components": {
-          "create_album_card": "Crear nuevo álbum",
-          "loading": "Cargando fotos de la galería...",
-          "syncing": "Subiendo"
+        "modals": {
+          "create_album": {
+            "title": "Crear nuevo álbum",
+            "name_input": "Nombra tus recuerdos",
+            "button": "Añade fotos al álbum",
+            "name_error": "El nombre del álbum no puede estar vacío."
+          },
+          "selectable_photos": {
+            "cancel_button": "Cancelar",
+            "title": "Añade fotos a ",
+            "subtitle": "Fotos subidas",
+            "done_button": "Crear",
+            "success_message": "Álbum creado correctamente",
+            "already_exists_error": "Un álbum con el mismo nombre ya existe.",
+            "other_error": "No se pudo crear el álbum.",
+            "select_error": "Necesitas seleccionar por lo menos una foto."
+          }
         }
       }
     },

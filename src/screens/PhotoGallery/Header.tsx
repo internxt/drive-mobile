@@ -8,6 +8,7 @@ import Lens from '../../../assets/icons/photos/lens.svg';
 import { normalize } from '../../helpers'
 import { store } from '../../store'
 import { layoutActions } from '../../redux/actions'
+import strings from '../../../assets/lang/strings'
 
 interface HeaderProps {
   title: string
@@ -19,7 +20,6 @@ interface HeaderProps {
   handleFilterSelection: (filterName: string) => void
   searchString: string
   setSearchString: React.Dispatch<React.SetStateAction<string>>
-  setAlbumTitle: React.Dispatch<React.SetStateAction<string>>
 }
 
 const Header = ({
@@ -31,8 +31,7 @@ const Header = ({
   selectedFilter,
   handleFilterSelection,
   searchString,
-  setSearchString,
-  setAlbumTitle
+  setSearchString
 }: HeaderProps): JSX.Element => {
 
   return (
@@ -72,7 +71,9 @@ const Header = ({
             :
             <View style={tailwind('w-1/5 relative')}>
               <TouchableOpacity onPress={() => store.dispatch(layoutActions.openCreateAlbumModal())}>
-                <Text style={tailwind('absolute w-24 text-blue-60 text-lg -bottom-3.5 -right-2')}>Add album</Text>
+                <Text style={tailwind('absolute w-24 text-blue-60 text-lg -bottom-3.5 -right-2')}>
+                  {strings.screens.photos.screens.photos.add_album}
+                </Text>
               </TouchableOpacity>
             </View>
         }
@@ -80,8 +81,21 @@ const Header = ({
 
       {title === 'INTERNXT PHOTOS' ?
         <View style={tailwind('flex-row mt-3 items-center justify-center')}>
-          <FilterButton width='w-2/4' corners='rounded-l' text='Download' filter='download' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
-          <FilterButton width='w-2/4' corners='rounded-r' text='Upload pending' filter='upload' handleFilterSelection={handleFilterSelection} activeFilter={selectedFilter} />
+          <FilterButton
+            width='w-2/4' corners='rounded-l'
+            text={strings.screens.photos.screens.photos.download_filter}
+            filter='download'
+            handleFilterSelection={handleFilterSelection}
+            activeFilter={selectedFilter}
+          />
+
+          <FilterButton
+            width='w-2/4' corners='rounded-r'
+            text={strings.screens.photos.screens.photos.upload_filter}
+            filter='upload'
+            handleFilterSelection={handleFilterSelection}
+            activeFilter={selectedFilter}
+          />
         </View>
         :
         !isAlbumSelected ?
@@ -93,7 +107,7 @@ const Header = ({
             <TextInput
               style={[tailwind('w-full h-full bg-white text-sm font-averta-regular pl-9 pb-1 rounded-md'), { fontSize: normalize(12) }]}
               placeholderTextColor={getColor('gray-30')}
-              placeholder='Search a memory'
+              placeholder={strings.screens.photos.screens.photos.search_input}
               onChangeText={value => setSearchString(value)}
               value={searchString}
               autoCapitalize='none'
