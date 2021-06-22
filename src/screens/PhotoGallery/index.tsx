@@ -17,6 +17,7 @@ import { getAlbums } from '../../modals/CreateAlbumModal/init';
 import Footer from './Footer';
 import SettingsModal from '../../modals/SettingsModal';
 import SimpleToast from 'react-native-simple-toast';
+import strings from '../../../assets/lang/strings';
 
 interface IPhotoGalleryProps {
   navigation: any
@@ -206,7 +207,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const start = () => {
     getLocalPhotos()
     getPreviews(props.dispatch)
-    getAlbums(props.dispatch)
+    getAlbums()
     getRepositories()
     getNullPreviews().then((res) => {
       setNullablePreviews(res)
@@ -347,9 +348,9 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     <View>
       {
         selectedFilter === 'download' ?
-          <Text style={tailwind('font-light text-center text-base')}>Here will appear the photos that you have uploaded to our cloud and no longer have on your phone gallery.</Text>
+          <Text style={tailwind('font-light text-center text-base')}>{strings.screens.photos.screens.photos.empty_download_filter}</Text>
           :
-          <Text style={tailwind('font-light text-center text-base')}>Here will appear the photos from your gallery that have not been uploaded yet.</Text>
+          <Text style={tailwind('font-light text-center text-base')}>{strings.screens.photos.screens.photos.empty_upload_filter}</Text>
       }
     </View>
   )
@@ -376,14 +377,12 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
           <Header
             title={headerTitle}
             setHeaderTitle={setHeaderTitle}
-            isSyncing={props.isSyncing}
             isAlbumSelected={isAlbumSelected}
             setIsAlbumSelected={setIsAlbumSelected}
             selectedFilter={selectedFilter}
             handleFilterSelection={handleFilterSelection}
             searchString={searchString}
             setSearchString={setSearchString}
-            setAlbumTitle={setAlbumTitle}
           />
 
           {
@@ -396,17 +395,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                 getItemLayout={getItemLayoutPhoto}
                 ListEmptyComponent={EmptyPhotosToRenderList}
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
-                //maxToRenderPerBatch={48} // CHECK THIS PROPERLY
-              /* refreshControl={
-                <RefreshControl
-                  refreshing={false}
-                  onRefresh={() => {
-                    setIsLoading(true)
-                    props.dispatch(photoActions.clearPhotosToRender())
-                    start()
-                  }}
-                />
-              } */
               />
               :
               !isAlbumSelected ?
@@ -427,7 +415,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                   getItemLayout={getItemLayoutPhoto}
                   style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
                 />
-
           }
 
           <Footer
@@ -445,7 +432,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
 const mapStateToProps = (state: IStoreReducers) => {
   return {
-    isSyncing: state.photosState.isSyncing,
     loggedIn: state.authenticationState.loggedIn,
     isSavePhotosPreviewsDB: state.photosState.isSavePhotosPreviewsDB,
     photosToRender: state.photosState.photosToRender,
