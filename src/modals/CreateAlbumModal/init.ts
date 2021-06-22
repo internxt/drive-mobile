@@ -12,32 +12,32 @@ export async function getItemsLocalStorage() {
   return { xToken, xUserJson }
 }
 
-export async function getAlbums(dispatch): Promise<any> {
+export const getAlbums = async (): Promise<void> => {
   const items = await getItemsLocalStorage()
   const mnemonic = items.xUserJson.mnemonic
   const xToken = items.xToken
   const headers = await getHeaders(xToken, mnemonic)
 
-  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/albums`, {
+  const response = await fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/albums`, {
     method: 'GET',
     headers: headers
-  }).then(res => {
-    if (res.status !== 200) {
-      throw res
-    }
-
-    return res.json()
-  }).then(async (albums: IAPIAlbum[]) => {
-    for (const album of albums) {
-      const exists = await checkExistsAlbumDB(album.name);
-
-      if (!exists) {
-        const photos = album.photos.map(photo => ({ hash: photo.hash, photoId: photo.id }))
-
-        await saveAlbumsDB(photos, album.name)
-      }
-    }
   })
+
+  if (response.status !== 200) {
+    throw new Error('Status: ' + response.status.toString())
+  }
+
+  const albums = await response.json() as IAPIAlbum[]
+
+  for (const album of albums) {
+    const exists = await checkExistsAlbumDB(album.name)
+
+    if (!exists) {
+      const photos = album.photos.map(photo => ({ hash: photo.hash, photoId: photo.id }))
+
+      await saveAlbumsDB(photos, album.name)
+    }
+  }
 }
 
 export async function uploadAlbum(albumTitle: string, selectedPhotos: ISelectedPhoto[]): Promise<void> {

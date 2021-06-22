@@ -515,38 +515,38 @@ export function stopSync(): void {
   SHOULD_STOP = true;
 }
 
-export async function getPreviews(dispatch: any): Promise<any> {
-  SHOULD_STOP = false;
-  return getUploadedPhotos().then((uploadedPhotos: IApiPhotoWithPreview[]) => {
-    if (uploadedPhotos.length === 0) {
-      return;
-    }
-    return mapSeries(uploadedPhotos, async (preview, next) => {
+export const getPreviews = async (dispatch: any): Promise<void> => {
+  SHOULD_STOP = false
+  const uploadedPhotos = await getUploadedPhotos()
+
+  if (!uploadedPhotos) {
+    return
+  }
+
+  for (const photo of uploadedPhotos) {
+    try {
       if (SHOULD_STOP) {
-        throw Error('Sign out')
+        break
+      }
+      if (!photo.preview) {
+        continue
       }
 
-      if (preview.preview === null) {
-        return next(null)
-      }
-      const checkExistUri = await checkExistsUriTrash(preview.preview.fileId)
+      const checkExistUri = await checkExistsUriTrash(photo.preview.fileId)
 
       if (checkExistUri) {
-        return getPreviewAfterUpload(preview.preview, dispatch, checkExistUri.uri).then((res1) => {
-          next(null, res1)
-        })
+        await getPreviewAfterUpload(photo.preview, dispatch, checkExistUri.uri)
+
+        continue
       }
 
-      return downloadPreview(preview.preview, preview).then((res1) => {
-        if (res1) {
-          savePhotosAndPreviewsDB(preview, res1)
-        }
-        next(null, res1)
-      }).catch(err => {
-        next(null)
-      })
-    })
-  })
+      const previewPath = await downloadPreview(photo.preview, photo)
+
+      if (previewPath) {
+        savePhotosAndPreviewsDB(photo, previewPath)
+      }
+    } finally { }
+  }
 }
 
 async function initializePhotosUser(): Promise<any> {
@@ -657,15 +657,21 @@ export async function uploadPhotoFromCamera(dispatch: any) {
   }
 }
 
-export async function getNullPreviews() {
+export const getPhotosWithoutPreview = async (): Promise<any> => {
   const headers = await getHeaders()
 
-  return fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/exists/previews`, {
+  const response = await fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/exists/previews`, {
     method: 'GET',
     headers
-  }).then(res => {
-    return res.json()
-  }).then((res) => {
-    return res;
   })
+
+  if (response.status !== 200) {
+    throw new Error('Status: ' + response.status.toString())
+  }
+  const photos = await fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/exists/previews`, {
+    method: 'GET',
+    headers
+  })
+
+  return photos.json()
 }

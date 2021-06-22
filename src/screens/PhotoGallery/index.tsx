@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BackHandler, SafeAreaView, View, FlatList, Text, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
+import { getLocalImages, getPhotosWithoutPreview, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
 import { getAlbumsRepository, getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { layoutActions, photoActions } from '../../redux/actions';
 import { queue } from 'async';
@@ -207,8 +207,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     initUser().then(() => {
       loadDataFromLocalDB().finally(() => startSyncProcess())
       getPreviews(props.dispatch)
-      getAlbums(props.dispatch)
-      getNullPreviews().then((res) => {
+      getAlbums()
+      getPhotosWithoutPreview().then((res) => {
         setNullablePreviews(res)
       })
     })
@@ -342,9 +342,9 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     <View>
       {
         selectedFilter === 'download' ?
-          <Text style={tailwind('font-light text-center text-base')}>Here will appear the photos that you have uploaded to our cloud and no longer have on your phone gallery.</Text>
+          <Text style={tailwind('font-light text-center text-base')}>Here you can see the photos that you have uploaded to Internxt Photos but are no longer stored on your phone&apos;s gallery.</Text>
           :
-          <Text style={tailwind('font-light text-center text-base')}>Here will appear the photos from your gallery that have not been uploaded yet.</Text>
+          <Text style={tailwind('font-light text-center text-base')}>Here you can see the photos from your gallery that have not yet been uploaded to Internxt Photos.</Text>
       }
     </View>
   )
