@@ -382,6 +382,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
             selectedFilter={selectedFilter}
             handleFilterSelection={handleFilterSelection}
             searchString={searchString}
+            setAlbumTitle={setAlbumTitle}
             setSearchString={setSearchString}
           />
 

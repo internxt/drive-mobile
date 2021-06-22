@@ -17,6 +17,7 @@ interface HeaderProps {
   selectedFilter: string
   handleFilterSelection: (filterName: string) => void
   searchString: string
+  setAlbumTitle: React.Dispatch<React.SetStateAction<string>>
   setSearchString: React.Dispatch<React.SetStateAction<string>>
 }
 
@@ -28,6 +29,7 @@ const Header = ({
   selectedFilter,
   handleFilterSelection,
   searchString,
+  setAlbumTitle,
   setSearchString
 }: HeaderProps): JSX.Element => {
 
@@ -59,13 +61,14 @@ const Header = ({
           title === 'INTERNXT PHOTOS' ?
             <View style={tailwind('w-1/5 justify-center items-end')} />
             :
-            <View style={tailwind('w-1/5 relative')}>
-              <TouchableOpacity onPress={() => store.dispatch(layoutActions.openCreateAlbumModal())}>
-                <Text style={tailwind('absolute w-24 text-blue-60 text-lg -bottom-3.5 -right-2')}>
-                  {strings.screens.photos.screens.photos.add_album}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={tailwind('w-1/5 h-8 items-center justify-center')} onPress={() => {
+              setAlbumTitle('')
+              store.dispatch(layoutActions.openCreateAlbumModal())
+            }}>
+              <Text style={[tailwind('w-24 text-blue-60 z-10'), { fontSize: normalize(15) }]}>
+                {strings.screens.photos.screens.photos.add_album}
+              </Text>
+            </TouchableOpacity>
         }
       </View>
 
