@@ -461,40 +461,30 @@ export async function downloadPhotoWithOutProgress(photo: any) {
   })
 }
 
-export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview): Promise<any> {
-  if (!preview) {
-    return Promise.resolve();
-  }
-  const xToken = await deviceStorage.getItem('xToken')
-  const xUser = await deviceStorage.getItem('xUser')
-  const xUserJson = JSON.parse(xUser || '{}')
-  const typePreview = preview.type
-  const name = preview.fileId
-
+const existsPreview = async (preview: IApiPreview): Promise<{ exists: boolean, tempPath: string }> => {
+  const { type, fileId } = preview
   const tempDir = await getLocalPreviewsDir()
-  const tempPath = tempDir + '/' + name + '.' + typePreview
+  const tempPath = tempDir + '/' + fileId + '.' + type
 
-  const previewExists = await RNFS.exists(tempPath);
+  const exists = await RNFS.exists(tempPath)
 
-  if (previewExists) {
-    const localPreview = await RNFS.stat(tempPath);
+  return { exists, tempPath }
+}
 
-    photo.localUri = localPreview.path;
-    return Promise.resolve(photo.localUri);
-  }
+export const downloadPreview = async (preview: IApiPreview, tempPath: string): Promise<string | void> => {
+  const headers = await getHeaders()
 
-  return RNFetchBlob.config({
-    path: tempPath,
-    fileCache: true
-  }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
-    'Authorization': `Bearer ${xToken}`,
-    'internxt-mnemonic': xUserJson.mnemonic
-  }).then((res) => {
-    return res.path();
-  }).catch(err => {
+  try {
+    const downloadedPreview = await RNFetchBlob.config({
+      path: tempPath,
+      fileCache: true
+    }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, headers)
+
+    return downloadedPreview.path()
+  } catch (err) {
     RNFS.unlink(tempPath)
-    throw err;
-  })
+    throw new Error(err)
+  }
 }
 
 export async function getListPreviews() {
@@ -540,7 +530,17 @@ export const getPreviews = async (dispatch: any): Promise<void> => {
         continue
       }
 
-      const previewPath = await downloadPreview(photo.preview, photo)
+      let previewPath
+      const { exists, tempPath } = await existsPreview(photo.preview)
+
+      if (exists) {
+        const localPreview = await RNFS.stat(tempPath)
+
+        previewPath = localPreview.path
+
+      } else {
+        previewPath = await downloadPreview(photo.preview, tempPath)
+      }
 
       if (previewPath) {
         savePhotosAndPreviewsDB(photo, previewPath)
