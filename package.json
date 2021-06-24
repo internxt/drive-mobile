@@ -44,6 +44,7 @@
     "natural-orderby": "^2.0.3",
     "postcss": "^8.2.15",
     "prettysize": "^2.0.0",
+    "promise.allsettled": "^1.0.4",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-native": "0.63.4",

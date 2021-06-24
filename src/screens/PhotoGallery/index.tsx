@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BackHandler, SafeAreaView, View, FlatList, Text, Dimensions } from 'react-native';
+import { BackHandler, SafeAreaView, View, FlatList, Text, Dimensions, Alert } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { getLocalImages, getPhotosWithoutPreview, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
+import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
 import { getAlbumsRepository, getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { layoutActions, photoActions } from '../../redux/actions';
 import { queue } from 'async';
@@ -17,6 +17,7 @@ import { getAlbums } from '../../modals/CreateAlbumModal/init';
 import Footer from './Footer';
 import SettingsModal from '../../modals/SettingsModal';
 import SimpleToast from 'react-native-simple-toast';
+import { store } from '../../store';
 
 interface IPhotoGalleryProps {
   navigation: any
@@ -85,6 +86,11 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     while (!finished) {
       const localPhotos = await getLocalImages(lastPickedImage)
 
+      if (!localPhotos) {
+        finished = true
+        Alert.alert('Permission denied', 'To be able to use Internxt Photos you must grant the app access to your gallery.')
+        break
+      }
       props.dispatch(photoActions.startSync())
       const syncAction = () => new Promise<unknown>(resolved => {
         syncQueue.push(() => syncPhotos(localPhotos.assets, props.dispatch), resolved)
@@ -101,7 +107,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         isSelected: false
       }))
       const newPhotos: IPhotosToRender = newNext20.reduce((acc, photo) => ({ ...acc, [photo.hash]: photo }), {})
-      const currentPhotos: IPhotosToRender = props.photosToRender
+      const currentPhotos: IPhotosToRender = store.getState().photosState.photosToRender // ask on #redux why this only works when getting it directly from the store
 
       Object.keys(newPhotos).forEach(key => {
         if (currentPhotos[key]) {
@@ -150,11 +156,13 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
   const loadDataFromLocalDB = async () => {
     const { albums, albumsWithPreviews, previews } = await getRepositoriesDB()
-    const currentPhotos = props.photosToRender
+    const currentPhotos = store.getState().photosState.photosToRender // ask on #redux why this only works when getting it directly from the store
 
     props.dispatch(photoActions.viewDB())
     props.dispatch(photoActions.viewAlbumsDB())
 
+    const normalizedAlbumsWithPreviews = albumsWithPreviews.flatMap(x => x)
+    const keyedPreviews = previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {}) as IPhotosToRender
     const keyedAlbums = albums.reduce((acc, album) => {
       acc[album.id] = {
         name: album.name,
@@ -162,8 +170,6 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       }
       return acc
     }, {})
-    const normalizedAlbumsWithPreviews = albumsWithPreviews.flatMap(x => x)
-    const keyedPreviews = previews.reduce((acc, preview) => ({ ...acc, [preview.hash]: preview }), {}) as IPhotosToRender
 
     Object.keys(keyedPreviews).forEach(key => {
       if (currentPhotos[key]) {
@@ -208,7 +214,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       loadDataFromLocalDB().finally(() => startSyncProcess())
       getPreviews(props.dispatch)
       getAlbums()
-      getPhotosWithoutPreview().then((res) => {
+      getNullPreviews().then((res) => {
         setNullablePreviews(res)
       })
     })
