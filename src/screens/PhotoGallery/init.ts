@@ -485,6 +485,7 @@ export const downloadPreview = async (preview: IApiPreview, tempPath: string): P
     if (downloadedPreview.respInfo.status !== 200) {
       throw new Error('Could not download image')
     }
+
     return downloadedPreview.path()
   } catch (err) {
     RNFS.unlink(tempPath)
@@ -582,6 +583,7 @@ export const getPreviews = async (dispatch: any): Promise<void> => {
       if (exists) {
         const localPreview = await RNFS.stat(tempPath)
 
+        photo.localUri = localPreview.path
         previewPath = localPreview.path
       } else {
         previewPath = await downloadPreview(photo.preview, tempPath)
