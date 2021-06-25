@@ -13,6 +13,7 @@ import analytics from '../../helpers/lytics';
 import { fileActions, layoutActions, userActions } from '../../redux/actions';
 import MenuItem from '../MenuItem';
 import PackageJson from '../../../package.json'
+import { NEWTORK_TIMEOUT } from '../../screens/FileExplorer/init';
 
 interface AppMenuProps {
   navigation?: any
@@ -69,7 +70,7 @@ function AppMenu(props: AppMenuProps) {
 
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(result.uri)
 
-      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers,
+      RNFetchBlob.config({ timeout: NEWTORK_TIMEOUT }).fetch('POST', `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers,
         [
           { name: 'xfile', filename: result.name, data: finalUri }
         ])
