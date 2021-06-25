@@ -86,7 +86,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     while (!finished) {
       const localPhotos = await getLocalImages(lastPickedImage)
 
-      if (!localPhotos) {
+      if (!localPhotos.assets) {
         finished = true
         Alert.alert('Permission denied', 'To be able to use Internxt Photos you must grant the app access to your gallery.')
         break

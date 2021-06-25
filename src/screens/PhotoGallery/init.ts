@@ -29,17 +29,19 @@ export interface IHashedPhoto extends Asset {
 
 const getArrayPhotos = async (images: Asset[]) => {
   // allSettled may cause high performance impact and memory crashes. Check on real devices
-  const assets = await allSettled(images.map(asset => getAssetInfoAsync(asset)))
-  const successfullAssets = assets.filter(promiseRes => promiseRes.status === 'fulfilled')
-  const hashedAssets = await allSettled(successfullAssets.map(async promiseRes => ({
-    ...promiseRes.value,
-    hash: await RNFS.hash(promiseRes.value.localUri, 'sha256'),
-    localUri: promiseRes.value.localUri
-  })))
-  const successfullHashedAssets = hashedAssets.filter(promiseRes => promiseRes.status === 'fulfilled')
-  const finalAssets = successfullHashedAssets.map(({ status, ...asset }) => asset.value)
+  const assets = await allSettled(images.map(async asset => {
+    const photo = await getAssetInfoAsync(asset)
 
-  return finalAssets
+    return {
+      ...photo,
+      hash: await RNFS.hash(photo.localUri, 'sha256'),
+      localUri: photo.localUri
+    }
+  }))
+
+  return assets
+    .filter(promiseRes => promiseRes.status === 'fulfilled')
+    .map(fullfiledRes => fullfiledRes.value)
 }
 
 export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<void> {
@@ -464,7 +466,34 @@ export async function downloadPhotoWithOutProgress(photo: any) {
   })
 }
 
-export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview): Promise<any> {
+export const downloadPreview = async (preview: IApiPreview, tempPath: string): Promise<string | void> => {
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUser = await deviceStorage.getItem('xUser')
+  const xUserJson = JSON.parse(xUser || '{}')
+
+  try {
+    const downloadedPreview = await RNFetchBlob.config({
+      path: tempPath,
+      fileCache: true
+    }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
+      'Authorization': `Bearer ${xToken}`,
+      'internxt-mnemonic': xUserJson.mnemonic
+    }).catch(err =>{
+      throw new Error('RNFetchBlob error: ' + err)
+    })
+
+    console.log('downloaded preview status:', downloadedPreview.respInfo.status)
+    if (downloadedPreview.respInfo.status !== 200) {
+      throw new Error('Could not download image')
+    }
+    return downloadedPreview.path()
+  } catch (err) {
+    RNFS.unlink(tempPath)
+    throw new Error(err)
+  }
+}
+
+export async function downloadPreviewOLD(preview: any, photo: IApiPhotoWithPreview): Promise<any> {
   if (!preview) {
     return Promise.resolve();
   }
@@ -556,48 +585,14 @@ export const getPreviews = async (dispatch: any): Promise<void> => {
 
         previewPath = localPreview.path
       } else {
-        previewPath = await downloadPreview(photo.preview, photo)
+        previewPath = await downloadPreview(photo.preview, tempPath)
       }
 
       if (previewPath) {
-        savePhotosAndPreviewsDB(photo, previewPath)
+        await savePhotosAndPreviewsDB(photo, previewPath)
       }
-    } finally { continue }
+    } catch { continue }
   }
-}
-
-export async function getPreviewsOLD(dispatch: any): Promise<any> {
-  SHOULD_STOP = false;
-  return getUploadedPhotos().then((uploadedPhotos: IApiPhotoWithPreview[]) => {
-    if (uploadedPhotos.length === 0) {
-      return;
-    }
-    return mapSeries(uploadedPhotos, async (preview, next) => {
-      if (SHOULD_STOP) {
-        throw Error('Sign out')
-      }
-
-      if (preview.preview === null) {
-        return next(null)
-      }
-      const checkExistUri = await checkExistsUriTrash(preview.preview.fileId)
-
-      if (checkExistUri) {
-        return getPreviewAfterUpload(preview.preview, dispatch, checkExistUri.uri).then((res1) => {
-          next(null, res1)
-        })
-      }
-
-      return downloadPreview(preview.preview, preview).then((res1) => {
-        if (res1) {
-          savePhotosAndPreviewsDB(preview, res1, dispatch)
-        }
-        next(null, res1)
-      }).catch(err => {
-        next(null)
-      })
-    })
-  })
 }
 
 async function initializePhotosUser(): Promise<any> {
