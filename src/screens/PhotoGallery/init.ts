@@ -280,6 +280,9 @@ export async function downloadPreviewAfterUpload(preview: IApiPreview, dispatch:
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
   }).then((res) => {
+    if (res.respInfo.status !== 200) {
+      throw new Error('Could not download Preview');
+    }
     dispatch(photoActions.updatePhotoStatusUpload(preview.hash, true))
     return res.path();
   }).catch(err => {
@@ -490,6 +493,9 @@ export async function downloadPreview(preview: any, photo: IApiPhotoWithPreview)
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
   }).then((res) => {
+    if (res.respInfo.status !== 200) {
+      throw new Error('Could not download Preview');
+    }
     return res.path();
   }).catch(err => {
     RNFS.unlink(tempPath)
