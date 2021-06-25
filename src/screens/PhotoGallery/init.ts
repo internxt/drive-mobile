@@ -482,7 +482,6 @@ export const downloadPreview = async (preview: IApiPreview, tempPath: string): P
       throw new Error('RNFetchBlob error: ' + err)
     })
 
-    console.log('downloaded preview status:', downloadedPreview.respInfo.status)
     if (downloadedPreview.respInfo.status !== 200) {
       throw new Error('Could not download image')
     }
