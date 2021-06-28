@@ -18,6 +18,7 @@ import Footer from './Footer';
 import SettingsModal from '../../modals/SettingsModal';
 import SimpleToast from 'react-native-simple-toast';
 import { store } from '../../store';
+import allSettled from 'promise.allsettled'
 
 interface IPhotoGalleryProps {
   navigation: any
@@ -73,15 +74,15 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
   const [hasMoreLocals, setHasMoreLocals] = useState<boolean>(false)
   const [nullablePreviews, setNullablePreviews] = useState<any>([])
-  const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
-    await task()
-    callBack()
-  }, 5)
 
   const startSyncProcess = async () => {
     let finished = false
     let lastPickedImage: string | undefined = undefined
     const syncActions: Promise<unknown>[] = []
+    const syncQueue = queue(async (task: () => Promise<void>, callBack) => {
+      await task()
+      callBack()
+    }, 1)
     const alreadyUploadedPhotos = await getUploadedPhotos()
     const withPreviews = alreadyUploadedPhotos.filter(photo => !!photo.preview)
 
@@ -96,11 +97,14 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       props.dispatch(photoActions.startSync())
 
       const imagesToUpload = separatePhotos(localPhotos.assets, withPreviews, alreadyUploadedPhotos)
-      const syncAction = () => new Promise<unknown>(resolved => {
-        syncQueue.push(() => syncPhotos(imagesToUpload, props.dispatch), resolved)
-      })
 
-      syncActions.push(syncAction())
+      if (imagesToUpload.length) {
+        const syncAction = () => new Promise<void>(resolved => {
+          syncQueue.push(() => syncPhotos(imagesToUpload, props.dispatch), resolved)
+        })
+
+        syncActions.push(syncAction())
+      }
 
       const newNext20 = localPhotos.assets.map(photo => ({
         ...photo,
@@ -135,9 +139,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       }
     }
 
-    await Promise.all(syncActions).finally(() => {
-      props.dispatch(photoActions.stopSync())
-    })
+    await allSettled(syncActions).finally(() => props.dispatch(photoActions.stopSync()))
   }
 
   const uploadPreviewsNull = async (nullPreviews, localPhotos: any) => {

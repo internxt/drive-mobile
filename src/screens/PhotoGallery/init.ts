@@ -1,4 +1,4 @@
-import { mapSeries } from 'async';
+import { mapSeries, queue } from 'async';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { Asset, getAssetInfoAsync } from 'expo-media-library';
 import { Platform } from 'react-native';
@@ -48,12 +48,13 @@ const getArrayPhotos = async (images: Asset[]) => {
 }
 
 export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<void> {
-  // Upload filtered photos
-  await mapSeries(images, async (image, next) => {
-    await uploadPhoto(image, dispatch).then(() => next(null)).catch((err) => {
-      next(null)
-    }).finally(() => dispatch(photoActions.updatePhotoStatusUpload(image.hash, true)))
-  })
+  const photoQueue = queue(async (task: () => Promise<void>, callBack) => {
+    await task()
+    callBack()
+  }, 5)
+
+  images.forEach(image => photoQueue.push(() => uploadPhoto(image, dispatch)))
+  return photoQueue.drain()
 }
 
 export const separatePhotos = (images: IHashedPhoto[], withPreviews: IApiPhotoWithPreview[], alreadyUploadedPhotos: IApiPhotoWithPreview[]) => {
@@ -88,146 +89,70 @@ const createCompressedPhoto = async (pathToPhoto: string) => {
   return preview
 }
 const uploadPhoto = async (photo: IHashedPhoto, dispatch: any) => {
-  dispatch(photoActions.updatePhotoStatusUpload(photo.hash, false))
-  const xUser = await deviceStorage.getItem('xUser')
-  const xToken = await deviceStorage.getItem('xToken')
-  const xUserJson = JSON.parse(xUser || '{}')
-  const headers = {
-    'Authorization': `Bearer ${xToken}`,
-    'internxt-mnemonic': xUserJson.mnemonic,
-    'Content-Type': 'multipart/form-data',
-    'internxt-version': PackageJson.version,
-    'internxt-client': 'drive-mobile'
+  try {
+    dispatch(photoActions.updatePhotoStatusUpload(photo.hash, false))
+    const xUser = await deviceStorage.getItem('xUser')
+    const xToken = await deviceStorage.getItem('xToken')
+    const xUserJson = JSON.parse(xUser || '{}')
+    const headers = {
+      'Authorization': `Bearer ${xToken}`,
+      'internxt-mnemonic': xUserJson.mnemonic,
+      'Content-Type': 'multipart/form-data',
+      'internxt-version': PackageJson.version,
+      'internxt-client': 'drive-mobile'
+    }
+
+    const preview = await createCompressedPhoto(photo.uri)
+    const parsedUri = photo.localUri.replace(/^file:\/\//, '')
+    let uriPhoto, uriPreview, creationTime
+
+    if (Platform.OS === 'ios') {
+      const parsedUriPreview = preview.uri.replace(/^file:\/\//, '')
+
+      uriPhoto = RNFetchBlob.wrap(parsedUri)
+      uriPreview = RNFetchBlob.wrap(decodeURIComponent(parsedUriPreview))
+      creationTime = photo.creationTime
+    } else {
+      uriPhoto = RNFetchBlob.wrap(photo.uri)
+      uriPreview = RNFetchBlob.wrap(preview.uri)
+      creationTime = photo.modificationTime
+    }
+    creationTime = creationTime ? new Date(creationTime).toString() : new Date().toString()
+
+    const fetchResponse = await RNFetchBlob.config({
+      timeout: 300000
+    })
+      .fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/preview/upload`,
+        headers,
+        [
+          { name: 'xfiles', filename: photo.filename, data: uriPhoto },
+          { name: 'xfiles', filename: `preview-${photo.filename}`, data: uriPreview },
+          { name: 'hash', data: photo.hash },
+          { name: 'creationTime', data: creationTime }
+        ])
+    const status = fetchResponse.respInfo.status
+
+    if (status !== 201 && status !== 409) {
+      throw new Error('Server error status response: ' + status)
+    }
+    const uploadedPhoto: IUploadedPhoto = await fetchResponse.json()
+
+    if (!uploadedPhoto.photo.id) {
+      throw new Error('Photo without id')
+    }
+    const finalPhoto = {
+      ...uploadedPhoto.photo,
+      preview: uploadedPhoto.preview
+    }
+
+    await savePhotosAndPreviewsDB(finalPhoto, preview.uri)
+    await saveUrisTrash(uploadedPhoto.preview.fileId, preview.uri)
+    await getPreviewAfterUpload(uploadedPhoto.preview, dispatch, preview.uri)
+
+  } catch { } finally {
+    dispatch(photoActions.updatePhotoStatusUpload(photo.hash, true))
   }
-
-  const preview = await createCompressedPhoto(photo.uri)
-  const parsedUri = photo.localUri.replace(/^file:\/\//, '')
-  let uriPhoto, uriPreview, creationTime
-
-  if (Platform.OS === 'ios') {
-    const parsedUriPreview = preview.uri.replace(/^file:\/\//, '')
-
-    uriPhoto = RNFetchBlob.wrap(parsedUri)
-    uriPreview = RNFetchBlob.wrap(decodeURIComponent(parsedUriPreview))
-    creationTime = photo.creationTime
-  } else {
-    uriPhoto = RNFetchBlob.wrap(photo.uri)
-    uriPreview = RNFetchBlob.wrap(preview.uri)
-    creationTime = photo.modificationTime
-  }
-  creationTime = creationTime ? new Date(creationTime).toString() : new Date().toString()
-
-  const fetchResponse = await RNFetchBlob.config({
-    timeout: 300000
-  })
-    .fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/preview/upload`,
-      headers,
-      [
-        { name: 'xfiles', filename: photo.filename, data: uriPhoto },
-        { name: 'xfiles', filename: `preview-${photo.filename}`, data: uriPreview },
-        { name: 'hash', data: photo.hash },
-        { name: 'creationTime', data: creationTime }
-      ])
-  const status = fetchResponse.respInfo.status
-
-  if (status !== 201 && status !== 409) {
-    throw new Error('Server error status response: ' + status)
-  }
-  const uploadedPhoto: IUploadedPhoto = await fetchResponse.json()
-
-  if (!uploadedPhoto.photo.id) {
-    throw new Error('Photo without id')
-  }
-  const finalPhoto = {
-    ...uploadedPhoto.photo,
-    preview: uploadedPhoto.preview
-  }
-
-  await savePhotosAndPreviewsDB(finalPhoto, preview.uri)
-  await saveUrisTrash(uploadedPhoto.preview.fileId, preview.uri)
-  await getPreviewAfterUpload(uploadedPhoto.preview, dispatch, preview.uri)
 }
-/* async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
-  dispatch(photoActions.updatePhotoStatusUpload(photo.hash, false))
-
-  const xUser = await deviceStorage.getItem('xUser')
-  const xToken = await deviceStorage.getItem('xToken')
-  const xUserJson = JSON.parse(xUser || '{}')
-  const headers = {
-    'Authorization': `Bearer ${xToken}`,
-    'internxt-mnemonic': xUserJson.mnemonic,
-    'Content-Type': 'multipart/form-data',
-    'internxt-version': PackageJson.version,
-    'internxt-client': 'drive-mobile'
-  };
-
-  const parsedUri = photo.localUri.replace(/^file:\/\//, '');
-  const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(parsedUri) : RNFetchBlob.wrap(photo.uri)
-
-  let creationTime;
-
-  if (Platform.OS === 'android') {
-    creationTime = photo.modificationTime
-  }
-  if (Platform.OS === 'ios') {
-    creationTime = photo.creationTime
-  }
-  if (creationTime) {
-    creationTime = new Date(creationTime).toString()
-  } else {
-    creationTime = new Date().toString()
-  }
-
-  // Create photo preview and store on device
-  const prev = await manipulateAsync(
-    photo.uri,
-    [{ resize: { width: 220 } }],
-    { compress: 0.8, format: SaveFormat.JPEG }
-  )
-  const parsedUriPreview = prev.uri.replace(/^file:\/\//, '');
-
-  const finalUriPreview = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(parsedUriPreview)) : RNFetchBlob.wrap(prev.uri)
-
-  return RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/preview/upload`, headers,
-    [
-      { name: 'xfiles', filename: photo.filename, data: finalUri },
-      { name: 'xfiles', filename: `preview-${photo.filename}`, data: finalUriPreview },
-      { name: 'hash', data: photo.hash },
-      { name: 'creationTime', data: creationTime }
-    ])
-    .then((res) => {
-      const statusCode = res.respInfo.status;
-
-      if (statusCode !== 201) {
-        dispatch(photoActions.updatePhotoStatusUpload(photo.hash, true))
-        throw res
-      }
-      if (statusCode === 201 || statusCode === 409) {
-        return res.json();
-      }
-
-      dispatch(photoActions.updatePhotoStatusUpload(photo.hash, true))
-      throw res;
-    })
-    .then(async (res: any) => {
-      if (!res.photo.id) {
-        dispatch(photoActions.updatePhotoStatusUpload(res.photo.hash, true))
-        return;
-      }
-      const photo = {
-        ...res.photo,
-        preview: res.preview
-      }
-
-      return savePhotosAndPreviewsDB(photo, prev.uri).then(() => {
-        saveUrisTrash(res.preview.fileId, prev.uri).then(() => {
-          getPreviewAfterUpload(res.preview, dispatch, prev.uri).then()
-        })
-      }).catch((err) => {
-        dispatch(photoActions.updatePhotoStatusUpload(res.photo.hash, true))
-      })
-    })
-} */
 
 export async function uploadPreviewIfNull(photoId: number, originalPhoto: IHashedPhoto, dispatch: any, apiPhoto: IAPIPhoto) {
   dispatch(photoActions.updatePhotoStatusUpload(originalPhoto.hash, false))

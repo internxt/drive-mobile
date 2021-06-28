@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@babel/plugin-proposal-decorators": "^7.14.5",
+    "@babel/runtime": "^7.14.6",
     "@react-native-community/cameraroll": "1.4.1",
     "@react-native-community/masked-view": "0.1.10",
     "@react-navigation/native": "^5.8.10",
