@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BackHandler, SafeAreaView, View, FlatList, Text, Dimensions, Alert } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { getLocalImages, getNullPreviews, getPreviews, IHashedPhoto, initUser, stopSync, syncPhotos, syncPreviews } from './init'
+import { getLocalImages, getNullPreviews, getPreviews, getUploadedPhotos, IHashedPhoto, initUser, separatePhotos, stopSync, syncPhotos, syncPreviews } from './init'
 import { getAlbumsRepository, getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { layoutActions, photoActions } from '../../redux/actions';
 import { queue } from 'async';
@@ -82,8 +82,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     let finished = false
     let lastPickedImage: string | undefined = undefined
     const syncActions: Promise<unknown>[] = []
-    /* const alreadyUploadedPhotos = await getUploadedPhotos()
-    const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview) */
+    const alreadyUploadedPhotos = await getUploadedPhotos()
+    const withPreviews = alreadyUploadedPhotos.filter(photo => !!photo.preview)
 
     while (!finished) {
       const localPhotos = await getLocalImages(lastPickedImage)
@@ -95,9 +95,9 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
       }
       props.dispatch(photoActions.startSync())
 
-      //const imagesToUpload = await separatePhotos(localPhotos.assets, withPreviews, alreadyUploadedPhotos)
+      const imagesToUpload = separatePhotos(localPhotos.assets, withPreviews, alreadyUploadedPhotos)
       const syncAction = () => new Promise<unknown>(resolved => {
-        syncQueue.push(() => syncPhotos(localPhotos.assets, props.dispatch), resolved)
+        syncQueue.push(() => syncPhotos(imagesToUpload, props.dispatch), resolved)
       })
 
       syncActions.push(syncAction())

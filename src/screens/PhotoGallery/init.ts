@@ -48,13 +48,8 @@ const getArrayPhotos = async (images: Asset[]) => {
 }
 
 export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<void> {
-  // Skip uploaded photos with previews
-  const alreadyUploadedPhotos = await getUploadedPhotos()
-  const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview);
-  const imagesToUpload = separatePhotos(images, withPreviews, alreadyUploadedPhotos);
-
   // Upload filtered photos
-  await mapSeries(imagesToUpload, async (image, next) => {
+  await mapSeries(images, async (image, next) => {
     await uploadPhoto(image, dispatch).then(() => next(null)).catch((err) => {
       next(null)
     }).finally(() => dispatch(photoActions.updatePhotoStatusUpload(image.hash, true)))
