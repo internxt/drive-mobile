@@ -7,12 +7,10 @@ import * as MediaLibrary from 'expo-media-library';
 import RNFS from 'react-native-fs';
 import { deviceStorage } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
-import { IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
+import { IAPIPhoto, IApiPhotoWithPreview, IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { checkExistsUriTrash, removeUrisFromUrisTrash, savePhotosAndPreviewsDB, saveUrisTrash, updateLocalUriPreviews } from '../../database/DBUtils.ts/utils';
-import { uniqueId } from 'lodash';
 import CameraRoll from '@react-native-community/cameraroll';
 import PackageJson from '../../../package.json'
-import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import { photoActions } from '../../redux/actions';
 import _ from 'lodash';
 import allSettled from 'promise.allsettled'
@@ -25,6 +23,11 @@ export interface IHashedPhoto extends Asset {
   isUploading: boolean
   isDownloading: boolean
   photoId: number
+}
+
+interface IUploadedPhoto {
+  photo: IAPIPhoto,
+  preview: IApiPreview
 }
 
 const getArrayPhotos = async (images: Asset[]) => {
@@ -46,32 +49,26 @@ const getArrayPhotos = async (images: Asset[]) => {
 
 export async function syncPhotos(images: IHashedPhoto[], dispatch: any): Promise<void> {
   // Skip uploaded photos with previews
-  const alreadyUploadedPhotos = await getUploadedPhotos();
+  const alreadyUploadedPhotos = await getUploadedPhotos()
   const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview);
-  const imagesToUpload = await separatePhotos(images, withPreviews, alreadyUploadedPhotos);
+  const imagesToUpload = separatePhotos(images, withPreviews, alreadyUploadedPhotos);
 
   // Upload filtered photos
   await mapSeries(imagesToUpload, async (image, next) => {
     await uploadPhoto(image, dispatch).then(() => next(null)).catch((err) => {
-      dispatch(photoActions.updatePhotoStatusUpload(image.hash, true))
       next(null)
-    })
+    }).finally(() => dispatch(photoActions.updatePhotoStatusUpload(image.hash, true)))
   })
 }
 
-const separatePhotos = async (images: IHashedPhoto[], withPreviews: IApiPhotoWithPreview[], alreadyUploadedPhotos: IApiPhotoWithPreview[]) => {
-
+export const separatePhotos = (images: IHashedPhoto[], withPreviews: IApiPhotoWithPreview[], alreadyUploadedPhotos: IApiPhotoWithPreview[]) => {
   if (withPreviews.length === 0) {
-
     const difference = _.differenceBy([...images], [...alreadyUploadedPhotos], 'hash')
 
     return difference;
-
   } else {
     const uploadedHashes = withPreviews.map(x => x.hash);
-
     const photos = images.filter(x => uploadedHashes.indexOf(x.hash) < 0)
-
     const difference = _.differenceBy([...photos], [...alreadyUploadedPhotos], 'hash')
 
     return difference;
@@ -86,9 +83,76 @@ export async function syncPreviews(imagesToUpload: any[], dispatch) {
     }
     return uploadPreviewIfNull(image.photo.id, image, dispatch, image.photo).then(() => next(null)).catch((err) => next(null))
   })
-
 }
-async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
+
+const createCompressedPhoto = async (pathToPhoto: string) => {
+  const preview = await manipulateAsync(pathToPhoto, [{ resize: { width: 220 } }],
+    { compress: 0.8, format: SaveFormat.JPEG }
+  )
+
+  return preview
+}
+const uploadPhoto = async (photo: IHashedPhoto, dispatch: any) => {
+  dispatch(photoActions.updatePhotoStatusUpload(photo.hash, false))
+  const xUser = await deviceStorage.getItem('xUser')
+  const xToken = await deviceStorage.getItem('xToken')
+  const xUserJson = JSON.parse(xUser || '{}')
+  const headers = {
+    'Authorization': `Bearer ${xToken}`,
+    'internxt-mnemonic': xUserJson.mnemonic,
+    'Content-Type': 'multipart/form-data',
+    'internxt-version': PackageJson.version,
+    'internxt-client': 'drive-mobile'
+  }
+
+  const preview = await createCompressedPhoto(photo.uri)
+  const parsedUri = photo.localUri.replace(/^file:\/\//, '')
+  let uriPhoto, uriPreview, creationTime
+
+  if (Platform.OS === 'ios') {
+    const parsedUriPreview = preview.uri.replace(/^file:\/\//, '')
+
+    uriPhoto = RNFetchBlob.wrap(parsedUri)
+    uriPreview = RNFetchBlob.wrap(decodeURIComponent(parsedUriPreview))
+    creationTime = photo.creationTime
+  } else {
+    uriPhoto = RNFetchBlob.wrap(photo.uri)
+    uriPreview = RNFetchBlob.wrap(preview.uri)
+    creationTime = photo.modificationTime
+  }
+  creationTime = creationTime ? new Date(creationTime).toString() : new Date().toString()
+
+  const fetchResponse = await RNFetchBlob.config({
+    timeout: 300000
+  })
+    .fetch('POST', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/photo/preview/upload`,
+      headers,
+      [
+        { name: 'xfiles', filename: photo.filename, data: uriPhoto },
+        { name: 'xfiles', filename: `preview-${photo.filename}`, data: uriPreview },
+        { name: 'hash', data: photo.hash },
+        { name: 'creationTime', data: creationTime }
+      ])
+  const status = fetchResponse.respInfo.status
+
+  if (status !== 201 && status !== 409) {
+    throw new Error('Server error status response: ' + status)
+  }
+  const uploadedPhoto: IUploadedPhoto = await fetchResponse.json()
+
+  if (!uploadedPhoto.photo.id) {
+    throw new Error('Photo without id')
+  }
+  const finalPhoto = {
+    ...uploadedPhoto.photo,
+    preview: uploadedPhoto.preview
+  }
+
+  await savePhotosAndPreviewsDB(finalPhoto, preview.uri)
+  await saveUrisTrash(uploadedPhoto.preview.fileId, preview.uri)
+  await getPreviewAfterUpload(uploadedPhoto.preview, dispatch, preview.uri)
+}
+/* async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
   dispatch(photoActions.updatePhotoStatusUpload(photo.hash, false))
 
   const xUser = await deviceStorage.getItem('xUser')
@@ -160,7 +224,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
         preview: res.preview
       }
 
-      return savePhotosAndPreviewsDB(photo, prev.uri, dispatch).then(() => {
+      return savePhotosAndPreviewsDB(photo, prev.uri).then(() => {
         saveUrisTrash(res.preview.fileId, prev.uri).then(() => {
           getPreviewAfterUpload(res.preview, dispatch, prev.uri).then()
         })
@@ -168,7 +232,7 @@ async function uploadPhoto(photo: IHashedPhoto, dispatch: any) {
         dispatch(photoActions.updatePhotoStatusUpload(res.photo.hash, true))
       })
     })
-}
+} */
 
 export async function uploadPreviewIfNull(photoId: number, originalPhoto: IHashedPhoto, dispatch: any, apiPhoto: IAPIPhoto) {
   dispatch(photoActions.updatePhotoStatusUpload(originalPhoto.hash, false))
@@ -478,7 +542,7 @@ export const downloadPreview = async (preview: IApiPreview, tempPath: string): P
     }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/previews/${preview.fileId}`, {
       'Authorization': `Bearer ${xToken}`,
       'internxt-mnemonic': xUserJson.mnemonic
-    }).catch(err =>{
+    }).catch(err => {
       throw new Error('RNFetchBlob error: ' + err)
     })
 
@@ -649,59 +713,6 @@ export async function initUser(): Promise<void> {
   const infoUserPhoto = await photosUserData();
 
   await deviceStorage.saveItem('xPhotos', JSON.stringify(infoUserPhoto))
-}
-
-export function uploadOnePhoto(photo: IHashedPhoto, dispatch: any) {
-
-  if (!photo) {
-    return;
-  }
-  return uploadPhoto(photo, dispatch)
-}
-
-export async function uploadOnePhotoMedia(dispatch: any) {
-
-  const { status } = await requestMediaLibraryPermissionsAsync()
-
-  if (status === 'granted') {
-    const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All })
-
-    if (!result.cancelled) {
-      const fileUploading: any = result
-
-      // Set name for pics/photos
-      if (!fileUploading.name) {
-        fileUploading.name = result.uri.split('/').pop()
-      }
-      fileUploading.createdAt = new Date()
-      fileUploading.id = uniqueId()
-      return uploadPhoto(fileUploading, dispatch)
-    }
-  } else {
-    return status;
-  }
-}
-
-export async function uploadPhotoFromCamera(dispatch: any) {
-
-  const { status } = await requestMediaLibraryPermissionsAsync()
-
-  if (status === 'granted') {
-    const result = await launchCameraAsync()
-
-    if (!result.cancelled) {
-      const fileUploading: any = result
-
-      // Set name for pics/photos
-      if (!fileUploading.name) {
-        fileUploading.name = result.uri.split('/').pop()
-      }
-      fileUploading.createdAt = new Date()
-      fileUploading.id = uniqueId()
-
-      uploadPhoto(fileUploading, dispatch)
-    }
-  }
 }
 
 export async function getNullPreviews() {

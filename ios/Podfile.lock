@@ -466,10 +466,10 @@ PODS:
     - React-Core
   - rn-fetch-blob (0.11.2):
     - React-Core
-  - RNAnalytics (1.4.8):
+  - RNAnalytics (1.4.9):
     - Analytics
     - React-Core
-  - RNAnalyticsIntegration-Firebase (1.4.8):
+  - RNAnalyticsIntegration-Firebase (1.4.9):
     - Analytics
     - React-Core
     - RNAnalytics
@@ -878,8 +878,8 @@ SPEC CHECKSUMS:
   ReactCommon: 73d79c7039f473b76db6ff7c6b159c478acbbb3b
   ReactNativeLocalization: 90a1181b7672309701dd7e5364fbf587319d41c6
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
-  RNAnalytics: 6dd7878949062f49add396def34a2203d22d48f4
-  RNAnalyticsIntegration-Firebase: 09f9232ffbbb04bf45414c2d8b6446b44e648a58
+  RNAnalytics: 764e000dbc5b5da88175faa19fb92e29e1a16399
+  RNAnalyticsIntegration-Firebase: 8a2b98373d9d0fed7a4e0d86ae11c256062d6881
   RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
   RNFileViewer: 83cc066ad795b1f986791d03b56fe0ee14b6a69f
   RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32

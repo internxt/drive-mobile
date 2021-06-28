@@ -82,6 +82,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
     let finished = false
     let lastPickedImage: string | undefined = undefined
     const syncActions: Promise<unknown>[] = []
+    /* const alreadyUploadedPhotos = await getUploadedPhotos()
+    const withPreviews = alreadyUploadedPhotos.filter(x => !!x.preview) */
 
     while (!finished) {
       const localPhotos = await getLocalImages(lastPickedImage)
@@ -92,6 +94,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         break
       }
       props.dispatch(photoActions.startSync())
+
+      //const imagesToUpload = await separatePhotos(localPhotos.assets, withPreviews, alreadyUploadedPhotos)
       const syncAction = () => new Promise<unknown>(resolved => {
         syncQueue.push(() => syncPhotos(localPhotos.assets, props.dispatch), resolved)
       })
