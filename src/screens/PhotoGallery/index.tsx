@@ -72,7 +72,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   const [isAlbumSelected, setIsAlbumSelected] = useState(false)
   const [albumPhotosToRender, setAlbumPhotosToRender] = useState<IPhotosToRender>({})
 
-  const [hasMoreLocals, setHasMoreLocals] = useState<boolean>(false)
+  const [hasMoreLocals, setHasMoreLocals] = useState<boolean>(true)
   const [nullablePreviews, setNullablePreviews] = useState<any>([])
 
   const startSyncProcess = async () => {
@@ -135,7 +135,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
         lastPickedImage = localPhotos.endCursor
       } else {
         finished = true
-        setHasMoreLocals(true)
+        setHasMoreLocals(false)
       }
     }
 
@@ -335,9 +335,9 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
   }, [selectedFilter, headerTitle, props.showAlbumModal, props.showSelectPhotosModal])
 
   useEffect(() => {
-    if (!hasMoreLocals) {
+    if (!hasMoreLocals && props.photosToRender) {
       uploadPreviewsNull(nullablePreviews, props.photosToRender).then((res) => {
-        syncPreviews(res, props.dispatch).then()
+        syncPreviews(res, props.dispatch)
       })
     }
   }, [hasMoreLocals])
