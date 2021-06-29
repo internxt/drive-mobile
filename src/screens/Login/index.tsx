@@ -158,7 +158,7 @@ function Login(props: LoginProps): JSX.Element {
         </View>
       </View>
 
-      <Text style={styles.versionLabel}>Internxt Drive v1.3.7(1)</Text>
+      <Text style={styles.versionLabel}>Internxt Drive v1.3.7(2)</Text>
     </KeyboardAvoidingView>
   )
 }
