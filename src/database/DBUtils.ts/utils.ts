@@ -9,6 +9,7 @@ import { IApiPreview } from '../../types/api/photos/IApiPhoto';
 import { Albums } from '../models/albums';
 import { PhotoAlbums } from '../models/photoAlbums';
 import { UrisTrash } from '../models/urisTrash';
+import RNFS from 'react-native-fs';
 
 export interface Repositories {
   photos: Photos[];
@@ -44,6 +45,25 @@ export async function getRepositoriesDB(): Promise<Repositories> {
     where: { userId: userId }
   })
 
+  const listPreviews = []
+
+  for (const preview of previews) {
+    const readedFile = await RNFS.readFile(preview.localUri).catch(() => {
+      listPreviews.push(preview);
+    })
+
+    if (readedFile) {
+      if (readedFile.includes('message')) {
+        RNFS.unlink(preview.localUri).then(() => {
+          removePreview(preview.localUri)
+        });
+      } else {
+        listPreviews.push(preview);
+      }
+    }
+
+  }
+
   const albumsRepository = getRepository(Albums);
   const albums = await albumsRepository.find(({
     where: { userId: userId }
@@ -57,7 +77,7 @@ export async function getRepositoriesDB(): Promise<Repositories> {
 
     albumsWithPreviews.push(photoAlbums)
   }
-  return { photos, previews, albums, albumsWithPreviews }
+  return { photos, previews: listPreviews, albums, albumsWithPreviews }
 }
 
 export const getAlbumsRepository = async (): Promise<AlbumsRepository> => {
@@ -360,4 +380,23 @@ export async function checkExistsUriTrash(fileId: string) {
   }
 
   return uris;
+}
+
+export async function removePreview(localUri: string) {
+  const previewsRepository = getRepository(Previews);
+  const userId = await getUserId()
+
+  const preview = await previewsRepository.findOne(({
+    where: {
+      userId: userId,
+      localUri: localUri
+    }
+  }))
+
+  await previewsRepository.remove(preview)
+  await previewsRepository.find({
+    where: {
+      userId: userId
+    }
+  })
 }

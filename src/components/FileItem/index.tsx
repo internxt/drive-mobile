@@ -19,6 +19,7 @@ import * as FileSystem from 'expo-file-system'
 import { LinearGradient } from 'expo-linear-gradient';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import PackageJson from '../../../package.json'
+import { NEWTORK_TIMEOUT } from '../../screens/FileExplorer/init';
 interface FileItemProps extends Reducers {
   isFolder: boolean
   item: IFile & IFolder | IUploadingFile
@@ -87,7 +88,8 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
     return RNFetchBlob.config({
       appendExt: props.item.type,
       path: RNFetchBlob.fs.dirs.DocumentDir + '/' + props.item.name + '.' + props.item.type,
-      fileCache: true
+      fileCache: true,
+      timeout: NEWTORK_TIMEOUT
     }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${props.item.fileId}`, {
       'Authorization': `Bearer ${xToken}`,
       'internxt-mnemonic': xUserJson.mnemonic,

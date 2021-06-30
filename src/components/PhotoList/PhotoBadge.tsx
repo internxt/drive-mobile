@@ -1,9 +1,8 @@
 import React from 'react'
-import { View } from 'react-native'
+import { ActivityIndicator, View } from 'react-native'
 import DownloadingPhoto from '../../../assets/icons/photos/downloading-photo.svg'
 import UploadingPhoto from '../../../assets/icons/photos/uploading-photo.svg'
 import Tick from '../../../assets/icons/photos/tick-bg-blue.svg'
-import CloudFail from '../../../assets/icons/photos/cloud-fail.svg'
 import { tailwind } from '../../tailwind'
 
 interface PhotoBadgeProps {
@@ -30,7 +29,8 @@ export default function PhotoBadge(props: PhotoBadgeProps): JSX.Element {
       return <UploadingPhoto width={ICON_SIZE} height={ICON_SIZE} />
 
     case !props.isUploaded:
-      return <CloudFail width={ICON_SIZE} height={ICON_SIZE} />
+      //return <CloudFail width={ICON_SIZE} height={ICON_SIZE} />
+      return <ActivityIndicator size={ICON_SIZE} color='white' />
 
     default:
       return <View></View>

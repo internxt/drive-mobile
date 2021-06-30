@@ -7,6 +7,7 @@ import CrossBlue from '../../../assets/icons/photos/cross-blue.svg'
 import FolderWithCross from '../../../assets/icons/photos/folder-with-cross-blue.svg'
 import SimpleToast from 'react-native-simple-toast';
 import { normalize } from '../../helpers';
+import strings from '../../../assets/lang/strings';
 
 interface CreateAlbumProps {
   dispatch: any
@@ -35,7 +36,9 @@ function CreateAlbumModal({ dispatch, showAlbumModal, albumTitle, setAlbumTitle 
       <View style={tailwind('flex-row mt-5 items-center')}>
         <View style={tailwind('w-1/5')} />
 
-        <Text style={[tailwind('w-3/5 text-center text-base font-averta-regular text-gray-70'), { fontSize: normalize(16) }]}>Create new album</Text>
+        <Text style={[tailwind('w-3/5 text-center text-base font-averta-regular text-gray-70'), { fontSize: normalize(16) }]}>
+          {strings.screens.photos.modals.create_album.title}
+        </Text>
 
         <View style={tailwind('w-1/5 items-end')}>
           <TouchableOpacity style={tailwind('w-14 h-8 items-end justify-center')}
@@ -53,7 +56,7 @@ function CreateAlbumModal({ dispatch, showAlbumModal, albumTitle, setAlbumTitle 
         <TextInput
           style={[tailwind('w-full h-9 bg-gray-10 text-xs font-averta-regular pl-10'), { fontSize: normalize(13) }]}
           placeholderTextColor={getColor('gray-50')}
-          placeholder='Name your memories'
+          placeholder={strings.screens.photos.modals.create_album.name_input}
           onChangeText={value => setAlbumTitle(value)}
           value={albumTitle}
           autoCapitalize='none'
@@ -64,14 +67,15 @@ function CreateAlbumModal({ dispatch, showAlbumModal, albumTitle, setAlbumTitle 
       <TouchableOpacity style={tailwind('self-center mt-8 bg-blue-60 px-4 py-3 rounded-full')}
         onPress={() => {
           if (!albumTitle) {
-            SimpleToast.show('The album name can not be empty')
-            return
+            return SimpleToast.show(strings.screens.photos.modals.create_album.name_error)
           }
           setIsOpen(false)
           dispatch(layoutActions.openSelectPhotosForAlbumModal())
         }}
       >
-        <Text style={[tailwind('text-center text-base text-white font-averta-regular'), { fontSize: normalize(14) }]}>Add photos to album</Text>
+        <Text style={[tailwind('text-center text-base text-white font-averta-regular'), { fontSize: normalize(14) }]}>
+          {strings.screens.photos.modals.create_album.button}
+        </Text>
       </TouchableOpacity>
     </Modal>
   );

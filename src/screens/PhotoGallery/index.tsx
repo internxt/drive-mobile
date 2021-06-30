@@ -21,6 +21,7 @@ import { IAlbumsToRender, IPhotosToRender, IPhotoToRender } from '../../library/
 import { getNullPreviews, getUploadedPhotos } from '../../library/apis/photoGallery';
 import { getLocalImages, getPreviews, initUser, separatePhotos, stopSync, syncPhotos, syncPreviews } from '../../library/services/photoGallery';
 import { IStoreReducers } from '../../library/interfaces/redux';
+import strings from '../../../assets/lang/strings';
 
 interface PhotoGalleryProps {
   navigation: any
@@ -338,9 +339,9 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     <View>
       {
         selectedFilter === 'download' ?
-          <Text style={tailwind('font-light text-center text-base')}>Here you can see the photos that you have uploaded to Internxt Photos but are no longer stored on your phone&apos;s gallery.</Text>
+          <Text style={tailwind('font-light text-center text-base')}>{strings.screens.photos.screens.photos.empty_download_filter}</Text>
           :
-          <Text style={tailwind('font-light text-center text-base')}>Here you can see the photos from your gallery that have not yet been uploaded to Internxt Photos.</Text>
+          <Text style={tailwind('font-light text-center text-base')}>{strings.screens.photos.screens.photos.empty_upload_filter}</Text>
       }
     </View>
   )
@@ -367,14 +368,13 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
           <Header
             title={headerTitle}
             setHeaderTitle={setHeaderTitle}
-            isSyncing={props.isSyncing}
             isAlbumSelected={isAlbumSelected}
             setIsAlbumSelected={setIsAlbumSelected}
             selectedFilter={selectedFilter}
             handleFilterSelection={handleFilterSelection}
             searchString={searchString}
-            setSearchString={setSearchString}
             setAlbumTitle={setAlbumTitle}
+            setSearchString={setSearchString}
           />
 
           {
@@ -409,7 +409,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                   getItemLayout={getItemLayoutPhoto}
                   style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
                 />
-
           }
 
           <Footer
@@ -427,7 +426,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
 const mapStateToProps = (state: IStoreReducers) => {
   return {
-    isSyncing: state.photosState.isSyncing,
     loggedIn: state.authenticationState.loggedIn,
     isSavePhotosPreviewsDB: state.photosState.isSavePhotosPreviewsDB,
     photosToRender: state.photosState.photosToRender,
