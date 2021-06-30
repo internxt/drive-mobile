@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BackHandler, SafeAreaView, View, FlatList, Text, Dimensions, Alert } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import { getLocalImages, getNullPreviews, getPreviews, getUploadedPhotos, IHashedPhoto, initUser, separatePhotos, stopSync, syncPhotos, syncPreviews } from './init'
 import { getAlbumsRepository, getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { layoutActions, photoActions } from '../../redux/actions';
 import { queue } from 'async';
@@ -12,15 +11,18 @@ import CreateAlbumModal from '../../modals/CreateAlbumModal';
 import SelectPhotosModal from '../../modals/CreateAlbumModal/SelectPhotosModal';
 import { tailwind } from '../../tailwind.js'
 import AlbumCard from '../../components/AlbumCard';
-import { IStoreReducers } from '../../types/redux';
 import { getAlbums } from '../../modals/CreateAlbumModal/init';
 import Footer from './Footer';
 import SettingsModal from '../../modals/SettingsModal';
 import SimpleToast from 'react-native-simple-toast';
 import { store } from '../../store';
 import allSettled from 'promise.allsettled'
+import { IAlbumsToRender, IPhotosToRender, IPhotoToRender } from '../../library/interfaces/photos';
+import { getNullPreviews, getUploadedPhotos } from '../../library/apis/photoGallery';
+import { getLocalImages, getPreviews, initUser, separatePhotos, stopSync, syncPhotos, syncPreviews } from '../../library/services/photoGallery';
+import { IStoreReducers } from '../../library/interfaces/redux';
 
-interface IPhotoGalleryProps {
+interface PhotoGalleryProps {
   navigation: any
   dispatch: Dispatch,
   loggedIn: boolean
@@ -32,31 +34,12 @@ interface IPhotoGalleryProps {
   isSaveAlbumsDB: boolean
 }
 
-export interface IPhotosToRender {
-  [hash: string]: IPhotoToRender
-}
-
-export interface IAlbumsToRender {
-  [albumId: string]: {
-    hashes: string[],
-    name: string
-  }
-}
-
-export interface IPhotoToRender extends IHashedPhoto {
-  isLocal: boolean,
-  isUploaded: boolean,
-  isDownloading: boolean,
-  isUploading: boolean,
-  isSelected: boolean
-}
-
 export const objectFilter = (obj: Record<any, any>, fn): Record<any, any> => Object.fromEntries(Object.entries(obj).filter(fn))
 export const objectMap = (obj: Record<any, any>, fn): Record<any, any> => Object.fromEntries(Object.entries(obj).map(([key, value], i) => [key, fn(value, key, i)]))
 const DEVICE_WIDTH = Dimensions.get('window').width
 const DEVICE_HEIGHT = Dimensions.get('window').height
 
-function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
+function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const [selectedFilter, setSelectedFilter] = useState('none')
   const [headerTitle, setHeaderTitle] = useState('INTERNXT PHOTOS')
   const [albumTitle, setAlbumTitle] = useState('')
@@ -91,6 +74,7 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
 
       if (!localPhotos.assets) {
         finished = true
+        // ! This is wrong, explicitly check if permission denied
         Alert.alert('Permission denied', 'To be able to use Internxt Photos you must grant the app access to your gallery.')
         break
       }
@@ -403,6 +387,8 @@ function PhotoGallery(props: IPhotoGalleryProps): JSX.Element {
                 getItemLayout={getItemLayoutPhoto}
                 ListEmptyComponent={EmptyPhotosToRenderList}
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
+                removeClippedSubviews={true}
+                windowSize={5}
               />
               :
               !isAlbumSelected ?

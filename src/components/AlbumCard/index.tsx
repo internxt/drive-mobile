@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View, TouchableOpacity, Image, Dimensions } from 'react-native';
-import { IPhotosToRender } from '../../screens/PhotoGallery';
 import { tailwind } from '../../tailwind'
-import { IStoreReducers } from '../../types/redux';
 import { connect } from 'react-redux';
 import img from '../../../assets/images/img.jpg'
 import { normalize } from '../../helpers';
+import { IPhotosToRender } from '../../library/interfaces/photos';
+import { IStoreReducers } from '../../library/interfaces/redux';
+
 export interface AlbumProps {
   album: { hashes: string[], name: string }
   photosToRender: IPhotosToRender

@@ -2,14 +2,14 @@ import React, { useState } from 'react'
 import { StyleSheet, ActivityIndicator, View, Platform, TouchableOpacity, Dimensions, Image } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import PhotoBadge from './PhotoBadge';
-import { cachePicture, downloadPhoto } from '../../screens/PhotoGallery/init';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
 import { tailwind } from '../../tailwind'
-import { IPhotoToRender } from '../../screens/PhotoGallery';
 import { unlink } from 'react-native-fs';
 import { photoActions } from '../../redux/actions';
-import { ISelectedPhoto } from '../../modals/CreateAlbumModal/SelectPhotosModal';
+import { IPhotoToRender, ISelectedPhoto } from '../../library/interfaces/photos';
+import { downloadPhoto } from '../../library/apis/photoGallery';
+import { cachePicture } from '../../library/services/photoGallery';
 interface PhotoProps {
   badge?: JSX.Element
   item: IPhotoToRender
