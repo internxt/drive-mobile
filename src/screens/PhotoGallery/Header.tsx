@@ -8,13 +8,14 @@ import { normalize } from '../../helpers'
 import { store } from '../../store'
 import { layoutActions } from '../../redux/actions'
 import strings from '../../../assets/lang/strings'
+import { FilterTypes } from '../../library/interfaces/photos'
 
 interface HeaderProps {
   title: string
   setHeaderTitle: React.Dispatch<React.SetStateAction<string>>
   isAlbumSelected: boolean
   setIsAlbumSelected: React.Dispatch<React.SetStateAction<boolean>>
-  selectedFilter: string
+  selectedFilter: FilterTypes
   handleFilterSelection: (filterName: string) => void
   searchString: string
   setAlbumTitle: React.Dispatch<React.SetStateAction<string>>

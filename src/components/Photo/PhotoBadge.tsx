@@ -38,7 +38,7 @@ export default function PhotoBadge(props: PhotoBadgeProps): JSX.Element {
   }
 
   return (
-    <View style={tailwind('absolute bottom-0 right-0 mr-2 mb-2 z-20')}>
+    <View style={tailwind('absolute bottom-0 right-0 mr-2 mb-2 z-30')}>
       <Icon />
     </View>
   )

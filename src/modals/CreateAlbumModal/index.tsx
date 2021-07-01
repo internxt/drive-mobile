@@ -6,7 +6,6 @@ import { layoutActions } from '../../redux/actions';
 import CrossBlue from '../../../assets/icons/photos/cross-blue.svg'
 import FolderWithCross from '../../../assets/icons/photos/folder-with-cross-blue.svg'
 import SimpleToast from 'react-native-simple-toast';
-import { IAPIPhoto } from '../../types/api/photos/IApiPhoto';
 import { normalize } from '../../helpers';
 import strings from '../../../assets/lang/strings';
 
@@ -15,20 +14,6 @@ interface CreateAlbumProps {
   showAlbumModal: boolean
   albumTitle: string
   setAlbumTitle: React.Dispatch<React.SetStateAction<string>>
-}
-
-export interface IAPIAlbum {
-  createdAt: Date
-  id: number
-  name: string
-  photos: IAPIPhoto[]
-  updatedAt: Date
-  userId: number
-}
-
-export interface ISaveableAlbum {
-  name: string
-  photos: number[]
 }
 
 function CreateAlbumModal({ dispatch, showAlbumModal, albumTitle, setAlbumTitle }: CreateAlbumProps): JSX.Element {

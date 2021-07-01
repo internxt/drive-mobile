@@ -7,13 +7,14 @@ import CloudDownloadGray from '../../../assets/icons/photos/cloud-download-gray.
 import CloudUploadWhite from '../../../assets/icons/photos/cloud-upload-white.svg'
 import CloudUploadGray from '../../../assets/icons/photos/cloud-upload-gray.svg'
 import { normalize } from '../../helpers'
+import { FilterTypes } from '../../library/interfaces/photos'
 
 interface FilterButtonProps {
   width: string,
   corners: string,
   text: string,
   filter: string,
-  activeFilter: string
+  activeFilter: FilterTypes
   handleFilterSelection?: (filterName: string) => void
 }
 
@@ -31,7 +32,7 @@ const FilterButton = ({ width, corners, text, filter, handleFilterSelection, act
   return (
     <View style={tailwind(width)}>
       {filter === 'download' ?
-        activeFilter === 'download' ?
+        activeFilter === FilterTypes.download ?
           <TouchableOpacity
             style={tailwind(`flex-row h-8 ${corners} bg-blue-60 items-center justify-center ml-px mr-px`)}
             onPress={() => handleFilterSelection(filter)}
@@ -56,7 +57,7 @@ const FilterButton = ({ width, corners, text, filter, handleFilterSelection, act
       }
 
       {filter === 'upload' ?
-        activeFilter === 'upload' ?
+        activeFilter === FilterTypes.upload ?
           <TouchableOpacity
             style={tailwind(`flex-row h-8 ${corners} bg-blue-60 items-center justify-center ml-px mr-px`)}
             onPress={() => handleFilterSelection(filter)}

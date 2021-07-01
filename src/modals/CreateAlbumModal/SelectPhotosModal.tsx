@@ -2,12 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Dimensions, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { tailwind } from '../../tailwind'
 import { layoutActions, photoActions } from '../../redux/actions';
-import Photo from '../../components/PhotoList/Photo';
-import { IPhotosToRender, IPhotoToRender } from '../../screens/PhotoGallery';
+import Photo from '../../components/Photo/Photo';
 import { uploadAlbum } from './init';
 import SimpleToast from 'react-native-simple-toast';
 import { normalize } from '../../helpers';
 import Modal from 'react-native-modal';
+import { IPhotosToRender, IPhotoToRender, ISelectedPhoto } from '../../library/interfaces/photos';
 import strings from '../../../assets/lang/strings';
 
 interface SelectPhotosModalProps {
@@ -16,11 +16,6 @@ interface SelectPhotosModalProps {
   photos: IPhotosToRender
   albumTitle: string
   setAlbumTitle: React.Dispatch<React.SetStateAction<string>>
-}
-
-export interface ISelectedPhoto {
-  hash: string
-  photoId: number
 }
 
 const DEVICE_WIDTH = Dimensions.get('window').width
@@ -81,8 +76,9 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
         dispatch(layoutActions.closeSelectPhotosForAlbumModal())
         dispatch(photoActions.clearSelectedPhotos())
       }}
+      swipeDirection='down'
       coverScreen={false}
-      swipeDirection={'down'}
+      propagateSwipe={true}
       onSwipeComplete={(e) => { setIsOpen(false) }}
       swipeThreshold={150}
     >
@@ -125,9 +121,7 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
             null
         }
       </View>
-
     </Modal>
-
   );
 }
 

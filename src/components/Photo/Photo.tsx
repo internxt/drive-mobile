@@ -2,14 +2,14 @@ import React, { useState } from 'react'
 import { StyleSheet, ActivityIndicator, View, Platform, TouchableOpacity, Dimensions, Image } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import PhotoBadge from './PhotoBadge';
-import { cachePicture, downloadPhoto } from '../../screens/PhotoGallery/init';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleToast from 'react-native-simple-toast';
 import { tailwind } from '../../tailwind'
-import { IPhotoToRender } from '../../screens/PhotoGallery';
 import { unlink } from 'react-native-fs';
 import { photoActions } from '../../redux/actions';
-import { ISelectedPhoto } from '../../modals/CreateAlbumModal/SelectPhotosModal';
+import { IPhotoToRender, ISelectedPhoto } from '../../library/interfaces/photos';
+import { downloadPhoto } from '../../library/apis/photoGallery';
+import { cachePicture } from '../../library/services/photoGallery.service';
 interface PhotoProps {
   badge?: JSX.Element
   item: IPhotoToRender
@@ -28,37 +28,31 @@ const Photo = ({ badge, item, dispatch, photoSelection, handleSelection }: Photo
       const photoObj = { hash: item.hash, photoId: item.photoId }
 
       handleSelection(photoObj)
-      return dispatch(photoActions.updatePhotoStatusSelection(item.hash))
+      dispatch(photoActions.updatePhotoStatusSelection(item.hash))
+      return
     }
-    if (!item.localUri) { return }
+    if (!item.localUri) {
+      return
+    }
 
     if (item.isUploaded && !item.isLocal && !item.isDownloading) {
       dispatch(photoActions.updatePhotoStatusDownload(item.hash, false))
       let error = false
 
-      downloadPhoto(item, setProgress).then((path) => {
-        item.localUri = path
+      downloadPhoto(item, setProgress, dispatch).then(() => {
         SimpleToast.show('Image downloaded!', 0.15)
       }).catch(err => {
         error = true
         SimpleToast.show('Could not download image', 0.15)
       }).finally(() => {
+        setProgress(0)
         dispatch(photoActions.updatePhotoStatusDownload(item.hash, true))
         if (!error) { dispatch(photoActions.updatePhotoStatus(item.hash, true, true)) }
       })
     } else {
-      let filename = ''
-      let localUri = ''
+      const filename = item.filename ? item.filename : item.photoId + '.' + item.type
 
-      if (item.filename) {
-        filename = item.filename
-        localUri = item.localUri
-      } else {
-        filename = item.photoId + '.' + item.type
-        localUri = item.localUri
-      }
-
-      cachePicture(filename, localUri).then(path => {
+      cachePicture(filename, item.localUri).then(path => {
         FileViewer.open(path, {
           onDismiss: () => unlink(path)
         })
