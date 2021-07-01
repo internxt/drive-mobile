@@ -189,7 +189,7 @@ function SettingsModal(props: SettingsModalProps) {
         onPress={() => Linking.openURL('https://internxt.com/drive')}
       />
 
-      <SettingsItem
+      {/* <SettingsItem
         text={props.layoutState.currentApp === 'PhotoGallery' ? strings.components.app_menu.settings.drive : strings.components.app_menu.settings.photos}
         onPress={async () => {
 
@@ -201,7 +201,7 @@ function SettingsModal(props: SettingsModalProps) {
             props.navigation.replace('PhotoGallery')
           }
         }}
-      />
+      /> */}
 
       <SettingsItem
         text={strings.components.app_menu.settings.contact}
