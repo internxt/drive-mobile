@@ -71,8 +71,11 @@ const strings = new LocalizedStrings({
             "upload_filter": "Upload pending",
             "empty_download_filter": "Here you can see the photos that you have uploaded to Internxt Photos but are no longer stored on your phone's gallery.",
             "empty_upload_filter": "Here you can see the photos from your gallery that have not yet been uploaded to Internxt Photos.",
+            "empty_none_filter": "Here you can see the photos from your gallery and the ones that you have uploaded to Internxt Photos.",
             "add_album": "Add album",
-            "search_input": "Search a memory"
+            "search_input": "Search a memory",
+            "permission_denied": "We need media library permissions to be able to upload and download photos from the cloud. Access the app settings from your phone to grant the needed permissions, or enter again to Internxt Photos and click 'Open app settings'.",
+            "open_app_settings": "Open app settings"
           }
         },
         "modals": {
@@ -91,6 +94,14 @@ const strings = new LocalizedStrings({
             "already_exists_error": "An album with the same name already exists.",
             "other_error": "Could not create album.",
             "select_error": "You need to select at least one photo."
+          }
+        },
+        "alerts": {
+          "permission_denied": {
+            "title_1": "Permission denied",
+            "title_2": "Internxt Photos needs access to your gallery",
+            "button": "Open app settings",
+            "error": "Could not open app settings"
           }
         }
       }
@@ -252,8 +263,11 @@ const strings = new LocalizedStrings({
             "upload_filter": "Por subir",
             "empty_download_filter": "Aquí podrás ver todas las fotos que has subido a Internxt Photos pero que ya no tienes disponibles en la galería de tu móvil.",
             "empty_upload_filter": "Aqui podrás ver todas las fotos de la galería de tu móvil que todavía no se han subido a Internxt Photos.",
+            "empty_none_filter": "Aquí podrás ver todas las fotos que tengas en la galería de tu móvil y las que has subido a Internxt Photos.",
             "add_album": "Crear álbum",
-            "search_input": "Busca un recuerdo"
+            "search_input": "Busca un recuerdo",
+            "permission_denied": "Necesitamos permisos para acceder a la galería para subir y bajar fotos de la nube. Accede a las opciones de la app en tu teléfono para otorgar permisos, o vuelve a entrar a Internxt Photos y pincha sobre 'Abrir opciones de aplicación'.",
+            "open_app_settings": "Abrir opciones de aplicación"
           }
         },
         "modals": {
@@ -272,6 +286,14 @@ const strings = new LocalizedStrings({
             "already_exists_error": "Un álbum con el mismo nombre ya existe.",
             "other_error": "No se pudo crear el álbum.",
             "select_error": "Necesitas seleccionar por lo menos una foto."
+          }
+        },
+        "alerts": {
+          "permission_denied": {
+            "title_1": "Permiso bloqueado",
+            "title_2": "Internxt Photos necesita acceder a la galería",
+            "button": "Abrir configuración",
+            "error": "Error abriendo configuración"
           }
         }
       }

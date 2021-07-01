@@ -1,27 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BackHandler, SafeAreaView, View, FlatList, Text, Dimensions, Alert } from 'react-native';
+import { BackHandler, SafeAreaView, View, FlatList, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { getAlbumsRepository, getRepositoriesDB } from '../../database/DBUtils.ts/utils';
 import { layoutActions, photoActions } from '../../redux/actions';
 import { queue } from 'async';
-import Photo from '../../components/PhotoList/Photo';
+import Photo from '../../components/Photo/Photo';
 import Header from './Header';
 import CreateAlbumModal from '../../modals/CreateAlbumModal';
 import SelectPhotosModal from '../../modals/CreateAlbumModal/SelectPhotosModal';
 import { tailwind } from '../../tailwind.js'
 import AlbumCard from '../../components/AlbumCard';
-import { getAlbums } from '../../modals/CreateAlbumModal/init';
+import { getUploadedAlbums } from '../../modals/CreateAlbumModal/init';
 import Footer from './Footer';
 import SettingsModal from '../../modals/SettingsModal';
 import SimpleToast from 'react-native-simple-toast';
 import { store } from '../../store';
 import allSettled from 'promise.allsettled'
-import { IAlbumsToRender, IPhotosToRender, IPhotoToRender } from '../../library/interfaces/photos';
+import { FilterTypes, IAlbumsToRender, IPhotosToRender, IPhotoToRender } from '../../library/interfaces/photos';
 import { getNullPreviews, getUploadedPhotos } from '../../library/apis/photoGallery';
-import { getLocalImages, getPreviews, initUser, separatePhotos, stopSync, syncPhotos, syncPreviews } from '../../library/services/photoGallery';
+import { getLocalImages, hasMediaPermission, getPreviews, initUser, separatePhotos, stopSync, syncPhotos, syncPreviews } from '../../library/services/photoGallery.service';
 import { IStoreReducers } from '../../library/interfaces/redux';
-import strings from '../../../assets/lang/strings';
+import EmptyPhotosToRenderList from './EmptyPhotoList';
 
 interface PhotoGalleryProps {
   navigation: any
@@ -41,7 +41,7 @@ const DEVICE_WIDTH = Dimensions.get('window').width
 const DEVICE_HEIGHT = Dimensions.get('window').height
 
 function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
-  const [selectedFilter, setSelectedFilter] = useState('none')
+  const [selectedFilter, setSelectedFilter] = useState(FilterTypes.none)
   const [headerTitle, setHeaderTitle] = useState('INTERNXT PHOTOS')
   const [albumTitle, setAlbumTitle] = useState('')
   const [searchString, setSearchString] = useState('')
@@ -58,6 +58,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
 
   const [hasMoreLocals, setHasMoreLocals] = useState<boolean>(true)
   const [nullablePreviews, setNullablePreviews] = useState<any>([])
+  const [permissionGranted, setPermissionGranted] = useState(true)
 
   const startSyncProcess = async () => {
     let finished = false
@@ -70,13 +71,13 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     const alreadyUploadedPhotos = await getUploadedPhotos()
     const withPreviews = alreadyUploadedPhotos.filter(photo => !!photo.preview)
 
+    getPreviews(alreadyUploadedPhotos, props.dispatch)
+
     while (!finished) {
       const localPhotos = await getLocalImages(lastPickedImage)
 
       if (!localPhotos.assets) {
         finished = true
-        // ! This is wrong, explicitly check if permission denied
-        Alert.alert('Permission denied', 'To be able to use Internxt Photos you must grant the app access to your gallery.')
         break
       }
       props.dispatch(photoActions.startSync())
@@ -179,17 +180,17 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   }
 
   // filter the photos
-  const handleFilterSelection = (filterName: string) => {
-    selectedFilter === filterName ? setSelectedFilter('none') : setSelectedFilter(filterName)
+  const handleFilterSelection = (filterName: FilterTypes) => {
+    selectedFilter === filterName ? setSelectedFilter(FilterTypes.none) : setSelectedFilter(filterName)
 
     switch (true) {
-    case filterName === 'upload' && (selectedFilter !== 'upload'):
+    case filterName === FilterTypes.upload && (selectedFilter !== FilterTypes.upload):
       return setPhotosToRender(uploadPendingPhotos)
 
-    case filterName === 'download' && (selectedFilter !== 'download'):
+    case filterName === FilterTypes.download && (selectedFilter !== FilterTypes.download):
       return setPhotosToRender(downloadReadyPhotos)
 
-    // if clicked on the same filter restore array
+      // if clicked on the same filter restore array
     case filterName === selectedFilter:
       return setPhotosToRender(normalPhotos)
     }
@@ -201,14 +202,23 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   }
 
   useEffect(() => {
-    initUser().then(() => {
-      loadDataFromLocalDB().finally(() => startSyncProcess())
-      getPreviews(props.dispatch)
-      getAlbums()
-      getNullPreviews().then((res) => {
-        setNullablePreviews(res)
-      })
-    })
+    const initializePhotos = async () => {
+      await initUser
+      const granted = await hasMediaPermission()
+
+      if (!granted) {
+        setPermissionGranted(false)
+        return
+      }
+      await loadDataFromLocalDB()
+      startSyncProcess()
+      getUploadedAlbums()
+      const photosWithoutPreview = await getNullPreviews()
+
+      setNullablePreviews(photosWithoutPreview)
+    }
+
+    initializePhotos()
   }, [])
 
   useEffect(() => {
@@ -228,9 +238,9 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     setPhotosForAlbumCreation(selectivePhotos)
     setNormalPhotos(props.photosToRender)
 
-    if (selectedFilter === 'none') { setPhotosToRender(props.photosToRender) }
-    if (selectedFilter === 'upload') { setPhotosToRender(uploadPending) }
-    if (selectedFilter === 'download') { setPhotosToRender(downloadReady) }
+    if (selectedFilter === FilterTypes.none) { setPhotosToRender(props.photosToRender) }
+    if (selectedFilter === FilterTypes.upload) { setPhotosToRender(uploadPending) }
+    if (selectedFilter === FilterTypes.download) { setPhotosToRender(downloadReady) }
   }, [props.photosToRender])
 
   // after a preview gets downloaded and saved to the db...
@@ -289,8 +299,8 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     let count = 0
     // BackHandler
     const backAction = () => {
-      if (selectedFilter !== 'none') {
-        setSelectedFilter('none')
+      if (selectedFilter !== FilterTypes.none) {
+        setSelectedFilter(FilterTypes.none)
         return true
       }
       if (headerTitle !== 'INTERNXT PHOTOS') {
@@ -338,17 +348,6 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
   const keyExtractorAlbum = useCallback((item, index) => index, [albums])
   const getItemLayoutAlbum = useCallback((data, index) => ({ length: (DEVICE_WIDTH - 80) / 3, offset: ((DEVICE_WIDTH - 80) / 3) * index, index }), [])
 
-  const EmptyPhotosToRenderList = (): JSX.Element => (
-    <View>
-      {
-        selectedFilter === 'download' ?
-          <Text style={tailwind('font-light text-center text-base')}>{strings.screens.photos.screens.photos.empty_download_filter}</Text>
-          :
-          <Text style={tailwind('font-light text-center text-base')}>{strings.screens.photos.screens.photos.empty_upload_filter}</Text>
-      }
-    </View>
-  )
-
   return (
     <View style={tailwind('flex-1')}>
       <CreateAlbumModal
@@ -388,7 +387,7 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
                 keyExtractor={keyExtractorPhoto}
                 renderItem={renderItemPhoto}
                 getItemLayout={getItemLayoutPhoto}
-                ListEmptyComponent={EmptyPhotosToRenderList}
+                ListEmptyComponent={EmptyPhotosToRenderList(permissionGranted, selectedFilter)}
                 style={[tailwind('mt-3'), { height: DEVICE_HEIGHT * 0.8 }]}
                 removeClippedSubviews={true}
                 windowSize={5}

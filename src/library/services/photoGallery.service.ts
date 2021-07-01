@@ -5,11 +5,14 @@ import allSettled from 'promise.allsettled'
 import { copyFile, exists, hash, mkdir, stat, unlink } from 'react-native-fs'
 import { differenceBy } from 'lodash'
 import { mapSeries, queue } from 'async'
-import { downloadPreview, downloadPreviewAfterUpload, getUploadedPhotos, initializePhotosUser, photosUserData, uploadPhoto, uploadPreviewIfNull } from '../apis/photoGallery'
+import { downloadPreview, downloadPreviewAfterUpload, initializePhotosUser, photosUserData, uploadPhoto, uploadPreviewIfNull } from '../apis/photoGallery'
 import { checkExistsUriTrash, removeUrisFromUrisTrash, savePhotosAndPreviewsDB, updateLocalUriPreviews } from '../../database/DBUtils.ts/utils'
 import RNFetchBlob from 'rn-fetch-blob'
-import { Platform } from 'react-native'
+import { Alert, Platform } from 'react-native'
 import { deviceStorage } from '../../helpers'
+import { openSettings } from 'react-native-permissions'
+import SimpleToast from 'react-native-simple-toast'
+import strings from '../../../assets/lang/strings'
 
 let SHOULD_STOP = false;
 
@@ -22,12 +25,6 @@ export const getLocalImages = async (after?: string | undefined): Promise<LocalI
     endCursor: undefined,
     assets: [],
     hasNextPage: false
-  }
-
-  const permissions = await requestPermissionsAsync()
-
-  if (permissions.status !== 'granted') {
-    return
   }
   const assets = await getAssetsAsync({ first: 20, after: after, sortBy: [SortBy.modificationTime] })
   const hashedAssets = await getArrayPhotos(assets.assets)
@@ -172,14 +169,8 @@ const existsPreview = async (preview: IApiPreview): Promise<{ exists: boolean, t
   return { exists: existsPreview, tempPath }
 }
 
-export const getPreviews = async (dispatch: any): Promise<void> => {
+export const getPreviews = async (uploadedPhotos: IApiPhotoWithPreview[], dispatch: any): Promise<void> => {
   SHOULD_STOP = false
-  const uploadedPhotos = (await getUploadedPhotos()).filter(photo => photo.preview)
-
-  if (!uploadedPhotos) {
-    return
-  }
-
   for (const photo of uploadedPhotos) {
     try {
       if (SHOULD_STOP) {
@@ -236,4 +227,21 @@ export async function initUser(): Promise<void> {
   const infoUserPhoto = await photosUserData()
 
   await deviceStorage.saveItem('xPhotos', JSON.stringify(infoUserPhoto))
+}
+
+export const hasMediaPermission = async (): Promise<boolean> => {
+  const { status } = await requestPermissionsAsync()
+
+  if (status === 'denied') {
+    Alert.alert(strings.screens.photos.alerts.permission_denied.title_1, strings.screens.photos.alerts.permission_denied.title_2, [
+      {
+        text: strings.screens.photos.alerts.permission_denied.button,
+        onPress: async () => openSettings().catch(() => SimpleToast.show(strings.screens.photos.alerts.permission_denied.error))
+      },
+      { text: 'Dismiss', style: 'destructive' }
+    ], { cancelable: true })
+
+    return false
+  }
+  return true
 }

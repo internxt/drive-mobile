@@ -59,6 +59,7 @@
     "react-native-localization": "^2.1.6",
     "react-native-modal": "^11.10.0",
     "react-native-modalbox": "^2.0.2",
+    "react-native-permissions": "^3.0.4",
     "react-native-receive-sharing-intent": "^1.1.0",
     "react-native-responsive-screen": "^1.4.1",
     "react-native-safe-area-context": "3.2.0",

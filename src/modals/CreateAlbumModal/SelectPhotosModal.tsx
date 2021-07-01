@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Dimensions, FlatList, Text, TouchableOpacity, View } from 'react-native';
 import { tailwind } from '../../tailwind'
 import { layoutActions, photoActions } from '../../redux/actions';
-import Photo from '../../components/PhotoList/Photo';
+import Photo from '../../components/Photo/Photo';
 import { uploadAlbum } from './init';
 import SimpleToast from 'react-native-simple-toast';
 import { normalize } from '../../helpers';

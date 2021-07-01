@@ -3,7 +3,7 @@ import { photoActions } from '../../redux/actions'
 import PackageJson from '../../../package.json'
 import { Platform } from 'react-native'
 import RNFetchBlob from 'rn-fetch-blob'
-import { createCompressedPhoto, getLocalPhotosDir, getPreviewAfterUpload } from '../services/photoGallery'
+import { createCompressedPhoto, getLocalPhotosDir, getPreviewAfterUpload } from '../services/photoGallery.service'
 import { getHeaders } from '../../helpers/headers'
 import { Dispatch, SetStateAction } from 'react'
 import { IAPIPhoto, IApiPhotoWithPreview, IApiPreview, IHashedPhoto, IPhotoToRender, IUploadedPhoto } from '../interfaces/photos'
@@ -103,6 +103,7 @@ export const downloadPhoto = async (photo: IPhotoToRender, setProgress: Dispatch
   const path = blobResponse.path()
 
   await CameraRoll.save(path)
+  blobResponse.flush()
   dispatch(photoActions.updatePhotoStatus(photo.hash, true, true, path, photo.photoId))
 }
 
@@ -204,6 +205,7 @@ export const photosUserData = async (): Promise<any> => {
   return fetchResponse.json()
 }
 
+// ! Both getNullPreviews & uploadPreviewIfNull methods must get deleted in the future as the possibility of having null previews doesnt exist anymore
 export const getNullPreviews = async (): Promise<IApiPreview> => {
   const headers = await getHeaders()
   const fetchResponse = await fetch(`${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/storage/exists/previews`, {
@@ -213,8 +215,6 @@ export const getNullPreviews = async (): Promise<IApiPreview> => {
 
   return fetchResponse.json()
 }
-
-// ! This method must get deleted in the future as the possibility of having null previews doesnt exist anymore
 export const uploadPreviewIfNull = async (photoId: number, originalPhoto: IHashedPhoto, dispatch: any, apiPhoto: IAPIPhoto): Promise<void> => {
   dispatch(photoActions.updatePhotoStatusUpload(originalPhoto.hash, false))
   const compressedPhoto = await createCompressedPhoto(originalPhoto.uri)

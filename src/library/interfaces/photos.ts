@@ -63,6 +63,12 @@ export interface IApiPhotoWithPreview extends IAPIPhoto {
   preview: IApiPreview
 }
 
+export enum FilterTypes {
+  upload = 'upload',
+  download = 'download',
+  none = 'none'
+}
+
 // * Albums interfaces
 export interface IAPIAlbum {
   createdAt: Date

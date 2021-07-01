@@ -9,7 +9,7 @@ import { unlink } from 'react-native-fs';
 import { photoActions } from '../../redux/actions';
 import { IPhotoToRender, ISelectedPhoto } from '../../library/interfaces/photos';
 import { downloadPhoto } from '../../library/apis/photoGallery';
-import { cachePicture } from '../../library/services/photoGallery';
+import { cachePicture } from '../../library/services/photoGallery.service';
 interface PhotoProps {
   badge?: JSX.Element
   item: IPhotoToRender
