@@ -79,31 +79,31 @@ export const uploadPhoto = async (photo: IHashedPhoto, dispatch: any) => {
   }
 }
 
-export const downloadPhoto = async (photo: IPhotoToRender, setProgress?: Dispatch<SetStateAction<number>>): Promise<string> => {
+export const downloadPhoto = async (photo: IPhotoToRender, setProgress: Dispatch<SetStateAction<number>>, dispatch: any): Promise<void> => {
   const xToken = await deviceStorage.getItem('xToken')
   const xUser = await deviceStorage.getItem('xUser')
   const xUserJson = JSON.parse(xUser || '{}')
   const { type, id, photoId } = photo
   const tempDir = await getLocalPhotosDir()
 
-  const fetchResponse = await RNFetchBlob.config({
-    path: `${tempDir}/${id}.${type}`,
-    fileCache: true
+  const blobResponse = await RNFetchBlob.config({
+    path: `${tempDir}/${id}.${type}`
   }).fetch('GET', `${process.env.REACT_NATIVE_PHOTOS_API_URL}/api/photos/download/photo/${photoId}`, {
     'Authorization': `Bearer ${xToken}`,
     'internxt-mnemonic': xUserJson.mnemonic
   }).progress((received: number, total: number) => {
     setProgress(received / total)
+  }).catch(err => {
+    throw new Error('RNFetchBlob photo download error: ' + err.message)
   })
 
-  if (fetchResponse.respInfo.status !== 200) {
+  if (blobResponse.respInfo.status !== 200) {
     throw new Error('Unable to download photo')
   }
-  const path = fetchResponse.path()
+  const path = blobResponse.path()
 
   await CameraRoll.save(path)
-  setProgress(0)
-  return path
+  dispatch(photoActions.updatePhotoStatus(photo.hash, true, true, path, photo.photoId))
 }
 
 export const downloadPreview = async (preview: IApiPreview, tempPath: string): Promise<string> => {

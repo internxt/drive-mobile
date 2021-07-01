@@ -153,7 +153,7 @@ export const cachePicture = async (filename: string, localUri: string): Promise<
 }
 
 export const getLocalPhotosDir = async (): Promise<string> => {
-  const tempDir = (Platform.OS === 'android' ? RNFetchBlob.fs.dirs.CacheDir : RNFetchBlob.fs.dirs.DocumentDir) + '/drive-photos'
+  const tempDir = (Platform.OS === 'android' ? RNFetchBlob.fs.dirs.PictureDir : RNFetchBlob.fs.dirs.DocumentDir) + '/drive-photos'
   const exists = await RNFetchBlob.fs.exists(tempDir)
 
   if (!exists) {

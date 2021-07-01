@@ -289,7 +289,10 @@ function PhotoGallery(props: PhotoGalleryProps): JSX.Element {
     let count = 0
     // BackHandler
     const backAction = () => {
-      if (selectedFilter !== 'none') { setSelectedFilter('none'); return true }
+      if (selectedFilter !== 'none') {
+        setSelectedFilter('none')
+        return true
+      }
       if (headerTitle !== 'INTERNXT PHOTOS') {
         if (isAlbumSelected) { setIsAlbumSelected(false); return true }
         setHeaderTitle('INTERNXT PHOTOS')
