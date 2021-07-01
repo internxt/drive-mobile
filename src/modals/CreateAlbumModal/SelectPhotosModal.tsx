@@ -76,8 +76,9 @@ function SelectPhotosModal({ dispatch, showSelectPhotosModal, photos, albumTitle
         dispatch(layoutActions.closeSelectPhotosForAlbumModal())
         dispatch(photoActions.clearSelectedPhotos())
       }}
+      swipeDirection='down'
       coverScreen={false}
-      swipeDirection={'down'}
+      propagateSwipe={true}
       onSwipeComplete={(e) => { setIsOpen(false) }}
       swipeThreshold={150}
     >
