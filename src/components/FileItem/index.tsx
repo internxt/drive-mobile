@@ -15,11 +15,11 @@ import analytics from '../../helpers/lytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { Reducers } from '../../redux/reducers/reducers';
 import * as FileSystem from 'expo-file-system'
-
 import { LinearGradient } from 'expo-linear-gradient';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import PackageJson from '../../../package.json'
 import { NEWTORK_TIMEOUT } from '../../screens/FileExplorer/init';
+
 interface FileItemProps extends Reducers {
   isFolder: boolean
   item: IFile & IFolder | IUploadingFile
@@ -60,7 +60,8 @@ async function handleClick(props: FileItemProps, setProgress: React.Dispatch<Set
       const fileInfo = await FileSystem.getInfoAsync(props.item.uri)
 
       if (fileInfo.exists) {
-        FileViewer.open(fileInfo.uri).catch(() => { })
+        FileViewer.open(fileInfo.uri).catch((err) => {
+        })
         return
       }
     }
