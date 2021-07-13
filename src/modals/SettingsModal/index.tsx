@@ -176,18 +176,18 @@ function SettingsModal(props: SettingsModalProps) {
 
       <Separator />
 
-      {/* <SettingsItem
+      <SettingsItem
         text={strings.components.app_menu.settings.storage}
         onPress={() => {
           props.dispatch(layoutActions.closeSettings())
           props.navigation.replace('Storage')
         }}
-      /> */}
+      />
 
-      {/* <SettingsItem
+      <SettingsItem
         text={strings.components.app_menu.settings.more}
         onPress={() => Linking.openURL('https://internxt.com/drive')}
-      /> */}
+      />
 
       {/* <SettingsItem
         text={props.layoutState.currentApp === 'PhotoGallery' ? strings.components.app_menu.settings.drive : strings.components.app_menu.settings.photos}
