@@ -1,6 +1,5 @@
 import React from 'react'
 import { View, Text, StyleSheet, Image } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient';
 import { IPlan, IProduct } from '../../redux/services';
 import { getIcon } from '../../helpers/getIcon';
 import strings from '../../../assets/lang/strings';
@@ -17,10 +16,7 @@ interface PlanCardProps {
 function PlanCard(props: PlanCardProps): JSX.Element {
   return (
     <View style={styles.planContainer}>
-      <LinearGradient
-        start={[0.05, 0.95]}
-        end={[1, 0.95]}
-        colors={['#096dff', '#00b1ff']}
+      <View
         style={styles.borderRadius4}
       >
         <View style={styles.circleGradient}>
@@ -31,19 +27,19 @@ function PlanCard(props: PlanCardProps): JSX.Element {
               </Text>
               :
               <Text style={styles.text}>
-                €{(parseInt(props.price) / 100).toFixed(2)}
+                {'€'}{(parseInt(props.price) / 100).toFixed(2)}
               </Text>
           }
         </View>
-      </LinearGradient>
+      </View>
 
       <View style={styles.priceContainer}>
         {
           !props.chosen ?
             <View style={styles.priceBackground}>
-              <Text style={styles.price}>€{props.price}</Text>
+              <Text style={styles.price}>{'€'}{props.price}</Text>
 
-              <Text style={[styles.price, styles.grey]}>/{strings.screens.storage.plans.month}</Text>
+              <Text style={[styles.price, styles.grey]}>{'/'}{strings.screens.storage.plans.month}</Text>
 
               {
                 props.currentPlan && props.size ?
@@ -105,7 +101,7 @@ const styles = StyleSheet.create({
   },
   price: {
     color: 'black',
-    fontFamily: 'CircularStd-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 18,
     letterSpacing: -0.13,
     lineHeight: 28.5
@@ -120,7 +116,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: 'black',
-    fontFamily: 'CircularStd-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 18,
     letterSpacing: -0.43
   }

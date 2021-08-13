@@ -1,17 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
+import { Reducers } from '../../redux/reducers/reducers';
 
-interface OutOfSpaceProps {
-  dispatch?: any,
-  navigation?: any
-}
-
-// TODO: This should be a modal, not a new screen
-function OutOfSpace(props: OutOfSpaceProps): JSX.Element {
+function OutOfSpace(props: Reducers): JSX.Element {
 
   return (
     <View style={styles.container}>
@@ -60,7 +54,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#5c6066',
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 16,
     letterSpacing: -0.2
   },
@@ -74,7 +68,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   subtitle: {
-    fontFamily: 'CerebriSans-Regular',
+    fontFamily: 'NeueEinstellung-Regular',
     fontSize: 17,
     letterSpacing: -0.1,
     lineHeight: 23,
@@ -82,7 +76,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#000000',
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 27,
     letterSpacing: -0.5
   },

@@ -1,4 +1,4 @@
-import { Dispatch } from 'redux';
+import { AnyAction, Dispatch } from 'redux';
 import { layoutActionTypes, fileActionTypes } from '../constants';
 
 export const layoutActions = {
@@ -8,10 +8,6 @@ export const layoutActions = {
   closeSettings,
   openItemModal,
   closeItemModal,
-  openCreateAlbumModal,
-  closeCreateAlbumModal,
-  openSelectPhotosForAlbumModal,
-  closeSelectPhotosForAlbumModal,
   openAddItemModal,
   closeAddItemModal,
   openRunOutStorageModal,
@@ -26,39 +22,36 @@ export const layoutActions = {
   closeDeleteModal,
   openShareModal,
   closeShareModal,
-  openUploadFileModal,
-  closeUploadFileModal,
   openComingSoonModal,
   closeComingSoonModal,
-  setCurrentApp
+  openUploadFileModal,
+  closeUploadFileModal,
+  openCreateFolderModal,
+  closeCreateFolderModal,
+  enableBackButton,
+  disableBackButton,
+  openRenameModal,
+  closeRenameModal
 };
 
-function openSearch() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_SEARCH_FORM });
-  };
+function openSearch(): AnyAction {
+  return { type: layoutActionTypes.OPEN_SEARCH_FORM };
 }
 
-function closeSearch() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_SEARCH_FORM });
-  };
+function closeSearch(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_SEARCH_FORM };
 }
 
-function openSettings() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_SETTINGS_MODAL });
-  };
+function openSettings(): AnyAction {
+  return { type: layoutActionTypes.OPEN_SETTINGS_MODAL };
 }
 
-function closeSettings() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_SETTINGS_MODAL });
-  };
+function closeSettings(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_SETTINGS_MODAL };
 }
 
 function openItemModal(item: any) {
-  return (dispatch: Dispatch) => {
+  return (dispatch: Dispatch): void => {
     if (item) {
       dispatch({ type: fileActionTypes.SELECT_FILE, payload: item });
     }
@@ -66,140 +59,102 @@ function openItemModal(item: any) {
   };
 }
 
-function closeItemModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_ITEM_MODAL });
-  };
+function closeItemModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_ITEM_MODAL };
 }
 
-function openCreateAlbumModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_ALBUM_MODAL });
-  };
+function openAddItemModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_ADD_ITEM_MODAL };
 }
 
-function closeCreateAlbumModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_ALBUM_MODAL });
-  };
+function closeAddItemModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_ADD_ITEM_MODAL };
 }
 
-function openAddItemModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_ADD_ITEM_MODAL });
-  };
+function openRunOutStorageModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_RUNOUTSTORAGE_MODAL };
 }
 
-function closeAddItemModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_ADD_ITEM_MODAL });
-  };
+function openFreeForYouModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_FREEFORYOU_MODAL };
 }
 
-function openRunOutStorageModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_RUNOUTSTORAGE_MODAL });
-  };
+function closeFreeForYouModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_FREEFORYOU_MODAL };
 }
 
-function openFreeForYouModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_FREEFORYOU_MODAL });
-  };
+function closeRunOutStorageModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_RUNOUTSTORAGE_MODAL };
 }
 
-function closeFreeForYouModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_FREEFORYOU_MODAL });
-  };
+function openSortModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_SORT_MODAL };
 }
 
-function closeRunOutStorageModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_RUNOUTSTORAGE_MODAL });
-  };
+function closeSortModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_SORT_MODAL };
 }
 
-function openSortModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_SORT_MODAL });
-  };
+function openMoveFilesModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_MOVEFILES_MODAL };
 }
 
-function closeSortModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_SORT_MODAL });
-  };
+function closeMoveFilesModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_MOVEFILES_MODAL };
 }
 
-function openMoveFilesModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_MOVEFILES_MODAL });
-  };
+function openDeleteModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_DELETE_MODAL };
 }
 
-function closeMoveFilesModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_MOVEFILES_MODAL });
-  };
+function closeDeleteModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_DELETE_MODAL };
 }
 
-function openDeleteModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_DELETE_MODAL });
-  };
+function openShareModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_SHARE_MODAL };
 }
 
-function closeDeleteModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_DELETE_MODAL });
-  };
+function closeShareModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_SHARE_MODAL };
 }
 
-function openShareModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_SHARE_MODAL });
-  };
+function openUploadFileModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_UPLOAD_FILE_MODAL };
 }
 
-function closeShareModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_SHARE_MODAL });
-  };
+function closeUploadFileModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_UPLOAD_FILE_MODAL };
 }
 
-function openUploadFileModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_UPLOAD_FILE_MODAL });
-  };
+function openComingSoonModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_COMING_SOON_MODAL };
 }
 
-function closeUploadFileModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_UPLOAD_FILE_MODAL });
-  };
+function closeComingSoonModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_COMING_SOON_MODAL };
 }
 
-function openComingSoonModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.OPEN_COMING_SOON_MODAL });
-  };
+function openCreateFolderModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_CREATE_FOLDER_MODAL };
 }
 
-function closeComingSoonModal() {
-  return (dispatch: Dispatch) => {
-    dispatch({ type: layoutActionTypes.CLOSE_COMING_SOON_MODAL });
-  };
+function closeCreateFolderModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_CREATE_FOLDER_MODAL };
 }
 
-function setCurrentApp(app: string) {
-  return { type: layoutActionTypes.SET_CURRENT_APP, payload: app }
+function enableBackButton(): AnyAction {
+  return { type: layoutActionTypes.ENABLE_BACK_BUTTON };
 }
 
-function openSelectPhotosForAlbumModal() {
-  return (dispatch: Dispatch): void => { dispatch({ type: layoutActionTypes.OPEN_SELECT_PHOTOS_FOR_ALBUM_MODAL }) }
+function disableBackButton(): AnyAction {
+  return { type: layoutActionTypes.DISABLE_BACK_BUTTON };
 }
 
-function closeSelectPhotosForAlbumModal() {
-  return (dispatch: Dispatch): void => { dispatch({ type: layoutActionTypes.CLOSE_SELECT_PHOTOS_FOR_ALBUM_MODAL }) }
+function openRenameModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_RENAME_MODAL }
+}
+
+function closeRenameModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_RENAME_MODAL }
 }

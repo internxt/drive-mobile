@@ -1,5 +1,5 @@
 import { getHeaders } from '../../helpers/headers'
-import { IsJsonString } from '../Register/registerUtils'
+import { isJsonString } from '../Register/registerUtils'
 
 interface LoginResponse {
   tfa: string
@@ -13,7 +13,7 @@ export async function apiLogin(email: string): Promise<LoginResponse> {
     body: JSON.stringify({ email: email })
   }).then(async res => {
     const data = await res.text()
-    const json = IsJsonString(data)
+    const json = isJsonString(data)
 
     if (res.status === 200) {
       return json

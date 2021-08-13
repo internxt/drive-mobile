@@ -43,6 +43,7 @@ module.exports = {
     'no-multi-spaces': 'error',
     'curly': 'error',
     'ext/lines-between-object-properties': ['error', 'never'],
+    'key-spacing': ['error'],
     'keyword-spacing': 'error',
     'space-in-parens': ['error', 'never'],
     'no-warning-comments': ['error', {

@@ -1,3 +1,4 @@
+import { AnyAction } from 'redux';
 import { layoutActionTypes } from '../constants';
 
 export interface LayoutState {
@@ -5,19 +6,17 @@ export interface LayoutState {
   createFolderActive: boolean
   showSettingsModal: boolean
   showItemModal: boolean
-  showPhotoDetailsModal: boolean
-  showAlbumModal: boolean
-  showSelectPhotosModal: boolean
   showAddItemModal: boolean
   showSortModal: boolean
-  showSortPhotoModal: boolean
   showMoveModal: boolean
   showDeleteModal: boolean
   showShareModal: boolean
-  showUploadModal: boolean
   showFreeForYouModal: boolean
   showComingSoonModal: boolean
-  currentApp: string
+  showUploadModal: boolean
+  showCreateFolderModal: boolean
+  backButtonEnabled: boolean
+  showRenameModal: boolean
 }
 
 const initialState: LayoutState = {
@@ -25,23 +24,31 @@ const initialState: LayoutState = {
   createFolderActive: false,
   showSettingsModal: false,
   showItemModal: false,
-  showPhotoDetailsModal: false,
-  showAlbumModal: false,
-  showSelectPhotosModal: false,
   showAddItemModal: false,
   showSortModal: false,
-  showSortPhotoModal: false,
   showMoveModal: false,
   showDeleteModal: false,
   showShareModal: false,
-  showUploadModal: false,
   showFreeForYouModal: false,
   showComingSoonModal: false,
-  currentApp: 'FileExplorer'
+  showUploadModal: false,
+  showCreateFolderModal: false,
+  backButtonEnabled: true,
+  showRenameModal: false
 };
 
-export function layoutReducer(state = initialState, action: any): LayoutState {
+export function layoutReducer(state = initialState, action: AnyAction): LayoutState {
   switch (action.type) {
+  case layoutActionTypes.OPEN_SEARCH_FORM:
+    return {
+      ...state,
+      searchActive: true
+    }
+  case layoutActionTypes.CLOSE_SEARCH_FORM:
+    return {
+      ...state,
+      searchActive: false
+    }
   case layoutActionTypes.OPEN_SETTINGS_MODAL:
     return {
       ...state,
@@ -135,12 +142,6 @@ export function layoutReducer(state = initialState, action: any): LayoutState {
       showFreeForYouModal: false
     }
   }
-  case layoutActionTypes.SET_CURRENT_APP: {
-    return {
-      ...state,
-      currentApp: action.payload
-    }
-  }
   case layoutActionTypes.OPEN_COMING_SOON_MODAL: {
     return {
       ...state,
@@ -153,31 +154,42 @@ export function layoutReducer(state = initialState, action: any): LayoutState {
       showComingSoonModal: false
     }
   }
-  case layoutActionTypes.OPEN_ALBUM_MODAL: {
+  case layoutActionTypes.OPEN_CREATE_FOLDER_MODAL: {
     return {
       ...state,
-      showAlbumModal: true
+      showCreateFolderModal: true
     }
   }
-  case layoutActionTypes.CLOSE_ALBUM_MODAL: {
+  case layoutActionTypes.CLOSE_CREATE_FOLDER_MODAL: {
     return {
       ...state,
-      showAlbumModal: false
+      showCreateFolderModal: false
     }
   }
-  case layoutActionTypes.OPEN_SELECT_PHOTOS_FOR_ALBUM_MODAL: {
+  case layoutActionTypes.ENABLE_BACK_BUTTON: {
     return {
       ...state,
-      showSelectPhotosModal: true
+      backButtonEnabled: true
     }
   }
-  case layoutActionTypes.CLOSE_SELECT_PHOTOS_FOR_ALBUM_MODAL: {
+  case layoutActionTypes.DISABLE_BACK_BUTTON: {
     return {
       ...state,
-      showSelectPhotosModal: false
+      backButtonEnabled: false
     }
   }
-
+  case layoutActionTypes.OPEN_RENAME_MODAL: {
+    return {
+      ...state,
+      showRenameModal: true
+    }
+  }
+  case layoutActionTypes.CLOSE_RENAME_MODAL: {
+    return {
+      ...state,
+      showRenameModal: false
+    }
+  }
   default:
     return state;
   }

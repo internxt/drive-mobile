@@ -1,17 +1,16 @@
 import React, { ReactNode } from 'react'
-import { View, Text, Image, StyleSheet } from 'react-native'
+import { View, Text, Image, StyleSheet, TouchableHighlight } from 'react-native'
 import AppIntroSlider from 'react-native-app-intro-slider';
-import { TouchableHighlight } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { normalize } from '../../helpers';
 import B from '../../components/Bold'
 import strings from '../../../assets/lang/strings';
-interface IntroProps {
+import { Reducers } from '../../redux/reducers/reducers';
+interface IntroProps extends Reducers {
   onFinish: () => void
-  navigation?: any
 }
 
-const applyBoldStyle = (text: string, boldText: string[]) => {
+const applyBoldStyle: (text: string, boldText: string[]) => JSX.Element = (text: string, boldText: string[]) => {
   let numberOfItemsAdded = 0
   const result = text.split(/\{\d+\}/)
 
@@ -104,13 +103,13 @@ const styles = StyleSheet.create({
   },
   buttonSkipText: {
     color: 'white',
-    fontFamily: 'CerebriSans-Regular',
+    fontFamily: 'NeueEinstellung-Regular',
     fontSize: normalize(18),
     textAlign: 'center'
   },
   explanationText: {
     color: '#7e7e7e',
-    fontFamily: 'CerebriSans-Medium',
+    fontFamily: 'NeueEinstellung-Medium',
     fontSize: normalize(22),
     lineHeight: normalize(28),
     marginTop: normalize(30),

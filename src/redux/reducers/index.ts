@@ -1,20 +1,18 @@
-import { combineReducers } from 'redux';
+import { AnyAction, CombinedState, combineReducers } from 'redux';
 
 import { authenticationReducer } from './authentication.reducer';
 import { filesReducer } from './files.reducer';
 import { layoutReducer } from './layout.reducer';
-import { PhotosReducer } from './photos.reducer';
 import { settingsReducer } from './settings.reducer';
 
 const appReducer = combineReducers({
   layoutState: layoutReducer,
   authenticationState: authenticationReducer,
-  photosState: PhotosReducer,
   filesState: filesReducer,
   settingsState: settingsReducer
 });
 
-const rootReducer = (state: any, action: any) => {
+const rootReducer = (state: any, action: AnyAction): CombinedState<any> => {
   if (action.type === 'USER_SIGNOUT') {
     state = undefined
   }

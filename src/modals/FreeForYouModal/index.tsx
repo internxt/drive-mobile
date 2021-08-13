@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
 import Modal from 'react-native-modalbox'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { layoutActions } from '../../redux/actions';
+import strings from '../../../assets/lang/strings';
 
 interface IFreeForYou {
   layoutState: any
@@ -38,7 +38,7 @@ function FreeForYouModal(props: IFreeForYou) {
             setIsOpen(false)
           }}
         >
-          <Text style={styles.buttonText}>Close</Text>
+          <Text style={styles.buttonText}>{strings.generic.close}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, styles.blue]}
@@ -47,7 +47,7 @@ function FreeForYouModal(props: IFreeForYou) {
             props.navigation.replace('Storage')
           }}
         >
-          <Text style={[styles.buttonText, styles.white]}>Upgrade</Text>
+          <Text style={[styles.buttonText, styles.white]}>{strings.generic.upgrade}</Text>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#5c6066',
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 16
   },
   buttonsContainer: {
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: 'black',
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 27
   },
   white: {

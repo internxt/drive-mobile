@@ -1,24 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, TouchableHighlight } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { widthPercentageToDP } from 'react-native-responsive-screen';
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
-import strings from '../../../assets/lang/strings';
 import { fileActions, layoutActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
-interface DeleteItemModalProps extends Reducers {
-    dispatch?: any,
-}
+import * as Unicons from '@iconscout/react-native-unicons';
+import Separator from '../../components/Separator';
+import strings from '../../../assets/lang/strings';
 
-function DeleteItemModal(props: DeleteItemModalProps) {
+function DeleteItemModal(props: Reducers) {
   const selectedItems = props.filesState.selectedItems
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
   const [isOpen, setIsOpen] = useState(props.layoutState.showDeleteModal)
 
   useEffect(() => {
     props.layoutState.showDeleteModal ? setIsOpen(true) : null
-
   }, [props.layoutState])
 
   const handleDeleteSelectedItem = () => {
@@ -29,89 +26,89 @@ function DeleteItemModal(props: DeleteItemModalProps) {
     <Modal
       isOpen={isOpen}
       swipeArea={2}
+      coverScreen={true}
       onClosed={() => {
         props.dispatch(layoutActions.closeDeleteModal())
         setIsOpen(false)
       }}
-      position='center'
+      position='bottom'
       style={styles.modalContainer}
     >
-      <View style={styles.textContainer}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>{strings.modals.delete_modal.title}</Text>
+      <View>
+
+        <View style={styles.drawerKnob}></View>
+
+        <View>
+          <Text style={{
+            textAlign: 'center',
+            fontFamily: 'NeueEinstellung-Bold'
+          }}>{strings.modals.delete_modal.title}</Text>
         </View>
 
-        <Text style={styles.subtitle}>{strings.modals.delete_modal.subtitle}</Text>
-      </View>
+        <View>
+          <Text style={{
+            textAlign: 'center',
+            fontFamily: 'NeueEinstellung-Regular',
+            margin: 10
+          }}>{strings.modals.delete_modal.warning}</Text>
+        </View>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => {
-          setIsOpen(false)
-        }}>
-          <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
-        </TouchableOpacity>
+        <Separator />
 
-        <TouchableOpacity style={[styles.button, styles.blue]} onPress={() => {
-          handleDeleteSelectedItem();
-          setIsOpen(false)
-        }}>
-          <Text style={[styles.text, styles.white]}>{strings.components.buttons.confirm}</Text>
-        </TouchableOpacity>
+        <View>
+          <TouchableHighlight
+            underlayColor={'#eee'}
+            onPress={() => {
+              handleDeleteSelectedItem();
+              setIsOpen(false)
+            }}>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', padding: 20, paddingLeft: 20 }}>
+              <View style={{ paddingRight: 10 }}>
+                <Unicons.UilTrashAlt color="#DA1E28" size={30} />
+              </View>
+              <View>
+                <Text style={{ fontFamily: 'NeueEinstellung-Regular', color: '#DA1E28' }}>{strings.modals.delete_modal.confirm_delete}</Text>
+              </View>
+            </View>
+          </TouchableHighlight>
+        </View>
+
+        <Separator />
+
+        <View>
+          <TouchableHighlight
+            underlayColor={'#eee'}
+            style={{
+              alignItems: 'center',
+              padding: 20
+            }}
+            onPress={() => {
+              setIsOpen(false)
+            }}>
+            <Text style={{ color: '#DA1E28' }}>{strings.generic.cancel}</Text>
+          </TouchableHighlight>
+        </View>
+
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  blue: {
-    backgroundColor: '#4585f5'
-  },
-  button: {
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
+  drawerKnob: {
+    alignSelf: 'center',
+    backgroundColor: '#0F62FE',
     borderRadius: 4,
-    borderWidth: 2,
-    height: 50,
-    justifyContent: 'center',
-    width: widthPercentageToDP('35')
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 30,
-    width: '80%'
+    height: 4,
+    margin: 12,
+    width: 50
   },
   modalContainer: {
-    alignItems: 'center',
-    height: '100%',
-    justifyContent: 'center',
-    width: '100%'
-  },
-  subtitle: {
-    color: '#737880',
-    fontSize: 17,
-    marginTop: 15
-  },
-  text: {
-    color: '#5c6066',
-    fontFamily: 'CerebriSans-Bold',
-    fontSize: 16
-  },
-  textContainer: {
-    paddingHorizontal: 30
-  },
-  title: {
-    color: 'black',
-    fontFamily: 'CerebriSans-Bold',
-    fontSize: 27
-  },
-  titleContainer: {
-    alignItems: 'flex-end',
-    flexDirection: 'row'
-  },
-  white: {
-    color: '#fff'
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    height: hp('90%') < 550 ? 550 : Math.min(380, hp('90%')),
+    marginTop: wp('12')
   }
 })
 

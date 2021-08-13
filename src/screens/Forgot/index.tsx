@@ -6,14 +6,24 @@ import {
   Alert,
   KeyboardAvoidingView,
   TextInput,
-  TouchableHighlight
+  TouchableHighlight,
+  TouchableWithoutFeedback
 } from 'react-native';
 import React, { useEffect, useState } from 'react'
 import { normalize } from '../../helpers';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
+import InternxtLogo from '../../../assets/logo.svg'
+import globalStyle from '../../styles/global.style';
+import { tailwind } from '../../helpers/designSystem';
+import * as Unicons from '@iconscout/react-native-unicons'
+import { Reducers } from '../../redux/reducers/reducers';
 
-function Forgot(props: any): JSX.Element {
+interface ForgotProps extends Reducers {
+  navigation: any
+}
+
+function Forgot(props: ForgotProps): JSX.Element {
   const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -57,11 +67,11 @@ function Forgot(props: any): JSX.Element {
           ]}
         >
           <View style={styles.containerHeader}>
-            <View style={styles.flexRow}>
-              <Text style={styles.title}>{strings.screens.forgot_password.title}</Text>
+            <View style={tailwind('items-center pb-10')}>
+              <InternxtLogo />
+              <Text style={styles.subTitle}>{strings.generic.security}</Text>
             </View>
-
-            <Text style={styles.text}>
+            <Text style={[tailwind('text-sm'), styles.explication]}>
               {strings.screens.forgot_password.subtitle_1}
 
               <Text style={styles.bold}>{strings.screens.forgot_password.bold}</Text>
@@ -69,9 +79,9 @@ function Forgot(props: any): JSX.Element {
               {strings.screens.forgot_password.subtitle_2}
             </Text>
 
-            <View style={styles.inputWrapper}>
+            <View style={tailwind('input-wrapper')}>
               <TextInput
-                style={styles.input}
+                style={tailwind('input')}
                 value={email}
                 onChangeText={(value) => setIsEmail(value)}
                 placeholder={strings.components.inputs.email}
@@ -80,27 +90,28 @@ function Forgot(props: any): JSX.Element {
                 keyboardType="email-address"
                 textContentType="emailAddress"
               />
+              <Unicons.UilEnvelope
+                color={'#AAA'}
+                style={tailwind('input-icon')} />
             </View>
 
-            <View style={styles.buttonWrapper}>
+            <View style={globalStyle.buttonInputStyle.wrapper}>
               <TouchableHighlight
-                style={[styles.button, styles.buttonOff, styles.buttonLeft]}
-                underlayColor="#f2f2f2"
+                style={tailwind('btn btn-primary')}
+                onPress={() => sendDeactivationEmail()}
+              >
+                <Text style={tailwind('text-base btn-label')}>
+                  {strings.components.buttons.continue}
+                </Text>
+              </TouchableHighlight>
+            </View>
+            <View style={tailwind('py-5')}>
+              <TouchableWithoutFeedback
+                style={tailwind('m-5')}
                 onPress={() => props.navigation.replace('Login')}
               >
-                <Text style={styles.buttonOffLabel}>{strings.components.buttons.back}</Text>
-              </TouchableHighlight>
-
-              <TouchableHighlight
-                style={[styles.button, styles.buttonOn, styles.buttonRight]}
-                underlayColor="#4585f5"
-                onPress={() => {
-                  sendDeactivationEmail()
-                }
-                }
-              >
-                <Text style={styles.buttonOnLabel}>{strings.components.buttons.continue}</Text>
-              </TouchableHighlight>
+                <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
+              </TouchableWithoutFeedback>
             </View>
           </View>
         </View>
@@ -119,19 +130,14 @@ function Forgot(props: any): JSX.Element {
           ]}
         >
           <View style={styles.containerHeader}>
-            <View style={styles.flexRow}>
-              <Text style={styles.title}>{strings.screens.deactivation_screen.title}</Text>
+            <View style={tailwind('items-center pb-10')}>
+              <InternxtLogo />
+              <Text style={styles.subTitle}>{strings.generic.security}</Text>
             </View>
-
-            <Text style={styles.text}>
+            <Text style={[tailwind('text-sm'), styles.explication]}>
               {strings.screens.deactivation_screen.subtitle_1}
+              {strings.screens.deactivation_screen.subtitle_2}
             </Text>
-
-            <View style={styles.grayBox}>
-              <Text style={styles.grayBoxText}>
-                {strings.screens.deactivation_screen.subtitle_2}
-              </Text>
-            </View>
 
             <View style={styles.buttonWrapper}>
               <TouchableHighlight
@@ -139,18 +145,20 @@ function Forgot(props: any): JSX.Element {
                 underlayColor="#00aaff"
                 onPress={() => sendDeactivationEmail()}
               >
-                <Text style={styles.buttonOnLabel}>
+                <Text style={[styles.buttonOnLabel, styles.buttonLabel]}>
                   {strings.components.buttons.deactivation}
                 </Text>
               </TouchableHighlight>
             </View>
 
-            <Text
-              style={styles.signUp}
-              onPress={() => props.navigation.replace('Register')}
-            >
-              {strings.components.buttons.sing_up}
-            </Text>
+            <View style={tailwind('py-5')}>
+              <TouchableWithoutFeedback
+                style={tailwind('m-5')}
+                onPress={() => props.navigation.replace('Login')}
+              >
+                <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
+              </TouchableWithoutFeedback>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -169,27 +177,15 @@ export default connect(mapStateToProps)(Forgot)
 
 const styles = StyleSheet.create({
   bold: {
-    fontFamily: 'CerebriSans-Bold'
+    fontFamily: 'NeueEinstellung-Bold'
   },
   button: {
     alignItems: 'center',
-    borderRadius: 3.4,
+    borderRadius: 10,
     height: normalize(55),
     justifyContent: 'center',
     marginTop: normalize(10),
     width: '45%'
-  },
-  buttonLeft: {
-    marginRight: normalize(10)
-  },
-  buttonOff: {
-    backgroundColor: '#f2f2f2',
-    flex: 1
-  },
-  buttonOffLabel: {
-    color: '#5c5c5c',
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15)
   },
   buttonOn: {
     backgroundColor: '#4585f5',
@@ -197,11 +193,8 @@ const styles = StyleSheet.create({
   },
   buttonOnLabel: {
     color: '#fff',
-    fontFamily: 'CerebriSans-Medium',
+    fontFamily: 'NeueEinstellung-Medium',
     fontSize: normalize(15)
-  },
-  buttonRight: {
-    marginLeft: normalize(10)
   },
   buttonWrapper: {
     flexDirection: 'row',
@@ -211,7 +204,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     flex: 1,
     justifyContent: 'center',
-    padding: normalize(20)
+    paddingLeft: normalize(40),
+    paddingRight: normalize(40)
   },
   containerCentered: {
     alignSelf: 'center',
@@ -221,57 +215,22 @@ const styles = StyleSheet.create({
   },
   containerHeader: {
   },
-  flexRow: {
-    flexDirection: 'row'
-  },
-  grayBox: {
-    backgroundColor: '#f7f7f7',
-    padding: normalize(23)
-  },
-  grayBoxText: {
-    color: '#737880',
-    fontFamily: 'CerebriSans-Regular',
-    fontSize: normalize(15)
-  },
   halfOpacity: {
     opacity: 0.5
   },
-  input: {
-    color: '#000',
-    flex: 1,
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: normalize(15),
-    letterSpacing: -0.2,
-    paddingLeft: normalize(20)
+  explication: {
+    textAlign: 'center',
+    paddingBottom: 30
   },
-  inputWrapper: {
-    borderColor: '#c9c9c9',
-    borderRadius: 5,
-    borderWidth: 1,
-    height: normalize(55),
-    justifyContent: 'center'
+  subTitle: {
+    color: '#42526E',
+    alignSelf: 'center',
+    paddingTop: 15
   },
-  signUp: {
-    color: '#737880',
-    fontFamily: 'CerebriSans-Regular',
-    fontSize: normalize(15),
-    marginTop: normalize(10),
-    padding: normalize(20),
-    textAlign: 'center'
-  },
-  text: {
-    color: '#737880',
-    fontFamily: 'CerebriSans-Regular',
-    fontSize: normalize(15),
-    marginBottom: normalize(20),
-    textAlign: 'justify'
-  },
-  title: {
-    color: '#000',
-    fontFamily: 'CerebriSans-Bold',
-    fontSize: normalize(22),
-    letterSpacing: -1.5,
-    marginBottom: normalize(15),
-    marginTop: normalize(-25)
+  buttonLabel: {
+    color: 'white',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    flexGrow: 1
   }
 });

@@ -1,47 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
-import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, Platform, FlatList, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import Separator from '../../components/Separator';
 import { fileActions, layoutActions } from '../../redux/actions';
+import { Reducers } from '../../redux/reducers/reducers';
 import Folder from './Folder';
 
-interface MoveFilesProps {
-  layoutState?: any
-  filesState?: any
-  authenticationState?: any
-  dispatch?: any
-}
+function MoveFilesModal(props: Reducers) {
+  const { filesState, layoutState } = useSelector<any, Reducers>(s => s);
 
-function MoveFilesModal(props: MoveFilesProps) {
-  const [isOpen, setIsOpen] = useState(props.layoutState.showMoveModal)
+  const [isOpen, setIsOpen] = useState(layoutState.showMoveModal)
   const [currentfolderid, setCurrentFolderId] = useState('')
   const [folderlist, setFolderList] = useState(Array)
   const [firstfolder, setFirstFolder] = useState('')
   const [selectedfile, setSelectedFile] = useState({})
 
-  const { rootFolderContent } = props.filesState
+  const { rootFolderContent } = filesState
   const folderList: any[] = rootFolderContent && rootFolderContent.children || []
 
   useEffect(() => {
-    props.layoutState.showMoveModal === true ? setIsOpen(true) : null
-    if (props.filesState.folderContent) {
-      setCurrentFolderId(props.filesState.folderContent.currentFolder)
-      setSelectedFile(props.filesState.selectedFile)
-      setFolderList(props.filesState.rootFolderContent.children)
-      setFirstFolder(props.filesState.folderContent.currentFolder)
+    layoutState.showMoveModal === true ? setIsOpen(true) : null
+    if (filesState.folderContent) {
+      setCurrentFolderId(filesState.folderContent.currentFolder)
+      setSelectedFile(filesState.selectedFile)
+      setFolderList(filesState.rootFolderContent.children)
+      setFirstFolder(filesState.folderContent.currentFolder)
     }
-  }, [props.layoutState.showMoveModal])
+  }, [layoutState.showMoveModal])
 
   useEffect(() => {
-    if (props.filesState.folderContent) {
-      setCurrentFolderId(props.filesState.folderContent.currentFolder)
-      setFolderList(props.filesState.folderContent.children)
+    if (filesState.folderContent) {
+      setCurrentFolderId(filesState.folderContent.currentFolder)
+      setFolderList(filesState.folderContent.children)
     }
-  }, [props.filesState.folderContent])
+  }, [filesState.folderContent])
 
   const moveFile = async (result: any) => {
     // When modal is closed by move action result = folder id otherwise ans = -1
@@ -142,12 +137,12 @@ const styles = StyleSheet.create({
   },
   text: {
     color: '#5c6066',
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 16
   },
   title: {
     color: '#000000',
-    fontFamily: 'CircularStd-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 21,
     letterSpacing: -0.2,
     margin: 20

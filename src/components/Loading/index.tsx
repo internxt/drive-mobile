@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     color: '#000000',
-    fontFamily: 'Averta-Regular',
+    fontFamily: 'NeueEinstellung-Regular',
     fontSize: wp('4.5'),
     letterSpacing: -0.8,
     marginBottom: 30,

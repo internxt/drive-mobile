@@ -1,145 +1,23 @@
-import React, { SetStateAction, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { connect } from 'react-redux';
-import IconFolder from '../IconFolder';
-import TimeAgo from 'react-native-timeago';
-import Icon from '../../../assets/icons/Icon';
-import IconFile from '../IconFile';
 import { fileActions, layoutActions } from '../../redux/actions';
-import RNFetchBlob from 'rn-fetch-blob'
-import { deviceStorage, getLyticsData } from '../../helpers';
+import { deviceStorage, FolderIcon, getFileTypeIcon } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
-import { colors } from '../../redux/constants';
 import analytics from '../../helpers/lytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { Reducers } from '../../redux/reducers/reducers';
 import * as FileSystem from 'expo-file-system'
-import { LinearGradient } from 'expo-linear-gradient';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import PackageJson from '../../../package.json'
-import { NEWTORK_TIMEOUT } from '../../screens/FileExplorer/init';
+import * as Unicons from '@iconscout/react-native-unicons';
+import { downloadFile } from '../../services/download';
+import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../lib/fs';
 
 interface FileItemProps extends Reducers {
   isFolder: boolean
-  item: IFile & IFolder | IUploadingFile
-  dispatch?: any
+  item: IFile & IFolder & IUploadingFile
   isLoading?: boolean
-}
-
-async function handleClick(props: FileItemProps, setProgress: React.Dispatch<SetStateAction<number>>) {
-  const isSelectionMode = props.filesState.selectedItems.length > 0
-
-  if (isSelectionMode) {
-    // one tap will select file if there are already selected files
-    const isSelected = props.filesState.selectedItems.filter((x: (IFile & IFolder)) => x.id === props.item.id).length > 0
-
-    return handleLongPress(props, isSelected)
-  }
-
-  // one tap on a folder will open and load contents
-  if (props.isFolder) {
-    const userData = await getLyticsData()
-
-    analytics.track('folder-opened', {
-      userId: userData.uuid,
-      email: userData.email,
-      folder_id: props.item.id
-    })
-    props.dispatch(fileActions.getFolderContent(props.item.id.toString()))
-
-  } else {
-    // one tap on a file will download and preview the file
-
-    // if the file is still uploading, do not do anything
-    if (props.isLoading && !props.filesState.uploadFileUri) {
-      return
-    }
-    // once it stopped uploading
-    if (props.item.isUploaded && props.item.uri) {
-      const fileInfo = await FileSystem.getInfoAsync(props.item.uri)
-
-      if (fileInfo.exists) {
-        FileViewer.open(fileInfo.uri).catch((err) => {
-        })
-        return
-      }
-    }
-
-    // Dispatch file download start
-    props.dispatch(fileActions.downloadSelectedFileStart())
-
-    try {
-      const userData = await getLyticsData()
-
-      analytics.track('file-download-start', {
-        file_id: props.item.id,
-        file_size: props.item.size,
-        file_type: props.item.type,
-        email: userData.email,
-        folder_id: props.item.folderId,
-        platform: 'mobile'
-      })
-    } catch (error) { }
-
-    const xToken = await deviceStorage.getItem('xToken')
-    const xUser = await deviceStorage.getItem('xUser')
-    const xUserJson = JSON.parse(xUser || '{}')
-
-    return RNFetchBlob.config({
-      appendExt: props.item.type,
-      path: RNFetchBlob.fs.dirs.DocumentDir + '/' + props.item.name + '.' + props.item.type,
-      fileCache: true,
-      timeout: NEWTORK_TIMEOUT
-    }).fetch('GET', `${process.env.REACT_NATIVE_API_URL}/api/storage/file/${props.item.fileId}`, {
-      'Authorization': `Bearer ${xToken}`,
-      'internxt-mnemonic': xUserJson.mnemonic,
-      'internxt-version': PackageJson.version,
-      'internxt-client': 'drive-mobile'
-    }).progress((received) => {
-      setProgress(received)
-    }).then(async (res) => {
-      if (res.respInfo.status === 200) {
-        FileViewer.open(res.path()).catch(err => {
-          Alert.alert('Error opening file', err.message)
-        })
-      } else {
-        Alert.alert('Error downloading file')
-      }
-
-      try {
-        const userData = await getLyticsData()
-
-        analytics.track('file-download-finished', {
-          file_id: props.item.id,
-          file_size: props.item.size,
-          file_type: props.item.type,
-          email: userData.email,
-          folder_id: props.item.folderId,
-          platform: 'mobile'
-        })
-      } catch (error) { }
-
-    }).catch(async err => {
-      try {
-        const userData = await getLyticsData()
-
-        analytics.track('file-download-error', {
-          file_id: props.item.id,
-          file_size: props.item.size,
-          file_type: props.item.type,
-          email: userData.email,
-          folder_id: props.item.folderId,
-          platform: 'mobile',
-          msg: err && err.message
-        })
-      } catch (error) { }
-
-    }).finally(() => {
-      // Dispatch download file end
-      props.dispatch(fileActions.downloadSelectedFileStop())
-    })
-  }
+  nameEncrypted?: boolean
+  selectable?: boolean
 }
 
 async function handleLongPress(props: FileItemProps, isSelected: boolean) {
@@ -155,11 +33,10 @@ function FileItem(props: FileItemProps) {
   const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0
 
   const [progress, setProgress] = useState(0)
-  const progressPct = progress > 0 ? progress / props.item.size : 0
-  const progressWidth = 40 * progressPct
+  const progressWidth = 30 * progress;
 
   const [uploadProgress, setUploadProgress] = useState(0)
-  const uploadProgressWidth = 40 * uploadProgress
+  const uploadProgressWidth = 30 * uploadProgress
 
   const [isLoading, setIsLoading] = useState(props.isLoading ? true : false)
 
@@ -168,11 +45,147 @@ function FileItem(props: FileItemProps) {
     text: { color: '#000000' }
   });
 
+  async function handleItemPressed() {
+    setIsLoading(true);
+
+    if (props.isFolder) {
+      handleFolderClick();
+    } else {
+      await handleFileClick();
+    }
+
+    setIsLoading(false);
+  }
+
+  function handleFolderClick() {
+    trackFolderOpened();
+    props.dispatch(fileActions.getFolderContent(props.item.id.toString()));
+    props.dispatch(fileActions.addDepthAbsolutePath([props.item.name]));
+  }
+
+  async function handleFileClick(): Promise<void> {
+    const isRecentlyUploaded = props.item.isUploaded && props.item.uri;
+
+    if (isLoading) {
+      return;
+    }
+
+    if (isRecentlyUploaded) {
+      showFileViewer(props.item.uri);
+      return;
+    }
+
+    const filename = props.item.name.substring(0, props.item.type.length + 1);
+    const extension = props.item.type;
+
+    // TODO: Donde tiene que ir en caso de las fotos
+    const destinationDir = await getDocumentsDir();
+    let destinationPath = destinationDir + '/' + filename + (extension ? '.' + extension : '');
+
+    trackDownloadStart();
+    props.dispatch(fileActions.downloadSelectedFileStart());
+
+    const fileAlreadyExists = await exists(destinationPath);
+
+    if (fileAlreadyExists) {
+      destinationPath = destinationDir + '/' + filename + '-' + Date.now().toString() + (extension ? '.' + extension : '');
+    }
+
+    await createEmptyFile(destinationPath);
+
+    const fileManager = new FileManager(destinationPath);
+
+    return downloadFile(props.item.fileId, {
+      fileManager,
+      progressCallback: (progress) => { setProgress(progress); }
+    }).then(async () => {
+      trackDownloadSuccess();
+
+      if (Platform.OS === 'android') {
+        const { uri } = await FileSystem.getInfoAsync('file://' + destinationPath);
+
+        return showFileViewer(uri);
+      }
+
+      return showFileViewer(destinationPath);
+    }).catch((err) => {
+      trackDownloadError(err);
+
+      Alert.alert('Error downloading file', err.message);
+    }).finally(() => {
+      props.dispatch(fileActions.downloadSelectedFileStop());
+      setProgress(0);
+    });
+  }
+
+  function showFileViewer(fileUri: string) {
+    return FileSystem.getInfoAsync(fileUri).then((fileInfo) => {
+      if (!fileInfo.exists) {
+        throw new Error('File not found');
+      }
+
+      return FileViewer.open(fileInfo.uri);
+    });
+  }
+
+  async function track(event: string, payload: any) {
+    const { uuid, email } = await deviceStorage.getUser();
+
+    return analytics.track(event, { ...payload, email, userId: uuid }).catch(() => null);
+  }
+
+  function trackDownloadStart(): Promise<void> {
+    return track('file-download-start', {
+      file_id: props.item.id,
+      file_size: props.item.size,
+      file_type: props.item.type,
+      folder_id: props.item.folderId,
+      platform: 'mobile'
+    });
+  }
+
+  function trackDownloadSuccess(): Promise<void> {
+    return track('file-download-finished', {
+      // eslint-disable-next-line camelcase
+      file_id: props.item.id,
+      // eslint-disable-next-line camelcase
+      file_size: props.item.size,
+      // eslint-disable-next-line camelcase
+      file_type: props.item.type,
+      // eslint-disable-next-line camelcase
+      folder_id: props.item.folderId,
+      platform: 'mobile'
+    });
+  }
+
+  function trackDownloadError(err: Error): Promise<void> {
+    return track('file-download-error', {
+      // eslint-disable-next-line camelcase
+      file_id: props.item.id,
+      // eslint-disable-next-line camelcase
+      file_size: props.item.size,
+      // eslint-disable-next-line camelcase
+      file_type: props.item.type,
+      // eslint-disable-next-line camelcase
+      folder_id: props.item.folderId,
+      platform: 'mobile',
+      error: err.message
+    });
+  }
+
+  function trackFolderOpened(): Promise<void> {
+    return track('folder-opened', {
+      // eslint-disable-next-line camelcase
+      folder_id: props.item.id
+    });
+  }
+
   useEffect(() => {
     setUploadProgress(props.item.progress)
   }, [props.item.progress])
 
   const item = props.item
+  const IconFile = getFileTypeIcon(props.item.type);
 
   return (
     <View>
@@ -182,37 +195,42 @@ function FileItem(props: FileItemProps) {
             <TouchableOpacity
               style={styles.touchableItemArea}
               onLongPress={() => { handleLongPress(props, isSelected) }}
-              onPress={() => {
-                setIsLoading(true)
-                handleClick(props, setProgress).finally(() => {
-                  setProgress(0)
-                  setIsLoading(false)
-                })
-              }}>
-
+              onPress={async () => { await handleItemPressed(); }}>
               <View style={styles.itemIcon}>
                 {
                   props.isFolder ?
                     <View>
-                      <IconFolder color={props.item.color} />
-                      {
-                        props.isFolder && props.item.icon ?
-
-                          <View style={styles.iconContainer}>
-                            <Icon
-                              name={props.item.icon.name}
-                              color={item.color ? colors[item.color].icon : colors['blue'].icon}
-                              width={24}
-                              height={24}
-                            />
-                          </View>
-                          :
-                          null
-                      }
+                      <FolderIcon width={30} height={30} />
                     </View>
                     : // once local upload implelemented, remove conditional
-                    <IconFile label={props.item.bucket ? props.item.type || '' : props.item.name && props.item.name.split('.').pop()} isLoading={isLoading} />
+                    <View>
+                      <IconFile
+                        width={30}
+                        height={30}
+                        label={props.item.bucket ? props.item.type || '' : props.item.name && props.item.name.split('.').pop()} isLoading={isLoading} />
+                    </View>
                 }
+
+                <View style={{ marginTop: 3 }}>
+                  <View style={styles.progressIndicatorContainer}>
+                    {
+                      progressWidth ?
+                        <View
+                          style={[styles.progressIndicator, { width: progressWidth }]}><Text>Progress</Text></View>
+                        :
+                        null
+                    }
+
+                    {
+                      props.isLoading ?
+                        <View
+                          style={[styles.progressIndicator, { width: uploadProgressWidth }]} />
+                        :
+                        null
+                    }
+                  </View>
+                </View>
+
               </View>
 
               <View style={styles.nameAndTime}>
@@ -221,45 +239,27 @@ function FileItem(props: FileItemProps) {
                   numberOfLines={1} // once local upload implemented, remove conditional
                 >{props.item.bucket ? props.item.name : props.item.name && props.item.name.split('.').shift()}</Text>
 
-                {!props.isFolder && <TimeAgo time={props.item.createdAt} />}
+                <Text style={styles.updatedAt}>Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })}</Text>
               </View>
             </TouchableOpacity>
           </View>
           {
-            // REMOVE ONCE LOCAL UPLOAD
-            !item.isUploaded ?
+            !isLoading ?
               <View style={styles.buttonDetails}>
                 <TouchableOpacity
-                  style={isSelectionMode ? styles.dNone : styles.dFlex}
+                  style={isSelectionMode || props.isFolder ? styles.dNone : styles.dFlex}
                   onPress={() => props.dispatch(layoutActions.openItemModal(props.item))}>
-                  <Icon name="details" />
+                  <Unicons.UilEllipsisH size={32} color={'#7A869A'} />
                 </TouchableOpacity>
               </View>
-              : null
-          }
-        </View>
-
-        <View style={styles.progressIndicatorContainer}>
-          {
-            progressWidth ?
-              <LinearGradient
-                colors={['#00b1ff', '#096dff']}
-                start={[0, 0.7]}
-                end={[0.7, 1]}
-                style={[styles.progressIndicator, { width: progressWidth }]} />
               :
-              null
-          }
-
-          {
-            props.isLoading ?
-              <LinearGradient
-                colors={['#00b1ff', '#096dff']}
-                start={[0, 0.7]}
-                end={[0.7, 1]}
-                style={[styles.progressIndicator, { width: uploadProgressWidth }]} />
-              :
-              null
+              <View style={{ padding: 10 }}>
+                <ActivityIndicator color='#aaf' size='large' />
+              </View>
           }
         </View>
       </View>
@@ -271,12 +271,11 @@ const styles = StyleSheet.create({
   buttonDetails: {
     alignItems: 'center',
     borderRadius: 30,
-    height: 51,
+    height: 55,
     justifyContent: 'center',
     width: 51
   },
   container: {
-    borderBottomWidth: 1,
     borderColor: '#e6e6e6',
     flexDirection: 'column'
   },
@@ -290,15 +289,16 @@ const styles = StyleSheet.create({
     flexGrow: 1
   },
   fileName: {
-    color: '#000000',
-    fontFamily: 'CircularStd-Bold',
+    color: '#172B4D',
+    fontFamily: 'NeueEinstellung-Regular',
     fontSize: 16,
     letterSpacing: -0.1
   },
-  iconContainer: {
-    left: 35, position: 'absolute', top: 7
-  },
   itemIcon: {
+    margin: 20,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'stretch'
   },
   mainContainer: {
     alignItems: 'center',
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     width: '56%'
   },
   progressIndicator: {
-    backgroundColor: '#87B7FF',
+    backgroundColor: '#00f',
     borderRadius: 3,
     height: 3,
     marginBottom: 7,
@@ -318,19 +318,20 @@ const styles = StyleSheet.create({
   },
   progressIndicatorContainer: {
     height: 3,
-    marginLeft: wp('6.7'),
-    position: 'absolute',
-    top: 65,
-    width: 40
+    width: 30,
+    borderRadius: 3
   },
   touchableItemArea: {
     alignItems: 'center',
     flexDirection: 'row'
+  },
+  updatedAt: {
+    fontFamily: 'NeueEinstellung-Regular',
+    fontSize: 14,
+    color: '#42526E'
   }
 });
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
+const mapStateToProps = (state: any) => ({ ...state });
 
-export default connect(mapStateToProps)(FileItem);
+export default connect<Reducers>(mapStateToProps)(FileItem);

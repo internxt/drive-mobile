@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
-import { View, Text, StyleSheet, Image, ActivityIndicator, Platform, BackHandler } from 'react-native';
-import { TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import {
+  View, Text, StyleSheet, Image, ActivityIndicator,
+  Platform, TouchableOpacity, TouchableWithoutFeedback
+} from 'react-native';
 import { connect } from 'react-redux';
-import ProgressBar from '../../components/ProgressBar';
 import { getIcon } from '../../helpers/getIcon';
 import PlanCard from './PlanCard';
-import { LinearGradient } from 'expo-linear-gradient';
 import { IPlan, IProduct, storageService } from '../../redux/services';
 import { Reducers } from '../../redux/reducers/reducers';
 import { loadValues } from '../../modals';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import strings from '../../../assets/lang/strings';
+import AppMenu from '../../components/AppMenu';
+import { tailwind } from '../../helpers/designSystem';
+import ProgressBar from '../../components/ProgressBar';
 
 interface StorageProps extends Reducers {
-  dispatch?: any,
-  navigation?: any,
   currentPlan: number
 }
 
@@ -39,32 +39,23 @@ function Storage(props: StorageProps): JSX.Element {
     return plans
   }
 
-  // BackHandler
-  const backAction = () => {
-    if (!chosenProduct) {
-      props.navigation.replace('FileExplorer')
-    } else {
-      setChosenProduct(undefined)
-    }
-    return true
-  }
+  const parseLimit = () => {
 
-  const putLimitUsage = () => {
-    if (usageValues.limit > 0) {
-      if (usageValues.limit < 108851651149824) {
-        return prettysize(usageValues.limit);
-      } else if (usageValues.limit >= 108851651149824) {
-        return '\u221E';
-      } else {
-        return '...';
-      }
+    if (usageValues.limit === 0) {
+      return '...';
     }
+
+    const infinitePlan = Math.pow(1024, 4) * 99; // 99TB
+
+    if (usageValues.limit >= infinitePlan) {
+      return '\u221E';
+    }
+
+    return prettysize(usageValues.limit);
   }
 
   useEffect(() => {
-    loadValues().then(res => {
-      setUsageValues(res)
-    }).catch(() => { })
+    loadValues().then(res => setUsageValues(res)).catch(() => { })
 
     getProducts().then((res) => {
       setProducts(res)
@@ -79,80 +70,70 @@ function Storage(props: StorageProps): JSX.Element {
         setIsLoading(false)
       })
     }
-
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction)
-
-    return () => backHandler.remove()
   }, [chosenProduct])
 
   return (
-    <SafeAreaView style={{ backgroundColor: '#fff' }}>
-      <View style={styles.container}>
-        <View style={styles.navigatorContainer}>
-          <View style={styles.backButton}>
-            <TouchableOpacity
-              onPress={() => {
-                if (props.layoutState.currentApp === 'FileExplorer') {
-                  props.navigation.replace('FileExplorer')
-                } else {
-                  props.navigation.replace('PhotoGallery')
-                }
-              }}
-              style={styles.backTouchable}
-            >
-              <Image style={styles.backIcon} source={getIcon('back')} />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.backText}>{strings.screens.storage.title}</Text>
+    <View style={[tailwind('bg-white'), { flexGrow: 1 }]}>
+      <AppMenu
+        title={strings.screens.storage.title}
+        onBackPress={() => {
+          props.navigation.goBack()
+        }}
+        hideSearch={true} hideOptions={true} />
+      <View>
+        <View style={{ alignItems: 'center' }}>
+          <Text style={{ color: 'black', margin: 10 }}>Usage</Text>
         </View>
-
-        <View style={styles.progressContainer}>
-          <View style={styles.firstRow}>
-            <Text style={styles.progressTitle}>{strings.screens.storage.space.title}</Text>
-
-            <View style={styles.usedSapceContainer}>
-              <Text style={styles.usedSpace}>{strings.screens.storage.space.used.used} </Text>
-              <Text style={[styles.usedSpace, styles.bold]}>{prettysize(usageValues.usage)} </Text>
-              <Text style={styles.usedSpace}>{strings.screens.storage.space.used.of} </Text>
-              <Text style={[styles.usedSpace, styles.bold]}>{putLimitUsage()}</Text>
-            </View>
+        <View style={[tailwind('mx-5 px-5 py-3'), { backgroundColor: '#F4F5F7', borderRadius: 10 }]}>
+          <View>
+            <Text style={{ color: '#42526E' }}>{strings.screens.storage.space.used.used} {prettysize(usageValues.usage)} {strings.screens.storage.space.used.of} {parseLimit()}</Text>
           </View>
-
-          <ProgressBar
-            styleBar={{}}
-            styleProgress={{ height: 7 }}
-            totalValue={usageValues.limit}
-            usedValue={usageValues.usage}
-          />
-
-          <View style={styles.secondRow}>
-            <View style={styles.legend}>
-              {
-                Platform.OS === 'ios' ?
-                  <View style={[styles.circle, styles.blue]}></View>
-                  :
-                  <LinearGradient
-                    colors={['#00b1ff', '#096dff']}
-                    start={[0, 0.18]}
-                    end={[0.18, 1]}
-
-                    style={styles.circle} />
-              }
-
-              <Text style={styles.secondRowText}>{strings.screens.storage.space.legend.used} </Text>
-            </View>
-
-            <View style={styles.legend}>
-              <View style={styles.circle}></View>
-              <Text style={styles.secondRowText}>{strings.screens.storage.space.legend.unused}</Text>
-            </View>
+          <View style={[tailwind('my-2'), {}]}>
+            <ProgressBar
+              {...props}
+              styleProgress={styles.h7}
+              totalValue={usageValues.limit}
+              usedValue={usageValues.usage}
+            />
           </View>
         </View>
+      </View>
 
+      <View>
+        <View style={{ alignItems: 'center' }}>
+          <Text style={{ color: 'black', margin: 10 }}>Current plan</Text>
+        </View>
+      </View>
+
+      <View>
+        <View>
+          <Text style={[styles.footer, { textAlign: 'center' }]}>
+            {strings.screens.storage.plans.current_plan} {prettysize(usageValues.limit)} {strings.getLanguage() === 'es' ? null : 'plan'}
+          </Text>
+        </View>
+      </View>
+
+      <View>
+        {/*
+        <TouchableHighlight
+          style={tailwind('btn btn-primary my-5 mx-5')}
+          onPress={() => {
+            props.navigation.push('Billing')
+          }}>
+          <Text style={tailwind('text-base btn-label')}>Change plan</Text>
+        </TouchableHighlight>
+        */ }
+
+      </View>
+
+      <View style={styles.container, { display: 'none' }}>
         <View style={styles.cardsContainer}>
           {
-            !isLoading ?
+            isLoading ?
+              <View>
+                <ActivityIndicator color={'gray'} />
+              </View>
+              :
               !chosenProduct ?
                 <View>
                   <View style={styles.titleContainer}>
@@ -165,7 +146,11 @@ function Storage(props: StorageProps): JSX.Element {
                         setIsLoading(true)
                         setChosenProduct(product)
                       }}>
-                      <PlanCard currentPlan={prettysize(usageValues.limit)} product={product} size={product.metadata.simple_name} price={product.metadata.price_eur} />
+                      <PlanCard
+                        currentPlan={prettysize(usageValues.limit)}
+                        product={product}
+                        size={product.metadata.simple_name}
+                        price={product.metadata.price_eur} />
                     </TouchableWithoutFeedback>)
                   }
                 </View>
@@ -202,88 +187,30 @@ function Storage(props: StorageProps): JSX.Element {
                       null
                   }
                 </View>
-              :
-              <View>
-                <ActivityIndicator color={'gray'} />
-              </View>
           }
-          <View>
-            <Text style={styles.footer}>{strings.screens.storage.plans.current_plan} {prettysize(usageValues.limit)} {strings.getLanguage() === 'es' ? null : 'plan'}</Text>
-          </View>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  backButton: {
-    flex: 0.1
-  },
-  backIcon: {
-    height: 14,
-    width: 9
-  },
-  backText: {
-    color: 'black',
-    flex: 0.8,
-    fontFamily: 'CerebriSans-Medium',
-    fontSize: 16,
-    textAlign: 'center'
-  },
-  backTouchable: {
-    alignItems: 'center',
-    height: wp('10'),
-    justifyContent: 'center',
-    width: wp('10')
-  },
-  blue: {
-    backgroundColor: '#096dff'
-  },
-  bold: {
-    fontFamily: 'CerebriSans-Bold'
-  },
   cardsContainer: {
     flexGrow: 1,
-    marginLeft: 20,
     paddingTop: 20
   },
-  circle: {
-    backgroundColor: '#ededed',
-    borderRadius: 100,
-    height: 16,
-    marginRight: 6,
-    width: 16
-  },
   container: {
-    backgroundColor: 'white',
     height: '100%',
     justifyContent: 'flex-start'
   },
-  firstRow: {
-    alignItems: 'center',
-    flexDirection: 'row'
-  },
   footer: {
     color: '#7e848c',
-    fontFamily: 'CerebriSans-Regular',
+    fontFamily: 'NeueEinstellung-Regular',
     fontSize: 16,
     letterSpacing: -0.1,
     lineHeight: 22,
     marginLeft: 0,
     marginTop: 20
-  },
-  legend: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    marginRight: 30
-  },
-  navigatorContainer: {
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderColor: '#f2f2f2',
-    flexDirection: 'row',
-    height: wp('10')
   },
   paymentBack: {
     alignItems: 'center',
@@ -296,32 +223,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
     width: 8
   },
-  progressContainer: {
-    borderBottomWidth: 1,
-    borderColor: '#f2f2f2',
-    justifyContent: 'center',
-    paddingBottom: 45,
-    paddingTop: 30
-  },
-  progressTitle: {
-    color: 'black',
-    flex: 0.5,
-    fontFamily: 'CerebriSans-Bold',
-    fontSize: 18,
-    paddingLeft: 20
-  },
-  secondRow: {
-    flexDirection: 'row',
-    marginLeft: 20
-  },
-  secondRowText: {
-    color: '#7e848c',
-    fontFamily: 'CerebriSans-Regular',
-    fontSize: 13
-  },
   title: {
     color: 'black',
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 18,
     letterSpacing: 0,
     marginRight: 10,
@@ -337,22 +241,12 @@ const styles = StyleSheet.create({
     borderColor: '#eaeced',
     borderLeftWidth: 1,
     color: '#7e848c',
-    fontFamily: 'CerebriSans-Medium',
+    fontFamily: 'NeueEinstellung-Medium',
     fontSize: 18,
     paddingBottom: Platform.OS === 'android' ? wp('1') : 0,
     paddingLeft: 10
   },
-  usedSapceContainer: {
-    flexDirection: 'row',
-    flex: 0.5,
-    justifyContent: 'flex-end',
-    paddingRight: 20
-  },
-  usedSpace: {
-    color: 'black',
-    fontFamily: 'CerebriSans-Regular',
-    fontSize: 13
-  }
+  h7: { height: 7 }
 })
 
 const mapStateToProps = (state: any) => {

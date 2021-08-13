@@ -2,6 +2,7 @@ import { userActionTypes } from '../constants';
 
 export interface SettingsState {
   loading: boolean
+  // eslint-disable-next-line camelcase
   plan_changed: boolean
   error: string
 }
@@ -12,6 +13,7 @@ interface ReduxAction {
 
 const initialState: SettingsState = {
   loading: false,
+  // eslint-disable-next-line camelcase
   plan_changed: false,
   error: ''
 };
@@ -27,6 +29,7 @@ export function settingsReducer(state = initialState, action: ReduxAction): any 
   case userActionTypes.PAYMENT_SUCCESS:
     return {
       loading: false,
+      // eslint-disable-next-line camelcase
       plan_changed: true,
       error: ''
     };

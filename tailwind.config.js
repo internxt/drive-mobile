@@ -1,11 +1,7 @@
-const colors = require('tailwindcss/colors')
+const colors = require('tailwindcss/colors');
+const plugin = require('tailwindcss/plugin')
 
 module.exports = {
-  // purge: [
-  // './src/**/*.html',
-  // './src/**/*.jsx',
-  // './src/**/*.js',],
-  presets: [],
   darkMode: false, // or 'media' or 'class'
   theme: {
     screens: {
@@ -96,7 +92,7 @@ module.exports = {
         90: '#022d0d',
         100: '#071908'
       },
-      'yellow': {
+      yellow: {
         10: '#fcf4d6',
         20: '#fddc69',
         30: '#f1c21b',
@@ -257,39 +253,16 @@ module.exports = {
       DEFAULT: '1'
     },
     fontFamily: {
-      averta: [
-        'light',
-        'regular',
-        'semibold',
-        'bold',
-        'extraBold'
-      ],
-      sans: [
-        'ui-sans-serif',
-        'system-ui',
-        '-apple-system',
-        'BlinkMacSystemFont',
-        '"Segoe UI"',
-        'Roboto',
-        '"Helvetica Neue"',
-        'Arial',
-        '"Noto Sans"',
-        'sans-serif',
-        '"Apple Color Emoji"',
-        '"Segoe UI Emoji"',
-        '"Segoe UI Symbol"',
-        '"Noto Color Emoji"'
-      ],
-      serif: ['ui-serif', 'Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
-      mono: [
-        'ui-monospace',
-        'SFMono-Regular',
-        'Menlo',
-        'Monaco',
-        'Consolas',
-        '"Liberation Mono"',
-        '"Courier New"',
-        'monospace'
+      NeueEinstellung: [
+        'Black',
+        'Bold',
+        'ExtraBold',
+        'ExtraLight',
+        'Light',
+        'Medium',
+        'Regular',
+        'SemiBold',
+        'Thin'
       ]
     },
     fontSize: {
@@ -953,5 +926,50 @@ module.exports = {
     wordBreak: ['responsive'],
     zIndex: ['responsive', 'focus-within', 'focus']
   },
-  plugins: []
+  plugins: [
+    plugin(({ addComponents, theme }) => {
+      const newComponents = {
+        'btn': {
+          height: 56,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 8
+        },
+        'btn-primary': {
+          backgroundColor: theme('colors.blue.60')
+        },
+        'btn-label': {
+          color: '#FFF',
+          fontSize: 16
+        },
+        'text-base': {
+          fontFamily: theme('fontFamily.NeueEinstellung.Regular')
+        },
+        'input-wrapper': {
+          flexDirection: 'row',
+          borderColor: 'rgba(0,0,0,0.25)',
+          borderRadius: 10,
+          borderWidth: 1,
+          height: 56,
+          alignItems: 'center'
+        },
+        input: {
+          flexGrow: 1,
+          marginLeft: 10
+        },
+        'input-icon': {
+          marginRight: 10,
+          marginLeft: 7
+        },
+        'input-valid': {
+          borderColor: 'rgba(66,190,101,1)'
+        },
+        'input-error': {
+          borderColor: 'rgba(255,0,0,1)'
+        }
+      };
+
+      return addComponents(newComponents);
+    })
+  ]
 }

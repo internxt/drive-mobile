@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import { layoutActions } from '../../redux/actions';
-import { LayoutState } from '../../redux/reducers/layout.reducer';
-interface ComingSoonProps {
+import { Reducers } from '../../redux/reducers/reducers';
+interface ComingSoonProps extends Reducers {
     navigation: any
-    layoutState: LayoutState
     dispatch: any
 }
 
@@ -85,7 +83,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: '#5c6066',
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 16
   },
   textContainer: {
@@ -93,7 +91,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: 'black',
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 27
   },
   titleContainer: {

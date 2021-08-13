@@ -1,8 +1,9 @@
 import analytics from '@segment/analytics-react-native'
 import { deviceStorage } from './deviceStorage';
 import Firebase from '@segment/analytics-react-native-firebase'
+import { NavigationState } from '@react-navigation/native';
 
-export async function analyticsSetup() {
+export async function analyticsSetup(): Promise<void> {
   const WRITEKEY = process.env.NODE_ENV !== 'production' ? process.env.REACT_NATIVE_SEGMENT_API_DEV : process.env.REACT_NATIVE_SEGMENT_API
 
   if (!WRITEKEY) {
@@ -17,16 +18,23 @@ export async function analyticsSetup() {
   });
 }
 
-export async function getLyticsUuid() {
+export async function getLyticsUuid(): Promise<string> {
   const xUser: any = await getLyticsData()
 
   return xUser.uuid
 }
 
-export async function getLyticsData() {
+export async function getLyticsData(): Promise<any> {
   const xUser: any = JSON.parse(await deviceStorage.getItem('xUser') || '{}')
 
   return xUser
+}
+
+export async function trackStackScreen(state: NavigationState, params?: any): Promise<void> {
+  try {
+    analytics.screen(state.routes[0].name, params)
+  } catch {
+  }
 }
 
 export default analytics;

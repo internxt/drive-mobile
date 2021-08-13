@@ -1,34 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import { Text, View, StyleSheet, Image, Platform, Alert, BackHandler } from 'react-native'
+import { View, StyleSheet, Platform, Alert, BackHandler } from 'react-native'
 import AppMenu from '../../components/AppMenu'
 import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
-import SettingsModal, { loadValues } from '../../modals/SettingsModal';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { getIcon } from '../../helpers/getIcon';
-import FileDetailsModal from '../../modals/FileDetailsModal';
-import SortModal from '../../modals/SortModal';
-import DeleteItemModal from '../../modals/DeleteItemModal';
-import MoveFilesModal from '../../modals/MoveFilesModal';
-import ShareFilesModal from '../../modals/ShareFilesModal';
+import { loadValues } from '../../modals/SettingsModal';
 import { Reducers } from '../../redux/reducers/reducers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
 import RNFetchBlob from 'rn-fetch-blob';
-import { WaveIndicator } from 'react-native-indicators'
-import Toast from 'react-native-simple-toast'
-import FreeForYouModal from '../../modals/FreeForYouModal';
-import strings from '../../../assets/lang/strings';
+import Toast from 'react-native-toast-message'
+import SearchBox from '../../components/SearchBox';
+import { WaveIndicator } from 'react-native-indicators';
 
-interface FileExplorerProps extends Reducers {
-  navigation?: any
-  filesState: any
-  dispatch?: any,
-  layoutState: any
-  authenticationState: any
-}
-
-function FileExplorer(props: FileExplorerProps): JSX.Element {
+function FileExplorer(props: Reducers): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
   const { filesState } = props
   const parentFolderId = (() => {
@@ -65,13 +49,16 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
               userId: userData.uuid,
               email: userData.email,
               platform: 'mobile',
+              // eslint-disable-next-line camelcase
               storage_used: currentPlan.usage,
+              // eslint-disable-next-line camelcase
               storage_limit: currentPlan.limit,
+              // eslint-disable-next-line camelcase
               storage_usage: currentPlan.percentage
             }).catch(() => { })
           }
         } catch { }
-      })
+      }).catch(() => { })
     }).catch(() => { })
   }, [])
 
@@ -128,7 +115,14 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       if (props.filesState.folderContent && !props.filesState.folderContent.parentId) {
         count++
         if (count < 2) {
-          Toast.show('Try exiting again to close the app')
+          Toast.show({
+            type: 'error',
+            position: 'bottom',
+            text1: 'Try exiting again to close the app',
+            visibilityTime: 5000,
+            autoHide: true,
+            bottomOffset: 100
+          });
         } else {
           BackHandler.exitApp()
         }
@@ -162,7 +156,7 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm
 
       analytics.track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' }).catch(() => { })
-      props.dispatch(fileActions.uploadFileStart(name))
+      props.dispatch(fileActions.uploadFileStart())
 
       const file = uri.replace(regex, '$2') // if iOS remove file://
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(uri)
@@ -228,35 +222,8 @@ function FileExplorer(props: FileExplorerProps): JSX.Element {
   }
 
   return <View style={styles.container}>
-    <FileDetailsModal key={selectedKeyId} />
-    <SettingsModal navigation={props.navigation} />
-    <SortModal />
-    <DeleteItemModal />
-    <MoveFilesModal />
-    <ShareFilesModal />
-    <FreeForYouModal navigation={props.navigation} />
-
-    <View style={styles.platformSpecificHeight}></View>
-
-    <AppMenu navigation={props.navigation} />
-
-    <View style={styles.breadcrumbs}>
-      <Text numberOfLines={1} style={styles.breadcrumbsTitle}>
-        {filesState.folderContent && filesState.folderContent.parentId
-          ? filesState.folderContent.name
-          : strings.screens.file_explorer.title}
-      </Text>
-
-      <TouchableOpacity
-        style={parentFolderId ? styles.backButtonWrapper : styles.backHidden}
-        onPress={() => {
-          props.dispatch(fileActions.getFolderContent(parentFolderId))
-        }}>
-        <Image style={styles.backIcon} source={getIcon('back')} />
-
-        <Text style={styles.backLabel}>{strings.components.buttons.back}</Text>
-      </TouchableOpacity>
-    </View>
+    <AppMenu title="Storage" />
+    {props.layoutState.searchActive && <SearchBox />}
 
     {
       props.filesState.loading && !props.filesState.isUploading ?
@@ -277,60 +244,11 @@ export default connect(mapStateToProps)(FileExplorer)
 
 const styles = StyleSheet.create({
   activityIndicator: {
-    alignItems: 'center',
-    bottom: 0,
-    justifyContent: 'center',
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0
-  },
-  backButtonWrapper: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    height: '100%',
-    marginRight: 20,
-    width: '80%'
-  },
-  backHidden: {
-    display: 'none'
-  },
-  backIcon: {
-    height: 12,
-    marginRight: 5,
-    width: 8
-  },
-  backLabel: {
-    color: '#000000',
-    fontFamily: 'CircularStd-Medium',
-    fontSize: 19,
-    letterSpacing: -0.2
-  },
-  breadcrumbs: {
-    alignItems: 'center',
-    borderBottomColor: '#e6e6e6',
-    borderBottomWidth: 1,
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'nowrap',
-    height: 40,
-    justifyContent: 'space-between',
-    marginTop: 15
-  },
-  breadcrumbsTitle: {
-    width: '80%',
-    color: '#000000',
-    fontFamily: 'CircularStd-Bold',
-    fontSize: 21,
-    letterSpacing: -0.2,
-    paddingLeft: 20
+    flex: 1
   },
   container: {
     backgroundColor: '#fff',
     flex: 1,
     justifyContent: 'flex-start'
-  },
-  platformSpecificHeight: {
-    height: Platform.OS === 'ios' ? '5%' : '0%'
   }
 });

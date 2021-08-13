@@ -1,8 +1,10 @@
+import { AnyAction } from 'redux';
 import { IFile, IFolder, IUploadingFile } from '../../components/FileList';
 import { fileActionTypes } from '../constants';
 import { ArraySortFunction } from '../services';
 
 export interface FilesState {
+  absolutePath: string
   loading: boolean
   items: any[]
   filesCurrentlyUploading: IUploadingFile[]
@@ -24,12 +26,13 @@ export interface FilesState {
 }
 
 const initialState: FilesState = {
+  absolutePath: '/',
   loading: false,
   items: [],
   filesCurrentlyUploading: [],
   filesAlreadyUploaded: [],
   folderContent: null,
-  rootFolderContent: null,
+  rootFolderContent: [],
   selectedFile: null,
   selectedItems: [],
   sortType: '',
@@ -43,13 +46,8 @@ const initialState: FilesState = {
   uri: undefined
 };
 
-export function filesReducer(state = initialState, action: any): FilesState {
+export function filesReducer(state = initialState, action: AnyAction): FilesState {
   switch (action.type) {
-  case fileActionTypes.GET_FILES_REQUEST:
-    return {
-      ...state,
-      loading: true
-    };
   case fileActionTypes.GET_FILES_SUCCESS:
     return {
       ...state,
@@ -175,6 +173,7 @@ export function filesReducer(state = initialState, action: any): FilesState {
       searchString: action.payload
     }
 
+  case fileActionTypes.GET_FILES_REQUEST:
   case fileActionTypes.CREATE_FOLDER_REQUEST:
     return {
       ...state,
@@ -205,6 +204,7 @@ export function filesReducer(state = initialState, action: any): FilesState {
       loading: false
     }
   case fileActionTypes.UPDATE_FOLDER_METADATA_FAILURE:
+  case fileActionTypes.MOVE_FILES_FAILURE:
     return {
       ...state,
       loading: false,
@@ -230,12 +230,6 @@ export function filesReducer(state = initialState, action: any): FilesState {
       ...state,
       loading: false
     }
-  case fileActionTypes.MOVE_FILES_FAILURE:
-    return {
-      ...state,
-      loading: false,
-      error: action.payload
-    }
   case fileActionTypes.SET_ROOTFOLDER_CONTENT:
     return {
       ...state,
@@ -251,6 +245,18 @@ export function filesReducer(state = initialState, action: any): FilesState {
       ...state,
       filesAlreadyUploaded: state.filesAlreadyUploaded.map(file => file.id === action.payload ? ({ ...file, isUploaded: true }) : file)
     }
+  case fileActionTypes.ADD_DEPTH_ABSOLUTE_PATH:
+    return {
+      ...state,
+      absolutePath: action.payload.reduce((acumm, depth) => acumm + depth + '/', state.absolutePath)
+    };
+  case fileActionTypes.REMOVE_DEPTH_ABSOLUTE_PATH:
+    const pathSplitted = state.absolutePath.split('/');
+
+    return {
+      ...state,
+      absolutePath: pathSplitted.slice(0, pathSplitted.length - (action.payload + 1)).join('/') + '/' || '/'
+    };
   default:
     return state;
   }

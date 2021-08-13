@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, StatusBar, View, Text, Platform, Linking, Alert } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Text, Platform, Linking, Alert, SafeAreaView } from 'react-native';
 import { Provider } from 'react-redux'
 import { store } from './src/store'
 import AppNavigator from './src/AppNavigator';
-import { analyticsSetup, loadEnvVars, loadFonts } from './src/helpers'
-import { NavigationContainer } from '@react-navigation/native';
+import { analyticsSetup, loadEnvVars, loadFonts, trackStackScreen } from './src/helpers'
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { fileActions } from './src/redux/actions';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
-import ConnectionDB from './src/database/connection/connection';
-import { getConnectionManager } from 'typeorm/browser';
-import 'reflect-metadata';
+import Toast from 'react-native-toast-message';
+import * as Unicons from '@iconscout/react-native-unicons'
+import { tailwind } from './src/helpers/designSystem';
+import strings from './assets/lang/strings'
+
+process.nextTick = setImmediate;
 
 export default function App(): JSX.Element {
   const [appInitialized, setAppInitialized] = useState(false);
@@ -51,7 +54,7 @@ export default function App(): JSX.Element {
 
   // useEffect to receive shared file
   useEffect(() => {
-    if (Platform.OS === 'ios'){
+    if (Platform.OS === 'ios') {
       const regex = /inxt:\/\//g
 
       Linking.addEventListener('url', handleOpenURL);
@@ -80,43 +83,52 @@ export default function App(): JSX.Element {
         ReceiveSharingIntent.clearReceivedFiles()
         // files returns as JSON Array example
         //[{ filePath: null, text: null, weblink: null, mimeType: null, contentUri: null, fileName: null, extension: null }]
-      },
-      (error) => {
-        Alert.alert('There was an error', error)
-      }, 'inxt' // share url protocol (must be unique to your app, suggest using your apple bundle id)
-      )
+      }, (error) => {
+        Alert.alert('There was an error', error.message)
+      }, 'inxt')
     }
     return () => {
       Linking.removeEventListener('url', handleOpenURL)
     }
   }, [])
 
-  useEffect(() => {
-    ConnectionDB().then((con)=>{
-    }).catch((err)=>{
-      if (err.name === 'AlreadyHasActiveConnectionError') {
-        const existentConn = getConnectionManager().get('default');
-
-        return existentConn;
-      }
-    })
-  }, [])
+  const navigationRef = useNavigationContainerRef();
+  const routeNameRef = useRef<string>();
 
   return <Provider store={store}>
-    <NavigationContainer linking={linking} fallback={<Text>Loading...</Text>}>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        const currentRoute = navigationRef.getCurrentRoute();
+
+        routeNameRef.current = currentRoute && currentRoute.name
+      }}
+      onStateChange={(route) => {
+        const previousRouteName = routeNameRef.current;
+        const currentRouteName = navigationRef.getCurrentRoute().name;
+
+        if (previousRouteName !== currentRouteName) {
+          trackStackScreen(route, navigationRef.getCurrentRoute().params);
+        }
+
+        routeNameRef.current = currentRouteName;
+      }}
+      linking={linking}
+      fallback={<Text>{strings.generic.loading}</Text>}>
+
       {appInitialized ?
-        <View style={styles.appContainer}>
-          <StatusBar backgroundColor={'#fff'} barStyle={'dark-content'} />
+        <SafeAreaView
+          style={styles.appContainer}>
+
           <AppNavigator />
-        </View>
-        : <View style={styles.container}>
-          {loadError ? <Text>{loadError}</Text>
-            : null}
-        </View>
+        </SafeAreaView>
+        : <SafeAreaView style={styles.container}>
+          {loadError ? <Text>{loadError}</Text> : null}
+        </SafeAreaView>
       }
     </NavigationContainer>
-  </Provider>
-  ;
+    <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
+  </Provider>;
 }
 
 const styles = StyleSheet.create({
@@ -129,3 +141,63 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   }
 })
+
+const toastConfig = {
+  success: function successToast({ text1, props, ...rest }) {
+    return <View style={{
+      backgroundColor: '#091E42',
+      display: 'flex',
+      width: '90%',
+      height: 60,
+      borderRadius: 6,
+      flexDirection: 'row',
+      padding: 15,
+      alignItems: 'center'
+    }}>
+      <View>
+        <Unicons.UilCheckCircle color="#42BE65" size={24} />
+      </View>
+      <View style={{ flexGrow: 1, marginLeft: 20 }}>
+        <Text style={tailwind('text-white')}>{text1}</Text>
+      </View>
+    </View>
+  },
+  error: function errorToast({ text1, props, ...rest }) {
+    return <View style={{
+      backgroundColor: '#DA1E28',
+      display: 'flex',
+      width: '90%',
+      height: 60,
+      borderRadius: 6,
+      flexDirection: 'row',
+      padding: 15,
+      alignItems: 'center'
+    }}>
+      <View>
+        <Unicons.UilTimesCircle color="#FFFFFF" size={24} />
+      </View>
+      <View style={{ flexGrow: 1, marginLeft: 20 }}>
+        <Text style={tailwind('text-white')}>{text1}</Text>
+      </View>
+    </View>
+  },
+  warn: function warnToast({ text1, props, ...rest }) {
+    return <View style={{
+      backgroundColor: '#F1C21B',
+      display: 'flex',
+      width: '90%',
+      height: 60,
+      borderRadius: 6,
+      flexDirection: 'row',
+      padding: 15,
+      alignItems: 'center'
+    }}>
+      <View>
+        <Unicons.UilExclamationTriangle color="#091E42" size={24} />
+      </View>
+      <View style={{ flexGrow: 1, marginLeft: 20 }}>
+        <Text style={{ color: '#091E42' }}>{text1}</Text>
+      </View>
+    </View>
+  }
+};

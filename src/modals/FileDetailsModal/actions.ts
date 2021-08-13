@@ -1,6 +1,10 @@
 import { getHeaders } from '../../helpers/headers'
 
-export async function updateFolderMetadata(metadata: any, folderId: number): Promise<void> {
+export interface IMetadata {
+  itemName: string
+}
+
+export async function updateFolderMetadata(metadata: IMetadata, folderId: number): Promise<void> {
   const headers = await getHeaders()
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}/meta`, {

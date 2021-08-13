@@ -7,8 +7,8 @@ export default function Separator(): JSX.Element {
 
 const styles = StyleSheet.create({
   separator: {
-    borderColor: '#f2f2f2',
-    borderWidth: 1,
+    borderColor: '#EBECF0',
+    borderTopWidth: 1,
     height: 1,
     marginBottom: 12,
     marginTop: 12

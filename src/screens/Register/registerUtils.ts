@@ -23,7 +23,7 @@ export async function getNewBits(): Promise<string> {
     .then(bits => decryptText(bits))
 }
 
-export function IsJsonString(str: string): any {
+export function isJsonString(str: string): any {
   try {
     return JSON.parse(str);
   } catch (e) {
@@ -55,7 +55,7 @@ export async function doRegister(params: RegisterParams): Promise<any> {
       return res.json()
     } else {
       const body = await res.text()
-      const json = IsJsonString(body)
+      const json = isJsonString(body)
 
       if (json) {
         throw Error(json.message)

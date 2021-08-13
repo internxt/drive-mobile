@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Share, Platform } from 'react-native';
-import { TextInput, TouchableOpacity, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, Share, Platform, TextInput, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
@@ -11,18 +10,17 @@ import { IFile, IFolder } from '../../components/FileList';
 import { Reducers } from '../../redux/reducers/reducers';
 import Clipboard from 'expo-clipboard'
 import strings from '../../../assets/lang/strings';
+import { generateShareLink } from '../../@inxt-js/services/share';
+import { deviceStorage } from '../../helpers';
+import { generateFileKey, Network } from '../../lib/network';
 
-interface ShareFilesModalProps extends Reducers {
-  dispatch?: any,
-}
-
-function ShareFilesModal(props: ShareFilesModalProps) {
+function ShareFilesModal(props: Reducers) {
   const [isOpen, setIsOpen] = useState(props.layoutState.showShareModal)
   const [selectedFile, setSelectedFile] = useState<IFile & IFolder>()
   const [filename, setFileName] = useState('')
   const [link, setLink] = useState('')
   const [isLoading, setIsLoading] = useState(true)
-  const [inputValue, setInputValue] = useState('1')
+  const [inputValue, setInputValue] = useState('10')
 
   const handleInputChange = (e: string) => {
     setInputValue(e.replace(/[^0-9]/g, ''))
@@ -69,16 +67,22 @@ function ShareFilesModal(props: ShareFilesModalProps) {
   const getFileToken = async (file: IFile, views: number) => {
     const fileId = file.fileId;
 
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/share/file/${fileId}`, {
-      method: 'POST',
-      headers: await getHeaders(),
-      body: JSON.stringify({ 'isFolder': false, 'views': views })
-    }).then(res => {
-      if (res.status !== 200) {
-        throw Error('Cannot download file')
-      }
-      return res.json()
-    }).then(data => data.token);
+    const { bucket, mnemonic, userId, email } = await deviceStorage.getUser();
+    const network = new Network(email, userId, mnemonic);
+    const { index } = await network.getFileInfo(bucket, fileId);
+    const fileToken = await network.createFileToken(bucket, fileId, 'PULL');
+    const fileEncryptionKey = await generateFileKey(mnemonic, bucket, Buffer.from(index, 'hex'));
+
+    const generatedLink = await generateShareLink(await getHeaders(), fileId, {
+      bucket,
+      fileToken,
+      isFolder: false,
+      views,
+      encryptionKey: fileEncryptionKey.toString('hex')
+    });
+
+    setLink(generatedLink);
+    return generatedLink;
   };
 
   return (
@@ -87,8 +91,10 @@ function ShareFilesModal(props: ShareFilesModalProps) {
       swipeArea={2}
       onClosed={() => {
         props.dispatch(layoutActions.closeShareModal())
+        setLink('');
         setIsOpen(false)
-        setInputValue('1')
+        setIsLoading(true);
+        setInputValue('10')
       }}
       position='bottom'
       style={styles.modalContainer}>
@@ -151,12 +157,12 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#4585f5',
-    fontFamily: 'CerebriSans-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 18
   },
   buttonTextLoading: {
     color: 'rgba(69, 133, 245, 0.7)',
-    fontFamily: 'CircularStd-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 18
   },
   input: {
@@ -205,7 +211,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: 'black',
-    fontFamily: 'CircularStd-Bold',
+    fontFamily: 'NeueEinstellung-Bold',
     fontSize: 18,
     marginHorizontal: wp('6')
   }
