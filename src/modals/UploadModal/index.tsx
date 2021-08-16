@@ -29,6 +29,7 @@ interface UploadingFile {
   updatedAt: Date
   id: string
   uri: string
+  path: string
 }
 
 function getFileExtension(uri: string) {
@@ -39,7 +40,12 @@ function getFileExtension(uri: string) {
 }
 
 function removeExtension(filename: string) {
-  const extension = filename.split('.').pop();
+  const filenameSplitted = filename.split('.');
+  const extension = filenameSplitted.length > 1 ? filenameSplitted.pop() : '';
+
+  if (extension === '') {
+    return filename;
+  }
 
   return filename.substring(0, filename.length - (extension.length + 1));
 }
@@ -118,7 +124,7 @@ function UploadModal(props: Reducers) {
     props.dispatch(fileActions.uploadFileSetUri(undefined));
   }
 
-  function uploadDocuments(documents: DocumentPickerResponse[]) {
+  async function uploadDocuments(documents: DocumentPickerResponse[]) {
     const filesToUpload: DocumentPickerResponse[] = [];
     const filesExcluded: DocumentPickerResponse[] = [];
 
@@ -136,46 +142,42 @@ function UploadModal(props: Reducers) {
       );
     }
 
-    for (const fileToUpload of filesToUpload) {
-      const filesAtSameLevel = filesState.folderContent.files.map(file => {
-        return { name: removeExtension(fileToUpload.name), type: fileToUpload.type };
-      });
+    const filesAtSameLevel = filesState.folderContent.files.map(file => {
+      return { name: removeExtension(file.name), type: file.type };
+    });
 
+    const formattedFiles: UploadingFile[] = [];
+
+    for (const fileToUpload of filesToUpload) {
       const file: UploadingFile = {
+        uri: fileToUpload.uri,
         name: renameIfAlreadyExists(filesAtSameLevel, removeExtension(fileToUpload.name), getFileExtension(fileToUpload.uri))[2] + '.' + getFileExtension(fileToUpload.uri),
         progress: 0,
         type: getFileExtension(fileToUpload.uri),
         currentFolder,
         createdAt: new Date(),
         updatedAt: new Date(),
-        id: uniqueId()
+        id: uniqueId(),
+        path: ''
       }
-
-      // TODO: Refactor this shit
-      // file.name = renameIfAlreadyExists(filesAtSameLevel, removeExtension(file.name), getFileExtension(file.uri))[2] + '.' + getFileExtension(file.uri);
-      // file.progress = 0
-      // file.type = getFileExtension(result.uri);
-      // file.currentFolder = currentFolder;
-      // file.createdAt = new Date();
-      // file.updatedAt = new Date();
-      // file.id = uniqueId();
 
       trackUploadStart();
       props.dispatch(fileActions.uploadFileStart());
       props.dispatch(fileActions.addUploadingFile(file));
 
-      // props.dispatch(layoutActions.closeUploadFileModal());
-      return;
+      formattedFiles.push(file);
+      filesAtSameLevel.push({ name: removeExtension(fileToUpload.name), type: fileToUpload.type });
+    }
 
-      upload(file, 'document').then(() => {
+    for (const file of formattedFiles) {
+      await upload(file, 'document').then(() => {
         uploadSuccess(file);
-      }).catch(err => {
+      }).catch((err) => {
         trackUploadError(err);
         props.dispatch(fileActions.uploadFileFailed(file.id));
-        Alert.alert('Error', 'Cannot upload file due to: ' + err.message);
+        Alert.alert('Error', 'Cannot upload file: ' + err.message);
       }).finally(() => {
         props.dispatch(fileActions.uploadFileFinished(file.name));
-        props.dispatch(fileActions.getFolderContent(currentFolder));
       });
     }
   }
@@ -205,17 +207,19 @@ function UploadModal(props: Reducers) {
         icon={Unicons.UilUploadAlt}
         onPress={() => {
           DocumentPicker.pickMultiple({
-            type: [DocumentPicker.types.allFiles]
+            type: [DocumentPicker.types.allFiles],
+            copyTo: 'cachesDirectory'
           }).then((documents) => {
+            documents.forEach(doc => doc.uri = doc.fileCopyUri);
             props.dispatch(layoutActions.closeUploadFileModal());
-            // TODO: Handle cancellation event
             return uploadDocuments(documents);
           }).then(() => {
             props.dispatch(fileActions.getFolderContent(currentFolder));
           }).catch((err) => {
-            // TODO: Test if error is seen when an error happens
-            Alert.alert('File upload error', err);
-            Alert.alert(err);
+            if (err.message === 'User canceled document picker') {
+              return;
+            }
+            Alert.alert('File upload error', err.message);
           }).finally(() => {
             props.dispatch(layoutActions.closeUploadFileModal());
           })
