@@ -6,6 +6,7 @@ import Modal from 'react-native-modalbox';
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import { DocumentResult, getDocumentAsync } from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
+import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 
 import { fileActions, layoutActions } from '../../redux/actions';
 import SettingsItem from '../SettingsModal/SettingsItem';
@@ -19,6 +20,18 @@ import { Reducers } from '../../redux/reducers/reducers';
 import { renameIfAlreadyExists } from '../../lib';
 import { UPLOAD_FILES_LIMIT } from '../../lib/constants';
 import strings from '../../../assets/lang/strings';
+
+interface UploadingFile {
+  size: number
+  progress: number
+  name: string
+  type: string
+  currentFolder: any
+  createdAt: Date
+  updatedAt: Date
+  id: string
+  uri: string
+}
 
 function getFileExtension(uri: string) {
   const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
@@ -107,6 +120,68 @@ function UploadModal(props: Reducers) {
     props.dispatch(fileActions.uploadFileSetUri(undefined));
   }
 
+  function uploadDocuments(documents: DocumentPickerResponse[]) {
+    const filesToUpload: DocumentPickerResponse[] = [];
+    const filesExcluded: DocumentPickerResponse[] = [];
+
+    for (const file of documents) {
+      if (file.size <= UPLOAD_FILES_LIMIT) {
+        filesToUpload.push(file);
+      } else {
+        filesExcluded.push(file);
+      }
+    }
+
+    if (filesExcluded.length > 0) {
+      Alert.alert(
+        `${filesExcluded.length} files will not be uploaded. Max upload size per file is 1GB`
+      );
+    }
+
+    for (const fileToUpload of filesToUpload) {
+      const filesAtSameLevel = filesState.folderContent.files.map(file => {
+        return { name: removeExtension(fileToUpload.name), type: fileToUpload.type };
+      });
+
+      const file: UploadingFile = {
+        name: renameIfAlreadyExists(filesAtSameLevel, removeExtension(fileToUpload.name), getFileExtension(fileToUpload.uri))[2] + '.' + getFileExtension(fileToUpload.uri),
+        progress: 0,
+        type: getFileExtension(fileToUpload.uri),
+        currentFolder,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        id: uniqueId()
+      }
+
+      // TODO: Refactor this shit
+      // file.name = renameIfAlreadyExists(filesAtSameLevel, removeExtension(file.name), getFileExtension(file.uri))[2] + '.' + getFileExtension(file.uri);
+      // file.progress = 0
+      // file.type = getFileExtension(result.uri);
+      // file.currentFolder = currentFolder;
+      // file.createdAt = new Date();
+      // file.updatedAt = new Date();
+      // file.id = uniqueId();
+
+      trackUploadStart();
+      props.dispatch(fileActions.uploadFileStart());
+      props.dispatch(fileActions.addUploadingFile(file));
+
+      // props.dispatch(layoutActions.closeUploadFileModal());
+      return;
+
+      upload(file, 'document').then(() => {
+        uploadSuccess(file);
+      }).catch(err => {
+        trackUploadError(err);
+        props.dispatch(fileActions.uploadFileFailed(file.id));
+        Alert.alert('Error', 'Cannot upload file due to: ' + err.message);
+      }).finally(() => {
+        props.dispatch(fileActions.uploadFileFinished(file.name));
+        props.dispatch(fileActions.getFolderContent(currentFolder));
+      });
+    }
+  }
+
   return (
     <Modal
       isOpen={layoutState.showUploadModal}
@@ -130,56 +205,22 @@ function UploadModal(props: Reducers) {
       <SettingsItem
         text={'Upload file'}
         icon={Unicons.UilUploadAlt}
-        onPress={async () => {
-          const result: DocumentResult = await getDocumentAsync({
-            copyToCacheDirectory: true
-          })
-
-          if (result.type !== 'cancel') {
-            if (result.size > UPLOAD_FILES_LIMIT) {
-              props.dispatch(layoutActions.closeUploadFileModal());
-              Toast.show({
-                type: 'error',
-                position: 'bottom',
-                text1: 'Max supported upload size is 1GB',
-                visibilityTime: 5000,
-                autoHide: true,
-                bottomOffset: 100
-              });
-              return;
-            }
-
-            const file: any = result
-            const filesAtSameLevel = filesState.folderContent.files.map(file => {
-              return { name: removeExtension(file.name), type: file.type };
-            });
-
-            // TODO: Refactor this shit
-            file.name = renameIfAlreadyExists(filesAtSameLevel, removeExtension(file.name), getFileExtension(file.uri))[2] + '.' + getFileExtension(file.uri);
-            file.progress = 0
-            file.type = getFileExtension(result.uri);
-            file.currentFolder = currentFolder;
-            file.createdAt = new Date();
-            file.updatedAt = new Date();
-            file.id = uniqueId();
-
-            trackUploadStart();
-            props.dispatch(fileActions.uploadFileStart());
-            props.dispatch(fileActions.addUploadingFile(file));
-
+        onPress={() => {
+          DocumentPicker.pickMultiple({
+            type: [DocumentPicker.types.allFiles]
+          }).then((documents) => {
             props.dispatch(layoutActions.closeUploadFileModal());
-
-            upload(file, 'document').then(() => {
-              uploadSuccess(file);
-            }).catch(err => {
-              trackUploadError(err);
-              props.dispatch(fileActions.uploadFileFailed(file.id));
-              Alert.alert('Error', 'Cannot upload file due to: ' + err.message);
-            }).finally(() => {
-              props.dispatch(fileActions.uploadFileFinished(file.name));
-              props.dispatch(fileActions.getFolderContent(currentFolder));
-            });
-          }
+            // TODO: Handle cancellation event
+            return uploadDocuments(documents);
+          }).then(() => {
+            props.dispatch(fileActions.getFolderContent(currentFolder));
+          }).catch((err) => {
+            // TODO: Test if error is seen when an error happens
+            Alert.alert('File upload error', err);
+            Alert.alert(err);
+          }).finally(() => {
+            props.dispatch(layoutActions.closeUploadFileModal());
+          })
         }}
       />
 
