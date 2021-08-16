@@ -5,9 +5,9 @@ import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
-import * as Unicons from '@iconscout/react-native-unicons'
-import { doChangePassword } from './changePasswordUtils'
-import Toast from 'react-native-toast-message'
+import * as Unicons from '@iconscout/react-native-unicons';
+import { doChangePassword } from './changePasswordUtils';
+import { showToast } from '../../helpers'
 
 function ChangePassword(props: any) {
   const [password, setPassword] = useState('')
@@ -18,27 +18,13 @@ function ChangePassword(props: any) {
   const handleOnPress = () => {
     setIsLoading(true)
     doChangePassword({ password, newPassword }).then(() => {
-      Toast.show({
-        type: 'success',
-        position: 'bottom',
-        text1: 'Password changed',
-        visibilityTime: 5000,
-        autoHide: true,
-        bottomOffset: 100
-      });
+      showToast({ text: 'Password changed', type: 'success' });
       setPassword('');
       setNewPassword('');
       setConfirmPassword('');
     }).catch(
       (err: Error) => {
-        Toast.show({
-          type: 'error',
-          position: 'bottom',
-          text1: err.message,
-          visibilityTime: 5000,
-          autoHide: true,
-          bottomOffset: 100
-        });
+        showToast({ type: 'error', text: err.message });
       }
     ).finally(() => {
       setIsLoading(false)

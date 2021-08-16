@@ -5,7 +5,7 @@ import { uniqueId } from 'lodash';
 import Modal from 'react-native-modalbox';
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import { DocumentResult, getDocumentAsync } from 'expo-document-picker';
-import Toast from 'react-native-toast-message';
+import { showToast } from '../../helpers';
 
 import { fileActions, layoutActions } from '../../redux/actions';
 import SettingsItem from '../SettingsModal/SettingsItem';
@@ -138,14 +138,7 @@ function UploadModal(props: Reducers) {
           if (result.type !== 'cancel') {
             if (result.size > UPLOAD_FILES_LIMIT) {
               props.dispatch(layoutActions.closeUploadFileModal());
-              Toast.show({
-                type: 'error',
-                position: 'bottom',
-                text1: 'Max supported upload size is 1GB',
-                visibilityTime: 5000,
-                autoHide: true,
-                bottomOffset: 100
-              });
+              showToast({ type: 'error', text: 'Max supported upload size is 1GB' })
               return;
             }
 
