@@ -254,6 +254,18 @@ function FileDetailsModal(props: FileDetailsProps) {
             <SettingsItem
               text={<View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{ margin: 10 }}>
+                  <Unicons.UilShare color="#0F62FE" />
+                </View>
+                <Text style={{}}>{strings.generic.rename}</Text>
+              </View>}
+              onPress={() => {
+                props.dispatch(layoutActions.openRenameModal())
+              }}
+            />
+
+            <SettingsItem
+              text={<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ margin: 10 }}>
                   <Unicons.UilTrashAlt color="#DA1E28" />
                 </View>
 
