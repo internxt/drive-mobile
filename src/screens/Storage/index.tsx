@@ -108,7 +108,7 @@ function Storage(props: StorageProps): JSX.Element {
       <View>
         <View>
           <Text style={[styles.footer, { textAlign: 'center' }]}>
-            {strings.screens.storage.plans.current_plan} {prettysize(usageValues.limit)} {strings.getLanguage() === 'es' ? null : 'plan'}
+            {strings.screens.storage.plans.current_plan} {parseLimit()} {strings.getLanguage() === 'es' ? null : 'plan'}
           </Text>
         </View>
       </View>
