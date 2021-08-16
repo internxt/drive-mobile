@@ -7,7 +7,8 @@ import {
   KeyboardAvoidingView,
   TextInput,
   TouchableHighlight,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  ScrollView
 } from 'react-native';
 import React, { useEffect, useState } from 'react'
 import { normalize } from '../../helpers';
@@ -59,109 +60,117 @@ function Forgot(props: ForgotProps): JSX.Element {
 
   if (currentContainer === 1) {
     return (
-      <KeyboardAvoidingView behavior="padding" style={styles.container}>
-        <View
-          style={[
-            styles.containerCentered,
-            isLoading ? styles.halfOpacity : {}
-          ]}
-        >
-          <View style={styles.containerHeader}>
-            <View style={tailwind('items-center pb-10')}>
-              <InternxtLogo />
-              <Text style={styles.subTitle}>{strings.generic.security}</Text>
-            </View>
-            <Text style={[tailwind('text-sm'), styles.explication]}>
-              {strings.screens.forgot_password.subtitle_1}
+      <ScrollView style={tailwind('bg-white')}>
+        <KeyboardAvoidingView behavior="padding" style={[styles.container, tailwind('py-0')]}>
+          <View style={[tailwind('py-0 bg-white'), { marginTop: 100 }]}>
+            <View
+              style={[
+                styles.containerCentered,
+                isLoading ? styles.halfOpacity : {}
+              ]}
+            >
+              <View style={styles.containerHeader}>
+                <View style={tailwind('items-center pb-10')}>
+                  <InternxtLogo />
+                  <Text style={styles.subTitle}>{strings.generic.security}</Text>
+                </View>
+                <Text style={[tailwind('text-sm'), styles.explication]}>
+                  {strings.screens.forgot_password.subtitle_1}
 
-              <Text style={styles.bold}>{strings.screens.forgot_password.bold}</Text>
+                  <Text style={styles.bold}>{strings.screens.forgot_password.bold}</Text>
 
-              {strings.screens.forgot_password.subtitle_2}
-            </Text>
-
-            <View style={tailwind('input-wrapper')}>
-              <TextInput
-                style={tailwind('input')}
-                value={email}
-                onChangeText={(value) => setIsEmail(value)}
-                placeholder={strings.components.inputs.email}
-                placeholderTextColor="#666666"
-                maxLength={64}
-                keyboardType="email-address"
-                textContentType="emailAddress"
-              />
-              <Unicons.UilEnvelope
-                color={'#AAA'}
-                style={tailwind('input-icon')} />
-            </View>
-
-            <View style={globalStyle.buttonInputStyle.wrapper}>
-              <TouchableHighlight
-                style={tailwind('btn btn-primary')}
-                onPress={() => sendDeactivationEmail()}
-              >
-                <Text style={tailwind('text-base btn-label')}>
-                  {strings.components.buttons.continue}
+                  {strings.screens.forgot_password.subtitle_2}
                 </Text>
-              </TouchableHighlight>
-            </View>
-            <View style={tailwind('py-5')}>
-              <TouchableWithoutFeedback
-                style={tailwind('m-5')}
-                onPress={() => props.navigation.replace('Login')}
-              >
-                <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
-              </TouchableWithoutFeedback>
+
+                <View style={tailwind('input-wrapper')}>
+                  <TextInput
+                    style={tailwind('input')}
+                    value={email}
+                    onChangeText={(value) => setIsEmail(value)}
+                    placeholder={strings.components.inputs.email}
+                    placeholderTextColor="#666666"
+                    maxLength={64}
+                    keyboardType="email-address"
+                    textContentType="emailAddress"
+                  />
+                  <Unicons.UilEnvelope
+                    color={'#AAA'}
+                    style={tailwind('input-icon')} />
+                </View>
+
+                <View style={globalStyle.buttonInputStyle.wrapper}>
+                  <TouchableHighlight
+                    style={tailwind('btn btn-primary')}
+                    onPress={() => sendDeactivationEmail()}
+                  >
+                    <Text style={tailwind('text-base btn-label')}>
+                      {strings.components.buttons.continue}
+                    </Text>
+                  </TouchableHighlight>
+                </View>
+                <View style={tailwind('py-5')}>
+                  <TouchableWithoutFeedback
+                    style={tailwind('m-5')}
+                    onPress={() => props.navigation.replace('Login')}
+                  >
+                    <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
+                  </TouchableWithoutFeedback>
+                </View>
+              </View>
             </View>
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </ScrollView>
     );
 
   }
 
   if (currentContainer === 2) {
     return (
-      <KeyboardAvoidingView behavior="padding" style={styles.container}>
-        <View
-          style={[
-            styles.containerCentered,
-            isLoading ? styles.halfOpacity : {}
-          ]}
-        >
-          <View style={styles.containerHeader}>
-            <View style={tailwind('items-center pb-10')}>
-              <InternxtLogo />
-              <Text style={styles.subTitle}>{strings.generic.security}</Text>
-            </View>
-            <Text style={[tailwind('text-sm'), styles.explication]}>
-              {strings.screens.deactivation_screen.subtitle_1}
-              {strings.screens.deactivation_screen.subtitle_2}
-            </Text>
-
-            <View style={styles.buttonWrapper}>
-              <TouchableHighlight
-                style={[styles.button, styles.buttonOn]}
-                underlayColor="#00aaff"
-                onPress={() => sendDeactivationEmail()}
-              >
-                <Text style={[styles.buttonOnLabel, styles.buttonLabel]}>
-                  {strings.components.buttons.deactivation}
+      <ScrollView style={tailwind('bg-white')}>
+        <KeyboardAvoidingView behavior="padding" style={[styles.container, tailwind('py-0')]}>
+          <View style={[tailwind('py-0 bg-white'), { marginTop: 100 }]}>
+            <View
+              style={[
+                styles.containerCentered,
+                isLoading ? styles.halfOpacity : {}
+              ]}
+            >
+              <View style={styles.containerHeader}>
+                <View style={tailwind('items-center pb-10')}>
+                  <InternxtLogo />
+                  <Text style={styles.subTitle}>{strings.generic.security}</Text>
+                </View>
+                <Text style={[tailwind('text-sm'), styles.explication]}>
+                  {strings.screens.deactivation_screen.subtitle_1}
+                  {strings.screens.deactivation_screen.subtitle_2}
                 </Text>
-              </TouchableHighlight>
-            </View>
 
-            <View style={tailwind('py-5')}>
-              <TouchableWithoutFeedback
-                style={tailwind('m-5')}
-                onPress={() => props.navigation.replace('Login')}
-              >
-                <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
-              </TouchableWithoutFeedback>
+                <View style={styles.buttonWrapper}>
+                  <TouchableHighlight
+                    style={[styles.button, styles.buttonOn]}
+                    underlayColor="#00aaff"
+                    onPress={() => sendDeactivationEmail()}
+                  >
+                    <Text style={styles.buttonOnLabel}>
+                      {strings.components.buttons.deactivation}
+                    </Text>
+                  </TouchableHighlight>
+                </View>
+
+                <View style={tailwind('py-5')}>
+                  <TouchableWithoutFeedback
+                    style={tailwind('m-5')}
+                    onPress={() => props.navigation.replace('Login')}
+                  >
+                    <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
+                  </TouchableWithoutFeedback>
+                </View>
+              </View>
             </View>
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </ScrollView>
     );
 
   }
@@ -194,7 +203,9 @@ const styles = StyleSheet.create({
   buttonOnLabel: {
     color: '#fff',
     fontFamily: 'NeueEinstellung-Medium',
-    fontSize: normalize(15)
+    fontSize: normalize(15),
+    textAlignVertical: 'center',
+    textAlign: 'center'
   },
   buttonWrapper: {
     flexDirection: 'row',
@@ -226,11 +237,5 @@ const styles = StyleSheet.create({
     color: '#42526E',
     alignSelf: 'center',
     paddingTop: 15
-  },
-  buttonLabel: {
-    color: 'white',
-    textAlign: 'center',
-    textAlignVertical: 'center',
-    flexGrow: 1
   }
 });
