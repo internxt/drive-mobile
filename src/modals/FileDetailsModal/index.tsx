@@ -103,7 +103,7 @@ function FileDetailsModal(props: FileDetailsProps) {
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', padding: 20, paddingLeft: 20 }}>
                 <View style={{ paddingRight: 10 }}>
-                  <Unicons.UilEdit color="#0F62FE" size={30} />
+                  <Unicons.UilEdit color="#0F62FE" />
                 </View>
                 <View>
                   <Text style={{ fontFamily: 'NeueEinstellung-Regular' }}>{strings.generic.rename}</Text>
@@ -117,13 +117,13 @@ function FileDetailsModal(props: FileDetailsProps) {
             <TouchableHighlight
               underlayColor={'#eee'}
               onPress={() => {
-                props.dispatch(layoutActions.closeItemModal())
+                // props.dispatch(layoutActions.closeItemModal())
                 props.dispatch(layoutActions.openDeleteModal())
               }}>
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', padding: 20, paddingLeft: 20 }}>
                 <View style={{ paddingRight: 10 }}>
-                  <Unicons.UilTrashAlt color="#DA1E28" size={30} />
+                  <Unicons.UilTrashAlt color="#DA1E28"/>
                 </View>
                 <View>
                   <Text style={{ fontFamily: 'NeueEinstellung-Regular', color: '#DA1E28' }}>{strings.generic.delete}</Text>
