@@ -4,8 +4,6 @@ import { connect, useSelector } from 'react-redux';
 import { uniqueId } from 'lodash';
 import Modal from 'react-native-modalbox';
 import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
-import { DocumentResult, getDocumentAsync } from 'expo-document-picker';
-import Toast from 'react-native-toast-message';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 
 import { fileActions, layoutActions } from '../../redux/actions';
