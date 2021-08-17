@@ -45,7 +45,7 @@ function AppMenu(props: AppMenuProps) {
             </TouchableWithoutFeedback>}
           </View>
           <View>
-            {props.hideOptions === true &&
+            {props.hideOptions === false &&
               <TouchableWithoutFeedback
                 onPress={() => {
                   props.dispatch(layoutActions.openSettings());
