@@ -68,8 +68,9 @@ export function writeFile(): void {
   throw new Error('Not implemented yet');
 }
 
-export function stat(fileUri: string): Promise<RNFS.StatResult> {
-  return RNFS.stat(fileUri);
+export function stat(fileUri: string): Promise<any> {
+  // return RNFS.stat(fileUri);
+  return RNFetchBlob.fs.stat(fileUri);
 }
 
 interface FileWriter {

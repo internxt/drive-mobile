@@ -1,10 +1,11 @@
 import React from 'react'
-import { View, StyleSheet, Text, Alert, Platform } from 'react-native';
+import { View, StyleSheet, Text, Alert, Platform, PermissionsAndroid } from 'react-native';
 import { connect, useSelector } from 'react-redux';
 import { uniqueId } from 'lodash';
 import Modal from 'react-native-modalbox';
-import { launchCameraAsync, launchImageLibraryAsync, MediaTypeOptions, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
+import { launchCameraAsync, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
+import { launchImageLibrary } from 'react-native-image-picker'
 
 import { fileActions, layoutActions } from '../../redux/actions';
 import SettingsItem from '../SettingsModal/SettingsItem';
@@ -55,7 +56,7 @@ function UploadModal(props: Reducers) {
 
   const currentFolder = filesState.folderContent?.currentFolder || authenticationState.user.root_folder_id;
 
-  async function upload(res: FileMeta, fileType: 'document' | 'image') {
+  async function uploadIOS(res: FileMeta, fileType: 'document' | 'image') {
     function progressCallback(progress: number) {
       props.dispatch(fileActions.uploadFileSetProgress(progress, res.id));
     }
@@ -72,6 +73,62 @@ function UploadModal(props: Reducers) {
     const fileUri = result.uri.replace(regex, '$2')
     const extension = fileUri.split('.').pop();
     const finalUri = getFinalUri(fileUri, fileType);
+
+    result.uri = finalUri;
+    result.type = fileType;
+    result.path = filesState.absolutePath + result.name;
+
+    const fileStat = await stat(finalUri);
+
+    if (Platform.OS === 'android' && fileType === 'image') {
+      result.uri = 'file:///' + result.uri;
+    }
+
+    const fileId = await uploadFile(result, progressCallback);
+
+    const folderId = result.currentFolder.toString();
+    const name = encryptFilename(removeExtension(result.name), folderId);
+    const fileSize = fileStat.size;
+    const type = extension;
+    const { bucket } = await deviceStorage.getUser();
+    const fileEntry: FileEntry = { fileId, file_id: fileId, type, bucket, size: fileSize.toString(), folder_id: folderId, name, encrypt_version: '03-aes' };
+
+    return createFileEntry(fileEntry);
+  }
+
+  async function uploadAndroid(res: FileMeta, fileType: 'document' | 'image') {
+    function progressCallback(progress: number) {
+      props.dispatch(fileActions.uploadFileSetProgress(progress, res.id));
+    }
+
+    // TODO: Refactor this to avoid coupling input object to redux provided object
+    const result = { ...res };
+
+    // Set name for pics/photos
+    if (!result.name) {
+      result.name = result.uri.split('/').pop(); // ??
+    }
+
+    // const regex = /^(.*:\/{0,2})\/?(.*)$/gm
+    // const fileUri = result.uri.replace(regex, '$2')
+    const extension = result.name.split('.').pop();
+    const finalUri = result.uri //getFinalUri(fileUri, fileType);
+
+    if (Platform.OS === 'android' && fileType === 'document') {
+
+      const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
+        title: 'Files Permission',
+        message: 'Internxt needs access to your files in order to upload documents',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'Grant'
+      });
+
+      if (!granted) {
+        Alert.alert('Can not upload files');
+        return;
+      }
+      // finalUri = 'content://' + finalUri;
+    }
 
     result.uri = finalUri;
     result.type = fileType;
@@ -168,6 +225,8 @@ function UploadModal(props: Reducers) {
       formattedFiles.push(file);
       filesAtSameLevel.push({ name: removeExtension(fileToUpload.name), type: fileToUpload.type });
     }
+
+    const upload = Platform.OS === 'ios' ? uploadIOS : uploadAndroid;
 
     for (const file of formattedFiles) {
       await upload(file, 'document').then(() => {
@@ -266,7 +325,7 @@ function UploadModal(props: Reducers) {
 
               props.dispatch(layoutActions.closeUploadFileModal());
 
-              upload(file, 'image').then(() => {
+              uploadIOS(file, 'image').then(() => {
                 uploadSuccess(file);
               }).catch(err => {
                 trackUploadError(err);
@@ -288,40 +347,36 @@ function UploadModal(props: Reducers) {
           const { status } = await requestMediaLibraryPermissionsAsync(false)
 
           if (status === 'granted') {
-            const result = await launchImageLibraryAsync({ mediaTypes: MediaTypeOptions.All })
-
-            if (!result.cancelled) {
-              const file: any = result
-
-              // Set name for pics/photos
-              if (!file.name) {
-                file.name = result.uri.split('/').pop()
+            launchImageLibrary({ mediaType: 'mixed', selectionLimit: 0 }, (response) => {
+              if (response.errorMessage) {
+                return Alert.alert(response.errorMessage)
               }
-              file.progress = 0
-              file.currentFolder = currentFolder
-              file.createdAt = new Date();
-              file.updatedAt = new Date();
-              file.id = uniqueId();
+              if (response.assets) {
+                const documents: DocumentPickerResponse[] = response.assets.map((asset) => {
+                  const doc: DocumentPickerResponse = {
+                    fileCopyUri: asset.uri,
+                    name: asset.fileName,
+                    size: asset.fileSize,
+                    type: asset.type,
+                    uri: asset.uri
+                  }
 
-              trackUploadStart();
-              props.dispatch(fileActions.uploadFileStart());
-              props.dispatch(fileActions.addUploadingFile(file));
+                  return doc
+                })
 
-              props.dispatch(layoutActions.closeUploadFileModal());
-
-              upload(file, 'image').then(() => {
-                uploadSuccess(file);
-              }).catch(err => {
-                trackUploadError(err);
-                props.dispatch(fileActions.uploadFileFailed(file.id));
-                Alert.alert('Error', 'Cannot upload file due to: ' + err.message);
-              }).finally(() => {
-                props.dispatch(fileActions.uploadFileFinished(file.name));
-                props.dispatch(fileActions.getFolderContent(currentFolder));
-              });
-            }
-          } else {
-            Alert.alert('Camera roll permissions needed to perform this action')
+                props.dispatch(layoutActions.closeUploadFileModal());
+                uploadDocuments(documents).then(() => {
+                  props.dispatch(fileActions.getFolderContent(currentFolder));
+                }).catch((err) => {
+                  if (err.message === 'User canceled document picker') {
+                    return;
+                  }
+                  Alert.alert('File upload error', err.message);
+                }).finally(() => {
+                  props.dispatch(layoutActions.closeUploadFileModal());
+                })
+              }
+            })
           }
         }}
       />
