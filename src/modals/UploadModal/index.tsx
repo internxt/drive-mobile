@@ -6,6 +6,7 @@ import Modal from 'react-native-modalbox';
 import { launchCameraAsync, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker'
+import { getDocumentAsync } from 'expo-document-picker'
 
 import { fileActions, layoutActions } from '../../redux/actions';
 import SettingsItem from '../SettingsModal/SettingsItem';
@@ -134,8 +135,6 @@ function UploadModal(props: Reducers) {
     result.type = fileType;
     result.path = filesState.absolutePath + result.name;
 
-    const fileStat = await stat(finalUri);
-
     if (Platform.OS === 'android' && fileType === 'image') {
       result.uri = 'file:///' + result.uri;
     }
@@ -144,10 +143,10 @@ function UploadModal(props: Reducers) {
 
     const folderId = result.currentFolder.toString();
     const name = encryptFilename(removeExtension(result.name), folderId);
-    const fileSize = fileStat.size;
+    const fileSize = result.size;
     const type = extension;
     const { bucket } = await deviceStorage.getUser();
-    const fileEntry: FileEntry = { fileId, file_id: fileId, type, bucket, size: fileSize.toString(), folder_id: folderId, name, encrypt_version: '03-aes' };
+    const fileEntry: FileEntry = { fileId, file_id: fileId, type, bucket, size: fileSize, folder_id: folderId, name, encrypt_version: '03-aes' };
 
     return createFileEntry(fileEntry);
   }
@@ -215,7 +214,8 @@ function UploadModal(props: Reducers) {
         createdAt: new Date(),
         updatedAt: new Date(),
         id: uniqueId(),
-        path: ''
+        path: '',
+        size: fileToUpload.size
       }
 
       trackUploadStart();
@@ -265,23 +265,49 @@ function UploadModal(props: Reducers) {
         text={'Upload file'}
         icon={Unicons.UilUploadAlt}
         onPress={() => {
-          DocumentPicker.pickMultiple({
-            type: [DocumentPicker.types.allFiles],
-            copyTo: 'cachesDirectory'
-          }).then((documents) => {
-            documents.forEach(doc => doc.uri = doc.fileCopyUri);
-            props.dispatch(layoutActions.closeUploadFileModal());
-            return uploadDocuments(documents);
-          }).then(() => {
-            props.dispatch(fileActions.getFolderContent(currentFolder));
-          }).catch((err) => {
-            if (err.message === 'User canceled document picker') {
-              return;
-            }
-            Alert.alert('File upload error', err.message);
-          }).finally(() => {
-            props.dispatch(layoutActions.closeUploadFileModal());
-          })
+          if (Platform.OS === 'ios') {
+            DocumentPicker.pickMultiple({
+              type: [DocumentPicker.types.allFiles],
+              copyTo: 'cachesDirectory'
+            }).then((documents) => {
+              documents.forEach(doc => doc.uri = doc.fileCopyUri);
+              props.dispatch(layoutActions.closeUploadFileModal());
+              return uploadDocuments(documents);
+            }).then(() => {
+              props.dispatch(fileActions.getFolderContent(currentFolder));
+            }).catch((err) => {
+              if (err.message === 'User canceled document picker') {
+                return;
+              }
+              Alert.alert('File upload error', err.message);
+            }).finally(() => {
+              props.dispatch(layoutActions.closeUploadFileModal());
+            })
+          } else {
+            getDocumentAsync({ copyToCacheDirectory: true }).then((result) => {
+              if (result.type !== 'cancel') {
+                const documents: DocumentPickerResponse[] = [{
+                  fileCopyUri: result.uri,
+                  name: result.name,
+                  size: result.size,
+                  type: '',
+                  uri: result.uri
+                }]
+
+                props.dispatch(layoutActions.closeUploadFileModal());
+                return uploadDocuments(documents);
+              }
+            }).then(() => {
+              props.dispatch(fileActions.getFolderContent(currentFolder));
+            }).catch((err) => {
+              if (err.message === 'User canceled document picker') {
+                return;
+              }
+              Alert.alert('File upload error', err.message);
+            }).finally(() => {
+              props.dispatch(layoutActions.closeUploadFileModal());
+            });
+          }
         }}
       />
 
