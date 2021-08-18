@@ -6,7 +6,6 @@ import Modal from 'react-native-modalbox';
 import { launchCameraAsync, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker'
-import { getDocumentAsync } from 'expo-document-picker'
 
 import { fileActions, layoutActions } from '../../redux/actions';
 import SettingsItem from '../SettingsModal/SettingsItem';
@@ -15,7 +14,7 @@ import Separator from '../../components/Separator';
 import * as Unicons from '@iconscout/react-native-unicons'
 import analytics from '../../helpers/lytics';
 import { deviceStorage, encryptFilename } from '../../helpers';
-import { stat } from '../../lib/fs';
+import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../lib/fs';
 import { Reducers } from '../../redux/reducers/reducers';
 import { renameIfAlreadyExists } from '../../lib';
 import { UPLOAD_FILES_LIMIT } from '../../lib/constants';
@@ -109,11 +108,14 @@ function UploadModal(props: Reducers) {
     if (!result.name) {
       result.name = result.uri.split('/').pop(); // ??
     }
+    const destPath = `${getTemporaryDir()}/${result.name}`;
+
+    await copyFile(result.uri, destPath)
 
     // const regex = /^(.*:\/{0,2})\/?(.*)$/gm
     // const fileUri = result.uri.replace(regex, '$2')
     const extension = result.name.split('.').pop();
-    const finalUri = result.uri //getFinalUri(fileUri, fileType);
+    const finalUri = destPath // result.uri //getFinalUri(fileUri, fileType);
 
     if (Platform.OS === 'android' && fileType === 'document') {
 
@@ -148,6 +150,7 @@ function UploadModal(props: Reducers) {
     const { bucket } = await deviceStorage.getUser();
     const fileEntry: FileEntry = { fileId, file_id: fileId, type, bucket, size: fileSize, folder_id: folderId, name, encrypt_version: '03-aes' };
 
+    unlink(destPath).catch(()=>{});
     return createFileEntry(fileEntry);
   }
 
@@ -207,7 +210,7 @@ function UploadModal(props: Reducers) {
     for (const fileToUpload of filesToUpload) {
       const file: UploadingFile = {
         uri: fileToUpload.uri,
-        name: renameIfAlreadyExists(filesAtSameLevel, removeExtension(fileToUpload.name), getFileExtension(fileToUpload.uri))[2] + '.' + getFileExtension(fileToUpload.uri),
+        name: renameIfAlreadyExists(filesAtSameLevel, removeExtension(fileToUpload.name), getFileExtension(fileToUpload.name))[2] + '.' + getFileExtension(fileToUpload.name),
         progress: 0,
         type: getFileExtension(fileToUpload.uri),
         currentFolder,
@@ -228,6 +231,9 @@ function UploadModal(props: Reducers) {
 
     const upload = Platform.OS === 'ios' ? uploadIOS : uploadAndroid;
 
+    if (Platform.OS === 'android') {
+      await clearTempDir();
+    }
     for (const file of formattedFiles) {
       await upload(file, 'document').then(() => {
         uploadSuccess(file);
@@ -284,19 +290,13 @@ function UploadModal(props: Reducers) {
               props.dispatch(layoutActions.closeUploadFileModal());
             })
           } else {
-            getDocumentAsync({ copyToCacheDirectory: true }).then((result) => {
-              if (result.type !== 'cancel') {
-                const documents: DocumentPickerResponse[] = [{
-                  fileCopyUri: result.uri,
-                  name: result.name,
-                  size: result.size,
-                  type: '',
-                  uri: result.uri
-                }]
-
-                props.dispatch(layoutActions.closeUploadFileModal());
-                return uploadDocuments(documents);
-              }
+            DocumentPicker.pickMultiple({
+              type: [DocumentPicker.types.allFiles],
+              copyTo: 'cachesDirectory'
+            }).then((documents) => {
+              documents.forEach(doc => doc.uri = doc.fileCopyUri);
+              props.dispatch(layoutActions.closeUploadFileModal());
+              return uploadDocuments(documents);
             }).then(() => {
               props.dispatch(fileActions.getFolderContent(currentFolder));
             }).catch((err) => {
@@ -306,7 +306,30 @@ function UploadModal(props: Reducers) {
               Alert.alert('File upload error', err.message);
             }).finally(() => {
               props.dispatch(layoutActions.closeUploadFileModal());
-            });
+            })
+            // getDocumentAsync({ copyToCacheDirectory: true }).then((result) => {
+            //   if (result.type !== 'cancel') {
+            //     const documents: DocumentPickerResponse[] = [{
+            //       fileCopyUri: result.uri,
+            //       name: result.name,
+            //       size: result.size,
+            //       type: '',
+            //       uri: result.uri
+            //     }]
+
+            //     props.dispatch(layoutActions.closeUploadFileModal());
+            //     return uploadDocuments(documents);
+            //   }
+            // }).then(() => {
+            //   props.dispatch(fileActions.getFolderContent(currentFolder));
+            // }).catch((err) => {
+            //   if (err.message === 'User canceled document picker') {
+            //     return;
+            //   }
+            //   Alert.alert('File upload error', err.message);
+            // }).finally(() => {
+            //   props.dispatch(layoutActions.closeUploadFileModal());
+            // });
           }
         }}
       />
