@@ -107,12 +107,12 @@ function ShareFilesModal(props: Reducers) {
       <View
         style={styles.fileName}
       >
-        <Text style={{ fontSize: 15, textAlign: 'center', margin: 10 }}>{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
+        <Text style={{ fontSize: 15, textAlign: 'center', marginBottom: 5, fontWeight:'600', color:'#737880' }}>{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
       </View>
 
       <Separator />
 
-      <View>
+      <View style={{paddingBottom: 5}}>
         <View style={styles.contentContainer}>
           <Text style={styles.contentIndex}></Text><Text style={styles.subtitle}>{strings.modals.share_modal.title}</Text>
         </View>
@@ -141,7 +141,7 @@ function ShareFilesModal(props: Reducers) {
           <View style={styles.grayBoxContainer}>
             <View style={styles.grayBox}>
               <Text numberOfLines={1} style={styles.grayText}>
-                {!isLoading ? link : strings.modals.share_modal.loading + 'ssafasfsadsa'}
+                {!isLoading ? link : strings.modals.share_modal.loading }
               </Text>
             </View>
             <View style={styles.grayButton}>
@@ -187,13 +187,14 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     height: 'auto',
-    paddingTop: 20
+    borderTopRightRadius: 32,
+    borderTopLeftRadius: 32
   },
   subtitle: {
     color: '#737880',
     fontSize: normalize(14),
     letterSpacing: 0.5,
-    marginLeft: wp('6')
+    marginLeft: wp('4')
   },
   drawerKnob: {
     alignSelf: 'center',
@@ -214,23 +215,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F5F7',
     borderTopLeftRadius: 5,
     borderBottomLeftRadius: 5,
-    paddingRight: 3,
-    width: normalize(200),
-    alignItems: 'center',
-    alignContent: 'center'
+    padding: 10,
+    width: normalize(200)
   },
   grayButton: {
     backgroundColor: '#EBECF0',
     borderTopRightRadius: 5,
     borderBottomRightRadius: 5,
-    paddingLeft: 3,
     width: normalize(50),
     textAlign: 'center',
-    textAlignVertical: 'center',
     height: '100%',
-    flexGrow: 1,
-    borderColor: 'red'
-
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   contentContainer: {
     flexDirection: 'row',
@@ -246,16 +244,10 @@ const styles = StyleSheet.create({
     color: '#737880',
     fontSize: normalize(14),
     letterSpacing: 0.5,
-    marginHorizontal: wp(2),
-    textAlignVertical: 'center',
     flexGrow: 1
   },
   grayButtonText: {
-    color: '#0F62FE',
-    textAlign: 'center',
-    justifyContent: 'center',
-    flexGrow: 1,
-    textAlignVertical: 'center'
+    color: '#0F62FE'
   },
   grayBoxContainer: {
     flexDirection: 'row'
@@ -264,7 +256,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     flexGrow: 1,
-    marginBottom: 16
+    marginBottom: 16,
+    paddingVertical: 10
   },
   cancelButton: {
     flexGrow: 1,
