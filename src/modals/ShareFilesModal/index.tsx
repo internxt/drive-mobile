@@ -107,12 +107,12 @@ function ShareFilesModal(props: Reducers) {
       <View
         style={styles.fileName}
       >
-        <Text style={{ fontSize: 15, textAlign: 'center', marginBottom: 5, fontWeight:'600', color:'#737880' }}>{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
+        <Text style={{ fontSize: 15, textAlign: 'center', marginBottom: 5, fontWeight: '600', color: '#737880' }}>{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
       </View>
 
       <Separator />
 
-      <View style={{paddingBottom: 5}}>
+      <View style={{ paddingBottom: 5 }}>
         <View style={styles.contentContainer}>
           <Text style={styles.contentIndex}></Text><Text style={styles.subtitle}>{strings.modals.share_modal.title}</Text>
         </View>

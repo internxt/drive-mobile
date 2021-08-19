@@ -5,7 +5,7 @@ import Modal from 'react-native-modalbox'
 import TimeAgo from 'react-native-timeago';
 import { connect } from 'react-redux';
 import Separator from '../../components/Separator';
-import { fileActions, layoutActions } from '../../redux/actions';
+import { layoutActions } from '../../redux/actions';
 import SettingsItem from '../SettingsModal/SettingsItem';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import strings from '../../../assets/lang/strings';
@@ -45,7 +45,6 @@ function FileDetailsModal(props: FileDetailsProps) {
         coverScreen={true}
         isOpen={showModal}
         onClosed={async () => {
-          props.dispatch(fileActions.deselectAll())
           props.dispatch(layoutActions.closeItemModal())
 
           /*
@@ -140,6 +139,7 @@ function FileDetailsModal(props: FileDetailsProps) {
             text={strings.generic.rename}
             icon={Unicons.UilEdit}
             onPress={() => {
+              props.dispatch(layoutActions.closeItemModal());
               props.dispatch(layoutActions.openRenameModal())
             }}
           />
@@ -149,6 +149,7 @@ function FileDetailsModal(props: FileDetailsProps) {
             icon={Unicons.UilTrashAlt}
             color={'#DA1E28'}
             onPress={() => {
+              props.dispatch(layoutActions.closeItemModal());
               props.dispatch(layoutActions.openDeleteModal())
             }}
           />

@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     color: '#42526E',
-    fontFamily: 'Neue-Einstellung',
+    fontFamily: 'NeueEinstellung-Regular',
     fontSize: 16,
     marginTop: 20,
     marginBottom: 10,

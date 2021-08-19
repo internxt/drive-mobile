@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableHighlight, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableHighlight, TextInput, Platform } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
@@ -25,8 +25,8 @@ function RenameModal(props: Reducers) {
   const file = !isFolder && props.filesState.selectedFile
 
   useEffect(() => {
-    props.layoutState.showRenameModal ? setIsOpen(true) : null
-  }, [props.layoutState])
+    setIsOpen(props.layoutState.showRenameModal)
+  }, [props.layoutState.showRenameModal])
 
   const renameHandle = () => {
     setIsLoading(true);
@@ -57,7 +57,7 @@ function RenameModal(props: Reducers) {
       }}
       position={'bottom'}
       entry={'bottom'}
-      coverScreen={true}
+      coverScreen={Platform.OS === 'android'}
       style={styles.modalSettings}
       backButtonClose={true}
     >
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     color: '#42526E',
-    fontFamily: 'Neue-Einstellung',
+    fontFamily: 'NeueEinstellung-Regular',
     fontSize: 16,
     marginTop: 20,
     marginBottom: 10,
