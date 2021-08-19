@@ -151,8 +151,10 @@ const strings = new LocalizedStrings({
       },
       "share_modal": {
         "title": "Share your Drive file with this private link",
-        "title2": "and enter the number of times you would like the link to be valid:",
+        "title2": "Enter the number of times you'd like the link to be valid:",
+        "title3": "Get link to share",
         "share": "Share",
+        "copy": "Copy",
         "loading": "Loading link..."
       },
       "delete_modal": {
@@ -321,8 +323,10 @@ const strings = new LocalizedStrings({
       },
       "share_modal": {
         "title": "Comparte este archivo con este link privado",
-        "title2": "e introduce el limite de descargas posibles",
+        "title2": "Introduce el limite de descargas posibles",
+        "title3": "Copiar enlace para compartir",
         "share": "Compartir",
+        "copy": "Copiar",
         "loading": "Cargando link..."
       },
       "delete_modal": {

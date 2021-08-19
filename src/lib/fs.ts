@@ -21,8 +21,20 @@ export function moveFile(source: string, target: string): Promise<void> {
   return RNFS.moveFile(source, target);
 }
 
+export function copyFile(source: string, target: string): Promise<void> {
+  return RNFS.copyFile(source, target);
+}
+
 export function getTemporaryDir(): string {
   return RNFS.TemporaryDirectoryPath;
+}
+
+export async function clearTempDir(): Promise<void> {
+  const items = await RNFS.readDir(getTemporaryDir());
+
+  items.forEach(async (item) => {
+    await unlink(item.path);
+  });
 }
 
 export function getCacheDir(): string {
@@ -68,8 +80,9 @@ export function writeFile(): void {
   throw new Error('Not implemented yet');
 }
 
-export function stat(fileUri: string): Promise<RNFS.StatResult> {
-  return RNFS.stat(fileUri);
+export function stat(fileUri: string): Promise<any> {
+  // return RNFS.stat(fileUri);
+  return RNFetchBlob.fs.stat(fileUri);
 }
 
 interface FileWriter {

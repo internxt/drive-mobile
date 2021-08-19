@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Share, Platform, TextInput, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, Share, TextInput, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
@@ -8,11 +8,11 @@ import { layoutActions } from '../../redux/actions';
 import { getHeaders } from '../../helpers/headers';
 import { IFile, IFolder } from '../../components/FileList';
 import { Reducers } from '../../redux/reducers/reducers';
-import Clipboard from 'expo-clipboard'
 import strings from '../../../assets/lang/strings';
 import { generateShareLink } from '../../@inxt-js/services/share';
-import { deviceStorage } from '../../helpers';
+import { deviceStorage, normalize } from '../../helpers';
 import { generateFileKey, Network } from '../../lib/network';
+import { setString } from 'expo-clipboard'
 
 function ShareFilesModal(props: Reducers) {
   const [isOpen, setIsOpen] = useState(props.layoutState.showShareModal)
@@ -87,55 +87,92 @@ function ShareFilesModal(props: Reducers) {
 
   return (
     <Modal
+      position={'bottom'}
+      swipeArea={20}
+      style={styles.modalContainer}
       isOpen={isOpen}
-      swipeArea={2}
-      onClosed={() => {
+      onClosed={async () => {
         props.dispatch(layoutActions.closeShareModal())
         setLink('');
         setIsOpen(false)
         setIsLoading(true);
         setInputValue('10')
       }}
-      position='bottom'
-      style={styles.modalContainer}>
-      <Text style={styles.title}>{filename}</Text>
+      backButtonClose={true}
+      backdropPressToClose={true}
+      animationDuration={200}
+    >
+      <View style={styles.drawerKnob}></View>
+
+      <View
+        style={styles.fileName}
+      >
+        <Text style={{ fontSize: 15, textAlign: 'center', marginBottom: 5, fontWeight:'600', color:'#737880' }}>{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
+      </View>
 
       <Separator />
 
-      <View>
-        <Text style={styles.subtitle}>{strings.modals.share_modal.title}</Text>
+      <View style={{paddingBottom: 5}}>
+        <View style={styles.contentContainer}>
+          <Text style={styles.contentIndex}></Text><Text style={styles.subtitle}>{strings.modals.share_modal.title}</Text>
+        </View>
+        <View style={styles.contentContainer}>
+          <Text style={styles.contentIndex}>1.</Text>
+          <View style={styles.grayBoxContainer}>
+            <View style={styles.grayBox}>
+              <Text style={styles.grayText}>{strings.modals.share_modal.title2}</Text>
+            </View>
+            <TextInput
+              style={[styles.grayButton, styles.grayButtonText, { fontWeight: 'bold' }]}
+              keyboardType='numeric'
+              placeholder='1'
+              onChangeText={handleInputChange}
+              value={inputValue}
+              maxLength={6}
+            />
+          </View>
+        </View>
+        <View style={styles.contentContainer}>
+          <Text style={styles.contentIndex}></Text><Text style={styles.subtitle}>{strings.modals.share_modal.title3}</Text>
+        </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={[styles.subtitle, styles.short]}>{strings.modals.share_modal.title2} </Text>
-          <TextInput
-            style={styles.input}
-            keyboardType='numeric'
-            placeholder='1'
-            onChangeText={handleInputChange}
-            value={inputValue}
-            maxLength={6}
-          />
+        <View style={styles.contentContainer}>
+          <Text style={styles.contentIndex}>2.</Text>
+          <View style={styles.grayBoxContainer}>
+            <View style={styles.grayBox}>
+              <Text numberOfLines={1} style={styles.grayText}>
+                {!isLoading ? link : strings.modals.share_modal.loading }
+              </Text>
+            </View>
+            <View style={styles.grayButton}>
+              <TouchableWithoutFeedback style={styles.grayButton} disabled={isLoading} onPress={() => {
+                if (!isLoading) {
+                  setString(link);
+                }
+              }}><Text style={styles.grayButtonText}>{strings.modals.share_modal.copy}</Text>
+              </TouchableWithoutFeedback>
+            </View>
+          </View>
         </View>
       </View>
-
-      <View style={styles.shareContainer}>
-        <View style={styles.linkContainer}>
-          <TouchableWithoutFeedback disabled={isLoading} onPress={() => {
-            if (!isLoading) {
-              Clipboard.setString(link)
-            }
-          }}>
-            <Text style={styles.link}>
-              {!isLoading ? link : strings.modals.share_modal.loading}
-            </Text>
-          </TouchableWithoutFeedback>
-        </View>
-
-        <View style={styles.buttonContainer}>
+      <Separator />
+      <View style={styles.bottomContainer}>
+        <View style={styles.cancelButton}>
           <TouchableOpacity style={styles.button}
+            onPress={() => {
+              props.dispatch(layoutActions.closeShareModal());
+            }}
+            disabled={isLoading}>
+            <Text style={styles.cancelText}>{strings.generic.cancel}</Text>
+          </TouchableOpacity>
+          <View style={{ flexGrow: 1 }}></View>
+        </View>
+        <View style={styles.shareButton}>
+          <View style={{ flexGrow: 1 }}></View>
+          <TouchableOpacity
             onPress={() => { shareFile(selectedFile) }}
             disabled={isLoading}>
-            <Text style={!isLoading ? styles.buttonText : styles.buttonTextLoading}>{strings.modals.share_modal.share}</Text>
+            <Text style={!isLoading ? styles.shareText : styles.shareTextLoading}>{strings.modals.share_modal.share}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -148,72 +185,109 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  buttonContainer: {
-    borderColor: 'rgba(151, 151, 151, 0.2)',
-    borderLeftWidth: 1,
-    flex: 0.4,
-    height: '100%',
-    justifyContent: 'center'
-  },
-  buttonText: {
-    color: '#4585f5',
-    fontFamily: 'NeueEinstellung-Bold',
-    fontSize: 18
-  },
-  buttonTextLoading: {
-    color: 'rgba(69, 133, 245, 0.7)',
-    fontFamily: 'NeueEinstellung-Bold',
-    fontSize: 18
-  },
-  input: {
-    backgroundColor: '#f2f2f2',
-    color: '#737880',
-    fontSize: 12,
-    height: 37,
-    paddingLeft: 10,
-    width: '17%'
-  },
-  inputContainer: {
-    alignItems: 'flex-end',
-    flexDirection: 'row'
-  },
-  link: {
-    color: '#737880',
-    fontSize: 12,
-    marginHorizontal: 4
-  },
-  linkContainer: {
-    alignItems: 'center',
-    flex: 0.8,
-    justifyContent: 'center'
-  },
   modalContainer: {
     height: 'auto',
-    paddingTop: 20
-  },
-  shareContainer: {
-    alignItems: 'center',
-    borderColor: 'rgba(151, 151, 151, 0.2)',
-    borderWidth: 1,
-    flexDirection: 'row',
-    height: Platform.OS === 'ios' ? wp('19') : wp('15'),
-    marginTop: 12
-  },
-  short: {
-    width: '70%'
+    borderTopRightRadius: 32,
+    borderTopLeftRadius: 32
   },
   subtitle: {
     color: '#737880',
-    fontSize: 16,
+    fontSize: normalize(14),
     letterSpacing: 0.5,
-    lineHeight: 25,
-    marginLeft: wp('6')
+    marginLeft: wp('4')
   },
-  title: {
-    color: 'black',
+  drawerKnob: {
+    alignSelf: 'center',
+    backgroundColor: '#0F62FE',
+    borderRadius: 4,
+    height: 4,
+    margin: 12,
+    width: 50
+  },
+  fileName: {
+    width: wp(92),
+    alignSelf: 'center',
     fontFamily: 'NeueEinstellung-Bold',
-    fontSize: 18,
-    marginHorizontal: wp('6')
+    fontSize: 20,
+    padding: 0 // remove default padding on Android
+  },
+  grayBox: {
+    backgroundColor: '#F4F5F7',
+    borderTopLeftRadius: 5,
+    borderBottomLeftRadius: 5,
+    padding: 10,
+    width: normalize(200)
+  },
+  grayButton: {
+    backgroundColor: '#EBECF0',
+    borderTopRightRadius: 5,
+    borderBottomRightRadius: 5,
+    width: normalize(50),
+    textAlign: 'center',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  contentContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 5
+  },
+  contentIndex: {
+    color: '#0F62FE',
+    fontSize: normalize(16),
+    paddingRight: 15
+  },
+  grayText: {
+    color: '#737880',
+    fontSize: normalize(14),
+    letterSpacing: 0.5,
+    flexGrow: 1
+  },
+  grayButtonText: {
+    color: '#0F62FE'
+  },
+  grayBoxContainer: {
+    flexDirection: 'row'
+  },
+  bottomContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexGrow: 1,
+    marginBottom: 16,
+    paddingVertical: 10
+  },
+  cancelButton: {
+    flexGrow: 1,
+    flexDirection: 'row'
+  },
+  shareButton: {
+    flexGrow: 1,
+    flexDirection: 'row'
+  },
+  cancelText: {
+    alignSelf: 'flex-start',
+    marginHorizontal: 20,
+    flexGrow: 1,
+    color: '#DA1E28',
+    fontSize: normalize(16),
+    fontFamily: 'NeueEinstellung-Regular'
+  },
+  shareText: {
+    alignSelf: 'flex-end',
+    marginHorizontal: 20,
+    color: '#0F62FE',
+    fontSize: normalize(16),
+    fontFamily: 'NeueEinstellung-Regular'
+  },
+  shareTextLoading: {
+    color: 'rgba(69, 133, 245, 0.7)',
+    fontFamily: 'NeueEinstellung-Regular',
+    alignSelf: 'flex-end',
+    marginHorizontal: 20,
+    fontSize: normalize(16)
   }
 })
 
