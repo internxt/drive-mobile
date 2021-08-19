@@ -112,8 +112,6 @@ function UploadModal(props: Reducers) {
 
     await copyFile(result.uri, destPath)
 
-    // const regex = /^(.*:\/{0,2})\/?(.*)$/gm
-    // const fileUri = result.uri.replace(regex, '$2')
     const extension = result.name.split('.').pop();
     const finalUri = destPath // result.uri //getFinalUri(fileUri, fileType);
 
@@ -130,16 +128,13 @@ function UploadModal(props: Reducers) {
         Alert.alert('Can not upload files');
         return;
       }
-      // finalUri = 'content://' + finalUri;
     }
 
     result.uri = finalUri;
     result.type = fileType;
     result.path = filesState.absolutePath + result.name;
 
-    if (Platform.OS === 'android' && fileType === 'image') {
-      result.uri = 'file:///' + result.uri;
-    }
+    result.uri = 'file:///' + result.uri;
 
     const fileId = await uploadFile(result, progressCallback);
 
@@ -181,6 +176,12 @@ function UploadModal(props: Reducers) {
     props.dispatch(fileActions.removeUploadingFile(file.id));
     props.dispatch(fileActions.updateUploadingFile(file.id));
     props.dispatch(fileActions.uploadFileSetUri(undefined));
+  }
+
+  function processFilesFromPicker(documents): Promise<void>{
+    documents.forEach(doc => doc.uri = doc.fileCopyUri);
+    props.dispatch(layoutActions.closeUploadFileModal());
+    return uploadDocuments(documents);
   }
 
   async function uploadDocuments(documents: DocumentPickerResponse[]) {
@@ -293,11 +294,7 @@ function UploadModal(props: Reducers) {
             DocumentPicker.pickMultiple({
               type: [DocumentPicker.types.allFiles],
               copyTo: 'cachesDirectory'
-            }).then((documents) => {
-              documents.forEach(doc => doc.uri = doc.fileCopyUri);
-              props.dispatch(layoutActions.closeUploadFileModal());
-              return uploadDocuments(documents);
-            }).then(() => {
+            }).then(processFilesFromPicker).then(() => {
               props.dispatch(fileActions.getFolderContent(currentFolder));
             }).catch((err) => {
               if (err.message === 'User canceled document picker') {
@@ -393,38 +390,55 @@ function UploadModal(props: Reducers) {
         text={'Upload media'}
         icon={Unicons.UilImagePlus}
         onPress={async () => {
-          const { status } = await requestMediaLibraryPermissionsAsync(false)
 
-          if (status === 'granted') {
-            launchImageLibrary({ mediaType: 'mixed', selectionLimit: 0 }, (response) => {
-              if (response.errorMessage) {
-                return Alert.alert(response.errorMessage)
-              }
-              if (response.assets) {
-                const documents: DocumentPickerResponse[] = response.assets.map((asset) => {
-                  const doc: DocumentPickerResponse = {
-                    fileCopyUri: asset.uri,
-                    name: asset.fileName,
-                    size: asset.fileSize,
-                    type: asset.type,
-                    uri: asset.uri
-                  }
+          if (Platform.OS === 'ios'){
+            const { status } = await requestMediaLibraryPermissionsAsync(false)
 
-                  return doc
-                })
+            if (status === 'granted') {
+              launchImageLibrary({ mediaType: 'mixed', selectionLimit: 0 }, (response) => {
+                if (response.errorMessage) {
+                  return Alert.alert(response.errorMessage)
+                }
+                if (response.assets) {
+                  const documents: DocumentPickerResponse[] = response.assets.map((asset) => {
+                    const doc: DocumentPickerResponse = {
+                      fileCopyUri: asset.uri,
+                      name: asset.fileName,
+                      size: asset.fileSize,
+                      type: asset.type,
+                      uri: asset.uri
+                    }
 
-                props.dispatch(layoutActions.closeUploadFileModal());
-                uploadDocuments(documents).then(() => {
-                  props.dispatch(fileActions.getFolderContent(currentFolder));
-                }).catch((err) => {
-                  if (err.message === 'User canceled document picker') {
-                    return;
-                  }
-                  Alert.alert('File upload error', err.message);
-                }).finally(() => {
+                    return doc
+                  })
+
                   props.dispatch(layoutActions.closeUploadFileModal());
-                })
+                  uploadDocuments(documents).then(() => {
+                    props.dispatch(fileActions.getFolderContent(currentFolder));
+                  }).catch((err) => {
+                    if (err.message === 'User canceled document picker') {
+                      return;
+                    }
+                    Alert.alert('File upload error', err.message);
+                  }).finally(() => {
+                    props.dispatch(layoutActions.closeUploadFileModal());
+                  })
+                }
+              })
+            }}
+          else {
+            DocumentPicker.pickMultiple({
+              type: [DocumentPicker.types.images],
+              copyTo: 'cachesDirectory'
+            }).then(processFilesFromPicker).then(() => {
+              props.dispatch(fileActions.getFolderContent(currentFolder));
+            }).catch((err) => {
+              if (err.message === 'User canceled document picker') {
+                return;
               }
+              Alert.alert('File upload error', err.message);
+            }).finally(() => {
+              props.dispatch(layoutActions.closeUploadFileModal());
             })
           }
         }}

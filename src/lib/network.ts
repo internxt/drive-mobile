@@ -65,6 +65,7 @@ export class Network {
       }
 
       const fileUri = params.fileUri;
+
       const fileSize = parseInt((await RNFetchBlob.fs.stat(fileUri)).size);
       const filename = createHash('ripemd160').update(params.filepath).digest('hex');
 
