@@ -22,6 +22,8 @@ export const fileActions = {
   getFolderContent,
   selectFile,
   deselectFile,
+  focusItem,
+  unfocusItem,
   deselectAll,
   deleteItems,
   setSortFunction,
@@ -106,7 +108,7 @@ function fetchIfSameFolder(fileFolder: number) {
   }
 }
 
-function getFolderContent(folderId: string) {
+function getFolderContent(folderId: string): AnyAction {
   const id = parseInt(folderId)
 
   if (isNaN(id)) {
@@ -174,11 +176,19 @@ function deleteItems(items: any, folderToReload: any): AnyAction {
 }
 
 function selectFile(file: any): AnyAction {
-  return { type: fileActionTypes.SELECT_FILE, payload: file };
+  return { type: fileActionTypes.SELECT_ITEM, payload: file };
 }
 
 function deselectFile(file: any): AnyAction {
-  return { type: fileActionTypes.DESELECT_FILE, payload: file };
+  return { type: fileActionTypes.DESELECT_ITEM, payload: file };
+}
+
+function focusItem(item: any): AnyAction {
+  return { type: fileActionTypes.FOCUS_ITEM, payload: item };
+}
+
+function unfocusItem(item: any): AnyAction {
+  return { type: fileActionTypes.UNFOCUS_ITEM };
 }
 
 function deselectAll(): AnyAction {

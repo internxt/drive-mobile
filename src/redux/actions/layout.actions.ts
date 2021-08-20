@@ -1,5 +1,5 @@
-import { AnyAction, Dispatch } from 'redux';
-import { layoutActionTypes, fileActionTypes } from '../constants';
+import { AnyAction } from 'redux';
+import { layoutActionTypes } from '../constants';
 
 export const layoutActions = {
   openSearch,
@@ -50,13 +50,8 @@ function closeSettings(): AnyAction {
   return { type: layoutActionTypes.CLOSE_SETTINGS_MODAL };
 }
 
-function openItemModal(item: any) {
-  return (dispatch: Dispatch): void => {
-    if (item) {
-      dispatch({ type: fileActionTypes.SELECT_FILE, payload: item });
-    }
-    dispatch({ type: layoutActionTypes.OPEN_ITEM_MODAL, payload: item });
-  };
+function openItemModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_ITEM_MODAL };
 }
 
 function closeItemModal(): AnyAction {
