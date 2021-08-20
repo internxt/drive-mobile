@@ -19,10 +19,10 @@ function RenameModal(props: Reducers) {
 
   const emptyName = newName === ''
 
-  const isFolder = props.filesState.selectedFile && !!props.filesState.selectedFile.parentId
+  const isFolder = props.filesState.focusedItem && !!props.filesState.focusedItem.parentId
 
-  const folder = isFolder && props.filesState.selectedFile
-  const file = !isFolder && props.filesState.selectedFile
+  const folder = isFolder && props.filesState.focusedItem
+  const file = !isFolder && props.filesState.focusedItem
 
   useEffect(() => {
     setIsOpen(props.layoutState.showRenameModal)
@@ -63,7 +63,7 @@ function RenameModal(props: Reducers) {
     >
       <View style={styles.drawerKnob}></View>
       <View style={styles.alignCenter}>
-        <Text style={styles.modalTitle}>{strings.generic.rename} {props.filesState.selectedFile && props.filesState.selectedFile.name}</Text>
+        <Text style={styles.modalTitle}>{strings.generic.rename} {props.filesState.focusedItem && props.filesState.focusedItem.name}</Text>
       </View>
       <Separator />
       <View style={styles.container}>

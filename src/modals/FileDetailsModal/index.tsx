@@ -1,5 +1,5 @@
 import prettysize from 'prettysize';
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import Modal from 'react-native-modalbox'
 import TimeAgo from 'react-native-timeago';
@@ -11,30 +11,21 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import strings from '../../../assets/lang/strings';
 import { Reducers } from '../../redux/reducers/reducers';
 import * as Unicons from '@iconscout/react-native-unicons';
+import { IFile, IFolder } from '../../components/FileList';
 
 interface FileDetailsProps extends Reducers {
   showItemModal: boolean
-  selectedItems: any[]
   folderContent: any
+  item: IFile | IFolder
 }
 
 function FileDetailsModal(props: FileDetailsProps) {
-  const [originalfilename, setOriginalFileName] = useState('')
-  const [newfilename, setNewFileName] = useState('')
+  const { item } = props;
 
-  const selectedItems = props.selectedItems
-  const showModal = props.showItemModal && selectedItems.length > 0
+  if (!item)
+  {return <></>}
 
-  const file = selectedItems.length > 0 && selectedItems[0]
-  const isFolder = file && !selectedItems[0].fileId
-  const folder = isFolder && file
-
-  useEffect(() => {
-    if (props.showItemModal === true) {
-      setOriginalFileName(file.name)
-      setNewFileName(file.name)
-    }
-  }, [props.showItemModal])
+  const isFolder = !item.fileId
 
   return <>
     {
@@ -43,31 +34,9 @@ function FileDetailsModal(props: FileDetailsProps) {
         swipeArea={20}
         style={[styles.modal, styles.modalSettingsFile]}
         coverScreen={true}
-        isOpen={showModal}
+        isOpen={props.showItemModal}
         onClosed={async () => {
           props.dispatch(layoutActions.closeItemModal())
-
-          /*
-            const metadata: IMetadata = {
-              itemName: ''
-            }
-
-            if (newfilename !== originalfilename) {
-              metadata.itemName = newfilename
-              await updateFileMetadata(metadata, file.fileId)
-              props.dispatch(fileActions.getFolderContent(props.folderContent.currentFolder))
-              const userData = await getLyticsData()
-
-              analytics.track('file-rename', {
-                userId: userData.uuid,
-                email: userData.email,
-                platform: 'mobile',
-                device: Platform.OS,
-                // eslint-disable-next-line camelcase
-                folder_id: file.id
-              }).catch(() => { })
-            }
-            */
         }}
         backButtonClose={true}
         backdropPressToClose={true}
@@ -78,7 +47,7 @@ function FileDetailsModal(props: FileDetailsProps) {
         <View
           style={styles.fileName}
         >
-          <Text style={styles.fileName}>{newfilename}{file && file.type ? '.' + file.type : ''}</Text>
+          <Text style={styles.fileName}>{item.name}{item && item.type ? '.' + item.type : ''}</Text>
         </View>
 
         {isFolder ? <></> : <View>
@@ -88,21 +57,21 @@ function FileDetailsModal(props: FileDetailsProps) {
             <Text style={styles.textDefault}>
               <Text>{strings.components.file_and_folder_options.type}</Text>
               <Text style={styles.cerebriSansBold}>
-                {file && file.type ? file.type.toUpperCase() : ''}
+                {item && item.type ? item.type.toUpperCase() : ''}
               </Text>
             </Text>
 
             <Text style={styles.textDefault}>
               <Text>{strings.components.file_and_folder_options.added}</Text>
               <Text style={styles.cerebriSansBold}>
-                <TimeAgo time={file.created_at} />
+                <TimeAgo time={item.createdAt} />
               </Text>
             </Text>
 
             <Text style={styles.textDefault}>
               <Text>{strings.components.file_and_folder_options.size}</Text>
               <Text style={styles.cerebriSansBold}>
-                {file ? prettysize(file.size) : ''}
+                {item ? prettysize(item.size) : ''}
               </Text>
             </Text>
           </View>
@@ -171,7 +140,7 @@ const mapStateToProps = (state: any) => {
   return {
     folderContent: state.filesState.folderContent,
     showItemModal: state.layoutState.showItemModal,
-    selectedItems: state.filesState.selectedItems
+    item: state.filesState.focusedItem
   }
 }
 

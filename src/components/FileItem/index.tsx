@@ -252,7 +252,10 @@ function FileItem(props: FileItemProps) {
               <View style={styles.buttonDetails}>
                 <TouchableOpacity
                   style={isSelectionMode ? styles.dNone : styles.dFlex}
-                  onPress={() => props.dispatch(layoutActions.openItemModal(props.item))}>
+                  onPress={() => {
+                    props.dispatch(fileActions.focusItem(props.item));
+                    props.dispatch(layoutActions.openItemModal())}
+                  }>
                   <Unicons.UilEllipsisH size={32} color={'#7A869A'} />
                 </TouchableOpacity>
               </View>

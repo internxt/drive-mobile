@@ -19,7 +19,7 @@ function DeleteItemModal(props: Reducers) {
   }, [props.layoutState.showDeleteModal])
 
   const handleDeleteSelectedItem = () => {
-    props.dispatch(fileActions.deleteItems(selectedItems, currentFolderId))
+    props.dispatch(fileActions.deleteItems([props.filesState.focusedItem], currentFolderId))
   }
 
   return (
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
-    height: hp('90%') < 550 ? 550 : Math.min(380, hp('90%')),
+    height: hp('90%') < 550 ? 550 : Math.min(320, hp('90%')),
     marginTop: wp('12')
   }
 })

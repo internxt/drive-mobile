@@ -11,7 +11,7 @@ export interface FilesState {
   filesAlreadyUploaded: any[]
   folderContent: any
   rootFolderContent: any
-  selectedFile: IFile & IFolder | null
+  focusedItem: IFile | IFolder | null
   selectedItems: any[]
   sortType: string
   sortFunction: ArraySortFunction | null
@@ -33,7 +33,7 @@ const initialState: FilesState = {
   filesAlreadyUploaded: [],
   folderContent: null,
   rootFolderContent: [],
-  selectedFile: null,
+  focusedItem: null,
   selectedItems: [],
   sortType: '',
   sortFunction: null,
@@ -53,7 +53,6 @@ export function filesReducer(state = initialState, action: AnyAction): FilesStat
       ...state,
       loading: false,
       folderContent: action.payload,
-      selectedFile: null,
       selectedItems: [],
       // REMOVE ONCE LOCAL UPLOAD
       filesAlreadyUploaded: state.filesAlreadyUploaded.filter(file => file.isUploaded === false)
@@ -118,7 +117,7 @@ export function filesReducer(state = initialState, action: AnyAction): FilesStat
       uploadFileUri: action.payload
     };
 
-  case fileActionTypes.SELECT_FILE:
+  case fileActionTypes.SELECT_ITEM:
     // Check if file object is already on selection list
     const isAlreadySelected = state.selectedItems.filter((element: any) => {
       const elementIsFolder = !(element.fileId);
@@ -128,12 +127,11 @@ export function filesReducer(state = initialState, action: AnyAction): FilesStat
 
     return {
       ...state,
-      selectedFile: action.payload,
       selectedItems: isAlreadySelected ? state.selectedItems : [...state.selectedItems, action.payload]
     };
 
-  case fileActionTypes.DESELECT_FILE:
-    const removedItem = state.selectedItems.filter((element: any) => {
+  case fileActionTypes.DESELECT_ITEM:
+    const itemsWithoutRemovedItem = state.selectedItems.filter((element: any) => {
       const elementIsFolder = !(element.fileId);
 
       return elementIsFolder ? action.payload.id !== element.id : action.payload.fileId !== element.fileId;
@@ -141,14 +139,25 @@ export function filesReducer(state = initialState, action: AnyAction): FilesStat
 
     return {
       ...state,
-      selectedItems: removedItem
+      selectedItems: itemsWithoutRemovedItem
     }
 
   case fileActionTypes.DESELECT_ALL:
     return {
       ...state,
-      selectedFile: null,
       selectedItems: []
+    };
+
+  case fileActionTypes.FOCUS_ITEM:
+    return {
+      ...state,
+      focusedItem: action.payload
+    };
+
+  case fileActionTypes.UNFOCUS_ITEM:
+    return {
+      ...state,
+      focusedItem: null
     };
 
   case fileActionTypes.DELETE_FILE_REQUEST:
@@ -184,7 +193,6 @@ export function filesReducer(state = initialState, action: AnyAction): FilesStat
     return {
       ...state,
       loading: false,
-      selectedFile: null,
       selectedItems: []
     };
   case fileActionTypes.CREATE_FOLDER_FAILURE:

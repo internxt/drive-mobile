@@ -29,10 +29,10 @@ function ShareFilesModal(props: Reducers) {
   useEffect(() => {
     setIsOpen(props.layoutState.showShareModal === true)
 
-    if (props.layoutState.showShareModal && props.filesState.selectedFile) {
-      setSelectedFile(props.filesState.selectedFile)
-      setFileName(props.filesState.selectedFile.name)
-      getLink(props.filesState.selectedFile, parseInt(inputValue)).then(() => setIsLoading(false))
+    if (props.layoutState.showShareModal && props.filesState.focusedItem) {
+      setSelectedFile(props.filesState.focusedItem)
+      setFileName(props.filesState.focusedItem.name)
+      getLink(props.filesState.focusedItem, parseInt(inputValue)).then(() => setIsLoading(false))
     }
   }, [props.layoutState.showShareModal])
 
