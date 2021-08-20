@@ -32,6 +32,7 @@ export const extensions = {
   'gif': image,
   'png': image,
   'heic': image,
+  'svg': image,
   'doc': word,
   'docx': word,
   'docm': word,
