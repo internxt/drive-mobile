@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableHighlight, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableHighlight, TextInput, Platform } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { createFolder } from './CreateFolderUtils'
 import { connect } from 'react-redux';
@@ -20,8 +20,8 @@ function CreateFolderModal(props: Reducers) {
   const emptyName = folderName === ''
 
   useEffect(() => {
-    props.layoutState.showCreateFolderModal ? setIsOpen(true) : null
-  }, [props.layoutState])
+    setIsOpen(props.layoutState.showCreateFolderModal)
+  }, [props.layoutState.showCreateFolderModal])
 
   const createHandle = () => {
     setIsLoading(true);
@@ -45,11 +45,10 @@ function CreateFolderModal(props: Reducers) {
       swipeArea={20}
       onClosed={() => {
         props.dispatch(layoutActions.closeCreateFolderModal())
-        setIsOpen(false)
       }}
       position={'bottom'}
       entry={'bottom'}
-      coverScreen={true}
+      coverScreen={Platform.OS === 'android'}
       style={styles.modalSettings}
       backButtonClose={true}
     >
