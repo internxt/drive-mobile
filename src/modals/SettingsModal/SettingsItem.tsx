@@ -6,6 +6,7 @@ interface SettingsItemProps {
   onPress: () => void
   text: string | JSX.Element
   icon?: typeof Unicons
+  color?: string
 }
 
 export default function SettingsItem(props: SettingsItemProps): JSX.Element {
@@ -15,9 +16,9 @@ export default function SettingsItem(props: SettingsItemProps): JSX.Element {
     onPress={props.onPress}
   >
     <View style={styles.settingsContainer}>
-      {props.icon && <props.icon color={'#0F62FE'} size={25} style={styles.icon} />}
+      {props.icon && <props.icon color={props.color? props.color : '#0F62FE'} size={25} style={styles.icon} />}
 
-      {typeof props.text === 'string' ? <Text style={styles.itemText}>{props.text}</Text> : props.text}
+      {typeof props.text === 'string' ? <Text style={[styles.itemText, props.color?{ color: props.color }: null]}>{props.text}</Text> : props.text}
 
     </View>
   </TouchableHighlight>

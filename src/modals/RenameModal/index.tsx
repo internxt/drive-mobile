@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableHighlight, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableHighlight, TextInput, Platform } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
@@ -8,6 +8,8 @@ import Separator from '../../components/Separator';
 import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
 import strings from '../../../assets/lang/strings';
+import { rename, renameMeta } from './renameUtils';
+import { showToast } from '../../helpers'
 
 function RenameModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
@@ -23,11 +25,25 @@ function RenameModal(props: Reducers) {
   const file = !isFolder && props.filesState.selectedFile
 
   useEffect(() => {
-    props.layoutState.showRenameModal ? setIsOpen(true) : null
-  }, [props.layoutState])
+    setIsOpen(props.layoutState.showRenameModal)
+  }, [props.layoutState.showRenameModal])
 
   const renameHandle = () => {
-    setIsLoading(false);
+    setIsLoading(true);
+    const params: renameMeta = { ifFolder: isFolder, itemId: isFolder? folder.id : file.fileId, newName }
+
+    rename(params).then(() => {
+      props.dispatch(fileActions.getFolderContent(currentFolderId))
+      showToast({ text: 'Rename successfully', type: 'success' });
+      setNewName('');
+    }).catch((err) => {
+      showToast({ text: err.message, type: 'error' });
+    }).finally(() => {
+      props.dispatch(layoutActions.closeRenameModal());
+      props.dispatch(layoutActions.closeItemModal());
+      setIsOpen(false);
+      setIsLoading(false);
+    });
   }
 
   return (
@@ -41,7 +57,7 @@ function RenameModal(props: Reducers) {
       }}
       position={'bottom'}
       entry={'bottom'}
-      coverScreen={true}
+      coverScreen={Platform.OS === 'android'}
       style={styles.modalSettings}
       backButtonClose={true}
     >
@@ -111,7 +127,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     color: '#42526E',
-    fontFamily: 'Neue-Einstellung',
+    fontFamily: 'NeueEinstellung-Regular',
     fontSize: 16,
     marginTop: 20,
     marginBottom: 10,

@@ -8,7 +8,7 @@ import { loadValues } from '../../modals/SettingsModal';
 import { Reducers } from '../../redux/reducers/reducers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
 import RNFetchBlob from 'rn-fetch-blob';
-import Toast from 'react-native-toast-message'
+import { showToast } from '../../helpers';
 import SearchBox from '../../components/SearchBox';
 import { WaveIndicator } from 'react-native-indicators';
 
@@ -115,14 +115,7 @@ function FileExplorer(props: Reducers): JSX.Element {
       if (props.filesState.folderContent && !props.filesState.folderContent.parentId) {
         count++
         if (count < 2) {
-          Toast.show({
-            type: 'error',
-            position: 'bottom',
-            text1: 'Try exiting again to close the app',
-            visibilityTime: 5000,
-            autoHide: true,
-            bottomOffset: 100
-          });
+          showToast({ type: 'error', text: 'Try exiting again to close the app' });
         } else {
           BackHandler.exitApp()
         }

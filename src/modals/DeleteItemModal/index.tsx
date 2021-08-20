@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableHighlight } from 'react-native';
+import { View, Text, StyleSheet, TouchableHighlight, Platform } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
@@ -15,8 +15,8 @@ function DeleteItemModal(props: Reducers) {
   const [isOpen, setIsOpen] = useState(props.layoutState.showDeleteModal)
 
   useEffect(() => {
-    props.layoutState.showDeleteModal ? setIsOpen(true) : null
-  }, [props.layoutState])
+    setIsOpen(props.layoutState.showDeleteModal)
+  }, [props.layoutState.showDeleteModal])
 
   const handleDeleteSelectedItem = () => {
     props.dispatch(fileActions.deleteItems(selectedItems, currentFolderId))
@@ -26,7 +26,7 @@ function DeleteItemModal(props: Reducers) {
     <Modal
       isOpen={isOpen}
       swipeArea={2}
-      coverScreen={true}
+      coverScreen={Platform.OS === 'android'}
       onClosed={() => {
         props.dispatch(layoutActions.closeDeleteModal())
         setIsOpen(false)
