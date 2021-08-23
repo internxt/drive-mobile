@@ -110,6 +110,9 @@ function deleteItems(items: any[]): Promise<void> {
         headers
       });
 
+      await new Promise<void>((resolve) => {
+        setTimeout(()=> { resolve() }, 20000);
+      });
       fetchArray.push(fetchObj);
     });
 

@@ -108,7 +108,7 @@ function fetchIfSameFolder(fileFolder: number) {
   }
 }
 
-function getFolderContent(folderId: string): AnyAction {
+function getFolderContent(folderId: string, quick?: boolean): AnyAction {
   const id = parseInt(folderId)
 
   if (isNaN(id)) {
@@ -116,20 +116,23 @@ function getFolderContent(folderId: string): AnyAction {
       return dispatch(failure(Error(`Folder ID: "${folderId}" is not a number.`)));
     };
   }
-
   return (dispatch: Dispatch) => {
     dispatch(request());
-    fileService
-      .getFolderContent(id)
-      .then((data: any) => {
-        data.currentFolder = id;
-        dispatch(success(data));
-      }).catch(error => {
-        dispatch(failure(error));
-        if (error.status === 401) {
-          dispatch(userActions.signout());
-        }
-      });
+    if (!quick){
+      fileService
+        .getFolderContent(id)
+        .then((data: any) => {
+          data.currentFolder = id;
+          dispatch(success(data));
+        }).catch(error => {
+          dispatch(failure(error));
+          if (error.status === 401) {
+            dispatch(userActions.signout());
+          }
+        });
+    } else {
+      dispatch(success(store.getState().filesState.folderContent));
+    }
   };
 
   function request(): AnyAction {
@@ -146,13 +149,11 @@ function getFolderContent(folderId: string): AnyAction {
 function deleteItems(items: any, folderToReload: any): AnyAction {
   return async (dispatch: Dispatch) => {
     dispatch(request());
+    dispatch(getFolderContent(folderToReload, true));
     fileService
       .deleteItems(items)
       .then(() => {
-        dispatch(requestSuccess());
-        setTimeout(() => {
-          dispatch(getFolderContent(folderToReload));
-        }, 3000);
+        return dispatch(requestSuccess());
       })
       .catch((err) => {
         dispatch(requestFailure());
