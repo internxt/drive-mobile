@@ -152,7 +152,7 @@ function deleteItems(items: any, folderToReload: any): AnyAction {
     dispatch(request());
     dispatch(getFolderContent(folderToReload, true));
     showToast({
-      text: 'Items deleted',
+      text: 'Item deleted',
       type: 'success'
     })
     fileService
