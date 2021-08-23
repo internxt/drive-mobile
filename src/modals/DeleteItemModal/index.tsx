@@ -25,13 +25,16 @@ function DeleteItemModal(props: Reducers) {
   return (
     <Modal
       isOpen={isOpen}
-      swipeArea={2}
+      position={'bottom'}
+      entry={'bottom'}
+      swipeArea={50}
       coverScreen={Platform.OS === 'android'}
+      backButtonClose={true}
+      backdropPressToClose={true}
       onClosed={() => {
         props.dispatch(layoutActions.closeDeleteModal())
         setIsOpen(false)
       }}
-      position='bottom'
       style={styles.modalContainer}
     >
       <View>

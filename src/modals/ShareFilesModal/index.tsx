@@ -89,7 +89,8 @@ function ShareFilesModal(props: Reducers) {
   return (
     <Modal
       position={'bottom'}
-      swipeArea={20}
+      entry={'bottom'}
+      swipeArea={50}
       style={styles.modalContainer}
       isOpen={isOpen}
       onClosed={async () => {
