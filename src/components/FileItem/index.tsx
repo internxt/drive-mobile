@@ -21,11 +21,11 @@ interface FileItemProps extends Reducers {
 }
 
 async function handleLongPress(props: FileItemProps, isSelected: boolean) {
-  if (isSelected) {
-    props.dispatch(fileActions.deselectFile(props.item))
-  } else {
-    props.dispatch(fileActions.selectFile(props.item))
-  }
+  // if (isSelected) {
+  //   props.dispatch(fileActions.deselectFile(props.item))
+  // } else {
+  //   props.dispatch(fileActions.selectFile(props.item))
+  // }
 }
 
 function FileItem(props: FileItemProps) {
