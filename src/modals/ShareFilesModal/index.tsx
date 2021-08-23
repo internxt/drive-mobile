@@ -13,6 +13,7 @@ import { generateShareLink } from '../../@inxt-js/services/share';
 import { deviceStorage, normalize } from '../../helpers';
 import { generateFileKey, Network } from '../../lib/network';
 import { setString } from 'expo-clipboard'
+import { showToast } from '../../helpers/toast';
 
 function ShareFilesModal(props: Reducers) {
   const [isOpen, setIsOpen] = useState(props.layoutState.showShareModal)
@@ -148,6 +149,10 @@ function ShareFilesModal(props: Reducers) {
               <TouchableWithoutFeedback style={styles.grayButton} disabled={isLoading} onPress={() => {
                 if (!isLoading) {
                   setString(link);
+                  showToast({
+                    type: 'success',
+                    text: 'Link copied'
+                  })
                 }
               }}><Text style={styles.grayButtonText}>{strings.modals.share_modal.copy}</Text>
               </TouchableWithoutFeedback>
