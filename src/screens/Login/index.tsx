@@ -13,6 +13,7 @@ import { validate2FA, apiLogin } from './access';
 import InternxtLogo from '../../../assets/logo.svg'
 import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons'
+import { userActionTypes } from '../../redux/constants';
 
 interface LoginProps extends Reducers {
   goToForm?: (screenName: string) => void
@@ -51,6 +52,7 @@ function Login(props: LoginProps): JSX.Element {
   useEffect(() => {
     if (props.authenticationState.error) {
       Alert.alert('Login error', props.authenticationState.error)
+      props.dispatch({ type: userActionTypes.SIGNIN_FAILURE, payload: '' })
       setIsLoading(false)
     }
   }, [props.authenticationState.error])
