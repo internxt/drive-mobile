@@ -14,7 +14,7 @@ export const userActions = {
 
 function signin(email: string, password: string, sKey: string, twoFactorCode: string) {
   return (dispatch: Dispatch) => {
-    failure('');
+    dispatch(failure(''))
     dispatchRequest();
     return userService
       .signin(email, password, sKey, twoFactorCode)
