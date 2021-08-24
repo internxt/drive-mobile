@@ -38,7 +38,6 @@ export default function TabExplorer(props: Reducers): JSX.Element {
     <Tab.Navigator
       tabBar={(tabBarProps: BottomTabBarProps) => <MyTabBar {...{ ...props, ...tabBarProps }} />}
       initialRouteName={'FileExplorer'}
-      style={{ borderWidth: 1 }}
       screenOptions={({ route }) => ({
         headerShown: false
       })}
