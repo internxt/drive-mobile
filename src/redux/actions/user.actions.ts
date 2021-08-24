@@ -1,5 +1,4 @@
 import { AnyAction, Dispatch } from 'redux';
-import analytics from '../../helpers/lytics';
 import { userActionTypes } from '../constants';
 import { userService } from '../services';
 
@@ -12,55 +11,8 @@ export const userActions = {
   setUserStorage
 };
 
-function signin(email: string, password: string, sKey: string, twoFactorCode: string) {
-  return (dispatch: Dispatch) => {
-    dispatch(failure(''));
-    dispatchRequest();
-    return userService
-      .signin(email, password, sKey, twoFactorCode)
-      .then(userData => {
-        return dispatch(success(userData));
-      })
-      .catch(error => {
-        return dispatch(failure(error));
-      });
-  };
-
-  function dispatchRequest() {
-    return (dispatch: Dispatch) => {
-      dispatch(request());
-    };
-  }
-
-  function request() {
-    return { type: userActionTypes.SIGNIN_REQUEST };
-  }
-  function success(userData: any) {
-    analytics.identify(userData.user.uuid, {
-      email: userData.user.email,
-      platform: 'mobile',
-      // eslint-disable-next-line camelcase
-      referrals_credit: userData.user.credit,
-      // eslint-disable-next-line camelcase
-      referrals_count: Math.floor(userData.user.credit / 5),
-      createdAt: userData.user.createdAt
-    }).then(() => {
-      analytics.track('user-signin', {
-        email: userData.user.email,
-        userId: userData.user.uuid,
-        platform: 'mobile'
-      }).catch(() => { })
-
-    }).catch(() => { })
-    return { type: userActionTypes.SIGNIN_SUCCESS, payload: userData };
-  }
-  function failure(error: any) {
-    analytics.track('user-signin-attempted', {
-      status: 'error',
-      message: error
-    }).catch(() => {})
-    return { type: userActionTypes.SIGNIN_FAILURE, payload: error };
-  }
+function signin(userData) {
+  return { type: userActionTypes.SIGNIN_SUCCESS, payload: userData };
 }
 
 function userInitializaation(userData: any): AnyAction {
