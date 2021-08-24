@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, StyleSheet, TextInput, TouchableHighlight } from 'react-native';
+import { View, Text, KeyboardAvoidingView, StyleSheet, Alert, TextInput, TouchableHighlight } from 'react-native';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../helpers';
@@ -12,9 +12,8 @@ import globalStyles from '../../styles/global.style';
 import { validate2FA, apiLogin } from './access';
 import InternxtLogo from '../../../assets/logo.svg'
 import { tailwind } from '../../helpers/designSystem';
-import * as Unicons from '@iconscout/react-native-unicons';
-import { userService } from '../../redux/services';
-import { notify } from '../../helpers/toast';
+import * as Unicons from '@iconscout/react-native-unicons'
+
 interface LoginProps extends Reducers {
   goToForm?: (screenName: string) => void
 }
@@ -35,39 +34,26 @@ function Login(props: LoginProps): JSX.Element {
       if (userLoginData.tfa && !twoFactorCode) {
         setShowTwoFactor(true)
       } else {
-        const userData = await userService.signin(email, password, userLoginData.sKey, twoFactorCode)
-
-        analytics.identify(userData.user.uuid, {
-          email: userData.user.email,
-          platform: 'mobile',
-          // eslint-disable-next-line camelcase
-          referrals_credit: userData.user.credit,
-          // eslint-disable-next-line camelcase
-          referrals_count: Math.floor(userData.user.credit / 5),
-          createdAt: userData.user.createdAt
-        }).then(() => {
-          analytics.track('user-signin', {
-            email: userData.user.email,
-            userId: userData.user.uuid,
-            platform: 'mobile'
-          }).catch(() => { })
-        }).catch(() => { })
-        props.dispatch(userActions.signin(userData));
+        await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
       }
+
     } catch (err) {
       analytics.track('user-signin-attempted', {
         status: 'error',
-        message: err.message ? err.message : err
+        message: err.message
       }).catch(() => { })
-      notify({
-        type: 'error',
-        text: err.message ? err.message : err
-      })
 
-    } finally {
+      Alert.alert('Could not log in', err.message)
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (props.authenticationState.error) {
+      Alert.alert('Login error', props.authenticationState.error)
+      setIsLoading(false)
+    }
+  }, [props.authenticationState.error])
 
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
