@@ -9,7 +9,7 @@ import Separator from '../../components/Separator';
 import SettingsItem from '../SettingsModal/SettingsItem';
 import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
-import { showToast } from '../../helpers';
+import { notify } from '../../helpers';
 import strings from '../../../assets/lang/strings';
 function CreateFolderModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
@@ -27,10 +27,10 @@ function CreateFolderModal(props: Reducers) {
     setIsLoading(true);
     createFolder({ folderName, parentId: currentFolderId }).then(() => {
       props.dispatch(fileActions.getFolderContent(currentFolderId))
-      showToast({ type: 'success', text: 'Folder created' })
+      notify({ type: 'success', text: 'Folder created' })
       setFolderName('');
     }).catch((err) => {
-      showToast({ type: 'error', text: err.message })
+      notify({ type: 'error', text: err.message })
     }).finally(() => {
       props.dispatch(layoutActions.closeCreateFolderModal());
       setIsOpen(false);

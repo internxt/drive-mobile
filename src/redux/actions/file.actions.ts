@@ -8,7 +8,7 @@ import { fileActionTypes } from '../constants';
 import { fileService } from '../services';
 import { layoutActions } from './layout.actions';
 import { userActions } from './user.actions';
-import { showToast } from '../../helpers/toast';
+import { notify } from '../../helpers/toast';
 
 export const fileActions = {
   downloadFileStart,
@@ -151,7 +151,7 @@ function deleteItems(items: any, folderToReload: any): AnyAction {
   return async (dispatch: Dispatch) => {
     dispatch(request());
     dispatch(getFolderContent(folderToReload, true));
-    showToast({
+    notify({
       text: 'Item deleted',
       type: 'success'
     })
@@ -162,7 +162,7 @@ function deleteItems(items: any, folderToReload: any): AnyAction {
       })
       .catch((err) => {
         dispatch(requestFailure());
-        showToast({
+        notify({
           text: err.message,
           type: 'error'
         })
