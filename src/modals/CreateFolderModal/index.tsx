@@ -16,6 +16,7 @@ function CreateFolderModal(props: Reducers) {
   const [isOpen, setIsOpen] = useState(props.layoutState.showCreateFolderModal)
   const [folderName, setFolderName] = useState('');
   const [isLoading, setIsLoading] = useState(false)
+  const [isFocus, setIsFocus] = useState(false)
 
   const emptyName = folderName === ''
 
@@ -58,13 +59,15 @@ function CreateFolderModal(props: Reducers) {
       </View>
       <Separator />
       <View style={styles.container}>
-        <View style={[tailwind('input-wrapper'), styles.inputBox]}>
+        <View style={[tailwind('input-wrapper'), (!emptyName || isFocus) ? styles.inputBoxFocus : styles.inputBox]}>
           <TextInput
             style={tailwind('input')}
             value={folderName}
             onChangeText={value => setFolderName(value)}
+            onEndEditing={() => setIsFocus(false) }
+            onFocus={() => setIsFocus(true)}
             placeholder={'Insert folder name'}
-            placeholderTextColor="#0F62FE"
+            placeholderTextColor={(!emptyName || isFocus) ? '#0F62FE' : '#7A869A'}
             maxLength={64}
             autoCapitalize='words'
             autoCompleteType='off'
@@ -138,11 +141,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     paddingVertical: 10
   },
-  inputBox: {
+  inputBoxFocus: {
     borderTopColor: '#0F62FE',
     borderRightColor: '#0F62FE',
     borderBottomColor: '#0F62FE',
     borderLeftColor: '#0F62FE'
+  },
+  inputBox: {
+    borderTopColor: '#7A869A',
+    borderRightColor: '#7A869A',
+    borderBottomColor: '#7A869A',
+    borderLeftColor: '#7A869A'
   }
 })
 
