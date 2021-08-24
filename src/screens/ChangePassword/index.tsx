@@ -7,7 +7,7 @@ import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { doChangePassword } from './changePasswordUtils';
-import { showToast } from '../../helpers'
+import { notify } from '../../helpers'
 
 function ChangePassword(props: any) {
   const [password, setPassword] = useState('')
@@ -18,13 +18,13 @@ function ChangePassword(props: any) {
   const handleOnPress = () => {
     setIsLoading(true)
     doChangePassword({ password, newPassword }).then(() => {
-      showToast({ text: 'Password changed', type: 'success' });
+      notify({ text: 'Password changed', type: 'success' });
       setPassword('');
       setNewPassword('');
       setConfirmPassword('');
     }).catch(
       (err: Error) => {
-        showToast({ type: 'error', text: err.message });
+        notify({ type: 'error', text: err.message });
       }
     ).finally(() => {
       setIsLoading(false)

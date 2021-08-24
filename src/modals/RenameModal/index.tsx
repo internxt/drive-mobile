@@ -9,7 +9,7 @@ import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
 import strings from '../../../assets/lang/strings';
 import { rename, renameMeta } from './renameUtils';
-import { showToast } from '../../helpers'
+import { notify } from '../../helpers'
 
 function RenameModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
@@ -34,10 +34,10 @@ function RenameModal(props: Reducers) {
 
     rename(params).then(() => {
       props.dispatch(fileActions.getFolderContent(currentFolderId))
-      showToast({ text: 'Rename successfully', type: 'success' });
+      notify({ text: 'Rename successfully', type: 'success' });
       setNewName('');
     }).catch((err) => {
-      showToast({ text: err.message, type: 'error' });
+      notify({ text: err.message, type: 'error' });
     }).finally(() => {
       props.dispatch(layoutActions.closeRenameModal());
       props.dispatch(layoutActions.closeItemModal());

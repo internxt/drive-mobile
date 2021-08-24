@@ -5,7 +5,7 @@ export interface custumToastParam {
   type: 'error' | 'success' | 'warn'
 }
 
-export function showToast(params: custumToastParam) {
+export function notify(params: custumToastParam) {
   Toast.show({
     type: params.type,
     position: 'bottom',

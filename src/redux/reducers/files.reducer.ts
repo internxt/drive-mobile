@@ -23,6 +23,7 @@ export interface FilesState {
   startDownloadSelectedFile: boolean
   error?: string | null
   uri: string | Record<string, string> | undefined | null
+  pendingDeleteItems: {[key: string]: boolean}
 }
 
 const initialState: FilesState = {
@@ -43,12 +44,19 @@ const initialState: FilesState = {
   uploadFileUri: '',
   progress: 0,
   startDownloadSelectedFile: false,
-  uri: undefined
+  uri: undefined,
+  pendingDeleteItems: {}
 };
 
 export function filesReducer(state = initialState, action: AnyAction): FilesState {
   switch (action.type) {
   case fileActionTypes.GET_FILES_SUCCESS:
+    action.payload.children = action.payload.children.filter((item) => {
+      return !state.pendingDeleteItems[item.id.toString()]
+    })
+    action.payload.files = action.payload.files.filter((item) => {
+      return !state.pendingDeleteItems[item.fileId]
+    })
     return {
       ...state,
       loading: false,
@@ -161,13 +169,20 @@ export function filesReducer(state = initialState, action: AnyAction): FilesStat
     };
 
   case fileActionTypes.DELETE_FILE_REQUEST:
+    action.payload.forEach(item => {
+      if (item.fileId){
+        state.pendingDeleteItems[item.fileId] = true;
+      } else {
+        state.pendingDeleteItems[item.id.toString()] = true;
+      }
+    });
     return { ...state, loading: true };
 
   case fileActionTypes.DELETE_FILE_SUCCESS:
-    return { ...state, loading: false };
+    return { ...state, loading: false, pendingDeleteItems: {} };
 
   case fileActionTypes.DELETE_FILE_FAILURE:
-    return { ...state, loading: false };
+    return { ...state, loading: false, pendingDeleteItems: {} };
 
   case fileActionTypes.SET_SORT_TYPE:
     return {

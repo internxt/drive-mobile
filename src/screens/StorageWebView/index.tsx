@@ -3,7 +3,7 @@ import { View, Alert, ActivityIndicator, StyleSheet, Platform, BackHandler } fro
 import { getHeaders } from '../../helpers/headers';
 import { WebView } from 'react-native-webview'
 import { connect } from 'react-redux';
-import { showToast } from '../../helpers';
+import { notify } from '../../helpers';
 import { Reducers } from '../../redux/reducers/reducers';
 
 function StorageWebView(props: Reducers): JSX.Element {
@@ -24,7 +24,7 @@ function StorageWebView(props: Reducers): JSX.Element {
     const backAction = () => {
       count++
       if (count < 2) {
-        showToast({ type: 'error', text: 'Try exiting again to go back' });
+        notify({ type: 'error', text: 'Try exiting again to go back' });
       } else {
         props.navigation.replace('Storage')
       }
