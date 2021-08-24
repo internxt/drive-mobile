@@ -237,7 +237,7 @@ function FileItem(props: FileItemProps) {
                 <Text
                   style={[styles.fileName, extendStyles.text]}
                   numberOfLines={1} // once local upload implemented, remove conditional
-                >{props.item.bucket ? props.item.name : props.item.name && props.item.name.split('.').shift()}</Text>
+                >{props.item.bucket ? props.item.name : props.isFolder? props.item.name : props.item.name && props.item.name.split('.').shift()}</Text>
 
                 <Text style={styles.updatedAt}>Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
                   day: 'numeric',
