@@ -79,7 +79,7 @@ import com.android.build.OutputFile
  */
 
 project.ext.react = [
-    enableHermes: true
+    enableHermes: false
 ]
 
 apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
@@ -135,8 +135,8 @@ android {
         applicationId 'com.internxt.cloud'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 39
-        versionName "1.4.0"
+        versionCode 40
+        versionName "1.4.1"
     }
     splits {
         abi {
