@@ -204,10 +204,7 @@ function FileItem(props: FileItemProps) {
                     </View>
                     : // once local upload implelemented, remove conditional
                     <View>
-                      <IconFile
-                        width={30}
-                        height={30}
-                        label={props.item.bucket ? props.item.type || '' : props.item.name && props.item.name.split('.').pop()} isLoading={isLoading} />
+                      <IconFile width={30} height={30}/>
                     </View>
                 }
 
@@ -237,7 +234,7 @@ function FileItem(props: FileItemProps) {
                 <Text
                   style={[styles.fileName, extendStyles.text]}
                   numberOfLines={1} // once local upload implemented, remove conditional
-                >{props.item.bucket ? props.item.name : props.isFolder? props.item.name : props.item.name && props.item.name.split('.').shift()}</Text>
+                >{props.isFolder? props.item.name : props.item.name.split('.').shift()}</Text>
 
                 <Text style={styles.updatedAt}>Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
                   day: 'numeric',
