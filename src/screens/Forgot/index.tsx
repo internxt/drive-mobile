@@ -88,6 +88,7 @@ function Forgot(props: ForgotProps): JSX.Element {
                     value={email}
                     onChangeText={(value) => setIsEmail(value)}
                     placeholder={strings.components.inputs.email}
+                    autoCapitalize={false}
                     placeholderTextColor="#666666"
                     maxLength={64}
                     keyboardType="email-address"
