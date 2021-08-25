@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { ScrollView, Text, RefreshControl, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
 import { fileActions } from '../../redux/actions';
-import EmptyFolder from '../EmptyFolder';
+import EmptyContent from '../EmptyContent';
 import FileItem from '../FileItem';
 
 export interface IFolder {
@@ -105,7 +105,7 @@ function FileList(props: any) {
     >
       {
         isEmptyFolder ?
-          <EmptyFolder />
+          <EmptyContent type={'emptyFolder'}/>
           :
           <Text style={styles.dNone}></Text>
       }
