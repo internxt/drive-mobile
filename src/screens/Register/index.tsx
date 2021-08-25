@@ -39,9 +39,12 @@ function Register(props: Reducers): JSX.Element {
   const [passwordFocus, setPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
+  const isEmptyEmail = isNullOrEmpty(email);
   const isValidEmail = validateEmail(email);
-  const isValidFirstName = !isNullOrEmpty(firstName)
-  const isValidLastName = !isNullOrEmpty(lastName)
+  const isValidFirstName = !isNullOrEmpty(firstName);
+  const isValidLastName = !isNullOrEmpty(lastName);
+  const isEmptyPassword = isNullOrEmpty(password);
+  const isEmptyConfirmedPassword = isNullOrEmpty(confirmPassword);
   const isValidPassword = isStrongPassword(password);
   const isValidConfirmedPassword = confirmPassword && password === confirmPassword;
 
@@ -132,7 +135,7 @@ function Register(props: Reducers): JSX.Element {
             </View>
 
             <View style={styles.showInputFieldsWrapper}>
-              <View style={[tailwind('input-wrapper my-2'), tailwind(isValidFirstName ? 'input-valid' : 'input-error')]}>
+              <View style={[tailwind('input-wrapper my-2'), isValidFirstName ? tailwind('input-valid') : styles.emptyInput]}>
                 <TextInput
                   style={tailwind('input')}
                   value={firstName}
@@ -149,10 +152,10 @@ function Register(props: Reducers): JSX.Element {
                 />
                 <Unicons.UilUser
                   style={tailwind('input-icon')}
-                  color={firstNameFocus || isValidFirstName ? '#42BE65' : '#7A869A'} />
+                  color={isValidFirstName ? '#42BE65' : '#7A869A'} />
               </View>
 
-              <View style={[tailwind('input-wrapper my-2'), tailwind(isValidLastName ? 'input-valid' : 'input-error')]}>
+              <View style={[tailwind('input-wrapper my-2'), isValidLastName ? tailwind('input-valid') : styles.emptyInput]}>
                 <TextInput
                   style={tailwind('input')}
                   value={lastName}
@@ -169,10 +172,10 @@ function Register(props: Reducers): JSX.Element {
                 />
                 <Unicons.UilUser
                   style={tailwind('input-icon')}
-                  color={lastNameFocus || isValidLastName ? '#42BE65' : '#7A869A'} />
+                  color={isValidLastName ? '#42BE65' : '#7A869A'} />
               </View>
 
-              <View style={[tailwind('input-wrapper my-2'), tailwind(isValidEmail ? 'input-valid' : 'input-error')]}>
+              <View style={[tailwind('input-wrapper my-2'), isEmptyEmail ? styles.emptyInput : tailwind(isValidEmail ? 'input-valid' : 'input-error')]}>
                 <TextInput
                   style={tailwind('input')}
                   value={email}
@@ -191,12 +194,12 @@ function Register(props: Reducers): JSX.Element {
                 />
                 <Unicons.UilEnvelope
                   style={tailwind('input-icon')}
-                  color={emailFocus || isValidEmail ? '#42BE65' : '#7A869A'} />
+                  color={isValidEmail && !isEmptyEmail ? '#42BE65' : '#7A869A'} />
               </View>
             </View>
 
             <View style={styles.showInputFieldsWrapper}>
-              <View style={[tailwind('input-wrapper my-2'), tailwind(isValidPassword ? 'input-valid' : 'input-error')]}>
+              <View style={[tailwind('input-wrapper my-2'), isEmptyPassword ? styles.emptyInput : tailwind(isValidPassword ? 'input-valid' : 'input-error')]}>
                 <TextInput
                   style={tailwind('input')}
                   value={password}
@@ -217,7 +220,7 @@ function Register(props: Reducers): JSX.Element {
                   color={isValidPassword || isValidPassword || passwordFocus ? '#42BE65' : '#7A869A'} />
               </View>
 
-              <View style={[tailwind('input-wrapper my-2'), tailwind(isValidConfirmedPassword ? 'input-valid' : 'input-error')]}>
+              <View style={[tailwind('input-wrapper my-2'), isEmptyConfirmedPassword ? styles.emptyInput : tailwind(isValidConfirmedPassword ? 'input-valid' : 'input-error')]}>
                 <TextInput
                   style={tailwind('input')}
                   value={confirmPassword}
@@ -286,6 +289,12 @@ const styles = StyleSheet.create({
   },
   showInputFieldsWrapper: {
     justifyContent: 'center'
+  },
+  emptyInput: {
+    borderLeftColor: '#7A869A',
+    borderRightColor: '#7A869A',
+    borderTopColor: '#7A869A',
+    borderBottomColor: '#7A869A'
   }
 });
 
