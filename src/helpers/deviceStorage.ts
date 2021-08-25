@@ -1,4 +1,5 @@
 import { AsyncStorage } from 'react-native';
+import { notify } from './toast';
 
 const { getItem, setItem, removeItem } = AsyncStorage;
 
@@ -34,9 +35,17 @@ export const deviceStorage = {
     return removeItem(key).catch(err => null);
   },
   getUser(): Promise<User> {
-    return getItem('xUser').then(JSON.parse).catch(err => null);
+    return getItem('xUser').then((value) => {
+      return JSON.parse(value);
+    }).catch(err => {
+      notify({ type: 'success', text: err.message });
+      return null;
+    });
   },
   getToken(): Promise<Token> {
-    return getItem('xToken').then(JSON.parse).catch(err => null);
+    return getItem('xToken').catch(err => {
+      notify({ type: 'error', text: err.message });
+      return null;
+    });
   }
 }
