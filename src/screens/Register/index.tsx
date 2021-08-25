@@ -19,6 +19,8 @@ import analytics from '../../helpers/lytics';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { tailwind } from '../../helpers/designSystem';
 import { Reducers } from '../../redux/reducers/reducers';
+import { userService } from '../../redux/services';
+import { notify } from '../../helpers/toast';
 
 function Register(props: Reducers): JSX.Element {
   const [showIntro, setShowIntro] = useState(false);
@@ -101,7 +103,9 @@ function Register(props: Reducers): JSX.Element {
 
       const userLoginData = await apiLogin(email)
 
-      await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
+      const signInData = await userService.signin(email, password, userLoginData.sKey, twoFactorCode)
+
+      props.dispatch(userActions.signin(signInData));
     } catch (err) {
       await analytics.track('user-signin-attempted', {
         status: 'error',
@@ -110,7 +114,10 @@ function Register(props: Reducers): JSX.Element {
       setIsLoading(false)
       setRegisterButtonClicked(false)
 
-      Alert.alert('Error while registering', err.message)
+      notify({
+        text: err.message,
+        type: 'error'
+      })
     }
   }
 

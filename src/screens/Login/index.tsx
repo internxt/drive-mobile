@@ -37,21 +37,6 @@ function Login(props: LoginProps): JSX.Element {
       } else {
         const userData = await userService.signin(email, password, userLoginData.sKey, twoFactorCode)
 
-        analytics.identify(userData.user.uuid, {
-          email: userData.user.email,
-          platform: 'mobile',
-          // eslint-disable-next-line camelcase
-          referrals_credit: userData.user.credit,
-          // eslint-disable-next-line camelcase
-          referrals_count: Math.floor(userData.user.credit / 5),
-          createdAt: userData.user.createdAt
-        }).then(() => {
-          analytics.track('user-signin', {
-            email: userData.user.email,
-            userId: userData.user.uuid,
-            platform: 'mobile'
-          }).catch(() => { })
-        }).catch(() => { })
         props.dispatch(userActions.signin(userData));
       }
     } catch (err) {
