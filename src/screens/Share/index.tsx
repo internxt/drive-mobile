@@ -6,6 +6,7 @@ import AppMenu from '../../components/AppMenu';
 import { WaveIndicator } from 'react-native-indicators';
 import { getShareList, IShare } from '../../services/shares';
 import FileItem from '../../components/FileItem';
+import EmptyContent from '../../components/EmptyContent';
 
 function Share(props: Reducers): JSX.Element {
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,7 @@ function Share(props: Reducers): JSX.Element {
         contentContainerStyle={styles.fileListContentsScrollView}
       >
         <View>
-          {shares.map((item, i) => {
+          {shares.length === 0 ? <EmptyContent type='emptyShare'/> : shares.map((item, i) => {
             return <FileItem key={i} item={item.fileInfo} isFolder={false}>
             </FileItem>
           })}

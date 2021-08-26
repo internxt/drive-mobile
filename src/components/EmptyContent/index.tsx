@@ -11,13 +11,17 @@ function EmptyContent(props: EmptyContent): JSX.Element {
   let title: string, subtitle: string, icon: string;
 
   switch (props.type){
+  case 'emptyRecent':
   case 'emptyFolder':
     title = 'Start syncing your files from your device';
     subtitle = 'Use blue circular button to upload files, photos and many more securely';
     icon = '..\/..\/..\/assets/images/emptyContentImg/NoFolder.png';
     break;
-  case 'emptyRecent':
   case 'emptyShare':
+    icon = '..\/..\/..\/assets/images/emptyContentImg/NoFolder.png';
+    title = 'Start share your files from your device'
+    subtitle = 'Use share button to share files, photos and many more securely'
+    break;
   }
 
   return <View style={styles.container}>
