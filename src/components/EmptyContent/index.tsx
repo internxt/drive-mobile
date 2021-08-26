@@ -19,7 +19,7 @@ function EmptyContent(props: EmptyContent): JSX.Element {
     icon = props.isRootFolder? require('../../../assets/images/emptyContentImg/NoItems.png') : require('../../../assets/images/emptyContentImg/NoFolder.png');
     break;
   case 'emptyShare':
-    icon = require('../../../assets/images/emptyContentImg/NoFolder.png');
+    icon = require('../../../assets/images/emptyContentImg/NoItems.png');
     title = 'Start share your files from your device'
     subtitle = 'Use share button to share files, photos and many more securely'
     break;
