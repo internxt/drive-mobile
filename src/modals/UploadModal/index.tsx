@@ -19,6 +19,7 @@ import { Reducers } from '../../redux/reducers/reducers';
 import { renameIfAlreadyExists } from '../../lib';
 import { UPLOAD_FILES_LIMIT } from '../../lib/constants';
 import strings from '../../../assets/lang/strings';
+import { notify } from '../../helpers/toast';
 
 interface UploadingFile {
   size: number
@@ -83,7 +84,6 @@ function UploadModal(props: Reducers) {
     if (Platform.OS === 'android' && fileType === 'image') {
       result.uri = 'file:///' + result.uri;
     }
-
     const fileId = await uploadFile(result, progressCallback);
 
     const folderId = result.currentFolder.toString();
@@ -241,7 +241,8 @@ function UploadModal(props: Reducers) {
       }).catch((err) => {
         trackUploadError(err);
         props.dispatch(fileActions.uploadFileFailed(file.id));
-        Alert.alert('Error', 'Cannot upload file: ' + err.message);
+        notify({ text: 'Cannot upload file: ' + err.message,
+          type: 'error' });
       }).finally(() => {
         props.dispatch(fileActions.uploadFileFinished(file.name));
       });
