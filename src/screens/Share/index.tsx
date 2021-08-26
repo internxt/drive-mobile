@@ -26,6 +26,12 @@ function Share(props: Reducers): JSX.Element {
   }
 
   useEffect(() => { reloadShares() }, []);
+  useEffect(() => {
+    setShares(shares.flatMap((item) => {
+      if (!item.fileInfo || props.filesState.pendingDeleteItems[item.fileInfo.fileId]) {return []}
+      else {return item}
+    }))
+  }, [props.filesState.reloadList])
 
   return <View style={styles.container}>
     <AppMenu {...props} title="Shared" hideSearch={true} hideBackPress={true}/>
