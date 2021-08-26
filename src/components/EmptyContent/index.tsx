@@ -4,7 +4,8 @@ import { Reducers } from '../../redux/reducers/reducers';
 import { normalize } from '../../helpers';
 
 interface EmptyContent extends Reducers {
-  type: 'emptyFolder' | 'emptyRecent' | 'emptyShare' | 'emptySearch'
+  type: 'emptyFolder' | 'emptyRecent' | 'emptyShare' | 'emptySearch',
+  isRootFolder?: boolean
 }
 
 function EmptyContent(props: EmptyContent): JSX.Element {
@@ -15,17 +16,18 @@ function EmptyContent(props: EmptyContent): JSX.Element {
   case 'emptyFolder':
     title = 'Start syncing your files from your device';
     subtitle = 'Use blue circular button to upload files, photos and many more securely';
-    icon = '..\/..\/..\/assets/images/emptyContentImg/NoFolder.png';
+    icon = props.isRootFolder? require('../../../assets/images/emptyContentImg/NoItems.png') : require('../../../assets/images/emptyContentImg/NoFolder.png');
     break;
   case 'emptyShare':
-    icon = '..\/..\/..\/assets/images/emptyContentImg/NoFolder.png';
+    icon = require('../../../assets/images/emptyContentImg/NoFolder.png');
     title = 'Start share your files from your device'
     subtitle = 'Use share button to share files, photos and many more securely'
     break;
+  case 'emptySearch':
+    icon = require('../../../assets/images/emptyContentImg/NoItems.png');
   }
-
   return <View style={styles.container}>
-    {icon ? <Image source={require('../../../assets/images/emptyContentImg/NoFolder.png')} style={{ width: normalize(200), height: normalize(200) }}></Image> : <></>}
+    {icon ? <Image source={icon} style={{ width: normalize(200), height: normalize(200) }}></Image> : <></>}
     <Text style={styles.heading}>{title}</Text>
     <Text style={styles.subheading}>{subtitle}</Text>
   </View>

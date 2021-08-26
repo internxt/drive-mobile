@@ -43,6 +43,7 @@ function FileList(props: any) {
   const [filesUploading, setFilesUploading] = useState([])
   const [filesUploaded, setFilesUploaded] = useState([])
   const [folderId, setFolderId] = useState()
+  const isRootFolder = props.authenticationState.user.root_folder_id === props.filesState.folderContent.currentFolder;
 
   useEffect(() => {
     setRefreshing(false)
@@ -104,8 +105,8 @@ function FileList(props: any) {
       contentContainerStyle={isEmptyFolder ? styles.fileListContentsScrollView : null}
     >
       {
-        isEmptyFolder ?
-          <EmptyContent type={'emptyFolder'}/>
+        isEmptyFolder ? searchString === '' ?
+          <EmptyContent isRootFolder={isRootFolder} type={'emptyFolder'}/> : <EmptyContent type={'emptySearch'}/>
           :
           <Text style={styles.dNone}></Text>
       }
