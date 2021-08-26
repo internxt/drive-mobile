@@ -151,7 +151,8 @@ function ShareFilesModal(props: Reducers) {
                   setString(link);
                   notify({
                     type: 'success',
-                    text: 'Link copied'
+                    text: 'Link copied',
+                    visibilityTime: 500
                   })
                 }
               }}><Text style={styles.grayButtonText}>{strings.modals.share_modal.copy}</Text>

@@ -2,7 +2,8 @@ import Toast from 'react-native-toast-message'
 
 export interface custumToastParam {
   text: string,
-  type: 'error' | 'success' | 'warn'
+  type: 'error' | 'success' | 'warn',
+  visibilityTime?: number
 }
 
 export function notify(params: custumToastParam) {
@@ -10,7 +11,7 @@ export function notify(params: custumToastParam) {
     type: params.type,
     position: 'bottom',
     text1: params.text,
-    visibilityTime: 5000,
+    visibilityTime: params.visibilityTime ? params.visibilityTime : 5000,
     autoHide: true,
     bottomOffset: 100
   })
