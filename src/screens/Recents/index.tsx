@@ -24,7 +24,12 @@ function Recents(props: Reducers): JSX.Element {
     })
   }
 
-  useEffect(() => { reloadRecents() }, []);
+  useEffect(() => { reloadRecents() }, [])
+
+  useEffect(() => { setRecents(recents.flatMap((item) => {
+    if (props.filesState.pendingDeleteItems[item.fileId]) {return []}
+    else {return item}
+  })) }, [props.filesState.reloadList]);
 
   return <View style={styles.container}>
     <AppMenu {...props} title="Recents" hideBackPress={true} hideSearch={true}/>
@@ -41,8 +46,8 @@ function Recents(props: Reducers): JSX.Element {
         refreshControl={
           <RefreshControl refreshing={refreshing}
             onRefresh={() => {
-              setRefreshing(true)
               reloadRecents();
+              setRefreshing(true)
             }}
           />
         }

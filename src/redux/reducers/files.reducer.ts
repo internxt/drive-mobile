@@ -23,7 +23,8 @@ export interface FilesState {
   startDownloadSelectedFile: boolean
   error?: string | null
   uri: string | Record<string, string> | undefined | null
-  pendingDeleteItems: {[key: string]: boolean}
+  pendingDeleteItems: {[key: string]: boolean},
+  reloadList: boolean
 }
 
 const initialState: FilesState = {
@@ -45,7 +46,8 @@ const initialState: FilesState = {
   progress: 0,
   startDownloadSelectedFile: false,
   uri: undefined,
-  pendingDeleteItems: {}
+  pendingDeleteItems: {},
+  reloadList: true
 };
 
 export function filesReducer(state = initialState, action: AnyAction): FilesState {
@@ -63,7 +65,8 @@ export function filesReducer(state = initialState, action: AnyAction): FilesStat
       folderContent: action.payload,
       selectedItems: [],
       // REMOVE ONCE LOCAL UPLOAD
-      filesAlreadyUploaded: state.filesAlreadyUploaded.filter(file => file.isUploaded === false)
+      filesAlreadyUploaded: state.filesAlreadyUploaded.filter(file => file.isUploaded === false),
+      reloadList: !state.reloadList
     };
   case fileActionTypes.GET_FILES_FAILURE:
     return {
