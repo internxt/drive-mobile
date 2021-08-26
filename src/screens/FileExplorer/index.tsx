@@ -10,7 +10,7 @@ import analytics, { getLyticsData } from '../../helpers/lytics';
 import RNFetchBlob from 'rn-fetch-blob';
 import { notify } from '../../helpers';
 import SearchBox from '../../components/SearchBox';
-import { WaveIndicator } from 'react-native-indicators';
+import ItemSkeleton from '../../components/ItemSkeleton';
 
 function FileExplorer(props: Reducers): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
@@ -220,9 +220,7 @@ function FileExplorer(props: Reducers): JSX.Element {
 
     {
       props.filesState.loading && !props.filesState.isUploading ?
-        <View style={styles.activityIndicator}>
-          <WaveIndicator color="#5291ff" size={80} />
-        </View>
+        <ItemSkeleton/>
         :
         <FileList />
     }
@@ -236,9 +234,6 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(FileExplorer)
 
 const styles = StyleSheet.create({
-  activityIndicator: {
-    flex: 1
-  },
   container: {
     backgroundColor: '#fff',
     flex: 1,
