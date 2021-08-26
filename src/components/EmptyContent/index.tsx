@@ -24,7 +24,8 @@ function EmptyContent(props: EmptyContent): JSX.Element {
     subtitle = 'Use share button to share files, photos and many more securely'
     break;
   case 'emptySearch':
-    icon = require('../../../assets/images/emptyContentImg/NoItems.png');
+    icon = require('../../../assets/images/emptyContentImg/NoResults.png');
+    title = 'There are no results for this search'
   }
   return <View style={styles.container}>
     {icon ? <Image source={icon} style={{ width: normalize(200), height: normalize(200) }}></Image> : <></>}

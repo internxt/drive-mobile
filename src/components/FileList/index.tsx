@@ -43,7 +43,7 @@ function FileList(props: any) {
   const [filesUploading, setFilesUploading] = useState([])
   const [filesUploaded, setFilesUploaded] = useState([])
   const [folderId, setFolderId] = useState()
-  const isRootFolder = props.authenticationState.user.root_folder_id === props.filesState.folderContent.currentFolder;
+  const isRootFolder = props?.authenticationState?.user?.root_folder_id === props?.filesState?.folderContent?.currentFolder;
 
   useEffect(() => {
     setRefreshing(false)
