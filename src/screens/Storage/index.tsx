@@ -1,23 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
 import {
-  View, Text, StyleSheet, Image, ActivityIndicator,
-  Platform, TouchableOpacity, TouchableWithoutFeedback
+  View, Text, StyleSheet, TouchableHighlight
 } from 'react-native';
 import { connect } from 'react-redux';
-import { getIcon } from '../../helpers/getIcon';
-import PlanCard from './PlanCard';
 import { IPlan, IProduct, storageService } from '../../redux/services';
 import { Reducers } from '../../redux/reducers/reducers';
 import { loadValues } from '../../modals';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import strings from '../../../assets/lang/strings';
 import AppMenu from '../../components/AppMenu';
 import { tailwind } from '../../helpers/designSystem';
 import ProgressBar from '../../components/ProgressBar';
+import { getCurrentIndividualPlan } from '../../services/payments';
+import { notify } from '../../helpers';
+import * as Unicons from '@iconscout/react-native-unicons'
 
 interface StorageProps extends Reducers {
   currentPlan: number
+}
+
+interface CurrentPlan {
+  name: string
+  storageLimit: number
 }
 
 function Storage(props: StorageProps): JSX.Element {
@@ -27,16 +31,12 @@ function Storage(props: StorageProps): JSX.Element {
   const [plans, setPlans] = useState<IPlan[]>([])
   const [chosenProduct, setChosenProduct] = useState<IProduct>()
 
+  const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
+
   const getProducts = async () => {
     const products = await storageService.loadAvailableProducts()
 
     return products
-  }
-
-  const getPlans = async (product: IProduct) => {
-    const plans = await storageService.loadAvailablePlans(product.id)
-
-    return plans
   }
 
   const parseLimit = () => {
@@ -61,16 +61,14 @@ function Storage(props: StorageProps): JSX.Element {
       setProducts(res)
       setIsLoading(false)
     })
-  }, [])
 
-  useEffect(() => {
-    if (chosenProduct) {
-      getPlans(chosenProduct).then(res => {
-        setPlans(res)
-        setIsLoading(false)
+    getCurrentIndividualPlan().then(setCurrentPlan).catch(err => {
+      notify({
+        text: 'Cannot load current plan',
+        type: 'warn'
       })
-    }
-  }, [chosenProduct])
+    })
+  }, [])
 
   return (
     <View style={[tailwind('bg-white'), { flexGrow: 1 }]}>
@@ -105,147 +103,41 @@ function Storage(props: StorageProps): JSX.Element {
         </View>
       </View>
 
-      <View>
+      <View style={{ marginHorizontal: 30 }}>
         <View>
-          <Text style={[styles.footer, { textAlign: 'center' }]}>
-            {strings.screens.storage.plans.current_plan} {parseLimit()} {strings.getLanguage() === 'es' ? null : 'plan'}
-          </Text>
+          <Text style={{ textTransform: 'uppercase', fontWeight: 'bold', fontSize: 17 }}>{currentPlan && currentPlan.name}</Text>
+        </View>
+
+        <View style={tailwind('mt-2')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Unicons.UilCheck color="#5291ff" />
+            <Text style={tailwind('mx-1')}>All available devices</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Unicons.UilCheck color="#5291ff" />
+            <Text style={tailwind('mx-1')}>Unlimited devices</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Unicons.UilCheck color="#5291ff" />
+            <Text style={tailwind('mx-1')}>Secure file sharing</Text>
+          </View>
         </View>
       </View>
 
-      <View>
-        {/*
-        <TouchableHighlight
-          style={tailwind('btn btn-primary my-5 mx-5')}
-          onPress={() => {
-            props.navigation.push('Billing')
-          }}>
-          <Text style={tailwind('text-base btn-label')}>Change plan</Text>
-        </TouchableHighlight>
-        */ }
+      <TouchableHighlight
+        underlayColor="#5291ff"
+        style={tailwind('btn btn-primary my-5 mx-5')}
+        onPress={() => {
+          props.navigation.push('Billing')
+        }}>
 
-      </View>
-
-      <View style={styles.container, { display: 'none' }}>
-        <View style={styles.cardsContainer}>
-          {
-            isLoading ?
-              <View>
-                <ActivityIndicator color={'gray'} />
-              </View>
-              :
-              !chosenProduct ?
-                <View>
-                  <View style={styles.titleContainer}>
-                    <Text style={styles.title}>{strings.screens.storage.plans.title}</Text>
-                  </View>
-                  {
-                    products && products.map((product: IProduct) => <TouchableWithoutFeedback
-                      key={product.id}
-                      onPress={async () => {
-                        setIsLoading(true)
-                        setChosenProduct(product)
-                      }}>
-                      <PlanCard
-                        currentPlan={prettysize(usageValues.limit)}
-                        product={product}
-                        size={product.metadata.simple_name}
-                        price={product.metadata.price_eur} />
-                    </TouchableWithoutFeedback>)
-                  }
-                </View>
-                :
-                <View>
-                  {
-                    !isLoading ?
-                      <View>
-                        <View style={styles.titleContainer}>
-                          <TouchableOpacity
-                            onPress={() => {
-                              setChosenProduct(undefined)
-                            }}
-                            style={styles.paymentBack}
-                          >
-                            <Image style={styles.paymentBackIcon} source={getIcon('back')} />
-                          </TouchableOpacity>
-
-                          <Text style={styles.title}>{strings.screens.storage.plans.title_2}</Text>
-
-                          <Text style={styles.titlePlan}>{chosenProduct.name}</Text>
-                        </View>
-
-                        {
-                          plans && plans.map((plan: IPlan) => <TouchableWithoutFeedback
-                            key={plan.id}
-                            onPress={() => props.navigation.replace('StorageWebView', { plan: plan })}
-                          >
-                            <PlanCard chosen={true} price={plan.price.toString()} plan={plan} />
-                          </TouchableWithoutFeedback>)
-                        }
-                      </View>
-                      :
-                      null
-                  }
-                </View>
-          }
-        </View>
-      </View>
+        <Text style={{ color: 'white', fontSize: 17 }}>Change plan</Text>
+      </TouchableHighlight>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  cardsContainer: {
-    flexGrow: 1,
-    paddingTop: 20
-  },
-  container: {
-    height: '100%',
-    justifyContent: 'flex-start'
-  },
-  footer: {
-    color: '#7e848c',
-    fontFamily: 'NeueEinstellung-Regular',
-    fontSize: 16,
-    letterSpacing: -0.1,
-    lineHeight: 22,
-    marginLeft: 0,
-    marginTop: 20
-  },
-  paymentBack: {
-    alignItems: 'center',
-    height: wp('6'),
-    justifyContent: 'center',
-    width: wp('6')
-  },
-  paymentBackIcon: {
-    height: 13,
-    marginRight: 10,
-    width: 8
-  },
-  title: {
-    color: 'black',
-    fontFamily: 'NeueEinstellung-Bold',
-    fontSize: 18,
-    letterSpacing: 0,
-    marginRight: 10,
-    paddingBottom: Platform.OS === 'android' ? wp('1') : 0,
-    textAlignVertical: 'center'
-  },
-  titleContainer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    marginBottom: 12
-  },
-  titlePlan: {
-    borderColor: '#eaeced',
-    borderLeftWidth: 1,
-    color: '#7e848c',
-    fontFamily: 'NeueEinstellung-Medium',
-    fontSize: 18,
-    paddingBottom: Platform.OS === 'android' ? wp('1') : 0,
-    paddingLeft: 10
-  },
   h7: { height: 7 }
 })
 

@@ -15,15 +15,16 @@ export interface IProduct {
     simple_name: string,
     // eslint-disable-next-line camelcase
     size_bytes: string
-  }
+    // eslint-disable-next-line camelcase
+    is_teams?: '1'
+  },
+  plans: IPlan[]
 }
 
 async function loadAvailableProducts(): Promise<IProduct[]> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/stripe/products${(process.env.NODE_ENV === 'development' ? '?test=true' : '')}`, {
+  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/v2/stripe/products${(process.env.NODE_ENV === 'development' ? '?test=true' : '')}`, {
     headers: await getHeaders()
-  }).then(res => res.json()).then(res => {
-    return res
-  }).catch(() => [])
+  }).then(res => res.json()).catch(() => [])
 }
 
 export interface IPlan {

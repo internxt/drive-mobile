@@ -1,8 +1,8 @@
 import React from 'react'
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewProps } from 'react-native';
 
-export default function Separator(): JSX.Element {
-  return <View style={styles.separator} />;
+export default function Separator(props: ViewProps): JSX.Element {
+  return <View {...props} style={[styles.separator, props.style]} />;
 }
 
 const styles = StyleSheet.create({

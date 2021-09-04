@@ -10,7 +10,8 @@ function StorageWebView(props: Reducers): JSX.Element {
 
   const [isloading, setIsLoading] = useState(true)
   const [uri, setUri] = useState('')
-  const { plan } = props.navigation.state.params
+  const { plan } = props.route.params
+
   const user = {
     id: props.authenticationState.user.userId,
     token: props.authenticationState.token
@@ -66,7 +67,7 @@ function StorageWebView(props: Reducers): JSX.Element {
       Alert.alert('There has been an error', `${err.message}, please contact us.`, [
         {
           text: 'Go back',
-          onPress: () => props.navigation.replace('Storage')
+          onPress: () => props.navigation.replace('Billing')
         }
       ])
     });
@@ -79,7 +80,7 @@ function StorageWebView(props: Reducers): JSX.Element {
   }
   return (
     <View style={styles.container}>
-      <WebView style={styles.webview} source={{ uri: uri }} />
+      <WebView style={styles.webview} source={{ uri }} />
     </View>
   )
 }
