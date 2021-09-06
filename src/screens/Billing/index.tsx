@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, TouchableHighlight, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Text, TouchableHighlight, View } from 'react-native';
 import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
 import { notify } from '../../helpers';
@@ -9,6 +9,7 @@ import _ from 'lodash'
 import { tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/Separator';
 import * as Unicons from '@iconscout/react-native-unicons'
+import { getHeaders } from '../../helpers/headers';
 
 // TODO: Export to service
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
@@ -56,6 +57,37 @@ const PERIODS = [
 ]
 
 function Billing(props: Reducers) {
+
+  const getLink = async (plan: any) => {
+    const body = {
+      plan: plan.id,
+      test: process.env.NODE_ENV === 'development',
+      SUCCESS_URL: 'https://drive.internxt.com/redirect/android',
+      CANCELED_URL: 'https://drive.internxt.com/redirect/android',
+      isMobile: true
+    };
+
+    fetch(`${process.env.REACT_NATIVE_API_URL}/api/stripe/session${(process.env.NODE_ENV === 'development' ? '?test=true' : '')}`, {
+      method: 'POST',
+      headers: await getHeaders(),
+      body: JSON.stringify(body)
+    }).then(result => result.json()).then(result => {
+      if (result.error) {
+        throw Error(result.error);
+      }
+      const link = `${process.env.REACT_NATIVE_API_URL}/checkout/${result.id}`
+
+      Linking.openURL(link);
+
+    }).catch(err => {
+      Alert.alert('There has been an error', `${err.message}, please contact us.`, [
+        {
+          text: 'Go back',
+          onPress: () => props.navigation.replace('Billing')
+        }
+      ])
+    });
+  }
 
   const [stripeProducts, setStripeProducts] = useState<IProduct[]>();
   const [selectedProductIndex, setSelectedProductIndex] = useState(0);
@@ -147,7 +179,7 @@ function Billing(props: Reducers) {
               underlayColor="#5291ff"
               style={tailwind('btn btn-primary')}
               onPress={() => {
-                props.navigation.replace('StorageWebView', { plan: plan })
+                getLink(plan)
               }}>
               <Text style={tailwind('text-base btn-label mx-3 text-xl font-bold')}>{plan.pricePerMonth.toFixed(2)}€ / month</Text>
             </TouchableHighlight>

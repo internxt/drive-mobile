@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Alert, ActivityIndicator, StyleSheet, Platform, BackHandler } from 'react-native';
+import { View, Alert, ActivityIndicator, StyleSheet, Platform, BackHandler, Linking } from 'react-native';
 import { getHeaders } from '../../helpers/headers';
 import { WebView } from 'react-native-webview'
 import { connect } from 'react-redux';
@@ -45,8 +45,8 @@ function StorageWebView(props: Reducers): JSX.Element {
     const body = {
       plan: plan.id,
       test: process.env.NODE_ENV === 'development',
-      SUCCESS_URL: `${process.env.REACT_NATIVE_API_URL}`,
-      CANCELED_URL: `${process.env.REACT_NATIVE_API_URL}`,
+      SUCCESS_URL: 'https://drive.internxt.com/redirect/android',
+      CANCELED_URL: 'https://drive.internxt.com/redirect/android',
       isMobile: true
     };
 
@@ -59,6 +59,8 @@ function StorageWebView(props: Reducers): JSX.Element {
         throw Error(result.error);
       }
       const link = `${process.env.REACT_NATIVE_API_URL}/checkout/${result.id}`
+
+      Linking.openURL(link);
 
       setIsLoading(false)
       setUri(link)
