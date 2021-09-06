@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Alert, ActivityIndicator, StyleSheet, Platform, BackHandler } from 'react-native';
+import { View, Alert, ActivityIndicator, StyleSheet, Platform, BackHandler, Linking } from 'react-native';
 import { getHeaders } from '../../helpers/headers';
 import { WebView } from 'react-native-webview'
 import { connect } from 'react-redux';
@@ -10,7 +10,8 @@ function StorageWebView(props: Reducers): JSX.Element {
 
   const [isloading, setIsLoading] = useState(true)
   const [uri, setUri] = useState('')
-  const { plan } = props.navigation.state.params
+  const { plan } = props.route.params
+
   const user = {
     id: props.authenticationState.user.userId,
     token: props.authenticationState.token
@@ -44,8 +45,8 @@ function StorageWebView(props: Reducers): JSX.Element {
     const body = {
       plan: plan.id,
       test: process.env.NODE_ENV === 'development',
-      SUCCESS_URL: `${process.env.REACT_NATIVE_API_URL}`,
-      CANCELED_URL: `${process.env.REACT_NATIVE_API_URL}`,
+      SUCCESS_URL: 'https://drive.internxt.com/redirect/android',
+      CANCELED_URL: 'https://drive.internxt.com/redirect/android',
       isMobile: true
     };
 
@@ -59,6 +60,8 @@ function StorageWebView(props: Reducers): JSX.Element {
       }
       const link = `${process.env.REACT_NATIVE_API_URL}/checkout/${result.id}`
 
+      Linking.openURL(link);
+
       setIsLoading(false)
       setUri(link)
 
@@ -66,7 +69,7 @@ function StorageWebView(props: Reducers): JSX.Element {
       Alert.alert('There has been an error', `${err.message}, please contact us.`, [
         {
           text: 'Go back',
-          onPress: () => props.navigation.replace('Storage')
+          onPress: () => props.navigation.replace('Billing')
         }
       ])
     });
@@ -79,7 +82,7 @@ function StorageWebView(props: Reducers): JSX.Element {
   }
   return (
     <View style={styles.container}>
-      <WebView style={styles.webview} source={{ uri: uri }} />
+      <WebView style={styles.webview} source={{ uri }} />
     </View>
   )
 }
