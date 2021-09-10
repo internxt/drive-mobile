@@ -46,7 +46,7 @@ export const extensions = {
 };
 
 export function getFileTypeIcon(ext: string): React.FC<SvgProps> {
-  const exists = Object.keys(extensions).indexOf(ext) > -1;
+  const exists = Object.keys(extensions).indexOf(ext.toLowerCase()) > -1;
 
   if (exists) {
     return extensions[ext];
