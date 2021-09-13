@@ -9,5 +9,6 @@ declare namespace NodeJS {
       REACT_NATIVE_CRYPTO_SECRET2: string
       REACT_NATIVE_MAGIC_IV: string
       REACT_NATIVE_MAGIC_SALT: string
+      REACT_NATIVE_RECAPTCHA_V3: string
   }
 }

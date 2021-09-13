@@ -7,7 +7,8 @@ export async function loadEnvVars() {
     process.env.REACT_NATIVE_CRYPTO_SECRET,
     process.env.REACT_NATIVE_CRYPTO_SECRET2,
     process.env.REACT_NATIVE_MAGIC_IV,
-    process.env.REACT_NATIVE_MAGIC_SALT
+    process.env.REACT_NATIVE_MAGIC_SALT,
+    process.env.REACT_NATIVE_RECAPTCHA_V3
   ];
 
   const VALID_ENVS = _.filter(ENVS, _.size)
