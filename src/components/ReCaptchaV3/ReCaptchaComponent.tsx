@@ -26,7 +26,7 @@ const getExecutionFunction = (siteKey: string, action: string) => {
     function(args) {
       window.ReactNativeWebView.postMessage(args);
     }
-  )`
+  );void(0);`
 }
 
 const getInvisibleRecaptchaContent = (siteKey: string, action: string) => {
