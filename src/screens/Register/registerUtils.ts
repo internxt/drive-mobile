@@ -14,6 +14,7 @@ interface RegisterParams {
   lastName: string
   email: string
   password: string
+  captcha: string
 }
 
 export async function getNewBits(): Promise<string> {
@@ -48,7 +49,8 @@ export async function doRegister(params: RegisterParams): Promise<any> {
       password: encPass,
       mnemonic: encMnemonic,
       salt: encSalt,
-      referral: null
+      referral: null,
+      captcha: params.captcha
     })
   }).then(async res => {
     if (res.status === 200) {

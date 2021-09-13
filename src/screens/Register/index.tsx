@@ -19,6 +19,7 @@ import analytics from '../../helpers/lytics';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { tailwind } from '../../helpers/designSystem';
 import { Reducers } from '../../redux/reducers/reducers';
+import ReCaptchaV3 from '../../components/ReCaptchaV3';
 
 function Register(props: Reducers): JSX.Element {
   const [showIntro, setShowIntro] = useState(false);
@@ -38,6 +39,8 @@ function Register(props: Reducers): JSX.Element {
   const [emailFocus, setEmailFocus] = useState(false);
   const [passwordFocus, setPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
+
+  const [recaptchaToken, setRecaptchaToken] = useState<string>();
 
   const isEmptyEmail = isNullOrEmpty(email);
   const isValidEmail = validateEmail(email);
@@ -81,6 +84,9 @@ function Register(props: Reducers): JSX.Element {
   }
 
   const handleOnPress = async () => {
+    if (!recaptchaToken) {
+      return Alert.alert('Invalid captcha token, please try again');
+    }
     if (!isValidPassword) { return Alert.alert('', 'Please make sure your password contains at least six characters, a number, and a letter') }
     if (password !== confirmPassword) { return Alert.alert('', 'Please make sure your passwords match') }
     if (registerButtonClicked || isLoading) { return }
@@ -89,7 +95,13 @@ function Register(props: Reducers): JSX.Element {
     setIsLoading(true)
 
     try {
-      const userData = await doRegister({ firstName: firstName, lastName: lastName, email: email, password: password })
+      const userData = await doRegister({
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password,
+        captcha: recaptchaToken
+      })
 
       await Promise.all([
         analytics.identify(userData.uuid, { email: email }),
@@ -255,11 +267,22 @@ function Register(props: Reducers): JSX.Element {
           <View>
             <View style={styles.containerCentered}>
               <View>
+                <ReCaptchaV3
+                  ref={(ref: ReCaptchaV3) => this._captchaRef = ref}
+                  captchaDomain={'https://drive.internxt.com'}
+                  siteKey={process.env.REACT_NATIVE_RECAPTCHA_V3}
+                  action={'register'}
+                  onReceiveToken={(captchaToken) => {
+                    const isFirstRecaptcha = !recaptchaToken
+
+                    setRecaptchaToken(captchaToken);
+                    if (!isFirstRecaptcha) { handleOnPress(); }
+                  }} />
+
                 <TouchableOpacity
                   disabled={!isValidForm || registerButtonClicked}
                   style={[globalStyles.buttonInputStyle.button, globalStyles.buttonInputStyle.block, { backgroundColor: isValidForm || registerButtonClicked ? '#0F62FE' : '#A6C8FF' }]}
-                  onPress={handleOnPress}
-                >
+                  onPress={() => this._captchaRef.refreshToken()}>
                   <Text style={styles.buttonOnLabel}>{registerButtonClicked ? strings.components.buttons.creating_button : strings.components.buttons.create}</Text>
                 </TouchableOpacity>
               </View>
