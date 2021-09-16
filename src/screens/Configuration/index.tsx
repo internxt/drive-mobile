@@ -7,6 +7,7 @@ import * as Unicons from '@iconscout/react-native-unicons'
 import { tailwind } from '../../helpers/designSystem';
 import { userActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
+import { ScrollView } from 'react-native-gesture-handler';
 
 function ConfigurationItem(props: {
   title: string,
@@ -38,8 +39,8 @@ function ConfigurationGap() {
 }
 
 function Configuration(props: Reducers): JSX.Element {
-  return <View>
-    <AppMenu {...props} title={strings.generic.settings} hideSearch={true} hideOptions={true} hideBackPress={true}/>
+  return <ScrollView>
+    <AppMenu {...props} title={strings.generic.settings} hideSearch={true} hideOptions={true} hideBackPress={true} />
     <ConfigurationItem title="Storage"
       onPress={() => {
         props.navigation.push('Storage')
@@ -71,7 +72,12 @@ function Configuration(props: Reducers): JSX.Element {
       onPress={() => {
         props.dispatch(userActions.signout())
       }} />
+    <ConfigurationGap />
+
+    <View style={tailwind('flex items-center text-base m-5')}>
+      <Text style={tailwind('text-gray-30')}>Internxt Drive v1.4.2 (2)</Text>
   </View>
+  </ScrollView>
 }
 const mapStateToProps = (state: any) => {
   return { ...state }
