@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     fontFamily: 'NeueEinstellung-Regular'
   },
   subtitleText: {
-    textAlign: 'justify',
+    textAlign: 'center',
     color: '#253858',
     fontFamily: 'NeueEinstellung-Regular'
   },
