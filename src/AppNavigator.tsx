@@ -14,6 +14,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TabExplorer from './screens/TabExplorer';
 import Billing from './screens/Billing';
 import ChangePassword from './screens/ChangePassword';
+import RecoverPassword from './screens/RecoverPassword';
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, any>
 
@@ -29,7 +30,8 @@ const routeConfig: RouteConfig = {
   Storage: { screen: Storage },
   StorageWebView: { screen: StorageWebView },
   Billing: { screen: Billing },
-  ChangePassword: { screen: ChangePassword }
+  ChangePassword: { screen: ChangePassword },
+  RecoverPassword: { screen: RecoverPassword }
 };
 
 const StackNav = createNativeStackNavigator();

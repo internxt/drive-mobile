@@ -1,80 +1,53 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
-import { isNullOrEmpty, isStrongPassword } from '../Register/registerUtils';
+import { View, StyleSheet, Text, TextInput, TouchableHighlight } from 'react-native';
+import { isStrongPassword } from '../Register/registerUtils';
 import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
-import { doChangePassword } from './changePasswordUtils';
 import { notify } from '../../helpers'
-import { Reducers } from '../../redux/reducers/reducers';
+import { doRecoverPassword } from './recover.service';
 
-function ChangePassword(props: Reducers) {
-  const [password, setPassword] = useState('')
+function ChangePassword(props: any) {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleOnPress = () => {
     setIsLoading(true)
-    doChangePassword({ password, newPassword }).then(() => {
+    doRecoverPassword(newPassword).then(() => {
       notify({ text: 'Password changed', type: 'success' });
-      setPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    }).catch(
-      (err: Error) => {
-        notify({ type: 'error', text: err.message });
-      }
-    ).finally(() => {
+    }).catch((err: Error) => {
+      notify({ type: 'error', text: err.message });
+    }).finally(() => {
       setIsLoading(false)
     })
   }
 
-  const isValidPassword = !isNullOrEmpty(password)
   const isValidNewPassword = isStrongPassword(newPassword);
   const passwordConfirmed = confirmPassword && newPassword === confirmPassword;
 
-  const activeButton = isValidPassword && isValidNewPassword && passwordConfirmed
-  const [passwordFocus, setPasswordFocus] = useState(false);
+  const activeButton = isValidNewPassword && passwordConfirmed
   const [newPasswordFocus, setNewPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
   return <View style={{ backgroundColor: 'white', flex: 1 }}>
     <AppMenu
-      title={strings.components.inputs.password}
+      title={'Password'}
       onBackPress={() => props.navigation.goBack()}
       hideSearch={true} hideOptions={true} />
     <View style={styles.mainContainer}>
       <View style={styles.titleContainer}>
-        <Text style={styles.titleText}>{strings.screens.change_password.title}</Text>
+        <Text style={styles.titleText}>{'Recover password'}</Text>
       </View>
       <View style={styles.titleContainer}>
-        <Text style={styles.subtitleText}>{strings.screens.change_password.warning}</Text>
+        <Text style={styles.subtitleText}>You can use this device to set a new password and recover your account as long as you keep this session alive.</Text>
+        <Text style={styles.subtitleText}>Your personal PGP Keys will be invalidated and your master key will be re-encrypted.</Text>
       </View>
-      <TouchableWithoutFeedback onPress={() => {
-        props.navigation.push('RecoverPassword')
-      }}>
-        <Text style={tailwind('text-base text-sm text-blue-70 text-center m-3')}>{'I don\'t remember my password'}</Text>
-      </TouchableWithoutFeedback>
       <View style={styles.container}>
-        <View style={[tailwind('input-wrapper my-2'), tailwind(password === '' ? '' : (isValidPassword ? 'input-valid' : 'input-error'))]}>
-          <TextInput
-            style={tailwind('input')}
-            value={password}
-            onChangeText={value => setPassword(value)}
-            placeholder={strings.components.inputs.password}
-            placeholderTextColor="#666"
-            secureTextEntry={true}
-            textContentType="password"
-            onFocus={() => setPasswordFocus(true)}
-            onBlur={() => setPasswordFocus(false)}
-          />
-          <Unicons.UilEye
-            style={[tailwind('input-icon'), { display: 'none' }]}
-            color={passwordFocus && isValidPassword ? '#42BE65' : '#7A869A'} />
-        </View>
         <View style={[tailwind('input-wrapper my-2'), tailwind(newPassword === '' ? '' : (isValidNewPassword ? 'input-valid' : 'input-error'))]}>
           <TextInput
             style={tailwind('input')}
@@ -129,7 +102,7 @@ export default connect(mapStateToProps)(ChangePassword);
 const styles = StyleSheet.create({
   titleContainer: {
     alignItems: 'center',
-    padding: 4
+    padding: 6
   },
   titleText: {
     color: '#091E42',
