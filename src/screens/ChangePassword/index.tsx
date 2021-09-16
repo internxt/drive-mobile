@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableHighlight } from 'react-native';
+import { View, StyleSheet, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import { isNullOrEmpty, isStrongPassword } from '../Register/registerUtils';
 import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
@@ -8,8 +8,9 @@ import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { doChangePassword } from './changePasswordUtils';
 import { notify } from '../../helpers'
+import { Reducers } from '../../redux/reducers/reducers';
 
-function ChangePassword(props: any) {
+function ChangePassword(props: Reducers) {
   const [password, setPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -40,15 +41,10 @@ function ChangePassword(props: any) {
   const [newPasswordFocus, setNewPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
-  return <View style={{
-    backgroundColor: 'white',
-    flex: 1
-  }}>
+  return <View style={{ backgroundColor: 'white', flex: 1 }}>
     <AppMenu
       title={strings.components.inputs.password}
-      onBackPress={() => {
-        props.navigation.goBack()
-      }}
+      onBackPress={() => props.navigation.goBack()}
       hideSearch={true} hideOptions={true} />
     <View style={styles.mainContainer}>
       <View style={styles.titleContainer}>
@@ -57,6 +53,11 @@ function ChangePassword(props: any) {
       <View style={styles.titleContainer}>
         <Text style={styles.subtitleText}>{strings.screens.change_password.warning}</Text>
       </View>
+      <TouchableWithoutFeedback onPress={() => {
+        props.navigation.push('RecoverPassword')
+      }}>
+        <Text style={tailwind('text-base text-sm text-blue-70 text-center m-3')}>{'I don\'t remember my password'}</Text>
+      </TouchableWithoutFeedback>
       <View style={styles.container}>
         <View style={[tailwind('input-wrapper my-2'), tailwind(password === '' ? '' : (isValidPassword ? 'input-valid' : 'input-error'))]}>
           <TextInput
@@ -128,7 +129,7 @@ export default connect(mapStateToProps)(ChangePassword);
 const styles = StyleSheet.create({
   titleContainer: {
     alignItems: 'center',
-    padding: 6
+    padding: 4
   },
   titleText: {
     color: '#091E42',
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
     fontFamily: 'NeueEinstellung-Regular'
   },
   mainContainer: {
-    paddingHorizontal: 40
+    paddingHorizontal: 30
   },
   container: {
     padding: 8

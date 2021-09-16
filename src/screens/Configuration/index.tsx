@@ -41,6 +41,7 @@ function ConfigurationGap() {
 function Configuration(props: Reducers): JSX.Element {
   return <ScrollView>
     <AppMenu {...props} title={strings.generic.settings} hideSearch={true} hideOptions={true} hideBackPress={true} />
+
     <ConfigurationItem title="Storage"
       onPress={() => {
         props.navigation.push('Storage')
@@ -49,17 +50,17 @@ function Configuration(props: Reducers): JSX.Element {
       onPress={() => {
         props.navigation.push('Billing')
       }} />
+
     <ConfigurationGap />
+
     {/* <ConfigurationItem title={strings.generic.security} /> */}
     <ConfigurationItem title={strings.screens.change_password.title}
       onPress={() => {
         props.navigation.push('ChangePassword')
       }} />
-    <ConfigurationItem title={'Recover password'}
-      onPress={() => {
-        props.navigation.push('RecoverPassword')
-      }} />
+
     <ConfigurationGap />
+
     <ConfigurationItem title="Contact"
       onPress={() => {
         Linking.openURL('https://help.internxt.com')
@@ -72,11 +73,12 @@ function Configuration(props: Reducers): JSX.Element {
       onPress={() => {
         props.dispatch(userActions.signout())
       }} />
+
     <ConfigurationGap />
 
     <View style={tailwind('flex items-center text-base m-5')}>
       <Text style={tailwind('text-gray-30')}>Internxt Drive v1.4.2 (2)</Text>
-  </View>
+    </View>
   </ScrollView>
 }
 const mapStateToProps = (state: any) => {

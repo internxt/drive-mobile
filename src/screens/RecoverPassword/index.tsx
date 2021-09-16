@@ -36,14 +36,12 @@ function ChangePassword(props: any) {
 
   return <View style={{ backgroundColor: 'white', flex: 1 }}>
     <AppMenu
-      title={'Recover password'}
-      onBackPress={() => {
-        props.navigation.goBack()
-      }}
+      title={'Password'}
+      onBackPress={() => props.navigation.goBack()}
       hideSearch={true} hideOptions={true} />
     <View style={styles.mainContainer}>
       <View style={styles.titleContainer}>
-        <Text style={styles.titleText}>{strings.screens.change_password.title}</Text>
+        <Text style={styles.titleText}>{'Recover password'}</Text>
       </View>
       <View style={styles.titleContainer}>
         <Text style={styles.subtitleText}>You can use this device to set a new password and recover your account as long as you keep this session alive.</Text>
@@ -86,7 +84,7 @@ function ChangePassword(props: any) {
           style={[tailwind('btn btn-primary my-5'), (activeButton && !isLoading) ? null : { backgroundColor: '#A6C8FF' }]}
           underlayColor="#4585f5"
           onPress={handleOnPress}
-        >
+          disabled={!activeButton || isLoading}>
           <Text style={tailwind('text-base btn-label')}>{strings.screens.change_password.title}</Text>
         </TouchableHighlight>
       </View>
@@ -113,12 +111,12 @@ const styles = StyleSheet.create({
     fontFamily: 'NeueEinstellung-Regular'
   },
   subtitleText: {
-    textAlign: 'center',
+    textAlign: 'justify',
     color: '#253858',
     fontFamily: 'NeueEinstellung-Regular'
   },
   mainContainer: {
-    paddingHorizontal: 40
+    paddingHorizontal: 30
   },
   container: {
     padding: 8
