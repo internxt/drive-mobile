@@ -54,6 +54,10 @@ function Configuration(props: Reducers): JSX.Element {
       onPress={() => {
         props.navigation.push('ChangePassword')
       }} />
+    <ConfigurationItem title={'Recover password'}
+      onPress={() => {
+        props.navigation.push('RecoverPassword')
+      }} />
     <ConfigurationGap />
     <ConfigurationItem title="Contact"
       onPress={() => {
