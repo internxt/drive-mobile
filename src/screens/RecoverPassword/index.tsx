@@ -8,8 +8,9 @@ import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { notify } from '../../helpers'
 import { doRecoverPassword } from './recover.service';
+import { Reducers } from '../../redux/reducers/reducers';
 
-function ChangePassword(props: any) {
+function ChangePassword(props: Reducers) {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
