@@ -45,8 +45,7 @@ function ChangePassword(props: Reducers) {
         <Text style={styles.titleText}>{'Recover password'}</Text>
       </View>
       <View style={styles.titleContainer}>
-        <Text style={styles.subtitleText}>You can use this device to set a new password and recover your account as long as you keep this session alive.</Text>
-        <Text style={styles.subtitleText}>Your personal PGP Keys will be invalidated and your master key will be re-encrypted.</Text>
+        <Text style={styles.subtitleText}>You can use this device to set a new password and recover your account.</Text>
       </View>
       <View style={styles.container}>
         <View style={[tailwind('input-wrapper my-2'), tailwind(newPassword === '' ? '' : (isValidNewPassword ? 'input-valid' : 'input-error'))]}>

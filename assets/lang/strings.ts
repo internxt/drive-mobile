@@ -22,7 +22,7 @@ const strings = new LocalizedStrings({
       "login_screen": {
         "title": "Login in to Internxt",
         "forgot": "Forgot your password?",
-        "no_register": "Don't have account",
+        "no_register": "Don't have account?",
         "register": "Get started",
         "back": "Back to login"
       },

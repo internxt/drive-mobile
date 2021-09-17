@@ -56,7 +56,7 @@ function Configuration(props: Reducers): JSX.Element {
     {/* <ConfigurationItem title={strings.generic.security} /> */}
     <ConfigurationItem title={strings.screens.change_password.title}
       onPress={() => {
-        props.navigation.push('ChangePassword')
+        props.navigation.push('RecoverPassword')
       }} />
 
     <ConfigurationGap />

@@ -34,12 +34,12 @@ interface IconProps {
   color?: any
 }
 
-function Icon(props: IconProps) {
+function Icon(props: IconProps): JSX.Element {
   switch (props.name) {
     // UI icons
-    case "checkmark":
+    case 'checkmark':
       return <CheckMark defaultColors={defaultColors} {...props} />;
-    case "details":
+    case 'details':
       return <Details defaultColors={defaultColors} {...props} />;
     default:
       console.error('Missing icon:', props.name);
