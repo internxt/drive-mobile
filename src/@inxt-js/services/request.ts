@@ -9,8 +9,7 @@ import { ContractNegotiated } from '../lib/contracts';
 import { Shard } from '../api/shard';
 import { getProxy, ProxyManager } from './proxy';
 
-const INXT_API_URL = process.env.INXT_API_URL;
-const PROXY = 'https://api.internxt.com:8081';
+const INXT_API_URL = 'https://api.internxt.com';
 
 export async function request(config: EnvironmentConfig, method: AxiosRequestConfig['method'], targetUrl: string, params: AxiosRequestConfig, useProxy = true): Promise<AxiosResponse<JSON>> {
   let reqUrl = targetUrl;

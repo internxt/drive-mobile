@@ -8,8 +8,9 @@ import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { notify } from '../../helpers'
 import { doRecoverPassword } from './recover.service';
+import { Reducers } from '../../redux/reducers/reducers';
 
-function ChangePassword(props: any) {
+function ChangePassword(props: Reducers) {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -44,8 +45,7 @@ function ChangePassword(props: any) {
         <Text style={styles.titleText}>{'Recover password'}</Text>
       </View>
       <View style={styles.titleContainer}>
-        <Text style={styles.subtitleText}>You can use this device to set a new password and recover your account as long as you keep this session alive.</Text>
-        <Text style={styles.subtitleText}>Your personal PGP Keys will be invalidated and your master key will be re-encrypted.</Text>
+        <Text style={styles.subtitleText}>You can use this device to set a new password and recover your account.</Text>
       </View>
       <View style={styles.container}>
         <View style={[tailwind('input-wrapper my-2'), tailwind(newPassword === '' ? '' : (isValidNewPassword ? 'input-valid' : 'input-error'))]}>
