@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Alert, ScrollView, RefreshControl } from 'react-native'
+import { StyleSheet, View, Alert, ScrollView, RefreshControl, Text } from 'react-native'
 import { connect } from 'react-redux';
 import { Reducers } from '../../redux/reducers/reducers';
 import AppMenu from '../../components/AppMenu';
 import { WaveIndicator } from 'react-native-indicators';
 import { getShareList, IShare } from '../../services/shares';
 import FileItem from '../../components/FileItem';
+import { tailwind } from '../../helpers/designSystem';
+import * as Unicons from '@iconscout/react-native-unicons'
 
 function Share(props: Reducers): JSX.Element {
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,7 @@ function Share(props: Reducers): JSX.Element {
   useEffect(() => { reloadShares() }, []);
 
   return <View style={styles.container}>
-    <AppMenu {...props} title="Shared" hideSearch={true} hideBackPress={true}/>
+    <AppMenu {...props} title="Shared" hideSearch={true} hideBackPress={true} />
     {
       loading &&
       <View style={styles.activityIndicator}>
@@ -51,8 +53,17 @@ function Share(props: Reducers): JSX.Element {
       >
         <View>
           {shares.map((item, i) => {
-            return <FileItem key={i} item={item.fileInfo} isFolder={false}>
-            </FileItem>
+            return <FileItem
+              key={i}
+              item={item.fileInfo}
+              isFolder={false}
+              subtitle={<View style={tailwind('flex flex-row items-center')}>
+                <Text style={[tailwind('text-base'), { fontSize: 14, color: '#0F62FE' }]}>Left {item.views} times to share</Text>
+                <View style={[tailwind('m-1 rounded-xl p-1'), { backgroundColor: '#EDF5FF' }]}>
+                  <Unicons.UilEye size={16} />
+                </View>
+              </View>}
+            />
           })}
         </View>
       </ScrollView>

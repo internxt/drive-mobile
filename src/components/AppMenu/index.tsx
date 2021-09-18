@@ -15,6 +15,7 @@ interface AppMenuProps extends Reducers {
 
 function AppMenu(props: AppMenuProps) {
   // Hide options menu, it is not finished yet.
+  // If you enable it, test each view and compare with figma design
   props.hideOptions = undefined;
 
   const parentFolderId = props.filesState.folderContent?.parentId;

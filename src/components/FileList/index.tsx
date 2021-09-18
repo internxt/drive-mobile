@@ -127,11 +127,11 @@ function FileList(props: Reducers) {
                 isLoading={true}
               />
               :
-              null
+              <></>
           }
           )
           :
-          null
+          <></>
       }
 
       {
