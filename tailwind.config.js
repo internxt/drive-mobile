@@ -942,8 +942,9 @@ module.exports = {
           color: '#FFF',
           fontSize: 16
         },
-        'text-base': {
-          fontFamily: theme('fontFamily.NeueEinstellung.Regular')
+        'text-base-color': {
+          fontFamily: theme('fontFamily.NeueEinstellung.Regular'),
+          color: '#5E6C84'
         },
         'input-wrapper': {
           flexDirection: 'row',

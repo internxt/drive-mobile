@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { ScrollView, Text, RefreshControl, StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
 import { fileActions } from '../../redux/actions';
-import EmptyFolder from '../EmptyFolder';
+import { Reducers } from '../../redux/reducers/reducers';
+import { EmptyFolder } from '../../screens/StaticScreens';
 import FileItem from '../FileItem';
 
 export interface IFolder {
@@ -33,7 +34,7 @@ export interface IFile {
   size: number
 }
 
-function FileList(props: any) {
+function FileList(props: Reducers) {
   const [refreshing, setRefreshing] = useState(false)
 
   const { filesState } = props;
@@ -75,9 +76,14 @@ function FileList(props: any) {
     fileList.sort(sortFunction);
   }
 
+  let isRootFolder = false;
+
   useEffect(() => {
     if (!props.filesState.folderContent) {
       const rootFolderId = props.authenticationState.user.root_folder_id
+      const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
+
+      isRootFolder = currentFolderId === rootFolderId;
 
       props.dispatch(fileActions.getFolderContent(rootFolderId))
     }
@@ -105,15 +111,14 @@ function FileList(props: any) {
     >
       {
         isEmptyFolder ?
-          <EmptyFolder />
+          <EmptyFolder {...props} isRoot={isRootFolder} />
           :
           <Text style={styles.dNone}></Text>
       }
 
       {
         filesUploading.length > 0 ?
-          filesUploading.map((file: IUploadingFile) =>
-          {
+          filesUploading.map((file: IUploadingFile) => {
             return file.currentFolder === folderId ?
               <FileItem
                 key={filesUploading.indexOf(file)}
@@ -150,8 +155,7 @@ function FileList(props: any) {
       }
 
       {
-        filesUploaded.map((file: any) =>
-        {
+        filesUploaded.map((file: any) => {
           return file.currentFolder === folderId ?
             <FileItem
               key={file.id}

@@ -149,7 +149,7 @@ function Login(props: LoginProps): JSX.Element {
           </Text>
 
           <Text style={[globalStyles.text.center, globalStyles.text.mt10]} onPress={() => props.navigation.replace('Register')}>
-            <Text style={globalStyles.text.normal}>{strings.screens.login_screen.no_register}{', '}</Text>
+            <Text style={globalStyles.text.normal}>{strings.screens.login_screen.no_register}{' '}</Text>
             <Text style={globalStyles.text.link}>{strings.screens.login_screen.register}</Text>
           </Text>
         </View>

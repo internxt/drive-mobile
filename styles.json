@@ -18,9 +18,8 @@
 		"color": "#FFF",
 		"fontSize": 16
 	},
-	"text-base": {
-		"fontSize": 16,
-		"lineHeight": 24
+	"text-base-color": {
+		"color": "#5E6C84"
 	},
 	"input-wrapper": {
 		"flexDirection": "row",
@@ -4749,6 +4748,9 @@
 	"self-stretch": {
 		"alignSelf": "stretch"
 	},
+	"self-baseline": {
+		"alignSelf": "baseline"
+	},
 	"overflow-hidden": {
 		"overflow": "hidden"
 	},
@@ -7222,6 +7224,10 @@
 	"text-sm": {
 		"fontSize": 14,
 		"lineHeight": 20
+	},
+	"text-base": {
+		"fontSize": 16,
+		"lineHeight": 24
 	},
 	"text-lg": {
 		"fontSize": 18,
