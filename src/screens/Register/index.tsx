@@ -225,7 +225,7 @@ function Register(props: Reducers): JSX.Element {
                   onBlur={() => setPasswordFocus(false)}
                 />
                 <Unicons.UilEye
-                  style={[tailwind('input-icon'), { display: 'none' }]}
+                  style={tailwind('input-icon hidden')}
                   color={isValidPassword || isValidPassword || passwordFocus ? '#42BE65' : '#7A869A'} />
               </View>
 
@@ -243,17 +243,17 @@ function Register(props: Reducers): JSX.Element {
                   onBlur={() => setConfirmPasswordFocus(false)}
                 />
                 <Unicons.UilEye
-                  style={[tailwind('input-icon'), { display: 'none' }]}
+                  style={tailwind('input-icon hidden')}
                   color={isValidConfirmedPassword || confirmPasswordFocus ? '#42BE65' : '#7A869A'} />
               </View>
             </View>
           </View>
 
-          <View style={tailwind('my-5')}>
-            <Text style={tailwind('text-sm')}>{strings.screens.register_screen.security_subtitle}</Text>
+          <View style={tailwind('mt-3')}>
+            <Text style={tailwind('text-xs text-gray-50')}>{strings.screens.register_screen.security_subtitle}</Text>
           </View>
 
-          <View style={tailwind('py-2')}>
+          <View style={tailwind('py-3')}>
             <CheckBox
               text="Accept terms, conditions and privacy policy"
               value={acceptPolicy}
@@ -311,10 +311,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   emptyInput: {
-    borderLeftColor: '#7A869A',
-    borderRightColor: '#7A869A',
-    borderTopColor: '#7A869A',
-    borderBottomColor: '#7A869A'
+    borderColor: '#7A869A'
   }
 });
 
