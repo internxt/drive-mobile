@@ -109,8 +109,8 @@ function fetchIfSameFolder(fileFolder: number) {
   }
 }
 
-function getFolderContent(folderId: string, quick?: boolean): AnyAction {
-  const id = parseInt(folderId)
+function getFolderContent(folderId: string | number, quick?: boolean): AnyAction {
+  const id = typeof folderId === 'string' ? parseInt(folderId) : folderId
 
   if (isNaN(id)) {
     return (dispatch: Dispatch): AnyAction => {

@@ -4,7 +4,7 @@ import {
   View, Text, StyleSheet, TouchableHighlight
 } from 'react-native';
 import { connect } from 'react-redux';
-import { IPlan, IProduct, storageService } from '../../redux/services';
+import { IProduct, storageService } from '../../redux/services';
 import { Reducers } from '../../redux/reducers/reducers';
 import { loadValues } from '../../modals';
 import strings from '../../../assets/lang/strings';
@@ -28,8 +28,6 @@ function Storage(props: StorageProps): JSX.Element {
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [products, setProducts] = useState<IProduct[]>([])
-  const [plans, setPlans] = useState<IPlan[]>([])
-  const [chosenProduct, setChosenProduct] = useState<IProduct>()
 
   const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
 
@@ -109,15 +107,15 @@ function Storage(props: StorageProps): JSX.Element {
         </View>
 
         <View style={tailwind('mt-2')}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
             <Text style={tailwind('mx-1')}>All available devices</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
             <Text style={tailwind('mx-1')}>Unlimited devices</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
             <Text style={tailwind('mx-1')}>Secure file sharing</Text>
           </View>
@@ -131,7 +129,7 @@ function Storage(props: StorageProps): JSX.Element {
           props.navigation.push('Billing')
         }}>
 
-        <Text style={{ color: 'white', fontSize: 17 }}>Change plan</Text>
+        <Text style={tailwind('text-white text-lg')}>Change plan</Text>
       </TouchableHighlight>
     </View>
   );

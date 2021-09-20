@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { ScrollView, Text, RefreshControl, StyleSheet } from 'react-native';
+import { ScrollView, RefreshControl } from 'react-native';
 import { connect } from 'react-redux';
+import tailwind from 'tailwind-rn';
 import { fileActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
 import { EmptyFolder } from '../../screens/StaticScreens';
@@ -59,7 +60,6 @@ function FileList(props: Reducers) {
 
   useEffect(() => {
     setFilesUploaded(props.filesState.filesAlreadyUploaded)
-
   }, [props.filesState.filesAlreadyUploaded])
 
   const searchString = props.filesState.searchString
@@ -76,15 +76,12 @@ function FileList(props: Reducers) {
     fileList.sort(sortFunction);
   }
 
-  let isRootFolder = false;
+  const rootFolderId = props.authenticationState.user.root_folder_id
+  const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
+  const isRootFolder = currentFolderId === rootFolderId;
 
   useEffect(() => {
     if (!props.filesState.folderContent) {
-      const rootFolderId = props.authenticationState.user.root_folder_id
-      const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
-
-      isRootFolder = currentFolderId === rootFolderId;
-
       props.dispatch(fileActions.getFolderContent(rootFolderId))
     }
   }, [])
@@ -101,19 +98,16 @@ function FileList(props: Reducers) {
             if (!props || !props.filesState || !props.filesState.folderContent) {
               return setRefreshing(false)
             }
-            const currentFolder = props.filesState.folderContent.currentFolder
 
-            props.dispatch(fileActions.getFolderContent(currentFolder))
+            props.dispatch(fileActions.getFolderContent(currentFolderId))
           }}
         />
       }
-      contentContainerStyle={isEmptyFolder ? styles.fileListContentsScrollView : null}
+      contentContainerStyle={isEmptyFolder ? tailwind('h-full justify-center') : null}
     >
       {
         isEmptyFolder ?
-          <EmptyFolder {...props} isRoot={isRootFolder} />
-          :
-          <Text style={styles.dNone}></Text>
+          <EmptyFolder {...props} isRoot={isRootFolder} /> : <></>
       }
 
       {
@@ -126,12 +120,10 @@ function FileList(props: Reducers) {
                 item={file}
                 isLoading={true}
               />
-              :
-              <></>
+              : <></>
           }
           )
-          :
-          <></>
+          : <></>
       }
 
       {
@@ -170,16 +162,6 @@ function FileList(props: Reducers) {
     </ScrollView>
   )
 }
-
-const styles = StyleSheet.create({
-  dNone: {
-    display: 'none'
-  },
-  fileListContentsScrollView: {
-    flexGrow: 1,
-    justifyContent: 'center'
-  }
-})
 
 const mapStateToProps = (state: any) => {
   return { ...state };

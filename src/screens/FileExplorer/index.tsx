@@ -15,6 +15,7 @@ import { WaveIndicator } from 'react-native-indicators';
 function FileExplorer(props: Reducers): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
   const { filesState } = props
+
   const parentFolderId = (() => {
     if (filesState.folderContent) {
       return filesState.folderContent.parentId || null
@@ -224,7 +225,7 @@ function FileExplorer(props: Reducers): JSX.Element {
           <WaveIndicator color="#5291ff" size={80} />
         </View>
         :
-        <FileList />
+        <FileList {...props} />
     }
   </View>
 }

@@ -20,7 +20,7 @@ import * as Unicons from '@iconscout/react-native-unicons'
 import { Reducers } from '../../redux/reducers/reducers';
 
 function Forgot(props: Reducers): JSX.Element {
-  const [currentContainer, setCurrentCointainer] = useState(2);
+  const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   // Get email form field
   const [email, setIsEmail] = useState('');
@@ -122,6 +122,7 @@ function Forgot(props: Reducers): JSX.Element {
               </View>
               <Text style={tailwind('text-sm text-center')}>
                 {strings.screens.deactivation_screen.subtitle_1}
+                {' '}
                 {strings.screens.deactivation_screen.subtitle_2}
               </Text>
 
