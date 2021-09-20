@@ -174,7 +174,7 @@ function Billing(props: Reducers) {
               <Text style={[tailwind('text-xs'), { color: '#97A0AF' }]}>{`${plan.price.toFixed(2)}€ billed ${plan.name.toLowerCase()}`}</Text>
             </View>
           </View>
-          <View style={{ justifyContent: 'center' }}>
+          <View style={tailwind('justify-center')}>
             <TouchableHighlight
               underlayColor="#5291ff"
               style={tailwind('btn btn-primary')}

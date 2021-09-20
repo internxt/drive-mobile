@@ -11,6 +11,7 @@ import * as FileSystem from 'expo-file-system'
 import * as Unicons from '@iconscout/react-native-unicons';
 import { downloadFile } from '../../services/download';
 import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../lib/fs';
+import { tailwind } from '../../helpers/designSystem';
 
 interface FileItemProps extends Reducers {
   isFolder: boolean
@@ -18,6 +19,7 @@ interface FileItemProps extends Reducers {
   isLoading?: boolean
   nameEncrypted?: boolean
   selectable?: boolean
+  subtitle: JSX.Element
 }
 
 async function handleLongPress(props: FileItemProps, isSelected: boolean) {
@@ -136,9 +138,13 @@ function FileItem(props: FileItemProps) {
 
   function trackDownloadStart(): Promise<void> {
     return track('file-download-start', {
+      // eslint-disable-next-line camelcase
       file_id: props.item.id,
+      // eslint-disable-next-line camelcase
       file_size: props.item.size,
+      // eslint-disable-next-line camelcase
       file_type: props.item.type,
+      // eslint-disable-next-line camelcase
       folder_id: props.item.folderId,
       platform: 'mobile'
     });
@@ -199,31 +205,29 @@ function FileItem(props: FileItemProps) {
               <View style={styles.itemIcon}>
                 {
                   props.isFolder ?
-                    <View>
+                    <>
                       <FolderIcon width={30} height={30} />
-                    </View>
-                    : // once local upload implelemented, remove conditional
-                    <View>
-                      <IconFile width={30} height={30}/>
-                    </View>
+                    </>
+                    :
+                    <>
+                      <IconFile width={30} height={30} />
+                    </>
                 }
 
-                <View style={{ marginTop: 3 }}>
+                <View style={tailwind('mt-3')}>
                   <View style={styles.progressIndicatorContainer}>
                     {
                       progressWidth ?
                         <View
                           style={[styles.progressIndicator, { width: progressWidth }]}><Text>Progress</Text></View>
-                        :
-                        null
+                        : <></>
                     }
 
                     {
                       props.isLoading ?
                         <View
                           style={[styles.progressIndicator, { width: uploadProgressWidth }]} />
-                        :
-                        null
+                        : <></>
                     }
                   </View>
                 </View>
@@ -234,13 +238,13 @@ function FileItem(props: FileItemProps) {
                 <Text
                   style={[styles.fileName, extendStyles.text]}
                   numberOfLines={1} // once local upload implemented, remove conditional
-                >{props.isFolder? props.item.name : props.item.name.split('.').shift()}</Text>
+                >{props.isFolder ? props.item.name : props.item.name.split('.').shift()}</Text>
 
-                <Text style={styles.updatedAt}>Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
+                {props.subtitle ? props.subtitle : <Text style={styles.updatedAt}>Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'short',
                   year: 'numeric'
-                })}</Text>
+                })}</Text>}
               </View>
             </TouchableOpacity>
           </View>
@@ -251,13 +255,14 @@ function FileItem(props: FileItemProps) {
                   style={isSelectionMode ? styles.dNone : styles.dFlex}
                   onPress={() => {
                     props.dispatch(fileActions.focusItem(props.item));
-                    props.dispatch(layoutActions.openItemModal())}
+                    props.dispatch(layoutActions.openItemModal())
+                  }
                   }>
-                  <Unicons.UilEllipsisH size={32} color={'#7A869A'} />
+                  <Unicons.UilEllipsisH size={24} color={'#7A869A'} />
                 </TouchableOpacity>
               </View>
               :
-              <View style={{ padding: 10 }}>
+              <View style={tailwind('p-10')}>
                 <ActivityIndicator color='#aaf' size='large' />
               </View>
           }

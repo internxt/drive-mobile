@@ -1,14 +1,12 @@
 import React, { useEffect } from 'react'
 import { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, StyleSheet, Alert, TextInput, TouchableHighlight } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Alert, TextInput, TouchableHighlight } from 'react-native';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/lytics';
-import { normalize } from '../../helpers/normalize'
 import { userActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
-import globalStyles from '../../styles/global.style';
 import { validate2FA, apiLogin } from './access';
 import InternxtLogo from '../../../assets/logo.svg'
 import { tailwind } from '../../helpers/designSystem';
@@ -77,15 +75,16 @@ function Login(props: LoginProps): JSX.Element {
   }, [props.authenticationState.loggedIn, props.authenticationState.token])
 
   return (
-    <KeyboardAvoidingView behavior='height' style={styles.container}>
-      <View style={[styles.containerCentered, isLoading ? styles.halfOpacity : {}]}>
+    <KeyboardAvoidingView behavior='height' style={tailwind('p-5 bg-white h-full justify-between')}>
+      <View></View>
+      <View style={isLoading ? tailwind('opacity-50') : tailwind('opacity-100')}>
         <View>
           <View style={tailwind('items-center pb-10')}>
             <InternxtLogo />
           </View>
         </View>
 
-        <View style={showTwoFactor ? styles.hideInputFieldWrapper : styles.showInputFieldsWrapper}>
+        <View style={showTwoFactor ? tailwind('hidden') : tailwind('flex')}>
           <View style={tailwind('input-wrapper my-2')}>
             <TextInput
               style={tailwind('input')}
@@ -117,15 +116,15 @@ function Login(props: LoginProps): JSX.Element {
               editable={!isLoading}
             />
             <Unicons.UilEye
-              style={[tailwind('input-icon'), { display: 'none' }]}
+              style={tailwind('input-icon hidden')}
               color="#7A869A" />
           </View>
         </View>
 
-        <View style={showTwoFactor ? styles.showInputFieldsWrapper : styles.hideInputFieldWrapper}>
-          <View style={globalStyles.textInputStyle.wrapper}>
+        <View style={showTwoFactor ? tailwind('') : tailwind('hidden')}>
+          <View style={[tailwind('input-wrapper my-2'), validate2FA(twoFactorCode) ? {} : tailwind('border-red-50')]}>
             <TextInput
-              style={[styles.input, validate2FA(twoFactorCode) ? {} : styles.showBorder]}
+              style={tailwind('input')}
               value={twoFactorCode}
               onChangeText={value => setTwoFactorCode(value)}
               placeholder="Two-factor code"
@@ -144,18 +143,18 @@ function Login(props: LoginProps): JSX.Element {
             <Text style={tailwind('text-base btn-label')}>{isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}</Text>
           </TouchableHighlight>
 
-          <Text style={[globalStyles.text.link, globalStyles.text.center, globalStyles.text.mt10]} onPress={() => props.navigation.replace('Forgot')}>
+          <Text style={tailwind('text-center text-sm m-2 text-blue-60')} onPress={() => props.navigation.replace('Forgot')}>
             {strings.screens.login_screen.forgot}
           </Text>
 
-          <Text style={[globalStyles.text.center, globalStyles.text.mt10]} onPress={() => props.navigation.replace('Register')}>
-            <Text style={globalStyles.text.normal}>{strings.screens.login_screen.no_register}{', '}</Text>
-            <Text style={globalStyles.text.link}>{strings.screens.login_screen.register}</Text>
+          <Text style={tailwind('text-center mt-2')} onPress={() => props.navigation.replace('Register')}>
+            <Text style={tailwind('text-sm')}>{strings.screens.login_screen.no_register}{' '}</Text>
+            <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.register}</Text>
           </Text>
         </View>
       </View>
 
-      <Text style={styles.versionLabel}>Internxt Drive v1.4.2 (2)</Text>
+      <Text style={tailwind('text-center text-base text-sm text-gray-50')}>Internxt Drive v1.4.2 (2)</Text>
     </KeyboardAvoidingView>
   )
 }
@@ -165,44 +164,3 @@ const mapStateToProps = (state: any) => {
 };
 
 export default connect(mapStateToProps)(Login)
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#FFFFFF',
-    flex: 1,
-    justifyContent: 'center',
-    padding: normalize(20)
-  },
-  containerCentered: {
-    alignSelf: 'center',
-    height: 600,
-    justifyContent: 'center',
-    width: '100%'
-  },
-  halfOpacity: {
-    opacity: 0.5
-  },
-  hideInputFieldWrapper: {
-    opacity: 0,
-    display: 'none'
-  },
-  input: {
-    color: '#000',
-    flex: 1,
-    fontFamily: 'NeueEinstellung-Medium',
-    fontSize: normalize(15),
-    letterSpacing: -0.2,
-    paddingLeft: normalize(20)
-  },
-  showInputFieldsWrapper: {
-    justifyContent: 'center'
-  },
-  versionLabel: {
-    alignSelf: 'center',
-    color: '#999999',
-    fontFamily: 'NeueEinstellung-Regular',
-    position: 'absolute',
-    bottom: 5
-  },
-  showBorder: { borderWidth: 1, borderColor: '#f00' }
-});

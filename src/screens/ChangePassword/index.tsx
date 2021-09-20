@@ -72,7 +72,7 @@ function ChangePassword(props: Reducers) {
             onBlur={() => setPasswordFocus(false)}
           />
           <Unicons.UilEye
-            style={[tailwind('input-icon'), { display: 'none' }]}
+            style={tailwind('input-icon hidden')}
             color={passwordFocus && isValidPassword ? '#42BE65' : '#7A869A'} />
         </View>
         <View style={[tailwind('input-wrapper my-2'), tailwind(newPassword === '' ? '' : (isValidNewPassword ? 'input-valid' : 'input-error'))]}>
@@ -88,7 +88,7 @@ function ChangePassword(props: Reducers) {
             onBlur={() => setNewPasswordFocus(false)}
           />
           <Unicons.UilEye
-            style={[tailwind('input-icon'), { display: 'none' }]}
+            style={tailwind('input-icon hidden')}
             color={newPasswordFocus && isValidNewPassword ? '#42BE65' : '#7A869A'} />
         </View>
         <View style={[tailwind('input-wrapper my-2'), tailwind(confirmPassword === '' ? '' : (passwordConfirmed ? 'input-valid' : 'input-error'))]}>
@@ -104,7 +104,7 @@ function ChangePassword(props: Reducers) {
             onBlur={() => setConfirmPasswordFocus(false)}
           />
           <Unicons.UilEye
-            style={[tailwind('input-icon'), { display: 'none' }]}
+            style={tailwind('input-icon hidden')}
             color={confirmPasswordFocus && passwordConfirmed ? '#42BE65' : '#7A869A'} />
         </View>
         <TouchableHighlight

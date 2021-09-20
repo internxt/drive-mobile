@@ -3,13 +3,53 @@ import { IFile, IFolder, IUploadingFile } from '../../components/FileList';
 import { fileActionTypes } from '../constants';
 import { ArraySortFunction } from '../services';
 
+interface FolderContentChildren {
+  id: number
+  parentId: number
+  name: string
+  bucket: string
+  userId: number
+  iconId: number | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+interface FileContentChildren {
+  id: number
+  fileId: string
+  name: string
+  type: string
+  size: number
+  bucket: string
+  deleted: boolean
+  deletedAt: Date
+  createdAt: Date
+  updatedAt: Date
+  folderId: number
+}
+
+interface FolderContent {
+  name: string
+  bucket: string
+  color: any
+  encrypt_version: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
+  userId: number | null
+  iconId: number | null
+  parentId: number | null
+  children: FolderContentChildren[]
+  currentFolder: number
+  files: FileContentChildren[]
+}
+
 export interface FilesState {
   absolutePath: string
   loading: boolean
   items: any[]
   filesCurrentlyUploading: IUploadingFile[]
   filesAlreadyUploaded: any[]
-  folderContent: any
+  folderContent: FolderContent
   rootFolderContent: any
   focusedItem: IFile | IFolder | null
   selectedItems: any[]

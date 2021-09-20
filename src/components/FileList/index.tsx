@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { ScrollView, Text, RefreshControl, StyleSheet } from 'react-native';
+import { ScrollView, RefreshControl } from 'react-native';
 import { connect } from 'react-redux';
+import tailwind from 'tailwind-rn';
 import { fileActions } from '../../redux/actions';
-import EmptyFolder from '../EmptyFolder';
+import { Reducers } from '../../redux/reducers/reducers';
+import { EmptyFolder } from '../../screens/StaticScreens';
 import FileItem from '../FileItem';
 
 export interface IFolder {
@@ -33,7 +35,7 @@ export interface IFile {
   size: number
 }
 
-function FileList(props: any) {
+function FileList(props: Reducers) {
   const [refreshing, setRefreshing] = useState(false)
 
   const { filesState } = props;
@@ -58,7 +60,6 @@ function FileList(props: any) {
 
   useEffect(() => {
     setFilesUploaded(props.filesState.filesAlreadyUploaded)
-
   }, [props.filesState.filesAlreadyUploaded])
 
   const searchString = props.filesState.searchString
@@ -75,10 +76,12 @@ function FileList(props: any) {
     fileList.sort(sortFunction);
   }
 
+  const rootFolderId = props.authenticationState.user.root_folder_id
+  const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
+  const isRootFolder = currentFolderId === rootFolderId;
+
   useEffect(() => {
     if (!props.filesState.folderContent) {
-      const rootFolderId = props.authenticationState.user.root_folder_id
-
       props.dispatch(fileActions.getFolderContent(rootFolderId))
     }
   }, [])
@@ -95,25 +98,21 @@ function FileList(props: any) {
             if (!props || !props.filesState || !props.filesState.folderContent) {
               return setRefreshing(false)
             }
-            const currentFolder = props.filesState.folderContent.currentFolder
 
-            props.dispatch(fileActions.getFolderContent(currentFolder))
+            props.dispatch(fileActions.getFolderContent(currentFolderId))
           }}
         />
       }
-      contentContainerStyle={isEmptyFolder ? styles.fileListContentsScrollView : null}
+      contentContainerStyle={isEmptyFolder ? tailwind('h-full justify-center') : null}
     >
       {
         isEmptyFolder ?
-          <EmptyFolder />
-          :
-          <Text style={styles.dNone}></Text>
+          <EmptyFolder {...props} isRoot={isRootFolder} /> : <></>
       }
 
       {
         filesUploading.length > 0 ?
-          filesUploading.map((file: IUploadingFile) =>
-          {
+          filesUploading.map((file: IUploadingFile) => {
             return file.currentFolder === folderId ?
               <FileItem
                 key={filesUploading.indexOf(file)}
@@ -121,12 +120,10 @@ function FileList(props: any) {
                 item={file}
                 isLoading={true}
               />
-              :
-              null
+              : <></>
           }
           )
-          :
-          null
+          : <></>
       }
 
       {
@@ -150,8 +147,7 @@ function FileList(props: any) {
       }
 
       {
-        filesUploaded.map((file: any) =>
-        {
+        filesUploaded.map((file: any) => {
           return file.currentFolder === folderId ?
             <FileItem
               key={file.id}
@@ -166,16 +162,6 @@ function FileList(props: any) {
     </ScrollView>
   )
 }
-
-const styles = StyleSheet.create({
-  dNone: {
-    display: 'none'
-  },
-  fileListContentsScrollView: {
-    flexGrow: 1,
-    justifyContent: 'center'
-  }
-})
 
 const mapStateToProps = (state: any) => {
   return { ...state };

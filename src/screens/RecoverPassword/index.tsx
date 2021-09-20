@@ -35,19 +35,19 @@ function ChangePassword(props: Reducers) {
   const [newPasswordFocus, setNewPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
-  return <View style={{ backgroundColor: 'white', flex: 1 }}>
+  return <View style={tailwind('bg-white h-full')}>
     <AppMenu
       title={'Password'}
       onBackPress={() => props.navigation.goBack()}
       hideSearch={true} hideOptions={true} />
-    <View style={styles.mainContainer}>
-      <View style={styles.titleContainer}>
+    <View style={tailwind('mx-3')}>
+      <View style={tailwind('items-center m-3')}>
         <Text style={styles.titleText}>{'Recover password'}</Text>
       </View>
-      <View style={styles.titleContainer}>
+      <View style={tailwind('')}>
         <Text style={styles.subtitleText}>You can use this device to set a new password and recover your account.</Text>
       </View>
-      <View style={styles.container}>
+      <View style={tailwind('m-3')}>
         <View style={[tailwind('input-wrapper my-2'), tailwind(newPassword === '' ? '' : (isValidNewPassword ? 'input-valid' : 'input-error'))]}>
           <TextInput
             style={tailwind('input')}
@@ -61,7 +61,7 @@ function ChangePassword(props: Reducers) {
             onBlur={() => setNewPasswordFocus(false)}
           />
           <Unicons.UilEye
-            style={[tailwind('input-icon'), { display: 'none' }]}
+            style={tailwind('input-icon hidden')}
             color={newPasswordFocus && isValidNewPassword ? '#42BE65' : '#7A869A'} />
         </View>
         <View style={[tailwind('input-wrapper my-2'), tailwind(confirmPassword === '' ? '' : (passwordConfirmed ? 'input-valid' : 'input-error'))]}>
@@ -77,7 +77,7 @@ function ChangePassword(props: Reducers) {
             onBlur={() => setConfirmPasswordFocus(false)}
           />
           <Unicons.UilEye
-            style={[tailwind('input-icon'), { display: 'none' }]}
+            style={tailwind('input-icon hidden')}
             color={confirmPasswordFocus && passwordConfirmed ? '#42BE65' : '#7A869A'} />
         </View>
         <TouchableHighlight
@@ -100,10 +100,6 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(ChangePassword);
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    alignItems: 'center',
-    padding: 6
-  },
   titleText: {
     color: '#091E42',
     fontWeight: 'bold',
@@ -114,11 +110,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#253858',
     fontFamily: 'NeueEinstellung-Regular'
-  },
-  mainContainer: {
-    paddingHorizontal: 30
-  },
-  container: {
-    padding: 8
   }
 });

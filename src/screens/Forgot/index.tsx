@@ -7,8 +7,7 @@ import {
   KeyboardAvoidingView,
   TextInput,
   TouchableHighlight,
-  TouchableWithoutFeedback,
-  ScrollView
+  TouchableWithoutFeedback
 } from 'react-native';
 import React, { useEffect, useState } from 'react'
 import { normalize } from '../../helpers';
@@ -20,14 +19,9 @@ import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons'
 import { Reducers } from '../../redux/reducers/reducers';
 
-interface ForgotProps extends Reducers {
-  navigation: any
-}
-
-function Forgot(props: ForgotProps): JSX.Element {
+function Forgot(props: Reducers): JSX.Element {
   const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-
   // Get email form field
   const [email, setIsEmail] = useState('');
   const isValidEmailField = isValidEmail(email);
@@ -39,7 +33,6 @@ function Forgot(props: ForgotProps): JSX.Element {
         return Alert.alert('Warning', 'Enter a valid e-mail address');
       }
     }
-
   }, [isLoading])
 
   const sendDeactivationEmail = () => {
@@ -60,125 +53,108 @@ function Forgot(props: ForgotProps): JSX.Element {
 
   if (currentContainer === 1) {
     return (
-      <ScrollView style={tailwind('bg-white')}>
-        <KeyboardAvoidingView behavior="padding" style={[styles.container, tailwind('py-0')]}>
-          <View style={[tailwind('py-0 bg-white'), { marginTop: 100 }]}>
-            <View
-              style={[
-                styles.containerCentered,
-                isLoading ? styles.halfOpacity : {}
-              ]}
-            >
-              <View style={styles.containerHeader}>
-                <View style={tailwind('items-center pb-10')}>
-                  <InternxtLogo />
-                  <Text style={styles.subTitle}>{strings.generic.security}</Text>
-                </View>
-                <Text style={[tailwind('text-sm'), styles.explication]}>
-                  {strings.screens.forgot_password.subtitle_1}
+      <KeyboardAvoidingView behavior='height' style={tailwind('p-5 bg-white h-full justify-center')}>
+        <View style={tailwind('p-6 py-0 bg-white')}>
+          <View style={isLoading ? tailwind('opacity-50') : tailwind('opacity-100')}>
+            <View>
+              <View style={tailwind('items-center')}>
+                <InternxtLogo />
+                <Text style={tailwind('text-base text-sm mt-3 text-gray-60')}>{strings.generic.security}</Text>
+              </View>
+              <Text style={tailwind('text-sm text-center py-5')}>
+                {strings.screens.forgot_password.subtitle_1}
 
-                  <Text style={styles.bold}>{strings.screens.forgot_password.bold}</Text>
+                <Text style={tailwind('font-bold')}>{strings.screens.forgot_password.bold}</Text>
 
-                  {strings.screens.forgot_password.subtitle_2}
-                </Text>
+                {strings.screens.forgot_password.subtitle_2}
+              </Text>
 
-                <View style={tailwind('input-wrapper')}>
-                  <TextInput
-                    style={tailwind('input')}
-                    value={email}
-                    onChangeText={(value) => setIsEmail(value)}
-                    placeholder={strings.components.inputs.email}
-                    autoCapitalize={false}
-                    placeholderTextColor="#666666"
-                    maxLength={64}
-                    keyboardType="email-address"
-                    textContentType="emailAddress"
-                  />
-                  <Unicons.UilEnvelope
-                    color={'#AAA'}
-                    style={tailwind('input-icon')} />
-                </View>
+              <View style={tailwind('input-wrapper')}>
+                <TextInput
+                  style={tailwind('input')}
+                  value={email}
+                  onChangeText={(value) => setIsEmail(value)}
+                  placeholder={strings.components.inputs.email}
+                  placeholderTextColor="#666666"
+                  maxLength={64}
+                  keyboardType="email-address"
+                  textContentType="emailAddress"
+                />
+                <Unicons.UilEnvelope
+                  color={'#AAA'}
+                  style={tailwind('input-icon')} />
+              </View>
 
-                <View style={globalStyle.buttonInputStyle.wrapper}>
-                  <TouchableHighlight
-                    style={tailwind('btn btn-primary')}
-                    onPress={() => sendDeactivationEmail()}
-                  >
-                    <Text style={tailwind('text-base btn-label')}>
-                      {strings.components.buttons.continue}
-                    </Text>
-                  </TouchableHighlight>
-                </View>
-                <View style={tailwind('py-5')}>
-                  <TouchableWithoutFeedback
-                    style={tailwind('m-5')}
-                    onPress={() => props.navigation.replace('Login')}
-                  >
-                    <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
-                  </TouchableWithoutFeedback>
-                </View>
+              <View style={globalStyle.buttonInputStyle.wrapper}>
+                <TouchableHighlight
+                  style={tailwind('btn btn-primary')}
+                  onPress={() => sendDeactivationEmail()}
+                >
+                  <Text style={tailwind('text-base btn-label')}>
+                    {strings.components.buttons.continue}
+                  </Text>
+                </TouchableHighlight>
+              </View>
+              <View style={tailwind('py-5')}>
+                <TouchableWithoutFeedback
+                  style={tailwind('m-5')}
+                  onPress={() => props.navigation.replace('Login')}
+                >
+                  <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
+                </TouchableWithoutFeedback>
               </View>
             </View>
           </View>
-        </KeyboardAvoidingView>
-      </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
     );
-
   }
 
   if (currentContainer === 2) {
     return (
-      <ScrollView style={tailwind('bg-white')}>
-        <KeyboardAvoidingView behavior="padding" style={[styles.container, tailwind('py-0')]}>
-          <View style={[tailwind('py-0 bg-white'), { marginTop: 100 }]}>
-            <View
-              style={[
-                styles.containerCentered,
-                isLoading ? styles.halfOpacity : {}
-              ]}
-            >
-              <View style={styles.containerHeader}>
-                <View style={tailwind('items-center pb-10')}>
-                  <InternxtLogo />
-                  <Text style={styles.subTitle}>{strings.generic.security}</Text>
-                </View>
-                <Text style={[tailwind('text-sm'), styles.explication]}>
-                  {strings.screens.deactivation_screen.subtitle_1}
-                  {strings.screens.deactivation_screen.subtitle_2}
-                </Text>
+      <KeyboardAvoidingView behavior='height' style={tailwind('p-5 bg-white h-full justify-center')}>
+        <View style={tailwind('py-0 bg-white')}>
+          <View style={[tailwind(''), isLoading ? tailwind('opacity-50') : {}]}>
+            <View>
+              <View style={tailwind('items-center pb-10')}>
+                <InternxtLogo />
+                <Text style={tailwind('text-base text-sm mt-3 text-gray-60')}>{strings.generic.security}</Text>
+              </View>
+              <Text style={tailwind('text-sm text-center')}>
+                {strings.screens.deactivation_screen.subtitle_1}
+                {' '}
+                {strings.screens.deactivation_screen.subtitle_2}
+              </Text>
 
-                <View style={styles.buttonWrapper}>
-                  <TouchableHighlight
-                    style={[styles.button, styles.buttonOn]}
-                    underlayColor="#00aaff"
-                    onPress={() => sendDeactivationEmail()}
-                  >
-                    <Text style={styles.buttonOnLabel}>
-                      {strings.components.buttons.deactivation}
-                    </Text>
-                  </TouchableHighlight>
-                </View>
+              <View style={styles.buttonWrapper}>
+                <TouchableHighlight
+                  style={[styles.button, styles.buttonOn]}
+                  underlayColor="#00aaff"
+                  onPress={() => sendDeactivationEmail()}
+                >
+                  <Text style={styles.buttonOnLabel}>
+                    {strings.components.buttons.deactivation}
+                  </Text>
+                </TouchableHighlight>
+              </View>
 
-                <View style={tailwind('py-5')}>
-                  <TouchableWithoutFeedback
-                    style={tailwind('m-5')}
-                    onPress={() => props.navigation.replace('Login')}
-                  >
-                    <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
-                  </TouchableWithoutFeedback>
-                </View>
+              <View style={tailwind('py-5')}>
+                <TouchableWithoutFeedback
+                  style={tailwind('m-5')}
+                  onPress={() => props.navigation.replace('Login')}
+                >
+                  <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
+                </TouchableWithoutFeedback>
               </View>
             </View>
           </View>
-        </KeyboardAvoidingView>
-      </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
     );
-
   }
-
   return <></>;
-
 }
+
 const mapStateToProps = (state: any) => {
   return { ...state };
 };
@@ -186,9 +162,6 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(Forgot)
 
 const styles = StyleSheet.create({
-  bold: {
-    fontFamily: 'NeueEinstellung-Bold'
-  },
   button: {
     alignItems: 'center',
     borderRadius: 10,
@@ -211,32 +184,5 @@ const styles = StyleSheet.create({
   buttonWrapper: {
     flexDirection: 'row',
     marginTop: normalize(15)
-  },
-  container: {
-    backgroundColor: '#FFFFFF',
-    flex: 1,
-    justifyContent: 'center',
-    paddingLeft: normalize(40),
-    paddingRight: normalize(40)
-  },
-  containerCentered: {
-    alignSelf: 'center',
-    height: normalize(600),
-    justifyContent: 'center',
-    width: '100%'
-  },
-  containerHeader: {
-  },
-  halfOpacity: {
-    opacity: 0.5
-  },
-  explication: {
-    textAlign: 'center',
-    paddingBottom: 30
-  },
-  subTitle: {
-    color: '#42526E',
-    alignSelf: 'center',
-    paddingTop: 15
   }
 });

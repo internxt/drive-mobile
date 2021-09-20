@@ -4,7 +4,7 @@ import {
   View, Text, StyleSheet, TouchableHighlight
 } from 'react-native';
 import { connect } from 'react-redux';
-import { IPlan, IProduct, storageService } from '../../redux/services';
+import { IProduct, storageService } from '../../redux/services';
 import { Reducers } from '../../redux/reducers/reducers';
 import { loadValues } from '../../modals';
 import strings from '../../../assets/lang/strings';
@@ -28,8 +28,6 @@ function Storage(props: StorageProps): JSX.Element {
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [products, setProducts] = useState<IProduct[]>([])
-  const [plans, setPlans] = useState<IPlan[]>([])
-  const [chosenProduct, setChosenProduct] = useState<IProduct>()
 
   const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
 
@@ -71,7 +69,7 @@ function Storage(props: StorageProps): JSX.Element {
   }, [])
 
   return (
-    <View style={[tailwind('bg-white'), { flexGrow: 1 }]}>
+    <View style={tailwind('bg-white h-full')}>
       <AppMenu
         title={strings.screens.storage.title}
         onBackPress={() => {
@@ -79,10 +77,10 @@ function Storage(props: StorageProps): JSX.Element {
         }}
         hideSearch={true} hideOptions={true} />
       <View>
-        <View style={{ alignItems: 'center' }}>
-          <Text style={{ color: 'black', margin: 10 }}>Usage</Text>
+        <View style={tailwind('items-center')}>
+          <Text style={tailwind('m-3')}>Usage</Text>
         </View>
-        <View style={[tailwind('mx-5 px-5 py-3'), { backgroundColor: '#F4F5F7', borderRadius: 10 }]}>
+        <View style={[tailwind('mx-5 px-5 py-3 bg-gray-10'), { borderRadius: 10 }]}>
           <View>
             <Text style={{ color: '#42526E' }}>{strings.screens.storage.space.used.used} {prettysize(usageValues.usage)} {strings.screens.storage.space.used.of} {parseLimit()}</Text>
           </View>
@@ -98,26 +96,26 @@ function Storage(props: StorageProps): JSX.Element {
       </View>
 
       <View>
-        <View style={{ alignItems: 'center' }}>
+        <View style={tailwind('items-center mt-3')}>
           <Text style={{ color: 'black', margin: 10 }}>Current plan</Text>
         </View>
       </View>
 
-      <View style={{ marginHorizontal: 30 }}>
+      <View style={tailwind('mx-6')}>
         <View>
           <Text style={{ textTransform: 'uppercase', fontWeight: 'bold', fontSize: 17 }}>{currentPlan && currentPlan.name}</Text>
         </View>
 
         <View style={tailwind('mt-2')}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
             <Text style={tailwind('mx-1')}>All available devices</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
             <Text style={tailwind('mx-1')}>Unlimited devices</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
             <Text style={tailwind('mx-1')}>Secure file sharing</Text>
           </View>
@@ -131,7 +129,7 @@ function Storage(props: StorageProps): JSX.Element {
           props.navigation.push('Billing')
         }}>
 
-        <Text style={{ color: 'white', fontSize: 17 }}>Change plan</Text>
+        <Text style={tailwind('text-white text-lg')}>Change plan</Text>
       </TouchableHighlight>
     </View>
   );

@@ -19,11 +19,12 @@ import DeleteItemModal from '../../modals/DeleteItemModal';
 import FreeForYouModal from '../../modals/FreeForYouModal';
 import SortModal from '../../modals/SortModal';
 import MoveFilesModal from '../../modals/MoveFilesModal';
+import { tailwind } from '../../helpers/designSystem';
 
 const Tab = createBottomTabNavigator();
 
 export default function TabExplorer(props: Reducers): JSX.Element {
-  return <View style={{ flex: 1 }}>
+  return <View style={tailwind('h-full')}>
     <FileDetailsModal />
     <SettingsModal navigation={props.navigation} />
     <UploadModal navigation={props.navigation} />
