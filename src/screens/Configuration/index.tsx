@@ -9,20 +9,21 @@ import { userActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
 import { ScrollView } from 'react-native-gesture-handler';
 
-function ConfigurationItem(props: {
+interface ConfigurationItemsProps extends Reducers {
   title: string,
   onPress?: (event: GestureResponderEvent) => void
-}) {
+}
+
+function ConfigurationItem(props: ConfigurationItemsProps) {
   return <TouchableHighlight onPress={(event) => {
     if (props.onPress) {
       props.onPress(event);
     }
   }}>
-    <View style={[tailwind('bg-white flex-row'), {
+    <View style={[tailwind('bg-white flex-row p-4'), {
       height: 56,
       borderBottomWidth: 1,
-      borderColor: '#DFE1E6',
-      padding: 17
+      borderColor: '#DFE1E6'
     }]}>
       <View style={tailwind('flex-grow justify-center')}>
         <Text>{props.title}</Text>
@@ -35,7 +36,7 @@ function ConfigurationItem(props: {
 }
 
 function ConfigurationGap() {
-  return <View style={{ height: 17 }} />
+  return <View style={{ height: 18 }} />
 }
 
 function Configuration(props: Reducers): JSX.Element {

@@ -4,7 +4,6 @@ import {
   View, Text, StyleSheet, TouchableHighlight
 } from 'react-native';
 import { connect } from 'react-redux';
-import { IProduct, storageService } from '../../redux/services';
 import { Reducers } from '../../redux/reducers/reducers';
 import { loadValues } from '../../modals';
 import strings from '../../../assets/lang/strings';
@@ -26,16 +25,7 @@ interface CurrentPlan {
 
 function Storage(props: StorageProps): JSX.Element {
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })
-  const [isLoading, setIsLoading] = useState(true)
-  const [products, setProducts] = useState<IProduct[]>([])
-
   const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
-
-  const getProducts = async () => {
-    const products = await storageService.loadAvailableProducts()
-
-    return products
-  }
 
   const parseLimit = () => {
 
@@ -54,11 +44,6 @@ function Storage(props: StorageProps): JSX.Element {
 
   useEffect(() => {
     loadValues().then(res => setUsageValues(res)).catch(() => { })
-
-    getProducts().then((res) => {
-      setProducts(res)
-      setIsLoading(false)
-    })
 
     getCurrentIndividualPlan().then(setCurrentPlan).catch(err => {
       notify({

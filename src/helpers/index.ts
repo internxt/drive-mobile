@@ -6,3 +6,4 @@ export * from './deviceStorage';
 export * from './lytics';
 export * from './filetypes';
 export * from './toast'
+export * from './update'

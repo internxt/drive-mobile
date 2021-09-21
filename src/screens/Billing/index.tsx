@@ -4,12 +4,13 @@ import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
 import { notify } from '../../helpers';
 import { Reducers } from '../../redux/reducers/reducers';
-import { IProduct, storageService } from '../../redux/services';
+import { IProduct } from '../../redux/services';
 import _ from 'lodash'
 import { tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/Separator';
 import * as Unicons from '@iconscout/react-native-unicons'
 import { getHeaders } from '../../helpers/headers';
+import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
 
 // TODO: Export to service
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
@@ -23,7 +24,7 @@ const intervalToMonth = (intervalName: string, intervalCount: number) => {
 }
 
 const getProducts = async () => {
-  const products = await storageService.loadAvailableProducts()
+  const products = process.env.NODE_ENV === 'production' ? getProductionPlans() : getDevelopmentPlans()
 
   const perPlan = {};
 
@@ -31,6 +32,7 @@ const getProducts = async () => {
     if (product.metadata.is_teams) {
       return;
     }
+
     product.plans.forEach(plan => {
       if (!perPlan[plan.name]) {
         perPlan[plan.name] = []

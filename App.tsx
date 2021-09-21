@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, Platform, Linking, Alert, SafeAreaView } from '
 import { Provider } from 'react-redux'
 import { store } from './src/store'
 import AppNavigator from './src/AppNavigator';
-import { analyticsSetup, loadEnvVars, loadFonts, trackStackScreen } from './src/helpers'
+import { analyticsSetup, checkUpdates, loadEnvVars, loadFonts, trackStackScreen } from './src/helpers'
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { fileActions } from './src/redux/actions';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
@@ -23,6 +23,7 @@ export default function App(): JSX.Element {
     loadEnvVars(),
     analyticsSetup()
   ]).then(() => {
+    checkUpdates();
     setAppInitialized(true);
   }).catch((err: Error) => {
     setLoadError(err.message)

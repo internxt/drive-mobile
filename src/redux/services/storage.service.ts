@@ -1,9 +1,4 @@
-import { getHeaders } from '../../helpers/headers';
-
-export const storageService = {
-  loadAvailableProducts,
-  loadAvailablePlans
-};
+export const storageService = { };
 
 export interface IProduct {
   id: string
@@ -20,13 +15,6 @@ export interface IProduct {
   },
   plans: IPlan[]
 }
-
-async function loadAvailableProducts(): Promise<IProduct[]> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/v2/stripe/products${(process.env.NODE_ENV === 'development' ? '?test=true' : '')}`, {
-    headers: await getHeaders()
-  }).then(res => res.json()).catch(() => [])
-}
-
 export interface IPlan {
   id: string
   interval: string
@@ -34,20 +22,4 @@ export interface IPlan {
   interval_count: number
   name: string
   price: number
-}
-
-async function loadAvailablePlans(productId: string): Promise<IPlan[]> {
-  const body = {
-    product: productId,
-    test: process.env.NODE_ENV === 'development'
-  };
-
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/stripe/plans${(process.env.NODE_ENV === 'development' ? '?test=true' : '')}`, {
-    method: 'post',
-    headers: await getHeaders(),
-    body: JSON.stringify(body)
-  })
-    .then(res => {
-      return res.json()
-    }).then(res => res).catch(() => [])
 }
