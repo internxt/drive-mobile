@@ -35,6 +35,8 @@ function FileExplorer(props: Reducers): JSX.Element {
   }
 
   useEffect(() => {
+    // props.dispatch(layoutActions.openRunOutStorageModal())
+
     getLyticsData().then(userData => {
       loadValues().then(res => {
         const currentPlan = {
