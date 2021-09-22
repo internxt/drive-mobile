@@ -78,7 +78,9 @@ function Configuration(props: Reducers): JSX.Element {
     <ConfigurationGap />
 
     <View style={tailwind('flex items-center text-base m-5')}>
-      <Text style={tailwind('text-gray-30')}>Internxt Drive v1.4.2 (2)</Text>
+      <Text style={tailwind('text-center text-base text-sm text-gray-50')}>
+        Internxt Drive v1.4.2 (3)
+      </Text>
     </View>
   </ScrollView>
 }

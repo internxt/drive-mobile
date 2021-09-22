@@ -271,7 +271,7 @@ function UploadModal(props: Reducers) {
       <Separator />
       <SettingsItem
         text={'Upload file'}
-        icon={Unicons.UilUploadAlt}
+        icon={Unicons.UilUpload}
         onPress={() => {
           if (Platform.OS === 'ios') {
             DocumentPicker.pickMultiple({
@@ -333,7 +333,7 @@ function UploadModal(props: Reducers) {
       />
 
       <SettingsItem
-        text={'Take photo & upload'}
+        text={'Take photo and upload'}
         icon={Unicons.UilCameraPlus}
         onPress={async () => {
           const { status } = await requestCameraPermissionsAsync();
@@ -388,7 +388,7 @@ function UploadModal(props: Reducers) {
       />
 
       <SettingsItem
-        text={'Upload media'}
+        text={Platform.OS === 'ios' ? 'Upload from camera roll' : 'Upload media'}
         icon={Unicons.UilImagePlus}
         onPress={async () => {
 

@@ -20,6 +20,7 @@ import FreeForYouModal from '../../modals/FreeForYouModal';
 import SortModal from '../../modals/SortModal';
 import MoveFilesModal from '../../modals/MoveFilesModal';
 import { tailwind } from '../../helpers/designSystem';
+import RunOutOfStorageModal from '../../modals/RunOutOfStorageModal';
 
 const Tab = createBottomTabNavigator();
 
@@ -35,6 +36,7 @@ export default function TabExplorer(props: Reducers): JSX.Element {
     <FreeForYouModal navigation={props.navigation} />
     <CreateFolderModal />
     <RenameModal />
+    <RunOutOfStorageModal {...props} />
 
     <Tab.Navigator
       tabBar={(tabBarProps: BottomTabBarProps) => <MyTabBar {...{ ...props, ...tabBarProps }} />}

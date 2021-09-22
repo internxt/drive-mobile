@@ -17,6 +17,7 @@ export interface LayoutState {
   showCreateFolderModal: boolean
   backButtonEnabled: boolean
   showRenameModal: boolean
+  showRunOutOfSpaceModal: boolean
 }
 
 const initialState: LayoutState = {
@@ -34,7 +35,8 @@ const initialState: LayoutState = {
   showUploadModal: false,
   showCreateFolderModal: false,
   backButtonEnabled: true,
-  showRenameModal: false
+  showRenameModal: false,
+  showRunOutOfSpaceModal: false
 };
 
 export function layoutReducer(state = initialState, action: AnyAction): LayoutState {
@@ -188,6 +190,18 @@ export function layoutReducer(state = initialState, action: AnyAction): LayoutSt
     return {
       ...state,
       showRenameModal: false
+    }
+  }
+  case layoutActionTypes.OPEN_RUNOUTSTORAGE_MODAL: {
+    return {
+      ...state,
+      showRunOutOfSpaceModal: true
+    }
+  }
+  case layoutActionTypes.CLOSE_RUNOUTSTORAGE_MODAL: {
+    return {
+      ...state,
+      showRunOutOfSpaceModal: false
     }
   }
   default:

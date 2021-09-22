@@ -154,13 +154,17 @@ function Login(props: LoginProps): JSX.Element {
         </View>
       </View>
 
-      <Text style={tailwind('text-center text-base text-sm text-gray-50')}>Internxt Drive v1.4.2 (2)</Text>
+      <Text style={tailwind('text-center text-base text-sm text-gray-50')}>
+        Internxt Drive v1.4.2 (3)
+      </Text>
     </KeyboardAvoidingView>
   )
 }
 
 const mapStateToProps = (state: any) => {
-  return { authenticationState: state.authenticationState };
+  return {
+    authenticationState: state.authenticationState
+  };
 };
 
 export default connect(mapStateToProps)(Login)
