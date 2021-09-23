@@ -20,6 +20,7 @@ import { renameIfAlreadyExists } from '../../lib';
 import { UPLOAD_FILES_LIMIT } from '../../lib/constants';
 import strings from '../../../assets/lang/strings';
 import { notify } from '../../helpers/toast';
+import tailwind from 'tailwind-rn';
 
 interface UploadingFile {
   size: number
@@ -264,7 +265,7 @@ function UploadModal(props: Reducers) {
       backButtonClose={true}
       animationDuration={200}>
 
-      <View style={styles.drawerKnob}></View>
+      <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
 
       <View style={styles.alignCenter}>
         <Text style={styles.modalTitle}>{strings.generic.upload}</Text>
@@ -474,14 +475,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     height: 350
-  },
-  drawerKnob: {
-    alignSelf: 'center',
-    backgroundColor: '#EBECF0',
-    borderRadius: 4,
-    height: 4,
-    margin: 12,
-    width: 50
   },
   cancelText: {
     color: '#f00',

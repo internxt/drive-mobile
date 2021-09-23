@@ -12,6 +12,7 @@ import strings from '../../../assets/lang/strings';
 import { Reducers } from '../../redux/reducers/reducers';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { IFile, IFolder } from '../../components/FileList';
+import tailwind from 'tailwind-rn';
 
 interface FileDetailsProps extends Reducers {
   showItemModal: boolean
@@ -22,8 +23,7 @@ interface FileDetailsProps extends Reducers {
 function FileDetailsModal(props: FileDetailsProps) {
   const { item } = props;
 
-  if (!item)
-  {return <></>}
+  if (!item) { return <></> }
 
   const isFolder = !item.fileId
 
@@ -42,7 +42,7 @@ function FileDetailsModal(props: FileDetailsProps) {
         backdropPressToClose={true}
         animationDuration={200}
       >
-        <View style={styles.drawerKnob}></View>
+        <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
 
         <View
           style={styles.fileName}
@@ -94,7 +94,7 @@ function FileDetailsModal(props: FileDetailsProps) {
               }}
             />
             */}
-          {isFolder? <></> :
+          {isFolder ? <></> :
             <SettingsItem
               text={strings.components.file_and_folder_options.share}
               icon={Unicons.UilShare}
@@ -149,14 +149,6 @@ export default connect(mapStateToProps)(FileDetailsModal)
 const styles = StyleSheet.create({
   cerebriSansBold: {
     fontFamily: 'NeueEinstellung-Regular'
-  },
-  drawerKnob: {
-    alignSelf: 'center',
-    backgroundColor: '#EBECF0',
-    borderRadius: 4,
-    height: 4,
-    margin: 12,
-    width: 50
   },
   fileName: {
     width: wp(92),

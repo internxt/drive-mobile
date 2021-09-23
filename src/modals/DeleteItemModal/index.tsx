@@ -8,6 +8,7 @@ import { Reducers } from '../../redux/reducers/reducers';
 import * as Unicons from '@iconscout/react-native-unicons';
 import Separator from '../../components/Separator';
 import strings from '../../../assets/lang/strings';
+import tailwind from 'tailwind-rn';
 
 function DeleteItemModal(props: Reducers) {
   const selectedItems = props.filesState.selectedItems
@@ -36,7 +37,7 @@ function DeleteItemModal(props: Reducers) {
     >
       <View>
 
-        <View style={styles.drawerKnob}></View>
+        <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
 
         <View>
           <Text style={{
@@ -96,14 +97,6 @@ function DeleteItemModal(props: Reducers) {
 }
 
 const styles = StyleSheet.create({
-  drawerKnob: {
-    alignSelf: 'center',
-    backgroundColor: '#EBECF0',
-    borderRadius: 4,
-    height: 4,
-    margin: 12,
-    width: 50
-  },
   modalContainer: {
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,

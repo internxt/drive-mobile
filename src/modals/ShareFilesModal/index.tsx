@@ -14,6 +14,7 @@ import { deviceStorage, normalize } from '../../helpers';
 import { generateFileKey, Network } from '../../lib/network';
 import { setString } from 'expo-clipboard'
 import { notify } from '../../helpers/toast';
+import tailwind from 'tailwind-rn';
 
 function ShareFilesModal(props: Reducers) {
   const [isOpen, setIsOpen] = useState(props.layoutState.showShareModal)
@@ -103,7 +104,7 @@ function ShareFilesModal(props: Reducers) {
       backdropPressToClose={true}
       animationDuration={200}
     >
-      <View style={styles.drawerKnob}></View>
+      <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
 
       <View
         style={styles.fileName}
@@ -200,14 +201,6 @@ const styles = StyleSheet.create({
     fontSize: normalize(14),
     letterSpacing: 0.5,
     marginLeft: wp('4')
-  },
-  drawerKnob: {
-    alignSelf: 'center',
-    backgroundColor: '#EBECF0',
-    borderRadius: 4,
-    height: 4,
-    margin: 12,
-    width: 50
   },
   fileName: {
     width: wp(92),

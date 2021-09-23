@@ -11,6 +11,7 @@ import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import { Dispatch } from 'redux';
 import strings from '../../../assets/lang/strings';
 import { Reducers } from '../../redux/reducers/reducers';
+import tailwind from 'tailwind-rn';
 
 function identifyPlanName(bytes: number): string {
   return bytes === 0 ? 'Free 10GB' : prettysize(bytes)
@@ -71,7 +72,7 @@ function SettingsModal(props: SettingsModalProps) {
       animationDuration={200}
       coverScreen={true}>
 
-      <View style={styles.drawerKnob}></View>
+      <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
 
       <Text style={styles.nameText}>
         {props.user.name}{' '}
@@ -123,14 +124,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     height: 350
-  },
-  drawerKnob: {
-    alignSelf: 'center',
-    backgroundColor: '#EBECF0',
-    borderRadius: 4,
-    height: 4,
-    margin: 12,
-    width: 50
   },
   nameText: {
     fontFamily: 'NeueEinstellung-Regular',

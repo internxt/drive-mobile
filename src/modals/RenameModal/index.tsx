@@ -61,7 +61,8 @@ function RenameModal(props: Reducers) {
       style={styles.modalSettings}
       backButtonClose={true}
     >
-      <View style={styles.drawerKnob}></View>
+      <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
+
       <View style={styles.alignCenter}>
         <Text style={styles.modalTitle}>{strings.generic.rename} {props.filesState.focusedItem && props.filesState.focusedItem.name}</Text>
       </View>
@@ -116,14 +117,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     height: 350
-  },
-  drawerKnob: {
-    alignSelf: 'center',
-    backgroundColor: '#EBECF0',
-    borderRadius: 4,
-    height: 4,
-    margin: 12,
-    width: 50
   },
   modalTitle: {
     color: '#42526E',
