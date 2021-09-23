@@ -220,7 +220,7 @@ function FileItem(props: FileItemProps) {
             }
 
             <View style={[tailwind('absolute -bottom-2 -right-2'), !showSpinner && tailwind('hidden')]}>
-              <Animated.View style={{ transform: [{ rotate: spin }] }}>
+              <Animated.View style={{ transform: [{ rotate: spin }], display: showSpinner ? 'flex' : 'none' }}>
                 <FileSpinner />
               </Animated.View>
             </View>
