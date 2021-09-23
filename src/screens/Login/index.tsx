@@ -98,6 +98,7 @@ function Login(props: LoginProps): JSX.Element {
               keyboardType="email-address"
               autoCapitalize={'none'}
               autoCorrect={false}
+              autoCompleteType="username"
               textContentType="emailAddress"
               editable={!isLoading}
             />
@@ -115,6 +116,8 @@ function Login(props: LoginProps): JSX.Element {
               placeholder={strings.components.inputs.password}
               placeholderTextColor="#666"
               secureTextEntry={!showPasswordText}
+              autoCompleteType="password"
+              autoCapitalize="none"
               textContentType="password"
               editable={!isLoading}
             />
@@ -123,7 +126,8 @@ function Login(props: LoginProps): JSX.Element {
                 setShowPasswordText(!showPasswordText);
               }}
               style={tailwind('p-3')}>
-              {showPasswordText ?
+              {showPasswordText
+                ?
             <Unicons.UilEye
               color="#7A869A" />
                 :
