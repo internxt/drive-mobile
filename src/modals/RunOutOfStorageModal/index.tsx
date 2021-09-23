@@ -32,7 +32,7 @@ function RunOutOfStorageModal(props: Reducers): JSX.Element {
     </View>
     <View style={tailwind('items-center')}>
       <View>
-        <Text style={tailwind('font-bold text-neutral-500')}>Run out of storage</Text>
+        <Text style={tailwind('font-bold text-neutral-500')}>Ran out of storage</Text>
       </View>
       <View>
         {/* <Text>Holoa</Text> */}

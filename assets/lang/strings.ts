@@ -168,7 +168,7 @@ const strings = new LocalizedStrings({
         "confirm_delete": "Delete permanently"
       },
       "out_of_space_modal": {
-        "title": "Run out of space",
+        "title": "Ran out of space",
         "subtitle": "You have currently used 3GB of storage. To start uploading more files, please upgrade your storage plan."
       },
       "coming_soon_modal": {
