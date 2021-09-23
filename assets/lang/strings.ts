@@ -19,6 +19,10 @@ const strings = new LocalizedStrings({
         "title": "Change password",
         "warning": "Remember that if you change your password, you will be signed out in all your devices. You will need these credentials for logining in again.",
       },
+      "recover_password": {
+        "title": "Recover password",
+        "warning": "You can use this device to set a new password and recover your account"
+      },
       "login_screen": {
         "title": "Login in to Internxt",
         "forgot": "Forgot your password?",
@@ -190,6 +194,10 @@ const strings = new LocalizedStrings({
       "change_password": {
         "title": "Cambiar contraseña",
         "warning": "Recuerda que si cambias tu contraseña, se cerrará sesión en todos tus dispositivos. Necesitarás la nueva contraseña para acceder otra vez."
+      },
+      "recover_password": {
+        "title": "Recuperar contraseña",
+        "warning": "Usa este dispositivo para cambiar tu contraseña y recuperar tu cuenta."
       },
       "login_screen": {
         "title": "Inicia sesión en Internxt",

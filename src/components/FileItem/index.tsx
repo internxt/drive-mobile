@@ -214,7 +214,7 @@ function FileItem(props: FileItemProps) {
           style={tailwind('flex-row items-center w-8/12')}
           onLongPress={() => { handleLongPress(props, isSelected) }}
           onPress={async () => { await handleItemPressed(); }}>
-          <View style={tailwind('p-4')}>
+          <View style={tailwind('m-4')}>
             {
               props.isFolder ? <FolderIcon width={30} height={30} /> : <IconFile width={30} height={30} />
             }

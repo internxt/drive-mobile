@@ -24,7 +24,7 @@ interface MyTabBarProps extends Omit<Reducers, 'navigation'>, BottomTabBarProps 
 function MyTabBar(props: MyTabBarProps): JSX.Element {
 
   return (
-    <View style={tailwind('h-16 flex-row p-2 justify-around items-center bg-white border border-neutral-50')}>
+    <View style={tailwind('h-16 flex-row p-2 justify-around items-center bg-white border border-neutral-50 border-b-0')}>
       {props.state.routes.map((route, index) => {
         const { options } = props.descriptors[route.key];
 
@@ -55,11 +55,6 @@ function MyTabBar(props: MyTabBarProps): JSX.Element {
 
         const Icon = tabIcons[route.name];
 
-        const size = {
-          width: tailwind('w-2'),
-          height: tailwind('h-2')
-        }
-
         return (
           // eslint-disable-next-line react/jsx-key
           <TouchableWithoutFeedback
@@ -73,7 +68,6 @@ function MyTabBar(props: MyTabBarProps): JSX.Element {
           >
             <View style={styles.tabItem}>
               <Icon color={isFocused ? '#0F62FE' : '#C1C7D0'} />
-
             </View>
           </TouchableWithoutFeedback>
         );

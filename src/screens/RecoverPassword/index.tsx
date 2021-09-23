@@ -42,10 +42,10 @@ function ChangePassword(props: Reducers) {
       hideSearch={true} hideOptions={true} />
     <View style={tailwind('mx-3')}>
       <View style={tailwind('items-center m-3')}>
-        <Text style={styles.titleText}>{'Recover password'}</Text>
+        <Text style={styles.titleText}>{strings.screens.recover_password.title}</Text>
       </View>
       <View style={tailwind('')}>
-        <Text style={styles.subtitleText}>You can use this device to set a new password and recover your account.</Text>
+        <Text style={styles.subtitleText}>{strings.screens.recover_password.warning}</Text>
       </View>
       <View style={tailwind('m-3')}>
         <View style={[tailwind('input-wrapper my-2'), tailwind(newPassword === '' ? '' : (isValidNewPassword ? 'input-valid' : 'input-error'))]}>
