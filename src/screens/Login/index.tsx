@@ -101,9 +101,10 @@ function Login(props: LoginProps): JSX.Element {
               textContentType="emailAddress"
               editable={!isLoading}
             />
+            <View style={tailwind('p-3')}>
             <Unicons.UilEnvelope
-              style={tailwind('input-icon')}
               color="#7A869A" />
+          </View>
           </View>
 
           <View style={tailwind('input-wrapper my-2')}>
@@ -121,7 +122,7 @@ function Login(props: LoginProps): JSX.Element {
               onPress={() => {
                 setShowPasswordText(!showPasswordText);
               }}
-              style={tailwind('p-2')}>
+              style={tailwind('p-3')}>
               {showPasswordText ?
             <Unicons.UilEye
               color="#7A869A" />
