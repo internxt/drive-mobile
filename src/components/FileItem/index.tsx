@@ -231,14 +231,14 @@ function FileItem(props: FileItemProps) {
               style={tailwind('text-sm text-header')}
               numberOfLines={1}
               ellipsizeMode={'tail'}
-            >{props.isFolder ? props.item.name : props.item.name.split('.').shift()}</Text>
+            >{props.item.name}</Text>
 
             {
               showSpinner
               && <Text style={tailwind('text-xs text-paragraph')}>
                 {uploadProgress >= 0 ? 'Uploading ' : ''}
                 {progress >= 0 && 'Downloading '}
-                {(uploadProgress >= 0 ? uploadProgress.toFixed(2) : progress.toFixed(2)) || 0}{'%'}
+                {(uploadProgress >= 0 ? uploadProgress.toFixed(0) : progress.toFixed(0)) || 0}{'%'}
               </Text>
             }
             {!showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-paragraph')}>Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
@@ -250,9 +250,9 @@ function FileItem(props: FileItemProps) {
         </TouchableOpacity>
       </View>
 
-      <View style={tailwind('items-center justify-center px-3')}>
+      <View style={tailwind('items-center justify-center')}>
         <TouchableOpacity
-          style={isSelectionMode ? tailwind('hidden') : {}}
+          style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
           onPress={() => {
             props.dispatch(fileActions.focusItem(props.item));
             props.dispatch(layoutActions.openItemModal())
