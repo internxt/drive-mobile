@@ -11,6 +11,7 @@ import { validate2FA, apiLogin } from './access';
 import InternxtLogo from '../../../assets/logo.svg'
 import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons'
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 interface LoginProps extends Reducers {
   goToForm?: (screenName: string) => void
@@ -22,6 +23,7 @@ function Login(props: LoginProps): JSX.Element {
   const [password, setPassword] = useState('')
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [showTwoFactor, setShowTwoFactor] = useState(false)
+  const [showPasswordText, setShowPasswordText] = useState(false);
 
   const handleOnPress = async () => {
     setIsLoading(true)
@@ -111,13 +113,23 @@ function Login(props: LoginProps): JSX.Element {
               onChangeText={value => setPassword(value)}
               placeholder={strings.components.inputs.password}
               placeholderTextColor="#666"
-              secureTextEntry={true}
+              secureTextEntry={!showPasswordText}
               textContentType="password"
               editable={!isLoading}
             />
+            <TouchableWithoutFeedback
+              onPress={() => {
+                setShowPasswordText(!showPasswordText);
+              }}
+              style={tailwind('p-2')}>
+              {showPasswordText ?
             <Unicons.UilEye
-              style={tailwind('input-icon hidden')}
               color="#7A869A" />
+                :
+                <Unicons.UilEyeSlash
+                  color="#7A869A" />
+              }
+            </TouchableWithoutFeedback>
           </View>
         </View>
 
