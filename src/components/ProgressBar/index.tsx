@@ -26,7 +26,7 @@ export default function ProgressBar(props: ProgressBarProps): JSX.Element {
         usedValueStyle.size,
         styleProgress,
         {
-          backgroundColor: 'blue'
+          backgroundColor: '#0F62FE'
         }
       ]}
     />

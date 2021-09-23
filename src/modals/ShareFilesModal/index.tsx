@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   },
   drawerKnob: {
     alignSelf: 'center',
-    backgroundColor: '#0F62FE',
+    backgroundColor: '#EBECF0',
     borderRadius: 4,
     height: 4,
     margin: 12,

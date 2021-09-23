@@ -84,6 +84,7 @@ function UploadModal(props: Reducers) {
     if (Platform.OS === 'android' && fileType === 'image') {
       result.uri = 'file:///' + result.uri;
     }
+
     const fileId = await uploadFile(result, progressCallback);
 
     const folderId = result.currentFolder.toString();
@@ -145,7 +146,7 @@ function UploadModal(props: Reducers) {
     const { bucket } = await deviceStorage.getUser();
     const fileEntry: FileEntry = { fileId, file_id: fileId, type, bucket, size: fileSize, folder_id: folderId, name, encrypt_version: '03-aes' };
 
-    unlink(destPath).catch(()=>{});
+    unlink(destPath).catch(() => { });
     return createFileEntry(fileEntry);
   }
 
@@ -178,7 +179,7 @@ function UploadModal(props: Reducers) {
     props.dispatch(fileActions.uploadFileSetUri(undefined));
   }
 
-  function processFilesFromPicker(documents): Promise<void>{
+  function processFilesFromPicker(documents): Promise<void> {
     documents.forEach(doc => doc.uri = doc.fileCopyUri);
     props.dispatch(layoutActions.closeUploadFileModal());
     return uploadDocuments(documents);
@@ -197,9 +198,7 @@ function UploadModal(props: Reducers) {
     }
 
     if (filesExcluded.length > 0) {
-      Alert.alert(
-        `${filesExcluded.length} files will not be uploaded. Max upload size per file is 1GB`
-      );
+      Alert.alert(`${filesExcluded.length} files will not be uploaded. Max upload size per file is 1GB`);
     }
 
     const filesAtSameLevel = filesState.folderContent.files.map(file => {
@@ -241,8 +240,10 @@ function UploadModal(props: Reducers) {
       }).catch((err) => {
         trackUploadError(err);
         props.dispatch(fileActions.uploadFileFailed(file.id));
-        notify({ text: 'Cannot upload file: ' + err.message,
-          type: 'error' });
+        notify({
+          text: 'Cannot upload file: ' + err.message,
+          type: 'error'
+        });
       }).finally(() => {
         props.dispatch(fileActions.uploadFileFinished(file.name));
       });
@@ -392,7 +393,7 @@ function UploadModal(props: Reducers) {
         icon={Unicons.UilImagePlus}
         onPress={async () => {
 
-          if (Platform.OS === 'ios'){
+          if (Platform.OS === 'ios') {
             const { status } = await requestMediaLibraryPermissionsAsync(false)
 
             if (status === 'granted') {
@@ -426,7 +427,8 @@ function UploadModal(props: Reducers) {
                   })
                 }
               })
-            }}
+            }
+          }
           else {
             DocumentPicker.pickMultiple({
               type: [DocumentPicker.types.images],
@@ -475,7 +477,7 @@ const styles = StyleSheet.create({
   },
   drawerKnob: {
     alignSelf: 'center',
-    backgroundColor: '#0F62FE',
+    backgroundColor: '#EBECF0',
     borderRadius: 4,
     height: 4,
     margin: 12,
