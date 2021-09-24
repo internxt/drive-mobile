@@ -114,29 +114,17 @@ function Billing(props: Reducers) {
     stripeProducts && setSelectedProduct(stripeProducts[key])
   }, [stripeProducts, selectedProductIndex])
 
-  return <View style={{ flex: 1, backgroundColor: 'white' }}>
+  return <View style={tailwind('flex-1 bg-white')}>
     <AppMenu
       {...props}
       title="Billing"
       hideSearch={true}
       onBackPress={() => props.navigation.goBack()} />
 
-    <View style={{
-      flex: 1,
-      marginHorizontal: 20,
-      justifyContent: 'flex-start'
-    }}>
+    <View style={tailwind('flex-1 mx-4 justify-start')}>
 
       {/* Buttons inside this fragment does not work inside a separated component */}
-
-      <View style={{
-        flexDirection: 'row',
-        padding: 3,
-        justifyContent: 'space-between',
-        backgroundColor: '#F4F5F7',
-        borderRadius: 10,
-        marginBottom: 15
-      }}>
+      <View style={tailwind('flex-row p-1 justify-between bg-neutral-20 rounded-xl')}>
         {PERIODS.map((tab, n) => {
           const isTabSelected = n === selectedTab
 
@@ -168,18 +156,18 @@ function Billing(props: Reducers) {
 
       {selectedProduct && _.map(selectedProduct, (plan, nPlan) => {
         return <View key={nPlan} style={{ flexDirection: 'row', marginVertical: 20, marginLeft: 10 }}>
-          <View style={{ flexDirection: 'column', flexGrow: 1, justifyContent: 'flex-end' }}>
+          <View style={tailwind('flex-col flex-grow justify-end')}>
             <View>
-              <Text style={[tailwind('text-3xl font-bold'), { color: '#253858' }]}>{plan.productName}</Text>
+              <Text style={tailwind('text-3xl font-bold text-header')}>{plan.productName}</Text>
             </View>
             <View>
-              <Text style={[tailwind('text-xs'), { color: '#97A0AF' }]}>{`${plan.price.toFixed(2)}€ billed ${plan.name.toLowerCase()}`}</Text>
+              <Text style={tailwind('text-xs text-neutral-80')}>{`${plan.price.toFixed(2)}€ billed ${plan.name.toLowerCase()}`}</Text>
             </View>
           </View>
           <View style={tailwind('justify-center')}>
             <TouchableHighlight
               underlayColor="#5291ff"
-              style={tailwind('btn btn-primary')}
+              style={tailwind('bg-blue-60 rounded-xl h-12 justify-center')}
               onPress={() => {
                 getLink(plan)
               }}>
@@ -192,17 +180,17 @@ function Billing(props: Reducers) {
       <Separator style={tailwind('my-10')} />
 
       <View>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={tailwind('flex-row items-center')}>
           <Unicons.UilCheck color="#42526E" />
-          <Text style={[tailwind('text-base btn-label'), { color: '#42526E' }]}>30 days guarantee</Text>
+          <Text style={tailwind('text-base btn-label text-neutral-500 font-bold')}>30 days guarantee</Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={tailwind('flex-row items-center')}>
           <Unicons.UilCheck color="#42526E" />
-          <Text style={[tailwind('text-base btn-label'), { color: '#42526E' }]}>Private and secure file sharing</Text>
+          <Text style={tailwind('text-base btn-label text-neutral-500')}>Private and secure file sharing</Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={tailwind('flex-row items-center')}>
           <Unicons.UilCheck color="#42526E" />
-          <Text style={[tailwind('text-base btn-label'), { color: '#42526E' }]}>Access your files from any device</Text>
+          <Text style={tailwind('text-base btn-label text-neutral-500')}>Access your files from any device</Text>
         </View>
       </View>
 

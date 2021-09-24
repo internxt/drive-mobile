@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GestureResponderEvent, Linking, Text, TouchableHighlight, View } from 'react-native';
 import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
@@ -8,6 +8,7 @@ import { tailwind } from '../../helpers/designSystem';
 import { userActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
 import { ScrollView } from 'react-native-gesture-handler';
+import * as Updates from 'expo-updates'
 
 interface ConfigurationItemsProps extends Reducers {
   title: string,
@@ -40,6 +41,32 @@ function ConfigurationGap() {
 }
 
 function Configuration(props: Reducers): JSX.Element {
+  const [showUpdateLink, setShowUpdateLink] = useState(false);
+  const [debugText, setDebugText] = useState('');
+
+  useEffect(() => {
+
+    if (props.authenticationState.user.email !== 'alberto.msn@gmail.com') {
+      return;
+    }
+
+    setDebugText('Checking new updates...')
+    Updates.checkForUpdateAsync().then((updateResult) => {
+      if (updateResult.isAvailable) {
+        setDebugText('New Update Available')
+      } else {
+        setDebugText('Current latest version')
+      }
+    }).catch ((err) => {
+      setDebugText('ERROR')
+    })
+
+    return () => {
+      // eslint-disable-next-line no-console
+      console.log('UNMOUNT')
+    }
+  }, [])
+
   return <ScrollView>
     <AppMenu {...props} title={strings.generic.settings} hideSearch={true} hideOptions={true} hideBackPress={true} />
 
@@ -77,9 +104,11 @@ function Configuration(props: Reducers): JSX.Element {
 
     <ConfigurationGap />
 
+    <Text>{debugText}</Text>
+
     <View style={tailwind('flex items-center text-base m-5')}>
       <Text style={tailwind('text-center text-base text-sm text-gray-50')}>
-        Internxt Drive v1.4.2 (3)
+        Internxt Drive v1.4.2 (5)
       </Text>
     </View>
   </ScrollView>
