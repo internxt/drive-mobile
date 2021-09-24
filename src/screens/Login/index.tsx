@@ -32,6 +32,7 @@ function Login(props: LoginProps): JSX.Element {
 
       if (userLoginData.tfa && !twoFactorCode) {
         setShowTwoFactor(true)
+        setIsLoading(false)
       } else {
         await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
       }
