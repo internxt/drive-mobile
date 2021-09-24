@@ -41,7 +41,7 @@ function ChangePassword(props: Reducers) {
   const [newPasswordFocus, setNewPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
-  return <View style={{ backgroundColor: 'white', flex: 1 }}>
+  return <View style={tailwind('bg-white flex')}>
     <AppMenu
       title={strings.components.inputs.password}
       onBackPress={() => props.navigation.goBack()}

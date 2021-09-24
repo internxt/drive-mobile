@@ -4,10 +4,11 @@ import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect, useSelector } from 'react-redux';
 import strings from '../../../assets/lang/strings';
+import FileItem from '../../components/FileItem';
 import Separator from '../../components/Separator';
+import { tailwind } from '../../helpers/designSystem';
 import { fileActions, layoutActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
-import Folder from './Folder';
 
 function MoveFilesModal(props: Reducers) {
   const { filesState, layoutState } = useSelector<any, Reducers>(s => s);
@@ -22,14 +23,14 @@ function MoveFilesModal(props: Reducers) {
   const folderList: any[] = rootFolderContent && rootFolderContent.children || []
 
   useEffect(() => {
-    layoutState.showMoveModal === true ? setIsOpen(true) : null
+    props.layoutState.showMoveModal === true ? setIsOpen(true) : null
     if (filesState.folderContent) {
-      setCurrentFolderId(filesState.folderContent.currentFolder)
-      setSelectedFile(filesState.selectedFile)
-      setFolderList(filesState.rootFolderContent.children)
-      setFirstFolder(filesState.folderContent.currentFolder)
+      setCurrentFolderId(props.filesState.folderContent.currentFolder)
+      setSelectedFile(props.filesState.selectedFile)
+      setFolderList(props.filesState.rootFolderContent.children)
+      setFirstFolder(props.filesState.folderContent.currentFolder)
     }
-  }, [layoutState.showMoveModal])
+  }, [props.layoutState.showMoveModal])
 
   useEffect(() => {
     if (filesState.folderContent) {
@@ -51,56 +52,53 @@ function MoveFilesModal(props: Reducers) {
     }
   }
 
-  return (
-    <Modal isOpen={isOpen}
-      swipeArea={2}
-      onClosed={() => {
-        props.dispatch(layoutActions.closeMoveFilesModal())
-      }}
-      position='center'
-      style={styles.container}
-    >
-      <View style={styles.breadcrumbs}>
-        <Text style={styles.title}>{strings.modals.move_modal.title}</Text>
-      </View>
+  return <Modal isOpen={props.layoutState.showMoveModal}
+    onClosed={() => {
+      props.dispatch(layoutActions.closeMoveFilesModal())
+    }}
+    position='center'
+    style={tailwind('w-11/12 h-5/6 p-3 rounded-lg')}
+  >
+    <View style={styles.breadcrumbs}>
+      <Text style={styles.title}>{strings.modals.move_modal.title}</Text>
+    </View>
 
-      <Separator />
+    <Separator />
 
-      <View style={styles.folderList}>
-        <FlatList
-          data={folderlist}
-          renderItem={folder => (
-            <Folder
-              isFolder={true}
-              key={folder.item.id}
-              item={folder.item}
-            />
-          )}
-          keyExtractor={folder => folder.id.toString()}
-        />
-      </View>
+    <View style={tailwind('flex-grow')}>
+      <FlatList
+        data={folderlist}
+        renderItem={folder => {
+          return <FileItem
+            key={folder.id}
+            isFolder={true}
+            item={folder.item}
+          />
+        }}
+        keyExtractor={folder => folder.id.toString()}
+      />
+    </View>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}
-          onPress={() => {
-            props.dispatch(layoutActions.closeMoveFilesModal())
-            setIsOpen(false)
-            props.dispatch(fileActions.getFolderContent(firstfolder))
-          }}
-        >
-          <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
-        </TouchableOpacity>
+    <View style={styles.buttonContainer}>
+      <TouchableOpacity style={styles.button}
+        onPress={() => {
+          props.dispatch(layoutActions.closeMoveFilesModal())
+          setIsOpen(false)
+          props.dispatch(fileActions.getFolderContent(firstfolder))
+        }}
+      >
+        <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, styles.blue]}
-          onPress={() => {
-            moveFile(currentfolderid)
-          }}
-        >
-          <Text style={[styles.text, styles.white]}>{strings.components.buttons.move}</Text>
-        </TouchableOpacity>
-      </View>
-    </Modal>
-  );
+      <TouchableOpacity style={[styles.button, styles.blue]}
+        onPress={() => {
+          moveFile(currentfolderid)
+        }}
+      >
+        <Text style={[styles.text, styles.white]}>{strings.components.buttons.move}</Text>
+      </TouchableOpacity>
+    </View>
+  </Modal>
 }
 
 const styles = StyleSheet.create({
@@ -128,12 +126,6 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
     width: wp('40')
-  },
-  container: {
-    flex: 1
-  },
-  folderList: {
-    height: '75%'
   },
   text: {
     color: '#5c6066',
