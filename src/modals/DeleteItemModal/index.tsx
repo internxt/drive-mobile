@@ -8,7 +8,7 @@ import { Reducers } from '../../redux/reducers/reducers';
 import * as Unicons from '@iconscout/react-native-unicons';
 import Separator from '../../components/Separator';
 import strings from '../../../assets/lang/strings';
-import tailwind from 'tailwind-rn';
+import { tailwind } from '../../helpers/designSystem';
 
 function DeleteItemModal(props: Reducers) {
   const selectedItems = props.filesState.selectedItems

@@ -20,7 +20,7 @@ import { renameIfAlreadyExists } from '../../lib';
 import { UPLOAD_FILES_LIMIT } from '../../lib/constants';
 import strings from '../../../assets/lang/strings';
 import { notify } from '../../helpers/toast';
-import tailwind from 'tailwind-rn';
+import { tailwind } from '../../helpers/designSystem';
 
 interface UploadingFile {
   size: number

@@ -11,7 +11,7 @@ import analytics, { getLyticsUuid } from '../../helpers/lytics';
 import { Dispatch } from 'redux';
 import strings from '../../../assets/lang/strings';
 import { Reducers } from '../../redux/reducers/reducers';
-import tailwind from 'tailwind-rn';
+import { tailwind } from '../../helpers/designSystem';
 
 function identifyPlanName(bytes: number): string {
   return bytes === 0 ? 'Free 10GB' : prettysize(bytes)

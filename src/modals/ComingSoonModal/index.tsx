@@ -4,19 +4,15 @@ import Modal from 'react-native-modalbox';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
+import { tailwind } from '../../helpers/designSystem';
 import { layoutActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
-interface ComingSoonProps extends Reducers {
-    navigation: any
-    dispatch: any
-}
 
-const ComingSoonModal = (props: ComingSoonProps) => {
+const ComingSoonModal = (props: Reducers) => {
   const [isOpen, setIsOpen] = useState(props.layoutState.showComingSoonModal)
 
   useEffect(() => {
     props.layoutState.showComingSoonModal ? setIsOpen(true) : null
-
   }, [props.layoutState])
 
   return (
@@ -30,6 +26,8 @@ const ComingSoonModal = (props: ComingSoonProps) => {
       position='center'
       style={styles.modalContainer}
     >
+      <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
+
       <View style={styles.textContainer}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>{strings.modals.coming_soon_modal.title}</Text>

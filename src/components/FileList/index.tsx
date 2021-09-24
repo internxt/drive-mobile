@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { ScrollView, RefreshControl } from 'react-native';
 import { connect } from 'react-redux';
-import tailwind from 'tailwind-rn';
+import { tailwind } from '../../helpers/designSystem';
 import { fileActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
 import { EmptyFolder } from '../../screens/StaticScreens';

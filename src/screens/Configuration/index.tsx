@@ -43,11 +43,11 @@ function Configuration(props: Reducers): JSX.Element {
   return <ScrollView>
     <AppMenu {...props} title={strings.generic.settings} hideSearch={true} hideOptions={true} hideBackPress={true} />
 
-    <ConfigurationItem title="Storage"
+    <ConfigurationItem {...props} title="Storage"
       onPress={() => {
         props.navigation.push('Storage')
       }} />
-    <ConfigurationItem title="Billing"
+    <ConfigurationItem {...props} title="Billing"
       onPress={() => {
         props.navigation.push('Billing')
       }} />
@@ -55,22 +55,22 @@ function Configuration(props: Reducers): JSX.Element {
     <ConfigurationGap />
 
     {/* <ConfigurationItem title={strings.generic.security} /> */}
-    <ConfigurationItem title={strings.screens.change_password.title}
+    <ConfigurationItem {...props} title={strings.screens.change_password.title}
       onPress={() => {
         props.navigation.push('RecoverPassword')
       }} />
 
     <ConfigurationGap />
 
-    <ConfigurationItem title="Contact"
+    <ConfigurationItem {...props} title="Contact"
       onPress={() => {
         Linking.openURL('https://help.internxt.com')
       }} />
-    <ConfigurationItem title="More info"
+    <ConfigurationItem {...props} title="More info"
       onPress={() => {
         Linking.openURL('https://internxt.com')
       }} />
-    <ConfigurationItem title="Log out"
+    <ConfigurationItem {...props} title="Log out"
       onPress={() => {
         props.dispatch(userActions.signout())
       }} />

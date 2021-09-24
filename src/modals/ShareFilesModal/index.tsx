@@ -14,7 +14,7 @@ import { deviceStorage, normalize } from '../../helpers';
 import { generateFileKey, Network } from '../../lib/network';
 import { setString } from 'expo-clipboard'
 import { notify } from '../../helpers/toast';
-import tailwind from 'tailwind-rn';
+import { tailwind } from '../../helpers/designSystem';
 
 function ShareFilesModal(props: Reducers) {
   const [isOpen, setIsOpen] = useState(props.layoutState.showShareModal)

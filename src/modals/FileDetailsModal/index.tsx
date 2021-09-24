@@ -12,7 +12,7 @@ import strings from '../../../assets/lang/strings';
 import { Reducers } from '../../redux/reducers/reducers';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { IFile, IFolder } from '../../components/FileList';
-import tailwind from 'tailwind-rn';
+import { tailwind } from '../../helpers/designSystem';
 
 interface FileDetailsProps extends Reducers {
   showItemModal: boolean
