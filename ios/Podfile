@@ -10,7 +10,7 @@ target 'drivemobile' do
 
   use_react_native!(
     :path => config["reactNativePath"],
-    :hermes_enabled => true
+    :hermes_enabled => false
   )
 
   # Enables Flipper.
