@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableHighlight, Platform } from 'react-native';
+import { TouchableOpacity, View, Text, Platform } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
-import * as Unicons from '@iconscout/react-native-unicons';
-import Separator from '../../components/Separator';
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
+import { FolderIcon, getFileTypeIcon } from '../../helpers';
 
 function DeleteItemModal(props: Reducers) {
   const selectedItems = props.filesState.selectedItems
@@ -23,6 +21,10 @@ function DeleteItemModal(props: Reducers) {
     props.dispatch(fileActions.deleteItems([props.filesState.focusedItem], currentFolderId))
   }
 
+  const isFolder = !!props.filesState.focusedItem.parentId
+
+  const FileIcon = getFileTypeIcon(props.filesState.focusedItem.type);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -33,77 +35,52 @@ function DeleteItemModal(props: Reducers) {
         setIsOpen(false)
       }}
       position='bottom'
-      style={styles.modalContainer}
+      style={tailwind('rounded-lg p-3 h-2/4')}
     >
 
       <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
 
       <View>
         <View>
-          <Text style={{
-            textAlign: 'center',
-            fontFamily: 'NeueEinstellung-Bold'
-          }}>{strings.modals.delete_modal.title}</Text>
+          <Text style={tailwind('text-center my-4 text-lg font-semibold text-neutral-500')}>{strings.modals.delete_modal.title}</Text>
+        </View>
+
+        <View style={tailwind('items-center my-3')}>
+          {isFolder ? <FolderIcon width={64} height={64} /> : <FileIcon width={64} height={64} />}
+          <Text style={tailwind('my-3')}>{props.filesState.focusedItem.name}</Text>
         </View>
 
         <View>
-          <Text style={{
-            textAlign: 'center',
-            fontFamily: 'NeueEinstellung-Regular',
-            margin: 10
-          }}>{strings.modals.delete_modal.warning}</Text>
+          <Text style={tailwind('my-8 text-center text-neutral-500 mx-4')}>{props.filesState.focusedItem.name} {strings.modals.delete_modal.warning}</Text>
         </View>
 
-        <Separator />
+        <View style={tailwind('flex-row justify-between')}>
 
-        <View>
-          <TouchableHighlight
-            underlayColor={'#eee'}
+          <TouchableOpacity
+            style={tailwind('bg-neutral-20 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+            onPress={() => {
+              props.dispatch(layoutActions.closeDeleteModal())
+            }}
+          >
+            <Text style={tailwind('text-base font-bold text-neutral-300')}>{strings.generic.cancel}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
             onPress={() => {
               handleDeleteSelectedItem();
-              setIsOpen(false)
-            }}>
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', padding: 20, paddingLeft: 20 }}>
-              <View style={{ paddingRight: 10 }}>
-                <Unicons.UilTrashAlt color="#DA1E28" size={30} />
-              </View>
-              <View>
-                <Text style={{ fontFamily: 'NeueEinstellung-Regular', color: '#DA1E28' }}>{strings.modals.delete_modal.confirm_delete}</Text>
-              </View>
-            </View>
-          </TouchableHighlight>
-        </View>
-
-        <Separator />
-
-        <View>
-          <TouchableHighlight
-            underlayColor={'#eee'}
-            style={{
-              alignItems: 'center',
-              padding: 20
+              props.dispatch(layoutActions.closeDeleteModal())
             }}
-            onPress={() => {
-              setIsOpen(false)
-            }}>
-            <Text style={{ color: '#DA1E28' }}>{strings.generic.cancel}</Text>
-          </TouchableHighlight>
+          >
+            <Text style={tailwind('text-base font-bold text-white')}>{strings.modals.share_modal.share}</Text>
+          </TouchableOpacity>
+
         </View>
 
       </View>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  modalContainer: {
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    height: hp('90%') < 550 ? 550 : Math.min(320, hp('90%')),
-    marginTop: wp('12')
-  }
-})
 
 const mapStateToProps = (state: any) => {
   return { ...state }
