@@ -21,10 +21,7 @@ function ConfigurationItem(props: ConfigurationItemsProps) {
       props.onPress(event);
     }
   }}>
-    <View style={[tailwind('bg-white flex-row p-4 border-b'), {
-      height: 56,
-      borderColor: '#DFE1E6'
-    }]}>
+    <View style={tailwind('bg-white flex-row p-4 border-b border-neutral-40')}>
       <View style={tailwind('flex-grow justify-center')}>
         <Text>{props.title}</Text>
       </View>
@@ -36,7 +33,7 @@ function ConfigurationItem(props: ConfigurationItemsProps) {
 }
 
 function ConfigurationGap() {
-  return <View style={{ height: 18 }} />
+  return <View style={tailwind('h-5')} />
 }
 
 function Configuration(props: Reducers): JSX.Element {

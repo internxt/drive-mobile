@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
 import {
-  View, Text, StyleSheet, TouchableHighlight
+  View, Text, TouchableHighlight
 } from 'react-native';
 import { connect } from 'react-redux';
 import { Reducers } from '../../redux/reducers/reducers';
@@ -63,16 +63,16 @@ function Storage(props: StorageProps): JSX.Element {
         hideSearch={true} hideOptions={true} />
       <View>
         <View style={tailwind('items-center')}>
-          <Text style={tailwind('m-3')}>Usage</Text>
+          <Text style={tailwind('m-2 text-neutral-900 text-base')}>Usage</Text>
         </View>
-        <View style={[tailwind('mx-5 px-5 py-3 bg-gray-10'), { borderRadius: 10 }]}>
+        <View style={tailwind('mx-5 px-5 py-3 bg-gray-10 rounded-lg')}>
           <View>
-            <Text style={{ color: '#42526E' }}>{strings.screens.storage.space.used.used} {prettysize(usageValues.usage)} {strings.screens.storage.space.used.of} {parseLimit()}</Text>
+            <Text style={tailwind('text-sm text-neutral-500')}>{strings.screens.storage.space.used.used} {prettysize(usageValues.usage)} {strings.screens.storage.space.used.of} {parseLimit()}</Text>
           </View>
           <View style={[tailwind('my-2'), {}]}>
             <ProgressBar
               {...props}
-              styleProgress={styles.h7}
+              styleProgress={tailwind('h-2')}
               totalValue={usageValues.limit}
               usedValue={usageValues.usage}
             />
@@ -82,13 +82,13 @@ function Storage(props: StorageProps): JSX.Element {
 
       <View>
         <View style={tailwind('items-center mt-3')}>
-          <Text style={{ color: 'black', margin: 10 }}>Current plan</Text>
+          <Text style={tailwind('m-2 text-neutral-900 text-base')}>Current plan</Text>
         </View>
       </View>
 
       <View style={tailwind('mx-6')}>
         <View>
-          <Text style={{ textTransform: 'uppercase', fontWeight: 'bold', fontSize: 17 }}>{currentPlan && currentPlan.name}</Text>
+          <Text style={tailwind('uppercase text-neutral-700 font-bold text-sm')}>{currentPlan && currentPlan.name}</Text>
         </View>
 
         <View style={tailwind('mt-2')}>
@@ -119,10 +119,6 @@ function Storage(props: StorageProps): JSX.Element {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  h7: { height: 7 }
-})
 
 const mapStateToProps = (state: any) => {
   return { ...state }

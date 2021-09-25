@@ -81,7 +81,7 @@ function ChangePassword(props: Reducers) {
             color={confirmPasswordFocus && passwordConfirmed ? '#42BE65' : '#7A869A'} />
         </View>
         <TouchableHighlight
-          style={[tailwind('btn btn-primary my-5'), (activeButton && !isLoading) ? null : { backgroundColor: '#A6C8FF' }]}
+          style={[tailwind('btn btn-primary my-5'), !(activeButton && !isLoading) && tailwind('opacity-50')]}
           underlayColor="#4585f5"
           onPress={handleOnPress}
           disabled={!activeButton || isLoading}>

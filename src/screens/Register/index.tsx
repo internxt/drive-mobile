@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import {
-  KeyboardAvoidingView,
-  StyleSheet, TextInput, TouchableOpacity,
+  KeyboardAvoidingView, TextInput, TouchableHighlight,
   View, Text, Alert,
-  ScrollView, TouchableWithoutFeedback
+  ScrollView
 } from 'react-native';
 import CheckBox from '../../components/CheckBox'
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
-import { deviceStorage, normalize } from '../../helpers';
+import { deviceStorage } from '../../helpers';
 import { userActions } from '../../redux/actions';
 import Intro from '../Intro'
 import { apiLogin, validateEmail } from '../Login/access';
@@ -142,8 +141,8 @@ function Register(props: Reducers): JSX.Element {
               </View>
             </View>
 
-            <View style={styles.showInputFieldsWrapper}>
-              <View style={[tailwind('input-wrapper my-2'), isValidFirstName ? tailwind('input-valid') : styles.emptyInput]}>
+            <View>
+              <View style={[tailwind('input-wrapper my-2'), isValidFirstName ? tailwind('input-valid') : {}]}>
                 <TextInput
                   style={tailwind('input')}
                   value={firstName}
@@ -163,7 +162,7 @@ function Register(props: Reducers): JSX.Element {
                   color={isValidFirstName ? '#42BE65' : '#7A869A'} />
               </View>
 
-              <View style={[tailwind('input-wrapper my-2'), isValidLastName ? tailwind('input-valid') : styles.emptyInput]}>
+              <View style={[tailwind('input-wrapper my-2'), isValidLastName ? tailwind('input-valid') : {}]}>
                 <TextInput
                   style={tailwind('input')}
                   value={lastName}
@@ -183,7 +182,7 @@ function Register(props: Reducers): JSX.Element {
                   color={isValidLastName ? '#42BE65' : '#7A869A'} />
               </View>
 
-              <View style={[tailwind('input-wrapper my-2'), isEmptyEmail ? styles.emptyInput : tailwind(isValidEmail ? 'input-valid' : 'input-error')]}>
+              <View style={[tailwind('input-wrapper my-2'), isEmptyEmail ? {} : tailwind(isValidEmail ? 'input-valid' : 'input-error')]}>
                 <TextInput
                   style={tailwind('input')}
                   value={email}
@@ -206,8 +205,8 @@ function Register(props: Reducers): JSX.Element {
               </View>
             </View>
 
-            <View style={styles.showInputFieldsWrapper}>
-              <View style={[tailwind('input-wrapper my-2'), isEmptyPassword ? styles.emptyInput : tailwind(isValidPassword ? 'input-valid' : 'input-error')]}>
+            <View>
+              <View style={[tailwind('input-wrapper my-2'), isEmptyPassword ? {} : tailwind(isValidPassword ? 'input-valid' : 'input-error')]}>
                 <TextInput
                   style={tailwind('input')}
                   value={password}
@@ -228,7 +227,7 @@ function Register(props: Reducers): JSX.Element {
                   color={isValidPassword || isValidPassword || passwordFocus ? '#42BE65' : '#7A869A'} />
               </View>
 
-              <View style={[tailwind('input-wrapper my-2'), isEmptyConfirmedPassword ? styles.emptyInput : tailwind(isValidConfirmedPassword ? 'input-valid' : 'input-error')]}>
+              <View style={[tailwind('input-wrapper my-2'), isEmptyConfirmedPassword ? {} : tailwind(isValidConfirmedPassword ? 'input-valid' : 'input-error')]}>
                 <TextInput
                   style={tailwind('input')}
                   value={confirmPassword}
@@ -261,46 +260,28 @@ function Register(props: Reducers): JSX.Element {
           </View>
 
           <View>
-            <View style={styles.containerCentered}>
+            <View>
               <View>
-                <TouchableOpacity
+                <TouchableHighlight
                   disabled={!isValidForm || registerButtonClicked}
-                  style={[globalStyles.buttonInputStyle.button, globalStyles.buttonInputStyle.block, { backgroundColor: isValidForm || registerButtonClicked ? '#0F62FE' : '#A6C8FF' }]}
+                  style={[tailwind('btn btn-primary my-5'), !isValidForm || registerButtonClicked ? tailwind('opacity-50') : {}]}
+                  underlayColor="#4585f5"
                   onPress={() => handleOnPress()}>
-                  <Text style={styles.buttonOnLabel}>{registerButtonClicked ? strings.components.buttons.creating_button : strings.components.buttons.create}</Text>
-                </TouchableOpacity>
+                  <Text style={tailwind('text-base btn-label')}>{registerButtonClicked ? strings.components.buttons.creating_button : strings.components.buttons.create}</Text>
+                </TouchableHighlight>
               </View>
             </View>
-            <View style={tailwind('py-5')}>
-              <TouchableWithoutFeedback onPress={() => props.navigation.replace('Login')}>
-                <Text style={[globalStyles.text.link, globalStyles.text.center]}>{strings.screens.login_screen.title}</Text>
-              </TouchableWithoutFeedback>
-            </View>
+
+            <Text style={tailwind('text-center mt-2')} onPress={() => props.navigation.replace('Login')}>
+              <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.title}</Text>
+            </Text>
+
           </View>
         </View>
       </KeyboardAvoidingView>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  buttonOnLabel: {
-    color: '#fff',
-    fontFamily: 'NeueEinstellung-Medium',
-    fontSize: normalize(15),
-    textAlign: 'center'
-  },
-  containerCentered: {
-    alignSelf: 'stretch',
-    justifyContent: 'center'
-  },
-  showInputFieldsWrapper: {
-    justifyContent: 'center'
-  },
-  emptyInput: {
-    borderColor: '#7A869A'
-  }
-});
 
 const mapStateToProps = (state: any) => {
   return { authenticationState: state.authenticationState };

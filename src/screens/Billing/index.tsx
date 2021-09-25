@@ -128,24 +128,19 @@ function Billing(props: Reducers) {
         {PERIODS.map((tab, n) => {
           const isTabSelected = n === selectedTab
 
-          return <View key={n} style={{ flexGrow: 1 }}>
+          return <View key={n} style={tailwind('flex-1')}>
             <TouchableHighlight
               underlayColor="#fff"
               onPress={() => {
                 setSelectedTab(n)
                 setSelectedProductIndex(n)
               }}>
-              <View style={[{
-                padding: 10,
-                borderRadius: 10,
-                alignItems: 'center'
-              }, isTabSelected ? {
-                backgroundColor: 'white',
-                borderColor: '#EBECF0'
-              } : {}]}>
+              <View style={[
+                tailwind('p-3 items-center rounded-xl'),
+                isTabSelected && tailwind('bg-white')]}>
                 <Text style={[
-                  tailwind('px-1'),
-                  isTabSelected ? { color: '#000' } : { color: '#7A869A' }
+                  tailwind('px-1 text-neutral-300'),
+                  isTabSelected && tailwind('text-neutral-700 font-bold')
                 ]}>{tab.text}</Text>
               </View>
 
@@ -155,7 +150,7 @@ function Billing(props: Reducers) {
       </View>
 
       {selectedProduct && _.map(selectedProduct, (plan, nPlan) => {
-        return <View key={nPlan} style={{ flexDirection: 'row', marginVertical: 20, marginLeft: 10 }}>
+        return <View key={nPlan} style={tailwind('flex-row my-6 ml-3')}>
           <View style={tailwind('flex-col flex-grow justify-end')}>
             <View>
               <Text style={tailwind('text-3xl font-bold text-header')}>{plan.productName}</Text>

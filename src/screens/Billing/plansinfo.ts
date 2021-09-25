@@ -1,5 +1,5 @@
 /* eslint-disable quotes */
-export function getProductionPlans() {
+export function getProductionPlans(): any {
   return [
     {
       "id": "prod_Frb0EaIua4Dpdt",
@@ -109,7 +109,7 @@ export function getProductionPlans() {
   ]
 }
 
-export function getDevelopmentPlans() {
+export function getDevelopmentPlans(): any {
   return [
     {
       "id": "prod_Gd64dtY4WJ22iu",

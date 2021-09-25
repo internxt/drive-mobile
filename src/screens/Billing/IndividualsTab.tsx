@@ -3,6 +3,7 @@ import { View, Text } from 'react-native';
 import { connect } from 'react-redux';
 import Accordion from 'react-native-collapsible/Accordion';
 import * as Unicons from '@iconscout/react-native-unicons'
+import { tailwind } from '../../helpers/designSystem';
 
 const SECTIONS = [
   {
@@ -69,13 +70,9 @@ const SECTIONS = [
 
 const _renderHeader = (section) => {
   return (
-    <View style={{
-      backgroundColor: 'white', flexDirection: 'row',
-      alignItems: 'center', padding: 10,
-      borderBottomWidth: 1, borderColor: '#ccc'
-    }}>
-      <View style={{ flexGrow: 1 }}>
-        <Text style={{ fontSize: 15, padding: 10 }}>{section.title}</Text>
+    <View style={tailwind('bg-white flex-row items-center p-3 border-b border-neutral-500')}>
+      <View style={tailwind('flex-1')}>
+        <Text>{section.title}</Text>
       </View>
 
       <View>
@@ -88,19 +85,19 @@ const _renderHeader = (section) => {
 
 const _renderContent = (section, index) => {
   return (
-    <View style={{ backgroundColor: 'white', padding: 15 }}>
+    <View style={tailwind('bg-white p-4')}>
       <View>
-        <Text style={{ fontSize: 30, fontFamily: 'NeueEinstellung-Bold' }}>{section.size}</Text>
+        <Text>{section.size}</Text>
       </View>
 
       {section.content.subscriptions.map((item, i) => (
-        <View key={i} style={{ borderWidth: 1, borderColor: '#ccc', padding: 10, flexDirection: 'row', margin: 5 }}>
-          <View style={{ flexGrow: 1 }}>
-            <Text style={{ fontSize: 20 }}>{item.name}</Text>
+        <View key={i}>
+          <View style={tailwind('flex-grow')}>
+            <Text>{item.name}</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={{ fontSize: 20, fontFamily: 'NeueEinstellung-Bold' }}>{item.price}</Text>
-            <Text style={{ fontSize: 15 }}>/month</Text>
+          <View style={tailwind('flex-row items-center')}>
+            <Text>{item.price}</Text>
+            <Text>/month</Text>
 
           </View>
         </View>
@@ -129,7 +126,7 @@ const _renderContent = (section, index) => {
 function IndividualsTab(props: any) {
   const [activeSections, setActiveSections] = useState<number[]>([]);
 
-  return <View style={{ backgroundColor: 'white', flex: 1 }}>
+  return <View style={tailwind('bg-white flex-1')}>
     <Accordion
       sections={SECTIONS}
       activeSections={activeSections}
