@@ -83,7 +83,8 @@ const strings = new LocalizedStrings({
       },
       "create_folder": {
         "input": "Enter folder name",
-        "title": "Create folder"
+        "title": "New folder",
+        "confirm": "Create"
       }
     },
     "components": {
@@ -258,7 +259,8 @@ const strings = new LocalizedStrings({
       },
       "create_folder": {
         "input": "Nombre de la carpeta",
-        "title": "Crear carpeta"
+        "title": "Crear carpeta",
+        "confirm": "Crear"
       }
     },
     "components": {
