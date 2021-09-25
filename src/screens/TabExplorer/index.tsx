@@ -42,8 +42,7 @@ export default function TabExplorer(props: Reducers): JSX.Element {
       tabBar={(tabBarProps: BottomTabBarProps) => <MyTabBar {...{ ...props, ...tabBarProps }} />}
       initialRouteName={'FileExplorer'}
       screenOptions={({ route }) => ({
-        headerShown: false,
-        unmountOnBlur: true
+        headerShown: false
       })}
     >
       <Tab.Screen name="Drive" component={FileExplorer} />

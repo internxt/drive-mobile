@@ -11,6 +11,7 @@ import { validate2FA, apiLogin } from './access';
 import InternxtLogo from '../../../assets/logo.svg'
 import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons'
+import VersionUpdate from '../../components/VersionUpdate';
 
 interface LoginProps extends Reducers {
   goToForm?: (screenName: string) => void
@@ -103,9 +104,9 @@ function Login(props: LoginProps): JSX.Element {
               editable={!isLoading}
             />
             <View style={tailwind('p-3')}>
-            <Unicons.UilEnvelope
-              color="#7A869A" />
-          </View>
+              <Unicons.UilEnvelope
+                color="#7A869A" />
+            </View>
           </View>
 
           <View style={tailwind('input-wrapper my-2')}>
@@ -169,9 +170,7 @@ function Login(props: LoginProps): JSX.Element {
         </View>
       </View>
 
-      <Text style={tailwind('text-center text-base text-sm text-gray-50')}>
-        Internxt Drive v1.4.2 (3)
-      </Text>
+      <VersionUpdate {...props} />
     </KeyboardAvoidingView>
   )
 }

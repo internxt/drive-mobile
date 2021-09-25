@@ -15,6 +15,7 @@ import TabExplorer from './screens/TabExplorer';
 import Billing from './screens/Billing';
 import ChangePassword from './screens/ChangePassword';
 import RecoverPassword from './screens/RecoverPassword';
+import UpdateModal from './modals/UpdateModal';
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, any>
 
@@ -39,13 +40,16 @@ const StackNav = createNativeStackNavigator();
 type ScreenEntry = [name: string, component: { screen: React.ComponentType<JSX.Element> }];
 
 function AppNavigator(): JSX.Element {
-  return <StackNav.Navigator
-    initialRouteName='FileExplorer'
-    screenOptions={{ headerShown: false, statusBarHidden: false }}>
-    {Object.entries(routeConfig).map(([name, component]: ScreenEntry) => (
-      <StackNav.Screen key={name} name={name} component={component.screen} />
-    ))}
-  </StackNav.Navigator>;
+  return <>
+    <UpdateModal />
+    <StackNav.Navigator
+      initialRouteName='FileExplorer'
+      screenOptions={{ headerShown: false, statusBarHidden: false }}>
+      {Object.entries(routeConfig).map(([name, component]: ScreenEntry) => (
+        <StackNav.Screen key={name} name={name} component={component.screen} />
+      ))}
+    </StackNav.Navigator>
+  </>;
 }
 
 export default AppNavigator

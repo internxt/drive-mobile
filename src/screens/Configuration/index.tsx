@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { GestureResponderEvent, Linking, Text, TouchableHighlight, View } from 'react-native';
 import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
@@ -8,7 +8,7 @@ import { tailwind } from '../../helpers/designSystem';
 import { userActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
 import { ScrollView } from 'react-native-gesture-handler';
-import * as Updates from 'expo-updates'
+import VersionUpdate from '../../components/VersionUpdate';
 
 interface ConfigurationItemsProps extends Reducers {
   title: string,
@@ -21,9 +21,8 @@ function ConfigurationItem(props: ConfigurationItemsProps) {
       props.onPress(event);
     }
   }}>
-    <View style={[tailwind('bg-white flex-row p-4'), {
+    <View style={[tailwind('bg-white flex-row p-4 border-b'), {
       height: 56,
-      borderBottomWidth: 1,
       borderColor: '#DFE1E6'
     }]}>
       <View style={tailwind('flex-grow justify-center')}>
@@ -41,75 +40,49 @@ function ConfigurationGap() {
 }
 
 function Configuration(props: Reducers): JSX.Element {
-  const [showUpdateLink, setShowUpdateLink] = useState(false);
-  const [debugText, setDebugText] = useState('');
+  return <ScrollView contentContainerStyle={tailwind('h-full')}>
+    <View style={tailwind('h-full')}>
+      <AppMenu {...props} title={strings.generic.settings} hideSearch={true} hideOptions={true} hideBackPress={true} />
 
-  useEffect(() => {
+      <View style={tailwind('flex-grow')}>
+        <ConfigurationItem {...props} title="Storage"
+          onPress={() => {
+            props.navigation.push('Storage')
+          }} />
+        <ConfigurationItem {...props} title="Billing"
+          onPress={() => {
+            props.navigation.push('Billing')
+          }} />
 
-    if (props.authenticationState.user.email !== 'alberto.msn@gmail.com') {
-      return;
-    }
+        <ConfigurationGap />
 
-    setDebugText('Checking new updates...')
-    Updates.checkForUpdateAsync().then((updateResult) => {
-      if (updateResult.isAvailable) {
-        setDebugText('New Update Available')
-      } else {
-        setDebugText('Current latest version')
-      }
-    }).catch ((err) => {
-      setDebugText('ERROR')
-    })
+        {/* <ConfigurationItem title={strings.generic.security} /> */}
+        <ConfigurationItem {...props} title={strings.screens.change_password.title}
+          onPress={() => {
+            props.navigation.push('RecoverPassword')
+          }} />
 
-    return () => {
-      // eslint-disable-next-line no-console
-      console.log('UNMOUNT')
-    }
-  }, [])
+        <ConfigurationGap />
 
-  return <ScrollView>
-    <AppMenu {...props} title={strings.generic.settings} hideSearch={true} hideOptions={true} hideBackPress={true} />
+        <ConfigurationItem {...props} title="Contact"
+          onPress={() => {
+            Linking.openURL('https://help.internxt.com')
+          }} />
+        <ConfigurationItem {...props} title="More info"
+          onPress={() => {
+            Linking.openURL('https://internxt.com')
+          }} />
+        <ConfigurationItem {...props} title="Log out"
+          onPress={() => {
+            props.dispatch(userActions.signout())
+          }} />
 
-    <ConfigurationItem {...props} title="Storage"
-      onPress={() => {
-        props.navigation.push('Storage')
-      }} />
-    <ConfigurationItem {...props} title="Billing"
-      onPress={() => {
-        props.navigation.push('Billing')
-      }} />
+        <ConfigurationGap />
+      </View>
 
-    <ConfigurationGap />
-
-    {/* <ConfigurationItem title={strings.generic.security} /> */}
-    <ConfigurationItem {...props} title={strings.screens.change_password.title}
-      onPress={() => {
-        props.navigation.push('RecoverPassword')
-      }} />
-
-    <ConfigurationGap />
-
-    <ConfigurationItem {...props} title="Contact"
-      onPress={() => {
-        Linking.openURL('https://help.internxt.com')
-      }} />
-    <ConfigurationItem {...props} title="More info"
-      onPress={() => {
-        Linking.openURL('https://internxt.com')
-      }} />
-    <ConfigurationItem {...props} title="Log out"
-      onPress={() => {
-        props.dispatch(userActions.signout())
-      }} />
-
-    <ConfigurationGap />
-
-    <Text>{debugText}</Text>
-
-    <View style={tailwind('flex items-center text-base m-5')}>
-      <Text style={tailwind('text-center text-base text-sm text-gray-50')}>
-        Internxt Drive v1.4.2 (5)
-      </Text>
+      <View style={tailwind('flex text-base m-5')}>
+        <VersionUpdate {...props} />
+      </View>
     </View>
   </ScrollView>
 }

@@ -1,12 +1,44 @@
 /* eslint-disable no-console */
 import * as Updates from 'expo-updates';
+import { deviceStorage } from '.';
 
-export async function checkUpdates(): Promise<void> {
+const CHECK_UPDATES_INTERVAL = 5 * 1000 * 60; // One minute
 
-  if (process.env.NODE_ENV !== 'production') {
-    return;
-  }
+export async function shouldForceUpdate(): Promise<boolean> {
+  return deviceStorage.getItem('lastUpdateCheck')
+    .then(result => result === null).catch(() => true)
+}
 
+export async function shouldCheckUpdates(): Promise<boolean> {
+  const shouldCheck = await deviceStorage.getItem('lastUpdateCheck')
+    .then((lastCheckTimeString) => {
+
+      if (lastCheckTimeString === null) {
+        // First time app opened
+        return true;
+      }
+
+      const lastCheckTime = parseInt(lastCheckTimeString, 10);
+      const currentTime = Date.now();
+
+      const diff = currentTime - lastCheckTime;
+
+      if (diff > CHECK_UPDATES_INTERVAL) {
+        return true;
+      }
+
+      setUpdatesChecked();
+      return false;
+    }).catch(() => true);
+
+  return shouldCheck;
+}
+
+export function setUpdatesChecked(): Promise<void> {
+  return deviceStorage.saveItem('lastUpdateCheck', new Date().getTime().toString())
+}
+
+export async function forceCheckUpdates(): Promise<void> {
   try {
     const checkUpdate = await Updates.checkForUpdateAsync();
 
@@ -14,9 +46,10 @@ export async function checkUpdates(): Promise<void> {
       const download = await Updates.fetchUpdateAsync()
 
       if (download.isNew) {
-        // await Updates.reloadAsync();
+        return Updates.reloadAsync();
       }
     }
+    setUpdatesChecked();
   } catch (err) {
     console.log('Failed to update', err.message)
   }

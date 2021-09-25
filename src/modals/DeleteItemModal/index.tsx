@@ -35,9 +35,8 @@ function DeleteItemModal(props: Reducers) {
       position='bottom'
       style={styles.modalContainer}
     >
-      <View>
 
-        <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
+      <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
 
       <View>
         <View>

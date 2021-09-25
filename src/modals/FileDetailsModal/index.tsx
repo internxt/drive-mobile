@@ -81,19 +81,17 @@ function FileDetailsModal(props: FileDetailsProps) {
 
         <View style={styles.optionsContainer}>
           {/*
+          {isFolder ? <></> :
             <SettingsItem
-              text={
-                <Text>
-                  <Image source={getIcon('move')} style={styles.w2020} />
-                  <Text style={styles.mr20}> </Text>
-                  <Text style={styles.cerebriSansBold}> {strings.components.file_and_folder_options.move}</Text>
-                </Text>
-              }
+              text={strings.components.file_and_folder_options.move}
+              icon={Unicons.UilShare}
               onPress={() => {
+                props.dispatch(layoutActions.closeItemModal())
                 props.dispatch(layoutActions.openMoveFilesModal());
               }}
             />
-            */}
+          }
+        */}
           {isFolder ? <></> :
             <SettingsItem
               text={strings.components.file_and_folder_options.share}
