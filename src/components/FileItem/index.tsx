@@ -219,11 +219,15 @@ function FileItem(props: FileItemProps) {
               props.isFolder ? <FolderIcon width={30} height={30} /> : <IconFile width={30} height={30} />
             }
 
-            <View style={[tailwind('absolute -bottom-2 -right-2'), !showSpinner && tailwind('hidden')]}>
-              <Animated.View style={{ transform: [{ rotate: spin }], display: showSpinner ? 'flex' : 'none' }}>
-                <FileSpinner />
-              </Animated.View>
-            </View>
+            {
+              showSpinner
+              &&
+              <View style={tailwind('absolute -bottom-2 -right-2')}>
+                <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                  <FileSpinner />
+                </Animated.View>
+              </View>
+            }
           </View>
 
           <View style={tailwind('flex-grow')}>

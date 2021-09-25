@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
 import strings from '../../../assets/lang/strings';
+import { tailwind } from '../../helpers/designSystem';
 
 function SearchBox(props: Reducers): JSX.Element {
 
@@ -19,7 +20,7 @@ function SearchBox(props: Reducers): JSX.Element {
   return <Fragment>
     <View style={styles.container}>
       <View style={styles.textInputWrapper}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={tailwind('flex-row items-center')}>
 
           <View style={styles.searchIcon}>
             <Unicons.UilSearch color="#42526E" size={20} />

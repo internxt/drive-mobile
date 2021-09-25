@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import { platform } from './constants'
 
 import * as React from 'react'

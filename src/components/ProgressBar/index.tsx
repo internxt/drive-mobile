@@ -1,5 +1,6 @@
 import React from 'react'
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
+import { tailwind } from '../../helpers/designSystem';
 
 interface ProgressBarProps {
   usedValue: number
@@ -10,8 +11,12 @@ interface ProgressBarProps {
 export default function ProgressBar(props: ProgressBarProps): JSX.Element {
   const { totalValue, styleProgress } = props;
   let usedValue = props.usedValue;
+  let rightRounded = false;
 
-  if (usedValue > totalValue) { usedValue = totalValue; }
+  if (usedValue >= totalValue) {
+    usedValue = totalValue;
+    rightRounded = true;
+  }
 
   const usedValueStyle = {
     size: {
@@ -19,35 +24,15 @@ export default function ProgressBar(props: ProgressBarProps): JSX.Element {
     }
   };
 
-  return <View style={styles.container}>
+  return <View style={tailwind('rounded h-2 bg-neutral-40')}>
     <View
       style={[
-        styles.inner,
+        tailwind('rounded-tl rounded-bl bg-blue-60'),
         usedValueStyle.size,
         styleProgress,
-        {
-          backgroundColor: '#0F62FE'
-        }
+        rightRounded && tailwind('rounded-tr rounded-br')
       ]}
     />
   </View>
 
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#D0E2FF',
-    borderRadius: 3,
-    height: 7,
-    position: 'relative'
-  },
-  inner: {
-    borderRadius: 3,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-    height: 10,
-    left: 0,
-    position: 'absolute',
-    top: 0
-  }
-});

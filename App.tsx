@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Text, Platform, Linking, Alert, SafeAreaView } from 'react-native';
+import { View, Text, Platform, Linking, Alert, SafeAreaView } from 'react-native';
 import { Provider } from 'react-redux'
 import { store } from './src/store'
 import AppNavigator from './src/AppNavigator';
@@ -9,7 +9,7 @@ import { fileActions } from './src/redux/actions';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import Toast from 'react-native-toast-message';
 import * as Unicons from '@iconscout/react-native-unicons'
-import { tailwind } from './src/helpers/designSystem';
+import { getColor, tailwind } from './src/helpers/designSystem';
 import strings from './assets/lang/strings'
 
 process.nextTick = setImmediate;
@@ -124,11 +124,11 @@ export default function App(): JSX.Element {
 
       {appInitialized ?
         <SafeAreaView
-          style={styles.appContainer}>
+          style={tailwind('flex-1')}>
 
           <AppNavigator />
         </SafeAreaView>
-        : <SafeAreaView style={styles.container}>
+        : <SafeAreaView style={tailwind('items-center flex-1 justify-center')}>
           {loadError ? <Text>{loadError}</Text> : null}
         </SafeAreaView>
       }
@@ -137,72 +137,34 @@ export default function App(): JSX.Element {
   </Provider>;
 }
 
-const styles = StyleSheet.create({
-  appContainer: {
-    flex: 1
-  },
-  container: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center'
-  }
-})
-
 const toastConfig = {
   success: function successToast({ text1, props, ...rest }) {
-    return <View style={{
-      backgroundColor: '#091E42',
-      display: 'flex',
-      width: '90%',
-      height: 60,
-      borderRadius: 6,
-      flexDirection: 'row',
-      padding: 15,
-      alignItems: 'center'
-    }}>
+    return <View style={tailwind('flex flex-row items-center bg-blue-100 p-3 w-full h-16')}>
       <View>
-        <Unicons.UilCheckCircle color="#42BE65" size={24} />
+        <Unicons.UilCheckCircle color={getColor('green-50')} size={24} />
       </View>
-      <View style={{ flexGrow: 1, marginLeft: 20 }}>
+      <View style={tailwind('flex-grow ml-3')}>
         <Text style={tailwind('text-white')}>{text1}</Text>
       </View>
     </View>
   },
   error: function errorToast({ text1, props, ...rest }) {
-    return <View style={{
-      backgroundColor: '#DA1E28',
-      display: 'flex',
-      width: '90%',
-      height: 60,
-      borderRadius: 6,
-      flexDirection: 'row',
-      padding: 15,
-      alignItems: 'center'
-    }}>
+    return <View style={tailwind('flex flex-row items-center bg-red-60 p-3 w-full h-16')}>
       <View>
-        <Unicons.UilTimesCircle color="#FFFFFF" size={24} />
+        <Unicons.UilTimesCircle color={getColor('white')} size={24} />
       </View>
-      <View style={{ flexGrow: 1, marginLeft: 20 }}>
+      <View style={tailwind('flex-grow ml-3')}>
         <Text style={tailwind('text-white')}>{text1}</Text>
       </View>
     </View>
   },
   warn: function warnToast({ text1, props, ...rest }) {
-    return <View style={{
-      backgroundColor: '#F1C21B',
-      display: 'flex',
-      width: '90%',
-      height: 60,
-      borderRadius: 6,
-      flexDirection: 'row',
-      padding: 15,
-      alignItems: 'center'
-    }}>
+    return <View style={tailwind('flex flex-row items-center bg-yellow-30 p-3 w-full h-16')}>
       <View>
-        <Unicons.UilExclamationTriangle color="#091E42" size={24} />
+        <Unicons.UilExclamationTriangle color={getColor('neutral-900')} size={24} />
       </View>
-      <View style={{ flexGrow: 1, marginLeft: 20 }}>
-        <Text style={{ color: '#091E42' }}>{text1}</Text>
+      <View style={tailwind('flex-grow ml-3')}>
+        <Text style={tailwind('text-neutral-900')}>{text1}</Text>
       </View>
     </View>
   }

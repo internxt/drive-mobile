@@ -86,7 +86,7 @@ function RenameModal(props: Reducers) {
             color={'#0F62FE'} />
         </View>
         <TouchableHighlight
-          style={[tailwind('btn btn-primary my-3'), emptyName || isLoading ? { backgroundColor: '#A6C8FF' } : null]}
+          style={[tailwind('btn btn-primary my-3'), emptyName || isLoading ? tailwind('opacity-50') : {}]}
           underlayColor="#4585f5"
           onPress={renameHandle}
           disabled={emptyName || isLoading}>
@@ -99,12 +99,12 @@ function RenameModal(props: Reducers) {
       <View>
         <TouchableHighlight
           underlayColor={'#eee'}
-          style={{ alignItems: 'center', padding: 20 }}
+          style={tailwind('items-center')}
           onPress={() => {
             props.dispatch(fileActions.deselectAll())
             props.dispatch(layoutActions.closeRenameModal())
           }}>
-          <Text style={{ color: '#DA1E28' }}>{strings.generic.cancel}</Text>
+          <Text style={tailwind('text-red-60')}>{strings.generic.cancel}</Text>
         </TouchableHighlight>
       </View>
 

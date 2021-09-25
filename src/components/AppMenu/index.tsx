@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { Reducers } from '../../redux/reducers/reducers';
+import { tailwind } from '../../helpers/designSystem';
 
 interface AppMenuProps extends Reducers {
   title: string
@@ -38,7 +39,7 @@ function AppMenu(props: AppMenuProps) {
           <View style={styles.fGrow}>
             <Text style={styles.storageText}>{props.title}</Text>
           </View>
-          <View style={[styles.w50, { alignItems: 'center' }]}>
+          <View style={[styles.w50, tailwind('items-center')]}>
             {!props.hideSearch && <TouchableWithoutFeedback onPress={() => {
               props.dispatch(layoutActions.openSearch())
             }}>
