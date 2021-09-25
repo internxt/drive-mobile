@@ -1,20 +1,20 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Share, TextInput, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, Share, TouchableOpacity, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
-import Separator from '../../components/Separator';
 import { layoutActions } from '../../redux/actions';
 import { getHeaders } from '../../helpers/headers';
 import { IFile, IFolder } from '../../components/FileList';
 import { Reducers } from '../../redux/reducers/reducers';
 import strings from '../../../assets/lang/strings';
 import { generateShareLink } from '../../@inxt-js/services/share';
-import { deviceStorage, normalize } from '../../helpers';
+import { deviceStorage, getFileTypeIcon } from '../../helpers';
 import { generateFileKey, Network } from '../../lib/network';
 import { setString } from 'expo-clipboard'
 import { notify } from '../../helpers/toast';
 import { tailwind } from '../../helpers/designSystem';
+import * as Unicons from '@iconscout/react-native-unicons'
 
 function ShareFilesModal(props: Reducers) {
   const [isOpen, setIsOpen] = useState(props.layoutState.showShareModal)
@@ -87,11 +87,13 @@ function ShareFilesModal(props: Reducers) {
     return generatedLink;
   };
 
+  const FileIcon = getFileTypeIcon(selectedFile && selectedFile.type)
+
   return (
     <Modal
-      position={'bottom'}
+      position={'center'}
       swipeArea={20}
-      style={styles.modalContainer}
+      style={tailwind('w-11/12 h-3/6 rounded-xl')}
       isOpen={isOpen}
       onClosed={async () => {
         props.dispatch(layoutActions.closeShareModal())
@@ -104,190 +106,113 @@ function ShareFilesModal(props: Reducers) {
       backdropPressToClose={true}
       animationDuration={200}
     >
-      <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
 
-      <View
-        style={styles.fileName}
-      >
-        <Text style={{ fontSize: 15, textAlign: 'center', marginBottom: 5, fontWeight: '600', color: '#737880' }}>{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
-      </View>
+      <View style={tailwind('h-full rounded-xl')}>
+        <View
+          style={tailwind('flex-row bg-white p-3 rounded-t-xl items-center justify-between')}>
 
-      <Separator />
+          <View style={tailwind('p-1')}>
+            <FileIcon width={30} height={30} />
+          </View>
 
-      <View style={{ paddingBottom: 5 }}>
-        <View style={styles.contentContainer}>
-          <Text style={styles.contentIndex}></Text><Text style={styles.subtitle}>{strings.modals.share_modal.title}</Text>
-        </View>
-        <View style={styles.contentContainer}>
-          <Text style={styles.contentIndex}>1.</Text>
-          <View style={styles.grayBoxContainer}>
-            <View style={styles.grayBox}>
-              <Text style={styles.grayText}>{strings.modals.share_modal.title2}</Text>
-            </View>
-            <TextInput
-              style={[styles.grayButton, styles.grayButtonText, { fontWeight: 'bold' }]}
-              keyboardType='numeric'
-              placeholder='1'
-              onChangeText={handleInputChange}
-              value={inputValue}
-              maxLength={6}
-            />
+          <View style={tailwind('flex-shrink')}>
+            <Text numberOfLines={1}>{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
+          </View>
+
+          <View>
+            <TouchableWithoutFeedback onPress={() => {
+              props.dispatch(layoutActions.closeShareModal())
+            }}>
+              <View style={tailwind('bg-neutral-20 rounded-full p-1')}>
+                <Unicons.UilTimes color={'#B3BAC5'} />
+              </View>
+            </TouchableWithoutFeedback>
           </View>
         </View>
-        <View style={styles.contentContainer}>
-          <Text style={styles.contentIndex}></Text><Text style={styles.subtitle}>{strings.modals.share_modal.title3}</Text>
-        </View>
+        <View style={tailwind('bg-neutral-10 p-3 flex-grow justify-between rounded-b-xl')}>
+          <Text style={tailwind('text-xl font-bold text-neutral-500 text-center')}>Share link open limit</Text>
 
-        <View style={styles.contentContainer}>
-          <Text style={styles.contentIndex}>2.</Text>
-          <View style={styles.grayBoxContainer}>
-            <View style={styles.grayBox}>
-              <Text numberOfLines={1} style={styles.grayText}>
-                {!isLoading ? link : strings.modals.share_modal.loading }
-              </Text>
+          <View style={tailwind('flex-row items-stretch justify-center my-5')}>
+            <TouchableHighlight
+              underlayColor="#AAAAFF"
+              onPress={() => {
+                const newValue = Math.max(parseInt(inputValue, 10) - 1, 1) || 1;
+
+                setInputValue(newValue.toFixed(0));
+              }}
+              style={tailwind('bg-blue-60 p-3 rounded-bl-lg rounded-tl-lg justify-center')}>
+              <Unicons.UilMinus color="white" />
+            </TouchableHighlight>
+            <View style={tailwind('bg-white justify-center')}>
+              <View style={tailwind('text-xl mx-6 flex-row items-center')}>
+                <Text style={tailwind('text-xl')}>{inputValue} times</Text>
+              </View>
             </View>
-            <View style={styles.grayButton}>
-              <TouchableWithoutFeedback style={styles.grayButton} disabled={isLoading} onPress={() => {
-                if (!isLoading) {
-                  setString(link);
-                  notify({
-                    type: 'success',
-                    text: 'Link copied'
-                  })
-                }
-              }}><Text style={styles.grayButtonText}>{strings.modals.share_modal.copy}</Text>
-              </TouchableWithoutFeedback>
+            <TouchableHighlight
+              underlayColor="#AAAAFF"
+              onPress={() => {
+                const newValue = Math.min(parseInt(inputValue, 10) + 1, 100) || 1;
+
+                setInputValue(newValue.toFixed(0));
+              }}
+              style={tailwind('bg-blue-60 p-3 rounded-br-lg rounded-tr-lg justify-center')}>
+              <Unicons.UilPlus color="white" />
+            </TouchableHighlight>
+          </View>
+
+          <View style={[tailwind('items-center'), {
+            shadowColor: '#000',
+            shadowOpacity: 0.25,
+            shadowRadius: 3,
+            shadowOffset: {
+              height: 3,
+              width: 3
+            }
+          }, isLoading && tailwind('opacity-50')]}>
+            <View style={tailwind('bg-white rounded-xl p-2')}>
+              <TouchableOpacity
+                disabled={isLoading}
+                onPress={() => {
+                  if (!isLoading) {
+                    setString(link);
+                    notify({
+                      type: 'success',
+                      text: 'Link copied'
+                    })
+                  }
+                }}
+                style={tailwind('flex-row items-center')}
+              >
+                <Text style={tailwind('text-xl text-blue-60 font-bold mx-3')}>Copy share link</Text>
+                <Unicons.UilCopy />
+              </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </View>
-      <Separator />
-      <View style={styles.bottomContainer}>
-        <View style={styles.cancelButton}>
-          <TouchableOpacity style={styles.button}
-            onPress={() => {
-              props.dispatch(layoutActions.closeShareModal());
-            }}
-            disabled={isLoading}>
-            <Text style={styles.cancelText}>{strings.generic.cancel}</Text>
-          </TouchableOpacity>
-          <View style={{ flexGrow: 1 }}></View>
-        </View>
-        <View style={styles.shareButton}>
-          <View style={{ flexGrow: 1 }}></View>
-          <TouchableOpacity
-            onPress={() => { shareFile(selectedFile) }}
-            disabled={isLoading}>
-            <Text style={!isLoading ? styles.shareText : styles.shareTextLoading}>{strings.modals.share_modal.share}</Text>
-          </TouchableOpacity>
+
+          <View style={tailwind('flex-row justify-between')}>
+
+            <TouchableOpacity
+              style={tailwind('bg-neutral-20 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+              onPress={() => {
+                props.dispatch(layoutActions.closeShareModal());
+              }}
+              disabled={isLoading}>
+              <Text style={tailwind('text-base font-bold text-neutral-300')}>{strings.generic.cancel}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+              onPress={() => { shareFile(selectedFile) }}
+              disabled={isLoading}>
+              <Text style={tailwind('text-base font-bold text-white')}>{strings.modals.share_modal.share}</Text>
+            </TouchableOpacity>
+
+          </View>
         </View>
       </View>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  modalContainer: {
-    height: 'auto',
-    borderTopRightRadius: 32,
-    borderTopLeftRadius: 32
-  },
-  subtitle: {
-    color: '#737880',
-    fontSize: normalize(14),
-    letterSpacing: 0.5,
-    marginLeft: wp('4')
-  },
-  fileName: {
-    width: wp(92),
-    alignSelf: 'center',
-    fontFamily: 'NeueEinstellung-Bold',
-    fontSize: 20,
-    padding: 0 // remove default padding on Android
-  },
-  grayBox: {
-    backgroundColor: '#F4F5F7',
-    borderTopLeftRadius: 5,
-    borderBottomLeftRadius: 5,
-    padding: 10,
-    width: normalize(200)
-  },
-  grayButton: {
-    backgroundColor: '#EBECF0',
-    borderTopRightRadius: 5,
-    borderBottomRightRadius: 5,
-    width: normalize(50),
-    textAlign: 'center',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 5
-  },
-  contentIndex: {
-    color: '#0F62FE',
-    fontSize: normalize(16),
-    paddingRight: 15
-  },
-  grayText: {
-    color: '#737880',
-    fontSize: normalize(14),
-    letterSpacing: 0.5,
-    flexGrow: 1
-  },
-  grayButtonText: {
-    color: '#0F62FE'
-  },
-  grayBoxContainer: {
-    flexDirection: 'row'
-  },
-  bottomContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexGrow: 1,
-    marginBottom: 16,
-    paddingVertical: 10
-  },
-  cancelButton: {
-    flexGrow: 1,
-    flexDirection: 'row'
-  },
-  shareButton: {
-    flexGrow: 1,
-    flexDirection: 'row'
-  },
-  cancelText: {
-    alignSelf: 'flex-start',
-    marginHorizontal: 20,
-    flexGrow: 1,
-    color: '#DA1E28',
-    fontSize: normalize(16),
-    fontFamily: 'NeueEinstellung-Regular'
-  },
-  shareText: {
-    alignSelf: 'flex-end',
-    marginHorizontal: 20,
-    color: '#0F62FE',
-    fontSize: normalize(16),
-    fontFamily: 'NeueEinstellung-Regular'
-  },
-  shareTextLoading: {
-    color: 'rgba(69, 133, 245, 0.7)',
-    fontFamily: 'NeueEinstellung-Regular',
-    alignSelf: 'flex-end',
-    marginHorizontal: 20,
-    fontSize: normalize(16)
-  }
-})
 
 const mapStateToProps = (state: any) => {
   return { ...state }

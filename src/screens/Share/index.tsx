@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Alert, ScrollView, RefreshControl, Text } from 'react-native'
+import { View, Alert, ScrollView, RefreshControl, Text } from 'react-native'
 import { connect } from 'react-redux';
 import { Reducers } from '../../redux/reducers/reducers';
 import AppMenu from '../../components/AppMenu';
@@ -29,11 +29,11 @@ function Share(props: Reducers): JSX.Element {
 
   useEffect(() => { reloadShares() }, []);
 
-  return <View style={styles.container}>
+  return <View style={tailwind('bg-white flex-1')}>
     <AppMenu {...props} title="Shared" hideSearch={true} hideBackPress={true} />
     {
       loading &&
-      <View style={styles.activityIndicator}>
+      <View style={tailwind('flex-1 self-center')}>
         <WaveIndicator color="#5291ff" size={80} />
       </View>
     }
@@ -49,7 +49,7 @@ function Share(props: Reducers): JSX.Element {
             }}
           />
         }
-        contentContainerStyle={styles.fileListContentsScrollView}
+        contentContainerStyle={tailwind('flex-grow')}
       >
         <View>
           {shares.map((item, i) => {
@@ -58,8 +58,8 @@ function Share(props: Reducers): JSX.Element {
               item={item.fileInfo}
               isFolder={false}
               subtitle={<View style={tailwind('flex flex-row items-center')}>
-                <Text style={[tailwind('text-base'), { fontSize: 14, color: '#0F62FE' }]}>Left {item.views} times to share</Text>
-                <View style={[tailwind('m-1 rounded-xl p-1'), { backgroundColor: '#EDF5FF' }]}>
+                <Text style={tailwind('text-base text-sm text-blue-60')}>Left {item.views} times to share</Text>
+                <View style={tailwind('m-1 rounded-xl p-1 bg-blue-10')}>
                   <Unicons.UilEye size={16} />
                 </View>
               </View>}
@@ -70,20 +70,6 @@ function Share(props: Reducers): JSX.Element {
     }
   </View>
 }
-
-const styles = StyleSheet.create({
-  activityIndicator: {
-    flex: 1,
-    alignSelf: 'center'
-  },
-  container: {
-    backgroundColor: '#fff',
-    flex: 1
-  },
-  fileListContentsScrollView: {
-    flexGrow: 1
-  }
-});
 
 const mapStateToProps = (state: any) => ({ ...state });
 

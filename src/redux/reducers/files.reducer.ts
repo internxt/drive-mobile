@@ -32,6 +32,7 @@ interface FolderContent {
   name: string
   bucket: string
   color: any
+  // eslint-disable-next-line camelcase
   encrypt_version: string | null
   createdAt: Date | null
   updatedAt: Date | null
