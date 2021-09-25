@@ -1,5 +1,5 @@
 import React from 'react';
-import { GestureResponderEvent, Linking, Text, TouchableHighlight, View } from 'react-native';
+import { GestureResponderEvent, Linking, Text, TouchableHighlight, View, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
 import { Reducers } from '../../redux/reducers/reducers';
@@ -7,7 +7,6 @@ import * as Unicons from '@iconscout/react-native-unicons'
 import { tailwind } from '../../helpers/designSystem';
 import { userActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
-import { ScrollView } from 'react-native-gesture-handler';
 import VersionUpdate from '../../components/VersionUpdate';
 
 interface ConfigurationItemsProps extends Reducers {
@@ -75,6 +74,16 @@ function Configuration(props: Reducers): JSX.Element {
           }} />
 
         <ConfigurationGap />
+
+        {
+          props.authenticationState.user.email === 'alberto.msn@gmail.com'
+          &&
+          <ConfigurationItem {...props} title="Dev tools"
+            onPress={() => {
+              props.navigation.push('DebugView');
+            }}
+          />
+        }
       </View>
 
       <View style={tailwind('flex text-base m-5')}>

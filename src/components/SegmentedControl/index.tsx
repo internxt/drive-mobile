@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, ViewProps } from 'react-native'
-import { TouchableOpacity } from 'react-native-gesture-handler'
+import { View, Text, ViewProps, TouchableOpacity } from 'react-native'
 
 interface SegmentedOption {
   text: string

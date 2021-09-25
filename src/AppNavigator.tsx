@@ -16,6 +16,7 @@ import Billing from './screens/Billing';
 import ChangePassword from './screens/ChangePassword';
 import RecoverPassword from './screens/RecoverPassword';
 import UpdateModal from './modals/UpdateModal';
+import DebugView from './screens/Debug/DebugView';
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, any>
 
@@ -32,7 +33,8 @@ const routeConfig: RouteConfig = {
   StorageWebView: { screen: StorageWebView },
   Billing: { screen: Billing },
   ChangePassword: { screen: ChangePassword },
-  RecoverPassword: { screen: RecoverPassword }
+  RecoverPassword: { screen: RecoverPassword },
+  DebugView: { screen: DebugView }
 };
 
 const StackNav = createNativeStackNavigator();

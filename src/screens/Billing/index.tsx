@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Text, TouchableHighlight, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Text, TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
 import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
 import { notify } from '../../helpers';
@@ -129,8 +129,7 @@ function Billing(props: Reducers) {
           const isTabSelected = n === selectedTab
 
           return <View key={n} style={tailwind('flex-1')}>
-            <TouchableHighlight
-              underlayColor="#fff"
+            <TouchableWithoutFeedback
               onPress={() => {
                 setSelectedTab(n)
                 setSelectedProductIndex(n)
@@ -144,7 +143,7 @@ function Billing(props: Reducers) {
                 ]}>{tab.text}</Text>
               </View>
 
-            </TouchableHighlight>
+            </TouchableWithoutFeedback>
           </View>
         })}
       </View>

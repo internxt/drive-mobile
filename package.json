@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "react-native start --reset-cache",
+    "start": "react-native start",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "web": "expo start --web",
@@ -86,6 +86,7 @@
     "react-native-pager-view": "5.0.12",
     "react-native-permissions": "^3.0.4",
     "react-native-randombytes": "^3.6.1",
+    "react-native-reanimated": "~2.2.0",
     "react-native-receive-sharing-intent": "^1.1.0",
     "react-native-responsive-screen": "^1.4.1",
     "react-native-safe-area-context": "3.2.0",

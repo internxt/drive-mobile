@@ -1,7 +1,7 @@
 import { AsyncStorage } from 'react-native';
 import { notify } from './toast';
 
-const { getItem, setItem, removeItem } = AsyncStorage;
+const { getItem, setItem, removeItem, getAllKeys, clear } = AsyncStorage;
 
 export interface User {
   bucket: string,
@@ -47,5 +47,11 @@ export const deviceStorage = {
       notify({ type: 'error', text: err.message });
       return null;
     });
+  },
+  listItems(): Promise<string[]> {
+    return getAllKeys();
+  },
+  clearStorage(): Promise<void> {
+    return clear();
   }
 }

@@ -10,6 +10,7 @@ export async function shouldForceUpdate(): Promise<boolean> {
 }
 
 export async function shouldCheckUpdates(): Promise<boolean> {
+  return false;
   const shouldCheck = await deviceStorage.getItem('lastUpdateCheck')
     .then((lastCheckTimeString) => {
 
@@ -39,6 +40,7 @@ export function setUpdatesChecked(): Promise<void> {
 }
 
 export async function forceCheckUpdates(): Promise<void> {
+  return;
   try {
     const checkUpdate = await Updates.checkForUpdateAsync();
 
