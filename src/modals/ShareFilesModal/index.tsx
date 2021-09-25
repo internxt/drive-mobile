@@ -135,12 +135,13 @@ function ShareFilesModal(props: Reducers) {
           <View style={tailwind('flex-row items-stretch justify-center my-5')}>
             <TouchableHighlight
               underlayColor="#AAAAFF"
+              disabled={inputValue === '1'}
               onPress={() => {
                 const newValue = Math.max(parseInt(inputValue, 10) - 1, 1) || 1;
 
                 setInputValue(newValue.toFixed(0));
               }}
-              style={tailwind('bg-blue-60 p-3 rounded-bl-lg rounded-tl-lg justify-center')}>
+              style={[tailwind('bg-blue-60 p-3 rounded-bl-lg rounded-tl-lg justify-center'), inputValue === '1' && tailwind('bg-neutral-30')]}>
               <Unicons.UilMinus color="white" size={25} />
             </TouchableHighlight>
             <View style={tailwind('bg-white justify-center')}>
@@ -150,12 +151,13 @@ function ShareFilesModal(props: Reducers) {
             </View>
             <TouchableHighlight
               underlayColor="#AAAAFF"
+              disabled={inputValue === '100'}
               onPress={() => {
                 const newValue = Math.min(parseInt(inputValue, 10) + 1, 100) || 1;
 
                 setInputValue(newValue.toFixed(0));
               }}
-              style={tailwind('bg-blue-60 p-3 rounded-br-lg rounded-tr-lg justify-center')}>
+              style={[tailwind('bg-blue-60 p-3 rounded-br-lg rounded-tr-lg justify-center'), inputValue === '100' && tailwind('bg-neutral-30')]}>
               <Unicons.UilPlus color="white" size={25} />
             </TouchableHighlight>
           </View>
