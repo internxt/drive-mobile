@@ -13,7 +13,7 @@ import { deviceStorage, getFileTypeIcon } from '../../helpers';
 import { generateFileKey, Network } from '../../lib/network';
 import { setString } from 'expo-clipboard'
 import { notify } from '../../helpers/toast';
-import { tailwind } from '../../helpers/designSystem';
+import { getColor, tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons'
 
 function ShareFilesModal(props: Reducers) {
@@ -124,7 +124,7 @@ function ShareFilesModal(props: Reducers) {
               props.dispatch(layoutActions.closeShareModal())
             }}>
               <View style={tailwind('bg-neutral-20 rounded-full p-1')}>
-                <Unicons.UilTimes color={'#B3BAC5'} />
+                <Unicons.UilTimes color={'#B3BAC5'} size={25} />
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -141,7 +141,7 @@ function ShareFilesModal(props: Reducers) {
                 setInputValue(newValue.toFixed(0));
               }}
               style={tailwind('bg-blue-60 p-3 rounded-bl-lg rounded-tl-lg justify-center')}>
-              <Unicons.UilMinus color="white" />
+              <Unicons.UilMinus color="white" size={25} />
             </TouchableHighlight>
             <View style={tailwind('bg-white justify-center')}>
               <View style={tailwind('text-xl mx-6 flex-row items-center')}>
@@ -156,7 +156,7 @@ function ShareFilesModal(props: Reducers) {
                 setInputValue(newValue.toFixed(0));
               }}
               style={tailwind('bg-blue-60 p-3 rounded-br-lg rounded-tr-lg justify-center')}>
-              <Unicons.UilPlus color="white" />
+              <Unicons.UilPlus color="white" size={25} />
             </TouchableHighlight>
           </View>
 
@@ -184,7 +184,7 @@ function ShareFilesModal(props: Reducers) {
                 style={tailwind('flex-row items-center')}
               >
                 <Text style={tailwind('text-xl text-blue-60 font-bold mx-3')}>Copy share link</Text>
-                <Unicons.UilCopy />
+                <Unicons.UilCopy color={getColor('blue-60')} />
               </TouchableOpacity>
             </View>
           </View>
