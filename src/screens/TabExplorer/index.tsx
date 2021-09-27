@@ -26,23 +26,24 @@ const Tab = createBottomTabNavigator();
 
 export default function TabExplorer(props: Reducers): JSX.Element {
   return <View style={tailwind('h-full')}>
-    <FileDetailsModal />
-    <SettingsModal navigation={props.navigation} />
-    <UploadModal navigation={props.navigation} />
+    <FileDetailsModal {...props} />
+    <SettingsModal {...props} navigation={props.navigation} />
+    <UploadModal {...props} navigation={props.navigation} />
     <SortModal />
-    <DeleteItemModal />
-    <MoveFilesModal />
-    <ShareFilesModal />
-    <FreeForYouModal navigation={props.navigation} />
-    <CreateFolderModal />
-    <RenameModal />
+    <DeleteItemModal {...props} />
+    <MoveFilesModal {...props} />
+    <ShareFilesModal {...props} />
+    <FreeForYouModal {...props} navigation={props.navigation} />
+    <CreateFolderModal {...props} />
+    <RenameModal {...props} />
     <RunOutOfStorageModal {...props} />
 
     <Tab.Navigator
       tabBar={(tabBarProps: BottomTabBarProps) => <MyTabBar {...{ ...props, ...tabBarProps }} />}
       initialRouteName={'FileExplorer'}
       screenOptions={({ route }) => ({
-        headerShown: false
+        headerShown: false,
+        tabBarShowLabel: false
       })}
     >
       <Tab.Screen name="Drive" component={FileExplorer} />

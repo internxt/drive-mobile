@@ -9,7 +9,6 @@ import Forgot from './screens/Forgot';
 import OutOfSpace from './screens/OutOfSpace';
 import Storage from './screens/Storage';
 import StorageWebView from './screens/StorageWebView';
-import EntryGateway from './screens/EntryGateway';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TabExplorer from './screens/TabExplorer';
 import Billing from './screens/Billing';
@@ -21,7 +20,6 @@ import DebugView from './screens/Debug/DebugView';
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, any>
 
 const routeConfig: RouteConfig = {
-  EntryPoint: { screen: EntryGateway },
   Register: { screen: Register },
   Login: { screen: Login },
   Intro: { screen: Intro },

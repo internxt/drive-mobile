@@ -1,12 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { View, TouchableWithoutFeedback, Text } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons'
 import MainIcon from '../../../assets/icons/figma-icons/add-main.svg'
 import { layoutActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types'
 import { Reducers } from '../../redux/reducers/reducers';
-import { normalize } from '../../helpers';
 import { tailwind } from '../../helpers/designSystem';
 
 const tabIcons = {
@@ -66,8 +65,9 @@ function MyTabBar(props: MyTabBarProps): JSX.Element {
             onPress={onPress}
             onLongPress={onLongPress}
           >
-            <View style={styles.tabItem}>
+            <View style={tailwind('items-center justify-start')}>
               <Icon color={isFocused ? '#0F62FE' : '#C1C7D0'} />
+              {options.tabBarShowLabel && <Text style={tailwind('text-xs text-neutral-80')}>{label}</Text>}
             </View>
           </TouchableWithoutFeedback>
         );
@@ -79,11 +79,3 @@ function MyTabBar(props: MyTabBarProps): JSX.Element {
 const mapStateToProps = (state: any) => ({ ...state });
 
 export default connect(mapStateToProps)(MyTabBar);
-
-const styles = StyleSheet.create({
-  tabItem: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    width: normalize(70)
-  }
-});

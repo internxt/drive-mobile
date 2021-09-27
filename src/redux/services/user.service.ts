@@ -79,11 +79,7 @@ async function signout(): Promise<void> {
 
     analytics.track('user-signout', { userId: userData.uuid, email: userData.email, platform: 'mobile' }).catch(() => { })
     // Delete login data
-    await Promise.all([
-      deviceStorage.deleteItem('xToken'),
-      deviceStorage.deleteItem('xUser'),
-      deviceStorage.deleteItem('xBiometric')
-    ]);
+    deviceStorage.clearStorage();
   } catch (error) {
   }
 }

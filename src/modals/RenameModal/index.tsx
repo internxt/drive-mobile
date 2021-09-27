@@ -56,7 +56,6 @@ function RenameModal(props: Reducers) {
       onClosed={() => {
         props.dispatch(layoutActions.closeRenameModal())
         setNewName('')
-        setIsOpen(false)
       }}
       onOpened={() => {
         setNewName(props.filesState.focusedItem?.name)
