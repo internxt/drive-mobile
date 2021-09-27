@@ -257,7 +257,6 @@ function UploadModal(props: Reducers) {
       position={'bottom'}
       entry={'bottom'}
       coverScreen={true}
-      swipeArea={50}
       style={styles.modalSettings}
       onClosed={() => {
         props.dispatch(layoutActions.closeUploadFileModal())

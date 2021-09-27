@@ -68,7 +68,6 @@ function SettingsModal(props: SettingsModalProps) {
       style={styles.modalSettings}
       onClosed={() => props.dispatch(layoutActions.closeSettings())}
       backButtonClose={true}
-      swipeArea={50}
       animationDuration={200}
       coverScreen={true}>
 

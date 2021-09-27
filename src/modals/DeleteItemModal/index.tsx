@@ -7,6 +7,7 @@ import { Reducers } from '../../redux/reducers/reducers';
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
+import prettysize from 'prettysize';
 
 function DeleteItemModal(props: Reducers) {
   const selectedItems = props.filesState.selectedItems
@@ -36,23 +37,41 @@ function DeleteItemModal(props: Reducers) {
         setIsOpen(false)
       }}
       position='bottom'
-      style={tailwind('rounded-lg p-3 h-2/4')}
+      style={tailwind('rounded-t-xl p-3 h-96')}
     >
 
-      <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
-
-      <View>
+      <View style={tailwind('h-full')}>
         <View>
-          <Text style={tailwind('text-center my-4 text-lg font-semibold text-neutral-500')}>{strings.modals.delete_modal.title}</Text>
+          <View style={tailwind('h-1 bg-neutral-30 m-1 w-16 self-center')}></View>
+
+          <View>
+            <Text style={tailwind('text-center my-4 text-lg font-semibold text-neutral-500')}>{strings.modals.delete_modal.title}</Text>
+          </View>
         </View>
 
-        <View style={tailwind('items-center my-3')}>
-          {isFolder ? <FolderIcon width={64} height={64} /> : <FileIcon width={64} height={64} />}
-          <Text style={tailwind('my-3')}>{item && item.name}</Text>
-        </View>
+        <View style={tailwind('flex-grow justify-center')}>
 
-        <View>
-          <Text style={tailwind('my-8 text-center text-neutral-500 mx-4')}>{item && item.name} {strings.modals.delete_modal.warning}</Text>
+          <View style={tailwind('items-center my-3')}>
+            {isFolder ? <FolderIcon width={64} height={64} /> : <FileIcon width={64} height={64} />}
+            <Text style={tailwind('my-3')} numberOfLines={1} ellipsizeMode={'middle'}>{item?.name}{item?.type ? '.' + item.type : ''}</Text>
+
+            <Text style={tailwind('text-neutral-100')}>
+              {
+                !isFolder && <>{prettysize(item?.size)} <Text style={tailwind('font-bold')}>· </Text></>
+              }
+              Updated {
+                new Date(item?.updatedAt).toLocaleDateString('en-GB', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })
+              }
+            </Text>
+          </View>
+
+          <View>
+            <Text style={tailwind('my-8 text-center text-neutral-500 mx-4')}>{strings.modals.delete_modal.warning}</Text>
+          </View>
         </View>
 
         <View style={tailwind('flex-row justify-between')}>
@@ -67,19 +86,19 @@ function DeleteItemModal(props: Reducers) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+            style={tailwind('bg-red-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
             onPress={() => {
               handleDeleteSelectedItem();
               props.dispatch(layoutActions.closeDeleteModal())
             }}
           >
-            <Text style={tailwind('text-base font-bold text-white')}>{strings.modals.share_modal.share}</Text>
+            <Text style={tailwind('text-base font-bold text-white')}>{strings.modals.delete_modal.delete}</Text>
           </TouchableOpacity>
 
         </View>
 
       </View>
-    </Modal>
+    </Modal >
   );
 }
 

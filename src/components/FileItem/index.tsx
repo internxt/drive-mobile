@@ -13,6 +13,7 @@ import { downloadFile } from '../../services/download';
 import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../lib/fs';
 import { tailwind } from '../../helpers/designSystem';
 import FileSpinner from '../../../assets/images/widgets/file-spinner.svg'
+import prettysize from 'prettysize';
 
 interface FileItemProps extends Reducers {
   isFolder: boolean
@@ -209,9 +210,9 @@ function FileItem(props: FileItemProps) {
 
   return (
     <View style={tailwind('flex-row')}>
-      <View style={tailwind('flex-grow')}>
+      <View style={tailwind('flex-grow flex-shrink overflow-hidden')}>
         <TouchableOpacity
-          style={tailwind('flex-row items-center w-8/12')}
+          style={tailwind('flex-row flex-grow')}
           onLongPress={() => { handleLongPress(props, isSelected) }}
           onPress={async () => { await handleItemPressed(); }}>
           <View style={tailwind('m-4')}>
@@ -230,12 +231,12 @@ function FileItem(props: FileItemProps) {
             }
           </View>
 
-          <View style={tailwind('flex-grow')}>
+          <View style={tailwind('flex items-start justify-center flex-shrink flex-grow')}>
             <Text
               style={tailwind('text-sm text-header')}
               numberOfLines={1}
-              ellipsizeMode={'tail'}
-            >{props.item.name}</Text>
+              ellipsizeMode={'middle'}
+            >{props.item.name}{props.item.type ? '.' + props.item.type : ''}</Text>
 
             {
               showSpinner
@@ -245,7 +246,7 @@ function FileItem(props: FileItemProps) {
                 {(uploadProgress >= 0 ? uploadProgress.toFixed(0) : progress.toFixed(0)) || 0}{'%'}
               </Text>
             }
-            {!showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-paragraph')}>Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
+            {!showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-paragraph')}>{!props.isFolder && <>{prettysize(props.item.size)} <Text style={tailwind('font-bold')}>· </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
               day: 'numeric',
               month: 'short',
               year: 'numeric'
@@ -254,7 +255,7 @@ function FileItem(props: FileItemProps) {
         </TouchableOpacity>
       </View>
 
-      <View style={tailwind('items-center justify-center')}>
+      <View style={tailwind('items-center ml-4 px-1.5 justify-center')}>
         <TouchableOpacity
           style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
           onPress={() => {

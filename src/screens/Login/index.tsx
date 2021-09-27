@@ -24,6 +24,7 @@ function Login(props: LoginProps): JSX.Element {
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [showTwoFactor, setShowTwoFactor] = useState(false)
   const [showPasswordText, setShowPasswordText] = useState(false);
+  const [passwordFocus, setPasswordFocus] = useState(false);
 
   const handleOnPress = async () => {
     setIsLoading(true)
@@ -110,6 +111,8 @@ function Login(props: LoginProps): JSX.Element {
               style={tailwind('input pl-4')}
               value={password}
               onChangeText={value => setPassword(value)}
+              onFocus={() => setPasswordFocus(true)}
+              onBlur={() => setPasswordFocus(false)}
               placeholder={strings.components.inputs.password}
               placeholderTextColor="#666"
               secureTextEntry={!showPasswordText}
@@ -118,7 +121,8 @@ function Login(props: LoginProps): JSX.Element {
               textContentType="password"
               editable={!isLoading}
             />
-            <TouchableWithoutFeedback
+
+            {(!!password || passwordFocus) && <TouchableWithoutFeedback
               onPress={() => setShowPasswordText(!showPasswordText)}
             >
               <View style={tailwind('justify-center p-3')}>
@@ -133,6 +137,8 @@ function Login(props: LoginProps): JSX.Element {
                 }
               </View>
             </TouchableWithoutFeedback>
+
+            }
           </View>
         </View>
 

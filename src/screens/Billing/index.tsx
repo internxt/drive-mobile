@@ -124,7 +124,7 @@ function Billing(props: Reducers) {
     <View style={tailwind('flex-1 mx-4 justify-start')}>
 
       {/* Buttons inside this fragment does not work inside a separated component */}
-      <View style={tailwind('flex-row p-1 justify-between bg-neutral-20 rounded-xl')}>
+      <View style={tailwind('flex-row p-1 my-2 justify-between bg-neutral-20 rounded-xl')}>
         {PERIODS.map((tab, n) => {
           const isTabSelected = n === selectedTab
 
@@ -135,11 +135,17 @@ function Billing(props: Reducers) {
                 setSelectedProductIndex(n)
               }}>
               <View style={[
-                tailwind('p-3 items-center rounded-xl'),
+                tailwind('p-2 items-center rounded-xl'),
                 isTabSelected && tailwind('bg-white')]}>
                 <Text style={[
-                  tailwind('px-1 text-neutral-300'),
-                  isTabSelected && tailwind('text-neutral-700 font-bold')
+                  tailwind('px-1 text-neutral-100'),
+                  {
+                    fontFamily: 'NeueEinstellung-Regular'
+                  },
+                  isTabSelected && {
+                    fontFamily: 'NeueEinstellung-Medium'
+                  },
+                  isTabSelected && tailwind('text-neutral-700')
                 ]}>{tab.text}</Text>
               </View>
 
@@ -161,11 +167,11 @@ function Billing(props: Reducers) {
           <View style={tailwind('justify-center')}>
             <TouchableHighlight
               underlayColor="#5291ff"
-              style={tailwind('bg-blue-60 rounded-xl h-12 justify-center')}
+              style={tailwind('bg-blue-60 rounded-xl h-10 justify-center')}
               onPress={() => {
                 getLink(plan)
               }}>
-              <Text style={tailwind('text-base btn-label mx-3 text-xl font-bold')}>{plan.pricePerMonth.toFixed(2)}€ / month</Text>
+              <Text style={tailwind('btn-label mx-4 font-bold')}>{plan.pricePerMonth.toFixed(2)}€ / month</Text>
             </TouchableHighlight>
           </View>
         </View>

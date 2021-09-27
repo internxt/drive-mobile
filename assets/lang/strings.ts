@@ -166,8 +166,8 @@ const strings = new LocalizedStrings({
       "delete_modal": {
         "title": "Delete permanently?",
         "subtitle": "Please confirm you want to delete this item. This action can not be undone.",
-        "warning": "will be deleted, this action cannot be undone.",
-        "confirm_delete": "Delete permanently"
+        "warning": "This item will be deleted, this action cannot be undone.",
+        "delete": "Delete"
       },
       "out_of_space_modal": {
         "title": "Ran out of space",
@@ -344,8 +344,8 @@ const strings = new LocalizedStrings({
       "delete_modal": {
         "title": "¿Borrar completamente?",
         "subtitle": "Por favor, confirma que realmente quieres borrar este objeto. Esta acción no puede deshacerse.",
-        "warning": "será eliminado, esta acción no se puede deshacer.",
-        "confirm_delete": "Borrar"
+        "warning": "Este elemento será eliminado, esta acción no se puede deshacer.",
+        "delete": "Borrar"
       },
       "out_of_space_modal": {
         "title": "No tienes más espacio",

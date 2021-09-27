@@ -49,7 +49,6 @@ function RenameModal(props: Reducers) {
   return (
     <Modal
       isOpen={isOpen}
-      swipeArea={20}
       onClosed={() => {
         props.dispatch(layoutActions.closeRenameModal())
         setNewName('')

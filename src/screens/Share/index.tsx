@@ -6,8 +6,7 @@ import AppMenu from '../../components/AppMenu';
 import { WaveIndicator } from 'react-native-indicators';
 import { getShareList, IShare } from '../../services/shares';
 import FileItem from '../../components/FileItem';
-import { getColor, tailwind } from '../../helpers/designSystem';
-import * as Unicons from '@iconscout/react-native-unicons'
+import { tailwind } from '../../helpers/designSystem';
 
 function Share(props: Reducers): JSX.Element {
   const [loading, setLoading] = useState(true);
@@ -59,9 +58,6 @@ function Share(props: Reducers): JSX.Element {
               isFolder={false}
               subtitle={<View style={tailwind('flex flex-row items-center')}>
                 <Text style={tailwind('text-base text-sm text-blue-60')}>Left {item.views} times to share</Text>
-                <View style={tailwind('m-1 rounded-xl p-1 bg-blue-10')}>
-                  <Unicons.UilEye size={16} color={getColor('blue-60')} />
-                </View>
               </View>}
             />
           })}

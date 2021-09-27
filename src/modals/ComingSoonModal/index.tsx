@@ -18,7 +18,6 @@ const ComingSoonModal = (props: Reducers) => {
   return (
     <Modal
       isOpen={isOpen}
-      swipeArea={2}
       onClosed={() => {
         props.dispatch(layoutActions.closeComingSoonModal())
         setIsOpen(false)

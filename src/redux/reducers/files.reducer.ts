@@ -52,7 +52,7 @@ export interface FilesState {
   filesAlreadyUploaded: any[]
   folderContent: FolderContent
   rootFolderContent: any
-  focusedItem: IFile | IFolder | null
+  focusedItem: (IFile & IFolder) | null
   selectedItems: any[]
   sortType: string
   sortFunction: ArraySortFunction | null

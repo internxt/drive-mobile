@@ -15,6 +15,7 @@ import { setString } from 'expo-clipboard'
 import { notify } from '../../helpers/toast';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons'
+import prettysize from 'prettysize';
 
 function ShareFilesModal(props: Reducers) {
   const [isOpen, setIsOpen] = useState(props.layoutState.showShareModal)
@@ -92,8 +93,7 @@ function ShareFilesModal(props: Reducers) {
   return (
     <Modal
       position={'bottom'}
-      swipeArea={20}
-      style={tailwind('h-96 rounded-xl')}
+      style={tailwind('h-96 rounded-t-xl')}
       isOpen={isOpen}
       onClosed={async () => {
         props.dispatch(layoutActions.closeShareModal())
@@ -108,14 +108,19 @@ function ShareFilesModal(props: Reducers) {
     >
 
       <View style={tailwind('h-full rounded-xl')}>
-        <View style={tailwind('flex-row bg-white p-3 rounded-t-xl items-center justify-between')}>
+        <View style={tailwind('flex-row bg-white px-4 py-3 rounded-t-xl items-center justify-between border-b border-neutral-20')}>
 
-          <View style={tailwind('p-1 mr-2')}>
+          <View style={tailwind('mr-2')}>
             <FileIcon width={32} height={32} />
           </View>
 
           <View style={tailwind('flex-shrink w-full')}>
-            <Text numberOfLines={1}>{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
+            <Text numberOfLines={1} ellipsizeMode="middle">{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
+            <Text style={tailwind('text-xs text-neutral-100')}>{prettysize(selectedFile?.size)} <Text style={tailwind('font-bold')}>·</Text> Updated {new Date(selectedFile?.updatedAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric'
+            })}</Text>
           </View>
 
           <View>
@@ -128,10 +133,10 @@ function ShareFilesModal(props: Reducers) {
             </TouchableWithoutFeedback>
           </View>
         </View>
-        <View style={tailwind('bg-neutral-10 p-3 flex-grow justify-center rounded-b-xl')}>
+        <View style={tailwind('bg-neutral-10 p-3 flex-grow items-center justify-center rounded-b-xl')}>
           <Text style={tailwind('text-xl font-bold text-neutral-500 text-center')}>Share link open limit</Text>
 
-          <View style={tailwind('flex-row items-stretch justify-center my-5')}>
+          <View style={tailwind('flex-row items-stretch justify-center my-5 w-48')}>
             <TouchableHighlight
               underlayColor={getColor('blue-70')}
               disabled={inputValue === '1'}
@@ -180,6 +185,7 @@ function ShareFilesModal(props: Reducers) {
                       type: 'success',
                       text: 'Link copied'
                     })
+                    props.dispatch(layoutActions.closeShareModal())
                   }
                 }}
                 style={tailwind('flex-row items-center')}
@@ -192,23 +198,28 @@ function ShareFilesModal(props: Reducers) {
             </View>
           </View>
         </View>
-        <View style={tailwind('flex-row justify-between p-3')}>
+        <View style={tailwind('flex-row justify-between p-3 bg-neutral-10')}>
 
-          <TouchableOpacity
+          <TouchableHighlight
+            underlayColor={getColor('neutral-30')}
             style={tailwind('bg-neutral-20 rounded-md m-1 h-12 flex-grow items-center justify-center')}
             onPress={() => {
               props.dispatch(layoutActions.closeShareModal());
             }}
-            disabled={isLoading}>
+          >
             <Text style={tailwind('text-base font-bold text-neutral-300')}>{strings.generic.cancel}</Text>
-          </TouchableOpacity>
+          </TouchableHighlight>
 
-          <TouchableOpacity
-            style={tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
-            onPress={() => { shareFile(selectedFile) }}
+          <TouchableHighlight
+            underlayColor={getColor('blue-70')}
+            style={[tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center'), isLoading && tailwind('bg-blue-30')]}
+            onPress={() => {
+              shareFile(selectedFile)
+              props.dispatch(layoutActions.closeShareModal());
+            }}
             disabled={isLoading}>
             <Text style={tailwind('text-base font-bold text-white')}>{strings.modals.share_modal.share}</Text>
-          </TouchableOpacity>
+          </TouchableHighlight>
 
         </View>
 

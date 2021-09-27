@@ -39,6 +39,9 @@ function ChangePassword(props: Reducers) {
   const [newPasswordFocus, setNewPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
+  const isEmptyPassword = !newPassword;
+  const isEmptyConfirmPassword = !confirmPassword;
+
   return <View style={tailwind('bg-white h-full')}>
     <AppMenu
       title={'Password'}
@@ -65,19 +68,20 @@ function ChangePassword(props: Reducers) {
             onBlur={() => setNewPasswordFocus(false)}
           />
 
-          <TouchableWithoutFeedback
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <View style={tailwind('justify-center p-3')}>
-              {showPassword
-                ?
-                <Unicons.UilEyeSlash color={getColor('neutral-80')} />
-                :
-                <Unicons.UilEye color={getColor('neutral-80')} />
-
-              }
-            </View>
-          </TouchableWithoutFeedback>
+          {
+            (!isEmptyPassword || newPasswordFocus) && <TouchableWithoutFeedback
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <View style={tailwind('justify-center p-3')}>
+                {showPassword
+                  ?
+                  <Unicons.UilEyeSlash color={getColor('neutral-80')} />
+                  :
+                  <Unicons.UilEye color={getColor('neutral-80')} />
+                }
+              </View>
+            </TouchableWithoutFeedback>
+          }
 
         </View>
         <View style={[tailwind('input-wrapper my-2 items-stretch'), tailwind(confirmPassword === '' ? '' : (passwordConfirmed ? 'input-valid' : 'input-error'))]}>
@@ -93,7 +97,7 @@ function ChangePassword(props: Reducers) {
             onBlur={() => setConfirmPasswordFocus(false)}
           />
 
-          <TouchableWithoutFeedback
+          {(!isEmptyConfirmPassword || confirmPasswordFocus) && <TouchableWithoutFeedback
             onPress={() => setShowConfirmPassword(!showConfirmPassword)}
           >
             <View style={tailwind('justify-center p-3')}>
@@ -106,6 +110,7 @@ function ChangePassword(props: Reducers) {
               }
             </View>
           </TouchableWithoutFeedback>
+          }
 
         </View>
         <TouchableHighlight
@@ -113,7 +118,7 @@ function ChangePassword(props: Reducers) {
           underlayColor="#4585f5"
           onPress={handleOnPress}
           disabled={!activeButton || isLoading}>
-          <Text style={tailwind('text-base btn-label')}>{strings.screens.change_password.confirm}</Text>
+          <Text style={tailwind('text-base btn-label')}>{strings.screens.change_password.title}</Text>
         </TouchableHighlight>
       </View>
     </View>
