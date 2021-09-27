@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableHighlight, TextInput, Platform } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, TouchableHighlight, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
-import Separator from '../../components/Separator';
-import { tailwind } from '../../helpers/designSystem';
-import * as Unicons from '@iconscout/react-native-unicons';
+import { getColor, tailwind } from '../../helpers/designSystem';
 import strings from '../../../assets/lang/strings';
 import { rename, renameMeta } from './renameUtils';
-import { notify } from '../../helpers'
+import { FolderIcon, getFileTypeIcon, notify } from '../../helpers'
 
 function RenameModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
@@ -17,9 +15,11 @@ function RenameModal(props: Reducers) {
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(false)
 
+  const renameRed = useRef<TextInput>();
+
   const emptyName = newName === ''
 
-  const isFolder = props.filesState.focusedItem && !!props.filesState.focusedItem.parentId
+  const isFolder = props.filesState.focusedItem?.parentId
 
   const folder = isFolder && props.filesState.focusedItem
   const file = !isFolder && props.filesState.focusedItem
@@ -30,11 +30,12 @@ function RenameModal(props: Reducers) {
 
   const renameHandle = () => {
     setIsLoading(true);
-    const params: renameMeta = { ifFolder: isFolder, itemId: isFolder? folder.id : file.fileId, newName }
+    props.dispatch(layoutActions.closeRenameModal())
+    const params: renameMeta = { ifFolder: isFolder, itemId: isFolder ? folder.id : file.fileId, newName }
 
     rename(params).then(() => {
       props.dispatch(fileActions.getFolderContent(currentFolderId))
-      notify({ text: 'Rename successfully', type: 'success' });
+      notify({ text: 'Renamed successfully', type: 'success' });
       setNewName('');
     }).catch((err) => {
       notify({ text: err.message, type: 'error' });
@@ -46,6 +47,9 @@ function RenameModal(props: Reducers) {
     });
   }
 
+  const IconFile = getFileTypeIcon(props.filesState.focusedItem?.type);
+  const IconFolder = FolderIcon;
+
   return (
     <Modal
       isOpen={isOpen}
@@ -54,89 +58,70 @@ function RenameModal(props: Reducers) {
         setNewName('')
         setIsOpen(false)
       }}
+      onOpened={() => {
+        setNewName(props.filesState.focusedItem?.name)
+      }}
       position={'bottom'}
       entry={'bottom'}
       coverScreen={Platform.OS === 'android'}
-      style={styles.modalSettings}
+      style={tailwind('rounded-t-xl p-3 h-80')}
       backButtonClose={true}
     >
-      <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
+      <KeyboardAvoidingView behavior={'padding'} >
+        <View style={tailwind('h-full')}>
+          <View>
+            <View style={tailwind('h-1 bg-neutral-30 mt-1 w-16 self-center')}></View>
+            <View>
+              <Text style={tailwind('text-lg text-neutral-500 font-semibold my-7 text-center')}>{strings.generic.rename}</Text>
+            </View>
+          </View>
 
-      <View style={styles.alignCenter}>
-        <Text style={styles.modalTitle}>{strings.generic.rename} {props.filesState.focusedItem && props.filesState.focusedItem.name}</Text>
-      </View>
-      <Separator />
-      <View style={styles.container}>
-        <View style={[tailwind('input-wrapper'), styles.inputBox]}>
-          <TextInput
-            style={tailwind('input')}
-            value={newName}
-            onChangeText={value => setNewName(value)}
-            placeholder={'Insert new name'}
-            placeholderTextColor="#0F62FE"
-            maxLength={64}
-            autoCapitalize='words'
-            autoCompleteType='off'
-            key='name'
-            autoCorrect={false}
-          />
-          <Unicons.UilEdit
-            style={tailwind('input-icon')}
-            color={'#0F62FE'} />
+          <View style={tailwind('flex-grow justify-center mx-12')}>
+            <View style={tailwind('items-center')}>
+              {isFolder ? <IconFolder width={64} height={64} /> : <IconFile width={64} height={64} />}
+            </View>
+
+            <View style={tailwind('items-center pb-6')}>
+              <TextInput
+                style={tailwind('text-lg text-center text-neutral-600 border-b-2 border-neutral-40 pb-1')}
+                value={newName}
+                onChangeText={setNewName}
+                placeholderTextColor={getColor('neutral-500')}
+                autoCapitalize='words'
+                autoCompleteType='off'
+                key='name'
+                autoCorrect={false}
+              />
+            </View>
+          </View>
+
+          <View style={tailwind('flex-row justify-between')}>
+
+            <TouchableHighlight
+              underlayColor={getColor('neutral-30')}
+              style={tailwind('bg-neutral-20 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+              onPress={() => {
+                props.dispatch(fileActions.deselectAll())
+                props.dispatch(layoutActions.closeRenameModal())
+              }}
+              disabled={isLoading}>
+              <Text style={tailwind('text-base font-bold text-neutral-300')}>{strings.generic.cancel}</Text>
+            </TouchableHighlight>
+
+            <TouchableHighlight
+              underlayColor={getColor('blue-70')}
+              style={tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+              onPress={renameHandle}
+              disabled={isLoading}>
+              <Text style={tailwind('text-base font-bold text-white')}>{strings.generic.rename}</Text>
+            </TouchableHighlight>
+
+          </View>
         </View>
-        <TouchableHighlight
-          style={[tailwind('btn btn-primary my-3'), emptyName || isLoading ? tailwind('opacity-50') : {}]}
-          underlayColor="#4585f5"
-          onPress={renameHandle}
-          disabled={emptyName || isLoading}>
-          <Text style={tailwind('text-base btn-label')}>{strings.generic.rename}</Text>
-        </TouchableHighlight>
-      </View>
-
-      <Separator />
-
-      <View>
-        <TouchableHighlight
-          underlayColor={'#eee'}
-          style={tailwind('items-center')}
-          onPress={() => {
-            props.dispatch(fileActions.deselectAll())
-            props.dispatch(layoutActions.closeRenameModal())
-          }}>
-          <Text style={tailwind('text-red-60')}>{strings.generic.cancel}</Text>
-        </TouchableHighlight>
-      </View>
-
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  modalSettings: {
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    height: 350
-  },
-  modalTitle: {
-    color: '#42526E',
-    fontFamily: 'NeueEinstellung-Regular',
-    fontSize: 16,
-    marginTop: 20,
-    marginBottom: 10,
-    fontWeight: 'bold'
-  },
-  alignCenter: { alignItems: 'center' },
-  container: {
-    paddingHorizontal: 40,
-    paddingVertical: 10
-  },
-  inputBox: {
-    borderTopColor: '#0F62FE',
-    borderRightColor: '#0F62FE',
-    borderBottomColor: '#0F62FE',
-    borderLeftColor: '#0F62FE'
-  }
-})
 
 const mapStateToProps = (state: any) => {
   return { ...state }

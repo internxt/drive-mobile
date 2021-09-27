@@ -71,7 +71,7 @@ function CreateFolderModal(props: Reducers) {
 
             <View style={tailwind('items-center pb-6')}>
               <TextInput
-                style={tailwind('text-lg text-neutral-600 border-b border-neutral-40 pb-0.5 mx-12')}
+                style={tailwind('text-lg text-center text-neutral-600 border-b-2 border-neutral-40 pb-1 mx-12')}
                 value={folderName}
                 onChangeText={value => setFolderName(value)}
                 placeholder={'Folder name'}
