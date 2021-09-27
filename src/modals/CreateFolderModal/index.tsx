@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { createFolder } from './CreateFolderUtils'
 import { connect } from 'react-redux';
@@ -40,7 +40,6 @@ function CreateFolderModal(props: Reducers) {
   return (
     <Modal
       isOpen={isOpen}
-      swipeArea={20}
       onClosed={() => {
         setFolderName('');
         props.dispatch(layoutActions.closeCreateFolderModal())
@@ -48,52 +47,54 @@ function CreateFolderModal(props: Reducers) {
       position={'bottom'}
       entry={'bottom'}
       coverScreen={Platform.OS === 'android'}
-      style={tailwind('rounded-xl w-11/12 p-3 h-2/5')}
+      style={tailwind('rounded-xl p-3 h-80')}
       backButtonClose={true}
     >
-      <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
-      <View>
-        <Text style={tailwind('text-lg text-neutral-500 font-semibold my-7 text-center')}>{strings.screens.create_folder.title}</Text>
-      </View>
+      <KeyboardAvoidingView behavior={'position'} >
+        <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
+        <View>
+          <Text style={tailwind('text-lg text-neutral-500 font-semibold my-7 text-center')}>{strings.screens.create_folder.title}</Text>
+        </View>
 
-      <View style={tailwind('items-center')}>
-        <FolderIcon width={64} height={64} />
-      </View>
+        <View style={tailwind('items-center')}>
+          <FolderIcon width={64} height={64} />
+        </View>
 
-      <View style={tailwind('items-center pb-6')}>
-        <TextInput
-          style={tailwind('text-lg text-neutral-600 border-b border-neutral-40')}
-          value={folderName}
-          onChangeText={value => setFolderName(value)}
-          placeholder={'Folder name'}
-          placeholderTextColor={getColor('neutral-500')}
-          maxLength={64}
-          autoCapitalize='words'
-          autoCompleteType='off'
-          key='name'
-          autoCorrect={false}
-        />
-      </View>
+        <View style={tailwind('items-center pb-6 flex-grow')}>
+          <TextInput
+            style={tailwind('text-lg text-neutral-600 border-b border-neutral-40 pb-0.5')}
+            value={folderName}
+            onChangeText={value => setFolderName(value)}
+            placeholder={'Folder name'}
+            placeholderTextColor={getColor('neutral-500')}
+            maxLength={64}
+            autoCapitalize='words'
+            autoCompleteType='off'
+            key='name'
+            autoCorrect={false}
+          />
+        </View>
 
-      <View style={tailwind('flex-row justify-between')}>
+        <View style={tailwind('flex-row justify-between')}>
 
-        <TouchableOpacity
-          style={tailwind('bg-neutral-20 rounded-md m-1 h-12 flex-grow items-center justify-center')}
-          onPress={() => {
-            props.dispatch(layoutActions.closeCreateFolderModal());
-          }}
-          disabled={isLoading}>
-          <Text style={tailwind('text-base font-bold text-neutral-300')}>{strings.generic.cancel}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={tailwind('bg-neutral-20 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+            onPress={() => {
+              props.dispatch(layoutActions.closeCreateFolderModal());
+            }}
+            disabled={isLoading}>
+            <Text style={tailwind('text-base font-bold text-neutral-300')}>{strings.generic.cancel}</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
-          onPress={createHandle}
-          disabled={isLoading}>
-          <Text style={tailwind('text-base font-bold text-white')}>{strings.screens.create_folder.confirm}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+            onPress={createHandle}
+            disabled={isLoading}>
+            <Text style={tailwind('text-base font-bold text-white')}>{strings.screens.create_folder.confirm}</Text>
+          </TouchableOpacity>
 
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

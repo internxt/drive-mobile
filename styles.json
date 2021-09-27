@@ -39,8 +39,7 @@
 		"alignItems": "center"
 	},
 	"input": {
-		"flexGrow": 1,
-		"marginLeft": 10
+		"flexGrow": 1
 	},
 	"input-icon": {
 		"marginRight": 10,

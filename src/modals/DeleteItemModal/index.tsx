@@ -13,6 +13,8 @@ function DeleteItemModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
   const [isOpen, setIsOpen] = useState(props.layoutState.showDeleteModal)
 
+  const item = props.filesState.focusedItem
+
   useEffect(() => {
     setIsOpen(props.layoutState.showDeleteModal)
   }, [props.layoutState.showDeleteModal])
@@ -21,14 +23,13 @@ function DeleteItemModal(props: Reducers) {
     props.dispatch(fileActions.deleteItems([props.filesState.focusedItem], currentFolderId))
   }
 
-  const isFolder = !!props.filesState.focusedItem.parentId
+  const isFolder = item && !!item.parentId
 
-  const FileIcon = getFileTypeIcon(props.filesState.focusedItem.type);
+  const FileIcon = getFileTypeIcon(item?.type);
 
   return (
     <Modal
       isOpen={isOpen}
-      swipeArea={2}
       coverScreen={Platform.OS === 'android'}
       onClosed={() => {
         props.dispatch(layoutActions.closeDeleteModal())
@@ -47,11 +48,11 @@ function DeleteItemModal(props: Reducers) {
 
         <View style={tailwind('items-center my-3')}>
           {isFolder ? <FolderIcon width={64} height={64} /> : <FileIcon width={64} height={64} />}
-          <Text style={tailwind('my-3')}>{props.filesState.focusedItem.name}</Text>
+          <Text style={tailwind('my-3')}>{item && item.name}</Text>
         </View>
 
         <View>
-          <Text style={tailwind('my-8 text-center text-neutral-500 mx-4')}>{props.filesState.focusedItem.name} {strings.modals.delete_modal.warning}</Text>
+          <Text style={tailwind('my-8 text-center text-neutral-500 mx-4')}>{item && item.name} {strings.modals.delete_modal.warning}</Text>
         </View>
 
         <View style={tailwind('flex-row justify-between')}>

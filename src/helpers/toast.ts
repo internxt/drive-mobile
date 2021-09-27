@@ -8,10 +8,10 @@ export interface custumToastParam {
 export function notify(params: custumToastParam) {
   Toast.show({
     type: params.type,
-    position: 'bottom',
+    position: 'top',
     text1: params.text,
     visibilityTime: 5000,
     autoHide: true,
-    bottomOffset: 100
+    topOffset: 48
   })
 }

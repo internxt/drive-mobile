@@ -3,7 +3,7 @@ import { View, Text, Platform, Linking, Alert, SafeAreaView } from 'react-native
 import { Provider } from 'react-redux'
 import { store } from './src/store'
 import AppNavigator from './src/AppNavigator';
-import { analyticsSetup, loadEnvVars, loadFonts, trackStackScreen } from './src/helpers'
+import { analyticsSetup, forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate, trackStackScreen } from './src/helpers'
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { fileActions } from './src/redux/actions';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
@@ -52,13 +52,11 @@ export default function App(): JSX.Element {
     }
   }
 
-  /*
   shouldForceUpdate().then((shouldForce) => {
     if (shouldForce && process.env.NODE_ENV === 'production') {
       forceCheckUpdates();
     }
   }).catch(() => { });
-  */
 
   // useEffect to receive shared file
   useEffect(() => {
@@ -129,6 +127,7 @@ export default function App(): JSX.Element {
           style={tailwind('flex-1')}>
 
           <AppNavigator />
+
         </SafeAreaView>
         : <SafeAreaView style={tailwind('items-center flex-1 justify-center')}>
           {loadError ? <Text>{loadError}</Text> : null}

@@ -16,7 +16,6 @@ import strings from '../../../assets/lang/strings';
 import InternxtLogo from '../../../assets/logo.svg'
 import globalStyle from '../../styles/global.style';
 import { tailwind } from '../../helpers/designSystem';
-import * as Unicons from '@iconscout/react-native-unicons'
 import { Reducers } from '../../redux/reducers/reducers';
 
 function Forgot(props: Reducers): JSX.Element {
@@ -69,9 +68,9 @@ function Forgot(props: Reducers): JSX.Element {
                 {strings.screens.forgot_password.subtitle_2}
               </Text>
 
-              <View style={tailwind('input-wrapper')}>
+              <View style={tailwind('input-wrapper items-stretch')}>
                 <TextInput
-                  style={tailwind('input')}
+                  style={tailwind('input pl-4')}
                   value={email}
                   onChangeText={(value) => setIsEmail(value)}
                   placeholder={strings.components.inputs.email}
@@ -80,18 +79,15 @@ function Forgot(props: Reducers): JSX.Element {
                   keyboardType="email-address"
                   textContentType="emailAddress"
                 />
-                <Unicons.UilEnvelope
-                  color={'#AAA'}
-                  style={tailwind('input-icon')} />
               </View>
 
               <View style={globalStyle.buttonInputStyle.wrapper}>
                 <TouchableHighlight
-                  style={tailwind('btn btn-primary')}
+                  style={tailwind('btn btn-primary bg-red-60')}
                   onPress={() => sendDeactivationEmail()}
                 >
                   <Text style={tailwind('text-base btn-label')}>
-                    {strings.components.buttons.continue}
+                    {strings.screens.change_password.confirm}
                   </Text>
                 </TouchableHighlight>
               </View>

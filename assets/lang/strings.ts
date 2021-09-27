@@ -16,6 +16,7 @@ const strings = new LocalizedStrings({
     },
     "screens": {
       "change_password": {
+        "confirm": "Delete account",
         "title": "Change password",
         "warning": "Remember that if you change your password, you will be signed out in all your devices. You will need these credentials for logining in again.",
       },
@@ -193,6 +194,7 @@ const strings = new LocalizedStrings({
     },
     "screens": {
       "change_password": {
+        "confirm": "Borrar cuenta",
         "title": "Cambiar contraseña",
         "warning": "Recuerda que si cambias tu contraseña, se cerrará sesión en todos tus dispositivos. Necesitarás la nueva contraseña para acceder otra vez."
       },

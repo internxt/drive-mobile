@@ -31,7 +31,6 @@ function FileDetailsModal(props: FileDetailsProps) {
     {
       <Modal
         position={'bottom'}
-        swipeArea={20}
         style={[styles.modal, styles.modalSettingsFile]}
         coverScreen={true}
         isOpen={props.showItemModal}

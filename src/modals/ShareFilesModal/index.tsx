@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, { useEffect, useState } from 'react';
-import { View, Text, Share, TouchableOpacity, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
+import { View, Text, Share, TouchableOpacity, TouchableWithoutFeedback, TouchableHighlight, ActivityIndicator } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
 import { layoutActions } from '../../redux/actions';
@@ -91,9 +91,9 @@ function ShareFilesModal(props: Reducers) {
 
   return (
     <Modal
-      position={'center'}
+      position={'bottom'}
       swipeArea={20}
-      style={tailwind('w-11/12 h-3/6 rounded-xl')}
+      style={tailwind('h-96 rounded-xl')}
       isOpen={isOpen}
       onClosed={async () => {
         props.dispatch(layoutActions.closeShareModal())
@@ -108,14 +108,13 @@ function ShareFilesModal(props: Reducers) {
     >
 
       <View style={tailwind('h-full rounded-xl')}>
-        <View
-          style={tailwind('flex-row bg-white p-3 rounded-t-xl items-center justify-between')}>
+        <View style={tailwind('flex-row bg-white p-3 rounded-t-xl items-center justify-between')}>
 
-          <View style={tailwind('p-1')}>
-            <FileIcon width={30} height={30} />
+          <View style={tailwind('p-1 mr-2')}>
+            <FileIcon width={32} height={32} />
           </View>
 
-          <View style={tailwind('flex-shrink')}>
+          <View style={tailwind('flex-shrink w-full')}>
             <Text numberOfLines={1}>{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
           </View>
 
@@ -123,18 +122,18 @@ function ShareFilesModal(props: Reducers) {
             <TouchableWithoutFeedback onPress={() => {
               props.dispatch(layoutActions.closeShareModal())
             }}>
-              <View style={tailwind('bg-neutral-20 rounded-full p-1')}>
+              <View style={tailwind('bg-neutral-20 rounded-full p-1 ml-6')}>
                 <Unicons.UilTimes color={'#B3BAC5'} size={25} />
               </View>
             </TouchableWithoutFeedback>
           </View>
         </View>
-        <View style={tailwind('bg-neutral-10 p-3 flex-grow justify-between rounded-b-xl')}>
+        <View style={tailwind('bg-neutral-10 p-3 flex-grow justify-center rounded-b-xl')}>
           <Text style={tailwind('text-xl font-bold text-neutral-500 text-center')}>Share link open limit</Text>
 
           <View style={tailwind('flex-row items-stretch justify-center my-5')}>
             <TouchableHighlight
-              underlayColor="#AAAAFF"
+              underlayColor={getColor('blue-70')}
               disabled={inputValue === '1'}
               onPress={() => {
                 const newValue = Math.max(parseInt(inputValue, 10) - 1, 1) || 1;
@@ -150,7 +149,7 @@ function ShareFilesModal(props: Reducers) {
               </View>
             </View>
             <TouchableHighlight
-              underlayColor="#AAAAFF"
+              underlayColor={getColor('blue-70')}
               disabled={inputValue === '100'}
               onPress={() => {
                 const newValue = Math.min(parseInt(inputValue, 10) + 1, 100) || 1;
@@ -164,11 +163,11 @@ function ShareFilesModal(props: Reducers) {
 
           <View style={[tailwind('items-center'), {
             shadowColor: '#000',
-            shadowOpacity: 0.25,
-            shadowRadius: 3,
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
             shadowOffset: {
-              height: 3,
-              width: 3
+              height: 4,
+              width: 0
             }
           }, isLoading && tailwind('opacity-50')]}>
             <View style={tailwind('bg-white rounded-xl p-2')}>
@@ -185,32 +184,34 @@ function ShareFilesModal(props: Reducers) {
                 }}
                 style={tailwind('flex-row items-center')}
               >
-                <Text style={tailwind('text-xl text-blue-60 font-bold mx-3')}>Copy share link</Text>
-                <Unicons.UilCopy color={getColor('blue-60')} />
+                <Text style={[tailwind('text-xl font-medium mx-3'), isLoading ? tailwind('text-neutral-80') : tailwind('text-blue-60')]}>
+                  {isLoading ? 'Generating share link' : 'Copy share link'}
+                </Text>
+                {isLoading ? <ActivityIndicator /> : <Unicons.UilCopy color={getColor('blue-60')} />}
               </TouchableOpacity>
             </View>
           </View>
-
-          <View style={tailwind('flex-row justify-between')}>
-
-            <TouchableOpacity
-              style={tailwind('bg-neutral-20 rounded-md m-1 h-12 flex-grow items-center justify-center')}
-              onPress={() => {
-                props.dispatch(layoutActions.closeShareModal());
-              }}
-              disabled={isLoading}>
-              <Text style={tailwind('text-base font-bold text-neutral-300')}>{strings.generic.cancel}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
-              onPress={() => { shareFile(selectedFile) }}
-              disabled={isLoading}>
-              <Text style={tailwind('text-base font-bold text-white')}>{strings.modals.share_modal.share}</Text>
-            </TouchableOpacity>
-
-          </View>
         </View>
+        <View style={tailwind('flex-row justify-between p-3')}>
+
+          <TouchableOpacity
+            style={tailwind('bg-neutral-20 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+            onPress={() => {
+              props.dispatch(layoutActions.closeShareModal());
+            }}
+            disabled={isLoading}>
+            <Text style={tailwind('text-base font-bold text-neutral-300')}>{strings.generic.cancel}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+            onPress={() => { shareFile(selectedFile) }}
+            disabled={isLoading}>
+            <Text style={tailwind('text-base font-bold text-white')}>{strings.modals.share_modal.share}</Text>
+          </TouchableOpacity>
+
+        </View>
+
       </View>
     </Modal>
   );

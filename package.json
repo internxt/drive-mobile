@@ -3,6 +3,7 @@
     "start": "react-native start",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
+    "tw": "npx create-tailwind-rn",
     "web": "expo start --web",
     "link": "react-native link",
     "eject": "expo eject",

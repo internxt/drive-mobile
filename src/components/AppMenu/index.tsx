@@ -1,5 +1,5 @@
-import React, { Fragment } from 'react'
-import { View, StyleSheet, Text, TouchableWithoutFeedback } from 'react-native'
+import React from 'react'
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
 import * as Unicons from '@iconscout/react-native-unicons';
@@ -22,75 +22,48 @@ function AppMenu(props: AppMenuProps) {
   const parentFolderId = props.filesState.folderContent?.parentId;
   const backButtonEnabled = props.layoutState.backButtonEnabled;
 
-  return <View style={styles.container}>
-    <Fragment>
-      <View style={styles.buttonContainer}>
-        <View style={styles.commonButtons}>
-          <View style={styles.w50}>
-            <TouchableWithoutFeedback disabled={!backButtonEnabled} onPress={() => {
-              if (props.onBackPress) {
-                return props.onBackPress();
-              }
-              props.dispatch(fileActions.goBack(parentFolderId));
-            }}>
-              <Unicons.UilArrowLeft color={parentFolderId || props.onBackPress ? '#0F62FE' : '#EBECF0'} size={32} />
-            </TouchableWithoutFeedback>
-          </View>
-          <View style={styles.fGrow}>
-            <Text style={styles.storageText}>{props.title}</Text>
-          </View>
-          <View style={[styles.w50, tailwind('items-center')]}>
-            {!props.hideSearch && <TouchableWithoutFeedback onPress={() => {
-              props.dispatch(layoutActions.openSearch())
-            }}>
-              <Unicons.UilSearch color='#0F62FE' size={32} />
-            </TouchableWithoutFeedback>}
-          </View>
-          <View>
-            {props.hideOptions === false &&
-              <TouchableWithoutFeedback
-                onPress={() => {
-                  props.dispatch(layoutActions.openSettings());
-                }}>
-                <Unicons.UilEllipsisV color='#0F62FE' size={32} />
-              </TouchableWithoutFeedback>}
-          </View>
-        </View>
-      </View>
-    </Fragment>
+  return <View style={tailwind('m-3 flex-row')}>
+    <View style={tailwind('w-16')}>
+      <TouchableOpacity
+        disabled={!backButtonEnabled}
+        onPress={() => {
+          if (props.onBackPress) {
+            return props.onBackPress();
+          }
+          props.dispatch(fileActions.goBack(parentFolderId?.toString()));
+        }}>
+        <Unicons.UilAngleLeft color={parentFolderId || props.onBackPress ? '#0F62FE' : '#EBECF0'} size={32} />
+      </TouchableOpacity>
+    </View>
+    <View style={tailwind('flex-grow')}>
+      <Text style={styles.storageText}>{props.title}</Text>
+    </View>
+    <View style={tailwind('items-center w-16')}>
+      {!props.hideSearch && <TouchableOpacity onPress={() => {
+        props.dispatch(layoutActions.openSearch())
+      }}>
+        <Unicons.UilSearch color='#0F62FE' size={32} />
+      </TouchableOpacity>}
+    </View>
+    <View>
+      {props.hideOptions === false &&
+        <TouchableOpacity
+          onPress={() => {
+            props.dispatch(layoutActions.openSettings());
+          }}>
+          <Unicons.UilEllipsisV color='#0F62FE' size={32} />
+        </TouchableOpacity>}
+    </View>
   </View>
 }
 
 const styles = StyleSheet.create({
-  buttonContainer: {
-    flexDirection: 'row',
-    flex: 1,
-    justifyContent: 'space-between',
-    marginLeft: 17,
-    marginRight: 17,
-    marginTop: 10,
-    marginBottom: 10
-  },
-  commonButtons: {
-    flexDirection: 'row',
-    flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'space-between'
-  },
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginTop: 10,
-    marginBottom: 10
-  },
   storageText: {
     fontFamily: 'NeueEinstellung-SemiBold',
     fontSize: 24,
     color: '#42526E',
     textAlign: 'center'
-  },
-  w50: { width: 50 },
-  fGrow: { flexGrow: 1 }
+  }
 });
 
 const mapStateToProps = (state: any) => ({ ...state });

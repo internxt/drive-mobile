@@ -20,7 +20,7 @@ interface FileItemProps extends Reducers {
   isLoading?: boolean
   nameEncrypted?: boolean
   selectable?: boolean
-  subtitle: JSX.Element
+  subtitle?: JSX.Element
 }
 
 async function handleLongPress(props: FileItemProps, isSelected: boolean) {
@@ -241,7 +241,7 @@ function FileItem(props: FileItemProps) {
               showSpinner
               && <Text style={tailwind('text-xs text-paragraph')}>
                 {uploadProgress >= 0 ? 'Uploading ' : ''}
-                {progress >= 0 && 'Downloading '}
+                {progress === 0 ? 'Fetching file ' : (progress >= 0 && 'Downloading ')}
                 {(uploadProgress >= 0 ? uploadProgress.toFixed(0) : progress.toFixed(0)) || 0}{'%'}
               </Text>
             }

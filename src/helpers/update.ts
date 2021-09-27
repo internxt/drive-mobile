@@ -40,7 +40,6 @@ export function setUpdatesChecked(): Promise<void> {
 }
 
 export async function forceCheckUpdates(): Promise<void> {
-  return;
   try {
     const checkUpdate = await Updates.checkForUpdateAsync();
 

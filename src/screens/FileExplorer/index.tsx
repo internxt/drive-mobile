@@ -11,6 +11,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 import { notify } from '../../helpers';
 import SearchBox from '../../components/SearchBox';
 import { WaveIndicator } from 'react-native-indicators';
+import { tailwind } from '../../helpers/designSystem';
 
 function FileExplorer(props: Reducers): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
@@ -218,12 +219,12 @@ function FileExplorer(props: Reducers): JSX.Element {
   }
 
   return <View style={styles.container}>
-    <AppMenu title="Storage" />
+    <AppMenu title="Drive" />
     {props.layoutState.searchActive && <SearchBox />}
 
     {
       props.filesState.loading && !props.filesState.isUploading ?
-        <View style={styles.activityIndicator}>
+        <View style={tailwind('h-full')}>
           <WaveIndicator color="#5291ff" size={80} />
         </View>
         :
@@ -239,9 +240,6 @@ const mapStateToProps = (state: any) => {
 export default connect(mapStateToProps)(FileExplorer)
 
 const styles = StyleSheet.create({
-  activityIndicator: {
-    flex: 1
-  },
   container: {
     backgroundColor: '#fff',
     flex: 1,

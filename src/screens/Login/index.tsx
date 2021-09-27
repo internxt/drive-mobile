@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Alert, TextInput, TouchableHighlight } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Alert, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../helpers';
@@ -9,7 +9,7 @@ import { userActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
 import { validate2FA, apiLogin } from './access';
 import InternxtLogo from '../../../assets/logo.svg'
-import { tailwind } from '../../helpers/designSystem';
+import { getColor, tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons'
 import VersionUpdate from '../../components/VersionUpdate';
 
@@ -88,9 +88,9 @@ function Login(props: LoginProps): JSX.Element {
         </View>
 
         <View style={showTwoFactor ? tailwind('hidden') : tailwind('flex')}>
-          <View style={tailwind('input-wrapper my-2')}>
+          <View style={tailwind('input-wrapper my-2 items-stretch')}>
             <TextInput
-              style={tailwind('input')}
+              style={tailwind('input pl-4')}
               value={email}
               onChangeText={value => setEmail(value)}
               placeholder={strings.components.inputs.email}
@@ -103,15 +103,11 @@ function Login(props: LoginProps): JSX.Element {
               textContentType="emailAddress"
               editable={!isLoading}
             />
-            <View style={tailwind('p-3')}>
-              <Unicons.UilEnvelope
-                color="#7A869A" />
-            </View>
           </View>
 
-          <View style={tailwind('input-wrapper my-2')}>
+          <View style={tailwind('input-wrapper my-2 items-stretch')}>
             <TextInput
-              style={tailwind('input')}
+              style={tailwind('input pl-4')}
               value={password}
               onChangeText={value => setPassword(value)}
               placeholder={strings.components.inputs.password}
@@ -122,25 +118,28 @@ function Login(props: LoginProps): JSX.Element {
               textContentType="password"
               editable={!isLoading}
             />
-            <TouchableHighlight
+            <TouchableWithoutFeedback
               onPress={() => setShowPasswordText(!showPasswordText)}
-              underlayColor={'#fff'}
-              style={tailwind('p-3')}
             >
-              {showPasswordText
-                ?
-                <Unicons.UilEye color="#7A869A" />
-                :
-                <Unicons.UilEyeSlash color="#7A869A" />
-              }
-            </TouchableHighlight>
+              <View style={tailwind('justify-center p-3')}>
+
+                {showPasswordText
+                  ?
+                  <Unicons.UilEyeSlash color={getColor('neutral-80')} />
+
+                  :
+                  <Unicons.UilEye color={getColor('neutral-80')} />
+
+                }
+              </View>
+            </TouchableWithoutFeedback>
           </View>
         </View>
 
         <View style={showTwoFactor ? tailwind('') : tailwind('hidden')}>
-          <View style={[tailwind('input-wrapper my-2'), validate2FA(twoFactorCode) ? {} : tailwind('border-red-50')]}>
+          <View style={[tailwind('input-wrapper my-2 items-stretch'), validate2FA(twoFactorCode) ? {} : tailwind('border-red-50')]}>
             <TextInput
-              style={tailwind('input')}
+              style={tailwind('input pl-4')}
               value={twoFactorCode}
               onChangeText={value => setTwoFactorCode(value)}
               placeholder="Two-factor code"

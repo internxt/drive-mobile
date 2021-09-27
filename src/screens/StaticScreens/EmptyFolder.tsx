@@ -10,7 +10,7 @@ interface EmptyFolderProps extends Reducers {
 }
 
 export function EmptyFolder(props: EmptyFolderProps): JSX.Element {
-  return <View style={tailwind('flex items-center opacity-50')}>
+  return <View style={tailwind('flex items-center opacity-50 h-full justify-center')}>
     {props.isRoot ?
       <>
         <EmptyDriveImage width={150} height={150} />

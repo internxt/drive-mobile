@@ -1014,7 +1014,6 @@ module.exports = {
           fontSize: 16
         },
         'text-base-color': {
-          fontFamily: theme('fontFamily.NeueEinstellung.Regular'),
           color: '#5E6C84'
         },
         'input-wrapper': {
@@ -1026,8 +1025,7 @@ module.exports = {
           alignItems: 'center'
         },
         input: {
-          flexGrow: 1,
-          marginLeft: 10
+          flexGrow: 1
         },
         'input-icon': {
           marginRight: 10,

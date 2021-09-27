@@ -16,7 +16,7 @@ import InternxtLogo from '../../../assets/logo.svg'
 import globalStyles from '../../styles/global.style';
 import analytics from '../../helpers/lytics';
 import * as Unicons from '@iconscout/react-native-unicons';
-import { tailwind } from '../../helpers/designSystem';
+import { getColor, tailwind } from '../../helpers/designSystem';
 import { Reducers } from '../../redux/reducers/reducers';
 
 function Register(props: Reducers): JSX.Element {
@@ -142,9 +142,9 @@ function Register(props: Reducers): JSX.Element {
             </View>
 
             <View>
-              <View style={[tailwind('input-wrapper my-2'), isValidFirstName ? tailwind('input-valid') : {}]}>
+              <View style={[tailwind('input-wrapper my-2 items-stretch'), isValidFirstName ? tailwind('input-valid') : {}]}>
                 <TextInput
-                  style={tailwind('input')}
+                  style={tailwind('input pl-4')}
                   value={firstName}
                   onChangeText={value => setFirstName(value)}
                   placeholder={strings.components.inputs.first_name}
@@ -157,14 +157,11 @@ function Register(props: Reducers): JSX.Element {
                   onFocus={() => setFirstNameFocus(true)}
                   onBlur={() => setFirstNameFocus(false)}
                 />
-                <Unicons.UilUser
-                  style={tailwind('input-icon')}
-                  color={isValidFirstName ? '#42BE65' : '#7A869A'} />
               </View>
 
-              <View style={[tailwind('input-wrapper my-2'), isValidLastName ? tailwind('input-valid') : {}]}>
+              <View style={[tailwind('input-wrapper my-2 items-stretch'), isValidLastName ? tailwind('input-valid') : {}]}>
                 <TextInput
-                  style={tailwind('input')}
+                  style={tailwind('input pl-4')}
                   value={lastName}
                   onChangeText={value => setLastName(value)}
                   placeholder={strings.components.inputs.last_name}
@@ -177,14 +174,11 @@ function Register(props: Reducers): JSX.Element {
                   onFocus={() => setLastNameFocus(true)}
                   onBlur={() => setLastNameFocus(false)}
                 />
-                <Unicons.UilUser
-                  style={tailwind('input-icon')}
-                  color={isValidLastName ? '#42BE65' : '#7A869A'} />
               </View>
 
-              <View style={[tailwind('input-wrapper my-2'), isEmptyEmail ? {} : tailwind(isValidEmail ? 'input-valid' : 'input-error')]}>
+              <View style={[tailwind('input-wrapper my-2 items-stretch'), isEmptyEmail ? {} : tailwind(isValidEmail ? 'input-valid' : 'input-error')]}>
                 <TextInput
-                  style={tailwind('input')}
+                  style={tailwind('input pl-4')}
                   value={email}
                   onChangeText={value => setEmail(value)}
                   placeholder={strings.components.inputs.email}
@@ -199,16 +193,13 @@ function Register(props: Reducers): JSX.Element {
                   onFocus={() => setEmailFocus(true)}
                   onBlur={() => setEmailFocus(false)}
                 />
-                <Unicons.UilEnvelope
-                  style={tailwind('input-icon')}
-                  color={isValidEmail && !isEmptyEmail ? '#42BE65' : '#7A869A'} />
               </View>
             </View>
 
             <View>
-              <View style={[tailwind('input-wrapper my-2'), isEmptyPassword ? {} : tailwind(isValidPassword ? 'input-valid' : 'input-error')]}>
+              <View style={[tailwind('input-wrapper my-2 items-stretch'), isEmptyPassword ? {} : tailwind(isValidPassword ? 'input-valid' : 'input-error')]}>
                 <TextInput
-                  style={tailwind('input')}
+                  style={tailwind('input pl-4')}
                   value={password}
                   onChangeText={setPassword}
                   placeholder={strings.components.inputs.password}
@@ -222,14 +213,15 @@ function Register(props: Reducers): JSX.Element {
                   onFocus={() => setPasswordFocus(true)}
                   onBlur={() => setPasswordFocus(false)}
                 />
-                <Unicons.UilEye
-                  style={tailwind('input-icon hidden')}
-                  color={isValidPassword || isValidPassword || passwordFocus ? '#42BE65' : '#7A869A'} />
+                <View style={[tailwind('justify-center p-3'), (!passwordFocus && isEmptyPassword) && tailwind('hidden')]}>
+                  <Unicons.UilEye
+                    color={getColor('neutral-80')} />
+                </View>
               </View>
 
-              <View style={[tailwind('input-wrapper my-2'), isEmptyConfirmedPassword ? {} : tailwind(isValidConfirmedPassword ? 'input-valid' : 'input-error')]}>
+              <View style={[tailwind('input-wrapper my-2 items-stretch'), isEmptyConfirmedPassword ? {} : tailwind(isValidConfirmedPassword ? 'input-valid' : 'input-error')]}>
                 <TextInput
-                  style={tailwind('input')}
+                  style={tailwind('input pl-4')}
                   value={confirmPassword}
                   onChangeText={value => setConfirmPassword(value)}
                   placeholder={strings.components.inputs.confirm_password}
@@ -240,9 +232,11 @@ function Register(props: Reducers): JSX.Element {
                   onFocus={() => setConfirmPasswordFocus(true)}
                   onBlur={() => setConfirmPasswordFocus(false)}
                 />
-                <Unicons.UilEye
-                  style={tailwind('input-icon hidden')}
-                  color={isValidConfirmedPassword || confirmPasswordFocus ? '#42BE65' : '#7A869A'} />
+
+                <View style={[tailwind('justify-center p-3'), (!confirmPasswordFocus && isEmptyConfirmedPassword) && tailwind('hidden')]}>
+                  <Unicons.UilEye
+                    color={getColor('neutral-80')} />
+                </View>
               </View>
             </View>
           </View>
