@@ -8,6 +8,7 @@ import { IFile } from '../../components/FileList';
 import FileItem from '../../components/FileItem';
 import SkinSkeleton from '../../components/SkinSkeleton';
 import _ from 'lodash'
+import EmptyRecents from '../StaticScreens/EmptyRecents';
 
 function Recents(props: Reducers): JSX.Element {
   const [loading, setLoading] = useState(true);
@@ -49,7 +50,8 @@ function Recents(props: Reducers): JSX.Element {
         }
         contentContainerStyle={styles.fileListContentsScrollView}
       >
-        {recents.map(item => {
+        {recents.length === 0 && <EmptyRecents />}
+        {recents.length > 0 && recents.map(item => {
           return <FileItem
             {...props}
             key={item.id}
