@@ -3,10 +3,11 @@ import { View, Alert, ScrollView, RefreshControl, Text } from 'react-native'
 import { connect } from 'react-redux';
 import { Reducers } from '../../redux/reducers/reducers';
 import AppMenu from '../../components/AppMenu';
-import { WaveIndicator } from 'react-native-indicators';
 import { getShareList, IShare } from '../../services/shares';
 import FileItem from '../../components/FileItem';
 import { tailwind } from '../../helpers/designSystem';
+import SkinSkeleton from '../../components/SkinSkeleton';
+import _ from 'lodash'
 
 function Share(props: Reducers): JSX.Element {
   const [loading, setLoading] = useState(true);
@@ -33,7 +34,7 @@ function Share(props: Reducers): JSX.Element {
     {
       loading &&
       <View style={tailwind('flex-1 self-center')}>
-        <WaveIndicator color="#5291ff" size={80} />
+        {_.times(20, () => <SkinSkeleton />)}
       </View>
     }
 

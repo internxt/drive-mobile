@@ -10,8 +10,9 @@ import analytics, { getLyticsData } from '../../helpers/lytics';
 import RNFetchBlob from 'rn-fetch-blob';
 import { notify } from '../../helpers';
 import SearchBox from '../../components/SearchBox';
-import { WaveIndicator } from 'react-native-indicators';
 import { tailwind } from '../../helpers/designSystem';
+import SkinSkeleton from '../../components/SkinSkeleton';
+import _ from 'lodash'
 
 function FileExplorer(props: Reducers): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
@@ -225,7 +226,7 @@ function FileExplorer(props: Reducers): JSX.Element {
     {
       props.filesState.loading && !props.filesState.isUploading ?
         <View style={tailwind('h-full')}>
-          <WaveIndicator color="#5291ff" size={80} />
+          {_.times(20, () => <SkinSkeleton />)}
         </View>
         :
         <FileList {...props} />
