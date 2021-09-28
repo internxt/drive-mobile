@@ -116,7 +116,7 @@ function ShareFilesModal(props: Reducers) {
 
           <View style={tailwind('flex-shrink w-full')}>
             <Text numberOfLines={1} ellipsizeMode="middle">{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
-            <Text style={tailwind('text-xs text-neutral-100')}>{prettysize(selectedFile?.size)} <Text style={tailwind('font-bold')}>·</Text> Updated {new Date(selectedFile?.updatedAt).toLocaleDateString('en-GB', {
+            <Text style={tailwind('text-xs text-neutral-100')}>{prettysize(selectedFile?.size)} <Text style={tailwind('font-bold')}>· </Text> Updated {new Date(selectedFile?.updatedAt).toLocaleDateString('en-GB', {
               day: 'numeric',
               month: 'short',
               year: 'numeric'

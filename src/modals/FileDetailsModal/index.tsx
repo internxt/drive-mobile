@@ -83,7 +83,7 @@ function FileDetailsModal(props: FileDetailsProps) {
               <View style={tailwind('flex-shrink w-full')}>
                 <Text numberOfLines={1} ellipsizeMode="middle">{item?.name}{item?.type ? '.' + item.type : ''}</Text>
                 <Text style={tailwind('text-xs text-neutral-100')}>
-                  {!isFolder && <>{prettysize(item?.size)} <Text style={tailwind('font-bold')}>·</Text></>}Updated {new Date(item?.updatedAt).toLocaleDateString('en-GB', {
+                  {!isFolder && <>{prettysize(item?.size)} <Text style={tailwind('font-bold')}>· </Text></>}Updated {new Date(item?.updatedAt).toLocaleDateString('en-GB', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric'
