@@ -64,7 +64,7 @@ function Billing(props: Reducers) {
     const body = {
       test: process.env.NODE_ENV !== 'production',
       // eslint-disable-next-line camelcase
-      lifetime_tier: 'lifetime',
+      lifetime_tier: plan.tier,
       mode: 'payment',
       priceId: plan.id,
       successUrl: 'https://drive.internxt.com/redirect/android',
@@ -152,6 +152,7 @@ function Billing(props: Reducers) {
 
       const lifetimes = [
         {
+          tier: 'lifetime',
           price: 0,
           name: 'one-time payment',
           pricePerMonth: 299,
@@ -160,6 +161,7 @@ function Billing(props: Reducers) {
           id: isTest ? 'price_1JZBJVFAOdcgaBMQPDjuJsEh' : 'price_1HrovfFAOdcgaBMQP33yyJdt'
         },
         {
+          tier: 'exclusive-lifetime',
           price: 0,
           name: 'one-time payment',
           pricePerMonth: 499,
@@ -168,6 +170,7 @@ function Billing(props: Reducers) {
           id: isTest ? 'price_1JZYkSFAOdcgaBMQItAo6Ev3' : 'price_1IMA0AFAOdcgaBMQiZyoSIYU'
         },
         {
+          tier: 'infinite',
           price: 0,
           name: 'one-time payment',
           pricePerMonth: 999,
