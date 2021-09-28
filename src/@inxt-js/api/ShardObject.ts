@@ -58,12 +58,7 @@ export class ShardObject extends EventEmitter {
 
     const contract = await this.negotiateContract();
 
-    logger.debug('Negotiated succesfully contract for shard %s (index %s, size %s) with token %s',
-      this.getHash(),
-      this.getIndex(),
-      this.getSize(),
-      contract.token
-    );
+    logger.debug(`Negotiated succesfully contract for shard ${this.getHash()} (index ${this.getIndex()}, size ${this.getSize()}) with token ${contract.token}`);
 
     const farmer = { ...contract.farmer, lastSeen: new Date() };
     const shard: Shard = {
@@ -77,7 +72,7 @@ export class ShardObject extends EventEmitter {
       operation: contract.operation
     };
 
-    await this.sendShardToNode(content, shard);
+    await this.put(shard, content);
 
     return this.meta;
   }
@@ -91,6 +86,33 @@ export class ShardObject extends EventEmitter {
       .catch((err) => {
         throw wrap('Contract negotiation error', err);
       });
+  }
+
+  private put(shard: Shard, content: Buffer): Promise<any> {
+    let success = true;
+
+    return this.api.requestPut(shard).start<{ result: string }>().then((res) => {
+      const putUrl = res.result;
+
+      logger.debug(`Put url for shard ${shard.index} is ${putUrl}`);
+
+      return this.api.putShard(putUrl, content).start();
+    }).catch((err: AxiosError) => {
+      logger.error(`Error uploading shard ${shard.index}: ${err.message}`);
+
+      if (err.response && err.response.status < 400) {
+        return { result: err.response.data && err.response.data.error };
+      }
+
+      success = false;
+
+      throw wrap('Farmer request error', err);
+    }).finally(() => {
+      const hash = shard.hash;
+      const nodeID = shard.farmer.nodeID;
+
+      this.emit(ShardObject.Events.NodeTransferFinished, [{ hash, nodeID, success }]);
+    });
   }
 
   private sendShardToNode(content: Buffer, shard: Shard): Promise<SendShardToNodeResponse> {
