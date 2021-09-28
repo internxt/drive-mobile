@@ -8,6 +8,7 @@ import FileItem from '../../components/FileItem';
 import { tailwind } from '../../helpers/designSystem';
 import SkinSkeleton from '../../components/SkinSkeleton';
 import _ from 'lodash'
+import EmptyShares from '../StaticScreens/EmptyShares';
 
 function Share(props: Reducers): JSX.Element {
   const [loading, setLoading] = useState(true);
@@ -51,7 +52,7 @@ function Share(props: Reducers): JSX.Element {
         }
         contentContainerStyle={tailwind('flex-grow')}
       >
-        <View>
+        {shares?.length > 0 && <View>
           {shares.map((item, i) => {
             return <FileItem
               key={i}
@@ -62,7 +63,8 @@ function Share(props: Reducers): JSX.Element {
               </View>}
             />
           })}
-        </View>
+        </View>}
+        {shares?.length === 0 && <EmptyShares />}
       </ScrollView>
     }
   </View>
