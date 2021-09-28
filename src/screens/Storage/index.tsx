@@ -69,7 +69,7 @@ function Storage(props: StorageProps): JSX.Element {
           <View>
             <Text style={tailwind('text-sm text-neutral-500')}>{strings.screens.storage.space.used.used} {prettysize(usageValues.usage)} {strings.screens.storage.space.used.of} {parseLimit()}</Text>
           </View>
-          <View style={[tailwind('my-2'), {}]}>
+          <View style={tailwind('my-2')}>
             <ProgressBar
               {...props}
               styleProgress={tailwind('h-2')}
@@ -88,21 +88,25 @@ function Storage(props: StorageProps): JSX.Element {
 
       <View style={tailwind('mx-6')}>
         <View>
-          <Text style={tailwind('uppercase text-neutral-700 font-bold text-sm')}>{currentPlan && currentPlan.name}</Text>
+          <Text style={tailwind('uppercase text-neutral-700 font-bold text-xl')}>{currentPlan && currentPlan.name}</Text>
         </View>
 
         <View style={tailwind('mt-2')}>
+          {usageValues.limit !== 0 && <View style={tailwind('flex-row items-center')}>
+            <Unicons.UilCheck color="#5291ff" />
+            <Text style={tailwind('mx-1')}>Enjoy {prettysize(usageValues.limit, true)} forever</Text>
+          </View>}
           <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
-            <Text style={tailwind('mx-1')}>All available devices</Text>
+            <Text style={tailwind('mx-1')}>Encrypted file storage and sharing</Text>
           </View>
           <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
-            <Text style={tailwind('mx-1')}>Unlimited devices</Text>
+            <Text style={tailwind('mx-1')}>Access your files from any device</Text>
           </View>
           <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
-            <Text style={tailwind('mx-1')}>Secure file sharing</Text>
+            <Text style={tailwind('mx-1')}>Get access to all our services</Text>
           </View>
         </View>
       </View>
