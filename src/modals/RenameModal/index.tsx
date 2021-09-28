@@ -15,7 +15,7 @@ function RenameModal(props: Reducers) {
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(false)
 
-  const renameRed = useRef<TextInput>();
+  const renameRef = useRef<TextInput>();
 
   const emptyName = newName === ''
 
@@ -59,6 +59,7 @@ function RenameModal(props: Reducers) {
       }}
       onOpened={() => {
         setNewName(props.filesState.focusedItem?.name)
+        renameRef.current.focus();
       }}
       position={'bottom'}
       entry={'bottom'}
@@ -89,6 +90,7 @@ function RenameModal(props: Reducers) {
                 autoCapitalize='words'
                 autoCompleteType='off'
                 key='name'
+                ref={renameRef}
                 autoCorrect={false}
               />
             </View>

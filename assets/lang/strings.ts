@@ -147,7 +147,7 @@ const strings = new LocalizedStrings({
         "added": "Added: ",
         "size": "Size: ",
         "move": "Move",
-        "share": "Share",
+        "share": "Share with link",
         "delete": "Delete"
       }
     },

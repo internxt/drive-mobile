@@ -241,9 +241,10 @@ function FileItem(props: FileItemProps) {
             {
               showSpinner
               && <Text style={tailwind('text-xs text-paragraph')}>
-                {uploadProgress >= 0 ? 'Uploading ' : ''}
+                {uploadProgress === 0 ? 'Encrypting ' : ''}
+                {uploadProgress > 0 ? 'Uploading ' : ''}
                 {progress === 0 ? 'Fetching file ' : (progress >= 0 && 'Downloading ')}
-                {(uploadProgress >= 0 ? uploadProgress.toFixed(0) : progress.toFixed(0)) || 0}{'%'}
+                {(uploadProgress >= 0 ? (uploadProgress * 100).toFixed(0) : progress.toFixed(0)) || 0}{'%'}
               </Text>
             }
             {!showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-paragraph')}>{!props.isFolder && <>{prettysize(props.item.size)} <Text style={tailwind('font-bold')}>· </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
