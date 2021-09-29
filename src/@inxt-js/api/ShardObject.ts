@@ -8,6 +8,10 @@ import { wrap } from '../lib/utils/error';
 import { logger } from '../lib/utils/logger';
 import { InxtApiI, SendShardToNodeResponse } from '../services/api';
 import { Shard } from './shard';
+import { get } from '../services/request';
+
+type PutUrl = string;
+type GetUrl = string;
 
 export class ShardObject extends EventEmitter {
   private meta: ShardMeta;
@@ -115,6 +119,19 @@ export class ShardObject extends EventEmitter {
     });
   }
 
+  static requestGet(url: string, useProxy = true): Promise<GetUrl> {
+    return get<{ result: string }>(url, { useProxy }).then((res) => res.result);
+  }
+
+  static download(shard: Shard, cb: (err: Error | null, content: Buffer) => void): void {
+    ShardObject.requestGet(buildRequestUrl(shard)).then((url: GetUrl) => {
+
+      get(url, { useProxy: false }).then((res) => {
+      });
+    });
+  }
+
+  // TODO: Remove if upload is stable
   private sendShardToNode(content: Buffer, shard: Shard): Promise<SendShardToNodeResponse> {
     const req = this.api.sendShardToNode(shard, content);
 
@@ -156,4 +173,10 @@ export class ShardObject extends EventEmitter {
 
     return req.buffer();
   }
+}
+
+export function buildRequestUrl(shard: Shard) {
+  const { address, port } = shard.farmer;
+
+  return `http://${address}:${port}/download/link/${shard.hash}`;
 }

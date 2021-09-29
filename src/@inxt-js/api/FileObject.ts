@@ -180,9 +180,11 @@ export class FileObject extends EventEmitter {
         exchangeReport.params.farmerId = shard.farmer.nodeID;
         exchangeReport.params.dataHash = shard.hash;
 
-        const shardObject = new ShardObject(this.api, '', null, shard);
+        const downloadedShard = ShardObject.download(shard, (err, result) => {
+          // TODO;
+        });
 
-        const downloadedShard = await shardObject.download();
+        return;
 
         const shardHash = ripemd160(sha256(downloadedShard));
 
@@ -300,7 +302,6 @@ export class FileObject extends EventEmitter {
   }
 
   abort(): void {
-    // this.debug.info('Aborting file upload');
     logger.info('Aborting file upload');
 
     this.aborted = true;

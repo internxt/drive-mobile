@@ -39,6 +39,26 @@ export async function request(config: EnvironmentConfig, method: AxiosRequestCon
   });
 }
 
+export async function get<K>(url: string, config = { useProxy: false }): Promise<K> {
+  let targetUrl = url;
+  let free: undefined | (() => void);
+
+  if (config.useProxy) {
+    const proxy = await getProxy();
+
+    free = proxy.free;
+    targetUrl = `${proxy.url}/${targetUrl}`;
+  }
+
+  return axios.get<K>(targetUrl).then((res) => {
+    if (free) {
+      free();
+    }
+
+    return res.data;
+  });
+}
+
 interface getBucketByIdResponse {
   user: string;
   encryptionKey: string;
