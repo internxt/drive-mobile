@@ -124,6 +124,7 @@ export interface InxtApiI {
   getShardFromNode(shard: Shard): INXTRequest;
   createFileToken(bucketId: string, fileId: string, operation: 'PUSH' | 'PULL'): INXTRequest;
   requestPut(shard: Shard): INXTRequest;
+  requestGet(shard: Shard): INXTRequest;
   putShard(url: string, content: Buffer): INXTRequest;
 }
 
@@ -177,6 +178,10 @@ class InxtApi implements InxtApiI {
   }
 
   requestPut(shard: Shard): INXTRequest {
+    return emptyINXTRequest(this.config);
+  }
+
+  requestGet(shard: Shard): INXTRequest {
     return emptyINXTRequest(this.config);
   }
 
@@ -303,7 +308,19 @@ export class Bridge extends InxtApi {
     return new INXTRequest(this.config, Methods.Get, targetUrl, {}, true);
   }
 
+  requestGet(shard: Shard): INXTRequest {
+    const targetUrl = `http://${shard.farmer.address}:${shard.farmer.port}/download/link/${shard.hash}`;
+
+    return new INXTRequest(this.config, Methods.Get, targetUrl, {}, true);
+  }
+
   putShard(url: string, content: Buffer): INXTRequest {
     return new INXTRequest(this.config, Methods.Put, url, { data: content }, false);
+  }
+
+  getShard(url: string): INXTRequest {
+    return new INXTRequest(this.config, Methods.Get, url, {
+      responseType: 'arraybuffer'
+    }, false);
   }
 }
