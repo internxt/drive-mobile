@@ -8,7 +8,7 @@ import { wrap } from '../lib/utils/error';
 import { logger } from '../lib/utils/logger';
 import { InxtApiI, SendShardToNodeResponse } from '../services/api';
 import { Shard } from './shard';
-import { get } from '../services/request';
+import { get, getBuffer } from '../services/request';
 
 type PutUrl = string;
 type GetUrl = string;
@@ -120,13 +120,15 @@ export class ShardObject extends EventEmitter {
   }
 
   static requestGet(url: string, useProxy = true): Promise<GetUrl> {
-    return get<{ result: string }>(url, { useProxy }).then((res) => res.result);
+    return get<{ result: string }>({ url }, { useProxy }).then((res) => res.result);
   }
 
-  static download(shard: Shard, cb: (err: Error | null, content: Buffer) => void): void {
+  static download(shard: Shard, cb: (err: Error | null, content: Buffer | null) => void): void {
     ShardObject.requestGet(buildRequestUrl(shard)).then((url: GetUrl) => {
-
-      get(url, { useProxy: false }).then((res) => {
+      getBuffer(url, { useProxy: false }).then((content) => {
+        cb(null, content);
+      }).catch((err) => {
+        cb(err, null);
       });
     });
   }
