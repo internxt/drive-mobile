@@ -39,7 +39,7 @@ function Storage(props: StorageProps): JSX.Element {
       return '\u221E';
     }
 
-    return prettysize(usageValues.limit);
+    return prettysize(usageValues.limit, true);
   }
 
   useEffect(() => {
@@ -94,7 +94,7 @@ function Storage(props: StorageProps): JSX.Element {
         <View style={tailwind('mt-2')}>
           {usageValues.limit !== 0 && <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
-            <Text style={tailwind('mx-1')}>Enjoy {prettysize(usageValues.limit, true)} forever</Text>
+            <Text style={tailwind('mx-1')}>Enjoy {parseLimit()} forever</Text>
           </View>}
           <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
