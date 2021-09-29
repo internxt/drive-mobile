@@ -315,7 +315,7 @@ export class Bridge extends InxtApi {
   }
 
   putShard(url: string, content: Buffer): INXTRequest {
-    return new INXTRequest(this.config, Methods.Put, url, { data: content }, true);
+    return new INXTRequest(this.config, Methods.Put, url, { data: content }, false);
   }
 
   getShard(url: string): INXTRequest {
