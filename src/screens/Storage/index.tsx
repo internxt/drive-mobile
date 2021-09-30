@@ -46,6 +46,7 @@ function Storage(props: StorageProps): JSX.Element {
     loadValues().then(res => setUsageValues(res)).catch(() => { })
 
     getCurrentIndividualPlan().then(setCurrentPlan).catch(err => {
+
       notify({
         text: 'Cannot load current plan',
         type: 'warn'

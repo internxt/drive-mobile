@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TouchableHighlight, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, TouchableHighlight, TouchableWithoutFeedback, TextInput, Platform, KeyboardAvoidingView, Easing } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
@@ -13,6 +13,7 @@ function RenameModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
   const [isOpen, setIsOpen] = useState(props.layoutState.showRenameModal)
   const [newName, setNewName] = useState('');
+  const [originalName, setOriginalName] = useState('');
   const [isLoading, setIsLoading] = useState(false)
 
   const renameRef = useRef<TextInput>();
@@ -26,6 +27,7 @@ function RenameModal(props: Reducers) {
 
   useEffect(() => {
     setIsOpen(props.layoutState.showRenameModal)
+    setOriginalName('')
   }, [props.layoutState.showRenameModal])
 
   const renameHandle = () => {
@@ -52,6 +54,9 @@ function RenameModal(props: Reducers) {
 
   return (
     <Modal
+      position={'bottom'}
+      style={tailwind('bg-transparent')}
+      coverScreen={Platform.OS === 'android'}
       isOpen={isOpen}
       onClosed={() => {
         props.dispatch(layoutActions.closeRenameModal())
@@ -59,65 +64,103 @@ function RenameModal(props: Reducers) {
       }}
       onOpened={() => {
         setNewName(props.filesState.focusedItem?.name)
+        setOriginalName(newName)
         renameRef.current.focus();
       }}
-      position={'bottom'}
-      entry={'bottom'}
-      coverScreen={Platform.OS === 'android'}
-      style={tailwind('rounded-t-xl p-3 h-80')}
       backButtonClose={true}
+      backdropPressToClose={true}
+      animationDuration={250}
+      easing={Easing.inOut(Easing.exp)}
     >
       <KeyboardAvoidingView behavior={'padding'} >
         <View style={tailwind('h-full')}>
-          <View>
-            <View style={tailwind('h-1 bg-neutral-30 mt-1 w-16 self-center')}></View>
-            <View>
-              <Text style={tailwind('text-lg text-neutral-500 font-semibold my-7 text-center')}>{strings.generic.rename}</Text>
-            </View>
-          </View>
+          <TouchableWithoutFeedback
+            onPress={() => {
+              props.dispatch(layoutActions.closeRenameModal())
+            }}
+          >
+            <View style={tailwind('flex-grow')} />
+          </TouchableWithoutFeedback>
 
-          <View style={tailwind('flex-grow justify-center mx-12')}>
-            <View style={tailwind('items-center')}>
-              {isFolder ? <IconFolder width={64} height={64} /> : <IconFile width={64} height={64} />}
-            </View>
-
-            <View style={tailwind('items-center pb-6')}>
-              <TextInput
-                style={tailwind('text-lg text-center text-neutral-600 border-b-2 border-neutral-40 pb-1')}
-                value={newName}
-                onChangeText={setNewName}
-                placeholderTextColor={getColor('neutral-500')}
-                autoCapitalize='words'
-                autoCompleteType='off'
-                key='name'
-                ref={renameRef}
-                autoCorrect={false}
-              />
-            </View>
-          </View>
-
-          <View style={tailwind('flex-row justify-between')}>
-
-            <TouchableHighlight
-              underlayColor={getColor('neutral-30')}
-              style={tailwind('bg-neutral-20 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+          <View style={tailwind('flex-row w-full max-w-full items-center justify-center')}>
+            <TouchableWithoutFeedback
               onPress={() => {
-                props.dispatch(fileActions.deselectAll())
                 props.dispatch(layoutActions.closeRenameModal())
               }}
-              disabled={isLoading}>
-              <Text style={tailwind('text-base font-bold text-neutral-300')}>{strings.generic.cancel}</Text>
-            </TouchableHighlight>
+            >
+              <View style={tailwind('self-stretch w-8 -mr-8')} />
+            </TouchableWithoutFeedback>
 
-            <TouchableHighlight
-              underlayColor={getColor('blue-70')}
-              style={tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
-              onPress={renameHandle}
-              disabled={isLoading}>
-              <Text style={tailwind('text-base font-bold text-white')}>{strings.generic.rename}</Text>
-            </TouchableHighlight>
+            <View style={tailwind('bg-white rounded-2xl mx-8 flex-grow p-4')}>
+              <View style={tailwind('flex-grow justify-center px-8')}>
+                {/*
+                <View style={tailwind('pb-6')}>
+                  <Text numberOfLines={1} style={tailwind('text-lg text-neutral-500 font-medium text-center')}>{strings.generic.rename} "<Text numberOfLines={1} ellipsizeMode="tail">{originalName}</Text>"</Text>
+                </View>
+                */}
 
+                <View style={tailwind('pt-4 pb-8')}>
+                  <View style={tailwind('items-center pb-3')}>
+                    {isFolder ? <IconFolder width={80} height={80} /> : <IconFile width={80} height={80} />}
+                  </View>
+
+                  <View style={tailwind('items-center justify-center flex-shrink flex-grow bg-neutral-10 border border-neutral-30 pb-3 px-4 rounded-lg')}>
+                    <TextInput
+                      style={tailwind('text-lg text-center text-neutral-600')}
+                      value={newName}
+                      onChangeText={setNewName}
+                      placeholderTextColor={getColor('neutral-500')}
+                      autoCompleteType='off'
+                      key='name'
+                      ref={renameRef}
+                      autoCorrect={false}
+                    />
+                  </View>
+                </View>
+              </View>
+
+              <View style={tailwind('flex-row justify-between')}>
+
+                <TouchableHighlight
+                  underlayColor={getColor('neutral-30')}
+                  style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
+                  onPress={() => {
+                    props.dispatch(fileActions.deselectAll())
+                    props.dispatch(layoutActions.closeRenameModal())
+                  }}
+                  disabled={isLoading}>
+                  <Text style={tailwind('text-lg font-medium text-neutral-300')}>{strings.generic.cancel}</Text>
+                </TouchableHighlight>
+
+                <View style={tailwind('px-1')}></View>
+
+                <TouchableHighlight
+                  underlayColor={getColor('blue-70')}
+                  style={tailwind('bg-blue-60 rounded-lg py-2 flex-grow items-center justify-center')}
+                  onPress={renameHandle}
+                  disabled={isLoading}>
+                  <Text style={tailwind('text-lg font-medium text-white')}>{strings.generic.rename}</Text>
+                </TouchableHighlight>
+
+              </View>
+            </View>
+
+            <TouchableWithoutFeedback
+              onPress={() => {
+                props.dispatch(layoutActions.closeRenameModal())
+              }}
+            >
+              <View style={tailwind('self-stretch w-8 -ml-8')} />
+            </TouchableWithoutFeedback>
           </View>
+
+          <TouchableWithoutFeedback
+            onPress={() => {
+              props.dispatch(layoutActions.closeRenameModal())
+            }}
+          >
+            <View style={tailwind('flex-grow')} />
+          </TouchableWithoutFeedback>
         </View>
       </KeyboardAvoidingView>
     </Modal>

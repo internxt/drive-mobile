@@ -1,6 +1,6 @@
 import prettysize from 'prettysize';
 import React from 'react'
-import { Text, View, TouchableWithoutFeedback } from 'react-native'
+import { Text, View, TouchableWithoutFeedback, Easing } from 'react-native'
 import Modal from 'react-native-modalbox'
 import { connect } from 'react-redux';
 import { layoutActions } from '../../redux/actions';
@@ -50,14 +50,15 @@ function FileDetailsModal(props: FileDetailsProps) {
       <Modal
         position={'bottom'}
         style={tailwind('bg-transparent')}
-        coverScreen={true}
+        coverScreen={Platform.OS === 'android'}
         isOpen={props.showItemModal}
         onClosed={async () => {
           props.dispatch(layoutActions.closeItemModal())
         }}
         backButtonClose={true}
         backdropPressToClose={true}
-        animationDuration={200}
+        animationDuration={250}
+        easing={Easing.inOut(Easing.exp)}
       >
         <View style={tailwind('h-full')}>
           <TouchableWithoutFeedback
@@ -69,21 +70,21 @@ function FileDetailsModal(props: FileDetailsProps) {
           </TouchableWithoutFeedback>
 
           <View>
-            <View style={tailwind('flex-row bg-white px-4 py-3 rounded-t-xl items-center justify-between border-b border-neutral-20')}>
-              <View style={tailwind('mr-2')}>
+            <View style={tailwind('flex-row bg-white px-5 py-4 rounded-t-xl items-center justify-between border-b border-neutral-20')}>
+              <View style={tailwind('mr-3')}>
                 {
                   isFolder
                     ?
-                    <FolderIcon width={32} height={32} />
+                    <FolderIcon width={40} height={40} />
                     :
-                    <FileIcon width={32} height={32} />
+                    <FileIcon width={40} height={40} />
                 }
               </View>
 
               <View style={tailwind('flex-shrink w-full')}>
-                <Text numberOfLines={1} ellipsizeMode="middle">{item?.name}{item?.type ? '.' + item.type : ''}</Text>
+                <Text numberOfLines={1} ellipsizeMode="middle" style={tailwind('text-base text-neutral-900')}>{item?.name}{item?.type ? '.' + item.type : ''}</Text>
                 <Text style={tailwind('text-xs text-neutral-100')}>
-                  {!isFolder && <>{prettysize(item?.size)} <Text style={tailwind('font-bold')}>·</Text></>}Updated {new Date(item?.updatedAt).toLocaleDateString('en-GB', {
+                  {!isFolder && <>{prettysize(item?.size)}<Text style={tailwind('font-bold')}>  -  </Text></>}Updated {new Date(item?.updatedAt).toLocaleDateString('en-GB', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric'
@@ -91,42 +92,43 @@ function FileDetailsModal(props: FileDetailsProps) {
               </View>
 
               <View>
-                <TouchableWithoutFeedback onPress={() => {
-                  props.dispatch(layoutActions.closeItemModal())
-                }}>
-                  <View style={tailwind('bg-neutral-20 rounded-full p-1 ml-6')}>
-                    <Unicons.UilTimes color={'#B3BAC5'} size={25} />
+                <TouchableWithoutFeedback
+                  onPress={() => { props.dispatch(layoutActions.closeItemModal()) }}
+                >
+                  <View style={tailwind('bg-neutral-20 rounded-full h-8 w-8 justify-center items-center ml-5')}>
+                    <Unicons.UilTimes color={getColor('neutral-60')} size={24} />
                   </View>
                 </TouchableWithoutFeedback>
               </View>
 
             </View>
 
-            <View style={tailwind('bg-neutral-10 p-3 flex-grow pb-8')}>
+            <View style={tailwind('bg-neutral-20 p-4 flex-grow')}>
               <View style={tailwind('rounded-xl bg-white')}>
-                {/*
-            <FileDetailOption
-              name={strings.components.file_and_folder_options.move}
-              icon={<Unicons.UilEdit size={16} color={getColor('neutral-500')} />}
-              onPress={() => {
-                props.dispatch(layoutActions.closeItemModal())
-                props.dispatch(layoutActions.openMoveFilesModal());
-              }}
-            />
-            */}
 
                 <FileDetailOption
-                  name={strings.generic.rename}
-                  icon={<Unicons.UilEdit size={16} color={getColor('neutral-500')} />}
+                  name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.generic.rename}</Text>}
+                  icon={<Unicons.UilEditAlt size={20} color={getColor('neutral-500')} />}
                   onPress={() => {
                     props.dispatch(layoutActions.closeItemModal());
                     props.dispatch(layoutActions.openRenameModal())
                   }}
                 />
 
+                {/*
+                <FileDetailOption
+                  name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.components.file_and_folder_options.move}</Text>}
+                  icon={<Unicons.UilMinusPath size={20} color={getColor('neutral-500')} />}
+                  onPress={() => {
+                    props.dispatch(layoutActions.closeItemModal())
+                    props.dispatch(layoutActions.openMoveFilesModal());
+                  }}
+                />
+                */}
+
                 {!isFolder && <FileDetailOption
-                  name={strings.components.file_and_folder_options.share}
-                  icon={<Unicons.UilLink size={16} color={getColor('neutral-500')} />}
+                  name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.components.file_and_folder_options.share}</Text>}
+                  icon={<Unicons.UilLink size={20} color={getColor('neutral-500')} />}
                   onPress={() => {
                     props.dispatch(layoutActions.closeItemModal())
                     props.dispatch(layoutActions.openShareModal())
@@ -135,11 +137,11 @@ function FileDetailsModal(props: FileDetailsProps) {
 
               </View>
 
-              <View style={tailwind('bg-red-10 rounded-xl mt-4')}>
+              <View style={tailwind('bg-white rounded-xl mt-4')}>
                 <FileDetailOption
                   lastItem={true}
-                  name={<Text style={tailwind('text-red-60')}>{strings.components.file_and_folder_options.delete}</Text>}
-                  icon={<Unicons.UilTrashAlt size={16} color={getColor('red-60')} />}
+                  name={<Text style={tailwind('text-lg text-red-60')}>{strings.components.file_and_folder_options.delete}</Text>}
+                  icon={<Unicons.UilTrashAlt size={20} color={getColor('red-60')} />}
                   onPress={() => {
                     props.dispatch(layoutActions.closeItemModal());
                     props.dispatch(layoutActions.openDeleteModal())

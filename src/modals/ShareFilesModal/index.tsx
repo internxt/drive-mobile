@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, { useEffect, useState } from 'react';
-import { View, Text, Share, TouchableOpacity, TouchableWithoutFeedback, TouchableHighlight, ActivityIndicator } from 'react-native';
+import { View, Text, Share, TouchableOpacity, TouchableWithoutFeedback, TouchableHighlight, ActivityIndicator, Easing, Platform } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
 import { layoutActions } from '../../redux/actions';
@@ -93,7 +93,8 @@ function ShareFilesModal(props: Reducers) {
   return (
     <Modal
       position={'bottom'}
-      style={tailwind('h-96 rounded-t-xl')}
+      style={tailwind('bg-transparent')}
+      coverScreen={Platform.OS === 'android'}
       isOpen={isOpen}
       onClosed={async () => {
         props.dispatch(layoutActions.closeShareModal())
@@ -104,123 +105,137 @@ function ShareFilesModal(props: Reducers) {
       }}
       backButtonClose={true}
       backdropPressToClose={true}
-      animationDuration={200}
+      animationDuration={250}
+      easing={Easing.inOut(Easing.exp)}
     >
+      <View style={tailwind('h-full')}>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            props.dispatch(layoutActions.closeShareModal())
+          }}
+        >
+          <View style={tailwind('flex-grow')} />
+        </TouchableWithoutFeedback>
 
-      <View style={tailwind('h-full rounded-xl')}>
-        <View style={tailwind('flex-row bg-white px-4 py-3 rounded-t-xl items-center justify-between border-b border-neutral-20')}>
+        <View>
 
-          <View style={tailwind('mr-2')}>
-            <FileIcon width={32} height={32} />
-          </View>
-
-          <View style={tailwind('flex-shrink w-full')}>
-            <Text numberOfLines={1} ellipsizeMode="middle">{filename}{selectedFile && selectedFile.type ? '.' + selectedFile.type : ''}</Text>
-            <Text style={tailwind('text-xs text-neutral-100')}>{prettysize(selectedFile?.size)} <Text style={tailwind('font-bold')}>·</Text> Updated {new Date(selectedFile?.updatedAt).toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric'
-            })}</Text>
-          </View>
-
-          <View>
-            <TouchableWithoutFeedback onPress={() => {
-              props.dispatch(layoutActions.closeShareModal())
-            }}>
-              <View style={tailwind('bg-neutral-20 rounded-full p-1 ml-6')}>
-                <Unicons.UilTimes color={'#B3BAC5'} size={25} />
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </View>
-        <View style={tailwind('bg-neutral-10 p-3 flex-grow items-center justify-center rounded-b-xl')}>
-          <Text style={tailwind('text-xl font-bold text-neutral-500 text-center')}>Share link open limit</Text>
-
-          <View style={tailwind('flex-row items-stretch justify-center my-5 w-48')}>
-            <TouchableHighlight
-              underlayColor={getColor('blue-70')}
-              disabled={inputValue === '1'}
-              onPress={() => {
-                const newValue = Math.max(parseInt(inputValue, 10) - 1, 1) || 1;
-
-                setInputValue(newValue.toFixed(0));
-              }}
-              style={[tailwind('bg-blue-60 p-3 rounded-bl-lg rounded-tl-lg justify-center'), inputValue === '1' && tailwind('bg-neutral-30')]}>
-              <Unicons.UilMinus color="white" size={25} />
-            </TouchableHighlight>
-            <View style={tailwind('bg-white justify-center')}>
-              <View style={tailwind('text-xl mx-6 flex-row items-center')}>
-                <Text style={tailwind('text-xl')}>{inputValue} times</Text>
-              </View>
+          <View style={tailwind('flex-row bg-white px-5 py-4 rounded-t-xl items-center justify-between border-b border-neutral-20')}>
+            <View style={tailwind('mr-3')}>
+              <FileIcon width={40} height={40} />
             </View>
-            <TouchableHighlight
-              underlayColor={getColor('blue-70')}
-              disabled={inputValue === '100'}
-              onPress={() => {
-                const newValue = Math.min(parseInt(inputValue, 10) + 1, 100) || 1;
 
-                setInputValue(newValue.toFixed(0));
-              }}
-              style={[tailwind('bg-blue-60 p-3 rounded-br-lg rounded-tr-lg justify-center'), inputValue === '100' && tailwind('bg-neutral-30')]}>
-              <Unicons.UilPlus color="white" size={25} />
-            </TouchableHighlight>
+            <View style={tailwind('flex-shrink w-full')}>
+              <Text numberOfLines={1} ellipsizeMode="middle" style={tailwind('text-base text-neutral-900')}>{selectedFile?.name}{selectedFile?.type ? '.' + selectedFile.type : ''}</Text>
+              <Text style={tailwind('text-xs text-neutral-100')}>
+                {prettysize(selectedFile?.size)}<Text style={tailwind('font-bold')}>  -  </Text>Updated {new Date(selectedFile?.updatedAt).toLocaleDateString('en-GB', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })}</Text>
+            </View>
+
+            <View>
+              <TouchableWithoutFeedback onPress={() => {
+                props.dispatch(layoutActions.closeShareModal())
+              }}>
+                <View style={tailwind('bg-neutral-20 rounded-full h-8 w-8 justify-center items-center ml-5')}>
+                  <Unicons.UilTimes color={getColor('neutral-60')} size={24} />
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+
           </View>
 
-          <View style={[tailwind('items-center'), {
-            shadowColor: '#000',
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            shadowOffset: {
-              height: 4,
-              width: 0
-            }
-          }, isLoading && tailwind('opacity-50')]}>
-            <View style={tailwind('bg-white rounded-xl p-2')}>
-              <TouchableOpacity
-                disabled={isLoading}
+          <View style={tailwind('bg-neutral-10 p-3 flex-grow items-center justify-center')}>
+            <Text style={tailwind('text-xl font-bold text-neutral-500 text-center')}>Share link open limit</Text>
+
+            <View style={tailwind('flex-row items-stretch justify-center my-5 w-48')}>
+              <TouchableHighlight
+                underlayColor={getColor('blue-70')}
+                disabled={inputValue === '1'}
                 onPress={() => {
-                  if (!isLoading) {
-                    setString(link);
-                    notify({
-                      type: 'success',
-                      text: 'Link copied'
-                    })
-                    props.dispatch(layoutActions.closeShareModal())
-                  }
+                  const newValue = Math.max(parseInt(inputValue, 10) - 1, 1) || 1;
+
+                  setInputValue(newValue.toFixed(0));
                 }}
-                style={tailwind('flex-row items-center')}
-              >
-                <Text style={[tailwind('text-xl font-medium mx-3'), isLoading ? tailwind('text-neutral-80') : tailwind('text-blue-60')]}>
-                  {isLoading ? 'Generating share link' : 'Copy share link'}
-                </Text>
-                {isLoading ? <ActivityIndicator /> : <Unicons.UilCopy color={getColor('blue-60')} />}
-              </TouchableOpacity>
+                style={[tailwind('bg-blue-60 p-3 rounded-bl-lg rounded-tl-lg justify-center'), inputValue === '1' && tailwind('bg-neutral-30')]}>
+                <Unicons.UilMinus color="white" size={25} />
+              </TouchableHighlight>
+              <View style={tailwind('bg-white justify-center')}>
+                <View style={tailwind('text-xl mx-6 flex-row items-center')}>
+                  <Text style={tailwind('text-xl')}>{inputValue} times</Text>
+                </View>
+              </View>
+              <TouchableHighlight
+                underlayColor={getColor('blue-70')}
+                disabled={inputValue === '100'}
+                onPress={() => {
+                  const newValue = Math.min(parseInt(inputValue, 10) + 1, 100) || 1;
+
+                  setInputValue(newValue.toFixed(0));
+                }}
+                style={[tailwind('bg-blue-60 p-3 rounded-br-lg rounded-tr-lg justify-center'), inputValue === '100' && tailwind('bg-neutral-30')]}>
+                <Unicons.UilPlus color="white" size={25} />
+              </TouchableHighlight>
+            </View>
+
+            <View style={[tailwind('items-center'), {
+              shadowColor: '#000',
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              shadowOffset: {
+                height: 4,
+                width: 0
+              }
+            }, isLoading && tailwind('opacity-50')]}>
+              <View style={tailwind('bg-white rounded-xl p-2')}>
+                <TouchableOpacity
+                  disabled={isLoading}
+                  onPress={() => {
+                    if (!isLoading) {
+                      setString(link);
+                      notify({
+                        type: 'success',
+                        text: 'Link copied'
+                      })
+                      props.dispatch(layoutActions.closeShareModal())
+                    }
+                  }}
+                  style={tailwind('flex-row items-center')}
+                >
+                  <Text style={[tailwind('text-xl font-medium mx-3'), isLoading ? tailwind('text-neutral-80') : tailwind('text-blue-60')]}>
+                    {isLoading ? 'Generating share link' : 'Copy share link'}
+                  </Text>
+                  {isLoading ? <ActivityIndicator /> : <Unicons.UilCopy color={getColor('blue-60')} />}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-        <View style={tailwind('flex-row justify-between p-3 bg-neutral-10')}>
 
-          <TouchableHighlight
-            underlayColor={getColor('neutral-30')}
-            style={tailwind('bg-neutral-20 rounded-md m-1 h-12 flex-grow items-center justify-center')}
-            onPress={() => {
-              props.dispatch(layoutActions.closeShareModal());
-            }}
-          >
-            <Text style={tailwind('text-base font-bold text-neutral-300')}>{strings.generic.cancel}</Text>
-          </TouchableHighlight>
+          <View style={tailwind('flex-row justify-between p-3 bg-neutral-10')}>
 
-          <TouchableHighlight
-            underlayColor={getColor('blue-70')}
-            style={[tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center'), isLoading && tailwind('bg-blue-30')]}
-            onPress={() => {
-              shareFile(selectedFile)
-              props.dispatch(layoutActions.closeShareModal());
-            }}
-            disabled={isLoading}>
-            <Text style={tailwind('text-base font-bold text-white')}>{strings.modals.share_modal.share}</Text>
-          </TouchableHighlight>
+            <TouchableHighlight
+              underlayColor={getColor('neutral-30')}
+              style={tailwind('bg-neutral-20 rounded-md m-1 h-12 flex-grow items-center justify-center')}
+              onPress={() => {
+                props.dispatch(layoutActions.closeShareModal());
+              }}
+            >
+              <Text style={tailwind('text-base font-bold text-neutral-300')}>{strings.generic.cancel}</Text>
+            </TouchableHighlight>
 
+            <TouchableHighlight
+              underlayColor={getColor('blue-70')}
+              style={[tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center'), isLoading && tailwind('bg-blue-30')]}
+              onPress={() => {
+                shareFile(selectedFile)
+                props.dispatch(layoutActions.closeShareModal());
+              }}
+              disabled={isLoading}>
+              <Text style={tailwind('text-base font-bold text-white')}>{strings.modals.share_modal.share}</Text>
+            </TouchableHighlight>
+
+          </View>
         </View>
 
       </View>

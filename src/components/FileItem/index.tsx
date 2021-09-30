@@ -11,7 +11,7 @@ import * as FileSystem from 'expo-file-system'
 import * as Unicons from '@iconscout/react-native-unicons';
 import { downloadFile } from '../../services/download';
 import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../lib/fs';
-import { tailwind } from '../../helpers/designSystem';
+import { getColor, tailwind } from '../../helpers/designSystem';
 import FileSpinner from '../../../assets/images/widgets/file-spinner.svg'
 import prettysize from 'prettysize';
 
@@ -215,9 +215,9 @@ function FileItem(props: FileItemProps) {
           style={tailwind('flex-row flex-grow')}
           onLongPress={() => { handleLongPress(props, isSelected) }}
           onPress={async () => { await handleItemPressed(); }}>
-          <View style={tailwind('m-4')}>
+          <View style={tailwind('my-3 ml-5 mr-4')}>
             {
-              props.isFolder ? <FolderIcon width={30} height={30} /> : <IconFile width={30} height={30} />
+              props.isFolder ? <FolderIcon width={40} height={40} /> : <IconFile width={40} height={40} />
             }
 
             {
@@ -233,21 +233,21 @@ function FileItem(props: FileItemProps) {
 
           <View style={tailwind('flex items-start justify-center flex-shrink flex-grow')}>
             <Text
-              style={tailwind('text-sm text-header')}
+              style={tailwind('text-base text-neutral-500')}
               numberOfLines={1}
               ellipsizeMode={'middle'}
             >{props.item.name}{props.item.type ? '.' + props.item.type : ''}</Text>
 
             {
               showSpinner
-              && <Text style={tailwind('text-xs text-paragraph')}>
+              && <Text style={tailwind('text-xs text-neutral-100')}>
                 {uploadProgress === 0 ? 'Encrypting ' : ''}
                 {uploadProgress > 0 ? 'Uploading ' : ''}
                 {progress === 0 ? 'Fetching file ' : (progress >= 0 && 'Downloading ')}
                 {(uploadProgress >= 0 ? (uploadProgress * 100).toFixed(0) : progress.toFixed(0)) || 0}{'%'}
               </Text>
             }
-            {!showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-paragraph')}>{!props.isFolder && <>{prettysize(props.item.size)} <Text style={tailwind('font-bold')}>· </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
+            {!showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-neutral-100')}>{!props.isFolder && <>{prettysize(props.item.size)} <Text style={tailwind('font-bold')}>· </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
               day: 'numeric',
               month: 'short',
               year: 'numeric'
@@ -256,7 +256,7 @@ function FileItem(props: FileItemProps) {
         </TouchableOpacity>
       </View>
 
-      <View style={tailwind('items-center ml-4 px-1.5 justify-center')}>
+      <View style={tailwind('items-center pl-2 pr-2 justify-center')}>
         <TouchableOpacity
           style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
           onPress={() => {
@@ -264,7 +264,7 @@ function FileItem(props: FileItemProps) {
             props.dispatch(layoutActions.openItemModal())
           }
           }>
-          <Unicons.UilEllipsisH size={24} color={'#7A869A'} />
+          <Unicons.UilEllipsisH size={24} color={getColor('neutral-100')} />
         </TouchableOpacity>
       </View>
 

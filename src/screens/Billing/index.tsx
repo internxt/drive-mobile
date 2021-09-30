@@ -11,6 +11,7 @@ import Separator from '../../components/Separator';
 import * as Unicons from '@iconscout/react-native-unicons'
 import { getHeaders } from '../../helpers/headers';
 import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
+import globalStyle from '../../styles/global.style';
 
 // TODO: Export to service
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
@@ -158,7 +159,7 @@ function Billing(props: Reducers) {
         return <View key={nPlan} style={tailwind('flex-row my-6 ml-3')}>
           <View style={tailwind('flex-col flex-grow justify-end')}>
             <View>
-              <Text style={tailwind('text-3xl font-bold text-header')}>{plan.productName}</Text>
+              <Text style={[tailwind('text-3xl font-bold text-header'), globalStyle.fontWeight.bold]}>{plan.productName}</Text>
             </View>
             <View>
               <Text style={tailwind('text-xs text-neutral-80')}>{`${plan.price.toFixed(2)}€ billed ${plan.name.toLowerCase()}`}</Text>
