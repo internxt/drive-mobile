@@ -8,6 +8,10 @@ import { wrap } from '../lib/utils/error';
 import { logger } from '../lib/utils/logger';
 import { InxtApiI, SendShardToNodeResponse } from '../services/api';
 import { Shard } from './shard';
+import { get, getBuffer } from '../services/request';
+
+type PutUrl = string;
+type GetUrl = string;
 
 export class ShardObject extends EventEmitter {
   private meta: ShardMeta;
@@ -58,12 +62,7 @@ export class ShardObject extends EventEmitter {
 
     const contract = await this.negotiateContract();
 
-    logger.debug('Negotiated succesfully contract for shard %s (index %s, size %s) with token %s',
-      this.getHash(),
-      this.getIndex(),
-      this.getSize(),
-      contract.token
-    );
+    logger.debug(`Negotiated succesfully contract for shard ${this.getHash()} (index ${this.getIndex()}, size ${this.getSize()}) with token ${contract.token}`);
 
     const farmer = { ...contract.farmer, lastSeen: new Date() };
     const shard: Shard = {
@@ -77,7 +76,7 @@ export class ShardObject extends EventEmitter {
       operation: contract.operation
     };
 
-    await this.sendShardToNode(content, shard);
+    await this.put(shard, content);
 
     return this.meta;
   }
@@ -93,6 +92,48 @@ export class ShardObject extends EventEmitter {
       });
   }
 
+  private put(shard: Shard, content: Buffer): Promise<any> {
+    let success = true;
+
+    return this.api.requestPut(shard).start<{ result: string }>().then((res) => {
+      const putUrl = res.result;
+
+      logger.debug(`Put url for shard ${shard.index} is ${putUrl}`);
+
+      return this.api.putShard(putUrl, content).start();
+    }).catch((err: AxiosError) => {
+      logger.error(`Error uploading shard ${shard.index}: ${err.message}`);
+
+      if (err.response && err.response.status < 400) {
+        return { result: err.response.data && err.response.data.error };
+      }
+
+      success = false;
+
+      throw wrap('Farmer request error', err);
+    }).finally(() => {
+      const hash = shard.hash;
+      const nodeID = shard.farmer.nodeID;
+
+      this.emit(ShardObject.Events.NodeTransferFinished, [{ hash, nodeID, success }]);
+    });
+  }
+
+  static requestGet(url: string, useProxy = true): Promise<GetUrl> {
+    return get<{ result: string }>({ url }, { useProxy }).then((res) => res.result);
+  }
+
+  static download(shard: Shard, cb: (err: Error | null, content: Buffer | null) => void): void {
+    ShardObject.requestGet(buildRequestUrl(shard)).then((url: GetUrl) => {
+      getBuffer(url, { useProxy: false }).then((content) => {
+        cb(null, content);
+      }).catch((err) => {
+        cb(err, null);
+      });
+    });
+  }
+
+  // TODO: Remove if upload is stable
   private sendShardToNode(content: Buffer, shard: Shard): Promise<SendShardToNodeResponse> {
     const req = this.api.sendShardToNode(shard, content);
 
@@ -134,4 +175,10 @@ export class ShardObject extends EventEmitter {
 
     return req.buffer();
   }
+}
+
+export function buildRequestUrl(shard: Shard) {
+  const { address, port } = shard.farmer;
+
+  return `http://${address}:${port}/download/link/${shard.hash}`;
 }

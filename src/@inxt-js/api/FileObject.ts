@@ -138,64 +138,30 @@ export class FileObject extends EventEmitter {
 
     const exchangeReport = new ExchangeReport(this.config);
 
-    // let success = false;
-    // const attempts = this.config.config?.shardRetry || 3;
-
-    // try {
-    //   for (let i = attempts; i > 0 || !success; i--) {
-    //     exchangeReport.params.exchangeStart = new Date();
-    //     exchangeReport.params.farmerId = shard.farmer.nodeID;
-    //     exchangeReport.params.dataHash = shard.hash;
-
-    //     const shardObject = new ShardObject(this.api, '', null, shard);
-    //     const downloadedShard = await shardObject.download();
-    //     const shardHash = ripemd160(sha256(downloadedShard));
-
-    //     if (Buffer.compare(shardHash, Buffer.from(shard.hash, 'hex')) === 0) {
-    //       exchangeReport.DownloadOk();
-    //       success = true;
-    //     } else {
-    //       exchangeReport.DownloadError();
-    //     }
-
-    //     exchangeReport.sendReport().catch(() => null);
-    //   }
-    // } catch (err) {
-    //   logger.warn('It seems that shard ' + shard.index + ' download from farmer ' + shard.farmer.nodeID + ' went wrong due to ' + err.message + '. Replacing pointer');
-
-    //   excluded.push(shard.farmer.nodeID);
-
-    //   const newShard = await GetFileMirror(this.config, this.bucketId, this.fileId, 1, shard.index, excluded);
-
-    //   if (!newShard[0].farmer) {
-    //     throw wrap('File missing shard error', err);
-    //   }
-
-    //   const buffer = await this.downloadShard(newShard[0], excluded);
-    // }
-
     return new Promise((resolve, reject) => {
-      retry({ times: this.config.config?.shardRetry || 3, interval: 1000 }, async (nextTry: any) => {
+      retry({ times: this.config.config?.shardRetry || 3, interval: 1000 }, (nextTry: any) => {
         exchangeReport.params.exchangeStart = new Date();
         exchangeReport.params.farmerId = shard.farmer.nodeID;
         exchangeReport.params.dataHash = shard.hash;
 
-        const shardObject = new ShardObject(this.api, '', null, shard);
+        ShardObject.download(shard, (err, downloadedShard) => {
+          if (err) {
+            return nextTry(err);
+          }
 
-        const downloadedShard = await shardObject.download();
+          const shardHash = ripemd160(sha256(downloadedShard));
 
-        const shardHash = ripemd160(sha256(downloadedShard));
+          if (Buffer.compare(shardHash, Buffer.from(shard.hash, 'hex')) !== 0) {
+            logger.debug('Expected hash ' + shard.hash + ', but hash is ' + shardHash.toString('hex'));
 
-        if (Buffer.compare(shardHash, Buffer.from(shard.hash, 'hex')) !== 0) {
-          logger.debug('Expected hash ' + shard.hash + ', but hash is ' + shardHash.toString('hex'));
+            return nextTry(new Error('Shard failed integrity check'), null);
+          }
 
-          return nextTry(new Error('Shard failed integrity check'), null);
-        }
+          exchangeReport.DownloadOk();
+          exchangeReport.sendReport().catch(() => {});
 
-        exchangeReport.DownloadOk();
-        exchangeReport.sendReport().catch(() => {});
-
-        return nextTry(null, downloadedShard);
+          return nextTry(null, downloadedShard);
+        });
       }, async (err: Error | null | undefined, result: Buffer | undefined) => {
         try {
           if (result) {
@@ -221,51 +187,6 @@ export class FileObject extends EventEmitter {
       });
     });
   }
-
-  // async download(): Promise<void> {
-  //   const filename = this.stat.filename;
-  //   const extension = this.stat.extension;
-  //   let filePath = RNFetchBlob.fs.dirs.DocumentDir + '/' + filename + (extension ? '.' + extension : '');
-
-  //   const fileExists = await RNFetchBlob.fs.exists(filePath);
-
-  //   if (!fileExists) {
-  //     await RNFetchBlob.fs.createFile(filePath, '', 'utf8');
-  //   } else {
-  //     filePath = RNFetchBlob.fs.dirs.DocumentDir + '/' + filename + '-' + Date.now().toString() + (extension ? '.' + extension : '');
-  //     await RNFetchBlob.fs.createFile(filePath, '', 'utf8');
-  //   }
-
-  //   const fileStream: RNFetchBlobWriteStream = await RNFetchBlob.fs.writeStream(filePath, 'base64');
-
-  //   try {
-  //     if (!this.fileInfo) {
-  //       throw new Error('Undefined fileInfo');
-  //     }
-
-  //     const decipher = createDecipheriv('aes-256-ctr', this.fileKey.slice(0, 32), Buffer.from(this.fileInfo.index, 'hex').slice(0, 16));
-
-  //     for (const shard of this.rawShards) {
-  //       const shardBuffer = await this.downloadShard(shard);
-
-  //       logger.info('Shard ' + shard.index + ' downloaded OK, size: ' + shardBuffer.length);
-
-  //       decipher.write(shardBuffer);
-
-  //       const shardDecrypted: Buffer = decipher.read();
-
-  //       await fileStream.write(shardDecrypted.toString('base64'));
-
-  //       this.emit(Download.Progress, shardDecrypted.length);
-  //     }
-
-  //     fileStream.close();
-  //   } catch (err) {
-  //     fileStream.close();
-  //     await RNFetchBlob.fs.unlink(filePath);
-  //     throw wrap('Download shard error', err);
-  //   }
-  // }
 
   async download(): Promise<void> {
     const fileWriter = await this.file.writer();
@@ -300,7 +221,6 @@ export class FileObject extends EventEmitter {
   }
 
   abort(): void {
-    // this.debug.info('Aborting file upload');
     logger.info('Aborting file upload');
 
     this.aborted = true;

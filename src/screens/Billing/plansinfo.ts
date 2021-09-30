@@ -21,18 +21,18 @@ export function getProductionPlans(): any {
           "interval_count": 1
         },
         {
-          "id": "plan_Frb1M2yzs2WQn9",
-          "price": 570,
-          "name": "Semiannually",
-          "interval": "month",
-          "interval_count": 6
-        },
-        {
           "id": "plan_Frb29JIJYJ4e8G",
           "price": 1068,
           "name": "Annually",
           "interval": "year",
           "interval_count": 1
+        },
+        {
+          "id": "",
+          "price": 1,
+          "name": "Lifetime",
+          "interval": "",
+          "interval_count": 0
         }
       ]
     },
@@ -56,18 +56,19 @@ export function getProductionPlans(): any {
           "interval_count": 1
         },
         {
-          "id": "plan_F2FcV7JqKZ6bQa",
-          "price": 2394,
-          "name": "Semiannually",
-          "interval": "month",
-          "interval_count": 6
-        },
-        {
           "id": "plan_F2FebxiAYyZC7m",
           "price": 4188,
           "name": "Annually",
           "interval": "year",
           "interval_count": 1
+        },
+        ,
+        {
+          "id": "price_1HrovfFAOdcgaBMQP33yyJdt",
+          "price": 29900,
+          "name": "Lifetime",
+          "interval": "",
+          "interval_count": 0
         }
       ]
     },
@@ -91,18 +92,18 @@ export function getProductionPlans(): any {
           "interval_count": 1
         },
         {
-          "id": "plan_FkTWOqGwuM8S4Y",
-          "price": 5694,
-          "name": "Semiannually",
-          "interval": "month",
-          "interval_count": 6
-        },
-        {
           "id": "plan_FkTXxEg3GZW0pg",
           "price": 10788,
           "name": "Annually",
           "interval": "year",
           "interval_count": 1
+        },
+        {
+          "id": "price_1HrovfFAOdcgaBMQP33yyJdt",
+          "price": 29900,
+          "name": "Lifetime",
+          "interval": "",
+          "interval_count": 0
         }
       ]
     }
@@ -130,18 +131,19 @@ export function getDevelopmentPlans(): any {
           "interval_count": 1
         },
         {
-          "id": "plan_Gd68E5KaTr3ZcD",
-          "price": 570,
-          "name": "Semiannually",
-          "interval": "month",
-          "interval_count": 6
-        },
-        {
           "id": "plan_Gd68ayqEhY7ElV",
           "price": 1068,
           "name": "Annually",
           "interval": "year",
           "interval_count": 1
+        },
+        ,
+        {
+          "id": "",
+          "price": 1,
+          "name": "Lifetime",
+          "interval": "",
+          "interval_count": 0
         }
       ]
     },
@@ -164,18 +166,18 @@ export function getDevelopmentPlans(): any {
           "interval_count": 1
         },
         {
-          "id": "plan_Gd6AkeBtOAOlOF",
-          "price": 2394,
-          "name": "Semiannually",
-          "interval": "month",
-          "interval_count": 6
-        },
-        {
           "id": "plan_Gd6Bnma92DjIvA",
           "price": 4188,
           "name": "Annually",
           "interval": "year",
           "interval_count": 1
+        },
+        {
+          "id": "",
+          "price": 1,
+          "name": "Lifetime",
+          "interval": "",
+          "interval_count": 0
         }
       ]
     },
@@ -199,18 +201,18 @@ export function getDevelopmentPlans(): any {
           "interval_count": 1
         },
         {
-          "id": "plan_Gd6EjHW7aM8gep",
-          "price": 5694,
-          "name": "Semiannually",
-          "interval": "month",
-          "interval_count": 6
-        },
-        {
           "id": "plan_Gd6EiK5twY0akg",
           "price": 10788,
           "name": "Annually",
           "interval": "year",
           "interval_count": 1
+        },
+        {
+          "id": "",
+          "price": 10000,
+          "name": "Lifetime",
+          "interval": "",
+          "interval_count": 0
         }
       ]
     }

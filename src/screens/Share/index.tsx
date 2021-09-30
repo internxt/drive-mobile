@@ -3,10 +3,12 @@ import { View, Alert, ScrollView, RefreshControl, Text } from 'react-native'
 import { connect } from 'react-redux';
 import { Reducers } from '../../redux/reducers/reducers';
 import AppMenu from '../../components/AppMenu';
-import { WaveIndicator } from 'react-native-indicators';
 import { getShareList, IShare } from '../../services/shares';
 import FileItem from '../../components/FileItem';
 import { tailwind } from '../../helpers/designSystem';
+import SkinSkeleton from '../../components/SkinSkeleton';
+import _ from 'lodash'
+import EmptyShares from '../StaticScreens/EmptyShares';
 
 function Share(props: Reducers): JSX.Element {
   const [loading, setLoading] = useState(true);
@@ -33,7 +35,7 @@ function Share(props: Reducers): JSX.Element {
     {
       loading &&
       <View style={tailwind('flex-1 self-center')}>
-        <WaveIndicator color="#5291ff" size={80} />
+        {_.times(20, () => <SkinSkeleton />)}
       </View>
     }
 
@@ -50,7 +52,7 @@ function Share(props: Reducers): JSX.Element {
         }
         contentContainerStyle={tailwind('flex-grow')}
       >
-        <View>
+        {shares?.length > 0 && <View>
           {shares.map((item, i) => {
             return <FileItem
               key={i}
@@ -61,7 +63,8 @@ function Share(props: Reducers): JSX.Element {
               </View>}
             />
           })}
-        </View>
+        </View>}
+        {shares?.length === 0 && <EmptyShares />}
       </ScrollView>
     }
   </View>

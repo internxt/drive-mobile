@@ -113,16 +113,14 @@ function FileList(props: Reducers) {
       {
         filesUploading.length > 0 ?
           filesUploading.map((file: IUploadingFile) => {
-            return file.currentFolder === folderId ?
+            return file.currentFolder === folderId &&
               <FileItem
                 key={filesUploading.indexOf(file)}
                 isFolder={false}
                 item={file}
                 isLoading={true}
               />
-              : <></>
-          }
-          )
+          })
           : <></>
       }
 

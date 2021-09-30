@@ -3,10 +3,12 @@ import { StyleSheet, View, Alert, ScrollView, RefreshControl } from 'react-nativ
 import { connect } from 'react-redux';
 import { Reducers } from '../../redux/reducers/reducers';
 import AppMenu from '../../components/AppMenu';
-import { WaveIndicator } from 'react-native-indicators';
 import { getRecents } from '../../services/recents';
 import { IFile } from '../../components/FileList';
 import FileItem from '../../components/FileItem';
+import SkinSkeleton from '../../components/SkinSkeleton';
+import _ from 'lodash'
+import EmptyRecents from '../StaticScreens/EmptyRecents';
 
 function Recents(props: Reducers): JSX.Element {
   const [loading, setLoading] = useState(true);
@@ -31,7 +33,7 @@ function Recents(props: Reducers): JSX.Element {
     {
       loading &&
       <View style={styles.activityIndicator}>
-        <WaveIndicator color="#5291ff" size={80} />
+        {_.times(20, () => <SkinSkeleton />)}
       </View>
     }
 
@@ -48,7 +50,8 @@ function Recents(props: Reducers): JSX.Element {
         }
         contentContainerStyle={styles.fileListContentsScrollView}
       >
-        {recents.map(item => {
+        {recents.length === 0 && <EmptyRecents />}
+        {recents.length > 0 && recents.map(item => {
           return <FileItem
             {...props}
             key={item.id}

@@ -55,13 +55,49 @@ const getProducts = async () => {
 
 const PERIODS = [
   { index: 0, text: 'Monthly' },
-  { index: 1, text: 'Semiannually' },
-  { index: 2, text: 'Annually' }
+  { index: 1, text: 'Annually' },
+  { index: 2, text: 'Lifetime' }
 ]
 
 function Billing(props: Reducers) {
 
+  const getLinkOneTimePayment = async (plan: any) => {
+    const body = {
+      test: process.env.NODE_ENV !== 'production',
+      // eslint-disable-next-line camelcase
+      lifetime_tier: plan.tier,
+      mode: 'payment',
+      priceId: plan.id,
+      successUrl: 'https://drive.internxt.com/redirect/android',
+      canceledUrl: 'https://drive.internxt.com/redirect/android'
+    }
+
+    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/v2/stripe/session`, {
+      method: 'POST',
+      headers: await getHeaders(),
+      body: JSON.stringify(body)
+    }).then(res => res.json()).then(result => {
+      if (result.error) {
+        throw Error(result.error);
+      }
+      const link = `${process.env.REACT_NATIVE_API_URL}/checkout/${result.id}`
+
+      Linking.openURL(link);
+    }).catch(err => {
+      Alert.alert('There has been an error', `${err.message}, please contact us.`, [
+        {
+          text: 'Go back',
+          onPress: () => props.navigation.replace('Billing')
+        }
+      ])
+    });
+  }
+
   const getLink = async (plan: any) => {
+    if (plan.interval === 0) {
+      // Only for Lifetimes
+      return getLinkOneTimePayment(plan);
+    }
     const body = {
       plan: plan.id,
       test: process.env.NODE_ENV === 'development',
@@ -93,9 +129,9 @@ function Billing(props: Reducers) {
   }
 
   const [stripeProducts, setStripeProducts] = useState<IProduct[]>();
-  const [selectedProductIndex, setSelectedProductIndex] = useState(0);
+  const [selectedProductIndex, setSelectedProductIndex] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<IProduct>();
-  const [selectedTab, setSelectedTab] = useState(0)
+  const [selectedTab, setSelectedTab] = useState(1)
 
   useEffect(() => {
     getProducts().then((products) => {
@@ -111,6 +147,43 @@ function Billing(props: Reducers) {
   useEffect(() => {
     const keys = _.keys(stripeProducts);
     const key = keys[selectedProductIndex];
+
+    if (selectedProductIndex === 2) {
+      const isTest = process.env.NODE_ENV !== 'production';
+
+      const lifetimes = [
+        {
+          tier: 'lifetime',
+          price: 0,
+          name: 'one-time payment',
+          pricePerMonth: 299,
+          productName: '2TB Lifetime',
+          interval: 0,
+          id: isTest ? 'price_1JZBJVFAOdcgaBMQPDjuJsEh' : 'price_1HrovfFAOdcgaBMQP33yyJdt'
+        },
+        {
+          tier: 'exclusive-lifetime',
+          price: 0,
+          name: 'one-time payment',
+          pricePerMonth: 499,
+          productName: '10TB Lifetime',
+          interval: 0,
+          id: isTest ? 'price_1JZYkSFAOdcgaBMQItAo6Ev3' : 'price_1IMA0AFAOdcgaBMQiZyoSIYU'
+        },
+        {
+          tier: 'infinite',
+          price: 0,
+          name: 'one-time payment',
+          pricePerMonth: 999,
+          productName: 'Infinite Storage',
+          interval: 0,
+          id: isTest ? 'price_1JZYmRFAOdcgaBMQfADnPmSf' : 'price_1Ix8QoFAOdcgaBMQ42h0k22u'
+        }
+      ];
+
+      setSelectedProduct(lifetimes)
+      return;
+    }
 
     stripeProducts && setSelectedProduct(stripeProducts[key])
   }, [stripeProducts, selectedProductIndex])
@@ -140,12 +213,7 @@ function Billing(props: Reducers) {
                 isTabSelected && tailwind('bg-white')]}>
                 <Text style={[
                   tailwind('px-1 text-neutral-100'),
-                  {
-                    fontFamily: 'NeueEinstellung-Regular'
-                  },
-                  isTabSelected && {
-                    fontFamily: 'NeueEinstellung-Medium'
-                  },
+                  isTabSelected && { fontFamily: 'NeueEinstellung-Medium' },
                   isTabSelected && tailwind('text-neutral-700')
                 ]}>{tab.text}</Text>
               </View>
@@ -162,7 +230,7 @@ function Billing(props: Reducers) {
               <Text style={[tailwind('text-3xl font-bold text-header'), globalStyle.fontWeight.bold]}>{plan.productName}</Text>
             </View>
             <View>
-              <Text style={tailwind('text-xs text-neutral-80')}>{`${plan.price.toFixed(2)}€ billed ${plan.name.toLowerCase()}`}</Text>
+              <Text style={tailwind('text-xs text-neutral-80')}>{selectedProductIndex === 2 ? 'One-time payment' : `${plan.price.toFixed(2)}€ billed ${plan.name.toLowerCase()}`}</Text>
             </View>
           </View>
           <View style={tailwind('justify-center')}>
@@ -172,7 +240,7 @@ function Billing(props: Reducers) {
               onPress={() => {
                 getLink(plan)
               }}>
-              <Text style={tailwind('btn-label mx-4 font-bold')}>{plan.pricePerMonth.toFixed(2)}€ / month</Text>
+              <Text style={tailwind('btn-label mx-4 font-bold')}>{plan.pricePerMonth.toFixed(selectedProductIndex !== 2 ? 2 : 0)}€{selectedProductIndex !== 2 && ' / month'}</Text>
             </TouchableHighlight>
           </View>
         </View>
