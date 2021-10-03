@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableHighlight, TouchableWithoutFeedback, TextInput, Platform, KeyboardAvoidingView, Easing } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
@@ -8,6 +8,7 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import strings from '../../../assets/lang/strings';
 import { rename, renameMeta } from './renameUtils';
 import { FolderIcon, getFileTypeIcon, notify } from '../../helpers'
+import globalStyle from '../../styles/global.style';
 
 function RenameModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
@@ -15,8 +16,6 @@ function RenameModal(props: Reducers) {
   const [newName, setNewName] = useState('');
   const [originalName, setOriginalName] = useState('');
   const [isLoading, setIsLoading] = useState(false)
-
-  const renameRef = useRef<TextInput>();
 
   const emptyName = newName === ''
 
@@ -65,7 +64,6 @@ function RenameModal(props: Reducers) {
       onOpened={() => {
         setNewName(props.filesState.focusedItem?.name)
         setOriginalName(newName)
-        renameRef.current.focus();
       }}
       backButtonClose={true}
       backdropPressToClose={true}
@@ -112,7 +110,7 @@ function RenameModal(props: Reducers) {
                       placeholderTextColor={getColor('neutral-500')}
                       autoCompleteType='off'
                       key='name'
-                      ref={renameRef}
+                      autoFocus={true}
                       autoCorrect={false}
                     />
                   </View>
@@ -129,7 +127,7 @@ function RenameModal(props: Reducers) {
                     props.dispatch(layoutActions.closeRenameModal())
                   }}
                   disabled={isLoading}>
-                  <Text style={tailwind('text-lg font-medium text-neutral-300')}>{strings.generic.cancel}</Text>
+                  <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>{strings.generic.cancel}</Text>
                 </TouchableHighlight>
 
                 <View style={tailwind('px-1')}></View>
@@ -139,7 +137,7 @@ function RenameModal(props: Reducers) {
                   style={tailwind('bg-blue-60 rounded-lg py-2 flex-grow items-center justify-center')}
                   onPress={renameHandle}
                   disabled={isLoading}>
-                  <Text style={tailwind('text-lg font-medium text-white')}>{strings.generic.rename}</Text>
+                  <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.generic.rename}</Text>
                 </TouchableHighlight>
 
               </View>

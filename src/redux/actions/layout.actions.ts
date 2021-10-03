@@ -10,8 +10,8 @@ export const layoutActions = {
   closeItemModal,
   openAddItemModal,
   closeAddItemModal,
-  openRunOutStorageModal,
-  closeRunOutStorageModal,
+  openRanOutStorageModal,
+  closeRanOutStorageModal,
   openFreeForYouModal,
   closeFreeForYouModal,
   openSortModal,
@@ -66,8 +66,8 @@ function closeAddItemModal(): AnyAction {
   return { type: layoutActionTypes.CLOSE_ADD_ITEM_MODAL };
 }
 
-function openRunOutStorageModal(): AnyAction {
-  return { type: layoutActionTypes.OPEN_RUNOUTSTORAGE_MODAL };
+function openRanOutStorageModal(): AnyAction {
+  return { type: layoutActionTypes.OPEN_RANOUTSTORAGE_MODAL };
 }
 
 function openFreeForYouModal(): AnyAction {
@@ -78,8 +78,8 @@ function closeFreeForYouModal(): AnyAction {
   return { type: layoutActionTypes.CLOSE_FREEFORYOU_MODAL };
 }
 
-function closeRunOutStorageModal(): AnyAction {
-  return { type: layoutActionTypes.CLOSE_RUNOUTSTORAGE_MODAL };
+function closeRanOutStorageModal(): AnyAction {
+  return { type: layoutActionTypes.CLOSE_RANOUTSTORAGE_MODAL };
 }
 
 function openSortModal(): AnyAction {

@@ -1,6 +1,6 @@
 import prettysize from 'prettysize';
 import React from 'react'
-import { Text, View, TouchableWithoutFeedback, Easing } from 'react-native'
+import { Text, View, TouchableWithoutFeedback, Easing, Platform } from 'react-native'
 import Modal from 'react-native-modalbox'
 import { connect } from 'react-redux';
 import { layoutActions } from '../../redux/actions';
@@ -10,6 +10,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 import { IFile, IFolder } from '../../components/FileList';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
+import globalStyle from '../../styles/global.style';
 
 interface FileDetailsProps extends Reducers {
   showItemModal: boolean
@@ -82,9 +83,9 @@ function FileDetailsModal(props: FileDetailsProps) {
               </View>
 
               <View style={tailwind('flex-shrink w-full')}>
-                <Text numberOfLines={1} ellipsizeMode="middle" style={tailwind('text-base text-neutral-900')}>{item?.name}{item?.type ? '.' + item.type : ''}</Text>
+                <Text numberOfLines={1} ellipsizeMode="middle" style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}>{item?.name}{item?.type ? '.' + item.type : ''}</Text>
                 <Text style={tailwind('text-xs text-neutral-100')}>
-                  {!isFolder && <>{prettysize(item?.size)}<Text style={tailwind('font-bold')}>  -  </Text></>}Updated {new Date(item?.updatedAt).toLocaleDateString('en-GB', {
+                  {!isFolder && <>{prettysize(item?.size)}<Text style={globalStyle.fontWeight.bold}>  ·  </Text></>}Updated {new Date(item?.updatedAt).toLocaleDateString('en-GB', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric'
@@ -106,11 +107,19 @@ function FileDetailsModal(props: FileDetailsProps) {
             <View style={tailwind('bg-neutral-20 p-4 flex-grow')}>
               <View style={tailwind('rounded-xl bg-white')}>
 
+                {!isFolder && <FileDetailOption
+                  name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.components.file_and_folder_options.view}</Text>}
+                  icon={<Unicons.UilEye size={20} color={getColor('neutral-500')} />}
+                  onPress={() => {
+                    // To implement
+                  }}
+                />}
+
                 <FileDetailOption
                   name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.generic.rename}</Text>}
                   icon={<Unicons.UilEditAlt size={20} color={getColor('neutral-500')} />}
                   onPress={() => {
-                    props.dispatch(layoutActions.closeItemModal());
+                    props.dispatch(layoutActions.closeItemModal())
                     props.dispatch(layoutActions.openRenameModal())
                   }}
                 />
@@ -143,7 +152,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                   name={<Text style={tailwind('text-lg text-red-60')}>{strings.components.file_and_folder_options.delete}</Text>}
                   icon={<Unicons.UilTrashAlt size={20} color={getColor('red-60')} />}
                   onPress={() => {
-                    props.dispatch(layoutActions.closeItemModal());
+                    props.dispatch(layoutActions.closeItemModal())
                     props.dispatch(layoutActions.openDeleteModal())
                   }}
                 />

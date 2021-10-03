@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableHighlight, TextInput, Platform, KeyboardAvoidingView, TouchableWithoutFeedback, Easing } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { createFolder } from './CreateFolderUtils'
@@ -8,14 +8,13 @@ import { Reducers } from '../../redux/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { FolderIcon, notify } from '../../helpers';
 import strings from '../../../assets/lang/strings';
+import globalStyle from '../../styles/global.style';
 
 function CreateFolderModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
   const [isOpen, setIsOpen] = useState(props.layoutState.showCreateFolderModal)
   const [folderName, setFolderName] = useState('Untitled folder');
   const [isLoading, setIsLoading] = useState(false)
-
-  const createInput = useRef<TextInput>();
 
   const emptyName = folderName === ''
 
@@ -48,9 +47,6 @@ function CreateFolderModal(props: Reducers) {
       onClosed={() => {
         setFolderName('Untitled folder');
         props.dispatch(layoutActions.closeCreateFolderModal())
-      }}
-      onOpened={() => {
-        createInput.current.focus();
       }}
       backButtonClose={true}
       backdropPressToClose={true}
@@ -99,7 +95,7 @@ function CreateFolderModal(props: Reducers) {
                       autoCompleteType='off'
                       selectTextOnFocus={true}
                       key='name'
-                      ref={createInput}
+                      autoFocus={true}
                       autoCorrect={false}
                     />
                   </View>
@@ -115,7 +111,7 @@ function CreateFolderModal(props: Reducers) {
                     props.dispatch(layoutActions.closeCreateFolderModal());
                   }}
                   disabled={isLoading}>
-                  <Text style={tailwind('text-lg font-medium text-neutral-300')}>{strings.generic.cancel}</Text>
+                  <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>{strings.generic.cancel}</Text>
                 </TouchableHighlight>
 
                 <View style={tailwind('px-1')}></View>
@@ -125,7 +121,7 @@ function CreateFolderModal(props: Reducers) {
                   style={tailwind('bg-blue-60 rounded-lg py-2 flex-grow items-center justify-center')}
                   onPress={createHandle}
                   disabled={isLoading}>
-                  <Text style={tailwind('text-lg font-medium text-white')}>{strings.generic.create}</Text>
+                  <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.generic.create}</Text>
                 </TouchableHighlight>
 
               </View>

@@ -34,7 +34,7 @@ function Share(props: Reducers): JSX.Element {
     <AppMenu {...props} title="Shared" hideSearch={true} hideBackPress={true} />
     {
       loading &&
-      <View style={tailwind('flex-1 self-center')}>
+      <View>
         {_.times(20, () => <SkinSkeleton />)}
       </View>
     }

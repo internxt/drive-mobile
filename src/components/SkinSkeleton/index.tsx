@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Animated, Easing } from 'react-native';
-import { getColor, tailwind } from '../../helpers/designSystem';
-import * as Unicons from '@iconscout/react-native-unicons'
+import { tailwind } from '../../helpers/designSystem';
 
 export default function SkinSkeleton(): JSX.Element {
 
@@ -30,18 +29,20 @@ export default function SkinSkeleton(): JSX.Element {
     ])
   ).start();
 
-  return <Animated.View style={[tailwind('flex-row m-3 mr-4'), { opacity: fadeAnim }]}>
+  return <Animated.View style={[tailwind('flex-row my-3 mx-5'), { opacity: fadeAnim }]}>
 
-    <View style={tailwind('bg-neutral-30 h-8 w-8 m-1')} />
+    <View style={tailwind('bg-neutral-30 h-10 w-10 mr-4 rounded')} />
 
-    <View style={tailwind('flex-col flex-grow')}>
-      <View style={tailwind('h-3 m-1 bg-neutral-30')} />
+    <View style={tailwind('flex-col flex-grow justify-center')}>
+      <View style={tailwind('h-3 w-2/6 mb-2 bg-neutral-30 rounded')} />
 
-      <View style={tailwind('h-2 m-1 bg-neutral-30')} />
+      <View style={tailwind('h-2.5 w-3/4 bg-neutral-10 rounded')} />
     </View>
+    {/*
     <View style={tailwind('items-center justify-center')}>
       <Unicons.UilEllipsisH color={getColor('neutral-30')} />
     </View>
+    */}
 
   </Animated.View>;
 }

@@ -32,7 +32,7 @@ function Recents(props: Reducers): JSX.Element {
     <AppMenu {...props} title="Recents" hideBackPress={true} hideSearch={true} />
     {
       loading &&
-      <View style={styles.activityIndicator}>
+      <View>
         {_.times(20, () => <SkinSkeleton />)}
       </View>
     }
@@ -65,10 +65,6 @@ function Recents(props: Reducers): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  activityIndicator: {
-    flex: 1,
-    alignSelf: 'center'
-  },
   container: {
     backgroundColor: '#fff',
     flex: 1

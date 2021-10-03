@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
 import { Reducers } from '../../redux/reducers/reducers';
 import * as Unicons from '@iconscout/react-native-unicons'
-import { tailwind } from '../../helpers/designSystem';
+import { getColor, tailwind } from '../../helpers/designSystem';
 import { userActions } from '../../redux/actions';
 import strings from '../../../assets/lang/strings';
 import VersionUpdate from '../../components/VersionUpdate';
@@ -25,7 +25,7 @@ function ConfigurationItem(props: ConfigurationItemsProps) {
         <Text>{props.title}</Text>
       </View>
       <View style={tailwind('justify-center')}>
-        <Unicons.UilAngleRightB color="#C1C7D0" />
+        <Unicons.UilAngleRightB color={getColor('neutral-60')} />
       </View>
     </View>
   </TouchableHighlight>

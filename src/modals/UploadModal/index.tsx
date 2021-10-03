@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, Text, Alert, Platform, PermissionsAndroid } from 'react-native';
+import { View, Text, Alert, Platform, PermissionsAndroid, Easing, TouchableWithoutFeedback } from 'react-native';
 import { connect, useSelector } from 'react-redux';
 import { uniqueId } from 'lodash';
 import Modal from 'react-native-modalbox';
@@ -8,9 +8,7 @@ import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-pi
 import { launchImageLibrary } from 'react-native-image-picker'
 
 import { fileActions, layoutActions } from '../../redux/actions';
-import SettingsItem from '../SettingsModal/SettingsItem';
 import { createFileEntry, FileEntry, getFinalUri, uploadFile, FileMeta } from '../../services/upload';
-import Separator from '../../components/Separator';
 import * as Unicons from '@iconscout/react-native-unicons'
 import analytics from '../../helpers/lytics';
 import { deviceStorage, encryptFilename } from '../../helpers';
@@ -20,7 +18,9 @@ import { renameIfAlreadyExists } from '../../lib';
 import { UPLOAD_FILES_LIMIT } from '../../lib/constants';
 import strings from '../../../assets/lang/strings';
 import { notify } from '../../helpers/toast';
-import { tailwind } from '../../helpers/designSystem';
+import { tailwind, getColor } from '../../helpers/designSystem';
+import globalStyle from '../../styles/global.style';
+import { TouchableHighlight } from 'react-native-gesture-handler';
 
 interface UploadingFile {
   size: number
@@ -251,254 +251,294 @@ function UploadModal(props: Reducers) {
     }
   }
 
+  function handleUploadFiles() {
+    if (Platform.OS === 'ios') {
+      DocumentPicker.pickMultiple({
+        type: [DocumentPicker.types.allFiles],
+        copyTo: 'cachesDirectory'
+      }).then((documents) => {
+        documents.forEach(doc => doc.uri = doc.fileCopyUri);
+        props.dispatch(layoutActions.closeUploadFileModal());
+        return uploadDocuments(documents);
+      }).then(() => {
+        props.dispatch(fileActions.getFolderContent(currentFolder));
+      }).catch((err) => {
+        if (err.message === 'User canceled document picker') {
+          return;
+        }
+        Alert.alert('File upload error', err.message);
+      }).finally(() => {
+        props.dispatch(layoutActions.closeUploadFileModal());
+      })
+    } else {
+      DocumentPicker.pickMultiple({
+        type: [DocumentPicker.types.allFiles],
+        copyTo: 'cachesDirectory'
+      }).then(processFilesFromPicker).then(() => {
+        props.dispatch(fileActions.getFolderContent(currentFolder));
+      }).catch((err) => {
+        if (err.message === 'User canceled document picker') {
+          return;
+        }
+        Alert.alert('File upload error', err.message);
+      }).finally(() => {
+        props.dispatch(layoutActions.closeUploadFileModal());
+      })
+      // getDocumentAsync({ copyToCacheDirectory: true }).then((result) => {
+      //   if (result.type !== 'cancel') {
+      //     const documents: DocumentPickerResponse[] = [{
+      //       fileCopyUri: result.uri,
+      //       name: result.name,
+      //       size: result.size,
+      //       type: '',
+      //       uri: result.uri
+      //     }]
+
+      //     props.dispatch(layoutActions.closeUploadFileModal());
+      //     return uploadDocuments(documents);
+      //   }
+      // }).then(() => {
+      //   props.dispatch(fileActions.getFolderContent(currentFolder));
+      // }).catch((err) => {
+      //   if (err.message === 'User canceled document picker') {
+      //     return;
+      //   }
+      //   Alert.alert('File upload error', err.message);
+      // }).finally(() => {
+      //   props.dispatch(layoutActions.closeUploadFileModal());
+      // });
+    }
+  }
+
+  async function handleUploadFromCameraRoll() {
+    if (Platform.OS === 'ios') {
+      const { status } = await requestMediaLibraryPermissionsAsync(false)
+
+      if (status === 'granted') {
+        launchImageLibrary({ mediaType: 'mixed', selectionLimit: 0 }, (response) => {
+          if (response.errorMessage) {
+            return Alert.alert(response.errorMessage)
+          }
+          if (response.assets) {
+            const documents: DocumentPickerResponse[] = response.assets.map((asset) => {
+              const doc: DocumentPickerResponse = {
+                fileCopyUri: asset.uri,
+                name: asset.fileName,
+                size: asset.fileSize,
+                type: asset.type,
+                uri: asset.uri
+              }
+
+              return doc
+            })
+
+            props.dispatch(layoutActions.closeUploadFileModal());
+            uploadDocuments(documents).then(() => {
+              props.dispatch(fileActions.getFolderContent(currentFolder));
+            }).catch((err) => {
+              if (err.message === 'User canceled document picker') {
+                return;
+              }
+              Alert.alert('File upload error', err.message);
+            }).finally(() => {
+              props.dispatch(layoutActions.closeUploadFileModal());
+            })
+          }
+        })
+      }
+    }
+    else {
+      DocumentPicker.pickMultiple({
+        type: [DocumentPicker.types.images],
+        copyTo: 'cachesDirectory'
+      }).then(processFilesFromPicker).then(() => {
+        props.dispatch(fileActions.getFolderContent(currentFolder));
+      }).catch((err) => {
+        if (err.message === 'User canceled document picker') {
+          return;
+        }
+        Alert.alert('File upload error', err.message);
+      }).finally(() => {
+        props.dispatch(layoutActions.closeUploadFileModal());
+      })
+    }
+  }
+
+  async function handleTakePhotoAndUpload() {
+    const { status } = await requestCameraPermissionsAsync();
+
+    if (status === 'granted') {
+      let error: Error | null = null;
+
+      const result = await launchCameraAsync().catch(err => {
+        error = err;
+      })
+
+      if (error) {
+        return Alert.alert(error?.message);
+      }
+
+      if (!result) {
+        return;
+      }
+
+      if (!result.cancelled) {
+        const file: any = result
+
+        // Set name for pics/photos
+        if (!file.name) {
+          file.name = result.uri.split('/').pop()
+        }
+        file.progress = 0
+        file.currentFolder = currentFolder
+        file.createdAt = new Date();
+        file.updatedAt = new Date();
+        file.id = uniqueId()
+
+        trackUploadStart();
+        props.dispatch(fileActions.uploadFileStart());
+        props.dispatch(fileActions.addUploadingFile(file));
+
+        props.dispatch(layoutActions.closeUploadFileModal());
+
+        uploadIOS(file, 'image').then(() => {
+          uploadSuccess(file);
+        }).catch(err => {
+          trackUploadError(err);
+          props.dispatch(fileActions.uploadFileFailed(file.id));
+          Alert.alert('Error', 'Cannot upload file due to: ' + err.message);
+        }).finally(() => {
+          props.dispatch(fileActions.uploadFileFinished(file.name));
+          props.dispatch(fileActions.getFolderContent(currentFolder));
+        });
+      }
+    }
+  }
+
   return (
     <Modal
-      isOpen={layoutState.showUploadModal}
+      swipeToClose={false}
       position={'bottom'}
+      style={tailwind('bg-transparent')}
+      coverScreen={Platform.OS === 'android'}
+      isOpen={layoutState.showUploadModal}
       entry={'bottom'}
-      coverScreen={true}
-      style={styles.modalSettings}
       onClosed={() => {
         props.dispatch(layoutActions.closeUploadFileModal())
       }}
       backButtonClose={true}
-      animationDuration={200}>
+      backdropPressToClose={true}
+      animationDuration={250}
+      easing={Easing.inOut(Easing.exp)}
+    >
 
-      <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
+      <View style={tailwind('h-full')}>
 
-      <View style={styles.alignCenter}>
-        <Text style={styles.modalTitle}>{strings.generic.upload}</Text>
-      </View>
-      <Separator />
-      <SettingsItem
-        text={'Upload file'}
-        icon={Unicons.UilUpload}
-        onPress={() => {
-          if (Platform.OS === 'ios') {
-            DocumentPicker.pickMultiple({
-              type: [DocumentPicker.types.allFiles],
-              copyTo: 'cachesDirectory'
-            }).then((documents) => {
-              documents.forEach(doc => doc.uri = doc.fileCopyUri);
-              props.dispatch(layoutActions.closeUploadFileModal());
-              return uploadDocuments(documents);
-            }).then(() => {
-              props.dispatch(fileActions.getFolderContent(currentFolder));
-            }).catch((err) => {
-              if (err.message === 'User canceled document picker') {
-                return;
-              }
-              Alert.alert('File upload error', err.message);
-            }).finally(() => {
-              props.dispatch(layoutActions.closeUploadFileModal());
-            })
-          } else {
-            DocumentPicker.pickMultiple({
-              type: [DocumentPicker.types.allFiles],
-              copyTo: 'cachesDirectory'
-            }).then(processFilesFromPicker).then(() => {
-              props.dispatch(fileActions.getFolderContent(currentFolder));
-            }).catch((err) => {
-              if (err.message === 'User canceled document picker') {
-                return;
-              }
-              Alert.alert('File upload error', err.message);
-            }).finally(() => {
-              props.dispatch(layoutActions.closeUploadFileModal());
-            })
-            // getDocumentAsync({ copyToCacheDirectory: true }).then((result) => {
-            //   if (result.type !== 'cancel') {
-            //     const documents: DocumentPickerResponse[] = [{
-            //       fileCopyUri: result.uri,
-            //       name: result.name,
-            //       size: result.size,
-            //       type: '',
-            //       uri: result.uri
-            //     }]
-
-            //     props.dispatch(layoutActions.closeUploadFileModal());
-            //     return uploadDocuments(documents);
-            //   }
-            // }).then(() => {
-            //   props.dispatch(fileActions.getFolderContent(currentFolder));
-            // }).catch((err) => {
-            //   if (err.message === 'User canceled document picker') {
-            //     return;
-            //   }
-            //   Alert.alert('File upload error', err.message);
-            // }).finally(() => {
-            //   props.dispatch(layoutActions.closeUploadFileModal());
-            // });
-          }
-        }}
-      />
-
-      <SettingsItem
-        text={'Take photo and upload'}
-        icon={Unicons.UilCameraPlus}
-        onPress={async () => {
-          const { status } = await requestCameraPermissionsAsync();
-
-          if (status === 'granted') {
-            let error: Error | null = null;
-
-            const result = await launchCameraAsync().catch(err => {
-              error = err;
-            })
-
-            if (error) {
-              return Alert.alert(error?.message);
-            }
-
-            if (!result) {
-              return;
-            }
-
-            if (!result.cancelled) {
-              const file: any = result
-
-              // Set name for pics/photos
-              if (!file.name) {
-                file.name = result.uri.split('/').pop()
-              }
-              file.progress = 0
-              file.currentFolder = currentFolder
-              file.createdAt = new Date();
-              file.updatedAt = new Date();
-              file.id = uniqueId()
-
-              trackUploadStart();
-              props.dispatch(fileActions.uploadFileStart());
-              props.dispatch(fileActions.addUploadingFile(file));
-
-              props.dispatch(layoutActions.closeUploadFileModal());
-
-              uploadIOS(file, 'image').then(() => {
-                uploadSuccess(file);
-              }).catch(err => {
-                trackUploadError(err);
-                props.dispatch(fileActions.uploadFileFailed(file.id));
-                Alert.alert('Error', 'Cannot upload file due to: ' + err.message);
-              }).finally(() => {
-                props.dispatch(fileActions.uploadFileFinished(file.name));
-                props.dispatch(fileActions.getFolderContent(currentFolder));
-              });
-            }
-          }
-        }}
-      />
-
-      <SettingsItem
-        text={Platform.OS === 'ios' ? 'Upload from camera roll' : 'Upload media'}
-        icon={Unicons.UilImagePlus}
-        onPress={async () => {
-
-          if (Platform.OS === 'ios') {
-            const { status } = await requestMediaLibraryPermissionsAsync(false)
-
-            if (status === 'granted') {
-              launchImageLibrary({ mediaType: 'mixed', selectionLimit: 0 }, (response) => {
-                if (response.errorMessage) {
-                  return Alert.alert(response.errorMessage)
-                }
-                if (response.assets) {
-                  const documents: DocumentPickerResponse[] = response.assets.map((asset) => {
-                    const doc: DocumentPickerResponse = {
-                      fileCopyUri: asset.uri,
-                      name: asset.fileName,
-                      size: asset.fileSize,
-                      type: asset.type,
-                      uri: asset.uri
-                    }
-
-                    return doc
-                  })
-
-                  props.dispatch(layoutActions.closeUploadFileModal());
-                  uploadDocuments(documents).then(() => {
-                    props.dispatch(fileActions.getFolderContent(currentFolder));
-                  }).catch((err) => {
-                    if (err.message === 'User canceled document picker') {
-                      return;
-                    }
-                    Alert.alert('File upload error', err.message);
-                  }).finally(() => {
-                    props.dispatch(layoutActions.closeUploadFileModal());
-                  })
-                }
-              })
-            }
-          }
-          else {
-            DocumentPicker.pickMultiple({
-              type: [DocumentPicker.types.images],
-              copyTo: 'cachesDirectory'
-            }).then(processFilesFromPicker).then(() => {
-              props.dispatch(fileActions.getFolderContent(currentFolder));
-            }).catch((err) => {
-              if (err.message === 'User canceled document picker') {
-                return;
-              }
-              Alert.alert('File upload error', err.message);
-            }).finally(() => {
-              props.dispatch(layoutActions.closeUploadFileModal());
-            })
-          }
-        }}
-      />
-
-      <SettingsItem
-        text={'New folder'}
-        icon={Unicons.UilFolderUpload}
-        onPress={() => {
-          props.dispatch(layoutActions.openCreateFolderModal());
-          props.dispatch(layoutActions.closeUploadFileModal());
-        }}
-      />
-
-      <Separator />
-      <View style={styles.cancelContainer}>
-        <SettingsItem
-          text={<Text style={styles.cancelText}>{strings.generic.cancel}</Text>}
+        <TouchableWithoutFeedback
+          style={tailwind('flex-grow')}
           onPress={() => {
-            props.dispatch(layoutActions.closeUploadFileModal());
+            props.dispatch(layoutActions.closeUploadFileModal())
           }}
-        />
+        >
+          <View style={tailwind('flex-grow')} />
+        </TouchableWithoutFeedback>
+
+        <View style={tailwind('p-4')}>
+
+          <View style={tailwind('rounded-xl overflow-hidden')}>
+
+            <TouchableHighlight
+              style={tailwind('flex-grow')}
+              underlayColor={getColor('neutral-80')}
+              onPress={() => {
+                handleUploadFiles()
+              }}
+            >
+              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>Upload files</Text>
+                <View style={tailwind('h-12 w-12 items-center justify-center')}>
+                  <Unicons.UilFileUpload color={getColor('neutral-500')} size={20} />
+                </View>
+              </View>
+            </TouchableHighlight>
+
+            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+
+            <TouchableHighlight
+              style={tailwind('flex-grow')}
+              underlayColor={getColor('neutral-80')}
+              onPress={() => {
+                handleUploadFromCameraRoll()
+              }}
+            >
+              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>Upload from camera roll</Text>
+                <View style={tailwind('h-12 w-12 items-center justify-center')}>
+                  <Unicons.UilImages color={getColor('neutral-500')} size={20} />
+                </View>
+              </View>
+            </TouchableHighlight>
+
+            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+
+            <TouchableHighlight
+              style={tailwind('flex-grow')}
+              underlayColor={getColor('neutral-80')}
+              onPress={() => {
+                handleTakePhotoAndUpload()
+              }}
+            >
+              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>Take photo and upload</Text>
+                <View style={tailwind('h-12 w-12 items-center justify-center')}>
+                  <Unicons.UilCameraPlus color={getColor('neutral-500')} size={20} />
+                </View>
+              </View>
+            </TouchableHighlight>
+
+            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+
+            <TouchableHighlight
+              style={tailwind('flex-grow')}
+              underlayColor={getColor('neutral-80')}
+              onPress={() => {
+                props.dispatch(layoutActions.openCreateFolderModal());
+                props.dispatch(layoutActions.closeUploadFileModal());
+              }}
+            >
+              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>New folder</Text>
+                <View style={tailwind('h-12 w-12 items-center justify-center')}>
+                  <Unicons.UilFolderPlus color={getColor('neutral-500')} size={20} />
+                </View>
+              </View>
+            </TouchableHighlight>
+
+          </View>
+
+          <View style={tailwind('mt-4 rounded-xl overflow-hidden')}>
+
+            <TouchableHighlight
+              style={tailwind('flex-grow')}
+              underlayColor={getColor('neutral-80')}
+              onPress={() => {
+                props.dispatch(layoutActions.closeUploadFileModal())
+              }}
+            >
+              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-center')}>
+                <Text style={[tailwind('text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>{strings.generic.cancel}</Text>
+              </View>
+            </TouchableHighlight>
+
+          </View>
+
+        </View>
+
       </View>
+
     </Modal>
   )
 }
-
-const styles = StyleSheet.create({
-  modalSettings: {
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    height: 350
-  },
-  cancelText: {
-    color: '#f00',
-    textAlign: 'center',
-    flexGrow: 1,
-    fontFamily: 'NeueEinstellung-Regular',
-    fontSize: 19,
-    fontWeight: '500'
-  },
-  modalTitle: {
-    color: '#42526E',
-    fontFamily: 'NeueEinstellung-Regular',
-    fontSize: 16,
-    marginTop: 20,
-    marginBottom: 10,
-    fontWeight: 'bold'
-  },
-  cancelContainer: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    flexGrow: 1,
-    marginBottom: 16
-  },
-  alignCenter: { alignItems: 'center' }
-})
 
 const mapStateToProps = (state: any) => {
   return {
