@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TouchableHighlight, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableHighlight, TextInput, Platform, KeyboardAvoidingView, TouchableWithoutFeedback, Easing } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { createFolder } from './CreateFolderUtils'
 import { connect } from 'react-redux';
@@ -8,14 +8,13 @@ import { Reducers } from '../../redux/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { FolderIcon, notify } from '../../helpers';
 import strings from '../../../assets/lang/strings';
+import globalStyle from '../../styles/global.style';
 
 function CreateFolderModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
   const [isOpen, setIsOpen] = useState(props.layoutState.showCreateFolderModal)
   const [folderName, setFolderName] = useState('Untitled folder');
   const [isLoading, setIsLoading] = useState(false)
-
-  const createInput = useRef<TextInput>();
 
   const emptyName = folderName === ''
 
@@ -41,20 +40,113 @@ function CreateFolderModal(props: Reducers) {
 
   return (
     <Modal
+      position={'bottom'}
+      style={tailwind('bg-transparent')}
+      coverScreen={Platform.OS === 'android'}
       isOpen={isOpen}
       onClosed={() => {
         setFolderName('Untitled folder');
         props.dispatch(layoutActions.closeCreateFolderModal())
       }}
-      onOpened={() => {
-        createInput.current.focus();
-      }}
-      position={'bottom'}
-      entry={'bottom'}
-      coverScreen={Platform.OS === 'android'}
-      style={tailwind('rounded-t-xl p-3 h-80')}
       backButtonClose={true}
+      backdropPressToClose={true}
+      animationDuration={250}
+      easing={Easing.inOut(Easing.exp)}
     >
+      <KeyboardAvoidingView behavior={'padding'} >
+        <View style={tailwind('h-full')}>
+          <TouchableWithoutFeedback
+            onPress={() => {
+              props.dispatch(layoutActions.closeCreateFolderModal());
+            }}
+          >
+            <View style={tailwind('flex-grow')} />
+          </TouchableWithoutFeedback>
+
+          <View style={tailwind('flex-row w-full max-w-full')}>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                props.dispatch(layoutActions.closeCreateFolderModal());
+              }}
+            >
+              <View style={tailwind('self-stretch w-8 -mr-8')} />
+            </TouchableWithoutFeedback>
+
+            <View style={tailwind('bg-white rounded-2xl mx-8 flex-grow p-4')}>
+              <View style={tailwind('flex-grow justify-center px-12')}>
+                {/*
+                <View style={tailwind('pb-6')}>
+                  <Text style={tailwind('text-lg text-neutral-500 font-medium text-center')}>{strings.screens.create_folder.title}</Text>
+                </View>
+                */}
+
+                <View style={tailwind('pt-4 pb-8')}>
+                  <View style={tailwind('items-center pb-3')}>
+                    <FolderIcon width={80} height={80} />
+                  </View>
+
+                  <View style={tailwind('items-center justify-center flex-shrink flex-grow bg-neutral-10 border border-neutral-30 pb-3 px-4 rounded-lg')}>
+                    <TextInput
+                      style={tailwind('text-lg text-center text-neutral-600')}
+                      value={folderName}
+                      onChangeText={value => setFolderName(value)}
+                      placeholderTextColor={getColor('neutral-80')}
+                      autoCapitalize='words'
+                      autoCompleteType='off'
+                      selectTextOnFocus={true}
+                      key='name'
+                      autoFocus={true}
+                      autoCorrect={false}
+                    />
+                  </View>
+                </View>
+              </View>
+
+              <View style={tailwind('flex-row justify-between')}>
+
+                <TouchableHighlight
+                  underlayColor={getColor('neutral-30')}
+                  style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
+                  onPress={() => {
+                    props.dispatch(layoutActions.closeCreateFolderModal());
+                  }}
+                  disabled={isLoading}>
+                  <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>{strings.generic.cancel}</Text>
+                </TouchableHighlight>
+
+                <View style={tailwind('px-1')}></View>
+
+                <TouchableHighlight
+                  underlayColor={getColor('blue-70')}
+                  style={tailwind('bg-blue-60 rounded-lg py-2 flex-grow items-center justify-center')}
+                  onPress={createHandle}
+                  disabled={isLoading}>
+                  <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.generic.create}</Text>
+                </TouchableHighlight>
+
+              </View>
+            </View>
+
+            <TouchableWithoutFeedback
+              onPress={() => {
+                props.dispatch(layoutActions.closeCreateFolderModal());
+              }}
+            >
+              <View style={tailwind('self-stretch w-8 -ml-8')} />
+            </TouchableWithoutFeedback>
+          </View>
+
+          <TouchableWithoutFeedback
+            onPress={() => {
+              props.dispatch(layoutActions.closeCreateFolderModal());
+            }}
+          >
+            <View style={tailwind('flex-grow')} />
+          </TouchableWithoutFeedback>
+        </View>
+      </KeyboardAvoidingView>
+
+      {/*
       <KeyboardAvoidingView behavior={'padding'} >
         <View style={tailwind('h-full')}>
           <View>
@@ -109,6 +201,7 @@ function CreateFolderModal(props: Reducers) {
           </View>
         </View>
       </KeyboardAvoidingView>
+      */}
     </Modal>
   );
 }

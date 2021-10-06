@@ -6,11 +6,12 @@ import { notify } from '../../helpers';
 import { Reducers } from '../../redux/reducers/reducers';
 import { IProduct } from '../../redux/services';
 import _ from 'lodash'
-import { tailwind } from '../../helpers/designSystem';
+import { getColor, tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/Separator';
 import * as Unicons from '@iconscout/react-native-unicons'
 import { getHeaders } from '../../helpers/headers';
 import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
+import globalStyle from '../../styles/global.style';
 
 // TODO: Export to service
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
@@ -197,7 +198,7 @@ function Billing(props: Reducers) {
     <View style={tailwind('flex-1 mx-4 justify-start')}>
 
       {/* Buttons inside this fragment does not work inside a separated component */}
-      <View style={tailwind('flex-row p-1 my-2 justify-between bg-neutral-20 rounded-xl')}>
+      <View style={tailwind('flex-row p-1 mt-8 mb-2 justify-between bg-neutral-20 rounded-xl')}>
         {PERIODS.map((tab, n) => {
           const isTabSelected = n === selectedTab
 
@@ -211,8 +212,7 @@ function Billing(props: Reducers) {
                 tailwind('p-2 items-center rounded-xl'),
                 isTabSelected && tailwind('bg-white')]}>
                 <Text style={[
-                  tailwind('px-1 text-neutral-100'),
-                  isTabSelected && { fontFamily: 'NeueEinstellung-Medium' },
+                  tailwind('text-sm px-1 text-neutral-80'), globalStyle.fontWeight.medium,
                   isTabSelected && tailwind('text-neutral-700')
                 ]}>{tab.text}</Text>
               </View>
@@ -226,20 +226,20 @@ function Billing(props: Reducers) {
         return <View key={nPlan} style={tailwind('flex-row my-6 ml-3')}>
           <View style={tailwind('flex-col flex-grow justify-end')}>
             <View>
-              <Text style={tailwind('text-3xl font-bold text-header')}>{plan.productName}</Text>
+              <Text style={[tailwind('text-3xl text-header'), globalStyle.fontWeight.medium]}>{plan.productName}</Text>
             </View>
             <View>
-              <Text style={tailwind('text-xs text-neutral-80')}>{selectedProductIndex === 2 ? 'One-time payment' : `${plan.price.toFixed(2)}€ billed ${plan.name.toLowerCase()}`}</Text>
+              <Text style={tailwind('text-base text-neutral-100')}>{selectedProductIndex === 2 ? 'One-time payment' : `${plan.price.toFixed(2)}€ billed ${plan.name.toLowerCase()}`}</Text>
             </View>
           </View>
           <View style={tailwind('justify-center')}>
             <TouchableHighlight
-              underlayColor="#5291ff"
+              underlayColor={getColor('blue-70')}
               style={tailwind('bg-blue-60 rounded-xl h-10 justify-center')}
               onPress={() => {
                 getLink(plan)
               }}>
-              <Text style={tailwind('btn-label mx-4 font-bold')}>{plan.pricePerMonth.toFixed(selectedProductIndex !== 2 ? 2 : 0)}€{selectedProductIndex !== 2 && ' / month'}</Text>
+              <Text style={[tailwind('btn-label mx-4'), globalStyle.fontWeight.medium]}>{plan.pricePerMonth.toFixed(selectedProductIndex !== 2 ? 2 : 0)}€{selectedProductIndex !== 2 && ' / month'}</Text>
             </TouchableHighlight>
           </View>
         </View>

@@ -192,13 +192,13 @@ export function layoutReducer(state = initialState, action: AnyAction): LayoutSt
       showRenameModal: false
     }
   }
-  case layoutActionTypes.OPEN_RUNOUTSTORAGE_MODAL: {
+  case layoutActionTypes.OPEN_RANOUTSTORAGE_MODAL: {
     return {
       ...state,
       showRunOutOfSpaceModal: true
     }
   }
-  case layoutActionTypes.CLOSE_RUNOUTSTORAGE_MODAL: {
+  case layoutActionTypes.CLOSE_RANOUTSTORAGE_MODAL: {
     return {
       ...state,
       showRunOutOfSpaceModal: false

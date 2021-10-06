@@ -7,9 +7,11 @@ const strings = new LocalizedStrings({
       "loading": "Loading",
       "cancel": "Cancel",
       "security": "Security",
+      "create": "Create",
       "rename": "Rename",
       "close": "Close",
       "upgrade": "Upgrade",
+      "upgradeNow": "Upgrade now",
       "upload": "Upload",
       "delete": "Delete",
       "settings": "Settings"
@@ -104,7 +106,8 @@ const strings = new LocalizedStrings({
         "confirm": "Confirm",
         "move": "Move",
         "share": "Share",
-        "upgrade": "Mejorar"
+        "upgrade": "Mejorar",
+        "upgradeNow": "Comprar espacio"
       },
       "inputs": {
         "email": "Email address",
@@ -148,7 +151,8 @@ const strings = new LocalizedStrings({
         "size": "Size: ",
         "move": "Move",
         "share": "Share with link",
-        "delete": "Delete"
+        "delete": "Delete",
+        "view": "View"
       }
     },
     "modals": {
@@ -166,11 +170,11 @@ const strings = new LocalizedStrings({
       "delete_modal": {
         "title": "Delete permanently?",
         "subtitle": "Please confirm you want to delete this item. This action can not be undone.",
-        "warning": "This item will be deleted, this action cannot be undone.",
+        "warning": "This action cannot be undone",
         "delete": "Delete"
       },
       "out_of_space_modal": {
-        "title": "Ran out of space",
+        "title": "Ran out of storage",
         "subtitle": "You have currently used 3GB of storage. To start uploading more files, please upgrade your storage plan."
       },
       "coming_soon_modal": {
@@ -185,6 +189,7 @@ const strings = new LocalizedStrings({
       "loading": "Cargando",
       "cancel": "Cancelar",
       "security": "Seguridad",
+      "create": "Crear",
       "rename": "Renombrar",
       "close": "Cerrar",
       "upgrade": "Mejorar",
@@ -326,7 +331,8 @@ const strings = new LocalizedStrings({
         "size": "Tamaño: ",
         "move": "Mover",
         "share": "Compartir",
-        "delete": "Borrar"
+        "delete": "Borrar",
+        "view": "Ver"
       }
     },
     "modals": {
@@ -344,7 +350,7 @@ const strings = new LocalizedStrings({
       "delete_modal": {
         "title": "¿Borrar completamente?",
         "subtitle": "Por favor, confirma que realmente quieres borrar este objeto. Esta acción no puede deshacerse.",
-        "warning": "Este elemento será eliminado, esta acción no se puede deshacer.",
+        "warning": "Esta acción no puede deshacerse",
         "delete": "Borrar"
       },
       "out_of_space_modal": {

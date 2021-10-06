@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Alert, TouchableOpacity, Platform, Animated, Easing } from 'react-native';
+import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Platform, Animated, Easing } from 'react-native';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
 import { deviceStorage, FolderIcon, getFileTypeIcon } from '../../helpers';
@@ -11,9 +11,11 @@ import * as FileSystem from 'expo-file-system'
 import * as Unicons from '@iconscout/react-native-unicons';
 import { downloadFile } from '../../services/download';
 import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../lib/fs';
-import { tailwind } from '../../helpers/designSystem';
+import { getColor, tailwind } from '../../helpers/designSystem';
 import FileSpinner from '../../../assets/images/widgets/file-spinner.svg'
 import prettysize from 'prettysize';
+import globalStyle from '../../styles/global.style';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 interface FileItemProps extends Reducers {
   isFolder: boolean
@@ -209,66 +211,75 @@ function FileItem(props: FileItemProps) {
   const showSpinner = progress >= 0 || props.isLoading || isLoading;
 
   return (
-    <View style={tailwind('flex-row')}>
-      <View style={tailwind('flex-grow flex-shrink overflow-hidden')}>
-        <TouchableOpacity
-          style={tailwind('flex-row flex-grow')}
-          onLongPress={() => { handleLongPress(props, isSelected) }}
-          onPress={async () => { await handleItemPressed(); }}>
-          <View style={tailwind('m-4')}>
-            {
-              props.isFolder ? <FolderIcon width={30} height={30} /> : <IconFile width={30} height={30} />
-            }
+    <TouchableHighlight
+      underlayColor={getColor('neutral-20')}
+      onLongPress={() => { handleLongPress(props, isSelected) }}
+      onPress={async () => { await handleItemPressed() }}
+    >
+      <View style={tailwind('flex-row')}>
+        <View style={tailwind('flex-grow flex-shrink overflow-hidden')}>
+          <TouchableWithoutFeedback
+            style={tailwind('flex-row flex-grow')}
+          >
+            <View style={tailwind('my-3 ml-5 mr-4')}>
+              {
+                props.isFolder ? <FolderIcon width={40} height={40} /> : <IconFile width={40} height={40} />
+              }
 
-            {
-              showSpinner
-              &&
-              <View style={tailwind('absolute -bottom-2 -right-2')}>
-                <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                  <FileSpinner />
-                </Animated.View>
-              </View>
-            }
-          </View>
+              {
+                showSpinner
+                &&
+                <View style={tailwind('absolute -bottom-2 -right-2')}>
+                  <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                    <FileSpinner />
+                  </Animated.View>
+                </View>
+              }
+            </View>
 
-          <View style={tailwind('flex items-start justify-center flex-shrink flex-grow')}>
-            <Text
-              style={tailwind('text-sm text-header')}
-              numberOfLines={1}
-              ellipsizeMode={'middle'}
-            >{props.item.name}{props.item.type ? '.' + props.item.type : ''}</Text>
+            <View style={tailwind('flex items-start justify-center flex-shrink flex-grow')}>
+              <Text
+                style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
+                numberOfLines={1}
+                ellipsizeMode={'middle'}
+              >{props.item.name}{props.item.type ? '.' + props.item.type : ''}</Text>
 
-            {
-              showSpinner
-              && <Text style={tailwind('text-xs text-paragraph')}>
-                {uploadProgress === 0 ? 'Encrypting ' : ''}
-                {uploadProgress > 0 ? 'Uploading ' : ''}
-                {progress === 0 ? 'Fetching file ' : (progress >= 0 && 'Downloading ')}
-                {(uploadProgress >= 0 ? (uploadProgress * 100).toFixed(0) : progress.toFixed(0)) || 0}{'%'}
-              </Text>
-            }
-            {!showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-paragraph')}>{!props.isFolder && <>{prettysize(props.item.size)} <Text style={tailwind('font-bold')}>· </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric'
-            })}</Text>)}
-          </View>
-        </TouchableOpacity>
+              {
+                showSpinner
+                && <Text style={tailwind('text-xs text-neutral-100')}>
+                  {uploadProgress === 0 ? 'Encrypting ' : ''}
+                  {uploadProgress > 0 ? 'Uploading ' : ''}
+                  {progress === 0 ? 'Fetching file ' : (progress >= 0 && 'Downloading ')}
+                  {(uploadProgress >= 0 ? (uploadProgress * 100).toFixed(0) : progress.toFixed(0)) || 0}{'%'}
+                </Text>
+              }
+              {!showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-neutral-100')}>{!props.isFolder && <>{prettysize(props.item.size)}<Text style={globalStyle.fontWeight.bold}>  ·  </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+              })}</Text>)}
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+
+        <View style={tailwind('items-center px-2 justify-center')}>
+          <TouchableOpacity
+            style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
+            onPress={() => {
+              props.dispatch(fileActions.focusItem(props.item))
+              props.dispatch(layoutActions.openItemModal())
+            }}
+            onLongPress={() => {
+              props.dispatch(fileActions.focusItem(props.item))
+              props.dispatch(layoutActions.openItemModal())
+            }}
+          >
+            <Unicons.UilEllipsisH size={24} color={getColor('neutral-60')} />
+          </TouchableOpacity>
+        </View>
+
       </View>
-
-      <View style={tailwind('items-center ml-4 px-1.5 justify-center')}>
-        <TouchableOpacity
-          style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
-          onPress={() => {
-            props.dispatch(fileActions.focusItem(props.item));
-            props.dispatch(layoutActions.openItemModal())
-          }
-          }>
-          <Unicons.UilEllipsisH size={24} color={'#7A869A'} />
-        </TouchableOpacity>
-      </View>
-
-    </View>
+    </TouchableHighlight>
   )
 }
 
