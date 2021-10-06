@@ -76,7 +76,7 @@ function Configuration(props: Reducers): JSX.Element {
         <ConfigurationGap />
 
         {
-          props.authenticationState.user.email === 'alberto.msn@gmail.com'
+          false
           &&
           <ConfigurationItem {...props} title="Dev tools"
             onPress={() => {
