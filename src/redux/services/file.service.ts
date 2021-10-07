@@ -6,28 +6,12 @@ import { IMetadata } from '../../modals/FileDetailsModal/actions';
 
 export const fileService = {
   getFolderContent,
-  getFolderContentTwo,
   createFolder,
   updateFolderMetadata,
   getSortFunction,
   moveFile,
   deleteItems
 };
-
-function getFolderContentTwo(folderId: number): Promise<any> {
-  return getHeaders().then((headers) => {
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/v2/folder/${folderId}`, {
-      method: 'GET',
-      headers
-    }).then((res) => {
-      if (res.status !== 200) {
-        throw res;
-      }
-
-      return res.json();
-    });
-  });
-}
 
 function getFolderContent(folderId: number): Promise<any> {
   return new Promise(async (resolve, reject) => {
