@@ -102,7 +102,7 @@ function RenameModal(props: Reducers) {
                     {isFolder ? <IconFolder width={80} height={80} /> : <IconFile width={80} height={80} />}
                   </View>
 
-                  <View style={tailwind('items-center justify-center flex-shrink flex-grow bg-neutral-10 border border-neutral-30 pb-3 px-4 rounded-lg')}>
+                  <View style={[tailwind('items-center justify-center flex-shrink flex-grow bg-neutral-10 border border-neutral-30 px-4 rounded-lg'), Platform.OS !== 'android' ? tailwind('pb-3') : tailwind('')]}>
                     <TextInput
                       style={tailwind('text-lg text-center text-neutral-600')}
                       value={newName}
