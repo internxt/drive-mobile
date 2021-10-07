@@ -8,6 +8,7 @@ const strings = new LocalizedStrings({
       "cancel": "Cancel",
       "security": "Security",
       "create": "Create",
+      "creating": "Creating...",
       "rename": "Rename",
       "close": "Close",
       "upgrade": "Upgrade",
@@ -20,7 +21,7 @@ const strings = new LocalizedStrings({
       "change_password": {
         "confirm": "Delete account",
         "title": "Change password",
-        "warning": "Remember that if you change your password, you will be signed out in all your devices. You will need these credentials for logining in again.",
+        "warning": "Remember that if you change your password, you will be signed out in all your devices. You will need these credentials for logining in again."
       },
       "recover_password": {
         "title": "Recover password",
@@ -190,6 +191,7 @@ const strings = new LocalizedStrings({
       "cancel": "Cancelar",
       "security": "Seguridad",
       "create": "Crear",
+      "creating": "Creando...",
       "rename": "Renombrar",
       "close": "Cerrar",
       "upgrade": "Mejorar",

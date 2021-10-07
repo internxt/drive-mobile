@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableHighlight, TextInput, Platform, KeyboardAvoidingView, TouchableWithoutFeedback, Easing } from 'react-native';
-import Modal from 'react-native-modalbox';
+import React, { useEffect, useState } from 'react'
+import { View, Text, TouchableHighlight, TextInput, Platform, KeyboardAvoidingView, TouchableWithoutFeedback, Easing, Keyboard } from 'react-native'
+import Modal from 'react-native-modalbox'
 import { createFolder } from './CreateFolderUtils'
-import { connect } from 'react-redux';
-import { fileActions, layoutActions } from '../../redux/actions';
-import { Reducers } from '../../redux/reducers/reducers';
-import { getColor, tailwind } from '../../helpers/designSystem';
-import { FolderIcon, notify } from '../../helpers';
-import strings from '../../../assets/lang/strings';
-import globalStyle from '../../styles/global.style';
+import { connect } from 'react-redux'
+import { fileActions, layoutActions } from '../../redux/actions'
+import { Reducers } from '../../redux/reducers/reducers'
+import { getColor, tailwind } from '../../helpers/designSystem'
+import { FolderIcon, notify } from '../../helpers'
+import strings from '../../../assets/lang/strings'
+import globalStyle from '../../styles/global.style'
 
 function CreateFolderModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
   const [isOpen, setIsOpen] = useState(props.layoutState.showCreateFolderModal)
-  const [folderName, setFolderName] = useState('Untitled folder');
+  const [folderName, setFolderName] = useState('Untitled folder')
   const [isLoading, setIsLoading] = useState(false)
 
   const emptyName = folderName === ''
@@ -22,18 +22,20 @@ function CreateFolderModal(props: Reducers) {
     setIsOpen(props.layoutState.showCreateFolderModal)
   }, [props.layoutState.showCreateFolderModal])
 
-  const createHandle = () => {
-    setIsLoading(true);
+  const createFolderHandle = () => {
+    this.input.blur()
+    setIsLoading(true)
+    Keyboard.dismiss
     createFolder({ folderName, parentId: currentFolderId }).then(() => {
       props.dispatch(fileActions.getFolderContent(currentFolderId))
       notify({ type: 'success', text: 'Folder created' })
-      setFolderName('');
+      setFolderName('')
     }).catch((err) => {
       notify({ type: 'error', text: err.message })
     }).finally(() => {
-      props.dispatch(layoutActions.closeCreateFolderModal());
-      setIsOpen(false);
-      setIsLoading(false);
+      props.dispatch(layoutActions.closeCreateFolderModal())
+      setIsOpen(false)
+      setIsLoading(false)
     });
 
   }
@@ -57,7 +59,7 @@ function CreateFolderModal(props: Reducers) {
         <View style={tailwind('h-full')}>
           <TouchableWithoutFeedback
             onPress={() => {
-              props.dispatch(layoutActions.closeCreateFolderModal());
+              !isLoading && props.dispatch(layoutActions.closeCreateFolderModal());
             }}
           >
             <View style={tailwind('flex-grow')} />
@@ -66,7 +68,7 @@ function CreateFolderModal(props: Reducers) {
           <View style={tailwind('flex-row w-full max-w-full')}>
             <TouchableWithoutFeedback
               onPress={() => {
-                props.dispatch(layoutActions.closeCreateFolderModal());
+                !isLoading && props.dispatch(layoutActions.closeCreateFolderModal());
               }}
             >
               <View style={tailwind('self-stretch w-8 -mr-8')} />
@@ -85,16 +87,17 @@ function CreateFolderModal(props: Reducers) {
                     <FolderIcon width={80} height={80} />
                   </View>
 
-                  <View style={tailwind('items-center justify-center flex-shrink flex-grow bg-neutral-10 border border-neutral-30 pb-3 px-4 rounded-lg')}>
+                  <View style={[tailwind('items-center justify-center flex-shrink flex-grow bg-neutral-10 border border-neutral-30 px-4 rounded-lg'), Platform.OS !== 'android' && tailwind('pb-3')]}>
                     <TextInput
                       style={tailwind('text-lg text-center text-neutral-600')}
                       value={folderName}
                       onChangeText={value => setFolderName(value)}
                       placeholderTextColor={getColor('neutral-80')}
-                      autoCapitalize='words'
                       autoCompleteType='off'
                       selectTextOnFocus={true}
+                      editable={!isLoading}
                       key='name'
+                      ref={input => this.input = input}
                       autoFocus={true}
                       autoCorrect={false}
                     />
@@ -108,9 +111,9 @@ function CreateFolderModal(props: Reducers) {
                   underlayColor={getColor('neutral-30')}
                   style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
                   onPress={() => {
-                    props.dispatch(layoutActions.closeCreateFolderModal());
+                    !isLoading && props.dispatch(layoutActions.closeCreateFolderModal());
                   }}
-                  disabled={isLoading}>
+                >
                   <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>{strings.generic.cancel}</Text>
                 </TouchableHighlight>
 
@@ -118,10 +121,10 @@ function CreateFolderModal(props: Reducers) {
 
                 <TouchableHighlight
                   underlayColor={getColor('blue-70')}
-                  style={tailwind('bg-blue-60 rounded-lg py-2 flex-grow items-center justify-center')}
-                  onPress={createHandle}
+                  style={[tailwind('rounded-lg py-2 flex-grow items-center justify-center'), isLoading ? tailwind('bg-blue-30') : tailwind('bg-blue-60')]}
+                  onPress={createFolderHandle}
                   disabled={isLoading}>
-                  <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.generic.create}</Text>
+                  <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{isLoading ? strings.generic.creating : strings.generic.create}</Text>
                 </TouchableHighlight>
 
               </View>
@@ -129,7 +132,7 @@ function CreateFolderModal(props: Reducers) {
 
             <TouchableWithoutFeedback
               onPress={() => {
-                props.dispatch(layoutActions.closeCreateFolderModal());
+                !isLoading && props.dispatch(layoutActions.closeCreateFolderModal());
               }}
             >
               <View style={tailwind('self-stretch w-8 -ml-8')} />
@@ -138,7 +141,7 @@ function CreateFolderModal(props: Reducers) {
 
           <TouchableWithoutFeedback
             onPress={() => {
-              props.dispatch(layoutActions.closeCreateFolderModal());
+              !isLoading && props.dispatch(layoutActions.closeCreateFolderModal());
             }}
           >
             <View style={tailwind('flex-grow')} />
@@ -193,7 +196,7 @@ function CreateFolderModal(props: Reducers) {
             <TouchableHighlight
               underlayColor={getColor('blue-70')}
               style={tailwind('bg-blue-60 rounded-md m-1 h-12 flex-grow items-center justify-center')}
-              onPress={createHandle}
+              onPress={createFolderHandle}
               disabled={isLoading}>
               <Text style={tailwind('text-base font-bold text-white')}>{strings.screens.create_folder.confirm}</Text>
             </TouchableHighlight>

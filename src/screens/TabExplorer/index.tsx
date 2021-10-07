@@ -41,15 +41,16 @@ export default function TabExplorer(props: Reducers): JSX.Element {
     <Tab.Navigator
       tabBar={(tabBarProps: BottomTabBarProps) => <MyTabBar {...{ ...props, ...tabBarProps }} />}
       initialRouteName={'FileExplorer'}
-      screenOptions={({ route }) => ({
+      sceneContainerStyle={tailwind('')}
+      screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false
-      })}
+        tabBarShowLabel: true
+      }}
     >
       <Tab.Screen name="Drive" component={FileExplorer} />
       <Tab.Screen name="Recents" component={Recents} />
-      <Tab.Screen name="Upload" component={VoidScreen} />
-      <Tab.Screen name="Share" component={Share} />
+      <Tab.Screen name="Create" component={VoidScreen} />
+      <Tab.Screen name="Shared" component={Share} />
       <Tab.Screen name="Settings" component={Configuration} />
     </ Tab.Navigator>
   </View>
