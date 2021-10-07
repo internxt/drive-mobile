@@ -7643,6 +7643,14 @@
 	"text-justify": {
 		"textAlign": "justify"
 	},
+	"text-supporting-1": {
+		"fontSize": 8,
+		"lineHeight": 10
+	},
+	"text-supporting-2": {
+		"fontSize": 10,
+		"lineHeight": 12
+	},
 	"text-xs": {
 		"fontSize": 12,
 		"lineHeight": 16

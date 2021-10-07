@@ -1,19 +1,19 @@
 import React from 'react';
 import { View, TouchableWithoutFeedback, Text } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons'
-import MainIcon from '../../../assets/icons/figma-icons/add-main.svg'
 import { layoutActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types'
 import { Reducers } from '../../redux/reducers/reducers';
-import { tailwind } from '../../helpers/designSystem';
+import { getColor, tailwind } from '../../helpers/designSystem';
+import globalStyle from '../../styles/global.style';
 
 const tabIcons = {
   Drive: Unicons.UilHdd,
-  Recents: Unicons.UilClockEight,
-  Upload: MainIcon,
-  Share: Unicons.UilLinkAdd,
-  Settings: Unicons.UilCog
+  Recents: Unicons.UilClock,
+  Create: Unicons.UilPlusCircle,
+  Shared: Unicons.UilLinkAdd,
+  Settings: Unicons.UilSetting
 }
 
 interface MyTabBarProps extends Omit<Reducers, 'navigation'>, BottomTabBarProps {
@@ -23,7 +23,7 @@ interface MyTabBarProps extends Omit<Reducers, 'navigation'>, BottomTabBarProps 
 function MyTabBar(props: MyTabBarProps): JSX.Element {
 
   return (
-    <View style={tailwind('h-16 flex-row p-2 justify-around items-center bg-white border border-neutral-50 border-b-0')}>
+    <View style={tailwind('bg-white flex-row px-2 justify-around items-center border-t border-neutral-20')}>
       {props.state.routes.map((route, index) => {
         const { options } = props.descriptors[route.key];
 
@@ -33,7 +33,7 @@ function MyTabBar(props: MyTabBarProps): JSX.Element {
 
         const onPress = () => {
 
-          if (route.name === 'Upload') {
+          if (route.name === 'Create') {
             return props.dispatch(layoutActions.openUploadFileModal());
           }
 
@@ -65,9 +65,9 @@ function MyTabBar(props: MyTabBarProps): JSX.Element {
             onPress={onPress}
             onLongPress={onLongPress}
           >
-            <View style={tailwind('items-center justify-start')}>
-              <Icon color={isFocused ? '#0F62FE' : '#C1C7D0'} />
-              {options.tabBarShowLabel && <Text style={tailwind('text-xs text-neutral-80')}>{label}</Text>}
+            <View style={tailwind('flex-grow h-14 items-center justify-center')}>
+              <Icon color={isFocused ? getColor('blue-60') : getColor('neutral-80')} size={24} />
+              {options.tabBarShowLabel && <Text style={[tailwind('text-supporting-2 mt-0.5'), isFocused ? tailwind('text-blue-60') : tailwind('text-neutral-80'), isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular]}>{label}</Text>}
             </View>
           </TouchableWithoutFeedback>
         );

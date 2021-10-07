@@ -74,7 +74,7 @@ function RenameModal(props: Reducers) {
         <View style={tailwind('h-full')}>
           <TouchableWithoutFeedback
             onPress={() => {
-              props.dispatch(layoutActions.closeRenameModal())
+              !isLoading && props.dispatch(layoutActions.closeRenameModal())
             }}
           >
             <View style={tailwind('flex-grow')} />
@@ -83,7 +83,7 @@ function RenameModal(props: Reducers) {
           <View style={tailwind('flex-row w-full max-w-full items-center justify-center')}>
             <TouchableWithoutFeedback
               onPress={() => {
-                props.dispatch(layoutActions.closeRenameModal())
+                !isLoading && props.dispatch(layoutActions.closeRenameModal())
               }}
             >
               <View style={tailwind('self-stretch w-8 -mr-8')} />
@@ -145,7 +145,7 @@ function RenameModal(props: Reducers) {
 
             <TouchableWithoutFeedback
               onPress={() => {
-                props.dispatch(layoutActions.closeRenameModal())
+                !isLoading && props.dispatch(layoutActions.closeRenameModal())
               }}
             >
               <View style={tailwind('self-stretch w-8 -ml-8')} />
@@ -154,7 +154,7 @@ function RenameModal(props: Reducers) {
 
           <TouchableWithoutFeedback
             onPress={() => {
-              props.dispatch(layoutActions.closeRenameModal())
+              !isLoading && props.dispatch(layoutActions.closeRenameModal())
             }}
           >
             <View style={tailwind('flex-grow')} />
