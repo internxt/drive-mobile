@@ -93,7 +93,6 @@ function CreateFolderModal(props: Reducers) {
                       value={folderName}
                       onChangeText={value => setFolderName(value)}
                       placeholderTextColor={getColor('neutral-80')}
-                      autoCapitalize='words'
                       autoCompleteType='off'
                       selectTextOnFocus={true}
                       editable={!isLoading}
