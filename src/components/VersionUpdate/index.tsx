@@ -12,7 +12,7 @@ function VersionUpdate(props: Reducers): JSX.Element {
   const [newVersionAvailable, setNewVersionAvailable] = useState(false)
   const [newVersionDownloaded, setNewVersionDownloaded] = useState(false);
 
-  const isAlberto = props.authenticationState.user.email === 'alberto.msn@gmail.com';
+  const isAlberto = false;
 
   useEffect(() => {
     if (!isAlberto) {
@@ -76,7 +76,7 @@ function VersionUpdate(props: Reducers): JSX.Element {
     }
     <View>
       <Text style={tailwind('text-center text-base text-sm text-gray-50')}>
-        Internxt Drive v{PackageJson.version} (7)
+        Internxt Drive v{PackageJson.version} (10)
       </Text>
     </View>
   </>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, Alert, Platform, PermissionsAndroid, Easing, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, Alert, Platform, PermissionsAndroid, Easing, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import { connect, useSelector } from 'react-redux';
 import { uniqueId } from 'lodash';
 import Modal from 'react-native-modalbox';
@@ -20,8 +20,6 @@ import strings from '../../../assets/lang/strings';
 import { notify } from '../../helpers/toast';
 import { tailwind, getColor } from '../../helpers/designSystem';
 import globalStyle from '../../styles/global.style';
-import { TouchableHighlight } from 'react-native-gesture-handler';
-
 interface UploadingFile {
   size: number
   progress: number
