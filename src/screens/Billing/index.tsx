@@ -156,28 +156,28 @@ function Billing(props: Reducers) {
           tier: 'lifetime',
           price: 0,
           name: 'one-time payment',
-          pricePerMonth: 299,
-          productName: '2TB Lifetime',
+          pricePerMonth: 99,
+          productName: '1TB',
           interval: 0,
-          id: isTest ? 'price_1JZBJVFAOdcgaBMQPDjuJsEh' : 'price_1HrovfFAOdcgaBMQP33yyJdt'
+          id: isTest ? 'price_1JZBJVFAOdcgaBMQPDjuJsEh' : 'price_1JiFXDFAOdcgaBMQWwxbraL4'
         },
         {
           tier: 'exclusive-lifetime',
           price: 0,
           name: 'one-time payment',
-          pricePerMonth: 499,
-          productName: '10TB Lifetime',
+          pricePerMonth: 299,
+          productName: '5TB',
           interval: 0,
-          id: isTest ? 'price_1JZYkSFAOdcgaBMQItAo6Ev3' : 'price_1IMA0AFAOdcgaBMQiZyoSIYU'
+          id: isTest ? 'price_1JZBJVFAOdcgaBMQPDjuJsEh' : 'price_1HrovfFAOdcgaBMQP33yyJdt'
         },
         {
           tier: 'infinite',
           price: 0,
           name: 'one-time payment',
-          pricePerMonth: 999,
-          productName: 'Infinite Storage',
+          pricePerMonth: 499,
+          productName: '10TB',
           interval: 0,
-          id: isTest ? 'price_1JZYmRFAOdcgaBMQfADnPmSf' : 'price_1Ix8QoFAOdcgaBMQ42h0k22u'
+          id: isTest ? 'price_1JZYmRFAOdcgaBMQfADnPmSf' : 'price_1IMA0AFAOdcgaBMQiZyoSIYU'
         }
       ];
 
@@ -229,7 +229,7 @@ function Billing(props: Reducers) {
               <Text style={[tailwind('text-3xl text-header'), globalStyle.fontWeight.medium]}>{plan.productName}</Text>
             </View>
             <View>
-              <Text style={tailwind('text-base text-neutral-100')}>{selectedProductIndex === 2 ? 'One-time payment' : `${plan.price.toFixed(2)}€ billed ${plan.name.toLowerCase()}`}</Text>
+              <Text style={tailwind('text-base text-neutral-100')}>{selectedProductIndex === 2 ? 'One-time payment' : `€${plan.price.toFixed(2)} billed ${plan.name.toLowerCase()}`}</Text>
             </View>
           </View>
           <View style={tailwind('justify-center')}>
@@ -239,7 +239,7 @@ function Billing(props: Reducers) {
               onPress={() => {
                 getLink(plan)
               }}>
-              <Text style={[tailwind('btn-label mx-4'), globalStyle.fontWeight.medium]}>{plan.pricePerMonth.toFixed(selectedProductIndex !== 2 ? 2 : 0)}€{selectedProductIndex !== 2 && ' / month'}</Text>
+              <Text style={[tailwind('btn-label mx-4'), globalStyle.fontWeight.medium]}>€{plan.pricePerMonth.toFixed(selectedProductIndex !== 2 ? 2 : 0)}{selectedProductIndex !== 2 && ' / month'}</Text>
             </TouchableHighlight>
           </View>
         </View>
