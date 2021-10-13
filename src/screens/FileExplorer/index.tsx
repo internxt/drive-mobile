@@ -9,7 +9,6 @@ import { Reducers } from '../../redux/reducers/reducers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
 import RNFetchBlob from 'rn-fetch-blob';
 import { notify } from '../../helpers';
-import SearchBox from '../../components/SearchBox';
 import { tailwind } from '../../helpers/designSystem';
 import SkinSkeleton from '../../components/SkinSkeleton';
 import _ from 'lodash'
@@ -220,8 +219,7 @@ function FileExplorer(props: Reducers): JSX.Element {
   }
 
   return <View style={styles.container}>
-    <AppMenu title="Drive" />
-    {props.layoutState.searchActive && <SearchBox />}
+    <AppMenu title="Drive" hideOptions={false} />
 
     {
       props.filesState.loading && !props.filesState.isUploading ?

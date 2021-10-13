@@ -5,6 +5,7 @@ import { fileActions, layoutActions } from '../../redux/actions';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { Reducers } from '../../redux/reducers/reducers';
 import { tailwind } from '../../helpers/designSystem';
+import SearchBox from '../SearchBox';
 
 interface AppMenuProps extends Reducers {
   title: string
@@ -22,7 +23,8 @@ function AppMenu(props: AppMenuProps) {
   const parentFolderId = props.filesState.folderContent?.parentId;
   const backButtonEnabled = props.layoutState.backButtonEnabled;
 
-  return <View style={tailwind('m-3 flex-row')}>
+  return <>
+    <View style={tailwind('m-3 flex-row')}>
     <View style={tailwind('w-16')}>
       <TouchableOpacity
         disabled={!backButtonEnabled}
@@ -51,10 +53,13 @@ function AppMenu(props: AppMenuProps) {
           onPress={() => {
             props.dispatch(layoutActions.openSettings());
           }}>
-          <Unicons.UilEllipsisV color='#0F62FE' size={32} />
+            <Unicons.UilEllipsisH color='#0F62FE' size={32} />
         </TouchableOpacity>}
     </View>
   </View>
+    {props.layoutState.searchActive && <SearchBox />}
+
+  </>
 }
 
 const styles = StyleSheet.create({
