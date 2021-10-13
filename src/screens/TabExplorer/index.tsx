@@ -16,7 +16,6 @@ import RenameModal from '../../modals/RenameModal';
 import CreateFolderModal from '../../modals/CreateFolderModal';
 import ShareFilesModal from '../../modals/ShareFilesModal';
 import DeleteItemModal from '../../modals/DeleteItemModal';
-import FreeForYouModal from '../../modals/FreeForYouModal';
 import SortModal from '../../modals/SortModal';
 import MoveFilesModal from '../../modals/MoveFilesModal';
 import { tailwind } from '../../helpers/designSystem';
@@ -33,7 +32,6 @@ export default function TabExplorer(props: Reducers): JSX.Element {
     <DeleteItemModal {...props} />
     <MoveFilesModal {...props} />
     <ShareFilesModal {...props} />
-    <FreeForYouModal {...props} navigation={props.navigation} />
     <CreateFolderModal {...props} />
     <RenameModal {...props} />
     <RunOutOfStorageModal {...props} />

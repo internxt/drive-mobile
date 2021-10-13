@@ -11,7 +11,6 @@ export interface LayoutState {
   showMoveModal: boolean
   showDeleteModal: boolean
   showShareModal: boolean
-  showFreeForYouModal: boolean
   showComingSoonModal: boolean
   showUploadModal: boolean
   showCreateFolderModal: boolean
@@ -30,7 +29,6 @@ const initialState: LayoutState = {
   showMoveModal: false,
   showDeleteModal: false,
   showShareModal: false,
-  showFreeForYouModal: false,
   showComingSoonModal: false,
   showUploadModal: false,
   showCreateFolderModal: false,
@@ -132,18 +130,6 @@ export function layoutReducer(state = initialState, action: AnyAction): LayoutSt
     }
   }
 
-  case layoutActionTypes.OPEN_FREEFORYOU_MODAL: {
-    return {
-      ...state,
-      showFreeForYouModal: true
-    }
-  }
-  case layoutActionTypes.CLOSE_FREEFORYOU_MODAL: {
-    return {
-      ...state,
-      showFreeForYouModal: false
-    }
-  }
   case layoutActionTypes.OPEN_COMING_SOON_MODAL: {
     return {
       ...state,

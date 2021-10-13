@@ -12,8 +12,6 @@ export const layoutActions = {
   closeAddItemModal,
   openRanOutStorageModal,
   closeRanOutStorageModal,
-  openFreeForYouModal,
-  closeFreeForYouModal,
   openSortModal,
   closeSortModal,
   openMoveFilesModal,
@@ -68,14 +66,6 @@ function closeAddItemModal(): AnyAction {
 
 function openRanOutStorageModal(): AnyAction {
   return { type: layoutActionTypes.OPEN_RANOUTSTORAGE_MODAL };
-}
-
-function openFreeForYouModal(): AnyAction {
-  return { type: layoutActionTypes.OPEN_FREEFORYOU_MODAL };
-}
-
-function closeFreeForYouModal(): AnyAction {
-  return { type: layoutActionTypes.CLOSE_FREEFORYOU_MODAL };
 }
 
 function closeRanOutStorageModal(): AnyAction {
