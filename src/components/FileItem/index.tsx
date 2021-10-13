@@ -15,7 +15,6 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import FileSpinner from '../../../assets/images/widgets/file-spinner.svg'
 import prettysize from 'prettysize';
 import globalStyle from '../../styles/global.style';
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 interface FileItemProps extends Reducers {
   isFolder: boolean
@@ -217,49 +216,45 @@ function FileItem(props: FileItemProps) {
       onPress={async () => { await handleItemPressed() }}
     >
       <View style={tailwind('flex-row')}>
-        <View style={tailwind('flex-grow flex-shrink overflow-hidden')}>
-          <TouchableWithoutFeedback
-            style={tailwind('flex-row flex-grow')}
-          >
-            <View style={tailwind('my-3 ml-5 mr-4')}>
-              {
-                props.isFolder ? <FolderIcon width={40} height={40} /> : <IconFile width={40} height={40} />
-              }
+        <View style={tailwind('flex-row flex-grow flex-shrink overflow-hidden')}>
+          <View style={tailwind('my-3 ml-5 mr-4')}>
+            {
+              props.isFolder ? <FolderIcon width={40} height={40} /> : <IconFile width={40} height={40} />
+            }
 
-              {
-                showSpinner
-                &&
-                <View style={tailwind('absolute -bottom-2 -right-2')}>
-                  <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                    <FileSpinner />
-                  </Animated.View>
-                </View>
-              }
-            </View>
+            {
+              showSpinner
+              &&
+              <View style={tailwind('absolute -bottom-2 -right-2')}>
+                <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                  <FileSpinner />
+                </Animated.View>
+              </View>
+            }
+          </View>
 
-            <View style={tailwind('flex items-start justify-center flex-shrink flex-grow')}>
-              <Text
-                style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
-                numberOfLines={1}
-                ellipsizeMode={'middle'}
-              >{props.item.name}{props.item.type ? '.' + props.item.type : ''}</Text>
+          <View style={tailwind('flex items-start justify-center flex-shrink flex-grow')}>
+            <Text
+              style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
+              numberOfLines={1}
+              ellipsizeMode={'middle'}
+            >{props.item.name}{props.item.type ? '.' + props.item.type : ''}</Text>
 
-              {
-                showSpinner
-                && <Text style={tailwind('text-xs text-neutral-100')}>
-                  {uploadProgress === 0 ? 'Encrypting ' : ''}
-                  {uploadProgress > 0 ? 'Uploading ' : ''}
-                  {progress === 0 ? 'Fetching file ' : (progress >= 0 && 'Downloading ')}
-                  {(uploadProgress >= 0 ? (uploadProgress * 100).toFixed(0) : progress.toFixed(0)) || 0}{'%'}
-                </Text>
-              }
-              {!showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-neutral-100')}>{!props.isFolder && <>{prettysize(props.item.size)}<Text style={globalStyle.fontWeight.bold}>  ·  </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric'
-              })}</Text>)}
-            </View>
-          </TouchableWithoutFeedback>
+            {
+              showSpinner
+              && <Text style={tailwind('text-xs text-neutral-100')}>
+                {uploadProgress === 0 ? 'Encrypting ' : ''}
+                {uploadProgress > 0 ? 'Uploading ' : ''}
+                {progress === 0 ? 'Fetching file ' : (progress >= 0 && 'Downloading ')}
+                {(uploadProgress >= 0 ? (uploadProgress * 100).toFixed(0) : progress.toFixed(0)) || 0}{'%'}
+              </Text>
+            }
+            {!showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-neutral-100')}>{!props.isFolder && <>{prettysize(props.item.size)}<Text style={globalStyle.fontWeight.bold}>  ·  </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric'
+            })}</Text>)}
+          </View>
         </View>
 
         <View style={tailwind('items-center px-2 justify-center')}>
