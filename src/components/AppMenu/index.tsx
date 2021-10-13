@@ -25,38 +25,38 @@ function AppMenu(props: AppMenuProps) {
 
   return <>
     <View style={tailwind('m-3 flex-row')}>
-    <View style={tailwind('w-16')}>
-      <TouchableOpacity
-        disabled={!backButtonEnabled}
-        onPress={() => {
-          if (props.onBackPress) {
-            return props.onBackPress();
-          }
-          props.dispatch(fileActions.goBack(parentFolderId?.toString()));
-        }}>
-        <Unicons.UilAngleLeft color={parentFolderId || props.onBackPress ? '#0F62FE' : '#EBECF0'} size={32} />
-      </TouchableOpacity>
-    </View>
-    <View style={tailwind('flex-grow')}>
-      <Text style={styles.storageText}>{props.title}</Text>
-    </View>
-    <View style={tailwind('items-center w-16')}>
-      {!props.hideSearch && <TouchableOpacity onPress={() => {
-        props.dispatch(layoutActions.openSearch())
-      }}>
-        <Unicons.UilSearch color='#0F62FE' size={32} />
-      </TouchableOpacity>}
-    </View>
-    <View>
-      {props.hideOptions === false &&
+      <View style={tailwind('w-16')}>
         <TouchableOpacity
+          disabled={!backButtonEnabled}
           onPress={() => {
-            props.dispatch(layoutActions.openSettings());
+            if (props.onBackPress) {
+              return props.onBackPress();
+            }
+            props.dispatch(fileActions.goBack(parentFolderId?.toString()));
           }}>
-            <Unicons.UilEllipsisH color='#0F62FE' size={32} />
+          <Unicons.UilAngleLeft color={parentFolderId || props.onBackPress ? '#0F62FE' : '#EBECF0'} size={32} />
+        </TouchableOpacity>
+      </View>
+      <View style={tailwind('flex-grow')}>
+        <Text style={styles.storageText}>{props.title}</Text>
+      </View>
+      <View style={tailwind('items-center w-16')}>
+        {!props.hideSearch && <TouchableOpacity onPress={() => {
+          props.dispatch(layoutActions.openSearch())
+        }}>
+          <Unicons.UilSearch color='#0F62FE' size={32} />
         </TouchableOpacity>}
+      </View>
+      <View>
+        {props.hideOptions === false &&
+          <TouchableOpacity
+            onPress={() => {
+              props.dispatch(layoutActions.openSettings());
+            }}>
+            <Unicons.UilEllipsisH color='#0F62FE' size={32} />
+          </TouchableOpacity>}
+      </View>
     </View>
-  </View>
     {props.layoutState.searchActive && <SearchBox />}
 
   </>

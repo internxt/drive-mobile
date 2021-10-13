@@ -227,7 +227,7 @@ function FileExplorer(props: Reducers): JSX.Element {
           {_.times(20, () => <SkinSkeleton />)}
         </View>
         :
-        <FileList {...props} />
+        <FileList {...props} isGrid={false} />
     }
   </View>
 }

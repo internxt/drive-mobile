@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { ScrollView, RefreshControl } from 'react-native';
+import { ScrollView, RefreshControl, View } from 'react-native';
 import { connect } from 'react-redux';
 import { tailwind } from '../../helpers/designSystem';
 import { fileActions } from '../../redux/actions';
@@ -35,7 +35,11 @@ export interface IFile {
   size: number
 }
 
-function FileList(props: Reducers) {
+interface FileListProps extends Reducers {
+  isGrid: boolean
+}
+
+function FileList(props: FileListProps) {
   const [refreshing, setRefreshing] = useState(false)
 
   const { filesState } = props;
@@ -110,53 +114,59 @@ function FileList(props: Reducers) {
           <EmptyFolder {...props} isRoot={isRootFolder} /> : <></>
       }
 
-      {
-        filesUploading.length > 0 ?
-          filesUploading.map((file: IUploadingFile) => {
-            return file.currentFolder === folderId &&
-              <FileItem
-                key={filesUploading.indexOf(file)}
-                isFolder={false}
-                item={file}
-                isLoading={true}
-              />
-          })
-          : <></>
-      }
+      <View style={props.isGrid && tailwind('flex flex-row flex-wrap justify-around')}>
+        {
+          filesUploading.length > 0 ?
+            filesUploading.map((file: IUploadingFile) => {
+              return file.currentFolder === folderId &&
+                <FileItem
+                  key={filesUploading.indexOf(file)}
+                  isFolder={false}
+                  item={file}
+                  isLoading={true}
+                  isGrid={props.isGrid}
+                />
+            })
+            : <></>
+        }
 
-      {
-        folderList.map((folder: IFolder) =>
-          <FileItem
-            key={folder.id}
-            isFolder={true}
-            item={folder}
-          />
-        )
-      }
+        {
+          folderList.map((folder: IFolder) =>
+            <FileItem
+              key={folder.id}
+              isFolder={true}
+              item={folder}
+              isGrid={props.isGrid}
+            />
+          )
+        }
 
-      {
-        fileList.map((file: IFile) =>
-          <FileItem
-            key={file.id}
-            isFolder={false}
-            item={file}
-          />
-        )
-      }
-
-      {
-        filesUploaded.map((file: any) => {
-          return file.currentFolder === folderId ?
+        {
+          fileList.map((file: IFile) =>
             <FileItem
               key={file.id}
               isFolder={false}
               item={file}
+              isGrid={props.isGrid}
             />
-            :
-            null
+          )
         }
-        )
-      }
+
+        {
+          filesUploaded.map((file: any) => {
+            return file.currentFolder === folderId ?
+              <FileItem
+                key={file.id}
+                isFolder={false}
+                item={file}
+                isGrid={props.isGrid}
+              />
+              :
+              null
+          }
+          )
+        }
+      </View>
     </ScrollView>
   )
 }

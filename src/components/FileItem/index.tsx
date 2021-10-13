@@ -23,6 +23,7 @@ interface FileItemProps extends Reducers {
   nameEncrypted?: boolean
   selectable?: boolean
   subtitle?: JSX.Element
+  isGrid?: boolean
 }
 
 async function handleLongPress(props: FileItemProps, isSelected: boolean) {
@@ -211,12 +212,15 @@ function FileItem(props: FileItemProps) {
 
   return (
     <TouchableHighlight
+      style={props.isGrid && tailwind('w-28 h-28')}
       underlayColor={getColor('neutral-20')}
       onLongPress={() => { handleLongPress(props, isSelected) }}
       onPress={async () => { await handleItemPressed() }}
     >
-      <View style={tailwind('flex-row')}>
-        <View style={tailwind('flex-row flex-grow flex-shrink overflow-hidden')}>
+      <View style={!props.isGrid && tailwind('flex-row')}>
+        <View style={[
+          tailwind('flex-grow flex-shrink overflow-hidden'),
+          tailwind(props.isGrid ? 'flex-col items-center' : 'flex-row')]}>
           <View style={tailwind('my-3 ml-5 mr-4')}>
             {
               props.isFolder ? <FolderIcon width={40} height={40} /> : <IconFile width={40} height={40} />
@@ -233,7 +237,10 @@ function FileItem(props: FileItemProps) {
             }
           </View>
 
-          <View style={tailwind('flex items-start justify-center flex-shrink flex-grow')}>
+          <View style={[
+            tailwind('flex items-start justify-center flex-shrink flex-grow'),
+            props.isGrid && tailwind('items-center')
+          ]}>
             <Text
               style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
               numberOfLines={1}
@@ -249,7 +256,7 @@ function FileItem(props: FileItemProps) {
                 {(uploadProgress >= 0 ? (uploadProgress * 100).toFixed(0) : progress.toFixed(0)) || 0}{'%'}
               </Text>
             }
-            {!showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-neutral-100')}>{!props.isFolder && <>{prettysize(props.item.size)}<Text style={globalStyle.fontWeight.bold}>  ·  </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
+            {!props.isGrid && !showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-neutral-100')}>{!props.isFolder && <>{prettysize(props.item.size)}<Text style={globalStyle.fontWeight.bold}>  ·  </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
               day: 'numeric',
               month: 'short',
               year: 'numeric'
@@ -257,7 +264,7 @@ function FileItem(props: FileItemProps) {
           </View>
         </View>
 
-        <View style={tailwind('items-center px-2 justify-center')}>
+        {!props.isGrid && <View style={tailwind('items-center px-2 justify-center')}>
           <TouchableOpacity
             style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
             onPress={() => {
@@ -271,7 +278,7 @@ function FileItem(props: FileItemProps) {
           >
             <Unicons.UilEllipsisH size={24} color={getColor('neutral-60')} />
           </TouchableOpacity>
-        </View>
+        </View>}
 
       </View>
     </TouchableHighlight>
