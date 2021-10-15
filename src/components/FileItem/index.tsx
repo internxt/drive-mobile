@@ -24,6 +24,7 @@ interface FileItemProps extends Reducers {
   selectable?: boolean
   subtitle?: JSX.Element
   isGrid?: boolean
+  totalColumns: number
 }
 
 async function handleLongPress(props: FileItemProps, isSelected: boolean) {
@@ -210,9 +211,11 @@ function FileItem(props: FileItemProps) {
 
   const showSpinner = progress >= 0 || props.isLoading || isLoading;
 
+  const iconSize = props.isGrid ? 64 : 40;
+
   return (
     <TouchableHighlight
-      style={props.isGrid && tailwind('w-28 h-28')}
+      style={props.isGrid && tailwind('px-3 py-1.5 w-1/' + props.totalColumns)}
       underlayColor={getColor('neutral-20')}
       onLongPress={() => { handleLongPress(props, isSelected) }}
       onPress={async () => { await handleItemPressed() }}
@@ -223,7 +226,7 @@ function FileItem(props: FileItemProps) {
           tailwind(props.isGrid ? 'flex-col items-center' : 'flex-row')]}>
           <View style={tailwind('my-3 ml-5 mr-4')}>
             {
-              props.isFolder ? <FolderIcon width={40} height={40} /> : <IconFile width={40} height={40} />
+              props.isFolder ? <FolderIcon width={iconSize} height={iconSize} /> : <IconFile width={iconSize} height={iconSize} />
             }
 
             {
@@ -242,9 +245,9 @@ function FileItem(props: FileItemProps) {
             props.isGrid && tailwind('items-center')
           ]}>
             <Text
-              style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
-              numberOfLines={1}
-              ellipsizeMode={'middle'}
+              style={[tailwind('text-base text-neutral-500'), tailwind(props.isGrid ? 'text-center' : 'text-left'), globalStyle.fontWeight.medium]}
+              numberOfLines={props.isGrid ? 2 : 1}
+              ellipsizeMode={props.isGrid ? 'tail' : 'middle'}
             >{props.item.name}{props.item.type ? '.' + props.item.type : ''}</Text>
 
             {
@@ -253,7 +256,7 @@ function FileItem(props: FileItemProps) {
                 {uploadProgress === 0 ? 'Encrypting ' : ''}
                 {uploadProgress > 0 ? 'Uploading ' : ''}
                 {progress === 0 ? 'Fetching file ' : (progress >= 0 && 'Downloading ')}
-                {(uploadProgress >= 0 ? (uploadProgress * 100).toFixed(0) : progress.toFixed(0)) || 0}{'%'}
+                {progress > 0 && ((uploadProgress >= 0 ? (uploadProgress * 100).toFixed(0) : progress.toFixed(0)) || 0) + '%'}
               </Text>
             }
             {!props.isGrid && !showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-neutral-100')}>{!props.isFolder && <>{prettysize(props.item.size)}<Text style={globalStyle.fontWeight.bold}>  ·  </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {

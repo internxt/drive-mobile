@@ -9,9 +9,6 @@ import { Reducers } from '../../redux/reducers/reducers';
 import analytics, { getLyticsData } from '../../helpers/lytics';
 import RNFetchBlob from 'rn-fetch-blob';
 import { notify } from '../../helpers';
-import { tailwind } from '../../helpers/designSystem';
-import SkinSkeleton from '../../components/SkinSkeleton';
-import _ from 'lodash'
 
 function FileExplorer(props: Reducers): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)
@@ -220,14 +217,10 @@ function FileExplorer(props: Reducers): JSX.Element {
 
   return <View style={styles.container}>
     <AppMenu title="Drive" hideOptions={false} />
-
-    {
-      props.filesState.loading && !props.filesState.isUploading ?
-        <View style={tailwind('h-full')}>
-          {_.times(20, () => <SkinSkeleton />)}
-        </View>
-        :
-        <FileList {...props} isGrid={false} />
+    {props.layoutState.fileViewMode === 'grid' ?
+      <FileList {...props} isGrid={true} />
+      :
+      <FileList {...props} isGrid={false} />
     }
   </View>
 }

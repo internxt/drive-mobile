@@ -29,7 +29,8 @@ export const layoutActions = {
   enableBackButton,
   disableBackButton,
   openRenameModal,
-  closeRenameModal
+  closeRenameModal,
+  switchFileViewMode
 };
 
 function openSearch(): AnyAction {
@@ -142,4 +143,8 @@ function openRenameModal(): AnyAction {
 
 function closeRenameModal(): AnyAction {
   return { type: layoutActionTypes.CLOSE_RENAME_MODAL }
+}
+
+function switchFileViewMode(): AnyAction {
+  return { type: layoutActionTypes.SWITCH_FILE_VIEW_MODEL }
 }

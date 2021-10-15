@@ -1,11 +1,10 @@
 import React, { Fragment, useEffect, useState } from 'react';
-import { Text, StyleSheet, View, TextInput, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, TextInput, TouchableWithoutFeedback } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons'
 import { connect } from 'react-redux';
-import { fileActions, layoutActions } from '../../redux/actions';
+import { fileActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
-import strings from '../../../assets/lang/strings';
-import { tailwind } from '../../helpers/designSystem';
+import { getColor, tailwind } from '../../helpers/designSystem';
 
 function SearchBox(props: Reducers): JSX.Element {
 
@@ -18,7 +17,7 @@ function SearchBox(props: Reducers): JSX.Element {
   }, [searchText])
 
   return <Fragment>
-    <View style={styles.container}>
+    <View style={tailwind('flex-row mx-3 my-2')}>
       <View style={styles.textInputWrapper}>
         <View style={tailwind('flex-row items-center')}>
 
@@ -34,47 +33,24 @@ function SearchBox(props: Reducers): JSX.Element {
 
           {showCloseIcon && <View style={styles.closeIcon}>
             <TouchableWithoutFeedback onPress={() => setSearchText('')} >
-              <Unicons.UilTimesCircle color="#0F62FE" size={20} />
+              <Unicons.UilTimesCircle color={getColor('blue-60')} size={20} />
             </TouchableWithoutFeedback>
           </View>}
         </View>
-      </View>
-      <View>
-        <TouchableWithoutFeedback
-          onPress={() => {
-            props.dispatch(fileActions.setSearchString(''));
-            props.dispatch(layoutActions.closeSearch())
-          }}
-          style={styles.cancelWrapper}>
-          <Text style={styles.cancelText}>{strings.generic.cancel}</Text>
-        </TouchableWithoutFeedback>
       </View>
     </View>
   </Fragment>
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 20,
-    marginRight: 20
-  },
   textInputWrapper: {
     backgroundColor: '#F4F5F7',
-    borderRadius: 6,
+    borderRadius: 12,
     alignItems: 'center',
     flexGrow: 1
   },
   textInput: {
     flexGrow: 1
-  },
-  cancelWrapper: {
-  },
-  cancelText: {
-    color: '#0F62FE',
-    padding: 10,
-    paddingLeft: 15
   },
   searchIcon: {
     margin: 10

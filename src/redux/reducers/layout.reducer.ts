@@ -17,6 +17,7 @@ export interface LayoutState {
   backButtonEnabled: boolean
   showRenameModal: boolean
   showRunOutOfSpaceModal: boolean
+  fileViewMode: 'list' | 'grid'
 }
 
 const initialState: LayoutState = {
@@ -34,7 +35,8 @@ const initialState: LayoutState = {
   showCreateFolderModal: false,
   backButtonEnabled: true,
   showRenameModal: false,
-  showRunOutOfSpaceModal: false
+  showRunOutOfSpaceModal: false,
+  fileViewMode: 'list'
 };
 
 export function layoutReducer(state = initialState, action: AnyAction): LayoutState {
@@ -188,6 +190,12 @@ export function layoutReducer(state = initialState, action: AnyAction): LayoutSt
     return {
       ...state,
       showRunOutOfSpaceModal: false
+    }
+  }
+  case layoutActionTypes.SWITCH_FILE_VIEW_MODEL: {
+    return {
+      ...state,
+      fileViewMode: state.fileViewMode === 'list' ? 'grid' : 'list'
     }
   }
   default:
