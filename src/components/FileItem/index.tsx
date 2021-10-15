@@ -217,7 +217,13 @@ function FileItem(props: FileItemProps) {
     <TouchableHighlight
       style={props.isGrid && tailwind('px-3 py-1.5 w-1/' + props.totalColumns)}
       underlayColor={getColor('neutral-20')}
-      onLongPress={() => { handleLongPress(props, isSelected) }}
+      onLongPress={() => {
+        if (props.isGrid) {
+          props.dispatch(fileActions.focusItem(props.item))
+          props.dispatch(layoutActions.openItemModal())
+        }
+        handleLongPress(props, isSelected)
+      }}
       onPress={async () => { await handleItemPressed() }}
     >
       <View style={!props.isGrid && tailwind('flex-row')}>
