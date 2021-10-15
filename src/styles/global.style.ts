@@ -12,7 +12,7 @@ export default {
       fontFamily: 'NeueEinstellung-Medium'
     },
     semibold: {
-      fontFamily: 'NeueEinstellung-Semibold'
+      fontFamily: 'NeueEinstellung-SemiBold'
     },
     bold: {
       fontFamily: 'NeueEinstellung-Bold'

@@ -193,6 +193,10 @@ function Billing(props: Reducers) {
       {...props}
       title="Billing"
       hideSearch={true}
+      lightMode={true}
+      centerTitle={true}
+      hideNavigation={true}
+      hideSortBar={true}
       onBackPress={() => props.navigation.goBack()} />
 
     <View style={tailwind('flex-1 mx-4 justify-start')}>

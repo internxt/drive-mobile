@@ -115,8 +115,10 @@ function FileList(props: FileListProps) {
     >
 
       <FlatList
+        key={props.isGrid ? '#' : '-'}
         numColumns={props.isGrid ? totalColumns : 1}
         collapsable={true}
+        contentContainerStyle={tailwind('h-full')}
         ListEmptyComponent={props.filesState.loading ? <View style={tailwind('h-full')}>
           {_.times(20, () => <SkinSkeleton />)}
         </View>

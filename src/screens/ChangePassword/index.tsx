@@ -45,6 +45,9 @@ function ChangePassword(props: Reducers) {
     <AppMenu
       title={strings.components.inputs.password}
       onBackPress={() => props.navigation.goBack()}
+      hideNavigation={true}
+      hideSortBar={true}
+      lightMode={true}
       hideSearch={true} hideOptions={true} />
     <View style={styles.mainContainer}>
       <View style={styles.titleContainer}>

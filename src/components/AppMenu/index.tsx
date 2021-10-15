@@ -15,6 +15,8 @@ interface AppMenuProps extends Reducers {
   hideOptions?: boolean
   onBackPress?: () => void
   hideBackPress?: boolean
+  hideSortBar?: boolean
+  hideNavigation?: boolean
 }
 
 function AppMenu(props: AppMenuProps) {
@@ -25,12 +27,13 @@ function AppMenu(props: AppMenuProps) {
   const parentFolderId = props.filesState.folderContent?.parentId;
   const backButtonEnabled = props.layoutState.backButtonEnabled;
 
+  const isRootFolder = props.filesState.folderContent.id === props.authenticationState.user.root_folder_id
+
   return <>
-    <View>
-      <View style={tailwind('flex-row')}>
+    <View style={tailwind('px-5 pt-4')}>
+      <View style={[tailwind('flex-row items-center justify-between my-2'), (props.hideNavigation || isRootFolder) && tailwind('hidden')]}>
         <View>
           <TouchableOpacity
-            style={tailwind('p-3')}
             disabled={!backButtonEnabled}
             onPress={() => {
               if (props.onBackPress) {
@@ -44,40 +47,82 @@ function AppMenu(props: AppMenuProps) {
             </View>
           </TouchableOpacity>
         </View>
-        <View style={tailwind('flex-grow')}>
-        </View>
-        <View style={tailwind('items-center justify-center')}>
-          {!props.hideSearch &&
-            <TouchableOpacity
-              style={tailwind('p-3')}
-              onPress={() => {
-                props.dispatch(layoutActions.openSearch())
-              }}>
-              <Unicons.UilSearch color={getColor('blue-60')} size={22} />
-            </TouchableOpacity>}
-        </View>
-        <View style={tailwind('items-center justify-center')}>
-          {props.hideOptions === false &&
-            <TouchableOpacity
-              style={tailwind('p-3')}
-              onPress={() => {
-                props.dispatch(layoutActions.openSettings());
-              }}>
-              <Unicons.UilEllipsisH color={getColor('blue-60')} size={22} />
-            </TouchableOpacity>}
+        <View style={tailwind('flex-row -m-2')}>
+          <View style={tailwind('items-center justify-center')}>
+            {!props.hideSearch &&
+              <TouchableOpacity
+                style={tailwind('p-2')}
+                onPress={() => {
+                  if (props.layoutState.searchActive) {
+                    props.dispatch(layoutActions.closeSearch())
+                  } else {
+                    props.dispatch(layoutActions.openSearch())
+                  }
+                }}>
+                <Unicons.UilSearch color={getColor('blue-60')} size={22} />
+              </TouchableOpacity>}
+          </View>
+          <View style={tailwind('items-center justify-center')}>
+            {props.hideOptions === false &&
+              <TouchableOpacity
+                style={tailwind('p-2')}
+                onPress={() => {
+                  props.dispatch(layoutActions.openSettings());
+                }}>
+                <Unicons.UilEllipsisH color={getColor('blue-60')} size={22} />
+              </TouchableOpacity>}
+          </View>
+
         </View>
       </View>
 
-      <View style={tailwind('flex-row px-3 -mt-3')}>
-        <Text style={[tailwind('text-neutral-700 text-2xl'), globalStyle.fontWeight.medium]}>{props.title}</Text>
-      </View>
-      {props.layoutState.searchActive && !props.hideSearch && <SearchBox />}
+      <View style={tailwind('flex-row justify-center items-center')}>
+        {props.lightMode && <TouchableOpacity
+          style={tailwind('w-4')}
+          disabled={!backButtonEnabled}
+          onPress={() => {
+            if (props.onBackPress) {
+              return props.onBackPress();
+            }
+            props.dispatch(fileActions.goBack(parentFolderId?.toString()));
+          }}>
+          <View style={[tailwind('flex-row items-center'), tailwind(!(parentFolderId || props.onBackPress) && 'opacity-50')]}>
+            <Unicons.UilAngleLeft color={getColor('blue-60')} style={tailwind('-ml-2 -mr-1')} size={32} />
+          </View>
+        </TouchableOpacity>
+        }
+        <View style={[tailwind('flex-row my-2 flex-grow'), props.centerTitle && tailwind('justify-center')]}>
+          <Text
+            numberOfLines={1}
+            style={[tailwind('text-neutral-700 text-3xl'), globalStyle.fontWeight.medium]}>
+            {
+              props.title === 'Drive' && !isRootFolder
+                ?
+                props.filesState.folderContent.name
+                :
+                props.title
+            }
+          </Text>
+        </View>
 
-      <View style={tailwind('flex-row justify-between px-3')}>
-        <View style={tailwind('flex-row items-center')}>
+        {props.lightMode &&
+          <View style={tailwind('w-4')}>
+
+          </View>
+        }
+
+      </View>
+      {((props.layoutState.searchActive && !props.hideSearch || isRootFolder)) && <SearchBox style={tailwind('my-2')} />}
+
+      <View style={[tailwind('flex-row justify-between my-2'), props.hideSortBar && tailwind('hidden')]}>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            props.dispatch(layoutActions.openSortModal());
+          }}
+          style={tailwind('flex-row items-center')}>
           <Text style={tailwind('text-neutral-100')}>Name</Text>
           <Unicons.UilAngleDown size={20} color={getColor('neutral-100')} />
-        </View>
+        </TouchableWithoutFeedback>
         <View>
           <TouchableWithoutFeedback onPress={() => {
             props.dispatch(layoutActions.switchFileViewMode());
@@ -91,9 +136,8 @@ function AppMenu(props: AppMenuProps) {
           </TouchableWithoutFeedback>
         </View>
       </View>
-
-      <View style={tailwind('border border-neutral-20 mt-1')} />
     </View>
+    <View style={tailwind('border-t border-neutral-20')} />
   </>
 }
 

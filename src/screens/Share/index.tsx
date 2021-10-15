@@ -31,7 +31,12 @@ function Share(props: Reducers): JSX.Element {
   useEffect(() => { reloadShares() }, []);
 
   return <View style={tailwind('bg-white flex-1')}>
-    <AppMenu {...props} title="Shared" hideSearch={true} hideBackPress={true} />
+    <AppMenu {...props} title="Shared"
+      hideSearch={true}
+      hideBackPress={true}
+      hideNavigation={true}
+      hideOptions={false}
+      hideSortBar={true} />
     {
       loading &&
       <View>

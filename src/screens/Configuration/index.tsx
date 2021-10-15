@@ -38,7 +38,14 @@ function ConfigurationGap() {
 function Configuration(props: Reducers): JSX.Element {
   return <ScrollView contentContainerStyle={tailwind('h-full')}>
     <View style={tailwind('h-full')}>
-      <AppMenu {...props} title={strings.generic.settings} hideSearch={true} hideOptions={true} hideBackPress={true} />
+      <AppMenu {...props}
+        title={strings.generic.settings}
+        hideSearch={true}
+        hideOptions={true}
+        hideNavigation={true}
+        hideSortBar={true}
+        centerTitle={true}
+        hideBackPress={true} />
 
       <View style={tailwind('flex-grow')}>
         <ConfigurationItem {...props} title="Storage"

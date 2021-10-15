@@ -58,10 +58,13 @@ function Storage(props: StorageProps): JSX.Element {
     <View style={tailwind('bg-white h-full')}>
       <AppMenu
         title={strings.screens.storage.title}
-        onBackPress={() => {
-          props.navigation.goBack()
-        }}
-        hideSearch={true} hideOptions={true} />
+        onBackPress={() => props.navigation.goBack()}
+        hideNavigation={true}
+        hideSortBar={true}
+        hideSearch={true}
+        lightMode={true}
+        centerTitle={true}
+        hideOptions={true} />
       <View>
         <View style={tailwind('items-center')}>
           <Text style={tailwind('m-2 text-neutral-900 text-base')}>Usage</Text>

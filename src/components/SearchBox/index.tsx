@@ -1,12 +1,16 @@
 import React, { Fragment, useEffect, useState } from 'react';
-import { StyleSheet, View, TextInput, TouchableWithoutFeedback } from 'react-native';
+import { View, TextInput, TouchableWithoutFeedback, StyleProp, ViewStyle } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons'
 import { connect } from 'react-redux';
 import { fileActions } from '../../redux/actions';
 import { Reducers } from '../../redux/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 
-function SearchBox(props: Reducers): JSX.Element {
+interface SearchBoxProps extends Reducers {
+  style: StyleProp<ViewStyle>
+}
+
+function SearchBox(props: SearchBoxProps): JSX.Element {
 
   const [searchText, setSearchText] = useState('');
 
@@ -17,23 +21,23 @@ function SearchBox(props: Reducers): JSX.Element {
   }, [searchText])
 
   return <Fragment>
-    <View style={tailwind('flex-row mx-3 my-2')}>
-      <View style={styles.textInputWrapper}>
+    <View style={[tailwind('flex-row'), props.style]}>
+      <View style={tailwind('bg-neutral-20 flex-grow rounded-xl flex-shrink')}>
         <View style={tailwind('flex-row items-center')}>
 
-          <View style={styles.searchIcon}>
-            <Unicons.UilSearch color="#42526E" size={20} />
+          <View style={tailwind('p-3')}>
+            <Unicons.UilSearch color={getColor('neutral-60')} size={18} />
           </View>
 
           <TextInput
             onChangeText={(value) => setSearchText(value)}
             value={searchText}
-            style={styles.textInput}
-            placeholder="Search" />
+            style={tailwind('flex-grow flex-shrink py-3')}
+            placeholder="Search in this folder" />
 
-          {showCloseIcon && <View style={styles.closeIcon}>
+          {showCloseIcon && <View style={tailwind('p-3')}>
             <TouchableWithoutFeedback onPress={() => setSearchText('')} >
-              <Unicons.UilTimesCircle color={getColor('blue-60')} size={20} />
+              <Unicons.UilTimesCircle color={getColor('neutral-100')} size={18} />
             </TouchableWithoutFeedback>
           </View>}
         </View>
@@ -41,24 +45,6 @@ function SearchBox(props: Reducers): JSX.Element {
     </View>
   </Fragment>
 }
-
-const styles = StyleSheet.create({
-  textInputWrapper: {
-    backgroundColor: '#F4F5F7',
-    borderRadius: 12,
-    alignItems: 'center',
-    flexGrow: 1
-  },
-  textInput: {
-    flexGrow: 1
-  },
-  searchIcon: {
-    margin: 10
-  },
-  closeIcon: {
-    margin: 10
-  }
-});
 
 const mapStateToProps = (state: any) => {
   return { ...state };

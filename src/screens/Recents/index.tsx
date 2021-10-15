@@ -29,7 +29,13 @@ function Recents(props: Reducers): JSX.Element {
   useEffect(() => { reloadRecents() }, []);
 
   return <View style={styles.container}>
-    <AppMenu {...props} title="Recents" hideBackPress={true} hideSearch={true} />
+    <AppMenu {...props}
+      title="Recents"
+      hideBackPress={true}
+      hideSearch={true}
+      hideOptions={true}
+      hideNavigation={true}
+      hideSortBar={true} />
     {
       loading &&
       <View>
