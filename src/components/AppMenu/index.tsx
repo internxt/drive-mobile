@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native'
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
 import * as Unicons from '@iconscout/react-native-unicons';
@@ -7,8 +7,6 @@ import { Reducers } from '../../redux/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import SearchBox from '../SearchBox';
 import globalStyle from '../../styles/global.style';
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
-
 interface AppMenuProps extends Reducers {
   title: string
   hideSearch?: boolean
@@ -123,20 +121,25 @@ function AppMenu(props: AppMenuProps) {
           onPress={() => {
             props.dispatch(layoutActions.openSortModal());
           }}
-          style={tailwind('flex-row items-center')}>
-          <Text style={tailwind('text-neutral-100')}>Name</Text>
-          <Unicons.UilAngleDown size={20} color={getColor('neutral-100')} />
+        >
+          <View style={tailwind('flex-row items-center')}>
+            <Text style={tailwind('text-neutral-100')}>Name</Text>
+            <Unicons.UilAngleDown size={20} color={getColor('neutral-100')} />
+          </View>
         </TouchableWithoutFeedback>
         <View>
           <TouchableWithoutFeedback onPress={() => {
             props.dispatch(layoutActions.switchFileViewMode());
           }}>
-            {props.layoutState.fileViewMode === 'list'
-              ?
-              <Unicons.UilApps size={22} color={getColor('neutral-100')} />
-              :
-              <Unicons.UilListUl size={22} color={getColor('neutral-100')} />
-            }
+            <>
+              {
+                props.layoutState.fileViewMode === 'list'
+                  ?
+                  <Unicons.UilApps size={22} color={getColor('neutral-100')} />
+                  :
+                  <Unicons.UilListUl size={22} color={getColor('neutral-100')} />
+              }
+            </>
           </TouchableWithoutFeedback>
         </View>
       </View>
