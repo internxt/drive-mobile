@@ -128,9 +128,10 @@ function AppMenu(props: AppMenuProps) {
           </View>
         </TouchableWithoutFeedback>
         <View>
-          <TouchableWithoutFeedback onPress={() => {
-            props.dispatch(layoutActions.switchFileViewMode());
-          }}>
+          <TouchableOpacity
+            onPress={() => {
+              props.dispatch(layoutActions.switchFileViewMode());
+            }}>
             <>
               {
                 props.layoutState.fileViewMode === 'list'
@@ -140,7 +141,7 @@ function AppMenu(props: AppMenuProps) {
                   <Unicons.UilListUl size={22} color={getColor('neutral-100')} />
               }
             </>
-          </TouchableWithoutFeedback>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
