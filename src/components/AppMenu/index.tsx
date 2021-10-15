@@ -24,10 +24,10 @@ function AppMenu(props: AppMenuProps) {
   // If you enable it, test each view and compare with figma design
   props.hideOptions = undefined;
 
-  const parentFolderId = props.filesState.folderContent?.parentId;
+  const parentFolderId = props.filesState.folderContent && props?.filesState?.folderContent?.parentId;
   const backButtonEnabled = props.layoutState.backButtonEnabled;
 
-  const isRootFolder = props.filesState.folderContent.id === props.authenticationState.user.root_folder_id
+  const isRootFolder = props.filesState.folderContent && props.filesState.folderContent.id === props.authenticationState.user.root_folder_id
 
   return <>
     <View style={tailwind('px-5 pt-4')}>
@@ -96,7 +96,7 @@ function AppMenu(props: AppMenuProps) {
             numberOfLines={1}
             style={[tailwind('text-neutral-700 text-3xl'), globalStyle.fontWeight.medium]}>
             {
-              props.title === 'Drive' && !isRootFolder
+              props.title === 'Drive' && !isRootFolder && props.filesState.folderContent
                 ?
                 props.filesState.folderContent.name
                 :
@@ -112,7 +112,11 @@ function AppMenu(props: AppMenuProps) {
         }
 
       </View>
-      {((props.layoutState.searchActive && !props.hideSearch || isRootFolder)) && <SearchBox style={tailwind('my-2')} />}
+      {
+        ((props.layoutState.searchActive && !props.hideSearch) || (isRootFolder && !props.hideSearch))
+        &&
+        <SearchBox style={tailwind('my-2')} />
+      }
 
       <View style={[tailwind('flex-row justify-between my-2'), props.hideSortBar && tailwind('hidden')]}>
         <TouchableWithoutFeedback
