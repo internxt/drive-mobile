@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { ScrollView, RefreshControl, View, FlatList, Dimensions } from 'react-native';
+import { RefreshControl, View, FlatList, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import { tailwind } from '../../helpers/designSystem';
 import { fileActions } from '../../redux/actions';
@@ -114,7 +114,7 @@ function FileList(props: FileListProps) {
   const totalColumns = Math.min(Math.max(Math.trunc(windowWidth / 125), 2), 6);
 
   return (
-    <ScrollView
+    <FlatList
       refreshControl={
         <RefreshControl refreshing={refreshing}
           onRefresh={() => {
@@ -127,30 +127,25 @@ function FileList(props: FileListProps) {
           }}
         />
       }
-      contentContainerStyle={isEmptyFolder ? tailwind('h-full justify-center') : null}
-    >
-
-      <FlatList
-        key={props.isGrid ? '#' : '-'}
-        numColumns={props.isGrid ? totalColumns : 1}
-        collapsable={true}
-        contentContainerStyle={tailwind('h-full')}
-        ListEmptyComponent={props.filesState.loading ? <View style={tailwind('h-full')}>
-          {_.times(20, () => <SkinSkeleton />)}
-        </View>
-          : <EmptyFolder {...props} isRoot={isRootFolder} />}
-        data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}
-        renderItem={(item) => {
-          return <FileItem
-            isFolder={!!item.item.parentId}
-            key={`${props.isGrid}-${item.item.id}`}
-            item={item.item}
-            isGrid={props.isGrid}
-            totalColumns={totalColumns}
-          />;
-        }}
-      />
-    </ScrollView>
+      key={props.isGrid ? '#' : '-'}
+      numColumns={props.isGrid ? totalColumns : 1}
+      collapsable={true}
+      contentContainerStyle={[tailwind('h-full'), isEmptyFolder && tailwind('h-full justify-center')]}
+      ListEmptyComponent={props.filesState.loading ? <View style={tailwind('h-full')}>
+        {_.times(20, () => <SkinSkeleton />)}
+      </View>
+        : <EmptyFolder {...props} isRoot={isRootFolder} />}
+      data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}
+      renderItem={(item) => {
+        return <FileItem
+          isFolder={!!item.item.parentId}
+          key={`${props.isGrid}-${item.item.id}`}
+          item={item.item}
+          isGrid={props.isGrid}
+          totalColumns={totalColumns}
+        />;
+      }}
+    />
   )
 }
 
