@@ -40,7 +40,7 @@ function Share(props: Reducers): JSX.Element {
     {
       loading &&
       <View>
-        {_.times(20, () => <SkinSkeleton />)}
+        {_.times(20, (n) => <SkinSkeleton key={n} />)}
       </View>
     }
 
