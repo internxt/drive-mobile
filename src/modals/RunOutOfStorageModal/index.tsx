@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
-import { Text, View, Platform, TouchableWithoutFeedback, TouchableHighlight, Easing } from 'react-native';
+import { Text, View, Platform, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { Reducers } from '../../redux/reducers/reducers';
 import RunOutImage from '../../../assets/images/modals/runout.svg'
@@ -11,7 +11,6 @@ import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 import { getCurrentIndividualPlan } from '../../services/payments';
 import { loadValues } from '../../modals';
-import { notify } from '../../helpers';
 
 interface StorageProps extends Reducers {
   currentPlan: number
@@ -46,13 +45,7 @@ function RunOutOfStorageModal(props: Reducers): JSX.Element {
   useEffect(() => {
     loadValues().then(res => setUsageValues(res)).catch(() => { })
 
-    getCurrentIndividualPlan().then(setCurrentPlan).catch(err => {
-
-      notify({
-        text: 'Cannot load current plan',
-        type: 'warn'
-      })
-    })
+    getCurrentIndividualPlan().then(setCurrentPlan).catch(() => { })
   }, [])
 
   return (
@@ -68,7 +61,6 @@ function RunOutOfStorageModal(props: Reducers): JSX.Element {
       backButtonClose={true}
       backdropPressToClose={true}
       animationDuration={250}
-      easing={Easing.inOut(Easing.exp)}
     >
       <View style={tailwind('h-full')}>
         <TouchableWithoutFeedback

@@ -3,34 +3,26 @@ import { View, Text, Image, StyleSheet, TouchableHighlight } from 'react-native'
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { connect } from 'react-redux';
 import { normalize } from '../../helpers';
-import B from '../../components/Bold'
 import strings from '../../../assets/lang/strings';
 import { Reducers } from '../../redux/reducers/reducers';
 interface IntroProps extends Reducers {
   onFinish: () => void
 }
 
-const applyBoldStyle: (text: string, boldText: string[]) => JSX.Element = (text: string, boldText: string[]) => {
-  let numberOfItemsAdded = 0
-  const result = text.split(/\{\d+\}/)
-
-  boldText.forEach((boldText, i) => result.splice(++numberOfItemsAdded + i, 0, <B>{boldText}</B>))
-  return <Text>{result}</Text>
-};
 const slides = [
   {
     key: 'intro001',
-    text: (applyBoldStyle(strings.screens.register_screen.first, strings.screens.register_screen.bold_first)),
+    text: ((strings.screens.register_screen.first, strings.screens.register_screen.bold_first)),
     image: require('../../../assets/images/intro/intro01.png')
   },
   {
     key: 'intro002',
-    text: (applyBoldStyle(strings.screens.register_screen.second, strings.screens.register_screen.bold_second)),
+    text: ((strings.screens.register_screen.second, strings.screens.register_screen.bold_second)),
     image: require('../../../assets/images/intro/intro02.png')
   },
   {
     key: 'intro003',
-    text: (applyBoldStyle(strings.screens.register_screen.third, strings.screens.register_screen.bold_third)),
+    text: ((strings.screens.register_screen.third, strings.screens.register_screen.bold_third)),
     image: require('../../../assets/images/intro/intro03.png')
   }
 ];

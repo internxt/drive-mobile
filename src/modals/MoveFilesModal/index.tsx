@@ -14,10 +14,10 @@ function MoveFilesModal(props: Reducers) {
   const { filesState, layoutState } = useSelector<any, Reducers>(s => s);
 
   const [isOpen, setIsOpen] = useState(layoutState.showMoveModal)
-  const [currentfolderid, setCurrentFolderId] = useState('')
-  const [folderlist, setFolderList] = useState(Array)
-  const [firstfolder, setFirstFolder] = useState('')
-  const [selectedfile, setSelectedFile] = useState({})
+  const [currentfolderid, setCurrentFolderId] = useState<number>()
+  const [folderlist, setFolderList] = useState([])
+  const [firstfolder, setFirstFolder] = useState<number>()
+  const [selectedfile, setSelectedFile] = useState<any>({})
 
   const { rootFolderContent } = filesState
   const folderList: any[] = rootFolderContent && rootFolderContent.children || []
@@ -68,8 +68,9 @@ function MoveFilesModal(props: Reducers) {
     <View style={tailwind('flex-grow')}>
       <FlatList
         data={folderlist}
-        renderItem={folder => {
+        renderItem={(folder: any) => {
           return <FileItem
+            totalColumns={1}
             key={folder.id}
             isFolder={true}
             item={folder.item}

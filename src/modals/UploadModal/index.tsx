@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, Alert, Platform, PermissionsAndroid, Easing, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
+import { View, Text, Alert, Platform, PermissionsAndroid, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import { connect, useSelector } from 'react-redux';
 import { uniqueId } from 'lodash';
 import Modal from 'react-native-modalbox';
@@ -31,6 +31,7 @@ interface UploadingFile {
   id: string
   uri: string
   path: string
+  folderId?: number
 }
 
 function getFileExtension(uri: string) {
@@ -238,7 +239,7 @@ function UploadModal(props: Reducers) {
         uploadSuccess(file);
       }).catch((err) => {
         trackUploadError(err);
-        props.dispatch(fileActions.uploadFileFailed(file.id));
+        props.dispatch(fileActions.uploadFileFailed(parseInt(file.id, 10)));
         notify({
           text: 'Cannot upload file: ' + err.message,
           type: 'error'
@@ -368,7 +369,7 @@ function UploadModal(props: Reducers) {
     if (status === 'granted') {
       let error: Error | null = null;
 
-      const result = await launchCameraAsync().catch(err => {
+      const result: any = await launchCameraAsync().catch(err => {
         error = err;
       })
 
@@ -427,7 +428,6 @@ function UploadModal(props: Reducers) {
       backButtonClose={true}
       backdropPressToClose={true}
       animationDuration={250}
-      easing={Easing.inOut(Easing.exp)}
     >
 
       <View style={tailwind('h-full')}>

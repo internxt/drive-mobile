@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Platform, TouchableHighlight, TouchableWithoutFeedback, Easing } from 'react-native';
+import { View, Text, Platform, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
@@ -42,7 +42,6 @@ function DeleteItemModal(props: Reducers) {
       backButtonClose={true}
       backdropPressToClose={true}
       animationDuration={250}
-      easing={Easing.inOut(Easing.exp)}
     >
 
       <View style={tailwind('h-full')}>

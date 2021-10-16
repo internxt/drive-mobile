@@ -65,7 +65,7 @@ export default function App(): JSX.Element {
 
       Linking.addEventListener('url', handleOpenURL);
 
-      Linking.getInitialURL().then(res => {
+      Linking.getInitialURL().then((res: any) => {
         if (res && !res.url) {
           const uri = res
 

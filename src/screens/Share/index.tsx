@@ -40,7 +40,7 @@ function Share(props: Reducers): JSX.Element {
     {
       loading &&
       <View>
-        {_.times(20, () => <SkinSkeleton />)}
+        {_.times(20, (n) => <SkinSkeleton key={n} />)}
       </View>
     }
 
@@ -63,6 +63,7 @@ function Share(props: Reducers): JSX.Element {
               key={i}
               item={item.fileInfo}
               isFolder={false}
+              totalColumns={1}
               subtitle={<View style={tailwind('flex flex-row items-center')}>
                 <Text style={tailwind('text-base text-sm text-blue-60')}>Left {item.views} times to share</Text>
               </View>}

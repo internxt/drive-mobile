@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
 import { notify } from '../../helpers';
 import { Reducers } from '../../redux/reducers/reducers';
-import { IProduct } from '../../redux/services';
 import _ from 'lodash'
 import { getColor, tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/Separator';
@@ -128,13 +127,13 @@ function Billing(props: Reducers) {
     });
   }
 
-  const [stripeProducts, setStripeProducts] = useState<IProduct[]>();
+  const [stripeProducts, setStripeProducts] = useState<any[]>();
   const [selectedProductIndex, setSelectedProductIndex] = useState(1);
-  const [selectedProduct, setSelectedProduct] = useState<IProduct>();
+  const [selectedProduct, setSelectedProduct] = useState<any>();
   const [selectedTab, setSelectedTab] = useState(1)
 
   useEffect(() => {
-    getProducts().then((products) => {
+    getProducts().then((products: any[]) => {
       setStripeProducts(products);
     }).catch(err => {
       notify({

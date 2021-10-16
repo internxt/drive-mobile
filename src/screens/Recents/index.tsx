@@ -39,7 +39,7 @@ function Recents(props: Reducers): JSX.Element {
     {
       loading &&
       <View>
-        {_.times(20, () => <SkinSkeleton />)}
+        {_.times(20, (n) => <SkinSkeleton key={n} />)}
       </View>
     }
 
@@ -59,6 +59,7 @@ function Recents(props: Reducers): JSX.Element {
         {recents.length === 0 && <EmptyRecents />}
         {recents.length > 0 && recents.map(item => {
           return <FileItem
+            totalColumns={1}
             {...props}
             key={item.id}
             item={item}

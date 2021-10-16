@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { ScrollView, RefreshControl, View, FlatList, Dimensions } from 'react-native';
+import { RefreshControl, View, FlatList, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import { tailwind } from '../../helpers/designSystem';
 import { fileActions } from '../../redux/actions';
@@ -11,8 +11,15 @@ import _ from 'lodash'
 export interface IFolder {
   name: string
   id: number
-  color: any
-  icon: any
+  createdAt: Date
+  updatedAt: Date
+  size: number
+  type: string
+  fileId: string
+  progress: number
+  folderId?: number
+  uri?: string
+  isUploaded?: boolean
 }
 
 export interface IUploadingFile {
@@ -22,18 +29,27 @@ export interface IUploadingFile {
   id: string
   type: string
   createdAt: Date
+  updatedAt: Date
+  size: number
+  name: string
+  folderId: number
+  fileId?: number
+  isUploaded?: boolean
 }
 
 export interface IFile {
   bucket: string
   createdAt: Date
   folderId: number
-  fileId: number
+  fileId: string
   id: number
   name: string
   type: string
   updatedAt: Date
   size: number
+  progress: number
+  uri?: string
+  isUploaded?: boolean
 }
 
 interface FileListProps extends Reducers {
@@ -49,7 +65,7 @@ function FileList(props: FileListProps) {
   let fileList: IFile[] = folderContent && folderContent.files || [];
   const [filesUploading, setFilesUploading] = useState([])
   const [filesUploaded, setFilesUploaded] = useState([])
-  const [folderId, setFolderId] = useState()
+  const [folderId, setFolderId] = useState<number>()
 
   useEffect(() => {
     setRefreshing(false)
@@ -98,7 +114,7 @@ function FileList(props: FileListProps) {
   const totalColumns = Math.min(Math.max(Math.trunc(windowWidth / 125), 2), 6);
 
   return (
-    <ScrollView
+    <FlatList
       refreshControl={
         <RefreshControl refreshing={refreshing}
           onRefresh={() => {
@@ -111,30 +127,25 @@ function FileList(props: FileListProps) {
           }}
         />
       }
-      contentContainerStyle={isEmptyFolder ? tailwind('h-full justify-center') : null}
-    >
-
-      <FlatList
-        key={props.isGrid ? '#' : '-'}
-        numColumns={props.isGrid ? totalColumns : 1}
-        collapsable={true}
-        contentContainerStyle={tailwind('h-full')}
-        ListEmptyComponent={props.filesState.loading ? <View style={tailwind('h-full')}>
-          {_.times(20, () => <SkinSkeleton />)}
-        </View>
-          : <EmptyFolder {...props} isRoot={isRootFolder} />}
-        data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}
-        renderItem={(item) => {
-          return <FileItem
-            isFolder={!!item.item.parentId}
-            key={`${props.isGrid}-${item.item.id}`}
-            item={item.item}
-            isGrid={props.isGrid}
-            totalColumns={totalColumns}
-          />;
-        }}
-      />
-    </ScrollView>
+      key={props.isGrid ? '#' : '-'}
+      numColumns={props.isGrid ? totalColumns : 1}
+      collapsable={true}
+      contentContainerStyle={[tailwind('h-full'), isEmptyFolder && tailwind('h-full justify-center')]}
+      ListEmptyComponent={props.filesState.loading ? <View style={tailwind('h-full')}>
+        {_.times(20, (n) => <SkinSkeleton key={n} />)}
+      </View>
+        : <EmptyFolder {...props} isRoot={isRootFolder} />}
+      data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}
+      renderItem={(item) => {
+        return <FileItem
+          isFolder={!!item.item.parentId}
+          key={`${props.isGrid}-${item.item.id}`}
+          item={item.item}
+          isGrid={props.isGrid}
+          totalColumns={totalColumns}
+        />;
+      }}
+    />
   )
 }
 

@@ -10,6 +10,7 @@
     "lint": "eslint 'src/**/*' App.tsx",
     "test": "npm run lint",
     "postinstall": "yarn run hack",
+    "check-ts": "tsc --noEmit",
     "hack": "rn-nodeify --install --hack --yarn && rn-nodeify --install stream,process --hack && yarn remove react-native-tcp react-native-udp"
   },
   "dependencies": {
@@ -158,7 +159,7 @@
   "version": "1.4.2",
   "husky": {
     "hooks": {
-      "pre-commit": "yarn run lint --quiet"
+      "pre-commit": "yarn run check-ts && yarn run lint --quiet"
     }
   },
   "react-native": {

@@ -122,7 +122,7 @@ function deleteItems(items: any[]): Promise<void> {
 export type ArraySortFunction = (a: any, b: any) => boolean
 
 function getSortFunction(sortType: string): ArraySortFunction | null {
-  let sortFunc = null;
+  let sortFunc: any = null;
 
   switch (sortType) {
   case sortTypes.DATE_ADDED:

@@ -12,11 +12,12 @@ const lightweightLoggerMiddleware: Middleware = () => (next: Dispatch<AnyAction>
 const composeEnhancers = composeWithDevTools || compose;
 const middlewares = [thunkMiddleware, lightweightLoggerMiddleware];
 const initialState = {};
+const applyMiddlewareBuilder: any = applyMiddleware;
 
 const store = createStore(
   reducer,
   initialState,
-  composeEnhancers(applyMiddleware(...middlewares))
+  composeEnhancers(applyMiddlewareBuilder(...middlewares))
 );
 
 export { store };

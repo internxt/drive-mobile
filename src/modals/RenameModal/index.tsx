@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableHighlight, TouchableWithoutFeedback, TextInput, Platform, KeyboardAvoidingView, Easing } from 'react-native';
+import { View, Text, TouchableHighlight, TouchableWithoutFeedback, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../redux/actions';
@@ -68,7 +68,6 @@ function RenameModal(props: Reducers) {
       backButtonClose={true}
       backdropPressToClose={true}
       animationDuration={250}
-      easing={Easing.inOut(Easing.exp)}
     >
       <KeyboardAvoidingView behavior={'padding'} >
         <View style={tailwind('h-full')}>

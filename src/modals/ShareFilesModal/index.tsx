@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, { useEffect, useState } from 'react';
-import { View, Text, Share, TouchableOpacity, TouchableWithoutFeedback, TouchableHighlight, ActivityIndicator, Easing, Platform } from 'react-native';
+import { View, Text, Share, TouchableOpacity, TouchableWithoutFeedback, TouchableHighlight, ActivityIndicator, Platform } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
 import { layoutActions } from '../../redux/actions';
@@ -107,7 +107,6 @@ function ShareFilesModal(props: Reducers) {
       backButtonClose={true}
       backdropPressToClose={true}
       animationDuration={250}
-      easing={Easing.inOut(Easing.exp)}
     >
       <View style={tailwind('h-full')}>
         <TouchableWithoutFeedback
