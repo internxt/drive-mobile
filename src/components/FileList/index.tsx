@@ -132,7 +132,7 @@ function FileList(props: FileListProps) {
       collapsable={true}
       contentContainerStyle={[tailwind('h-full'), isEmptyFolder && tailwind('h-full justify-center')]}
       ListEmptyComponent={props.filesState.loading ? <View style={tailwind('h-full')}>
-        {_.times(20, () => <SkinSkeleton />)}
+        {_.times(20, (n) => <SkinSkeleton key={n} />)}
       </View>
         : <EmptyFolder {...props} isRoot={isRootFolder} />}
       data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}
