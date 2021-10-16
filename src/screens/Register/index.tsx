@@ -13,7 +13,6 @@ import Intro from '../Intro'
 import { apiLogin, validateEmail } from '../Login/access';
 import { doRegister, isNullOrEmpty, isStrongPassword } from './registerUtils';
 import InternxtLogo from '../../../assets/logo.svg'
-import globalStyles from '../../styles/global.style';
 import analytics from '../../helpers/lytics';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -135,7 +134,7 @@ function Register(props: Reducers): JSX.Element {
                 <InternxtLogo width={120} height={40} />
               </View>
               <View>
-                <Text style={[globalStyles.text.normal, globalStyles.text.center]}>
+                <Text style={tailwind('text-sm text-center')}>
                   {strings.screens.register_screen.create_account_title}
                 </Text>
               </View>

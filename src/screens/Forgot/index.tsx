@@ -81,9 +81,9 @@ function Forgot(props: Reducers): JSX.Element {
                 />
               </View>
 
-              <View style={globalStyle.buttonInputStyle.wrapper}>
+              <View>
                 <TouchableHighlight
-                  style={tailwind('btn btn-primary bg-red-60')}
+                  style={tailwind('btn btn-primary bg-red-60 mt-3')}
                   onPress={() => sendDeactivationEmail()}
                 >
                   <Text style={tailwind('text-base btn-label')}>
@@ -96,7 +96,7 @@ function Forgot(props: Reducers): JSX.Element {
                   style={tailwind('m-5')}
                   onPress={() => props.navigation.replace('Login')}
                 >
-                  <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
+                  <Text style={tailwind('text-blue-60 text-center')}> {strings.screens.login_screen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>
             </View>
