@@ -11,7 +11,6 @@ import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 import { getCurrentIndividualPlan } from '../../services/payments';
 import { loadValues } from '../../modals';
-import { notify } from '../../helpers';
 
 interface StorageProps extends Reducers {
   currentPlan: number
@@ -46,13 +45,7 @@ function RunOutOfStorageModal(props: Reducers): JSX.Element {
   useEffect(() => {
     loadValues().then(res => setUsageValues(res)).catch(() => { })
 
-    getCurrentIndividualPlan().then(setCurrentPlan).catch(err => {
-
-      notify({
-        text: 'Cannot load current plan',
-        type: 'warn'
-      })
-    })
+    getCurrentIndividualPlan().then(setCurrentPlan).catch(() => { })
   }, [])
 
   return (
