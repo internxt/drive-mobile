@@ -1,8 +1,6 @@
 import { AnyAction } from 'redux';
 import { IFile, IFolder, IUploadingFile } from '../../components/FileList';
 import { fileActionTypes } from '../constants';
-import { ArraySortFunction } from '../services';
-
 interface FolderContentChildren {
   id: number
   parentId: number
@@ -29,6 +27,7 @@ interface FileContentChildren {
 }
 
 interface FolderContent {
+  id: number
   name: string
   bucket: string
   color: any
@@ -39,9 +38,9 @@ interface FolderContent {
   userId: number | null
   iconId: number | null
   parentId: number | null
-  children: FolderContentChildren[]
+  children: IFolder[]
   currentFolder: number
-  files: FileContentChildren[]
+  files: IFile[]
 }
 
 export interface FilesState {
@@ -52,10 +51,10 @@ export interface FilesState {
   filesAlreadyUploaded: any[]
   folderContent: FolderContent
   rootFolderContent: any
-  focusedItem: (IFile & IFolder) | null
+  focusedItem: any | null
   selectedItems: any[]
   sortType: string
-  sortFunction: ArraySortFunction | null
+  sortFunction: ((a: IFolder | IFile, b: IFolder | IFile) => number) | null
   searchString: string
   isUploading: boolean
   isUploadingFileName: string | null
@@ -63,8 +62,9 @@ export interface FilesState {
   progress: number
   startDownloadSelectedFile: boolean
   error?: string | null
-  uri: string | Record<string, string> | undefined | null
+  uri: any
   pendingDeleteItems: {[key: string]: boolean}
+  selectedFile: any
 }
 
 const initialState: FilesState = {
@@ -86,7 +86,8 @@ const initialState: FilesState = {
   progress: 0,
   startDownloadSelectedFile: false,
   uri: undefined,
-  pendingDeleteItems: {}
+  pendingDeleteItems: {},
+  selectedFile: null
 };
 
 export function filesReducer(state = initialState, action: AnyAction): FilesState {

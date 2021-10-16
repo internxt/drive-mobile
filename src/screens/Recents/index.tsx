@@ -59,6 +59,7 @@ function Recents(props: Reducers): JSX.Element {
         {recents.length === 0 && <EmptyRecents />}
         {recents.length > 0 && recents.map(item => {
           return <FileItem
+            totalColumns={1}
             {...props}
             key={item.id}
             item={item}

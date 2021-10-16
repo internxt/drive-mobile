@@ -15,6 +15,8 @@ interface AppMenuProps extends Reducers {
   hideBackPress?: boolean
   hideSortBar?: boolean
   hideNavigation?: boolean
+  lightMode?: boolean
+  centerTitle?: boolean
 }
 
 function AppMenu(props: AppMenuProps) {

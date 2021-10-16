@@ -18,9 +18,11 @@ async function loadFontsAsync(): Promise<void> {
     'NeueEinstellung-Thin': require('../../assets/fonts/NeueEinstellung-Thin.otf')
   });
 
-  const oldRender = Text.render;
+  const TextComponent: any = Text;
 
-  Text.render = function (...args) {
+  const oldRender = TextComponent.render;
+
+  TextComponent.render = function (...args) {
     const origin = oldRender.call(this, ...args);
 
     return React.cloneElement(origin, {

@@ -18,7 +18,7 @@ import globalStyle from '../../styles/global.style';
 
 interface FileItemProps extends Reducers {
   isFolder: boolean
-  item: IFile & IFolder & IUploadingFile
+  item: IFile | IFolder | IUploadingFile
   isLoading?: boolean
   nameEncrypted?: boolean
   selectable?: boolean
@@ -114,7 +114,7 @@ function FileItem(props: FileItemProps) {
 
     const fileManager = new FileManager(destinationPath);
 
-    return downloadFile(props.item.fileId, {
+    return downloadFile(props.item.fileId.toString(), {
       fileManager,
       progressCallback: (progress) => { setProgress(progress * 100); }
     }).then(async () => {

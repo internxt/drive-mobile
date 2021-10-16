@@ -1,5 +1,5 @@
 type Event = string;
-type Listener = (...args: []) => any;
+type Listener = (...args: any[]) => any;
 type Listeners = Array<Listener>;
 
 export class EventEmitter {

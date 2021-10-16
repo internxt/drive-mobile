@@ -8,7 +8,6 @@ import Register from './screens/Register';
 import Forgot from './screens/Forgot';
 import OutOfSpace from './screens/OutOfSpace';
 import Storage from './screens/Storage';
-import StorageWebView from './screens/StorageWebView';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TabExplorer from './screens/TabExplorer';
 import Billing from './screens/Billing';
@@ -28,7 +27,6 @@ const routeConfig: RouteConfig = {
   Forgot: { screen: Forgot },
   OutOfSpace: { screen: OutOfSpace },
   Storage: { screen: Storage },
-  StorageWebView: { screen: StorageWebView },
   Billing: { screen: Billing },
   ChangePassword: { screen: ChangePassword },
   RecoverPassword: { screen: RecoverPassword },

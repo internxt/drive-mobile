@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, TouchableHighlight, TextInput, Platform, KeyboardAvoidingView, TouchableWithoutFeedback, Easing, Keyboard } from 'react-native'
+import { View, Text, TouchableHighlight, TextInput, Platform, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import Modal from 'react-native-modalbox'
 import { createFolder } from './CreateFolderUtils'
 import { connect } from 'react-redux'
@@ -53,7 +53,6 @@ function CreateFolderModal(props: Reducers) {
       backButtonClose={true}
       backdropPressToClose={true}
       animationDuration={250}
-      easing={Easing.inOut(Easing.exp)}
     >
       <KeyboardAvoidingView behavior={'padding'} >
         <View style={tailwind('h-full')}>

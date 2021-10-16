@@ -14,7 +14,6 @@ import { normalize } from '../../helpers';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import InternxtLogo from '../../../assets/logo.svg'
-import globalStyle from '../../styles/global.style';
 import { tailwind } from '../../helpers/designSystem';
 import { Reducers } from '../../redux/reducers/reducers';
 
@@ -139,7 +138,7 @@ function Forgot(props: Reducers): JSX.Element {
                   style={tailwind('m-5')}
                   onPress={() => props.navigation.replace('Login')}
                 >
-                  <Text style={[globalStyle.text.link, globalStyle.text.center]}> {strings.screens.login_screen.back}</Text>
+                  <Text style={[]}> {strings.screens.login_screen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>
             </View>

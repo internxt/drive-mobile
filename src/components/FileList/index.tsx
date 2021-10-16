@@ -11,8 +11,15 @@ import _ from 'lodash'
 export interface IFolder {
   name: string
   id: number
-  color: any
-  icon: any
+  createdAt: Date
+  updatedAt: Date
+  size: number
+  type: string
+  fileId: string
+  progress: number
+  folderId?: number
+  uri?: string
+  isUploaded?: boolean
 }
 
 export interface IUploadingFile {
@@ -22,18 +29,27 @@ export interface IUploadingFile {
   id: string
   type: string
   createdAt: Date
+  updatedAt: Date
+  size: number
+  name: string
+  folderId: number
+  fileId?: number
+  isUploaded?: boolean
 }
 
 export interface IFile {
   bucket: string
   createdAt: Date
   folderId: number
-  fileId: number
+  fileId: string
   id: number
   name: string
   type: string
   updatedAt: Date
   size: number
+  progress: number
+  uri?: string
+  isUploaded?: boolean
 }
 
 interface FileListProps extends Reducers {
@@ -49,7 +65,7 @@ function FileList(props: FileListProps) {
   let fileList: IFile[] = folderContent && folderContent.files || [];
   const [filesUploading, setFilesUploading] = useState([])
   const [filesUploaded, setFilesUploaded] = useState([])
-  const [folderId, setFolderId] = useState()
+  const [folderId, setFolderId] = useState<number>()
 
   useEffect(() => {
     setRefreshing(false)

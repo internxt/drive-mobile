@@ -1,6 +1,6 @@
 import prettysize from 'prettysize';
 import React from 'react'
-import { Text, View, TouchableWithoutFeedback, Easing, Platform } from 'react-native'
+import { Text, View, TouchableWithoutFeedback, Platform } from 'react-native'
 import Modal from 'react-native-modalbox'
 import { connect } from 'react-redux';
 import { layoutActions } from '../../redux/actions';
@@ -59,7 +59,6 @@ function FileDetailsModal(props: FileDetailsProps) {
         backButtonClose={true}
         backdropPressToClose={true}
         animationDuration={250}
-        easing={Easing.inOut(Easing.exp)}
       >
         <View style={tailwind('h-full')}>
           <TouchableWithoutFeedback

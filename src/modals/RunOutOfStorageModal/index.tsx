@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
-import { Text, View, Platform, TouchableWithoutFeedback, TouchableHighlight, Easing } from 'react-native';
+import { Text, View, Platform, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { Reducers } from '../../redux/reducers/reducers';
 import RunOutImage from '../../../assets/images/modals/runout.svg'
@@ -68,7 +68,6 @@ function RunOutOfStorageModal(props: Reducers): JSX.Element {
       backButtonClose={true}
       backdropPressToClose={true}
       animationDuration={250}
-      easing={Easing.inOut(Easing.exp)}
     >
       <View style={tailwind('h-full')}>
         <TouchableWithoutFeedback

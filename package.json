@@ -10,6 +10,7 @@
     "lint": "eslint 'src/**/*' App.tsx",
     "test": "npm run lint",
     "postinstall": "yarn run hack",
+    "check-ts": "tsc --noEmit",
     "hack": "rn-nodeify --install --hack --yarn && rn-nodeify --install stream,process --hack && yarn remove react-native-tcp react-native-udp"
   },
   "dependencies": {

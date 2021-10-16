@@ -1,5 +1,4 @@
 import { AnyAction, Dispatch } from 'redux';
-import { IUploadingFile } from '../../components/FileList';
 import { getLyticsData } from '../../helpers';
 import analytics from '../../helpers/lytics';
 import { IMetadata } from '../../modals/FileDetailsModal/actions';
@@ -65,7 +64,7 @@ function uploadFileStart(): AnyAction {
   return { type: fileActionTypes.ADD_FILE_REQUEST };
 }
 
-function addUploadingFile(file: IUploadingFile): AnyAction {
+function addUploadingFile(file: any): AnyAction {
   return { type: fileActionTypes.ADD_UPLOADING_FILE, payload: file };
 }
 
@@ -81,11 +80,11 @@ function removeUploadedFile(file: any): AnyAction {
   return { type: fileActionTypes.REMOVE_UPLOADED_FILE, payload: file };
 }
 
-function uploadFileFinished(name: string): AnyAction {
+function uploadFileFinished(name?: string): AnyAction {
   return { type: fileActionTypes.ADD_FILE_SUCCESS, payload: name };
 }
 
-function uploadFileFailed(id: number): AnyAction {
+function uploadFileFailed(id?: number): AnyAction {
   return { type: fileActionTypes.ADD_FILE_FAILURE, payload: id };
 }
 
@@ -109,7 +108,7 @@ function fetchIfSameFolder(fileFolder: number) {
   }
 }
 
-function getFolderContent(folderId: string | number, quick?: boolean): AnyAction {
+function getFolderContent(folderId: string | number, quick?: boolean): any {
   const id = typeof folderId === 'string' ? parseInt(folderId) : folderId
 
   if (isNaN(id)) {
@@ -147,15 +146,17 @@ function getFolderContent(folderId: string | number, quick?: boolean): AnyAction
   }
 }
 
-function deleteItems(items: any, folderToReload: any): AnyAction {
+function deleteItems(items: any, folderToReload: any): any {
   return async (dispatch: Dispatch) => {
     dispatch(request());
     dispatch(getFolderContent(folderToReload, true));
+
     notify({
       text: 'Item deleted',
       type: 'success'
-    })
-    fileService
+    });
+
+    return fileService
       .deleteItems(items)
       .then(() => {
         return dispatch(requestSuccess());
@@ -287,7 +288,7 @@ function setRootFolderContent(folderContent: any): AnyAction {
   return { type: fileActionTypes.SET_ROOTFOLDER_CONTENT, payload: folderContent }
 }
 
-function setUri(uri: string | Record<string, string> | undefined | null) {
+function setUri(uri: any) {
   if (uri) {
     getLyticsData().then(user => {
       analytics.track('share-to', {
