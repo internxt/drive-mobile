@@ -11,6 +11,7 @@ import globalStyle from '../../styles/global.style';
 const tabIcons = {
   Drive: Unicons.UilHdd,
   Recents: Unicons.UilClock,
+  Photos: Unicons.UilImage,
   Create: Unicons.UilPlusCircle,
   Shared: Unicons.UilLinkAdd,
   Settings: Unicons.UilSetting

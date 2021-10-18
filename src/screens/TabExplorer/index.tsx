@@ -3,6 +3,7 @@ import { Reducers } from '../../redux/reducers/reducers';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import FileExplorer from '../FileExplorer';
 import Recents from '../Recents';
+import Photos from '../Photos/Photos'
 import Share from '../Share';
 import Configuration from '../Configuration';
 import MyTabBar from './myTabBar';
@@ -46,7 +47,12 @@ export default function TabExplorer(props: Reducers): JSX.Element {
       }}
     >
       <Tab.Screen name="Drive" component={FileExplorer} />
-      <Tab.Screen name="Recents" component={Recents} />
+      {process.env.NODE_ENV === 'production'
+        ?
+        <Tab.Screen name="Recents" component={Recents} />
+        :
+        <Tab.Screen name="Photos" component={Photos} />
+      }
       <Tab.Screen name="Create" component={VoidScreen} />
       <Tab.Screen name="Shared" component={Share} />
       <Tab.Screen name="Settings" component={Configuration} />
