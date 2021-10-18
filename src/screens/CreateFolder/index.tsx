@@ -8,7 +8,6 @@ import {
   BackHandler
 } from 'react-native';
 import { connect } from 'react-redux';
-import MenuItem from '../../components/MenuItem';
 import { fileActions } from '../../redux/actions';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import strings from '../../../assets/lang/strings';
@@ -49,11 +48,11 @@ function CreateFolder(props: any): JSX.Element {
       style={styles.container}>
       <View style={styles.actionsWrapper}>
         <View>
-          <MenuItem name="close" onClickHandler={() => onCancel()} />
+          {/* <MenuItem name="close" onClickHandler={() => onCancel()} /> */}
         </View>
 
         <View>
-          <MenuItem name="checkmark" onClickHandler={() => onSave()} />
+          {/* <MenuItem name="checkmark" onClickHandler={() => onSave()} /> */}
         </View>
       </View>
 

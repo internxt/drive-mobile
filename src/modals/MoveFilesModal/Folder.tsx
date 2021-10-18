@@ -1,9 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { connect } from 'react-redux';
-import IconFolder from '../../components/IconFolder';
-import Icon from '../../../assets/icons/Icon';
-import { colors } from '../../redux/constants';
 import { fileActions } from '../../redux/actions';
 import { getLyticsData } from '../../helpers';
 import analytics from '../../helpers/lytics';
@@ -40,21 +37,7 @@ function Folder(props: FolderProps) {
           }}>
 
           <View style={styles.itemIcon}>
-            <IconFolder color={props.item.color} />
-
-            {
-              props.item.icon ?
-
-                <View style={styles.icon}>
-                  <Icon
-                    name={props.item.icon.name}
-                    color={item.color ? colors[item.color].icon : colors['blue'].icon}
-                    width={24}
-                    height={24}
-                  />
-                </View>
-                : null
-            }
+            {/* Icon file or folder */}
           </View>
 
           <View style={styles.nameAndTime}>
@@ -85,11 +68,6 @@ const styles = StyleSheet.create({
     fontFamily: 'NeueEinstellung-Bold',
     fontSize: 16,
     letterSpacing: -0.1
-  },
-  icon: {
-    left: 35,
-    position: 'absolute',
-    top: 7
   },
   itemIcon: {
   },
