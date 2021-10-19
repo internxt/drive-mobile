@@ -130,7 +130,7 @@ function FileList(props: FileListProps) {
       key={props.isGrid ? '#' : '-'}
       numColumns={props.isGrid ? totalColumns : 1}
       collapsable={true}
-      contentContainerStyle={[tailwind('h-full'), isEmptyFolder && tailwind('h-full justify-center')]}
+      contentContainerStyle={isEmptyFolder && tailwind('h-full justify-center')}
       ListEmptyComponent={props.filesState.loading ? <View style={tailwind('h-full')}>
         {_.times(20, (n) => <SkinSkeleton key={n} />)}
       </View>
