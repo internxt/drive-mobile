@@ -15,6 +15,7 @@ import ChangePassword from './screens/ChangePassword';
 import RecoverPassword from './screens/RecoverPassword';
 import UpdateModal from './modals/UpdateModal';
 import DebugView from './screens/Debug/DebugView';
+import Preview from './screens/Photos/Preview';
 
 type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, any>
 
@@ -30,6 +31,7 @@ const routeConfig: RouteConfig = {
   Billing: { screen: Billing },
   ChangePassword: { screen: ChangePassword },
   RecoverPassword: { screen: RecoverPassword },
+  Preview: { screen: Preview },
   DebugView: { screen: DebugView }
 };
 

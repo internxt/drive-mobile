@@ -56,6 +56,6 @@ export default function TabExplorer(props: Reducers): JSX.Element {
       <Tab.Screen name="Create" component={VoidScreen} />
       <Tab.Screen name="Shared" component={Share} />
       <Tab.Screen name="Settings" component={Configuration} />
-    </ Tab.Navigator>
+    </Tab.Navigator>
   </View>
 }
