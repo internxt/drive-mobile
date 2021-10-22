@@ -1,17 +1,18 @@
 import CameraRoll from '@react-native-community/cameraroll';
 import React, { useEffect, useState } from 'react';
-import { Image, Dimensions, View, Text, ListRenderItemInfo, SafeAreaView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, ListRenderItemInfo, SafeAreaView, TouchableOpacity, RefreshControl } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
-import tailwind from 'tailwind-rn';
+import { tailwind } from '../../helpers/designSystem';
 import { Reducers } from '../../redux/reducers/reducers';
 import { loadLocalPhotos } from '../../services/photos';
+import globalStyle from '../../styles/global.style';
+import PhotoElement from './PhotoElement';
 
 function Photos(props: Reducers): JSX.Element {
-  const screenWidth = Dimensions.get('window').width;
-  const thirdWidth = screenWidth / 3;
 
   const [refreshing, setRefreshing] = useState(false)
+  const [selectionMode, setSelectionMode] = useState(false);
   const [photos, setPhotos] = useState<CameraRoll.PhotoIdentifier[]>([]);
   const [photoCursor, setPhotoCursor] = useState<string>();
 
@@ -41,6 +42,8 @@ function Photos(props: Reducers): JSX.Element {
       </View>
     </View>
     <FlatList
+      showsVerticalScrollIndicator={true}
+      indicatorStyle={'black'}
       refreshControl={
         <RefreshControl refreshing={refreshing}
           onRefresh={() => {
@@ -58,20 +61,7 @@ function Photos(props: Reducers): JSX.Element {
       onEndReached={() => loadMorePhotos(photoCursor)}
       onEndReachedThreshold={3}
       renderItem={(item: ListRenderItemInfo<CameraRoll.PhotoIdentifier>) => {
-        return <TouchableOpacity
-          onPress={() => {
-            props.navigation.push('Preview', {
-              uri: item.item.node.image.uri
-            })
-          }}
-          key={item.item.node.image.uri}
-          style={[tailwind('p-0.5'), { width: thirdWidth, height: thirdWidth }]}>
-          <Image
-            style={tailwind('w-full h-full')}
-            source={{
-              uri: item.item.node.image.uri
-            }} />
-        </TouchableOpacity>
+        return <PhotoElement item={item.item} />
       }}
     />
   </SafeAreaView>;
