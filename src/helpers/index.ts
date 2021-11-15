@@ -3,7 +3,7 @@ export * from './normalize';
 export * from './loadEnvVars';
 export * from './crypt';
 export * from './deviceStorage';
-export * from './lytics';
+export * from './analytics';
 export * from './filetypes';
 export * from './toast'
 export * from './update'

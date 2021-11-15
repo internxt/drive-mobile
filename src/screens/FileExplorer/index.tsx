@@ -4,9 +4,9 @@ import AppMenu from '../../components/AppMenu'
 import { fileActions, userActions } from '../../redux/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
-import { loadValues } from '../../modals/SettingsModal';
+import { loadValues } from '../../components/modals/SettingsModal';
 import { Reducers } from '../../redux/reducers/reducers';
-import analytics, { getLyticsData } from '../../helpers/lytics';
+import analytics, { getLyticsData } from '../../helpers/analytics';
 import RNFetchBlob from 'rn-fetch-blob';
 import { notify } from '../../helpers';
 

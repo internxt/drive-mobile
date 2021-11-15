@@ -1,13 +1,13 @@
 import { AnyAction, Dispatch } from 'redux';
 import { getLyticsData } from '../../helpers';
-import analytics from '../../helpers/lytics';
-import { IMetadata } from '../../modals/FileDetailsModal/actions';
+import analytics from '../../helpers/analytics';
+import { IMetadata } from '../../components/modals/FileDetailsModal/actions';
 import { store } from '../../store';
 import { fileActionTypes } from '../constants';
-import { fileService } from '../services';
 import { layoutActions } from './layout.actions';
 import { userActions } from './user.actions';
 import { notify } from '../../helpers/toast';
+import { fileService } from '../../services/FileService';
 
 export const fileActions = {
   downloadFileStart,

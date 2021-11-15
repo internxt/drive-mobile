@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { Reducers } from '../../redux/reducers/reducers';
-import { loadValues } from '../../modals';
+import { loadValues } from '../../components/modals';
 import strings from '../../../assets/lang/strings';
 import AppMenu from '../../components/AppMenu';
 import { tailwind } from '../../helpers/designSystem';

@@ -53,7 +53,7 @@ export function authenticationReducer(state = initialState, action: AnyAction): 
       ...state,
       loggedIn: true,
       token: action.payload.token,
-      user: JSON.parse(action.payload.user)
+      user: action.payload.user
     };
   case userActionTypes.SET_USER_STORAGE:
     return {

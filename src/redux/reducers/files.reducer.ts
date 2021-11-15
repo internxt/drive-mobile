@@ -77,7 +77,7 @@ const initialState: FilesState = {
   rootFolderContent: [],
   focusedItem: null,
   selectedItems: [],
-  sortType: '',
+  sortType: 'Name_Asc',
   sortFunction: null,
   searchString: '',
   isUploading: false,

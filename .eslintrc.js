@@ -23,7 +23,6 @@ module.exports = {
   rules: {
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
-    'no-console': 'error',
     'comma-dangle': ['error', 'never'],
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
@@ -63,9 +62,10 @@ module.exports = {
       'asyncArrow': 'always'
     }]
   },
-  'settings': {
-    'react': {
-      'version': 'detect'
+  settings: {
+    react: {
+      version: 'detect'
     }
-  }
+  },
+  ignorePatterns: ['**/*.js']
 };

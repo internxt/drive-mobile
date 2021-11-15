@@ -6,7 +6,7 @@ PODS:
     - UMCore
   - EXClipboard (1.1.0):
     - UMCore
-  - EXConstants (11.0.1):
+  - EXConstants (11.0.2):
     - ExpoModulesCore
     - UMCore
   - EXDocumentPicker (9.2.4):
@@ -24,7 +24,7 @@ PODS:
     - ExpoModulesCore
     - React-Core
     - UMCore
-  - EXImagePicker (10.2.2):
+  - EXImagePicker (10.2.3):
     - ExpoModulesCore
     - UMCore
   - EXKeepAwake (9.2.0):
@@ -37,9 +37,6 @@ PODS:
     - ExpoModulesCore
     - React-Core
     - UMCore
-  - EXPermissions (12.1.1):
-    - ExpoModulesCore
-    - UMCore
   - ExpoModulesCore (0.2.0):
     - ExpoModulesCore/Core (= 0.2.0)
     - ExpoModulesCore/Interfaces (= 0.2.0)
@@ -49,12 +46,12 @@ PODS:
   - ExpoModulesCore/Interfaces (0.2.0):
     - ExpoModulesCore/Core
     - UMCore
-  - EXSplashScreen (0.11.2):
+  - EXSplashScreen (0.11.4):
     - React-Core
     - UMCore
   - EXStructuredHeaders (1.1.1):
     - UMCore
-  - EXUpdates (0.8.4):
+  - EXUpdates (0.8.5):
     - EXStructuredHeaders
     - EXUpdatesInterface
     - React-Core
@@ -160,23 +157,23 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Permission-AppTrackingTransparency (3.0.5):
+  - Permission-AppTrackingTransparency (3.1.0):
     - RNPermissions
-  - Permission-Camera (3.0.5):
+  - Permission-Camera (3.1.0):
     - RNPermissions
-  - Permission-FaceID (3.0.5):
+  - Permission-FaceID (3.1.0):
     - RNPermissions
-  - Permission-MediaLibrary (3.0.5):
+  - Permission-MediaLibrary (3.1.0):
     - RNPermissions
-  - Permission-Notifications (3.0.5):
+  - Permission-Notifications (3.1.0):
     - RNPermissions
-  - Permission-PhotoLibrary (3.0.5):
+  - Permission-PhotoLibrary (3.1.0):
     - RNPermissions
-  - Permission-PhotoLibraryAddOnly (3.0.5):
+  - Permission-PhotoLibraryAddOnly (3.1.0):
     - RNPermissions
-  - Permission-Reminders (3.0.5):
+  - Permission-Reminders (3.1.0):
     - RNPermissions
-  - Permission-StoreKit (3.0.5):
+  - Permission-StoreKit (3.1.0):
     - RNPermissions
   - PromisesObjC (1.2.12)
   - RCTRequired (0.63.4)
@@ -349,7 +346,7 @@ PODS:
     - React
   - react-native-document-picker (4.3.0):
     - React-Core
-  - react-native-image-picker (4.0.6):
+  - react-native-image-picker (4.2.0):
     - React-Core
   - react-native-randombytes (3.6.1):
     - React-Core
@@ -445,9 +442,9 @@ PODS:
     - React-Core
   - RNOS (1.2.6):
     - React
-  - RNPermissions (3.0.5):
+  - RNPermissions (3.1.0):
     - React-Core
-  - RNReanimated (2.2.2):
+  - RNReanimated (2.2.4):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -493,8 +490,8 @@ PODS:
     - Firebase/Core (~> 7.7)
     - FirebaseAnalytics (~> 7.7)
   - UMAppLoader (2.2.0)
-  - UMCore (7.1.1)
-  - UMReactNativeAdapter (6.3.5):
+  - UMCore (7.1.2)
+  - UMReactNativeAdapter (6.3.9):
     - ExpoModulesCore
     - React-Core
     - UMCore
@@ -517,7 +514,6 @@ DEPENDENCIES:
   - EXLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
   - EXLocalAuthentication (from `../node_modules/expo-local-authentication/ios`)
   - EXMediaLibrary (from `../node_modules/expo-media-library/ios`)
-  - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
   - EXStructuredHeaders (from `../node_modules/expo-structured-headers/ios`)
@@ -631,8 +627,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-local-authentication/ios"
   EXMediaLibrary:
     :path: "../node_modules/expo-media-library/ios"
-  EXPermissions:
-    :path: "../node_modules/expo-permissions/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core/ios"
   EXSplashScreen:
@@ -770,22 +764,21 @@ SPEC CHECKSUMS:
   DoubleConversion: cde416483dac037923206447da6e1454df403714
   EXApplication: 9ff2a206009d6e55bca6c20b3f33d07986b51ef3
   EXClipboard: c66f7d22ba754496b0fc6b23a2cb9a3e10fa1581
-  EXConstants: 3babb61f8f4bb7dffe85b8b7d6eaa31d903e4d7e
+  EXConstants: 4cb52b6d8f636c767104a44bf7db3873e9c01a6f
   EXDocumentPicker: a96d7fc2e6fcfeb0fe52cede8e32497ca225f7d1
   EXErrorRecovery: 404d827bc7d42f306c062d58a60b06afc4d082b3
   EXFileSystem: 0a04aba8da751b9ac954065911bcf166503f8267
   EXFont: 9846ba1bb6f5f5aed44e20eea3ac70693323832d
   EXImageLoader: d3531a3fe530b22925c19977cb53bb43e3821fe6
-  EXImagePicker: ce9648d2505fff28bde0d7a0a3b0aee5fd038989
+  EXImagePicker: 414a3663910fd6604248e84c9c77a0501ae0d18b
   EXKeepAwake: f4105ef469be7b283f66ce2d7234bb71ac80cd26
   EXLinearGradient: f9ea3259f096b27008860ca50764184225dc71c9
   EXLocalAuthentication: 88a1a69ea66c4934387d1eb503628170c853caef
   EXMediaLibrary: c87254f83db976563e4ee54ee67eeb065570e92b
-  EXPermissions: 916efb5b817cb0a40160c0cd2f369af3c23a78be
   ExpoModulesCore: 2734852616127a6c1fc23012197890a6f3763dc7
-  EXSplashScreen: 6208ca88470ff5979fd49a08ef3feb01143a2b79
+  EXSplashScreen: 847e0d8026731c1090bf269ede3e15ac87d88958
   EXStructuredHeaders: e52b880264d15b8ad07d36670226c29476af6334
-  EXUpdates: af3ecad91644a171deaa310326e73b4e70f6963c
+  EXUpdates: 013d26649cb6ab4f8d8d80c35d3d4be150b47e7c
   EXUpdatesInterface: b68e78b912a03fff7901a5f46ec200c45e3506a5
   FBLazyVector: 3bb422f41b18121b71783a905c10e58606f7dc3e
   FBReactNativeSpec: f2c97f2529dd79c083355182cc158c9f98f4bd6e
@@ -800,15 +793,15 @@ SPEC CHECKSUMS:
   GoogleDataTransport: cd9db2180fcecd8da1b561aea31e3e56cf834aa7
   GoogleUtilities: f8a43108b38a68eebe8b3540e1f4f2d28843ce20
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Permission-AppTrackingTransparency: ed3a54759541929d0a81a75b04a3559af5b2a738
-  Permission-Camera: ac603073e4128e51e6ca3c39129778f05b4082fa
-  Permission-FaceID: 9b1f0d42ee7aa2c830844964e739676fe6b634bd
-  Permission-MediaLibrary: ca07553882f0533f67739cdea7486c369b6556f0
-  Permission-Notifications: 16ccd862111103378a7bab9fb1c5c71addffc348
-  Permission-PhotoLibrary: 0748c1a490fad126dfe36dbea8234dedfe59cc27
-  Permission-PhotoLibraryAddOnly: 224d33cea3c2f1f8982a2a4e343c0726fba3acf9
-  Permission-Reminders: 26a287d1ac29db33c237af7dfbc2f3e786a58896
-  Permission-StoreKit: cf0ca74fec91ecf132cfb92257e06371160cb464
+  Permission-AppTrackingTransparency: 4bb348de427672bb61785e7fb1a28232e0680870
+  Permission-Camera: 0db4fd6e1c556c1cf47f38b989a8084cea3ec3dd
+  Permission-FaceID: 34794093f5de6410b373f9245b29632630beab6e
+  Permission-MediaLibrary: eb4dc997f8d3f81f28940f997651cd1a2bf16149
+  Permission-Notifications: e247d69c22ae72770d1c5314ad6ccd1256c57c83
+  Permission-PhotoLibrary: 9dcf80d1353d81b9f1e210c34291591236aaf2b6
+  Permission-PhotoLibraryAddOnly: 3d359683511129433080279c409b29e792d69c71
+  Permission-Reminders: d44880a66ac725c750ebed196e9e2ddec9b0a70e
+  Permission-StoreKit: 6642330f0c003789f76f639ae024cdf5ec6a5732
   PromisesObjC: 3113f7f76903778cf4a0586bd1ab89329a0b7b97
   RCTRequired: 082f10cd3f905d6c124597fd1c14f6f2655ff65e
   RCTTypeSafety: 8c9c544ecbf20337d069e4ae7fd9a377aadf504b
@@ -822,7 +815,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 58aef7155bc9a9683f5b60b35eccea8722a4f53a
   react-native-cameraroll: 875e31fc43d4a5d8694c85a71c53dcf42f72f608
   react-native-document-picker: 20f652c2402d3ddc81f396d8167c3bd978add4a2
-  react-native-image-picker: a6e56460d34905c849ada551db30897dc7f3d535
+  react-native-image-picker: f7aa22adb4e0d1953eb515954f7318c38d726d8c
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
   react-native-receive-sharing-intent: 648f1eb35ae70886a8733d6be949042aa5111ffb
   react-native-safe-area-context: f0906bf8bc9835ac9a9d3f97e8bde2a997d8da79
@@ -848,14 +841,14 @@ SPEC CHECKSUMS:
   RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
-  RNPermissions: 7043bacbf928eae25808275cfe73799b8f618911
-  RNReanimated: 6ec2460b9c6c8f3b1403bd0eaa12d359a98650e3
+  RNPermissions: 4b54095940aea8c03fa3e6c92d4ac3647b31ed4e
+  RNReanimated: e5040efc7c90da0b190a6525fcfc7e1e75973b21
   RNScreens: 21b73c94c9117e1110a79ee0ee80c93ccefed8ce
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   Segment-Firebase: 709fff402c50f74c218482603683edd42785cbf9
   UMAppLoader: 21af63390e55c82e037fb9752d93114a80ecf16e
-  UMCore: 2f671796d7439604a1cf8ac7bbe5809cd5c50437
-  UMReactNativeAdapter: f808906d586a16cebdc3844d86e1bdb8f114a873
+  UMCore: ce3a4faa010239063b8343895b29a6d97b01069d
+  UMReactNativeAdapter: d03cefd0e4e4179ab8c490408589f1c8a6c8b785
   UMTaskManagerInterface: 2be431101b73604e64fbfffcf759336f9d8fccbb
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
 

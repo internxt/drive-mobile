@@ -1,14 +1,15 @@
 import { AnyAction, Dispatch } from 'redux';
-import analytics from '../../helpers/lytics';
+import analytics from '../../helpers/analytics';
 import { userActionTypes } from '../constants';
-import { userService } from '../services';
+import authService from '../../services/AuthService';
+import userService from '../../services/UserService';
 
 export const userActions = {
   signin,
   signout,
   localSignIn,
   payment,
-  userInitializaation,
+  initializeUser,
   setUserStorage
 };
 
@@ -19,7 +20,7 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
     return userService
       .signin(email, password, sKey, twoFactorCode)
       .then(userData => {
-        return dispatch(success(userData));
+        return dispatch(success({ ...userData }));
       })
       .catch(error => {
         return dispatch(failure(error));
@@ -63,12 +64,12 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
   }
 }
 
-function userInitializaation(userData: any): AnyAction {
+function initializeUser(userData: any): AnyAction {
   return { type: userActionTypes.SIGNIN_SUCCESS, payload: userData };
 }
 
 function signout(): AnyAction {
-  userService.signout();
+  authService.signout();
   return { type: userActionTypes.SIGNOUT };
 }
 
