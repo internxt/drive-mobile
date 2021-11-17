@@ -6,7 +6,7 @@ import { fileActionTypes } from '../constants';
 import { layoutActions } from './layout.actions';
 import { userActions } from './user.actions';
 import { notify } from '../../helpers/toast';
-import { fileService } from '../../services/file';
+import fileService from '../../services/file';
 import { DriveFileData, DriveFileMetadataPayload, DriveFolderData, DriveFolderMetadataPayload } from '../../types';
 
 function downloadFileStart(fileId: string): AnyAction {

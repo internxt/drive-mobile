@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, ResponseType } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { EnvironmentConfig } from '..';
 import { sha256 } from '../lib/crypto';
@@ -64,7 +64,7 @@ export async function plainRequest(method: AxiosRequestConfig['method'], targetU
 }
 
 export async function get<K>(params: { responseType?: string, url: string }, config = { useProxy: false }): Promise<K> {
-  return plainRequest('GET', params.url, { responseType: params.responseType as ResponseType }, config.useProxy).then<K>((res) => {
+  return plainRequest('GET', params.url, { responseType: params.responseType }, config.useProxy).then<K>((res) => {
     return res.data as unknown as K;
   });
 }

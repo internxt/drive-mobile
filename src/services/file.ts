@@ -60,13 +60,19 @@ async function updateMetaData(
   relativePath: string
 ): Promise<void> {
   const hashedRelativePath = createHash('ripemd160').update(relativePath).digest('hex');
+  const headers = await getHeaders();
+  const headersMap = {};
+
+  headers.forEach((value, key) => {
+    headersMap[key] = value;
+  });
 
   return axios
-    .post(`/api/storage/file/${fileId}/meta`, {
+    .post(`${process.env.REACT_NATIVE_API_URL}/api/storage/file/${fileId}/meta`, {
       metadata,
       bucketId,
       relativePath: hashedRelativePath
-    })
+    }, { headers: headersMap }).then(() => undefined)
 }
 
 async function moveFile(fileId: string, destination: string): Promise<number> {
@@ -163,17 +169,23 @@ function getSortFunction(sortType: string): ArraySortFunction | null {
   return sortFunc;
 }
 
-async function renameFileInNetwork(fileId: string, bucketId: string, relativePath: string) {
+async function renameFileInNetwork(fileId: string, bucketId: string, relativePath: string): Promise<void> {
   const hashedRelativePath = createHash('ripemd160').update(relativePath).digest('hex');
+  const headers = await getHeaders();
+  const headersMap = {};
 
-  return axios.post<RenameFileInNetworkPayload, { message: string }>('/api/storage/rename-file-in-network', {
+  headers.forEach((value, key) => {
+    headersMap[key] = value;
+  });
+
+  await axios.post<{ message: string }>(`${process.env.REACT_NATIVE_API_URL}/api/storage/rename-file-in-network`, {
     fileId,
     bucketId,
     relativePath: hashedRelativePath
-  });
+  }, { headers: headersMap });
 }
 
-export const fileService = {
+const fileService = {
   getFolderContent,
   createFolder,
   getSortFunction,
@@ -182,3 +194,5 @@ export const fileService = {
   updateMetaData,
   renameFileInNetwork
 };
+
+export default fileService;

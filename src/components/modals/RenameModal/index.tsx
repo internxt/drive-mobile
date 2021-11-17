@@ -9,6 +9,9 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon, notify } from '../../../helpers'
 import globalStyle from '../../../styles/global.style';
+import { getEnvironmentConfig } from '../../../lib/network';
+import folderService from '../../../services/folder';
+import fileService from '../../../services/file';
 
 function RenameModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
@@ -29,19 +32,31 @@ function RenameModal(props: Reducers) {
     props.dispatch(layoutActions.closeItemModal());
     setIsLoading(false);
   }
-  const onRenameButtonPressed = () => {
-    setIsLoading(true);
+  const onRenameButtonPressed = async () => {
+    const { bucketId } = await getEnvironmentConfig();
+    const { absolutePath } = props.filesState;
+    const itemFullName = `${newName}${props.filesState.focusedItem.type ? '.' + props.filesState.focusedItem.type : ''}`
+    const itemPath = `${absolutePath}${itemFullName}`;
 
-    if (isFolder) {
-      props.dispatch(fileActions.updateFolderMetadata(folder.id, { itemName: newName }))
-    } else {
-      props.dispatch(fileActions.updateFileMetadata(file.fileId, { itemName: newName }))
-        .then(() => onItemRenameSuccess())
-        .catch(err => {
-          notify({ text: err.message, type: 'error' });
-        })
-        .finally(() => onItemRenameFinally());
+    try {
+      setIsLoading(true);
+
+      if (isFolder) {
+        // TODO: use redux thunk to update metadata
+        await folderService.updateMetaData(folder.id, { itemName: newName }, bucketId, itemPath);
+      } else {
+        // TODO: use redux thunk to update metadata
+        await fileService.updateMetaData(file.fileId, { itemName: newName }, bucketId, itemPath);
+      }
+
+      onItemRenameSuccess()
+    } catch (err) {
+      console.log(err);
+      notify({ text: err.message, type: 'error' });
+    } finally {
+      onItemRenameFinally()
     }
+
   }
   const IconFile = getFileTypeIcon(props.filesState.focusedItem?.type);
   const IconFolder = FolderIcon;
