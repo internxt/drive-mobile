@@ -3,8 +3,8 @@ import { StyleSheet, Text } from 'react-native';
 import Modal from 'react-native-modalbox'
 import { connect } from 'react-redux';
 import strings from '../../../../assets/lang/strings';
-import { fileActions, layoutActions } from '../../../redux/actions';
-import { sortTypes } from '../../../redux/constants';
+import { fileActions, layoutActions } from '../../../store/actions';
+import { sortTypes } from '../../../store/constants';
 
 function SortModal(props: any) {
   const { dispatch } = props;

@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, Platform, Alert, BackHandler } from 'react-native'
 import AppMenu from '../../components/AppMenu'
-import { fileActions, userActions } from '../../redux/actions';
+import { fileActions, userActions } from '../../store/actions';
 import { connect } from 'react-redux';
 import FileList from '../../components/FileList';
-import { loadValues } from '../../components/modals/SettingsModal';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import analytics, { getLyticsData } from '../../helpers/analytics';
 import RNFetchBlob from 'rn-fetch-blob';
 import { notify } from '../../helpers';
+import { loadValues } from '../../services/storage';
 
 function FileExplorer(props: Reducers): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0)

@@ -6,20 +6,21 @@ import Modal from 'react-native-modalbox';
 import { launchCameraAsync, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker'
+import * as Unicons from '@iconscout/react-native-unicons';
 
-import { fileActions, layoutActions } from '../../../redux/actions';
+import { fileActions, layoutActions } from '../../../store/actions';
 import { createFileEntry, FileEntry, getFinalUri, uploadFile, FileMeta } from '../../../services/upload';
-import * as Unicons from '@iconscout/react-native-unicons'
 import analytics from '../../../helpers/analytics';
 import { deviceStorage, encryptFilename } from '../../../helpers';
 import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../lib/fs';
-import { Reducers } from '../../../redux/reducers/reducers';
+import { Reducers } from '../../../store/reducers/reducers';
 import { renameIfAlreadyExists } from '../../../lib';
 import { UPLOAD_FILES_LIMIT } from '../../../lib/constants';
 import strings from '../../../../assets/lang/strings';
 import { notify } from '../../../helpers/toast';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
+
 interface UploadingFile {
   size: number
   progress: number
@@ -382,7 +383,7 @@ function UploadModal(props: Reducers) {
       }
 
       if (!result.cancelled) {
-        const file: any = result
+        const file = result
 
         // Set name for pics/photos
         if (!file.name) {

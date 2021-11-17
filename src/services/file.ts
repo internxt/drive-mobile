@@ -1,8 +1,16 @@
-import { sortTypes } from '../redux/constants';
+import { sortTypes } from '../store/constants';
 import { compare } from 'natural-orderby'
 import { IFile, IFolder } from '../components/FileList';
 import { getHeaders } from '../helpers/headers';
-import { IMetadata } from '../components/modals/FileDetailsModal/actions';
+import { createHash } from 'crypto';
+import axios from 'axios';
+import { DriveFileMetadataPayload } from '../types';
+
+interface RenameFileInNetworkPayload {
+  fileId: string;
+  bucketId: string;
+  relativePath: string;
+}
 
 function getFolderContent(folderId: number): Promise<any> {
   return new Promise(async (resolve, reject) => {
@@ -45,21 +53,20 @@ function createFolder(parentFolderId: number, folderName = 'Untitled folder'): P
   });
 }
 
-function updateFolderMetadata(metadata: IMetadata, folderId: string): Promise<Response> {
-  return new Promise(async (resolve, reject) => {
-    const headers = await getHeaders();
-    const data = JSON.stringify({ metadata });
+async function updateMetaData(
+  fileId: string,
+  metadata: DriveFileMetadataPayload,
+  bucketId: string,
+  relativePath: string
+): Promise<void> {
+  const hashedRelativePath = createHash('ripemd160').update(relativePath).digest('hex');
 
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}/meta`, {
-      method: 'POST',
-      headers,
-      body: data
-    }).then((res) => {
-      resolve(res);
-    }).catch(error => {
-      reject(error);
-    });
-  });
+  return axios
+    .post(`/api/storage/file/${fileId}/meta`, {
+      metadata,
+      bucketId,
+      relativePath: hashedRelativePath
+    })
 }
 
 async function moveFile(fileId: string, destination: string): Promise<number> {
@@ -156,11 +163,22 @@ function getSortFunction(sortType: string): ArraySortFunction | null {
   return sortFunc;
 }
 
+async function renameFileInNetwork(fileId: string, bucketId: string, relativePath: string) {
+  const hashedRelativePath = createHash('ripemd160').update(relativePath).digest('hex');
+
+  return axios.post<RenameFileInNetworkPayload, { message: string }>('/api/storage/rename-file-in-network', {
+    fileId,
+    bucketId,
+    relativePath: hashedRelativePath
+  });
+}
+
 export const fileService = {
   getFolderContent,
   createFolder,
-  updateFolderMetadata,
   getSortFunction,
   moveFile,
-  deleteItems
+  deleteItems,
+  updateMetaData,
+  renameFileInNetwork
 };

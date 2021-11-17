@@ -7,8 +7,8 @@ import strings from '../../../../assets/lang/strings';
 import FileItem from '../../FileItem';
 import Separator from '../../Separator';
 import { tailwind } from '../../../helpers/designSystem';
-import { fileActions, layoutActions } from '../../../redux/actions';
-import { Reducers } from '../../../redux/reducers/reducers';
+import { fileActions, layoutActions } from '../../../store/actions';
+import { Reducers } from '../../../store/reducers/reducers';
 
 function MoveFilesModal(props: Reducers) {
   const { filesState, layoutState } = useSelector<any, Reducers>(s => s);

@@ -26,7 +26,6 @@ module.exports = {
     'comma-dangle': ['error', 'never'],
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
-    'camelcase': ['warn', { 'properties': 'always' }],
     'no-multiple-empty-lines': ['error', { 'max': 1, 'maxEOF': 0, 'maxBOF': 0 }],
     'array-bracket-spacing': ['error', 'never'],
     'react-native/no-unused-styles': 'error',

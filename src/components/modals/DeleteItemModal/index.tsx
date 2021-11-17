@@ -4,8 +4,8 @@ import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
 import prettysize from 'prettysize';
 
-import { fileActions, layoutActions } from '../../../redux/actions';
-import { Reducers } from '../../../redux/reducers/reducers';
+import { fileActions, layoutActions } from '../../../store/actions';
+import { Reducers } from '../../../store/reducers/reducers';
 import strings from '../../../../assets/lang/strings';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';

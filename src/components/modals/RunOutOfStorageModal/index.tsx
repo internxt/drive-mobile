@@ -4,14 +4,14 @@ import { Text, View, Platform, TouchableWithoutFeedback, TouchableHighlight } fr
 import Modal from 'react-native-modalbox';
 import { connect, useSelector } from 'react-redux';
 
-import { Reducers } from '../../../redux/reducers/reducers';
+import { Reducers } from '../../../store/reducers/reducers';
 import RunOutImage from '../../../../assets/images/modals/runout.svg'
 import { tailwind, getColor } from '../../../helpers/designSystem';
-import { layoutActions } from '../../../redux/actions';
+import { layoutActions } from '../../../store/actions';
 import globalStyle from '../../../styles/global.style';
 import strings from '../../../../assets/lang/strings';
 import { getCurrentIndividualPlan } from '../../../services/payments';
-import { loadValues } from '..';
+import { loadValues } from '../../../services/storage';
 
 interface StorageProps extends Reducers {
   currentPlan: number
@@ -22,7 +22,7 @@ interface CurrentPlan {
   storageLimit: number
 }
 
-function RunOutOfStorageModal(props: StorageProps): JSX.Element {
+function RunOutOfStorageModal(props: Reducers): JSX.Element {
   const { layoutState } = useSelector<any, Reducers>(s => s);
 
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 })

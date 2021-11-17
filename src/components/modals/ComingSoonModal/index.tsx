@@ -6,8 +6,8 @@ import { connect } from 'react-redux';
 
 import strings from '../../../../assets/lang/strings';
 import { tailwind } from '../../../helpers/designSystem';
-import { layoutActions } from '../../../redux/actions';
-import { Reducers } from '../../../redux/reducers/reducers';
+import { layoutActions } from '../../../store/actions';
+import { Reducers } from '../../../store/reducers/reducers';
 
 const ComingSoonModal = (props: Reducers) => {
   const [isOpen, setIsOpen] = useState(props.layoutState.showComingSoonModal)

@@ -2,10 +2,10 @@ import React from 'react';
 import { GestureResponderEvent, Linking, Text, TouchableHighlight, View, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import * as Unicons from '@iconscout/react-native-unicons'
 import { getColor, tailwind } from '../../helpers/designSystem';
-import { userActions } from '../../redux/actions';
+import { userActions } from '../../store/actions';
 import strings from '../../../assets/lang/strings';
 import VersionUpdate from '../../components/VersionUpdate';
 

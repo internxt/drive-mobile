@@ -1,57 +1,16 @@
 import React from 'react'
 import { View, Text, StyleSheet, Linking, Alert } from 'react-native';
 import Modal from 'react-native-modalbox'
-import { layoutActions, userActions } from '../../../redux/actions';
+import { layoutActions, userActions } from '../../../store/actions';
 import SettingsItem from './SettingsItem';
-import prettysize from 'prettysize'
+
 import Separator from '../../Separator';
 import { connect } from 'react-redux';
-import { getHeaders } from '../../../helpers/headers';
-import analytics, { getLyticsUuid } from '../../../helpers/analytics';
 import { Dispatch } from 'redux';
 import strings from '../../../../assets/lang/strings';
-import { Reducers } from '../../../redux/reducers/reducers';
+import { Reducers } from '../../../store/reducers/reducers';
 import { tailwind } from '../../../helpers/designSystem';
 
-function identifyPlanName(bytes: number): string {
-  return bytes === 0 ? 'Free 10GB' : prettysize(bytes)
-}
-
-async function loadUsage(): Promise<number> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
-    method: 'get',
-    headers: await getHeaders()
-  }).then(res => {
-    if (res.status !== 200) { throw Error('Cannot load usage') }
-    return res
-  }).then(res => res.json()).then(res => { return res.total; })
-}
-
-async function loadLimit(): Promise<number> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
-    method: 'get',
-    headers: await getHeaders()
-  }).then(res => {
-    if (res.status !== 200) { throw Error('Cannot load limit') }
-    return res
-  }).then(res => res.json()).then(res => { return res.maxSpaceBytes })
-}
-
-export async function loadValues(): Promise<{ usage: number, limit: number }> {
-  const limit = await loadLimit()
-  const usage = await loadUsage()
-
-  const uuid = await getLyticsUuid()
-
-  analytics.identify(uuid, {
-    platform: 'mobile',
-    storage: usage,
-    plan: identifyPlanName(limit),
-    userId: uuid
-  }).catch(() => { })
-
-  return { usage, limit }
-}
 interface SettingsModalProps extends Reducers {
   user: any
   dispatch: Dispatch,

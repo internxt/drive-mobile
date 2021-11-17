@@ -4,8 +4,7 @@ import {
   View, Text, TouchableHighlight
 } from 'react-native';
 import { connect } from 'react-redux';
-import { Reducers } from '../../redux/reducers/reducers';
-import { loadValues } from '../../components/modals';
+import { Reducers } from '../../store/reducers/reducers';
 import strings from '../../../assets/lang/strings';
 import AppMenu from '../../components/AppMenu';
 import { tailwind } from '../../helpers/designSystem';
@@ -13,6 +12,7 @@ import ProgressBar from '../../components/ProgressBar';
 import { getCurrentIndividualPlan } from '../../services/payments';
 import { notify } from '../../helpers';
 import * as Unicons from '@iconscout/react-native-unicons'
+import { loadValues } from '../../services/storage';
 
 interface StorageProps extends Reducers {
   currentPlan: number

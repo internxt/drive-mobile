@@ -5,9 +5,9 @@ import Modal from 'react-native-modalbox'
 import { connect } from 'react-redux';
 import * as Unicons from '@iconscout/react-native-unicons';
 
-import { layoutActions } from '../../../redux/actions';
+import { layoutActions } from '../../../store/actions';
 import strings from '../../../../assets/lang/strings';
-import { Reducers } from '../../../redux/reducers/reducers';
+import { Reducers } from '../../../store/reducers/reducers';
 import { IFile, IFolder } from '../../FileList';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';

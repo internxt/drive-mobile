@@ -1,6 +1,7 @@
 import { AnyAction } from 'redux';
 import { IFile, IFolder, IUploadingFile } from '../../components/FileList';
 import { fileActionTypes } from '../constants';
+
 interface FolderContentChildren {
   id: number
   parentId: number
@@ -31,7 +32,6 @@ interface FolderContent {
   name: string
   bucket: string
   color: any
-  // eslint-disable-next-line camelcase
   encrypt_version: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -258,6 +258,22 @@ export function filesReducer(state = initialState, action: AnyAction): FilesStat
       loading: false,
       error: action.payload
     };
+  case fileActionTypes.UPDATE_FILE_METADATA_REQUEST:
+    return {
+      ...state,
+      loading: true
+    }
+  case fileActionTypes.UPDATE_FILE_METADATA_SUCCESS:
+    return {
+      ...state,
+      loading: false
+    }
+  case fileActionTypes.UPDATE_FILE_METADATA_FAILURE:
+    return {
+      ...state,
+      loading: false,
+      error: action.payload
+    }
   case fileActionTypes.UPDATE_FOLDER_METADATA_REQUEST:
     return {
       ...state,
@@ -269,6 +285,11 @@ export function filesReducer(state = initialState, action: AnyAction): FilesStat
       loading: false
     }
   case fileActionTypes.UPDATE_FOLDER_METADATA_FAILURE:
+    return {
+      ...state,
+      loading: false,
+      error: action.payload
+    }
   case fileActionTypes.MOVE_FILES_FAILURE:
     return {
       ...state,

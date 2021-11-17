@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { connect } from 'react-redux';
-import { fileActions } from '../../../redux/actions';
+import { fileActions } from '../../../store/actions';
 import { getLyticsData } from '../../../helpers';
 import analytics from '../../../helpers/analytics';
-import { Reducers } from '../../../redux/reducers/reducers';
+import { Reducers } from '../../../store/reducers/reducers';
 
 interface FolderProps extends Reducers {
     isFolder: boolean

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Alert, ScrollView, RefreshControl } from 'react-native'
 import { connect } from 'react-redux';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import AppMenu from '../../components/AppMenu';
 import { getRecents } from '../../services/recents';
 import { IFile } from '../../components/FileList';

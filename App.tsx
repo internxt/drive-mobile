@@ -5,7 +5,7 @@ import { store } from './src/store'
 import AppNavigator from './src/AppNavigator';
 import { analyticsSetup, forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate, trackStackScreen } from './src/helpers'
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
-import { fileActions } from './src/redux/actions';
+import { fileActions } from './src/store/actions';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import Toast from 'react-native-toast-message';
 import * as Unicons from '@iconscout/react-native-unicons'

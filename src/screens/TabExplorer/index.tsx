@@ -1,5 +1,5 @@
 import React from 'react';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import FileExplorer from '../FileExplorer';
 import Recents from '../Recents';

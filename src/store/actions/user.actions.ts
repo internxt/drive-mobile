@@ -1,8 +1,8 @@
 import { AnyAction, Dispatch } from 'redux';
 import analytics from '../../helpers/analytics';
 import { userActionTypes } from '../constants';
-import authService from '../../services/AuthService';
-import userService from '../../services/UserService';
+import authService from '../../services/auth';
+import userService from '../../services/user';
 
 export const userActions = {
   signin,

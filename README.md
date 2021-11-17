@@ -1,22 +1,33 @@
 # Drive Mobile [![Build Status](https://travis-ci.com/internxt/drive-mobile.svg?branch=master)](https://travis-ci.com/internxt/drive-mobile)
 
+## Installation
+
+- Create a `.npmrc` file from the `.npmrc.template` example provided in the repo.
+- Replace `TOKEN` with your own [Github Personal Access Token](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token) with `read:packages` permission **ONLY**
+- Use `yarn` to install project dependencies.
+
 ## Android
+
 We can test the android application in any operating system, although for each one we will have to follow some different steps
 </br></br>
 
-### Installation
+### Android installation
 
 #### ADB (Android Debug Bridge)
+
 To install the ADB in Mac OS or Linux, execute the following command:
+
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/corbindavenport/nexus-tools/master/install.sh)
 ```
 
 #### Dependencies
+
 Opening the project with Android Studio will install the necessary dependencies to start the application.
 </br></br>
 
 If you are using <b>Mac OS</b> an receiving the following error when during gradle sync
+
 <p style="color: red; background: lightyellow; padding: 10px 15px;">
 <span style="margin-right: 5px; font-size: 12px;">❌</span>
 Caused by: groovy.lang.MissingPropertyException: No such property: logger for class: org.gradle.initialization.DefaultProjectDescriptor
@@ -54,7 +65,7 @@ adb shell am start -a android.intent.action.VIEW -d "inxt:https://drive.internxt
 You can only test the iOS application on a Mac OS computer.
 </br></br>
 
-### Installation
+### iOS installation
 
 ```bash
 cd ios
@@ -83,11 +94,13 @@ yarn ios
 ```
 
 Or specify a simulator:
+
 ```bash
 yarn ios --simulator "iPhone X"
 ```
 
 Or specify a connected device:
+
 ```bash
 yarn ios --device "My iPhone"
 ```

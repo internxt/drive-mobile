@@ -1,48 +1,13 @@
 import { AnyAction, Dispatch } from 'redux';
 import { getLyticsData } from '../../helpers';
 import analytics from '../../helpers/analytics';
-import { IMetadata } from '../../components/modals/FileDetailsModal/actions';
-import { store } from '../../store';
+import { store } from '..';
 import { fileActionTypes } from '../constants';
 import { layoutActions } from './layout.actions';
 import { userActions } from './user.actions';
 import { notify } from '../../helpers/toast';
-import { fileService } from '../../services/FileService';
-
-export const fileActions = {
-  downloadFileStart,
-  downloadFileEnd,
-  downloadSelectedFileStart,
-  downloadSelectedFileStop,
-  uploadFileStart,
-  uploadFileFinished,
-  uploadFileFailed,
-  uploadFileSetProgress,
-  uploadFileSetUri,
-  getFolderContent,
-  selectFile,
-  deselectFile,
-  focusItem,
-  unfocusItem,
-  deselectAll,
-  deleteItems,
-  setSortFunction,
-  setSearchString,
-  createFolder,
-  updateFolderMetadata,
-  moveFile,
-  setRootFolderContent,
-  setUri,
-  addUploadingFile,
-  addUploadedFile,
-  removeUploadingFile,
-  removeUploadedFile,
-  fetchIfSameFolder,
-  updateUploadingFile,
-  addDepthAbsolutePath,
-  removeDepthAbsolutePath,
-  goBack
-};
+import { fileService } from '../../services/file';
+import { DriveFileData, DriveFileMetadataPayload, DriveFolderData, DriveFolderMetadataPayload } from '../../types';
 
 function downloadFileStart(fileId: string): AnyAction {
   return { type: fileActionTypes.DOWNLOAD_FILE_START, payload: fileId };
@@ -121,7 +86,7 @@ function getFolderContent(folderId: string | number, quick?: boolean): any {
     if (!quick){
       fileService
         .getFolderContent(id)
-        .then((data: any) => {
+        .then((data) => {
           data.currentFolder = id;
           dispatch(success(data));
         }).catch(error => {
@@ -302,18 +267,51 @@ function setUri(uri: any) {
   return { type: fileActionTypes.SET_URI, payload: uri }
 }
 
-function updateFolderMetadata(metadata: IMetadata, folderId) {
-  return (dispatch: Dispatch) => {
+function updateFileMetadata(file: DriveFileData, metadata: DriveFileMetadataPayload) {
+  return (dispatch: Dispatch, getState) => {
+    const { absolutePath } = getState().filesState;
+
     dispatch(request());
 
-    fileService
-      .updateFolderMetadata(metadata, folderId)
+    /* fileService
+      .updateMetaData(folderId, metadata)
       .then(() => {
         dispatch(success());
       })
       .catch(error => {
         dispatch(failure(error));
-      });
+      }); */
+
+    dispatch(success());
+  };
+
+  function request(): AnyAction {
+    return { type: fileActionTypes.UPDATE_FILE_METADATA_REQUEST };
+  }
+  function success(): AnyAction {
+    return { type: fileActionTypes.UPDATE_FILE_METADATA_SUCCESS };
+  }
+  function failure(payload: any): AnyAction {
+    return { type: fileActionTypes.UPDATE_FILE_METADATA_FAILURE, payload };
+  }
+}
+
+function updateFolderMetadata(folder: DriveFolderData, metadata: DriveFolderMetadataPayload) {
+  return (dispatch: Dispatch) => {
+    const { absolutePath } = store.getState().filesState;
+
+    dispatch(request());
+
+    /* folderService
+      .updateMetaData(folderId, metadata)
+      .then(() => {
+        dispatch(success());
+      })
+      .catch(error => {
+        dispatch(failure(error));
+      }); */
+
+    dispatch(success());
   };
 
   function request(): AnyAction {
@@ -377,3 +375,39 @@ function goBack(folderId: string) {
     return { type: fileActionTypes.GET_FILES_FAILURE, error };
   }
 }
+
+export const fileActions = {
+  downloadFileStart,
+  downloadFileEnd,
+  downloadSelectedFileStart,
+  downloadSelectedFileStop,
+  uploadFileStart,
+  uploadFileFinished,
+  uploadFileFailed,
+  uploadFileSetProgress,
+  uploadFileSetUri,
+  getFolderContent,
+  selectFile,
+  deselectFile,
+  focusItem,
+  unfocusItem,
+  deselectAll,
+  deleteItems,
+  setSortFunction,
+  setSearchString,
+  createFolder,
+  updateFileMetadata,
+  updateFolderMetadata,
+  moveFile,
+  setRootFolderContent,
+  setUri,
+  addUploadingFile,
+  addUploadedFile,
+  removeUploadingFile,
+  removeUploadedFile,
+  fetchIfSameFolder,
+  updateUploadingFile,
+  addDepthAbsolutePath,
+  removeDepthAbsolutePath,
+  goBack
+};

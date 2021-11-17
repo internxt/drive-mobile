@@ -7,13 +7,13 @@ import * as Unicons from '@iconscout/react-native-unicons'
 import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/analytics';
-import { userActions } from '../../redux/actions';
-import { Reducers } from '../../redux/reducers/reducers';
+import { userActions } from '../../store/actions';
+import { Reducers } from '../../store/reducers/reducers';
 import InternxtLogo from '../../../assets/logo.svg'
 import { getColor, tailwind } from '../../helpers/designSystem';
 import VersionUpdate from '../../components/VersionUpdate';
-import authService from '../../services/AuthService';
-import validationService from '../../services/ValidationService';
+import authService from '../../services/auth';
+import validationService from '../../services/validation';
 
 interface LoginProps extends Reducers {
   goToForm?: (screenName: string) => void

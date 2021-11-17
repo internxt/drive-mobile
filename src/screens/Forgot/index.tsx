@@ -15,9 +15,9 @@ import { normalize } from '../../helpers';
 import strings from '../../../assets/lang/strings';
 import InternxtLogo from '../../../assets/logo.svg'
 import { tailwind } from '../../helpers/designSystem';
-import { Reducers } from '../../redux/reducers/reducers';
-import validationService from '../../services/ValidationService';
-import authService from '../../services/AuthService';
+import { Reducers } from '../../store/reducers/reducers';
+import validationService from '../../services/validation';
+import authService from '../../services/auth';
 
 function Forgot(props: Reducers): JSX.Element {
   const [currentContainer, setCurrentCointainer] = useState(1);

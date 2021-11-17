@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Alert, Text, TouchableHighlight, View } from 'react-native';
 import { connect } from 'react-redux';
 import { tailwind } from '../../helpers/designSystem';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import PackageJson from '../../../package.json'
 import * as Updates from 'expo-updates'
 

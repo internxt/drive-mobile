@@ -34,6 +34,7 @@ target 'drivemobile' do
   pod 'Permission-PhotoLibraryAddOnly', :path => "#{permissions_path}/PhotoLibraryAddOnly"
   pod 'Permission-Reminders', :path => "#{permissions_path}/Reminders"
   pod 'Permission-StoreKit', :path => "#{permissions_path}/StoreKit"
+
 end
 
 post_install do |installer|

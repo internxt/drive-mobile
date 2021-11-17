@@ -1,9 +1,9 @@
 import React from 'react'
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native'
 import { connect } from 'react-redux';
-import { fileActions, layoutActions } from '../../redux/actions';
+import { fileActions, layoutActions } from '../../store/actions';
 import * as Unicons from '@iconscout/react-native-unicons';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import SearchBox from '../SearchBox';
 import globalStyle from '../../styles/global.style';

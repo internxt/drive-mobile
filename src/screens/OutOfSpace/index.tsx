@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 
 function OutOfSpace(props: Reducers): JSX.Element {
 

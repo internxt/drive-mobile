@@ -2,61 +2,60 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableHighlight, TouchableWithoutFeedback, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
-import { fileActions, layoutActions } from '../../../redux/actions';
-import { Reducers } from '../../../redux/reducers/reducers';
+
+import { fileActions, layoutActions } from '../../../store/actions';
+import { Reducers } from '../../../store/reducers/reducers';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import strings from '../../../../assets/lang/strings';
-import { rename, renameMeta } from './renameUtils';
 import { FolderIcon, getFileTypeIcon, notify } from '../../../helpers'
 import globalStyle from '../../../styles/global.style';
 
 function RenameModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
-  const [isOpen, setIsOpen] = useState(props.layoutState.showRenameModal)
   const [newName, setNewName] = useState('');
   const [originalName, setOriginalName] = useState('');
   const [isLoading, setIsLoading] = useState(false)
-
   const emptyName = newName === ''
-
   const isFolder = props.filesState.focusedItem?.parentId
-
   const folder = isFolder && props.filesState.focusedItem
   const file = !isFolder && props.filesState.focusedItem
-
-  useEffect(() => {
-    setIsOpen(props.layoutState.showRenameModal)
-    setOriginalName('')
-  }, [props.layoutState.showRenameModal])
-
-  const renameHandle = () => {
-    setIsLoading(true);
-    props.dispatch(layoutActions.closeRenameModal())
-    const params: renameMeta = { ifFolder: isFolder, itemId: isFolder ? folder.id : file.fileId, newName }
-
-    rename(params).then(() => {
-      props.dispatch(fileActions.getFolderContent(currentFolderId))
-      notify({ text: 'Renamed successfully', type: 'success' });
-      setNewName('');
-    }).catch((err) => {
-      notify({ text: err.message, type: 'error' });
-    }).finally(() => {
-      props.dispatch(layoutActions.closeRenameModal());
-      props.dispatch(layoutActions.closeItemModal());
-      setIsOpen(false);
-      setIsLoading(false);
-    });
+  const onItemRenameSuccess = () => {
+    props.dispatch(fileActions.getFolderContent(currentFolderId))
+    notify({ text: 'Renamed successfully', type: 'success' });
+    setNewName('');
   }
+  const onItemRenameFinally = () => {
+    props.dispatch(layoutActions.closeRenameModal());
+    props.dispatch(layoutActions.closeItemModal());
+    setIsLoading(false);
+  }
+  const onRenameButtonPressed = () => {
+    setIsLoading(true);
 
+    if (isFolder) {
+      props.dispatch(fileActions.updateFolderMetadata(folder.id, { itemName: newName }))
+    } else {
+      props.dispatch(fileActions.updateFileMetadata(file.fileId, { itemName: newName }))
+        .then(() => onItemRenameSuccess())
+        .catch(err => {
+          notify({ text: err.message, type: 'error' });
+        })
+        .finally(() => onItemRenameFinally());
+    }
+  }
   const IconFile = getFileTypeIcon(props.filesState.focusedItem?.type);
   const IconFolder = FolderIcon;
+
+  useEffect(() => {
+    setOriginalName('')
+  }, [props.layoutState.showRenameModal])
 
   return (
     <Modal
       position={'bottom'}
       style={tailwind('bg-transparent')}
       coverScreen={Platform.OS === 'android'}
-      isOpen={isOpen}
+      isOpen={props.layoutState.showRenameModal}
       onClosed={() => {
         props.dispatch(layoutActions.closeRenameModal())
         setNewName('')
@@ -134,7 +133,7 @@ function RenameModal(props: Reducers) {
                 <TouchableHighlight
                   underlayColor={getColor('blue-70')}
                   style={tailwind('bg-blue-60 rounded-lg py-2 flex-grow items-center justify-center')}
-                  onPress={renameHandle}
+                  onPress={onRenameButtonPressed}
                   disabled={isLoading}>
                   <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.generic.rename}</Text>
                 </TouchableHighlight>
