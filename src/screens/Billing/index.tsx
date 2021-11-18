@@ -113,7 +113,7 @@ function Billing(props: Reducers) {
       if (result.error) {
         throw Error(result.error);
       }
-      const link = `${'http://localhost:3000'}/checkout/${result.id}`
+      const link = `${process.env.REACT_NATIVE_API_URL}/checkout/${result.id}`
 
       Linking.openURL(link);
 
