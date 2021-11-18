@@ -20,6 +20,7 @@ import strings from '../../../../assets/lang/strings';
 import { notify } from '../../../helpers/toast';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
+import RNFS from 'react-native-fs';
 
 interface UploadingFile {
   size: number
@@ -315,22 +316,24 @@ function UploadModal(props: Reducers) {
       const { status } = await requestMediaLibraryPermissionsAsync(false)
 
       if (status === 'granted') {
-        launchImageLibrary({ mediaType: 'mixed', selectionLimit: 0 }, (response) => {
+        launchImageLibrary({ mediaType: 'mixed', selectionLimit: 0 }, async (response) => {
           if (response.errorMessage) {
             return Alert.alert(response.errorMessage)
           }
           if (response.assets) {
-            const documents: DocumentPickerResponse[] = response.assets.map((asset) => {
-              const doc: DocumentPickerResponse = {
+            const documents: DocumentPickerResponse[] = [];
+
+            for (const asset of response.assets) {
+              const stat = await RNFS.stat(asset.uri);
+
+              documents.push({
                 fileCopyUri: asset.uri,
-                name: asset.fileName,
-                size: asset.fileSize,
+                name: asset.fileName || asset.uri.substring(asset.uri.lastIndexOf('/')+1),
+                size: asset.fileSize || typeof stat.size === 'string' ? parseInt(stat.size) : stat.size,
                 type: asset.type,
                 uri: asset.uri
-              }
-
-              return doc
-            })
+              })
+            }
 
             props.dispatch(layoutActions.closeUploadFileModal());
             uploadDocuments(documents).then(() => {
