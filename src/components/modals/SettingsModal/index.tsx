@@ -66,7 +66,7 @@ function SettingsModal(props: SettingsModalProps) {
       />
 
       <SettingsItem
-        text={strings.components.app_menu.settings.sign}
+        text={strings.components.app_menu.settings.signOut}
         onPress={() => {
           props.dispatch(layoutActions.closeSettings());
           props.dispatch(userActions.signout());

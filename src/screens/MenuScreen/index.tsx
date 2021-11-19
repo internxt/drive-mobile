@@ -39,7 +39,7 @@ function ConfigurationGap() {
   return <View style={tailwind('h-5')} />;
 }
 
-function Configuration(props: Reducers): JSX.Element {
+function MenuScreen(props: Reducers): JSX.Element {
   return (
     <ScrollView contentContainerStyle={tailwind('h-full')}>
       <View style={tailwind('h-full')}>
@@ -57,14 +57,14 @@ function Configuration(props: Reducers): JSX.Element {
         <View style={tailwind('flex-grow')}>
           <ConfigurationItem
             {...props}
-            title="Storage"
+            title={strings.components.app_menu.settings.storage}
             onPress={() => {
               props.navigation.push('Storage');
             }}
           />
           <ConfigurationItem
             {...props}
-            title="Billing"
+            title={strings.screens.billing.title}
             onPress={() => {
               props.navigation.push('Billing');
             }}
@@ -85,21 +85,21 @@ function Configuration(props: Reducers): JSX.Element {
 
           <ConfigurationItem
             {...props}
-            title="Contact"
+            title={strings.components.app_menu.settings.contact}
             onPress={() => {
               Linking.openURL('https://help.internxt.com');
             }}
           />
           <ConfigurationItem
             {...props}
-            title="More info"
+            title={strings.components.app_menu.settings.more}
             onPress={() => {
               Linking.openURL('https://internxt.com');
             }}
           />
           <ConfigurationItem
             {...props}
-            title="Log out"
+            title={strings.components.app_menu.settings.signOut}
             onPress={() => {
               props.dispatch(userActions.signout());
             }}
@@ -110,7 +110,7 @@ function Configuration(props: Reducers): JSX.Element {
           {false && (
             <ConfigurationItem
               {...props}
-              title="Dev tools"
+              title={strings.components.app_menu.settings.devTools}
               onPress={() => {
                 props.navigation.push('DebugView');
               }}
@@ -125,8 +125,8 @@ function Configuration(props: Reducers): JSX.Element {
     </ScrollView>
   );
 }
-const mapStateToProps = (state: any) => {
+const mapStateToProps = (state) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(Configuration);
+export default connect(mapStateToProps)(MenuScreen);

@@ -136,6 +136,9 @@ const strings = new LocalizedStrings({
         title: 'New folder',
         confirm: 'Create',
       },
+      billing: {
+        title: 'Billing',
+      },
     },
     components: {
       buttons: {
@@ -187,7 +190,8 @@ const strings = new LocalizedStrings({
           more: 'More info',
           drive: 'Drive',
           contact: 'Contact',
-          sign: 'Sign out',
+          signOut: 'Sign out',
+          devTools: 'Dev tools',
         },
       },
       file_and_folder_options: {
@@ -365,6 +369,9 @@ const strings = new LocalizedStrings({
         title: 'Crear carpeta',
         confirm: 'Crear',
       },
+      billing: {
+        title: 'Facturación',
+      },
     },
     components: {
       buttons: {
@@ -416,7 +423,8 @@ const strings = new LocalizedStrings({
           more: 'Más información',
           drive: 'Drive',
           contact: 'Contacto',
-          sign: 'Cerrar sesión',
+          signOut: 'Cerrar sesión',
+          devTools: 'Herramientas de desarrollador',
         },
       },
       file_and_folder_options: {
