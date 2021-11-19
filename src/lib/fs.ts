@@ -5,7 +5,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
-  Base64 = 'base64'
+  Base64 = 'base64',
 }
 
 export function getDocumentsDir(): string {
@@ -71,8 +71,8 @@ export function writeFileStream(uri: string): Promise<FileWriter> {
   return RNFetchBlob.fs.writeStream(uri, 'base64').then((writeStream) => {
     return {
       write: (content: string) => writeStream.write(content),
-      close: () => writeStream.close()
-    }
+      close: () => writeStream.close(),
+    };
   });
 }
 
@@ -107,7 +107,7 @@ export class FileManager {
       this.fileStat = stat;
 
       return stat;
-    })
+    });
   }
 
   exists(): Promise<boolean> {
@@ -126,8 +126,8 @@ export class FileManager {
         pos += chunkSize;
 
         return readFile(this.fileUri, chunkSize, pos - chunkSize);
-      }
-    }
+      },
+    };
   }
 
   writer(): Promise<FileWriter> {

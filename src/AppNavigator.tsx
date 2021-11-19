@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
 import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import CreateFolder from './screens/CreateFolder';
@@ -17,7 +17,11 @@ import UpdateModal from './components/modals/UpdateModal';
 import DebugView from './screens/Debug/DebugView';
 import Preview from './screens/Photos/Preview';
 
-type RouteConfig = NavigationRouteConfigMap<StackNavigationOptions, StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>, any>
+type RouteConfig = NavigationRouteConfigMap<
+  StackNavigationOptions,
+  StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>,
+  any
+>;
 
 const routeConfig: RouteConfig = {
   Register: { screen: Register },
@@ -32,7 +36,7 @@ const routeConfig: RouteConfig = {
   ChangePassword: { screen: ChangePassword },
   RecoverPassword: { screen: RecoverPassword },
   Preview: { screen: Preview },
-  DebugView: { screen: DebugView }
+  DebugView: { screen: DebugView },
 };
 
 const StackNav = createNativeStackNavigator();
@@ -40,16 +44,19 @@ const StackNav = createNativeStackNavigator();
 type ScreenEntry = [name: string, component: { screen: React.ComponentType<JSX.Element> }];
 
 function AppNavigator(): JSX.Element {
-  return <>
-    <UpdateModal />
-    <StackNav.Navigator
-      initialRouteName='FileExplorer'
-      screenOptions={{ headerShown: false, statusBarHidden: false }}>
-      {Object.entries(routeConfig).map(([name, component]: ScreenEntry) => (
-        <StackNav.Screen key={name} name={name} component={component.screen} />
-      ))}
-    </StackNav.Navigator>
-  </>;
+  return (
+    <>
+      <UpdateModal />
+      <StackNav.Navigator
+        initialRouteName="FileExplorer"
+        screenOptions={{ headerShown: false, statusBarHidden: false }}
+      >
+        {Object.entries(routeConfig).map(([name, component]: ScreenEntry) => (
+          <StackNav.Screen key={name} name={name} component={component.screen} />
+        ))}
+      </StackNav.Navigator>
+    </>
+  );
 }
 
-export default AppNavigator
+export default AppNavigator;

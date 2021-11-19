@@ -2,18 +2,18 @@ import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../
 import { getHeaders } from '../../helpers/headers';
 
 interface RegisterParams {
-  firstName: string
-  lastName: string
-  email: string
-  password: string
-  captcha: string
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  captcha: string;
 }
 
 export async function getNewBits(): Promise<string> {
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/bits`)
-    .then(res => res.json())
-    .then(res => res.bits)
-    .then(bits => decryptText(bits))
+    .then((res) => res.json())
+    .then((res) => res.bits)
+    .then((bits) => decryptText(bits));
 }
 
 export function isJsonString(str: string): any {
@@ -25,10 +25,10 @@ export function isJsonString(str: string): any {
 }
 
 export async function doRegister(params: RegisterParams): Promise<any> {
-  const hashObj = passToHash({ password: params.password })
+  const hashObj = passToHash({ password: params.password });
   const encPass = encryptText(hashObj.hash);
   const encSalt = encryptText(hashObj.salt);
-  const mnemonic = await getNewBits()
+  const mnemonic = await getNewBits();
   const encMnemonic = encryptTextWithKey(mnemonic, params.password);
 
   return fetch(`${process.env.REACT_NATIVE_API_URL}/api/register`, {
@@ -42,20 +42,20 @@ export async function doRegister(params: RegisterParams): Promise<any> {
       mnemonic: encMnemonic,
       salt: encSalt,
       referral: null,
-      captcha: params.captcha
-    })
-  }).then(async res => {
+      captcha: params.captcha,
+    }),
+  }).then(async (res) => {
     if (res.status === 200) {
-      return res.json()
+      return res.json();
     } else {
-      const body = await res.text()
-      const json = isJsonString(body)
+      const body = await res.text();
+      const json = isJsonString(body);
 
       if (json) {
-        throw Error(json.message)
+        throw Error(json.message);
       } else {
-        throw Error(body)
+        throw Error(body);
       }
     }
-  })
+  });
 }

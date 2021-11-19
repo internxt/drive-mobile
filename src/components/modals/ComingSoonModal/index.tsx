@@ -10,20 +10,20 @@ import { layoutActions } from '../../../store/actions';
 import { Reducers } from '../../../store/reducers/reducers';
 
 const ComingSoonModal = (props: Reducers) => {
-  const [isOpen, setIsOpen] = useState(props.layoutState.showComingSoonModal)
+  const [isOpen, setIsOpen] = useState(props.layoutState.showComingSoonModal);
 
   useEffect(() => {
-    props.layoutState.showComingSoonModal ? setIsOpen(true) : null
-  }, [props.layoutState])
+    props.layoutState.showComingSoonModal ? setIsOpen(true) : null;
+  }, [props.layoutState]);
 
   return (
     <Modal
       isOpen={isOpen}
       onClosed={() => {
-        props.dispatch(layoutActions.closeComingSoonModal())
-        setIsOpen(false)
+        props.dispatch(layoutActions.closeComingSoonModal());
+        setIsOpen(false);
       }}
-      position='center'
+      position="center"
       style={styles.modalContainer}
     >
       <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
@@ -37,20 +37,22 @@ const ComingSoonModal = (props: Reducers) => {
       </View>
 
       <View style={styles.buttonContainer}>
-
-        <TouchableOpacity style={[styles.button, styles.blue]} onPress={() => {
-          setIsOpen(false)
-        }}>
+        <TouchableOpacity
+          style={[styles.button, styles.blue]}
+          onPress={() => {
+            setIsOpen(false);
+          }}
+        >
           <Text style={[styles.text, styles.white]}>{strings.modals.coming_soon_modal.got_it}</Text>
         </TouchableOpacity>
       </View>
     </Modal>
   );
-}
+};
 
 const styles = StyleSheet.create({
   blue: {
-    backgroundColor: '#4585f5'
+    backgroundColor: '#4585f5',
   },
   button: {
     alignItems: 'center',
@@ -60,49 +62,49 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     height: 50,
     justifyContent: 'center',
-    width: widthPercentageToDP('35')
+    width: widthPercentageToDP('35'),
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 30,
-    width: '80%'
+    width: '80%',
   },
   modalContainer: {
     alignItems: 'center',
     height: '100%',
     justifyContent: 'center',
-    width: '100%'
+    width: '100%',
   },
   subtitle: {
     color: '#737880',
     fontSize: 17,
-    marginTop: 15
+    marginTop: 15,
   },
   text: {
     color: '#5c6066',
     fontFamily: 'NeueEinstellung-Bold',
-    fontSize: 16
+    fontSize: 16,
   },
   textContainer: {
-    paddingHorizontal: 30
+    paddingHorizontal: 30,
   },
   title: {
     color: 'black',
     fontFamily: 'NeueEinstellung-Bold',
-    fontSize: 27
+    fontSize: 27,
   },
   titleContainer: {
     alignItems: 'flex-end',
-    flexDirection: 'row'
+    flexDirection: 'row',
   },
   white: {
-    color: '#fff'
-  }
-})
+    color: '#fff',
+  },
+});
 
 const mapStateToProps = (state: any) => {
-  return { ...state }
-}
+  return { ...state };
+};
 
-export default connect(mapStateToProps)(ComingSoonModal)
+export default connect(mapStateToProps)(ComingSoonModal);

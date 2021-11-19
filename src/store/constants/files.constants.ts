@@ -1,4 +1,4 @@
-export { sortTypes }
+export { sortTypes };
 
 const sortTypes = {
   DATE_ADDED: 'Date_Added',
@@ -7,5 +7,5 @@ const sortTypes = {
   NAME_ASC: 'Name_Asc',
   NAME_DESC: 'Name_Desc',
   FILETYPE_ASC: 'File_Type_Asc',
-  FILETYPE_DESC: 'File_Type_Asc'
-}
+  FILETYPE_DESC: 'File_Type_Asc',
+};

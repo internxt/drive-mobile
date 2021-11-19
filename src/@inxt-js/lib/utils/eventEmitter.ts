@@ -57,6 +57,9 @@ export class EventEmitter {
     if (!this.events.has(event)) {
       return;
     }
-    this.events.set(event, this.events.get(event).filter((l) => l !== listener));
+    this.events.set(
+      event,
+      this.events.get(event).filter((l) => l !== listener),
+    );
   }
 }

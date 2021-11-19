@@ -6,7 +6,7 @@ import { EnvironmentConfig } from '..';
 enum Methods {
   Get = 'GET',
   Post = 'POST',
-  Put = 'PUT'
+  Put = 'PUT',
 }
 
 export class INXTRequest {
@@ -21,10 +21,16 @@ export class INXTRequest {
 
   static Events = {
     UploadProgress: 'upload-progress',
-    DownloadProgress: 'download-progress'
+    DownloadProgress: 'download-progress',
   };
 
-  constructor(config: EnvironmentConfig, method: Methods, targetUrl: string, params: AxiosRequestConfig, useProxy?: boolean) {
+  constructor(
+    config: EnvironmentConfig,
+    method: Methods,
+    targetUrl: string,
+    params: AxiosRequestConfig,
+    useProxy?: boolean,
+  ) {
     this.method = method;
     this.config = config;
     this.targetUrl = targetUrl;
@@ -42,7 +48,9 @@ export class INXTRequest {
 
     const cancelToken = source.token;
 
-    this.req = request(this.config, this.method, this.targetUrl, { ...this.params, cancelToken }, this.useProxy).then<JSON | K>(res => res.data);
+    this.req = request(this.config, this.method, this.targetUrl, { ...this.params, cancelToken }, this.useProxy).then<
+      JSON | K
+    >((res) => res.data);
 
     return this.req;
   }
@@ -54,7 +62,13 @@ export class INXTRequest {
 
     const cancelToken = source.token;
 
-    this.req = request(this.config, this.method, this.targetUrl, { ...this.params, cancelToken }, this.useProxy).then<Buffer>(res => {
+    this.req = request(
+      this.config,
+      this.method,
+      this.targetUrl,
+      { ...this.params, cancelToken },
+      this.useProxy,
+    ).then<Buffer>((res) => {
       return Buffer.from(res.request._response, 'base64');
     });
 

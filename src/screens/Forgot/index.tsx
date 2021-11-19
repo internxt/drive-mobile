@@ -6,14 +6,14 @@ import {
   KeyboardAvoidingView,
   TextInput,
   TouchableHighlight,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
 } from 'react-native';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 
 import { normalize } from '../../helpers';
 import strings from '../../../assets/lang/strings';
-import InternxtLogo from '../../../assets/logo.svg'
+import InternxtLogo from '../../../assets/logo.svg';
 import { tailwind } from '../../helpers/designSystem';
 import { Reducers } from '../../store/reducers/reducers';
 import validationService from '../../services/validation';
@@ -26,34 +26,36 @@ function Forgot(props: Reducers): JSX.Element {
   const [email, setIsEmail] = useState('');
   const isValidEmailField = validationService.validateEmail(email);
 
-  useEffect(() => { // do something after isLoading has updated
+  useEffect(() => {
+    // do something after isLoading has updated
     if (isLoading === true) {
       if (!isValidEmailField) {
-        setIsLoading(false)
+        setIsLoading(false);
         return Alert.alert('Warning', 'Enter a valid e-mail address');
       }
     }
-  }, [isLoading])
+  }, [isLoading]);
 
   const sendDeactivationEmail = () => {
     if (isLoading) {
       return;
     }
-    setIsLoading(true)
-    authService.sendDeactivationsEmail(email).then(() => {
-      setIsLoading(false)
-      setCurrentCointainer(2)
-
-    }).catch(() => {
-      setIsLoading(false)
-      return Alert.alert('Error', 'Connection to server failed');
-    });
-
-  }
+    setIsLoading(true);
+    authService
+      .sendDeactivationsEmail(email)
+      .then(() => {
+        setIsLoading(false);
+        setCurrentCointainer(2);
+      })
+      .catch(() => {
+        setIsLoading(false);
+        return Alert.alert('Error', 'Connection to server failed');
+      });
+  };
 
   if (currentContainer === 1) {
     return (
-      <KeyboardAvoidingView behavior='height' style={tailwind('p-5 bg-white h-full justify-center')}>
+      <KeyboardAvoidingView behavior="height" style={tailwind('p-5 bg-white h-full justify-center')}>
         <View style={tailwind('p-6 py-0 bg-white')}>
           <View style={isLoading ? tailwind('opacity-50') : tailwind('opacity-100')}>
             <View>
@@ -87,16 +89,11 @@ function Forgot(props: Reducers): JSX.Element {
                   style={tailwind('btn btn-primary bg-red-60 mt-3')}
                   onPress={() => sendDeactivationEmail()}
                 >
-                  <Text style={tailwind('text-base btn-label')}>
-                    {strings.screens.change_password.confirm}
-                  </Text>
+                  <Text style={tailwind('text-base btn-label')}>{strings.screens.change_password.confirm}</Text>
                 </TouchableHighlight>
               </View>
               <View style={tailwind('py-5')}>
-                <TouchableWithoutFeedback
-                  style={tailwind('m-5')}
-                  onPress={() => props.navigation.replace('Login')}
-                >
+                <TouchableWithoutFeedback style={tailwind('m-5')} onPress={() => props.navigation.replace('Login')}>
                   <Text style={tailwind('text-blue-60 text-center')}> {strings.screens.login_screen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>
@@ -109,7 +106,7 @@ function Forgot(props: Reducers): JSX.Element {
 
   if (currentContainer === 2) {
     return (
-      <KeyboardAvoidingView behavior='height' style={tailwind('p-5 bg-white h-full justify-center')}>
+      <KeyboardAvoidingView behavior="height" style={tailwind('p-5 bg-white h-full justify-center')}>
         <View style={tailwind('py-0 bg-white')}>
           <View style={[tailwind(''), isLoading ? tailwind('opacity-50') : {}]}>
             <View>
@@ -118,9 +115,7 @@ function Forgot(props: Reducers): JSX.Element {
                 <Text style={tailwind('text-base text-sm mt-3 text-gray-60')}>{strings.generic.security}</Text>
               </View>
               <Text style={tailwind('text-sm text-center')}>
-                {strings.screens.deactivation_screen.subtitle_1}
-                {' '}
-                {strings.screens.deactivation_screen.subtitle_2}
+                {strings.screens.deactivation_screen.subtitle_1} {strings.screens.deactivation_screen.subtitle_2}
               </Text>
 
               <View style={styles.buttonWrapper}>
@@ -129,17 +124,12 @@ function Forgot(props: Reducers): JSX.Element {
                   underlayColor="#00aaff"
                   onPress={() => sendDeactivationEmail()}
                 >
-                  <Text style={styles.buttonOnLabel}>
-                    {strings.components.buttons.deactivation}
-                  </Text>
+                  <Text style={styles.buttonOnLabel}>{strings.components.buttons.deactivation}</Text>
                 </TouchableHighlight>
               </View>
 
               <View style={tailwind('py-5')}>
-                <TouchableWithoutFeedback
-                  style={tailwind('m-5')}
-                  onPress={() => props.navigation.replace('Login')}
-                >
+                <TouchableWithoutFeedback style={tailwind('m-5')} onPress={() => props.navigation.replace('Login')}>
                   <Text style={[]}> {strings.screens.login_screen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>
@@ -156,7 +146,7 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(Forgot)
+export default connect(mapStateToProps)(Forgot);
 
 const styles = StyleSheet.create({
   button: {
@@ -165,21 +155,21 @@ const styles = StyleSheet.create({
     height: normalize(55),
     justifyContent: 'center',
     marginTop: normalize(10),
-    width: '45%'
+    width: '45%',
   },
   buttonOn: {
     backgroundColor: '#4585f5',
-    flex: 1
+    flex: 1,
   },
   buttonOnLabel: {
     color: '#fff',
     fontFamily: 'NeueEinstellung-Medium',
     fontSize: normalize(15),
     textAlignVertical: 'center',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   buttonWrapper: {
     flexDirection: 'row',
-    marginTop: normalize(15)
-  }
+    marginTop: normalize(15),
+  },
 });

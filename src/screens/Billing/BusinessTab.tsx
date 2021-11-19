@@ -3,9 +3,11 @@ import { View, Text } from 'react-native';
 import { connect } from 'react-redux';
 
 function BusinessTab(props: any) {
-  return <View>
-    <Text></Text>
-  </View>
+  return (
+    <View>
+      <Text></Text>
+    </View>
+  );
 }
 
 const mapStateToProps = (state: any) => ({ ...state });

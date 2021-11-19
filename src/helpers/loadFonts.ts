@@ -1,6 +1,6 @@
 import * as Font from 'expo-font';
-import React from 'react'
-import { Text } from 'react-native'
+import React from 'react';
+import { Text } from 'react-native';
 
 /**
  * Load fonts from assets
@@ -15,7 +15,7 @@ async function loadFontsAsync(): Promise<void> {
     'NeueEinstellung-Medium': require('../../assets/fonts/NeueEinstellung-Medium.otf'),
     'NeueEinstellung-Regular': require('../../assets/fonts/NeueEinstellung-Regular.otf'),
     'NeueEinstellung-SemiBold': require('../../assets/fonts/NeueEinstellung-SemiBold.otf'),
-    'NeueEinstellung-Thin': require('../../assets/fonts/NeueEinstellung-Thin.otf')
+    'NeueEinstellung-Thin': require('../../assets/fonts/NeueEinstellung-Thin.otf'),
   });
 
   const TextComponent: any = Text;
@@ -26,9 +26,9 @@ async function loadFontsAsync(): Promise<void> {
     const origin = oldRender.call(this, ...args);
 
     return React.cloneElement(origin, {
-      style: [{ fontFamily: 'NeueEinstellung-Regular' }, origin.props.style]
+      style: [{ fontFamily: 'NeueEinstellung-Regular' }, origin.props.style],
     });
   };
 }
 
-export const loadFonts = loadFontsAsync
+export const loadFonts = loadFontsAsync;

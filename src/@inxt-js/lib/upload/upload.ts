@@ -12,7 +12,13 @@ import { UPLOAD_CANCELLED } from '../../api/constants';
  * @param progress upload progress callback
  * @param finish finish progress callback
  */
-export async function upload(config: EnvironmentConfig, bucketId: string, fileMeta: FileMeta, params: UploadFileOptions, actionState: ActionState): Promise<void> {
+export async function upload(
+  config: EnvironmentConfig,
+  bucketId: string,
+  fileMeta: FileMeta,
+  params: UploadFileOptions,
+  actionState: ActionState,
+): Promise<void> {
   const file = new FileObjectUpload(config, fileMeta, bucketId);
 
   actionState.on(UPLOAD_CANCELLED, () => {

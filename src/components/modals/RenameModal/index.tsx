@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableHighlight, TouchableWithoutFeedback, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableHighlight,
+  TouchableWithoutFeedback,
+  TextInput,
+  Platform,
+  KeyboardAvoidingView,
+} from 'react-native';
 import Modal from 'react-native-modalbox';
 import { connect } from 'react-redux';
 
@@ -7,35 +15,37 @@ import { fileActions, layoutActions } from '../../../store/actions';
 import { Reducers } from '../../../store/reducers/reducers';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import strings from '../../../../assets/lang/strings';
-import { FolderIcon, getFileTypeIcon, notify } from '../../../helpers'
+import { FolderIcon, getFileTypeIcon, notify } from '../../../helpers';
 import globalStyle from '../../../styles/global.style';
 import { getEnvironmentConfig } from '../../../lib/network';
 import folderService from '../../../services/folder';
 import fileService from '../../../services/file';
 
 function RenameModal(props: Reducers) {
-  const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
+  const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder;
   const [newName, setNewName] = useState('');
   const [originalName, setOriginalName] = useState('');
-  const [isLoading, setIsLoading] = useState(false)
-  const emptyName = newName === ''
-  const isFolder = props.filesState.focusedItem?.parentId
-  const folder = isFolder && props.filesState.focusedItem
-  const file = !isFolder && props.filesState.focusedItem
+  const [isLoading, setIsLoading] = useState(false);
+  const emptyName = newName === '';
+  const isFolder = props.filesState.focusedItem?.parentId;
+  const folder = isFolder && props.filesState.focusedItem;
+  const file = !isFolder && props.filesState.focusedItem;
   const onItemRenameSuccess = () => {
-    props.dispatch(fileActions.getFolderContent(currentFolderId))
+    props.dispatch(fileActions.getFolderContent(currentFolderId));
     notify({ text: 'Renamed successfully', type: 'success' });
     setNewName('');
-  }
+  };
   const onItemRenameFinally = () => {
     props.dispatch(layoutActions.closeRenameModal());
     props.dispatch(layoutActions.closeItemModal());
     setIsLoading(false);
-  }
+  };
   const onRenameButtonPressed = async () => {
     const { bucketId } = await getEnvironmentConfig();
     const { absolutePath } = props.filesState;
-    const itemFullName = `${newName}${props.filesState.focusedItem.type ? '.' + props.filesState.focusedItem.type : ''}`
+    const itemFullName = `${newName}${
+      props.filesState.focusedItem.type ? '.' + props.filesState.focusedItem.type : ''
+    }`;
     const itemPath = `${absolutePath}${itemFullName}`;
 
     try {
@@ -49,21 +59,20 @@ function RenameModal(props: Reducers) {
         await fileService.updateMetaData(file.fileId, { itemName: newName }, bucketId, itemPath);
       }
 
-      onItemRenameSuccess()
+      onItemRenameSuccess();
     } catch (err) {
       console.log(err);
       notify({ text: err.message, type: 'error' });
     } finally {
-      onItemRenameFinally()
+      onItemRenameFinally();
     }
-
-  }
+  };
   const IconFile = getFileTypeIcon(props.filesState.focusedItem?.type);
   const IconFolder = FolderIcon;
 
   useEffect(() => {
-    setOriginalName('')
-  }, [props.layoutState.showRenameModal])
+    setOriginalName('');
+  }, [props.layoutState.showRenameModal]);
 
   return (
     <Modal
@@ -72,22 +81,22 @@ function RenameModal(props: Reducers) {
       coverScreen={Platform.OS === 'android'}
       isOpen={props.layoutState.showRenameModal}
       onClosed={() => {
-        props.dispatch(layoutActions.closeRenameModal())
-        setNewName('')
+        props.dispatch(layoutActions.closeRenameModal());
+        setNewName('');
       }}
       onOpened={() => {
-        setNewName(props.filesState.focusedItem?.name)
-        setOriginalName(newName)
+        setNewName(props.filesState.focusedItem?.name);
+        setOriginalName(newName);
       }}
       backButtonClose={true}
       backdropPressToClose={true}
       animationDuration={250}
     >
-      <KeyboardAvoidingView behavior={'padding'} >
+      <KeyboardAvoidingView behavior={'padding'}>
         <View style={tailwind('h-full')}>
           <TouchableWithoutFeedback
             onPress={() => {
-              !isLoading && props.dispatch(layoutActions.closeRenameModal())
+              !isLoading && props.dispatch(layoutActions.closeRenameModal());
             }}
           >
             <View style={tailwind('flex-grow')} />
@@ -96,7 +105,7 @@ function RenameModal(props: Reducers) {
           <View style={tailwind('flex-row w-full max-w-full items-center justify-center')}>
             <TouchableWithoutFeedback
               onPress={() => {
-                !isLoading && props.dispatch(layoutActions.closeRenameModal())
+                !isLoading && props.dispatch(layoutActions.closeRenameModal());
               }}
             >
               <View style={tailwind('self-stretch w-8 -mr-8')} />
@@ -115,14 +124,21 @@ function RenameModal(props: Reducers) {
                     {isFolder ? <IconFolder width={80} height={80} /> : <IconFile width={80} height={80} />}
                   </View>
 
-                  <View style={[tailwind('items-center justify-center flex-shrink flex-grow bg-neutral-10 border border-neutral-30 px-4 rounded-lg'), Platform.OS !== 'android' ? tailwind('pb-3') : tailwind('')]}>
+                  <View
+                    style={[
+                      tailwind(
+                        'items-center justify-center flex-shrink flex-grow bg-neutral-10 border border-neutral-30 px-4 rounded-lg',
+                      ),
+                      Platform.OS !== 'android' ? tailwind('pb-3') : tailwind(''),
+                    ]}
+                  >
                     <TextInput
                       style={tailwind('text-lg text-center text-neutral-600')}
                       value={newName}
                       onChangeText={setNewName}
                       placeholderTextColor={getColor('neutral-500')}
-                      autoCompleteType='off'
-                      key='name'
+                      autoCompleteType="off"
+                      key="name"
                       autoFocus={true}
                       autoCorrect={false}
                     />
@@ -131,16 +147,18 @@ function RenameModal(props: Reducers) {
               </View>
 
               <View style={tailwind('flex-row justify-between')}>
-
                 <TouchableHighlight
                   underlayColor={getColor('neutral-30')}
                   style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
                   onPress={() => {
-                    props.dispatch(fileActions.deselectAll())
-                    props.dispatch(layoutActions.closeRenameModal())
+                    props.dispatch(fileActions.deselectAll());
+                    props.dispatch(layoutActions.closeRenameModal());
                   }}
-                  disabled={isLoading}>
-                  <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>{strings.generic.cancel}</Text>
+                  disabled={isLoading}
+                >
+                  <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>
+                    {strings.generic.cancel}
+                  </Text>
                 </TouchableHighlight>
 
                 <View style={tailwind('px-1')}></View>
@@ -149,16 +167,18 @@ function RenameModal(props: Reducers) {
                   underlayColor={getColor('blue-70')}
                   style={tailwind('bg-blue-60 rounded-lg py-2 flex-grow items-center justify-center')}
                   onPress={onRenameButtonPressed}
-                  disabled={isLoading}>
-                  <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.generic.rename}</Text>
+                  disabled={isLoading}
+                >
+                  <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>
+                    {strings.generic.rename}
+                  </Text>
                 </TouchableHighlight>
-
               </View>
             </View>
 
             <TouchableWithoutFeedback
               onPress={() => {
-                !isLoading && props.dispatch(layoutActions.closeRenameModal())
+                !isLoading && props.dispatch(layoutActions.closeRenameModal());
               }}
             >
               <View style={tailwind('self-stretch w-8 -ml-8')} />
@@ -167,7 +187,7 @@ function RenameModal(props: Reducers) {
 
           <TouchableWithoutFeedback
             onPress={() => {
-              !isLoading && props.dispatch(layoutActions.closeRenameModal())
+              !isLoading && props.dispatch(layoutActions.closeRenameModal());
             }}
           >
             <View style={tailwind('flex-grow')} />
@@ -179,7 +199,7 @@ function RenameModal(props: Reducers) {
 }
 
 const mapStateToProps = (state: any) => {
-  return { ...state }
+  return { ...state };
 };
 
-export default connect(mapStateToProps)(RenameModal)
+export default connect(mapStateToProps)(RenameModal);

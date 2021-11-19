@@ -1,21 +1,21 @@
-import { StyleSheet } from 'react-native'
+import { StyleSheet } from 'react-native';
 
 export default {
   fontWeight: StyleSheet.create({
     light: {
-      fontFamily: 'NeueEinstellung-Light'
+      fontFamily: 'NeueEinstellung-Light',
     },
     regular: {
-      fontFamily: 'NeueEinstellung-Regular'
+      fontFamily: 'NeueEinstellung-Regular',
     },
     medium: {
-      fontFamily: 'NeueEinstellung-Medium'
+      fontFamily: 'NeueEinstellung-Medium',
     },
     semibold: {
-      fontFamily: 'NeueEinstellung-SemiBold'
+      fontFamily: 'NeueEinstellung-SemiBold',
     },
     bold: {
-      fontFamily: 'NeueEinstellung-Bold'
-    }
-  })
-}
+      fontFamily: 'NeueEinstellung-Bold',
+    },
+  }),
+};

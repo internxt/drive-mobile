@@ -1,11 +1,11 @@
 import { deviceStorage, encryptText, encryptTextWithKey, getLyticsData, passToHash } from '../helpers';
 import analytics from '../helpers/analytics';
 import { getHeaders } from '../helpers/headers';
-import { isJsonString } from '../screens/Register/registerUtils'
+import { isJsonString } from '../screens/Register/registerUtils';
 
 interface LoginResponse {
-  tfa: string
-  sKey: string
+  tfa: string;
+  sKey: string;
 }
 
 class AuthService {
@@ -13,31 +13,34 @@ class AuthService {
     return fetch(`${process.env.REACT_NATIVE_API_URL}/api/login`, {
       method: 'POST',
       headers: await getHeaders(),
-      body: JSON.stringify({ email: email })
-    }).then(async res => {
-      const data = await res.text()
-      const json = isJsonString(data)
+      body: JSON.stringify({ email: email }),
+    }).then(async (res) => {
+      const data = await res.text();
+      const json = isJsonString(data);
 
       if (res.status === 200) {
-        return json
+        return json;
       } else {
         if (json) {
-          throw Error(json.error)
+          throw Error(json.error);
         } else {
-          throw Error(data)
+          throw Error(data);
         }
       }
-    })
+    });
   }
 
   public async signout(): Promise<void> {
     try {
-      const userData = await getLyticsData()
+      const userData = await getLyticsData();
 
-      analytics.track('user-signout', { userId: userData.uuid, email: userData.email, platform: 'mobile' }).catch(() => { })
+      analytics
+        .track('user-signout', { userId: userData.uuid, email: userData.email, platform: 'mobile' })
+        .catch(() => undefined);
       // Delete login data
       deviceStorage.clearStorage();
-    } catch (error) {
+    } catch (err) {
+      console.error('Error during signout: ', err);
     }
   }
 
@@ -58,18 +61,17 @@ class AuthService {
         password: encryptedPassword,
         salt: encryptedSalt,
         mnemonic: encryptedMnemonic,
-        privateKey: null
-      })
+        privateKey: null,
+      }),
     });
   }
 
   public sendDeactivationsEmail(email: string): Promise<any> {
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/reset/${email}`, {
-    }).then(async res => {
+    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/reset/${email}`, {}).then(async (res) => {
       if (res.status !== 200) {
         throw Error();
       }
-    })
+    });
   }
 }
 

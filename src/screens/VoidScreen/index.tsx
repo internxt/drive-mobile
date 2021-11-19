@@ -9,4 +9,4 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(VoidScreen)
+export default connect(mapStateToProps)(VoidScreen);

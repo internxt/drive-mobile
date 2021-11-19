@@ -5,5 +5,5 @@ export * from './crypt';
 export * from './deviceStorage';
 export * from './analytics';
 export * from './filetypes';
-export * from './toast'
-export * from './update'
+export * from './toast';
+export * from './update';

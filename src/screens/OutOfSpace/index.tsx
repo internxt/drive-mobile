@@ -6,7 +6,6 @@ import strings from '../../../assets/lang/strings';
 import { Reducers } from '../../store/reducers/reducers';
 
 function OutOfSpace(props: Reducers): JSX.Element {
-
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
@@ -16,17 +15,19 @@ function OutOfSpace(props: Reducers): JSX.Element {
       </View>
 
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.button}
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => {
-            props.navigation.replace('FileExplorer')
+            props.navigation.replace('FileExplorer');
           }}
         >
           <Text style={styles.buttonText}>{strings.components.buttons.cancel}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, styles.blue]}
+        <TouchableOpacity
+          style={[styles.button, styles.blue]}
           onPress={() => {
-            props.navigation.replace('Storage')
+            props.navigation.replace('Storage');
           }}
         >
           <Text style={[styles.buttonText, styles.white]}>{strings.components.buttons.upgrade}</Text>
@@ -37,10 +38,9 @@ function OutOfSpace(props: Reducers): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-
   blue: {
     backgroundColor: '#4585f5',
-    borderWidth: 0
+    borderWidth: 0,
   },
   button: {
     alignItems: 'center',
@@ -50,48 +50,48 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     height: 50,
     justifyContent: 'center',
-    width: wp('42')
+    width: wp('42'),
   },
   buttonText: {
     color: '#5c6066',
     fontFamily: 'NeueEinstellung-Bold',
     fontSize: 16,
-    letterSpacing: -0.2
+    letterSpacing: -0.2,
   },
   buttonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly'
+    justifyContent: 'space-evenly',
   },
   container: {
     backgroundColor: 'white',
     height: '100%',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   subtitle: {
     fontFamily: 'NeueEinstellung-Regular',
     fontSize: 17,
     letterSpacing: -0.1,
     lineHeight: 23,
-    marginTop: 15
+    marginTop: 15,
   },
   title: {
     color: '#000000',
     fontFamily: 'NeueEinstellung-Bold',
     fontSize: 27,
-    letterSpacing: -0.5
+    letterSpacing: -0.5,
   },
   titleContainer: {
     alignSelf: 'flex-start',
     marginHorizontal: wp('6'),
-    marginVertical: wp('15')
+    marginVertical: wp('15'),
   },
   white: {
-    color: 'white'
-  }
-})
+    color: 'white',
+  },
+});
 
 const mapStateToProps = (state: any) => {
-  return { ...state }
+  return { ...state };
 };
 
-export default connect(mapStateToProps)(OutOfSpace)
+export default connect(mapStateToProps)(OutOfSpace);

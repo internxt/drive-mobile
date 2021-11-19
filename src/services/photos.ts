@@ -12,7 +12,7 @@ export async function loadLocalPhotos(cursor?: string): Promise<[CameraRoll.Phot
     first: 10,
     assetType: 'All',
     groupTypes: 'All',
-    after: cursor
+    after: cursor,
   });
 
   let lastCursor: string = undefined;
@@ -20,10 +20,13 @@ export async function loadLocalPhotos(cursor?: string): Promise<[CameraRoll.Phot
   pictures.edges.map((edge) => {
     if (Platform.OS === 'ios') {
       lastCursor = edge.node.image.uri;
-      edge.node.image.uri = convertLocalIdentifierToAssetLibrary(edge.node.image.uri.replace('ph://', ''), edge.node.type === 'image' ? 'jpg' : 'mov')
+      edge.node.image.uri = convertLocalIdentifierToAssetLibrary(
+        edge.node.image.uri.replace('ph://', ''),
+        edge.node.type === 'image' ? 'jpg' : 'mov',
+      );
     }
-    return
-  })
+    return;
+  });
 
   return [pictures, lastCursor];
 }

@@ -54,7 +54,7 @@ function uploadFileFailed(id?: number): AnyAction {
 }
 
 function uploadFileSetProgress(progress: number, id?: string): AnyAction {
-  const payload = { progress, id }
+  const payload = { progress, id };
 
   return { type: fileActionTypes.ADD_FILE_UPLOAD_PROGRESS, payload };
 }
@@ -65,16 +65,16 @@ function uploadFileSetUri(uri: string | undefined): AnyAction {
 
 function fetchIfSameFolder(fileFolder: number) {
   return (dispatch: Dispatch): AnyAction => {
-    const currentFoder = store.getState().filesState.folderContent.currentFolder
+    const currentFoder = store.getState().filesState.folderContent.currentFolder;
 
     if (fileFolder === currentFoder) {
-      return dispatch(getFolderContent(currentFoder))
+      return dispatch(getFolderContent(currentFoder));
     }
-  }
+  };
 }
 
 function getFolderContent(folderId: string | number, quick?: boolean): any {
-  const id = typeof folderId === 'string' ? parseInt(folderId) : folderId
+  const id = typeof folderId === 'string' ? parseInt(folderId) : folderId;
 
   if (isNaN(id)) {
     return (dispatch: Dispatch): AnyAction => {
@@ -83,13 +83,14 @@ function getFolderContent(folderId: string | number, quick?: boolean): any {
   }
   return (dispatch: Dispatch) => {
     dispatch(request());
-    if (!quick){
+    if (!quick) {
       fileService
         .getFolderContent(id)
         .then((data) => {
           data.currentFolder = id;
           dispatch(success(data));
-        }).catch(error => {
+        })
+        .catch((error) => {
           dispatch(failure(error));
           if (error.status === 401) {
             dispatch(userActions.signout());
@@ -118,7 +119,7 @@ function deleteItems(items: any, folderToReload: any): any {
 
     notify({
       text: 'Item deleted',
-      type: 'success'
+      type: 'success',
     });
 
     return fileService
@@ -130,8 +131,8 @@ function deleteItems(items: any, folderToReload: any): any {
         dispatch(requestFailure());
         notify({
           text: err.message,
-          type: 'error'
-        })
+          type: 'error',
+        });
         setTimeout(() => {
           dispatch(getFolderContent(folderToReload));
         }, 3000);
@@ -176,15 +177,15 @@ function setSortFunction(sortType: any): AnyAction {
 
   return {
     type: fileActionTypes.SET_SORT_TYPE,
-    payload: [sortType, sortFunc]
+    payload: [sortType, sortFunc],
   };
 }
 
 function setSearchString(searchString: string): AnyAction {
   return {
     type: fileActionTypes.SET_SEARCH_STRING,
-    payload: searchString
-  }
+    payload: searchString,
+  };
 }
 
 function createFolder(parentFolderId: number, newFolderName: string) {
@@ -194,11 +195,11 @@ function createFolder(parentFolderId: number, newFolderName: string) {
     fileService.createFolder(parentFolderId, newFolderName).then(
       (newFolderDetails: any) => {
         dispatch(success(newFolderDetails));
-        dispatch(getFolderContent(parentFolderId + ''))
+        dispatch(getFolderContent(parentFolderId + ''));
       },
-      error => {
+      (error) => {
         dispatch(failure(error));
-      }
+      },
     );
   };
 
@@ -207,17 +208,19 @@ function createFolder(parentFolderId: number, newFolderName: string) {
   }
   function success(newFolderDetails: any) {
     (async () => {
-      const userData = await getLyticsData()
+      const userData = await getLyticsData();
 
-      analytics.track('folder-created', {
-        userId: userData.uuid,
-        platform: 'mobile',
-        email: userData.email
-      }).catch(() => { })
-    })()
+      analytics
+        .track('folder-created', {
+          userId: userData.uuid,
+          platform: 'mobile',
+          email: userData.email,
+        })
+        .catch(() => undefined);
+    })();
     return {
       type: fileActionTypes.CREATE_FOLDER_SUCCESS,
-      payload: newFolderDetails
+      payload: newFolderDetails,
     };
   }
   function failure(payload: any) {
@@ -228,8 +231,8 @@ function createFolder(parentFolderId: number, newFolderName: string) {
 function moveFile(fileId: string, destination: string) {
   return (dispatch: Dispatch) => {
     dispatch(request());
-    fileService.moveFile(fileId, destination).then(result => {
-      dispatch(fileActions.getFolderContent(destination))
+    fileService.moveFile(fileId, destination).then((result) => {
+      dispatch(fileActions.getFolderContent(destination));
       if (result === 1) {
         dispatch(success());
       } else {
@@ -250,27 +253,23 @@ function moveFile(fileId: string, destination: string) {
 }
 
 function setRootFolderContent(folderContent: any): AnyAction {
-  return { type: fileActionTypes.SET_ROOTFOLDER_CONTENT, payload: folderContent }
+  return { type: fileActionTypes.SET_ROOTFOLDER_CONTENT, payload: folderContent };
 }
 
 function setUri(uri: any) {
   if (uri) {
-    getLyticsData().then(user => {
+    getLyticsData().then((user) => {
       analytics.track('share-to', {
         email: user.email,
-        uri: uri.fileUri ? uri.fileUri : uri.toString && uri.toString()
-      }).catch(() => {
+        uri: uri.fileUri ? uri.fileUri : uri.toString && uri.toString(),
       });
-    }).catch(() => {
     });
   }
-  return { type: fileActionTypes.SET_URI, payload: uri }
+  return { type: fileActionTypes.SET_URI, payload: uri };
 }
 
 function updateFileMetadata(file: DriveFileData, metadata: DriveFileMetadataPayload) {
-  return (dispatch: Dispatch, getState) => {
-    const { absolutePath } = getState().filesState;
-
+  return (dispatch: Dispatch) => {
     dispatch(request());
 
     /* fileService
@@ -338,7 +337,7 @@ function removeDepthAbsolutePath(nLevels: number): AnyAction {
 }
 
 function goBack(folderId: string) {
-  const id = parseInt(folderId)
+  const id = parseInt(folderId);
 
   if (isNaN(id)) {
     return (dispatch: Dispatch): AnyAction => {
@@ -354,15 +353,17 @@ function goBack(folderId: string) {
       .then((data: any) => {
         data.currentFolder = id;
         dispatch(success(data));
-      }).catch(error => {
+      })
+      .catch((error) => {
         dispatch(failure(error));
         if (error.status === 401) {
           dispatch(userActions.signout());
         }
-      }).finally(() => {
+      })
+      .finally(() => {
         dispatch(removeDepthAbsolutePath(1));
         dispatch(layoutActions.enableBackButton());
-      })
+      });
   };
 
   function request(): AnyAction {
@@ -409,5 +410,5 @@ export const fileActions = {
   updateUploadingFile,
   addDepthAbsolutePath,
   removeDepthAbsolutePath,
-  goBack
+  goBack,
 };

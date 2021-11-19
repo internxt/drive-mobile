@@ -2,26 +2,22 @@ import CryptoJS from 'crypto-js';
 import crypto from 'react-native-crypto';
 import AesUtils from './aesUtils';
 
-const password = process && process.env && process.env.REACT_NATIVE_CRYPTO_SECRET || ''; // Force env var loading
+const password = (process && process.env && process.env.REACT_NATIVE_CRYPTO_SECRET) || ''; // Force env var loading
 
 interface PassObjectInterface {
-  password: string,
-  salt?: string
+  password: string;
+  salt?: string;
 }
 
-export function passToHash(passObject: PassObjectInterface): { salt: string, hash: string } {
-  try {
-    const salt = passObject.salt ? CryptoJS.enc.Hex.parse(passObject.salt) : CryptoJS.lib.WordArray.random(128 / 8);
-    const hash = CryptoJS.PBKDF2(passObject.password, salt, { keySize: 256 / 32, iterations: 10000 });
-    const hashedObjetc = {
-      salt: salt.toString(),
-      hash: hash.toString()
-    }
+export function passToHash(passObject: PassObjectInterface): { salt: string; hash: string } {
+  const salt = passObject.salt ? CryptoJS.enc.Hex.parse(passObject.salt) : CryptoJS.lib.WordArray.random(128 / 8);
+  const hash = CryptoJS.PBKDF2(passObject.password, salt, { keySize: 256 / 32, iterations: 10000 });
+  const hashedObjetc = {
+    salt: salt.toString(),
+    hash: hash.toString(),
+  };
 
-    return hashedObjetc;
-  } catch (error) {
-    throw error;
-  }
+  return hashedObjetc;
 }
 
 // AES Plain text encryption method
@@ -50,10 +46,7 @@ export function encryptTextWithKey(textToEncrypt: string, keyToEncrypt: string):
 export function decryptTextWithKey(encryptedText: string, keyToDecrypt: string): string {
   try {
     const reb = CryptoJS.enc.Hex.parse(encryptedText);
-    const bytes = CryptoJS.AES.decrypt(
-      reb.toString(CryptoJS.enc.Base64),
-      keyToDecrypt
-    );
+    const bytes = CryptoJS.AES.decrypt(reb.toString(CryptoJS.enc.Base64), keyToDecrypt);
 
     return bytes.toString(CryptoJS.enc.Utf8);
   } catch (error) {

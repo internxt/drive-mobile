@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 import { View, Text, StyleSheet, Linking, Alert } from 'react-native';
-import Modal from 'react-native-modalbox'
+import Modal from 'react-native-modalbox';
 import { layoutActions, userActions } from '../../../store/actions';
 import SettingsItem from './SettingsItem';
 
@@ -12,13 +12,12 @@ import { Reducers } from '../../../store/reducers/reducers';
 import { tailwind } from '../../../helpers/designSystem';
 
 interface SettingsModalProps extends Reducers {
-  user: any
-  dispatch: Dispatch,
-  navigation: any
+  user: any;
+  dispatch: Dispatch;
+  navigation: any;
 }
 
 function SettingsModal(props: SettingsModalProps) {
-
   return (
     <Modal
       isOpen={props.layoutState.showSettingsModal}
@@ -28,13 +27,12 @@ function SettingsModal(props: SettingsModalProps) {
       onClosed={() => props.dispatch(layoutActions.closeSettings())}
       backButtonClose={true}
       animationDuration={200}
-      coverScreen={true}>
-
+      coverScreen={true}
+    >
       <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
 
       <Text style={styles.nameText}>
-        {props.user.name}{' '}
-        {props.user.lastname}
+        {props.user.name} {props.user.lastname}
       </Text>
 
       <Separator />
@@ -42,8 +40,8 @@ function SettingsModal(props: SettingsModalProps) {
       <SettingsItem
         text={strings.components.app_menu.settings.storage}
         onPress={() => {
-          props.dispatch(layoutActions.closeSettings())
-          props.navigation.replace('Storage')
+          props.dispatch(layoutActions.closeSettings());
+          props.navigation.replace('Storage');
         }}
       />
 
@@ -55,25 +53,27 @@ function SettingsModal(props: SettingsModalProps) {
       <SettingsItem
         text={strings.components.app_menu.settings.contact}
         onPress={() => {
-          const contact = 'https://help.internxt.com/'
+          const contact = 'https://help.internxt.com/';
 
-          Linking.canOpenURL(contact).then(() => {
-            Linking.openURL(contact)
-          }).catch(() => {
-            Alert.alert('Info', 'To contact with us please go to https://help.internxt.com/')
-          })
+          Linking.canOpenURL(contact)
+            .then(() => {
+              Linking.openURL(contact);
+            })
+            .catch(() => {
+              Alert.alert('Info', 'To contact with us please go to https://help.internxt.com/');
+            });
         }}
       />
 
       <SettingsItem
         text={strings.components.app_menu.settings.sign}
         onPress={() => {
-          props.dispatch(layoutActions.closeSettings())
-          props.dispatch(userActions.signout())
+          props.dispatch(layoutActions.closeSettings());
+          props.dispatch(userActions.signout());
         }}
       />
     </Modal>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -81,21 +81,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
-    height: 350
+    height: 350,
   },
   nameText: {
     fontFamily: 'NeueEinstellung-Regular',
     fontSize: 20,
     fontWeight: 'bold',
     marginLeft: 26,
-    marginTop: 10
-  }
-})
+    marginTop: 10,
+  },
+});
 
 const mapStateToProps = (state: any) => {
   return {
     user: state.authenticationState.user,
-    layoutState: state.layoutState
+    layoutState: state.layoutState,
   };
 };
 

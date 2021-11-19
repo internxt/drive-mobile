@@ -9,15 +9,15 @@ const appReducer = combineReducers({
   layoutState: layoutReducer,
   authenticationState: authenticationReducer,
   filesState: filesReducer,
-  settingsState: settingsReducer
+  settingsState: settingsReducer,
 });
 
 const rootReducer = (state: any, action: AnyAction): CombinedState<any> => {
   if (action.type === 'USER_SIGNOUT') {
-    state = undefined
+    state = undefined;
   }
 
-  return appReducer(state, action)
-}
+  return appReducer(state, action);
+};
 
 export default rootReducer;

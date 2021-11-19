@@ -4,8 +4,8 @@ import { LayoutState } from '../store/reducers/layout.reducer';
 import { SettingsState } from '../store/reducers/settings.reducer';
 
 export interface IStoreReducers {
-  layoutState: LayoutState,
-  authenticationState: AuthenticationState,
-  filesState: FilesState,
-  settingsState: SettingsState
+  layoutState: LayoutState;
+  authenticationState: AuthenticationState;
+  filesState: FilesState;
+  settingsState: SettingsState;
 }

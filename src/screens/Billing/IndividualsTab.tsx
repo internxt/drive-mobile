@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text } from 'react-native';
 import { connect } from 'react-redux';
 import Accordion from 'react-native-collapsible/Accordion';
-import * as Unicons from '@iconscout/react-native-unicons'
+import * as Unicons from '@iconscout/react-native-unicons';
 import { tailwind } from '../../helpers/designSystem';
 
 const SECTIONS = [
@@ -13,18 +13,18 @@ const SECTIONS = [
       subscriptions: [
         {
           name: 'Monthly',
-          price: '0.99'
+          price: '0.99',
         },
         {
           name: 'Semiannually',
-          price: '0.95'
+          price: '0.95',
         },
         {
           name: 'Annually',
-          price: '0.89'
-        }
-      ]
-    }
+          price: '0.89',
+        },
+      ],
+    },
   },
   {
     title: 'Starter 200GB',
@@ -33,18 +33,18 @@ const SECTIONS = [
       subscriptions: [
         {
           name: 'Monthly',
-          price: '4.49'
+          price: '4.49',
         },
         {
           name: 'Semianually',
-          price: '3.99'
+          price: '3.99',
         },
         {
           name: 'Annually',
-          price: '3.49'
-        }
-      ]
-    }
+          price: '3.49',
+        },
+      ],
+    },
   },
   {
     title: 'Starter 2TB',
@@ -53,19 +53,19 @@ const SECTIONS = [
       subscriptions: [
         {
           name: 'Monthly',
-          price: '9.99'
+          price: '9.99',
         },
         {
           name: 'Semiannually',
-          price: '9.49'
+          price: '9.49',
         },
         {
           name: 'Annually',
-          price: '8.99'
-        }
-      ]
-    }
-  }
+          price: '8.99',
+        },
+      ],
+    },
+  },
 ];
 
 const _renderHeader = (section) => {
@@ -78,7 +78,6 @@ const _renderHeader = (section) => {
       <View>
         <Unicons.UilAngleDown color="gray" />
       </View>
-
     </View>
   );
 };
@@ -98,7 +97,6 @@ const _renderContent = (section, index) => {
           <View style={tailwind('flex-row items-center')}>
             <Text>{item.price}</Text>
             <Text>/month</Text>
-
           </View>
         </View>
       ))}
@@ -118,7 +116,6 @@ const _renderContent = (section, index) => {
       <View>
         <Text>Secure file storing</Text>
       </View>
-
     </View>
   );
 };
@@ -126,15 +123,17 @@ const _renderContent = (section, index) => {
 function IndividualsTab(props: any) {
   const [activeSections, setActiveSections] = useState<number[]>([]);
 
-  return <View style={tailwind('bg-white flex-1')}>
-    <Accordion
-      sections={SECTIONS}
-      activeSections={activeSections}
-      renderHeader={_renderHeader}
-      renderContent={_renderContent}
-      onChange={setActiveSections}
-    />
-  </View>
+  return (
+    <View style={tailwind('bg-white flex-1')}>
+      <Accordion
+        sections={SECTIONS}
+        activeSections={activeSections}
+        renderHeader={_renderHeader}
+        renderContent={_renderContent}
+        onChange={setActiveSections}
+      />
+    </View>
+  );
 }
 
 const mapStateToProps = (state: any) => ({ ...state });

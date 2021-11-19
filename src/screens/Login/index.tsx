@@ -1,87 +1,96 @@
-import React, { useEffect } from 'react'
+import React, { useEffect } from 'react';
 import { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Alert, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
+import {
+  View,
+  Text,
+  KeyboardAvoidingView,
+  Alert,
+  TextInput,
+  TouchableHighlight,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import { connect } from 'react-redux';
-import * as Unicons from '@iconscout/react-native-unicons'
+import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../helpers';
 import analytics from '../../helpers/analytics';
 import { userActions } from '../../store/actions';
 import { Reducers } from '../../store/reducers/reducers';
-import InternxtLogo from '../../../assets/logo.svg'
+import InternxtLogo from '../../../assets/logo.svg';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import VersionUpdate from '../../components/VersionUpdate';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
 
 interface LoginProps extends Reducers {
-  goToForm?: (screenName: string) => void
+  goToForm?: (screenName: string) => void;
 }
 
 function Login(props: LoginProps): JSX.Element {
-  const [isLoading, setIsLoading] = useState(true)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [twoFactorCode, setTwoFactorCode] = useState('')
-  const [showTwoFactor, setShowTwoFactor] = useState(false)
+  const [isLoading, setIsLoading] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [showPasswordText, setShowPasswordText] = useState(false);
   const [passwordFocus, setPasswordFocus] = useState(false);
 
   const handleOnPress = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const userLoginData = await authService.apiLogin(email)
+      const userLoginData = await authService.apiLogin(email);
 
       if (userLoginData.tfa && !twoFactorCode) {
-        setShowTwoFactor(true)
-        setIsLoading(false)
+        setShowTwoFactor(true);
+        setIsLoading(false);
       } else {
-        await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
+        await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode));
       }
-
     } catch (err) {
-      analytics.track('user-signin-attempted', {
-        status: 'error',
-        message: err.message
-      }).catch(() => { })
+      analytics
+        .track('user-signin-attempted', {
+          status: 'error',
+          message: err.message,
+        })
+        .catch(() => undefined);
 
-      Alert.alert('Could not log in', err.message)
-      setIsLoading(false)
+      Alert.alert('Could not log in', err.message);
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (props.authenticationState.error) {
-      Alert.alert('Login error', props.authenticationState.error)
-      setIsLoading(false)
+      Alert.alert('Login error', props.authenticationState.error);
+      setIsLoading(false);
     }
-  }, [props.authenticationState.error])
+  }, [props.authenticationState.error]);
 
   useEffect(() => {
     if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
 
       props.navigation.replace('FileExplorer', {
-        folderId: rootFolderId
-      })
+        folderId: rootFolderId,
+      });
     } else {
       (async () => {
         const xToken = await deviceStorage.getToken();
         const xUser = await deviceStorage.getUser();
 
         if (xToken && xUser) {
-          props.dispatch(userActions.localSignIn(xToken, xUser))
+          props.dispatch(userActions.localSignIn(xToken, xUser));
         } else {
-          setIsLoading(false)
+          setIsLoading(false);
         }
-      })()
+      })();
     }
-  }, [props.authenticationState.loggedIn, props.authenticationState.token])
+  }, [props.authenticationState.loggedIn, props.authenticationState.token]);
 
   return (
-    <KeyboardAvoidingView behavior='height' style={tailwind('p-5 bg-white h-full justify-between')}>
+    <KeyboardAvoidingView behavior="height" style={tailwind('p-5 bg-white h-full justify-between')}>
       <View></View>
       <View style={isLoading ? tailwind('opacity-50') : tailwind('opacity-100')}>
         <View>
@@ -95,7 +104,7 @@ function Login(props: LoginProps): JSX.Element {
             <TextInput
               style={tailwind('input pl-4')}
               value={email}
-              onChangeText={value => setEmail(value)}
+              onChangeText={(value) => setEmail(value)}
               placeholder={strings.components.inputs.email}
               placeholderTextColor="#666"
               maxLength={64}
@@ -112,7 +121,7 @@ function Login(props: LoginProps): JSX.Element {
             <TextInput
               style={tailwind('input pl-4')}
               value={password}
-              onChangeText={value => setPassword(value)}
+              onChangeText={(value) => setPassword(value)}
               onFocus={() => setPasswordFocus(true)}
               onBlur={() => setPasswordFocus(false)}
               placeholder={strings.components.inputs.password}
@@ -124,54 +133,56 @@ function Login(props: LoginProps): JSX.Element {
               editable={!isLoading}
             />
 
-            {(!!password || passwordFocus) && <TouchableWithoutFeedback
-              onPress={() => setShowPasswordText(!showPasswordText)}
-            >
-              <View style={tailwind('justify-center p-3')}>
-
-                {showPasswordText
-                  ?
-                  <Unicons.UilEyeSlash color={getColor('neutral-80')} />
-
-                  :
-                  <Unicons.UilEye color={getColor('neutral-80')} />
-
-                }
-              </View>
-            </TouchableWithoutFeedback>
-
-            }
+            {(!!password || passwordFocus) && (
+              <TouchableWithoutFeedback onPress={() => setShowPasswordText(!showPasswordText)}>
+                <View style={tailwind('justify-center p-3')}>
+                  {showPasswordText ? (
+                    <Unicons.UilEyeSlash color={getColor('neutral-80')} />
+                  ) : (
+                    <Unicons.UilEye color={getColor('neutral-80')} />
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
+            )}
           </View>
         </View>
 
         <View style={showTwoFactor ? tailwind('') : tailwind('hidden')}>
-          <View style={[tailwind('input-wrapper my-2 items-stretch'), validationService.validate2FA(twoFactorCode) ? {} : tailwind('border-red-50')]}>
+          <View
+            style={[
+              tailwind('input-wrapper my-2 items-stretch'),
+              validationService.validate2FA(twoFactorCode) ? {} : tailwind('border-red-50'),
+            ]}
+          >
             <TextInput
               style={tailwind('input pl-4')}
               value={twoFactorCode}
-              onChangeText={value => setTwoFactorCode(value)}
+              onChangeText={(value) => setTwoFactorCode(value)}
               placeholder="Two-factor code"
               placeholderTextColor="#666"
               maxLength={64}
               keyboardType="numeric"
-              textContentType="none" />
+              textContentType="none"
+            />
           </View>
         </View>
 
         <View>
-          <TouchableHighlight
-            style={tailwind('btn btn-primary my-5')}
-            underlayColor="#4585f5"
-            onPress={handleOnPress}>
-            <Text style={tailwind('text-base btn-label')}>{isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}</Text>
+          <TouchableHighlight style={tailwind('btn btn-primary my-5')} underlayColor="#4585f5" onPress={handleOnPress}>
+            <Text style={tailwind('text-base btn-label')}>
+              {isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}
+            </Text>
           </TouchableHighlight>
 
-          <Text style={tailwind('text-center text-sm m-2 text-blue-60')} onPress={() => props.navigation.replace('Forgot')}>
+          <Text
+            style={tailwind('text-center text-sm m-2 text-blue-60')}
+            onPress={() => props.navigation.replace('Forgot')}
+          >
             {strings.screens.login_screen.forgot}
           </Text>
 
           <Text style={tailwind('text-center mt-2')} onPress={() => props.navigation.replace('Register')}>
-            <Text style={tailwind('text-sm')}>{strings.screens.login_screen.no_register}{' '}</Text>
+            <Text style={tailwind('text-sm')}>{strings.screens.login_screen.no_register} </Text>
             <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.register}</Text>
           </Text>
         </View>
@@ -179,13 +190,13 @@ function Login(props: LoginProps): JSX.Element {
 
       <VersionUpdate {...props} />
     </KeyboardAvoidingView>
-  )
+  );
 }
 
 const mapStateToProps = (state: any) => {
   return {
-    authenticationState: state.authenticationState
+    authenticationState: state.authenticationState,
   };
 };
 
-export default connect(mapStateToProps)(Login)
+export default connect(mapStateToProps)(Login);

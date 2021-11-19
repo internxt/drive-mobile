@@ -18,9 +18,11 @@ function shardSize(hops: number): number {
 }
 
 export function _determineShardSize(fileSize: number, accumulator = 0): number {
-  if (fileSize < 0) { return 0; }
+  if (fileSize < 0) {
+    return 0;
+  }
 
-  let hops = ((accumulator - SHARD_MULTIPLE_BACK) < 0) ? 0 : accumulator - SHARD_MULTIPLE_BACK;
+  let hops = accumulator - SHARD_MULTIPLE_BACK < 0 ? 0 : accumulator - SHARD_MULTIPLE_BACK;
 
   const byteMultiple = shardSize(accumulator);
 
@@ -42,7 +44,7 @@ export function _determineShardSize(fileSize: number, accumulator = 0): number {
 }
 
 export function determineParityShards(totalShards: number): number {
-  return Math.ceil(totalShards * 2 / 3);
+  return Math.ceil((totalShards * 2) / 3);
 }
 
 /**

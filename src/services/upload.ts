@@ -1,19 +1,19 @@
-import { getEnvironmentConfig, Network } from '../lib/network'
-import { deviceStorage } from '../helpers'
-import { getHeaders } from '../helpers/headers'
+import { getEnvironmentConfig, Network } from '../lib/network';
+import { deviceStorage } from '../helpers';
+import { getHeaders } from '../helpers/headers';
 
 export interface FileMeta {
-  progress: number
-  currentFolder: number
-  id: string
-  createdAt: Date,
+  progress: number;
+  currentFolder: number;
+  id: string;
+  createdAt: Date;
   type: string;
   name: string;
   size: number;
   uri: string;
   lastModified?: number;
   output?: FileList | null;
-  path: string
+  path: string;
 }
 
 export async function uploadFile(file: FileMeta, progressCallback: (progress: number) => void): Promise<string> {
@@ -31,17 +31,17 @@ export function getFinalUri(fileUri: string, fileType: FileType): string {
 }
 
 export interface FileEntry {
-  fileId: string
+  fileId: string;
   // eslint-disable-next-line camelcase
-  file_id: string
-  type: string,
-  bucket: string
-  size: number
+  file_id: string;
+  type: string;
+  bucket: string;
+  size: number;
   // eslint-disable-next-line camelcase
-  folder_id: string
-  name: string,
+  folder_id: string;
+  name: string;
   // eslint-disable-next-line camelcase
-  encrypt_version: '03-aes'
+  encrypt_version: '03-aes';
 }
 
 export async function createFileEntry(entry: FileEntry): Promise<any> {

@@ -9,7 +9,7 @@ class FolderService {
     folderId: number,
     metadata: DriveFolderMetadataPayload,
     bucketId: string,
-    relativePath: string
+    relativePath: string,
   ): Promise<void> {
     const headers = await getHeaders();
     const headersMap = {};
@@ -21,8 +21,8 @@ class FolderService {
     await axios.post(
       `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}/meta`,
       { metadata },
-      { headers: headersMap
-      });
+      { headers: headersMap },
+    );
 
     // * Renames files on network recursively
     const pendingFolders = [{ relativePath, folderId }];
@@ -32,8 +32,8 @@ class FolderService {
       const folderContentResponse = await fileService.getFolderContent(currentFolder.folderId);
       const folderContent = {
         folders: [],
-        files: []
-      }
+        files: [],
+      };
 
       if (folderContentResponse) {
         folderContent.folders = folderContentResponse.children.map((folder) => ({ ...folder, isFolder: true }));
@@ -44,7 +44,7 @@ class FolderService {
 
       // * Renames current folder files
       for (const file of folderContent.files) {
-        const fileFullName = `${file.name}${file.type ? '.' + file.type : ''}`
+        const fileFullName = `${file.name}${file.type ? '.' + file.type : ''}`;
         const relativePath = `${currentFolder.relativePath}/${fileFullName}`;
 
         fileService.renameFileInNetwork(file.fileId, bucketId, relativePath);
@@ -54,8 +54,8 @@ class FolderService {
       pendingFolders.push(
         ...folderContent.folders.map((folderData) => ({
           relativePath: `${currentFolder.relativePath}/${folderData.name}`,
-          folderId: folderData.id
-        }))
+          folderId: folderData.id,
+        })),
       );
     }
   }

@@ -26,7 +26,7 @@ export class EncryptStream {
   private indexCounter = 0;
   private listeners: Map<StreamEvent, StreamListener[]> = new Map<StreamEvent, StreamListener[]>();
 
-  public shards: RawShard [] = [];
+  public shards: RawShard[] = [];
 
   constructor(key: Buffer, iv: Buffer) {
     this.cipher = createCipheriv('aes-256-ctr', key, iv);
@@ -38,7 +38,7 @@ export class EncryptStream {
 
   on: onListener = (event, listener) => {
     this.listeners.get(event).push(listener);
-  }
+  };
 
   emit(event: StreamEvent, content?: any): void {
     this.listeners.get(event).forEach((listener) => listener(content));

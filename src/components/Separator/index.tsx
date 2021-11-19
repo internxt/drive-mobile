@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import { StyleSheet, View, ViewProps } from 'react-native';
 
 export default function Separator(props: ViewProps): JSX.Element {
@@ -11,6 +11,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     height: 1,
     marginBottom: 12,
-    marginTop: 12
-  }
+    marginTop: 12,
+  },
 });

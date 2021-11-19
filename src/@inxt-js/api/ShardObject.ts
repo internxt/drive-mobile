@@ -21,7 +21,7 @@ export class ShardObject extends EventEmitter {
   private shard?: Shard;
 
   static Events = {
-    NodeTransferFinished: 'node-transfer-finished'
+    NodeTransferFinished: 'node-transfer-finished',
   };
 
   constructor(api: InxtApiI, frameId: string | null, meta: ShardMeta | null, shard?: Shard) {
@@ -37,7 +37,7 @@ export class ShardObject extends EventEmitter {
       size: 0,
       tree: [],
       challenges: [],
-      exclude: []
+      exclude: [],
     };
     this.api = api;
     this.shard = shard;
@@ -62,7 +62,11 @@ export class ShardObject extends EventEmitter {
 
     const contract = await this.negotiateContract();
 
-    logger.debug(`Negotiated succesfully contract for shard ${this.getHash()} (index ${this.getIndex()}, size ${this.getSize()}) with token ${contract.token}`);
+    logger.debug(
+      `Negotiated succesfully contract for shard ${this.getHash()} (index ${this.getIndex()}, size ${this.getSize()}) with token ${
+        contract.token
+      }`,
+    );
 
     const farmer = { ...contract.farmer, lastSeen: new Date() };
     const shard: Shard = {
@@ -73,7 +77,7 @@ export class ShardObject extends EventEmitter {
       parity: this.meta.parity,
       token: contract.token,
       farmer,
-      operation: contract.operation
+      operation: contract.operation,
     };
 
     await this.put(shard, content);
@@ -86,37 +90,41 @@ export class ShardObject extends EventEmitter {
 
     this.requests.push(req);
 
-    return req.start<ContractNegotiated>()
-      .catch((err) => {
-        throw wrap('Contract negotiation error', err);
-      });
+    return req.start<ContractNegotiated>().catch((err) => {
+      throw wrap('Contract negotiation error', err);
+    });
   }
 
   private put(shard: Shard, content: Buffer): Promise<any> {
     let success = true;
 
-    return this.api.requestPut(shard).start<{ result: string }>().then((res) => {
-      const putUrl = res.result;
+    return this.api
+      .requestPut(shard)
+      .start<{ result: string }>()
+      .then((res) => {
+        const putUrl = res.result;
 
-      logger.debug(`Put url for shard ${shard.index} is ${putUrl}`);
+        logger.debug(`Put url for shard ${shard.index} is ${putUrl}`);
 
-      return this.api.putShard(putUrl, content).start();
-    }).catch((err: AxiosError) => {
-      logger.error(`Error uploading shard ${shard.index}: ${err.message}`);
+        return this.api.putShard(putUrl, content).start();
+      })
+      .catch((err: AxiosError) => {
+        logger.error(`Error uploading shard ${shard.index}: ${err.message}`);
 
-      if (err.response && err.response.status < 400) {
-        return { result: err.response.data && err.response.data.error };
-      }
+        if (err.response && err.response.status < 400) {
+          return { result: err.response.data && err.response.data.error };
+        }
 
-      success = false;
+        success = false;
 
-      throw wrap('Farmer request error', err);
-    }).finally(() => {
-      const hash = shard.hash;
-      const nodeID = shard.farmer.nodeID;
+        throw wrap('Farmer request error', err);
+      })
+      .finally(() => {
+        const hash = shard.hash;
+        const nodeID = shard.farmer.nodeID;
 
-      this.emit(ShardObject.Events.NodeTransferFinished, [{ hash, nodeID, success }]);
-    });
+        this.emit(ShardObject.Events.NodeTransferFinished, [{ hash, nodeID, success }]);
+      });
   }
 
   static requestGet(url: string, useProxy = true): Promise<GetUrl> {
@@ -125,11 +133,13 @@ export class ShardObject extends EventEmitter {
 
   static download(shard: Shard, cb: (err: Error | null, content: Buffer | null) => void): void {
     ShardObject.requestGet(buildRequestUrl(shard)).then((url: GetUrl) => {
-      getBuffer(url, { useProxy: false }).then((content) => {
-        cb(null, content);
-      }).catch((err) => {
-        cb(err, null);
-      });
+      getBuffer(url, { useProxy: false })
+        .then((content) => {
+          cb(null, content);
+        })
+        .catch((err) => {
+          cb(err, null);
+        });
     });
   }
 
@@ -141,7 +151,8 @@ export class ShardObject extends EventEmitter {
 
     let success = true;
 
-    return req.start<SendShardToNodeResponse>()
+    return req
+      .start<SendShardToNodeResponse>()
       .catch((err: AxiosError) => {
         if (err.response && err.response.status < 400) {
           return { result: err.response.data && err.response.data.error };
@@ -150,7 +161,8 @@ export class ShardObject extends EventEmitter {
         success = false;
 
         throw wrap('Farmer request error', err);
-      }).finally(() => {
+      })
+      .finally(() => {
         const hash = shard.hash;
         const nodeID = shard.farmer.nodeID;
 

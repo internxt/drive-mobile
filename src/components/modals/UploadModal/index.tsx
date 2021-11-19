@@ -1,11 +1,23 @@
-import React from 'react'
-import { View, Text, Alert, Platform, PermissionsAndroid, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
+import React from 'react';
+import {
+  View,
+  Text,
+  Alert,
+  Platform,
+  PermissionsAndroid,
+  TouchableWithoutFeedback,
+  TouchableHighlight,
+} from 'react-native';
 import { connect, useSelector } from 'react-redux';
 import { uniqueId } from 'lodash';
 import Modal from 'react-native-modalbox';
-import { launchCameraAsync, requestCameraPermissionsAsync, requestMediaLibraryPermissionsAsync } from 'expo-image-picker';
+import {
+  launchCameraAsync,
+  requestCameraPermissionsAsync,
+  requestMediaLibraryPermissionsAsync,
+} from 'expo-image-picker';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
-import { launchImageLibrary } from 'react-native-image-picker'
+import { launchImageLibrary } from 'react-native-image-picker';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import { fileActions, layoutActions } from '../../../store/actions';
@@ -23,17 +35,17 @@ import globalStyle from '../../../styles/global.style';
 import RNFS from 'react-native-fs';
 
 interface UploadingFile {
-  size: number
-  progress: number
-  name: string
-  type: string
-  currentFolder: any
-  createdAt: Date
-  updatedAt: Date
-  id: string
-  uri: string
-  path: string
-  folderId?: number
+  size: number;
+  progress: number;
+  name: string;
+  type: string;
+  currentFolder: any;
+  createdAt: Date;
+  updatedAt: Date;
+  id: string;
+  uri: string;
+  path: string;
+  folderId?: number;
 }
 
 function getFileExtension(uri: string) {
@@ -55,7 +67,7 @@ function removeExtension(filename: string) {
 }
 
 function UploadModal(props: Reducers) {
-  const { filesState, authenticationState, layoutState } = useSelector<any, Reducers>(state => state);
+  const { filesState, authenticationState, layoutState } = useSelector<any, Reducers>((state) => state);
 
   const currentFolder = filesState.folderContent?.currentFolder || authenticationState.user.root_folder_id;
 
@@ -72,8 +84,8 @@ function UploadModal(props: Reducers) {
       result.name = result.uri.split('/').pop(); // ??
     }
 
-    const regex = /^(.*:\/{0,2})\/?(.*)$/gm
-    const fileUri = result.uri.replace(regex, '$2')
+    const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
+    const fileUri = result.uri.replace(regex, '$2');
     const extension = fileUri.split('.').pop();
     const finalUri = getFinalUri(fileUri, fileType);
 
@@ -94,7 +106,16 @@ function UploadModal(props: Reducers) {
     const fileSize = fileStat.size;
     const type = extension;
     const { bucket } = await deviceStorage.getUser();
-    const fileEntry: FileEntry = { fileId, file_id: fileId, type, bucket, size: fileSize.toString(), folder_id: folderId, name, encrypt_version: '03-aes' };
+    const fileEntry: FileEntry = {
+      fileId,
+      file_id: fileId,
+      type,
+      bucket,
+      size: fileSize.toString(),
+      folder_id: folderId,
+      name,
+      encrypt_version: '03-aes',
+    };
 
     return createFileEntry(fileEntry);
   }
@@ -113,18 +134,17 @@ function UploadModal(props: Reducers) {
     }
     const destPath = `${getTemporaryDir()}/${result.name}`;
 
-    await copyFile(result.uri, destPath)
+    await copyFile(result.uri, destPath);
 
     const extension = result.name.split('.').pop();
-    const finalUri = destPath // result.uri //getFinalUri(fileUri, fileType);
+    const finalUri = destPath; // result.uri //getFinalUri(fileUri, fileType);
 
     if (Platform.OS === 'android' && fileType === 'document') {
-
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
         title: 'Files Permission',
         message: 'Internxt needs access to your files in order to upload documents',
         buttonNegative: 'Cancel',
-        buttonPositive: 'Grant'
+        buttonPositive: 'Grant',
       });
 
       if (!granted) {
@@ -146,9 +166,18 @@ function UploadModal(props: Reducers) {
     const fileSize = result.size;
     const type = extension;
     const { bucket } = await deviceStorage.getUser();
-    const fileEntry: FileEntry = { fileId, file_id: fileId, type, bucket, size: fileSize, folder_id: folderId, name, encrypt_version: '03-aes' };
+    const fileEntry: FileEntry = {
+      fileId,
+      file_id: fileId,
+      type,
+      bucket,
+      size: fileSize,
+      folder_id: folderId,
+      name,
+      encrypt_version: '03-aes',
+    };
 
-    unlink(destPath).catch(() => { });
+    unlink(destPath).catch(() => undefined);
     return createFileEntry(fileEntry);
   }
 
@@ -182,7 +211,7 @@ function UploadModal(props: Reducers) {
   }
 
   function processFilesFromPicker(documents): Promise<void> {
-    documents.forEach(doc => doc.uri = doc.fileCopyUri);
+    documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
     props.dispatch(layoutActions.closeUploadFileModal());
     return uploadDocuments(documents);
   }
@@ -203,7 +232,7 @@ function UploadModal(props: Reducers) {
       Alert.alert(`${filesExcluded.length} files will not be uploaded. Max upload size per file is 1GB`);
     }
 
-    const filesAtSameLevel = filesState.folderContent.files.map(file => {
+    const filesAtSameLevel = filesState.folderContent.files.map((file) => {
       return { name: removeExtension(file.name), type: file.type };
     });
 
@@ -212,7 +241,14 @@ function UploadModal(props: Reducers) {
     for (const fileToUpload of filesToUpload) {
       const file: UploadingFile = {
         uri: fileToUpload.uri,
-        name: renameIfAlreadyExists(filesAtSameLevel, removeExtension(fileToUpload.name), getFileExtension(fileToUpload.name))[2] + '.' + getFileExtension(fileToUpload.name),
+        name:
+          renameIfAlreadyExists(
+            filesAtSameLevel,
+            removeExtension(fileToUpload.name),
+            getFileExtension(fileToUpload.name),
+          )[2] +
+          '.' +
+          getFileExtension(fileToUpload.name),
         progress: 0,
         type: getFileExtension(fileToUpload.uri),
         currentFolder,
@@ -220,8 +256,8 @@ function UploadModal(props: Reducers) {
         updatedAt: new Date(),
         id: uniqueId(),
         path: '',
-        size: fileToUpload.size
-      }
+        size: fileToUpload.size,
+      };
 
       trackUploadStart();
       props.dispatch(fileActions.uploadFileStart());
@@ -237,18 +273,21 @@ function UploadModal(props: Reducers) {
       await clearTempDir();
     }
     for (const file of formattedFiles) {
-      await upload(file, 'document').then(() => {
-        uploadSuccess(file);
-      }).catch((err) => {
-        trackUploadError(err);
-        props.dispatch(fileActions.uploadFileFailed(parseInt(file.id, 10)));
-        notify({
-          text: 'Cannot upload file: ' + err.message,
-          type: 'error'
+      await upload(file, 'document')
+        .then(() => {
+          uploadSuccess(file);
+        })
+        .catch((err) => {
+          trackUploadError(err);
+          props.dispatch(fileActions.uploadFileFailed(parseInt(file.id, 10)));
+          notify({
+            text: 'Cannot upload file: ' + err.message,
+            type: 'error',
+          });
+        })
+        .finally(() => {
+          props.dispatch(fileActions.uploadFileFinished(file.name));
         });
-      }).finally(() => {
-        props.dispatch(fileActions.uploadFileFinished(file.name));
-      });
     }
   }
 
@@ -256,69 +295,54 @@ function UploadModal(props: Reducers) {
     if (Platform.OS === 'ios') {
       DocumentPicker.pickMultiple({
         type: [DocumentPicker.types.allFiles],
-        copyTo: 'cachesDirectory'
-      }).then((documents) => {
-        documents.forEach(doc => doc.uri = doc.fileCopyUri);
-        props.dispatch(layoutActions.closeUploadFileModal());
-        return uploadDocuments(documents);
-      }).then(() => {
-        props.dispatch(fileActions.getFolderContent(currentFolder));
-      }).catch((err) => {
-        if (err.message === 'User canceled document picker') {
-          return;
-        }
-        Alert.alert('File upload error', err.message);
-      }).finally(() => {
-        props.dispatch(layoutActions.closeUploadFileModal());
+        copyTo: 'cachesDirectory',
       })
+        .then((documents) => {
+          documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
+          props.dispatch(layoutActions.closeUploadFileModal());
+          return uploadDocuments(documents);
+        })
+        .then(() => {
+          props.dispatch(fileActions.getFolderContent(currentFolder));
+        })
+        .catch((err) => {
+          if (err.message === 'User canceled document picker') {
+            return;
+          }
+          Alert.alert('File upload error', err.message);
+        })
+        .finally(() => {
+          props.dispatch(layoutActions.closeUploadFileModal());
+        });
     } else {
       DocumentPicker.pickMultiple({
         type: [DocumentPicker.types.allFiles],
-        copyTo: 'cachesDirectory'
-      }).then(processFilesFromPicker).then(() => {
-        props.dispatch(fileActions.getFolderContent(currentFolder));
-      }).catch((err) => {
-        if (err.message === 'User canceled document picker') {
-          return;
-        }
-        Alert.alert('File upload error', err.message);
-      }).finally(() => {
-        props.dispatch(layoutActions.closeUploadFileModal());
+        copyTo: 'cachesDirectory',
       })
-      // getDocumentAsync({ copyToCacheDirectory: true }).then((result) => {
-      //   if (result.type !== 'cancel') {
-      //     const documents: DocumentPickerResponse[] = [{
-      //       fileCopyUri: result.uri,
-      //       name: result.name,
-      //       size: result.size,
-      //       type: '',
-      //       uri: result.uri
-      //     }]
-
-      //     props.dispatch(layoutActions.closeUploadFileModal());
-      //     return uploadDocuments(documents);
-      //   }
-      // }).then(() => {
-      //   props.dispatch(fileActions.getFolderContent(currentFolder));
-      // }).catch((err) => {
-      //   if (err.message === 'User canceled document picker') {
-      //     return;
-      //   }
-      //   Alert.alert('File upload error', err.message);
-      // }).finally(() => {
-      //   props.dispatch(layoutActions.closeUploadFileModal());
-      // });
+        .then(processFilesFromPicker)
+        .then(() => {
+          props.dispatch(fileActions.getFolderContent(currentFolder));
+        })
+        .catch((err) => {
+          if (err.message === 'User canceled document picker') {
+            return;
+          }
+          Alert.alert('File upload error', err.message);
+        })
+        .finally(() => {
+          props.dispatch(layoutActions.closeUploadFileModal());
+        });
     }
   }
 
   async function handleUploadFromCameraRoll() {
     if (Platform.OS === 'ios') {
-      const { status } = await requestMediaLibraryPermissionsAsync(false)
+      const { status } = await requestMediaLibraryPermissionsAsync(false);
 
       if (status === 'granted') {
         launchImageLibrary({ mediaType: 'mixed', selectionLimit: 0 }, async (response) => {
           if (response.errorMessage) {
-            return Alert.alert(response.errorMessage)
+            return Alert.alert(response.errorMessage);
           }
           if (response.assets) {
             const documents: DocumentPickerResponse[] = [];
@@ -328,42 +352,48 @@ function UploadModal(props: Reducers) {
 
               documents.push({
                 fileCopyUri: asset.uri,
-                name: asset.fileName || asset.uri.substring(asset.uri.lastIndexOf('/')+1),
+                name: asset.fileName || asset.uri.substring(asset.uri.lastIndexOf('/') + 1),
                 size: asset.fileSize || typeof stat.size === 'string' ? parseInt(stat.size) : stat.size,
                 type: asset.type,
-                uri: asset.uri
-              })
+                uri: asset.uri,
+              });
             }
 
             props.dispatch(layoutActions.closeUploadFileModal());
-            uploadDocuments(documents).then(() => {
-              props.dispatch(fileActions.getFolderContent(currentFolder));
-            }).catch((err) => {
-              if (err.message === 'User canceled document picker') {
-                return;
-              }
-              Alert.alert('File upload error', err.message);
-            }).finally(() => {
-              props.dispatch(layoutActions.closeUploadFileModal());
-            })
+            uploadDocuments(documents)
+              .then(() => {
+                props.dispatch(fileActions.getFolderContent(currentFolder));
+              })
+              .catch((err) => {
+                if (err.message === 'User canceled document picker') {
+                  return;
+                }
+                Alert.alert('File upload error', err.message);
+              })
+              .finally(() => {
+                props.dispatch(layoutActions.closeUploadFileModal());
+              });
           }
-        })
+        });
       }
-    }
-    else {
+    } else {
       DocumentPicker.pickMultiple({
         type: [DocumentPicker.types.images],
-        copyTo: 'cachesDirectory'
-      }).then(processFilesFromPicker).then(() => {
-        props.dispatch(fileActions.getFolderContent(currentFolder));
-      }).catch((err) => {
-        if (err.message === 'User canceled document picker') {
-          return;
-        }
-        Alert.alert('File upload error', err.message);
-      }).finally(() => {
-        props.dispatch(layoutActions.closeUploadFileModal());
+        copyTo: 'cachesDirectory',
       })
+        .then(processFilesFromPicker)
+        .then(() => {
+          props.dispatch(fileActions.getFolderContent(currentFolder));
+        })
+        .catch((err) => {
+          if (err.message === 'User canceled document picker') {
+            return;
+          }
+          Alert.alert('File upload error', err.message);
+        })
+        .finally(() => {
+          props.dispatch(layoutActions.closeUploadFileModal());
+        });
     }
   }
 
@@ -373,9 +403,9 @@ function UploadModal(props: Reducers) {
     if (status === 'granted') {
       let error: Error | null = null;
 
-      const result: any = await launchCameraAsync().catch(err => {
+      const result: any = await launchCameraAsync().catch((err) => {
         error = err;
-      })
+      });
 
       if (error) {
         return Alert.alert(error?.message);
@@ -386,17 +416,17 @@ function UploadModal(props: Reducers) {
       }
 
       if (!result.cancelled) {
-        const file = result
+        const file = result;
 
         // Set name for pics/photos
         if (!file.name) {
-          file.name = result.uri.split('/').pop()
+          file.name = result.uri.split('/').pop();
         }
-        file.progress = 0
-        file.currentFolder = currentFolder
+        file.progress = 0;
+        file.currentFolder = currentFolder;
         file.createdAt = new Date();
         file.updatedAt = new Date();
-        file.id = uniqueId()
+        file.id = uniqueId();
 
         trackUploadStart();
         props.dispatch(fileActions.uploadFileStart());
@@ -404,16 +434,19 @@ function UploadModal(props: Reducers) {
 
         props.dispatch(layoutActions.closeUploadFileModal());
 
-        uploadIOS(file, 'image').then(() => {
-          uploadSuccess(file);
-        }).catch(err => {
-          trackUploadError(err);
-          props.dispatch(fileActions.uploadFileFailed(file.id));
-          Alert.alert('Error', 'Cannot upload file due to: ' + err.message);
-        }).finally(() => {
-          props.dispatch(fileActions.uploadFileFinished(file.name));
-          props.dispatch(fileActions.getFolderContent(currentFolder));
-        });
+        uploadIOS(file, 'image')
+          .then(() => {
+            uploadSuccess(file);
+          })
+          .catch((err) => {
+            trackUploadError(err);
+            props.dispatch(fileActions.uploadFileFailed(file.id));
+            Alert.alert('Error', 'Cannot upload file due to: ' + err.message);
+          })
+          .finally(() => {
+            props.dispatch(fileActions.uploadFileFinished(file.name));
+            props.dispatch(fileActions.getFolderContent(currentFolder));
+          });
       }
     }
   }
@@ -427,33 +460,29 @@ function UploadModal(props: Reducers) {
       isOpen={layoutState.showUploadModal}
       entry={'bottom'}
       onClosed={() => {
-        props.dispatch(layoutActions.closeUploadFileModal())
+        props.dispatch(layoutActions.closeUploadFileModal());
       }}
       backButtonClose={true}
       backdropPressToClose={true}
       animationDuration={250}
     >
-
       <View style={tailwind('h-full')}>
-
         <TouchableWithoutFeedback
           style={tailwind('flex-grow')}
           onPress={() => {
-            props.dispatch(layoutActions.closeUploadFileModal())
+            props.dispatch(layoutActions.closeUploadFileModal());
           }}
         >
           <View style={tailwind('flex-grow')} />
         </TouchableWithoutFeedback>
 
         <View style={tailwind('p-4')}>
-
           <View style={tailwind('rounded-xl overflow-hidden')}>
-
             <TouchableHighlight
               style={tailwind('flex-grow')}
               underlayColor={getColor('neutral-80')}
               onPress={() => {
-                handleUploadFiles()
+                handleUploadFiles();
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
@@ -470,7 +499,7 @@ function UploadModal(props: Reducers) {
               style={tailwind('flex-grow')}
               underlayColor={getColor('neutral-80')}
               onPress={() => {
-                handleUploadFromCameraRoll()
+                handleUploadFromCameraRoll();
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
@@ -487,7 +516,7 @@ function UploadModal(props: Reducers) {
               style={tailwind('flex-grow')}
               underlayColor={getColor('neutral-80')}
               onPress={() => {
-                handleTakePhotoAndUpload()
+                handleTakePhotoAndUpload();
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
@@ -515,37 +544,33 @@ function UploadModal(props: Reducers) {
                 </View>
               </View>
             </TouchableHighlight>
-
           </View>
 
           <View style={tailwind('mt-4 rounded-xl overflow-hidden')}>
-
             <TouchableHighlight
               style={tailwind('flex-grow')}
               underlayColor={getColor('neutral-80')}
               onPress={() => {
-                props.dispatch(layoutActions.closeUploadFileModal())
+                props.dispatch(layoutActions.closeUploadFileModal());
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-center')}>
-                <Text style={[tailwind('text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>{strings.generic.cancel}</Text>
+                <Text style={[tailwind('text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
+                  {strings.generic.cancel}
+                </Text>
               </View>
             </TouchableHighlight>
-
           </View>
-
         </View>
-
       </View>
-
     </Modal>
-  )
+  );
 }
 
 const mapStateToProps = (state: any) => {
   return {
     user: state.authenticationState.user,
-    layoutState: state.layoutState
+    layoutState: state.layoutState,
   };
 };
 

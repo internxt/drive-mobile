@@ -10,7 +10,7 @@ export const userActions = {
   localSignIn,
   payment,
   initializeUser,
-  setUserStorage
+  setUserStorage,
 };
 
 function signin(email: string, password: string, sKey: string, twoFactorCode: string) {
@@ -19,10 +19,10 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
     dispatchRequest();
     return userService
       .signin(email, password, sKey, twoFactorCode)
-      .then(userData => {
+      .then((userData) => {
         return dispatch(success({ ...userData }));
       })
-      .catch(error => {
+      .catch((error) => {
         return dispatch(failure(error));
       });
   };
@@ -37,29 +37,35 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
     return { type: userActionTypes.SIGNIN_REQUEST };
   }
   function success(userData: any) {
-    analytics.identify(userData.user.uuid, {
-      email: userData.user.email,
-      platform: 'mobile',
-      // eslint-disable-next-line camelcase
-      referrals_credit: userData.user.credit,
-      // eslint-disable-next-line camelcase
-      referrals_count: Math.floor(userData.user.credit / 5),
-      createdAt: userData.user.createdAt
-    }).then(() => {
-      analytics.track('user-signin', {
+    analytics
+      .identify(userData.user.uuid, {
         email: userData.user.email,
-        userId: userData.user.uuid,
-        platform: 'mobile'
-      }).catch(() => { })
-
-    }).catch(() => { })
+        platform: 'mobile',
+        // eslint-disable-next-line camelcase
+        referrals_credit: userData.user.credit,
+        // eslint-disable-next-line camelcase
+        referrals_count: Math.floor(userData.user.credit / 5),
+        createdAt: userData.user.createdAt,
+      })
+      .then(() => {
+        analytics
+          .track('user-signin', {
+            email: userData.user.email,
+            userId: userData.user.uuid,
+            platform: 'mobile',
+          })
+          .catch(() => undefined);
+      })
+      .catch(() => undefined);
     return { type: userActionTypes.SIGNIN_SUCCESS, payload: userData };
   }
   function failure(error: any) {
-    analytics.track('user-signin-attempted', {
-      status: 'error',
-      message: error
-    }).catch(() => {})
+    analytics
+      .track('user-signin-attempted', {
+        status: 'error',
+        message: error,
+      })
+      .catch(() => undefined);
     return { type: userActionTypes.SIGNIN_FAILURE, payload: error };
   }
 }
@@ -87,7 +93,7 @@ function payment(token: string, planId: any) {
       .then(() => {
         dispatch(success());
       })
-      .catch(error => {
+      .catch((error) => {
         dispatch(failure(error));
       });
   };
@@ -106,5 +112,5 @@ function payment(token: string, planId: any) {
 }
 
 function setUserStorage(currentPlan: any): AnyAction {
-  return { type: userActionTypes.SET_USER_STORAGE, payload: currentPlan }
+  return { type: userActionTypes.SET_USER_STORAGE, payload: currentPlan };
 }

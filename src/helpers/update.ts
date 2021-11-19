@@ -5,15 +5,17 @@ import { deviceStorage } from './deviceStorage';
 const CHECK_UPDATES_INTERVAL = 5 * 1000 * 60; // One minute
 
 export async function shouldForceUpdate(): Promise<boolean> {
-  return deviceStorage.getItem('lastUpdateCheck')
-    .then(result => result === null).catch(() => true)
+  return deviceStorage
+    .getItem('lastUpdateCheck')
+    .then((result) => result === null)
+    .catch(() => true);
 }
 
 export async function shouldCheckUpdates(): Promise<boolean> {
   return false;
-  const shouldCheck = await deviceStorage.getItem('lastUpdateCheck')
+  const shouldCheck = await deviceStorage
+    .getItem('lastUpdateCheck')
     .then((lastCheckTimeString) => {
-
       if (lastCheckTimeString === null) {
         // First time app opened
         return true;
@@ -30,13 +32,14 @@ export async function shouldCheckUpdates(): Promise<boolean> {
 
       setUpdatesChecked();
       return false;
-    }).catch(() => true);
+    })
+    .catch(() => true);
 
   return shouldCheck;
 }
 
 export function setUpdatesChecked(): Promise<void> {
-  return deviceStorage.saveItem('lastUpdateCheck', new Date().getTime().toString())
+  return deviceStorage.saveItem('lastUpdateCheck', new Date().getTime().toString());
 }
 
 export async function forceCheckUpdates(): Promise<void> {
@@ -44,7 +47,7 @@ export async function forceCheckUpdates(): Promise<void> {
     const checkUpdate = await Updates.checkForUpdateAsync();
 
     if (checkUpdate.isAvailable) {
-      const download = await Updates.fetchUpdateAsync()
+      const download = await Updates.fetchUpdateAsync();
 
       if (download.isNew) {
         return Updates.reloadAsync();
@@ -52,6 +55,6 @@ export async function forceCheckUpdates(): Promise<void> {
     }
     setUpdatesChecked();
   } catch (err) {
-    console.log('Failed to update', err.message)
+    console.log('Failed to update', err.message);
   }
 }

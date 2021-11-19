@@ -1,8 +1,8 @@
-import Toast from 'react-native-toast-message'
+import Toast from 'react-native-toast-message';
 
 export interface custumToastParam {
-  text: string,
-  type: 'error' | 'success' | 'warn'
+  text: string;
+  type: 'error' | 'success' | 'warn';
 }
 
 export function notify(params: custumToastParam) {
@@ -12,6 +12,6 @@ export function notify(params: custumToastParam) {
     text1: params.text,
     visibilityTime: 5000,
     autoHide: true,
-    topOffset: 48
-  })
+    topOffset: 48,
+  });
 }
