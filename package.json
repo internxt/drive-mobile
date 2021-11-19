@@ -2,11 +2,6 @@
   "private": true,
   "name": "drive-mobile",
   "version": "1.4.2",
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn run test"
-    }
-  },
   "scripts": {
     "start": "react-native start",
     "android": "react-native run-android",
@@ -26,6 +21,7 @@
     "@babel/plugin-proposal-decorators": "^7.14.5",
     "@babel/runtime": "^7.14.6",
     "@iconscout/react-native-unicons": "^1.0.3",
+    "@internxt/lib": "^1.1.5",
     "@react-native-community/cameraroll": "1.4.1",
     "@react-native-community/masked-view": "0.1.10",
     "@react-navigation/bottom-tabs": "^6.0.0",
@@ -35,7 +31,6 @@
     "@segment/analytics-react-native": "^1.3.2",
     "@segment/analytics-react-native-firebase": "^1.3.2",
     "@tradle/react-native-http": "^2.0.1",
-    "@types/node": "^14.14.41",
     "assert": "^1.5.0",
     "async": "^3.2.0",
     "autoprefixer": "^10.2.5",
@@ -91,7 +86,6 @@
     "react-native-indicators": "^0.17.0",
     "react-native-level-fs": "^3.0.1",
     "react-native-localization": "^2.1.6",
-    "react-native-modal": "^11.10.0",
     "react-native-modalbox": "^2.0.2",
     "react-native-os": "^1.2.6",
     "react-native-pager-view": "5.0.12",
@@ -120,7 +114,7 @@
     "rn-fetch-blob": "=0.11.2",
     "socket.io-client": "^3.1.0",
     "stream-browserify": "^1.0.0",
-    "string_decoder": "^0.10.31",
+    "string_decoder": "~0.10.25",
     "tailwind-rn": "^3.0.1",
     "tailwindcss": "^2.1.2",
     "timers-browserify": "^1.4.2",
@@ -134,6 +128,7 @@
     "@react-native-community/eslint-config": "^2.0.0",
     "@types/async": "^3.2.6",
     "@types/lodash": "^4.14.165",
+    "@types/node": "^14.14.41",
     "@types/react": "~16.9.35",
     "@types/react-dom": "~16.9.8",
     "@types/react-native": "~0.63.2",
@@ -147,7 +142,7 @@
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.1",
-    "husky": "^4.3.8",
+    "husky": "^7.0.2",
     "jest": "~25.2.6",
     "prettier": "^2.3.2",
     "react-native-svg-transformer": "^0.14.3",

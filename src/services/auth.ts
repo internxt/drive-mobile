@@ -1,7 +1,7 @@
 import { deviceStorage, encryptText, encryptTextWithKey, getLyticsData, passToHash } from '../helpers';
 import analytics from '../helpers/analytics';
 import { getHeaders } from '../helpers/headers';
-import { isJsonString } from '../screens/Register/registerUtils';
+import { isJsonString } from '../screens/SignUpScreen/registerUtils';
 
 interface LoginResponse {
   tfa: string;

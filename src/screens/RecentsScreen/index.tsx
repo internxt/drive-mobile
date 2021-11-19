@@ -8,7 +8,9 @@ import { IFile } from '../../components/FileList';
 import FileItem from '../../components/FileItem';
 import SkinSkeleton from '../../components/SkinSkeleton';
 import _ from 'lodash';
-import EmptyRecents from '../StaticScreens/EmptyRecents';
+import strings from '../../../assets/lang/strings';
+import EmptyList from '../../components/EmptyList';
+import EmptyRecentsImage from '../../../assets/images/screens/empty-recents.svg';
 
 function Recents(props: Reducers): JSX.Element {
   const [loading, setLoading] = useState(true);
@@ -16,7 +18,7 @@ function Recents(props: Reducers): JSX.Element {
   const [refreshing, setRefreshing] = useState(false);
 
   const reloadRecents = async (limit?: number) => {
-    return getRecents(20)
+    return getRecents()
       .then((recentFiles) => {
         setRecents(recentFiles);
       })
@@ -37,7 +39,7 @@ function Recents(props: Reducers): JSX.Element {
     <View style={styles.container}>
       <AppMenu
         {...props}
-        title="Recents"
+        title={strings.screens.recents.title}
         hideBackPress={true}
         hideSearch={true}
         hideOptions={true}
@@ -65,7 +67,9 @@ function Recents(props: Reducers): JSX.Element {
           }
           contentContainerStyle={styles.fileListContentsScrollView}
         >
-          {recents.length === 0 && <EmptyRecents />}
+          {recents.length === 0 && (
+            <EmptyList {...strings.screens.recents.empty} image={<EmptyRecentsImage width={100} height={100} />} />
+          )}
           {recents.length > 0 &&
             recents.map((item) => {
               return <FileItem totalColumns={1} {...props} key={item.id} item={item} isFolder={false} />;

@@ -7,36 +7,31 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/
 import { Reducers } from '../../store/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import globalStyle from '../../styles/global.style';
+import strings from '../../../assets/lang/strings';
 
 const tabIcons = {
-  Drive: Unicons.UilHdd,
-  Recents: Unicons.UilClock,
-  Photos: Unicons.UilImage,
-  Create: Unicons.UilPlusCircle,
-  Shared: Unicons.UilLinkAdd,
-  Settings: Unicons.UilSetting,
+  home: Unicons.UilHome,
+  drive: Unicons.UilHdd,
+  create: Unicons.UilPlusCircle,
+  photos: Unicons.UilImage,
+  menu: Unicons.UilBars,
 };
 
-interface MyTabBarProps extends Omit<Reducers, 'navigation'>, BottomTabBarProps {}
+interface BottomTabNavigatorProps extends Omit<Reducers, 'navigation'>, BottomTabBarProps {}
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-function MyTabBar(props: MyTabBarProps): JSX.Element {
+function BottomTabNavigator(props: BottomTabNavigatorProps): JSX.Element {
   return (
     <View style={tailwind('bg-white flex-row px-2 justify-around items-center border-t border-neutral-20')}>
       {props.state.routes.map((route, index) => {
         const { options } = props.descriptors[route.key];
 
-        const label =
-          options.tabBarLabel !== undefined
-            ? options.tabBarLabel
-            : options.title !== undefined
-            ? options.title
-            : route.name;
+        const label = strings.tabs[route.name];
 
         const isFocused = props.state.index === index;
 
         const onPress = () => {
-          if (route.name === 'Create') {
+          if (route.name === 'create') {
             return props.dispatch(layoutActions.openUploadFileModal());
           }
 
@@ -89,6 +84,6 @@ function MyTabBar(props: MyTabBarProps): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: any) => ({ ...state });
+const mapStateToProps = (state) => ({ ...state });
 
-export default connect(mapStateToProps)(MyTabBar);
+export default connect(mapStateToProps)(BottomTabNavigator);

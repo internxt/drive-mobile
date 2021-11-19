@@ -19,7 +19,7 @@ import { Reducers } from '../../store/reducers/reducers';
 import validationService from '../../services/validation';
 import authService from '../../services/auth';
 
-function Forgot(props: Reducers): JSX.Element {
+function ForgotPasswordScreen(props: Reducers): JSX.Element {
   const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   // Get email form field
@@ -146,7 +146,7 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(Forgot);
+export default connect(mapStateToProps)(ForgotPasswordScreen);
 
 const styles = StyleSheet.create({
   button: {

@@ -7,7 +7,7 @@ import CheckBox from '../../components/CheckBox';
 import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../helpers';
 import { userActions } from '../../store/actions';
-import Intro from '../Intro';
+import Intro from '../IntroScreen';
 import { doRegister } from './registerUtils';
 import InternxtLogo from '../../../assets/logo.svg';
 import analytics from '../../helpers/analytics';

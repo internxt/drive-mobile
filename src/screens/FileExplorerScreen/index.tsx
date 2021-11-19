@@ -9,6 +9,7 @@ import analytics, { getLyticsData } from '../../helpers/analytics';
 import RNFetchBlob from 'rn-fetch-blob';
 import { notify } from '../../helpers';
 import { loadValues } from '../../services/storage';
+import strings from '../../../assets/lang/strings';
 
 function FileExplorer(props: Reducers): JSX.Element {
   const [selectedKeyId, setSelectedKeyId] = useState(0);
@@ -225,7 +226,7 @@ function FileExplorer(props: Reducers): JSX.Element {
 
   return (
     <View style={styles.container}>
-      <AppMenu title="Drive" hideOptions={false} />
+      <AppMenu title={strings.screens.file_explorer.title} hideOptions={false} />
       {props.layoutState.fileViewMode === 'grid' ? (
         <FileList {...props} isGrid={true} />
       ) : (

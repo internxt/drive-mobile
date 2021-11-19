@@ -6,7 +6,7 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import strings from '../../../assets/lang/strings';
 import { FolderIcon } from '../../helpers';
 
-function CreateFolder(props: any): JSX.Element {
+function CreateFolderScreen(props: any): JSX.Element {
   const [folderName, setFolderName] = useState('');
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder;
 
@@ -100,4 +100,4 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(CreateFolder);
+export default connect(mapStateToProps)(CreateFolderScreen);

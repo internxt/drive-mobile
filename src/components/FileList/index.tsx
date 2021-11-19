@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { RefreshControl, View, FlatList, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
+import _ from 'lodash';
 import { tailwind } from '../../helpers/designSystem';
 import { fileActions } from '../../store/actions';
 import { Reducers } from '../../store/reducers/reducers';
-import { EmptyFolder } from '../../screens/StaticScreens';
 import FileItem from '../FileItem';
 import SkinSkeleton from '../SkinSkeleton';
-import _ from 'lodash';
+import EmptyDriveImage from '../../../assets/images/screens/empty-drive.svg';
+import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg';
+import EmptyList from '../EmptyList';
+import strings from '../../../assets/lang/strings';
+
 export interface IFolder {
   name: string;
   id: number;
@@ -144,8 +148,16 @@ function FileList(props: FileListProps) {
               <SkinSkeleton key={n} />
             ))}
           </View>
+        ) : isRootFolder ? (
+          <EmptyList
+            {...strings.screens.file_explorer.emptyRoot}
+            image={<EmptyDriveImage width={100} height={100} />}
+          />
         ) : (
-          <EmptyFolder {...props} isRoot={isRootFolder} />
+          <EmptyList
+            {...strings.screens.file_explorer.emptyFolder}
+            image={<EmptyFolderImage width={100} height={100} />}
+          />
         )
       }
       data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}

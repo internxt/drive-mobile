@@ -1,5 +1,5 @@
 import { getHeaders } from '../../../helpers/headers';
-import { isJsonString } from '../../../screens/Register/registerUtils';
+import { isJsonString } from '../../../screens/SignUpScreen/registerUtils';
 
 const invalidName = /[\\/]|[. ]$/;
 

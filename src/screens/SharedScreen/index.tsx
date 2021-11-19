@@ -8,7 +8,9 @@ import FileItem from '../../components/FileItem';
 import { tailwind } from '../../helpers/designSystem';
 import SkinSkeleton from '../../components/SkinSkeleton';
 import _ from 'lodash';
-import EmptyShares from '../StaticScreens/EmptyShares';
+import strings from '../../../assets/lang/strings';
+import EmptyList from '../../components/EmptyList';
+import EmptySharesImage from '../../../assets/images/screens/empty-shares.svg';
 
 function Share(props: Reducers): JSX.Element {
   const [loading, setLoading] = useState(true);
@@ -39,7 +41,7 @@ function Share(props: Reducers): JSX.Element {
     <View style={tailwind('bg-white flex-1')}>
       <AppMenu
         {...props}
-        title="Shared"
+        title={strings.screens.shared.title}
         hideSearch={true}
         hideBackPress={true}
         hideNavigation={true}
@@ -86,7 +88,9 @@ function Share(props: Reducers): JSX.Element {
               })}
             </View>
           )}
-          {shares?.length === 0 && <EmptyShares />}
+          {shares?.length === 0 && (
+            <EmptyList {...strings.screens.shared.empty} image={<EmptySharesImage width={100} height={100} />} />
+          )}
         </ScrollView>
       )}
     </View>

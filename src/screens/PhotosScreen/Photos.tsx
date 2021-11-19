@@ -13,7 +13,7 @@ import {
 import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import { tailwind } from '../../helpers/designSystem';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import { loadLocalPhotos } from '../../services/photos';
 import globalStyle from '../../styles/global.style';
 

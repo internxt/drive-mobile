@@ -1,3 +1,15 @@
+export enum AppView {
+  Login = 'login',
+  Home = 'home',
+  Menu = 'menu',
+  Drive = 'drive',
+  Recents = 'recents',
+  Shared = 'shared',
+  Storage = 'storage',
+  Billing = 'billing',
+  Photos = 'photos',
+}
+
 export interface DriveFolderData {
   id: number;
   bucket: string | null;
