@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
-import { isNullOrEmpty, isStrongPassword } from '../Register/registerUtils';
+import validationService from '../../services/validation';
 import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
 import strings from '../../../assets/lang/strings';
@@ -8,7 +8,7 @@ import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { doChangePassword } from './changePasswordUtils';
 import { notify } from '../../helpers'
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 
 function ChangePassword(props: Reducers) {
   const [password, setPassword] = useState('')
@@ -32,8 +32,8 @@ function ChangePassword(props: Reducers) {
     })
   }
 
-  const isValidPassword = !isNullOrEmpty(password)
-  const isValidNewPassword = isStrongPassword(newPassword);
+  const isValidPassword = !validationService.isNullOrEmpty(password)
+  const isValidNewPassword = validationService.isStrongPassword(newPassword);
   const passwordConfirmed = confirmPassword && newPassword === confirmPassword;
 
   const activeButton = isValidPassword && isValidNewPassword && passwordConfirmed

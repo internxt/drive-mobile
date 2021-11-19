@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import * as Updates from 'expo-updates';
-import { deviceStorage } from '.';
+import { deviceStorage } from './deviceStorage';
 
 const CHECK_UPDATES_INTERVAL = 5 * 1000 * 60; // One minute
 

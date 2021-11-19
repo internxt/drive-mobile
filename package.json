@@ -1,4 +1,12 @@
 {
+  "private": true,
+  "name": "drive-mobile",
+  "version": "1.4.2",
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn run test"
+    }
+  },
   "scripts": {
     "start": "react-native start",
     "android": "react-native run-android",
@@ -153,14 +161,6 @@
     "react-test-renderer": "~16.13.1",
     "rn-nodeify": "^10.3.0",
     "typescript": "~4.0.0"
-  },
-  "private": true,
-  "name": "drive-mobile",
-  "version": "1.4.2",
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn run test"
-    }
   },
   "react-native": {
     "zlib": "browserify-zlib",

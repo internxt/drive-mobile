@@ -1,5 +1,5 @@
 import { upload } from './lib/upload';
-import { download, Logger } from './lib/download';
+import { download } from './lib/download';
 import { EncryptFilename, GenerateFileKey } from './lib/crypto';
 import { logger } from './lib/utils/logger';
 
@@ -42,19 +42,6 @@ interface UploadFileParams {
   finishedCallback: UploadFinishCallback;
 }
 
-function createLogger(): Logger {
-  return {
-    // eslint-disable-next-line no-console
-    info: console.log,
-    // eslint-disable-next-line no-console
-    debug: console.debug,
-    // eslint-disable-next-line no-console
-    warn: console.warn,
-    // eslint-disable-next-line no-console
-    error: console.error
-  }
-}
-
 const utils = {
   generateFileKey: GenerateFileKey
 };
@@ -85,7 +72,7 @@ export class Environment {
       return downloadState;
     }
 
-    download(this.config, bucketId, fileId, options.progressCallback, createLogger(), downloadState, options.fileManager).then(() => {
+    download(this.config, bucketId, fileId, options.progressCallback, logger, downloadState, options.fileManager).then(() => {
       options.finishedCallback(null);
     }).catch((err) => {
       options.finishedCallback(err);

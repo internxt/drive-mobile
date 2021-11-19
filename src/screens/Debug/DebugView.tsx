@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, TouchableHighlight, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
 import { deviceStorage } from '../../helpers';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import Accordion from 'react-native-collapsible/Accordion';
 import { tailwind } from '../../helpers/designSystem';
 

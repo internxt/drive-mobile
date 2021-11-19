@@ -2,8 +2,8 @@ import React, { Fragment, useEffect, useState } from 'react';
 import { View, TextInput, TouchableWithoutFeedback, StyleProp, ViewStyle } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons'
 import { connect } from 'react-redux';
-import { fileActions } from '../../redux/actions';
-import { Reducers } from '../../redux/reducers/reducers';
+import { fileActions } from '../../store/actions';
+import { Reducers } from '../../store/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 
 interface SearchBoxProps extends Reducers {

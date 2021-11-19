@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, TouchableWithoutFeedback, Text } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons'
-import { layoutActions } from '../../redux/actions';
+import { layoutActions } from '../../store/actions';
 import { connect } from 'react-redux';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types'
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import globalStyle from '../../styles/global.style';
 

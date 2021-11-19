@@ -4,19 +4,21 @@ import {
   View, Text, Alert,
   ScrollView
 } from 'react-native';
-import CheckBox from '../../components/CheckBox'
+import * as Unicons from '@iconscout/react-native-unicons';
 import { connect } from 'react-redux';
+
+import CheckBox from '../../components/CheckBox'
 import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../helpers';
-import { userActions } from '../../redux/actions';
+import { userActions } from '../../store/actions';
 import Intro from '../Intro'
-import { apiLogin, validateEmail } from '../Login/access';
-import { doRegister, isNullOrEmpty, isStrongPassword } from './registerUtils';
+import { doRegister } from './registerUtils';
 import InternxtLogo from '../../../assets/logo.svg'
-import analytics from '../../helpers/lytics';
-import * as Unicons from '@iconscout/react-native-unicons';
+import analytics from '../../helpers/analytics';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
+import validationService from '../../services/validation';
+import authService from '../../services/auth';
 
 function Register(props: Reducers): JSX.Element {
   const [showIntro, setShowIntro] = useState(false);
@@ -39,13 +41,13 @@ function Register(props: Reducers): JSX.Element {
 
   const [recaptchaToken, setRecaptchaToken] = useState<string>();
 
-  const isEmptyEmail = isNullOrEmpty(email);
-  const isValidEmail = validateEmail(email);
-  const isValidFirstName = !isNullOrEmpty(firstName);
-  const isValidLastName = !isNullOrEmpty(lastName);
-  const isEmptyPassword = isNullOrEmpty(password);
-  const isEmptyConfirmedPassword = isNullOrEmpty(confirmPassword);
-  const isValidPassword = isStrongPassword(password);
+  const isEmptyEmail = validationService.isNullOrEmpty(email);
+  const isValidEmail = validationService.validateEmail(email);
+  const isValidFirstName = !validationService.isNullOrEmpty(firstName);
+  const isValidLastName = !validationService.isNullOrEmpty(lastName);
+  const isEmptyPassword = validationService.isNullOrEmpty(password);
+  const isEmptyConfirmedPassword = validationService.isNullOrEmpty(confirmPassword);
+  const isValidPassword = validationService.isStrongPassword(password);
   const isValidConfirmedPassword = confirmPassword && password === confirmPassword;
 
   const isValidForm = isValidEmail
@@ -66,8 +68,8 @@ function Register(props: Reducers): JSX.Element {
       })
     } else {
       (async () => {
-        const xToken = await deviceStorage.getItem('xToken')
-        const xUser = await deviceStorage.getItem('xUser')
+        const xToken = await deviceStorage.getToken();
+        const xUser = await deviceStorage.getUser();
 
         if (xToken && xUser) {
           props.dispatch(userActions.localSignIn(xToken, xUser))
@@ -108,7 +110,7 @@ function Register(props: Reducers): JSX.Element {
         })
       ])
 
-      const userLoginData = await apiLogin(email)
+      const userLoginData = await authService.apiLogin(email)
 
       await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode))
     } catch (err) {

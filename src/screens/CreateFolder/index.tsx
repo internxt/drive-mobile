@@ -8,7 +8,7 @@ import {
   BackHandler
 } from 'react-native';
 import { connect } from 'react-redux';
-import { fileActions } from '../../redux/actions';
+import { fileActions } from '../../store/actions';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import strings from '../../../assets/lang/strings';
 import { FolderIcon } from '../../helpers';

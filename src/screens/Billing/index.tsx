@@ -3,7 +3,7 @@ import { ActivityIndicator, Alert, Linking, Text, TouchableHighlight, TouchableW
 import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
 import { notify } from '../../helpers';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import _ from 'lodash'
 import { getColor, tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/Separator';

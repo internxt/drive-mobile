@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { RefreshControl, View, FlatList, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import { tailwind } from '../../helpers/designSystem';
-import { fileActions } from '../../redux/actions';
-import { Reducers } from '../../redux/reducers/reducers';
+import { fileActions } from '../../store/actions';
+import { Reducers } from '../../store/reducers/reducers';
 import { EmptyFolder } from '../../screens/StaticScreens';
 import FileItem from '../FileItem';
 import SkinSkeleton from '../SkinSkeleton';

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Alert, ScrollView, RefreshControl, Text } from 'react-native'
 import { connect } from 'react-redux';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import AppMenu from '../../components/AppMenu';
 import { getShareList, IShare } from '../../services/shares';
 import FileItem from '../../components/FileItem';

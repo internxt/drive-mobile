@@ -23,11 +23,9 @@ module.exports = {
   rules: {
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
-    'no-console': 'error',
     'comma-dangle': ['error', 'never'],
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
-    'camelcase': ['warn', { 'properties': 'always' }],
     'no-multiple-empty-lines': ['error', { 'max': 1, 'maxEOF': 0, 'maxBOF': 0 }],
     'array-bracket-spacing': ['error', 'never'],
     'react-native/no-unused-styles': 'error',
@@ -63,9 +61,10 @@ module.exports = {
       'asyncArrow': 'always'
     }]
   },
-  'settings': {
-    'react': {
-      'version': 'detect'
+  settings: {
+    react: {
+      version: 'detect'
     }
-  }
+  },
+  ignorePatterns: ['**/*.js']
 };
