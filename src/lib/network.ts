@@ -130,7 +130,7 @@ export class Network {
  */
 export function getEnvironmentConfig(): Promise<EnvironmentConfig> {
   return deviceStorage.getUser().then((user) => ({
-    bridgeUser: user.email,
+    bridgeUser: user.bridgeUser,
     bridgePass: user.userId,
     encryptionKey: user.mnemonic,
     bucketId: user.bucket

@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
-import { isStrongPassword } from '../Register/registerUtils';
+import * as Unicons from '@iconscout/react-native-unicons';
+
 import { connect } from 'react-redux';
 import AppMenu from '../../components/AppMenu';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import * as Unicons from '@iconscout/react-native-unicons';
 import { notify } from '../../helpers'
-import { doRecoverPassword } from './recover.service';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
+import authService from '../../services/auth';
+import validationService from '../../services/validation';
 
 function ChangePassword(props: Reducers) {
   const [newPassword, setNewPassword] = useState('')
@@ -21,7 +22,7 @@ function ChangePassword(props: Reducers) {
 
   const handleOnPress = () => {
     setIsLoading(true)
-    doRecoverPassword(newPassword).then(() => {
+    authService.doRecoverPassword(newPassword).then(() => {
       notify({ text: 'Password changed', type: 'success' });
       setNewPassword('');
       setConfirmPassword('');
@@ -32,7 +33,7 @@ function ChangePassword(props: Reducers) {
     })
   }
 
-  const isValidNewPassword = isStrongPassword(newPassword);
+  const isValidNewPassword = validationService.isStrongPassword(newPassword);
   const passwordConfirmed = confirmPassword && newPassword === confirmPassword;
 
   const activeButton = isValidNewPassword && passwordConfirmed

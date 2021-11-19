@@ -3,7 +3,7 @@ import { Text, View } from 'react-native'
 import { tailwind } from '../../helpers/designSystem';
 import EmptyDriveImage from '../../../assets/images/screens/empty-drive.svg'
 import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg'
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 
 interface EmptyFolderProps extends Reducers {
   isRoot: boolean

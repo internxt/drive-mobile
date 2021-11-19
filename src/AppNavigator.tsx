@@ -13,7 +13,7 @@ import TabExplorer from './screens/TabExplorer';
 import Billing from './screens/Billing';
 import ChangePassword from './screens/ChangePassword';
 import RecoverPassword from './screens/RecoverPassword';
-import UpdateModal from './modals/UpdateModal';
+import UpdateModal from './components/modals/UpdateModal';
 import DebugView from './screens/Debug/DebugView';
 import Preview from './screens/Photos/Preview';
 

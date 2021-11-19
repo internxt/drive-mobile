@@ -1,14 +1,6 @@
-import _ from 'lodash'
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 
-export function isStrongPassword(pwd: string): boolean {
-  return /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(pwd);
-}
-
-export function isNullOrEmpty(input: string): boolean {
-  return _.isEmpty(input)
-}
 interface RegisterParams {
   firstName: string
   lastName: string

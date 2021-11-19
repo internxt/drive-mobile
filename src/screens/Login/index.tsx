@@ -2,16 +2,18 @@ import React, { useEffect } from 'react'
 import { useState } from 'react';
 import { View, Text, KeyboardAvoidingView, Alert, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import { connect } from 'react-redux';
+import * as Unicons from '@iconscout/react-native-unicons'
+
 import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../helpers';
-import analytics from '../../helpers/lytics';
-import { userActions } from '../../redux/actions';
-import { Reducers } from '../../redux/reducers/reducers';
-import { validate2FA, apiLogin } from './access';
+import analytics from '../../helpers/analytics';
+import { userActions } from '../../store/actions';
+import { Reducers } from '../../store/reducers/reducers';
 import InternxtLogo from '../../../assets/logo.svg'
 import { getColor, tailwind } from '../../helpers/designSystem';
-import * as Unicons from '@iconscout/react-native-unicons'
 import VersionUpdate from '../../components/VersionUpdate';
+import authService from '../../services/auth';
+import validationService from '../../services/validation';
 
 interface LoginProps extends Reducers {
   goToForm?: (screenName: string) => void
@@ -30,7 +32,7 @@ function Login(props: LoginProps): JSX.Element {
     setIsLoading(true)
 
     try {
-      const userLoginData = await apiLogin(email)
+      const userLoginData = await authService.apiLogin(email)
 
       if (userLoginData.tfa && !twoFactorCode) {
         setShowTwoFactor(true)
@@ -66,8 +68,8 @@ function Login(props: LoginProps): JSX.Element {
       })
     } else {
       (async () => {
-        const xToken = await deviceStorage.getItem('xToken')
-        const xUser = await deviceStorage.getItem('xUser')
+        const xToken = await deviceStorage.getToken();
+        const xUser = await deviceStorage.getUser();
 
         if (xToken && xUser) {
           props.dispatch(userActions.localSignIn(xToken, xUser))
@@ -143,7 +145,7 @@ function Login(props: LoginProps): JSX.Element {
         </View>
 
         <View style={showTwoFactor ? tailwind('') : tailwind('hidden')}>
-          <View style={[tailwind('input-wrapper my-2 items-stretch'), validate2FA(twoFactorCode) ? {} : tailwind('border-red-50')]}>
+          <View style={[tailwind('input-wrapper my-2 items-stretch'), validationService.validate2FA(twoFactorCode) ? {} : tailwind('border-red-50')]}>
             <TextInput
               style={tailwind('input pl-4')}
               value={twoFactorCode}

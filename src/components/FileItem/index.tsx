@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Platform, Animated, Easing } from 'react-native';
 import { connect } from 'react-redux';
-import { fileActions, layoutActions } from '../../redux/actions';
+import { fileActions, layoutActions } from '../../store/actions';
 import { deviceStorage, FolderIcon, getFileTypeIcon } from '../../helpers';
 import FileViewer from 'react-native-file-viewer'
-import analytics from '../../helpers/lytics';
+import analytics from '../../helpers/analytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import * as FileSystem from 'expo-file-system'
 import * as Unicons from '@iconscout/react-native-unicons';
 import { downloadFile } from '../../services/download';

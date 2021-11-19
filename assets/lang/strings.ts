@@ -59,7 +59,13 @@ const strings = new LocalizedStrings({
         "subtitle_2": "Once you deactivate your account, you will be able to sign up using the same email address. Please store your password somewhere safe. With Internxt Drive, only you are the true owner of your files on the cloud. With great power there must also come great responsibility."
       },
       "file_explorer": {
-        "title": "All files"
+        "title": "All files",
+        "sort": {
+          "Name_Asc": "Name",
+          "Date_Added": "Upload date",
+          "Size_Asc": "Size",
+          "File_Type_Asc": "File type"
+        }
       },
       "storage": {
         "title": "Storage",
@@ -124,7 +130,7 @@ const strings = new LocalizedStrings({
       "app_menu": {
         "search_box": "Search",
         "filter": {
-          "date": "Date added",
+          "date": "Upload Date",
           "size": "Size",
           "name": "Name",
           "type": "File type"
@@ -231,7 +237,7 @@ const strings = new LocalizedStrings({
       },
       "forgot_password": {
         "title": "Internxt security",
-        "subtitle_1": "Como se especificó durante el proceso de registro, Internxt Drive encripta tus archivos, y solo tú toenees acceso a ellos. Nosotros nunca llegamos a conocer tu contrasñea, y debido a esto, solo tú puedes desencryptar tus archivos. Si te has olvidado de la contraseña, no podemos restablecerla. Lo que sí que podemos hacer, es",
+        "subtitle_1": "Como se especificó durante el proceso de registro, Internxt Drive encripta tus archivos, y solo tú tienes acceso a ellos. Nosotros nunca llegamos a conocer tu contraseña, y debido a esto, solo tú puedes desencriptar tus archivos. Si te has olvidado de la contraseña, no podemos restablecerla. Lo que sí que podemos hacer, es",
         "bold": " borrar tu cuenta y todos tus archivos",
         "subtitle_2": ", por lo que podrás volver a registrarte con el mismo correo electrónico. Por favor, introduce tu correo electrónico para que podamos procesar el borrado de tu cuenta."
       },
@@ -241,7 +247,13 @@ const strings = new LocalizedStrings({
         "subtitle_2": "Una vez desactives tu cuenta, podrás volver a registrarte usando el mismo correo electrónico. Por favor guarda tu contraseña en un lugar seguro. Con Internxt Drive, solo tú eres el propietario de tus archivos. Un gran poder convella una gran responsabilidad."
       },
       "file_explorer": {
-        "title": "Todos los archivos"
+        "title": "Todos los archivos",
+        "sort": {
+          "Name_Asc": "Nombre",
+          "Date_Added": "Fecha de subida",
+          "Size_Asc": "Tamaño",
+          "File_Type_Asc": "Tipo de archivo"
+        }
       },
       "storage": {
         "title": "Almacenamiento",

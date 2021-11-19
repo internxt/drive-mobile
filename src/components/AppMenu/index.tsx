@@ -1,12 +1,13 @@
 import React from 'react'
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native'
 import { connect } from 'react-redux';
-import { fileActions, layoutActions } from '../../redux/actions';
+import { fileActions, layoutActions } from '../../store/actions';
 import * as Unicons from '@iconscout/react-native-unicons';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import SearchBox from '../SearchBox';
 import globalStyle from '../../styles/global.style';
+import strings from '../../../assets/lang/strings';
 interface AppMenuProps extends Reducers {
   title: string
   hideSearch?: boolean
@@ -125,7 +126,7 @@ function AppMenu(props: AppMenuProps) {
           }}
         >
           <View style={tailwind('flex-row items-center')}>
-            <Text style={tailwind('text-neutral-100')}>Name</Text>
+            <Text style={tailwind('text-neutral-100')}>{strings.screens.file_explorer.sort[props.filesState.sortType]}</Text>
             <Unicons.UilAngleDown size={20} color={getColor('neutral-100')} />
           </View>
         </TouchableWithoutFeedback>

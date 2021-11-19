@@ -1,5 +1,5 @@
 import React from 'react';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import FileExplorer from '../FileExplorer';
 import Recents from '../Recents';
@@ -9,18 +9,18 @@ import Configuration from '../Configuration';
 import MyTabBar from './myTabBar';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types'
 import VoidScreen from '../VoidScreen';
-import SettingsModal from '../../modals/SettingsModal';
+import SettingsModal from '../../components/modals/SettingsModal';
 import { View } from 'react-native';
-import FileDetailsModal from '../../modals/FileDetailsModal';
-import UploadModal from '../../modals/UploadModal';
-import RenameModal from '../../modals/RenameModal';
-import CreateFolderModal from '../../modals/CreateFolderModal';
-import ShareFilesModal from '../../modals/ShareFilesModal';
-import DeleteItemModal from '../../modals/DeleteItemModal';
-import SortModal from '../../modals/SortModal';
-import MoveFilesModal from '../../modals/MoveFilesModal';
+import FileDetailsModal from '../../components/modals/FileDetailsModal';
+import UploadModal from '../../components/modals/UploadModal';
+import RenameModal from '../../components/modals/RenameModal';
+import CreateFolderModal from '../../components/modals/CreateFolderModal';
+import ShareFilesModal from '../../components/modals/ShareFilesModal';
+import DeleteItemModal from '../../components/modals/DeleteItemModal';
+import SortModal from '../../components/modals/SortModal';
+import MoveFilesModal from '../../components/modals/MoveFilesModal';
 import { tailwind } from '../../helpers/designSystem';
-import RunOutOfStorageModal from '../../modals/RunOutOfStorageModal';
+import RunOutOfStorageModal from '../../components/modals/RunOutOfStorageModal';
 
 const Tab = createBottomTabNavigator();
 

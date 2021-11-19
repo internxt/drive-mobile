@@ -6,7 +6,7 @@ export async function getHeaders(authToken?: string, mnemonic?: string): Promise
   let storedAuthToken;
 
   if (!authToken) {
-    storedAuthToken = await deviceStorage.getItem('xToken')
+    storedAuthToken = await deviceStorage.getToken();
   } else {
     storedAuthToken = authToken
   }
@@ -14,10 +14,9 @@ export async function getHeaders(authToken?: string, mnemonic?: string): Promise
   let storedMnemonic;
 
   if (!mnemonic) {
-    const xUser = await deviceStorage.getItem('xUser')
-    const xUserJson = JSON.parse(xUser || '{}')
+    const xUser = await deviceStorage.getUser();
 
-    storedMnemonic = xUserJson.mnemonic;
+    storedMnemonic = xUser.mnemonic;
   } else {
     storedMnemonic = mnemonic
   }

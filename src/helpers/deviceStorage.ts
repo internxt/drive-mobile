@@ -8,6 +8,8 @@ export interface User {
   createdAt: string,
   credit: number,
   email: string,
+  username: string;
+  bridgeUser: string;
   lastname: string,
   mnemonic: string,
   name: string,
@@ -36,7 +38,7 @@ export const deviceStorage = {
   },
   getUser(): Promise<User> {
     return getItem('xUser').then((value) => {
-      return JSON.parse(value);
+      return value ? JSON.parse(value) : {};
     }).catch(err => {
       notify({ type: 'success', text: err.message });
       return null;

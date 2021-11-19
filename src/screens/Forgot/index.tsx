@@ -1,4 +1,3 @@
-import { isValidEmail, sendDeactivationsEmail } from './ForgotUtils';
 import {
   View,
   Text,
@@ -10,19 +9,22 @@ import {
   TouchableWithoutFeedback
 } from 'react-native';
 import React, { useEffect, useState } from 'react'
-import { normalize } from '../../helpers';
 import { connect } from 'react-redux';
+
+import { normalize } from '../../helpers';
 import strings from '../../../assets/lang/strings';
 import InternxtLogo from '../../../assets/logo.svg'
 import { tailwind } from '../../helpers/designSystem';
-import { Reducers } from '../../redux/reducers/reducers';
+import { Reducers } from '../../store/reducers/reducers';
+import validationService from '../../services/validation';
+import authService from '../../services/auth';
 
 function Forgot(props: Reducers): JSX.Element {
   const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   // Get email form field
   const [email, setIsEmail] = useState('');
-  const isValidEmailField = isValidEmail(email);
+  const isValidEmailField = validationService.validateEmail(email);
 
   useEffect(() => { // do something after isLoading has updated
     if (isLoading === true) {
@@ -38,7 +40,7 @@ function Forgot(props: Reducers): JSX.Element {
       return;
     }
     setIsLoading(true)
-    sendDeactivationsEmail(email).then(() => {
+    authService.sendDeactivationsEmail(email).then(() => {
       setIsLoading(false)
       setCurrentCointainer(2)
 
