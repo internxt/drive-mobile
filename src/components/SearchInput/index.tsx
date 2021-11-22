@@ -5,12 +5,13 @@ import { connect } from 'react-redux';
 import { fileActions } from '../../store/actions';
 import { Reducers } from '../../store/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
+import strings from '../../../assets/lang/strings';
 
-interface SearchBoxProps extends Reducers {
-  style: StyleProp<ViewStyle>;
+interface SearchInputProps extends Reducers {
+  style?: StyleProp<ViewStyle>;
 }
 
-function SearchBox(props: SearchBoxProps): JSX.Element {
+function SearchInput(props: SearchInputProps): JSX.Element {
   const [searchText, setSearchText] = useState('');
 
   const showCloseIcon = searchText !== '';
@@ -32,7 +33,7 @@ function SearchBox(props: SearchBoxProps): JSX.Element {
               onChangeText={(value) => setSearchText(value)}
               value={searchText}
               style={tailwind('flex-grow flex-shrink py-3')}
-              placeholder="Search in this folder"
+              placeholder={strings.screens.file_explorer.searchInThisFolder}
             />
 
             {showCloseIcon && (
@@ -53,4 +54,4 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect<Reducers>(mapStateToProps)(SearchBox);
+export default connect<Reducers>(mapStateToProps)(SearchInput);

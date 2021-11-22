@@ -5,6 +5,7 @@ import strings from '../../../assets/lang/strings';
 
 import AppMenu from '../../components/AppMenu';
 import SkinSkeleton from '../../components/SkinSkeleton';
+import SearchInput from '../../components/SearchInput';
 
 const HomeScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +20,7 @@ const HomeScreen = () => {
         hideNavigation={true}
         hideSortBar={true}
       />
+      <SearchInput />
       {isLoading && (
         <View>
           {_.times(20, (n) => (

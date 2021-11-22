@@ -486,7 +486,7 @@ function UploadModal(props: Reducers) {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>Upload files</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.uploadFiles}</Text>
                 <View style={tailwind('h-12 w-12 items-center justify-center')}>
                   <Unicons.UilFileUpload color={getColor('neutral-500')} size={20} />
                 </View>
@@ -503,7 +503,9 @@ function UploadModal(props: Reducers) {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>Upload from camera roll</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>
+                  {strings.components.buttons.uploadFromCameraRoll}
+                </Text>
                 <View style={tailwind('h-12 w-12 items-center justify-center')}>
                   <Unicons.UilImages color={getColor('neutral-500')} size={20} />
                 </View>
@@ -520,7 +522,9 @@ function UploadModal(props: Reducers) {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>Take photo and upload</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>
+                  {strings.components.buttons.takeAPhotoAnUpload}
+                </Text>
                 <View style={tailwind('h-12 w-12 items-center justify-center')}>
                   <Unicons.UilCameraPlus color={getColor('neutral-500')} size={20} />
                 </View>
@@ -538,7 +542,7 @@ function UploadModal(props: Reducers) {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>New folder</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.newFolder}</Text>
                 <View style={tailwind('h-12 w-12 items-center justify-center')}>
                   <Unicons.UilFolderPlus color={getColor('neutral-500')} size={20} />
                 </View>

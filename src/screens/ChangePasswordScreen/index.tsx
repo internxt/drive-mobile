@@ -102,7 +102,7 @@ function ChangePassword(props: Reducers) {
               style={tailwind('input')}
               value={newPassword}
               onChangeText={(value) => setNewPassword(value)}
-              placeholder="New password"
+              placeholder={strings.components.inputs.newPassword}
               placeholderTextColor="#666"
               secureTextEntry={true}
               textContentType="password"

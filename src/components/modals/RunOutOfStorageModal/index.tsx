@@ -115,7 +115,7 @@ function RunOutOfStorageModal(props: Reducers): JSX.Element {
               }}
             >
               <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>
-                {strings.generic.upgradeNow}
+                {strings.components.buttons.upgradeNow}
               </Text>
             </TouchableHighlight>
           </View>

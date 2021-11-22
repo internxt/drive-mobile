@@ -6,9 +6,10 @@ import * as Unicons from '@iconscout/react-native-unicons';
 import { fileActions, layoutActions } from '../../store/actions';
 import { Reducers } from '../../store/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import SearchBox from '../SearchBox';
+import SearchInput from '../SearchInput';
 import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
+
 interface AppMenuProps extends Reducers {
   title: string;
   hideSearch?: boolean;
@@ -59,7 +60,9 @@ function AppMenu(props: AppMenuProps) {
                 ]}
               >
                 <Unicons.UilAngleLeft color={getColor('blue-60')} style={tailwind('-ml-2 -mr-1')} size={32} />
-                <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>Back</Text>
+                <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>
+                  {strings.components.buttons.back}
+                </Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -128,7 +131,7 @@ function AppMenu(props: AppMenuProps) {
           {props.lightMode && <View style={tailwind('w-4')}></View>}
         </View>
         {((props.layoutState.searchActive && !props.hideSearch) || (isRootFolder && !props.hideSearch)) && (
-          <SearchBox style={tailwind('my-2')} />
+          <SearchInput style={tailwind('my-2')} />
         )}
 
         <View style={[tailwind('flex-row justify-between my-2'), props.hideSortBar && tailwind('hidden')]}>

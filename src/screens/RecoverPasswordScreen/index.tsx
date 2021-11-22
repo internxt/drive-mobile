@@ -50,7 +50,7 @@ function ChangePassword(props: Reducers) {
   return (
     <View style={tailwind('bg-white h-full')}>
       <AppMenu
-        title={'Password'}
+        title={strings.components.inputs.password}
         onBackPress={() => props.navigation.goBack()}
         hideNavigation={true}
         lightMode={true}
@@ -77,7 +77,7 @@ function ChangePassword(props: Reducers) {
               style={tailwind('input pl-4')}
               value={newPassword}
               onChangeText={(value) => setNewPassword(value)}
-              placeholder="New password"
+              placeholder={strings.components.inputs.newPassword}
               placeholderTextColor="#666"
               secureTextEntry={!showPassword}
               textContentType="password"
