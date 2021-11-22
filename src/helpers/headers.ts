@@ -16,7 +16,7 @@ export async function getHeaders(authToken?: string, mnemonic?: string): Promise
   if (!mnemonic) {
     const xUser = await deviceStorage.getUser();
 
-    storedMnemonic = xUser.mnemonic;
+    storedMnemonic = xUser && xUser.mnemonic;
   } else {
     storedMnemonic = mnemonic
   }

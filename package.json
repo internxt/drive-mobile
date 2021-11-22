@@ -15,7 +15,7 @@
     "web": "expo start --web",
     "link": "react-native link",
     "eject": "expo eject",
-    "lint": "eslint 'src/**/*' App.tsx",
+    "lint": "eslint src App.tsx",
     "test": "yarn run check-ts && yarn run lint --quiet",
     "postinstall": "yarn run hack",
     "check-ts": "tsc --noEmit",
