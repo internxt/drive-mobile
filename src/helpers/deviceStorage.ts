@@ -39,7 +39,7 @@ export const deviceStorage = {
   getUser(): Promise<User> {
     return getItem('xUser')
       .then((value) => {
-        return value ? JSON.parse(value) : {};
+        return value ? JSON.parse(value) : null;
       })
       .catch((err) => {
         notify({ type: 'success', text: err.message });
