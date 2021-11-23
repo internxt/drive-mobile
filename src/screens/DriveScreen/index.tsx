@@ -16,7 +16,7 @@ import SearchInput from '../../components/SearchInput';
 import globalStyle from '../../styles/global.style';
 import ScreenTitle from '../../components/ScreenTitle';
 import Separator from '../../components/Separator';
-import { AppScreen } from '../../types';
+import { AppScreen, DevicePlatform } from '../../types';
 
 function DriveScreen(props: Reducers): JSX.Element {
   const dispatch = useDispatch();
@@ -66,7 +66,7 @@ function DriveScreen(props: Reducers): JSX.Element {
                   .identify(userData.uuid, {
                     userId: userData.uuid,
                     email: userData.email,
-                    platform: 'mobile',
+                    platform: DevicePlatform.Mobile,
                     // eslint-disable-next-line camelcase
                     storage_used: currentPlan.usage,
                     // eslint-disable-next-line camelcase
@@ -172,7 +172,7 @@ function DriveScreen(props: Reducers): JSX.Element {
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
 
       analytics
-        .track('file-upload-start', { userId: userData.uuid, email: userData.email, device: 'mobile' })
+        .track('file-upload-start', { userId: userData.uuid, email: userData.email, device: DevicePlatform.Mobile })
         .catch(() => undefined);
       props.dispatch(fileActions.uploadFileStart());
 
@@ -201,7 +201,11 @@ function DriveScreen(props: Reducers): JSX.Element {
             props.navigation.replace(AppScreen.OutOfSpace);
           } else if (res.respInfo.status === 201) {
             analytics
-              .track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' })
+              .track('file-upload-finished', {
+                userId: userData.uuid,
+                email: userData.email,
+                device: DevicePlatform.Mobile,
+              })
               .catch(() => undefined);
             props.dispatch(fileActions.getFolderContent(filesState.folderContent.currentFolder));
           } else {
@@ -223,7 +227,7 @@ function DriveScreen(props: Reducers): JSX.Element {
         });
     } catch (error) {
       analytics
-        .track('file-upload-error', { userId: userData.uuid, email: userData.email, device: 'mobile' })
+        .track('file-upload-error', { userId: userData.uuid, email: userData.email, device: DevicePlatform.Mobile })
         .catch(() => undefined);
       props.dispatch(fileActions.uploadFileFailed());
       props.dispatch(fileActions.uploadFileFinished());

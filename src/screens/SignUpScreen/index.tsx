@@ -15,7 +15,7 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import { Reducers } from '../../store/reducers/reducers';
 import validationService from '../../services/validation';
 import authService from '../../services/auth';
-import { AppScreen } from '../../types';
+import { AppScreen, DevicePlatform } from '../../types';
 
 function SignUpScreen(props: Reducers): JSX.Element {
   const [showIntro, setShowIntro] = useState(false);
@@ -104,7 +104,7 @@ function SignUpScreen(props: Reducers): JSX.Element {
           properties: {
             userId: userData.uuid,
             email: email,
-            platform: 'mobile',
+            platform: DevicePlatform.Mobile,
           },
         }),
       ]);

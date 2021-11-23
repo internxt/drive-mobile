@@ -3,6 +3,7 @@ import prettysize from 'prettysize';
 import { getAnalyticsUuid } from '../helpers';
 import analytics from './analytics';
 import { getHeaders } from '../helpers/headers';
+import { DevicePlatform } from '../types';
 
 export interface IProduct {
   id: string;
@@ -74,7 +75,7 @@ export async function loadValues(): Promise<{ usage: number; limit: number }> {
 
   analytics
     .identify(uuid, {
-      platform: 'mobile',
+      platform: DevicePlatform.Mobile,
       storage: usage,
       plan: identifyPlanName(limit),
       userId: uuid,

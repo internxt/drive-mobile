@@ -33,6 +33,7 @@ import { notify } from '../../../helpers/toast';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import RNFS from 'react-native-fs';
+import { DevicePlatform } from '../../../types';
 
 interface UploadingFile {
   size: number;
@@ -183,21 +184,21 @@ function UploadModal(props: Reducers) {
 
   async function trackUploadStart() {
     const { uuid, email } = await deviceStorage.getUser();
-    const uploadStartedTrack = { userId: uuid, email, device: 'mobile' };
+    const uploadStartedTrack = { userId: uuid, email, device: DevicePlatform.Mobile };
 
     analytics.track('file-upload-start', uploadStartedTrack).catch(() => null);
   }
 
   async function trackUploadSuccess() {
     const { email, uuid } = await deviceStorage.getUser();
-    const uploadFinishedTrack = { userId: uuid, email, device: 'mobile' };
+    const uploadFinishedTrack = { userId: uuid, email, device: DevicePlatform.Mobile };
 
     analytics.track('file-upload-finished', uploadFinishedTrack).catch(() => null);
   }
 
   async function trackUploadError(err: Error) {
     const { email, uuid } = await deviceStorage.getUser();
-    const uploadErrorTrack = { userId: uuid, email, device: 'mobile', error: err.message };
+    const uploadErrorTrack = { userId: uuid, email, device: DevicePlatform.Mobile, error: err.message };
 
     analytics.track('file-upload-error', uploadErrorTrack).catch(() => null);
   }

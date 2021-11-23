@@ -18,6 +18,10 @@ export enum AppScreen {
   PhotoPreview = 'photo-preview',
 }
 
+export enum DevicePlatform {
+  Mobile = 'mobile',
+}
+
 export interface DriveFolderData {
   id: number;
   bucket: string | null;

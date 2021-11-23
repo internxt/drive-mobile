@@ -7,7 +7,13 @@ import { layoutActions } from './layout.actions';
 import { userActions } from './user.actions';
 import { notify } from '../../helpers/toast';
 import fileService from '../../services/file';
-import { DriveFileData, DriveFileMetadataPayload, DriveFolderData, DriveFolderMetadataPayload } from '../../types';
+import {
+  DevicePlatform,
+  DriveFileData,
+  DriveFileMetadataPayload,
+  DriveFolderData,
+  DriveFolderMetadataPayload,
+} from '../../types';
 
 function downloadFileStart(fileId: string): AnyAction {
   return { type: fileActionTypes.DOWNLOAD_FILE_START, payload: fileId };
@@ -213,7 +219,7 @@ function createFolder(parentFolderId: number, newFolderName: string) {
       analytics
         .track('folder-created', {
           userId: userData.uuid,
-          platform: 'mobile',
+          platform: DevicePlatform.Mobile,
           email: userData.email,
         })
         .catch(() => undefined);

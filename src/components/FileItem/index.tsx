@@ -15,6 +15,7 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import FileSpinner from '../../../assets/images/widgets/file-spinner.svg';
 import prettysize from 'prettysize';
 import globalStyle from '../../styles/global.style';
+import { DevicePlatform } from '../../types';
 
 interface FileItemProps extends Reducers {
   isFolder: boolean;
@@ -166,7 +167,7 @@ function FileItem(props: FileItemProps) {
       file_type: props.item.type,
       // eslint-disable-next-line camelcase
       folder_id: props.item.folderId,
-      platform: 'mobile',
+      platform: DevicePlatform.Mobile,
     });
   }
 
@@ -180,7 +181,7 @@ function FileItem(props: FileItemProps) {
       file_type: props.item.type,
       // eslint-disable-next-line camelcase
       folder_id: props.item.folderId,
-      platform: 'mobile',
+      platform: DevicePlatform.Mobile,
     });
   }
 
@@ -194,7 +195,7 @@ function FileItem(props: FileItemProps) {
       file_type: props.item.type,
       // eslint-disable-next-line camelcase
       folder_id: props.item.folderId,
-      platform: 'mobile',
+      platform: DevicePlatform.Mobile,
       error: err.message,
     });
   }

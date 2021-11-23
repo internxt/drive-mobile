@@ -2,6 +2,7 @@ import { deviceStorage, encryptText, encryptTextWithKey, getAnalyticsData, passT
 import analytics from './analytics';
 import { getHeaders } from '../helpers/headers';
 import { isJsonString } from '../screens/SignUpScreen/registerUtils';
+import { DevicePlatform } from '../types';
 
 interface LoginResponse {
   tfa: string;
@@ -35,7 +36,7 @@ class AuthService {
       const userData = await getAnalyticsData();
 
       analytics
-        .track('user-signout', { userId: userData.uuid, email: userData.email, platform: 'mobile' })
+        .track('user-signout', { userId: userData.uuid, email: userData.email, platform: DevicePlatform.Mobile })
         .catch(() => undefined);
       // Delete login data
       deviceStorage.clearStorage();

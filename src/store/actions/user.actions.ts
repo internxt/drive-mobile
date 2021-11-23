@@ -3,6 +3,7 @@ import analytics from '../../services/analytics';
 import { userActionTypes } from '../constants';
 import authService from '../../services/auth';
 import userService from '../../services/user';
+import { DevicePlatform } from '../../types';
 
 export const userActions = {
   signin,
@@ -40,7 +41,7 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
     analytics
       .identify(userData.user.uuid, {
         email: userData.user.email,
-        platform: 'mobile',
+        platform: DevicePlatform.Mobile,
         // eslint-disable-next-line camelcase
         referrals_credit: userData.user.credit,
         // eslint-disable-next-line camelcase
@@ -52,7 +53,7 @@ function signin(email: string, password: string, sKey: string, twoFactorCode: st
           .track('user-signin', {
             email: userData.user.email,
             userId: userData.user.uuid,
-            platform: 'mobile',
+            platform: DevicePlatform.Mobile,
           })
           .catch(() => undefined);
       })
