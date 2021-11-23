@@ -22,7 +22,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 
 import { fileActions, layoutActions } from '../../../store/actions';
 import { createFileEntry, FileEntry, getFinalUri, uploadFile, FileMeta } from '../../../services/upload';
-import analytics from '../../../helpers/analytics';
+import analytics from '../../../services/analytics';
 import { deviceStorage, encryptFilename } from '../../../helpers';
 import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../lib/fs';
 import { Reducers } from '../../../store/reducers/reducers';
@@ -558,7 +558,7 @@ function UploadModal(props: Reducers) {
                 props.dispatch(layoutActions.closeUploadFileModal());
               }}
             >
-              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-center')}>
+              <View style={tailwind('flex-row flex-grow bg-white h-12 items-center justify-center')}>
                 <Text style={[tailwind('text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
                   {strings.generic.cancel}
                 </Text>

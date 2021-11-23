@@ -4,8 +4,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 
-import FileExplorer from '../../screens/FileExplorerScreen';
-import Photos from '../../screens/PhotosScreen/Photos';
+import { tailwind } from '../../helpers/designSystem';
+import DriveScreen from '../../screens/DriveScreen';
+import PhotosScreen from '../../screens/PhotosScreen';
 import Configuration from '../../screens/MenuScreen';
 import BottomTabNavigator from '../../components/BottomTabNavigator';
 import VoidScreen from '../../screens/VoidScreen';
@@ -18,9 +19,9 @@ import ShareFilesModal from '../../components/modals/ShareFilesModal';
 import DeleteItemModal from '../../components/modals/DeleteItemModal';
 import SortModal from '../../components/modals/SortModal';
 import MoveFilesModal from '../../components/modals/MoveFilesModal';
-import { tailwind } from '../../helpers/designSystem';
 import RunOutOfStorageModal from '../../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../../screens/HomeScreen';
+import { AppScreen } from '../../types';
 
 const Tab = createBottomTabNavigator();
 
@@ -40,18 +41,18 @@ export default function TabExplorer(props: Reducers): JSX.Element {
 
       <Tab.Navigator
         tabBar={(tabBarProps: BottomTabBarProps) => <BottomTabNavigator {...{ ...props, ...tabBarProps }} />}
-        initialRouteName={'FileExplorer'}
+        initialRouteName={AppScreen.Home}
         sceneContainerStyle={tailwind('')}
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: true,
         }}
       >
-        <Tab.Screen name="home" component={HomeScreen} />
-        <Tab.Screen name="drive" component={FileExplorer} />
+        <Tab.Screen name={AppScreen.Home} component={HomeScreen} />
+        <Tab.Screen name={AppScreen.Drive} component={DriveScreen} />
         <Tab.Screen name="create" component={VoidScreen} />
-        <Tab.Screen name="photos" component={Photos} />
-        <Tab.Screen name="menu" component={Configuration} />
+        <Tab.Screen name={AppScreen.Photos} component={PhotosScreen} />
+        <Tab.Screen name={AppScreen.Menu} component={Configuration} />
       </Tab.Navigator>
     </View>
   );

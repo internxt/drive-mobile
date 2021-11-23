@@ -75,7 +75,7 @@ const strings = new LocalizedStrings({
         subtitle_2:
           'Once you deactivate your account, you will be able to sign up using the same email address. Please store your password somewhere safe. With Internxt Drive, only you are the true owner of your files on the cloud. With great power there must also come great responsibility.',
       },
-      file_explorer: {
+      drive: {
         title: 'Drive',
         sort: {
           Name_Asc: 'Name',
@@ -169,6 +169,8 @@ const strings = new LocalizedStrings({
         confirm_password: 'Confirm password',
         first_name: 'First name',
         last_name: 'Last name',
+        searchInRecents: 'Search in recents',
+        searchInShared: 'Search in shared',
       },
       empty_folder: {
         title: 'This looks empty!',
@@ -313,7 +315,7 @@ const strings = new LocalizedStrings({
         subtitle_2:
           'Una vez desactives tu cuenta, podrás volver a registrarte usando el mismo correo electrónico. Por favor guarda tu contraseña en un lugar seguro. Con Internxt Drive, solo tú eres el propietario de tus archivos. Un gran poder convella una gran responsabilidad.',
       },
-      file_explorer: {
+      drive: {
         title: 'Drive',
         sort: {
           Name_Asc: 'Nombre',
@@ -407,6 +409,8 @@ const strings = new LocalizedStrings({
         confirm_password: 'Confirmar contraseña',
         first_name: 'Nombre',
         last_name: 'Primer apellido',
+        searchInRecents: 'Buscar en recientes',
+        searchInShared: 'Buscar en compartidos',
       },
       empty_folder: {
         title: '¡Esto parece vacío!',

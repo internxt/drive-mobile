@@ -9,8 +9,7 @@
     "resolveJsonModule": true,
     "strict": false,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "baseUrl": "./src"
+    "emitDecoratorMetadata": true
   },
   "extends": "expo/tsconfig.base",
   "include": ["src"]

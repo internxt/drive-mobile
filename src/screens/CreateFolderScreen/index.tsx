@@ -5,6 +5,7 @@ import { fileActions } from '../../store/actions';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import strings from '../../../assets/lang/strings';
 import { FolderIcon } from '../../helpers';
+import { AppScreen } from '../../types';
 
 function CreateFolderScreen(props: any): JSX.Element {
   const [folderName, setFolderName] = useState('');
@@ -13,7 +14,7 @@ function CreateFolderScreen(props: any): JSX.Element {
   useEffect(() => {
     // BackHandler
     const backAction = () => {
-      props.navigation.replace('FileExplorer');
+      props.navigation.replace(AppScreen.Drive);
 
       return true;
     };
@@ -28,11 +29,11 @@ function CreateFolderScreen(props: any): JSX.Element {
 
       props.dispatch(fileActions.createFolder(currentFolderId || rootFolder, folderName));
     }
-    props.navigation.replace('FileExplorer');
+    props.navigation.replace(AppScreen.Drive);
   };
 
   const onCancel = () => {
-    props.navigation.replace('FileExplorer');
+    props.navigation.replace(AppScreen.Drive);
   };
 
   return (

@@ -12,6 +12,7 @@ import globalStyle from '../../../styles/global.style';
 import strings from '../../../../assets/lang/strings';
 import { getCurrentIndividualPlan } from '../../../services/payments';
 import { loadValues } from '../../../services/storage';
+import { AppScreen } from '../../../types';
 
 interface StorageProps extends Reducers {
   currentPlan: number;
@@ -111,7 +112,7 @@ function RunOutOfStorageModal(props: Reducers): JSX.Element {
               style={tailwind('bg-blue-60 rounded-lg py-2 mx-6 items-center justify-center')}
               onPress={() => {
                 props.dispatch(layoutActions.closeRanOutStorageModal());
-                props.navigation.push('Billing');
+                props.navigation.push(AppScreen.Billing);
               }}
             >
               <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>

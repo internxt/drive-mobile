@@ -1,6 +1,6 @@
 import { AnyAction, Dispatch } from 'redux';
-import { getLyticsData } from '../../helpers';
-import analytics from '../../helpers/analytics';
+import { getAnalyticsData } from '../../helpers';
+import analytics from '../../services/analytics';
 import { store } from '..';
 import { fileActionTypes } from '../constants';
 import { layoutActions } from './layout.actions';
@@ -208,7 +208,7 @@ function createFolder(parentFolderId: number, newFolderName: string) {
   }
   function success(newFolderDetails: any) {
     (async () => {
-      const userData = await getLyticsData();
+      const userData = await getAnalyticsData();
 
       analytics
         .track('folder-created', {
@@ -258,7 +258,7 @@ function setRootFolderContent(folderContent: any): AnyAction {
 
 function setUri(uri: any) {
   if (uri) {
-    getLyticsData().then((user) => {
+    getAnalyticsData().then((user) => {
       analytics.track('share-to', {
         email: user.email,
         uri: uri.fileUri ? uri.fileUri : uri.toString && uri.toString(),

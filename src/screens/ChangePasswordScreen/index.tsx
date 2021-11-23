@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
-import validationService from '../../services/validation';
 import { connect } from 'react-redux';
-import AppMenu from '../../components/AppMenu';
+
+import validationService from '../../services/validation';
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { doChangePassword } from './changePasswordUtils';
 import { notify } from '../../helpers';
 import { Reducers } from '../../store/reducers/reducers';
+import ScreenTitle from '../../components/ScreenTitle';
+import { AppScreen } from '../../types';
 
-function ChangePassword(props: Reducers) {
+function ChangePasswordScreen(props: Reducers) {
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -43,15 +45,11 @@ function ChangePassword(props: Reducers) {
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
   return (
-    <View style={tailwind('bg-white flex')}>
-      <AppMenu
-        title={strings.components.inputs.password}
-        onBackPress={() => props.navigation.goBack()}
-        hideNavigation={true}
-        hideSortBar={true}
-        lightMode={true}
-        hideSearch={true}
-        hideOptions={true}
+    <View style={tailwind('app-screen flex-1 bg-white')}>
+      <ScreenTitle
+        text={strings.components.inputs.password}
+        centerText
+        onBackButtonPressed={() => props.navigation.goBack()}
       />
       <View style={styles.mainContainer}>
         <View style={styles.titleContainer}>
@@ -62,7 +60,7 @@ function ChangePassword(props: Reducers) {
         </View>
         <TouchableWithoutFeedback
           onPress={() => {
-            props.navigation.push('RecoverPassword');
+            props.navigation.push(AppScreen.RecoverPassword);
           }}
         >
           <Text style={tailwind('text-base text-sm text-blue-70 text-center m-3')}>
@@ -154,7 +152,7 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(ChangePassword);
+export default connect(mapStateToProps)(ChangePasswordScreen);
 
 const styles = StyleSheet.create({
   titleContainer: {

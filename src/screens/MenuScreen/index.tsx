@@ -1,20 +1,21 @@
 import React from 'react';
 import { GestureResponderEvent, Linking, Text, TouchableHighlight, View, ScrollView } from 'react-native';
 import { connect } from 'react-redux';
-import AppMenu from '../../components/AppMenu';
 import { Reducers } from '../../store/reducers/reducers';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { userActions } from '../../store/actions';
 import strings from '../../../assets/lang/strings';
 import VersionUpdate from '../../components/VersionUpdate';
+import ScreenTitle from '../../components/ScreenTitle';
+import { AppScreen } from '../../types';
 
-interface ConfigurationItemsProps extends Reducers {
+interface MenuItemProps extends Reducers {
   title: string;
   onPress?: (event: GestureResponderEvent) => void;
 }
 
-function ConfigurationItem(props: ConfigurationItemsProps) {
+function MenuItem(props: MenuItemProps) {
   return (
     <TouchableHighlight
       onPress={(event) => {
@@ -35,69 +36,59 @@ function ConfigurationItem(props: ConfigurationItemsProps) {
   );
 }
 
-function ConfigurationGap() {
+function MenuSeparator() {
   return <View style={tailwind('h-5')} />;
 }
 
 function MenuScreen(props: Reducers): JSX.Element {
   return (
-    <ScrollView contentContainerStyle={tailwind('h-full')}>
+    <ScrollView contentContainerStyle={tailwind('app-screen h-full')}>
       <View style={tailwind('h-full')}>
-        <AppMenu
-          {...props}
-          title={strings.generic.settings}
-          hideSearch={true}
-          hideOptions={true}
-          hideNavigation={true}
-          hideSortBar={true}
-          centerTitle={true}
-          hideBackPress={true}
-        />
+        <ScreenTitle text={strings.generic.settings} centerText onBackButtonPressed={props.navigation.goBack} />
 
         <View style={tailwind('flex-grow')}>
-          <ConfigurationItem
+          <MenuItem
             {...props}
             title={strings.components.app_menu.settings.storage}
             onPress={() => {
-              props.navigation.push('Storage');
+              props.navigation.push(AppScreen.Storage);
             }}
           />
-          <ConfigurationItem
+          <MenuItem
             {...props}
             title={strings.screens.billing.title}
             onPress={() => {
-              props.navigation.push('Billing');
+              props.navigation.push(AppScreen.Billing);
             }}
           />
 
-          <ConfigurationGap />
+          <MenuSeparator />
 
-          {/* <ConfigurationItem title={strings.generic.security} /> */}
-          <ConfigurationItem
+          <MenuItem
             {...props}
             title={strings.screens.change_password.title}
             onPress={() => {
-              props.navigation.push('RecoverPassword');
+              props.navigation.push(AppScreen.RecoverPassword);
             }}
           />
 
-          <ConfigurationGap />
+          <MenuSeparator />
 
-          <ConfigurationItem
+          <MenuItem
             {...props}
             title={strings.components.app_menu.settings.contact}
             onPress={() => {
               Linking.openURL('https://help.internxt.com');
             }}
           />
-          <ConfigurationItem
+          <MenuItem
             {...props}
             title={strings.components.app_menu.settings.more}
             onPress={() => {
               Linking.openURL('https://internxt.com');
             }}
           />
-          <ConfigurationItem
+          <MenuItem
             {...props}
             title={strings.components.app_menu.settings.signOut}
             onPress={() => {
@@ -105,17 +96,7 @@ function MenuScreen(props: Reducers): JSX.Element {
             }}
           />
 
-          <ConfigurationGap />
-
-          {false && (
-            <ConfigurationItem
-              {...props}
-              title={strings.components.app_menu.settings.devTools}
-              onPress={() => {
-                props.navigation.push('DebugView');
-              }}
-            />
-          )}
+          <MenuSeparator />
         </View>
 
         <View style={tailwind('flex text-base m-5')}>

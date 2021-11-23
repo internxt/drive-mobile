@@ -1,26 +1,31 @@
 import _ from 'lodash';
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import strings from '../../../assets/lang/strings';
 
-import AppMenu from '../../components/AppMenu';
 import SkinSkeleton from '../../components/SkinSkeleton';
 import SearchInput from '../../components/SearchInput';
+import ScreenTitle from '../../components/ScreenTitle';
+import { tailwind } from '../../helpers/designSystem';
+
+enum HomeTab {
+  Recents = 'recents',
+  Shared = 'shared',
+}
 
 const HomeScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [currentTab, setCurrentTab] = useState<HomeTab>(HomeTab.Recents);
+  const searchPlaceholder = {
+    [HomeTab.Recents]: strings.components.inputs.searchInRecents,
+    [HomeTab.Shared]: strings.components.inputs.searchInShared,
+  }[currentTab];
 
   return (
-    <View style={styles.container}>
-      <AppMenu
-        title={strings.screens.home.title}
-        hideBackPress={true}
-        hideSearch={true}
-        hideOptions={true}
-        hideNavigation={true}
-        hideSortBar={true}
-      />
-      <SearchInput />
+    <View style={tailwind('app-screen bg-white flex-1')}>
+      <ScreenTitle text={strings.screens.home.title} showBackButton={false} />
+      <SearchInput value={searchText} onChangeText={setSearchText} placeholder={searchPlaceholder} />
       {isLoading && (
         <View>
           {_.times(20, (n) => (
@@ -31,15 +36,5 @@ const HomeScreen = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    flex: 1,
-  },
-  fileListContentsScrollView: {
-    flexGrow: 1,
-  },
-});
 
 export default HomeScreen;

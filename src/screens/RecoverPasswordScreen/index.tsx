@@ -3,13 +3,13 @@ import { View, StyleSheet, Text, TextInput, TouchableHighlight, TouchableWithout
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import { connect } from 'react-redux';
-import AppMenu from '../../components/AppMenu';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { notify } from '../../helpers';
 import { Reducers } from '../../store/reducers/reducers';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
+import ScreenTitle from '../../components/ScreenTitle';
 
 function ChangePassword(props: Reducers) {
   const [newPassword, setNewPassword] = useState('');
@@ -48,19 +48,14 @@ function ChangePassword(props: Reducers) {
   const isEmptyConfirmPassword = !confirmPassword;
 
   return (
-    <View style={tailwind('bg-white h-full')}>
-      <AppMenu
-        title={strings.components.inputs.password}
-        onBackPress={() => props.navigation.goBack()}
-        hideNavigation={true}
-        lightMode={true}
-        centerTitle={true}
-        hideSortBar={true}
-        hideSearch={true}
-        hideOptions={true}
+    <View style={tailwind('app-screen bg-white h-full')}>
+      <ScreenTitle
+        text={strings.components.inputs.password}
+        centerText
+        onBackButtonPressed={() => props.navigation.goBack()}
       />
       <View style={tailwind('mx-3')}>
-        <View style={tailwind('items-center m-3')}>
+        <View style={tailwind('items-center my-3')}>
           <Text style={styles.titleText}>{strings.screens.recover_password.title}</Text>
         </View>
         <View style={tailwind('')}>

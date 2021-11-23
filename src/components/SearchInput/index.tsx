@@ -1,28 +1,21 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment } from 'react';
 import { View, TextInput, TouchableWithoutFeedback, StyleProp, ViewStyle } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
-import { connect } from 'react-redux';
-import { fileActions } from '../../store/actions';
-import { Reducers } from '../../store/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import strings from '../../../assets/lang/strings';
 
-interface SearchInputProps extends Reducers {
+interface SearchInputProps {
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder?: string;
   style?: StyleProp<ViewStyle>;
 }
 
 function SearchInput(props: SearchInputProps): JSX.Element {
-  const [searchText, setSearchText] = useState('');
-
-  const showCloseIcon = searchText !== '';
-
-  useEffect(() => {
-    props.dispatch(fileActions.setSearchString(searchText));
-  }, [searchText]);
+  const showCloseIcon = !!props.value;
 
   return (
     <Fragment>
-      <View style={[tailwind('flex-row'), props.style]}>
+      <View style={[tailwind('flex-row px-5'), props.style]}>
         <View style={tailwind('bg-neutral-20 flex-grow rounded-xl flex-shrink')}>
           <View style={tailwind('flex-row items-center')}>
             <View style={tailwind('p-3')}>
@@ -30,15 +23,15 @@ function SearchInput(props: SearchInputProps): JSX.Element {
             </View>
 
             <TextInput
-              onChangeText={(value) => setSearchText(value)}
-              value={searchText}
+              onChangeText={props.onChangeText}
+              value={props.value}
               style={tailwind('flex-grow flex-shrink py-3')}
-              placeholder={strings.screens.file_explorer.searchInThisFolder}
+              placeholder={props.placeholder || ''}
             />
 
             {showCloseIcon && (
               <View style={tailwind('p-3')}>
-                <TouchableWithoutFeedback onPress={() => setSearchText('')}>
+                <TouchableWithoutFeedback onPress={() => props.onChangeText('')}>
                   <Unicons.UilTimesCircle color={getColor('neutral-100')} size={18} />
                 </TouchableWithoutFeedback>
               </View>
@@ -50,8 +43,4 @@ function SearchInput(props: SearchInputProps): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect<Reducers>(mapStateToProps)(SearchInput);
+export default SearchInput;

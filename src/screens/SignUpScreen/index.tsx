@@ -10,13 +10,14 @@ import { userActions } from '../../store/actions';
 import Intro from '../IntroScreen';
 import { doRegister } from './registerUtils';
 import InternxtLogo from '../../../assets/logo.svg';
-import analytics from '../../helpers/analytics';
+import analytics from '../../services/analytics';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { Reducers } from '../../store/reducers/reducers';
 import validationService from '../../services/validation';
 import authService from '../../services/auth';
+import { AppScreen } from '../../types';
 
-function Register(props: Reducers): JSX.Element {
+function SignUpScreen(props: Reducers): JSX.Element {
   const [showIntro, setShowIntro] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const twoFactorCode = '';
@@ -52,10 +53,10 @@ function Register(props: Reducers): JSX.Element {
   const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
 
   useEffect(() => {
-    if (props.authenticationState.loggedIn === true) {
+    if (props.authenticationState.loggedIn) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
 
-      props.navigation.replace('FileExplorer', {
+      props.navigation.replace(AppScreen.Drive, {
         folderId: rootFolderId,
       });
     } else {
@@ -124,9 +125,9 @@ function Register(props: Reducers): JSX.Element {
   };
 
   return (
-    <ScrollView style={tailwind('bg-white')}>
+    <ScrollView style={tailwind('app-screen bg-white')}>
       <KeyboardAvoidingView behavior="padding">
-        <View style={tailwind('p-6 py-0 bg-white')}>
+        <View style={tailwind('px-6 bg-white')}>
           <View>
             <View style={tailwind('pb-6')}>
               <View style={tailwind('items-center mt-5')}>
@@ -294,7 +295,7 @@ function Register(props: Reducers): JSX.Element {
               </View>
             </View>
 
-            <Text style={tailwind('text-center mt-2')} onPress={() => props.navigation.replace('Login')}>
+            <Text style={tailwind('text-center mt-2')} onPress={() => props.navigation.replace(AppScreen.SignIn)}>
               <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.title}</Text>
             </Text>
           </View>
@@ -308,4 +309,4 @@ const mapStateToProps = (state: any) => {
   return { authenticationState: state.authenticationState };
 };
 
-export default connect(mapStateToProps)(Register);
+export default connect(mapStateToProps)(SignUpScreen);

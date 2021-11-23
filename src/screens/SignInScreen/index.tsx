@@ -14,7 +14,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../helpers';
-import analytics from '../../helpers/analytics';
+import analytics from '../../services/analytics';
 import { userActions } from '../../store/actions';
 import { Reducers } from '../../store/reducers/reducers';
 import InternxtLogo from '../../../assets/logo.svg';
@@ -22,12 +22,13 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import VersionUpdate from '../../components/VersionUpdate';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
+import { AppScreen } from '../../types';
 
-interface LoginProps extends Reducers {
+interface SignInScreenProps extends Reducers {
   goToForm?: (screenName: string) => void;
 }
 
-function Login(props: LoginProps): JSX.Element {
+function SignInScreen(props: SignInScreenProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -72,7 +73,7 @@ function Login(props: LoginProps): JSX.Element {
     if (props.authenticationState.loggedIn === true) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
 
-      props.navigation.replace('FileExplorer', {
+      props.navigation.replace(AppScreen.Drive, {
         folderId: rootFolderId,
       });
     } else {
@@ -90,7 +91,7 @@ function Login(props: LoginProps): JSX.Element {
   }, [props.authenticationState.loggedIn, props.authenticationState.token]);
 
   return (
-    <KeyboardAvoidingView behavior="height" style={tailwind('p-5 bg-white h-full justify-between')}>
+    <KeyboardAvoidingView behavior="height" style={tailwind('app-screen p-5 bg-white h-full justify-between')}>
       <View></View>
       <View style={isLoading ? tailwind('opacity-50') : tailwind('opacity-100')}>
         <View>
@@ -176,12 +177,12 @@ function Login(props: LoginProps): JSX.Element {
 
           <Text
             style={tailwind('text-center text-sm m-2 text-blue-60')}
-            onPress={() => props.navigation.replace('Forgot')}
+            onPress={() => props.navigation.replace(AppScreen.ForgotPassword)}
           >
             {strings.screens.login_screen.forgot}
           </Text>
 
-          <Text style={tailwind('text-center mt-2')} onPress={() => props.navigation.replace('Register')}>
+          <Text style={tailwind('text-center mt-2')} onPress={() => props.navigation.replace(AppScreen.SignUp)}>
             <Text style={tailwind('text-sm')}>{strings.screens.login_screen.no_register} </Text>
             <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.register}</Text>
           </Text>
@@ -199,4 +200,4 @@ const mapStateToProps = (state: any) => {
   };
 };
 
-export default connect(mapStateToProps)(Login);
+export default connect(mapStateToProps)(SignInScreen);

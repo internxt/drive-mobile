@@ -1,7 +1,7 @@
 import prettysize from 'prettysize';
 
-import { getLyticsUuid } from '../helpers';
-import analytics from '../helpers/analytics';
+import { getAnalyticsUuid } from '../helpers';
+import analytics from './analytics';
 import { getHeaders } from '../helpers/headers';
 
 export interface IProduct {
@@ -70,7 +70,7 @@ export async function loadValues(): Promise<{ usage: number; limit: number }> {
   const limit = await loadLimit();
   const usage = await loadUsage();
 
-  const uuid = await getLyticsUuid();
+  const uuid = await getAnalyticsUuid();
 
   analytics
     .identify(uuid, {

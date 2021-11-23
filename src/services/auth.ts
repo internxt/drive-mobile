@@ -1,5 +1,5 @@
-import { deviceStorage, encryptText, encryptTextWithKey, getLyticsData, passToHash } from '../helpers';
-import analytics from '../helpers/analytics';
+import { deviceStorage, encryptText, encryptTextWithKey, getAnalyticsData, passToHash } from '../helpers';
+import analytics from './analytics';
 import { getHeaders } from '../helpers/headers';
 import { isJsonString } from '../screens/SignUpScreen/registerUtils';
 
@@ -32,7 +32,7 @@ class AuthService {
 
   public async signout(): Promise<void> {
     try {
-      const userData = await getLyticsData();
+      const userData = await getAnalyticsData();
 
       analytics
         .track('user-signout', { userId: userData.uuid, email: userData.email, platform: 'mobile' })

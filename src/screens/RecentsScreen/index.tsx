@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Alert, ScrollView, RefreshControl } from 'react-native';
 import { connect } from 'react-redux';
+import _ from 'lodash';
+
 import { Reducers } from '../../store/reducers/reducers';
-import AppMenu from '../../components/AppMenu';
 import { getRecents } from '../../services/recents';
 import { IFile } from '../../components/FileList';
 import FileItem from '../../components/FileItem';
 import SkinSkeleton from '../../components/SkinSkeleton';
-import _ from 'lodash';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptyRecentsImage from '../../../assets/images/screens/empty-recents.svg';
+import ScreenTitle from '../../components/ScreenTitle';
+import { tailwind } from '../../helpers/designSystem';
 
-function Recents(props: Reducers): JSX.Element {
+function RecentsScreen(props: Reducers): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [recents, setRecents] = useState<IFile[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -36,16 +38,8 @@ function Recents(props: Reducers): JSX.Element {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <AppMenu
-        {...props}
-        title={strings.screens.recents.title}
-        hideBackPress={true}
-        hideSearch={true}
-        hideOptions={true}
-        hideNavigation={true}
-        hideSortBar={true}
-      />
+    <View style={tailwind('app-screen bg-white flex-1')}>
+      <ScreenTitle text={strings.screens.recents.title} />
       {loading && (
         <View>
           {_.times(20, (n) => (
@@ -81,10 +75,6 @@ function Recents(props: Reducers): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    flex: 1,
-  },
   fileListContentsScrollView: {
     flexGrow: 1,
   },
@@ -94,4 +84,4 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(Recents);
+export default connect(mapStateToProps)(RecentsScreen);

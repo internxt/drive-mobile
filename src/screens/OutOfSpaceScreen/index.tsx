@@ -4,6 +4,7 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import { Reducers } from '../../store/reducers/reducers';
+import { AppScreen } from '../../types';
 
 function OutOfSpace(props: Reducers): JSX.Element {
   return (
@@ -18,7 +19,7 @@ function OutOfSpace(props: Reducers): JSX.Element {
         <TouchableOpacity
           style={styles.button}
           onPress={() => {
-            props.navigation.replace('FileExplorer');
+            props.navigation.goBack();
           }}
         >
           <Text style={styles.buttonText}>{strings.components.buttons.cancel}</Text>
@@ -27,7 +28,7 @@ function OutOfSpace(props: Reducers): JSX.Element {
         <TouchableOpacity
           style={[styles.button, styles.blue]}
           onPress={() => {
-            props.navigation.replace('Storage');
+            props.navigation.replace(AppScreen.Storage);
           }}
         >
           <Text style={[styles.buttonText, styles.white]}>{strings.components.buttons.upgrade}</Text>

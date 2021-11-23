@@ -3,19 +3,22 @@ import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'rea
 import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import CreateFolder from './screens/CreateFolderScreen';
-import Intro from './screens/IntroScreen';
-import Login from './screens/SignInScreen';
-import Register from './screens/SignUpScreen';
-import Forgot from './screens/ForgotPasswordScreen';
-import OutOfSpace from './screens/OutOfSpaceScreen';
-import Storage from './screens/StorageScreen';
-import TabExplorer from './layouts/TabExplorer';
-import Billing from './screens/BillingScreen';
-import ChangePassword from './screens/ChangePasswordScreen';
-import RecoverPassword from './screens/RecoverPasswordScreen';
+import { AppScreen } from './types';
 import UpdateModal from './components/modals/UpdateModal';
-import Preview from './screens/PhotosScreen/Preview';
+import CreateFolderScreen from './screens/CreateFolderScreen';
+import SignInScreen from './screens/SignInScreen';
+import SignUpScreen from './screens/SignUpScreen';
+import IntroScreen from './screens/IntroScreen';
+import HomeScreen from './screens/HomeScreen';
+import OutOfSpaceScreen from './screens/OutOfSpaceScreen';
+import StorageScreen from './screens/StorageScreen';
+import TabExplorer from './layouts/TabExplorer';
+import BillingScreen from './screens/BillingScreen';
+import ChangePasswordScreen from './screens/ChangePasswordScreen';
+import RecoverPasswordScreen from './screens/RecoverPasswordScreen';
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
+import PhotoPreviewScreen from './screens/PhotoPreviewScreen';
+import PhotosScreen from './screens/PhotosScreen';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -24,18 +27,20 @@ type RouteConfig = NavigationRouteConfigMap<
 >;
 
 const routeConfig: RouteConfig = {
-  Register: { screen: Register },
-  Login: { screen: Login },
-  Intro: { screen: Intro },
-  FileExplorer: { screen: TabExplorer },
-  CreateFolder: { screen: CreateFolder },
-  Forgot: { screen: Forgot },
-  OutOfSpace: { screen: OutOfSpace },
-  Storage: { screen: Storage },
-  Billing: { screen: Billing },
-  ChangePassword: { screen: ChangePassword },
-  RecoverPassword: { screen: RecoverPassword },
-  Preview: { screen: Preview },
+  [AppScreen.SignUp]: { screen: SignUpScreen },
+  [AppScreen.SignIn]: { screen: SignInScreen },
+  [AppScreen.Intro]: { screen: IntroScreen },
+  [AppScreen.Home]: { screen: HomeScreen },
+  [AppScreen.Drive]: { screen: TabExplorer },
+  [AppScreen.CreateFolder]: { screen: CreateFolderScreen },
+  [AppScreen.ForgotPassword]: { screen: ForgotPasswordScreen },
+  [AppScreen.OutOfSpace]: { screen: OutOfSpaceScreen },
+  [AppScreen.Storage]: { screen: StorageScreen },
+  [AppScreen.Billing]: { screen: BillingScreen },
+  [AppScreen.ChangePassword]: { screen: ChangePasswordScreen },
+  [AppScreen.RecoverPassword]: { screen: RecoverPasswordScreen },
+  [AppScreen.Photos]: { screen: PhotosScreen },
+  [AppScreen.PhotoPreview]: { screen: PhotoPreviewScreen },
 };
 
 const StackNav = createNativeStackNavigator();

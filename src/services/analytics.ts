@@ -1,5 +1,5 @@
 import analytics from '@segment/analytics-react-native';
-import { deviceStorage } from './deviceStorage';
+import { deviceStorage } from '../helpers/deviceStorage';
 import Firebase from '@segment/analytics-react-native-firebase';
 import { NavigationState } from '@react-navigation/native';
 
@@ -21,13 +21,13 @@ export async function analyticsSetup(): Promise<void> {
   });
 }
 
-export async function getLyticsUuid(): Promise<string> {
-  const xUser: any = await getLyticsData();
+export async function getAnalyticsUuid(): Promise<string> {
+  const xUser: any = await getAnalyticsData();
 
   return xUser.uuid;
 }
 
-export async function getLyticsData(): Promise<any> {
+export async function getAnalyticsData(): Promise<any> {
   const xUser = await deviceStorage.getUser();
 
   return xUser;

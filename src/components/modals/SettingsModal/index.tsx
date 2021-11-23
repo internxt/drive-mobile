@@ -10,6 +10,7 @@ import { Dispatch } from 'redux';
 import strings from '../../../../assets/lang/strings';
 import { Reducers } from '../../../store/reducers/reducers';
 import { tailwind } from '../../../helpers/designSystem';
+import { AppScreen } from '../../../types';
 
 interface SettingsModalProps extends Reducers {
   user: any;
@@ -35,13 +36,13 @@ function SettingsModal(props: SettingsModalProps) {
         {props.user.name} {props.user.lastname}
       </Text>
 
-      <Separator />
+      <Separator style={tailwind('my-3')} />
 
       <SettingsItem
         text={strings.components.app_menu.settings.storage}
         onPress={() => {
           props.dispatch(layoutActions.closeSettings());
-          props.navigation.replace('Storage');
+          props.navigation.replace(AppScreen.Storage);
         }}
       />
 

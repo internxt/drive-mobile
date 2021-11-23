@@ -1,13 +1,21 @@
-export enum AppView {
-  Login = 'login',
+export enum AppScreen {
+  SignUp = 'sign-up',
+  SignIn = 'sign-in',
+  Intro = 'intro',
   Home = 'home',
   Menu = 'menu',
   Drive = 'drive',
   Recents = 'recents',
   Shared = 'shared',
+  CreateFolder = 'create-folder',
+  ForgotPassword = 'forgot-password',
+  ChangePassword = 'change-password',
+  RecoverPassword = 'recover-password',
+  OutOfSpace = 'out-of-space',
   Storage = 'storage',
   Billing = 'billing',
   Photos = 'photos',
+  PhotoPreview = 'photo-preview',
 }
 
 export interface DriveFolderData {

@@ -1,4 +1,4 @@
-import { decryptText, encryptText, encryptTextWithKey, passToHash, getLyticsData } from '../../helpers';
+import { decryptText, encryptText, encryptTextWithKey, passToHash, getAnalyticsData } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { isJsonString } from '../SignUpScreen/registerUtils';
 import AesUtils from '../../helpers/aesUtils';
@@ -20,7 +20,7 @@ async function getSalt(email) {
 }
 
 export async function doChangePassword(params: ChangePasswordParam) {
-  const xUser = await getLyticsData();
+  const xUser = await getAnalyticsData();
   const salt = await getSalt(xUser.email);
 
   if (!salt) {

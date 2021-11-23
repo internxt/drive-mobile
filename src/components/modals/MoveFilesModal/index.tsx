@@ -40,7 +40,6 @@ function MoveFilesModal(props: Reducers) {
   }, [filesState.folderContent]);
 
   const moveFile = async (result: any) => {
-    // When modal is closed by move action result = folder id otherwise ans = -1
     if (result >= 0 && selectedfile) {
       setIsOpen(false);
       await props.dispatch(fileActions.moveFile(selectedfile.fileId, result));
@@ -65,7 +64,7 @@ function MoveFilesModal(props: Reducers) {
         <Text style={styles.title}>{strings.modals.move_modal.title}</Text>
       </View>
 
-      <Separator />
+      <Separator style={tailwind('my-3')} />
 
       <View style={tailwind('flex-grow')}>
         <FlatList

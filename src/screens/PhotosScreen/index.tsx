@@ -16,6 +16,7 @@ import { tailwind } from '../../helpers/designSystem';
 import { Reducers } from '../../store/reducers/reducers';
 import { loadLocalPhotos } from '../../services/photos';
 import globalStyle from '../../styles/global.style';
+import { AppScreen } from '../../types';
 
 function Photos(props: Reducers): JSX.Element {
   const [refreshing, setRefreshing] = useState(false);
@@ -77,7 +78,7 @@ function Photos(props: Reducers): JSX.Element {
           return (
             <TouchableOpacity
               onPress={() => {
-                props.navigation.push('Preview', { uri });
+                props.navigation.push(AppScreen.PhotoPreview, { uri });
               }}
               key={item.item.node.image.uri}
               style={[tailwind('p-0.5'), { width: thirdWidth, height: thirdWidth }]}

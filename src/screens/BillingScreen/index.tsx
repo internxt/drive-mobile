@@ -9,18 +9,20 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
-import AppMenu from '../../components/AppMenu';
+import _ from 'lodash';
+import * as Unicons from '@iconscout/react-native-unicons';
+
 import { notify } from '../../helpers';
 import { Reducers } from '../../store/reducers/reducers';
-import _ from 'lodash';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/Separator';
-import * as Unicons from '@iconscout/react-native-unicons';
 import { getHeaders } from '../../helpers/headers';
 import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
 import globalStyle from '../../styles/global.style';
+import strings from '../../../assets/lang/strings';
+import ScreenTitle from '../../components/ScreenTitle';
+import { AppScreen } from '../../types';
 
-// TODO: Export to service
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   if (intervalName === 'month') {
     return intervalCount;
@@ -96,7 +98,7 @@ function Billing(props: Reducers) {
         Alert.alert('There has been an error', `${err.message}, please contact us.`, [
           {
             text: 'Go back',
-            onPress: () => props.navigation.replace('Billing'),
+            onPress: () => props.navigation.replace(AppScreen.Billing),
           },
         ]);
       });
@@ -138,7 +140,7 @@ function Billing(props: Reducers) {
         Alert.alert('There has been an error', `${err.message}, please contact us.`, [
           {
             text: 'Go back',
-            onPress: () => props.navigation.replace('Billing'),
+            onPress: () => props.navigation.replace(AppScreen.Billing),
           },
         ]);
       });
@@ -207,16 +209,11 @@ function Billing(props: Reducers) {
   }, [stripeProducts, selectedProductIndex]);
 
   return (
-    <View style={tailwind('flex-1 bg-white')}>
-      <AppMenu
-        {...props}
-        title="Billing"
-        hideSearch={true}
-        lightMode={true}
-        centerTitle={true}
-        hideNavigation={true}
-        hideSortBar={true}
-        onBackPress={() => props.navigation.goBack()}
+    <View style={tailwind('app-screen flex-1 bg-white')}>
+      <ScreenTitle
+        text={strings.screens.billing.title}
+        centerText
+        onBackButtonPressed={() => props.navigation.goBack()}
       />
 
       <View style={tailwind('flex-1 mx-4 justify-start')}>

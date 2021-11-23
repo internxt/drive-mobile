@@ -149,15 +149,9 @@ function FileList(props: FileListProps) {
             ))}
           </View>
         ) : isRootFolder ? (
-          <EmptyList
-            {...strings.screens.file_explorer.emptyRoot}
-            image={<EmptyDriveImage width={100} height={100} />}
-          />
+          <EmptyList {...strings.screens.drive.emptyRoot} image={<EmptyDriveImage width={100} height={100} />} />
         ) : (
-          <EmptyList
-            {...strings.screens.file_explorer.emptyFolder}
-            image={<EmptyFolderImage width={100} height={100} />}
-          />
+          <EmptyList {...strings.screens.drive.emptyFolder} image={<EmptyFolderImage width={100} height={100} />} />
         )
       }
       data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}

@@ -1,5 +1,5 @@
 import { AnyAction, Dispatch } from 'redux';
-import analytics from '../../helpers/analytics';
+import analytics from '../../services/analytics';
 import { userActionTypes } from '../constants';
 import authService from '../../services/auth';
 import userService from '../../services/user';

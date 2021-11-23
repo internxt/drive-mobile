@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { connect } from 'react-redux';
 import { fileActions } from '../../../store/actions';
-import { getLyticsData } from '../../../helpers';
-import analytics from '../../../helpers/analytics';
+import { getAnalyticsData } from '../../../helpers';
+import analytics from '../../../services/analytics';
 import { Reducers } from '../../../store/reducers/reducers';
 
 interface FolderProps extends Reducers {
@@ -16,7 +16,7 @@ function Folder(props: FolderProps) {
   const item = props.item;
 
   async function handleClick(props: any) {
-    const userData = await getLyticsData();
+    const userData = await getAnalyticsData();
 
     analytics.track('folder-opened', {
       userId: userData.uuid,

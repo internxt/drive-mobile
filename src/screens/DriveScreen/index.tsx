@@ -1,20 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Platform, Alert, BackHandler } from 'react-native';
-import AppMenu from '../../components/AppMenu';
-import { fileActions, userActions } from '../../store/actions';
-import { connect } from 'react-redux';
+import { Text, View, Platform, Alert, BackHandler, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { connect, useDispatch, useSelector } from 'react-redux';
+import RNFetchBlob from 'rn-fetch-blob';
+import * as Unicons from '@iconscout/react-native-unicons';
+
+import { fileActions, layoutActions, userActions } from '../../store/actions';
 import FileList from '../../components/FileList';
 import { Reducers } from '../../store/reducers/reducers';
-import analytics, { getLyticsData } from '../../helpers/analytics';
-import RNFetchBlob from 'rn-fetch-blob';
+import analytics, { getAnalyticsData } from '../../services/analytics';
 import { notify } from '../../helpers';
 import { loadValues } from '../../services/storage';
 import strings from '../../../assets/lang/strings';
+import { getColor, tailwind } from '../../helpers/designSystem';
+import SearchInput from '../../components/SearchInput';
+import globalStyle from '../../styles/global.style';
+import ScreenTitle from '../../components/ScreenTitle';
+import Separator from '../../components/Separator';
+import { AppScreen } from '../../types';
 
-function FileExplorer(props: Reducers): JSX.Element {
-  const [selectedKeyId, setSelectedKeyId] = useState(0);
+function DriveScreen(props: Reducers): JSX.Element {
+  const dispatch = useDispatch();
   const { filesState } = props;
-
+  const [selectedKeyId, setSelectedKeyId] = useState(0);
+  const searchString = useSelector((state: Reducers) => state.filesState.searchString);
+  const onSearchTextChanged = (value: string) => {
+    dispatch(fileActions.setSearchString(value));
+  };
   const parentFolderId = (() => {
     if (filesState.folderContent) {
       return filesState.folderContent.parentId || null;
@@ -23,7 +34,6 @@ function FileExplorer(props: Reducers): JSX.Element {
     }
   })();
   let count = 0;
-  // Check if everything is set up for file upload
   const validateUri = () => {
     if (Platform.OS === 'ios') {
       return filesState.uri && filesState.folderContent && filesState.folderContent.currentFolder;
@@ -31,9 +41,15 @@ function FileExplorer(props: Reducers): JSX.Element {
       return filesState.uri.fileUri && filesState.folderContent && filesState.folderContent.currentFolder;
     }
   };
+  const backButtonEnabled = props.layoutState.backButtonEnabled;
+  const isRootFolder =
+    props.filesState.folderContent &&
+    props.filesState.folderContent.id === props.authenticationState.user.root_folder_id;
+  const screenTitle =
+    !isRootFolder && props.filesState.folderContent ? props.filesState.folderContent.name : strings.screens.drive.title;
 
   useEffect(() => {
-    getLyticsData()
+    getAnalyticsData()
       .then((userData) => {
         loadValues()
           .then((res) => {
@@ -143,7 +159,7 @@ function FileExplorer(props: Reducers): JSX.Element {
 
   const uploadFile = async (uri: string, name: string, currentFolder: number) => {
     props.dispatch(fileActions.setUri(undefined));
-    const userData = await getLyticsData();
+    const userData = await getAnalyticsData();
 
     try {
       const token = props.authenticationState.token;
@@ -182,7 +198,7 @@ function FileExplorer(props: Reducers): JSX.Element {
         })
         .then((res) => {
           if (res.respInfo.status === 402) {
-            props.navigation.replace('OutOfSpace');
+            props.navigation.replace(AppScreen.OutOfSpace);
           } else if (res.respInfo.status === 201) {
             analytics
               .track('file-upload-finished', { userId: userData.uuid, email: userData.email, device: 'mobile' })
@@ -221,17 +237,94 @@ function FileExplorer(props: Reducers): JSX.Element {
   }, [filesState]);
 
   if (!props.authenticationState.loggedIn) {
-    props.navigation.replace('Login');
+    props.navigation.replace(AppScreen.SignIn);
   }
 
   return (
-    <View style={styles.container}>
-      <AppMenu title={strings.screens.file_explorer.title} hideOptions={false} />
-      {props.layoutState.fileViewMode === 'grid' ? (
-        <FileList {...props} isGrid={true} />
-      ) : (
-        <FileList {...props} isGrid={false} />
-      )}
+    <View style={tailwind('app-screen bg-white flex-1')}>
+      {/* DRIVE NAV */}
+      <View style={[tailwind('flex-row items-center justify-between my-2 px-5'), isRootFolder && tailwind('hidden')]}>
+        <View>
+          <TouchableOpacity
+            disabled={!backButtonEnabled}
+            onPress={() => props.dispatch(fileActions.goBack(parentFolderId?.toString()))}
+          >
+            <View style={[tailwind('flex-row items-center'), tailwind(!parentFolderId && 'opacity-50')]}>
+              <Unicons.UilAngleLeft color={getColor('blue-60')} style={tailwind('-ml-2 -mr-1')} size={32} />
+              <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>
+                {strings.components.buttons.back}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+        <View style={tailwind('flex-row -m-2')}>
+          <View style={tailwind('items-center justify-center')}>
+            <TouchableOpacity
+              style={tailwind('p-2')}
+              onPress={() => {
+                if (props.layoutState.searchActive) {
+                  props.dispatch(layoutActions.closeSearch());
+                } else {
+                  props.dispatch(layoutActions.openSearch());
+                }
+              }}
+            >
+              <Unicons.UilSearch color={getColor('blue-60')} size={22} />
+            </TouchableOpacity>
+          </View>
+          <View style={tailwind('items-center justify-center')}>
+            <TouchableOpacity
+              style={tailwind('p-2')}
+              onPress={() => {
+                props.dispatch(layoutActions.openSettings());
+              }}
+            >
+              <Unicons.UilEllipsisH color={getColor('blue-60')} size={22} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      <ScreenTitle text={screenTitle} showBackButton={false} />
+
+      <SearchInput
+        value={searchString}
+        onChangeText={onSearchTextChanged}
+        placeholder={strings.screens.drive.searchInThisFolder}
+      />
+
+      {/* FILE LIST ACTIONS */}
+      <View style={[tailwind('flex-row justify-between mt-4 mb-2 px-5')]}>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            dispatch(layoutActions.openSortModal());
+          }}
+        >
+          <View style={tailwind('flex-row items-center')}>
+            <Text style={tailwind('text-neutral-100')}>{strings.screens.drive.sort[props.filesState.sortType]}</Text>
+            <Unicons.UilAngleDown size={20} color={getColor('neutral-100')} />
+          </View>
+        </TouchableWithoutFeedback>
+        <View>
+          <TouchableOpacity
+            onPress={() => {
+              dispatch(layoutActions.switchFileViewMode());
+            }}
+          >
+            <>
+              {props.layoutState.fileViewMode === 'list' ? (
+                <Unicons.UilApps size={22} color={getColor('neutral-100')} />
+              ) : (
+                <Unicons.UilListUl size={22} color={getColor('neutral-100')} />
+              )}
+            </>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <Separator />
+
+      <FileList {...props} isGrid={props.layoutState.fileViewMode === 'grid'} />
     </View>
   );
 }
@@ -240,12 +333,4 @@ const mapStateToProps = (state: any) => {
   return { ...state };
 };
 
-export default connect(mapStateToProps)(FileExplorer);
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    flex: 1,
-    justifyContent: 'flex-start',
-  },
-});
+export default connect(mapStateToProps)(DriveScreen);

@@ -4,13 +4,14 @@ import { View, Text, TouchableHighlight } from 'react-native';
 import { connect } from 'react-redux';
 import { Reducers } from '../../store/reducers/reducers';
 import strings from '../../../assets/lang/strings';
-import AppMenu from '../../components/AppMenu';
 import { tailwind } from '../../helpers/designSystem';
 import ProgressBar from '../../components/ProgressBar';
 import { getCurrentIndividualPlan } from '../../services/payments';
 import { notify } from '../../helpers';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { loadValues } from '../../services/storage';
+import ScreenTitle from '../../components/ScreenTitle';
+import { AppScreen } from '../../types';
 
 interface StorageProps extends Reducers {
   currentPlan: number;
@@ -55,16 +56,11 @@ function Storage(props: StorageProps): JSX.Element {
   }, []);
 
   return (
-    <View style={tailwind('bg-white h-full')}>
-      <AppMenu
-        title={strings.screens.storage.title}
-        onBackPress={() => props.navigation.goBack()}
-        hideNavigation={true}
-        hideSortBar={true}
-        hideSearch={true}
-        lightMode={true}
-        centerTitle={true}
-        hideOptions={true}
+    <View style={tailwind('app-screen bg-white h-full')}>
+      <ScreenTitle
+        text={strings.screens.storage.title}
+        centerText
+        onBackButtonPressed={() => props.navigation.goBack()}
       />
       <View>
         <View style={tailwind('items-center')}>
@@ -127,7 +123,7 @@ function Storage(props: StorageProps): JSX.Element {
         underlayColor="#5291ff"
         style={tailwind('btn btn-primary my-5 mx-5')}
         onPress={() => {
-          props.navigation.push('Billing');
+          props.navigation.push(AppScreen.Billing);
         }}
       >
         <Text style={tailwind('text-white text-lg')}>Change plan</Text>

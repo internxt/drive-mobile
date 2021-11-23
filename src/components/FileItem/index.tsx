@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../store/actions';
 import { deviceStorage, FolderIcon, getFileTypeIcon } from '../../helpers';
 import FileViewer from 'react-native-file-viewer';
-import analytics from '../../helpers/analytics';
+import analytics from '../../services/analytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { Reducers } from '../../store/reducers/reducers';
 import * as FileSystem from 'expo-file-system';

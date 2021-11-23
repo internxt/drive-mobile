@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { View, Alert, ScrollView, RefreshControl, Text } from 'react-native';
-import { connect } from 'react-redux';
-import { Reducers } from '../../store/reducers/reducers';
-import AppMenu from '../../components/AppMenu';
+import _ from 'lodash';
+
 import { getShareList, IShare } from '../../services/shares';
 import FileItem from '../../components/FileItem';
 import { tailwind } from '../../helpers/designSystem';
 import SkinSkeleton from '../../components/SkinSkeleton';
-import _ from 'lodash';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptySharesImage from '../../../assets/images/screens/empty-shares.svg';
+import ScreenTitle from '../../components/ScreenTitle';
 
-function Share(props: Reducers): JSX.Element {
+function Share(): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [shares, setShares] = useState<IShare[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const reloadShares = async (limit?: number) => {
+  const reloadShares = async () => {
     return getShareList()
       .then((shareList) => {
         const shareListFiltered = shareList.filter((s) => !!s.fileInfo);
@@ -38,16 +37,8 @@ function Share(props: Reducers): JSX.Element {
   }, []);
 
   return (
-    <View style={tailwind('bg-white flex-1')}>
-      <AppMenu
-        {...props}
-        title={strings.screens.shared.title}
-        hideSearch={true}
-        hideBackPress={true}
-        hideNavigation={true}
-        hideOptions={false}
-        hideSortBar={true}
-      />
+    <View style={tailwind('app-screen bg-white flex-1')}>
+      <ScreenTitle text={strings.screens.shared.title} />
       {loading && (
         <View>
           {_.times(20, (n) => (
@@ -97,6 +88,4 @@ function Share(props: Reducers): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: any) => ({ ...state });
-
-export default connect(mapStateToProps)(Share);
+export default Share;
