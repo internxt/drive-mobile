@@ -247,7 +247,12 @@ function DriveScreen(props: Reducers): JSX.Element {
   return (
     <View style={tailwind('app-screen bg-white flex-1')}>
       {/* DRIVE NAV */}
-      <View style={[tailwind('flex-row items-center justify-between my-2 px-5'), isRootFolder && tailwind('hidden')]}>
+      <View
+        style={[
+          tailwind('flex-row items-center justify-between my-2 px-5'),
+          (isRootFolder || !props.filesState.folderContent) && tailwind('hidden'),
+        ]}
+      >
         <View>
           <TouchableOpacity
             disabled={!backButtonEnabled}
