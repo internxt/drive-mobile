@@ -5,7 +5,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import { notify } from '../../helpers';
+import { notify } from '../../services/toast';
 import { Reducers } from '../../store/reducers/reducers';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';

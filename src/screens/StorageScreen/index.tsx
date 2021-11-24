@@ -7,7 +7,7 @@ import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import ProgressBar from '../../components/ProgressBar';
 import { getCurrentIndividualPlan } from '../../services/payments';
-import { notify } from '../../helpers';
+import { notify } from '../../services/toast';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { loadValues } from '../../services/storage';
 import ScreenTitle from '../../components/ScreenTitle';
@@ -64,7 +64,7 @@ function Storage(props: StorageProps): JSX.Element {
       />
       <View>
         <View style={tailwind('items-center')}>
-          <Text style={tailwind('m-2 text-neutral-900 text-base')}>Usage</Text>
+          <Text style={tailwind('m-2 text-neutral-900 text-base')}>{strings.screens.storage.usage}</Text>
         </View>
         <View style={tailwind('mx-5 px-5 py-3 bg-gray-10 rounded-lg')}>
           <View>
@@ -86,15 +86,13 @@ function Storage(props: StorageProps): JSX.Element {
 
       <View>
         <View style={tailwind('items-center mt-3')}>
-          <Text style={tailwind('m-2 text-neutral-900 text-base')}>Current plan</Text>
+          <Text style={tailwind('m-2 text-neutral-900 text-base')}>{strings.screens.storage.currentPlan}</Text>
         </View>
       </View>
 
       <View style={tailwind('mx-6')}>
         <View>
-          <Text style={tailwind('uppercase text-neutral-700 font-bold text-xl')}>
-            {currentPlan && currentPlan.name}
-          </Text>
+          <Text style={tailwind('uppercase text-neutral-700 font-bold text-xl')}>{parseLimit()}</Text>
         </View>
 
         <View style={tailwind('mt-2')}>
@@ -126,7 +124,7 @@ function Storage(props: StorageProps): JSX.Element {
           props.navigation.push(AppScreen.Billing);
         }}
       >
-        <Text style={tailwind('text-white text-lg')}>Change plan</Text>
+        <Text style={tailwind('text-white text-lg')}>{strings.components.buttons.changePlan}</Text>
       </TouchableHighlight>
     </View>
   );

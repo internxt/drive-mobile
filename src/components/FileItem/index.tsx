@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Platform, Animated, Easing } from 'react-native';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../store/actions';
-import { deviceStorage, FolderIcon, getFileTypeIcon } from '../../helpers';
+import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import FileViewer from 'react-native-file-viewer';
 import analytics from '../../services/analytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
@@ -16,6 +16,7 @@ import FileSpinner from '../../../assets/images/widgets/file-spinner.svg';
 import prettysize from 'prettysize';
 import globalStyle from '../../styles/global.style';
 import { DevicePlatform } from '../../types';
+import { deviceStorage } from '../../services/deviceStorage';
 
 interface FileItemProps extends Reducers {
   isFolder: boolean;

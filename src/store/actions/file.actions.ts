@@ -1,11 +1,11 @@
 import { AnyAction, Dispatch } from 'redux';
-import { getAnalyticsData } from '../../helpers';
+import { getAnalyticsData } from '../../services/analytics';
 import analytics from '../../services/analytics';
 import { store } from '..';
 import { fileActionTypes } from '../constants';
 import { layoutActions } from './layout.actions';
 import { userActions } from './user.actions';
-import { notify } from '../../helpers/toast';
+import { notify } from '../../services/toast';
 import fileService from '../../services/file';
 import {
   DevicePlatform,

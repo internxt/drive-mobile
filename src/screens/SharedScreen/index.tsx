@@ -11,7 +11,7 @@ import EmptyList from '../../components/EmptyList';
 import EmptySharesImage from '../../../assets/images/screens/empty-shares.svg';
 import ScreenTitle from '../../components/ScreenTitle';
 
-function Share(): JSX.Element {
+function SharedScreen(): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [shares, setShares] = useState<IShare[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -37,8 +37,7 @@ function Share(): JSX.Element {
   }, []);
 
   return (
-    <View style={tailwind('app-screen bg-white flex-1')}>
-      <ScreenTitle text={strings.screens.shared.title} />
+    <View style={tailwind('bg-white flex-1')}>
       {loading && (
         <View>
           {_.times(20, (n) => (
@@ -88,4 +87,4 @@ function Share(): JSX.Element {
   );
 }
 
-export default Share;
+export default SharedScreen;

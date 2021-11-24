@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { connect } from 'react-redux';
 import { fileActions } from '../../../store/actions';
-import { getAnalyticsData } from '../../../helpers';
+import { getAnalyticsData } from '../../../services/analytics';
 import analytics from '../../../services/analytics';
 import { Reducers } from '../../../store/reducers/reducers';
 

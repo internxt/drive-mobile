@@ -1,5 +1,5 @@
 import analytics from '@segment/analytics-react-native';
-import { deviceStorage } from '../helpers/deviceStorage';
+import { deviceStorage } from './deviceStorage';
 import Firebase from '@segment/analytics-react-native-firebase';
 import { NavigationState } from '@react-navigation/native';
 

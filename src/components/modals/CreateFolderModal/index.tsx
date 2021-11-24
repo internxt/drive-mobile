@@ -16,17 +16,16 @@ import { createFolder } from './CreateFolderUtils';
 import { fileActions, layoutActions } from '../../../store/actions';
 import { Reducers } from '../../../store/reducers/reducers';
 import { getColor, tailwind } from '../../../helpers/designSystem';
-import { FolderIcon, notify } from '../../../helpers';
+import { FolderIcon } from '../../../helpers';
 import strings from '../../../../assets/lang/strings';
 import globalStyle from '../../../styles/global.style';
+import { notify } from '../../../services/toast';
 
 function CreateFolderModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder;
   const [isOpen, setIsOpen] = useState(props.layoutState.showCreateFolderModal);
   const [folderName, setFolderName] = useState('Untitled folder');
   const [isLoading, setIsLoading] = useState(false);
-
-  const emptyName = folderName === '';
 
   useEffect(() => {
     setIsOpen(props.layoutState.showCreateFolderModal);

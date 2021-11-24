@@ -13,7 +13,6 @@ import { connect } from 'react-redux';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';
-import { deviceStorage } from '../../helpers';
 import analytics from '../../services/analytics';
 import { userActions } from '../../store/actions';
 import { Reducers } from '../../store/reducers/reducers';
@@ -23,6 +22,7 @@ import VersionUpdate from '../../components/VersionUpdate';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
 import { AppScreen } from '../../types';
+import { deviceStorage } from '../../services/deviceStorage';
 
 interface SignInScreenProps extends Reducers {
   goToForm?: (screenName: string) => void;

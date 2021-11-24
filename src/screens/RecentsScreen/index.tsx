@@ -3,7 +3,6 @@ import { StyleSheet, View, Alert, ScrollView, RefreshControl } from 'react-nativ
 import { connect } from 'react-redux';
 import _ from 'lodash';
 
-import { Reducers } from '../../store/reducers/reducers';
 import { getRecents } from '../../services/recents';
 import { IFile } from '../../components/FileList';
 import FileItem from '../../components/FileItem';
@@ -11,15 +10,14 @@ import SkinSkeleton from '../../components/SkinSkeleton';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptyRecentsImage from '../../../assets/images/screens/empty-recents.svg';
-import ScreenTitle from '../../components/ScreenTitle';
 import { tailwind } from '../../helpers/designSystem';
 
-function RecentsScreen(props: Reducers): JSX.Element {
+function RecentsScreen(): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [recents, setRecents] = useState<IFile[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const reloadRecents = async (limit?: number) => {
+  const loadRecents = async (limit?: number) => {
     return getRecents()
       .then((recentFiles) => {
         setRecents(recentFiles);
@@ -34,12 +32,11 @@ function RecentsScreen(props: Reducers): JSX.Element {
   };
 
   useEffect(() => {
-    reloadRecents();
+    loadRecents();
   }, []);
 
   return (
-    <View style={tailwind('app-screen bg-white flex-1')}>
-      <ScreenTitle text={strings.screens.recents.title} />
+    <View style={tailwind('bg-white flex-1')}>
       {loading && (
         <View>
           {_.times(20, (n) => (
@@ -55,7 +52,7 @@ function RecentsScreen(props: Reducers): JSX.Element {
               refreshing={refreshing}
               onRefresh={() => {
                 setRefreshing(true);
-                reloadRecents();
+                loadRecents();
               }}
             />
           }
@@ -66,7 +63,7 @@ function RecentsScreen(props: Reducers): JSX.Element {
           )}
           {recents.length > 0 &&
             recents.map((item) => {
-              return <FileItem totalColumns={1} {...props} key={item.id} item={item} isFolder={false} />;
+              return <FileItem totalColumns={1} key={item.id} item={item} isFolder={false} />;
             })}
         </ScrollView>
       )}

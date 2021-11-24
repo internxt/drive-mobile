@@ -7,7 +7,7 @@ import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { doChangePassword } from './changePasswordUtils';
-import { notify } from '../../helpers';
+import { notify } from '../../services/toast';
 import { Reducers } from '../../store/reducers/reducers';
 import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreen } from '../../types';

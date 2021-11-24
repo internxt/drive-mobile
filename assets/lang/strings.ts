@@ -109,6 +109,8 @@ const strings = new LocalizedStrings({
       },
       storage: {
         title: 'Storage',
+        currentPlan: 'Current plan',
+        usage: 'Usage',
         space: {
           title: 'Storage space',
           used: {
@@ -161,6 +163,7 @@ const strings = new LocalizedStrings({
         uploadFromCameraRoll: 'Upload from camera roll',
         takeAPhotoAnUpload: 'Take a photo an upload',
         newFolder: 'New folder',
+        changePlan: 'Change plan',
       },
       inputs: {
         email: 'Email address',
@@ -349,6 +352,8 @@ const strings = new LocalizedStrings({
       },
       storage: {
         title: 'Almacenamiento',
+        currentPlan: 'Plan actual',
+        usage: 'Uso',
         space: {
           title: 'Espacio de almacenamiento',
           used: {
@@ -401,6 +406,7 @@ const strings = new LocalizedStrings({
         uploadFromCameraRoll: 'Subir desde la galería',
         takeAPhotoAnUpload: 'Tomar una foto y subir',
         newFolder: 'Nueva carpeta',
+        changePlan: 'Cambiar plan',
       },
       inputs: {
         email: 'Correo electrónico',
@@ -410,7 +416,7 @@ const strings = new LocalizedStrings({
         first_name: 'Nombre',
         last_name: 'Primer apellido',
         searchInRecents: 'Buscar en recientes',
-        searchInShared: 'Buscar en compartidos',
+        searchInShared: 'Buscar en compartido',
       },
       empty_folder: {
         title: '¡Esto parece vacío!',

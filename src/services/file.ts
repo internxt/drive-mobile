@@ -12,6 +12,8 @@ interface RenameFileInNetworkPayload {
   relativePath: string;
 }
 
+export const UPLOAD_FILES_LIMIT = 1024 * 1024 * 1024;
+
 async function getFolderContent(folderId: number): Promise<any> {
   const headers = await getHeaders();
 

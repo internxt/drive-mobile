@@ -1,6 +1,6 @@
 import prettysize from 'prettysize';
 
-import { getAnalyticsUuid } from '../helpers';
+import { getAnalyticsUuid } from '../services/analytics';
 import analytics from './analytics';
 import { getHeaders } from '../helpers/headers';
 import { DevicePlatform } from '../types';

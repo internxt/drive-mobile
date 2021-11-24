@@ -1,21 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Platform, Linking, Alert, SafeAreaView } from 'react-native';
 import { Provider } from 'react-redux';
-import { store } from './src/store';
-import AppNavigator from './src/AppNavigator';
-import {
-  analyticsSetup,
-  forceCheckUpdates,
-  loadEnvVars,
-  loadFonts,
-  shouldForceUpdate,
-  trackStackScreen,
-} from './src/helpers';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
-import { fileActions } from './src/store/actions';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import Toast from 'react-native-toast-message';
 import * as Unicons from '@iconscout/react-native-unicons';
+
+import { store } from './src/store';
+import AppNavigator from './src/AppNavigator';
+import { analyticsSetup, trackStackScreen } from './src/services/analytics';
+import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './src/helpers';
+import { fileActions } from './src/store/actions';
 import { getColor, tailwind } from './src/helpers/designSystem';
 import strings from './assets/lang/strings';
 

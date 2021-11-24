@@ -8,7 +8,6 @@ import { fileActions, layoutActions, userActions } from '../../store/actions';
 import FileList from '../../components/FileList';
 import { Reducers } from '../../store/reducers/reducers';
 import analytics, { getAnalyticsData } from '../../services/analytics';
-import { notify } from '../../helpers';
 import { loadValues } from '../../services/storage';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -17,6 +16,7 @@ import globalStyle from '../../styles/global.style';
 import ScreenTitle from '../../components/ScreenTitle';
 import Separator from '../../components/Separator';
 import { AppScreen, DevicePlatform } from '../../types';
+import { notify } from '../../services/toast';
 
 function DriveScreen(props: Reducers): JSX.Element {
   const dispatch = useDispatch();

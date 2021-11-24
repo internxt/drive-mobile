@@ -1,7 +1,8 @@
-import { decryptText, encryptText, encryptTextWithKey, passToHash, getAnalyticsData } from '../../helpers';
+import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { isJsonString } from '../SignUpScreen/registerUtils';
 import AesUtils from '../../helpers/aesUtils';
+import { getAnalyticsData } from '../../services/analytics';
 interface ChangePasswordParam {
   password: string;
   newPassword: string;

@@ -17,14 +17,15 @@ import { IFile, IFolder } from '../../FileList';
 import { Reducers } from '../../../store/reducers/reducers';
 import strings from '../../../../assets/lang/strings';
 import { generateShareLink } from '../../../@inxt-js/services/share';
-import { deviceStorage, getFileTypeIcon } from '../../../helpers';
+import { getFileTypeIcon } from '../../../helpers';
 import { generateFileKey, Network } from '../../../lib/network';
 import { setString } from 'expo-clipboard';
-import { notify } from '../../../helpers/toast';
+import { notify } from '../../../services/toast';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
 import prettysize from 'prettysize';
 import globalStyle from '../../../styles/global.style';
+import { deviceStorage } from '../../../services/deviceStorage';
 
 function ShareFilesModal(props: Reducers) {
   const [isOpen, setIsOpen] = useState(props.layoutState.showShareModal);

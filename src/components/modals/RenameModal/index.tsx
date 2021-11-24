@@ -15,18 +15,18 @@ import { fileActions, layoutActions } from '../../../store/actions';
 import { Reducers } from '../../../store/reducers/reducers';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import strings from '../../../../assets/lang/strings';
-import { FolderIcon, getFileTypeIcon, notify } from '../../../helpers';
+import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import globalStyle from '../../../styles/global.style';
 import { getEnvironmentConfig } from '../../../lib/network';
 import folderService from '../../../services/folder';
 import fileService from '../../../services/file';
+import { notify } from '../../../services/toast';
 
 function RenameModal(props: Reducers) {
   const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder;
   const [newName, setNewName] = useState('');
   const [originalName, setOriginalName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const emptyName = newName === '';
   const isFolder = props.filesState.focusedItem?.parentId;
   const folder = isFolder && props.filesState.focusedItem;
   const file = !isFolder && props.filesState.focusedItem;

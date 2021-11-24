@@ -1,5 +1,5 @@
 import { getEnvironmentConfig, Network } from '../lib/network';
-import { deviceStorage } from '../helpers';
+import { deviceStorage } from '../services/deviceStorage';
 import { getHeaders } from '../helpers/headers';
 
 export interface FileMeta {

@@ -1,4 +1,5 @@
-import { decryptText, decryptTextWithKey, deviceStorage, encryptText, passToHash } from '../helpers';
+import { decryptText, decryptTextWithKey, encryptText, passToHash } from '../helpers';
+import { deviceStorage } from './deviceStorage';
 import { getHeaders } from '../helpers/headers';
 
 class UserService {

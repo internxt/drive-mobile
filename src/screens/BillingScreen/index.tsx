@@ -12,7 +12,7 @@ import { connect } from 'react-redux';
 import _ from 'lodash';
 import * as Unicons from '@iconscout/react-native-unicons';
 
-import { notify } from '../../helpers';
+import { notify } from '../../services/toast';
 import { Reducers } from '../../store/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/Separator';

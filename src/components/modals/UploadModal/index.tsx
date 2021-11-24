@@ -23,17 +23,18 @@ import * as Unicons from '@iconscout/react-native-unicons';
 import { fileActions, layoutActions } from '../../../store/actions';
 import { createFileEntry, FileEntry, getFinalUri, uploadFile, FileMeta } from '../../../services/upload';
 import analytics from '../../../services/analytics';
-import { deviceStorage, encryptFilename } from '../../../helpers';
+import { encryptFilename } from '../../../helpers';
 import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../lib/fs';
 import { Reducers } from '../../../store/reducers/reducers';
 import { renameIfAlreadyExists } from '../../../lib';
-import { UPLOAD_FILES_LIMIT } from '../../../lib/constants';
 import strings from '../../../../assets/lang/strings';
-import { notify } from '../../../helpers/toast';
+import { notify } from '../../../services/toast';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import RNFS from 'react-native-fs';
 import { DevicePlatform } from '../../../types';
+import { deviceStorage } from '../../../services/deviceStorage';
+import { UPLOAD_FILES_LIMIT } from '../../../services/file';
 
 interface UploadingFile {
   size: number;
