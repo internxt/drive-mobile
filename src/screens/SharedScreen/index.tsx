@@ -9,19 +9,25 @@ import SkinSkeleton from '../../components/SkinSkeleton';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptySharesImage from '../../../assets/images/screens/empty-shares.svg';
-import ScreenTitle from '../../components/ScreenTitle';
+import { IFile } from '../../components/FileList';
 
-function SharedScreen(): JSX.Element {
+interface SharedScreenProps {
+  searchText?: string;
+}
+
+function SharedScreen(props: SharedScreenProps): JSX.Element {
   const [loading, setLoading] = useState(true);
-  const [shares, setShares] = useState<IShare[]>([]);
+  const [sharedList, setSharedList] = useState<IShare[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-
+  const filteredSharedList = sharedList.filter((share: IShare) =>
+    share.fileInfo.name.toLowerCase().includes((props.searchText || '').toLowerCase()),
+  );
   const reloadShares = async () => {
     return getShareList()
       .then((shareList) => {
         const shareListFiltered = shareList.filter((s) => !!s.fileInfo);
 
-        setShares(shareListFiltered);
+        setSharedList(shareListFiltered);
       })
       .catch((err) => {
         Alert.alert('Cannot load shares', err.message);
@@ -59,9 +65,9 @@ function SharedScreen(): JSX.Element {
           }
           contentContainerStyle={tailwind('flex-grow')}
         >
-          {shares?.length > 0 && (
+          {filteredSharedList?.length > 0 ? (
             <View>
-              {shares.map((item, i) => {
+              {filteredSharedList.map((item, i) => {
                 return (
                   <FileItem
                     key={i}
@@ -77,8 +83,7 @@ function SharedScreen(): JSX.Element {
                 );
               })}
             </View>
-          )}
-          {shares?.length === 0 && (
+          ) : (
             <EmptyList {...strings.screens.shared.empty} image={<EmptySharesImage width={100} height={100} />} />
           )}
         </ScrollView>

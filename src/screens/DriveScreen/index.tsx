@@ -266,11 +266,9 @@ function DriveScreen(props: Reducers): JSX.Element {
             <TouchableOpacity
               style={tailwind('p-2')}
               onPress={() => {
-                if (props.layoutState.searchActive) {
-                  props.dispatch(layoutActions.closeSearch());
-                } else {
-                  props.dispatch(layoutActions.openSearch());
-                }
+                props.layoutState.searchActive
+                  ? props.dispatch(layoutActions.closeSearch())
+                  : props.dispatch(layoutActions.openSearch());
               }}
             >
               <Unicons.UilSearch color={getColor('blue-60')} size={22} />

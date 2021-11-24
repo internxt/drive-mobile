@@ -16,7 +16,11 @@ const Tabs = (props: TabsProps) => {
 
     return (
       <TouchableOpacity
-        style={[!isTheLast && tailwind('mr-4'), isActive && tailwind('border-b border-neutral-500 text-neutral-500')]}
+        style={[
+          tailwind('pb-1'),
+          !isTheLast && tailwind('mr-4'),
+          isActive && tailwind('border-b border-neutral-500 text-neutral-500'),
+        ]}
         onPress={() => props.onTabChanged(tab.id)}
       >
         <Text style={[tailwind('text-base'), isActive ? tailwind('text-neutral-500') : tailwind('text-neutral-100')]}>

@@ -12,12 +12,18 @@ import EmptyList from '../../components/EmptyList';
 import EmptyRecentsImage from '../../../assets/images/screens/empty-recents.svg';
 import { tailwind } from '../../helpers/designSystem';
 
-function RecentsScreen(): JSX.Element {
+interface RecentsScreenProps {
+  searchText?: string;
+}
+
+function RecentsScreen(props: RecentsScreenProps): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [recents, setRecents] = useState<IFile[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-
-  const loadRecents = async (limit?: number) => {
+  const filteredRecents = recents.filter((file: IFile) =>
+    file.name.toLowerCase().includes((props.searchText || '').toLowerCase()),
+  );
+  const loadRecents = async () => {
     return getRecents()
       .then((recentFiles) => {
         setRecents(recentFiles);
@@ -58,13 +64,13 @@ function RecentsScreen(): JSX.Element {
           }
           contentContainerStyle={styles.fileListContentsScrollView}
         >
-          {recents.length === 0 && (
+          {filteredRecents.length > 0 ? (
+            filteredRecents.map((item) => {
+              return <FileItem totalColumns={1} key={item.id} item={item} isFolder={false} />;
+            })
+          ) : (
             <EmptyList {...strings.screens.recents.empty} image={<EmptyRecentsImage width={100} height={100} />} />
           )}
-          {recents.length > 0 &&
-            recents.map((item) => {
-              return <FileItem totalColumns={1} key={item.id} item={item} isFolder={false} />;
-            })}
         </ScrollView>
       )}
     </View>

@@ -25,20 +25,25 @@ const HomeScreen = () => {
     {
       id: HomeTab.Recents,
       title: strings.screens.recents.title,
-      screen: <RecentsScreen></RecentsScreen>,
+      screen: <RecentsScreen searchText={searchText}></RecentsScreen>,
     },
     {
       id: HomeTab.Shared,
       title: strings.screens.shared.title,
-      screen: <SharedScreen></SharedScreen>,
+      screen: <SharedScreen searchText={searchText}></SharedScreen>,
     },
   ];
+  const onTabChanged = (tabId: string) => {
+    setCurrentTab(tabId as HomeTab);
+
+    setSearchText('');
+  };
 
   return (
     <View style={tailwind('app-screen bg-white flex-1')}>
       <ScreenTitle text={strings.screens.home.title} showBackButton={false} />
       <SearchInput value={searchText} onChangeText={setSearchText} placeholder={searchPlaceholder} />
-      <Tabs value={currentTab} onTabChanged={(tabId) => setCurrentTab(tabId as HomeTab)} tabs={tabs} />
+      <Tabs value={currentTab} onTabChanged={onTabChanged} tabs={tabs} />
     </View>
   );
 };
