@@ -93,6 +93,7 @@ function MenuScreen(props: Reducers): JSX.Element {
             title={strings.components.app_menu.settings.signOut}
             onPress={() => {
               props.dispatch(userActions.signout());
+              props.navigation.replace(AppScreen.SignIn);
             }}
           />
 

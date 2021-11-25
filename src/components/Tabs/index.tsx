@@ -16,6 +16,7 @@ const Tabs = (props: TabsProps) => {
 
     return (
       <TouchableOpacity
+        key={tab.id}
         style={[
           tailwind('pb-1'),
           !isTheLast && tailwind('mr-4'),

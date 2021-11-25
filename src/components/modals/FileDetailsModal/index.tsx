@@ -122,7 +122,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                 </View>
               </View>
 
-              <View style={tailwind('bg-neutral-20 p-4 flex-grow')}>
+              <View style={tailwind('bg-neutral-10 p-4 flex-grow')}>
                 <View style={tailwind('rounded-xl bg-white')}>
                   {/*!isFolder && <FileDetailOption
                   name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.components.file_and_folder_options.view}</Text>}

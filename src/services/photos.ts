@@ -7,17 +7,16 @@ export const convertLocalIdentifierToAssetLibrary = (localIdentifier: string, ex
   return `assets-library://asset/asset.${ext}?id=${hash}&ext=${ext}`;
 };
 
-export async function loadLocalPhotos(cursor?: string): Promise<[CameraRoll.PhotoIdentifiersPage, string]> {
-  const pictures = await CameraRoll.getPhotos({
+export async function loadLocalPhotos(cursor?: string): Promise<[CameraRoll.PhotoIdentifier[], string]> {
+  const photos = await CameraRoll.getPhotos({
     first: 10,
-    assetType: 'All',
+    assetType: 'Photos',
     groupTypes: 'All',
     after: cursor,
   });
-
   let lastCursor: string = undefined;
 
-  pictures.edges.map((edge) => {
+  photos.edges.forEach((edge) => {
     if (Platform.OS === 'ios') {
       lastCursor = edge.node.image.uri;
       edge.node.image.uri = convertLocalIdentifierToAssetLibrary(
@@ -28,5 +27,7 @@ export async function loadLocalPhotos(cursor?: string): Promise<[CameraRoll.Phot
     return;
   });
 
-  return [pictures, lastCursor];
+  console.log('photos: ', photos);
+
+  return [photos.edges, lastCursor];
 }

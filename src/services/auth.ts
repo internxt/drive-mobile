@@ -39,7 +39,7 @@ class AuthService {
       analytics
         .track('user-signout', { userId: userData.uuid, email: userData.email, platform: DevicePlatform.Mobile })
         .catch(() => undefined);
-      // Delete login data
+
       deviceStorage.clearStorage();
     } catch (err) {
       console.error('Error during signout: ', err);

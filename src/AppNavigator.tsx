@@ -12,13 +12,15 @@ import IntroScreen from './screens/IntroScreen';
 import HomeScreen from './screens/HomeScreen';
 import OutOfSpaceScreen from './screens/OutOfSpaceScreen';
 import StorageScreen from './screens/StorageScreen';
-import TabExplorer from './layouts/TabExplorer';
+import TabExplorer from './screens/TabExplorerScreen';
 import BillingScreen from './screens/BillingScreen';
 import ChangePasswordScreen from './screens/ChangePasswordScreen';
 import RecoverPasswordScreen from './screens/RecoverPasswordScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import PhotoPreviewScreen from './screens/PhotoPreviewScreen';
-import PhotosScreen from './screens/PhotosScreen';
+import GalleryScreen from './screens/GalleryScreen';
+import { useSelector } from 'react-redux';
+import { Reducers } from './store/reducers/reducers';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -31,7 +33,7 @@ const routeConfig: RouteConfig = {
   [AppScreen.SignIn]: { screen: SignInScreen },
   [AppScreen.Intro]: { screen: IntroScreen },
   [AppScreen.Home]: { screen: HomeScreen },
-  [AppScreen.Drive]: { screen: TabExplorer },
+  [AppScreen.TabExplorer]: { screen: TabExplorer },
   [AppScreen.CreateFolder]: { screen: CreateFolderScreen },
   [AppScreen.ForgotPassword]: { screen: ForgotPasswordScreen },
   [AppScreen.OutOfSpace]: { screen: OutOfSpaceScreen },
@@ -39,7 +41,7 @@ const routeConfig: RouteConfig = {
   [AppScreen.Billing]: { screen: BillingScreen },
   [AppScreen.ChangePassword]: { screen: ChangePasswordScreen },
   [AppScreen.RecoverPassword]: { screen: RecoverPasswordScreen },
-  [AppScreen.Photos]: { screen: PhotosScreen },
+  [AppScreen.Photos]: { screen: GalleryScreen },
   [AppScreen.PhotoPreview]: { screen: PhotoPreviewScreen },
 };
 
@@ -48,11 +50,14 @@ const StackNav = createNativeStackNavigator();
 type ScreenEntry = [name: string, component: { screen: React.ComponentType<JSX.Element> }];
 
 function AppNavigator(): JSX.Element {
+  const isLoggedIn = useSelector((state: Reducers) => state.authenticationState.loggedIn);
+  const initialRouteName = isLoggedIn ? AppScreen.TabExplorer : AppScreen.SignIn;
+
   return (
     <>
       <UpdateModal />
       <StackNav.Navigator
-        initialRouteName="FileExplorer"
+        initialRouteName={initialRouteName}
         screenOptions={{ headerShown: false, statusBarHidden: false }}
       >
         {Object.entries(routeConfig).map(([name, component]: ScreenEntry) => (

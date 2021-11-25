@@ -10,36 +10,34 @@ import { store } from './src/store';
 import AppNavigator from './src/AppNavigator';
 import { analyticsSetup, trackStackScreen } from './src/services/analytics';
 import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './src/helpers';
-import { fileActions } from './src/store/actions';
+import { fileActions, userActions } from './src/store/actions';
 import { getColor, tailwind } from './src/helpers/designSystem';
 import strings from './assets/lang/strings';
+import { deviceStorage } from './src/services/deviceStorage';
 
 process.nextTick = setImmediate;
 
 export default function App(): JSX.Element {
-  const [appInitialized, setAppInitialized] = useState(false);
+  const [isAppInitialized, setIsAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
-
-  Promise.all([loadFonts(), loadEnvVars(), analyticsSetup()])
-    .then(() => {
-      setAppInitialized(true);
-    })
-    .catch((err: Error) => {
-      setLoadError(err.message);
-    });
-
   const prefix = 'inxt';
   const config = {
     screens: {
       Home: '/',
     },
   };
-
   const linking = {
     prefixes: [prefix],
     config: config,
   };
+  const loadLocalUser = async () => {
+    const xToken = await deviceStorage.getToken();
+    const xUser = await deviceStorage.getUser();
 
+    if (xToken && xUser) {
+      store.dispatch(userActions.localSignIn(xToken, xUser));
+    }
+  };
   const handleOpenURL = (e) => {
     if (e.url) {
       if (e.url.match(/inxt:\/\/.*:\/*/g)) {
@@ -52,13 +50,24 @@ export default function App(): JSX.Element {
     }
   };
 
-  shouldForceUpdate()
-    .then((shouldForce) => {
-      if (shouldForce && process.env.NODE_ENV === 'production') {
-        forceCheckUpdates();
-      }
-    })
-    .catch(() => undefined);
+  // Initialize app
+  useEffect(() => {
+    Promise.all([loadFonts(), loadEnvVars(), analyticsSetup(), loadLocalUser()])
+      .then(() => {
+        setIsAppInitialized(true);
+      })
+      .catch((err: Error) => {
+        setLoadError(err.message);
+      });
+
+    shouldForceUpdate()
+      .then((shouldForce) => {
+        if (shouldForce && process.env.NODE_ENV === 'production') {
+          forceCheckUpdates();
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   // useEffect to receive shared file
   useEffect(() => {
@@ -129,7 +138,7 @@ export default function App(): JSX.Element {
         linking={linking}
         fallback={<Text>{strings.generic.loading}</Text>}
       >
-        {appInitialized ? (
+        {isAppInitialized ? (
           <SafeAreaView style={tailwind('flex-1')}>
             <AppNavigator />
           </SafeAreaView>

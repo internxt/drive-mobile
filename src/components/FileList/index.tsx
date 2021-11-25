@@ -137,7 +137,6 @@ function FileList(props: FileListProps) {
           }}
         />
       }
-      key={props.isGrid ? '#' : '-'}
       numColumns={props.isGrid ? totalColumns : 1}
       collapsable={true}
       contentContainerStyle={isEmptyFolder && tailwind('h-full justify-center')}
@@ -170,7 +169,7 @@ function FileList(props: FileListProps) {
   );
 }
 
-const mapStateToProps = (state: any) => {
+const mapStateToProps = (state) => {
   return { ...state };
 };
 

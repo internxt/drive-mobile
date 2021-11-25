@@ -140,6 +140,16 @@ const strings = new LocalizedStrings({
       billing: {
         title: 'Billing',
       },
+      gallery: {
+        title: 'Gallery',
+        nPhotosSelected: '{0} selected',
+        groupBy: {
+          years: 'Years',
+          months: 'Months',
+          days: 'Days',
+          all: 'All',
+        },
+      },
     },
     components: {
       buttons: {
@@ -164,6 +174,8 @@ const strings = new LocalizedStrings({
         takeAPhotoAnUpload: 'Take a photo an upload',
         newFolder: 'New folder',
         changePlan: 'Change plan',
+        select: 'Select',
+        selectAll: 'Select all',
       },
       inputs: {
         email: 'Email address',
@@ -383,6 +395,16 @@ const strings = new LocalizedStrings({
       billing: {
         title: 'Facturación',
       },
+      gallery: {
+        title: 'Galería',
+        nPhotosSelected: '{0} seleccionadas',
+        groupBy: {
+          years: 'Años',
+          months: 'Meses',
+          days: 'Días',
+          all: 'Todo',
+        },
+      },
     },
     components: {
       buttons: {
@@ -407,6 +429,8 @@ const strings = new LocalizedStrings({
         takeAPhotoAnUpload: 'Tomar una foto y subir',
         newFolder: 'Nueva carpeta',
         changePlan: 'Cambiar plan',
+        select: 'Seleccionar',
+        selectAll: 'Seleccionar todo',
       },
       inputs: {
         email: 'Correo electrónico',

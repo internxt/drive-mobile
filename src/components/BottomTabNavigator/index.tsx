@@ -10,7 +10,7 @@ import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 
 const tabIcons = {
-  home: Unicons.UilHome,
+  home: Unicons.UilEstate,
   drive: Unicons.UilHdd,
   create: Unicons.UilPlusCircle,
   photos: Unicons.UilImage,
@@ -53,7 +53,6 @@ function BottomTabNavigator(props: BottomTabNavigatorProps): JSX.Element {
         const Icon = tabIcons[route.name];
 
         return (
-          // eslint-disable-next-line react/jsx-key
           <TouchableWithoutFeedback
             key={`button-tab-${route.name}`}
             accessibilityRole="button"

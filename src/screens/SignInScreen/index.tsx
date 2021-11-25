@@ -22,14 +22,13 @@ import VersionUpdate from '../../components/VersionUpdate';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
 import { AppScreen } from '../../types';
-import { deviceStorage } from '../../services/deviceStorage';
 
 interface SignInScreenProps extends Reducers {
   goToForm?: (screenName: string) => void;
 }
 
 function SignInScreen(props: SignInScreenProps): JSX.Element {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
@@ -48,6 +47,7 @@ function SignInScreen(props: SignInScreenProps): JSX.Element {
         setIsLoading(false);
       } else {
         await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode));
+        props.navigation.replace(AppScreen.TabExplorer);
       }
     } catch (err) {
       analytics
@@ -68,27 +68,6 @@ function SignInScreen(props: SignInScreenProps): JSX.Element {
       setIsLoading(false);
     }
   }, [props.authenticationState.error]);
-
-  useEffect(() => {
-    if (props.authenticationState.loggedIn === true) {
-      const rootFolderId = props.authenticationState.user.root_folder_id;
-
-      props.navigation.replace(AppScreen.Drive, {
-        folderId: rootFolderId,
-      });
-    } else {
-      (async () => {
-        const xToken = await deviceStorage.getToken();
-        const xUser = await deviceStorage.getUser();
-
-        if (xToken && xUser) {
-          props.dispatch(userActions.localSignIn(xToken, xUser));
-        } else {
-          setIsLoading(false);
-        }
-      })();
-    }
-  }, [props.authenticationState.loggedIn, props.authenticationState.token]);
 
   return (
     <KeyboardAvoidingView behavior="height" style={tailwind('app-screen p-5 bg-white h-full justify-between')}>

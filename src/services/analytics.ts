@@ -1,5 +1,5 @@
 import analytics from '@segment/analytics-react-native';
-import { deviceStorage } from './deviceStorage';
+import { deviceStorage, User } from './deviceStorage';
 import Firebase from '@segment/analytics-react-native-firebase';
 import { NavigationState } from '@react-navigation/native';
 
@@ -27,10 +27,8 @@ export async function getAnalyticsUuid(): Promise<string> {
   return xUser.uuid;
 }
 
-export async function getAnalyticsData(): Promise<any> {
-  const xUser = await deviceStorage.getUser();
-
-  return xUser;
+export async function getAnalyticsData(): Promise<User> {
+  return deviceStorage.getUser();
 }
 
 export async function trackStackScreen(state: NavigationState, params?: any): Promise<void> {

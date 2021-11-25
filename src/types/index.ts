@@ -2,6 +2,7 @@ export enum AppScreen {
   SignUp = 'sign-up',
   SignIn = 'sign-in',
   Intro = 'intro',
+  TabExplorer = 'tab-explorer',
   Home = 'home',
   Menu = 'menu',
   Drive = 'drive',
