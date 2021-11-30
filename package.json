@@ -22,6 +22,7 @@
     "@babel/runtime": "^7.14.6",
     "@iconscout/react-native-unicons": "^1.0.3",
     "@internxt/lib": "^1.1.5",
+    "@internxt/sdk": "^0.1.2",
     "@react-native-community/cameraroll": "4.1.1",
     "@react-native-community/masked-view": "0.1.10",
     "@react-navigation/bottom-tabs": "^6.0.0",
@@ -125,6 +126,8 @@
   },
   "devDependencies": {
     "@babel/core": "~7.9.0",
+    "@internxt/eslint-config-internxt": "^1.0.4",
+    "@internxt/prettier-config": "^1.0.2",
     "@react-native-community/eslint-config": "^2.0.0",
     "@types/async": "^3.2.6",
     "@types/lodash": "^4.14.165",

@@ -64,7 +64,7 @@ function ChangePasswordScreen(props: Reducers) {
           }}
         >
           <Text style={tailwind('text-base text-sm text-blue-70 text-center m-3')}>
-            {"I don't remember my password"}
+            {'I don\'t remember my password'}
           </Text>
         </TouchableWithoutFeedback>
         <View style={styles.container}>

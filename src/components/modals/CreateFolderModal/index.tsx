@@ -99,9 +99,8 @@ function CreateFolderModal(props: Reducers) {
 
                   <View
                     style={[
-                      tailwind(
-                        'items-center justify-center flex-shrink flex-grow bg-neutral-10 border border-neutral-30 px-4 rounded-lg',
-                      ),
+                      tailwind('px-4 items-center justify-center flex-shrink flex-grow bg-neutral-10'),
+                      tailwind('border border-neutral-30 rounded-lg'),
                       Platform.OS !== 'android' && tailwind('pb-3'),
                     ]}
                   >

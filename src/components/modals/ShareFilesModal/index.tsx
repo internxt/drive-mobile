@@ -74,8 +74,8 @@ function ShareFilesModal(props: Reducers) {
   const shareFile = async (file: any) => {
     // Share link on native share system
     await Share.share({
-      title: 'Internxt Drive file sharing',
-      message: `Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple and private cloud storage service https://internxt.com/drive \nI wanted to share a file (${file.name}) with you through this private link (${inputValue} total uses), no sign up required: ${link}`,
+      title: strings.modals.share_modal.title,
+      message: strings.formatString<string>(strings.modals.share_modal.message, file.name, inputValue, link) as string,
     });
   };
 

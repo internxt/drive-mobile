@@ -63,9 +63,8 @@ export class ShardObject extends EventEmitter {
     const contract = await this.negotiateContract();
 
     logger.debug(
-      `Negotiated succesfully contract for shard ${this.getHash()} (index ${this.getIndex()}, size ${this.getSize()}) with token ${
-        contract.token
-      }`,
+      `Negotiated succesfully contract for shard 
+      ${this.getHash()} (index ${this.getIndex()}, size ${this.getSize()}) with token ${contract.token}`,
     );
 
     const farmer = { ...contract.farmer, lastSeen: new Date() };

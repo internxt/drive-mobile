@@ -1,4 +1,5 @@
 /* eslint-disable quotes */
+/* eslint-disable max-len */
 import LocalizedStrings from 'react-native-localization';
 
 const strings = new LocalizedStrings({
@@ -232,9 +233,9 @@ const strings = new LocalizedStrings({
         title: 'Choose a folder to move this file.',
       },
       share_modal: {
-        title: 'Share your Drive file with this private link',
-        title2: "Enter the number of times you'd like the link to be valid:",
-        title3: 'Get link to share',
+        title: 'Internxt Drive file sharing',
+        message:
+          'Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple and private cloud storage service https://internxt.com/drive \nI wanted to share a file ({0}) with you through this private link ({1} total uses), no sign up required: {2}',
         share: 'Share',
         copy: 'Copy',
         loading: 'Loading link...',
@@ -488,9 +489,9 @@ const strings = new LocalizedStrings({
         title: 'Selecciona una carpeta a la que mover el archivo.',
       },
       share_modal: {
-        title: 'Comparte este archivo con este link privado',
-        title2: 'Introduce el limite de descargas posibles',
-        title3: 'Copiar enlace para compartir',
+        title: 'Compartir archivo de Internxt Drive',
+        message:
+          'Hola, \n¿Cómo van las cosas? Estoy usando Internxt Drive, un servicio de almacenamiento en la nube seguro, simple y privado https://internxt.com/drive \nQuería compartir un archivo ({0}) contigo a través de este enlace privado ({1} usos totales) , no es necesario registrarse: {2}',
         share: 'Compartir',
         copy: 'Copiar',
         loading: 'Cargando link...',
