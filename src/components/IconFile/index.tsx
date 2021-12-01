@@ -1,13 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { connect } from 'react-redux';
 
 interface IconFileProps {
   label: string;
   isLoading: boolean;
 }
 
-function IconFile(props: IconFileProps) {
+function IconFile(props: IconFileProps): JSX.Element {
   const { label = '', isLoading = false } = props;
 
   return (
@@ -22,12 +21,6 @@ function IconFile(props: IconFileProps) {
     </View>
   );
 }
-
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(IconFile);
 
 const styles = StyleSheet.create({
   text: {
@@ -56,3 +49,5 @@ const styles = StyleSheet.create({
   },
   pAbsolute: { position: 'absolute' },
 });
+
+export default IconFile;

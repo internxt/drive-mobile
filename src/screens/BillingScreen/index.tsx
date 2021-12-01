@@ -8,7 +8,6 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { connect } from 'react-redux';
 import _ from 'lodash';
 import * as Unicons from '@iconscout/react-native-unicons';
 
@@ -69,7 +68,7 @@ const PERIODS = [
   { index: 2, text: 'Lifetime' },
 ];
 
-function Billing() {
+function Billing(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
   const getLinkOneTimePayment = async (plan: any) => {
     const body = {
@@ -302,6 +301,4 @@ function Billing() {
   );
 }
 
-const mapStateToProps = (state: any) => ({ ...state });
-
-export default connect(mapStateToProps)(Billing);
+export default Billing;

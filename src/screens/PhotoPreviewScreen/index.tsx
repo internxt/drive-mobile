@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, Image, SafeAreaView, TouchableOpacity } from 'react-native';
 import { TapGestureHandler } from 'react-native-gesture-handler';
-import { connect } from 'react-redux';
 import tailwind, { getColor } from 'tailwind-rn';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { LinearGradient } from 'expo-linear-gradient';

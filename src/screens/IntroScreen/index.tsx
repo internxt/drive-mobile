@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { View, Text, Image, StyleSheet, TouchableHighlight } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
-import { connect } from 'react-redux';
+
 import { normalize } from '../../helpers';
 import strings from '../../../assets/lang/strings';
 
@@ -27,7 +27,7 @@ const slides = [
   },
 ];
 
-function renderItem({ item }: any) {
+function renderItem({ item }) {
   return (
     <View style={styles.body}>
       <Text style={styles.explanationText}>{item.text}</Text>
@@ -55,7 +55,7 @@ function renderDoneButton() {
   );
 }
 
-function Intro(props: IntroProps): JSX.Element {
+function IntroScreen(props: IntroProps): JSX.Element {
   return (
     <AppIntroSlider
       data={slides}
@@ -121,8 +121,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(Intro);
+export default IntroScreen;

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, TextInput, TouchableHighlight, View, Text, Alert, ScrollView } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
-import { connect } from 'react-redux';
 
 import CheckBox from '../../components/CheckBox';
 import strings from '../../../assets/lang/strings';
@@ -310,8 +309,4 @@ function SignUpScreen(): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return { authenticationState: state.authenticationState };
-};
-
-export default connect(mapStateToProps)(SignUpScreen);
+export default SignUpScreen;

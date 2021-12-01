@@ -9,7 +9,6 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { connect } from 'react-redux';
 
 import { normalize } from '../../helpers';
 import strings from '../../../assets/lang/strings';
@@ -145,12 +144,6 @@ function ForgotPasswordScreen(): JSX.Element {
   return <></>;
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(ForgotPasswordScreen);
-
 const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
@@ -176,3 +169,5 @@ const styles = StyleSheet.create({
     marginTop: normalize(15),
   },
 });
+
+export default ForgotPasswordScreen;

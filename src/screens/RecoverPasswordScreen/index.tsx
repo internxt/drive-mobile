@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 
-import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { notify } from '../../services/toast';
@@ -12,7 +11,7 @@ import ScreenTitle from '../../components/ScreenTitle';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 
-function ChangePassword() {
+function ChangePassword(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -136,12 +135,6 @@ function ChangePassword() {
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(ChangePassword);
-
 const styles = StyleSheet.create({
   titleText: {
     color: '#091E42',
@@ -155,3 +148,5 @@ const styles = StyleSheet.create({
     fontFamily: 'NeueEinstellung-Regular',
   },
 });
+
+export default ChangePassword;

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text } from 'react-native';
-import { connect } from 'react-redux';
 import Accordion from 'react-native-collapsible/Accordion';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { tailwind } from '../../helpers/designSystem';
@@ -82,7 +81,7 @@ const _renderHeader = (section) => {
   );
 };
 
-const _renderContent = (section, index) => {
+const _renderContent = (section) => {
   return (
     <View style={tailwind('bg-white p-4')}>
       <View>
@@ -120,7 +119,7 @@ const _renderContent = (section, index) => {
   );
 };
 
-function IndividualsTab(props: any) {
+function IndividualsTab(): JSX.Element {
   const [activeSections, setActiveSections] = useState<number[]>([]);
 
   return (
@@ -136,6 +135,4 @@ function IndividualsTab(props: any) {
   );
 }
 
-const mapStateToProps = (state: any) => ({ ...state });
-
-export default connect(mapStateToProps)(IndividualsTab);
+export default IndividualsTab;

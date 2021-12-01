@@ -9,7 +9,6 @@ import {
   TouchableHighlight,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { connect } from 'react-redux';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';

@@ -1,22 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableWithoutFeedback } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { connect } from 'react-redux';
 import { tailwind } from '../../../helpers/designSystem';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 function UpdateModal(): JSX.Element {
-  /*
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // shouldCheckUpdates().then(console.log)
-    }, process.env.NODE_ENV === 'production' ? 1000 * 60 * 5 : 2000); // Each 5 minutes
-
-    return () => {
-      clearInterval(interval);
-    }
-  }, [])
-  */
   return (
     <Modal
       style={tailwind('rounded-3xl h-3/6 w-4/5 p-4')}
@@ -55,8 +43,4 @@ function UpdateModal(): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(UpdateModal);
+export default UpdateModal;

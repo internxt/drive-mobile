@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { connect } from 'react-redux';
 
-function BusinessTab(props: any) {
+function BusinessTab(): JSX.Element {
   return (
     <View>
       <Text></Text>
@@ -10,6 +9,4 @@ function BusinessTab(props: any) {
   );
 }
 
-const mapStateToProps = (state: any) => ({ ...state });
-
-export default connect(mapStateToProps)(BusinessTab);
+export default BusinessTab;

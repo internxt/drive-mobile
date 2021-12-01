@@ -10,7 +10,6 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { connect } from 'react-redux';
 
 import { tailwind } from '../../helpers/designSystem';
 import { loadLocalPhotos } from '../../services/photos';
