@@ -37,9 +37,6 @@ function ShareFilesModal(): JSX.Element {
   const [link, setLink] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [inputValue, setInputValue] = useState('10');
-  const handleInputChange = (e: string) => {
-    setInputValue(e.replace(/[^0-9]/g, ''));
-  };
 
   useEffect(() => {
     setIsOpen(showShareModal === true);

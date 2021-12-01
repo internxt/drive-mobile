@@ -16,6 +16,8 @@ export interface FileMeta {
   path: string;
 }
 
+type FileType = 'document' | 'image';
+
 export async function uploadFile(file: FileMeta, progressCallback: (progress: number) => void): Promise<string> {
   const { bridgeUser, bridgePass, encryptionKey, bucketId } = await getEnvironmentConfig();
   const params = { fileUri: file.uri, filepath: file.path, progressCallback };
@@ -23,24 +25,18 @@ export async function uploadFile(file: FileMeta, progressCallback: (progress: nu
   return new Network(bridgeUser, bridgePass, encryptionKey).uploadFile(bucketId, params);
 }
 
-// TODO: Move to utils or fs
-type FileType = 'document' | 'image';
-
 export function getFinalUri(fileUri: string, fileType: FileType): string {
   return fileType === 'document' ? decodeURIComponent(fileUri) : fileUri;
 }
 
 export interface FileEntry {
   fileId: string;
-  // eslint-disable-next-line camelcase
   file_id: string;
   type: string;
   bucket: string;
   size: number;
-  // eslint-disable-next-line camelcase
   folder_id: string;
   name: string;
-  // eslint-disable-next-line camelcase
   encrypt_version: '03-aes';
 }
 

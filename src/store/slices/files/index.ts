@@ -18,36 +18,10 @@ import { layoutActions } from '../layout';
 import { authThunks } from '../auth';
 import { getEnvironmentConfig } from '../../../lib/network';
 
-interface FolderContentChildren {
-  id: number;
-  parentId: number;
-  name: string;
-  bucket: string;
-  userId: number;
-  iconId: number | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface FileContentChildren {
-  id: number;
-  fileId: string;
-  name: string;
-  type: string;
-  size: number;
-  bucket: string;
-  deleted: boolean;
-  deletedAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-  folderId: number;
-}
-
 interface FolderContent {
   id: number;
   name: string;
   bucket: string;
-  color: any;
   encrypt_version: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
