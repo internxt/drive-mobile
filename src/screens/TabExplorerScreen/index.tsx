@@ -1,5 +1,4 @@
 import React from 'react';
-import { Reducers } from '../../store/reducers/reducers';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
@@ -25,22 +24,22 @@ import { AppScreen } from '../../types';
 
 const Tab = createBottomTabNavigator();
 
-export default function TabExplorerScreen(props: Reducers): JSX.Element {
+export default function TabExplorerScreen(): JSX.Element {
   return (
     <View style={tailwind('h-full')}>
-      <FileDetailsModal {...props} />
-      <SettingsModal {...props} navigation={props.navigation} />
-      <UploadModal {...props} navigation={props.navigation} />
+      <FileDetailsModal />
+      <SettingsModal />
+      <UploadModal />
       <SortModal />
-      <DeleteItemModal {...props} />
-      <MoveFilesModal {...props} />
-      <ShareFilesModal {...props} />
-      <CreateFolderModal {...props} />
-      <RenameModal {...props} />
-      <RunOutOfStorageModal {...props} />
+      <DeleteItemModal />
+      <MoveFilesModal />
+      <ShareFilesModal />
+      <CreateFolderModal />
+      <RenameModal />
+      <RunOutOfStorageModal />
 
       <Tab.Navigator
-        tabBar={(tabBarProps: BottomTabBarProps) => <BottomTabNavigator {...{ ...props, ...tabBarProps }} />}
+        tabBar={(tabBarProps: BottomTabBarProps) => <BottomTabNavigator {...{ ...tabBarProps }} />}
         initialRouteName={AppScreen.Home}
         sceneContainerStyle={tailwind('')}
         screenOptions={{

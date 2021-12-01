@@ -61,4 +61,5 @@ class FolderService {
   }
 }
 
-export default new FolderService();
+const folderService = new FolderService();
+export default folderService;

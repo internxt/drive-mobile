@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
-import { connect } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
+import * as Unicons from '@iconscout/react-native-unicons';
 
 import validationService from '../../services/validation';
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
-import * as Unicons from '@iconscout/react-native-unicons';
 import { doChangePassword } from './changePasswordUtils';
 import { notify } from '../../services/toast';
-import { Reducers } from '../../store/reducers/reducers';
 import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreen } from '../../types';
 
-function ChangePasswordScreen(props: Reducers) {
+function ChangePasswordScreen(): JSX.Element {
+  const navigation = useNavigation<NavigationStackProp>();
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -49,7 +50,7 @@ function ChangePasswordScreen(props: Reducers) {
       <ScreenTitle
         text={strings.components.inputs.password}
         centerText
-        onBackButtonPressed={() => props.navigation.goBack()}
+        onBackButtonPressed={() => navigation.goBack()}
       />
       <View style={styles.mainContainer}>
         <View style={styles.titleContainer}>
@@ -60,11 +61,11 @@ function ChangePasswordScreen(props: Reducers) {
         </View>
         <TouchableWithoutFeedback
           onPress={() => {
-            props.navigation.push(AppScreen.RecoverPassword);
+            navigation.push(AppScreen.RecoverPassword);
           }}
         >
           <Text style={tailwind('text-base text-sm text-blue-70 text-center m-3')}>
-            {'I don\'t remember my password'}
+            {strings.screens.change_password.iDontRememberMyPassword}
           </Text>
         </TouchableWithoutFeedback>
         <View style={styles.container}>
@@ -148,11 +149,7 @@ function ChangePasswordScreen(props: Reducers) {
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(ChangePasswordScreen);
+export default ChangePasswordScreen;
 
 const styles = StyleSheet.create({
   titleContainer: {

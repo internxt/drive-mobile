@@ -14,7 +14,7 @@ enum HomeTab {
   Shared = 'shared',
 }
 
-const HomeScreen = () => {
+const HomeScreen = (): JSX.Element => {
   const [searchText, setSearchText] = useState('');
   const [currentTab, setCurrentTab] = useState<HomeTab>(HomeTab.Recents);
   const searchPlaceholder = {

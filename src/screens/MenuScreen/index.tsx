@@ -1,16 +1,17 @@
 import React from 'react';
 import { GestureResponderEvent, Linking, Text, TouchableHighlight, View, ScrollView } from 'react-native';
-import { connect } from 'react-redux';
-import { Reducers } from '../../store/reducers/reducers';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import { userActions } from '../../store/actions';
 import strings from '../../../assets/lang/strings';
 import VersionUpdate from '../../components/VersionUpdate';
 import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreen } from '../../types';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
+import { useAppDispatch } from '../../store/hooks';
+import { authThunks } from '../../store/slices/auth';
 
-interface MenuItemProps extends Reducers {
+interface MenuItemProps {
   title: string;
   onPress?: (event: GestureResponderEvent) => void;
 }
@@ -40,60 +41,57 @@ function MenuSeparator() {
   return <View style={tailwind('h-5')} />;
 }
 
-function MenuScreen(props: Reducers): JSX.Element {
+function MenuScreen(): JSX.Element {
+  const dispatch = useAppDispatch();
+  const navigation = useNavigation<NavigationStackProp>();
+
   return (
     <ScrollView contentContainerStyle={tailwind('app-screen h-full')}>
       <View style={tailwind('h-full')}>
-        <ScreenTitle text={strings.generic.settings} centerText onBackButtonPressed={props.navigation.goBack} />
+        <ScreenTitle text={strings.generic.settings} centerText onBackButtonPressed={navigation.goBack} />
 
         <View style={tailwind('flex-grow')}>
           <MenuItem
-            {...props}
             title={strings.components.app_menu.settings.storage}
             onPress={() => {
-              props.navigation.push(AppScreen.Storage);
+              navigation.push(AppScreen.Storage);
             }}
           />
           <MenuItem
-            {...props}
             title={strings.screens.billing.title}
             onPress={() => {
-              props.navigation.push(AppScreen.Billing);
+              navigation.push(AppScreen.Billing);
             }}
           />
 
           <MenuSeparator />
 
           <MenuItem
-            {...props}
             title={strings.screens.change_password.title}
             onPress={() => {
-              props.navigation.push(AppScreen.RecoverPassword);
+              navigation.push(AppScreen.RecoverPassword);
             }}
           />
 
           <MenuSeparator />
 
           <MenuItem
-            {...props}
             title={strings.components.app_menu.settings.contact}
             onPress={() => {
               Linking.openURL('https://help.internxt.com');
             }}
           />
           <MenuItem
-            {...props}
             title={strings.components.app_menu.settings.more}
             onPress={() => {
               Linking.openURL('https://internxt.com');
             }}
           />
           <MenuItem
-            {...props}
             title={strings.components.app_menu.settings.signOut}
             onPress={() => {
-              props.dispatch(userActions.signout());
-              props.navigation.replace(AppScreen.SignIn);
+              dispatch(authThunks.signOutThunk());
+              navigation.replace(AppScreen.SignIn);
             }}
           />
 
@@ -101,14 +99,11 @@ function MenuScreen(props: Reducers): JSX.Element {
         </View>
 
         <View style={tailwind('flex text-base m-5')}>
-          <VersionUpdate {...props} />
+          <VersionUpdate />
         </View>
       </View>
     </ScrollView>
   );
 }
-const mapStateToProps = (state) => {
-  return { ...state };
-};
 
-export default connect(mapStateToProps)(MenuScreen);
+export default MenuScreen;

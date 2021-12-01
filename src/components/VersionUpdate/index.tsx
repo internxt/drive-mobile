@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Alert, Text, TouchableHighlight, View } from 'react-native';
-import { connect } from 'react-redux';
 import { tailwind } from '../../helpers/designSystem';
-import { Reducers } from '../../store/reducers/reducers';
 import PackageJson from '../../../package.json';
 import * as Updates from 'expo-updates';
 
-function VersionUpdate(props: Reducers): JSX.Element {
+function VersionUpdate(): JSX.Element {
   const [debugText, setDebugText] = useState('');
   const [checkingUpdates, setCheckingUpdates] = useState(true);
   const [newVersionAvailable, setNewVersionAvailable] = useState(false);
@@ -87,8 +85,4 @@ function VersionUpdate(props: Reducers): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(VersionUpdate);
+export default VersionUpdate;

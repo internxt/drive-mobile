@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, TouchableWithoutFeedback, Text } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
-import { layoutActions } from '../../store/actions';
-import { connect } from 'react-redux';
+
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
-import { Reducers } from '../../store/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
+import { useAppDispatch } from '../../store/hooks';
+import { layoutActions } from '../../store/slices/layout';
 
 const tabIcons = {
   home: Unicons.UilEstate,
@@ -17,10 +17,9 @@ const tabIcons = {
   menu: Unicons.UilBars,
 };
 
-interface BottomTabNavigatorProps extends Omit<Reducers, 'navigation'>, BottomTabBarProps {}
+function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
+  const dispatch = useAppDispatch();
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-function BottomTabNavigator(props: BottomTabNavigatorProps): JSX.Element {
   return (
     <View style={tailwind('bg-white flex-row px-2 justify-around items-center border-t border-neutral-20')}>
       {props.state.routes.map((route, index) => {
@@ -32,7 +31,7 @@ function BottomTabNavigator(props: BottomTabNavigatorProps): JSX.Element {
 
         const onPress = () => {
           if (route.name === 'create') {
-            return props.dispatch(layoutActions.openUploadFileModal());
+            return dispatch(layoutActions.setShowUploadFileModal(true));
           }
 
           const event = props.navigation.emit({
@@ -83,6 +82,4 @@ function BottomTabNavigator(props: BottomTabNavigatorProps): JSX.Element {
   );
 }
 
-const mapStateToProps = (state) => ({ ...state });
-
-export default connect(mapStateToProps)(BottomTabNavigator);
+export default BottomTabNavigator;

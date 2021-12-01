@@ -1,4 +1,3 @@
-import { sortTypes } from '../store/constants';
 import { compare } from 'natural-orderby';
 import { IFile, IFolder } from '../components/FileList';
 import { getHeaders } from '../helpers/headers';
@@ -11,6 +10,16 @@ interface RenameFileInNetworkPayload {
   bucketId: string;
   relativePath: string;
 }
+
+export const sortTypes = {
+  DATE_ADDED: 'Date_Added',
+  SIZE_ASC: 'Size_Asc',
+  SIZE_DESC: 'Size_Desc',
+  NAME_ASC: 'Name_Asc',
+  NAME_DESC: 'Name_Desc',
+  FILETYPE_ASC: 'File_Type_Asc',
+  FILETYPE_DESC: 'File_Type_Asc',
+};
 
 export const UPLOAD_FILES_LIMIT = 1024 * 1024 * 1024;
 
@@ -73,7 +82,7 @@ async function updateMetaData(
     .then(() => undefined);
 }
 
-async function moveFile(fileId: string, destination: string): Promise<number> {
+async function moveFile(fileId: string, destination: number): Promise<number> {
   try {
     const headers = await getHeaders();
     const data = JSON.stringify({ fileId, destination });
@@ -121,7 +130,7 @@ function deleteItems(items: any[]): Promise<void> {
   });
 }
 
-export type ArraySortFunction = (a: any, b: any) => boolean;
+export type ArraySortFunction = (a: IFolder | IFile, b: IFolder | IFile) => number;
 
 function getSortFunction(sortType: string): ArraySortFunction | null {
   let sortFunc: any = null;

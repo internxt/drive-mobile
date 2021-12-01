@@ -1,44 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, Platform, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { connect } from 'react-redux';
 import prettysize from 'prettysize';
 
-import { fileActions, layoutActions } from '../../../store/actions';
-import { Reducers } from '../../../store/reducers/reducers';
 import strings from '../../../../assets/lang/strings';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import globalStyle from '../../../styles/global.style';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { filesThunks } from '../../../store/slices/files';
+import { layoutActions } from '../../../store/slices/layout';
 
-function DeleteItemModal(props: Reducers) {
-  const selectedItems = props.filesState.selectedItems;
-  const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder;
-  const [isOpen, setIsOpen] = useState(props.layoutState.showDeleteModal);
-
-  const item = props.filesState.focusedItem;
-
-  useEffect(() => {
-    setIsOpen(props.layoutState.showDeleteModal);
-  }, [props.layoutState.showDeleteModal]);
-
-  const handleDeleteSelectedItem = () => {
-    props.dispatch(fileActions.deleteItems([props.filesState.focusedItem], currentFolderId));
-  };
-
+function DeleteItemModal(): JSX.Element {
+  const dispatch = useAppDispatch();
+  const { folderContent, focusedItem: item } = useAppSelector((state) => state.files);
+  const { showDeleteModal } = useAppSelector((state) => state.layout);
+  const currentFolderId = folderContent && folderContent.currentFolder;
   const isFolder = item && !!item.parentId;
-
   const FileIcon = getFileTypeIcon(item?.type);
+  const handleDeleteSelectedItem = () => {
+    dispatch(filesThunks.deleteItemsThunk({ items: [item], folderToReload: currentFolderId }));
+  };
 
   return (
     <Modal
       position={'bottom'}
       style={tailwind('bg-transparent')}
       coverScreen={Platform.OS === 'android'}
-      isOpen={isOpen}
+      isOpen={showDeleteModal}
       onClosed={() => {
-        props.dispatch(layoutActions.closeDeleteModal());
-        setIsOpen(false);
+        dispatch(layoutActions.setShowDeleteModal(false));
       }}
       backButtonClose={true}
       backdropPressToClose={true}
@@ -48,7 +39,7 @@ function DeleteItemModal(props: Reducers) {
         <TouchableWithoutFeedback
           style={tailwind('flex-grow')}
           onPress={() => {
-            props.dispatch(layoutActions.closeDeleteModal());
+            dispatch(layoutActions.setShowDeleteModal(false));
           }}
         >
           <View style={tailwind('flex-grow')} />
@@ -98,7 +89,7 @@ function DeleteItemModal(props: Reducers) {
               underlayColor={getColor('neutral-30')}
               style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
               onPress={() => {
-                props.dispatch(layoutActions.closeDeleteModal());
+                dispatch(layoutActions.setShowDeleteModal(false));
               }}
             >
               <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>
@@ -113,7 +104,7 @@ function DeleteItemModal(props: Reducers) {
               style={tailwind('bg-red-60 rounded-lg py-2 flex-grow items-center justify-center')}
               onPress={() => {
                 handleDeleteSelectedItem();
-                props.dispatch(layoutActions.closeDeleteModal());
+                dispatch(layoutActions.setShowDeleteModal(false));
               }}
             >
               <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>
@@ -127,8 +118,4 @@ function DeleteItemModal(props: Reducers) {
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(DeleteItemModal);
+export default DeleteItemModal;

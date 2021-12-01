@@ -17,8 +17,7 @@ export interface User {
   publicKey: string;
   registerCompleted: boolean;
   revocateKey: string;
-  // eslint-disable-next-line camelcase
-  root_folder_id: string;
+  root_folder_id: number;
   teams: boolean;
   userId: string;
   uuid: string;

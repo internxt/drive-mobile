@@ -8,19 +8,19 @@ import {
   RefreshControl,
   Dimensions,
   TouchableWithoutFeedback,
-  PermissionsAndroid,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 
 import { tailwind } from '../../helpers/designSystem';
-import { Reducers } from '../../store/reducers/reducers';
 import { loadLocalPhotos } from '../../services/photos';
 import globalStyle from '../../styles/global.style';
 import { AppScreen } from '../../types';
 import ScreenTitle from '../../components/ScreenTitle';
 import strings from '../../../assets/lang/strings';
 import GalleryItem from '../../components/GalleryItem';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
 
 enum PhotoGroupBy {
   Years = 'years',
@@ -29,7 +29,8 @@ enum PhotoGroupBy {
   All = 'all',
 }
 
-function GalleryScreen(props: Reducers): JSX.Element {
+function GalleryScreen(): JSX.Element {
+  const navigation = useNavigation<NavigationStackProp>();
   const [columnsCount] = useState(3);
   const [gutter] = useState(3);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
@@ -76,7 +77,7 @@ function GalleryScreen(props: Reducers): JSX.Element {
   const onItemPressed = (item: CameraRoll.PhotoIdentifier) => {
     isSelectionModeActivated
       ? onItemLongPressed(item)
-      : props.navigation.push(AppScreen.PhotoPreview, { uri: item.node.image.uri });
+      : navigation.push(AppScreen.PhotoPreview, { uri: item.node.image.uri });
   };
   const groupByMenu = (function () {
     const groupByItems = Object.entries(PhotoGroupBy).map(([, value]) => {
@@ -200,8 +201,4 @@ function GalleryScreen(props: Reducers): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: Reducers) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(GalleryScreen);
+export default GalleryScreen;

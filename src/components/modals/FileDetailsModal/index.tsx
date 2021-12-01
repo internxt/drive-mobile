@@ -2,22 +2,14 @@ import prettysize from 'prettysize';
 import React from 'react';
 import { Text, View, TouchableWithoutFeedback, Platform } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { connect } from 'react-redux';
 import * as Unicons from '@iconscout/react-native-unicons';
 
-import { layoutActions } from '../../../store/actions';
 import strings from '../../../../assets/lang/strings';
-import { Reducers } from '../../../store/reducers/reducers';
-import { IFile, IFolder } from '../../FileList';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import globalStyle from '../../../styles/global.style';
-
-interface FileDetailsProps extends Reducers {
-  showItemModal: boolean;
-  folderContent: any;
-  item: IFile | IFolder;
-}
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { layoutActions } from '../../../store/slices/layout';
 
 function FileDetailOption(props: {
   name: string | JSX.Element;
@@ -39,15 +31,16 @@ function FileDetailOption(props: {
   );
 }
 
-function FileDetailsModal(props: FileDetailsProps) {
-  const { item } = props;
+function FileDetailsModal(): JSX.Element {
+  const dispatch = useAppDispatch();
+  const { focusedItem: item } = useAppSelector((state) => state.files);
+  const { showItemModal } = useAppSelector((state) => state.layout);
 
   if (!item) {
     return <></>;
   }
 
   const isFolder = !item.fileId;
-
   const FileIcon = getFileTypeIcon(item?.type);
 
   return (
@@ -57,9 +50,9 @@ function FileDetailsModal(props: FileDetailsProps) {
           position={'bottom'}
           style={tailwind('bg-transparent')}
           coverScreen={Platform.OS === 'android'}
-          isOpen={props.showItemModal}
+          isOpen={showItemModal}
           onClosed={async () => {
-            props.dispatch(layoutActions.closeItemModal());
+            dispatch(layoutActions.setShowItemModal(false));
           }}
           backButtonClose={true}
           backdropPressToClose={true}
@@ -68,7 +61,7 @@ function FileDetailsModal(props: FileDetailsProps) {
           <View style={tailwind('h-full')}>
             <TouchableWithoutFeedback
               onPress={() => {
-                props.dispatch(layoutActions.closeItemModal());
+                dispatch(layoutActions.setShowItemModal(false));
               }}
             >
               <View style={tailwind('flex-grow')} />
@@ -112,7 +105,7 @@ function FileDetailsModal(props: FileDetailsProps) {
                 <View>
                   <TouchableWithoutFeedback
                     onPress={() => {
-                      props.dispatch(layoutActions.closeItemModal());
+                      dispatch(layoutActions.setShowItemModal(false));
                     }}
                   >
                     <View style={tailwind('bg-neutral-20 rounded-full h-8 w-8 justify-center items-center ml-5')}>
@@ -124,33 +117,14 @@ function FileDetailsModal(props: FileDetailsProps) {
 
               <View style={tailwind('bg-neutral-10 p-4 flex-grow')}>
                 <View style={tailwind('rounded-xl bg-white')}>
-                  {/*!isFolder && <FileDetailOption
-                  name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.components.file_and_folder_options.view}</Text>}
-                  icon={<Unicons.UilEye size={20} color={getColor('neutral-500')} />}
-                  onPress={() => {
-                    // To implement
-                  }}
-                />*/}
-
                   <FileDetailOption
                     name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.generic.rename}</Text>}
                     icon={<Unicons.UilEditAlt size={20} color={getColor('neutral-500')} />}
                     onPress={() => {
-                      props.dispatch(layoutActions.closeItemModal());
-                      props.dispatch(layoutActions.openRenameModal());
+                      dispatch(layoutActions.setShowItemModal(false));
+                      dispatch(layoutActions.setShowRenameModal(true));
                     }}
                   />
-
-                  {/*
-                <FileDetailOption
-                  name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.components.file_and_folder_options.move}</Text>}
-                  icon={<Unicons.UilMinusPath size={20} color={getColor('neutral-500')} />}
-                  onPress={() => {
-                    props.dispatch(layoutActions.closeItemModal())
-                    props.dispatch(layoutActions.openMoveFilesModal());
-                  }}
-                />
-                */}
 
                   {!isFolder && (
                     <FileDetailOption
@@ -161,8 +135,8 @@ function FileDetailsModal(props: FileDetailsProps) {
                       }
                       icon={<Unicons.UilLink size={20} color={getColor('neutral-500')} />}
                       onPress={() => {
-                        props.dispatch(layoutActions.closeItemModal());
-                        props.dispatch(layoutActions.openShareModal());
+                        dispatch(layoutActions.setShowItemModal(false));
+                        dispatch(layoutActions.setShowShareModal(true));
                       }}
                     />
                   )}
@@ -178,8 +152,8 @@ function FileDetailsModal(props: FileDetailsProps) {
                     }
                     icon={<Unicons.UilTrashAlt size={20} color={getColor('red-60')} />}
                     onPress={() => {
-                      props.dispatch(layoutActions.closeItemModal());
-                      props.dispatch(layoutActions.openDeleteModal());
+                      dispatch(layoutActions.setShowItemModal(false));
+                      dispatch(layoutActions.setShowDeleteModal(true));
                     }}
                   />
                 </View>
@@ -192,12 +166,4 @@ function FileDetailsModal(props: FileDetailsProps) {
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return {
-    folderContent: state.filesState.folderContent,
-    showItemModal: state.layoutState.showItemModal,
-    item: state.filesState.focusedItem,
-  };
-};
-
-export default connect(mapStateToProps)(FileDetailsModal);
+export default FileDetailsModal;

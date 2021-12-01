@@ -1,11 +1,10 @@
 import React from 'react';
 import { Text, View, TouchableOpacity } from 'react-native';
-import { useSelector } from 'react-redux';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import globalStyle from '../../styles/global.style';
-import { Reducers } from '../../store/reducers/reducers';
+import { useAppSelector } from '../../store/hooks';
 
 interface ScreenTitleProps {
   text: string;
@@ -24,8 +23,8 @@ const ScreenTitle = ({
   centerText = defaultProps.centerText,
   showBackButton = defaultProps.showBackButton,
   onBackButtonPressed,
-}: ScreenTitleProps) => {
-  const backButtonEnabled = useSelector((state: Reducers) => state.layoutState.backButtonEnabled);
+}: ScreenTitleProps): JSX.Element => {
+  const backButtonEnabled = useAppSelector((state) => state.layout.backButtonEnabled);
 
   return (
     <View style={tailwind('flex-row justify-center items-center px-5')}>

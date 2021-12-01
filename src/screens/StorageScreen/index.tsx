@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
 import { View, Text, TouchableHighlight } from 'react-native';
-import { connect } from 'react-redux';
-import { Reducers } from '../../store/reducers/reducers';
+import * as Unicons from '@iconscout/react-native-unicons';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
+
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import ProgressBar from '../../components/ProgressBar';
 import { getCurrentIndividualPlan } from '../../services/payments';
 import { notify } from '../../services/toast';
-import * as Unicons from '@iconscout/react-native-unicons';
 import { loadValues } from '../../services/storage';
 import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreen } from '../../types';
 
-interface StorageProps extends Reducers {
+interface StorageScreenProps {
   currentPlan: number;
 }
 
@@ -22,7 +23,8 @@ interface CurrentPlan {
   storageLimit: number;
 }
 
-function Storage(props: StorageProps): JSX.Element {
+function StorageScreen(props: StorageScreenProps): JSX.Element {
+  const navigation = useNavigation<NavigationStackProp>();
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 });
   const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
 
@@ -47,7 +49,7 @@ function Storage(props: StorageProps): JSX.Element {
 
     getCurrentIndividualPlan()
       .then(setCurrentPlan)
-      .catch((err) => {
+      .catch(() => {
         notify({
           text: 'Cannot load current plan',
           type: 'warn',
@@ -57,11 +59,7 @@ function Storage(props: StorageProps): JSX.Element {
 
   return (
     <View style={tailwind('app-screen bg-white h-full')}>
-      <ScreenTitle
-        text={strings.screens.storage.title}
-        centerText
-        onBackButtonPressed={() => props.navigation.goBack()}
-      />
+      <ScreenTitle text={strings.screens.storage.title} centerText onBackButtonPressed={() => navigation.goBack()} />
       <View>
         <View style={tailwind('items-center')}>
           <Text style={tailwind('m-2 text-neutral-900 text-base')}>{strings.screens.storage.usage}</Text>
@@ -121,7 +119,7 @@ function Storage(props: StorageProps): JSX.Element {
         underlayColor="#5291ff"
         style={tailwind('btn btn-primary my-5 mx-5')}
         onPress={() => {
-          props.navigation.push(AppScreen.Billing);
+          navigation.push(AppScreen.Billing);
         }}
       >
         <Text style={tailwind('text-white text-lg')}>{strings.components.buttons.changePlan}</Text>
@@ -130,8 +128,4 @@ function Storage(props: StorageProps): JSX.Element {
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(Storage);
+export default StorageScreen;

@@ -1,14 +1,14 @@
 import * as React from 'react';
 import ReCaptchaComponent from './ReCaptchaComponent';
 
-export type IProps = {
+interface ReCaptchaV3Props {
   captchaDomain: string;
   onReceiveToken: (captchaToken: string) => void;
   siteKey: string;
   action: string;
-};
+}
 
-class ReCaptchaV3 extends React.PureComponent<IProps> {
+class ReCaptchaV3 extends React.PureComponent<ReCaptchaV3Props> {
   private _captchaRef: any;
 
   public refreshToken = () => {

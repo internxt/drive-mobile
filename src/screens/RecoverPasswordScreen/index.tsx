@@ -6,18 +6,18 @@ import { connect } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { notify } from '../../services/toast';
-import { Reducers } from '../../store/reducers/reducers';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
 import ScreenTitle from '../../components/ScreenTitle';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
 
-function ChangePassword(props: Reducers) {
+function ChangePassword() {
+  const navigation = useNavigation<NavigationStackProp>();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [isLoading, setIsLoading] = useState(false);
 
   const handleOnPress = () => {
@@ -52,7 +52,7 @@ function ChangePassword(props: Reducers) {
       <ScreenTitle
         text={strings.components.inputs.password}
         centerText
-        onBackButtonPressed={() => props.navigation.goBack()}
+        onBackButtonPressed={() => navigation.goBack()}
       />
       <View style={tailwind('mx-3')}>
         <View style={tailwind('items-center my-3')}>

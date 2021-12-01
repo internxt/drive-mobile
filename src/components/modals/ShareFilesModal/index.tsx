@@ -10,47 +10,49 @@ import {
   Platform,
 } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { connect } from 'react-redux';
-import { layoutActions } from '../../../store/actions';
+import * as Unicons from '@iconscout/react-native-unicons';
+import prettysize from 'prettysize';
+import { setString } from 'expo-clipboard';
+
 import { getHeaders } from '../../../helpers/headers';
 import { IFile, IFolder } from '../../FileList';
-import { Reducers } from '../../../store/reducers/reducers';
 import strings from '../../../../assets/lang/strings';
 import { generateShareLink } from '../../../@inxt-js/services/share';
 import { getFileTypeIcon } from '../../../helpers';
 import { generateFileKey, Network } from '../../../lib/network';
-import { setString } from 'expo-clipboard';
 import { notify } from '../../../services/toast';
 import { getColor, tailwind } from '../../../helpers/designSystem';
-import * as Unicons from '@iconscout/react-native-unicons';
-import prettysize from 'prettysize';
 import globalStyle from '../../../styles/global.style';
 import { deviceStorage } from '../../../services/deviceStorage';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { layoutActions } from '../../../store/slices/layout';
 
-function ShareFilesModal(props: Reducers) {
-  const [isOpen, setIsOpen] = useState(props.layoutState.showShareModal);
+function ShareFilesModal(): JSX.Element {
+  const dispatch = useAppDispatch();
+  const { showShareModal } = useAppSelector((state) => state.layout);
+  const { focusedItem } = useAppSelector((state) => state.files);
+  const [isOpen, setIsOpen] = useState(showShareModal);
   const [selectedFile, setSelectedFile] = useState<IFile & IFolder>();
   const [filename, setFileName] = useState('');
   const [link, setLink] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [inputValue, setInputValue] = useState('10');
-
   const handleInputChange = (e: string) => {
     setInputValue(e.replace(/[^0-9]/g, ''));
   };
 
   useEffect(() => {
-    setIsOpen(props.layoutState.showShareModal === true);
+    setIsOpen(showShareModal === true);
 
-    if (props.layoutState.showShareModal && props.filesState.focusedItem) {
-      setSelectedFile(props.filesState.focusedItem);
-      setFileName(props.filesState.focusedItem.name);
-      getLink(props.filesState.focusedItem, parseInt(inputValue)).then(() => setIsLoading(false));
+    if (showShareModal && focusedItem) {
+      setSelectedFile(focusedItem);
+      setFileName(focusedItem.name);
+      getLink(focusedItem, parseInt(inputValue)).then(() => setIsLoading(false));
     }
-  }, [props.layoutState.showShareModal]);
+  }, [showShareModal]);
 
   useEffect(() => {
-    if (!props.layoutState.showShareModal) {
+    if (!showShareModal) {
       return;
     }
     setIsLoading(true);
@@ -109,7 +111,7 @@ function ShareFilesModal(props: Reducers) {
       coverScreen={Platform.OS === 'android'}
       isOpen={isOpen}
       onClosed={async () => {
-        props.dispatch(layoutActions.closeShareModal());
+        dispatch(layoutActions.setShowShareModal(false));
         setLink('');
         setIsOpen(false);
         setIsLoading(true);
@@ -122,7 +124,7 @@ function ShareFilesModal(props: Reducers) {
       <View style={tailwind('h-full')}>
         <TouchableWithoutFeedback
           onPress={() => {
-            props.dispatch(layoutActions.closeShareModal());
+            dispatch(layoutActions.setShowShareModal(false));
           }}
         >
           <View style={tailwind('flex-grow')} />
@@ -161,7 +163,7 @@ function ShareFilesModal(props: Reducers) {
             <View>
               <TouchableWithoutFeedback
                 onPress={() => {
-                  props.dispatch(layoutActions.closeShareModal());
+                  dispatch(layoutActions.setShowShareModal(false));
                 }}
               >
                 <View style={tailwind('bg-neutral-20 rounded-full h-8 w-8 justify-center items-center ml-5')}>
@@ -240,7 +242,7 @@ function ShareFilesModal(props: Reducers) {
                         type: 'success',
                         text: 'Link copied',
                       });
-                      props.dispatch(layoutActions.closeShareModal());
+                      dispatch(layoutActions.setShowShareModal(false));
                     }
                   }}
                   style={tailwind('flex-row items-center')}
@@ -265,7 +267,7 @@ function ShareFilesModal(props: Reducers) {
               underlayColor={getColor('neutral-30')}
               style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
               onPress={() => {
-                props.dispatch(layoutActions.closeShareModal());
+                dispatch(layoutActions.setShowShareModal(false));
               }}
               disabled={isLoading}
             >
@@ -284,7 +286,7 @@ function ShareFilesModal(props: Reducers) {
               ]}
               onPress={() => {
                 shareFile(selectedFile);
-                props.dispatch(layoutActions.closeShareModal());
+                dispatch(layoutActions.setShowShareModal(false));
               }}
               disabled={isLoading}
             >
@@ -299,8 +301,4 @@ function ShareFilesModal(props: Reducers) {
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(ShareFilesModal);
+export default ShareFilesModal;

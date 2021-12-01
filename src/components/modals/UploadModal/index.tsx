@@ -8,7 +8,6 @@ import {
   TouchableWithoutFeedback,
   TouchableHighlight,
 } from 'react-native';
-import { connect, useSelector } from 'react-redux';
 import { uniqueId } from 'lodash';
 import Modal from 'react-native-modalbox';
 import {
@@ -20,12 +19,10 @@ import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-pi
 import { launchImageLibrary } from 'react-native-image-picker';
 import * as Unicons from '@iconscout/react-native-unicons';
 
-import { fileActions, layoutActions } from '../../../store/actions';
 import { createFileEntry, FileEntry, getFinalUri, uploadFile, FileMeta } from '../../../services/upload';
 import analytics from '../../../services/analytics';
 import { encryptFilename } from '../../../helpers';
 import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../lib/fs';
-import { Reducers } from '../../../store/reducers/reducers';
 import { renameIfAlreadyExists } from '../../../lib';
 import strings from '../../../../assets/lang/strings';
 import { notify } from '../../../services/toast';
@@ -35,6 +32,9 @@ import RNFS from 'react-native-fs';
 import { DevicePlatform } from '../../../types';
 import { deviceStorage } from '../../../services/deviceStorage';
 import { UPLOAD_FILES_LIMIT } from '../../../services/file';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { layoutActions } from '../../../store/slices/layout';
+import { filesActions, filesThunks } from '../../../store/slices/files';
 
 interface UploadingFile {
   size: number;
@@ -68,18 +68,18 @@ function removeExtension(filename: string) {
   return filename.substring(0, filename.length - (extension.length + 1));
 }
 
-function UploadModal(props: Reducers) {
-  const { filesState, authenticationState, layoutState } = useSelector<any, Reducers>((state) => state);
-
-  const currentFolder = filesState.folderContent?.currentFolder || authenticationState.user.root_folder_id;
-
+function UploadModal(): JSX.Element {
+  const dispatch = useAppDispatch();
+  const { folderContent, absolutePath } = useAppSelector((state) => state.files);
+  const { user } = useAppSelector((state) => state.auth);
+  const currentFolder = folderContent?.currentFolder || user.root_folder_id;
+  const { showUploadModal } = useAppSelector((state) => state.layout);
   async function uploadIOS(res: FileMeta, fileType: 'document' | 'image') {
-    function progressCallback(progress: number) {
-      props.dispatch(fileActions.uploadFileSetProgress(progress, res.id));
-    }
-
-    // TODO: Refactor this to avoid coupling input object to redux provided object
     const result = { ...res };
+
+    function progressCallback(progress: number) {
+      dispatch(filesActions.uploadFileSetProgress({ progress, id: res.id }));
+    }
 
     // Set name for pics/photos
     if (!result.name) {
@@ -93,7 +93,7 @@ function UploadModal(props: Reducers) {
 
     result.uri = finalUri;
     result.type = fileType;
-    result.path = filesState.absolutePath + result.name;
+    result.path = absolutePath + result.name;
 
     const fileStat = await stat(finalUri);
 
@@ -124,7 +124,7 @@ function UploadModal(props: Reducers) {
 
   async function uploadAndroid(res: FileMeta, fileType: 'document' | 'image') {
     function progressCallback(progress: number) {
-      props.dispatch(fileActions.uploadFileSetProgress(progress, res.id));
+      dispatch(filesActions.uploadFileSetProgress({ progress, id: res.id }));
     }
 
     // TODO: Refactor this to avoid coupling input object to redux provided object
@@ -157,7 +157,7 @@ function UploadModal(props: Reducers) {
 
     result.uri = finalUri;
     result.type = fileType;
-    result.path = filesState.absolutePath + result.name;
+    result.path = absolutePath + result.name;
 
     result.uri = 'file:///' + result.uri;
 
@@ -207,14 +207,14 @@ function UploadModal(props: Reducers) {
   function uploadSuccess(file: { id: string }) {
     trackUploadSuccess();
 
-    props.dispatch(fileActions.removeUploadingFile(file.id));
-    props.dispatch(fileActions.updateUploadingFile(file.id));
-    props.dispatch(fileActions.uploadFileSetUri(undefined));
+    dispatch(filesActions.removeUploadingFile(file.id));
+    dispatch(filesActions.updateUploadingFile(file.id));
+    dispatch(filesActions.setUri(undefined));
   }
 
   function processFilesFromPicker(documents): Promise<void> {
     documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
-    props.dispatch(layoutActions.closeUploadFileModal());
+    dispatch(layoutActions.setShowUploadFileModal(false));
     return uploadDocuments(documents);
   }
 
@@ -234,7 +234,7 @@ function UploadModal(props: Reducers) {
       Alert.alert(`${filesExcluded.length} files will not be uploaded. Max upload size per file is 1GB`);
     }
 
-    const filesAtSameLevel = filesState.folderContent.files.map((file) => {
+    const filesAtSameLevel = folderContent.files.map((file) => {
       return { name: removeExtension(file.name), type: file.type };
     });
 
@@ -262,8 +262,8 @@ function UploadModal(props: Reducers) {
       };
 
       trackUploadStart();
-      props.dispatch(fileActions.uploadFileStart());
-      props.dispatch(fileActions.addUploadingFile(file));
+      dispatch(filesActions.uploadFileStart());
+      dispatch(filesActions.addUploadingFile(file));
 
       formattedFiles.push(file);
       filesAtSameLevel.push({ name: removeExtension(fileToUpload.name), type: fileToUpload.type });
@@ -281,14 +281,14 @@ function UploadModal(props: Reducers) {
         })
         .catch((err) => {
           trackUploadError(err);
-          props.dispatch(fileActions.uploadFileFailed(parseInt(file.id, 10)));
+          dispatch(filesActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
           notify({
             text: 'Cannot upload file: ' + err.message,
             type: 'error',
           });
         })
         .finally(() => {
-          props.dispatch(fileActions.uploadFileFinished(file.name));
+          dispatch(filesActions.uploadFileFinished());
         });
     }
   }
@@ -301,11 +301,11 @@ function UploadModal(props: Reducers) {
       })
         .then((documents) => {
           documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
-          props.dispatch(layoutActions.closeUploadFileModal());
+          dispatch(layoutActions.setShowUploadFileModal(false));
           return uploadDocuments(documents);
         })
         .then(() => {
-          props.dispatch(fileActions.getFolderContent(currentFolder));
+          dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
         })
         .catch((err) => {
           if (err.message === 'User canceled document picker') {
@@ -314,7 +314,7 @@ function UploadModal(props: Reducers) {
           Alert.alert('File upload error', err.message);
         })
         .finally(() => {
-          props.dispatch(layoutActions.closeUploadFileModal());
+          dispatch(layoutActions.setShowUploadFileModal(false));
         });
     } else {
       DocumentPicker.pickMultiple({
@@ -323,7 +323,7 @@ function UploadModal(props: Reducers) {
       })
         .then(processFilesFromPicker)
         .then(() => {
-          props.dispatch(fileActions.getFolderContent(currentFolder));
+          dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
         })
         .catch((err) => {
           if (err.message === 'User canceled document picker') {
@@ -332,7 +332,7 @@ function UploadModal(props: Reducers) {
           Alert.alert('File upload error', err.message);
         })
         .finally(() => {
-          props.dispatch(layoutActions.closeUploadFileModal());
+          dispatch(layoutActions.setShowUploadFileModal(false));
         });
     }
   }
@@ -361,10 +361,10 @@ function UploadModal(props: Reducers) {
               });
             }
 
-            props.dispatch(layoutActions.closeUploadFileModal());
+            dispatch(layoutActions.setShowUploadFileModal(false));
             uploadDocuments(documents)
               .then(() => {
-                props.dispatch(fileActions.getFolderContent(currentFolder));
+                dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
               })
               .catch((err) => {
                 if (err.message === 'User canceled document picker') {
@@ -373,7 +373,7 @@ function UploadModal(props: Reducers) {
                 Alert.alert('File upload error', err.message);
               })
               .finally(() => {
-                props.dispatch(layoutActions.closeUploadFileModal());
+                dispatch(layoutActions.setShowUploadFileModal(false));
               });
           }
         });
@@ -385,7 +385,7 @@ function UploadModal(props: Reducers) {
       })
         .then(processFilesFromPicker)
         .then(() => {
-          props.dispatch(fileActions.getFolderContent(currentFolder));
+          dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
         })
         .catch((err) => {
           if (err.message === 'User canceled document picker') {
@@ -394,7 +394,7 @@ function UploadModal(props: Reducers) {
           Alert.alert('File upload error', err.message);
         })
         .finally(() => {
-          props.dispatch(layoutActions.closeUploadFileModal());
+          dispatch(layoutActions.setShowUploadFileModal(false));
         });
     }
   }
@@ -431,10 +431,10 @@ function UploadModal(props: Reducers) {
         file.id = uniqueId();
 
         trackUploadStart();
-        props.dispatch(fileActions.uploadFileStart());
-        props.dispatch(fileActions.addUploadingFile(file));
+        dispatch(filesActions.uploadFileStart());
+        dispatch(filesActions.addUploadingFile(file));
 
-        props.dispatch(layoutActions.closeUploadFileModal());
+        dispatch(layoutActions.setShowUploadFileModal(false));
 
         uploadIOS(file, 'image')
           .then(() => {
@@ -442,12 +442,12 @@ function UploadModal(props: Reducers) {
           })
           .catch((err) => {
             trackUploadError(err);
-            props.dispatch(fileActions.uploadFileFailed(file.id));
+            dispatch(filesActions.uploadFileFailed(file.id));
             Alert.alert('Error', 'Cannot upload file due to: ' + err.message);
           })
           .finally(() => {
-            props.dispatch(fileActions.uploadFileFinished(file.name));
-            props.dispatch(fileActions.getFolderContent(currentFolder));
+            dispatch(filesActions.uploadFileFinished());
+            dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
           });
       }
     }
@@ -459,10 +459,10 @@ function UploadModal(props: Reducers) {
       position={'bottom'}
       style={tailwind('bg-transparent')}
       coverScreen={Platform.OS === 'android'}
-      isOpen={layoutState.showUploadModal}
+      isOpen={showUploadModal}
       entry={'bottom'}
       onClosed={() => {
-        props.dispatch(layoutActions.closeUploadFileModal());
+        dispatch(layoutActions.setShowUploadFileModal(false));
       }}
       backButtonClose={true}
       backdropPressToClose={true}
@@ -472,7 +472,7 @@ function UploadModal(props: Reducers) {
         <TouchableWithoutFeedback
           style={tailwind('flex-grow')}
           onPress={() => {
-            props.dispatch(layoutActions.closeUploadFileModal());
+            dispatch(layoutActions.setShowUploadFileModal(false));
           }}
         >
           <View style={tailwind('flex-grow')} />
@@ -539,8 +539,8 @@ function UploadModal(props: Reducers) {
               style={tailwind('flex-grow')}
               underlayColor={getColor('neutral-80')}
               onPress={() => {
-                props.dispatch(layoutActions.openCreateFolderModal());
-                props.dispatch(layoutActions.closeUploadFileModal());
+                dispatch(layoutActions.setShowCreateFolderModal(true));
+                dispatch(layoutActions.setShowUploadFileModal(false));
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
@@ -557,7 +557,7 @@ function UploadModal(props: Reducers) {
               style={tailwind('flex-grow')}
               underlayColor={getColor('neutral-80')}
               onPress={() => {
-                props.dispatch(layoutActions.closeUploadFileModal());
+                dispatch(layoutActions.setShowUploadFileModal(false));
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 items-center justify-center')}>
@@ -573,11 +573,4 @@ function UploadModal(props: Reducers) {
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return {
-    user: state.authenticationState.user,
-    layoutState: state.layoutState,
-  };
-};
-
-export default connect(mapStateToProps)(UploadModal);
+export default UploadModal;

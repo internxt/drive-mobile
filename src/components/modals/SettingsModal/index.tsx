@@ -1,31 +1,31 @@
 import React from 'react';
 import { View, Text, StyleSheet, Linking, Alert } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { layoutActions, userActions } from '../../../store/actions';
-import SettingsItem from './SettingsItem';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
 
+import SettingsItem from './SettingsItem';
 import Separator from '../../Separator';
-import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
 import strings from '../../../../assets/lang/strings';
-import { Reducers } from '../../../store/reducers/reducers';
 import { tailwind } from '../../../helpers/designSystem';
 import { AppScreen } from '../../../types';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { layoutActions } from '../../../store/slices/layout';
+import { authThunks } from '../../../store/slices/auth';
 
-interface SettingsModalProps extends Reducers {
-  user: any;
-  dispatch: Dispatch;
-  navigation: any;
-}
+function SettingsModal(): JSX.Element {
+  const navigation = useNavigation<NavigationStackProp>();
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+  const showSettingsModal = useAppSelector((state) => state.layout.showSettingsModal);
 
-function SettingsModal(props: SettingsModalProps) {
   return (
     <Modal
-      isOpen={props.layoutState.showSettingsModal}
+      isOpen={showSettingsModal}
       position={'bottom'}
       entry={'bottom'}
       style={styles.modalSettings}
-      onClosed={() => props.dispatch(layoutActions.closeSettings())}
+      onClosed={() => dispatch(layoutActions.setShowSettingsModal(false))}
       backButtonClose={true}
       animationDuration={200}
       coverScreen={true}
@@ -33,7 +33,7 @@ function SettingsModal(props: SettingsModalProps) {
       <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
 
       <Text style={styles.nameText}>
-        {props.user.name} {props.user.lastname}
+        {user.name} {user.lastname}
       </Text>
 
       <Separator style={tailwind('my-3')} />
@@ -41,8 +41,8 @@ function SettingsModal(props: SettingsModalProps) {
       <SettingsItem
         text={strings.components.app_menu.settings.storage}
         onPress={() => {
-          props.dispatch(layoutActions.closeSettings());
-          props.navigation.replace(AppScreen.Storage);
+          dispatch(layoutActions.setShowSettingsModal(false));
+          navigation.replace(AppScreen.Storage);
         }}
       />
 
@@ -69,8 +69,8 @@ function SettingsModal(props: SettingsModalProps) {
       <SettingsItem
         text={strings.components.app_menu.settings.signOut}
         onPress={() => {
-          props.dispatch(layoutActions.closeSettings());
-          props.dispatch(userActions.signout());
+          dispatch(layoutActions.setShowSettingsModal(false));
+          dispatch(authThunks.signOutThunk());
         }}
       />
     </Modal>
@@ -93,11 +93,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = (state: any) => {
-  return {
-    user: state.authenticationState.user,
-    layoutState: state.layoutState,
-  };
-};
-
-export default connect(mapStateToProps)(SettingsModal);
+export default SettingsModal;

@@ -10,10 +10,11 @@ import { store } from './src/store';
 import AppNavigator from './src/AppNavigator';
 import { analyticsSetup, trackStackScreen } from './src/services/analytics';
 import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './src/helpers';
-import { fileActions, userActions } from './src/store/actions';
 import { getColor, tailwind } from './src/helpers/designSystem';
 import strings from './assets/lang/strings';
 import { deviceStorage } from './src/services/deviceStorage';
+import { authActions } from './src/store/slices/auth';
+import { filesActions } from './src/store/slices/files';
 
 process.nextTick = setImmediate;
 
@@ -31,11 +32,11 @@ export default function App(): JSX.Element {
     config: config,
   };
   const loadLocalUser = async () => {
-    const xToken = await deviceStorage.getToken();
-    const xUser = await deviceStorage.getUser();
+    const token = await deviceStorage.getToken();
+    const user = await deviceStorage.getUser();
 
-    if (xToken && xUser) {
-      store.dispatch(userActions.localSignIn(xToken, xUser));
+    if (token && user) {
+      store.dispatch(authActions.signIn({ token, user }));
     }
   };
   const handleOpenURL = (e) => {
@@ -45,7 +46,7 @@ export default function App(): JSX.Element {
         const uri = e;
         const finalUri = uri.url.replace(regex, '');
 
-        store.dispatch(fileActions.setUri(finalUri));
+        store.dispatch(filesActions.setUri(finalUri));
       }
     }
   };
@@ -84,7 +85,7 @@ export default function App(): JSX.Element {
           if (uri.match(/inxt:\/\/.*:\/*/g)) {
             const finalUri = uri.replace(regex, '');
 
-            store.dispatch(fileActions.setUri(finalUri));
+            store.dispatch(filesActions.setUri(finalUri));
           }
         }
       });
@@ -97,7 +98,7 @@ export default function App(): JSX.Element {
             fileName: files[0].fileName,
           };
 
-          store.dispatch(fileActions.setUri(fileInfo));
+          store.dispatch(filesActions.setUri(fileInfo));
           ReceiveSharingIntent.clearReceivedFiles();
           // files returns as JSON Array example
           //[{ filePath: null, text: null, weblink: null, mimeType: null, contentUri: null, fileName: null, extension: null }]

@@ -2,30 +2,27 @@ import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
 import { Text, View, Platform, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { connect, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
 
-import { Reducers } from '../../../store/reducers/reducers';
 import RunOutImage from '../../../../assets/images/modals/runout.svg';
 import { tailwind, getColor } from '../../../helpers/designSystem';
-import { layoutActions } from '../../../store/actions';
 import globalStyle from '../../../styles/global.style';
 import strings from '../../../../assets/lang/strings';
 import { getCurrentIndividualPlan } from '../../../services/payments';
 import { loadValues } from '../../../services/storage';
 import { AppScreen } from '../../../types';
-
-interface StorageProps extends Reducers {
-  currentPlan: number;
-}
-
+import { layoutActions } from '../../../store/slices/layout';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 interface CurrentPlan {
   name: string;
   storageLimit: number;
 }
 
-function RunOutOfStorageModal(props: Reducers): JSX.Element {
-  const { layoutState } = useSelector<any, Reducers>((s) => s);
-
+function RunOutOfStorageModal(): JSX.Element {
+  const dispatch = useAppDispatch();
+  const navigation = useNavigation<NavigationStackProp>();
+  const showRunOutOfSpaceModal = useAppSelector((state) => state.layout.showRunOutOfSpaceModal);
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 });
   const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
 
@@ -58,10 +55,10 @@ function RunOutOfStorageModal(props: Reducers): JSX.Element {
       position={'bottom'}
       style={tailwind('bg-transparent')}
       coverScreen={Platform.OS === 'android'}
-      isOpen={layoutState.showRunOutOfSpaceModal}
+      isOpen={showRunOutOfSpaceModal}
       onClosed={() => {
-        props.dispatch(layoutActions.closeDeleteModal());
-        props.dispatch(layoutActions.closeRanOutStorageModal());
+        dispatch(layoutActions.setShowDeleteModal(false));
+        dispatch(layoutActions.setShowRunOutSpaceModal(false));
       }}
       backButtonClose={true}
       backdropPressToClose={true}
@@ -71,7 +68,7 @@ function RunOutOfStorageModal(props: Reducers): JSX.Element {
         <TouchableWithoutFeedback
           style={tailwind('flex-grow')}
           onPress={() => {
-            props.dispatch(layoutActions.closeRanOutStorageModal());
+            dispatch(layoutActions.setShowRunOutSpaceModal(false));
           }}
         >
           <View style={tailwind('flex-grow')} />
@@ -111,8 +108,8 @@ function RunOutOfStorageModal(props: Reducers): JSX.Element {
               underlayColor={getColor('blue-70')}
               style={tailwind('bg-blue-60 rounded-lg py-2 mx-6 items-center justify-center')}
               onPress={() => {
-                props.dispatch(layoutActions.closeRanOutStorageModal());
-                props.navigation.push(AppScreen.Billing);
+                dispatch(layoutActions.setShowRunOutSpaceModal(false));
+                navigation.push(AppScreen.Billing);
               }}
             >
               <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>
@@ -126,8 +123,4 @@ function RunOutOfStorageModal(props: Reducers): JSX.Element {
   );
 }
 
-const mapStateToProps = (state) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(RunOutOfStorageModal);
+export default RunOutOfStorageModal;

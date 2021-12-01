@@ -13,7 +13,6 @@ import _ from 'lodash';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import { notify } from '../../services/toast';
-import { Reducers } from '../../store/reducers/reducers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/Separator';
 import { getHeaders } from '../../helpers/headers';
@@ -22,6 +21,8 @@ import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreen } from '../../types';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   if (intervalName === 'month') {
@@ -68,7 +69,8 @@ const PERIODS = [
   { index: 2, text: 'Lifetime' },
 ];
 
-function Billing(props: Reducers) {
+function Billing() {
+  const navigation = useNavigation<NavigationStackProp>();
   const getLinkOneTimePayment = async (plan: any) => {
     const body = {
       test: process.env.NODE_ENV !== 'production',
@@ -98,7 +100,7 @@ function Billing(props: Reducers) {
         Alert.alert('There has been an error', `${err.message}, please contact us.`, [
           {
             text: 'Go back',
-            onPress: () => props.navigation.replace(AppScreen.Billing),
+            onPress: () => navigation.replace(AppScreen.Billing),
           },
         ]);
       });
@@ -140,7 +142,7 @@ function Billing(props: Reducers) {
         Alert.alert('There has been an error', `${err.message}, please contact us.`, [
           {
             text: 'Go back',
-            onPress: () => props.navigation.replace(AppScreen.Billing),
+            onPress: () => navigation.replace(AppScreen.Billing),
           },
         ]);
       });
@@ -210,11 +212,7 @@ function Billing(props: Reducers) {
 
   return (
     <View style={tailwind('app-screen flex-1 bg-white')}>
-      <ScreenTitle
-        text={strings.screens.billing.title}
-        centerText
-        onBackButtonPressed={() => props.navigation.goBack()}
-      />
+      <ScreenTitle text={strings.screens.billing.title} centerText onBackButtonPressed={() => navigation.goBack()} />
 
       <View style={tailwind('flex-1 mx-4 justify-start')}>
         {/* Buttons inside this fragment does not work inside a separated component */}

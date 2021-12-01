@@ -1,12 +1,14 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { connect } from 'react-redux';
+import { NavigationStackProp } from 'react-navigation-stack';
 import strings from '../../../assets/lang/strings';
-import { Reducers } from '../../store/reducers/reducers';
 import { AppScreen } from '../../types';
 
-function OutOfSpace(props: Reducers): JSX.Element {
+function OutOfSpaceScreen(): JSX.Element {
+  const navigation = useNavigation<NavigationStackProp>();
+
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
@@ -19,7 +21,7 @@ function OutOfSpace(props: Reducers): JSX.Element {
         <TouchableOpacity
           style={styles.button}
           onPress={() => {
-            props.navigation.goBack();
+            navigation.goBack();
           }}
         >
           <Text style={styles.buttonText}>{strings.components.buttons.cancel}</Text>
@@ -28,7 +30,7 @@ function OutOfSpace(props: Reducers): JSX.Element {
         <TouchableOpacity
           style={[styles.button, styles.blue]}
           onPress={() => {
-            props.navigation.replace(AppScreen.Storage);
+            navigation.replace(AppScreen.Storage);
           }}
         >
           <Text style={[styles.buttonText, styles.white]}>{strings.components.buttons.upgrade}</Text>
@@ -91,8 +93,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(OutOfSpace);
+export default OutOfSpaceScreen;

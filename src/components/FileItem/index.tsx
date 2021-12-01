@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Platform, Animated, Easing } from 'react-native';
-import { connect } from 'react-redux';
-import { fileActions, layoutActions } from '../../store/actions';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import FileViewer from 'react-native-file-viewer';
 import analytics from '../../services/analytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
-import { Reducers } from '../../store/reducers/reducers';
 import * as FileSystem from 'expo-file-system';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { downloadFile } from '../../services/download';
@@ -17,8 +14,11 @@ import prettysize from 'prettysize';
 import globalStyle from '../../styles/global.style';
 import { DevicePlatform } from '../../types';
 import { deviceStorage } from '../../services/deviceStorage';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { filesActions, filesThunks } from '../../store/slices/files';
+import { layoutActions } from '../../store/slices/layout';
 
-interface FileItemProps extends Reducers {
+interface FileItemProps {
   isFolder: boolean;
   item: IFile | IFolder | IUploadingFile;
   isLoading?: boolean;
@@ -29,23 +29,13 @@ interface FileItemProps extends Reducers {
   totalColumns: number;
 }
 
-async function handleLongPress(props: FileItemProps, isSelected: boolean) {
-  // if (isSelected) {
-  //   props.dispatch(fileActions.deselectFile(props.item))
-  // } else {
-  //   props.dispatch(fileActions.selectFile(props.item))
-  // }
-}
-
-function FileItem(props: FileItemProps) {
-  const isSelectionMode = props.filesState.selectedItems.length > 0;
-  const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0;
-
+function FileItem(props: FileItemProps): JSX.Element {
+  const dispatch = useAppDispatch();
+  const { selectedItems } = useAppSelector((state) => state.files);
+  const isSelectionMode = selectedItems.length > 0;
   const [progress, setProgress] = useState(-1);
   const [uploadProgress, setUploadProgress] = useState(-1);
-
   const [isLoading, setIsLoading] = useState(props.isLoading ? true : false);
-
   const spinValue = new Animated.Value(1);
 
   Animated.loop(
@@ -76,8 +66,8 @@ function FileItem(props: FileItemProps) {
 
   function handleFolderClick() {
     trackFolderOpened();
-    props.dispatch(fileActions.getFolderContent(props.item.id.toString()));
-    props.dispatch(fileActions.addDepthAbsolutePath([props.item.name]));
+    dispatch(filesThunks.getFolderContentThunk({ folderId: props.item.id as number }));
+    dispatch(filesActions.addDepthAbsolutePath([props.item.name]));
   }
 
   async function handleFileClick(): Promise<void> {
@@ -94,14 +84,12 @@ function FileItem(props: FileItemProps) {
 
     const filename = props.item.name.substring(0, props.item.type.length + 1);
     const extension = props.item.type;
-
-    // TODO: Donde tiene que ir en caso de las fotos
     const destinationDir = await getDocumentsDir();
     let destinationPath = destinationDir + '/' + filename + (extension ? '.' + extension : '');
 
     trackDownloadStart();
     setProgress(0);
-    props.dispatch(fileActions.downloadSelectedFileStart());
+    dispatch(filesActions.downloadSelectedFileStart());
 
     const fileAlreadyExists = await exists(destinationPath);
 
@@ -137,7 +125,7 @@ function FileItem(props: FileItemProps) {
         Alert.alert('Error downloading file', err.message);
       })
       .finally(() => {
-        props.dispatch(fileActions.downloadSelectedFileStop());
+        dispatch(filesActions.downloadSelectedFileStop());
         setProgress(-1);
       });
   }
@@ -224,10 +212,9 @@ function FileItem(props: FileItemProps) {
       underlayColor={getColor('neutral-20')}
       onLongPress={() => {
         if (props.isGrid) {
-          props.dispatch(fileActions.focusItem(props.item));
-          props.dispatch(layoutActions.openItemModal());
+          dispatch(filesActions.focusItem(props.item));
+          dispatch(layoutActions.setShowItemModal(true));
         }
-        handleLongPress(props, isSelected);
       }}
       onPress={async () => {
         await handleItemPressed();
@@ -312,12 +299,12 @@ function FileItem(props: FileItemProps) {
             <TouchableOpacity
               style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
               onPress={() => {
-                props.dispatch(fileActions.focusItem(props.item));
-                props.dispatch(layoutActions.openItemModal());
+                dispatch(filesActions.focusItem(props.item));
+                dispatch(layoutActions.setShowItemModal(true));
               }}
               onLongPress={() => {
-                props.dispatch(fileActions.focusItem(props.item));
-                props.dispatch(layoutActions.openItemModal());
+                dispatch(filesActions.focusItem(props.item));
+                dispatch(layoutActions.setShowItemModal(true));
               }}
             >
               <Unicons.UilEllipsisH size={24} color={getColor('neutral-60')} />
@@ -329,6 +316,4 @@ function FileItem(props: FileItemProps) {
   );
 }
 
-const mapStateToProps = (state: any) => ({ ...state });
-
-export default connect<Reducers>(mapStateToProps)(FileItem);
+export default FileItem;

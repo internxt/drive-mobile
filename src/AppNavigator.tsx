@@ -19,8 +19,7 @@ import RecoverPasswordScreen from './screens/RecoverPasswordScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import PhotoPreviewScreen from './screens/PhotoPreviewScreen';
 import GalleryScreen from './screens/GalleryScreen';
-import { useSelector } from 'react-redux';
-import { Reducers } from './store/reducers/reducers';
+import { useAppSelector } from './store/hooks';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -50,7 +49,7 @@ const StackNav = createNativeStackNavigator();
 type ScreenEntry = [name: string, component: { screen: React.ComponentType<JSX.Element> }];
 
 function AppNavigator(): JSX.Element {
-  const isLoggedIn = useSelector((state: Reducers) => state.authenticationState.loggedIn);
+  const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
   const initialRouteName = isLoggedIn ? AppScreen.TabExplorer : AppScreen.SignIn;
 
   return (

@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, TextInput, KeyboardAvoidingView, Platform, BackHandler } from 'react-native';
-import { connect } from 'react-redux';
-import { fileActions } from '../../store/actions';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
+
 import strings from '../../../assets/lang/strings';
 import { FolderIcon } from '../../helpers';
 import { AppScreen } from '../../types';
 
-function CreateFolderScreen(props: any): JSX.Element {
+function CreateFolderScreen(): JSX.Element {
+  const navigation = useNavigation<NavigationStackProp>();
   const [folderName, setFolderName] = useState('');
-  const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder;
 
   useEffect(() => {
-    // BackHandler
     const backAction = () => {
-      props.navigation.replace(AppScreen.Drive);
+      navigation.replace(AppScreen.Drive);
 
       return true;
     };
@@ -23,26 +23,9 @@ function CreateFolderScreen(props: any): JSX.Element {
     return () => backHandler.remove();
   }, []);
 
-  const onSave = () => {
-    if (folderName) {
-      const rootFolder = props.authenticationState.user.root_folder_id;
-
-      props.dispatch(fileActions.createFolder(currentFolderId || rootFolder, folderName));
-    }
-    props.navigation.replace(AppScreen.Drive);
-  };
-
-  const onCancel = () => {
-    props.navigation.replace(AppScreen.Drive);
-  };
-
   return (
     <KeyboardAvoidingView behavior="padding" style={styles.container}>
-      <View style={styles.actionsWrapper}>
-        <View>{/* <MenuItem name="close" onClickHandler={() => onCancel()} /> */}</View>
-
-        <View>{/* <MenuItem name="checkmark" onClickHandler={() => onSave()} /> */}</View>
-      </View>
+      <View style={styles.actionsWrapper}></View>
 
       <View style={styles.folderWrapper}>
         <FolderIcon />
@@ -97,8 +80,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(CreateFolderScreen);
+export default CreateFolderScreen;

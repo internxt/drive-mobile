@@ -1,27 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
-import { connect } from 'react-redux';
 
 import strings from '../../../../assets/lang/strings';
 import { tailwind } from '../../../helpers/designSystem';
-import { layoutActions } from '../../../store/actions';
-import { Reducers } from '../../../store/reducers/reducers';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { layoutActions } from '../../../store/slices/layout';
 
-const ComingSoonModal = (props: Reducers) => {
-  const [isOpen, setIsOpen] = useState(props.layoutState.showComingSoonModal);
-
-  useEffect(() => {
-    props.layoutState.showComingSoonModal ? setIsOpen(true) : null;
-  }, [props.layoutState]);
+const ComingSoonModal = (): JSX.Element => {
+  const dispatch = useAppDispatch();
+  const { showComingSoonModal } = useAppSelector((state) => state.layout);
 
   return (
     <Modal
-      isOpen={isOpen}
+      isOpen={showComingSoonModal}
       onClosed={() => {
-        props.dispatch(layoutActions.closeComingSoonModal());
-        setIsOpen(false);
+        dispatch(layoutActions.setShowComingSoonModal(false));
       }}
       position="center"
       style={styles.modalContainer}
@@ -40,7 +35,7 @@ const ComingSoonModal = (props: Reducers) => {
         <TouchableOpacity
           style={[styles.button, styles.blue]}
           onPress={() => {
-            setIsOpen(false);
+            dispatch(layoutActions.setShowComingSoonModal(false));
           }}
         >
           <Text style={[styles.text, styles.white]}>{strings.modals.coming_soon_modal.got_it}</Text>
@@ -103,8 +98,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(ComingSoonModal);
+export default ComingSoonModal;

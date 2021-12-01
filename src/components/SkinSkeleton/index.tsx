@@ -31,11 +31,6 @@ export default function SkinSkeleton(): JSX.Element {
 
         <View style={tailwind('h-2.5 w-3/4 bg-neutral-10 rounded')} />
       </View>
-      {/*
-    <View style={tailwind('items-center justify-center')}>
-      <Unicons.UilEllipsisH color={getColor('neutral-30')} />
-    </View>
-    */}
     </Animated.View>
   );
 }

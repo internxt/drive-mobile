@@ -32,6 +32,7 @@ const strings = new LocalizedStrings({
         title: 'Change password',
         warning:
           'Remember that if you change your password, you will be signed out in all your devices. You will need these credentials for logining in again.',
+        iDontRememberMyPassword: "I don't remember my password",
       },
       recover_password: {
         title: 'Recover password',
@@ -287,6 +288,7 @@ const strings = new LocalizedStrings({
         confirm: 'Borrar cuenta',
         warning:
           'Recuerda que si cambias tu contraseña, se cerrará sesión en todos tus dispositivos. Necesitarás la nueva contraseña para acceder otra vez.',
+        iDontRememberMyPassword: 'No recuerdo mi contraseña',
       },
       recover_password: {
         title: 'Recuperar contraseña',

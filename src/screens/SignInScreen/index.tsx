@@ -14,20 +14,21 @@ import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';
 import analytics from '../../services/analytics';
-import { userActions } from '../../store/actions';
-import { Reducers } from '../../store/reducers/reducers';
 import InternxtLogo from '../../../assets/logo.svg';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import VersionUpdate from '../../components/VersionUpdate';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
 import { AppScreen } from '../../types';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { authThunks } from '../../store/slices/auth';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
 
-interface SignInScreenProps extends Reducers {
-  goToForm?: (screenName: string) => void;
-}
-
-function SignInScreen(props: SignInScreenProps): JSX.Element {
+function SignInScreen(): JSX.Element {
+  const navigation = useNavigation<NavigationStackProp>();
+  const dispatch = useAppDispatch();
+  const { error: authError } = useAppSelector((state) => state.auth);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,8 +47,8 @@ function SignInScreen(props: SignInScreenProps): JSX.Element {
         setShowTwoFactor(true);
         setIsLoading(false);
       } else {
-        await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode));
-        props.navigation.replace(AppScreen.TabExplorer);
+        await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }));
+        navigation.replace(AppScreen.TabExplorer);
       }
     } catch (err) {
       analytics
@@ -63,11 +64,11 @@ function SignInScreen(props: SignInScreenProps): JSX.Element {
   };
 
   useEffect(() => {
-    if (props.authenticationState.error) {
-      Alert.alert('Login error', props.authenticationState.error);
+    if (authError) {
+      Alert.alert('Login error', authError);
       setIsLoading(false);
     }
-  }, [props.authenticationState.error]);
+  }, [authError]);
 
   return (
     <KeyboardAvoidingView behavior="height" style={tailwind('app-screen p-5 bg-white h-full justify-between')}>
@@ -156,27 +157,21 @@ function SignInScreen(props: SignInScreenProps): JSX.Element {
 
           <Text
             style={tailwind('text-center text-sm m-2 text-blue-60')}
-            onPress={() => props.navigation.replace(AppScreen.ForgotPassword)}
+            onPress={() => navigation.replace(AppScreen.ForgotPassword)}
           >
             {strings.screens.login_screen.forgot}
           </Text>
 
-          <Text style={tailwind('text-center mt-2')} onPress={() => props.navigation.replace(AppScreen.SignUp)}>
+          <Text style={tailwind('text-center mt-2')} onPress={() => navigation.replace(AppScreen.SignUp)}>
             <Text style={tailwind('text-sm')}>{strings.screens.login_screen.no_register} </Text>
             <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.register}</Text>
           </Text>
         </View>
       </View>
 
-      <VersionUpdate {...props} />
+      <VersionUpdate />
     </KeyboardAvoidingView>
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return {
-    authenticationState: state.authenticationState,
-  };
-};
-
-export default connect(mapStateToProps)(SignInScreen);
+export default SignInScreen;

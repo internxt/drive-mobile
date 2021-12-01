@@ -15,12 +15,14 @@ import { normalize } from '../../helpers';
 import strings from '../../../assets/lang/strings';
 import InternxtLogo from '../../../assets/logo.svg';
 import { tailwind } from '../../helpers/designSystem';
-import { Reducers } from '../../store/reducers/reducers';
 import validationService from '../../services/validation';
 import authService from '../../services/auth';
 import { AppScreen } from '../../types';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
 
-function ForgotPasswordScreen(props: Reducers): JSX.Element {
+function ForgotPasswordScreen(): JSX.Element {
+  const navigation = useNavigation<NavigationStackProp>();
   const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   // Get email form field
@@ -94,10 +96,7 @@ function ForgotPasswordScreen(props: Reducers): JSX.Element {
                 </TouchableHighlight>
               </View>
               <View style={tailwind('py-5')}>
-                <TouchableWithoutFeedback
-                  style={tailwind('m-5')}
-                  onPress={() => props.navigation.replace(AppScreen.SignIn)}
-                >
+                <TouchableWithoutFeedback style={tailwind('m-5')} onPress={() => navigation.replace(AppScreen.SignIn)}>
                   <Text style={tailwind('text-blue-60 text-center')}> {strings.screens.login_screen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>
@@ -133,10 +132,7 @@ function ForgotPasswordScreen(props: Reducers): JSX.Element {
               </View>
 
               <View style={tailwind('py-5')}>
-                <TouchableWithoutFeedback
-                  style={tailwind('m-5')}
-                  onPress={() => props.navigation.replace(AppScreen.SignIn)}
-                >
+                <TouchableWithoutFeedback style={tailwind('m-5')} onPress={() => navigation.replace(AppScreen.SignIn)}>
                   <Text style={[]}> {strings.screens.login_screen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>

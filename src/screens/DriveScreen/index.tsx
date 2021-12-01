@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View, Platform, Alert, BackHandler, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
-import { connect, useDispatch, useSelector } from 'react-redux';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as Unicons from '@iconscout/react-native-unicons';
 
-import { fileActions, layoutActions, userActions } from '../../store/actions';
 import FileList from '../../components/FileList';
-import { Reducers } from '../../store/reducers/reducers';
 import analytics, { getAnalyticsData } from '../../services/analytics';
 import { loadValues } from '../../services/storage';
 import strings from '../../../assets/lang/strings';
@@ -17,18 +14,26 @@ import ScreenTitle from '../../components/ScreenTitle';
 import Separator from '../../components/Separator';
 import { AppScreen, DevicePlatform } from '../../types';
 import { notify } from '../../services/toast';
+import { authActions, authThunks } from '../../store/slices/auth';
+import { filesActions, filesThunks } from '../../store/slices/files';
+import { layoutActions } from '../../store/slices/layout';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
 
-function DriveScreen(props: Reducers): JSX.Element {
-  const dispatch = useDispatch();
-  const { filesState } = props;
-  const [selectedKeyId, setSelectedKeyId] = useState(0);
-  const searchString = useSelector((state: Reducers) => state.filesState.searchString);
+function DriveScreen(): JSX.Element {
+  const navigation = useNavigation<NavigationStackProp>();
+  const dispatch = useAppDispatch();
+  const { token, user, loggedIn } = useAppSelector((state) => state.auth);
+  const { folderContent, selectedItems, uri, sortType } = useAppSelector((state) => state.files);
+  const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.layout);
+  const searchString = useAppSelector((state) => state.files.searchString);
   const onSearchTextChanged = (value: string) => {
-    dispatch(fileActions.setSearchString(value));
+    dispatch(filesActions.setSearchString(value));
   };
   const parentFolderId = (() => {
-    if (filesState.folderContent) {
-      return filesState.folderContent.parentId || null;
+    if (folderContent) {
+      return folderContent.parentId || null;
     } else {
       return null;
     }
@@ -36,17 +41,13 @@ function DriveScreen(props: Reducers): JSX.Element {
   let count = 0;
   const validateUri = () => {
     if (Platform.OS === 'ios') {
-      return filesState.uri && filesState.folderContent && filesState.folderContent.currentFolder;
+      return uri && folderContent && folderContent.currentFolder;
     } else {
-      return filesState.uri.fileUri && filesState.folderContent && filesState.folderContent.currentFolder;
+      return uri.fileUri && folderContent && folderContent.currentFolder;
     }
   };
-  const backButtonEnabled = props.layoutState.backButtonEnabled;
-  const isRootFolder =
-    props.filesState.folderContent &&
-    props.filesState.folderContent.id === props.authenticationState.user.root_folder_id;
-  const screenTitle =
-    !isRootFolder && props.filesState.folderContent ? props.filesState.folderContent.name : strings.screens.drive.title;
+  const isRootFolder = folderContent && folderContent.id === user.root_folder_id;
+  const screenTitle = !isRootFolder && folderContent ? folderContent.name : strings.screens.drive.title;
 
   useEffect(() => {
     getAnalyticsData()
@@ -59,7 +60,7 @@ function DriveScreen(props: Reducers): JSX.Element {
               percentage: parseInt((res.usage / res.limit).toFixed(1)),
             };
 
-            props.dispatch(userActions.setUserStorage(currentPlan));
+            dispatch(authActions.setUserStorage(currentPlan));
             try {
               if (res) {
                 analytics
@@ -88,54 +89,50 @@ function DriveScreen(props: Reducers): JSX.Element {
   // useEffect to trigger uploadFile while app on background
   useEffect(() => {
     if (Platform.OS === 'ios') {
-      if (filesState.uri && validateUri()) {
-        const uri = filesState.uri;
-        const name = filesState.uri.split('/').pop();
+      if (uri && validateUri()) {
+        const name = uri.split('/').pop();
 
         setTimeout(() => {
-          uploadFile(uri, name, filesState.folderContent.currentFolder);
+          uploadFile(uri, name, folderContent.currentFolder);
         }, 3000);
       }
     } else {
-      if (filesState.uri && validateUri()) {
-        const uri = filesState.uri.fileUri;
-        const name = filesState.uri.fileName.split('/').pop();
+      if (uri && validateUri()) {
+        const name = uri.fileUri.fileName.split('/').pop();
 
         setTimeout(() => {
-          uploadFile(uri, name, filesState.folderContent.currentFolder);
+          uploadFile(uri.fileUri, name, folderContent.currentFolder);
         }, 3000);
       }
     }
-  }, [filesState.uri]);
+  }, [uri]);
 
   // seEffect to trigger uploadFile while app closed
   useEffect(() => {
     if (Platform.OS === 'ios') {
       if (validateUri()) {
-        const uri = filesState.uri;
-        const name = filesState.uri.split('/').pop();
+        const name = uri.split('/').pop();
 
         setTimeout(() => {
-          uploadFile(uri, name, filesState.folderContent.currentFolder);
+          uploadFile(uri, name, folderContent.currentFolder);
         }, 3000);
       }
     } else {
-      if (filesState.uri && validateUri()) {
-        const uri = filesState.uri.fileUri;
-        const name = filesState.uri.fileName;
+      if (uri && validateUri()) {
+        const name = uri.fileUri.fileName;
 
         setTimeout(() => {
-          uploadFile(uri, name, filesState.folderContent.currentFolder);
+          uploadFile(uri.fileUri, name, folderContent.currentFolder);
         }, 3000);
       }
     }
 
     // Set rootfoldercontent for MoveFilesModal
-    parentFolderId === null ? props.dispatch(fileActions.setRootFolderContent(filesState.folderContent)) : null;
+    parentFolderId === null ? dispatch(filesActions.setRootFolderContent(folderContent)) : null;
 
     // BackHandler
     const backAction = () => {
-      if (props.filesState.folderContent && !props.filesState.folderContent.parentId) {
+      if (folderContent && !folderContent.parentId) {
         count++;
         if (count < 2) {
           notify({ type: 'error', text: 'Try exiting again to close the app' });
@@ -148,22 +145,21 @@ function DriveScreen(props: Reducers): JSX.Element {
           count = 0;
         }, 4000);
       } else {
-        props.dispatch(fileActions.getFolderContent(props.filesState.folderContent.parentId));
+        dispatch(filesThunks.getFolderContentThunk({ folderId: folderContent.parentId }));
       }
       return true;
     };
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
 
     return () => backHandler.remove();
-  }, [filesState.folderContent]);
+  }, [folderContent]);
 
   const uploadFile = async (uri: string, name: string, currentFolder: number) => {
-    props.dispatch(fileActions.setUri(undefined));
+    dispatch(filesActions.setUri(undefined));
     const userData = await getAnalyticsData();
 
     try {
-      const token = props.authenticationState.token;
-      const mnemonic = props.authenticationState.user.mnemonic;
+      const mnemonic = user.mnemonic;
       const headers = {
         Authorization: `Bearer ${token}`,
         'internxt-mnemonic': mnemonic,
@@ -174,7 +170,7 @@ function DriveScreen(props: Reducers): JSX.Element {
       analytics
         .track('file-upload-start', { userId: userData.uuid, email: userData.email, device: DevicePlatform.Mobile })
         .catch(() => undefined);
-      props.dispatch(fileActions.uploadFileStart());
+      dispatch(filesActions.uploadFileStart());
 
       const file = uri.replace(regex, '$2'); // if iOS remove file://
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(uri);
@@ -186,7 +182,7 @@ function DriveScreen(props: Reducers): JSX.Element {
         [{ name: 'xfile', filename: name, data: finalUri }],
       )
         .uploadProgress({ count: 10 }, (sent, total) => {
-          props.dispatch(fileActions.uploadFileSetProgress(sent / total));
+          dispatch(filesActions.uploadFileSetProgress({ progress: sent / total }));
         })
         .then((res) => {
           if (res.respInfo.status === 401) {
@@ -198,7 +194,7 @@ function DriveScreen(props: Reducers): JSX.Element {
         })
         .then((res) => {
           if (res.respInfo.status === 402) {
-            props.navigation.replace(AppScreen.OutOfSpace);
+            navigation.replace(AppScreen.OutOfSpace);
           } else if (res.respInfo.status === 201) {
             analytics
               .track('file-upload-finished', {
@@ -207,41 +203,35 @@ function DriveScreen(props: Reducers): JSX.Element {
                 device: DevicePlatform.Mobile,
               })
               .catch(() => undefined);
-            props.dispatch(fileActions.getFolderContent(filesState.folderContent.currentFolder));
+            dispatch(filesThunks.getFolderContentThunk({ folderId: folderContent.currentFolder }));
           } else {
             Alert.alert('Error', 'Can not upload file');
           }
 
-          props.dispatch(fileActions.uploadFileSetProgress(0));
-          props.dispatch(fileActions.uploadFileFinished());
+          dispatch(filesActions.uploadFileSetProgress({ progress: 0 }));
+          dispatch(filesActions.uploadFileFinished());
         })
         .catch((err) => {
           if (err.status === 401) {
-            props.dispatch(userActions.signout());
+            dispatch(authThunks.signOutThunk());
           } else {
             Alert.alert('Error', 'Cannot upload file\n' + err.message);
           }
 
-          props.dispatch(fileActions.uploadFileFailed());
-          props.dispatch(fileActions.uploadFileFinished());
+          dispatch(filesActions.uploadFileFailed());
+          dispatch(filesActions.uploadFileFinished());
         });
     } catch (error) {
       analytics
         .track('file-upload-error', { userId: userData.uuid, email: userData.email, device: DevicePlatform.Mobile })
         .catch(() => undefined);
-      props.dispatch(fileActions.uploadFileFailed());
-      props.dispatch(fileActions.uploadFileFinished());
+      dispatch(filesActions.uploadFileFailed());
+      dispatch(filesActions.uploadFileFinished());
     }
   };
 
-  useEffect(() => {
-    const keyId = filesState.selectedItems.length > 0 && filesState.selectedItems[0].id;
-
-    setSelectedKeyId(keyId);
-  }, [filesState]);
-
-  if (!props.authenticationState.loggedIn) {
-    props.navigation.replace(AppScreen.SignIn);
+  if (!loggedIn) {
+    navigation.replace(AppScreen.SignIn);
   }
 
   return (
@@ -250,13 +240,13 @@ function DriveScreen(props: Reducers): JSX.Element {
       <View
         style={[
           tailwind('flex-row items-center justify-between my-2 px-5'),
-          (isRootFolder || !props.filesState.folderContent) && tailwind('hidden'),
+          (isRootFolder || !folderContent) && tailwind('hidden'),
         ]}
       >
         <View>
           <TouchableOpacity
             disabled={!backButtonEnabled}
-            onPress={() => props.dispatch(fileActions.goBack(parentFolderId?.toString()))}
+            onPress={() => dispatch(filesThunks.goBackThunk({ folderId: parentFolderId }))}
           >
             <View style={[tailwind('flex-row items-center'), tailwind(!parentFolderId && 'opacity-50')]}>
               <Unicons.UilAngleLeft color={getColor('blue-60')} style={tailwind('-ml-2 -mr-1')} size={32} />
@@ -270,11 +260,7 @@ function DriveScreen(props: Reducers): JSX.Element {
           <View style={tailwind('items-center justify-center')}>
             <TouchableOpacity
               style={tailwind('p-2')}
-              onPress={() => {
-                props.layoutState.searchActive
-                  ? props.dispatch(layoutActions.closeSearch())
-                  : props.dispatch(layoutActions.openSearch());
-              }}
+              onPress={() => dispatch(layoutActions.setSearchActive(searchActive))}
             >
               <Unicons.UilSearch color={getColor('blue-60')} size={22} />
             </TouchableOpacity>
@@ -283,7 +269,7 @@ function DriveScreen(props: Reducers): JSX.Element {
             <TouchableOpacity
               style={tailwind('p-2')}
               onPress={() => {
-                props.dispatch(layoutActions.openSettings());
+                dispatch(layoutActions.setShowSettingsModal(true));
               }}
             >
               <Unicons.UilEllipsisH color={getColor('blue-60')} size={22} />
@@ -304,11 +290,11 @@ function DriveScreen(props: Reducers): JSX.Element {
       <View style={[tailwind('flex-row justify-between mt-4 mb-2 px-5')]}>
         <TouchableWithoutFeedback
           onPress={() => {
-            dispatch(layoutActions.openSortModal());
+            dispatch(layoutActions.setShowSortModal(true));
           }}
         >
           <View style={tailwind('flex-row items-center')}>
-            <Text style={tailwind('text-neutral-100')}>{strings.screens.drive.sort[props.filesState.sortType]}</Text>
+            <Text style={tailwind('text-neutral-100')}>{strings.screens.drive.sort[sortType]}</Text>
             <Unicons.UilAngleDown size={20} color={getColor('neutral-100')} />
           </View>
         </TouchableWithoutFeedback>
@@ -319,7 +305,7 @@ function DriveScreen(props: Reducers): JSX.Element {
             }}
           >
             <>
-              {props.layoutState.fileViewMode === 'list' ? (
+              {fileViewMode === 'list' ? (
                 <Unicons.UilApps size={22} color={getColor('neutral-100')} />
               ) : (
                 <Unicons.UilListUl size={22} color={getColor('neutral-100')} />
@@ -331,13 +317,9 @@ function DriveScreen(props: Reducers): JSX.Element {
 
       <Separator />
 
-      <FileList {...props} isGrid={props.layoutState.fileViewMode === 'grid'} />
+      <FileList isGrid={fileViewMode === 'grid'} />
     </View>
   );
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(DriveScreen);
+export default DriveScreen;

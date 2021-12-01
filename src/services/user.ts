@@ -32,11 +32,11 @@ class UserService {
             user.mnemonic = user.mnemonic ? decryptTextWithKey(user.mnemonic, password) : null;
 
             if (!user.root_folder_id) {
-              const initializeData = await this.initializeUser(email, user.mnemonic, body.token);
+              const initializeUserResponse = await this.initializeUser(email, user.mnemonic, body.token);
 
               // eslint-disable-next-line camelcase
-              user.root_folder_id = initializeData.user.root_folder_id;
-              user.bucket = initializeData.user.bucket;
+              user.root_folder_id = initializeUserResponse.user.root_folder_id;
+              user.bucket = initializeUserResponse.user.bucket;
             }
 
             // Store login data
@@ -92,4 +92,5 @@ class UserService {
   }
 }
 
-export default new UserService();
+const userService = new UserService();
+export default userService;

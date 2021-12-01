@@ -3,11 +3,12 @@ import { View, Text, Image, SafeAreaView, TouchableOpacity } from 'react-native'
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { connect } from 'react-redux';
 import tailwind, { getColor } from 'tailwind-rn';
-import { Reducers } from '../../store/reducers/reducers';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
 
-interface PreviewProps extends Reducers {
+interface PreviewProps {
   route: {
     params: {
       uri: string;
@@ -15,7 +16,8 @@ interface PreviewProps extends Reducers {
   };
 }
 
-function Preview(props: PreviewProps) {
+function PhotoPreviewScreen(props: PreviewProps): JSX.Element {
+  const navigation = useNavigation<NavigationStackProp>();
   const previewUri = props.route.params.uri;
 
   return (
@@ -39,7 +41,7 @@ function Preview(props: PreviewProps) {
             <TouchableOpacity
               style={tailwind('z-10')}
               onPress={() => {
-                props.navigation.goBack();
+                navigation.goBack();
               }}
             >
               <Unicons.UilAngleLeft color={getColor('white')} size={32} />
@@ -47,7 +49,7 @@ function Preview(props: PreviewProps) {
             <TouchableOpacity
               style={tailwind('z-10')}
               onPress={() => {
-                props.navigation.goBack();
+                navigation.goBack();
               }}
             >
               <Unicons.UilEllipsisH color={getColor('white')} size={32} />
@@ -77,8 +79,4 @@ function Preview(props: PreviewProps) {
   );
 }
 
-const mapStateToProps = (state: Reducers) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(Preview);
+export default PhotoPreviewScreen;

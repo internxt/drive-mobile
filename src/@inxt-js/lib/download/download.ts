@@ -27,6 +27,9 @@ export function download(
     file.emit(DOWNLOAD_CANCELLED);
   });
 
+  console.log('download - file:', file);
+  console.log('download - progress: ', progress);
+
   return file
     .getInfo()
     .then(() => file.getMirrors())

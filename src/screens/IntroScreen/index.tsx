@@ -4,8 +4,8 @@ import AppIntroSlider from 'react-native-app-intro-slider';
 import { connect } from 'react-redux';
 import { normalize } from '../../helpers';
 import strings from '../../../assets/lang/strings';
-import { Reducers } from '../../store/reducers/reducers';
-interface IntroProps extends Reducers {
+
+interface IntroProps {
   onFinish: () => void;
 }
 

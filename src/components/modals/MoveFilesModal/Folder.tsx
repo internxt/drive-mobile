@@ -1,18 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
-import { connect } from 'react-redux';
-import { fileActions } from '../../../store/actions';
+
 import { getAnalyticsData } from '../../../services/analytics';
 import analytics from '../../../services/analytics';
-import { Reducers } from '../../../store/reducers/reducers';
+import { filesThunks } from '../../../store/slices/files';
+import { useAppDispatch } from '../../../store/hooks';
 
-interface FolderProps extends Reducers {
+interface FolderProps {
   isFolder: boolean;
   item: any;
   isLoading?: boolean;
 }
 
-function Folder(props: FolderProps) {
+function Folder(props: FolderProps): JSX.Element {
+  const dispatch = useAppDispatch();
   const item = props.item;
 
   async function handleClick(props: any) {
@@ -24,7 +25,7 @@ function Folder(props: FolderProps) {
       // eslint-disable-next-line camelcase
       folder_id: props.item.id,
     });
-    props.dispatch(fileActions.getFolderContent(props.item.id));
+    dispatch(filesThunks.getFolderContentThunk({ folderId: props.item.id }));
   }
 
   return (
@@ -77,8 +78,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(Folder);
+export default Folder;

@@ -2,60 +2,57 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Platform, FlatList, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { connect, useSelector } from 'react-redux';
+
 import strings from '../../../../assets/lang/strings';
 import FileItem from '../../FileItem';
 import Separator from '../../Separator';
 import { tailwind } from '../../../helpers/designSystem';
-import { fileActions, layoutActions } from '../../../store/actions';
-import { Reducers } from '../../../store/reducers/reducers';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { layoutActions } from '../../../store/slices/layout';
+import { filesThunks } from '../../../store/slices/files';
 
-function MoveFilesModal(props: Reducers) {
-  const { filesState, layoutState } = useSelector<any, Reducers>((s) => s);
-
-  const [isOpen, setIsOpen] = useState(layoutState.showMoveModal);
-  const [currentfolderid, setCurrentFolderId] = useState<number>();
+function MoveFilesModal(): JSX.Element {
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+  const { showMoveModal } = useAppSelector((state) => state.layout);
+  const { rootFolderContent, folderContent, selectedFile } = useAppSelector((state) => state.files);
+  const [currentFolderId, setCurrentFolderId] = useState<number>();
   const [folderlist, setFolderList] = useState([]);
   const [firstfolder, setFirstFolder] = useState<number>();
   const [selectedfile, setSelectedFile] = useState<any>({});
 
-  const { rootFolderContent } = filesState;
-  const folderList: any[] = (rootFolderContent && rootFolderContent.children) || [];
+  useEffect(() => {
+    if (folderContent) {
+      setCurrentFolderId(folderContent.currentFolder);
+      setSelectedFile(selectedFile);
+      setFolderList(rootFolderContent.children);
+      setFirstFolder(folderContent.currentFolder);
+    }
+  }, [showMoveModal]);
 
   useEffect(() => {
-    props.layoutState.showMoveModal === true ? setIsOpen(true) : null;
-    if (filesState.folderContent) {
-      setCurrentFolderId(props.filesState.folderContent.currentFolder);
-      setSelectedFile(props.filesState.selectedFile);
-      setFolderList(props.filesState.rootFolderContent.children);
-      setFirstFolder(props.filesState.folderContent.currentFolder);
+    if (folderContent) {
+      setCurrentFolderId(folderContent.currentFolder);
+      setFolderList(folderContent.children);
     }
-  }, [props.layoutState.showMoveModal]);
+  }, [folderContent]);
 
-  useEffect(() => {
-    if (filesState.folderContent) {
-      setCurrentFolderId(filesState.folderContent.currentFolder);
-      setFolderList(filesState.folderContent.children);
-    }
-  }, [filesState.folderContent]);
+  const moveFile = async (destinationFolderId: number) => {
+    if (selectedfile) {
+      await dispatch(filesThunks.moveFileThunk({ fileId: selectedfile.fileId, destinationFolderId }));
+      dispatch(layoutActions.setShowMoveModal(false));
 
-  const moveFile = async (result: any) => {
-    if (result >= 0 && selectedfile) {
-      setIsOpen(false);
-      await props.dispatch(fileActions.moveFile(selectedfile.fileId, result));
-      props.dispatch(layoutActions.closeMoveFilesModal());
+      const rootFolderId = user.root_folder_id;
 
-      const rootFolderId = props.authenticationState.user.root_folder_id;
-
-      props.dispatch(fileActions.getFolderContent(rootFolderId));
+      dispatch(filesThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
   };
 
   return (
     <Modal
-      isOpen={props.layoutState.showMoveModal}
+      isOpen={showMoveModal}
       onClosed={() => {
-        props.dispatch(layoutActions.closeMoveFilesModal());
+        dispatch(layoutActions.setShowMoveModal(false));
       }}
       position="center"
       style={tailwind('w-11/12 h-5/6 p-3 rounded-lg')}
@@ -80,9 +77,8 @@ function MoveFilesModal(props: Reducers) {
         <TouchableOpacity
           style={styles.button}
           onPress={() => {
-            props.dispatch(layoutActions.closeMoveFilesModal());
-            setIsOpen(false);
-            props.dispatch(fileActions.getFolderContent(firstfolder));
+            dispatch(layoutActions.setShowMoveModal(false));
+            dispatch(filesThunks.getFolderContentThunk({ folderId: firstfolder }));
           }}
         >
           <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
@@ -91,7 +87,7 @@ function MoveFilesModal(props: Reducers) {
         <TouchableOpacity
           style={[styles.button, styles.blue]}
           onPress={() => {
-            moveFile(currentfolderid);
+            moveFile(currentFolderId);
           }}
         >
           <Text style={[styles.text, styles.white]}>{strings.components.buttons.move}</Text>
@@ -144,8 +140,4 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(MoveFilesModal);
+export default MoveFilesModal;

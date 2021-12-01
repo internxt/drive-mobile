@@ -6,18 +6,23 @@ import { connect } from 'react-redux';
 import CheckBox from '../../components/CheckBox';
 import strings from '../../../assets/lang/strings';
 import { deviceStorage } from '../../services/deviceStorage';
-import { userActions } from '../../store/actions';
 import Intro from '../IntroScreen';
 import { doRegister } from './registerUtils';
 import InternxtLogo from '../../../assets/logo.svg';
 import analytics from '../../services/analytics';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import { Reducers } from '../../store/reducers/reducers';
 import validationService from '../../services/validation';
 import authService from '../../services/auth';
 import { AppScreen, DevicePlatform } from '../../types';
+import { authActions, authThunks } from '../../store/slices/auth';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
 
-function SignUpScreen(props: Reducers): JSX.Element {
+function SignUpScreen(): JSX.Element {
+  const navigation = useNavigation<NavigationStackProp>();
+  const dispatch = useAppDispatch();
+  const { loggedIn, user, token } = useAppSelector((state) => state.auth);
   const [showIntro, setShowIntro] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const twoFactorCode = '';
@@ -53,26 +58,26 @@ function SignUpScreen(props: Reducers): JSX.Element {
   const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
 
   useEffect(() => {
-    if (props.authenticationState.loggedIn) {
-      const rootFolderId = props.authenticationState.user.root_folder_id;
+    if (loggedIn) {
+      const rootFolderId = user.root_folder_id;
 
-      props.navigation.replace(AppScreen.Drive, {
+      navigation.replace(AppScreen.Drive, {
         folderId: rootFolderId,
       });
     } else {
       (async () => {
-        const xToken = await deviceStorage.getToken();
-        const xUser = await deviceStorage.getUser();
+        const token = await deviceStorage.getToken();
+        const user = await deviceStorage.getUser();
 
-        if (xToken && xUser) {
-          props.dispatch(userActions.localSignIn(xToken, xUser));
+        if (token && user) {
+          dispatch(authActions.signIn({ token, user }));
         }
       })();
     }
-  }, [props.authenticationState.loggedIn, props.authenticationState.token]);
+  }, [loggedIn, token]);
 
   if (showIntro) {
-    return <Intro {...props} onFinish={() => setShowIntro(false)} />;
+    return <Intro onFinish={() => setShowIntro(false)} />;
   }
 
   const handleOnPress = async () => {
@@ -111,7 +116,7 @@ function SignUpScreen(props: Reducers): JSX.Element {
 
       const userLoginData = await authService.apiLogin(email);
 
-      await props.dispatch(userActions.signin(email, password, userLoginData.sKey, twoFactorCode));
+      await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }));
     } catch (err) {
       await analytics.track('user-signin-attempted', {
         status: 'error',
@@ -295,7 +300,7 @@ function SignUpScreen(props: Reducers): JSX.Element {
               </View>
             </View>
 
-            <Text style={tailwind('text-center mt-2')} onPress={() => props.navigation.replace(AppScreen.SignIn)}>
+            <Text style={tailwind('text-center mt-2')} onPress={() => navigation.replace(AppScreen.SignIn)}>
               <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.title}</Text>
             </Text>
           </View>

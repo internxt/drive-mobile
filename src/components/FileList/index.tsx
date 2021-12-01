@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { RefreshControl, View, FlatList, Dimensions } from 'react-native';
-import { connect } from 'react-redux';
 import _ from 'lodash';
+
 import { tailwind } from '../../helpers/designSystem';
-import { fileActions } from '../../store/actions';
-import { Reducers } from '../../store/reducers/reducers';
 import FileItem from '../FileItem';
 import SkinSkeleton from '../SkinSkeleton';
 import EmptyDriveImage from '../../../assets/images/screens/empty-drive.svg';
 import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg';
 import EmptyList from '../EmptyList';
 import strings from '../../../assets/lang/strings';
+import { filesThunks } from '../../store/slices/files';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 
 export interface IFolder {
   name: string;
@@ -56,62 +56,66 @@ export interface IFile {
   isUploaded?: boolean;
 }
 
-interface FileListProps extends Reducers {
+interface FileListProps {
   isGrid: boolean;
 }
 
-function FileList(props: FileListProps) {
+function FileList(props: FileListProps): JSX.Element {
+  const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
-
-  const { filesState } = props;
-  const { folderContent } = filesState;
-  let folderList: IFolder[] = (folderContent && folderContent.children) || [];
-  let fileList: IFile[] = (folderContent && folderContent.files) || [];
+  const {
+    folderContent,
+    filesCurrentlyUploading,
+    searchString,
+    filesAlreadyUploaded,
+    sortFunction,
+    isUploadingFileName,
+    loading: filesLoading,
+  } = useAppSelector((state) => state.files);
+  const { user } = useAppSelector((state) => state.auth);
   const [filesUploading, setFilesUploading] = useState([]);
   const [filesUploaded, setFilesUploaded] = useState([]);
   const [folderId, setFolderId] = useState<number>();
+  let folderList: IFolder[] = (folderContent && folderContent.children) || [];
+  let fileList: IFile[] = (folderContent && folderContent.files) || [];
 
   useEffect(() => {
     setRefreshing(false);
 
-    if (props.filesState.folderContent && props.filesState.folderContent.currentFolder) {
-      setFolderId(props.filesState.folderContent.currentFolder);
+    if (folderContent && folderContent.currentFolder) {
+      setFolderId(folderContent.currentFolder);
     }
-  }, [props.filesState.folderContent]);
+  }, [folderContent]);
 
   useEffect(() => {
-    setFilesUploading(props.filesState.filesCurrentlyUploading);
-  }, [props.filesState.filesCurrentlyUploading]);
+    setFilesUploading(filesCurrentlyUploading);
+  }, [filesCurrentlyUploading]);
 
   useEffect(() => {
-    setFilesUploaded(props.filesState.filesAlreadyUploaded);
-  }, [props.filesState.filesAlreadyUploaded]);
-
-  const searchString = props.filesState.searchString;
+    setFilesUploaded(filesAlreadyUploaded);
+  }, [filesAlreadyUploaded]);
 
   if (searchString) {
     fileList = fileList.filter((file: IFile) => file.name.toLowerCase().includes(searchString.toLowerCase()));
     folderList = folderList.filter((folder: IFolder) => folder.name.toLowerCase().includes(searchString.toLowerCase()));
   }
 
-  const sortFunction = props.filesState.sortFunction;
-
   if (sortFunction) {
     folderList.sort(sortFunction);
     fileList.sort(sortFunction);
   }
 
-  const rootFolderId = props.authenticationState.user.root_folder_id;
-  const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder;
+  const rootFolderId = user.root_folder_id;
+  const currentFolderId = folderContent && folderContent.currentFolder;
   const isRootFolder = currentFolderId === rootFolderId;
 
   useEffect(() => {
-    if (!props.filesState.folderContent) {
-      props.dispatch(fileActions.getFolderContent(rootFolderId));
+    if (!folderContent) {
+      dispatch(filesThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
   }, []);
 
-  const isUploading = props.filesState.isUploadingFileName;
+  const isUploading = isUploadingFileName;
   const isEmptyFolder =
     folderList.length === 0 &&
     fileList.length === 0 &&
@@ -129,11 +133,11 @@ function FileList(props: FileListProps) {
           refreshing={refreshing}
           onRefresh={() => {
             setRefreshing(true);
-            if (!props || !props.filesState || !props.filesState.folderContent) {
+            if (!folderContent) {
               return setRefreshing(false);
             }
 
-            props.dispatch(fileActions.getFolderContent(currentFolderId));
+            dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
           }}
         />
       }
@@ -141,7 +145,7 @@ function FileList(props: FileListProps) {
       collapsable={true}
       contentContainerStyle={isEmptyFolder && tailwind('h-full justify-center')}
       ListEmptyComponent={
-        props.filesState.loading ? (
+        filesLoading ? (
           <View style={tailwind('h-full')}>
             {_.times(20, (n) => (
               <SkinSkeleton key={n} />
@@ -169,8 +173,4 @@ function FileList(props: FileListProps) {
   );
 }
 
-const mapStateToProps = (state) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(FileList);
+export default FileList;
