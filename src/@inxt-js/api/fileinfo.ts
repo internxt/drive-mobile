@@ -44,8 +44,7 @@ export function GetFileMirror(
   excludeNodes: string[] = [],
 ): Promise<Shard[]> {
   const excludeNodeIds: string = excludeNodes.join(',');
-  const targetUrl = `${config.bridgeUrl}
-  /buckets/${bucketId}/files/${fileId}?limit=${limit}&skip=${skip}&exclude=${excludeNodeIds}`;
+  const targetUrl = `${config.bridgeUrl}/buckets/${bucketId}/files/${fileId}?limit=${limit}&skip=${skip}&exclude=${excludeNodeIds}`;
 
   return request(config, 'GET', targetUrl, { responseType: 'json' }, false).then((res: AxiosResponse) => res.data);
 }

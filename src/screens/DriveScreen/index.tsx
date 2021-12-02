@@ -260,7 +260,7 @@ function DriveScreen(): JSX.Element {
           <View style={tailwind('items-center justify-center')}>
             <TouchableOpacity
               style={tailwind('p-2')}
-              onPress={() => dispatch(layoutActions.setSearchActive(searchActive))}
+              onPress={() => dispatch(layoutActions.setSearchActive(!searchActive))}
             >
               <Unicons.UilSearch color={getColor('blue-60')} size={22} />
             </TouchableOpacity>
@@ -280,11 +280,13 @@ function DriveScreen(): JSX.Element {
 
       <ScreenTitle text={screenTitle} showBackButton={false} />
 
-      <SearchInput
-        value={searchString}
-        onChangeText={onSearchTextChanged}
-        placeholder={strings.screens.drive.searchInThisFolder}
-      />
+      {(isRootFolder || !folderContent || searchActive) && (
+        <SearchInput
+          value={searchString}
+          onChangeText={onSearchTextChanged}
+          placeholder={strings.screens.drive.searchInThisFolder}
+        />
+      )}
 
       {/* FILE LIST ACTIONS */}
       <View style={[tailwind('flex-row justify-between mt-4 mb-2 px-5')]}>

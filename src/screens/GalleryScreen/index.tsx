@@ -42,18 +42,18 @@ function GalleryScreen(): JSX.Element {
   const loadPhotos = async (cursor?: string) => {
     const [loadedPhotos, nextCursor] = await loadLocalPhotos(cursor);
 
-    setPhotos([...photos, ...loadedPhotos]);
+    setPhotos(loadedPhotos);
     setPhotoCursor(nextCursor);
     setRefreshing(false);
   };
   const isItemSelected = (item: CameraRoll.PhotoIdentifier) => {
-    return selectedItems.some((i) => i.node.image.filename === item.node.image.filename);
+    return selectedItems.some((i) => i.node.image.uri === item.node.image.uri);
   };
   const selectItem = (item: CameraRoll.PhotoIdentifier) => {
     setSelectedItems([...selectedItems, item]);
   };
   const deselectItem = (item: CameraRoll.PhotoIdentifier) => {
-    const itemIndex = selectedItems.findIndex((i) => i.node.image.filename === item.node.image.filename);
+    const itemIndex = selectedItems.findIndex((i) => i.node.image.uri === item.node.image.filename);
 
     selectedItems.splice(itemIndex, 1);
 
@@ -156,7 +156,7 @@ function GalleryScreen(): JSX.Element {
 
       {/* PHOTOS */}
       <FlatList
-        style={tailwind('bg-yellow-20')}
+        style={tailwind('bg-white')}
         showsVerticalScrollIndicator={true}
         indicatorStyle={'black'}
         refreshControl={
@@ -175,6 +175,7 @@ function GalleryScreen(): JSX.Element {
         numColumns={3}
         onEndReached={() => loadPhotos(photoCursor)}
         onEndReachedThreshold={3}
+        keyExtractor={(item) => item.node.image.uri}
         renderItem={(item: ListRenderItemInfo<CameraRoll.PhotoIdentifier>) => {
           const uri = item.item.node.image.uri;
           const isTheLast = item.index === photos.length - 1;
@@ -182,9 +183,9 @@ function GalleryScreen(): JSX.Element {
           return (
             <>
               <GalleryItem
-                key={item.item.node.image.uri}
                 size={itemSize}
                 uri={uri}
+                isSelected={isItemSelected(item.item)}
                 onPress={() => onItemPressed(item.item)}
                 onLongPress={() => onItemLongPressed(item.item)}
               />

@@ -127,7 +127,6 @@ function UploadModal(): JSX.Element {
       dispatch(filesActions.uploadFileSetProgress({ progress, id: res.id }));
     }
 
-    // TODO: Refactor this to avoid coupling input object to redux provided object
     const result = { ...res };
 
     // Set name for pics/photos

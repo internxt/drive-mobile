@@ -12,7 +12,7 @@ export interface Logger {
   error: (message?: any, ...optionalParams: any[]) => void;
 }
 
-export function download(
+export async function download(
   config: EnvironmentConfig,
   bucketId: string,
   fileId: string,
@@ -27,14 +27,10 @@ export function download(
     file.emit(DOWNLOAD_CANCELLED);
   });
 
-  console.log('download - file:', file);
-  console.log('download - progress: ', progress);
-
-  return file
-    .getInfo()
-    .then(() => file.getMirrors())
-    .then(() => handleProgress(file, progress))
-    .then(() => file.download());
+  await file.getInfo();
+  await file.getMirrors();
+  await handleProgress(file, progress);
+  await file.download();
 }
 
 function handleProgress(fl: FileObject, progressCb: DownloadProgressCallback) {

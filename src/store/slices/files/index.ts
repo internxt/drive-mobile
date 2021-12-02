@@ -314,7 +314,9 @@ export const filesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getFolderContentThunk.pending, () => undefined)
+      .addCase(getFolderContentThunk.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(getFolderContentThunk.fulfilled, (state, action) => {
         action.payload.children = action.payload.children.filter((item) => {
           return !state.pendingDeleteItems[item.id.toString()];

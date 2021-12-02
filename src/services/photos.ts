@@ -9,7 +9,7 @@ export const convertLocalIdentifierToAssetLibrary = (localIdentifier: string, ex
 
 export async function loadLocalPhotos(cursor?: string): Promise<[CameraRoll.PhotoIdentifier[], string]> {
   const photos = await CameraRoll.getPhotos({
-    first: 10,
+    first: 25,
     assetType: 'Photos',
     groupTypes: 'All',
     after: cursor,
@@ -26,8 +26,6 @@ export async function loadLocalPhotos(cursor?: string): Promise<[CameraRoll.Phot
     }
     return;
   });
-
-  console.log('photos: ', photos);
 
   return [photos.edges, lastCursor];
 }

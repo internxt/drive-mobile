@@ -158,11 +158,11 @@ function FileList(props: FileListProps): JSX.Element {
         )
       }
       data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}
+      keyExtractor={(item) => `${props.isGrid}-${item.id}`}
       renderItem={(item) => {
         return (
           <FileItem
             isFolder={!!item.item.parentId}
-            key={`${props.isGrid}-${item.item.id}`}
             item={item.item}
             isGrid={props.isGrid}
             totalColumns={totalColumns}
