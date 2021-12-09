@@ -12,13 +12,12 @@ import IntroScreen from './screens/IntroScreen';
 import HomeScreen from './screens/HomeScreen';
 import OutOfSpaceScreen from './screens/OutOfSpaceScreen';
 import StorageScreen from './screens/StorageScreen';
-import TabExplorer from './screens/TabExplorerScreen';
+import AuthenticatedNavigator from './screens/AuthenticatedNavigator';
 import BillingScreen from './screens/BillingScreen';
 import ChangePasswordScreen from './screens/ChangePasswordScreen';
 import RecoverPasswordScreen from './screens/RecoverPasswordScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
-import PhotoPreviewScreen from './screens/PhotoPreviewScreen';
-import GalleryScreen from './screens/GalleryScreen';
+import PhotosNavigator from './screens/PhotosNavigator';
 import { useAppSelector } from './store/hooks';
 
 type RouteConfig = NavigationRouteConfigMap<
@@ -32,7 +31,7 @@ const routeConfig: RouteConfig = {
   [AppScreen.SignIn]: { screen: SignInScreen },
   [AppScreen.Intro]: { screen: IntroScreen },
   [AppScreen.Home]: { screen: HomeScreen },
-  [AppScreen.TabExplorer]: { screen: TabExplorer },
+  [AppScreen.TabExplorer]: { screen: AuthenticatedNavigator },
   [AppScreen.CreateFolder]: { screen: CreateFolderScreen },
   [AppScreen.ForgotPassword]: { screen: ForgotPasswordScreen },
   [AppScreen.OutOfSpace]: { screen: OutOfSpaceScreen },
@@ -40,8 +39,7 @@ const routeConfig: RouteConfig = {
   [AppScreen.Billing]: { screen: BillingScreen },
   [AppScreen.ChangePassword]: { screen: ChangePasswordScreen },
   [AppScreen.RecoverPassword]: { screen: RecoverPasswordScreen },
-  [AppScreen.Photos]: { screen: GalleryScreen },
-  [AppScreen.PhotoPreview]: { screen: PhotoPreviewScreen },
+  [AppScreen.Photos]: { screen: PhotosNavigator },
 };
 
 const StackNav = createNativeStackNavigator();

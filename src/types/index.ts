@@ -16,7 +16,12 @@ export enum AppScreen {
   Storage = 'storage',
   Billing = 'billing',
   Photos = 'photos',
-  PhotoPreview = 'photo-preview',
+}
+
+export enum PhotosScreen {
+  Permissions = 'photos-permissions',
+  Gallery = 'photos-gallery',
+  Preview = 'photos-preview',
 }
 
 export enum DevicePlatform {

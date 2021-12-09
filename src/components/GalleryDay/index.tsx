@@ -13,11 +13,11 @@ import * as Unicons from '@iconscout/react-native-unicons';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import GalleryItem from '../GalleryItem';
-import CameraRoll from '@react-native-community/cameraroll';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
-import { AppScreen } from '../../types';
+import { PhotosScreen } from '../../types';
+import { Photo } from '@internxt/sdk';
 
 const GalleryDay = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -35,20 +35,18 @@ const GalleryDay = (): JSX.Element => {
   const deselectAll = () => {
     console.log('GalleryDay deselectAll pressed!');
   };
-  const selectItem = (photo: CameraRoll.PhotoIdentifier) => {
+  const selectItem = (photo: Photo) => {
     dispatch(photosActions.selectPhoto(photo));
   };
-  const deselectItem = (photo: CameraRoll.PhotoIdentifier) => {
+  const deselectItem = (photo: Photo) => {
     dispatch(photosActions.deselectPhoto(photo));
   };
-  const onItemLongPressed = (photo: CameraRoll.PhotoIdentifier) => {
+  const onItemLongPressed = (photo: Photo) => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
     isPhotoSelected(photo) ? deselectItem(photo) : selectItem(photo);
   };
-  const onItemPressed = (item: CameraRoll.PhotoIdentifier) => {
-    isSelectionModeActivated
-      ? onItemLongPressed(item)
-      : navigation.push(AppScreen.PhotoPreview, { uri: item.node.image.uri });
+  const onItemPressed = (item: Photo) => {
+    isSelectionModeActivated ? onItemLongPressed(item) : navigation.push(PhotosScreen.Preview, { data: item });
   };
 
   return (
@@ -94,16 +92,15 @@ const GalleryDay = (): JSX.Element => {
         numColumns={columnsCount}
         onEndReached={() => undefined}
         onEndReachedThreshold={3}
-        keyExtractor={(item) => item.node.image.uri}
-        renderItem={(item: ListRenderItemInfo<CameraRoll.PhotoIdentifier>) => {
-          const uri = item.item.node.image.uri;
+        keyExtractor={(item) => item.id}
+        renderItem={(item: ListRenderItemInfo<Photo>) => {
           const isTheLast = item.index === photos.length - 1;
 
           return (
             <>
               <GalleryItem
                 size={itemSize}
-                uri={uri}
+                data={item.item}
                 isSelected={isPhotoSelected(item.item)}
                 onPress={() => onItemPressed(item.item)}
                 onLongPress={() => onItemLongPressed(item.item)}

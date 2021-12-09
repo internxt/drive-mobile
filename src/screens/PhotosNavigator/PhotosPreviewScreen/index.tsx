@@ -6,18 +6,21 @@ import * as Unicons from '@iconscout/react-native-unicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
+import { Photo } from '@internxt/sdk';
 
 interface PreviewProps {
   route: {
     params: {
-      uri: string;
+      data: Photo;
     };
   };
 }
 
-function PhotoPreviewScreen(props: PreviewProps): JSX.Element {
+function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
-  const previewUri = props.route.params.uri;
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const examplePhoto = '';
+  const previewUri = examplePhoto;
 
   return (
     <View style={tailwind('h-full')}>
@@ -78,4 +81,4 @@ function PhotoPreviewScreen(props: PreviewProps): JSX.Element {
   );
 }
 
-export default PhotoPreviewScreen;
+export default PhotosPreviewScreen;

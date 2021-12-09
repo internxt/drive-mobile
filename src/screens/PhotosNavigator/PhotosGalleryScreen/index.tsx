@@ -1,16 +1,16 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 
-import { tailwind } from '../../helpers/designSystem';
-import globalStyle from '../../styles/global.style';
-import { GalleryViewMode } from '../../types';
-import ScreenTitle from '../../components/ScreenTitle';
-import strings from '../../../assets/lang/strings';
-import galleryViews from '../../components/gallery-views';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosActions, photosThunks } from '../../store/slices/photos';
+import { tailwind } from '../../../helpers/designSystem';
+import globalStyle from '../../../styles/global.style';
+import { GalleryViewMode } from '../../../types';
+import ScreenTitle from '../../../components/ScreenTitle';
+import strings from '../../../../assets/lang/strings';
+import galleryViews from '../../../components/gallery-views';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { photosActions, photosThunks } from '../../../store/slices/photos';
 
-function GalleryScreen(): JSX.Element {
+function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
   const { isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
   const onSelectButtonPressed = () => {
@@ -111,4 +111,4 @@ function GalleryScreen(): JSX.Element {
   );
 }
 
-export default GalleryScreen;
+export default PhotosGalleryScreen;

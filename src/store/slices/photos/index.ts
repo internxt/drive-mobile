@@ -1,16 +1,15 @@
-import CameraRoll from '@react-native-community/cameraroll';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { RootState } from '../..';
-import { loadLocalPhotos } from '../../../services/photos';
 import { GalleryViewMode } from '../../../types';
+import { Photo } from '@internxt/sdk';
 
 export interface PhotosState {
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
-  photos: CameraRoll.PhotoIdentifier[];
+  photos: Photo[];
   nextCursor?: string;
-  selectedPhotos: CameraRoll.PhotoIdentifier[];
+  selectedPhotos: Photo[];
 }
 
 const initialState: PhotosState = {
@@ -22,13 +21,11 @@ const initialState: PhotosState = {
 };
 
 const loadLocalPhotosThunk = createAsyncThunk<
-  { loadedPhotos: CameraRoll.PhotoIdentifier[]; nextCursor: string | undefined },
+  { loadedPhotos: Photo[]; nextCursor: string | undefined },
   { cursor?: string },
   { state: RootState }
->('photos/loadLocalPhotos', async ({ cursor }) => {
-  const [loadedPhotos, nextCursor] = await loadLocalPhotos(cursor);
-
-  return { loadedPhotos, nextCursor };
+>('photos/loadLocalPhotos', async ({ cursor }, { getState }) => {
+  return { loadedPhotos: getState().photos.photos, nextCursor: cursor };
 });
 
 export const photosSlice = createSlice({
@@ -41,11 +38,11 @@ export const photosSlice = createSlice({
     setViewMode(state, action: PayloadAction<GalleryViewMode>) {
       state.viewMode = action.payload;
     },
-    selectPhoto(state, action: PayloadAction<CameraRoll.PhotoIdentifier>) {
+    selectPhoto(state, action: PayloadAction<Photo>) {
       state.selectedPhotos = [...state.selectedPhotos, action.payload];
     },
-    deselectPhoto(state, action: PayloadAction<CameraRoll.PhotoIdentifier>) {
-      const itemIndex = state.selectedPhotos.findIndex((i) => i.node.image.uri === action.payload.node.image.filename);
+    deselectPhoto(state, action: PayloadAction<Photo>) {
+      const itemIndex = state.selectedPhotos.findIndex((i) => i.id === action.payload.id);
 
       state.selectedPhotos.splice(itemIndex, 1);
 
@@ -74,8 +71,8 @@ export const photosActions = photosSlice.actions;
 export const photosSelectors = {
   isPhotoSelected:
     (state: RootState) =>
-    (photo: CameraRoll.PhotoIdentifier): boolean =>
-      state.photos.selectedPhotos.some((i) => i.node.image.uri === photo.node.image.uri),
+    (photo: Photo): boolean =>
+      state.photos.selectedPhotos.some((i) => i.id === photo.id),
 };
 
 export const photosThunks = {

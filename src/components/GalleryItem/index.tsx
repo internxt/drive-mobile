@@ -4,11 +4,12 @@ import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { GalleryItemType } from '../../types';
+import { Photo } from '@internxt/sdk';
 
 interface GalleryItemProps {
   type?: GalleryItemType;
   size: number;
-  uri: string;
+  data: Photo;
   isSelected: boolean;
   onPress?: () => void;
   onLongPress?: () => void;
@@ -21,14 +22,16 @@ const defaultProps: Partial<GalleryItemProps> = {
 const GalleryItem = ({
   type = defaultProps.type as GalleryItemType,
   size,
-  uri,
+  data,
   isSelected,
   onPress,
   onLongPress,
 }: GalleryItemProps): JSX.Element => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const examplePhoto = '';
   const getItemContent = () =>
     ({
-      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri }} />,
+      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri: examplePhoto }} />,
     }[type]());
 
   return (

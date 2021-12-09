@@ -5,7 +5,6 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/
 
 import { tailwind } from '../../helpers/designSystem';
 import DriveScreen from '../DriveScreen';
-import GalleryScreen from '../GalleryScreen';
 import Configuration from '../MenuScreen';
 import BottomTabNavigator from '../../components/BottomTabNavigator';
 import VoidScreen from '../VoidScreen';
@@ -21,10 +20,11 @@ import MoveFilesModal from '../../components/modals/MoveFilesModal';
 import RunOutOfStorageModal from '../../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../HomeScreen';
 import { AppScreen } from '../../types';
+import PhotosNavigator from '../PhotosNavigator';
 
 const Tab = createBottomTabNavigator();
 
-export default function TabExplorerScreen(): JSX.Element {
+export default function AuthenticatedNavigator(): JSX.Element {
   return (
     <View style={tailwind('h-full')}>
       <FileDetailsModal />
@@ -41,7 +41,6 @@ export default function TabExplorerScreen(): JSX.Element {
       <Tab.Navigator
         tabBar={(tabBarProps: BottomTabBarProps) => <BottomTabNavigator {...{ ...tabBarProps }} />}
         initialRouteName={AppScreen.Home}
-        sceneContainerStyle={tailwind('')}
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: true,
@@ -50,7 +49,7 @@ export default function TabExplorerScreen(): JSX.Element {
         <Tab.Screen name={AppScreen.Home} component={HomeScreen} />
         <Tab.Screen name={AppScreen.Drive} component={DriveScreen} />
         <Tab.Screen name="create" component={VoidScreen} />
-        <Tab.Screen name={AppScreen.Photos} component={GalleryScreen} />
+        <Tab.Screen name="photos" component={PhotosNavigator} />
         <Tab.Screen name={AppScreen.Menu} component={Configuration} />
       </Tab.Navigator>
     </View>
