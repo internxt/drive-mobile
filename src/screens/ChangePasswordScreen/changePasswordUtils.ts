@@ -8,7 +8,7 @@ interface ChangePasswordParam {
   newPassword: string;
 }
 
-async function getSalt(email) {
+async function getSalt(email: string) {
   const response = await fetch(`${process.env.REACT_NATIVE_API_URL}/api/login`, {
     method: 'post',
     headers: await getHeaders(),
@@ -20,7 +20,7 @@ async function getSalt(email) {
   return salt;
 }
 
-export async function doChangePassword(params: ChangePasswordParam) {
+export async function doChangePassword(params: ChangePasswordParam): Promise<any> {
   const xUser = await getAnalyticsData();
   const salt = await getSalt(xUser.email);
 

@@ -18,6 +18,7 @@ import { notify } from '../../../services/toast';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { filesActions, filesThunks } from '../../../store/slices/files';
 import { layoutActions } from '../../../store/slices/layout';
+import errorService from '../../../services/error';
 
 function RenameModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -31,7 +32,9 @@ function RenameModal(): JSX.Element {
   const folder = isFolder && focusedItem;
   const file = !isFolder && focusedItem;
   const onItemRenameSuccess = () => {
-    dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
+    if (currentFolderId) {
+      dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
+    }
     notify({ text: 'Renamed successfully', type: 'success' });
     setNewName('');
   };
@@ -62,8 +65,8 @@ function RenameModal(): JSX.Element {
 
       onItemRenameSuccess();
     } catch (err) {
-      console.log(err);
-      notify({ text: err.message, type: 'error' });
+      const castedError = errorService.castError(err);
+      notify({ text: castedError.message, type: 'error' });
     } finally {
       onItemRenameFinally();
     }

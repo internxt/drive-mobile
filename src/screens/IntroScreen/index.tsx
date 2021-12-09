@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { View, Text, Image, StyleSheet, TouchableHighlight } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableHighlight, ImageURISource } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
 
 import { normalize } from '../../helpers';
@@ -9,25 +9,31 @@ interface IntroProps {
   onFinish: () => void;
 }
 
-const slides = [
+interface Slide {
+  key: string;
+  text: string;
+  image: ImageURISource;
+}
+
+const slides: Slide[] = [
   {
     key: 'intro001',
-    text: (strings.screens.register_screen.first, strings.screens.register_screen.bold_first),
+    text: strings.screens.register_screen.first,
     image: require('../../../assets/images/intro/intro01.png'),
   },
   {
     key: 'intro002',
-    text: (strings.screens.register_screen.second, strings.screens.register_screen.bold_second),
+    text: strings.screens.register_screen.second,
     image: require('../../../assets/images/intro/intro02.png'),
   },
   {
     key: 'intro003',
-    text: (strings.screens.register_screen.third, strings.screens.register_screen.bold_third),
+    text: strings.screens.register_screen.third,
     image: require('../../../assets/images/intro/intro03.png'),
   },
 ];
 
-function renderItem({ item }) {
+function renderItem({ item }: { item: Slide }) {
   return (
     <View style={styles.body}>
       <Text style={styles.explanationText}>{item.text}</Text>

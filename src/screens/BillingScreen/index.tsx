@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import _ from 'lodash';
 import * as Unicons from '@iconscout/react-native-unicons';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationStackProp } from 'react-navigation-stack';
 
 import { notify } from '../../services/toast';
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -20,23 +22,22 @@ import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreen } from '../../types';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
+  let result = 0;
+
   if (intervalName === 'month') {
-    return intervalCount;
+    result = intervalCount;
+  } else if (intervalName === 'year') {
+    result = intervalCount * 12;
   }
 
-  if (intervalName === 'year') {
-    return intervalCount * 12;
-  }
+  return result;
 };
 
 const getProducts = async () => {
   const products = process.env.NODE_ENV === 'production' ? getProductionPlans() : getDevelopmentPlans();
-
-  const perPlan = {};
+  const perPlan: any = {};
 
   products.forEach((product) => {
     if (product.metadata.is_teams) {
@@ -147,14 +148,14 @@ function Billing(): JSX.Element {
       });
   };
 
-  const [stripeProducts, setStripeProducts] = useState<any[]>();
+  const [stripeProducts, setStripeProducts] = useState<any>();
   const [selectedProductIndex, setSelectedProductIndex] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<any>();
   const [selectedTab, setSelectedTab] = useState(1);
 
   useEffect(() => {
     getProducts()
-      .then((products: any[]) => {
+      .then((products: any) => {
         setStripeProducts(products);
       })
       .catch((err) => {

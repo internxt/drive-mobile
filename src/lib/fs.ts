@@ -96,7 +96,6 @@ interface FileIterator {
 
 export class FileManager {
   private fileUri: string;
-  private fileStat: RNFS.StatResult;
 
   constructor(uri: string) {
     this.fileUri = uri;
@@ -104,8 +103,6 @@ export class FileManager {
 
   getStat(): Promise<RNFS.StatResult> {
     return stat(this.fileUri).then((stat) => {
-      this.fileStat = stat;
-
       return stat;
     });
   }

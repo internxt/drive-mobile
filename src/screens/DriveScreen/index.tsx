@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Text, View, Platform, Alert, BackHandler, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as Unicons from '@iconscout/react-native-unicons';
@@ -12,7 +12,7 @@ import SearchInput from '../../components/SearchInput';
 import globalStyle from '../../styles/global.style';
 import ScreenTitle from '../../components/ScreenTitle';
 import Separator from '../../components/Separator';
-import { AppScreen, DevicePlatform } from '../../types';
+import { AppScreen, DevicePlatform, SortType } from '../../types';
 import { notify } from '../../services/toast';
 import { authActions, authThunks } from '../../store/slices/auth';
 import { filesActions, filesThunks } from '../../store/slices/files';
@@ -25,7 +25,7 @@ function DriveScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
   const dispatch = useAppDispatch();
   const { token, user, loggedIn } = useAppSelector((state) => state.auth);
-  const { folderContent, selectedItems, uri, sortType } = useAppSelector((state) => state.files);
+  const { folderContent, uri, sortType } = useAppSelector((state) => state.files);
   const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.layout);
   const searchString = useAppSelector((state) => state.files.searchString);
   const onSearchTextChanged = (value: string) => {
@@ -46,7 +46,7 @@ function DriveScreen(): JSX.Element {
       return uri.fileUri && folderContent && folderContent.currentFolder;
     }
   };
-  const isRootFolder = folderContent && folderContent.id === user.root_folder_id;
+  const isRootFolder = folderContent && folderContent.id === user?.root_folder_id;
   const screenTitle = !isRootFolder && folderContent ? folderContent.name : strings.screens.drive.title;
 
   useEffect(() => {
@@ -89,7 +89,7 @@ function DriveScreen(): JSX.Element {
   // useEffect to trigger uploadFile while app on background
   useEffect(() => {
     if (Platform.OS === 'ios') {
-      if (uri && validateUri()) {
+      if (uri && validateUri() && folderContent) {
         const name = uri.split('/').pop();
 
         setTimeout(() => {
@@ -97,7 +97,7 @@ function DriveScreen(): JSX.Element {
         }, 3000);
       }
     } else {
-      if (uri && validateUri()) {
+      if (uri && validateUri() && folderContent) {
         const name = uri.fileUri.fileName.split('/').pop();
 
         setTimeout(() => {
@@ -110,7 +110,7 @@ function DriveScreen(): JSX.Element {
   // seEffect to trigger uploadFile while app closed
   useEffect(() => {
     if (Platform.OS === 'ios') {
-      if (validateUri()) {
+      if (validateUri() && folderContent) {
         const name = uri.split('/').pop();
 
         setTimeout(() => {
@@ -118,7 +118,7 @@ function DriveScreen(): JSX.Element {
         }, 3000);
       }
     } else {
-      if (uri && validateUri()) {
+      if (uri && validateUri() && folderContent) {
         const name = uri.fileUri.fileName;
 
         setTimeout(() => {
@@ -144,8 +144,8 @@ function DriveScreen(): JSX.Element {
         setTimeout(() => {
           count = 0;
         }, 4000);
-      } else {
-        dispatch(filesThunks.getFolderContentThunk({ folderId: folderContent.parentId }));
+      } else if (folderContent) {
+        dispatch(filesThunks.getFolderContentThunk({ folderId: folderContent.parentId as number }));
       }
       return true;
     };
@@ -159,8 +159,8 @@ function DriveScreen(): JSX.Element {
     const userData = await getAnalyticsData();
 
     try {
-      const mnemonic = user.mnemonic;
-      const headers = {
+      const mnemonic = user?.mnemonic as string;
+      const headers: { [key: string]: string } = {
         Authorization: `Bearer ${token}`,
         'internxt-mnemonic': mnemonic,
         'Content-Type': 'multipart/form-data',
@@ -170,7 +170,7 @@ function DriveScreen(): JSX.Element {
       analytics
         .track('file-upload-start', { userId: userData.uuid, email: userData.email, device: DevicePlatform.Mobile })
         .catch(() => undefined);
-      dispatch(filesActions.uploadFileStart());
+      dispatch(filesActions.uploadFileStart(name));
 
       const file = uri.replace(regex, '$2'); // if iOS remove file://
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(uri);
@@ -203,7 +203,8 @@ function DriveScreen(): JSX.Element {
                 device: DevicePlatform.Mobile,
               })
               .catch(() => undefined);
-            dispatch(filesThunks.getFolderContentThunk({ folderId: folderContent.currentFolder }));
+
+            folderContent && dispatch(filesThunks.getFolderContentThunk({ folderId: folderContent.currentFolder }));
           } else {
             Alert.alert('Error', 'Can not upload file');
           }
@@ -218,14 +219,14 @@ function DriveScreen(): JSX.Element {
             Alert.alert('Error', 'Cannot upload file\n' + err.message);
           }
 
-          dispatch(filesActions.uploadFileFailed());
+          dispatch(filesActions.uploadFileFailed({}));
           dispatch(filesActions.uploadFileFinished());
         });
     } catch (error) {
       analytics
         .track('file-upload-error', { userId: userData.uuid, email: userData.email, device: DevicePlatform.Mobile })
         .catch(() => undefined);
-      dispatch(filesActions.uploadFileFailed());
+      dispatch(filesActions.uploadFileFailed({}));
       dispatch(filesActions.uploadFileFinished());
     }
   };
@@ -246,9 +247,9 @@ function DriveScreen(): JSX.Element {
         <View>
           <TouchableOpacity
             disabled={!backButtonEnabled}
-            onPress={() => dispatch(filesThunks.goBackThunk({ folderId: parentFolderId }))}
+            onPress={() => dispatch(filesThunks.goBackThunk({ folderId: parentFolderId as number }))}
           >
-            <View style={[tailwind('flex-row items-center'), tailwind(!parentFolderId && 'opacity-50')]}>
+            <View style={[tailwind('flex-row items-center'), !parentFolderId && tailwind('opacity-50')]}>
               <Unicons.UilAngleLeft color={getColor('blue-60')} style={tailwind('-ml-2 -mr-1')} size={32} />
               <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>
                 {strings.components.buttons.back}
@@ -296,7 +297,7 @@ function DriveScreen(): JSX.Element {
           }}
         >
           <View style={tailwind('flex-row items-center')}>
-            <Text style={tailwind('text-neutral-100')}>{strings.screens.drive.sort[sortType]}</Text>
+            <Text style={tailwind('text-neutral-100')}>{strings.screens.drive.sort[sortType as SortType]}</Text>
             <Unicons.UilAngleDown size={20} color={getColor('neutral-100')} />
           </View>
         </TouchableWithoutFeedback>

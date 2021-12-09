@@ -27,13 +27,13 @@ type Token = string;
 
 export const deviceStorage = {
   saveItem(key: string, value: string): Promise<void> {
-    return setItem(key, value).catch((err) => null);
+    return setItem(key, value).catch(() => undefined);
   },
   getItem(key: string): Promise<string | null> {
-    return getItem(key).catch((err) => null);
+    return getItem(key).catch(() => null);
   },
   deleteItem(key: string): Promise<void> {
-    return removeItem(key).catch((err) => null);
+    return removeItem(key).catch(() => undefined);
   },
   getUser(): Promise<User> {
     return getItem('xUser')
@@ -45,7 +45,7 @@ export const deviceStorage = {
         return null;
       });
   },
-  getToken(): Promise<Token> {
+  getToken(): Promise<Token | null> {
     return getItem('xToken').catch((err) => {
       notify({ type: 'error', text: err.message });
       return null;

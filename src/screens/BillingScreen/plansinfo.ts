@@ -1,5 +1,11 @@
-/* eslint-disable quotes */
-export function getProductionPlans(): any {
+interface Plan {
+  id: string;
+  name: string;
+  metadata: any;
+  plans: { id: string; price: number; name: string; interval: string; interval_count: number }[];
+}
+
+export function getProductionPlans(): Plan[] {
   return [
     {
       id: 'prod_Frb0EaIua4Dpdt',
@@ -109,7 +115,7 @@ export function getProductionPlans(): any {
   ];
 }
 
-export function getDevelopmentPlans(): any {
+export function getDevelopmentPlans(): Plan[] {
   return [
     {
       id: 'prod_Gd64dtY4WJ22iu',

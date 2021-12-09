@@ -17,6 +17,7 @@ import { authActions, authThunks } from '../../store/slices/auth';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
+import errorService from '../../services/error';
 
 function SignUpScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -40,7 +41,7 @@ function SignUpScreen(): JSX.Element {
   const [passwordFocus, setPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
-  const [recaptchaToken, setRecaptchaToken] = useState<string>();
+  const [recaptchaToken, setRecaptchaToken] = useState<string>('');
 
   const isEmptyEmail = validationService.isNullOrEmpty(email);
   const isValidEmail = validationService.validateEmail(email);
@@ -58,7 +59,7 @@ function SignUpScreen(): JSX.Element {
 
   useEffect(() => {
     if (loggedIn) {
-      const rootFolderId = user.root_folder_id;
+      const rootFolderId = user?.root_folder_id;
 
       navigation.replace(AppScreen.Drive, {
         folderId: rootFolderId,
@@ -117,14 +118,16 @@ function SignUpScreen(): JSX.Element {
 
       await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }));
     } catch (err) {
+      const castedError = errorService.castError(err);
+
       await analytics.track('user-signin-attempted', {
         status: 'error',
-        message: err.message,
+        message: castedError.message,
       });
       setIsLoading(false);
       setRegisterButtonClicked(false);
 
-      Alert.alert('Error while registering', err.message);
+      Alert.alert('Error while registering', castedError.message);
     }
   };
 

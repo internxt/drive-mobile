@@ -19,7 +19,7 @@ function DeleteItemModal(): JSX.Element {
   const isFolder = item && !!item.parentId;
   const FileIcon = getFileTypeIcon(item?.type);
   const handleDeleteSelectedItem = () => {
-    dispatch(filesThunks.deleteItemsThunk({ items: [item], folderToReload: currentFolderId }));
+    currentFolderId && dispatch(filesThunks.deleteItemsThunk({ items: [item], folderToReload: currentFolderId }));
   };
 
   return (

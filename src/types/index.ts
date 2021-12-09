@@ -23,6 +23,13 @@ export enum DevicePlatform {
   Mobile = 'mobile',
 }
 
+export enum SortType {
+  NameAsc = 'Name_Asc',
+  DateAdded = 'Date_Added',
+  SizeAsc = 'Size_Asc',
+  FileTypeAsc = 'File_Type_Asc',
+}
+
 export interface DriveFolderData {
   id: number;
   bucket: string | null;
@@ -62,4 +69,24 @@ export interface DriveFileData {
 }
 export interface DriveFileMetadataPayload {
   itemName: string;
+}
+
+export enum GalleryViewMode {
+  Years = 'years',
+  Months = 'months',
+  Days = 'days',
+  All = 'all',
+}
+export enum GalleryItemType {
+  Image = 'image',
+}
+
+export default class AppError extends Error {
+  readonly status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+
+    this.status = status;
+  }
 }

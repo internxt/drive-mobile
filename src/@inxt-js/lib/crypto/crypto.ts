@@ -68,7 +68,11 @@ export async function EncryptFilename(mnemonic: string, bucketId: string, filena
   return EncryptMeta(filename, encryptionKey, encryptionIv);
 }
 
-export async function DecryptFileName(mnemonic: string, bucketId: string, encryptedName: string): Promise<string> {
+export async function DecryptFileName(
+  mnemonic: string,
+  bucketId: string,
+  encryptedName: string,
+): Promise<string | null> {
   const bucketKey = (await GenerateBucketKey(mnemonic, bucketId)).toString('hex');
 
   if (!bucketKey) {

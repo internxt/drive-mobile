@@ -46,8 +46,6 @@ const routeConfig: RouteConfig = {
 
 const StackNav = createNativeStackNavigator();
 
-type ScreenEntry = [name: string, component: { screen: React.ComponentType<JSX.Element> }];
-
 function AppNavigator(): JSX.Element {
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
   const initialRouteName = isLoggedIn ? AppScreen.TabExplorer : AppScreen.SignIn;
@@ -59,7 +57,7 @@ function AppNavigator(): JSX.Element {
         initialRouteName={initialRouteName}
         screenOptions={{ headerShown: false, statusBarHidden: false }}
       >
-        {Object.entries(routeConfig).map(([name, component]: ScreenEntry) => (
+        {Object.entries(routeConfig).map(([name, component]: [string, any]) => (
           <StackNav.Screen key={name} name={name} component={component.screen} />
         ))}
       </StackNav.Navigator>

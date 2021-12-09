@@ -22,7 +22,7 @@ async function loadFontsAsync(): Promise<void> {
 
   const oldRender = TextComponent.render;
 
-  TextComponent.render = function (...args) {
+  TextComponent.render = function (...args: any[]) {
     const origin = oldRender.call(this, ...args);
 
     return React.cloneElement(origin, {

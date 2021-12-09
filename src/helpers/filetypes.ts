@@ -14,7 +14,7 @@ import xml from '../../assets/icons/file-types/xml.svg';
 import zip from '../../assets/icons/file-types/zip.svg';
 import folder from '../../assets/icons/file-types/folder.svg';
 
-export const extensions = {
+export const extensions: Record<string, React.FC<SvgProps>> = {
   txt: txt,
   zip: zip,
   xml: xml,

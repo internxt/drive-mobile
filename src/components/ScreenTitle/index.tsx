@@ -30,7 +30,7 @@ const ScreenTitle = ({
     <View style={tailwind('flex-row justify-center items-center px-5')}>
       {showBackButton && (
         <TouchableOpacity style={tailwind('w-6')} disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
-          <View style={[tailwind('flex justify-center items-center'), tailwind(!onBackButtonPressed && 'opacity-50')]}>
+          <View style={[tailwind('flex justify-center items-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
             <Unicons.UilAngleLeft color={getColor('blue-60')} size={32} />
           </View>
         </TouchableOpacity>

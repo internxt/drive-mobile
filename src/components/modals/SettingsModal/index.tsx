@@ -33,7 +33,7 @@ function SettingsModal(): JSX.Element {
       <View style={tailwind('h-1 bg-neutral-30 m-2 w-16 self-center')}></View>
 
       <Text style={styles.nameText}>
-        {user.name} {user.lastname}
+        {user?.name} {user?.lastname}
       </Text>
 
       <Separator style={tailwind('my-3')} />

@@ -63,9 +63,9 @@ async function updateMetaData(
 ): Promise<void> {
   const hashedRelativePath = createHash('ripemd160').update(relativePath).digest('hex');
   const headers = await getHeaders();
-  const headersMap = {};
+  const headersMap: Record<string, string> = {};
 
-  headers.forEach((value, key) => {
+  headers.forEach((value: string, key: string) => {
     headersMap[key] = value;
   });
 
@@ -83,51 +83,43 @@ async function updateMetaData(
 }
 
 async function moveFile(fileId: string, destination: number): Promise<number> {
-  try {
-    const headers = await getHeaders();
-    const data = JSON.stringify({ fileId, destination });
+  const headers = await getHeaders();
+  const data = JSON.stringify({ fileId, destination });
 
-    const res = await fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/moveFile`, {
-      method: 'POST',
-      headers,
-      body: data,
-    });
+  const res = await fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/moveFile`, {
+    method: 'POST',
+    headers,
+    body: data,
+  });
 
-    if (res.status === 200) {
-      return 1;
-    } else {
-      const data = await res.json();
+  if (res.status === 200) {
+    return 1;
+  } else {
+    const data = await res.json();
 
-      return data.message;
-    }
-  } catch (error) {
-    return error;
+    return data.message;
   }
 }
 
-function deleteItems(items: any[]): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const fetchArray: any[] = [];
+async function deleteItems(items: any[]): Promise<void> {
+  const fetchArray: any[] = [];
 
-    items.forEach(async (item: IFile & IFolder) => {
-      const isFolder = !item.fileId;
-      const headers = await getHeaders();
-      const url = isFolder
-        ? `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${item.id}`
-        : `${process.env.REACT_NATIVE_API_URL}/api/storage/bucket/${item.bucket}/file/${item.fileId}`;
+  for (const item of items) {
+    const isFolder = !item.fileId;
+    const headers = await getHeaders();
+    const url = isFolder
+      ? `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${item.id}`
+      : `${process.env.REACT_NATIVE_API_URL}/api/storage/bucket/${item.bucket}/file/${item.fileId}`;
 
-      const fetchObj = fetch(url, {
-        method: 'DELETE',
-        headers,
-      });
-
-      fetchArray.push(fetchObj);
+    const fetchObj = fetch(url, {
+      method: 'DELETE',
+      headers,
     });
 
-    return Promise.all(fetchArray)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+    fetchArray.push(fetchObj);
+  }
+
+  return Promise.all(fetchArray).then(() => undefined);
 }
 
 export type ArraySortFunction = (a: IFolder | IFile, b: IFolder | IFile) => number;
@@ -174,9 +166,9 @@ function getSortFunction(sortType: string): ArraySortFunction | null {
 async function renameFileInNetwork(fileId: string, bucketId: string, relativePath: string): Promise<void> {
   const hashedRelativePath = createHash('ripemd160').update(relativePath).digest('hex');
   const headers = await getHeaders();
-  const headersMap = {};
+  const headersMap: Record<string, string> = {};
 
-  headers.forEach((value, key) => {
+  headers.forEach((value: string, key: string) => {
     headersMap[key] = value;
   });
 

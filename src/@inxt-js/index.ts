@@ -101,31 +101,31 @@ export class Environment {
    * @param params Upload file params
    */
   uploadFile(bucketId: string, params: UploadFileParams): ActionState {
-    const uploadState = new ActionState(ActionTypes.Upload);
+    const actionState = new ActionState(ActionTypes.Upload);
 
     if (!this.config.encryptionKey) {
       params.finishedCallback(Error('Mnemonic was not provided, please, provide a mnemonic'), null);
-      return;
+      return actionState;
     }
 
     if (!bucketId) {
       params.finishedCallback(Error('Bucket id was not provided'), null);
-      return;
+      return actionState;
     }
 
     if (!params.fileUri) {
       params.finishedCallback(Error('File uri was not provided'), null);
-      return;
+      return actionState;
     }
 
     if (!params.filename) {
       params.finishedCallback(Error('Filename was not provided'), null);
-      return;
+      return actionState;
     }
 
     if (params.fileSize === 0) {
       params.finishedCallback(Error('Can not upload a file with size 0'), null);
-      return;
+      return actionState;
     }
 
     const { filename, fileSize: size, fileUri } = params;
@@ -136,7 +136,7 @@ export class Environment {
 
         const fileToUpload: FileMeta = { fileUri, name, size };
 
-        return upload(this.config, bucketId, fileToUpload, params, uploadState);
+        return upload(this.config, bucketId, fileToUpload, params, actionState);
       })
       .catch((err: Error) => {
         logger.error(`Error encrypting filename due to ${err.message}`);
@@ -145,7 +145,7 @@ export class Environment {
         params.finishedCallback(err, null);
       });
 
-    return uploadState;
+    return actionState;
   }
 
   /**

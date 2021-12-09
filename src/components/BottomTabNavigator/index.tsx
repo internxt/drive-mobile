@@ -24,16 +24,12 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     <View style={tailwind('bg-white flex-row px-2 justify-around items-center border-t border-neutral-20')}>
       {props.state.routes.map((route, index) => {
         const { options } = props.descriptors[route.key];
-
-        const label = strings.tabs[route.name];
-
+        const label = strings.tabs[route.name as keyof typeof tabIcons];
         const isFocused = props.state.index === index;
-
         const onPress = () => {
           if (route.name === 'create') {
             return dispatch(layoutActions.setShowUploadFileModal(true));
           }
-
           const event = props.navigation.emit({
             type: 'tabPress',
             target: route.key,
@@ -49,7 +45,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
           props.navigation.emit({ type: 'tabLongPress', target: route.key });
         };
 
-        const Icon = tabIcons[route.name];
+        const Icon = tabIcons[route.name as keyof typeof tabIcons];
 
         return (
           <TouchableWithoutFeedback

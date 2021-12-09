@@ -10,6 +10,7 @@ import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import { filesThunks } from '../../../store/slices/files';
+import { IFolder } from '../../FileList';
 
 function MoveFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -17,8 +18,8 @@ function MoveFilesModal(): JSX.Element {
   const { showMoveModal } = useAppSelector((state) => state.layout);
   const { rootFolderContent, folderContent, selectedFile } = useAppSelector((state) => state.files);
   const [currentFolderId, setCurrentFolderId] = useState<number>();
-  const [folderlist, setFolderList] = useState([]);
-  const [firstfolder, setFirstFolder] = useState<number>();
+  const [folderlist, setFolderList] = useState<IFolder[]>([]);
+  const [firstFolder, setFirstFolder] = useState<number>();
   const [selectedfile, setSelectedFile] = useState<any>({});
 
   useEffect(() => {
@@ -41,10 +42,9 @@ function MoveFilesModal(): JSX.Element {
     if (selectedfile) {
       await dispatch(filesThunks.moveFileThunk({ fileId: selectedfile.fileId, destinationFolderId }));
       dispatch(layoutActions.setShowMoveModal(false));
+      const rootFolderId = user?.root_folder_id;
 
-      const rootFolderId = user.root_folder_id;
-
-      dispatch(filesThunks.getFolderContentThunk({ folderId: rootFolderId }));
+      rootFolderId && dispatch(filesThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
   };
 
@@ -78,7 +78,9 @@ function MoveFilesModal(): JSX.Element {
           style={styles.button}
           onPress={() => {
             dispatch(layoutActions.setShowMoveModal(false));
-            dispatch(filesThunks.getFolderContentThunk({ folderId: firstfolder }));
+            if (firstFolder) {
+              dispatch(filesThunks.getFolderContentThunk({ folderId: firstFolder }));
+            }
           }}
         >
           <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
@@ -87,7 +89,7 @@ function MoveFilesModal(): JSX.Element {
         <TouchableOpacity
           style={[styles.button, styles.blue]}
           onPress={() => {
-            moveFile(currentFolderId);
+            currentFolderId && moveFile(currentFolderId);
           }}
         >
           <Text style={[styles.text, styles.white]}>{strings.components.buttons.move}</Text>

@@ -22,6 +22,7 @@ export interface IFolder {
   fileId: string;
   progress: number;
   folderId?: number;
+  parentId: undefined;
   uri?: string;
   isUploaded?: boolean;
 }
@@ -39,6 +40,7 @@ export interface IUploadingFile {
   folderId: number;
   fileId?: number;
   isUploaded?: boolean;
+  parentId: number;
 }
 
 export interface IFile {
@@ -54,6 +56,7 @@ export interface IFile {
   progress: number;
   uri?: string;
   isUploaded?: boolean;
+  parentId: string;
 }
 
 interface FileListProps {
@@ -73,8 +76,8 @@ function FileList(props: FileListProps): JSX.Element {
     loading: filesLoading,
   } = useAppSelector((state) => state.files);
   const { user } = useAppSelector((state) => state.auth);
-  const [filesUploading, setFilesUploading] = useState([]);
-  const [filesUploaded, setFilesUploaded] = useState([]);
+  const [filesUploading, setFilesUploading] = useState<IUploadingFile[]>([]);
+  const [filesUploaded, setFilesUploaded] = useState<IUploadingFile[]>([]);
   const [folderId, setFolderId] = useState<number>();
   let folderList: IFolder[] = (folderContent && folderContent.children) || [];
   let fileList: IFile[] = (folderContent && folderContent.files) || [];
@@ -105,12 +108,12 @@ function FileList(props: FileListProps): JSX.Element {
     fileList.sort(sortFunction);
   }
 
-  const rootFolderId = user.root_folder_id;
+  const rootFolderId = user?.root_folder_id;
   const currentFolderId = folderContent && folderContent.currentFolder;
   const isRootFolder = currentFolderId === rootFolderId;
 
   useEffect(() => {
-    if (!folderContent) {
+    if (!folderContent && rootFolderId) {
       dispatch(filesThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
   }, []);
@@ -137,7 +140,9 @@ function FileList(props: FileListProps): JSX.Element {
               return setRefreshing(false);
             }
 
-            dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
+            if (currentFolderId) {
+              dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
+            }
           }}
         />
       }

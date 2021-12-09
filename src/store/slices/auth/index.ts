@@ -11,7 +11,7 @@ export interface AuthState {
   loggedIn: boolean;
   token: string;
   user?: User;
-  error: string;
+  error?: string;
   userStorage: {
     usage: number;
     limit: number;
@@ -90,7 +90,7 @@ export const authSlice = createSlice({
       .addCase(signInThunk.rejected, (state, action) => {
         analytics.track('user-signin-attempted', {
           status: 'error',
-          message: action.error.message,
+          message: action.error.message || '',
         });
 
         state.loggedIn = false;

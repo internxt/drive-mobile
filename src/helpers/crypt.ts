@@ -1,5 +1,6 @@
 import CryptoJS from 'crypto-js';
 import crypto from 'react-native-crypto';
+import errorService from '../services/error';
 import AesUtils from './aesUtils';
 
 const password = (process && process.env && process.env.REACT_NATIVE_CRYPTO_SECRET) || ''; // Force env var loading
@@ -37,8 +38,8 @@ export function encryptTextWithKey(textToEncrypt: string, keyToEncrypt: string):
     const text64 = CryptoJS.enc.Base64.parse(bytes);
 
     return text64.toString(CryptoJS.enc.Hex);
-  } catch (error) {
-    throw new Error(error);
+  } catch (err) {
+    throw errorService.castError(err);
   }
 }
 
@@ -49,8 +50,8 @@ export function decryptTextWithKey(encryptedText: string, keyToDecrypt: string):
     const bytes = CryptoJS.AES.decrypt(reb.toString(CryptoJS.enc.Base64), keyToDecrypt);
 
     return bytes.toString(CryptoJS.enc.Utf8);
-  } catch (error) {
-    throw new Error(error);
+  } catch (err) {
+    throw errorService.castError(err);
   }
 }
 
@@ -105,7 +106,7 @@ export function encryptFilename(filename: string, folderId: string): string {
 
 export function deterministicEncryption(content: string, salt?: string | number): string | null {
   try {
-    const key = Buffer.from(process.env.REACT_NATIVE_CRYPTO_SECRET).toString('hex');
+    const key = Buffer.from(process.env.REACT_NATIVE_CRYPTO_SECRET as string).toString('hex');
     // const key = CryptoJS.enc.Hex.parse(App.config.get('secrets').CRYPTO_SECRET);
 
     const iv = salt ? Buffer.from(salt.toString()).toString('hex') : key;
@@ -128,7 +129,7 @@ export function deterministicEncryption(content: string, salt?: string | number)
 
 export function deterministicDecryption(cipherText: string, salt?: string | number): string | null {
   try {
-    const key = Buffer.from(process.env.REACT_NATIVE_CRYPTO_SECRET).toString('hex');
+    const key = Buffer.from(process.env.REACT_NATIVE_CRYPTO_SECRET as string).toString('hex');
     // const key = CryptoJS.enc.Hex.parse(App.config.get('secrets').CRYPTO_SECRET);
 
     const iv = salt ? Buffer.from(salt.toString()).toString('hex') : key;

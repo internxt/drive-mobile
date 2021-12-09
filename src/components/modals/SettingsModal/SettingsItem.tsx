@@ -1,12 +1,11 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableHighlight } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 import { getColor } from '../../../helpers/designSystem';
 
 interface SettingsItemProps {
   onPress: () => void;
   text: string | JSX.Element;
-  icon?: typeof Unicons;
+  icon?: React.FC<any>;
   color?: string;
 }
 

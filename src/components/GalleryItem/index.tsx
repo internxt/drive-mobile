@@ -3,10 +3,7 @@ import { View, Image, TouchableOpacity } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
-
-enum GalleryItemType {
-  Image = 'image',
-}
+import { GalleryItemType } from '../../types';
 
 interface GalleryItemProps {
   type?: GalleryItemType;
@@ -22,7 +19,7 @@ const defaultProps: Partial<GalleryItemProps> = {
 };
 
 const GalleryItem = ({
-  type = defaultProps.type,
+  type = defaultProps.type as GalleryItemType,
   size,
   uri,
   isSelected,

@@ -17,6 +17,7 @@ import { RootState } from '../..';
 import { layoutActions } from '../layout';
 import { authThunks } from '../auth';
 import { getEnvironmentConfig } from '../../../lib/network';
+import errorService from '../../../services/error';
 
 interface FolderContent {
   id: number;
@@ -39,7 +40,7 @@ export interface FilesState {
   items: any[];
   filesCurrentlyUploading: IUploadingFile[];
   filesAlreadyUploaded: any[];
-  folderContent: FolderContent;
+  folderContent: FolderContent | null;
   rootFolderContent: any;
   focusedItem: any | null;
   selectedItems: any[];
@@ -95,7 +96,9 @@ const getFolderContentThunk = createAsyncThunk<
 
     return folderContent;
   } catch (err) {
-    if (err.status === 401) {
+    const castedError = errorService.castError(err);
+
+    if (castedError.status === 401) {
       dispatch(authThunks.signOutThunk());
     }
 
@@ -106,10 +109,10 @@ const getFolderContentThunk = createAsyncThunk<
 const fetchIfSameFolderThunk = createAsyncThunk<void, { folderId: number }, { state: RootState }>(
   'files/fetchIfSameFolder',
   async ({ folderId }, { getState, dispatch }) => {
-    const currentFoder = getState().files.folderContent.currentFolder;
+    const currentFolder = getState().files.folderContent?.currentFolder;
 
-    if (folderId === currentFoder) {
-      await dispatch(getFolderContentThunk({ folderId: currentFoder }));
+    if (currentFolder && folderId === currentFolder) {
+      await dispatch(getFolderContentThunk({ folderId: currentFolder }));
     }
   },
 );
@@ -208,7 +211,7 @@ export const filesSlice = createSlice({
     setSortType(state, action: PayloadAction<string>) {
       state.sortType = action.payload;
     },
-    setSortFunction(state, action: PayloadAction<ArraySortFunction>) {
+    setSortFunction(state, action: PayloadAction<ArraySortFunction | null>) {
       state.sortFunction = action.payload;
     },
     setUri(state, action: PayloadAction<any>) {
@@ -260,7 +263,7 @@ export const filesSlice = createSlice({
       state.isUploading = false;
       state.isUploadingFileName = null;
     },
-    uploadFileFailed(state, action: PayloadAction<{ errorMessage: string; id?: string }>) {
+    uploadFileFailed(state, action: PayloadAction<{ errorMessage?: string; id?: string }>) {
       state.loading = false;
       state.error = action.payload.errorMessage;
       state.isUploading = false;

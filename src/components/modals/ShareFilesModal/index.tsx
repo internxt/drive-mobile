@@ -15,7 +15,7 @@ import prettysize from 'prettysize';
 import { setString } from 'expo-clipboard';
 
 import { getHeaders } from '../../../helpers/headers';
-import { IFile, IFolder } from '../../FileList';
+import { IFile } from '../../FileList';
 import strings from '../../../../assets/lang/strings';
 import { generateShareLink } from '../../../@inxt-js/services/share';
 import { getFileTypeIcon } from '../../../helpers';
@@ -26,13 +26,14 @@ import globalStyle from '../../../styles/global.style';
 import { deviceStorage } from '../../../services/deviceStorage';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
+import { DriveFileData, DriveFolderData } from '../../../types';
 
 function ShareFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { showShareModal } = useAppSelector((state) => state.layout);
   const { focusedItem } = useAppSelector((state) => state.files);
   const [isOpen, setIsOpen] = useState(showShareModal);
-  const [selectedFile, setSelectedFile] = useState<IFile & IFolder>();
+  const [selectedFile, setSelectedFile] = useState<DriveFileData & DriveFolderData>();
   const [filename, setFileName] = useState('');
   const [link, setLink] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -99,7 +100,7 @@ function ShareFilesModal(): JSX.Element {
     return generatedLink;
   };
 
-  const FileIcon = getFileTypeIcon(selectedFile && selectedFile.type);
+  const FileIcon = getFileTypeIcon((selectedFile && selectedFile.type) || '');
 
   return (
     <Modal
@@ -147,9 +148,9 @@ function ShareFilesModal(): JSX.Element {
                 {selectedFile?.type ? '.' + selectedFile.type : ''}
               </Text>
               <Text style={tailwind('text-xs text-neutral-100')}>
-                {prettysize(selectedFile?.size)}
+                {prettysize(selectedFile?.size || 0)}
                 <Text style={globalStyle.fontWeight.bold}> · </Text>Updated{' '}
-                {new Date(selectedFile?.updatedAt).toLocaleDateString('en-GB', {
+                {new Date(selectedFile?.updatedAt || 0).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'short',
                   year: 'numeric',

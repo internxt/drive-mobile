@@ -1,89 +1,35 @@
-import CameraRoll from '@react-native-community/cameraroll';
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  ListRenderItemInfo,
-  TouchableOpacity,
-  RefreshControl,
-  Dimensions,
-  TouchableWithoutFeedback,
-} from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import React, { useEffect } from 'react';
+import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 
 import { tailwind } from '../../helpers/designSystem';
-import { loadLocalPhotos } from '../../services/photos';
 import globalStyle from '../../styles/global.style';
-import { AppScreen } from '../../types';
+import { GalleryViewMode } from '../../types';
 import ScreenTitle from '../../components/ScreenTitle';
 import strings from '../../../assets/lang/strings';
-import GalleryItem from '../../components/GalleryItem';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
-
-enum PhotoGroupBy {
-  Years = 'years',
-  Months = 'months',
-  Days = 'days',
-  All = 'all',
-}
+import galleryViews from '../../components/gallery-views';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { photosActions, photosThunks } from '../../store/slices/photos';
 
 function GalleryScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
-  const [columnsCount] = useState(3);
-  const [gutter] = useState(3);
-  const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
-  const [refreshing, setRefreshing] = useState(false);
-  const [isSelectionModeActivated, setIsSelectionModeActivated] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<CameraRoll.PhotoIdentifier[]>([]);
-  const [groupBy, setGroupBy] = useState(PhotoGroupBy.All);
-  const [photos, setPhotos] = useState<CameraRoll.PhotoIdentifier[]>([]);
-  const [photoCursor, setPhotoCursor] = useState<string>(undefined);
-  const loadPhotos = async (cursor?: string) => {
-    const [loadedPhotos, nextCursor] = await loadLocalPhotos(cursor);
-
-    setPhotos(loadedPhotos);
-    setPhotoCursor(nextCursor);
-    setRefreshing(false);
-  };
-  const isItemSelected = (item: CameraRoll.PhotoIdentifier) => {
-    return selectedItems.some((i) => i.node.image.uri === item.node.image.uri);
-  };
-  const selectItem = (item: CameraRoll.PhotoIdentifier) => {
-    setSelectedItems([...selectedItems, item]);
-  };
-  const deselectItem = (item: CameraRoll.PhotoIdentifier) => {
-    const itemIndex = selectedItems.findIndex((i) => i.node.image.uri === item.node.image.filename);
-
-    selectedItems.splice(itemIndex, 1);
-
-    setSelectedItems([...selectedItems]);
-  };
+  const dispatch = useAppDispatch();
+  const { isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
   const onSelectButtonPressed = () => {
-    setIsSelectionModeActivated(true);
+    dispatch(photosActions.setIsSelectionModeActivated(true));
   };
   const onCancelSelectButtonPressed = () => {
-    setIsSelectionModeActivated(false);
-    setSelectedItems([]);
+    dispatch(photosActions.setIsSelectionModeActivated(false));
+    dispatch(photosActions.deselectAll());
   };
   const onSelectAllButtonPressed = () => {
-    setSelectedItems([...photos]);
+    dispatch(photosActions.selectAll());
   };
-  const onItemLongPressed = (item: CameraRoll.PhotoIdentifier) => {
-    setIsSelectionModeActivated(true);
-    isItemSelected(item) ? deselectItem(item) : selectItem(item);
-  };
-  const onItemPressed = (item: CameraRoll.PhotoIdentifier) => {
-    isSelectionModeActivated
-      ? onItemLongPressed(item)
-      : navigation.push(AppScreen.PhotoPreview, { uri: item.node.image.uri });
-  };
+  const GalleryView = galleryViews[viewMode];
   const groupByMenu = (function () {
-    const groupByItems = Object.entries(PhotoGroupBy).map(([, value]) => {
-      const isActive = value === groupBy;
+    const groupByItems = Object.entries(GalleryViewMode).map(([, value]) => {
+      const isActive = value === viewMode;
 
       return (
-        <TouchableWithoutFeedback key={value} onPress={() => setGroupBy(value)}>
+        <TouchableWithoutFeedback key={value} onPress={() => dispatch(photosActions.setViewMode(value))}>
           <View style={[tailwind('flex-1 rounded-2xl'), isActive && tailwind('bg-neutral-70')]}>
             <Text style={[tailwind('text-neutral-500 text-center text-base'), isActive && tailwind('text-white')]}>
               {strings.screens.gallery.groupBy[value]}
@@ -101,18 +47,20 @@ function GalleryScreen(): JSX.Element {
   })();
 
   useEffect(() => {
-    loadPhotos();
+    dispatch(photosActions.setViewMode(GalleryViewMode.All));
+    dispatch(photosActions.deselectAll());
+    dispatch(photosThunks.loadLocalPhotosThunk({}));
   }, []);
 
   return (
     <View style={tailwind('app-screen bg-white flex-1')}>
-      {/* TOP BAR */}
+      {/* GALLERY TOP BAR */}
       <View style={tailwind('flex-row justify-between pb-3 h-16')}>
         {isSelectionModeActivated ? (
           <>
             <View style={tailwind('flex-row items-center justify-between')}>
               <Text style={tailwind('pl-5')}>
-                {strings.formatString(strings.screens.gallery.nPhotosSelected, selectedItems.length)}
+                {strings.formatString(strings.screens.gallery.nPhotosSelected, selectedPhotos.length)}
               </Text>
             </View>
 
@@ -154,46 +102,8 @@ function GalleryScreen(): JSX.Element {
         )}
       </View>
 
-      {/* PHOTOS */}
-      <FlatList
-        style={tailwind('bg-white')}
-        showsVerticalScrollIndicator={true}
-        indicatorStyle={'black'}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              setRefreshing(true);
-
-              loadPhotos();
-            }}
-          />
-        }
-        decelerationRate={0.5}
-        ItemSeparatorComponent={() => <View style={{ height: gutter }} />}
-        data={photos}
-        numColumns={3}
-        onEndReached={() => loadPhotos(photoCursor)}
-        onEndReachedThreshold={3}
-        keyExtractor={(item) => item.node.image.uri}
-        renderItem={(item: ListRenderItemInfo<CameraRoll.PhotoIdentifier>) => {
-          const uri = item.item.node.image.uri;
-          const isTheLast = item.index === photos.length - 1;
-
-          return (
-            <>
-              <GalleryItem
-                size={itemSize}
-                uri={uri}
-                isSelected={isItemSelected(item.item)}
-                onPress={() => onItemPressed(item.item)}
-                onLongPress={() => onItemLongPressed(item.item)}
-              />
-              {!isTheLast && <View style={{ width: gutter }} />}
-            </>
-          );
-        }}
-      />
+      {/* GALLERY VIEW */}
+      <GalleryView />
 
       {/*  GROUP BY MENU */}
       {groupByMenu}

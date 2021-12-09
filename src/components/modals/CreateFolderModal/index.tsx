@@ -35,23 +35,23 @@ function CreateFolderModal(): JSX.Element {
   }, [showCreateFolderModal]);
 
   const createFolderHandle = () => {
-    this.input.blur();
     setIsLoading(true);
     Keyboard.dismiss;
-    createFolder({ folderName, parentId: currentFolderId })
-      .then(() => {
-        dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
-        notify({ type: 'success', text: 'Folder created' });
-        setFolderName('');
-      })
-      .catch((err) => {
-        notify({ type: 'error', text: err.message });
-      })
-      .finally(() => {
-        dispatch(layoutActions.setShowCreateFolderModal(false));
-        setIsOpen(false);
-        setIsLoading(false);
-      });
+    currentFolderId &&
+      createFolder({ folderName, parentId: currentFolderId })
+        .then(() => {
+          dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
+          notify({ type: 'success', text: 'Folder created' });
+          setFolderName('');
+        })
+        .catch((err) => {
+          notify({ type: 'error', text: err.message });
+        })
+        .finally(() => {
+          dispatch(layoutActions.setShowCreateFolderModal(false));
+          setIsOpen(false);
+          setIsLoading(false);
+        });
   };
 
   return (
@@ -110,7 +110,6 @@ function CreateFolderModal(): JSX.Element {
                       selectTextOnFocus={true}
                       editable={!isLoading}
                       key="name"
-                      ref={(input) => (this.input = input)}
                       autoFocus={true}
                       autoCorrect={false}
                     />

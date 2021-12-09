@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Platform, Animated, Easing } from 'react-native';
-import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import FileViewer from 'react-native-file-viewer';
-import analytics from '../../services/analytics';
-import { IFile, IFolder, IUploadingFile } from '../FileList';
 import * as FileSystem from 'expo-file-system';
 import * as Unicons from '@iconscout/react-native-unicons';
+
+import analytics from '../../services/analytics';
+import { IFile, IFolder, IUploadingFile } from '../FileList';
+import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import { downloadFile } from '../../services/download';
 import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../lib/fs';
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -73,12 +74,12 @@ function FileItem(props: FileItemProps): JSX.Element {
   async function handleFileClick(): Promise<void> {
     const isRecentlyUploaded = props.item.isUploaded && props.item.uri;
 
-    if (isLoading) {
+    if (isLoading || !props.item.fileId) {
       return;
     }
 
     if (isRecentlyUploaded) {
-      showFileViewer(props.item.uri);
+      showFileViewer(props.item.uri as string);
       return;
     }
 
@@ -146,52 +147,39 @@ function FileItem(props: FileItemProps): JSX.Element {
     return analytics.track(event, { ...payload, email, userId: uuid }).catch(() => null);
   }
 
-  function trackDownloadStart(): Promise<void> {
+  function trackDownloadStart() {
     return track('file-download-start', {
-      // eslint-disable-next-line camelcase
       file_id: props.item.id,
-      // eslint-disable-next-line camelcase
       file_size: props.item.size,
-      // eslint-disable-next-line camelcase
       file_type: props.item.type,
-      // eslint-disable-next-line camelcase
       folder_id: props.item.folderId,
       platform: DevicePlatform.Mobile,
     });
   }
 
-  function trackDownloadSuccess(): Promise<void> {
+  function trackDownloadSuccess() {
     return track('file-download-finished', {
-      // eslint-disable-next-line camelcase
       file_id: props.item.id,
-      // eslint-disable-next-line camelcase
       file_size: props.item.size,
-      // eslint-disable-next-line camelcase
       file_type: props.item.type,
-      // eslint-disable-next-line camelcase
       folder_id: props.item.folderId,
       platform: DevicePlatform.Mobile,
     });
   }
 
-  function trackDownloadError(err: Error): Promise<void> {
+  function trackDownloadError(err: Error) {
     return track('file-download-error', {
-      // eslint-disable-next-line camelcase
       file_id: props.item.id,
-      // eslint-disable-next-line camelcase
       file_size: props.item.size,
-      // eslint-disable-next-line camelcase
       file_type: props.item.type,
-      // eslint-disable-next-line camelcase
       folder_id: props.item.folderId,
       platform: DevicePlatform.Mobile,
       error: err.message,
     });
   }
 
-  function trackFolderOpened(): Promise<void> {
+  function trackFolderOpened() {
     return track('folder-opened', {
-      // eslint-disable-next-line camelcase
       folder_id: props.item.id,
     });
   }

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import { getHeaders } from '../helpers/headers';
-import { DriveFolderMetadataPayload } from '../types';
+import { DriveFileData, DriveFolderData, DriveFolderMetadataPayload } from '../types';
 import fileService from './file';
 
 class FolderService {
@@ -12,9 +12,9 @@ class FolderService {
     relativePath: string,
   ): Promise<void> {
     const headers = await getHeaders();
-    const headersMap = {};
+    const headersMap: any = {};
 
-    headers.forEach((value, key) => {
+    headers.forEach((value: string, key: string) => {
       headersMap[key] = value;
     });
 
@@ -30,13 +30,13 @@ class FolderService {
     while (pendingFolders.length > 0) {
       const currentFolder = pendingFolders[0];
       const folderContentResponse = await fileService.getFolderContent(currentFolder.folderId);
-      const folderContent = {
+      const folderContent: { folders: DriveFolderData[]; files: DriveFileData[] } = {
         folders: [],
         files: [],
       };
 
       if (folderContentResponse) {
-        folderContent.folders = folderContentResponse.children.map((folder) => ({ ...folder, isFolder: true }));
+        folderContent.folders = folderContentResponse.children.map((folder: any) => ({ ...folder, isFolder: true }));
         folderContent.files = folderContentResponse.files;
       }
 

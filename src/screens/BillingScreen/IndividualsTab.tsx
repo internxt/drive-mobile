@@ -4,7 +4,13 @@ import Accordion from 'react-native-collapsible/Accordion';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { tailwind } from '../../helpers/designSystem';
 
-const SECTIONS = [
+interface Section {
+  title: string;
+  size: string;
+  content: { subscriptions: { name: string; price: string }[] };
+}
+
+const SECTIONS: Section[] = [
   {
     title: 'Starter 20GB',
     size: '20GB',
@@ -67,7 +73,7 @@ const SECTIONS = [
   },
 ];
 
-const _renderHeader = (section) => {
+const _renderHeader = (section: Section) => {
   return (
     <View style={tailwind('bg-white flex-row items-center p-3 border-b border-neutral-500')}>
       <View style={tailwind('flex-1')}>
@@ -81,7 +87,7 @@ const _renderHeader = (section) => {
   );
 };
 
-const _renderContent = (section) => {
+const _renderContent = (section: Section) => {
   return (
     <View style={tailwind('bg-white p-4')}>
       <View>

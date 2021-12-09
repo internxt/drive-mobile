@@ -18,7 +18,7 @@ export interface FileMeta {
 
 type FileType = 'document' | 'image';
 
-export async function uploadFile(file: FileMeta, progressCallback: (progress: number) => void): Promise<string> {
+export async function uploadFile(file: FileMeta, progressCallback: (progress: number) => void): Promise<string | null> {
   const { bridgeUser, bridgePass, encryptionKey, bucketId } = await getEnvironmentConfig();
   const params = { fileUri: file.uri, filepath: file.path, progressCallback };
 
@@ -42,7 +42,7 @@ export interface FileEntry {
 
 export async function createFileEntry(entry: FileEntry): Promise<any> {
   const { mnemonic } = await deviceStorage.getUser();
-  const token = await deviceStorage.getToken();
+  const token = (await deviceStorage.getToken()) as string;
 
   const headers = await getHeaders(token, mnemonic);
   const body = JSON.stringify({ file: entry });

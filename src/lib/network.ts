@@ -59,7 +59,7 @@ export class Network {
    * @param params Required params for uploading a file
    * @returns Id of the created file
    */
-  async uploadFile(bucketId: string, params: IUploadParams): Promise<string> {
+  async uploadFile(bucketId: string, params: IUploadParams): Promise<string | null> {
     if (!bucketId) {
       throw new Error(Network.Errors.BucketIdNotProvided);
     }
@@ -69,7 +69,7 @@ export class Network {
     const fileSize = parseInt((await RNFetchBlob.fs.stat(fileUri)).size);
     const filename = createHash('ripemd160').update(params.filepath).digest('hex');
 
-    return new Promise((resolve: (fileId: string) => void, reject) => {
+    return new Promise<string | null>((resolve, reject) => {
       this.environment.uploadFile(bucketId, {
         filename,
         fileSize,

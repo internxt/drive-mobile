@@ -17,6 +17,7 @@ import { Bridge, InxtApiI } from '../services/api';
 import { Logger } from '../lib/download';
 import { wrap } from '../lib/utils/error';
 import { FileManager } from '../../lib/fs';
+import errorService from '../../services/error';
 
 export class FileObject extends EventEmitter {
   shards: ShardObject[] = [];
@@ -172,7 +173,7 @@ export class FileObject extends EventEmitter {
           exchangeReport.params.dataHash = shard.hash;
 
           ShardObject.download(shard, (err, downloadedShard) => {
-            if (err) {
+            if (err || downloadedShard === null) {
               return nextTry(err);
             }
 
@@ -202,7 +203,7 @@ export class FileObject extends EventEmitter {
                 ' download from farmer ' +
                 shard.farmer.nodeID +
                 ' went wrong due to ' +
-                err.message +
+                err?.message +
                 '. Replacing pointer',
             );
 
@@ -211,7 +212,9 @@ export class FileObject extends EventEmitter {
             const newShard = await GetFileMirror(this.config, this.bucketId, this.fileId, 1, shard.index, excluded);
 
             if (!newShard[0].farmer) {
-              return reject(wrap('File missing shard error', err));
+              return reject(
+                wrap('File missing shard error', err || new Error('FileObject.downloadShared - undefined Error')),
+              );
             }
 
             const buffer = await this.downloadShard(newShard[0], excluded);
@@ -255,9 +258,11 @@ export class FileObject extends EventEmitter {
 
       fileWriter.close();
     } catch (err) {
+      const castedError = errorService.castError(err);
+
       fileWriter.close();
       this.file.destroy();
-      throw wrap('Download shard error', err);
+      throw wrap('Download shard error', castedError);
     }
   }
 
