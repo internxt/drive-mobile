@@ -28,10 +28,10 @@ const GalleryItem = ({
   onLongPress,
 }: GalleryItemProps): JSX.Element => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const examplePhoto = '';
+  const examplePhoto = require('../../../assets/images/photos/example.png');
   const getItemContent = () =>
     ({
-      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri: examplePhoto }} />,
+      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={examplePhoto} />,
     }[type]());
 
   return (
