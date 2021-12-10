@@ -23,7 +23,6 @@ function SettingsModal(): JSX.Element {
     <Modal
       isOpen={showSettingsModal}
       position={'bottom'}
-      entry={'bottom'}
       style={styles.modalSettings}
       onClosed={() => dispatch(layoutActions.setShowSettingsModal(false))}
       backButtonClose={true}

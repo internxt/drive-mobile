@@ -1,23 +1,91 @@
 import React from 'react';
-import { Platform, Text } from 'react-native';
-import Modal from 'react-native-modalbox';
+import { Image, Text, View } from 'react-native';
+import prettysize from 'prettysize';
+import { Photo } from '@internxt/sdk';
+import * as Unicons from '@iconscout/react-native-unicons';
 
-import { tailwind } from '../../../helpers/designSystem';
+import globalStyle from '../../../styles/global.style';
+import { getColor, tailwind } from '../../../helpers/designSystem';
+import BottomModal, { BottomModalProps } from '../BottomModal';
+import BottomModalOption from '../../BottomModalOption';
+import strings from '../../../../assets/lang/strings';
 
-function PhotosPreviewOptionsModal({ isOpen, onClosed }: { isOpen: boolean; onClosed: () => void }): JSX.Element {
+function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo }): JSX.Element {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const examplePhoto = require('../../../../assets/images/photos/example.png');
+  const header = (
+    <>
+      <View style={tailwind('mr-3')}>
+        <Image style={tailwind('bg-black w-10 h-10')} source={examplePhoto} />
+      </View>
+
+      <View style={tailwind('flex-shrink w-full')}>
+        <Text
+          numberOfLines={1}
+          ellipsizeMode="middle"
+          style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
+        >
+          {data.name + '.' + data.type}
+        </Text>
+        <Text style={tailwind('text-xs text-neutral-100')}>
+          <>
+            {prettysize(data.size)}
+            <Text style={globalStyle.fontWeight.bold}> · </Text>
+          </>
+          {'Updated '}
+          {new Date().toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })}
+        </Text>
+      </View>
+    </>
+  );
+  const onInfoButtonPressed = () => {
+    console.log('onInfoButtonPressed');
+  };
+  const onShareButtonPressed = () => {
+    console.log('onShareButtonPressed');
+  };
+  const onDownloadButtonPressed = () => {
+    console.log('onDownloadButtonPressed');
+  };
+  const onMoveToTrashButtonPressed = () => {
+    console.log('onMoveToTrashButtonPressed');
+  };
+
   return (
-    <Modal
-      position={'bottom'}
-      style={tailwind('bg-transparent')}
-      coverScreen={Platform.OS === 'android'}
-      isOpen={isOpen}
-      onClosed={onClosed}
-      backButtonClose={true}
-      backdropPressToClose={true}
-      animationDuration={250}
-    >
-      <Text>{'Photos preview options modal'}</Text>
-    </Modal>
+    <BottomModal isOpen={isOpen} onClosed={onClosed} header={header}>
+      <View style={tailwind('bg-neutral-10 p-4 flex-grow')}>
+        <View style={tailwind('rounded-xl bg-white')}>
+          <BottomModalOption
+            name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.info}</Text>}
+            icon={<Unicons.UilInfoCircle size={20} color={getColor('neutral-500')} />}
+            onPress={onInfoButtonPressed}
+          />
+          <BottomModalOption
+            name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.shareWithLink}</Text>}
+            icon={<Unicons.UilLink size={20} color={getColor('neutral-500')} />}
+            onPress={onShareButtonPressed}
+          />
+          <BottomModalOption
+            name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.download}</Text>}
+            icon={<Unicons.UilDownloadAlt size={20} color={getColor('neutral-500')} />}
+            onPress={onDownloadButtonPressed}
+          />
+        </View>
+
+        <View style={tailwind('bg-white rounded-xl mt-4')}>
+          <BottomModalOption
+            lastItem={true}
+            name={<Text style={tailwind('text-lg text-red-60')}>{strings.components.buttons.moveToThrash}</Text>}
+            icon={<Unicons.UilTrashAlt size={20} color={getColor('red-60')} />}
+            onPress={onMoveToTrashButtonPressed}
+          />
+        </View>
+      </View>
+    </BottomModal>
   );
 }
 

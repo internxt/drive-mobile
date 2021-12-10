@@ -178,6 +178,10 @@ const strings = new LocalizedStrings({
         changePlan: 'Change plan',
         select: 'Select',
         selectAll: 'Select all',
+        info: 'Info',
+        shareWithLink: 'Share with link',
+        download: 'Download',
+        moveToThrash: 'Move to trash',
       },
       inputs: {
         email: 'Email address',
@@ -434,6 +438,10 @@ const strings = new LocalizedStrings({
         changePlan: 'Cambiar plan',
         select: 'Seleccionar',
         selectAll: 'Seleccionar todo',
+        info: 'Información',
+        shareWithLink: 'Compartir enlace',
+        download: 'Descargar',
+        moveToThrash: 'Mover a la papelera',
       },
       inputs: {
         email: 'Correo electrónico',

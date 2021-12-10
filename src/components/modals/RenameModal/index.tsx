@@ -117,12 +117,6 @@ function RenameModal(): JSX.Element {
 
             <View style={tailwind('bg-white rounded-2xl mx-8 flex-grow p-4')}>
               <View style={tailwind('flex-grow justify-center px-8')}>
-                {/*
-                <View style={tailwind('pb-6')}>
-                  <Text numberOfLines={1} style={tailwind('text-lg text-neutral-500 font-medium text-center')}>{strings.generic.rename} "<Text numberOfLines={1} ellipsizeMode="tail">{originalName}</Text>"</Text>
-                </View>
-                */}
-
                 <View style={tailwind('pt-4 pb-8')}>
                   <View style={tailwind('items-center pb-3')}>
                     {isFolder ? <IconFolder width={80} height={80} /> : <IconFile width={80} height={80} />}

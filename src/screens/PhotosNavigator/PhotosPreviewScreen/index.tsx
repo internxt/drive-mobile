@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { Photo } from '@internxt/sdk';
+
 import PhotosPreviewOptionsModal from '../../../components/modals/PhotosPreviewOptionsModal';
 
 interface PreviewProps {
@@ -22,30 +23,30 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const examplePhoto = require('../../../../assets/images/photos/example.png');
+  const onBackButtonPressed = () => navigation.goBack();
 
   return (
     <>
-      <PhotosPreviewOptionsModal isOpen={isOptionsModalOpen} onClosed={() => setIsOptionsModalOpen(false)} />
+      <PhotosPreviewOptionsModal
+        isOpen={isOptionsModalOpen}
+        onClosed={() => setIsOptionsModalOpen(false)}
+        data={props.route.params.data}
+      />
 
       <View style={tailwind('h-full')}>
+        {/* PHOTO */}
         <TapGestureHandler numberOfTaps={1} enabled={true}>
           <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={examplePhoto} />
         </TapGestureHandler>
 
         <SafeAreaView style={tailwind('flex-col justify-between h-full')}>
           <LinearGradient
-            // Button Linear Gradient
             colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.24)', 'transparent']}
             style={tailwind('absolute w-full')}
           >
-            <View style={tailwind('flex-row justify-between m-3')}>
+            <View style={tailwind('flex-row justify-between p-5')}>
               {/* BACK BUTTON */}
-              <TouchableOpacity
-                style={tailwind('z-10')}
-                onPress={() => {
-                  navigation.goBack();
-                }}
-              >
+              <TouchableOpacity style={tailwind('z-10')} onPress={onBackButtonPressed}>
                 <Unicons.UilAngleLeft color={getColor('white')} size={32} />
               </TouchableOpacity>
 

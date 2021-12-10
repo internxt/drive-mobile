@@ -27,8 +27,6 @@ function SortModal(): JSX.Element {
       onClosed={() => {
         dispatch(layoutActions.setShowSortModal(false));
       }}
-      backdropPressToClose={true}
-      swipeToClose={true}
       animationDuration={200}
     >
       <Text
