@@ -1,24 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableHighlight,
-  TouchableWithoutFeedback,
-  TextInput,
-  Platform,
-  KeyboardAvoidingView,
-} from 'react-native';
+import { View, TouchableWithoutFeedback, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import Modal from 'react-native-modalbox';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
-import globalStyle from '../../../styles/global.style';
 import { notify } from '../../../services/toast';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { filesActions, filesThunks } from '../../../store/slices/files';
 import { layoutActions } from '../../../store/slices/layout';
 import errorService from '../../../services/error';
+import BaseButton from '../../BaseButton';
 
 function RenameModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -42,6 +34,10 @@ function RenameModal(): JSX.Element {
     dispatch(layoutActions.setShowRenameModal(false));
     dispatch(layoutActions.setShowItemModal(false));
     setIsLoading(false);
+  };
+  const onCancelButtonPressed = () => {
+    dispatch(filesActions.deselectAll());
+    dispatch(layoutActions.setShowRenameModal(false));
   };
   const onRenameButtonPressed = async () => {
     try {
@@ -144,32 +140,21 @@ function RenameModal(): JSX.Element {
               </View>
 
               <View style={tailwind('flex-row justify-between')}>
-                <TouchableHighlight
-                  underlayColor={getColor('neutral-30')}
-                  style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
-                  onPress={() => {
-                    dispatch(filesActions.deselectAll());
-                    dispatch(layoutActions.setShowRenameModal(false));
-                  }}
+                <BaseButton
+                  title={strings.generic.cancel}
+                  type={'cancel'}
+                  onPress={onCancelButtonPressed}
                   disabled={isLoading}
-                >
-                  <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>
-                    {strings.generic.cancel}
-                  </Text>
-                </TouchableHighlight>
+                />
 
                 <View style={tailwind('px-1')}></View>
 
-                <TouchableHighlight
-                  underlayColor={getColor('blue-70')}
-                  style={tailwind('bg-blue-60 rounded-lg py-2 flex-grow items-center justify-center')}
+                <BaseButton
+                  title={strings.generic.rename}
+                  type={'accept'}
                   onPress={onRenameButtonPressed}
                   disabled={isLoading}
-                >
-                  <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>
-                    {strings.generic.rename}
-                  </Text>
-                </TouchableHighlight>
+                />
               </View>
             </View>
 

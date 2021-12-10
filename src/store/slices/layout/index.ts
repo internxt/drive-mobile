@@ -16,6 +16,7 @@ export interface LayoutState {
   backButtonEnabled: boolean;
   showRenameModal: boolean;
   showRunOutOfSpaceModal: boolean;
+  isDeletePhotosModalOpen: boolean;
   fileViewMode: 'list' | 'grid';
 }
 
@@ -35,6 +36,7 @@ const initialState: LayoutState = {
   backButtonEnabled: true,
   showRenameModal: false,
   showRunOutOfSpaceModal: false,
+  isDeletePhotosModalOpen: false,
   fileViewMode: 'list',
 };
 
@@ -83,6 +85,9 @@ export const layoutSlice = createSlice({
     },
     setBackButtonEnabled: (state, action: PayloadAction<boolean>) => {
       state.backButtonEnabled = action.payload;
+    },
+    setIsDeletePhotosModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isDeletePhotosModalOpen = action.payload;
     },
   },
 });

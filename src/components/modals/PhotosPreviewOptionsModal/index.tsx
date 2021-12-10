@@ -9,8 +9,11 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
+import { layoutActions } from '../../../store/slices/layout';
+import { useAppDispatch } from '../../../store/hooks';
 
 function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo }): JSX.Element {
+  const dispatch = useAppDispatch();
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const examplePhoto = require('../../../../assets/images/photos/example.png');
   const header = (
@@ -52,7 +55,7 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps 
     console.log('onDownloadButtonPressed');
   };
   const onMoveToTrashButtonPressed = () => {
-    console.log('onMoveToTrashButtonPressed');
+    dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
   };
 
   return (
