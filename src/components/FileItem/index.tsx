@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Platform, Animated, Easing } from 'react-native';
 import { connect } from 'react-redux';
 import { fileActions, layoutActions } from '../../store/actions';
@@ -25,6 +25,7 @@ interface FileItemProps extends Reducers {
   subtitle?: JSX.Element
   isGrid?: boolean
   totalColumns: number
+  progress: number;
 }
 
 async function handleLongPress(props: FileItemProps, isSelected: boolean) {
@@ -38,12 +39,8 @@ async function handleLongPress(props: FileItemProps, isSelected: boolean) {
 function FileItem(props: FileItemProps) {
   const isSelectionMode = props.filesState.selectedItems.length > 0
   const isSelected = props.filesState.selectedItems.filter((x: any) => x.id === props.item.id).length > 0
-
   const [progress, setProgress] = useState(-1)
-  const [uploadProgress, setUploadProgress] = useState(-1)
-
-  const [isLoading, setIsLoading] = useState(props.isLoading ? true : false)
-
+  const [isLoading, setIsLoading] = useState(!!props.isLoading)
   const spinValue = new Animated.Value(1);
 
   Animated.loop(
@@ -85,6 +82,7 @@ function FileItem(props: FileItemProps) {
     const isRecentlyUploaded = props.item.isUploaded && props.item.uri;
 
     if (isLoading) {
+      console.log('void click on file item')
       return;
     }
 
@@ -203,13 +201,9 @@ function FileItem(props: FileItemProps) {
     });
   }
 
-  useEffect(() => {
-    setUploadProgress(props.item.progress)
-  }, [props.item.progress])
-
   const IconFile = getFileTypeIcon(props.item.type);
 
-  const showSpinner = progress >= 0 || props.isLoading || isLoading;
+  const showSpinner = props.progress >= 0 || progress >= 0 || props.isLoading || isLoading;
 
   const iconSize = props.isGrid ? 64 : 40;
 
@@ -259,10 +253,10 @@ function FileItem(props: FileItemProps) {
             {
               showSpinner
               && <Text style={tailwind('text-xs text-neutral-100')}>
-                {uploadProgress === 0 ? 'Encrypting ' : ''}
-                {uploadProgress > 0 ? 'Uploading ' : ''}
-                {progress === 0 ? 'Fetching file ' : (progress >= 0 && 'Downloading ')}
-                {progress > 0 && ((uploadProgress >= 0 ? (uploadProgress * 100).toFixed(0) : progress.toFixed(0)) || 0) + '%'}
+                {props.progress === 0 ? 'Encrypting ' : ''}
+                {props.progress > 0 ? 'Uploading ' : ''}
+                {props.progress < 0 ? (progress === 0 ? 'Fetching file ' : (progress >= 0 && 'Downloading ')) : ''}
+                {progress > 0 && ((props.progress >= 0 ? (props.progress * 100).toFixed(0) : progress.toFixed(0)) || 0) + '%'}
               </Text>
             }
             {!props.isGrid && !showSpinner && (props.subtitle ? props.subtitle : <Text style={tailwind('text-xs text-neutral-100')}>{!props.isFolder && <>{prettysize(props.item.size)}<Text style={globalStyle.fontWeight.bold}>  ·  </Text></>}Updated {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {

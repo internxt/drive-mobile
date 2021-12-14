@@ -141,6 +141,7 @@ function FileList(props: FileListProps) {
           isFolder={!!item.item.parentId}
           key={`${props.isGrid}-${item.item.id}`}
           item={item.item}
+          progress={item.item.progress || -1}
           isGrid={props.isGrid}
           totalColumns={totalColumns}
         />;
