@@ -60,25 +60,27 @@ function Login(props: LoginProps): JSX.Element {
   }, [props.authenticationState.error])
 
   useEffect(() => {
-    if (props.authenticationState.loggedIn === true) {
+    if (props.authenticationState.loggedIn) {
       const rootFolderId = props.authenticationState.user.root_folder_id;
 
       props.navigation.replace('FileExplorer', {
         folderId: rootFolderId
       })
-    } else {
-      (async () => {
-        const xToken = await deviceStorage.getToken();
-        const xUser = await deviceStorage.getUser();
-
-        if (xToken && xUser) {
-          props.dispatch(userActions.localSignIn(xToken, xUser))
-        } else {
-          setIsLoading(false)
-        }
-      })()
     }
   }, [props.authenticationState.loggedIn, props.authenticationState.token])
+
+  useEffect(() => {
+    (async () => {
+      const xToken = await deviceStorage.getToken();
+      const xUser = await deviceStorage.getUser();
+
+      if (xToken && xUser) {
+        props.dispatch(userActions.localSignIn(xToken, xUser))
+      } else {
+        setIsLoading(false)
+      }
+    })()
+  }, []);
 
   return (
     <KeyboardAvoidingView behavior='height' style={tailwind('p-5 bg-white h-full justify-between')}>

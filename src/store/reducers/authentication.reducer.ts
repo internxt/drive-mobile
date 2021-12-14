@@ -46,6 +46,7 @@ export function authenticationReducer(state = initialState, action: AnyAction): 
     return {
       ...state,
       loggedIn: false,
+      token: '',
       user: {}
     };
   case userActionTypes.LOCAL_SIGNIN:

@@ -1,18 +1,30 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Platform, Linking, Alert, SafeAreaView } from 'react-native';
 import { Provider } from 'react-redux'
-import { store } from './src/store'
-import AppNavigator from './src/AppNavigator';
-import { analyticsSetup, forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate, trackStackScreen } from './src/helpers'
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
-import { fileActions } from './src/store/actions';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import Toast from 'react-native-toast-message';
 import * as Unicons from '@iconscout/react-native-unicons'
+import axios from 'axios';
+
+import { store } from './src/store'
+import AppNavigator from './src/AppNavigator';
+import { analyticsSetup, forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate, trackStackScreen } from './src/helpers'
+import { fileActions, userActions } from './src/store/actions';
 import { getColor, tailwind } from './src/helpers/designSystem';
 import strings from './assets/lang/strings'
 
 process.nextTick = setImmediate;
+
+axios.interceptors.response.use(undefined, (err) => {
+  if (err.response) {
+    if (err.response.status === 401) {
+      store.dispatch(userActions.signout());
+    }
+  }
+
+  return Promise.reject(err);
+});
 
 export default function App(): JSX.Element {
   const [appInitialized, setAppInitialized] = useState(false);

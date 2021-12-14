@@ -12,20 +12,19 @@ interface RenameFileInNetworkPayload {
   relativePath: string;
 }
 
-function getFolderContent(folderId: number): Promise<any> {
-  return new Promise(async (resolve, reject) => {
-    const headers = await getHeaders();
+async function getFolderContent(folderId: number): Promise<any> {
+  const headers = await getHeaders();
+  const headersMap = {};
 
-    fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/v2/folder/${folderId}`, {
-      method: 'GET',
-      headers
-    }).then(res => {
-      if (res.status !== 200) { throw res; }
-
-      return res.json();
-    }).then(resolve)
-      .catch(reject);
+  headers.forEach((value, key) => {
+    headersMap[key] = value;
   });
+
+  const response = await axios.get(`${process.env.REACT_NATIVE_API_URL}/api/storage/v2/folder/${folderId}`, {
+    headers: headersMap
+  });
+
+  return response.data;
 }
 
 function createFolder(parentFolderId: number, folderName = 'Untitled folder'): Promise<void> {
