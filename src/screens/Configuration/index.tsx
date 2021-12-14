@@ -52,10 +52,10 @@ function Configuration(props: Reducers): JSX.Element {
           onPress={() => {
             props.navigation.push('Storage')
           }} />
-        <ConfigurationItem {...props} title="Billing"
+        {/* <ConfigurationItem {...props} title="Billing"
           onPress={() => {
             props.navigation.push('Billing')
-          }} />
+          }} /> */}
 
         <ConfigurationGap />
 
