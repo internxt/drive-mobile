@@ -17,6 +17,7 @@ export interface LayoutState {
   showRenameModal: boolean;
   showRunOutOfSpaceModal: boolean;
   isDeletePhotosModalOpen: boolean;
+  isSharePhotoModalOpen: boolean;
   fileViewMode: 'list' | 'grid';
 }
 
@@ -37,6 +38,7 @@ const initialState: LayoutState = {
   showRenameModal: false,
   showRunOutOfSpaceModal: false,
   isDeletePhotosModalOpen: false,
+  isSharePhotoModalOpen: false,
   fileViewMode: 'list',
 };
 
@@ -88,6 +90,9 @@ export const layoutSlice = createSlice({
     },
     setIsDeletePhotosModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isDeletePhotosModalOpen = action.payload;
+    },
+    setIsSharePhotoModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isSharePhotoModalOpen = action.payload;
     },
   },
 });

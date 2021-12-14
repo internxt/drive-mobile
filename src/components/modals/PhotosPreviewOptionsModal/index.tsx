@@ -49,7 +49,7 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps 
     console.log('onInfoButtonPressed');
   };
   const onShareButtonPressed = () => {
-    console.log('onShareButtonPressed');
+    dispatch(layoutActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
     console.log('onDownloadButtonPressed');

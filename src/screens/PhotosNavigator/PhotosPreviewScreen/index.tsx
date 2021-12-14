@@ -13,6 +13,7 @@ import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import strings from '../../../../assets/lang/strings';
+import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 
 interface PreviewProps {
   route: {
@@ -25,20 +26,19 @@ interface PreviewProps {
 function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const dispatch = useAppDispatch();
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const { isDeletePhotosModalOpen } = useAppSelector((state) => state.layout);
+  const { isDeletePhotosModalOpen, isSharePhotoModalOpen } = useAppSelector((state) => state.layout);
   const navigation = useNavigation<NavigationStackProp>();
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const examplePhoto = require('../../../../assets/images/photos/example.png');
   const onBackButtonPressed = () => navigation.goBack();
-  const onShareButtonPressed = () => {
-    console.log('onShareButtonPressed!');
-  };
+  const onShareButtonPressed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(true));
   const onDownloadButtonPressed = () => {
     console.log('onDownloadButtonPressed!');
   };
   const onMoveToTrashButtonPressed = () => {
     dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
   };
+  const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
 
   return (
     <>
@@ -52,6 +52,11 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         isOpen={isDeletePhotosModalOpen}
         onClosed={() => dispatch(layoutActions.setIsDeletePhotosModalOpen(false))}
         data={[props.route.params.data]}
+      />
+      <SharePhotoModal
+        isOpen={isSharePhotoModalOpen}
+        data={props.route.params.data}
+        onClosed={onSharePhotoModalClosed}
       />
 
       <View style={tailwind('h-full')}>

@@ -1,12 +1,10 @@
 import React from 'react';
-import { Button, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Photo } from '@internxt/sdk';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import globalStyle from '../../../styles/global.style';
-import { getColor, tailwind } from '../../../helpers/designSystem';
+import { tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
-import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
 import BaseButton from '../../BaseButton';
 

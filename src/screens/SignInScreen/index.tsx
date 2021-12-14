@@ -23,6 +23,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authThunks } from '../../store/slices/auth';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
+import errorService from '../../services/error';
 
 function SignInScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -50,14 +51,16 @@ function SignInScreen(): JSX.Element {
         navigation.replace(AppScreen.TabExplorer);
       }
     } catch (err) {
+      const castedError = errorService.castError(err);
+
       analytics
         .track('user-signin-attempted', {
           status: 'error',
-          message: err.message,
+          message: castedError.message,
         })
         .catch(() => undefined);
 
-      Alert.alert('Could not log in', err.message);
+      Alert.alert('Could not log in', castedError.message);
       setIsLoading(false);
     }
   };
