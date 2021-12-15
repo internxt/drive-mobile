@@ -275,6 +275,15 @@ const strings = new LocalizedStrings({
         subtitle: 'Our fantastic devs are working on it, so stay tuned!',
         got_it: 'Got it!',
       },
+      share_photo_modal: {
+        nativeMesage: 'Take a look to this photo!',
+      },
+    },
+    messages: {
+      photoShared: 'You have shared a photo!',
+    },
+    errors: {
+      photoShared: 'An error has ocurred during photo sharing',
     },
   },
   es: {
@@ -551,6 +560,15 @@ const strings = new LocalizedStrings({
         subtitle: 'Nuestros fantásticos programadores están trabajando en ello, así que mantente al tanto!',
         got_it: 'Entendido!',
       },
+      share_photo_modal: {
+        nativeMesage: '¡Echa un vistazo a esta foto!',
+      },
+    },
+    messages: {
+      photoShared: '¡Has compartido una foto!',
+    },
+    errors: {
+      photoShared: 'Ha habido un error al compartir la foto',
     },
   },
 });

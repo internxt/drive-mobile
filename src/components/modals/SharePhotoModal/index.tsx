@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, Text, TouchableHighlight, View } from 'react-native';
+import { Image, Platform, Share, Text, TouchableHighlight, View } from 'react-native';
 import { Photo } from '@internxt/sdk';
 import prettysize from 'prettysize';
 import * as Unicons from '@iconscout/react-native-unicons';
@@ -10,6 +10,7 @@ import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import BaseButton from '../../BaseButton';
 import { TextInput } from 'react-native-gesture-handler';
+import { notify } from '../../../services/toast';
 
 function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo }): JSX.Element {
   if (!data) {
@@ -19,11 +20,34 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const examplePhoto = require('../../../../assets/images/photos/example.png');
   const [times, setTimes] = useState(10);
+  const [url, setUrl] = useState('LINK');
   const onCancelButtonPressed = () => {
     onClosed();
   };
-  const onShareButtonPressed = () => {
-    console.log('moving photo to thrash...');
+  const onShareButtonPressed = async () => {
+    try {
+      const result = await Share.share(
+        Platform.OS === 'android'
+          ? {
+              title: strings.modals.share_photo_modal.nativeMesage,
+              message: url,
+            }
+          : {
+              url,
+              message: strings.modals.share_photo_modal.nativeMesage,
+            },
+      );
+
+      if (result.action === Share.sharedAction) {
+        notify({ type: 'success', text: strings.messages.photoShared });
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+
+      onClosed();
+    } catch (err) {
+      notify({ type: 'error', text: strings.errors.photoShared });
+    }
   };
   const onLessTimesButtonPressed = () => {
     console.log('less times button pressed');
