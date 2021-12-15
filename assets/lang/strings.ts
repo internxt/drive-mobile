@@ -142,6 +142,18 @@ const strings = new LocalizedStrings({
       billing: {
         title: 'Billing',
       },
+      photosPermissions: {
+        title: 'Sync all your photos with all your devices',
+        features: {
+          0: 'Keep your photos safe and private in your cloud, only you can access them.',
+          1: 'Access all your photos from all of your devices, even from the web browser.',
+          2: 'Backup your photos.',
+        },
+        iosAdvice: 'On the following screen, change Photos access from None to All Photos.',
+        androidAdvice:
+          'Go to Settings > Apps > Internxt Drive. Select app permissions and allow access to ’Storage’ and ‘Camera’.',
+        access: 'The Photos app needs access to your photos to let you view, sync and share photos from this device.',
+      },
       gallery: {
         title: 'Gallery',
         nPhotosSelected: '{0} selected',
@@ -183,6 +195,7 @@ const strings = new LocalizedStrings({
         download: 'Download',
         moveToThrash: 'Move to trash',
         copyLink: 'Copy link',
+        startSyncingPhotos: 'Start syncing my photos',
       },
       inputs: {
         email: 'Email address',
@@ -403,6 +416,19 @@ const strings = new LocalizedStrings({
       billing: {
         title: 'Facturación',
       },
+      photosPermissions: {
+        title: 'Sincroniza tus fotos con todos tus dispositivos',
+        features: {
+          0: 'Mantenga sus fotos seguras y privadas en su nube, solo usted puede acceder a ellas.',
+          1: 'Accede a todas tus fotos desde todos tus dispositivos, incluso desde el navegador web.',
+          2: 'Haz una copia de seguridad de tus fotos.',
+        },
+        iosAdvice: 'En la siguiente pantalla, cambie el acceso a Fotos de Ninguno a Todas las fotos.',
+        androidAdvice:
+          'Ve a Configuración > Aplicaciones > Internxt Drive. En permisos de la aplicación permita el acceso a "Almacenamiento" y "Cámara".',
+        access:
+          'Se necesita acceder a tus fotos para que puedas ver, sincronizar y compartir fotos desde este dispositivo.',
+      },
       gallery: {
         title: 'Galería',
         nPhotosSelected: '{0} seleccionadas',
@@ -444,6 +470,7 @@ const strings = new LocalizedStrings({
         download: 'Descargar',
         moveToThrash: 'Mover a la papelera',
         copyLink: 'Copiar enlace',
+        startSyncingPhotos: 'Sincronizar mis fotos',
       },
       inputs: {
         email: 'Correo electrónico',
