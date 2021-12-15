@@ -67,7 +67,7 @@ function MoveFilesModal(): JSX.Element {
         <FlatList
           data={folderlist}
           renderItem={(folder: any) => {
-            return <FileItem totalColumns={1} key={folder.id} isFolder={true} item={folder.item} />;
+            return <FileItem totalColumns={1} key={folder.id} isFolder={true} item={folder.item} progress={-1} />;
           }}
           keyExtractor={(folder) => folder.id.toString()}
         />

@@ -79,6 +79,7 @@ function SharedScreen(props: SharedScreenProps): JSX.Element {
                         <Text style={tailwind('text-base text-sm text-blue-60')}>Left {item.views} times to share</Text>
                       </View>
                     }
+                    progress={-1}
                   />
                 );
               })}

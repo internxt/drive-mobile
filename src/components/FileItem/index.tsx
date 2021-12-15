@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Platform, Animated, Easing } from 'react-native';
 import FileViewer from 'react-native-file-viewer';
 import * as FileSystem from 'expo-file-system';
@@ -14,9 +14,9 @@ import FileSpinner from '../../../assets/images/widgets/file-spinner.svg';
 import prettysize from 'prettysize';
 import globalStyle from '../../styles/global.style';
 import { DevicePlatform } from '../../types';
-import { deviceStorage } from '../../services/deviceStorage';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { filesActions, filesThunks } from '../../store/slices/files';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { deviceStorage } from '../../services/deviceStorage';
 import { layoutActions } from '../../store/slices/layout';
 
 interface FileItemProps {
@@ -28,6 +28,7 @@ interface FileItemProps {
   subtitle?: JSX.Element;
   isGrid?: boolean;
   totalColumns: number;
+  progress: number;
 }
 
 function FileItem(props: FileItemProps): JSX.Element {
@@ -35,8 +36,7 @@ function FileItem(props: FileItemProps): JSX.Element {
   const { selectedItems } = useAppSelector((state) => state.files);
   const isSelectionMode = selectedItems.length > 0;
   const [progress, setProgress] = useState(-1);
-  const [uploadProgress, setUploadProgress] = useState(-1);
-  const [isLoading, setIsLoading] = useState(props.isLoading ? true : false);
+  const [isLoading, setIsLoading] = useState(!!props.isLoading);
   const spinValue = new Animated.Value(1);
 
   Animated.loop(
@@ -184,13 +184,9 @@ function FileItem(props: FileItemProps): JSX.Element {
     });
   }
 
-  useEffect(() => {
-    setUploadProgress(props.item.progress);
-  }, [props.item.progress]);
-
   const IconFile = getFileTypeIcon(props.item.type);
 
-  const showSpinner = progress >= 0 || props.isLoading || isLoading;
+  const showSpinner = props.progress >= 0 || progress >= 0 || props.isLoading || isLoading;
 
   const iconSize = props.isGrid ? 64 : 40;
 
@@ -252,11 +248,11 @@ function FileItem(props: FileItemProps): JSX.Element {
 
             {showSpinner && (
               <Text style={tailwind('text-xs text-neutral-100')}>
-                {uploadProgress === 0 ? 'Encrypting ' : ''}
-                {uploadProgress > 0 ? 'Uploading ' : ''}
-                {progress === 0 ? 'Fetching file ' : progress >= 0 && 'Downloading '}
+                {props.progress === 0 ? 'Encrypting ' : ''}
+                {props.progress > 0 ? 'Uploading ' : ''}
+                {props.progress < 0 ? (progress === 0 ? 'Fetching file ' : progress >= 0 && 'Downloading ') : ''}
                 {progress > 0 &&
-                  ((uploadProgress >= 0 ? (uploadProgress * 100).toFixed(0) : progress.toFixed(0)) || 0) + '%'}
+                  ((props.progress >= 0 ? (props.progress * 100).toFixed(0) : progress.toFixed(0)) || 0) + '%'}
               </Text>
             )}
             {!props.isGrid &&

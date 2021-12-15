@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { IFile } from '../components/FileList';
 import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
@@ -31,19 +32,16 @@ async function decryptFileNames(shares: IShare[]) {
 }
 
 export async function getShareList(): Promise<IShare[]> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/share/list`, {
-    method: 'get',
-    headers: await getHeaders(),
-  })
-    .then((res) => {
-      if (res.status !== 200) {
-        throw Error('Cannot load shares');
-      }
-      return res;
-    })
-    .then((res) => res.json())
-    .then((results) => {
-      decryptFileNames(results);
-      return results;
-    });
+  const headers = await getHeaders();
+  const headersMap: Record<string, string> = {};
+
+  headers.forEach((value: string, key: string) => {
+    headersMap[key] = value;
+  });
+
+  const response = await axios.get(`${process.env.REACT_NATIVE_API_URL}/api/share/list`, {
+    headers: headersMap,
+  });
+
+  return decryptFileNames(response.data);
 }

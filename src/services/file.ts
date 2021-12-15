@@ -25,17 +25,17 @@ export const UPLOAD_FILES_LIMIT = 1024 * 1024 * 1024;
 
 async function getFolderContent(folderId: number): Promise<any> {
   const headers = await getHeaders();
+  const headersMap: Record<string, string> = {};
 
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/v2/folder/${folderId}`, {
-    method: 'GET',
-    headers,
-  }).then((res) => {
-    if (res.status !== 200) {
-      throw res;
-    }
-
-    return res.json();
+  headers.forEach((value: string, key: string) => {
+    headersMap[key] = value;
   });
+
+  const response = await axios.get(`${process.env.REACT_NATIVE_API_URL}/api/storage/v2/folder/${folderId}`, {
+    headers: headersMap
+  });
+
+  return response.data;
 }
 
 async function createFolder(parentFolderId: number, folderName = 'Untitled folder'): Promise<void> {

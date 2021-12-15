@@ -5,6 +5,7 @@ import { NavigationContainer, useNavigationContainerRef } from '@react-navigatio
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import Toast from 'react-native-toast-message';
 import * as Unicons from '@iconscout/react-native-unicons';
+import axios from 'axios';
 
 import { store } from './src/store';
 import AppNavigator from './src/AppNavigator';
@@ -13,10 +14,20 @@ import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './
 import { getColor, tailwind } from './src/helpers/designSystem';
 import strings from './assets/lang/strings';
 import { deviceStorage } from './src/services/deviceStorage';
-import { authActions } from './src/store/slices/auth';
+import { authActions, authThunks } from './src/store/slices/auth';
 import { filesActions } from './src/store/slices/files';
 
 process.nextTick = setImmediate;
+
+axios.interceptors.response.use(undefined, (err) => {
+  if (err.response) {
+    if (err.response.status === 401) {
+      store.dispatch(authThunks.signOutThunk());
+    }
+  }
+
+  return Promise.reject(err);
+});
 
 export default function App(): JSX.Element {
   const [isAppInitialized, setIsAppInitialized] = useState(false);

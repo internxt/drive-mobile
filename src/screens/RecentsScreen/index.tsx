@@ -65,7 +65,7 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
         >
           {filteredRecents.length > 0 ? (
             filteredRecents.map((item) => {
-              return <FileItem totalColumns={1} key={item.id} item={item} isFolder={false} />;
+              return <FileItem totalColumns={1} key={item.id} item={item} isFolder={false} progress={-1} />;
             })
           ) : (
             <EmptyList {...strings.screens.recents.empty} image={<EmptyRecentsImage width={100} height={100} />} />
