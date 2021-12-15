@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
 import {
-  View, Text, TouchableHighlight
+  View, Text
 } from 'react-native';
 import { connect } from 'react-redux';
 import { Reducers } from '../../store/reducers/reducers';
@@ -115,7 +115,7 @@ function Storage(props: StorageProps): JSX.Element {
         </View>
       </View>
 
-      <TouchableHighlight
+      {/* <TouchableHighlight
         underlayColor="#5291ff"
         style={tailwind('btn btn-primary my-5 mx-5')}
         onPress={() => {
@@ -123,7 +123,7 @@ function Storage(props: StorageProps): JSX.Element {
         }}>
 
         <Text style={tailwind('text-white text-lg')}>Change plan</Text>
-      </TouchableHighlight>
+      </TouchableHighlight> */}
     </View>
   );
 }
