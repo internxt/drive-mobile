@@ -34,7 +34,12 @@ function DeletePhotosModal({ isOpen, onClosed, data }: BottomModalProps & { data
 
       {/* ACTIONS */}
       <View style={tailwind('p-3 flex-row justify-center')}>
-        <BaseButton title={strings.components.buttons.cancel} type="cancel" onPress={onCancelButtonPressed} />
+        <BaseButton
+          title={strings.components.buttons.cancel}
+          type="cancel"
+          onPress={onCancelButtonPressed}
+          style={tailwind('flex-1')}
+        />
 
         <View style={tailwind('w-2')} />
 
@@ -42,6 +47,7 @@ function DeletePhotosModal({ isOpen, onClosed, data }: BottomModalProps & { data
           title={strings.components.buttons.moveToThrash}
           type="delete"
           onPress={onMoveToTrashButtonPressed}
+          style={tailwind('flex-1')}
         />
       </View>
     </BottomModal>

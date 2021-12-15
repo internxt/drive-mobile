@@ -91,7 +91,7 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
             </TouchableHighlight>
 
             <TextInput
-              style={tailwind('bg-white w-32')}
+              style={tailwind('bg-white w-32 text-center text-base text-neutral-500')}
               value={times.toString()}
               onChangeText={onTimesTextChanged}
               keyboardType="numeric"
@@ -108,17 +108,36 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
         </View>
 
         {/* LINK */}
-        <View style={tailwind('flex-row mb-9')}>
-          <BaseButton title={'Copy link'} type="accept" onPress={onCopyLinkButtonPressed} />
+        <View style={tailwind('flex-row mb-9 justify-center items-center')}>
+          <BaseButton
+            title={
+              <View style={tailwind('flex-row justify-center items-center')}>
+                <Text style={tailwind('text-white text-lg mr-2')}>{strings.components.buttons.copyLink}</Text>
+                <Unicons.UilLink color={getColor('white')} />
+              </View>
+            }
+            type="accept"
+            onPress={onCopyLinkButtonPressed}
+          />
         </View>
 
         {/* ACTIONS */}
         <View style={tailwind('p-3 flex-row justify-center')}>
-          <BaseButton title={strings.components.buttons.cancel} type="cancel" onPress={onCancelButtonPressed} />
+          <BaseButton
+            title={strings.components.buttons.cancel}
+            type="cancel"
+            onPress={onCancelButtonPressed}
+            style={tailwind('flex-1')}
+          />
 
           <View style={tailwind('w-2')} />
 
-          <BaseButton title={strings.components.buttons.share} type="accept" onPress={onShareButtonPressed} />
+          <BaseButton
+            title={strings.components.buttons.share}
+            type="accept"
+            onPress={onShareButtonPressed}
+            style={tailwind('flex-1')}
+          />
         </View>
       </View>
     </BottomModal>

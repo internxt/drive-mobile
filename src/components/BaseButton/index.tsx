@@ -1,17 +1,19 @@
 import React from 'react';
-import { Text, TouchableHighlight } from 'react-native';
+import { StyleProp, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import globalStyle from '../../styles/global.style';
 
 interface BaseButtonProps {
-  title: string;
+  title: string | JSX.Element;
   type: 'accept' | 'cancel' | 'delete';
   onPress: () => void;
   disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
 }
 
 const BaseButton = (props: BaseButtonProps): JSX.Element => {
+  const isTitleString = typeof props.title === 'string';
   const typeBgStyle = {
     accept: tailwind('bg-blue-60'),
     cancel: tailwind('bg-neutral-20'),
@@ -31,11 +33,17 @@ const BaseButton = (props: BaseButtonProps): JSX.Element => {
   return (
     <TouchableHighlight
       underlayColor={typeUnderlayColor}
-      style={[tailwind('rounded-lg p-2 flex-1 flex-grow items-center justify-center'), typeBgStyle]}
+      style={[tailwind('rounded-lg py-2 px-4 items-center justify-center'), typeBgStyle, props.style]}
       onPress={props.onPress}
       disabled={!!props.disabled}
     >
-      <Text style={[tailwind('text-lg'), globalStyle.fontWeight.medium, typeTextStyle]}>{props.title}</Text>
+      {isTitleString ? (
+        <Text numberOfLines={1} style={[tailwind('text-lg'), globalStyle.fontWeight.medium, typeTextStyle]}>
+          {props.title}
+        </Text>
+      ) : (
+        props.title
+      )}
     </TouchableHighlight>
   );
 };

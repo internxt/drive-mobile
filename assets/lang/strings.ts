@@ -182,6 +182,7 @@ const strings = new LocalizedStrings({
         shareWithLink: 'Share with link',
         download: 'Download',
         moveToThrash: 'Move to trash',
+        copyLink: 'Copy link',
       },
       inputs: {
         email: 'Email address',
@@ -442,6 +443,7 @@ const strings = new LocalizedStrings({
         shareWithLink: 'Compartir enlace',
         download: 'Descargar',
         moveToThrash: 'Mover a la papelera',
+        copyLink: 'Copiar enlace',
       },
       inputs: {
         email: 'Correo electrónico',

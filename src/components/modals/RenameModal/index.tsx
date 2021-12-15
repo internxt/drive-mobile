@@ -145,6 +145,7 @@ function RenameModal(): JSX.Element {
                   type={'cancel'}
                   onPress={onCancelButtonPressed}
                   disabled={isLoading}
+                  style={tailwind('flex-1')}
                 />
 
                 <View style={tailwind('px-1')}></View>
@@ -154,6 +155,7 @@ function RenameModal(): JSX.Element {
                   type={'accept'}
                   onPress={onRenameButtonPressed}
                   disabled={isLoading}
+                  style={tailwind('flex-1')}
                 />
               </View>
             </View>
