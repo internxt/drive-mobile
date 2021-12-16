@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Platform, Linking, Alert, SafeAreaView } from 'react-native';
 import { Provider } from 'react-redux';
+import { PortalProvider, WhitePortal } from 'react-native-portal';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import Toast from 'react-native-toast-message';
@@ -130,37 +131,41 @@ export default function App(): JSX.Element {
 
   return (
     <Provider store={store}>
-      <NavigationContainer
-        ref={navigationRef}
-        onReady={() => {
-          const currentRoute = navigationRef.getCurrentRoute();
+      <PortalProvider>
+        <NavigationContainer
+          ref={navigationRef}
+          onReady={() => {
+            const currentRoute = navigationRef.getCurrentRoute();
 
-          routeNameRef.current = currentRoute && currentRoute.name;
-        }}
-        onStateChange={(route) => {
-          const previousRouteName = routeNameRef.current;
-          const currentRouteName = navigationRef.getCurrentRoute().name;
+            routeNameRef.current = currentRoute && currentRoute.name;
+          }}
+          onStateChange={(route) => {
+            const previousRouteName = routeNameRef.current;
+            const currentRouteName = navigationRef.getCurrentRoute().name;
 
-          if (previousRouteName !== currentRouteName) {
-            trackStackScreen(route, navigationRef.getCurrentRoute().params);
-          }
+            if (previousRouteName !== currentRouteName) {
+              trackStackScreen(route, navigationRef.getCurrentRoute().params);
+            }
 
-          routeNameRef.current = currentRouteName;
-        }}
-        linking={linking}
-        fallback={<Text>{strings.generic.loading}</Text>}
-      >
-        {isAppInitialized ? (
-          <SafeAreaView style={tailwind('flex-1')}>
-            <AppNavigator />
-          </SafeAreaView>
-        ) : (
-          <SafeAreaView style={tailwind('items-center flex-1 justify-center')}>
-            {loadError ? <Text>{loadError}</Text> : null}
-          </SafeAreaView>
-        )}
-      </NavigationContainer>
-      <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
+            routeNameRef.current = currentRouteName;
+          }}
+          linking={linking}
+          fallback={<Text>{strings.generic.loading}</Text>}
+        >
+          {isAppInitialized ? (
+            <SafeAreaView style={tailwind('flex-1')}>
+              <AppNavigator />
+            </SafeAreaView>
+          ) : (
+            <SafeAreaView style={tailwind('items-center flex-1 justify-center')}>
+              {loadError ? <Text>{loadError}</Text> : null}
+            </SafeAreaView>
+          )}
+        </NavigationContainer>
+        <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
+
+        <WhitePortal name="root"></WhitePortal>
+      </PortalProvider>
     </Provider>
   );
 }

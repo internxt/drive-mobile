@@ -95,7 +95,7 @@ function FileDetailsModal(): JSX.Element {
             name={
               <Text style={tailwind('text-lg text-red-60')}>{strings.components.file_and_folder_options.delete}</Text>
             }
-            icon={<Unicons.UilTrashAlt size={20} color={getColor('red-60')} />}
+            icon={<Unicons.UilTrash size={20} color={getColor('red-60')} />}
             onPress={() => {
               dispatch(layoutActions.setShowItemModal(false));
               dispatch(layoutActions.setShowDeleteModal(true));

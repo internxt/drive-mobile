@@ -83,7 +83,7 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps 
           <BottomModalOption
             lastItem={true}
             name={<Text style={tailwind('text-lg text-red-60')}>{strings.components.buttons.moveToThrash}</Text>}
-            icon={<Unicons.UilTrashAlt size={20} color={getColor('red-60')} />}
+            icon={<Unicons.UilTrash size={20} color={getColor('red-60')} />}
             onPress={onMoveToTrashButtonPressed}
           />
         </View>

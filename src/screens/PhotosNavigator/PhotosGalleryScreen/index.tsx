@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { BlackPortal } from 'react-native-portal';
+import * as Unicons from '@iconscout/react-native-unicons';
 
-import { tailwind } from '../../../helpers/designSystem';
+import { getColor, tailwind } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import { GalleryViewMode } from '../../../types';
 import ScreenTitle from '../../../components/ScreenTitle';
@@ -11,12 +13,16 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { photosActions, photosThunks } from '../../../store/slices/photos';
 import { layoutActions } from '../../../store/slices/layout';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
+import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
 
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
-  const isSharePhotoModalOpen = useAppSelector((state) => state.layout.isSharePhotoModalOpen);
+  const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.layout);
   const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
+  const onDeletePhotosModalClosed = () => dispatch(layoutActions.setIsDeletePhotosModalOpen(false));
   const { isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
+  const hasNoPhotosSelected = selectedPhotos.length === 0;
+  const hasManyPhotosSelected = selectedPhotos.length > 1;
   const onSelectButtonPressed = () => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
   };
@@ -26,6 +32,15 @@ function PhotosGalleryScreen(): JSX.Element {
   };
   const onSelectAllButtonPressed = () => {
     dispatch(photosActions.selectAll());
+  };
+  const onShareSelectionButtonPressed = () => {
+    dispatch(layoutActions.setIsSharePhotoModalOpen(true));
+  };
+  const onDownloadSelectionButtonPressed = () => {
+    console.log('onDownloadSelectionButtonPressed!');
+  };
+  const onDeleteSelectionButtonPressed = () => {
+    dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
   };
   const GalleryView = galleryViews[viewMode];
   const groupByMenu = (function () {
@@ -59,6 +74,7 @@ function PhotosGalleryScreen(): JSX.Element {
   return (
     <>
       <SharePhotoModal isOpen={isSharePhotoModalOpen} data={selectedPhotos[0]} onClosed={onSharePhotoModalClosed} />
+      <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selectedPhotos} onClosed={onDeletePhotosModalClosed} />
 
       <View style={tailwind('app-screen bg-white flex-1')}>
         {/* GALLERY TOP BAR */}
@@ -117,6 +133,78 @@ function PhotosGalleryScreen(): JSX.Element {
 
         {/*  GROUP BY MENU */}
         {groupByMenu}
+
+        {/* SELECTION MODE ACTIONS */}
+        {isSelectionModeActivated && (
+          <BlackPortal name="root">
+            <View style={[tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2')]}>
+              <TouchableWithoutFeedback
+                onPress={onShareSelectionButtonPressed}
+                disabled={hasNoPhotosSelected || hasManyPhotosSelected}
+              >
+                <View style={tailwind('items-center flex-1')}>
+                  <Unicons.UilLink
+                    color={hasNoPhotosSelected || hasManyPhotosSelected ? getColor('neutral-60') : getColor('blue-60')}
+                    size={24}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      hasNoPhotosSelected || hasManyPhotosSelected
+                        ? tailwind('text-neutral-60')
+                        : tailwind('text-blue-60'),
+                      tailwind('text-xs'),
+                    ]}
+                  >
+                    {strings.components.buttons.shareWithLink}
+                  </Text>
+                </View>
+              </TouchableWithoutFeedback>
+              <TouchableWithoutFeedback
+                style={tailwind('flex-1')}
+                onPress={onDownloadSelectionButtonPressed}
+                disabled={hasNoPhotosSelected}
+              >
+                <View style={tailwind('items-center flex-1')}>
+                  <Unicons.UilDownloadAlt
+                    color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('blue-60')}
+                    size={24}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      hasNoPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-blue-60'),
+                      tailwind('text-xs'),
+                    ]}
+                  >
+                    {strings.components.buttons.download}
+                  </Text>
+                </View>
+              </TouchableWithoutFeedback>
+              <TouchableWithoutFeedback
+                style={tailwind('flex-1')}
+                onPress={onDeleteSelectionButtonPressed}
+                disabled={hasNoPhotosSelected}
+              >
+                <View style={tailwind('items-center flex-1')}>
+                  <Unicons.UilTrash
+                    color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('red-60')}
+                    size={24}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      hasNoPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-red-60'),
+                      tailwind('text-xs'),
+                    ]}
+                  >
+                    {strings.components.buttons.moveToThrash}
+                  </Text>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </BlackPortal>
+        )}
       </View>
     </>
   );

@@ -96,7 +96,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
               <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.download}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={tailwind('items-center')} onPress={onMoveToTrashButtonPressed}>
-              <Unicons.UilTrashAlt color="white" size={26} />
+              <Unicons.UilTrash color="white" size={26} />
               <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.moveToThrash}</Text>
             </TouchableOpacity>
           </LinearGradient>

@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, TouchableWithoutFeedback, Text } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
-
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
+
 import { getColor, tailwind } from '../../helpers/designSystem';
 import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
@@ -21,7 +21,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   const dispatch = useAppDispatch();
 
   return (
-    <View style={tailwind('bg-white flex-row px-2 justify-around items-center border-t border-neutral-20')}>
+    <View style={[tailwind('bg-white flex-row px-2 justify-around items-center border-t border-neutral-20')]}>
       {props.state.routes.map((route, index) => {
         const { options } = props.descriptors[route.key];
         const label = strings.tabs[route.name as keyof typeof tabIcons];
