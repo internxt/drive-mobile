@@ -25,11 +25,11 @@ function DeletePhotosModal({ isOpen, onClosed, data }: BottomModalProps & { data
           globalStyle.fontWeight.medium,
         ]}
       >
-        {'Move photos to thrash?'}
+        {strings.modals.deletePhotosModal.title}
       </Text>
       {/* ADVICE */}
       <Text style={[tailwind('mb-6 px-9 text-center text-sm text-neutral-100'), globalStyle.fontWeight.medium]}>
-        Photos won’t be deleted from your phone, they will remain in the trash until you empty the trash.
+        {strings.modals.deletePhotosModal.message}
       </Text>
 
       {/* ACTIONS */}

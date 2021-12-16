@@ -102,7 +102,7 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
               globalStyle.fontWeight.medium,
             ]}
           >
-            {'Link open limit'}
+            {strings.modals.share_photo_modal.linkOpenLimit}
           </Text>
 
           <View style={tailwind('flex-row justify-center')}>

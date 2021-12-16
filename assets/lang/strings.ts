@@ -275,8 +275,13 @@ const strings = new LocalizedStrings({
         subtitle: 'Our fantastic devs are working on it, so stay tuned!',
         got_it: 'Got it!',
       },
+      deletePhotosModal: {
+        title: 'Move photo/s to trash',
+        message: 'Photos won’t be deleted from your phone, they will remain in the trash until you empty the trash.',
+      },
       share_photo_modal: {
         nativeMesage: 'Take a look to this photo!',
+        linkOpenLimit: 'Link open limit',
       },
     },
     messages: {
@@ -560,8 +565,14 @@ const strings = new LocalizedStrings({
         subtitle: 'Nuestros fantásticos programadores están trabajando en ello, así que mantente al tanto!',
         got_it: 'Entendido!',
       },
+      deletePhotosModal: {
+        title: 'Mover fotos a la papelera',
+        message:
+          'Las fotos no se borrarán de tu dispositivo. Además, las fotos se mantendrán en la papelera hasta que la vacíes.',
+      },
       share_photo_modal: {
         nativeMesage: '¡Echa un vistazo a esta foto!',
+        linkOpenLimit: 'Límite de veces abierto',
       },
     },
     messages: {
