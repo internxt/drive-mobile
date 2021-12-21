@@ -2212,6 +2212,13 @@
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.2.tgz#ee771e2ba4b3dc5b372935d549fd9617bf345b8c"
   integrity sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==
 
+"@types/node-forge@^0.10.10":
+  version "0.10.10"
+  resolved "https://registry.yarnpkg.com/@types/node-forge/-/node-forge-0.10.10.tgz#07ffccf0f7f3ebb97de67446555912803be50e7b"
+  integrity sha512-iixn5bedlE9fm/5mN7fPpXraXlxCVrnNWHZekys8c5fknridLVWGnNRqlaWpenwaijIuB3bNI0lEOm+JD6hZUA==
+  dependencies:
+    "@types/node" "*"
+
 "@types/node@*":
   version "16.11.7"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.7.tgz#36820945061326978c42a01e56b61cd223dfdc42"
@@ -8054,6 +8061,11 @@ node-fetch@^2.2.0, node-fetch@^2.6.0:
   integrity sha512-Z8/6vRlTUChSdIgMa51jxQ4lrw/Jy5SOW10ObaA47/RElsAN2c5Pn8bTgFGWn/ibwzXTE8qwr1Yzx28vsecXEA==
   dependencies:
     whatwg-url "^5.0.0"
+
+node-forge@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-0.10.0.tgz#32dea2afb3e9926f02ee5ce8794902691a676bf3"
+  integrity sha512-PPmu8eEeG9saEUvI97fm4OYxXVB6bFvyNTyiUOBichBpFG8A1Ljw3bY62+5oOjDEMHRnd0Y7HQ+x7uzxOzC6JA==
 
 node-int64@^0.4.0:
   version "0.4.0"
