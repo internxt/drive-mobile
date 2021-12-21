@@ -342,17 +342,21 @@ PODS:
     - React-cxxreact (= 0.63.4)
     - React-jsi (= 0.63.4)
   - React-jsinspector (0.63.4)
-  - react-native-cameraroll (1.4.1):
-    - React
+  - react-native-cameraroll (4.1.1):
+    - React-Core
   - react-native-document-picker (4.3.0):
     - React-Core
   - react-native-image-picker (4.2.0):
+    - React-Core
+  - react-native-image-resizer (1.4.5):
     - React-Core
   - react-native-randombytes (3.6.1):
     - React-Core
   - react-native-receive-sharing-intent (1.1.0):
     - React
   - react-native-safe-area-context (3.2.0):
+    - React-Core
+  - react-native-sqlite-storage (6.0.1):
     - React-Core
   - react-native-unicons (1.0.3):
     - React
@@ -547,9 +551,11 @@ DEPENDENCIES:
   - "react-native-cameraroll (from `../node_modules/@react-native-community/cameraroll`)"
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-receive-sharing-intent (from `../node_modules/react-native-receive-sharing-intent`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - react-native-sqlite-storage (from `../node_modules/react-native-sqlite-storage`)
   - "react-native-unicons (from `../node_modules/@iconscout/react-native-unicons`)"
   - react-native-viewpager (from `../node_modules/react-native-pager-view`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -689,12 +695,16 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-document-picker"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-image-resizer:
+    :path: "../node_modules/react-native-image-resizer"
   react-native-randombytes:
     :path: "../node_modules/react-native-randombytes"
   react-native-receive-sharing-intent:
     :path: "../node_modules/react-native-receive-sharing-intent"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-sqlite-storage:
+    :path: "../node_modules/react-native-sqlite-storage"
   react-native-unicons:
     :path: "../node_modules/@iconscout/react-native-unicons"
   react-native-viewpager:
@@ -813,12 +823,14 @@ SPEC CHECKSUMS:
   React-jsi: a0418934cf48f25b485631deb27c64dc40fb4c31
   React-jsiexecutor: 93bd528844ad21dc07aab1c67cb10abae6df6949
   React-jsinspector: 58aef7155bc9a9683f5b60b35eccea8722a4f53a
-  react-native-cameraroll: 875e31fc43d4a5d8694c85a71c53dcf42f72f608
+  react-native-cameraroll: 189f69dbf4b4d490aaabe7a17b64e7240a442950
   react-native-document-picker: 20f652c2402d3ddc81f396d8167c3bd978add4a2
   react-native-image-picker: f7aa22adb4e0d1953eb515954f7318c38d726d8c
+  react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
   react-native-receive-sharing-intent: 648f1eb35ae70886a8733d6be949042aa5111ffb
   react-native-safe-area-context: f0906bf8bc9835ac9a9d3f97e8bde2a997d8da79
+  react-native-sqlite-storage: f6d515e1c446d1e6d026aa5352908a25d4de3261
   react-native-unicons: 3f98688cbfc9f47e3ae45dd1560b7a2ab65075f4
   react-native-viewpager: 98a850d1c7ac6263122d82618a77062a5f427073
   react-native-webview: 193d233c29eacce1f42ca2637dab7ba79c25a6de
