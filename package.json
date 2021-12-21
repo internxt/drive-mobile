@@ -107,6 +107,7 @@
     "react-native-timeago": "^0.5.0",
     "react-native-toast-message": "^1.4.9",
     "react-native-unimodules": "~0.14.5",
+    "react-native-uuid": "^2.0.1",
     "react-native-web": "~0.13.12",
     "react-native-webview": "11.6.2",
     "react-navigation": "^4.4.3",
