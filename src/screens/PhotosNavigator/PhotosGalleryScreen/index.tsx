@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
-import { BlackPortal } from 'react-native-portal';
+import Portal from '@burstware/react-native-portal';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
@@ -136,7 +136,7 @@ function PhotosGalleryScreen(): JSX.Element {
 
         {/* SELECTION MODE ACTIONS */}
         {isSelectionModeActivated && (
-          <BlackPortal name="root">
+          <Portal>
             <View style={[tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2')]}>
               <TouchableWithoutFeedback
                 onPress={onShareSelectionButtonPressed}
@@ -203,7 +203,7 @@ function PhotosGalleryScreen(): JSX.Element {
                 </View>
               </TouchableWithoutFeedback>
             </View>
-          </BlackPortal>
+          </Portal>
         )}
       </View>
     </>

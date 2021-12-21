@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Platform, Linking, Alert, SafeAreaView } from 'react-native';
 import { Provider } from 'react-redux';
-import { PortalProvider, WhitePortal } from 'react-native-portal';
+import Portal from '@burstware/react-native-portal';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import Toast from 'react-native-toast-message';
@@ -51,7 +51,7 @@ export default function App(): JSX.Element {
       store.dispatch(authActions.signIn({ token, user }));
     }
   };
-  const handleOpenURL = (e) => {
+  const handleOpenURL = (e: any) => {
     if (e.url) {
       if (e.url.match(/inxt:\/\/.*:\/*/g)) {
         const regex = /inxt:\/\//g;
@@ -131,7 +131,7 @@ export default function App(): JSX.Element {
 
   return (
     <Provider store={store}>
-      <PortalProvider>
+      <Portal.Host>
         <NavigationContainer
           ref={navigationRef}
           onReady={() => {
@@ -141,10 +141,10 @@ export default function App(): JSX.Element {
           }}
           onStateChange={(route) => {
             const previousRouteName = routeNameRef.current;
-            const currentRouteName = navigationRef.getCurrentRoute().name;
+            const currentRouteName = navigationRef.getCurrentRoute()?.name;
 
             if (previousRouteName !== currentRouteName) {
-              trackStackScreen(route, navigationRef.getCurrentRoute().params);
+              route && trackStackScreen(route, navigationRef.getCurrentRoute()?.params);
             }
 
             routeNameRef.current = currentRouteName;
@@ -163,46 +163,44 @@ export default function App(): JSX.Element {
           )}
         </NavigationContainer>
         <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
-
-        <WhitePortal name="root"></WhitePortal>
-      </PortalProvider>
+      </Portal.Host>
     </Provider>
   );
 }
 
 const toastConfig = {
-  success: function successToast({ text1, props, ...rest }) {
+  success: function successToast({ text, props, ...rest }: any) {
     return (
       <View style={tailwind('flex flex-row items-center bg-blue-100 p-3 w-full h-16')}>
         <View>
           <Unicons.UilCheckCircle color={getColor('green-50')} size={24} />
         </View>
         <View style={tailwind('flex-grow ml-3')}>
-          <Text style={tailwind('text-white')}>{text1}</Text>
+          <Text style={tailwind('text-white')}>{text}</Text>
         </View>
       </View>
     );
   },
-  error: function errorToast({ text1, props, ...rest }) {
+  error: function errorToast({ text, props, ...rest }: any) {
     return (
       <View style={tailwind('flex flex-row items-center bg-red-60 p-3 w-full h-16')}>
         <View>
           <Unicons.UilTimesCircle color={getColor('white')} size={24} />
         </View>
         <View style={tailwind('flex-grow ml-3')}>
-          <Text style={tailwind('text-white')}>{text1}</Text>
+          <Text style={tailwind('text-white')}>{text}</Text>
         </View>
       </View>
     );
   },
-  warn: function warnToast({ text1, props, ...rest }) {
+  warn: function warnToast({ text, props, ...rest }: any) {
     return (
       <View style={tailwind('flex flex-row items-center bg-yellow-30 p-3 w-full h-16')}>
         <View>
           <Unicons.UilExclamationTriangle color={getColor('neutral-900')} size={24} />
         </View>
         <View style={tailwind('flex-grow ml-3')}>
-          <Text style={tailwind('text-neutral-900')}>{text1}</Text>
+          <Text style={tailwind('text-neutral-900')}>{text}</Text>
         </View>
       </View>
     );

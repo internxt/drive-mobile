@@ -36,7 +36,7 @@ export const signInThunk = createAsyncThunk<
 });
 
 export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>('auth/signOut', async () => {
-  authService.signout();
+  return authService.signout();
 });
 
 export const paymentThunk = createAsyncThunk<void, { token: string; planId: string }, { state: RootState }>(

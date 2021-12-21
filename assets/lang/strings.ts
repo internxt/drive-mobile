@@ -566,7 +566,7 @@ const strings = new LocalizedStrings({
         got_it: 'Entendido!',
       },
       deletePhotosModal: {
-        title: 'Mover fotos a la papelera',
+        title: 'Mover foto/s a la papelera',
         message:
           'Las fotos no se borrarán de tu dispositivo. Además, las fotos se mantendrán en la papelera hasta que la vacíes.',
       },
