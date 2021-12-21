@@ -11,12 +11,15 @@ import strings from '../../../../assets/lang/strings';
 import BaseButton from '../../BaseButton';
 import { TextInput } from 'react-native-gesture-handler';
 import { notify } from '../../../services/toast';
+import { useAppDispatch } from '../../../store/hooks';
+import { layoutActions } from '../../../store/slices/layout';
 
 function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo }): JSX.Element {
   if (!data) {
     return <View></View>;
   }
 
+  const dispatch = useAppDispatch();
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const examplePhoto = require('../../../../assets/images/photos/example.png');
   const [times, setTimes] = useState(10);
@@ -59,7 +62,8 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
     console.log('onTimesTextChanged e: ', text.replace(/[^0-9]/g, ''));
   };
   const onCopyLinkButtonPressed = () => {
-    console.log('onCopyLinkButtonPressed!');
+    onClosed();
+    dispatch(layoutActions.setIsLinkCopiedModalOpen(true));
   };
   const header = (
     <>
