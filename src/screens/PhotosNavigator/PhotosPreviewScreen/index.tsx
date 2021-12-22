@@ -14,6 +14,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import strings from '../../../../assets/lang/strings';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
+import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfoModal';
 
 interface PreviewProps {
   route: {
@@ -26,7 +27,9 @@ interface PreviewProps {
 function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const dispatch = useAppDispatch();
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const { isDeletePhotosModalOpen, isSharePhotoModalOpen } = useAppSelector((state) => state.layout);
+  const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
+    (state) => state.layout,
+  );
   const navigation = useNavigation<NavigationStackProp>();
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const examplePhoto = require('../../../../assets/images/photos/example.png');
@@ -39,13 +42,24 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
     dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
   };
   const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
-
+  const onPhotosPreviewOptionsModalClosed = () => {
+    setIsOptionsModalOpen(false);
+  };
+  const onPhotosPreviewInfoModalClosed = () => {
+    dispatch(layoutActions.setIsPhotosPreviewInfoModalOpen(false));
+    setIsOptionsModalOpen(true);
+  };
   return (
     <>
       {/* MODALS */}
       <PhotosPreviewOptionsModal
         isOpen={isOptionsModalOpen}
-        onClosed={() => setIsOptionsModalOpen(false)}
+        onClosed={onPhotosPreviewOptionsModalClosed}
+        data={props.route.params.data}
+      />
+      <PhotosPreviewInfoModal
+        isOpen={isPhotosPreviewInfoModalOpen}
+        onClosed={onPhotosPreviewInfoModalClosed}
         data={props.route.params.data}
       />
       <DeletePhotosModal

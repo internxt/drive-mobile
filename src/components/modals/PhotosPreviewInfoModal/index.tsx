@@ -9,11 +9,8 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
-import { layoutActions } from '../../../store/slices/layout';
-import { useAppDispatch } from '../../../store/hooks';
 
-function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo }): JSX.Element {
-  const dispatch = useAppDispatch();
+function PhotosPreviewInfoModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo }): JSX.Element {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const examplePhoto = require('../../../../assets/images/photos/example.png');
   const header = (
@@ -45,50 +42,44 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps 
       </View>
     </>
   );
-  const onInfoButtonPressed = () => {
-    dispatch(layoutActions.setIsPhotosPreviewInfoModalOpen(true));
-    onClosed();
-  };
-  const onShareButtonPressed = () => {
-    dispatch(layoutActions.setIsSharePhotoModalOpen(true));
-  };
-  const onDownloadButtonPressed = () => {
-    console.log('onDownloadButtonPressed');
-  };
-  const onMoveToTrashButtonPressed = () => {
-    dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
-  };
+  const dimensionsText = `${data.width} x ${data.heigth}`;
 
   return (
     <BottomModal isOpen={isOpen} onClosed={onClosed} header={header}>
       <View style={tailwind('bg-neutral-10 p-4 flex-grow')}>
-        <View style={tailwind('bg-white')}>
+        <View style={tailwind('rounded-xl bg-white')}>
           <BottomModalOption
             leftSlot={
               <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.info}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>
+                  {strings.modals.photos_preview_info_modal.options.name}
+                </Text>
               </View>
             }
-            rightSlot={<Unicons.UilInfoCircle size={20} color={getColor('neutral-500')} />}
-            onPress={onInfoButtonPressed}
+            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{data.name}</Text>}
+          />
+        </View>
+
+        <View style={tailwind('rounded-xl bg-white')}>
+          <BottomModalOption
+            leftSlot={
+              <View style={tailwind('flex-grow')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>
+                  {strings.modals.photos_preview_info_modal.options.uploaded}
+                </Text>
+              </View>
+            }
+            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{new Date().toString()}</Text>}
           />
           <BottomModalOption
             leftSlot={
               <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.shareWithLink}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>
+                  {strings.modals.photos_preview_info_modal.options.modified}
+                </Text>
               </View>
             }
-            rightSlot={<Unicons.UilLink size={20} color={getColor('neutral-500')} />}
-            onPress={onShareButtonPressed}
-          />
-          <BottomModalOption
-            leftSlot={
-              <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.download}</Text>
-              </View>
-            }
-            rightSlot={<Unicons.UilDownloadAlt size={20} color={getColor('neutral-500')} />}
-            onPress={onDownloadButtonPressed}
+            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{new Date().toString()}</Text>}
           />
         </View>
 
@@ -96,11 +87,32 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps 
           <BottomModalOption
             leftSlot={
               <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-red-60')}>{strings.components.buttons.moveToThrash}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>
+                  {strings.modals.photos_preview_info_modal.options.size}
+                </Text>
               </View>
             }
-            rightSlot={<Unicons.UilTrash size={20} color={getColor('red-60')} />}
-            onPress={onMoveToTrashButtonPressed}
+            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{prettysize(data.size)}</Text>}
+          />
+          <BottomModalOption
+            leftSlot={
+              <View style={tailwind('flex-grow')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>
+                  {strings.modals.photos_preview_info_modal.options.dimensions}
+                </Text>
+              </View>
+            }
+            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{dimensionsText}</Text>}
+          />
+          <BottomModalOption
+            leftSlot={
+              <View style={tailwind('flex-grow')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>
+                  {strings.modals.photos_preview_info_modal.options.format}
+                </Text>
+              </View>
+            }
+            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{data.type.toUpperCase()}</Text>}
           />
         </View>
       </View>
@@ -108,4 +120,4 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps 
   );
 }
 
-export default PhotosPreviewOptionsModal;
+export default PhotosPreviewInfoModal;

@@ -65,8 +65,12 @@ function FileDetailsModal(): JSX.Element {
       <View style={tailwind('bg-neutral-10 p-4 flex-grow')}>
         <View style={tailwind('rounded-xl bg-white')}>
           <BottomModalOption
-            name={<Text style={tailwind('text-lg text-neutral-500')}>{strings.generic.rename}</Text>}
-            icon={<Unicons.UilEditAlt size={20} color={getColor('neutral-500')} />}
+            leftSlot={
+              <View style={tailwind('flex-grow')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.generic.rename}</Text>
+              </View>
+            }
+            rightSlot={<Unicons.UilEditAlt size={20} color={getColor('neutral-500')} />}
             onPress={() => {
               dispatch(layoutActions.setShowItemModal(false));
               dispatch(layoutActions.setShowRenameModal(true));
@@ -75,12 +79,14 @@ function FileDetailsModal(): JSX.Element {
 
           {!isFolder && (
             <BottomModalOption
-              name={
-                <Text style={tailwind('text-lg text-neutral-500')}>
-                  {strings.components.file_and_folder_options.share}
-                </Text>
+              leftSlot={
+                <View style={tailwind('flex-grow')}>
+                  <Text style={tailwind('text-lg text-neutral-500')}>
+                    {strings.components.file_and_folder_options.share}
+                  </Text>
+                </View>
               }
-              icon={<Unicons.UilLink size={20} color={getColor('neutral-500')} />}
+              rightSlot={<Unicons.UilLink size={20} color={getColor('neutral-500')} />}
               onPress={() => {
                 dispatch(layoutActions.setShowItemModal(false));
                 dispatch(layoutActions.setShowShareModal(true));
@@ -91,11 +97,12 @@ function FileDetailsModal(): JSX.Element {
 
         <View style={tailwind('bg-white rounded-xl mt-4')}>
           <BottomModalOption
-            lastItem={true}
-            name={
-              <Text style={tailwind('text-lg text-red-60')}>{strings.components.file_and_folder_options.delete}</Text>
+            leftSlot={
+              <View style={tailwind('flex-grow')}>
+                <Text style={tailwind('text-lg text-red-60')}>{strings.components.file_and_folder_options.delete}</Text>
+              </View>
             }
-            icon={<Unicons.UilTrash size={20} color={getColor('red-60')} />}
+            rightSlot={<Unicons.UilTrash size={20} color={getColor('red-60')} />}
             onPress={() => {
               dispatch(layoutActions.setShowItemModal(false));
               dispatch(layoutActions.setShowDeleteModal(true));

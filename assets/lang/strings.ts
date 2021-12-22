@@ -279,6 +279,16 @@ const strings = new LocalizedStrings({
         title: 'Move photo/s to trash',
         message: 'Photos won’t be deleted from your phone, they will remain in the trash until you empty the trash.',
       },
+      photos_preview_info_modal: {
+        options: {
+          name: 'Name',
+          uploaded: 'Uploaded',
+          modified: 'Modified',
+          size: 'Size',
+          dimensions: 'Dimensions',
+          format: 'Format',
+        },
+      },
       share_photo_modal: {
         nativeMesage: 'Take a look to this photo!',
         linkOpenLimit: 'Link open limit',
@@ -572,6 +582,16 @@ const strings = new LocalizedStrings({
         title: 'Mover foto/s a la papelera',
         message:
           'Las fotos no se borrarán de tu dispositivo. Además, las fotos se mantendrán en la papelera hasta que la vacíes.',
+      },
+      photos_preview_info_modal: {
+        options: {
+          name: 'Nombre',
+          uploaded: 'Fecha de subida',
+          modified: 'Fecha de modificación',
+          size: 'Tamaño',
+          dimensions: 'Dimensiones',
+          format: 'Formato',
+        },
       },
       share_photo_modal: {
         nativeMesage: '¡Echa un vistazo a esta foto!',
