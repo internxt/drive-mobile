@@ -4,8 +4,9 @@ import { RootState } from '../..';
 import { GalleryViewMode } from '../../../types';
 import { Device, Photo, Photos } from '@internxt/sdk';
 
+const photosSdk = new Photos(process.env.REACT_NATIVE_PHOTOS_API_URL as string);
+
 export interface PhotosState {
-  photosSdk: Photos;
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
   photos: Photo[];
@@ -14,7 +15,6 @@ export interface PhotosState {
 }
 
 const initialState: PhotosState = {
-  photosSdk: new Photos(process.env.REACT_NATIVE_PHOTOS_API_URL as string),
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.All,
   photos: [
@@ -83,27 +83,23 @@ const initialState: PhotosState = {
   selectedPhotos: [],
 };
 
-const initializeThunk = createAsyncThunk<{ accessToken: string }, void, { state: RootState }>(
+const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
   async (payload: void, { getState }) => {
-    return { accessToken: getState().auth.token };
+    photosSdk.setToken(getState().auth.token);
   },
 );
 
 const createDeviceThunk = createAsyncThunk<void, { device: Device }, { state: RootState }>(
   'photos/createDevice',
-  async ({ device }, { getState }) => {
-    const { photosSdk } = getState().photos;
-
+  async ({ device }) => {
     await photosSdk.createDevice(device);
   },
 );
 
 const createPhotoThunk = createAsyncThunk<void, { data: Photo }, { state: RootState }>(
-  'photos/createDevice',
-  async ({ data }, { getState }) => {
-    const { photosSdk } = getState().photos;
-
+  'photos/createPhoto',
+  async ({ data }) => {
     // TODO: upload photo and preview
 
     await photosSdk.createPhoto(data);
@@ -112,9 +108,7 @@ const createPhotoThunk = createAsyncThunk<void, { data: Photo }, { state: RootSt
 
 const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: RootState }>(
   'photos/deletePhotos',
-  async ({ photos }, { getState }) => {
-    const { photosSdk } = getState().photos;
-
+  async ({ photos }) => {
     for (const photo of photos) {
       await photosSdk.deletePhotoById(photo.id);
     }
@@ -159,9 +153,7 @@ export const photosSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(initializeThunk.pending, () => undefined)
-      .addCase(initializeThunk.fulfilled, (state, action) => {
-        state.photosSdk.setToken(action.payload.accessToken);
-      })
+      .addCase(initializeThunk.fulfilled, () => undefined)
       .addCase(initializeThunk.rejected, () => undefined);
 
     builder

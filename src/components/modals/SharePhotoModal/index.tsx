@@ -53,10 +53,12 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
     }
   };
   const onLessTimesButtonPressed = () => {
-    console.log('less times button pressed');
+    if (times > 0) {
+      setTimes(times - 1);
+    }
   };
   const onMoreTimesButtonPressed = () => {
-    console.log('more times button pressed');
+    setTimes(times + 1);
   };
   const onTimesTextChanged = (text: string) => {
     console.log('onTimesTextChanged e: ', text.replace(/[^0-9]/g, ''));
