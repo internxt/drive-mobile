@@ -3,23 +3,26 @@ import RFNS, { UploadFileItem } from 'react-native-fs';
 import { eachLimit } from 'async';
 import uuid from 'react-native-uuid';
 import axios, { AxiosRequestConfig } from 'axios';
+import { request } from '@internxt/lib';
 
 import { GenerateFileKey, ripemd160, sha256, sha512HmacBuffer } from '../../@inxt-js/lib/crypto';
 import { getDocumentsDir } from '../../lib/fs';
 import { ShardMeta } from '../../@inxt-js/lib/shardMeta';
 
-const networkApiUrl = process.env.NETWORK_PHOTOS_API_URL as string;
+// const networkApiUrl = process.env.NETWORK_PHOTOS_API_URL as string;
+const networkApiUrl = 'https://api.photos.internxt.com';
 
 type FrameId = string;
-type FileId = string;
-type BucketId = string;
+export type FileId = string;
+export type BucketId = string;
 type Mnemonic = string;
+type Timestamp = string;
 type NetworkUser = string;
 type NetworkPass = string;
 type BucketEntryId = string;
 type FileEncryptedURI = string;
 
-interface NetworkCredentials {
+export interface NetworkCredentials {
   encryptionKey: Mnemonic
   user: NetworkUser
   pass: NetworkPass
@@ -42,12 +45,12 @@ interface Contract {
 
 interface Frame {
   id: FrameId;
-  user: string;
+  user: NetworkUser;
   shards: [];
   storageSize: number;
   size: number;
   locked: boolean;
-  created: string;
+  created: Timestamp;
 }
 
 interface CreateEntryFromFrameBody {
@@ -63,21 +66,73 @@ interface CreateEntryFromFrameBody {
   }
 }
 
+interface MerkleTree {
+  leaf: string[];
+  challenges: Buffer[];
+  challenges_as_str: string[];
+  preleaf: Buffer[];
+}
+
+function generateMerkleTree(): MerkleTree {
+  return {
+    leaf: [
+      '0000000000000000000000000000000000000000',
+      '0000000000000000000000000000000000000000',
+      '0000000000000000000000000000000000000000',
+      '0000000000000000000000000000000000000000',
+    ],
+    challenges: [
+      Buffer.from('00000000000000000000000000000000', 'hex'),
+      Buffer.from('00000000000000000000000000000000', 'hex'),
+      Buffer.from('00000000000000000000000000000000', 'hex'),
+      Buffer.from('00000000000000000000000000000000', 'hex'),
+    ],
+    challenges_as_str: [
+      '00000000000000000000000000000000',
+      '00000000000000000000000000000000',
+      '00000000000000000000000000000000',
+      '00000000000000000000000000000000',
+    ],
+    preleaf: [
+      Buffer.from('0000000000000000000000000000000000000000', 'hex'),
+      Buffer.from('0000000000000000000000000000000000000000', 'hex'),
+      Buffer.from('0000000000000000000000000000000000000000', 'hex'),
+      Buffer.from('0000000000000000000000000000000000000000', 'hex'),
+    ],
+  };
+}
+
 function bucketExists(bucketId: BucketId, options?: AxiosRequestConfig): Promise<boolean> {
   return axios.get(`${networkApiUrl}/buckets/${bucketId}`, options)
-    .then(() => true);
+    .then(() => true)
+    .catch((err) => {
+      // TODO: Wrap
+      throw err;
+    });
 }
 
 function stageFile(options?: AxiosRequestConfig): Promise<FrameId> {
-  return axios.post<Frame>(`${networkApiUrl}/frames`, options)
-    .then((res) => res.data.id);
+  return axios.post<Frame>(`${networkApiUrl}/frames`, {}, options)
+    .then((res) => res.data.id)
+    .catch((err) => {
+      // TODO: Wrap
+      throw err;
+    });
 }
 
-function negotiateContract(frameId: FrameId, shardMeta: ShardMeta): Promise<Contract> {
-  return axios.put<Contract>(`${networkApiUrl}/frames/${frameId}`, {}, {
-    data: { ...shardMeta, challenges: shardMeta.challenges_as_str }
+function negotiateContract(frameId: FrameId, shardMeta: ShardMeta, options?: AxiosRequestConfig): Promise<Contract> {  
+  return axios.request<Contract>({
+    ...options,
+    method: 'PUT',
+    data: {
+      ...shardMeta, challenges: shardMeta.challenges_as_str
+    },
+    url: `${networkApiUrl}/frames/${frameId}`,
   }).then((res) => {
     return res.data;
+  }).catch((err) => {
+    console.log(request.extractMessageFromError(err));
+    throw err;
   });
 }
 
@@ -198,18 +253,27 @@ export async function uploadFile(fileURI: string, bucketId: BucketId, credential
     Buffer.from(await RFNS.hash(fileEncryptedURI, 'sha256'), 'hex')
   );
 
+  console.log('fileHash is ' + fileHash.toString('hex'));
+
+  const merkleTree = generateMerkleTree();
   const shardMetas: ShardMeta[] = [{
     index: 0,
     hash: fileHash.toString('hex'),
     parity: false,
     size: fileSize,
-    tree: [],
-    challenges_as_str: [],
-    challenges: [],
+    tree: merkleTree.leaf,
+    challenges_as_str: merkleTree.challenges_as_str,
   }];
 
+  console.log(JSON.stringify(shardMetas[0], null, 2));
+
+  console.log('negotiating contract');
+
   // 5. Negotiate contract
-  const contract = await negotiateContract(frameId, shardMetas[0]);
+  const contract = await negotiateContract(frameId, shardMetas[0], defaultRequestOptions);
+
+  console.log('negotiated contract');
+  console.log(JSON.stringify(contract, null, 2));
 
   // 6. Upload file
   const files: UploadFileItem[] = [{
@@ -223,9 +287,9 @@ export async function uploadFile(fileURI: string, bucketId: BucketId, credential
     toUrl: contract.url,
     // binaryStreamOnly
     files,
-    method: 'POST',
+    method: 'PUT',
     progress: (res) => {
-      console.log(((res.totalBytesSent / res.totalBytesExpectedToSend) * 100).toFixed(2));
+      console.log('PROGRESS ' + ((res.totalBytesSent / res.totalBytesExpectedToSend) * 100).toFixed(2));
     }
   });
 
