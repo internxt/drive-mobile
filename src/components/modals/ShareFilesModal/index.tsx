@@ -32,7 +32,7 @@ function ShareFilesModal(): JSX.Element {
   const getLink = async (file: any, views: number) => {
     const tokenLink = await getFileToken(file, views);
 
-    const url = `${process.env.REACT_NATIVE_API_URL}/${tokenLink}`;
+    const url = `${process.env.REACT_NATIVE_DRIVE_API_URL}/${tokenLink}`;
 
     setLink(url);
   };

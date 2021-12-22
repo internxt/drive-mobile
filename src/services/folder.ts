@@ -19,7 +19,7 @@ class FolderService {
     });
 
     await axios.post(
-      `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}/meta`,
+      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${folderId}/meta`,
       { metadata },
       { headers: headersMap },
     );

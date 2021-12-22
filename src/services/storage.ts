@@ -34,7 +34,7 @@ function identifyPlanName(bytes: number): string {
 }
 
 async function loadUsage(): Promise<number> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/usage`, {
+  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/usage`, {
     method: 'get',
     headers: await getHeaders(),
   })
@@ -51,7 +51,7 @@ async function loadUsage(): Promise<number> {
 }
 
 async function loadLimit(): Promise<number> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/limit`, {
+  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/limit`, {
     method: 'get',
     headers: await getHeaders(),
   })

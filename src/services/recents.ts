@@ -11,7 +11,7 @@ export async function getRecents(): Promise<IFile[]> {
     headersMap[key] = value;
   });
 
-  const response = await axios.get(`${process.env.REACT_NATIVE_API_URL}/api/storage/recents`, {
+  const response = await axios.get(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/recents`, {
     headers: headersMap,
   });
 

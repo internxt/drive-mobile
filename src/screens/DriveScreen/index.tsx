@@ -177,7 +177,7 @@ function DriveScreen(): JSX.Element {
 
       RNFetchBlob.fetch(
         'POST',
-        `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${currentFolder}/upload`,
+        `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${currentFolder}/upload`,
         headers,
         [{ name: 'xfile', filename: name, data: finalUri }],
       )

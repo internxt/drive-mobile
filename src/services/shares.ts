@@ -39,7 +39,7 @@ export async function getShareList(): Promise<IShare[]> {
     headersMap[key] = value;
   });
 
-  const response = await axios.get(`${process.env.REACT_NATIVE_API_URL}/api/share/list`, {
+  const response = await axios.get(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/share/list`, {
     headers: headersMap,
   });
 

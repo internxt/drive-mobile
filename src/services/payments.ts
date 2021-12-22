@@ -22,7 +22,7 @@ type StoragePlan = {
 };
 
 export async function getCurrentIndividualPlan(): Promise<StoragePlan> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/plan/individual`, {
+  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/plan/individual`, {
     method: 'get',
     headers: await getHeaders(),
   })

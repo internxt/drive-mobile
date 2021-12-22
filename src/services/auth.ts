@@ -12,7 +12,7 @@ interface LoginResponse {
 
 class AuthService {
   public async apiLogin(email: string): Promise<LoginResponse> {
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/login`, {
+    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/login`, {
       method: 'POST',
       headers: await getHeaders(),
       body: JSON.stringify({ email: email }),
@@ -56,7 +56,7 @@ class AuthService {
     const encryptedSalt = encryptText(hashPass.salt);
     const encryptedMnemonic = encryptTextWithKey(mnemonic, newPassword);
 
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/user/recover`, {
+    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/user/recover`, {
       method: 'patch',
       headers: await getHeaders(),
       body: JSON.stringify({
@@ -69,7 +69,7 @@ class AuthService {
   }
 
   public sendDeactivationsEmail(email: string): Promise<any> {
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/reset/${email}`, {}).then(async (res) => {
+    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/reset/${email}`, {}).then(async (res) => {
       if (res.status !== 200) {
         throw Error();
       }

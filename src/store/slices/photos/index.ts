@@ -2,9 +2,10 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { RootState } from '../..';
 import { GalleryViewMode } from '../../../types';
-import { Photo } from '@internxt/sdk';
+import { Device, Photo, Photos } from '@internxt/sdk';
 
 export interface PhotosState {
+  photosSdk: Photos;
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
   photos: Photo[];
@@ -13,6 +14,7 @@ export interface PhotosState {
 }
 
 const initialState: PhotosState = {
+  photosSdk: new Photos(process.env.REACT_NATIVE_PHOTOS_API_URL as string),
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.All,
   photos: [
@@ -81,6 +83,44 @@ const initialState: PhotosState = {
   selectedPhotos: [],
 };
 
+const initializeThunk = createAsyncThunk<{ accessToken: string }, void, { state: RootState }>(
+  'photos/initialize',
+  async (payload: void, { getState }) => {
+    return { accessToken: getState().auth.token };
+  },
+);
+
+const createDeviceThunk = createAsyncThunk<void, { device: Device }, { state: RootState }>(
+  'photos/createDevice',
+  async ({ device }, { getState }) => {
+    const { photosSdk } = getState().photos;
+
+    await photosSdk.createDevice(device);
+  },
+);
+
+const createPhotoThunk = createAsyncThunk<void, { data: Photo }, { state: RootState }>(
+  'photos/createDevice',
+  async ({ data }, { getState }) => {
+    const { photosSdk } = getState().photos;
+
+    // TODO: upload photo and preview
+
+    await photosSdk.createPhoto(data);
+  },
+);
+
+const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: RootState }>(
+  'photos/deletePhotos',
+  async ({ photos }, { getState }) => {
+    const { photosSdk } = getState().photos;
+
+    for (const photo of photos) {
+      await photosSdk.deletePhotoById(photo.id);
+    }
+  },
+);
+
 const loadLocalPhotosThunk = createAsyncThunk<
   { loadedPhotos: Photo[]; nextCursor: string | undefined },
   { cursor?: string },
@@ -118,6 +158,28 @@ export const photosSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(initializeThunk.pending, () => undefined)
+      .addCase(initializeThunk.fulfilled, (state, action) => {
+        state.photosSdk.setToken(action.payload.accessToken);
+      })
+      .addCase(initializeThunk.rejected, () => undefined);
+
+    builder
+      .addCase(createDeviceThunk.pending, () => undefined)
+      .addCase(createDeviceThunk.fulfilled, () => undefined)
+      .addCase(createDeviceThunk.rejected, () => undefined);
+
+    builder
+      .addCase(createPhotoThunk.pending, () => undefined)
+      .addCase(createPhotoThunk.fulfilled, () => undefined)
+      .addCase(createPhotoThunk.rejected, () => undefined);
+
+    builder
+      .addCase(deletePhotosThunk.pending, () => undefined)
+      .addCase(deletePhotosThunk.fulfilled, () => undefined)
+      .addCase(deletePhotosThunk.rejected, () => undefined);
+
+    builder
       .addCase(loadLocalPhotosThunk.pending, () => undefined)
       .addCase(loadLocalPhotosThunk.fulfilled, (state, action) => {
         state.photos = action.payload.loadedPhotos;
@@ -137,6 +199,9 @@ export const photosSelectors = {
 };
 
 export const photosThunks = {
+  createDeviceThunk,
+  createPhotoThunk,
+  deletePhotosThunk,
   loadLocalPhotosThunk,
 };
 

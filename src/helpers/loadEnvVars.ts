@@ -3,7 +3,7 @@ import _ from 'lodash';
 export async function loadEnvVars() {
   // This envs are mandatory to run the app, others can be skipped
   const ENVS = [
-    process.env.REACT_NATIVE_API_URL,
+    process.env.REACT_NATIVE_DRIVE_API_URL,
     process.env.REACT_NATIVE_CRYPTO_SECRET,
     process.env.REACT_NATIVE_CRYPTO_SECRET2,
     process.env.REACT_NATIVE_MAGIC_IV,

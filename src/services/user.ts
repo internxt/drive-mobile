@@ -9,7 +9,7 @@ class UserService {
       const hashObj = passToHash({ password, salt });
       const encPass = encryptText(hashObj.hash);
 
-      fetch(`${process.env.REACT_NATIVE_API_URL}/api/access`, {
+      fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/access`, {
         method: 'POST',
         headers: { 'content-type': 'application/json; charset=utf-8' },
         body: JSON.stringify({
@@ -55,7 +55,7 @@ class UserService {
   }
 
   public async initializeUser(email: string, mnemonic: string, token: string) {
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/initialize`, {
+    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/initialize`, {
       method: 'POST',
       headers: await getHeaders(token, mnemonic),
       body: JSON.stringify({

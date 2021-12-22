@@ -82,7 +82,7 @@ function Billing(): JSX.Element {
       canceledUrl: 'https://drive.internxt.com/redirect/android',
     };
 
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/v2/stripe/session`, {
+    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/v2/stripe/session`, {
       method: 'POST',
       headers: await getHeaders(),
       body: JSON.stringify(body),
@@ -92,7 +92,7 @@ function Billing(): JSX.Element {
         if (result.error) {
           throw Error(result.error);
         }
-        const link = `${process.env.REACT_NATIVE_API_URL}/checkout/${result.id}`;
+        const link = `${process.env.REACT_NATIVE_DRIVE_API_URL}/checkout/${result.id}`;
 
         Linking.openURL(link);
       })
@@ -120,7 +120,7 @@ function Billing(): JSX.Element {
     };
 
     fetch(
-      `${process.env.REACT_NATIVE_API_URL}/api/stripe/session${
+      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${
         process.env.NODE_ENV === 'development' ? '?test=true' : ''
       }`,
       {
@@ -134,7 +134,7 @@ function Billing(): JSX.Element {
         if (result.error) {
           throw Error(result.error);
         }
-        const link = `${process.env.REACT_NATIVE_API_URL}/checkout/${result.id}`;
+        const link = `${process.env.REACT_NATIVE_DRIVE_API_URL}/checkout/${result.id}`;
 
         Linking.openURL(link);
       })
