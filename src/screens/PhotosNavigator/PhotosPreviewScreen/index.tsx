@@ -6,7 +6,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
-import { Photo } from '@internxt/sdk';
+import { Photo } from '@internxt/sdk/dist/photos';
 
 import PhotosPreviewOptionsModal from '../../../components/modals/PhotosPreviewOptionsModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';

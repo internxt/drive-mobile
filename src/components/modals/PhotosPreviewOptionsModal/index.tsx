@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image, Text, View } from 'react-native';
 import prettysize from 'prettysize';
-import { Photo } from '@internxt/sdk';
+import { Photo } from '@internxt/sdk/dist/photos';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import globalStyle from '../../../styles/global.style';
@@ -36,7 +36,7 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps 
             <Text style={globalStyle.fontWeight.bold}> · </Text>
           </>
           {'Updated '}
-          {new Date().toLocaleDateString('en-GB', {
+          {new Date(data.updatedAt).toLocaleDateString('en-GB', {
             day: 'numeric',
             month: 'short',
             year: 'numeric',

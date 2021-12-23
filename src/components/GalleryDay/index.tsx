@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
 import { PhotosScreen } from '../../types';
-import { Photo } from '@internxt/sdk';
+import { Photo } from '@internxt/sdk/dist/photos';
 
 const GalleryDay = (): JSX.Element => {
   const dispatch = useAppDispatch();

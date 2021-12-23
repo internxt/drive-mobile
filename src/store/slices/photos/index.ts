@@ -9,7 +9,9 @@ import {
   PermissionStatus,
   RESULTS,
 } from 'react-native-permissions';
-import { Device, Photo, Photos } from '@internxt/sdk';
+import { photos } from '@internxt/sdk';
+import { Device, Photo } from '@internxt/sdk/dist/photos';
+const { Photos } = photos;
 
 import { RootState } from '../..';
 import { GalleryViewMode } from '../../../types';
@@ -63,6 +65,8 @@ const initialState: PhotosState = {
       previewId: 'previewId-01',
       deviceId: '01',
       userUuid: '01',
+      createdAt: '2021-12-23T14:12:47Z',
+      updatedAt: '2021-12-23T14:12:47Z',
     },
     {
       id: '02',
@@ -75,6 +79,8 @@ const initialState: PhotosState = {
       previewId: 'previewId-02',
       deviceId: '02',
       userUuid: '02',
+      createdAt: '2021-12-23T14:12:47Z',
+      updatedAt: '2021-12-23T14:12:47Z',
     },
     {
       id: '03',
@@ -87,6 +93,8 @@ const initialState: PhotosState = {
       previewId: 'previewId-03',
       deviceId: '03',
       userUuid: '03',
+      createdAt: '2021-12-23T14:12:47Z',
+      updatedAt: '2021-12-23T14:12:47Z',
     },
     {
       id: '04',
@@ -99,6 +107,8 @@ const initialState: PhotosState = {
       previewId: 'previewId-04',
       deviceId: '04',
       userUuid: '04',
+      createdAt: '2021-12-23T14:12:47Z',
+      updatedAt: '2021-12-23T14:12:47Z',
     },
     {
       id: '05',
@@ -111,6 +121,8 @@ const initialState: PhotosState = {
       previewId: 'previewId-05',
       deviceId: '05',
       userUuid: '05',
+      createdAt: '2021-12-23T14:12:47Z',
+      updatedAt: '2021-12-23T14:12:47Z',
     },
   ],
   nextCursor: undefined,
@@ -122,7 +134,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   async (payload: void, { dispatch, getState }) => {
     await dispatch(checkPermissionsThunk());
 
-    photosSdk.setToken(getState().auth.token);
+    photosSdk.setAccessToken(getState().auth.token);
 
     if (photosSelectors.arePermissionsGranted(getState())) {
       await dispatch(initializeDatabaseThunk()).unwrap();
@@ -171,7 +183,7 @@ const askForPermissionsThunk = createAsyncThunk<boolean, void, { state: RootStat
 const createDeviceThunk = createAsyncThunk<void, { device: Device }, { state: RootState }>(
   'photos/createDevice',
   async ({ device }) => {
-    await photosSdk.createDevice(device);
+    await photosSdk.devices.createDevice(device);
   },
 );
 
@@ -180,7 +192,7 @@ const createPhotoThunk = createAsyncThunk<void, { data: Photo }, { state: RootSt
   async ({ data }) => {
     // TODO: upload photo and preview
 
-    await photosSdk.createPhoto(data);
+    await photosSdk.photos.createPhoto(data);
   },
 );
 
@@ -188,7 +200,7 @@ const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: R
   'photos/deletePhotos',
   async ({ photos }) => {
     for (const photo of photos) {
-      await photosSdk.deletePhotoById(photo.id);
+      await photosSdk.photos.deletePhotoById(photo.id);
     }
   },
 );

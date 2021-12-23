@@ -1,11 +1,10 @@
 import React from 'react';
 import { Image, Text, View } from 'react-native';
 import prettysize from 'prettysize';
-import { Photo } from '@internxt/sdk';
-import * as Unicons from '@iconscout/react-native-unicons';
+import { Photo } from '@internxt/sdk/dist/photos';
 
 import globalStyle from '../../../styles/global.style';
-import { getColor, tailwind } from '../../../helpers/designSystem';
+import { tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
@@ -33,7 +32,7 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data }: BottomModalProps & {
             <Text style={globalStyle.fontWeight.bold}> · </Text>
           </>
           {'Updated '}
-          {new Date().toLocaleDateString('en-GB', {
+          {new Date(data.updatedAt).toLocaleDateString('en-GB', {
             day: 'numeric',
             month: 'short',
             year: 'numeric',
@@ -69,7 +68,7 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data }: BottomModalProps & {
                 </Text>
               </View>
             }
-            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{new Date().toString()}</Text>}
+            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{data.createdAt}</Text>}
           />
           <BottomModalOption
             leftSlot={
@@ -79,7 +78,7 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data }: BottomModalProps & {
                 </Text>
               </View>
             }
-            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{new Date().toString()}</Text>}
+            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{data.updatedAt}</Text>}
           />
         </View>
 

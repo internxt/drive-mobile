@@ -4,7 +4,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { GalleryItemType } from '../../types';
-import { Photo } from '@internxt/sdk';
+import { Photo } from '@internxt/sdk/dist/photos';
 
 interface GalleryItemProps {
   type?: GalleryItemType;

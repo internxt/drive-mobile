@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Image, Platform, Share, Text, TouchableHighlight, View } from 'react-native';
-import { Photo } from '@internxt/sdk';
+import { Photo } from '@internxt/sdk/dist/photos';
 import prettysize from 'prettysize';
 import * as Unicons from '@iconscout/react-native-unicons';
 
@@ -87,7 +87,7 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
             <Text style={globalStyle.fontWeight.bold}> · </Text>
           </>
           {'Updated '}
-          {new Date().toLocaleDateString('en-GB', {
+          {new Date(data.updatedAt).toLocaleDateString('en-GB', {
             day: 'numeric',
             month: 'short',
             year: 'numeric',

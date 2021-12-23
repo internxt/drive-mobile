@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Photo } from '@internxt/sdk';
+import { Photo } from '@internxt/sdk/dist/photos';
 import { Dimensions, FlatList, ListRenderItemInfo, RefreshControl, View } from 'react-native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { useNavigation } from '@react-navigation/native';

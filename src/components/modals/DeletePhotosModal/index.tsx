@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { Photo } from '@internxt/sdk';
+import { Photo } from '@internxt/sdk/dist/photos';
 
 import globalStyle from '../../../styles/global.style';
 import { tailwind } from '../../../helpers/designSystem';
