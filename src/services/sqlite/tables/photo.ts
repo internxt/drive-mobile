@@ -12,6 +12,12 @@ const statements: Record<string, string> = {
     deviceId TEXT UNIQUE, \
     userUuid TEXT NOT NULL \
     );',
+  insert:
+    'INSERT INTO photo (\
+      id, name, type, size, width, heigth, fileId, previewId, deviceId, userUuid\
+    ) \
+    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+  deleteById: 'DELETE FROM photo WHERE id = ?;',
 };
 
 export default {

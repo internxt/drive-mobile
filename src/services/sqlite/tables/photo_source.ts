@@ -6,6 +6,11 @@ const statements: Record<string, string> = {
     previewSource BLOB NOT NULL, \
     photoSource BLOB \
   )',
+  insert: 'INSERT INTO photo_source (\
+      photoId, previewSource, photoSource\
+    ) \
+    VALUES ( ?, ?, ?);',
+  deleteByPhotoId: 'DELETE FROM photo_source WHERE photoId = ?;',
 };
 
 export default {
