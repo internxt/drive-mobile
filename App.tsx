@@ -17,7 +17,6 @@ import strings from './assets/lang/strings';
 import { deviceStorage } from './src/services/deviceStorage';
 import { authActions, authThunks } from './src/store/slices/auth';
 import { filesActions } from './src/store/slices/files';
-import LinkCopiedModal from './src/components/modals/LinkCopiedModal';
 
 process.nextTick = setImmediate;
 

@@ -14,6 +14,7 @@ import { photosActions, photosThunks } from '../../../store/slices/photos';
 import { layoutActions } from '../../../store/slices/layout';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
+import CameraRoll from '@react-native-community/cameraroll';
 
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();

@@ -12,7 +12,7 @@ class SQLiteService {
   }
 
   public async open(name: string) {
-    const db = await SQLite.openDatabase({ name, location: IOS_LOCATION });
+    const db = await SQLite.openDatabase({ name, location: IOS_LOCATION }, undefined, (err) => console.log(err));
 
     this.pool[name] = db;
   }

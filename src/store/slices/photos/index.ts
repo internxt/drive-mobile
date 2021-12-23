@@ -1,12 +1,27 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {
+  checkMultiple,
+  requestMultiple,
+  AndroidPermission,
+  IOSPermission,
+  Permission,
+  PERMISSIONS,
+  PermissionStatus,
+  RESULTS,
+} from 'react-native-permissions';
+import { Device, Photo, Photos } from '@internxt/sdk';
 
 import { RootState } from '../..';
 import { GalleryViewMode } from '../../../types';
-import { Device, Photo, Photos } from '@internxt/sdk';
+import { Platform } from 'react-native';
 
 const photosSdk = new Photos(process.env.REACT_NATIVE_PHOTOS_API_URL as string);
 
 export interface PhotosState {
+  permissions: {
+    android: { [key in AndroidPermission]?: PermissionStatus };
+    ios: { [key in IOSPermission]?: PermissionStatus };
+  };
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
   photos: Photo[];
@@ -15,6 +30,15 @@ export interface PhotosState {
 }
 
 const initialState: PhotosState = {
+  permissions: {
+    android: {
+      [PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE]: RESULTS.DENIED,
+      [PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE]: RESULTS.DENIED,
+    },
+    ios: {
+      [PERMISSIONS.IOS.PHOTO_LIBRARY]: RESULTS.DENIED,
+    },
+  },
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.All,
   photos: [
@@ -85,8 +109,37 @@ const initialState: PhotosState = {
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
-  async (payload: void, { getState }) => {
+  async (payload: void, { dispatch, getState }) => {
+    await dispatch(checkPermissionsThunk());
+
     photosSdk.setToken(getState().auth.token);
+  },
+);
+
+const checkPermissionsThunk = createAsyncThunk<Record<Permission, PermissionStatus>, void, { state: RootState }>(
+  'photos/checkPermissions',
+  async (payload: void, { getState }) => {
+    const { permissions } = getState().photos;
+    const results = await checkMultiple([
+      ...Object.keys(permissions[Platform.OS as 'ios' | 'android']),
+    ] as Permission[]);
+
+    return results;
+  },
+);
+
+const askForPermissionsThunk = createAsyncThunk<boolean, void, { state: RootState }>(
+  'photos/askForPermissions',
+  async (payload: void, { dispatch, getState }) => {
+    const { permissions } = getState().photos;
+    const results = await requestMultiple([
+      ...Object.keys(permissions[Platform.OS as 'ios' | 'android']),
+    ] as Permission[]);
+    const areGranted = Object.values(results).reduce((t, x) => t || x === 'granted', false);
+
+    await dispatch(checkPermissionsThunk()).unwrap();
+
+    return areGranted;
   },
 );
 
@@ -157,6 +210,19 @@ export const photosSlice = createSlice({
       .addCase(initializeThunk.rejected, () => undefined);
 
     builder
+      .addCase(checkPermissionsThunk.pending, () => undefined)
+      .addCase(checkPermissionsThunk.fulfilled, (state, action) => {
+        Object.entries(action.payload).forEach(([key, value]) => {
+          if (Platform.OS === 'android') {
+            state.permissions.android[key as AndroidPermission] = value;
+          } else {
+            state.permissions.ios[key as IOSPermission] = value;
+          }
+        });
+      })
+      .addCase(checkPermissionsThunk.rejected, () => undefined);
+
+    builder
       .addCase(createDeviceThunk.pending, () => undefined)
       .addCase(createDeviceThunk.fulfilled, () => undefined)
       .addCase(createDeviceThunk.rejected, () => undefined);
@@ -188,9 +254,28 @@ export const photosSelectors = {
     (state: RootState) =>
     (photo: Photo): boolean =>
       state.photos.selectedPhotos.some((i) => i.id === photo.id),
+  arePermissionsGranted: (state: RootState): boolean => {
+    const result = Object.values(state.photos.permissions[Platform.OS as 'ios' | 'android']).reduce(
+      (t, x) => t && x === 'granted',
+      true,
+    );
+
+    return result;
+  },
+  arePermissionsBlocked: (state: RootState): boolean => {
+    const result = Object.values(state.photos.permissions[Platform.OS as 'ios' | 'android']).reduce(
+      (t, x) => t || x === 'blocked',
+      false,
+    );
+
+    return result;
+  },
 };
 
 export const photosThunks = {
+  initializeThunk,
+  checkPermissionsThunk,
+  askForPermissionsThunk,
   createDeviceThunk,
   createPhotoThunk,
   deletePhotosThunk,

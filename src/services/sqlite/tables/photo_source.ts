@@ -11,6 +11,7 @@ const statements: Record<string, string> = {
     ) \
     VALUES ( ?, ?, ?);',
   deleteByPhotoId: 'DELETE FROM photo_source WHERE photoId = ?;',
+  getByPhotoId: 'SELECT * FROM photo_source WHERE photoId = ?;',
 };
 
 export default {

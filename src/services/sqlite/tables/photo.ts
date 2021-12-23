@@ -18,6 +18,7 @@ const statements: Record<string, string> = {
     ) \
     VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
   deleteById: 'DELETE FROM photo WHERE id = ?;',
+  getAll: 'SELECT * FROM photo;',
 };
 
 export default {
