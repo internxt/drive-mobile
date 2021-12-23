@@ -14,10 +14,18 @@ import { Device, Photo, Photos } from '@internxt/sdk';
 import { RootState } from '../..';
 import { GalleryViewMode } from '../../../types';
 import { Platform } from 'react-native';
+import sqliteService from '../../../services/sqlite';
+import photo from '../../../services/sqlite/tables/photo';
+import photo_source from '../../../services/sqlite/tables/photo_source';
+import device from '../../../services/sqlite/tables/device';
 
 const photosSdk = new Photos(process.env.REACT_NATIVE_PHOTOS_API_URL as string);
 
+const SQLITE_DB_NAME = 'photos';
+
 export interface PhotosState {
+  isInitialized: boolean;
+  isDatabaseInitialized: boolean;
   permissions: {
     android: { [key in AndroidPermission]?: PermissionStatus };
     ios: { [key in IOSPermission]?: PermissionStatus };
@@ -30,6 +38,8 @@ export interface PhotosState {
 }
 
 const initialState: PhotosState = {
+  isInitialized: false,
+  isDatabaseInitialized: false,
   permissions: {
     android: {
       [PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE]: RESULTS.DENIED,
@@ -113,6 +123,21 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     await dispatch(checkPermissionsThunk());
 
     photosSdk.setToken(getState().auth.token);
+
+    if (photosSelectors.arePermissionsGranted(getState())) {
+      await dispatch(initializeDatabaseThunk()).unwrap();
+    }
+  },
+);
+
+const initializeDatabaseThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/initializeDatabase',
+  async () => {
+    await sqliteService.open(SQLITE_DB_NAME);
+
+    await sqliteService.executeSql(SQLITE_DB_NAME, photo.statements.createTable);
+    await sqliteService.executeSql(SQLITE_DB_NAME, photo_source.statements.createTable);
+    await sqliteService.executeSql(SQLITE_DB_NAME, device.statements.createTable);
   },
 );
 
@@ -205,9 +230,22 @@ export const photosSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(initializeThunk.pending, () => undefined)
-      .addCase(initializeThunk.fulfilled, () => undefined)
+      .addCase(initializeThunk.pending, (state) => {
+        state.isInitialized = false;
+      })
+      .addCase(initializeThunk.fulfilled, (state) => {
+        state.isInitialized = true;
+      })
       .addCase(initializeThunk.rejected, () => undefined);
+
+    builder
+      .addCase(initializeDatabaseThunk.pending, (state) => {
+        state.isDatabaseInitialized = false;
+      })
+      .addCase(initializeDatabaseThunk.fulfilled, (state) => {
+        state.isDatabaseInitialized = true;
+      })
+      .addCase(initializeDatabaseThunk.rejected, () => undefined);
 
     builder
       .addCase(checkPermissionsThunk.pending, () => undefined)
@@ -274,6 +312,7 @@ export const photosSelectors = {
 
 export const photosThunks = {
   initializeThunk,
+  initializeDatabaseThunk,
   checkPermissionsThunk,
   askForPermissionsThunk,
   createDeviceThunk,

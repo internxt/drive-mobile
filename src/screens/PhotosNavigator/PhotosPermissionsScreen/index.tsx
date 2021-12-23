@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Platform, Text, View } from 'react-native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import SyncIcon from '../../../../assets/images/modals/sync.svg';
@@ -6,7 +6,6 @@ import strings from '../../../../assets/lang/strings';
 import BaseButton from '../../../components/BaseButton';
 
 import { tailwind } from '../../../helpers/designSystem';
-import sqliteService from '../../../services/sqlite';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { photosSelectors, photosThunks } from '../../../store/slices/photos';
 import globalStyle from '../../../styles/global.style';
@@ -15,7 +14,6 @@ import { PhotosScreen } from '../../../types';
 
 function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackProp }): JSX.Element {
   const dispatch = useAppDispatch();
-  const arePermissionsGranted = useAppSelector(photosSelectors.arePermissionsGranted);
   const arePermissionsBlocked = useAppSelector(photosSelectors.arePermissionsBlocked);
   const features = [
     strings.screens.photosPermissions.features[0],
@@ -31,6 +29,8 @@ function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackPr
     );
   });
   const onPermissionsGranted = async () => {
+    await dispatch(photosThunks.initializeDatabaseThunk()).unwrap();
+    // TODO: init database error handling
     navigation.replace(PhotosScreen.Gallery);
   };
   const onButtonPressed = async () => {
@@ -42,12 +42,6 @@ function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackPr
         }
       });
   };
-
-  useEffect(() => {
-    if (arePermissionsGranted) {
-      onPermissionsGranted();
-    }
-  }, []);
 
   return (
     <View style={tailwind('app-screen items-center bg-white flex-1 px-5')}>
@@ -75,7 +69,6 @@ function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackPr
         onPress={onButtonPressed}
         style={tailwind('mb-2 w-full')}
       />
-
       <Text style={tailwind('text-center text-xs text-neutral-100')}>{strings.screens.photosPermissions.access}</Text>
     </View>
   );

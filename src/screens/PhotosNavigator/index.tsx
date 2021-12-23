@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
 import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -25,12 +25,12 @@ const routeConfig: RouteConfig = {
 const StackNav = createNativeStackNavigator();
 
 function PhotosNavigator(): JSX.Element {
-  const [isInitialized, setIsInitialized] = useState(false);
+  const { isInitialized } = useAppSelector((state) => state.photos);
   const arePermissionsGranted = useAppSelector(photosSelectors.arePermissionsGranted);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(photosThunks.initializeThunk()).then(() => setIsInitialized(true));
+    dispatch(photosThunks.initializeThunk());
   }, []);
 
   return (

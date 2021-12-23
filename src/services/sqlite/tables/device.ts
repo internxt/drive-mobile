@@ -1,11 +1,11 @@
-const statements: Record<string, string> = {
+const statements = {
   createTable:
-    'CREATE TABLE IF NOT EXISTS device(\
+    'CREATE TABLE IF NOT EXISTS device (\
     id TEXT PRIMARY KEY, \
     mac TEXT UNIQUE, \
     name TEXT NOT NULL, \
     userId TEXT NOT NULL, \
-    createdAt TEXT NOT NULL \
+    createdAt TEXT NOT NULL, \
     updatedAt TEXT NOT NULL\
     );',
   insert:

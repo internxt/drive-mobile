@@ -1,6 +1,6 @@
-const statements: Record<string, string> = {
+const statements = {
   createTable:
-    'CREATE TABLE IF NOT EXISTS photo(\
+    'CREATE TABLE IF NOT EXISTS photo (\
     id TEXT PRIMARY KEY, \
     name TEXT NOT NULL, \
     type TEXT NOT NULL, \
