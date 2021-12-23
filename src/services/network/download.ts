@@ -1,14 +1,20 @@
 import { request } from '@internxt/lib';
-import RFNS from 'react-native-fs';
+import RNFS from 'react-native-fs';
+import uuid from 'react-native-uuid';
 import axios, { AxiosRequestConfig } from 'axios';
 
 import { BucketId, FileId, NetworkCredentials } from '.';
 import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 import { wrap } from '../../@inxt-js/lib/utils/error';
-import { retry } from 'async';
-import { createDecipheriv, Decipher } from 'react-native-crypto';
+import { eachLimit, retry } from 'async';
+import { createDecipheriv, Decipher, randomBytes } from 'react-native-crypto';
+import { Platform } from 'react-native';
+import RNFetchBlob from 'rn-fetch-blob';
+import { getDocumentsDir } from '../../lib/fs';
 
 const networkApiUrl = 'https://api.photos.internxt.com';
+
+type FileDecryptedURI = string;
 
 interface FileInfo {
   bucket: string;
@@ -47,8 +53,12 @@ interface Shard {
   operation: string;
 }
 
-function getFileInfo(): Promise<FileInfo | undefined> {
-
+function getFileInfo(bucketId: BucketId, fileId: FileId, options?: AxiosRequestConfig): Promise<FileInfo | undefined> {
+  return axios.get<FileInfo>(`${networkApiUrl}/buckets/${bucketId}/files/${fileId}/info`, options)
+    .then((res) => res.data)
+    .catch((err) => {
+      throw new Error(request.extractMessageFromError(err));
+    });
 }
 
 function getFileMirror(bucketId: BucketId, fileId: FileId, options?: AxiosRequestConfig): Promise<Shard | null> {
@@ -68,15 +78,58 @@ function generateDecipher(key: Buffer, iv: Buffer): Decipher {
   return createDecipheriv('aes-256-ctr', key, iv);
 }
 
-function decryptFile(encryptedFileURI: string, fileSize: string, decipher: Decipher): Promise<void> {
-  // 1. Create decipher
+async function decryptFile(
+  encryptedFileURI: string, 
+  fileSize: number, 
+  decipher: Decipher
+): Promise<FileDecryptedURI> {
+  const twoMb = 2 * 1024 * 1024;
+  const chunksOf = twoMb;
+  const chunks = Math.ceil(fileSize / chunksOf);
+
+  console.log('eoeoeeo');
+
+  const URIWhereWriteFile: FileDecryptedURI = getDocumentsDir() + randomBytes(5).toString('hex') + 'eee.enc';
+  const writer = await RNFetchBlob.fs.writeStream(URIWhereWriteFile, 'base64');
+
+  console.log('eoeoeeo2');
+
+  let start = 0;
+
+  return eachLimit(new Array(chunks), 1, (_, cb) => {
+    RNFS.read(encryptedFileURI, twoMb, start, 'base64').then((res) => {
+      console.log('eoeoeeo3');
+      decipher.write(Buffer.from(res, 'base64'));
+      return writer.write(decipher.read().toString('base64'));
+    }).then(() => {
+      start += twoMb;
+      cb(null);
+    }).catch((err) => {
+      cb(err);
+    });
+  }).then(() => {
+    return writer.close();
+  }).then(() => {
+    return URIWhereWriteFile;
+  });
 }
 
-function downloadEncryptedFile() {
-
+function downloadEncryptedFile(fromUrl: string) {
+  
 }
 
-export async function downloadFile(bucketId: BucketId, fileId: FileId, credentials: NetworkCredentials) {
+function requestDownloadUrlToFarmer(farmerUrl: string): Promise<string> {
+  return axios.get<{ result: string }>(farmerUrl)
+    .then((res) => {
+      return res.data.result;
+    });
+}
+
+export async function downloadFile(
+  bucketId: BucketId, 
+  fileId: FileId, 
+  credentials: NetworkCredentials
+): Promise<FileDecryptedURI> {
   if (!bucketId) {
     throw new Error('Download error code 1');
   }
@@ -105,11 +158,13 @@ export async function downloadFile(bucketId: BucketId, fileId: FileId, credentia
   };
 
   // 1. Get file info
-  const fileInfo = await getFileInfo(fileId, defaultRequestOptions);
+  const fileInfo = await getFileInfo(bucketId, fileId, defaultRequestOptions);
 
   if (!fileInfo) {
     throw new Error('Download error code 6');
   }
+
+  console.log(JSON.stringify(fileInfo, null, 2));
 
   // 2. Get file mirror
   const mirror = await getFileMirror(bucketId, fileId, defaultRequestOptions);
@@ -118,24 +173,28 @@ export async function downloadFile(bucketId: BucketId, fileId: FileId, credentia
     throw new Error('Dowload error code 7');
   }
 
+  console.log(JSON.stringify(mirror, null, 2));
+
   const farmerUrl = `http://${mirror.farmer.address}:${mirror.farmer.port}/download/link/${mirror.hash}`;
+  const downloadUrl = await requestDownloadUrlToFarmer(farmerUrl);
 
   // 3. Download file
-  // Get uri for storing the file
-  const encryptedFileURI = '';
+  const encryptedFileURI = (Platform.OS === 'android' ? RNFS.DocumentDirectoryPath : RNFS.MainBundlePath) + mirror.hash + '.enc'; 
+
+  console.log('file download started');
 
   await retry({ times: 3, interval: 500 }, (nextTry) => {
-    const downloadResult = RFNS.downloadFile({
-      fromUrl: farmerUrl,
+    const downloadResult = RNFS.downloadFile({
+      fromUrl: downloadUrl,
       toFile: encryptedFileURI,
       discretionary: true,
       cacheable: false
     });
 
     downloadResult.promise.then(() => {
-      return RFNS.hash(encryptedFileURI, 'sha256');
+      return RNFS.hash(encryptedFileURI, 'sha256');
     }).then((sha256hash) => {
-      const fileHash = ripemd160(sha256hash).toString('hex');
+      const fileHash = ripemd160(Buffer.from(sha256hash, 'hex')).toString('hex');
 
       if (fileHash === mirror.hash) {
         nextTry(null);
@@ -146,6 +205,8 @@ export async function downloadFile(bucketId: BucketId, fileId: FileId, credentia
       nextTry(err);
     });
   });
+
+  console.log('file download finished');
 
   // 4. Decrypt file
   const fileDecryptionKey = await GenerateFileKey(
@@ -160,8 +221,11 @@ export async function downloadFile(bucketId: BucketId, fileId: FileId, credentia
     Buffer.from(fileInfo.index, 'hex').slice(0, 16)
   );
 
-
+  const fileURI = await decryptFile(encryptedFileURI, fileInfo.size, decipher);
 
   // Remove encrypted file
-  await RFNS.unlink(encryptedFileURI);
+  await RNFS.unlink(encryptedFileURI);
+
+  // Move to gallery or return file uri?
+  return fileURI;
 }
