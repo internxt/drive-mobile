@@ -1,11 +1,12 @@
 import { randomBytes, createCipheriv, Cipher } from 'react-native-crypto';
 import RFNS, { UploadFileItem } from 'react-native-fs';
 import { eachLimit } from 'async';
+import RNFetchBlob from 'rn-fetch-blob';
 import uuid from 'react-native-uuid';
 import axios, { AxiosRequestConfig } from 'axios';
 import { request } from '@internxt/lib';
 
-import { GenerateFileKey, ripemd160, sha256, sha512HmacBuffer } from '../../@inxt-js/lib/crypto';
+import { GenerateFileKey, ripemd160, sha256, sha512HmacBuffer, EncryptFilename } from '../../@inxt-js/lib/crypto';
 import { getDocumentsDir } from '../../lib/fs';
 import { ShardMeta } from '../../@inxt-js/lib/shardMeta';
 
@@ -66,6 +67,25 @@ interface CreateEntryFromFrameBody {
   }
 }
 
+interface CreateEntryFromFrameResponse {
+  id: string;
+  index: string;
+  frame: string;
+  bucket: string;
+  mimetype: string;
+  name: string;
+  renewal: string;
+  created: string;
+  hmac: {
+    value: string;
+    type: string;
+  };
+  erasure: {
+    type: string;
+  };
+  size: number;
+}
+
 interface MerkleTree {
   leaf: string[];
   challenges: Buffer[];
@@ -106,8 +126,7 @@ function bucketExists(bucketId: BucketId, options?: AxiosRequestConfig): Promise
   return axios.get(`${networkApiUrl}/buckets/${bucketId}`, options)
     .then(() => true)
     .catch((err) => {
-      // TODO: Wrap
-      throw err;
+      throw new Error(request.extractMessageFromError(err));
     });
 }
 
@@ -115,8 +134,7 @@ function stageFile(options?: AxiosRequestConfig): Promise<FrameId> {
   return axios.post<Frame>(`${networkApiUrl}/frames`, {}, options)
     .then((res) => res.data.id)
     .catch((err) => {
-      // TODO: Wrap
-      throw err;
+      throw new Error(request.extractMessageFromError(err));
     });
 }
 
@@ -131,8 +149,7 @@ function negotiateContract(frameId: FrameId, shardMeta: ShardMeta, options?: Axi
   }).then((res) => {
     return res.data;
   }).catch((err) => {
-    console.log(request.extractMessageFromError(err));
-    throw err;
+    throw new Error(request.extractMessageFromError(err));
   });
 }
 
@@ -147,21 +164,36 @@ function generateHmac(encryptionKey: Buffer, shardMetas: ShardMeta[]): string {
   return hmac.digest().toString('hex');
 }
 
-async function createBucketEntry(frameId: FrameId, encryptionKey: Buffer, index: Buffer, shardMetas: ShardMeta[]): Promise<BucketEntryId> {
+function createBucketEntry(
+  bucketId: BucketId,
+  frameId: FrameId, 
+  filename: string,
+  encryptionKey: Buffer, 
+  index: Buffer, 
+  shardMetas: ShardMeta[],
+  options: AxiosRequestConfig
+): Promise<BucketEntryId> {
   const hmac = generateHmac(encryptionKey, shardMetas);
-  // TODO: Encrypt this
-  const filename = uuid.v4().toString();
+  const newBucketEntry = generateBucketEntry(frameId, filename, index, hmac);
 
-  const newBucketEntry = generateBucketEntry(frameId, filename, index, hmac, false);
-  // TODO: Make bridge request
+  console.log('BuckeTentry', JSON.stringify(newBucketEntry, null, 2));
+
+  return axios.post<CreateEntryFromFrameResponse>(
+    `${networkApiUrl}/buckets/${bucketId}/files`, 
+    newBucketEntry, 
+    options
+  ).then((res) => {
+    return res.data.id;
+  }).catch((err) => {
+    throw new Error(request.extractMessageFromError(err));
+  });
 }
 
 function generateBucketEntry(
   frameId: FrameId,
   filename: string,
   index: Buffer,
-  hmac: string,
-  rs: boolean,
+  hmac: string
 ): CreateEntryFromFrameBody {
   const bucketEntry: CreateEntryFromFrameBody = {
     frame: frameId,
@@ -170,10 +202,6 @@ function generateBucketEntry(
     hmac: { type: 'sha512', value: hmac },
   };
 
-  if (rs) {
-    bucketEntry.erasure = { type: 'reedsolomon' };
-  }
-
   return bucketEntry;
 }
 
@@ -181,24 +209,28 @@ function generateCipher(key: Buffer, iv: Buffer): Cipher {
   return createCipheriv('aes-256-ctr', key, iv);
 }
 
-function encryptFile(fileUri: string, fileSize: number, cipher: Cipher): Promise<FileEncryptedURI> {
+async function encryptFile(fileUri: string, fileSize: number, cipher: Cipher): Promise<FileEncryptedURI> {
   const twoMb = 2 * 1024 * 1024;
   const chunksOf = twoMb;
-  const chunks = Math.ceil(fileSize / twoMb);
+  const chunks = Math.ceil(fileSize / chunksOf);
+
+  const fileEncryptedURI: FileEncryptedURI = getDocumentsDir() + 'hola.enc';
+  const writer = await RNFetchBlob.fs.writeStream(fileEncryptedURI, 'base64');
 
   let start = 0;
 
-  const fileEncryptedURI: FileEncryptedURI = getDocumentsDir() + 'hola.enc';
-
   return eachLimit(new Array(chunks), 1, (_, cb) => {
-    RFNS.read(fileUri, chunksOf, start, 'base64')
-      .then((res) => {
-        cipher.write(Buffer.from(res, 'base64'));
-        start += twoMb;
-        return RFNS.appendFile(fileEncryptedURI, cipher.read().toString('base64'), 'base64');
-      })
-      .then(() => cb(null))
-      .catch(cb);
+    RFNS.read(fileUri, chunksOf, start, 'base64').then((res) => {
+      cipher.write(Buffer.from(res, 'base64'));
+      return writer.write(cipher.read().toString('base64'));
+    }).then(() => {
+      start += twoMb;
+      cb(null);
+    }).catch((err) => {
+      cb(err);
+    });
+  }).then(() => {
+    return writer.close();
   }).then(() => {
     return fileEncryptedURI;
   });
@@ -220,6 +252,12 @@ export async function uploadFile(fileURI: string, bucketId: BucketId, credential
   if (!credentials.pass) {
     throw new Error('Upload error code 4');
   }
+
+  const filename = await EncryptFilename(
+    credentials.encryptionKey, 
+    bucketId, 
+    uuid.v4().toString()
+  );
 
   const defaultRequestOptions: AxiosRequestConfig = {
     auth: {
@@ -265,7 +303,7 @@ export async function uploadFile(fileURI: string, bucketId: BucketId, credential
     challenges_as_str: merkleTree.challenges_as_str,
   }];
 
-  console.log(JSON.stringify(shardMetas[0], null, 2));
+  // console.log(JSON.stringify(shardMetas[0], null, 2));
 
   console.log('negotiating contract');
 
@@ -273,7 +311,9 @@ export async function uploadFile(fileURI: string, bucketId: BucketId, credential
   const contract = await negotiateContract(frameId, shardMetas[0], defaultRequestOptions);
 
   console.log('negotiated contract');
-  console.log(JSON.stringify(contract, null, 2));
+  // console.log(JSON.stringify(contract, null, 2));
+
+  console.log('Size ' + (await RFNS.stat(fileEncryptedURI)).size);
 
   // 6. Upload file
   const files: UploadFileItem[] = [{
@@ -283,18 +323,54 @@ export async function uploadFile(fileURI: string, bucketId: BucketId, credential
     name: ''
   }];
 
-  const uploadResult = RFNS.uploadFiles({
-    toUrl: contract.url,
-    // binaryStreamOnly
-    files,
-    method: 'PUT',
-    progress: (res) => {
-      console.log('PROGRESS ' + ((res.totalBytesSent / res.totalBytesExpectedToSend) * 100).toFixed(2));
-    }
-  });
+  console.log('start put');
+  await RNFetchBlob.fetch('PUT', contract.url, {}, RNFetchBlob.wrap(fileEncryptedURI));
+  console.log('finish put');
 
-  await uploadResult.promise;
+  // async function getBlob(fileUri: string) {
+  //   const resp = await fetch(fileUri);
+  //   const imageBody = await resp.blob();
+  //   return imageBody;
+  // }
+
+  // async function uploadImage(uploadUrl: string, fileUri: string) {
+  //   const imageBody = await getBlob(fileUri);
+
+  //   console.log('IMAGE SIZE ' + imageBody.size);
+
+  //   return fetch(uploadUrl, {
+  //     method: 'PUT',
+  //     body: imageBody
+  //   });
+  // }
+
+  // console.log('upload image starts');
+  // await uploadImage(contract.url, fileEncryptedURI);
+  // console.log('upload image ends');
+
+  // const uploadResult = RFNS.uploadFiles({
+  //   toUrl: contract.url,
+  //   // binaryStreamOnly
+  //   files,
+  //   method: 'PUT',
+
+  //   progress: (res) => {
+  //     console.log('PROGRESS ' + ((res.totalBytesSent / res.totalBytesExpectedToSend) * 100).toFixed(2));
+  //   }
+  // });
+
+  // await uploadResult.promise;
 
   // 7. Create file entry
-  return createBucketEntry(frameId, fileEncryptionKey, index, shardMetas);
+  return createBucketEntry(
+    bucketId, 
+    frameId, 
+    filename,
+    fileEncryptionKey, 
+    index, 
+    shardMetas,
+    defaultRequestOptions
+  ).catch((err) => {
+    throw new Error(request.extractMessageFromError(err));
+  });
 }
