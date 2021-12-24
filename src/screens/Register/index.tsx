@@ -101,11 +101,11 @@ function Register(props: Reducers): JSX.Element {
 
       await Promise.all([
         analytics.identify(userData.uuid, { email: email }),
-        analytics.track('user-signup', {
+        analytics.track('User Signup', {
           properties: {
             userId: userData.uuid,
             email: email,
-            platform: 'mobile'
+            app_name: 'drive-mobile'
           }
         })
       ])
