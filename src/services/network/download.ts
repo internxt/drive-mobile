@@ -3,7 +3,7 @@ import RNFS from 'react-native-fs';
 import uuid from 'react-native-uuid';
 import axios, { AxiosRequestConfig } from 'axios';
 
-import { BucketId, FileId, NetworkCredentials } from '.';
+import { BucketId, NetworkCredentials } from '../sync/types';
 import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 import { wrap } from '../../@inxt-js/lib/utils/error';
 import { eachLimit, retry } from 'async';
@@ -11,6 +11,7 @@ import { createDecipheriv, Decipher, randomBytes } from 'react-native-crypto';
 import { Platform } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import { getDocumentsDir } from '../../lib/fs';
+import { FileId } from '@internxt/sdk';
 
 const networkApiUrl = 'https://api.photos.internxt.com';
 
@@ -79,8 +80,8 @@ function generateDecipher(key: Buffer, iv: Buffer): Decipher {
 }
 
 async function decryptFile(
-  encryptedFileURI: string, 
-  fileSize: number, 
+  encryptedFileURI: string,
+  fileSize: number,
   decipher: Decipher
 ): Promise<FileDecryptedURI> {
   const twoMb = 2 * 1024 * 1024;
@@ -114,10 +115,6 @@ async function decryptFile(
   });
 }
 
-function downloadEncryptedFile(fromUrl: string) {
-  
-}
-
 function requestDownloadUrlToFarmer(farmerUrl: string): Promise<string> {
   return axios.get<{ result: string }>(farmerUrl)
     .then((res) => {
@@ -126,8 +123,8 @@ function requestDownloadUrlToFarmer(farmerUrl: string): Promise<string> {
 }
 
 export async function downloadFile(
-  bucketId: BucketId, 
-  fileId: FileId, 
+  bucketId: BucketId,
+  fileId: FileId,
   credentials: NetworkCredentials
 ): Promise<FileDecryptedURI> {
   if (!bucketId) {
@@ -179,7 +176,7 @@ export async function downloadFile(
   const downloadUrl = await requestDownloadUrlToFarmer(farmerUrl);
 
   // 3. Download file
-  const encryptedFileURI = (Platform.OS === 'android' ? RNFS.DocumentDirectoryPath : RNFS.MainBundlePath) + mirror.hash + '.enc'; 
+  const encryptedFileURI = (Platform.OS === 'android' ? RNFS.DocumentDirectoryPath : RNFS.MainBundlePath) + mirror.hash + '.enc';
 
   console.log('file download started');
 
@@ -210,8 +207,8 @@ export async function downloadFile(
 
   // 4. Decrypt file
   const fileDecryptionKey = await GenerateFileKey(
-    credentials.encryptionKey, 
-    bucketId, 
+    credentials.encryptionKey,
+    bucketId,
     Buffer.from(fileInfo.index, 'hex')
   );
 

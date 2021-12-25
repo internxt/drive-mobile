@@ -7,9 +7,11 @@ export const convertLocalIdentifierToAssetLibrary = (localIdentifier: string, ex
   return `assets-library://asset/asset.${ext}?id=${hash}&ext=${ext}`;
 };
 
-export async function loadLocalPhotos(cursor?: string): Promise<[CameraRoll.PhotoIdentifier[], string | undefined]> {
+export async function loadLocalPhotos(from: Date, to: Date, limit: number, cursor?: string): Promise<[CameraRoll.PhotoIdentifier[], string | undefined]> {
   const photos = await CameraRoll.getPhotos({
-    first: 25,
+    first: limit,
+    fromTime: from.getMilliseconds(),
+    toTime: to.getMilliseconds(),
     assetType: 'Photos',
     groupTypes: 'All',
     after: cursor,
