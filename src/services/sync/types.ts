@@ -1,5 +1,12 @@
 import { DeviceId, FileId } from '@internxt/sdk';
 
+export type UserId = string;
+export interface User {
+  id: UserId;
+  uuid: string
+  bucketId: BucketId
+}
+
 export interface Photo {
   id: string
   previewId: string
@@ -9,15 +16,24 @@ export interface Photo {
   width: number
   size: number
   type: string
-  userId: string
+  userId: UserId
   name: string
   status: 'EXISTS' | 'TRASH' | 'DELETED'
   createdAt: Date
   updatedAt: Date
 }
 
+export type DeviceName = string;
+export type DeviceMac = string;
+
+export interface Device {
+  id: DeviceId;
+  mac: DeviceMac;
+  name: DeviceName;
+  userId: UserId;
+}
+
 export type BucketId = string;
-export type PhotosUserId = string;
 export type NewPhoto = Pick<Photo,
   'name' | 'deviceId' | 'height' | 'width' | 'size' | 'type' | 'userId'
 > & { URI: string };
