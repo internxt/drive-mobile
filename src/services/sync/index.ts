@@ -1,7 +1,7 @@
 import { DeviceId } from '@internxt/sdk';
 import CameraRoll from '@react-native-community/cameraroll';
 
-import { Photo, PhotosUserId, NewPhoto, BucketId, NetworkCredentials } from './types';
+import { Photo, NewPhoto, BucketId, NetworkCredentials, Device, User, UserId } from './types';
 import { loadLocalPhotos } from '../photos';
 import {
   changePhotoStatus,
@@ -13,7 +13,8 @@ import {
   storePhotoLocally,
   getPhotoById,
   getRemotePhotosSince,
-  initPhotosUser
+  initPhotosUser,
+  createDevice
 } from './utils';
 
 interface CursorOpts {
@@ -111,9 +112,7 @@ export class PhotosSync {
     this.credentials = credentials;
   }
 
-  private async ensurePhotosIsInitialized(): Promise<PhotosUserId> {
-    // TODO: Check in local database
-    const isPhotosInitialized = false;
+  private async initializeUser(): Promise<User> {
     const headers = new Headers();
     const jwt = '';
     headers.append('Authorization', `Bearer ${jwt}`);
@@ -121,30 +120,56 @@ export class PhotosSync {
     return initPhotosUser({ mac: 'deviceMac', name: 'deviceName' }, {
       headers: {
         'Authorization': `Bearer ${jwt}`,
-        'internxt-network-pass': '',
-        'internxt-network-user': ''
+        'internxt-network-pass': this.credentials.pass,
+        'internxt-network-user': this.credentials.user
       }
     });
   }
 
-  // private ensureLocalDBIsInitialized(): Promise<void> {
-  //   // TODO: Check
-  //   const isLocalDBInitialized = true;
+  private async initializeDevice(userId: string): Promise<Device> {
+    const headers = new Headers();
+    const jwt = '';
+    headers.append('Authorization', `Bearer ${jwt}`);
 
-  //   if (!isLocalDBInitialized) {
-  //     await initializeLocalDB();
-  //   }
-  // }
+    return createDevice({
+      mac: 'deviceMac',
+      name: 'deviceName',
+      userId
+    }, {
+      headers: {
+        'Authorization': `Bearer ${jwt}`
+      }
+    });
+  }
 
-  async start(): Promise<void> {
-    await this.ensurePhotosIsInitialized();
+  private async initializeLocalDb(): Promise<void> {
+    // TODO: isLocalDbInitialized(): boolean
+    const localDbInitialized = false;
+
+    if (!localDbInitialized) {
+      // TODO
+      console.log('Local DB is not initialized, initializing');
+    }
+  }
+
+  async run(): Promise<void> {
+    console.log('Initializing local db');
+    await this.initializeLocalDb();
+
+    console.log('Initializing user');
+    const user = await this.initializeUser();
+    console.log('USER', JSON.stringify(user, null, 2));
+
+    console.log('Initializing device');
+    const device = await this.initializeDevice(user.id);
+    console.log('DEVICE', JSON.stringify(device, null, 2));
+
     return;
-    // await this.ensureLocalDBIsInitialized();
     // await this.uploadLocalPhotos();
     // await this.downloadRemotePhotos();
   }
 
-  async uploadLocalPhotos(ofUser: PhotosUserId, inDevice: DeviceId): Promise<void> {
+  async uploadLocalPhotos(ofUser: UserId, inDevice: DeviceId): Promise<void> {
     const lastUpdate = await getLastUpdateDate();
     const limit = 20;
     const cursor = new LocalPhotosCursor(inDevice, ofUser, lastUpdate, { limit, offset: 0 });
