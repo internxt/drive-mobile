@@ -17,6 +17,7 @@ import strings from './assets/lang/strings';
 import { deviceStorage } from './src/services/deviceStorage';
 import { authActions, authThunks } from './src/store/slices/auth';
 import { filesActions } from './src/store/slices/files';
+import LinkCopiedModal from './src/components/modals/LinkCopiedModal';
 
 process.nextTick = setImmediate;
 
@@ -51,7 +52,7 @@ export default function App(): JSX.Element {
       store.dispatch(authActions.signIn({ token, user }));
     }
   };
-  const handleOpenURL = (e: any) => {
+  const handleOpenURL = (e: { url: string }) => {
     if (e.url) {
       if (e.url.match(/inxt:\/\/.*:\/*/g)) {
         const regex = /inxt:\/\//g;
@@ -89,10 +90,8 @@ export default function App(): JSX.Element {
 
       Linking.addEventListener('url', handleOpenURL);
 
-      Linking.getInitialURL().then((res: any) => {
-        if (res && !res.url) {
-          const uri = res;
-
+      Linking.getInitialURL().then((uri) => {
+        if (uri) {
           // check if it's a file or it's an url redirect
           if (uri.match(/inxt:\/\/.*:\/*/g)) {
             const finalUri = uri.replace(regex, '');
@@ -162,6 +161,7 @@ export default function App(): JSX.Element {
             </SafeAreaView>
           )}
         </NavigationContainer>
+
         <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
       </Portal.Host>
     </Provider>

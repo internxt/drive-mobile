@@ -283,6 +283,9 @@ const strings = new LocalizedStrings({
         nativeMesage: 'Take a look to this photo!',
         linkOpenLimit: 'Link open limit',
       },
+      link_copied_modal: {
+        message: 'Link copied to clipboard',
+      },
     },
     messages: {
       photoShared: 'You have shared a photo!',
@@ -573,6 +576,9 @@ const strings = new LocalizedStrings({
       share_photo_modal: {
         nativeMesage: '¡Echa un vistazo a esta foto!',
         linkOpenLimit: 'Límite de veces abierto',
+      },
+      link_copied_modal: {
+        message: 'Enlace copiado al portapapeles',
       },
     },
     messages: {

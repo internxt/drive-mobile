@@ -18,7 +18,9 @@ import ChangePasswordScreen from './screens/ChangePasswordScreen';
 import RecoverPasswordScreen from './screens/RecoverPasswordScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import PhotosNavigator from './screens/PhotosNavigator';
-import { useAppSelector } from './store/hooks';
+import { useAppDispatch, useAppSelector } from './store/hooks';
+import { layoutActions } from './store/slices/layout';
+import LinkCopiedModal from './components/modals/LinkCopiedModal';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -45,12 +47,19 @@ const routeConfig: RouteConfig = {
 const StackNav = createNativeStackNavigator();
 
 function AppNavigator(): JSX.Element {
+  const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
   const initialRouteName = isLoggedIn ? AppScreen.TabExplorer : AppScreen.SignIn;
+  const isLinkCopiedModalOpen = useAppSelector((state) => state.layout.isLinkCopiedModalOpen);
+  const onLinkCopiedModalClosed = () => {
+    dispatch(layoutActions.setIsLinkCopiedModalOpen(false));
+  };
 
   return (
     <>
       <UpdateModal />
+      <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClosed={onLinkCopiedModalClosed} />
+
       <StackNav.Navigator
         initialRouteName={initialRouteName}
         screenOptions={{ headerShown: false, statusBarHidden: false }}

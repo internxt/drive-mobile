@@ -24,10 +24,10 @@ const CenterModal = (props: CenterModalProps): JSX.Element => {
     >
       <View style={tailwind('h-full')}>
         <TouchableWithoutFeedback onPress={props.onClosed}>
-          <View style={tailwind('flex-grow')} />
+          <View style={tailwind('flex-grow justify-center items-center')}>
+            <View style={tailwind('bg-white rounded-xl')}>{props.children}</View>
+          </View>
         </TouchableWithoutFeedback>
-
-        <View style={tailwind('bg-white rounded-t-xl')}>{props.children}</View>
       </View>
     </Modal>
   );
