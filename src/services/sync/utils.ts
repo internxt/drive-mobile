@@ -2,7 +2,7 @@ import RNFS from 'react-native-fs';
 import { request } from '@internxt/lib';
 import axios, { AxiosRequestConfig } from 'axios';
 
-import { NewPhoto, Photo, PhotosUserId, BucketId, NetworkCredentials } from './types';
+import { NewPhoto, Photo, User, BucketId, NetworkCredentials, DeviceName, DeviceMac, Device } from './types';
 import { getDocumentsDir } from '../../lib/fs';
 import * as network from '../network';
 
@@ -103,20 +103,36 @@ export async function getRemotePhotosSince(
     });
 }
 
-type DeviceName = string;
-type DeviceMac = string;
+
 
 interface InitPhotosUserPayload {
   name: DeviceName,
   mac: DeviceMac
 }
 
-export async function initPhotosUser(payload: InitPhotosUserPayload, options: AxiosRequestConfig): Promise<PhotosUserId> {
+export async function initPhotosUser(payload: InitPhotosUserPayload, options: AxiosRequestConfig): Promise<User> {
   const baseUrl = 'http://localhost:8001';
 
-  return axios.post<{ id: PhotosUserId }>(`${baseUrl}/users`, payload, options).then((res) => {
-    return res.data.id;
+  return axios.post<User>(`${baseUrl}/users`, payload, options).then((res) => {
+    return res.data;
   }).catch((err) => {
     throw new Error(request.extractMessageFromError(err));
   });
 }
+
+interface CreateDevicePayload {
+  mac: DeviceMac,
+  name: DeviceName,
+  userId: string
+}
+
+export async function createDevice(payload: CreateDevicePayload, options: AxiosRequestConfig): Promise<Device> {
+  const baseUrl = 'http://localhost:8001';
+
+  return axios.post<Device>(`${baseUrl}/devices`, payload, options).then((res) => {
+    return res.data;
+  }).catch((err) => {
+    throw new Error(request.extractMessageFromError(err));
+  });
+}
+
