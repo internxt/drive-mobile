@@ -144,6 +144,7 @@
     "@types/react-native": "~0.63.2",
     "@types/react-native-indicators": "^0.16.0",
     "@types/react-native-modalbox": "^1.4.8",
+    "@types/react-native-sqlite-storage": "^5.0.1",
     "@types/react-redux": "^7.1.11",
     "@types/redux-thunk": "^2.1.0",
     "babel-jest": "~25.2.6",

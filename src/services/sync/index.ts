@@ -68,6 +68,7 @@ class LocalPhotosCursor {
 
     for (const photo of galleryPhotos) {
       newPhotos.push({
+        creationDate: new Date(photo.node.timestamp * 1000),
         userId: this.userId,
         deviceId: this.deviceId,
         height: photo.node.image.height,
@@ -143,13 +144,8 @@ export class PhotosSync {
   }
 
   private async initializeLocalDb(): Promise<void> {
-    // TODO: isLocalDbInitialized(): boolean
-    const localDbInitialized = false;
-
-    if (!localDbInitialized) {
-      // TODO
-      console.log('Local DB is not initialized, initializing');
-    }
+    await sqliteService.open('photos.db');
+    await sqliteService.createPhotosTableIfNotExists();
   }
 
   async run(): Promise<void> {
@@ -164,8 +160,12 @@ export class PhotosSync {
     const device = await this.initializeDevice(user.id);
     console.log('DEVICE', JSON.stringify(device, null, 2));
 
-    return;
-    // await this.uploadLocalPhotos();
+    console.log('uploading local photos');
+    await this.uploadLocalPhotos(user.id, device.id);
+    console.log('local photos uplodaded');
+
+    // await sqliteService.delete('photos.db');
+    // console.log('deleted db');
     // await this.downloadRemotePhotos();
   }
 
@@ -175,11 +175,20 @@ export class PhotosSync {
     const cursor = new LocalPhotosCursor(inDevice, ofUser, lastUpdate, { limit, offset: 0 });
     let photos: NewPhoto[];
 
+    const headers = new Headers();
     do {
       photos = await cursor.next();
 
       for (const photo of photos) {
-        await pushPhoto(this.bucket, this.credentials, photo);
+        // console.log(JSON.stringify(photo, null, 2));
+
+        const [createdPhoto, previewBlob] = await pushPhoto(this.bucket, this.credentials, photo, {
+          headers: {
+            'Authorization': `Bearer ${jwt}`
+          }
+        });
+
+        await storePhotoLocally(createdPhoto, previewBlob);
       }
     } while (photos.length === limit);
   }
@@ -195,7 +204,7 @@ export class PhotosSync {
       photos = await cursor.next();
 
       for (const photo of photos) {
-        if (photo.status === 'TRASH') {
+        if (photo.status === 'TRASHED') {
           await this.movePhotoToTrash(photo);
         }
 

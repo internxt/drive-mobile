@@ -1,13 +1,16 @@
 import RNFS from 'react-native-fs';
-import { request } from '@internxt/lib';
+import { request, items } from '@internxt/lib';
 import axios, { AxiosRequestConfig } from 'axios';
 
-import { NewPhoto, Photo, User, BucketId, NetworkCredentials, DeviceName, DeviceMac, Device } from './types';
+import { NewPhoto, Photo, User, BucketId, NetworkCredentials, DeviceName, DeviceMac, Device, NewPhotoUploadedOnlyNetwork } from './types';
 import { getDocumentsDir } from '../../lib/fs';
 import * as network from '../network';
+import sqliteService from '../sqlite';
+import photoTable from '../sqlite/tables/photos';
 
 export async function generatePreview(filename: string, fileURI: string): Promise<string> {
-  const previewURI = `${getDocumentsDir()}/${filename}-preview`;
+  const { filename: onlyFilename, extension } = items.getFilenameAndExt(filename);
+  const previewURI = `${getDocumentsDir()}/${onlyFilename}-preview${extension ? '.' + extension : ''}`;
   const previewWidth = 128;
   const previewHeight = 128;
   const scale = 0.5;
@@ -24,14 +27,15 @@ export async function changePhotoStatus(photo: Photo, status: 'EXISTS' | 'TRASH'
 }
 
 export async function getLastUploadedLocalPhoto(): Promise<Photo | null> {
-  // return getPhotoWhere({});
+  // await sqliteService.executeSql('photos.db', photo.statements.)
   return null;
 }
 
 export async function getLastUpdateDate(): Promise<Date> {
-  const lastPhoto = await getLastUploadedLocalPhoto();
+  // const sth: any = await sqliteService.executeSql('photos.db', photo.statements.getMostRecentUpdatedAt);
+  // console.log('sth', sth);
 
-  return lastPhoto ? lastPhoto.updatedAt : new Date('January 1, 1970 00:00:00');
+  return new Date('January 1, 1971 00:00:01');
 }
 
 export async function pullPhoto(
@@ -43,17 +47,55 @@ export async function pullPhoto(
   // 1. Get blob from previewURI (fetch(previewURI).then((res) => res.blob))
 }
 
+export async function copyPhotoToDocumentsDir(filename: string, width: number, height: number, photoURI: string): Promise<string> {
+  const newPhotoURI = `${getDocumentsDir()}/${filename}`;
+  const scale = 1;
+
+  // TODO: What happens with Android??
+  await RNFS.copyAssetsFileIOS(photoURI, newPhotoURI, width, height, scale);
+
+  return newPhotoURI;
+}
+
+async function removeFile(path: string) {
+  return RNFS.unlink(path);
+}
+
 export async function pushPhoto(
   photosBucket: BucketId,
   credentials: NetworkCredentials,
-  photo: NewPhoto
-): Promise<void> {
-  const previewURI = await generatePreview(photo.name, photo.URI);
+  photo: NewPhoto,
+  options: AxiosRequestConfig
+): Promise<[Photo, Blob]> {
+  const photoPath = await copyPhotoToDocumentsDir(photo.name, photo.width, photo.height, photo.URI);
+  const previewPath = await generatePreview(photo.name, photo.URI);
 
-  await network.uploadFile(previewURI, photosBucket, credentials);
-  await network.uploadFile(photo.URI, photosBucket, credentials);
+  console.log('Uploading preview for photo ' + photo.name);
+  const previewId = await network.uploadFile(previewPath, photosBucket, credentials);
 
-  // await storePhotoRemotelly(photo);
+  console.log('Uploading photo for photo ' + photo.name);
+  const fileId = await network.uploadFile(photoPath, photosBucket, credentials);
+  const previewFetch = await fetch(previewPath);
+  const previewBlob = await previewFetch.blob();
+
+  await removeFile(previewPath);
+  await removeFile(photoPath);
+
+  const createdPhoto = await storePhotoRemotelly({
+    creationDate: photo.creationDate,
+    deviceId: photo.deviceId,
+    height: photo.height,
+    // TODO: Encrypt name
+    name: photo.name,
+    size: photo.size,
+    type: photo.type,
+    userId: photo.userId,
+    width: photo.width,
+    fileId,
+    previewId
+  }, options);
+
+  return [createdPhoto, previewBlob];
 }
 
 export async function destroyRemotePhoto(
@@ -74,13 +116,37 @@ export async function destroyLocalPhoto(photoId: string): Promise<void> {
 }
 
 export async function storePhotoLocally(photo: Photo, previewBlob: Blob): Promise<void> {
-  // TODO
-  return Promise.resolve();
+  sqliteService.executeSql(
+    'photos.db',
+    photoTable.statements.insert,
+    [
+      photo.id,
+      photo.name,
+      photo.type,
+      photo.size,
+      photo.width,
+      photo.height,
+      photo.fileId,
+      photo.previewId,
+      photo.deviceId,
+      photo.userId,
+      photo.creationDate,
+      photo.lastStatusChangeAt,
+      previewBlob
+    ]
+  );
 }
 
-export async function storePhotoRemotelly(photo: Photo): Promise<void> {
-  // TODO
-  return Promise.resolve();
+export async function storePhotoRemotelly(photo: NewPhotoUploadedOnlyNetwork, options: AxiosRequestConfig): Promise<Photo> {
+  const baseUrl = 'http://localhost:8001';
+
+  return axios.post<Photo>(`${baseUrl}/photos`, photo, options)
+    .then((res) => {
+      return res.data;
+    })
+    .catch((err) => {
+      throw new Error(request.extractMessageFromError(err));
+    });
 }
 
 export async function getPhotoById(photoId: string): Promise<Photo | null> {

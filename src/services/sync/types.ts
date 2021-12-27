@@ -7,20 +7,26 @@ export interface User {
   bucketId: BucketId
 }
 
+export enum PhotoStatus {
+  Exists = 'EXISTS',
+  Trashed = 'TRASHED',
+  Deleted = 'DELETED'
+}
+
 export interface Photo {
   id: string
-  previewId: string
-  deviceId: DeviceId
-  fileId: FileId
-  height: number
-  width: number
-  size: number
-  type: string
-  userId: UserId
   name: string
-  status: 'EXISTS' | 'TRASH' | 'DELETED'
-  createdAt: Date
-  updatedAt: Date
+  type: string,
+  size: number
+  width: number
+  height: number
+  fileId: FileId
+  previewId: FileId
+  deviceId: DeviceId
+  userId: UserId
+  status: PhotoStatus
+  lastStatusChangeAt: Date
+  creationDate: Date
 }
 
 export type DeviceName = string;
@@ -34,9 +40,8 @@ export interface Device {
 }
 
 export type BucketId = string;
-export type NewPhoto = Pick<Photo,
-  'name' | 'deviceId' | 'height' | 'width' | 'size' | 'type' | 'userId'
-> & { URI: string };
+export type NewPhoto = Omit<Photo, 'id' | 'fileId' | 'previewId' | 'status' | 'lastStatusChangeAt'> & { URI: string };
+export type NewPhotoUploadedOnlyNetwork = Omit<NewPhoto, 'URI'> & Pick<Photo, 'fileId' | 'previewId'>;
 
 // TODO: Move to inxt-js
 export type Mnemonic = string;
