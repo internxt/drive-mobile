@@ -2,11 +2,12 @@ import RNFS from 'react-native-fs';
 import { request, items } from '@internxt/lib';
 import axios, { AxiosRequestConfig } from 'axios';
 
-import { NewPhoto, Photo, User, BucketId, NetworkCredentials, DeviceName, DeviceMac, Device, NewPhotoUploadedOnlyNetwork } from './types';
+import { NewPhoto, Photo, User, BucketId, NetworkCredentials, DeviceName, DeviceMac, Device, NewPhotoUploadedOnlyNetwork, PhotoStatus } from './types';
 import { getDocumentsDir } from '../../lib/fs';
 import * as network from '../network';
 import sqliteService from '../sqlite';
 import photoTable from '../sqlite/tables/photos';
+import { PhotoId } from '@internxt/sdk';
 
 export async function generatePreview(filename: string, fileURI: string): Promise<string> {
   const { filename: onlyFilename, extension } = items.getFilenameAndExt(filename);
@@ -22,8 +23,8 @@ export async function generatePreview(filename: string, fileURI: string): Promis
   return previewURI;
 }
 
-export async function changePhotoStatus(photo: Photo, status: 'EXISTS' | 'TRASH'): Promise<void> {
-  // return updatePhotoById(photo.id, { status });
+export async function changePhotoStatus(photoId: PhotoId, status: PhotoStatus): Promise<void> {
+  return sqliteService.updatePhotoStatusById(photoId, status);
 }
 
 export async function getLastUploadedLocalPhoto(): Promise<Photo | null> {
@@ -32,19 +33,34 @@ export async function getLastUploadedLocalPhoto(): Promise<Photo | null> {
 }
 
 export async function getLastUpdateDate(): Promise<Date> {
-  // const sth: any = await sqliteService.executeSql('photos.db', photo.statements.getMostRecentUpdatedAt);
-  // console.log('sth', sth);
+  const lastUpdate: Date | null = await sqliteService.getMostRecentCreationDate();
 
-  return new Date('January 1, 1971 00:00:01');
+  return lastUpdate ?? new Date('January 1, 1971 00:00:01');
+}
+
+export async function getLastPullFromRemoteDate(): Promise<Date> {
+  const lastPullFromRemote: Date | null = await sqliteService.getMostRecentPullFromRemoteDate();
+
+  return lastPullFromRemote ?? new Date('January 1, 1971 00:00:01');
+}
+
+export async function changeLastPullFromRemoteDate(newDate: Date): Promise<void> {
+  await sqliteService.updateLastPullFromRemoteDate(newDate);
 }
 
 export async function pullPhoto(
   photosBucket: BucketId,
   networkCredentials: NetworkCredentials,
   photo: Photo
-): Promise<any> {
-  const previewURI = await network.downloadFile(photosBucket, photo.previewId, networkCredentials);
-  // 1. Get blob from previewURI (fetch(previewURI).then((res) => res.blob))
+): Promise<Blob> {
+  const previewPath = await network.downloadFile(photosBucket, photo.previewId, networkCredentials);
+  const previewBlob = await fetch(previewPath).then(res => res.blob());
+
+  console.log(previewPath);
+
+  await removeFile(previewPath);
+
+  return previewBlob;
 }
 
 export async function copyPhotoToDocumentsDir(filename: string, width: number, height: number, photoURI: string): Promise<string> {
@@ -126,6 +142,7 @@ export async function storePhotoLocally(photo: Photo, previewBlob: Blob): Promis
       photo.size,
       photo.width,
       photo.height,
+      photo.status,
       photo.fileId,
       photo.previewId,
       photo.deviceId,
@@ -149,9 +166,8 @@ export async function storePhotoRemotelly(photo: NewPhotoUploadedOnlyNetwork, op
     });
 }
 
-export async function getPhotoById(photoId: string): Promise<Photo | null> {
-  // TODO
-  return Promise.resolve(null);
+export async function getLocalPhotoById(photoId: PhotoId): Promise<Photo | null> {
+  return sqliteService.getPhotoById(photoId);
 }
 
 export async function getRemotePhotosSince(
@@ -168,8 +184,6 @@ export async function getRemotePhotosSince(
       throw new Error(request.extractMessageFromError(err));
     });
 }
-
-
 
 interface InitPhotosUserPayload {
   name: DeviceName,

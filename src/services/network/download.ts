@@ -161,7 +161,7 @@ export async function downloadFile(
     throw new Error('Download error code 6');
   }
 
-  console.log(JSON.stringify(fileInfo, null, 2));
+  // console.log(JSON.stringify(fileInfo, null, 2));
 
   // 2. Get file mirror
   const mirror = await getFileMirror(bucketId, fileId, defaultRequestOptions);
@@ -170,7 +170,7 @@ export async function downloadFile(
     throw new Error('Dowload error code 7');
   }
 
-  console.log(JSON.stringify(mirror, null, 2));
+  // console.log(JSON.stringify(mirror, null, 2));
 
   const farmerUrl = `http://${mirror.farmer.address}:${mirror.farmer.port}/download/link/${mirror.hash}`;
   const downloadUrl = await requestDownloadUrlToFarmer(farmerUrl);
@@ -178,7 +178,7 @@ export async function downloadFile(
   // 3. Download file
   const encryptedFileURI = (Platform.OS === 'android' ? RNFS.DocumentDirectoryPath : RNFS.MainBundlePath) + mirror.hash + '.enc';
 
-  console.log('file download started');
+  // console.log('file download started');
 
   await retry({ times: 3, interval: 500 }, (nextTry) => {
     const downloadResult = RNFS.downloadFile({
@@ -203,7 +203,7 @@ export async function downloadFile(
     });
   });
 
-  console.log('file download finished');
+  // console.log('file download finished');
 
   // 4. Decrypt file
   const fileDecryptionKey = await GenerateFileKey(

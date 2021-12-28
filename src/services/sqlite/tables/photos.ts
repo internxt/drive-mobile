@@ -1,6 +1,7 @@
 const tableName = 'photos';
 
 const statements = {
+  cleanTable: `DELETE FROM ${tableName};`,
   createTable:
     `CREATE TABLE IF NOT EXISTS ${tableName} (\
       id TEXT PRIMARY KEY, \
@@ -9,6 +10,7 @@ const statements = {
       size INTEGER NOT NULL, \
       width INTEGER NOT NULL, \
       heigth INTEGER NOT NULL, \
+      status TEXT NOT NULL, \
       file_id TEXT UNIQUE, \
       preview_id TEXT UNIQUE, \
       device_id TEXT, \
@@ -21,12 +23,15 @@ const statements = {
     `DROP TABLE ${tableName};`,
   insert:
     `INSERT INTO ${tableName} (\
-      id, name, type, size, width, heigth, file_id, preview_id, device_id, user_id, creation_date, last_status_change_at, preview \
+      id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, creation_date, last_status_change_at, preview \
     ) \
-    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );`,
+    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );`,
   deleteById: `DELETE FROM ${tableName} WHERE id = ?;`,
   getAll: `SELECT * FROM ${tableName};`,
-  getMostRecentUpdatedAt: `SELECT MAX(updated_at) FROM ${tableName}`
+  getMostRecentCreationDate: `SELECT MAX(creation_date) as creationDate FROM ${tableName}`,
+  getPhotoByName: `SELECT * FROM ${tableName} WHERE name = ? LIMIT 1;`,
+  getById: `SELECT * FROM ${tableName} WHERE id = ?;`,
+  updatePhotoStatusById: `UPDATE ${tableName} SET status = ? WHERE id = ?;`
 };
 
 export default {

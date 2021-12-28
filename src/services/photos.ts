@@ -10,6 +10,10 @@ export const convertLocalIdentifierToAssetLibrary = (localIdentifier: string, ex
 export async function loadLocalPhotos(from: Date, to: Date, limit: number, cursor?: string): Promise<[CameraRoll.PhotoIdentifier[], string | undefined]> {
   const photos = await CameraRoll.getPhotos({
     first: limit,
+    /**
+     * BE CAREFUL: fromTime is not being exclusive at least 
+     * on iOS as stated on the docs
+     */
     fromTime: from.getTime(),
     toTime: to.getTime(),
     assetType: 'Photos',

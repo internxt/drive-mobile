@@ -5,17 +5,19 @@ import { Photo, NewPhoto, BucketId, NetworkCredentials, Device, User, UserId } f
 import { loadLocalPhotos } from '../photos';
 import {
   changePhotoStatus,
-  destroyLocalPhoto,
-  destroyRemotePhoto,
   getLastUpdateDate,
   pullPhoto,
   pushPhoto,
   storePhotoLocally,
-  getPhotoById,
   getRemotePhotosSince,
   initPhotosUser,
-  createDevice
+  createDevice,
+  getLocalPhotoById,
+  getLastPullFromRemoteDate,
+  changeLastPullFromRemoteDate
 } from './utils';
+import sqliteService from '../sqlite';
+
 
 interface CursorOpts {
   limit: number
@@ -32,15 +34,15 @@ class RemotePhotosCursor {
   }
 
   async next(): Promise<Photo[]> {
-    const headers = new Headers();
-    const jwt = '';
-    headers.append('Authorization', `Bearer ${jwt}`);
-
     const remotePhotos: Photo[] = await getRemotePhotosSince(
       this.lastUpdate,
       this.opts.limit,
       this.opts.offset,
-      { headers }
+      {
+        headers: {
+          'Authorization': `Bearer ${jwt}`
+        }
+      }
     );
 
     this.opts.offset += this.opts.limit;
@@ -114,10 +116,6 @@ export class PhotosSync {
   }
 
   private async initializeUser(): Promise<User> {
-    const headers = new Headers();
-    const jwt = '';
-    headers.append('Authorization', `Bearer ${jwt}`);
-
     return initPhotosUser({ mac: 'deviceMac', name: 'deviceName' }, {
       headers: {
         'Authorization': `Bearer ${jwt}`,
@@ -128,10 +126,6 @@ export class PhotosSync {
   }
 
   private async initializeDevice(userId: string): Promise<Device> {
-    const headers = new Headers();
-    const jwt = '';
-    headers.append('Authorization', `Bearer ${jwt}`);
-
     return createDevice({
       mac: 'deviceMac',
       name: 'deviceName',
@@ -146,27 +140,44 @@ export class PhotosSync {
   private async initializeLocalDb(): Promise<void> {
     await sqliteService.open('photos.db');
     await sqliteService.createPhotosTableIfNotExists();
+
+    await sqliteService.createSyncDatesTableIfNotExists();
+
+    const count = await sqliteService.getSyncDatesCount();
+    const syncDatesNotInitialized = count === 0;
+    if (syncDatesNotInitialized) {
+      await sqliteService.initSyncDates();
+      console.log('[SYNC-INITIALIZE]: SYNC DATES WAS EMPTY. INITIALIZED');
+    }
   }
 
   async run(): Promise<void> {
-    console.log('Initializing local db');
+    console.log('[SYNC-MAIN]: STARTED');
+
+    // TODO: If first time, download all photos already uploaded because
+    // the app could be reinstalled and the database is gone but the photos
+    // are already uploaded
     await this.initializeLocalDb();
+    console.log('[SYNC-MAIN]: LOCAL DB INITIALIZED');
 
-    console.log('Initializing user');
     const user = await this.initializeUser();
-    console.log('USER', JSON.stringify(user, null, 2));
+    console.log('[SYNC-MAIN]: USER INITIALIZED');
 
-    console.log('Initializing device');
     const device = await this.initializeDevice(user.id);
-    console.log('DEVICE', JSON.stringify(device, null, 2));
+    console.log('[SYNC-MAIN]: DEVICE INITIALIZED');
 
-    console.log('uploading local photos');
+    await this.downloadRemotePhotos();
+    console.log('[SYNC-MAIN]: REMOTE PHOTOS DOWNLOADED');
+
     await this.uploadLocalPhotos(user.id, device.id);
-    console.log('local photos uplodaded');
+    console.log('[SYNC-MAIN]: LOCAL PHOTOS UPLOADED');
 
-    // await sqliteService.delete('photos.db');
-    // console.log('deleted db');
-    // await this.downloadRemotePhotos();
+    console.log('[SYNC-MAIN]: FINISHED');
+
+    // Just for development purposes  
+    // console.log('RESETING DB');
+    // await sqliteService.resetDatabase();
+    // console.log('DB RESETED');
   }
 
   async uploadLocalPhotos(ofUser: UserId, inDevice: DeviceId): Promise<void> {
@@ -175,12 +186,29 @@ export class PhotosSync {
     const cursor = new LocalPhotosCursor(inDevice, ofUser, lastUpdate, { limit, offset: 0 });
     let photos: NewPhoto[];
 
-    const headers = new Headers();
+    console.log('[SYNC-LOCAL]: MOST RECENT PHOTO DATED AT', lastUpdate);
+
+    let delta;
+
     do {
       photos = await cursor.next();
 
       for (const photo of photos) {
-        // console.log(JSON.stringify(photo, null, 2));
+        delta = photo.creationDate.getTime() - lastUpdate.getTime();
+        /**
+         * WARNING: Camera roll does not filter properly by dates for photos with 
+         * small deltas which can provoke the sync to re-update the last photo already
+         * uploaded or photos that have very similar timestamp by miliseconds 
+         * (like photos bursts)
+         */
+        console.log(`[SYNC-LOCAL]: UPLOADING ${photo.name} (DATE: ${photo.creationDate.toDateString()}, DELTA: ${delta})`);
+
+        const alreadyExistentPhoto = await sqliteService.getPhotoByName(photo.name);
+
+        if (alreadyExistentPhoto) {
+          console.warn(`[SYNC-LOCAL]: ${photo.name} IS ALREADY UPLOADED, SKIPPING`);
+          continue;
+        }
 
         const [createdPhoto, previewBlob] = await pushPhoto(this.bucket, this.credentials, photo, {
           headers: {
@@ -194,59 +222,49 @@ export class PhotosSync {
   }
 
   async downloadRemotePhotos(): Promise<void> {
-    // TODO: Obtain from local database OR start from the beggining
-    const lastUpdate = await getLastUpdateDate();
+    const lastUpdate = await getLastPullFromRemoteDate();
     const limit = 20;
     const cursor = new RemotePhotosCursor(lastUpdate, { limit, offset: 0 });
     let photos;
+
+    const newPullFromRemoteDate = new Date();
+
+    console.log('[SYNC-REMOTE]: LAST SYNC WAS AT', lastUpdate.toDateString());
 
     do {
       photos = await cursor.next();
 
       for (const photo of photos) {
-        if (photo.status === 'TRASHED') {
-          await this.movePhotoToTrash(photo);
-        }
-
-        if (photo.status === 'DELETED') {
-          await this.removePhoto(photo);
-        }
-
-        if (photo.status === 'EXISTS') {
-          await this.downloadPhoto(photo);
-        }
+        await this.downloadPhoto(photo);
       }
     } while (photos.length === limit);
+
+    /**
+     * BE CAREFUL WITH CONCURRENCY 
+     * 
+     * This date should be as precise as possible without excluding any remote 
+     * photo. Is better to realize and skip that 3 or 4 photos already synced 
+     * because you store the date where you begin to sync (so concurrent uploads 
+     * from other devices could be already downloaded by you) instead of skipping 
+     * photos forever. In the moment where this date is newer that a photo not 
+     * downloaded, this photo will be ignored until its state changes. 
+     * 
+     * To avoid this issue but keep using an efficient way to sync supported by 
+     * dates and acoted ranges, try to avoid skipping anything
+     */
+    await changeLastPullFromRemoteDate(newPullFromRemoteDate);
   }
 
   private async downloadPhoto(photo: Photo): Promise<void> {
-    const photoIsAlreadyOnTheDevice = !!(await getPhotoById(photo.id));;
+    const photoIsOnTheDevice = !!(await getLocalPhotoById(photo.id));
 
-    if (!photoIsAlreadyOnTheDevice) {
-      // DOWNLOAD preview and store in local database
+    console.log('Photo ' + photo.name + ' is on the device? ' + photoIsOnTheDevice);
+
+    if (photoIsOnTheDevice) {
+      await changePhotoStatus(photo.id, photo.status);
+    } else {
       const previewBlob = await pullPhoto(this.bucket, this.credentials, photo);
       await storePhotoLocally(photo, previewBlob);
     }
   }
-
-  private async removePhoto(photo: Photo): Promise<void> {
-    const photoIsAlreadyOnTheDevice = !!(await getPhotoById(photo.id));;
-
-    if (photoIsAlreadyOnTheDevice) {
-      await destroyRemotePhoto(this.bucket, this.credentials, photo);
-      await destroyLocalPhoto(photo.id);
-    }
-  }
-
-  private async movePhotoToTrash(photo: Photo): Promise<void> {
-    const photoIsAlreadyOnTheDevice = !!(await getPhotoById(photo.id));
-
-    if (photoIsAlreadyOnTheDevice) {
-      await changePhotoStatus(photo, 'TRASH');
-    } else {
-      await pullPhoto(this.bucket, this.credentials, photo);
-      // await storePhotoLocally(photo);
-    }
-  }
 }
-
