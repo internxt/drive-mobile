@@ -70,6 +70,7 @@ function MoveFilesModal(props: Reducers) {
         data={folderlist}
         renderItem={(folder: any) => {
           return <FileItem
+            progress={-1}
             totalColumns={1}
             key={folder.id}
             isFolder={true}

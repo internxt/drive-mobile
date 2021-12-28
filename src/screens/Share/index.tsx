@@ -61,6 +61,7 @@ function Share(props: Reducers): JSX.Element {
           {shares.map((item, i) => {
             return <FileItem
               key={i}
+              progress={-1}
               item={item.fileInfo}
               isFolder={false}
               totalColumns={1}
