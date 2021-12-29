@@ -72,30 +72,7 @@ function PhotosGalleryScreen(): JSX.Element {
   useEffect(() => {
     dispatch(photosActions.setViewMode(GalleryViewMode.All));
     dispatch(photosActions.deselectAll());
-    dispatch(photosThunks.loadLocalPhotosThunk({}));
-
-    loadLocalPhotos().then((results) => {
-      const filename = results[0][0].node.image.filename;
-      // console.log(JSON.stringify(results, null, 2));
-      const platformFilePath = Platform.OS === 'android' ? RNFS.DocumentDirectoryPath : RNFS.MainBundlePath;
-      // const uri = 'file://' + platformFilePath + '/' + filename;
-      const uri = results[0][0].node.image.uri;
-
-      const dest = `${platformFilePath}/eeee.ok`;
-      RNFS.copyAssetsFileIOS(
-        uri, 
-        dest, 
-        results[0][0].node.image.width,
-        results[0][0].node.image.height,
-        1.0,
-        1.0,
-        'contain'
-      ).then(finalUri => {
-        return uploadFileV2(finalUri);
-      }).catch((err) => {
-        console.log(err.stack);
-      });
-    });
+    dispatch(photosThunks.loadLocalPhotosThunk({ limit: 15, offset: 0 }));
   }, []);
 
   return (
