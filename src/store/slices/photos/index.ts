@@ -2,91 +2,58 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { RootState } from '../..';
 import { GalleryViewMode } from '../../../types';
-import { Photo } from '@internxt/sdk';
+import { Photo } from '../../../services/sync/types';
+import sqliteService from '../../../services/sqlite';
 
 export interface PhotosState {
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
-  photos: Photo[];
-  nextCursor?: string;
+  photos: Photo[],
   selectedPhotos: Photo[];
 }
 
 const initialState: PhotosState = {
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.All,
-  photos: [
-    {
-      id: '01',
-      name: 'photo-01',
-      type: 'png',
-      size: 100,
-      width: 100,
-      heigth: 100,
-      fileId: 'fileId-01',
-      previewId: 'previewId-01',
-      deviceId: '01',
-      userUuid: '01',
-    },
-    {
-      id: '02',
-      name: 'photo-02',
-      type: 'png',
-      size: 100,
-      width: 100,
-      heigth: 100,
-      fileId: 'fileId-02',
-      previewId: 'previewId-02',
-      deviceId: '02',
-      userUuid: '02',
-    },
-    {
-      id: '03',
-      name: 'photo-03',
-      type: 'png',
-      size: 100,
-      width: 100,
-      heigth: 100,
-      fileId: 'fileId-03',
-      previewId: 'previewId-03',
-      deviceId: '03',
-      userUuid: '03',
-    },
-    {
-      id: '04',
-      name: 'photo-04',
-      type: 'png',
-      size: 100,
-      width: 100,
-      heigth: 100,
-      fileId: 'fileId-04',
-      previewId: 'previewId-04',
-      deviceId: '04',
-      userUuid: '04',
-    },
-    {
-      id: '05',
-      name: 'photo-05',
-      type: 'png',
-      size: 100,
-      width: 100,
-      heigth: 100,
-      fileId: 'fileId-05',
-      previewId: 'previewId-05',
-      deviceId: '05',
-      userUuid: '05',
-    },
-  ],
-  nextCursor: undefined,
+  photos: [],
   selectedPhotos: [],
 };
 
+// TODO: Move outside here to encapsulate type of persistence from store
+interface PersistenceIterator<T> {
+  next(): Promise<T[]>;
+}
+
+class SQLitePhotosIterator implements PersistenceIterator<Photo> {
+  private limit: number;
+  private offset: number;
+
+  constructor(limit: number, offset = 0) {
+    this.limit = limit;
+    this.offset = offset;
+  }
+
+  async next(): Promise<Photo[]> {
+    return sqliteService.getPhotos(this.offset, this.limit).then(([{ rows }]) => {
+      // TODO: Transform to Photo[]
+      this.offset += this.limit;
+
+      return rows.raw() as unknown as Photo[];
+    });
+  }
+}
+
 const loadLocalPhotosThunk = createAsyncThunk<
-  { loadedPhotos: Photo[]; nextCursor: string | undefined },
-  { cursor?: string },
+  { loadedPhotos: Photo[]; },
+  { limit: number; offset?: number; },
   { state: RootState }
->('photos/loadLocalPhotos', async ({ cursor }, { getState }) => {
-  return { loadedPhotos: getState().photos.photos, nextCursor: cursor };
+>('photos/loadLocalPhotos', async ({ limit, offset }, { getState }) => {
+  const iterator: PersistenceIterator<Photo> = new SQLitePhotosIterator(limit, offset);
+  const photos = await iterator.next();
+
+  console.log('loadLocalPhotosThunk called-->', photos.length);
+
+  return { loadedPhotos: photos };
 });
 
 export const photosSlice = createSlice({
@@ -121,7 +88,6 @@ export const photosSlice = createSlice({
       .addCase(loadLocalPhotosThunk.pending, () => undefined)
       .addCase(loadLocalPhotosThunk.fulfilled, (state, action) => {
         state.photos = action.payload.loadedPhotos;
-        state.nextCursor = action.payload.nextCursor;
       })
       .addCase(loadLocalPhotosThunk.rejected, () => undefined);
   },
@@ -132,8 +98,8 @@ export const photosActions = photosSlice.actions;
 export const photosSelectors = {
   isPhotoSelected:
     (state: RootState) =>
-    (photo: Photo): boolean =>
-      state.photos.selectedPhotos.some((i) => i.id === photo.id),
+      (photo: Photo): boolean =>
+        state.photos.selectedPhotos.some((i) => i.id === photo.id),
 };
 
 export const photosThunks = {
