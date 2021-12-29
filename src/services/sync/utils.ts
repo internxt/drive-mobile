@@ -2,25 +2,26 @@ import RNFS from 'react-native-fs';
 import { request, items } from '@internxt/lib';
 import axios, { AxiosRequestConfig } from 'axios';
 
-import { NewPhoto, Photo, User, BucketId, NetworkCredentials, DeviceName, DeviceMac, Device, NewPhotoUploadedOnlyNetwork, PhotoStatus } from './types';
+import { NewPhoto, Photo, User, BucketId, NetworkCredentials, DeviceName, DeviceMac, Device, NewPhotoUploadedOnlyNetwork, PhotoStatus, Base64 } from './types';
 import { getDocumentsDir } from '../../lib/fs';
 import * as network from '../network';
 import sqliteService from '../sqlite';
 import photoTable from '../sqlite/tables/photos';
 import { PhotoId } from '@internxt/sdk';
+import RNFetchBlob from 'rn-fetch-blob';
 
 export async function generatePreview(filename: string, fileURI: string): Promise<string> {
   const { filename: onlyFilename, extension } = items.getFilenameAndExt(filename);
-  const previewURI = `${getDocumentsDir()}/${onlyFilename}-preview${extension ? '.' + extension : ''}`;
+  const previewPath = `${getDocumentsDir()}/${onlyFilename}-preview${extension ? '.' + extension : ''}`;
   const previewWidth = 128;
   const previewHeight = 128;
   const scale = 0.5;
 
   // Store with enough quality to resize for different screens
   // TODO: What happens with Android??
-  await RNFS.copyAssetsFileIOS(fileURI, previewURI, previewWidth, previewHeight, scale);
+  await RNFS.copyAssetsFileIOS(fileURI, previewPath, previewWidth, previewHeight, scale);
 
-  return previewURI;
+  return previewPath;
 }
 
 export async function changePhotoStatus(photoId: PhotoId, status: PhotoStatus): Promise<void> {
@@ -52,13 +53,16 @@ export async function pullPhoto(
   photosBucket: BucketId,
   networkCredentials: NetworkCredentials,
   photo: Photo
-): Promise<string> {
-  const previewPath = await network.downloadFile(photosBucket, photo.previewId, networkCredentials);
-  const base64Preview = await RNFetchBlob.fs.readFile(previewPath, 'base64');
+): Promise<Base64> {
+  const previewPath = await network.downloadFile(photosBucket, photo.previewId, networkCredentials, {
+    toPath: getDocumentsDir() + '/' + photo.previewId,
+    progressCallback: () => { }
+  });
+  const preview = await RNFetchBlob.fs.readFile(previewPath, 'base64');
 
   await removeFile(previewPath);
 
-  return base64Preview;
+  return preview;
 }
 
 export async function copyPhotoToDocumentsDir(filename: string, width: number, height: number, photoURI: string): Promise<string> {
@@ -80,7 +84,7 @@ export async function pushPhoto(
   credentials: NetworkCredentials,
   photo: NewPhoto,
   options: AxiosRequestConfig
-): Promise<[Photo, Blob]> {
+): Promise<[Photo, Base64]> {
   const photoPath = await copyPhotoToDocumentsDir(photo.name, photo.width, photo.height, photo.URI);
   const previewPath = await generatePreview(photo.name, photo.URI);
 
@@ -89,8 +93,7 @@ export async function pushPhoto(
 
   console.log('Uploading photo for photo ' + photo.name);
   const fileId = await network.uploadFile(photoPath, photosBucket, credentials);
-  const previewFetch = await fetch(previewPath);
-  const previewBlob = await previewFetch.blob();
+  const preview = await RNFetchBlob.fs.readFile(previewPath, 'base64');
 
   await removeFile(previewPath);
   await removeFile(photoPath);
@@ -109,7 +112,7 @@ export async function pushPhoto(
     previewId
   }, options);
 
-  return [createdPhoto, previewBlob];
+  return [createdPhoto, preview];
 }
 
 export async function destroyRemotePhoto(
@@ -129,7 +132,7 @@ export async function destroyLocalPhoto(photoId: string): Promise<void> {
   return Promise.resolve();
 }
 
-export async function storePhotoLocally(photo: Photo, previewBase64: string): Promise<void> {
+export async function storePhotoLocally(photo: Photo, preview: Base64): Promise<void> {
   sqliteService.executeSql(
     'photos.db',
     photoTable.statements.insert,
@@ -147,7 +150,7 @@ export async function storePhotoLocally(photo: Photo, previewBase64: string): Pr
       photo.userId,
       photo.creationDate,
       photo.lastStatusChangeAt,
-      previewBase64
+      preview
     ]
   );
 }

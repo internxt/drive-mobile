@@ -1,6 +1,8 @@
 import { DeviceId, FileId } from '@internxt/sdk';
 
 export type UserId = string;
+export type Base64 = string;
+
 export interface User {
   id: UserId;
   uuid: string
