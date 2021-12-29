@@ -52,15 +52,13 @@ export async function pullPhoto(
   photosBucket: BucketId,
   networkCredentials: NetworkCredentials,
   photo: Photo
-): Promise<Blob> {
+): Promise<string> {
   const previewPath = await network.downloadFile(photosBucket, photo.previewId, networkCredentials);
-  const previewBlob = await fetch(previewPath).then(res => res.blob());
-
-  console.log(previewPath);
+  const base64Preview = await RNFetchBlob.fs.readFile(previewPath, 'base64');
 
   await removeFile(previewPath);
 
-  return previewBlob;
+  return base64Preview;
 }
 
 export async function copyPhotoToDocumentsDir(filename: string, width: number, height: number, photoURI: string): Promise<string> {
@@ -131,7 +129,7 @@ export async function destroyLocalPhoto(photoId: string): Promise<void> {
   return Promise.resolve();
 }
 
-export async function storePhotoLocally(photo: Photo, previewBlob: Blob): Promise<void> {
+export async function storePhotoLocally(photo: Photo, previewBase64: string): Promise<void> {
   sqliteService.executeSql(
     'photos.db',
     photoTable.statements.insert,
@@ -149,7 +147,7 @@ export async function storePhotoLocally(photo: Photo, previewBlob: Blob): Promis
       photo.userId,
       photo.creationDate,
       photo.lastStatusChangeAt,
-      previewBlob
+      previewBase64
     ]
   );
 }

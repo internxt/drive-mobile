@@ -263,8 +263,8 @@ export class PhotosSync {
     if (photoIsOnTheDevice) {
       await changePhotoStatus(photo.id, photo.status);
     } else {
-      const previewBlob = await pullPhoto(this.bucket, this.credentials, photo);
-      await storePhotoLocally(photo, previewBlob);
+      const previewBase64 = await pullPhoto(this.bucket, this.credentials, photo);
+      await storePhotoLocally(photo, previewBase64);
     }
   }
 }
