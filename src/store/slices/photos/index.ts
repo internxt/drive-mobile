@@ -17,14 +17,37 @@ import { REACT_NATIVE_PHOTOS_API_URL } from '@env';
 import { RootState } from '../..';
 import { GalleryViewMode } from '../../../types';
 import { Platform } from 'react-native';
-import sqliteService from '../../../services/sqlite';
 import photo from '../../../services/sqlite/tables/photo';
 import photo_source from '../../../services/sqlite/tables/photo_source';
 import device from '../../../services/sqlite/tables/device';
+import sqliteService from '../../../services/sqlite';
 
 const photosSdk = new Photos(REACT_NATIVE_PHOTOS_API_URL as string);
 
 const SQLITE_DB_NAME = 'photos';
+
+interface PersistenceIterator<T> {
+  next(): Promise<T[]>;
+}
+
+class SQLitePhotosIterator implements PersistenceIterator<Photo> {
+  private limit: number;
+  private offset: number;
+
+  constructor(limit: number, offset = 0) {
+    this.limit = limit;
+    this.offset = offset;
+  }
+
+  async next(): Promise<Photo[]> {
+    return sqliteService.getPhotos(this.offset, this.limit).then(([{ rows }]) => {
+      // TODO: Transform to Photo[]
+      this.offset += this.limit;
+
+      return rows.raw() as unknown as Photo[];
+    });
+  }
+}
 
 export interface PhotosState {
   isInitialized: boolean;
@@ -36,7 +59,6 @@ export interface PhotosState {
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
   photos: Photo[];
-  nextCursor?: string;
   selectedPhotos: Photo[];
 }
 
@@ -126,7 +148,6 @@ const initialState: PhotosState = {
       updatedAt: '2021-12-23T14:12:47Z',
     },
   ],
-  nextCursor: undefined,
   selectedPhotos: [],
 };
 
@@ -207,11 +228,16 @@ const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: R
 );
 
 const loadLocalPhotosThunk = createAsyncThunk<
-  { loadedPhotos: Photo[]; nextCursor: string | undefined },
-  { cursor?: string },
+  { loadedPhotos: Photo[] },
+  { limit: number; offset?: number },
   { state: RootState }
->('photos/loadLocalPhotos', async ({ cursor }, { getState }) => {
-  return { loadedPhotos: getState().photos.photos, nextCursor: cursor };
+>('photos/loadLocalPhotos', async ({ limit, offset }) => {
+  const iterator: PersistenceIterator<Photo> = new SQLitePhotosIterator(limit, offset);
+  const photos = await iterator.next();
+
+  console.log('loadLocalPhotosThunk called-->', photos.length);
+
+  return { loadedPhotos: photos };
 });
 
 export const photosSlice = createSlice({
@@ -292,7 +318,6 @@ export const photosSlice = createSlice({
       .addCase(loadLocalPhotosThunk.pending, () => undefined)
       .addCase(loadLocalPhotosThunk.fulfilled, (state, action) => {
         state.photos = action.payload.loadedPhotos;
-        state.nextCursor = action.payload.nextCursor;
       })
       .addCase(loadLocalPhotosThunk.rejected, () => undefined);
   },

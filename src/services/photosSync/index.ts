@@ -209,13 +209,13 @@ export class PhotosSync {
           continue;
         }
 
-        const [createdPhoto, previewBlob] = await pushPhoto(this.bucket, this.credentials, photo, {
+        const [createdPhoto, preview] = await pushPhoto(this.bucket, this.credentials, photo, {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
         });
 
-        await storePhotoLocally(createdPhoto, previewBlob);
+        await storePhotoLocally(createdPhoto, preview);
       }
     } while (photos.length === limit);
   }
@@ -262,8 +262,8 @@ export class PhotosSync {
     if (photoIsOnTheDevice) {
       await changePhotoStatus(photo.id, photo.status);
     } else {
-      const previewBlob = await pullPhoto(this.bucket, this.credentials, photo);
-      await storePhotoLocally(photo, previewBlob);
+      const preview = await pullPhoto(this.bucket, this.credentials, photo);
+      await storePhotoLocally(photo, preview);
     }
   }
 }

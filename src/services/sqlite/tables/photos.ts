@@ -28,6 +28,7 @@ const statements = {
     VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );`,
   deleteById: `DELETE FROM ${tableName} WHERE id = ?;`,
   getAll: `SELECT * FROM ${tableName};`,
+  get: `SELECT * FROM ${tableName} LIMIT ? OFFSET ?;`,
   getMostRecentCreationDate: `SELECT MAX(creation_date) as creationDate FROM ${tableName}`,
   getPhotoByName: `SELECT * FROM ${tableName} WHERE name = ? LIMIT 1;`,
   getById: `SELECT * FROM ${tableName} WHERE id = ?;`,

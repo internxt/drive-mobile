@@ -81,7 +81,7 @@ const GalleryDay = (): JSX.Element => {
             refreshing={refreshing}
             onRefresh={async () => {
               setRefreshing(true);
-              await dispatch(photosThunks.loadLocalPhotosThunk({}));
+              await dispatch(photosThunks.loadLocalPhotosThunk({ limit: 15, offset: 0 }));
               setRefreshing(false);
             }}
           />

@@ -5,11 +5,10 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { BucketId, NetworkCredentials } from '../photosSync/types';
 import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 import { eachLimit, retry } from 'async';
-import { createDecipheriv, Decipher, randomBytes } from 'react-native-crypto';
-import { Platform } from 'react-native';
+import { createDecipheriv, Decipher } from 'react-native-crypto';
 import RNFetchBlob from 'rn-fetch-blob';
-import { getDocumentsDir } from '../../lib/fs';
 import { FileId } from '@internxt/sdk/dist/photos';
+import { Platform } from 'react-native';
 
 const networkApiUrl = 'https://api.photos.internxt.com';
 
@@ -79,24 +78,24 @@ function generateDecipher(key: Buffer, iv: Buffer): Decipher {
   return createDecipheriv('aes-256-ctr', key, iv);
 }
 
-async function decryptFile(encryptedFileURI: string, fileSize: number, decipher: Decipher): Promise<FileDecryptedURI> {
+async function decryptFile(
+  fromPath: string,
+  toPath: string,
+  fileSize: number,
+  decipher: Decipher,
+): Promise<FileDecryptedURI> {
   const twoMb = 2 * 1024 * 1024;
   const chunksOf = twoMb;
   const chunks = Math.ceil(fileSize / chunksOf);
 
-  console.log('eoeoeeo');
-
-  const URIWhereWriteFile: FileDecryptedURI = getDocumentsDir() + randomBytes(5).toString('hex') + 'eee.enc';
+  const URIWhereWriteFile: FileDecryptedURI = toPath;
   const writer = await RNFetchBlob.fs.writeStream(URIWhereWriteFile, 'base64');
-
-  console.log('eoeoeeo2');
 
   let start = 0;
 
   return eachLimit(new Array(chunks), 1, (_, cb) => {
-    RNFS.read(encryptedFileURI, twoMb, start, 'base64')
+    RNFS.read(fromPath, twoMb, start, 'base64')
       .then((res) => {
-        console.log('eoeoeeo3');
         decipher.write(Buffer.from(res, 'base64'));
         return writer.write(decipher.read().toString('base64'));
       })
@@ -126,6 +125,10 @@ export async function downloadFile(
   bucketId: BucketId,
   fileId: FileId,
   credentials: NetworkCredentials,
+  options: {
+    toPath: string;
+    progressCallback: (progress: number) => void;
+  },
 ): Promise<FileDecryptedURI> {
   if (!bucketId) {
     throw new Error('Download error code 1');
@@ -187,6 +190,10 @@ export async function downloadFile(
       toFile: encryptedFileURI,
       discretionary: true,
       cacheable: false,
+      begin: () => undefined,
+      progress: (res) => {
+        options.progressCallback(res.bytesWritten / res.contentLength);
+      },
     });
 
     downloadResult.promise
@@ -222,7 +229,7 @@ export async function downloadFile(
     Buffer.from(fileInfo.index, 'hex').slice(0, 16),
   );
 
-  const fileURI = await decryptFile(encryptedFileURI, fileInfo.size, decipher);
+  const fileURI = await decryptFile(encryptedFileURI, options.toPath, fileInfo.size, decipher);
 
   // Remove encrypted file
   await RNFS.unlink(encryptedFileURI);

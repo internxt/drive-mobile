@@ -45,6 +45,10 @@ class SQLiteService {
     return this.pool['photos.db'].executeSql(syncDates.statements.createTable);
   }
 
+  public async getPhotos(offset: number, limit = 60) {
+    return this.pool['photos.db'].executeSql(photos.statements.get, [limit, offset]);
+  }
+
   public async getMostRecentCreationDate(): Promise<Date | null> {
     return this.pool['photos.db'].executeSql(photos.statements.getMostRecentCreationDate).then((res) => {
       if (res[0].rows.item(0) && res[0].rows.item(0).creationDate) {

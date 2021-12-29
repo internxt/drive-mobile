@@ -1,6 +1,8 @@
 import { DeviceId, FileId } from '@internxt/sdk/dist/photos';
 
 export type UserId = string;
+export type Base64 = string;
+
 export interface User {
   id: UserId;
   uuid: string;

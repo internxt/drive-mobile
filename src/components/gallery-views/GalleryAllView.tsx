@@ -33,6 +33,9 @@ const GalleryAllView = (): JSX.Element => {
     isSelectionModeActivated ? onItemLongPressed(item) : navigation.push(PhotosScreen.Preview, { data: item });
   };
 
+  const limit = 50;
+  const offset = 0;
+
   return (
     <FlatList
       style={tailwind('bg-white')}
@@ -43,7 +46,7 @@ const GalleryAllView = (): JSX.Element => {
           refreshing={refreshing}
           onRefresh={async () => {
             setRefreshing(true);
-            await dispatch(photosThunks.loadLocalPhotosThunk({}));
+            await dispatch(photosThunks.loadLocalPhotosThunk({ limit: 10, offset: 0 }));
             setRefreshing(false);
           }}
         />
@@ -51,6 +54,16 @@ const GalleryAllView = (): JSX.Element => {
       decelerationRate={0.5}
       ItemSeparatorComponent={() => <View style={{ height: gutter }} />}
       data={photos}
+      onScrollEndDrag={async (event) => {
+        const scrollingToBottom = (event.nativeEvent.velocity?.y ?? 0) > 0;
+
+        // Move to store
+        // offset = scrollingToBottom ?
+        //   offset + limit:
+        //   offset - limit;
+
+        await dispatch(photosThunks.loadLocalPhotosThunk({ limit, offset }));
+      }}
       numColumns={columnsCount}
       onEndReached={() => undefined}
       onEndReachedThreshold={3}
