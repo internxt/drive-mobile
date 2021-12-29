@@ -3,6 +3,7 @@ import { View, Text, Share, TouchableOpacity, TouchableHighlight, ActivityIndica
 import * as Unicons from '@iconscout/react-native-unicons';
 import prettysize from 'prettysize';
 import { setString } from 'expo-clipboard';
+import { REACT_NATIVE_DRIVE_API_URL } from '@env';
 
 import { getHeaders } from '../../../helpers/headers';
 import { IFile } from '../../FileList';
@@ -32,7 +33,7 @@ function ShareFilesModal(): JSX.Element {
   const getLink = async (file: any, views: number) => {
     const tokenLink = await getFileToken(file, views);
 
-    const url = `${process.env.REACT_NATIVE_DRIVE_API_URL}/${tokenLink}`;
+    const url = `${REACT_NATIVE_DRIVE_API_URL}/${tokenLink}`;
 
     setLink(url);
   };

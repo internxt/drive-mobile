@@ -1,3 +1,5 @@
+import { REACT_NATIVE_DRIVE_API_URL } from '@env';
+
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import { isJsonString } from '../SignUpScreen/registerUtils';
@@ -9,7 +11,7 @@ interface ChangePasswordParam {
 }
 
 async function getSalt(email: string) {
-  const response = await fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/login`, {
+  const response = await fetch(`${REACT_NATIVE_DRIVE_API_URL}/api/login`, {
     method: 'post',
     headers: await getHeaders(),
     body: JSON.stringify({ email }),
@@ -46,7 +48,7 @@ export async function doChangePassword(params: ChangePasswordParam): Promise<any
     console.log('Error encrypting private key: ', err);
   }
 
-  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/user/password`, {
+  return fetch(`${REACT_NATIVE_DRIVE_API_URL}/api/user/password`, {
     method: 'PATCH',
     headers: await getHeaders(),
     body: JSON.stringify({

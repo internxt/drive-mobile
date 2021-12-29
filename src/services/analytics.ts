@@ -2,12 +2,11 @@ import analytics from '@segment/analytics-react-native';
 import { deviceStorage, User } from './deviceStorage';
 import Firebase from '@segment/analytics-react-native-firebase';
 import { NavigationState } from '@react-navigation/native';
+import { REACT_NATIVE_SEGMENT_API_DEV, REACT_NATIVE_SEGMENT_API } from '@env';
 
 export async function analyticsSetup(): Promise<void> {
   const WRITEKEY = (
-    process.env.NODE_ENV !== 'production'
-      ? process.env.REACT_NATIVE_SEGMENT_API_DEV
-      : process.env.REACT_NATIVE_SEGMENT_API
+    process.env.NODE_ENV !== 'production' ? REACT_NATIVE_SEGMENT_API_DEV : REACT_NATIVE_SEGMENT_API
   ) as string;
 
   if (!WRITEKEY) {

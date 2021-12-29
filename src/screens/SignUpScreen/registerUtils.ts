@@ -1,5 +1,6 @@
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
+import { REACT_NATIVE_DRIVE_API_URL } from '@env';
 
 interface RegisterParams {
   firstName: string;
@@ -10,7 +11,7 @@ interface RegisterParams {
 }
 
 export async function getNewBits(): Promise<string> {
-  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/bits`)
+  return fetch(`${REACT_NATIVE_DRIVE_API_URL}/api/bits`)
     .then((res) => res.json())
     .then((res) => res.bits)
     .then((bits) => decryptText(bits));
@@ -31,7 +32,7 @@ export async function doRegister(params: RegisterParams): Promise<any> {
   const mnemonic = await getNewBits();
   const encMnemonic = encryptTextWithKey(mnemonic, params.password);
 
-  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/register`, {
+  return fetch(`${REACT_NATIVE_DRIVE_API_URL}/api/register`, {
     method: 'post',
     headers: await getHeaders(),
     body: JSON.stringify({

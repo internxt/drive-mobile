@@ -12,6 +12,7 @@ import {
 import { photos } from '@internxt/sdk';
 import { Device, Photo } from '@internxt/sdk/dist/photos';
 const { Photos } = photos;
+import { REACT_NATIVE_PHOTOS_API_URL } from '@env';
 
 import { RootState } from '../..';
 import { GalleryViewMode } from '../../../types';
@@ -21,7 +22,7 @@ import photo from '../../../services/sqlite/tables/photo';
 import photo_source from '../../../services/sqlite/tables/photo_source';
 import device from '../../../services/sqlite/tables/device';
 
-const photosSdk = new Photos(process.env.REACT_NATIVE_PHOTOS_API_URL as string);
+const photosSdk = new Photos(REACT_NATIVE_PHOTOS_API_URL as string);
 
 const SQLITE_DB_NAME = 'photos';
 

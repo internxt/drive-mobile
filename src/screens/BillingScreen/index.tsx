@@ -12,6 +12,7 @@ import _ from 'lodash';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
+import { REACT_NATIVE_DRIVE_API_URL } from '@env';
 
 import { notify } from '../../services/toast';
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -82,7 +83,7 @@ function Billing(): JSX.Element {
       canceledUrl: 'https://drive.internxt.com/redirect/android',
     };
 
-    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/v2/stripe/session`, {
+    return fetch(`${REACT_NATIVE_DRIVE_API_URL}/api/v2/stripe/session`, {
       method: 'POST',
       headers: await getHeaders(),
       body: JSON.stringify(body),
@@ -92,7 +93,7 @@ function Billing(): JSX.Element {
         if (result.error) {
           throw Error(result.error);
         }
-        const link = `${process.env.REACT_NATIVE_DRIVE_API_URL}/checkout/${result.id}`;
+        const link = `${REACT_NATIVE_DRIVE_API_URL}/checkout/${result.id}`;
 
         Linking.openURL(link);
       })
@@ -120,9 +121,7 @@ function Billing(): JSX.Element {
     };
 
     fetch(
-      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${
-        process.env.NODE_ENV === 'development' ? '?test=true' : ''
-      }`,
+      `${REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${process.env.NODE_ENV === 'development' ? '?test=true' : ''}`,
       {
         method: 'POST',
         headers: await getHeaders(),
@@ -134,7 +133,7 @@ function Billing(): JSX.Element {
         if (result.error) {
           throw Error(result.error);
         }
-        const link = `${process.env.REACT_NATIVE_DRIVE_API_URL}/checkout/${result.id}`;
+        const link = `${REACT_NATIVE_DRIVE_API_URL}/checkout/${result.id}`;
 
         Linking.openURL(link);
       })
