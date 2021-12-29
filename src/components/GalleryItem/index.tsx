@@ -4,7 +4,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { GalleryItemType } from '../../types';
-import { Photo } from '@internxt/sdk';
+import { Photo } from '../../services/sync/types';
 
 interface GalleryItemProps {
   type?: GalleryItemType;
@@ -27,11 +27,11 @@ const GalleryItem = ({
   onPress,
   onLongPress,
 }: GalleryItemProps): JSX.Element => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const examplePhoto = require('../../../assets/images/photos/example.png');
   const getItemContent = () =>
     ({
-      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={examplePhoto} />,
+      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{
+        uri: 'data:image/png;base64,' + data.preview
+      }} />,
     }[type]());
 
   return (
