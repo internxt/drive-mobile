@@ -76,7 +76,7 @@ function VersionUpdate(props: Reducers): JSX.Element {
     }
     <View>
       <Text style={tailwind('text-center text-base text-sm text-gray-50')}>
-        Internxt Drive v{PackageJson.version} (2)
+        Internxt Drive v{PackageJson.version} (4)
       </Text>
     </View>
   </>
