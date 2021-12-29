@@ -5,7 +5,7 @@ import GalleryMonth from '../GalleryMonth';
 
 const GalleryMonthsView = (): JSX.Element => {
   const yearsList = [
-    <View style={tailwind('px-5 pt-5')}>
+    <View key="0" style={tailwind('px-5 pt-5')}>
       <Text style={tailwind('pb-4 font-bold text-neutral-700 text-4xl')}>2000</Text>
       <GalleryMonth key="1" />
       <GalleryMonth key="2" />

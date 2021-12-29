@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, TouchableWithoutFeedback, Platform } from 'react-native';
+import RNFS from 'react-native-fs';
 import Portal from '@burstware/react-native-portal';
 import * as Unicons from '@iconscout/react-native-unicons';
 
@@ -14,7 +15,8 @@ import { photosActions, photosThunks } from '../../../store/slices/photos';
 import { layoutActions } from '../../../store/slices/layout';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
-import CameraRoll from '@react-native-community/cameraroll';
+import { loadLocalPhotos } from '../../../services/photos';
+import { uploadFileV2 } from '../../../services/upload';
 
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -70,6 +72,31 @@ function PhotosGalleryScreen(): JSX.Element {
     dispatch(photosActions.setViewMode(GalleryViewMode.All));
     dispatch(photosActions.deselectAll());
     dispatch(photosThunks.loadLocalPhotosThunk({}));
+
+    /* loadLocalPhotos().then((results) => {
+      const filename = results[0][0].node.image.filename;
+      // console.log(JSON.stringify(results, null, 2));
+      const platformFilePath = Platform.OS === 'android' ? RNFS.DocumentDirectoryPath : RNFS.MainBundlePath;
+      // const uri = 'file://' + platformFilePath + '/' + filename;
+      const uri = results[0][0].node.image.uri;
+
+      const dest = `${platformFilePath}/eeee.ok`;
+      RNFS.copyAssetsFileIOS(
+        uri,
+        dest,
+        results[0][0].node.image.width,
+        results[0][0].node.image.height,
+        1.0,
+        1.0,
+        'contain',
+      )
+        .then((finalUri) => {
+          return uploadFileV2(finalUri);
+        })
+        .catch((err) => {
+          console.log(err.stack);
+        });
+    }); */
   }, []);
 
   return (
