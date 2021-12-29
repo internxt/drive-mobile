@@ -45,10 +45,13 @@ export default function App(): JSX.Element {
   };
   const loadLocalUser = async () => {
     const token = await deviceStorage.getToken();
+    const photosToken = await deviceStorage.getItem('photosToken');
     const user = await deviceStorage.getUser();
 
-    if (token && user) {
-      store.dispatch(authActions.signIn({ token, user }));
+    if (token && photosToken && user) {
+      store.dispatch(authActions.signIn({ token, photosToken, user }));
+    } else {
+      store.dispatch(authThunks.signOutThunk());
     }
   };
   const handleOpenURL = (e: { url: string }) => {

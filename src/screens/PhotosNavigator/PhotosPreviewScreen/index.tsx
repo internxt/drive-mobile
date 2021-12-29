@@ -137,7 +137,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
           >
             <View style={tailwind('flex-row justify-between p-5')}>
               {/* BACK BUTTON */}
-              <Text style={tailwind('text-white text-xs')}>{(progress * 100).toFixed(2) + '%'}</Text>
+              {/*<Text style={tailwind('text-white text-xs')}>{(progress * 100).toFixed(2) + '%'}</Text> */}
               <TouchableOpacity style={tailwind('z-10')} onPress={onBackButtonPressed}>
                 <Unicons.UilAngleLeft color={getColor('white')} size={32} />
               </TouchableOpacity>

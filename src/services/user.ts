@@ -1,10 +1,14 @@
 import { decryptText, decryptTextWithKey, encryptText, passToHash } from '../helpers';
-import { deviceStorage } from './deviceStorage';
 import { getHeaders } from '../helpers/headers';
 import { REACT_NATIVE_DRIVE_API_URL } from '@env';
 
 class UserService {
-  public signin(email: string, password: string, sKey: string, twoFactorCode: string): Promise<any> {
+  public signin(
+    email: string,
+    password: string,
+    sKey: string,
+    twoFactorCode: string,
+  ): Promise<{ user: any; userTeam: any | null; token: string; photosToken: string }> {
     return new Promise((resolve, reject) => {
       const salt = decryptText(sKey);
       const hashObj = passToHash({ password, salt });
@@ -20,13 +24,9 @@ class UserService {
         }),
       })
         .then(async (response) => {
-          return { response, data: await response.json() };
-        })
-        .then(async (response) => {
-          const body = response.data;
+          const body = await response.json();
 
-          if (response.response.status === 200) {
-            // Manage successfull login
+          if (response.status === 200) {
             const user = body.user;
 
             user.email = email;
@@ -35,16 +35,11 @@ class UserService {
             if (!user.root_folder_id) {
               const initializeUserResponse = await this.initializeUser(email, user.mnemonic, body.token);
 
-              // eslint-disable-next-line camelcase
               user.root_folder_id = initializeUserResponse.user.root_folder_id;
               user.bucket = initializeUserResponse.user.bucket;
             }
 
-            // Store login data
-            await deviceStorage.saveItem('xToken', body.token);
-            await deviceStorage.saveItem('xUser', JSON.stringify(user));
-
-            resolve({ token: body.token, user });
+            resolve({ token: body.token, photosToken: body.newToken, user, userTeam: body.userTeam });
           } else {
             throw body.error ? body.error : 'Unkown error';
           }

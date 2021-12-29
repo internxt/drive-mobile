@@ -67,10 +67,11 @@ function SignUpScreen(): JSX.Element {
     } else {
       (async () => {
         const token = await deviceStorage.getToken();
+        const photosToken = await deviceStorage.getItem('photosToken');
         const user = await deviceStorage.getUser();
 
         if (token && user) {
-          dispatch(authActions.signIn({ token, user }));
+          dispatch(authActions.signIn({ token, photosToken, user }));
         }
       })();
     }
