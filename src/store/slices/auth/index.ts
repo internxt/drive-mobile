@@ -10,7 +10,7 @@ import { DevicePlatform } from '../../../types';
 export interface AuthState {
   loggedIn: boolean;
   token: string;
-  photosToken: string | null;
+  photosToken: string;
   user?: User;
   error?: string;
   userStorage: {
@@ -23,7 +23,7 @@ export interface AuthState {
 const initialState: AuthState = {
   loggedIn: false,
   token: '',
-  photosToken: null,
+  photosToken: '',
   user: undefined,
   error: '',
   userStorage: { usage: 0, limit: 0, percentage: 0 },
@@ -58,7 +58,7 @@ export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    signIn: (state: AuthState, action: PayloadAction<{ token: string; photosToken: string | null; user: User }>) => {
+    signIn: (state: AuthState, action: PayloadAction<{ token: string; photosToken: string; user: User }>) => {
       state.loggedIn = true;
       state.user = action.payload.user;
       state.token = action.payload.token;
@@ -112,7 +112,7 @@ export const authSlice = createSlice({
         state.loggedIn = false;
         state.user = undefined;
         state.token = '';
-        state.photosToken = null;
+        state.photosToken = '';
       })
       .addCase(signOutThunk.rejected, () => undefined);
 

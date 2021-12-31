@@ -12,7 +12,7 @@ import _ from 'lodash';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
-import { REACT_NATIVE_DRIVE_API_URL } from '@env';
+import { NODE_ENV, REACT_NATIVE_DRIVE_API_URL } from '@env';
 
 import { notify } from '../../services/toast';
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -37,7 +37,7 @@ const intervalToMonth = (intervalName: string, intervalCount: number) => {
 };
 
 const getProducts = async () => {
-  const products = process.env.NODE_ENV === 'production' ? getProductionPlans() : getDevelopmentPlans();
+  const products = NODE_ENV === 'production' ? getProductionPlans() : getDevelopmentPlans();
   const perPlan: any = {};
 
   products.forEach((product) => {
@@ -74,7 +74,7 @@ function Billing(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
   const getLinkOneTimePayment = async (plan: any) => {
     const body = {
-      test: process.env.NODE_ENV !== 'production',
+      test: NODE_ENV !== 'production',
       // eslint-disable-next-line camelcase
       lifetime_tier: plan.tier,
       mode: 'payment',
@@ -114,20 +114,17 @@ function Billing(): JSX.Element {
     }
     const body = {
       plan: plan.id,
-      test: process.env.NODE_ENV === 'development',
+      test: NODE_ENV === 'development',
       SUCCESS_URL: 'https://drive.internxt.com/redirect/android',
       CANCELED_URL: 'https://drive.internxt.com/redirect/android',
       isMobile: true,
     };
 
-    fetch(
-      `${REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${process.env.NODE_ENV === 'development' ? '?test=true' : ''}`,
-      {
-        method: 'POST',
-        headers: await getHeaders(),
-        body: JSON.stringify(body),
-      },
-    )
+    fetch(`${REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${NODE_ENV === 'development' ? '?test=true' : ''}`, {
+      method: 'POST',
+      headers: await getHeaders(),
+      body: JSON.stringify(body),
+    })
       .then((result) => result.json())
       .then((result) => {
         if (result.error) {
@@ -170,7 +167,7 @@ function Billing(): JSX.Element {
     const key = keys[selectedProductIndex];
 
     if (selectedProductIndex === 2) {
-      const isTest = process.env.NODE_ENV !== 'production';
+      const isTest = NODE_ENV !== 'production';
 
       const lifetimes = [
         {

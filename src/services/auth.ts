@@ -38,10 +38,10 @@ class AuthService {
       const userData = await getAnalyticsData();
 
       analytics
-        .track('user-signout', { userId: userData.uuid, email: userData.email, platform: DevicePlatform.Mobile })
+        .track('user-signout', { userId: userData?.uuid, email: userData?.email, platform: DevicePlatform.Mobile })
         .catch(() => undefined);
 
-      deviceStorage.clearStorage();
+      await deviceStorage.clearStorage();
     } catch (err) {
       console.error('Error during signout: ', err);
     }

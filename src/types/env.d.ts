@@ -1,4 +1,5 @@
 declare module '@env' {
+  export const NODE_ENV: string;
   export const REACT_NATIVE_CRYPTO_SECRET: string;
   export const REACT_NATIVE_DRIVE_API_URL: string;
   export const REACT_NATIVE_PHOTOS_API_URL: string;

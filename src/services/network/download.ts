@@ -2,13 +2,13 @@ import { request } from '@internxt/lib';
 import RNFS from 'react-native-fs';
 import axios, { AxiosRequestConfig } from 'axios';
 
-import { BucketId, NetworkCredentials } from '../photosSync/types';
 import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 import { eachLimit, retry } from 'async';
 import { createDecipheriv, Decipher } from 'react-native-crypto';
 import RNFetchBlob from 'rn-fetch-blob';
 import { FileId } from '@internxt/sdk/dist/photos';
 import { Platform } from 'react-native';
+import { NetworkCredentials } from '../../types';
 
 const networkApiUrl = 'https://api.photos.internxt.com';
 
@@ -51,7 +51,7 @@ interface Shard {
   operation: string;
 }
 
-function getFileInfo(bucketId: BucketId, fileId: FileId, options?: AxiosRequestConfig): Promise<FileInfo | undefined> {
+function getFileInfo(bucketId: string, fileId: FileId, options?: AxiosRequestConfig): Promise<FileInfo | undefined> {
   return axios
     .get<FileInfo>(`${networkApiUrl}/buckets/${bucketId}/files/${fileId}/info`, options)
     .then((res) => res.data)
@@ -60,7 +60,7 @@ function getFileInfo(bucketId: BucketId, fileId: FileId, options?: AxiosRequestC
     });
 }
 
-function getFileMirror(bucketId: BucketId, fileId: FileId, options?: AxiosRequestConfig): Promise<Shard | null> {
+function getFileMirror(bucketId: string, fileId: FileId, options?: AxiosRequestConfig): Promise<Shard | null> {
   const requestUrl = `${networkApiUrl}/buckets/${bucketId}/files/${fileId}?limit=1&skip=0`;
 
   return axios
@@ -122,7 +122,7 @@ function requestDownloadUrlToFarmer(farmerUrl: string): Promise<string> {
 }
 
 export async function downloadFile(
-  bucketId: BucketId,
+  bucketId: string,
   fileId: FileId,
   credentials: NetworkCredentials,
   options: {
@@ -142,7 +142,7 @@ export async function downloadFile(
     throw new Error('Download error code 3');
   }
 
-  if (!credentials.pass) {
+  if (!credentials.password) {
     throw new Error('Download error code 4');
   }
 
@@ -153,7 +153,7 @@ export async function downloadFile(
   const defaultRequestOptions: AxiosRequestConfig = {
     auth: {
       username: credentials.user,
-      password: sha256(Buffer.from(credentials.pass)).toString('hex'),
+      password: sha256(Buffer.from(credentials.password)).toString('hex'),
     },
   };
 

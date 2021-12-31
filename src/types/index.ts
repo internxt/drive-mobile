@@ -1,3 +1,5 @@
+import { photos } from '@internxt/sdk';
+
 export enum AppScreen {
   SignUp = 'sign-up',
   SignIn = 'sign-in',
@@ -95,3 +97,27 @@ export default class AppError extends Error {
     this.status = status;
   }
 }
+
+export type Mnemonic = string;
+export type NetworkUser = string;
+export type NetworkPass = string;
+export interface NetworkCredentials {
+  encryptionKey: Mnemonic;
+  user: NetworkUser;
+  password: NetworkPass;
+}
+
+export const PHOTOS_DB_NAME = 'photos.db';
+
+export interface PhotosServiceModel {
+  accessToken: string;
+  bucket: string;
+  networkCredentials: NetworkCredentials;
+}
+
+export type NewPhoto = Omit<
+  photos.Photo,
+  'id' | 'fileId' | 'previewId' | 'status' | 'lastStatusChangeAt' | 'createdAt' | 'updatedAt'
+> & {
+  URI: string;
+};

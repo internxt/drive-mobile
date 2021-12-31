@@ -71,7 +71,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
       props.route.params.data.fileId,
       {
         encryptionKey: '',
-        pass: '',
+        password: '',
         user: '',
       },
       {

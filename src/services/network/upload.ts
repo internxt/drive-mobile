@@ -9,8 +9,8 @@ import { request } from '@internxt/lib';
 import { GenerateFileKey, ripemd160, sha256, sha512HmacBuffer, EncryptFilename } from '../../@inxt-js/lib/crypto';
 import { getDocumentsDir } from '../../lib/fs';
 import { ShardMeta } from '../../@inxt-js/lib/shardMeta';
-import { BucketId, NetworkCredentials, NetworkUser } from '../photosSync/types';
 import { FileId } from '@internxt/sdk/dist/photos';
+import { NetworkCredentials, NetworkUser } from '../../types';
 
 // const networkApiUrl = process.env.NETWORK_PHOTOS_API_URL as string;
 const networkApiUrl = 'https://api.photos.internxt.com';
@@ -113,7 +113,7 @@ function generateMerkleTree(): MerkleTree {
   };
 }
 
-function bucketExists(bucketId: BucketId, options?: AxiosRequestConfig): Promise<boolean> {
+function bucketExists(bucketId: string, options?: AxiosRequestConfig): Promise<boolean> {
   return axios
     .get(`${networkApiUrl}/buckets/${bucketId}`, options)
     .then(() => true)
@@ -162,7 +162,7 @@ function generateHmac(encryptionKey: Buffer, shardMetas: ShardMeta[]): string {
 }
 
 function createBucketEntry(
-  bucketId: BucketId,
+  bucketId: string,
   frameId: FrameId,
   filename: string,
   encryptionKey: Buffer,
@@ -237,11 +237,7 @@ async function encryptFile(fileUri: string, fileSize: number, cipher: Cipher): P
     });
 }
 
-export async function uploadFile(
-  fileURI: string,
-  bucketId: BucketId,
-  credentials: NetworkCredentials,
-): Promise<FileId> {
+export async function uploadFile(fileURI: string, bucketId: string, credentials: NetworkCredentials): Promise<FileId> {
   if (!bucketId) {
     throw new Error('Upload error code 1');
   }
@@ -254,7 +250,7 @@ export async function uploadFile(
     throw new Error('Upload error code 3');
   }
 
-  if (!credentials.pass) {
+  if (!credentials.password) {
     throw new Error('Upload error code 4');
   }
 
@@ -263,7 +259,7 @@ export async function uploadFile(
   const defaultRequestOptions: AxiosRequestConfig = {
     auth: {
       username: credentials.user,
-      password: sha256(Buffer.from(credentials.pass)).toString('hex'),
+      password: sha256(Buffer.from(credentials.password)).toString('hex'),
     },
   };
 
