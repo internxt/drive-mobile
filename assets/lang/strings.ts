@@ -301,6 +301,7 @@ const strings = new LocalizedStrings({
     },
     messages: {
       photoShared: 'You have shared a photo!',
+      pressAgainToExit: 'Press again to close the app',
     },
     errors: {
       photoShared: 'An error has ocurred during photo sharing',
@@ -607,6 +608,7 @@ const strings = new LocalizedStrings({
     },
     messages: {
       photoShared: '¡Has compartido una foto!',
+      pressAgainToExit: 'Pulsa otra vez para cerrar la app',
     },
     errors: {
       photoShared: 'Ha habido un error al compartir la foto',

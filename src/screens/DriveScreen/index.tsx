@@ -136,7 +136,7 @@ function DriveScreen(): JSX.Element {
       if (folderContent && !folderContent.parentId) {
         count++;
         if (count < 2) {
-          notify({ type: 'error', text: 'Try exiting again to close the app' });
+          notify({ type: 'warn', text: strings.messages.pressAgainToExit });
         } else {
           BackHandler.exitApp();
         }

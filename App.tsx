@@ -172,38 +172,38 @@ export default function App(): JSX.Element {
 }
 
 const toastConfig = {
-  success: function successToast({ text, props, ...rest }: any) {
+  success: function successToast({ text1 }: any) {
     return (
       <View style={tailwind('flex flex-row items-center bg-blue-100 p-3 w-full h-16')}>
         <View>
           <Unicons.UilCheckCircle color={getColor('green-50')} size={24} />
         </View>
         <View style={tailwind('flex-grow ml-3')}>
-          <Text style={tailwind('text-white')}>{text}</Text>
+          <Text style={tailwind('text-white')}>{text1}</Text>
         </View>
       </View>
     );
   },
-  error: function errorToast({ text, props, ...rest }: any) {
+  error: function errorToast({ text1 }: any) {
     return (
       <View style={tailwind('flex flex-row items-center bg-red-60 p-3 w-full h-16')}>
         <View>
           <Unicons.UilTimesCircle color={getColor('white')} size={24} />
         </View>
         <View style={tailwind('flex-grow ml-3')}>
-          <Text style={tailwind('text-white')}>{text}</Text>
+          <Text style={tailwind('text-white')}>{text1}</Text>
         </View>
       </View>
     );
   },
-  warn: function warnToast({ text, props, ...rest }: any) {
+  warn: function warnToast({ text1 }: any) {
     return (
       <View style={tailwind('flex flex-row items-center bg-yellow-30 p-3 w-full h-16')}>
         <View>
           <Unicons.UilExclamationTriangle color={getColor('neutral-900')} size={24} />
         </View>
         <View style={tailwind('flex-grow ml-3')}>
-          <Text style={tailwind('text-neutral-900')}>{text}</Text>
+          <Text style={tailwind('text-neutral-900')}>{text1}</Text>
         </View>
       </View>
     );
