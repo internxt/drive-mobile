@@ -250,7 +250,7 @@ function FileItem(props: FileItemProps): JSX.Element {
               <Text style={tailwind('text-xs text-neutral-100')}>
                 {props.progress === 0 ? 'Encrypting ' : ''}
                 {props.progress > 0 ? 'Uploading ' : ''}
-                {props.progress < 0 ? (progress === 0 ? 'Fetching file ' : progress >= 0 && 'Downloading ') : ''}
+                {props.progress < 0 ? (progress === 0 ? 'Decrypting file ' : progress >= 0 && 'Downloading ') : ''}
                 {progress > 0 &&
                   ((props.progress >= 0 ? (props.progress * 100).toFixed(0) : progress.toFixed(0)) || 0) + '%'}
               </Text>
