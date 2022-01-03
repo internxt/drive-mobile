@@ -1,8 +1,8 @@
 import { photos } from '@internxt/sdk';
 import { getMacAddress, getDeviceName } from 'react-native-device-info';
+
 import { NewPhoto, PhotosServiceModel } from '../../types';
 import PhotosCameraRollService from './PhotosCameraRollService';
-
 import PhotosDeleteService from './PhotosDeleteService';
 import PhotosDownloadService from './PhotosDownloadService';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
@@ -42,8 +42,6 @@ export default class PhotosSyncService {
     // TODO: If first time, download all photos already uploaded because
     // the app could be reinstalled and the database is gone but the photos
     // are already uploaded
-    await this.localDatabaseService.initializeLocalDb();
-    console.log('[SYNC-MAIN]: LOCAL DB INITIALIZED');
 
     const user = await this.initializeUser();
     this.model.bucket = user.bucketId;

@@ -157,6 +157,7 @@ const strings = new LocalizedStrings({
       gallery: {
         title: 'Gallery',
         nPhotosSelected: '{0} selected',
+        empty: 'No photos to show',
         groupBy: {
           years: 'Years',
           months: 'Months',
@@ -459,6 +460,7 @@ const strings = new LocalizedStrings({
       gallery: {
         title: 'Galería',
         nPhotosSelected: '{0} seleccionadas',
+        empty: 'No hay fotos para mostrar',
         groupBy: {
           years: 'Años',
           months: 'Meses',

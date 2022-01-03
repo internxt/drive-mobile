@@ -46,8 +46,16 @@ export class PhotosService {
     );
   }
 
+  public initializeLocalDatabase(): Promise<void> {
+    return this.localDatabaseService.initialize();
+  }
+
   public sync(): Promise<void> {
     return this.syncService.run();
+  }
+
+  public countPhotos(): Promise<number> {
+    return this.localDatabaseService.countPhotos();
   }
 
   public getPhotos({ limit, offset = 0 }: { limit: number; offset?: number }): Promise<photos.Photo[]> {

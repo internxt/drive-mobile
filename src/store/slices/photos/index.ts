@@ -9,15 +9,11 @@ import {
   PermissionStatus,
   RESULTS,
 } from 'react-native-permissions';
-import { photos as photosSdkModule } from '@internxt/sdk';
 import { Photo } from '@internxt/sdk/dist/photos';
-const { Photos } = photosSdkModule;
-import { REACT_NATIVE_PHOTOS_API_URL } from '@env';
 
 import { RootState } from '../..';
 import { GalleryViewMode } from '../../../types';
 import { Platform } from 'react-native';
-import sqliteService from '../../../services/sqlite';
 import { PhotosService } from '../../../services/photos';
 
 let photosService: PhotosService;
@@ -31,6 +27,7 @@ export interface PhotosState {
   };
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
+  allPhotosCount: number;
   photos: Photo[];
   selectedPhotos: Photo[];
 }
@@ -49,6 +46,7 @@ const initialState: PhotosState = {
   },
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.All,
+  allPhotosCount: 0,
   photos: [],
   selectedPhotos: [],
 };
@@ -67,6 +65,10 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     await dispatch(checkPermissionsThunk());
 
     if (photosSelectors.arePermissionsGranted(getState())) {
+      await photosService.initializeLocalDatabase();
+
+      dispatch(photosActions.setAllPhotosCount(await photosService.countPhotos()));
+
       await dispatch(syncThunk()).unwrap();
     }
   },
@@ -131,6 +133,9 @@ export const photosSlice = createSlice({
     },
     setViewMode(state, action: PayloadAction<GalleryViewMode>) {
       state.viewMode = action.payload;
+    },
+    setAllPhotosCount(state, action: PayloadAction<number>) {
+      state.allPhotosCount = action.payload;
     },
     selectPhoto(state, action: PayloadAction<Photo>) {
       state.selectedPhotos = [...state.selectedPhotos, action.payload];
@@ -200,6 +205,7 @@ export const photosSlice = createSlice({
 export const photosActions = photosSlice.actions;
 
 export const photosSelectors = {
+  hasPhotos: (state: RootState): boolean => state.photos.allPhotosCount > 0,
   isPhotoSelected:
     (state: RootState) =>
     (photo: Photo): boolean =>

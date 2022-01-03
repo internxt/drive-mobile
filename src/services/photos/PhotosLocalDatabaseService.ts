@@ -12,7 +12,7 @@ export default class PhotosLocalDatabaseService {
     this.model = model;
   }
 
-  public async initializeLocalDb(): Promise<void> {
+  public async initialize(): Promise<void> {
     await sqliteService.open(PHOTOS_DB_NAME);
 
     await sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.createTable);
@@ -30,6 +30,12 @@ export default class PhotosLocalDatabaseService {
     await sqliteService.executeSql(PHOTOS_DB_NAME, syncDatesTable.statements.insert, [
       new Date('January 1, 1971 00:00:01'),
     ]);
+  }
+
+  public async countPhotos(): Promise<number> {
+    const result = await sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.count);
+
+    return result[0].rows.item(0).count;
   }
 
   public async getPhotos(offset: number, limit = 60): Promise<Photo[]> {

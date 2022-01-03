@@ -10,7 +10,7 @@ import ScreenTitle from '../../../components/ScreenTitle';
 import strings from '../../../../assets/lang/strings';
 import galleryViews from '../../../components/gallery-views';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { photosActions, photosThunks } from '../../../store/slices/photos';
+import { photosActions, photosSelectors, photosThunks } from '../../../store/slices/photos';
 import { layoutActions } from '../../../store/slices/layout';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
@@ -21,6 +21,7 @@ function PhotosGalleryScreen(): JSX.Element {
   const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
   const onDeletePhotosModalClosed = () => dispatch(layoutActions.setIsDeletePhotosModalOpen(false));
   const { isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
+  const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
   const hasNoPhotosSelected = selectedPhotos.length === 0;
   const hasManyPhotosSelected = selectedPhotos.length > 1;
   const onSelectButtonPressed = () => {
@@ -118,6 +119,7 @@ function PhotosGalleryScreen(): JSX.Element {
                 <TouchableOpacity
                   style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
                   onPress={onSelectButtonPressed}
+                  disabled={!hasPhotos}
                 >
                   <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
                     {strings.components.buttons.select}
@@ -129,7 +131,13 @@ function PhotosGalleryScreen(): JSX.Element {
         </View>
 
         {/* GALLERY VIEW */}
-        <GalleryView />
+        {hasPhotos ? (
+          <GalleryView />
+        ) : (
+          <View style={tailwind('flex-1 items-center justify-center')}>
+            <Text style={tailwind('text-lg text-neutral-60')}>{strings.screens.gallery.empty}</Text>
+          </View>
+        )}
 
         {/*  GROUP BY MENU */}
         {groupByMenu}
