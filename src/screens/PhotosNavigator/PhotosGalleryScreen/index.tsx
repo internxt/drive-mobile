@@ -67,7 +67,7 @@ function PhotosGalleryScreen(): JSX.Element {
   })();
 
   // Sync status
-  const [syncingSpinnerRotationAnimation, setSyncingSpinnerRotationAnimation] = useState(new Animated.Value(0));
+  const [syncingSpinnerRotationAnimation] = useState(new Animated.Value(0));
   const syncingSpinnerRotationInterpolation = syncingSpinnerRotationAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
