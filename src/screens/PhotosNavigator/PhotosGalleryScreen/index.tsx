@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, TouchableWithoutFeedback, Animated, Easing } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import * as Unicons from '@iconscout/react-native-unicons';
 
@@ -66,7 +66,26 @@ function PhotosGalleryScreen(): JSX.Element {
     );
   })();
 
+  // Sync status
+  const [syncingSpinnerRotationAnimation, setSyncingSpinnerRotationAnimation] = useState(new Animated.Value(0));
+  const syncingSpinnerRotationInterpolation = syncingSpinnerRotationAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+  const runSyncingSpinnerAnimation = () => {
+    syncingSpinnerRotationAnimation.setValue(0);
+
+    Animated.timing(syncingSpinnerRotationAnimation, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+      easing: Easing.linear,
+    }).start(() => runSyncingSpinnerAnimation());
+  };
+
   useEffect(() => {
+    runSyncingSpinnerAnimation();
+
     dispatch(photosActions.setViewMode(GalleryViewMode.All));
     dispatch(photosActions.deselectAll());
     dispatch(photosThunks.loadLocalPhotosThunk({ limit: 15, offset: 0 }));
@@ -79,55 +98,77 @@ function PhotosGalleryScreen(): JSX.Element {
 
       <View style={tailwind('app-screen bg-white flex-1')}>
         {/* GALLERY TOP BAR */}
-        <View style={tailwind('flex-row justify-between pb-3 h-16')}>
-          {isSelectionModeActivated ? (
-            <>
-              <View style={tailwind('flex-row items-center justify-between')}>
-                <Text style={tailwind('pl-5')}>
-                  {strings.formatString(strings.screens.gallery.nPhotosSelected, selectedPhotos.length)}
-                </Text>
-              </View>
-
-              <View style={tailwind('flex-row pr-5')}>
+        <View style={tailwind('pb-3 h-16')}>
+          <View style={tailwind('flex-row justify-between')}>
+            {isSelectionModeActivated ? (
+              <>
                 <View style={tailwind('flex-row items-center justify-between')}>
-                  <TouchableOpacity
-                    style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl mr-2')}
-                    onPress={onSelectAllButtonPressed}
-                  >
-                    <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                      {strings.components.buttons.selectAll}
-                    </Text>
-                  </TouchableOpacity>
+                  <Text style={tailwind('pl-5')}>
+                    {strings.formatString(strings.screens.gallery.nPhotosSelected, selectedPhotos.length)}
+                  </Text>
                 </View>
-                <View style={tailwind('flex-row items-center justify-between')}>
+
+                <View style={tailwind('flex-row pr-5')}>
+                  <View style={tailwind('flex-row items-center justify-between')}>
+                    <TouchableOpacity
+                      style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl mr-2')}
+                      onPress={onSelectAllButtonPressed}
+                    >
+                      <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+                        {strings.components.buttons.selectAll}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={tailwind('flex-row items-center justify-between')}>
+                    <TouchableOpacity
+                      style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
+                      onPress={onCancelSelectButtonPressed}
+                    >
+                      <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+                        {strings.components.buttons.cancel}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </>
+            ) : (
+              <>
+                <ScreenTitle text={strings.screens.gallery.title} showBackButton={false} />
+
+                <View style={tailwind('flex-row items-center justify-between pr-5')}>
                   <TouchableOpacity
                     style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
-                    onPress={onCancelSelectButtonPressed}
+                    onPress={onSelectButtonPressed}
+                    disabled={!hasPhotos}
                   >
                     <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                      {strings.components.buttons.cancel}
+                      {strings.components.buttons.select}
                     </Text>
                   </TouchableOpacity>
                 </View>
-              </View>
-            </>
-          ) : (
-            <>
-              <ScreenTitle text={strings.screens.gallery.title} showBackButton={false} />
+              </>
+            )}
+          </View>
 
-              <View style={tailwind('flex-row items-center justify-between pr-5')}>
-                <TouchableOpacity
-                  style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
-                  onPress={onSelectButtonPressed}
-                  disabled={!hasPhotos}
-                >
-                  <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                    {strings.components.buttons.select}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
+          <View style={tailwind('pl-5 flex-row items-center')}>
+            <Animated.View
+              style={[
+                tailwind('justify-center mr-1'),
+                {
+                  transform: [
+                    {
+                      rotate: syncingSpinnerRotationInterpolation,
+                    },
+                  ],
+                },
+              ]}
+            >
+              <Unicons.UilSpinnerAlt size={16} color={getColor('neutral-100')} />
+            </Animated.View>
+            <Text style={tailwind('text-sm text-neutral-100')}>
+              {strings.formatString(strings.screens.gallery.syncing, 0, 100)}
+            </Text>
+          </View>
         </View>
 
         {/* GALLERY VIEW */}
