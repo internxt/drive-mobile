@@ -7,8 +7,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 import analytics from '../../services/analytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
-import { downloadFile } from '../../services/download';
-import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../lib/fs';
+import { createEmptyFile, exists, getDocumentsDir } from '../../lib/fs';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import FileSpinner from '../../../assets/images/widgets/file-spinner.svg';
 import prettysize from 'prettysize';
@@ -18,6 +17,7 @@ import { filesActions, filesThunks } from '../../store/slices/files';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { deviceStorage } from '../../services/deviceStorage';
 import { layoutActions } from '../../store/slices/layout';
+import { downloadFile } from '../../services/network';
 
 interface FileItemProps {
   isFolder: boolean;
@@ -101,34 +101,38 @@ function FileItem(props: FileItemProps): JSX.Element {
 
     await createEmptyFile(destinationPath);
 
-    const fileManager = new FileManager(destinationPath);
+    const { bucket, bridgeUser, userId, mnemonic } = await deviceStorage.getUser();
 
-    return downloadFile(props.item.fileId.toString(), {
-      fileManager,
-      progressCallback: (progress) => {
-        setProgress(progress * 100);
-      },
-    })
-      .then(async () => {
-        trackDownloadSuccess();
-
-        if (Platform.OS === 'android') {
-          const { uri } = await FileSystem.getInfoAsync('file://' + destinationPath);
-
-          return showFileViewer(uri);
+    return downloadFile(bucket, props.item.fileId.toString(), 
+      {
+        encryptionKey: mnemonic,
+        user: bridgeUser,
+        pass: userId,
+      }, 
+      {
+        toPath: destinationPath,
+        progressCallback: (progress) => {
+          setProgress(progress * 100);
         }
+      }
+    ).then(() => {
+      trackDownloadSuccess();
 
-        return showFileViewer(destinationPath);
-      })
-      .catch((err) => {
-        trackDownloadError(err);
+      if (Platform.OS === 'android') {
+        FileSystem.getInfoAsync('file://' + destinationPath).then(({ uri }) => {
+          return showFileViewer(uri);
+        });
+      }
 
-        Alert.alert('Error downloading file', err.message);
-      })
-      .finally(() => {
-        dispatch(filesActions.downloadSelectedFileStop());
-        setProgress(-1);
-      });
+      return showFileViewer(destinationPath);
+    }).catch((err) => {
+      trackDownloadError(err);
+
+      Alert.alert('Error downloading file', err.message);
+    }).finally(() => {
+      dispatch(filesActions.downloadSelectedFileStop());
+      setProgress(-1);
+    });
   }
 
   function showFileViewer(fileUri: string) {

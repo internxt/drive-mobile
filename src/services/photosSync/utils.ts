@@ -106,10 +106,20 @@ export async function pushPhoto(
   const previewPath = await generatePreview(photo.name, photo.URI);
 
   console.log('Uploading preview for photo ' + photo.name);
-  const previewId = await network.uploadFile(previewPath, photosBucket, credentials);
+  const previewId = await network.uploadFile(
+    previewPath,
+    photosBucket,
+    process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL!,
+    credentials
+  );
 
   console.log('Uploading photo for photo ' + photo.name);
-  const fileId = await network.uploadFile(photoPath, photosBucket, credentials);
+  const fileId = await network.uploadFile(
+    photoPath,
+    photosBucket,
+    process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL!,
+    credentials
+  );
   const preview = await RNFetchBlob.fs.readFile(previewPath, 'base64');
 
   await removeFile(previewPath);

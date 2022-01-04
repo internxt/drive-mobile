@@ -12,8 +12,6 @@ import { ShardMeta } from '../../@inxt-js/lib/shardMeta';
 import { BucketId, NetworkCredentials, NetworkUser } from '../photosSync/types';
 import { FileId } from '@internxt/sdk/dist/photos';
 
-const networkApiUrl = process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL as string;
-
 type FrameId = string;
 type Timestamp = string;
 type BucketEntryId = string;
@@ -112,25 +110,25 @@ function generateMerkleTree(): MerkleTree {
   };
 }
 
-function bucketExists(bucketId: BucketId, options?: AxiosRequestConfig): Promise<boolean> {
+function bucketExists(bucketId: BucketId, networkUrl: string, options?: AxiosRequestConfig): Promise<boolean> {
   return axios
-    .get(`${networkApiUrl}/buckets/${bucketId}`, options)
+    .get(`${networkUrl}/buckets/${bucketId}`, options)
     .then(() => true)
     .catch((err) => {
       throw new Error(request.extractMessageFromError(err));
     });
 }
 
-function stageFile(options?: AxiosRequestConfig): Promise<FrameId> {
+function stageFile(networkUrl: string, options?: AxiosRequestConfig): Promise<FrameId> {
   return axios
-    .post<Frame>(`${networkApiUrl}/frames`, {}, options)
+    .post<Frame>(`${networkUrl}/frames`, {}, options)
     .then((res) => res.data.id)
     .catch((err) => {
       throw new Error(request.extractMessageFromError(err));
     });
 }
 
-function negotiateContract(frameId: FrameId, shardMeta: ShardMeta, options?: AxiosRequestConfig): Promise<Contract> {
+function negotiateContract(frameId: FrameId, shardMeta: ShardMeta, networkUrl: string, options?: AxiosRequestConfig): Promise<Contract> {
   return axios
     .request<Contract>({
       ...options,
@@ -139,7 +137,7 @@ function negotiateContract(frameId: FrameId, shardMeta: ShardMeta, options?: Axi
         ...shardMeta,
         challenges: shardMeta.challenges_as_str,
       },
-      url: `${networkApiUrl}/frames/${frameId}`,
+      url: `${networkUrl}/frames/${frameId}`,
     })
     .then((res) => {
       return res.data;
@@ -167,6 +165,7 @@ function createBucketEntry(
   encryptionKey: Buffer,
   index: Buffer,
   shardMetas: ShardMeta[],
+  networkUrl: string,
   options: AxiosRequestConfig,
 ): Promise<BucketEntryId> {
   const hmac = generateHmac(encryptionKey, shardMetas);
@@ -175,7 +174,7 @@ function createBucketEntry(
   console.log('BuckeTentry', JSON.stringify(newBucketEntry, null, 2));
 
   return axios
-    .post<CreateEntryFromFrameResponse>(`${networkApiUrl}/buckets/${bucketId}/files`, newBucketEntry, options)
+    .post<CreateEntryFromFrameResponse>(`${networkUrl}/buckets/${bucketId}/files`, newBucketEntry, options)
     .then((res) => {
       return res.data.id;
     })
@@ -236,10 +235,16 @@ async function encryptFile(fileUri: string, fileSize: number, cipher: Cipher): P
     });
 }
 
+interface UploadOpts {
+  progress: (processPercentage: number) => void
+}
+
 export async function uploadFile(
   fileURI: string,
   bucketId: BucketId,
+  networkUrl: string,
   credentials: NetworkCredentials,
+  uploadOptions?: UploadOpts
 ): Promise<FileId> {
   if (!bucketId) {
     throw new Error('Upload error code 1');
@@ -267,14 +272,14 @@ export async function uploadFile(
   };
 
   // 1. Check bucket existence
-  const exists = await bucketExists(bucketId, defaultRequestOptions);
+  const exists = await bucketExists(bucketId, networkUrl, defaultRequestOptions);
 
   if (!exists) {
     throw new Error('Bucket not exists');
   }
 
   // 2. Stage frame
-  const frameId = await stageFile(defaultRequestOptions);
+  const frameId = await stageFile(networkUrl, defaultRequestOptions);
 
   // 3. Generate cipher
   const index = randomBytes(32);
@@ -308,60 +313,20 @@ export async function uploadFile(
   console.log('negotiating contract');
 
   // 5. Negotiate contract
-  const contract = await negotiateContract(frameId, shardMetas[0], defaultRequestOptions);
+  const contract = await negotiateContract(frameId, shardMetas[0], networkUrl, defaultRequestOptions);
 
   console.log('negotiated contract');
   // console.log(JSON.stringify(contract, null, 2));
 
   console.log('Size ' + (await RFNS.stat(fileEncryptedURI)).size);
 
-  // 6. Upload file
-  const files: UploadFileItem[] = [
-    {
-      filename: '',
-      filepath: fileEncryptedURI,
-      filetype: '',
-      name: '',
-    },
-  ];
-
+  // 6. Upload
   console.log('start put');
-  await RNFetchBlob.fetch('PUT', contract.url, {}, RNFetchBlob.wrap(fileEncryptedURI));
+  await RNFetchBlob.fetch('PUT', contract.url, {}, RNFetchBlob.wrap(fileEncryptedURI))
+    .uploadProgress({ interval: 250 }, (bytesSent, totalBytes) => {
+      uploadOptions?.progress(bytesSent / totalBytes);
+    });
   console.log('finish put');
-
-  // async function getBlob(fileUri: string) {
-  //   const resp = await fetch(fileUri);
-  //   const imageBody = await resp.blob();
-  //   return imageBody;
-  // }
-
-  // async function uploadImage(uploadUrl: string, fileUri: string) {
-  //   const imageBody = await getBlob(fileUri);
-
-  //   console.log('IMAGE SIZE ' + imageBody.size);
-
-  //   return fetch(uploadUrl, {
-  //     method: 'PUT',
-  //     body: imageBody
-  //   });
-  // }
-
-  // console.log('upload image starts');
-  // await uploadImage(contract.url, fileEncryptedURI);
-  // console.log('upload image ends');
-
-  // const uploadResult = RFNS.uploadFiles({
-  //   toUrl: contract.url,
-  //   // binaryStreamOnly
-  //   files,
-  //   method: 'PUT',
-
-  //   progress: (res) => {
-  //     console.log('PROGRESS ' + ((res.totalBytesSent / res.totalBytesExpectedToSend) * 100).toFixed(2));
-  //   }
-  // });
-
-  // await uploadResult.promise;
 
   // 7. Create file entry
   return createBucketEntry(
@@ -371,6 +336,7 @@ export async function uploadFile(
     fileEncryptionKey,
     index,
     shardMetas,
+    networkUrl,
     defaultRequestOptions,
   ).catch((err) => {
     throw new Error(request.extractMessageFromError(err));
