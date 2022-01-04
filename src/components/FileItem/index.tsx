@@ -276,8 +276,8 @@ function FileItem(props: FileItemProps): JSX.Element {
 
             {showSpinner && (
               <Text style={tailwind('text-xs text-neutral-100')}>
-                {props.progress === 0 ? 'Encrypting' : ''}
-                {props.progress > 0 ? 'Uploading ' + (props.progress * 100).toFixed(0) + '%' : ''}
+                {props.progress === 0 && 'Encrypting'}
+                {props.progress > 0 && 'Uploading ' + (props.progress * 100).toFixed(0) + '%'}
 
                 {progress >= 0 && progress < 1 && 'Downloading ' + (progress * 100).toFixed(2) + '%'}
                 {progress >= 1 && 'Decrypting'}
