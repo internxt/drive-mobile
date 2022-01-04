@@ -13,9 +13,21 @@ import { Bridge, CreateFileTokenResponse } from './services/api';
 export type OnlyErrorCallback = (err: Error | null) => void;
 export type UploadFinishCallback = (err: Error | null, response: string | null) => void;
 export type DownloadFinishedCallback = (err: Error | null) => void;
-export type DownloadProgressCallback = (progress: number, downloadedBytes: number | null, totalBytes: number | null) => void;
-export type DecryptionProgressCallback = (progress: number, decryptedBytes: number | null, totalBytes: number | null) => void;
-export type UploadProgressCallback = (progress: number, uploadedBytes: number | null, totalBytes: number | null) => void;
+export type DownloadProgressCallback = (
+  progress: number,
+  downloadedBytes: number | null,
+  totalBytes: number | null,
+) => void;
+export type DecryptionProgressCallback = (
+  progress: number,
+  decryptedBytes: number | null,
+  totalBytes: number | null,
+) => void;
+export type UploadProgressCallback = (
+  progress: number,
+  uploadedBytes: number | null,
+  totalBytes: number | null,
+) => void;
 
 export interface UploadFileOptions {
   progressCallback: UploadProgressCallback;
@@ -43,7 +55,7 @@ interface UploadFileParams {
 }
 
 const utils = {
-  generateFileKey: GenerateFileKey
+  generateFileKey: GenerateFileKey,
 };
 
 export class Environment {
@@ -72,11 +84,13 @@ export class Environment {
       return downloadState;
     }
 
-    download(this.config, bucketId, fileId, options.progressCallback, logger, downloadState, options.fileManager).then(() => {
-      options.finishedCallback(null);
-    }).catch((err) => {
-      options.finishedCallback(err);
-    });
+    download(this.config, bucketId, fileId, options.progressCallback, logger, downloadState, options.fileManager)
+      .then(() => {
+        options.finishedCallback(null);
+      })
+      .catch((err) => {
+        options.finishedCallback(err);
+      });
 
     return downloadState;
   }
@@ -87,31 +101,31 @@ export class Environment {
    * @param params Upload file params
    */
   uploadFile(bucketId: string, params: UploadFileParams): ActionState {
-    const uploadState = new ActionState(ActionTypes.Upload);
+    const actionState = new ActionState(ActionTypes.Upload);
 
     if (!this.config.encryptionKey) {
       params.finishedCallback(Error('Mnemonic was not provided, please, provide a mnemonic'), null);
-      return;
+      return actionState;
     }
 
     if (!bucketId) {
       params.finishedCallback(Error('Bucket id was not provided'), null);
-      return;
+      return actionState;
     }
 
     if (!params.fileUri) {
       params.finishedCallback(Error('File uri was not provided'), null);
-      return;
+      return actionState;
     }
 
     if (!params.filename) {
       params.finishedCallback(Error('Filename was not provided'), null);
-      return;
+      return actionState;
     }
 
     if (params.fileSize === 0) {
       params.finishedCallback(Error('Can not upload a file with size 0'), null);
-      return;
+      return actionState;
     }
 
     const { filename, fileSize: size, fileUri } = params;
@@ -122,7 +136,7 @@ export class Environment {
 
         const fileToUpload: FileMeta = { fileUri, name, size };
 
-        return upload(this.config, bucketId, fileToUpload, params, uploadState);
+        return upload(this.config, bucketId, fileToUpload, params, actionState);
       })
       .catch((err: Error) => {
         logger.error(`Error encrypting filename due to ${err.message}`);
@@ -131,7 +145,7 @@ export class Environment {
         params.finishedCallback(err, null);
       });
 
-    return uploadState;
+    return actionState;
   }
 
   /**
@@ -152,7 +166,9 @@ export class Environment {
    * @param cb
    */
   createFileToken(bucketId: string, fileId: string, operation: 'PUSH' | 'PULL'): Promise<string> {
-    return new Bridge(this.config).createFileToken(bucketId, fileId, operation).start<CreateFileTokenResponse>()
+    return new Bridge(this.config)
+      .createFileToken(bucketId, fileId, operation)
+      .start<CreateFileTokenResponse>()
       .then((res) => {
         return res.token;
       });
@@ -176,6 +192,6 @@ export interface EnvironmentConfig {
   webProxy?: string;
   useProxy?: boolean;
   config?: {
-    shardRetry: number
+    shardRetry: number;
   };
 }

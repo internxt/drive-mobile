@@ -1,14 +1,13 @@
-import { deviceStorage } from './deviceStorage'
-import PackageJson from '../../package.json'
+import { deviceStorage } from '../services/deviceStorage';
+import PackageJson from '../../package.json';
 
 export async function getHeaders(authToken?: string, mnemonic?: string): Promise<Headers> {
-
   let storedAuthToken;
 
   if (!authToken) {
     storedAuthToken = await deviceStorage.getToken();
   } else {
-    storedAuthToken = authToken
+    storedAuthToken = authToken;
   }
 
   let storedMnemonic;
@@ -16,16 +15,16 @@ export async function getHeaders(authToken?: string, mnemonic?: string): Promise
   if (!mnemonic) {
     const xUser = await deviceStorage.getUser();
 
-    storedMnemonic = xUser.mnemonic;
+    storedMnemonic = xUser && xUser.mnemonic;
   } else {
-    storedMnemonic = mnemonic
+    storedMnemonic = mnemonic;
   }
 
-  const headers = new Headers()
+  const headers = new Headers();
 
-  headers.append('content-type', 'application/json; charset=utf-8')
-  headers.append('internxt-version', PackageJson.version)
-  headers.append('internxt-client', 'drive-mobile')
+  headers.append('content-type', 'application/json; charset=utf-8');
+  headers.append('internxt-version', PackageJson.version);
+  headers.append('internxt-client', 'drive-mobile');
 
   headers.append('Authorization', `Bearer ${storedAuthToken}`);
   headers.append('internxt-mnemonic', storedMnemonic);

@@ -1,9 +1,9 @@
 export class WrappedError extends Error {
-    header = '';
+  header = '';
 
-    constructor(message: string) {
-      super(message);
-    }
+  constructor(message: string) {
+    super(message);
+  }
 }
 
 export const wrap = (header: string, err: Error): WrappedError => {

@@ -10,7 +10,13 @@ import { logger } from '../lib/utils/logger';
 
 import { ExchangeReport } from './reports';
 import { determineShardSize } from '../lib/utils';
-import { Bridge, CreateEntryFromFrameBody, CreateEntryFromFrameResponse, FrameStaging, InxtApiI } from '../services/api';
+import {
+  Bridge,
+  CreateEntryFromFrameBody,
+  CreateEntryFromFrameResponse,
+  FrameStaging,
+  InxtApiI,
+} from '../services/api';
 import { EventEmitter } from '../lib/utils/eventEmitter';
 import { INXTRequest } from '../lib';
 
@@ -95,13 +101,16 @@ export class FileObjectUpload extends EventEmitter {
 
     this.requests.push(req);
 
-    return req.start().then(() => {
-      logger.info(`Bucket ${this.bucketId} exists`);
+    return req
+      .start()
+      .then(() => {
+        logger.info(`Bucket ${this.bucketId} exists`);
 
-      return true;
-    }).catch((err) => {
-      throw wrap('Bucket existence check error', err);
-    });
+        return true;
+      })
+      .catch((err) => {
+        throw wrap('Bucket existence check error', err);
+      });
   }
 
   stage(): Promise<void> {
@@ -111,17 +120,20 @@ export class FileObjectUpload extends EventEmitter {
 
     this.requests.push(req);
 
-    return req.start<FrameStaging>().then((frame) => {
-      if (!frame || !frame.id) {
-        throw new Error('Frame response is empty');
-      }
+    return req
+      .start<FrameStaging>()
+      .then((frame) => {
+        if (!frame || !frame.id) {
+          throw new Error('Frame response is empty');
+        }
 
-      this.frameId = frame.id;
+        this.frameId = frame.id;
 
-      logger.info(`Stage a file with frame ${this.frameId}`);
-    }).catch((err) => {
-      throw wrap('Bridge frame creation error', err);
-    });
+        logger.info(`Stage a file with frame ${this.frameId}`);
+      })
+      .catch((err) => {
+        throw wrap('Bridge frame creation error', err);
+      });
   }
 
   SaveFileInNetwork(bucketEntry: CreateEntryFromFrameBody): Promise<void | CreateEntryFromFrameResponse> {
@@ -131,10 +143,9 @@ export class FileObjectUpload extends EventEmitter {
 
     this.requests.push(req);
 
-    return req.start<CreateEntryFromFrameResponse>()
-      .catch((err) => {
-        throw wrap('Saving file in network error', err);
-      });
+    return req.start<CreateEntryFromFrameResponse>().catch((err) => {
+      throw wrap('Saving file in network error', err);
+    });
   }
 
   NegotiateContract(frameId: string, shardMeta: ShardMeta): Promise<void | ContractNegotiated> {
@@ -144,10 +155,9 @@ export class FileObjectUpload extends EventEmitter {
 
     this.requests.push(req);
 
-    return req.start<ContractNegotiated>()
-      .catch((err) => {
-        throw wrap('Contract negotiation error', err);
-      });
+    return req.start<ContractNegotiated>().catch((err) => {
+      throw wrap('Contract negotiation error', err);
+    });
   }
 
   GenerateHmac(shardMetas: ShardMeta[]): string {
@@ -188,7 +198,7 @@ export class FileObjectUpload extends EventEmitter {
 
       shardMeta = await this.uploadShard(encryptedChunk, encryptedChunk.length, this.frameId, i, 3, false);
 
-      progress += (encryptedChunk.length / this.fileMeta.size);
+      progress += encryptedChunk.length / this.fileMeta.size;
       callback(progress, encryptedChunk.length, this.fileMeta.size);
       this.shardMetas.push(shardMeta);
     }
@@ -206,7 +216,14 @@ export class FileObjectUpload extends EventEmitter {
     return this.parallelUpload(callback);
   }
 
-  async uploadShard(encryptedShard: Buffer, shardSize: number, frameId: string, index: number, attemps: number, parity: boolean): Promise<ShardMeta> {
+  async uploadShard(
+    encryptedShard: Buffer,
+    shardSize: number,
+    frameId: string,
+    index: number,
+    attemps: number,
+    parity: boolean,
+  ): Promise<ShardMeta> {
     const shardMeta: ShardMeta = getShardMeta(encryptedShard, shardSize, index, parity);
 
     logger.info(`Uploading shard ${shardMeta.hash} index ${shardMeta.index} size ${shardMeta.index} parity ${parity}`);
@@ -275,7 +292,12 @@ export class FileObjectUpload extends EventEmitter {
   }
 }
 
-function updateProgress(totalBytes: number, currentBytesUploaded: number, newBytesUploaded: number, progress: UploadProgressCallback): number {
+function updateProgress(
+  totalBytes: number,
+  currentBytesUploaded: number,
+  newBytesUploaded: number,
+  progress: UploadProgressCallback,
+): number {
   const newCurrentBytes = currentBytesUploaded + newBytesUploaded;
   const progressCounter = newCurrentBytes / totalBytes;
 
@@ -284,12 +306,17 @@ function updateProgress(totalBytes: number, currentBytesUploaded: number, newByt
   return newCurrentBytes;
 }
 
-export function generateBucketEntry(fileObject: FileObjectUpload, fileMeta: FileMeta, shardMetas: ShardMeta[], rs: boolean): CreateEntryFromFrameBody {
+export function generateBucketEntry(
+  fileObject: FileObjectUpload,
+  fileMeta: FileMeta,
+  shardMetas: ShardMeta[],
+  rs: boolean,
+): CreateEntryFromFrameBody {
   const bucketEntry: CreateEntryFromFrameBody = {
     frame: fileObject.frameId,
     filename: fileMeta.name,
     index: fileObject.index.toString('hex'),
-    hmac: { type: 'sha512', value: fileObject.GenerateHmac(shardMetas) }
+    hmac: { type: 'sha512', value: fileObject.GenerateHmac(shardMetas) },
   };
 
   if (rs) {

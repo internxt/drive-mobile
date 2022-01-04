@@ -1,43 +1,48 @@
-import { deviceStorage, encryptText, encryptTextWithKey, getLyticsData, passToHash } from '../helpers';
-import analytics from '../helpers/analytics';
+import { encryptText, encryptTextWithKey, passToHash } from '../helpers';
+import analytics, { getAnalyticsData } from './analytics';
 import { getHeaders } from '../helpers/headers';
-import { isJsonString } from '../screens/Register/registerUtils'
+import { isJsonString } from '../screens/SignUpScreen/registerUtils';
+import { DevicePlatform } from '../types';
+import { deviceStorage } from './deviceStorage';
 
 interface LoginResponse {
-  tfa: string
-  sKey: string
+  tfa: string;
+  sKey: string;
 }
 
 class AuthService {
   public async apiLogin(email: string): Promise<LoginResponse> {
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/login`, {
+    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/login`, {
       method: 'POST',
       headers: await getHeaders(),
-      body: JSON.stringify({ email: email })
-    }).then(async res => {
-      const data = await res.text()
-      const json = isJsonString(data)
+      body: JSON.stringify({ email: email }),
+    }).then(async (res) => {
+      const data = await res.text();
+      const json = isJsonString(data);
 
       if (res.status === 200) {
-        return json
+        return json;
       } else {
         if (json) {
-          throw Error(json.error)
+          throw Error(json.error);
         } else {
-          throw Error(data)
+          throw Error(data);
         }
       }
-    })
+    });
   }
 
   public async signout(): Promise<void> {
     try {
-      const userData = await getLyticsData()
+      const userData = await getAnalyticsData();
 
-      analytics.track('user-signout', { userId: userData.uuid, email: userData.email, platform: 'mobile' }).catch(() => { })
-      // Delete login data
+      analytics
+        .track('user-signout', { userId: userData.uuid, email: userData.email, platform: DevicePlatform.Mobile })
+        .catch(() => undefined);
+
       deviceStorage.clearStorage();
-    } catch (error) {
+    } catch (err) {
+      console.error('Error during signout: ', err);
     }
   }
 
@@ -51,26 +56,26 @@ class AuthService {
     const encryptedSalt = encryptText(hashPass.salt);
     const encryptedMnemonic = encryptTextWithKey(mnemonic, newPassword);
 
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/user/recover`, {
+    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/user/recover`, {
       method: 'patch',
       headers: await getHeaders(),
       body: JSON.stringify({
         password: encryptedPassword,
         salt: encryptedSalt,
         mnemonic: encryptedMnemonic,
-        privateKey: null
-      })
+        privateKey: null,
+      }),
     });
   }
 
   public sendDeactivationsEmail(email: string): Promise<any> {
-    return fetch(`${process.env.REACT_NATIVE_API_URL}/api/reset/${email}`, {
-    }).then(async res => {
+    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/reset/${email}`, {}).then(async (res) => {
       if (res.status !== 200) {
         throw Error();
       }
-    })
+    });
   }
 }
 
-export default new AuthService();
+const authService = new AuthService();
+export default authService;

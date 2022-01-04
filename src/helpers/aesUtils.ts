@@ -92,7 +92,7 @@ const AesUtils = {
     const decrypted = decipher.update(text, 'binary', 'utf8') + decipher.final('utf8');
 
     return decrypted;
-  }
+  },
 };
 
 export default AesUtils;

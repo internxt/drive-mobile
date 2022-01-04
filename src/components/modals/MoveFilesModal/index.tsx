@@ -2,122 +2,118 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Platform, FlatList, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { connect, useSelector } from 'react-redux';
+
 import strings from '../../../../assets/lang/strings';
 import FileItem from '../../FileItem';
 import Separator from '../../Separator';
 import { tailwind } from '../../../helpers/designSystem';
-import { fileActions, layoutActions } from '../../../store/actions';
-import { Reducers } from '../../../store/reducers/reducers';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { layoutActions } from '../../../store/slices/layout';
+import { filesThunks } from '../../../store/slices/files';
+import { IFolder } from '../../FileList';
 
-function MoveFilesModal(props: Reducers) {
-  const { filesState, layoutState } = useSelector<any, Reducers>(s => s);
-
-  const [isOpen, setIsOpen] = useState(layoutState.showMoveModal)
-  const [currentfolderid, setCurrentFolderId] = useState<number>()
-  const [folderlist, setFolderList] = useState([])
-  const [firstfolder, setFirstFolder] = useState<number>()
-  const [selectedfile, setSelectedFile] = useState<any>({})
-
-  const { rootFolderContent } = filesState
-  const folderList: any[] = rootFolderContent && rootFolderContent.children || []
-
-  useEffect(() => {
-    props.layoutState.showMoveModal === true ? setIsOpen(true) : null
-    if (filesState.folderContent) {
-      setCurrentFolderId(props.filesState.folderContent.currentFolder)
-      setSelectedFile(props.filesState.selectedFile)
-      setFolderList(props.filesState.rootFolderContent.children)
-      setFirstFolder(props.filesState.folderContent.currentFolder)
-    }
-  }, [props.layoutState.showMoveModal])
+function MoveFilesModal(): JSX.Element {
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+  const { showMoveModal } = useAppSelector((state) => state.layout);
+  const { rootFolderContent, folderContent, selectedFile } = useAppSelector((state) => state.files);
+  const [currentFolderId, setCurrentFolderId] = useState<number>();
+  const [folderlist, setFolderList] = useState<IFolder[]>([]);
+  const [firstFolder, setFirstFolder] = useState<number>();
+  const [selectedfile, setSelectedFile] = useState<any>({});
 
   useEffect(() => {
-    if (filesState.folderContent) {
-      setCurrentFolderId(filesState.folderContent.currentFolder)
-      setFolderList(filesState.folderContent.children)
+    if (folderContent) {
+      setCurrentFolderId(folderContent.currentFolder);
+      setSelectedFile(selectedFile);
+      setFolderList(rootFolderContent.children);
+      setFirstFolder(folderContent.currentFolder);
     }
-  }, [filesState.folderContent])
+  }, [showMoveModal]);
 
-  const moveFile = async (result: any) => {
-    // When modal is closed by move action result = folder id otherwise ans = -1
-    if (result >= 0 && selectedfile) {
-      setIsOpen(false)
-      await props.dispatch(fileActions.moveFile(selectedfile.fileId, result))
-      props.dispatch(layoutActions.closeMoveFilesModal())
-
-      const rootFolderId = props.authenticationState.user.root_folder_id
-
-      props.dispatch(fileActions.getFolderContent(rootFolderId))
+  useEffect(() => {
+    if (folderContent) {
+      setCurrentFolderId(folderContent.currentFolder);
+      setFolderList(folderContent.children);
     }
-  }
+  }, [folderContent]);
 
-  return <Modal isOpen={props.layoutState.showMoveModal}
-    onClosed={() => {
-      props.dispatch(layoutActions.closeMoveFilesModal())
-    }}
-    position='center'
-    style={tailwind('w-11/12 h-5/6 p-3 rounded-lg')}
-  >
-    <View style={styles.breadcrumbs}>
-      <Text style={styles.title}>{strings.modals.move_modal.title}</Text>
-    </View>
+  const moveFile = async (destinationFolderId: number) => {
+    if (selectedfile) {
+      await dispatch(filesThunks.moveFileThunk({ fileId: selectedfile.fileId, destinationFolderId }));
+      dispatch(layoutActions.setShowMoveModal(false));
+      const rootFolderId = user?.root_folder_id;
 
-    <Separator />
+      rootFolderId && dispatch(filesThunks.getFolderContentThunk({ folderId: rootFolderId }));
+    }
+  };
 
-    <View style={tailwind('flex-grow')}>
-      <FlatList
-        data={folderlist}
-        renderItem={(folder: any) => {
-          return <FileItem
-            progress={-1}
-            totalColumns={1}
-            key={folder.id}
-            isFolder={true}
-            item={folder.item}
-          />
-        }}
-        keyExtractor={folder => folder.id.toString()}
-      />
-    </View>
+  return (
+    <Modal
+      isOpen={showMoveModal}
+      onClosed={() => {
+        dispatch(layoutActions.setShowMoveModal(false));
+      }}
+      position="center"
+      style={tailwind('w-11/12 h-5/6 p-3 rounded-lg')}
+    >
+      <View style={styles.breadcrumbs}>
+        <Text style={styles.title}>{strings.modals.move_modal.title}</Text>
+      </View>
 
-    <View style={styles.buttonContainer}>
-      <TouchableOpacity style={styles.button}
-        onPress={() => {
-          props.dispatch(layoutActions.closeMoveFilesModal())
-          setIsOpen(false)
-          props.dispatch(fileActions.getFolderContent(firstfolder))
-        }}
-      >
-        <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
-      </TouchableOpacity>
+      <Separator style={tailwind('my-3')} />
 
-      <TouchableOpacity style={[styles.button, styles.blue]}
-        onPress={() => {
-          moveFile(currentfolderid)
-        }}
-      >
-        <Text style={[styles.text, styles.white]}>{strings.components.buttons.move}</Text>
-      </TouchableOpacity>
-    </View>
-  </Modal>
+      <View style={tailwind('flex-grow')}>
+        <FlatList
+          data={folderlist}
+          renderItem={(folder: any) => {
+            return <FileItem totalColumns={1} key={folder.id} isFolder={true} item={folder.item} progress={-1} />;
+          }}
+          keyExtractor={(folder) => folder.id.toString()}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            dispatch(layoutActions.setShowMoveModal(false));
+            if (firstFolder) {
+              dispatch(filesThunks.getFolderContentThunk({ folderId: firstFolder }));
+            }
+          }}
+        >
+          <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.blue]}
+          onPress={() => {
+            currentFolderId && moveFile(currentFolderId);
+          }}
+        >
+          <Text style={[styles.text, styles.white]}>{strings.components.buttons.move}</Text>
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  );
 }
 
 const styles = StyleSheet.create({
   blue: {
-    backgroundColor: '#4585f5'
+    backgroundColor: '#4585f5',
   },
   breadcrumbs: {
     alignItems: 'center',
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'nowrap',
-    marginTop: Platform.OS === 'ios' ? wp('14') : 0
+    marginTop: Platform.OS === 'ios' ? wp('14') : 0,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   button: {
     alignItems: 'center',
@@ -127,27 +123,23 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     height: 50,
     justifyContent: 'center',
-    width: wp('40')
+    width: wp('40'),
   },
   text: {
     color: '#5c6066',
     fontFamily: 'NeueEinstellung-Bold',
-    fontSize: 16
+    fontSize: 16,
   },
   title: {
     color: '#000000',
     fontFamily: 'NeueEinstellung-Bold',
     fontSize: 21,
     letterSpacing: -0.2,
-    margin: 20
+    margin: 20,
   },
   white: {
-    color: '#fff'
-  }
-})
+    color: '#fff',
+  },
+});
 
-const mapStateToProps = (state: any) => {
-  return { ...state }
-};
-
-export default connect(mapStateToProps)(MoveFilesModal)
+export default MoveFilesModal;

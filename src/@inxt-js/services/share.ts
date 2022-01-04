@@ -1,13 +1,13 @@
 interface GenerateShareLinkResponse {
-  token: string
+  token: string;
 }
 
 interface GenerateShareLinkRequestBody {
-  isFolder: boolean,
-  views: number,
-  encryptionKey: string,
-  fileToken: string,
-  bucket: string
+  isFolder: boolean;
+  views: number;
+  encryptionKey: string;
+  fileToken: string;
+  bucket: string;
 }
 
 interface GetShareInfoResponse {
@@ -25,26 +25,34 @@ interface GetShareInfoResponse {
     name: string;
     type: string;
     size: number;
-  }
+  };
 }
 
-export function generateShareLink(headers: Headers, fileId: string, params: GenerateShareLinkRequestBody): Promise<string> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/share/file/${fileId}`, {
+export function generateShareLink(
+  headers: Headers,
+  fileId: string,
+  params: GenerateShareLinkRequestBody,
+): Promise<string> {
+  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/share/file/${fileId}`, {
     method: 'POST',
     headers,
-    body: JSON.stringify(params)
-  }).then((res) => {
-    return res.json();
-  }).then((res: GenerateShareLinkResponse) => res.token);
+    body: JSON.stringify(params),
+  })
+    .then((res) => {
+      return res.json();
+    })
+    .then((res: GenerateShareLinkResponse) => res.token);
 }
 
 export function getShareInfo(token: string): Promise<GetShareInfoResponse> {
-  return fetch(`${process.env.REACT_NATIVE_API_URL}/api/storage/share/${token}`).then<GetShareInfoResponse>((res) => res.json());
+  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/share/${token}`).then<GetShareInfoResponse>((res) =>
+    res.json(),
+  );
 }
 
 const shareService = {
   generateShareLink,
-  getShareInfo
+  getShareInfo,
 };
 
 export default shareService;

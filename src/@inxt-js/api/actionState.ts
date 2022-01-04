@@ -3,7 +3,7 @@ import { EventEmitter } from '../lib/utils/eventEmitter';
 
 export enum ActionTypes {
   Download = 'DOWNLOAD',
-  Upload = 'UPLOAD'
+  Upload = 'UPLOAD',
 }
 
 export class ActionState extends EventEmitter {

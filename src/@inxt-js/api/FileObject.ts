@@ -17,6 +17,7 @@ import { Bridge, InxtApiI } from '../services/api';
 import { Logger } from '../lib/download';
 import { wrap } from '../lib/utils/error';
 import { FileManager } from '../../lib/fs';
+import errorService from '../../services/error';
 
 export class FileObject extends EventEmitter {
   shards: ShardObject[] = [];
@@ -61,15 +62,17 @@ export class FileObject extends EventEmitter {
     logger.info('Retrieving file info...');
 
     if (!this.fileInfo) {
-      this.fileInfo = await GetFileInfo(this.config, this.bucketId, this.fileId)
-        .catch((err) => {
-          throw wrap('Get file info error', err);
-        })
+      this.fileInfo = await GetFileInfo(this.config, this.bucketId, this.fileId).catch((err) => {
+        throw wrap('Get file info error', err);
+      });
       if (this.config.encryptionKey) {
-        this.fileKey = await GenerateFileKey(this.config.encryptionKey, this.bucketId, Buffer.from(this.fileInfo.index, 'hex'))
-          .catch((err) => {
-            throw wrap('Generate file key error', err);
-          })
+        this.fileKey = await GenerateFileKey(
+          this.config.encryptionKey,
+          this.bucketId,
+          Buffer.from(this.fileInfo.index, 'hex'),
+        ).catch((err) => {
+          throw wrap('Generate file key error', err);
+        });
       }
     }
 
@@ -81,7 +84,7 @@ export class FileObject extends EventEmitter {
 
     logger.info('Retrieving file mirrors...');
 
-    this.rawShards = (await GetFileMirrors(this.config, this.bucketId, this.fileId)).filter(shard => !shard.parity);
+    this.rawShards = (await GetFileMirrors(this.config, this.bucketId, this.fileId)).filter((shard) => !shard.parity);
 
     await eachLimit(this.rawShards, 1, (shard: Shard, nextShard) => {
       let attempts = 0;
@@ -98,37 +101,60 @@ export class FileObject extends EventEmitter {
 
       let validPointer = false;
 
-      doUntil((next: (err: Error | null, result: Shard | null) => void) => {
-        ReplacePointer(this.config, this.bucketId, this.fileId, shard.index, []).then((newShard) => {
-          next(null, newShard[0]);
-        }).catch((err) => {
-          next(err, null);
-        }).finally(() => {
-          attempts++;
+      doUntil(
+        (next: (err: Error | null, result: Shard | null) => void) => {
+          ReplacePointer(this.config, this.bucketId, this.fileId, shard.index, [])
+            .then((newShard) => {
+              next(null, newShard[0]);
+            })
+            .catch((err) => {
+              next(err, null);
+            })
+            .finally(() => {
+              attempts++;
+            });
+        },
+        (result: Shard | null, next: any) => {
+          validPointer =
+            result && result.farmer && result.farmer.nodeID && result.farmer.port && result.farmer.address
+              ? true
+              : false;
+
+          return next(null, validPointer || attempts >= DEFAULT_INXT_MIRRORS);
+        },
+      )
+        .then((result: any) => {
+          logger.info('Pointer replaced for shard %s', shard.index);
+
+          if (!validPointer) {
+            throw new Error(`Missing pointer for shard ${shard.hash}`);
+          }
+
+          result.farmer.address = result.farmer.address.trim();
+
+          this.rawShards[shard.index] = result;
+
+          nextShard(null);
+        })
+        .catch((err) => {
+          nextShard(wrap('Bridge request pointer error', err));
         });
-      }, (result: Shard | null, next: any) => {
-        validPointer = result && result.farmer && result.farmer.nodeID && result.farmer.port && result.farmer.address ? true : false;
-
-        return next(null, validPointer || attempts >= DEFAULT_INXT_MIRRORS);
-      }).then((result: any) => {
-        logger.info('Pointer replaced for shard %s', shard.index);
-
-        if (!validPointer) {
-          throw new Error(`Missing pointer for shard ${shard.hash}`);
-        }
-
-        result.farmer.address = result.farmer.address.trim();
-
-        this.rawShards[shard.index] = result;
-
-        nextShard(null);
-      }).catch((err) => {
-        nextShard(wrap('Bridge request pointer error', err));
-      });
     });
 
-    this.length = this.rawShards.reduce((a, b) => { return { size: a.size + b.size }; }, { size: 0 }).size;
-    this.final_length = this.rawShards.filter(x => x.parity === false).reduce((a, b) => { return { size: a.size + b.size }; }, { size: 0 }).size;
+    this.length = this.rawShards.reduce(
+      (a, b) => {
+        return { size: a.size + b.size };
+      },
+      { size: 0 },
+    ).size;
+    this.final_length = this.rawShards
+      .filter((x) => x.parity === false)
+      .reduce(
+        (a, b) => {
+          return { size: a.size + b.size };
+        },
+        { size: 0 },
+      ).size;
   }
 
   async downloadShard(shard: Shard, excluded: string[] = []): Promise<Buffer> {
@@ -139,52 +165,66 @@ export class FileObject extends EventEmitter {
     const exchangeReport = new ExchangeReport(this.config);
 
     return new Promise((resolve, reject) => {
-      retry({ times: this.config.config?.shardRetry || 3, interval: 1000 }, (nextTry: any) => {
-        exchangeReport.params.exchangeStart = new Date();
-        exchangeReport.params.farmerId = shard.farmer.nodeID;
-        exchangeReport.params.dataHash = shard.hash;
+      retry(
+        { times: this.config.config?.shardRetry || 3, interval: 1000 },
+        (nextTry: any) => {
+          exchangeReport.params.exchangeStart = new Date();
+          exchangeReport.params.farmerId = shard.farmer.nodeID;
+          exchangeReport.params.dataHash = shard.hash;
 
-        ShardObject.download(shard, (err, downloadedShard) => {
-          if (err) {
-            return nextTry(err);
+          ShardObject.download(shard, (err, downloadedShard) => {
+            if (err || downloadedShard === null) {
+              return nextTry(err);
+            }
+
+            const shardHash = ripemd160(sha256(downloadedShard));
+
+            if (Buffer.compare(shardHash, Buffer.from(shard.hash, 'hex')) !== 0) {
+              logger.debug('Expected hash ' + shard.hash + ', but hash is ' + shardHash.toString('hex'));
+
+              return nextTry(new Error('Shard failed integrity check'), null);
+            }
+
+            exchangeReport.DownloadOk();
+            exchangeReport.sendReport().catch(() => undefined);
+
+            return nextTry(null, downloadedShard);
+          });
+        },
+        async (err: Error | null | undefined, result: Buffer | undefined) => {
+          try {
+            if (result) {
+              return resolve(result);
+            }
+
+            logger.warn(
+              'It seems that shard ' +
+                shard.index +
+                ' download from farmer ' +
+                shard.farmer.nodeID +
+                ' went wrong due to ' +
+                err?.message +
+                '. Replacing pointer',
+            );
+
+            excluded.push(shard.farmer.nodeID);
+
+            const newShard = await GetFileMirror(this.config, this.bucketId, this.fileId, 1, shard.index, excluded);
+
+            if (!newShard[0].farmer) {
+              return reject(
+                wrap('File missing shard error', err || new Error('FileObject.downloadShared - undefined Error')),
+              );
+            }
+
+            const buffer = await this.downloadShard(newShard[0], excluded);
+
+            return resolve(buffer);
+          } catch (err) {
+            return reject(err);
           }
-
-          const shardHash = ripemd160(sha256(downloadedShard));
-
-          if (Buffer.compare(shardHash, Buffer.from(shard.hash, 'hex')) !== 0) {
-            logger.debug('Expected hash ' + shard.hash + ', but hash is ' + shardHash.toString('hex'));
-
-            return nextTry(new Error('Shard failed integrity check'), null);
-          }
-
-          exchangeReport.DownloadOk();
-          exchangeReport.sendReport().catch(() => {});
-
-          return nextTry(null, downloadedShard);
-        });
-      }, async (err: Error | null | undefined, result: Buffer | undefined) => {
-        try {
-          if (result) {
-            return resolve(result);
-          }
-
-          logger.warn('It seems that shard ' + shard.index + ' download from farmer ' + shard.farmer.nodeID + ' went wrong due to ' + err.message + '. Replacing pointer');
-
-          excluded.push(shard.farmer.nodeID);
-
-          const newShard = await GetFileMirror(this.config, this.bucketId, this.fileId, 1, shard.index, excluded);
-
-          if (!newShard[0].farmer) {
-            return reject(wrap('File missing shard error', err));
-          }
-
-          const buffer = await this.downloadShard(newShard[0], excluded);
-
-          return resolve(buffer);
-        } catch (err) {
-          return reject(err);
-        }
-      });
+        },
+      );
     });
   }
 
@@ -196,7 +236,11 @@ export class FileObject extends EventEmitter {
         throw new Error('Undefined fileInfo');
       }
 
-      const decipher = createDecipheriv('aes-256-ctr', this.fileKey.slice(0, 32), Buffer.from(this.fileInfo.index, 'hex').slice(0, 16));
+      const decipher = createDecipheriv(
+        'aes-256-ctr',
+        this.fileKey.slice(0, 32),
+        Buffer.from(this.fileInfo.index, 'hex').slice(0, 16),
+      );
 
       for (const shard of this.rawShards) {
         const shardBuffer = await this.downloadShard(shard);
@@ -214,9 +258,11 @@ export class FileObject extends EventEmitter {
 
       fileWriter.close();
     } catch (err) {
+      const castedError = errorService.castError(err);
+
       fileWriter.close();
       this.file.destroy();
-      throw wrap('Download shard error', err);
+      throw wrap('Download shard error', castedError);
     }
   }
 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import { getHeaders } from '../helpers/headers';
-import { DriveFolderMetadataPayload } from '../types';
+import { DriveFileData, DriveFolderData, DriveFolderMetadataPayload } from '../types';
 import fileService from './file';
 
 class FolderService {
@@ -9,20 +9,20 @@ class FolderService {
     folderId: number,
     metadata: DriveFolderMetadataPayload,
     bucketId: string,
-    relativePath: string
+    relativePath: string,
   ): Promise<void> {
     const headers = await getHeaders();
-    const headersMap = {};
+    const headersMap: any = {};
 
-    headers.forEach((value, key) => {
+    headers.forEach((value: string, key: string) => {
       headersMap[key] = value;
     });
 
     await axios.post(
-      `${process.env.REACT_NATIVE_API_URL}/api/storage/folder/${folderId}/meta`,
+      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${folderId}/meta`,
       { metadata },
-      { headers: headersMap
-      });
+      { headers: headersMap },
+    );
 
     // * Renames files on network recursively
     const pendingFolders = [{ relativePath, folderId }];
@@ -30,13 +30,13 @@ class FolderService {
     while (pendingFolders.length > 0) {
       const currentFolder = pendingFolders[0];
       const folderContentResponse = await fileService.getFolderContent(currentFolder.folderId);
-      const folderContent = {
+      const folderContent: { folders: DriveFolderData[]; files: DriveFileData[] } = {
         folders: [],
-        files: []
-      }
+        files: [],
+      };
 
       if (folderContentResponse) {
-        folderContent.folders = folderContentResponse.children.map((folder) => ({ ...folder, isFolder: true }));
+        folderContent.folders = folderContentResponse.children.map((folder: any) => ({ ...folder, isFolder: true }));
         folderContent.files = folderContentResponse.files;
       }
 
@@ -44,7 +44,7 @@ class FolderService {
 
       // * Renames current folder files
       for (const file of folderContent.files) {
-        const fileFullName = `${file.name}${file.type ? '.' + file.type : ''}`
+        const fileFullName = `${file.name}${file.type ? '.' + file.type : ''}`;
         const relativePath = `${currentFolder.relativePath}/${fileFullName}`;
 
         fileService.renameFileInNetwork(file.fileId, bucketId, relativePath);
@@ -54,11 +54,12 @@ class FolderService {
       pendingFolders.push(
         ...folderContent.folders.map((folderData) => ({
           relativePath: `${currentFolder.relativePath}/${folderData.name}`,
-          folderId: folderData.id
-        }))
+          folderId: folderData.id,
+        })),
       );
     }
   }
 }
 
-export default new FolderService();
+const folderService = new FolderService();
+export default folderService;

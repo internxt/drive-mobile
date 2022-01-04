@@ -68,14 +68,21 @@ export async function EncryptFilename(mnemonic: string, bucketId: string, filena
   return EncryptMeta(filename, encryptionKey, encryptionIv);
 }
 
-export async function DecryptFileName(mnemonic: string, bucketId: string, encryptedName: string): Promise<string> {
+export async function DecryptFileName(
+  mnemonic: string,
+  bucketId: string,
+  encryptedName: string,
+): Promise<string | null> {
   const bucketKey = (await GenerateBucketKey(mnemonic, bucketId)).toString('hex');
 
   if (!bucketKey) {
     throw Error('Bucket key missing');
   }
 
-  const key = crypto.createHmac('sha512', Buffer.from(bucketKey, 'hex')).update(Buffer.from(BUCKET_META_MAGIC)).digest('hex');
+  const key = crypto
+    .createHmac('sha512', Buffer.from(bucketKey, 'hex'))
+    .update(Buffer.from(BUCKET_META_MAGIC))
+    .digest('hex');
 
   return decryptMeta(encryptedName, key);
 }

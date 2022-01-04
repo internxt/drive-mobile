@@ -1,29 +1,26 @@
-import React from 'react'
+import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { connect } from 'react-redux';
 
 interface IconFileProps {
-    label: string
-    isLoading: boolean
+  label: string;
+  isLoading: boolean;
 }
 
-function IconFile(props: IconFileProps) {
+function IconFile(props: IconFileProps): JSX.Element {
   const { label = '', isLoading = false } = props;
 
-  return <View style={styles.wrapper}>
-    {isLoading
-      ? <ActivityIndicator style={styles.pAbsolute} size='small' color="gray" />
-      : <Text numberOfLines={1} style={styles.text}>{label.toUpperCase()}</Text>}
-
-  </View>
-
+  return (
+    <View style={styles.wrapper}>
+      {isLoading ? (
+        <ActivityIndicator style={styles.pAbsolute} size="small" color="gray" />
+      ) : (
+        <Text numberOfLines={1} style={styles.text}>
+          {label.toUpperCase()}
+        </Text>
+      )}
+    </View>
+  );
 }
-
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(IconFile);
 
 const styles = StyleSheet.create({
   text: {
@@ -36,7 +33,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     position: 'absolute',
     right: 0,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   wrapper: {
     alignItems: 'center',
@@ -48,7 +45,9 @@ const styles = StyleSheet.create({
     marginLeft: 25,
     marginRight: 25,
     position: 'relative',
-    width: 44
+    width: 44,
   },
-  pAbsolute: { position: 'absolute' }
+  pAbsolute: { position: 'absolute' },
 });
+
+export default IconFile;

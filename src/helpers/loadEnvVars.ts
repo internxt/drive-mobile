@@ -1,6 +1,6 @@
-import _ from 'lodash'
+import _ from 'lodash';
 
-export async function loadEnvVars() {
+export async function loadEnvVars(): Promise<boolean> {
   // This envs are mandatory to run the app, others can be skipped
   const ENVS = [
     process.env.REACT_NATIVE_API_URL,
@@ -11,10 +11,10 @@ export async function loadEnvVars() {
     process.env.REACT_NATIVE_RECAPTCHA_V3
   ];
 
-  const VALID_ENVS = _.filter(ENVS, _.size)
+  const VALID_ENVS = _.filter(ENVS, _.size);
 
   if (VALID_ENVS.length !== ENVS.length) {
-    throw Error('Check your envs')
+    throw Error('Check your envs');
   }
-  return true
+  return true;
 }

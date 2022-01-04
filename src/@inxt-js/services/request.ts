@@ -11,7 +11,13 @@ import { getProxy, ProxyManager } from './proxy';
 
 const INXT_API_URL = 'https://api.internxt.com';
 
-export async function request(config: EnvironmentConfig, method: AxiosRequestConfig['method'], targetUrl: string, params: AxiosRequestConfig, useProxy = true): Promise<AxiosResponse<JSON>> {
+export async function request(
+  config: EnvironmentConfig,
+  method: AxiosRequestConfig['method'],
+  targetUrl: string,
+  params: AxiosRequestConfig,
+  useProxy = true,
+): Promise<AxiosResponse<JSON>> {
   let reqUrl = targetUrl;
   let proxy: ProxyManager;
 
@@ -24,22 +30,29 @@ export async function request(config: EnvironmentConfig, method: AxiosRequestCon
     method,
     auth: {
       username: config.bridgeUser,
-      password: sha256(Buffer.from(config.bridgePass)).toString('hex')
+      password: sha256(Buffer.from(config.bridgePass)).toString('hex'),
     },
     url: reqUrl,
-    maxContentLength: Infinity
+    maxContentLength: Infinity,
   };
 
   const options = { ...DefaultOptions, ...params };
 
   return axios.request<JSON>(options).then((value: AxiosResponse<JSON>) => {
-    if (useProxy && proxy) { proxy.free(); }
+    if (useProxy && proxy) {
+      proxy.free();
+    }
 
     return value;
   });
 }
 
-export async function plainRequest(method: AxiosRequestConfig['method'], targetUrl: string, params: AxiosRequestConfig, useProxy = true): Promise<AxiosResponse<JSON>> {
+export async function plainRequest(
+  method: AxiosRequestConfig['method'],
+  targetUrl: string,
+  params: AxiosRequestConfig,
+  useProxy = true,
+): Promise<AxiosResponse<JSON>> {
   let reqUrl = targetUrl;
   let proxy: ProxyManager;
 
@@ -51,19 +64,21 @@ export async function plainRequest(method: AxiosRequestConfig['method'], targetU
   const DefaultOptions: AxiosRequestConfig = {
     method,
     url: reqUrl,
-    maxContentLength: Infinity
+    maxContentLength: Infinity,
   };
 
   const options = { ...DefaultOptions, ...params };
 
   return axios.request<JSON>(options).then((value: AxiosResponse<JSON>) => {
-    if (useProxy && proxy) { proxy.free(); }
+    if (useProxy && proxy) {
+      proxy.free();
+    }
 
     return value;
   });
 }
 
-export async function get<K>(params: { responseType?: string, url: string }, config = { useProxy: false }): Promise<K> {
+export async function get<K>(params: { responseType?: string; url: string }, config = { useProxy: false }): Promise<K> {
   return plainRequest('GET', params.url, { responseType: params.responseType }, config.useProxy).then<K>((res) => {
     return res.data as unknown as K;
   });
@@ -96,19 +111,24 @@ interface getBucketByIdResponse {
  * @param jwt JSON Web Token
  * @param params
  */
-export function getBucketById(config: EnvironmentConfig, bucketId: string, params?: AxiosRequestConfig): Promise<getBucketByIdResponse | void> {
+export function getBucketById(
+  config: EnvironmentConfig,
+  bucketId: string,
+  params?: AxiosRequestConfig,
+): Promise<getBucketByIdResponse | void> {
   const URL = config.bridgeUrl ? config.bridgeUrl : INXT_API_URL;
   const targetUrl = `${URL}/buckets/${bucketId}`;
   const defParams: AxiosRequestConfig = {
     headers: {
-      'Content-Type': 'application/octet-stream'
-    }
+      'Content-Type': 'application/octet-stream',
+    },
   };
 
   const finalParams = { ...defParams, ...params };
 
-  return request(config, 'get', targetUrl, finalParams, false)
-    .then<getBucketByIdResponse>((res: AxiosResponse) => res.data);
+  return request(config, 'get', targetUrl, finalParams, false).then<getBucketByIdResponse>(
+    (res: AxiosResponse) => res.data,
+  );
 }
 
 interface getFileByIdResponse {
@@ -124,19 +144,25 @@ interface getFileByIdResponse {
  * @param jwt JSON Web Token
  * @param params
  */
-export function getFileById(config: EnvironmentConfig, bucketId: string, fileId: string, params?: AxiosRequestConfig): Promise<getFileByIdResponse | void> {
+export function getFileById(
+  config: EnvironmentConfig,
+  bucketId: string,
+  fileId: string,
+  params?: AxiosRequestConfig,
+): Promise<getFileByIdResponse | void> {
   const URL = config.bridgeUrl ? config.bridgeUrl : INXT_API_URL;
   const targetUrl = `${URL}/buckets/${bucketId}/file-ids/${fileId}`;
   const defParams: AxiosRequestConfig = {
     headers: {
-      'Content-Type': 'application/octet-stream'
-    }
+      'Content-Type': 'application/octet-stream',
+    },
   };
 
   const finalParams = { ...defParams, ...params };
 
-  return request(config, 'get', targetUrl, finalParams, false)
-    .then<getFileByIdResponse>((res: AxiosResponse) => res.data);
+  return request(config, 'get', targetUrl, finalParams, false).then<getFileByIdResponse>(
+    (res: AxiosResponse) => res.data,
+  );
 }
 
 export interface FrameStaging {
@@ -158,19 +184,18 @@ export interface FrameStaging {
  * @param config App config
  * @param params
  */
-export function createFrame(config: EnvironmentConfig, params?: AxiosRequestConfig): Promise <FrameStaging> {
+export function createFrame(config: EnvironmentConfig, params?: AxiosRequestConfig): Promise<FrameStaging> {
   const URL = config.bridgeUrl ? config.bridgeUrl : INXT_API_URL;
   const targetUrl = `${URL}/frames`;
   const defParams: AxiosRequestConfig = {
     headers: {
-      'Content-Type': 'application/octet-stream'
-    }
+      'Content-Type': 'application/octet-stream',
+    },
   };
 
   const finalParams = { ...defParams, ...params };
 
-  return request(config, 'post', targetUrl, finalParams, false)
-    .then<FrameStaging>((res: AxiosResponse) => res.data);
+  return request(config, 'post', targetUrl, finalParams, false).then<FrameStaging>((res: AxiosResponse) => res.data);
 }
 
 export interface CreateEntryFromFrameBody {
@@ -178,11 +203,11 @@ export interface CreateEntryFromFrameBody {
   filename: string;
   index: string;
   hmac: {
-    type: string,
-    value: string
+    type: string;
+    value: string;
   };
   erasure?: {
-    type: string
+    type: string;
   };
 }
 
@@ -199,11 +224,11 @@ export interface CreateEntryFromFrameResponse {
   renewal: string;
   created: string;
   hmac: {
-    value: string,
-    type: string
+    value: string;
+    type: string;
   };
   erasure: {
-    type: string
+    type: string;
   };
   size: number;
 }
@@ -216,14 +241,19 @@ export interface CreateEntryFromFrameResponse {
  * @param {string} jwt JSON Web Token
  * @param {AxiosRequestConfig} params
  */
-export function createEntryFromFrame(config: EnvironmentConfig, bucketId: string, body: CreateEntryFromFrameBody, params?: AxiosRequestConfig): Promise <CreateEntryFromFrameResponse | void> {
+export function createEntryFromFrame(
+  config: EnvironmentConfig,
+  bucketId: string,
+  body: CreateEntryFromFrameBody,
+  params?: AxiosRequestConfig,
+): Promise<CreateEntryFromFrameResponse | void> {
   const URL = config.bridgeUrl ? config.bridgeUrl : INXT_API_URL;
   const targetUrl = `${URL}/buckets/${bucketId}/files`;
   const defParams: AxiosRequestConfig = {
     headers: {
-      'Content-Type': 'application/octet-stream'
+      'Content-Type': 'application/octet-stream',
     },
-    data: body
+    data: body,
   };
 
   const finalParams = { ...defParams, ...params };
@@ -242,7 +272,7 @@ export function createEntryFromFrame(config: EnvironmentConfig, bucketId: string
 }
 
 export function handleAxiosError(err: any): string {
-  return err.response && err.response.data && err.response.data.error || err.message;
+  return (err.response && err.response.data && err.response.data.error) || err.message;
 }
 
 interface AddShardToFrameBody {
@@ -269,20 +299,26 @@ interface AddShardToFrameBody {
  * @param {string} jwt JSON Web Token
  * @param {AxiosRequestConfig} params
  */
-export function addShardToFrame(config: EnvironmentConfig, frameId: string, body: ShardMeta, params?: AxiosRequestConfig): Promise <ContractNegotiated | void> {
+export function addShardToFrame(
+  config: EnvironmentConfig,
+  frameId: string,
+  body: ShardMeta,
+  params?: AxiosRequestConfig,
+): Promise<ContractNegotiated | void> {
   const URL = config.bridgeUrl ? config.bridgeUrl : INXT_API_URL;
   const targetUrl = `${URL}/frames/${frameId}`;
   const defParams: AxiosRequestConfig = {
     headers: {
-      'Content-Type': 'application/octet-stream'
+      'Content-Type': 'application/octet-stream',
     },
-    data: { ...body, challenges: body.challenges_as_str }
+    data: { ...body, challenges: body.challenges_as_str },
   };
 
   const finalParams = { ...defParams, ...params };
 
-  return request(config, 'put', targetUrl, finalParams, false)
-    .then<ContractNegotiated>((res: AxiosResponse) => res.data);
+  return request(config, 'put', targetUrl, finalParams, false).then<ContractNegotiated>(
+    (res: AxiosResponse) => res.data,
+  );
 }
 
 /**
@@ -290,7 +326,10 @@ export function addShardToFrame(config: EnvironmentConfig, frameId: string, body
  * @param config App config
  * @param body
  */
-export function sendUploadExchangeReport(config: EnvironmentConfig, exchangeReport: ExchangeReport): Promise<AxiosResponse<JSON>> {
+export function sendUploadExchangeReport(
+  config: EnvironmentConfig,
+  exchangeReport: ExchangeReport,
+): Promise<AxiosResponse<JSON>> {
   return exchangeReport.sendReport();
 }
 
@@ -304,17 +343,20 @@ interface SendShardToNodeResponse {
  * @param shard Interface that has the contact info
  * @param content Buffer with shard content
  */
-export function sendShardToNode(config: EnvironmentConfig, shard: Shard, content: Buffer): Promise<SendShardToNodeResponse | void> {
+export function sendShardToNode(
+  config: EnvironmentConfig,
+  shard: Shard,
+  content: Buffer,
+): Promise<SendShardToNodeResponse | void> {
   const targetUrl = `http://${shard.farmer.address}:${shard.farmer.port}/shards/${shard.hash}?token=${shard.token}`;
 
   const defParams: AxiosRequestConfig = {
     headers: {
       'Content-Type': 'application/octet-stream',
-      'x-storj-node-id': shard.farmer.nodeID
+      'x-storj-node-id': shard.farmer.nodeID,
     },
-    data: content
+    data: content,
   };
 
-  return request(config, 'post', targetUrl, defParams)
-    .then<SendShardToNodeResponse>((res: AxiosResponse) => res.data);
+  return request(config, 'post', targetUrl, defParams).then<SendShardToNodeResponse>((res: AxiosResponse) => res.data);
 }

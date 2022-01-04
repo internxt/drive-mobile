@@ -1,0 +1,6 @@
+{
+  "extends": "@internxt/eslint-config-internxt",
+  "rules": {
+    "max-len": "off"
+  }
+}

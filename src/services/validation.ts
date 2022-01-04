@@ -1,10 +1,9 @@
 import _ from 'lodash';
+import { auth } from '@internxt/lib';
 
 class ValidationService {
   public validateEmail(email: string): boolean {
-    const emailPattern = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
-
-    return emailPattern.test(email);
+    return auth.isValidEmail(email);
   }
 
   public validate2FA(code: string): boolean {
@@ -16,7 +15,7 @@ class ValidationService {
   }
 
   public isNullOrEmpty(input: string): boolean {
-    return _.isEmpty(input)
+    return _.isEmpty(input);
   }
 }
 

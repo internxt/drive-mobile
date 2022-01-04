@@ -41,35 +41,37 @@ export class ExchangeReport {
       exchangeStart: new Date(),
       exchangeEnd: null,
       exchangeResultCode: 1000,
-      exchangeResultMessage: ''
+      exchangeResultMessage: '',
     };
   }
 
   expectedResultCode(): number {
     switch (this.params.exchangeResultMessage) {
-    case ExchangeReport.INXT_REPORT_SHARD_DOWNLOADED:
-    case ExchangeReport.INXT_REPORT_SHARD_UPLOADED:
-    case ExchangeReport.INXT_REPORT_MIRROR_SUCCESS:
-    case ExchangeReport.INXT_REPORT_SHARD_EXISTS:
-      return ExchangeReport.INXT_REPORT_SUCCESS;
-    case ExchangeReport.INXT_REPORT_FAILED_INTEGRITY:
-    case ExchangeReport.INXT_REPORT_DOWNLOAD_ERROR:
-    case ExchangeReport.INXT_REPORT_TRANSFER_FAILED:
-    case ExchangeReport.INXT_REPORT_MIRROR_FAILED:
-    case ExchangeReport.INXT_REPORT_READ_FAILED:
-      return ExchangeReport.INXT_REPORT_FAILURE;
-    default:
-      return 0;
+      case ExchangeReport.INXT_REPORT_SHARD_DOWNLOADED:
+      case ExchangeReport.INXT_REPORT_SHARD_UPLOADED:
+      case ExchangeReport.INXT_REPORT_MIRROR_SUCCESS:
+      case ExchangeReport.INXT_REPORT_SHARD_EXISTS:
+        return ExchangeReport.INXT_REPORT_SUCCESS;
+      case ExchangeReport.INXT_REPORT_FAILED_INTEGRITY:
+      case ExchangeReport.INXT_REPORT_DOWNLOAD_ERROR:
+      case ExchangeReport.INXT_REPORT_TRANSFER_FAILED:
+      case ExchangeReport.INXT_REPORT_MIRROR_FAILED:
+      case ExchangeReport.INXT_REPORT_READ_FAILED:
+        return ExchangeReport.INXT_REPORT_FAILURE;
+      default:
+        return 0;
     }
   }
 
   validate() {
     const expectedResultCode = this.expectedResultCode();
 
-    if (!this.params.dataHash
-      || !this.params.farmerId
-      || expectedResultCode === 0
-      || expectedResultCode !== this.params.exchangeResultCode) {
+    if (
+      !this.params.dataHash ||
+      !this.params.farmerId ||
+      expectedResultCode === 0 ||
+      expectedResultCode !== this.params.exchangeResultCode
+    ) {
       return false;
     }
 

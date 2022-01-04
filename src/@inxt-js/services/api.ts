@@ -8,7 +8,7 @@ import { ShardMeta } from '../lib/shardMeta';
 export enum Methods {
   Get = 'GET',
   Post = 'POST',
-  Put = 'PUT'
+  Put = 'PUT',
 }
 
 export interface GetBucketByIdResponse {
@@ -48,11 +48,11 @@ export interface CreateEntryFromFrameBody {
   filename: string;
   index: string;
   hmac: {
-    type: string,
-    value: string
+    type: string;
+    value: string;
   };
   erasure?: {
-    type: string
+    type: string;
   };
 }
 
@@ -69,11 +69,11 @@ export interface CreateEntryFromFrameResponse {
   renewal: string;
   created: string;
   hmac: {
-    value: string,
-    type: string
+    value: string;
+    type: string;
   };
   erasure: {
-    type: string
+    type: string;
   };
   size: number;
 }
@@ -129,7 +129,7 @@ export interface InxtApiI {
 }
 
 function emptyINXTRequest(config: EnvironmentConfig): INXTRequest {
-  return new INXTRequest(config, Methods.Get, '', { }, false);
+  return new INXTRequest(config, Methods.Get, '', {}, false);
 }
 
 class InxtApi implements InxtApiI {
@@ -210,8 +210,8 @@ export class Bridge extends InxtApi {
     const targetUrl = `${this.url}/buckets/${bucketId}`;
     const defParams: AxiosRequestConfig = {
       headers: {
-        'Content-Type': 'application/octet-stream'
-      }
+        'Content-Type': 'application/octet-stream',
+      },
     };
 
     const finalParams = { ...defParams, ...params };
@@ -223,8 +223,8 @@ export class Bridge extends InxtApi {
     const targetUrl = `${this.url}/buckets/${bucketId}/file-ids/${fileId}`;
     const defParams: AxiosRequestConfig = {
       headers: {
-        'Content-Type': 'application/octet-stream'
-      }
+        'Content-Type': 'application/octet-stream',
+      },
     };
 
     const finalParams = { ...defParams, ...params };
@@ -236,8 +236,8 @@ export class Bridge extends InxtApi {
     const targetUrl = `${this.url}/frames`;
     const defParams: AxiosRequestConfig = {
       headers: {
-        'Content-Type': 'application/octet-stream'
-      }
+        'Content-Type': 'application/octet-stream',
+      },
     };
 
     const finalParams = { ...defParams, ...params };
@@ -249,9 +249,9 @@ export class Bridge extends InxtApi {
     const targetUrl = `${this.url}/buckets/${bucketId}/files`;
     const defParams: AxiosRequestConfig = {
       headers: {
-        'Content-Type': 'application/octet-stream'
+        'Content-Type': 'application/octet-stream',
       },
-      data: body
+      data: body,
     };
 
     const finalParams = { ...defParams, ...params };
@@ -263,9 +263,9 @@ export class Bridge extends InxtApi {
     const targetUrl = `${this.url}/frames/${frameId}`;
     const defParams: AxiosRequestConfig = {
       headers: {
-        'Content-Type': 'application/octet-stream'
+        'Content-Type': 'application/octet-stream',
       },
-      data: { ...body, challenges: body.challenges_as_str }
+      data: { ...body, challenges: body.challenges_as_str },
     };
 
     const finalParams = { ...defParams, ...params };
@@ -288,12 +288,18 @@ export class Bridge extends InxtApi {
     const { address, port } = farmer;
     const targetUrl = `http://${address}:${port}/shards/${hash}?token=${token}`;
 
-    return new INXTRequest(this.config, Methods.Get, targetUrl, {
-      headers: {
-        'content-type': 'application/octet-stream'
+    return new INXTRequest(
+      this.config,
+      Methods.Get,
+      targetUrl,
+      {
+        headers: {
+          'content-type': 'application/octet-stream',
+        },
+        responseType: 'arraybuffer',
       },
-      responseType: 'arraybuffer'
-    }, this.config.useProxy ?? true);
+      this.config.useProxy ?? true,
+    );
   }
 
   createFileToken(bucketId: string, fileId: string, operation: 'PUSH' | 'PULL'): INXTRequest {
@@ -319,8 +325,14 @@ export class Bridge extends InxtApi {
   }
 
   getShard(url: string): INXTRequest {
-    return new INXTRequest(this.config, Methods.Get, url, {
-      responseType: 'arraybuffer'
-    }, false);
+    return new INXTRequest(
+      this.config,
+      Methods.Get,
+      url,
+      {
+        responseType: 'arraybuffer',
+      },
+      false,
+    );
   }
 }

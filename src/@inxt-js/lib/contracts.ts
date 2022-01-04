@@ -3,11 +3,11 @@ export interface ContractNegotiated {
   token: string;
   operation: 'PUSH';
   farmer: {
-    userAgent: string,
-    protocol: string,
-    address: string,
-    port: number,
-    nodeID: string,
-    lastSeen: number
+    userAgent: string;
+    protocol: string;
+    address: string;
+    port: number;
+    nodeID: string;
+    lastSeen: number;
   };
 }

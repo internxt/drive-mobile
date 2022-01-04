@@ -1,114 +1,130 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { RefreshControl, View, FlatList, Dimensions } from 'react-native';
-import { connect } from 'react-redux';
+import _ from 'lodash';
+
 import { tailwind } from '../../helpers/designSystem';
-import { fileActions } from '../../store/actions';
-import { Reducers } from '../../store/reducers/reducers';
-import { EmptyFolder } from '../../screens/StaticScreens';
 import FileItem from '../FileItem';
 import SkinSkeleton from '../SkinSkeleton';
-import _ from 'lodash'
+import EmptyDriveImage from '../../../assets/images/screens/empty-drive.svg';
+import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg';
+import EmptyList from '../EmptyList';
+import strings from '../../../assets/lang/strings';
+import { filesThunks } from '../../store/slices/files';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+
 export interface IFolder {
-  name: string
-  id: number
-  createdAt: Date
-  updatedAt: Date
-  size: number
-  type: string
-  fileId: string
-  progress: number
-  folderId?: number
-  uri?: string
-  isUploaded?: boolean
+  name: string;
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
+  size: number;
+  type: string;
+  fileId: string;
+  progress: number;
+  folderId?: number;
+  parentId: undefined;
+  uri?: string;
+  isUploaded?: boolean;
 }
 
 export interface IUploadingFile {
-  currentFolder: number
-  progress: number
-  uri: string
-  id: string
-  type: string
-  createdAt: Date
-  updatedAt: Date
-  size: number
-  name: string
-  folderId: number
-  fileId?: number
-  isUploaded?: boolean
+  currentFolder: number;
+  progress: number;
+  uri: string;
+  id: string;
+  type: string;
+  createdAt: Date;
+  updatedAt: Date;
+  size: number;
+  name: string;
+  folderId: number;
+  fileId?: number;
+  isUploaded?: boolean;
+  parentId: number;
 }
 
 export interface IFile {
-  bucket: string
-  createdAt: Date
-  folderId: number
-  fileId: string
-  id: number
-  name: string
-  type: string
-  updatedAt: Date
-  size: number
-  progress: number
-  uri?: string
-  isUploaded?: boolean
+  bucket: string;
+  createdAt: Date;
+  folderId: number;
+  fileId: string;
+  id: number;
+  name: string;
+  type: string;
+  updatedAt: Date;
+  size: number;
+  progress: number;
+  uri?: string;
+  isUploaded?: boolean;
+  parentId: string;
 }
 
-interface FileListProps extends Reducers {
-  isGrid: boolean
+interface FileListProps {
+  isGrid: boolean;
 }
 
-function FileList(props: FileListProps) {
-  const [refreshing, setRefreshing] = useState(false)
-
-  const { filesState } = props;
-  const { folderContent } = filesState;
-  let folderList: IFolder[] = folderContent && folderContent.children || [];
-  let fileList: IFile[] = folderContent && folderContent.files || [];
-  const [filesUploading, setFilesUploading] = useState([])
-  const [filesUploaded, setFilesUploaded] = useState([])
-  const [folderId, setFolderId] = useState<number>()
+function FileList(props: FileListProps): JSX.Element {
+  const dispatch = useAppDispatch();
+  const [refreshing, setRefreshing] = useState(false);
+  const {
+    folderContent,
+    filesCurrentlyUploading,
+    searchString,
+    filesAlreadyUploaded,
+    sortFunction,
+    isUploadingFileName,
+    loading: filesLoading,
+  } = useAppSelector((state) => state.files);
+  const { user } = useAppSelector((state) => state.auth);
+  const [filesUploading, setFilesUploading] = useState<IUploadingFile[]>([]);
+  const [filesUploaded, setFilesUploaded] = useState<IUploadingFile[]>([]);
+  const [folderId, setFolderId] = useState<number>();
+  let folderList: IFolder[] = (folderContent && folderContent.children) || [];
+  let fileList: IFile[] = (folderContent && folderContent.files) || [];
 
   useEffect(() => {
-    setRefreshing(false)
+    setRefreshing(false);
 
-    if (props.filesState.folderContent && props.filesState.folderContent.currentFolder) {
-      setFolderId(props.filesState.folderContent.currentFolder)
+    if (folderContent && folderContent.currentFolder) {
+      setFolderId(folderContent.currentFolder);
     }
-  }, [props.filesState.folderContent])
+  }, [folderContent]);
 
   useEffect(() => {
-    setFilesUploading(props.filesState.filesCurrentlyUploading)
-  }, [props.filesState.filesCurrentlyUploading])
+    setFilesUploading(filesCurrentlyUploading);
+  }, [filesCurrentlyUploading]);
 
   useEffect(() => {
-    setFilesUploaded(props.filesState.filesAlreadyUploaded)
-  }, [props.filesState.filesAlreadyUploaded])
-
-  const searchString = props.filesState.searchString
+    setFilesUploaded(filesAlreadyUploaded);
+  }, [filesAlreadyUploaded]);
 
   if (searchString) {
-    fileList = fileList.filter((file: IFile) => file.name.toLowerCase().includes(searchString.toLowerCase()))
-    folderList = folderList.filter((folder: IFolder) => folder.name.toLowerCase().includes(searchString.toLowerCase()))
+    fileList = fileList.filter((file: IFile) => file.name.toLowerCase().includes(searchString.toLowerCase()));
+    folderList = folderList.filter((folder: IFolder) => folder.name.toLowerCase().includes(searchString.toLowerCase()));
   }
-
-  const sortFunction = props.filesState.sortFunction
 
   if (sortFunction) {
     folderList.sort(sortFunction);
     fileList.sort(sortFunction);
   }
 
-  const rootFolderId = props.authenticationState.user.root_folder_id
-  const currentFolderId = props.filesState.folderContent && props.filesState.folderContent.currentFolder
+  const rootFolderId = user?.root_folder_id;
+  const currentFolderId = folderContent && folderContent.currentFolder;
   const isRootFolder = currentFolderId === rootFolderId;
 
   useEffect(() => {
-    if (!props.filesState.folderContent) {
-      props.dispatch(fileActions.getFolderContent(rootFolderId))
+    if (!folderContent && rootFolderId) {
+      dispatch(filesThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
-  }, [])
+  }, []);
 
-  const isUploading = props.filesState.isUploadingFileName
-  const isEmptyFolder = folderList.length === 0 && fileList.length === 0 && filesUploading.length === 0 && filesUploaded.length === 0 && !isUploading
+  const isUploading = isUploadingFileName;
+  const isEmptyFolder =
+    folderList.length === 0 &&
+    fileList.length === 0 &&
+    filesUploading.length === 0 &&
+    filesUploaded.length === 0 &&
+    !isUploading;
 
   const windowWidth = Dimensions.get('window').width;
   const totalColumns = Math.min(Math.max(Math.trunc(windowWidth / 125), 2), 6);
@@ -116,26 +132,38 @@ function FileList(props: FileListProps) {
   return (
     <FlatList
       refreshControl={
-        <RefreshControl refreshing={refreshing}
+        <RefreshControl
+          refreshing={refreshing}
           onRefresh={() => {
-            setRefreshing(true)
-            if (!props || !props.filesState || !props.filesState.folderContent) {
-              return setRefreshing(false)
+            setRefreshing(true);
+            if (!folderContent) {
+              return setRefreshing(false);
             }
 
-            props.dispatch(fileActions.getFolderContent(currentFolderId))
+            if (currentFolderId) {
+              dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
+            }
           }}
         />
       }
-      key={props.isGrid ? '#' : '-'}
       numColumns={props.isGrid ? totalColumns : 1}
       collapsable={true}
       contentContainerStyle={isEmptyFolder && tailwind('h-full justify-center')}
-      ListEmptyComponent={props.filesState.loading ? <View style={tailwind('h-full')}>
-        {_.times(20, (n) => <SkinSkeleton key={n} />)}
-      </View>
-        : <EmptyFolder {...props} isRoot={isRootFolder} />}
+      ListEmptyComponent={
+        filesLoading ? (
+          <View style={tailwind('h-full')}>
+            {_.times(20, (n) => (
+              <SkinSkeleton key={n} />
+            ))}
+          </View>
+        ) : isRootFolder ? (
+          <EmptyList {...strings.screens.drive.emptyRoot} image={<EmptyDriveImage width={100} height={100} />} />
+        ) : (
+          <EmptyList {...strings.screens.drive.emptyFolder} image={<EmptyFolderImage width={100} height={100} />} />
+        )
+      }
       data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}
+      keyExtractor={(item) => `${props.isGrid}-${item.id}`}
       renderItem={(item) => {
         return <FileItem
           isFolder={!!item.item.parentId}
@@ -147,11 +175,7 @@ function FileList(props: FileListProps) {
         />;
       }}
     />
-  )
+  );
 }
 
-const mapStateToProps = (state: any) => {
-  return { ...state };
-};
-
-export default connect(mapStateToProps)(FileList)
+export default FileList;

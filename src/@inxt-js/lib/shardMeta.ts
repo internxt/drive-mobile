@@ -15,7 +15,13 @@ export interface ShardMeta {
 
 const getShardHash = (encryptedShardData: Buffer) => ripemd160(sha256(encryptedShardData));
 
-export function getShardMeta(encryptedShardData: Buffer, fileSize: number, index: number, parity: boolean, exclude?: any): ShardMeta {
+export function getShardMeta(
+  encryptedShardData: Buffer,
+  fileSize: number,
+  index: number,
+  parity: boolean,
+  exclude?: any,
+): ShardMeta {
   const mT: MerkleTree = merkleTree(encryptedShardData);
 
   return {
@@ -24,6 +30,6 @@ export function getShardMeta(encryptedShardData: Buffer, fileSize: number, index
     index,
     parity,
     challenges_as_str: mT.challenges_as_str,
-    tree: mT.leaf
+    tree: mT.leaf,
   };
 }
