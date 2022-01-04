@@ -7,7 +7,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 import analytics from '../../services/analytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
-import { createEmptyFile, exists, getDocumentsDir } from '../../lib/fs';
+import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../lib/fs';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import FileSpinner from '../../../assets/images/widgets/file-spinner.svg';
 import prettysize from 'prettysize';
@@ -18,6 +18,8 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { deviceStorage } from '../../services/deviceStorage';
 import { layoutActions } from '../../store/slices/layout';
 import { downloadFile } from '../../services/network';
+import { LegacyDownloadRequiredError } from '../../services/network/download';
+import { downloadFile as legacyDownloadFile } from '../../services/download';
 
 interface FileItemProps {
   isFolder: boolean;
@@ -101,21 +103,10 @@ function FileItem(props: FileItemProps): JSX.Element {
 
     await createEmptyFile(destinationPath);
 
-    const { bucket, bridgeUser, userId, mnemonic } = await deviceStorage.getUser();
-
-    return downloadFile(bucket, props.item.fileId.toString(), 
-      {
-        encryptionKey: mnemonic,
-        user: bridgeUser,
-        pass: userId,
-      }, 
-      {
-        toPath: destinationPath,
-        progressCallback: (progress) => {
-          setProgress(progress * 100);
-        }
-      }
-    ).then(() => {
+    download({
+      fileId: props.item.fileId.toString(),
+      to: destinationPath
+    }).then(() => {
       trackDownloadSuccess();
 
       if (Platform.OS === 'android') {
@@ -132,6 +123,39 @@ function FileItem(props: FileItemProps): JSX.Element {
     }).finally(() => {
       dispatch(filesActions.downloadSelectedFileStop());
       setProgress(-1);
+    });
+  }
+
+  async function download(params: {
+    fileId: string,
+    to: string
+  }) {
+    const { bucket, bridgeUser, userId, mnemonic } = await deviceStorage.getUser();
+
+    return downloadFile(
+      bucket, 
+      params.fileId,
+      {
+        encryptionKey: mnemonic,
+        user: bridgeUser,
+        pass: userId,
+      },
+      process.env.REACT_NATIVE_BRIDGE_URL!, 
+      {
+        toPath: params.to,
+        progressCallback: setProgress
+      }
+    ).catch((err) => {
+      if (err instanceof LegacyDownloadRequiredError) {
+        const fileManager = new FileManager(params.to);
+
+        return legacyDownloadFile(params.fileId, {
+          fileManager,
+          progressCallback: setProgress
+        });
+      } else {
+        throw err;
+      }
     });
   }
 
@@ -252,11 +276,11 @@ function FileItem(props: FileItemProps): JSX.Element {
 
             {showSpinner && (
               <Text style={tailwind('text-xs text-neutral-100')}>
-                {props.progress === 0 ? 'Encrypting ' : ''}
-                {props.progress > 0 ? 'Uploading ' : ''}
-                {props.progress < 0 ? (progress === 0 ? 'Decrypting file ' : progress >= 0 && 'Downloading ') : ''}
-                {progress > 0 &&
-                  ((props.progress >= 0 ? (props.progress * 100).toFixed(0) : progress.toFixed(0)) || 0) + '%'}
+                {props.progress === 0 ? 'Encrypting' : ''}
+                {props.progress > 0 ? 'Uploading ' + (props.progress * 100).toFixed(0) + '%' : ''}
+
+                {progress >= 0 && progress < 1 && 'Downloading ' + (progress * 100).toFixed(2) + '%'}
+                {progress >= 1 && 'Decrypting'}
               </Text>
             )}
             {!props.isGrid &&
