@@ -195,11 +195,11 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: 
         text: err.message,
         type: 'error',
       });
+      throw err;
+    }).finally(() => {
       setTimeout(() => {
         dispatch(getFolderContentThunk({ folderId: folderToReload }));
-      }, 3000);
-
-      throw err;
+      }, 1000);
     });
   },
 );
