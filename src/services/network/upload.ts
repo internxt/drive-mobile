@@ -1,5 +1,5 @@
 import { randomBytes, createCipheriv, Cipher } from 'react-native-crypto';
-import RFNS, { UploadFileItem } from 'react-native-fs';
+import RFNS from 'react-native-fs';
 import { eachLimit } from 'async';
 import RNFetchBlob from 'rn-fetch-blob';
 import uuid from 'react-native-uuid';
@@ -171,8 +171,6 @@ function createBucketEntry(
   const hmac = generateHmac(encryptionKey, shardMetas);
   const newBucketEntry = generateBucketEntry(frameId, filename, index, hmac);
 
-  console.log('BuckeTentry', JSON.stringify(newBucketEntry, null, 2));
-
   return axios
     .post<CreateEntryFromFrameResponse>(`${networkUrl}/buckets/${bucketId}/files`, newBucketEntry, options)
     .then((res) => {
@@ -208,7 +206,7 @@ async function encryptFile(fileUri: string, fileSize: number, cipher: Cipher): P
   const chunksOf = twoMb;
   const chunks = Math.ceil(fileSize / chunksOf);
 
-  const fileEncryptedURI: FileEncryptedURI = getDocumentsDir() + 'hola.enc';
+  const fileEncryptedURI: FileEncryptedURI = getDocumentsDir() + uuid.v4() + '.enc';
   const writer = await RNFetchBlob.fs.writeStream(fileEncryptedURI, 'base64');
 
   let start = 0;
@@ -275,7 +273,7 @@ export async function uploadFile(
   const exists = await bucketExists(bucketId, networkUrl, defaultRequestOptions);
 
   if (!exists) {
-    throw new Error('Bucket not exists');
+    throw new Error('Upload error code 5');
   }
 
   // 2. Stage frame
@@ -294,8 +292,6 @@ export async function uploadFile(
   // TODO: Buffer from what? Hex?
   const fileHash = ripemd160(Buffer.from(await RFNS.hash(fileEncryptedURI, 'sha256'), 'hex'));
 
-  console.log('fileHash is ' + fileHash.toString('hex'));
-
   const merkleTree = generateMerkleTree();
   const shardMetas: ShardMeta[] = [
     {
@@ -308,25 +304,20 @@ export async function uploadFile(
     },
   ];
 
-  // console.log(JSON.stringify(shardMetas[0], null, 2));
-
-  console.log('negotiating contract');
-
   // 5. Negotiate contract
   const contract = await negotiateContract(frameId, shardMetas[0], networkUrl, defaultRequestOptions);
 
-  console.log('negotiated contract');
-  // console.log(JSON.stringify(contract, null, 2));
-
-  console.log('Size ' + (await RFNS.stat(fileEncryptedURI)).size);
-
   // 6. Upload
-  console.log('start put');
-  await RNFetchBlob.fetch('PUT', contract.url, {}, RNFetchBlob.wrap(fileEncryptedURI))
-    .uploadProgress({ interval: 250 }, (bytesSent, totalBytes) => {
-      uploadOptions?.progress(bytesSent / totalBytes);
-    });
-  console.log('finish put');
+  await RNFetchBlob.fetch(
+    'PUT',
+    contract.url,
+    {
+      'Content-Type': 'application/octet-stream'
+    },
+    RNFetchBlob.wrap(fileEncryptedURI)
+  ).uploadProgress({ interval: 250 }, (bytesSent, totalBytes) => {
+    uploadOptions?.progress(bytesSent / totalBytes);
+  });
 
   // 7. Create file entry
   return createBucketEntry(
@@ -338,7 +329,5 @@ export async function uploadFile(
     shardMetas,
     networkUrl,
     defaultRequestOptions,
-  ).catch((err) => {
-    throw new Error(request.extractMessageFromError(err));
-  });
+  );
 }
