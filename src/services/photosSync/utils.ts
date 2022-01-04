@@ -66,10 +66,16 @@ export async function pullPhoto(
   networkCredentials: NetworkCredentials,
   photo: Photo,
 ): Promise<Base64> {
-  const previewPath = await network.downloadFile(photosBucket, photo.previewId, networkCredentials, {
-    toPath: getDocumentsDir() + '/' + photo.previewId,
-    progressCallback: () => undefined,
-  });
+  const previewPath = await network.downloadFile(
+    photosBucket,
+    photo.previewId,
+    networkCredentials,
+    process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL!,
+    {
+      toPath: getDocumentsDir() + '/' + photo.previewId,
+      progressCallback: () => undefined,
+    }
+  );
   const preview = await RNFetchBlob.fs.readFile(previewPath, 'base64');
 
   await removeFile(previewPath);

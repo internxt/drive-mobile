@@ -1,18 +1,23 @@
 import { request } from '@internxt/lib';
 import RNFS from 'react-native-fs';
 import axios, { AxiosRequestConfig } from 'axios';
+import RNFetchBlob from 'rn-fetch-blob';
+import { Platform } from 'react-native';
+import { createDecipheriv, Decipher } from 'react-native-crypto';
 
 import { BucketId, NetworkCredentials } from '../photosSync/types';
 import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
-import { eachLimit, retry } from 'async';
-import { createDecipheriv, Decipher } from 'react-native-crypto';
-import RNFetchBlob from 'rn-fetch-blob';
-import { FileId } from '@internxt/sdk/dist/photos';
-import { Platform } from 'react-native';
 
-const networkApiUrl = 'https://api.photos.internxt.com';
+import { eachLimit, retry } from 'async';
+import { FileId } from '@internxt/sdk/dist/photos';
 
 type FileDecryptedURI = string;
+
+export class LegacyDownloadRequiredError extends Error {
+  constructor() {
+    super('Old download required');
+  }
+};
 
 interface FileInfo {
   bucket: string;
@@ -51,7 +56,12 @@ interface Shard {
   operation: string;
 }
 
-function getFileInfo(bucketId: BucketId, fileId: FileId, options?: AxiosRequestConfig): Promise<FileInfo | undefined> {
+function getFileInfo(
+  bucketId: BucketId,
+  fileId: FileId,
+  networkApiUrl: string,
+  options?: AxiosRequestConfig
+): Promise<FileInfo | undefined> {
   return axios
     .get<FileInfo>(`${networkApiUrl}/buckets/${bucketId}/files/${fileId}/info`, options)
     .then((res) => res.data)
@@ -60,22 +70,22 @@ function getFileInfo(bucketId: BucketId, fileId: FileId, options?: AxiosRequestC
     });
 }
 
-function getFileMirror(bucketId: BucketId, fileId: FileId, options?: AxiosRequestConfig): Promise<Shard | null> {
-  const requestUrl = `${networkApiUrl}/buckets/${bucketId}/files/${fileId}?limit=1&skip=0`;
+function getFileMirrors(
+  bucketId: BucketId,
+  fileId: FileId,
+  networkApiUrl: string,
+  options?: AxiosRequestConfig
+): Promise<Shard[]> {
+  const requestUrl = `${networkApiUrl}/buckets/${bucketId}/files/${fileId}?limit=3&skip=0`;
 
   return axios
     .get<Shard[]>(requestUrl, options)
     .then((res) => {
-      return res.data.length === 0 ? null : res.data[0];
+      return res.data;
     })
     .catch((err) => {
-      // TODO: Wrap
       throw new Error(request.extractMessageFromError(err));
     });
-}
-
-function generateDecipher(key: Buffer, iv: Buffer): Decipher {
-  return createDecipheriv('aes-256-ctr', key, iv);
 }
 
 async function decryptFile(
@@ -125,6 +135,7 @@ export async function downloadFile(
   bucketId: BucketId,
   fileId: FileId,
   credentials: NetworkCredentials,
+  networkApiUrl: string,
   options: {
     toPath: string;
     progressCallback: (progress: number) => void;
@@ -158,22 +169,24 @@ export async function downloadFile(
   };
 
   // 1. Get file info
-  const fileInfo = await getFileInfo(bucketId, fileId, defaultRequestOptions);
+  const fileInfo = await getFileInfo(bucketId, fileId, networkApiUrl, defaultRequestOptions);
 
   if (!fileInfo) {
     throw new Error('Download error code 6');
   }
 
-  // console.log(JSON.stringify(fileInfo, null, 2));
-
   // 2. Get file mirror
-  const mirror = await getFileMirror(bucketId, fileId, defaultRequestOptions);
+  const mirrors = await getFileMirrors(bucketId, fileId, networkApiUrl, defaultRequestOptions);
 
-  if (!mirror) {
+  if (mirrors.length === 0) {
     throw new Error('Dowload error code 7');
   }
 
-  // console.log(JSON.stringify(mirror, null, 2));
+  if (mirrors.length > 1) {
+    throw new LegacyDownloadRequiredError();
+  }
+
+  const [mirror] = mirrors;
 
   const farmerUrl = `http://${mirror.farmer.address}:${mirror.farmer.port}/download/link/${mirror.hash}`;
   const downloadUrl = await requestDownloadUrlToFarmer(farmerUrl);
@@ -181,8 +194,6 @@ export async function downloadFile(
   // 3. Download file
   const encryptedFileURI =
     (Platform.OS === 'android' ? RNFS.DocumentDirectoryPath : RNFS.MainBundlePath) + mirror.hash + '.enc';
-
-  // console.log('file download started');
 
   await retry({ times: 3, interval: 500 }, (nextTry) => {
     const downloadResult = RNFS.downloadFile({
@@ -214,8 +225,6 @@ export async function downloadFile(
       });
   });
 
-  // console.log('file download finished');
-
   // 4. Decrypt file
   const fileDecryptionKey = await GenerateFileKey(
     credentials.encryptionKey,
@@ -231,9 +240,7 @@ export async function downloadFile(
 
   const fileURI = await decryptFile(encryptedFileURI, options.toPath, fileInfo.size, decipher);
 
-  // Remove encrypted file
-  await RNFS.unlink(encryptedFileURI);
+  await RNFS.unlink(encryptedFileURI).catch(() => null);
 
-  // Move to gallery or return file uri?
   return fileURI;
 }
