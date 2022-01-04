@@ -12,8 +12,7 @@ import { ShardMeta } from '../../@inxt-js/lib/shardMeta';
 import { BucketId, NetworkCredentials, NetworkUser } from '../photosSync/types';
 import { FileId } from '@internxt/sdk/dist/photos';
 
-// const networkApiUrl = process.env.NETWORK_PHOTOS_API_URL as string;
-const networkApiUrl = 'https://api.photos.internxt.com';
+const networkApiUrl = process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL as string;
 
 type FrameId = string;
 type Timestamp = string;
