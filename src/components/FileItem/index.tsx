@@ -103,7 +103,7 @@ function FileItem(props: FileItemProps): JSX.Element {
 
     await createEmptyFile(destinationPath);
 
-    download({
+    return download({
       fileId: props.item.fileId.toString(),
       to: destinationPath
     }).then(() => {
@@ -213,9 +213,7 @@ function FileItem(props: FileItemProps): JSX.Element {
   }
 
   const IconFile = getFileTypeIcon(props.item.type);
-
-  const showSpinner = props.progress >= 0 || progress >= 0 || props.isLoading || isLoading;
-
+  const inProgress = props.progress >= 0 || progress >= 0;
   const iconSize = props.isGrid ? 64 : 40;
 
   return (
@@ -245,14 +243,6 @@ function FileItem(props: FileItemProps): JSX.Element {
             ) : (
               <IconFile width={iconSize} height={iconSize} />
             )}
-
-            {showSpinner && (
-              <View style={tailwind('absolute -bottom-2 -right-2')}>
-                <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                  <FileSpinner />
-                </Animated.View>
-              </View>
-            )}
           </View>
 
           <View
@@ -274,17 +264,18 @@ function FileItem(props: FileItemProps): JSX.Element {
               {props.item.type ? '.' + props.item.type : ''}
             </Text>
 
-            {showSpinner && (
+            {inProgress &&
               <Text style={tailwind('text-xs text-neutral-100')}>
                 {props.progress === 0 && 'Encrypting'}
                 {props.progress > 0 && 'Uploading ' + (props.progress * 100).toFixed(0) + '%'}
 
-                {progress >= 0 && progress < 1 && 'Downloading ' + (progress * 100).toFixed(2) + '%'}
+                {progress >= 0 && progress < 1 && 'Downloading ' + (progress * 100).toFixed(0) + '%'}
                 {progress >= 1 && 'Decrypting'}
               </Text>
-            )}
+            }
+            
             {!props.isGrid &&
-              !showSpinner &&
+              !inProgress &&
               (props.subtitle ? (
                 props.subtitle
               ) : (
