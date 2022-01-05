@@ -304,7 +304,9 @@ const strings = new LocalizedStrings({
       pressAgainToExit: 'Press again to close the app',
     },
     errors: {
+      unknown: 'Unknown error',
       photoShared: 'An error has ocurred during photo sharing',
+      photosSync: 'Error during photos sync: {0}',
     },
   },
   es: {
@@ -611,7 +613,9 @@ const strings = new LocalizedStrings({
       pressAgainToExit: 'Pulsa otra vez para cerrar la app',
     },
     errors: {
+      unknown: 'Error desconocido',
       photoShared: 'Ha habido un error al compartir la foto',
+      photosSync: 'Error sincronizando fotos: {0}',
     },
   },
 });

@@ -46,8 +46,10 @@ export class PhotosService {
     );
   }
 
-  public initializeLocalDatabase(): Promise<void> {
-    return this.localDatabaseService.initialize();
+  public async initializeLocalDatabase(): Promise<void> {
+    await this.localDatabaseService.initialize();
+
+    console.log('(PhotosService) Local database initialized');
   }
 
   public sync(): Promise<void> {

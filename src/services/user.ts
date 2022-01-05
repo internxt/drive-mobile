@@ -26,8 +26,6 @@ class UserService {
         .then(async (response) => {
           const body = await response.json();
 
-          console.log('body: ', JSON.stringify(body, undefined, 2));
-
           if (response.status === 200) {
             const user = body.user;
 

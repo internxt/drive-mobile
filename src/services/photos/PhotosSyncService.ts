@@ -1,4 +1,7 @@
+import { REACT_NATIVE_PHOTOS_API_URL } from '@env';
+import { request } from '@internxt/lib';
 import { photos } from '@internxt/sdk';
+import Axios from 'axios';
 import { getMacAddress, getDeviceName } from 'react-native-device-info';
 
 import { PhotosServiceModel } from '../../types';
@@ -37,35 +40,42 @@ export default class PhotosSyncService {
   }
 
   public async run(): Promise<void> {
-    console.log('[SYNC-MAIN]: STARTED');
+    try {
+      console.log('[SYNC-MAIN]: STARTED');
 
-    // TODO: If first time, download all photos already uploaded because
-    // the app could be reinstalled and the database is gone but the photos
-    // are already uploaded
+      // TODO: If first time, download all photos already uploaded because
+      // the app could be reinstalled and the database is gone but the photos
+      // are already uploaded
 
-    const user = await this.initializeUser();
-    this.model.bucket = user.bucketId;
-    console.log('[SYNC-MAIN]: USER INITIALIZED');
+      const user = await this.initializeUser();
+      this.model.bucket = user.bucketId;
+      console.log('[SYNC-MAIN]: USER INITIALIZED');
 
-    const device = await this.initializeDevice(user.id);
-    console.log('[SYNC-MAIN]: DEVICE INITIALIZED');
+      const device = await this.initializeDevice(user.id);
+      console.log('[SYNC-MAIN]: DEVICE INITIALIZED');
 
-    await this.downloadRemotePhotos();
-    console.log('[SYNC-MAIN]: REMOTE PHOTOS DOWNLOADED');
+      await this.downloadRemotePhotos();
+      console.log('[SYNC-MAIN]: REMOTE PHOTOS DOWNLOADED');
 
-    await this.uploadLocalPhotos(user.id, device.id);
-    console.log('[SYNC-MAIN]: LOCAL PHOTOS UPLOADED');
+      await this.uploadLocalPhotos(user.id, device.id);
+      console.log('[SYNC-MAIN]: LOCAL PHOTOS UPLOADED');
 
-    console.log('[SYNC-MAIN]: FINISHED');
+      console.log('[SYNC-MAIN]: FINISHED');
 
-    // console.log('RESETING DB');
-    // await this.database.reset();
-    // console.log('DB RESETED');
+      // console.log('RESETING DB');
+      // await this.database.reset();
+      // console.log('DB RESETED');
+    } catch (err) {
+      console.log('[SYNC-MAIN]: FAILED:', err);
+      throw err;
+    }
   }
 
   private async initializeUser(): Promise<photos.User> {
     const mac = await getMacAddress();
     const name = await getDeviceName();
+
+    console.log(REACT_NATIVE_PHOTOS_API_URL);
 
     return this.photosSdk.users.initialize({
       mac,

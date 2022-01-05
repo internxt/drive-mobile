@@ -22,7 +22,6 @@ export default class PhotosLocalDatabaseService {
     const syncDatesNotInitialized = count === 0;
     if (syncDatesNotInitialized) {
       await this.initSyncDates();
-      console.log('[SYNC-INITIALIZE]: SYNC DATES WAS EMPTY. INITIALIZED');
     }
   }
 

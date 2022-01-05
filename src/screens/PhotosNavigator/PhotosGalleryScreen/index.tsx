@@ -20,7 +20,7 @@ function PhotosGalleryScreen(): JSX.Element {
   const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.layout);
   const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
   const onDeletePhotosModalClosed = () => dispatch(layoutActions.setIsDeletePhotosModalOpen(false));
-  const { isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
+  const { isSyncing, isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
   const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
   const hasNoPhotosSelected = selectedPhotos.length === 0;
   const hasManyPhotosSelected = selectedPhotos.length > 1;
@@ -150,25 +150,27 @@ function PhotosGalleryScreen(): JSX.Element {
             )}
           </View>
 
-          <View style={tailwind('pl-5 flex-row items-center')}>
-            <Animated.View
-              style={[
-                tailwind('justify-center mr-1'),
-                {
-                  transform: [
-                    {
-                      rotate: syncingSpinnerRotationInterpolation,
-                    },
-                  ],
-                },
-              ]}
-            >
-              <Unicons.UilSpinnerAlt size={16} color={getColor('neutral-100')} />
-            </Animated.View>
-            <Text style={tailwind('text-sm text-neutral-100')}>
-              {strings.formatString(strings.screens.gallery.syncing, 0, 100)}
-            </Text>
-          </View>
+          {isSyncing && (
+            <View style={tailwind('pl-5 flex-row items-center')}>
+              <Animated.View
+                style={[
+                  tailwind('justify-center mr-1'),
+                  {
+                    transform: [
+                      {
+                        rotate: syncingSpinnerRotationInterpolation,
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Unicons.UilSpinnerAlt size={16} color={getColor('neutral-100')} />
+              </Animated.View>
+              <Text style={tailwind('text-sm text-neutral-100')}>
+                {strings.formatString(strings.screens.gallery.syncing, 0, 100)}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* GALLERY VIEW */}

@@ -19,6 +19,7 @@ export default class PhotosUploadService {
   }
 
   public async upload(data: Omit<CreatePhotoData, 'fileId' | 'previewId'>, uri: string): Promise<[Photo, string]> {
+    console.log('PhotosUploadService.upload - uri: ', uri);
     const photoPath = await this.copyPhotoToDocumentsDir(data.name, data.width, data.height, uri);
     const previewPath = await this.generatePreview(data.name, uri);
 

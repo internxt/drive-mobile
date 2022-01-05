@@ -15,6 +15,8 @@ import { RootState } from '../..';
 import { GalleryViewMode } from '../../../types';
 import { Platform } from 'react-native';
 import { PhotosService } from '../../../services/photos';
+import { notify } from '../../../services/toast';
+import strings from '../../../../assets/lang/strings';
 
 let photosService: PhotosService;
 
@@ -69,7 +71,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 
       dispatch(photosActions.setAllPhotosCount(await photosService.countPhotos()));
 
-      await dispatch(syncThunk()).unwrap();
+      dispatch(syncThunk()).unwrap();
     }
   },
 );
@@ -121,7 +123,7 @@ const loadLocalPhotosThunk = createAsyncThunk<
 });
 
 const syncThunk = createAsyncThunk<void, void, { state: RootState }>('photos/sync', async () => {
-  console.log('TODO: call photosSync.run');
+  await photosService.sync();
 });
 
 export const photosSlice = createSlice({
@@ -196,8 +198,16 @@ export const photosSlice = createSlice({
       .addCase(syncThunk.fulfilled, (state) => {
         state.isSyncing = false;
       })
-      .addCase(syncThunk.rejected, (state) => {
+      .addCase(syncThunk.rejected, (state, action) => {
         state.isSyncing = false;
+
+        notify({
+          type: 'error',
+          text: strings.formatString(
+            strings.errors.photosSync,
+            action.error.message || strings.errors.unknown,
+          ) as string,
+        });
       });
   },
 });
