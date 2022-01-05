@@ -100,55 +100,55 @@ function FileItem(props: FileItemProps): JSX.Element {
 
     return download({
       fileId: props.item.fileId.toString(),
-      to: destinationPath
-    }).then(() => {
-      trackDownloadSuccess();
+      to: destinationPath,
+    })
+      .then(() => {
+        trackDownloadSuccess();
 
-      if (Platform.OS === 'android') {
-        FileSystem.getInfoAsync('file://' + destinationPath).then(({ uri }) => {
-          return showFileViewer(uri);
-        });
-      }
+        console.log('Destination path', destinationPath);
 
-      return showFileViewer(destinationPath);
-    }).catch((err) => {
-      trackDownloadError(err);
+        if (Platform.OS === 'android') {
+          return showFileViewer('file://' + destinationPath);
+        }
 
-      Alert.alert('Error downloading file', err.message);
-    }).finally(() => {
-      dispatch(filesActions.downloadSelectedFileStop());
-      setDownloadProgress(-1);
-      setDecryptionProgress(-1);
-    });
+        return showFileViewer(destinationPath);
+      })
+      .catch((err) => {
+        trackDownloadError(err);
+
+        Alert.alert('Error downloading file', err.message);
+      })
+      .finally(() => {
+        dispatch(filesActions.downloadSelectedFileStop());
+        setDownloadProgress(-1);
+        setDecryptionProgress(-1);
+      });
   }
 
-  async function download(params: {
-    fileId: string,
-    to: string
-  }) {
+  async function download(params: { fileId: string; to: string }) {
     const { bucket, bridgeUser, userId, mnemonic } = await deviceStorage.getUser();
 
     return downloadFile(
-      bucket, 
+      bucket,
       params.fileId,
       {
         encryptionKey: mnemonic,
         user: bridgeUser,
         pass: userId,
       },
-      process.env.REACT_NATIVE_BRIDGE_URL!, 
+      process.env.REACT_NATIVE_BRIDGE_URL!,
       {
         toPath: params.to,
         downloadProgressCallback: setDownloadProgress,
-        decryptionProgressCallback: setDecryptionProgress
-      }
+        decryptionProgressCallback: setDecryptionProgress,
+      },
     ).catch((err) => {
       if (err instanceof LegacyDownloadRequiredError) {
         const fileManager = new FileManager(params.to);
 
         return legacyDownloadFile(params.fileId, {
           fileManager,
-          progressCallback: setDownloadProgress
+          progressCallback: setDownloadProgress,
         });
       } else {
         throw err;
