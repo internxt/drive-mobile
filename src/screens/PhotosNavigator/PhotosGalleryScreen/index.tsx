@@ -71,143 +71,146 @@ function PhotosGalleryScreen(): JSX.Element {
     dispatch(photosThunks.loadLocalPhotosThunk({ limit: 15, offset: 0 }));
   }, []);
 
-  return (
-    <>
-      <SharePhotoModal isOpen={isSharePhotoModalOpen} data={selectedPhotos[0]} onClosed={onSharePhotoModalClosed} />
-      <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selectedPhotos} onClosed={onDeletePhotosModalClosed} />
+  return <View></View>;
 
-      <View style={tailwind('app-screen bg-white flex-1')}>
-        {/* GALLERY TOP BAR */}
-        <View style={tailwind('flex-row justify-between pb-3 h-16')}>
-          {isSelectionModeActivated ? (
-            <>
-              <View style={tailwind('flex-row items-center justify-between')}>
-                <Text style={tailwind('pl-5')}>
-                  {strings.formatString(strings.screens.gallery.nPhotosSelected, selectedPhotos.length)}
-                </Text>
-              </View>
+  //   return (
+  //     <>
+  //       <SharePhotoModal isOpen={isSharePhotoModalOpen} data={selectedPhotos[0]} onClosed={onSharePhotoModalClosed} />
+  //       <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selectedPhotos} onClosed={onDeletePhotosModalClosed} />
 
-              <View style={tailwind('flex-row pr-5')}>
-                <View style={tailwind('flex-row items-center justify-between')}>
-                  <TouchableOpacity
-                    style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl mr-2')}
-                    onPress={onSelectAllButtonPressed}
-                  >
-                    <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                      {strings.components.buttons.selectAll}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={tailwind('flex-row items-center justify-between')}>
-                  <TouchableOpacity
-                    style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
-                    onPress={onCancelSelectButtonPressed}
-                  >
-                    <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                      {strings.components.buttons.cancel}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </>
-          ) : (
-            <>
-              <ScreenTitle text={strings.screens.gallery.title} showBackButton={false} />
+  //       <View style={tailwind('app-screen bg-white flex-1')}>
+  //         {/* GALLERY TOP BAR */}
+  //         <View style={tailwind('flex-row justify-between pb-3 h-16')}>
+  //           {isSelectionModeActivated ? (
+  //             <>
+  //               <View style={tailwind('flex-row items-center justify-between')}>
+  //                 <Text style={tailwind('pl-5')}>
+  //                   {strings.formatString(strings.screens.gallery.nPhotosSelected, selectedPhotos.length)}
+  //                 </Text>
+  //               </View>
 
-              <View style={tailwind('flex-row items-center justify-between pr-5')}>
-                <TouchableOpacity
-                  style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
-                  onPress={onSelectButtonPressed}
-                >
-                  <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                    {strings.components.buttons.select}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </View>
+  //               <View style={tailwind('flex-row pr-5')}>
+  //                 <View style={tailwind('flex-row items-center justify-between')}>
+  //                   <TouchableOpacity
+  //                     style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl mr-2')}
+  //                     onPress={onSelectAllButtonPressed}
+  //                   >
+  //                     <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+  //                       {strings.components.buttons.selectAll}
+  //                     </Text>
+  //                   </TouchableOpacity>
+  //                 </View>
+  //                 <View style={tailwind('flex-row items-center justify-between')}>
+  //                   <TouchableOpacity
+  //                     style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
+  //                     onPress={onCancelSelectButtonPressed}
+  //                   >
+  //                     <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+  //                       {strings.components.buttons.cancel}
+  //                     </Text>
+  //                   </TouchableOpacity>
+  //                 </View>
+  //               </View>
+  //             </>
+  //           ) : (
+  //             <>
+  //               <ScreenTitle text={strings.screens.gallery.title} showBackButton={false} />
 
-        {/* GALLERY VIEW */}
-        <GalleryView />
+  //               <View style={tailwind('flex-row items-center justify-between pr-5')}>
+  //                 <TouchableOpacity
+  //                   style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
+  //                   onPress={onSelectButtonPressed}
+  //                 >
+  //                   <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+  //                     {strings.components.buttons.select}
+  //                   </Text>
+  //                 </TouchableOpacity>
+  //               </View>
+  //             </>
+  //           )}
+  //         </View>
 
-        {/*  GROUP BY MENU */}
-        {groupByMenu}
+  //         {/* GALLERY VIEW */}
+  //         <GalleryView />
 
-        {/* SELECTION MODE ACTIONS */}
-        {isSelectionModeActivated && (
-          <Portal>
-            <View style={[tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2')]}>
-              <TouchableWithoutFeedback
-                onPress={onShareSelectionButtonPressed}
-                disabled={hasNoPhotosSelected || hasManyPhotosSelected}
-              >
-                <View style={tailwind('items-center flex-1')}>
-                  <Unicons.UilLink
-                    color={hasNoPhotosSelected || hasManyPhotosSelected ? getColor('neutral-60') : getColor('blue-60')}
-                    size={24}
-                  />
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      hasNoPhotosSelected || hasManyPhotosSelected
-                        ? tailwind('text-neutral-60')
-                        : tailwind('text-blue-60'),
-                      tailwind('text-xs'),
-                    ]}
-                  >
-                    {strings.components.buttons.shareWithLink}
-                  </Text>
-                </View>
-              </TouchableWithoutFeedback>
-              <TouchableWithoutFeedback
-                style={tailwind('flex-1')}
-                onPress={onDownloadSelectionButtonPressed}
-                disabled={hasNoPhotosSelected}
-              >
-                <View style={tailwind('items-center flex-1')}>
-                  <Unicons.UilDownloadAlt
-                    color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('blue-60')}
-                    size={24}
-                  />
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      hasNoPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-blue-60'),
-                      tailwind('text-xs'),
-                    ]}
-                  >
-                    {strings.components.buttons.download}
-                  </Text>
-                </View>
-              </TouchableWithoutFeedback>
-              <TouchableWithoutFeedback
-                style={tailwind('flex-1')}
-                onPress={onDeleteSelectionButtonPressed}
-                disabled={hasNoPhotosSelected}
-              >
-                <View style={tailwind('items-center flex-1')}>
-                  <Unicons.UilTrash
-                    color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('red-60')}
-                    size={24}
-                  />
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      hasNoPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-red-60'),
-                      tailwind('text-xs'),
-                    ]}
-                  >
-                    {strings.components.buttons.moveToThrash}
-                  </Text>
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </Portal>
-        )}
-      </View>
-    </>
-  );
+  //         {/*  GROUP BY MENU */}
+  //         {groupByMenu}
+
+  //         {/* SELECTION MODE ACTIONS */}
+  //         {isSelectionModeActivated && (
+  //           <Portal>
+  //             <View style={[tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2')]}>
+  //               <TouchableWithoutFeedback
+  //                 onPress={onShareSelectionButtonPressed}
+  //                 disabled={hasNoPhotosSelected || hasManyPhotosSelected}
+  //               >
+  //                 <View style={tailwind('items-center flex-1')}>
+  //                   <Unicons.UilLink
+  //                     color={hasNoPhotosSelected || hasManyPhotosSelected ? getColor('neutral-60') : getColor('blue-60')}
+  //                     size={24}
+  //                   />
+  //                   <Text
+  //                     numberOfLines={1}
+  //                     style={[
+  //                       hasNoPhotosSelected || hasManyPhotosSelected
+  //                         ? tailwind('text-neutral-60')
+  //                         : tailwind('text-blue-60'),
+  //                       tailwind('text-xs'),
+  //                     ]}
+  //                   >
+  //                     {strings.components.buttons.shareWithLink}
+  //                   </Text>
+  //                 </View>
+  //               </TouchableWithoutFeedback>
+  //               <TouchableWithoutFeedback
+  //                 style={tailwind('flex-1')}
+  //                 onPress={onDownloadSelectionButtonPressed}
+  //                 disabled={hasNoPhotosSelected}
+  //               >
+  //                 <View style={tailwind('items-center flex-1')}>
+  //                   <Unicons.UilDownloadAlt
+  //                     color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('blue-60')}
+  //                     size={24}
+  //                   />
+  //                   <Text
+  //                     numberOfLines={1}
+  //                     style={[
+  //                       hasNoPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-blue-60'),
+  //                       tailwind('text-xs'),
+  //                     ]}
+  //                   >
+  //                     {strings.components.buttons.download}
+  //                   </Text>
+  //                 </View>
+  //               </TouchableWithoutFeedback>
+  //               <TouchableWithoutFeedback
+  //                 style={tailwind('flex-1')}
+  //                 onPress={onDeleteSelectionButtonPressed}
+  //                 disabled={hasNoPhotosSelected}
+  //               >
+  //                 <View style={tailwind('items-center flex-1')}>
+  //                   <Unicons.UilTrash
+  //                     color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('red-60')}
+  //                     size={24}
+  //                   />
+  //                   <Text
+  //                     numberOfLines={1}
+  //                     style={[
+  //                       hasNoPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-red-60'),
+  //                       tailwind('text-xs'),
+  //                     ]}
+  //                   >
+  //                     {strings.components.buttons.moveToThrash}
+  //                   </Text>
+  //                 </View>
+  //               </TouchableWithoutFeedback>
+  //             </View>
+  //           </Portal>
+  //         )}
+  //       </View>
+  //     </>
+  //   );
+  // }
 }
 
 export default PhotosGalleryScreen;

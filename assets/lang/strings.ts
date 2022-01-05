@@ -24,6 +24,9 @@ const strings = new LocalizedStrings({
       menu: 'Menu',
     },
     screens: {
+      photos: {
+        title: 'Coming soon',
+      },
       home: {
         title: 'Home',
       },
@@ -324,6 +327,9 @@ const strings = new LocalizedStrings({
       menu: 'Menú',
     },
     screens: {
+      photos: {
+        title: 'Próximamente',
+      },
       home: {
         title: 'Inicio',
       },

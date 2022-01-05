@@ -46,6 +46,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
 
     return (
       <TouchableWithoutFeedback
+        disabled={label === strings.tabs.photos}
         key={`button-tab-${route.name}`}
         accessibilityRole="button"
         accessibilityState={isFocused ? { selected: true } : {}}
@@ -54,21 +55,33 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         onPress={onPress}
         onLongPress={onLongPress}
       >
-        <View style={tailwind('flex-grow h-14 items-center justify-center')}>
+        <View style={tailwind('flex-1 h-14 items-center justify-center')}>
           {isCreateRoute && <View style={tailwind('absolute bg-blue-60 h-8 w-8 rounded-3xl')} />}
 
           <Icon color={iconColor} size={24} />
-          {options.tabBarShowLabel && !isCreateRoute && (
-            <Text
-              style={[
-                tailwind('text-supporting-2 mt-0.5'),
-                isFocused ? tailwind('text-blue-60') : tailwind('text-neutral-80'),
-                isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
-              ]}
-            >
-              {label}
-            </Text>
-          )}
+          {options.tabBarShowLabel &&
+            !isCreateRoute &&
+            (label === strings.tabs.photos ? (
+              <Text
+                style={[
+                  tailwind('text-supporting-2 mt-0.5'),
+                  tailwind('text-orange-60'),
+                  globalStyle.fontWeight.regular,
+                ]}
+              >
+                {strings.screens.photos.title}
+              </Text>
+            ) : (
+              <Text
+                style={[
+                  tailwind('text-supporting-2 mt-0.5'),
+                  isFocused ? tailwind('text-blue-60') : tailwind('text-neutral-80'),
+                  isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
+                ]}
+              >
+                {label}
+              </Text>
+            ))}
         </View>
       </TouchableWithoutFeedback>
     );
