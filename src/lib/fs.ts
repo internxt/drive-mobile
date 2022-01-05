@@ -9,7 +9,7 @@ enum AcceptedEncodings {
 }
 
 export function getDocumentsDir(): string {
-  return RNFetchBlob.fs.dirs.DocumentDir;
+  return RNFS.DocumentDirectoryPath;
 }
 
 export function getDownloadsDir(): string {

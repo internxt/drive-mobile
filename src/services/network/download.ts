@@ -2,7 +2,6 @@ import { request } from '@internxt/lib';
 import RNFS from 'react-native-fs';
 import axios, { AxiosRequestConfig } from 'axios';
 import RNFetchBlob from 'rn-fetch-blob';
-import { Platform } from 'react-native';
 import { createDecipheriv, Decipher } from 'react-native-crypto';
 
 import { BucketId, NetworkCredentials } from '../photosSync/types';
@@ -10,6 +9,7 @@ import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 
 import { eachLimit, retry } from 'async';
 import { FileId } from '@internxt/sdk/dist/photos';
+import { getDocumentsDir } from '../../lib/fs';
 
 type FileDecryptedURI = string;
 
@@ -199,8 +199,7 @@ export async function downloadFile(
   const downloadUrl = await requestDownloadUrlToFarmer(farmerUrl);
 
   // 3. Download file
-  const encryptedFileURI =
-    (Platform.OS === 'android' ? RNFS.DocumentDirectoryPath : RNFS.MainBundlePath) + mirror.hash + '.enc';
+  const encryptedFileURI = getDocumentsDir() + '/' + mirror.hash + '.enc';
 
   await retry({ times: 3, interval: 500 }, (nextTry) => {
     const downloadResult = RNFS.downloadFile({

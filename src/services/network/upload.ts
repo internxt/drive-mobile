@@ -206,7 +206,7 @@ async function encryptFile(fileUri: string, fileSize: number, cipher: Cipher): P
   const chunksOf = twoMb;
   const chunks = Math.ceil(fileSize / chunksOf);
 
-  const fileEncryptedURI: FileEncryptedURI = getDocumentsDir() + uuid.v4() + '.enc';
+  const fileEncryptedURI: FileEncryptedURI = getDocumentsDir() + '/' + uuid.v4() + '.enc';
   const writer = await RNFetchBlob.fs.writeStream(fileEncryptedURI, 'base64');
 
   let start = 0;
