@@ -456,9 +456,12 @@ function UploadModal(): JSX.Element {
         }
         file.progress = 0;
         file.currentFolder = currentFolder;
-        file.createdAt = new Date();
-        file.updatedAt = new Date();
+        file.createdAt = new Date().toString();
+        file.updatedAt = new Date().toString();
         file.id = uniqueId();
+        
+        file.name = removeExtension(file.name);
+        file.type = getFileExtension(result.uri);
 
         trackUploadStart();
         dispatch(filesActions.uploadFileStart(file.name));
