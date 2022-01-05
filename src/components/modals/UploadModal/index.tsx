@@ -85,17 +85,11 @@ async function uploadIOS(res: UploadingFile, fileType: 'document' | 'image', pro
   const finalUri = getFinalUri(fileUri, fileType);
 
   const fileURI = finalUri;
-  const filename = result.name;  
+  const filename = result.name;
   const fileExtension = extension;
   const currentFolderId = result.currentFolder.toString();
 
-  return uploadAndCreateFileEntry(
-    fileURI, 
-    filename, 
-    fileExtension,
-    currentFolderId,
-    progressCallback
-  );
+  return uploadAndCreateFileEntry(fileURI, filename, fileExtension, currentFolderId, progressCallback);
 }
 
 async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
@@ -108,8 +102,6 @@ async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image',
 
   const destPath = `${getTemporaryDir()}/${result.name}`;
   await copyFile(result.uri, destPath);
-
-  const extension = result.name.split('.').pop() || '';
 
   if (fileType === 'document') {
     const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
@@ -127,7 +119,7 @@ async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image',
 
   const fileURI = 'file:///' + destPath;
   const filename = result.name;
-  const fileExtension = extension;
+  const fileExtension = result.type;
   const currenFolderId = result.currentFolder.toString();
 
   const createdFileEntry = await uploadAndCreateFileEntry(
@@ -135,7 +127,7 @@ async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image',
     filename,
     fileExtension,
     currenFolderId,
-    progressCallback
+    progressCallback,
   );
 
   unlink(destPath).catch(() => null);
@@ -144,7 +136,7 @@ async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image',
 }
 
 async function uploadAndCreateFileEntry(
-  fileURI: string, 
+  fileURI: string,
   fileName: string,
   fileExtension: string,
   currentFolderId: string,
@@ -152,8 +144,8 @@ async function uploadAndCreateFileEntry(
 ) {
   const { bucket, bridgeUser, mnemonic, userId } = await deviceStorage.getUser();
   const fileId = await uploadFile(
-    fileURI, 
-    bucket, 
+    fileURI,
+    bucket,
     process.env.REACT_NATIVE_BRIDGE_URL!,
     {
       encryptionKey: mnemonic,
@@ -161,10 +153,10 @@ async function uploadAndCreateFileEntry(
       pass: userId,
     },
     {
-      progress: progressCallback
-    }
+      progress: progressCallback,
+    },
   );
-    
+
   const fileStat = await stat(fileURI);
 
   const folderId = currentFolderId;
@@ -239,7 +231,26 @@ function UploadModal(): JSX.Element {
   function processFilesFromPicker(documents: any[]): Promise<void> {
     documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
     dispatch(layoutActions.setShowUploadFileModal(false));
+
     return uploadDocuments(documents);
+  }
+
+  function toUploadingFile(
+    filesAtSameLevel: { name: string; type: string }[],
+    file: DocumentPickerResponse,
+  ): UploadingFile {
+    return {
+      uri: file.uri,
+      name: renameIfAlreadyExists(filesAtSameLevel, removeExtension(file.name), getFileExtension(file.name) || '')[2],
+      type: file.name.split('.')[1] || '',
+      currentFolder,
+      createdAt: new Date().toString(),
+      updatedAt: new Date().toString(),
+      id: uniqueId(),
+      path: '',
+      size: file.size,
+      progress: 0,
+    };
   }
 
   async function uploadDocuments(documents: DocumentPickerResponse[]) {
@@ -267,30 +278,35 @@ function UploadModal(): JSX.Element {
     const formattedFiles: UploadingFile[] = [];
 
     for (const fileToUpload of filesToUpload) {
-      const file: UploadingFile = {
-        uri: fileToUpload.uri,
-        name:
-          renameIfAlreadyExists(
+      let file: UploadingFile;
+
+      if (Platform.OS === 'android') {
+        file = toUploadingFile(filesAtSameLevel, fileToUpload);
+      } else {
+        file = {
+          uri: fileToUpload.uri,
+          name: renameIfAlreadyExists(
             filesAtSameLevel,
             removeExtension(fileToUpload.name),
             getFileExtension(fileToUpload.name) || '',
           )[2],
-        type: getFileExtension(fileToUpload.uri) || '',
-        currentFolder,
-        createdAt: new Date().toString(),
-        updatedAt: new Date().toString(),
-        id: uniqueId(),
-        path: '',
-        size: fileToUpload.size,
-        progress: 0
-      };
+          type: getFileExtension(fileToUpload.uri) || '',
+          currentFolder,
+          createdAt: new Date().toString(),
+          updatedAt: new Date().toString(),
+          id: uniqueId(),
+          path: '',
+          size: fileToUpload.size,
+          progress: 0,
+        };
+      }
 
       trackUploadStart();
       dispatch(filesActions.uploadFileStart(file.name));
-      dispatch(filesActions.addUploadingFile({...file, isLoading: true }));
+      dispatch(filesActions.addUploadingFile({ ...file, isLoading: true }));
 
       formattedFiles.push(file);
-      filesAtSameLevel.push({ name: removeExtension(fileToUpload.name), type: fileToUpload.type });
+      filesAtSameLevel.push({ name: file.name, type: file.type });
     }
 
     if (Platform.OS === 'android') {
@@ -380,7 +396,9 @@ function UploadModal(): JSX.Element {
 
               documents.push({
                 fileCopyUri: asset.uri || '',
-                name: decodeURIComponent(asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || ''),
+                name: decodeURIComponent(
+                  asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
+                ),
                 size: asset.fileSize || typeof stat.size === 'string' ? parseInt(stat.size) : stat.size,
                 type: asset.type || '',
                 uri: asset.uri || '',
@@ -459,7 +477,7 @@ function UploadModal(): JSX.Element {
         file.createdAt = new Date().toString();
         file.updatedAt = new Date().toString();
         file.id = uniqueId();
-        
+
         file.name = removeExtension(file.name);
         file.type = getFileExtension(result.uri);
 
