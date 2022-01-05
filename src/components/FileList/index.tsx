@@ -25,6 +25,7 @@ export interface IFolder {
   parentId: undefined;
   uri?: string;
   isUploaded?: boolean;
+  isLoading?: boolean;
 }
 
 export interface IUploadingFile {
@@ -40,6 +41,7 @@ export interface IUploadingFile {
   folderId: number;
   fileId?: number;
   isUploaded?: boolean;
+  isLoading?: boolean;
   parentId: number;
 }
 
@@ -56,6 +58,7 @@ export interface IFile {
   progress: number;
   uri?: string;
   isUploaded?: boolean;
+  isLoading?: boolean;
   parentId: string;
 }
 
@@ -164,12 +167,13 @@ function FileList(props: FileListProps): JSX.Element {
       }
       data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}
       keyExtractor={(item) => `${props.isGrid}-${item.id}`}
-      renderItem={(item) => {
+      renderItem={({ item }) => {
         return <FileItem
-          isFolder={!!item.item.parentId}
-          key={`${props.isGrid}-${item.item.id}`}
-          item={item.item}
-          progress={item.item.progress || -1}
+          isLoading={item.isLoading}
+          isFolder={!!item.parentId}
+          key={`${props.isGrid}-${item.id}`}
+          item={item}
+          progress={isNaN(item.progress) ? -1 : item.progress}
           isGrid={props.isGrid}
           totalColumns={totalColumns}
         />;
