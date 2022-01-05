@@ -264,23 +264,19 @@ function FileItem(props: FileItemProps): JSX.Element {
               {props.item.type ? '.' + props.item.type : ''}
             </Text>
 
-            {inProgress &&
-              <Text style={tailwind('text-xs text-neutral-100')}>
+            {inProgress && (
+              <Text style={tailwind('text-xs text-blue-60')}>
                 {props.progress === 0 && 'Encrypting'}
                 {props.progress > 0 && 'Uploading ' + (props.progress * 100).toFixed(0) + '%'}
 
-                {(downloadProgress >= 0 && downloadProgress < 1) && 
-                  'Downloading ' + (downloadProgress * 100).toFixed(0) + '%'
-                }
-                {(downloadProgress >= 1 && decryptionProgress === -1) && 
-                  'Decrypting'
-                }
-                {decryptionProgress >= 0 && 
-                  'Decrypting ' + (Math.max(decryptionProgress * 100, 0)).toFixed(0) + '%'
-                }
+                {downloadProgress >= 0 &&
+                  downloadProgress < 1 &&
+                  'Downloading ' + (downloadProgress * 100).toFixed(0) + '%'}
+                {downloadProgress >= 1 && decryptionProgress === -1 && 'Decrypting'}
+                {decryptionProgress >= 0 && 'Decrypting ' + Math.max(decryptionProgress * 100, 0).toFixed(0) + '%'}
               </Text>
-            }
-            
+            )}
+
             {!props.isGrid &&
               !inProgress &&
               (props.subtitle ? (

@@ -208,6 +208,7 @@ export async function downloadFile(
       discretionary: true,
       cacheable: false,
       begin: () => undefined,
+      progressInterval: 500,
       progress: (res) => {
         options.downloadProgressCallback(res.bytesWritten / res.contentLength);
       },
@@ -230,6 +231,8 @@ export async function downloadFile(
         nextTry(err);
       });
   });
+
+  options.downloadProgressCallback(1);
 
   // 4. Decrypt file
   const fileDecryptionKey = await GenerateFileKey(
