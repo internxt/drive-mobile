@@ -73,7 +73,12 @@ export async function pullPhoto(
     process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL!,
     {
       toPath: getDocumentsDir() + '/' + photo.previewId,
-      progressCallback: () => undefined,
+      downloadProgressCallback: (progress) => {
+        // TODO
+      },
+      decryptionProgressCallback: (progress) => {
+        // TODO
+      },
     }
   );
   const preview = await RNFetchBlob.fs.readFile(previewPath, 'base64');

@@ -93,6 +93,9 @@ async function decryptFile(
   toPath: string,
   fileSize: number,
   decipher: Decipher,
+  options?: {
+    progress: (progress: number) => void
+  }
 ): Promise<FileDecryptedURI> {
   const twoMb = 2 * 1024 * 1024;
   const chunksOf = twoMb;
@@ -103,6 +106,8 @@ async function decryptFile(
 
   let start = 0;
 
+  options?.progress(0);
+
   return eachLimit(new Array(chunks), 1, (_, cb) => {
     RNFS.read(fromPath, twoMb, start, 'base64')
       .then((res) => {
@@ -111,6 +116,7 @@ async function decryptFile(
       })
       .then(() => {
         start += twoMb;
+        options?.progress(Math.min(start / fileSize, 1));
         cb(null);
       })
       .catch((err) => {
@@ -138,7 +144,8 @@ export async function downloadFile(
   networkApiUrl: string,
   options: {
     toPath: string;
-    progressCallback: (progress: number) => void;
+    downloadProgressCallback: (progress: number) => void;
+    decryptionProgressCallback: (progress: number) => void;
   },
 ): Promise<FileDecryptedURI> {
   if (!bucketId) {
@@ -203,7 +210,7 @@ export async function downloadFile(
       cacheable: false,
       begin: () => undefined,
       progress: (res) => {
-        options.progressCallback(res.bytesWritten / res.contentLength);
+        options.downloadProgressCallback(res.bytesWritten / res.contentLength);
       },
     });
 
@@ -238,7 +245,15 @@ export async function downloadFile(
     Buffer.from(fileInfo.index, 'hex').slice(0, 16),
   );
 
-  const fileURI = await decryptFile(encryptedFileURI, options.toPath, fileInfo.size, decipher);
+  const fileURI = await decryptFile(
+    encryptedFileURI, 
+    options.toPath, 
+    fileInfo.size, 
+    decipher,
+    {
+      progress: options.decryptionProgressCallback
+    } 
+  );
 
   await RNFS.unlink(encryptedFileURI).catch(() => null);
 

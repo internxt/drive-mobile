@@ -9,7 +9,6 @@ import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../lib/fs';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import FileSpinner from '../../../assets/images/widgets/file-spinner.svg';
 import prettysize from 'prettysize';
 import globalStyle from '../../styles/global.style';
 import { DevicePlatform } from '../../types';
@@ -37,7 +36,8 @@ function FileItem(props: FileItemProps): JSX.Element {
   const dispatch = useAppDispatch();
   const { selectedItems } = useAppSelector((state) => state.files);
   const isSelectionMode = selectedItems.length > 0;
-  const [progress, setProgress] = useState(-1);
+  const [downloadProgress, setDownloadProgress] = useState(-1);
+  const [decryptionProgress, setDecryptionProgress] = useState(-1);
   const [isLoading, setIsLoading] = useState(!!props.isLoading);
   const spinValue = new Animated.Value(1);
 
@@ -49,11 +49,6 @@ function FileItem(props: FileItemProps): JSX.Element {
       useNativeDriver: true,
     }),
   ).start();
-
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
 
   async function handleItemPressed() {
     setIsLoading(true);
@@ -85,13 +80,13 @@ function FileItem(props: FileItemProps): JSX.Element {
       return;
     }
 
-    const filename = props.item.name.substring(0, props.item.type.length + 1);
+    const filename = props.item.name;
     const extension = props.item.type;
     const destinationDir = await getDocumentsDir();
     let destinationPath = destinationDir + '/' + filename + (extension ? '.' + extension : '');
 
     trackDownloadStart();
-    setProgress(0);
+    setDownloadProgress(0);
     dispatch(filesActions.downloadSelectedFileStart());
 
     const fileAlreadyExists = await exists(destinationPath);
@@ -122,7 +117,8 @@ function FileItem(props: FileItemProps): JSX.Element {
       Alert.alert('Error downloading file', err.message);
     }).finally(() => {
       dispatch(filesActions.downloadSelectedFileStop());
-      setProgress(-1);
+      setDownloadProgress(-1);
+      setDecryptionProgress(-1);
     });
   }
 
@@ -143,7 +139,8 @@ function FileItem(props: FileItemProps): JSX.Element {
       process.env.REACT_NATIVE_BRIDGE_URL!, 
       {
         toPath: params.to,
-        progressCallback: setProgress
+        downloadProgressCallback: setDownloadProgress,
+        decryptionProgressCallback: setDecryptionProgress
       }
     ).catch((err) => {
       if (err instanceof LegacyDownloadRequiredError) {
@@ -151,7 +148,7 @@ function FileItem(props: FileItemProps): JSX.Element {
 
         return legacyDownloadFile(params.fileId, {
           fileManager,
-          progressCallback: setProgress
+          progressCallback: setDownloadProgress
         });
       } else {
         throw err;
@@ -213,12 +210,15 @@ function FileItem(props: FileItemProps): JSX.Element {
   }
 
   const IconFile = getFileTypeIcon(props.item.type);
-  const inProgress = props.progress >= 0 || progress >= 0;
+  const inProgress = props.progress >= 0 || downloadProgress >= 0;
   const iconSize = props.isGrid ? 64 : 40;
+  const isUploading = props.progress >= 0;
+  const isDownloading = downloadProgress >= 0 || decryptionProgress >= 0;
 
   return (
     <TouchableHighlight
       style={props.isGrid && tailwind('px-3 py-1.5 w-1/' + props.totalColumns)}
+      disabled={isUploading || isDownloading}
       underlayColor={getColor('neutral-20')}
       onLongPress={() => {
         if (props.isGrid) {
@@ -269,8 +269,15 @@ function FileItem(props: FileItemProps): JSX.Element {
                 {props.progress === 0 && 'Encrypting'}
                 {props.progress > 0 && 'Uploading ' + (props.progress * 100).toFixed(0) + '%'}
 
-                {progress >= 0 && progress < 1 && 'Downloading ' + (progress * 100).toFixed(0) + '%'}
-                {progress >= 1 && 'Decrypting'}
+                {(downloadProgress >= 0 && downloadProgress < 1) && 
+                  'Downloading ' + (downloadProgress * 100).toFixed(0) + '%'
+                }
+                {(downloadProgress >= 1 && decryptionProgress === -1) && 
+                  'Decrypting'
+                }
+                {decryptionProgress >= 0 && 
+                  'Decrypting ' + (Math.max(decryptionProgress * 100, 0)).toFixed(0) + '%'
+                }
               </Text>
             }
             
@@ -300,6 +307,7 @@ function FileItem(props: FileItemProps): JSX.Element {
         {!props.isGrid && (
           <View style={tailwind('items-center px-2 justify-center')}>
             <TouchableOpacity
+              disabled={isUploading || isDownloading}
               style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
               onPress={() => {
                 dispatch(filesActions.focusItem(props.item));

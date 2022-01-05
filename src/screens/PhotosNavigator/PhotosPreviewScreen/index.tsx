@@ -77,9 +77,12 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
       process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL!,
       {
         toPath: photoPath,
-        progressCallback: (progress) => {
+        downloadProgressCallback: (progress) => {
           setProgress(progress);
         },
+        decryptionProgressCallback: (progress) => {
+          // TODO
+        }
       },
     )
       .then((fileUri) => {
