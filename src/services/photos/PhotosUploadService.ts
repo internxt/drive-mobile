@@ -1,11 +1,13 @@
 import RNFetchBlob from 'rn-fetch-blob';
 import RNFS from 'react-native-fs';
-import { Photo, Photos } from '@internxt/sdk/dist/photos';
+import { Photo, Photos, CreatePhotoData } from '@internxt/sdk/dist/photos';
 import { items } from '@internxt/lib';
 
 import * as network from '../network';
-import { NewPhoto, PhotosServiceModel } from '../../types';
+import { PhotosServiceModel } from '../../types';
 import { getDocumentsDir } from '../../lib/fs';
+import imageService from '../image';
+import { Platform } from 'react-native';
 
 export default class PhotosUploadService {
   private readonly model: PhotosServiceModel;
@@ -16,14 +18,14 @@ export default class PhotosUploadService {
     this.photosSdk = photosSdk;
   }
 
-  public async upload(photo: NewPhoto): Promise<[Photo, string]> {
-    const photoPath = await this.copyPhotoToDocumentsDir(photo.name, photo.width, photo.height, photo.URI);
-    const previewPath = await this.generatePreview(photo.name, photo.URI);
+  public async upload(data: Omit<CreatePhotoData, 'fileId' | 'previewId'>, uri: string): Promise<[Photo, string]> {
+    const photoPath = await this.copyPhotoToDocumentsDir(data.name, data.width, data.height, uri);
+    const previewPath = await this.generatePreview(data.name, uri);
 
-    console.log('Uploading preview for photo ' + photo.name);
+    console.log('Uploading preview for photo ' + data.name);
     const previewId = await network.uploadFile(previewPath, this.model.bucket, this.model.networkCredentials);
 
-    console.log('Uploading photo for photo ' + photo.name);
+    console.log('Uploading photo for photo ' + data.name);
     const fileId = await network.uploadFile(photoPath, this.model.bucket, this.model.networkCredentials);
     const preview = await RNFetchBlob.fs.readFile(previewPath, 'base64');
 
@@ -31,14 +33,14 @@ export default class PhotosUploadService {
     await RNFS.unlink(previewPath);
 
     const createdPhoto = await this.photosSdk.photos.createPhoto({
-      creationDate: photo.creationDate,
-      deviceId: photo.deviceId,
-      height: photo.height,
-      name: photo.name, // TODO: Encrypt name
-      size: photo.size,
-      type: photo.type,
-      userId: photo.userId,
-      width: photo.width,
+      creationDate: data.creationDate,
+      deviceId: data.deviceId,
+      height: data.height,
+      name: data.name, // TODO: Encrypt name
+      size: data.size,
+      type: data.type,
+      userId: data.userId,
+      width: data.width,
       fileId,
       previewId,
     });
@@ -46,32 +48,37 @@ export default class PhotosUploadService {
     return [createdPhoto, preview];
   }
 
-  private async copyPhotoToDocumentsDir(
-    filename: string,
-    width: number,
-    height: number,
-    photoURI: string,
-  ): Promise<string> {
-    const newPhotoURI = `${getDocumentsDir()}/${filename}`;
+  private async copyPhotoToDocumentsDir(filename: string, width: number, height: number, uri: string): Promise<string> {
+    const path = `${getDocumentsDir()}/${filename}`;
     const scale = 1;
 
-    // TODO: What happens with Android??
-    await RNFS.copyAssetsFileIOS(photoURI, newPhotoURI, width, height, scale);
+    if (Platform.OS === 'android') {
+      throw new Error('(PhotosUploadService.copyPhotoToDocumentsDir) not implement on Android');
+    } else {
+      await RNFS.copyAssetsFileIOS(uri, path, width, height, scale);
+    }
 
-    return newPhotoURI;
+    return path;
   }
 
-  private async generatePreview(filename: string, fileURI: string): Promise<string> {
+  private async generatePreview(filename: string, uri: string): Promise<string> {
     const { filename: onlyFilename, extension } = items.getFilenameAndExt(filename);
-    const previewPath = `${getDocumentsDir()}/${onlyFilename}-preview${extension ? '.' + extension : ''}`;
-    const previewWidth = 128;
-    const previewHeight = 128;
-    const scale = 0.5;
+    const path = `${getDocumentsDir()}/${onlyFilename}-preview${extension ? '.' + extension : ''}`;
+    const width = 128;
+    const height = 128;
 
-    // Store with enough quality to resize for different screens
-    // TODO: What happens with Android??
-    await RNFS.copyAssetsFileIOS(fileURI, previewPath, previewWidth, previewHeight, scale);
+    const response = await imageService.resize({
+      uri,
+      width,
+      height,
+      format: 'JPEG',
+      quality: 100,
+      outputPath: path,
+      rotation: 0,
+      options: { mode: 'cover' },
+    });
+    // await RNFS.copyAssetsFileIOS(uri, path, width, height, scale);
 
-    return previewPath;
+    return response.path;
   }
 }

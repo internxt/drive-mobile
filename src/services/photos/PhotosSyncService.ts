@@ -1,7 +1,7 @@
 import { photos } from '@internxt/sdk';
 import { getMacAddress, getDeviceName } from 'react-native-device-info';
 
-import { NewPhoto, PhotosServiceModel } from '../../types';
+import { PhotosServiceModel } from '../../types';
 import PhotosCameraRollService from './PhotosCameraRollService';
 import PhotosDeleteService from './PhotosDeleteService';
 import PhotosDownloadService from './PhotosDownloadService';
@@ -124,7 +124,7 @@ export default class PhotosSyncService {
       (await this.localDatabaseService.getMostRecentCreationDate()) ?? new Date('January 1, 1971 00:00:01');
     const limit = 20;
     let cursor: string | undefined;
-    let photos: NewPhoto[];
+    let photosToUpload: { data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId'>; uri: string }[];
     let delta: number;
 
     console.log('[SYNC-LOCAL]: MOST RECENT PHOTO DATED AT', lastUpdate);
@@ -136,22 +136,26 @@ export default class PhotosSyncService {
         limit,
         cursor,
       );
-      photos = galleryPhotos.map<NewPhoto>((p) => ({
-        creationDate: new Date(p.node.timestamp * 1000),
-        userId: userId,
-        deviceId: deviceId,
-        height: p.node.image.height,
-        width: p.node.image.width,
-        size: p.node.image.fileSize!,
-        type: p.node.type,
-        name: p.node.image.filename!,
-        URI: p.node.image.uri,
-      }));
+      photosToUpload = galleryPhotos.map<{ data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId'>; uri: string }>(
+        (p) => ({
+          data: {
+            creationDate: new Date(p.node.timestamp * 1000),
+            userId: userId,
+            deviceId: deviceId,
+            height: p.node.image.height,
+            width: p.node.image.width,
+            size: p.node.image.fileSize!,
+            type: p.node.type,
+            name: p.node.image.filename!,
+          },
+          uri: p.node.image.uri,
+        }),
+      );
 
       cursor = nextCursor;
 
-      for (const photo of photos) {
-        delta = photo.creationDate.getTime() - lastUpdate.getTime();
+      for (const photo of photosToUpload) {
+        delta = photo.data.creationDate.getTime() - lastUpdate.getTime();
         /**
          * WARNING: Camera roll does not filter properly by dates for photos with
          * small deltas which can provoke the sync to re-update the last photo already
@@ -159,20 +163,22 @@ export default class PhotosSyncService {
          * (like photos bursts)
          */
         console.log(
-          `[SYNC-LOCAL]: UPLOADING ${photo.name} (DATE: ${photo.creationDate.toDateString()}, DELTA: ${delta})`,
+          `[SYNC-LOCAL]: UPLOADING ${
+            photo.data.name
+          } (DATE: ${photo.data.creationDate.toDateString()}, DELTA: ${delta})`,
         );
 
-        const alreadyExistentPhoto = await this.localDatabaseService.getPhotoByName(photo.name);
+        const alreadyExistentPhoto = await this.localDatabaseService.getPhotoByName(photo.data.name);
 
         if (alreadyExistentPhoto) {
-          console.warn(`[SYNC-LOCAL]: ${photo.name} IS ALREADY UPLOADED, SKIPPING`);
+          console.warn(`[SYNC-LOCAL]: ${photo.data.name} IS ALREADY UPLOADED, SKIPPING`);
           continue;
         }
 
-        const [createdPhoto, preview] = await this.uploadService.upload(photo);
+        const [createdPhoto, preview] = await this.uploadService.upload(photo.data, photo.uri);
 
         await this.localDatabaseService.insertPhoto(createdPhoto, preview);
       }
-    } while (photos.length === limit);
+    } while (photosToUpload.length === limit);
   }
 }

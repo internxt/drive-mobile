@@ -6,12 +6,6 @@ import axios from 'axios';
 import { DriveFileMetadataPayload } from '../types';
 import { REACT_NATIVE_DRIVE_API_URL } from '@env';
 
-interface RenameFileInNetworkPayload {
-  fileId: string;
-  bucketId: string;
-  relativePath: string;
-}
-
 export const sortTypes = {
   DATE_ADDED: 'Date_Added',
   SIZE_ASC: 'Size_Asc',

@@ -1,9 +1,9 @@
 import { Photo, PhotoId, PhotoStatus } from '@internxt/sdk/dist/photos';
 
-import sqliteService from '../sqlite';
-import photosTable from '../sqlite/tables/photos';
-import syncDatesTable from '../sqlite/tables/syncDates';
-import { PhotosServiceModel, PHOTOS_DB_NAME } from '../../types';
+import sqliteService from '../../sqlite';
+import photosTable from './tables/photos';
+import syncDatesTable from './tables/syncDates';
+import { PhotosServiceModel, PHOTOS_DB_NAME } from '../../../types';
 
 export default class PhotosLocalDatabaseService {
   private readonly model: PhotosServiceModel;

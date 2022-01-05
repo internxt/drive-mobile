@@ -114,10 +114,3 @@ export interface PhotosServiceModel {
   bucket: string;
   networkCredentials: NetworkCredentials;
 }
-
-export type NewPhoto = Omit<
-  photos.Photo,
-  'id' | 'fileId' | 'previewId' | 'status' | 'lastStatusChangeAt' | 'createdAt' | 'updatedAt'
-> & {
-  URI: string;
-};
