@@ -275,7 +275,6 @@ function UploadModal(): JSX.Element {
             removeExtension(fileToUpload.name),
             getFileExtension(fileToUpload.name) || '',
           )[2],
-        progress: 0,
         type: getFileExtension(fileToUpload.uri) || '',
         currentFolder,
         createdAt: new Date().toString(),
@@ -283,11 +282,12 @@ function UploadModal(): JSX.Element {
         id: uniqueId(),
         path: '',
         size: fileToUpload.size,
+        progress: 0
       };
 
       trackUploadStart();
       dispatch(filesActions.uploadFileStart(file.name));
-      dispatch(filesActions.addUploadingFile(file));
+      dispatch(filesActions.addUploadingFile({...file, isLoading: true }));
 
       formattedFiles.push(file);
       filesAtSameLevel.push({ name: removeExtension(fileToUpload.name), type: fileToUpload.type });
@@ -440,7 +440,7 @@ function UploadModal(): JSX.Element {
       });
 
       if (error) {
-        return Alert.alert((error as any).message);
+        return Alert.alert((error as Error).message);
       }
 
       if (!result) {
