@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
-import { View, Text, TouchableHighlight } from 'react-native';
+import { View, Text } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
@@ -11,7 +11,6 @@ import { getCurrentIndividualPlan } from '../../services/payments';
 import { notify } from '../../services/toast';
 import { loadValues } from '../../services/storage';
 import ScreenTitle from '../../components/ScreenTitle';
-import { AppScreen } from '../../types';
 
 interface StorageScreenProps {
   currentPlan: number;
@@ -93,23 +92,25 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
         </View>
 
         <View style={tailwind('mt-2')}>
-          {usageValues.limit !== 0 && (
+          {!!usageValues.limit && (
             <View style={tailwind('flex-row items-center')}>
               <Unicons.UilCheck color="#5291ff" />
-              <Text style={tailwind('mx-1')}>Enjoy {parseLimit()} forever</Text>
+              <Text style={tailwind('mx-1')}>
+                {strings.formatString(strings.screens.storage.features[0], parseLimit())}
+              </Text>
             </View>
           )}
           <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
-            <Text style={tailwind('mx-1')}>Encrypted file storage and sharing</Text>
+            <Text style={tailwind('mx-1')}>{strings.screens.storage.features[1]}</Text>
           </View>
           <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
-            <Text style={tailwind('mx-1')}>Access your files from any device</Text>
+            <Text style={tailwind('mx-1')}>{strings.screens.storage.features[2]}</Text>
           </View>
           <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#5291ff" />
-            <Text style={tailwind('mx-1')}>Get access to all our services</Text>
+            <Text style={tailwind('mx-1')}>{strings.screens.storage.features[3]}</Text>
           </View>
         </View>
       </View>

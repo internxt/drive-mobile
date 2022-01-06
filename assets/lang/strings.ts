@@ -136,6 +136,12 @@ const strings = new LocalizedStrings({
           month: 'month',
           months: 'months',
         },
+        features: {
+          0: 'Enjoy {0} forever',
+          1: 'Encrypted file storage and sharing',
+          2: 'Access your files from any device',
+          3: 'Get access to all our services',
+        },
       },
       create_folder: {
         input: 'Enter folder name',
@@ -438,6 +444,12 @@ const strings = new LocalizedStrings({
           pre_pay: 'Prepaga',
           month: 'al mes',
           months: 'meses',
+        },
+        features: {
+          0: 'Disfruta de {0} para siempre',
+          1: 'Almacena y comparte tus archivos encriptados',
+          2: 'Accede a tus archivos desde cualquier dispositivo',
+          3: 'Utiliza todos nuestros servicios',
         },
       },
       create_folder: {

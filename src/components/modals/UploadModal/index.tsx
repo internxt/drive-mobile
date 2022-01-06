@@ -20,7 +20,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import * as Unicons from '@iconscout/react-native-unicons';
 import RNFS from 'react-native-fs';
 
-import { createFileEntry, FileEntry, getFinalUri, FileMeta } from '../../../services/upload';
+import { createFileEntry, FileEntry, getFinalUri } from '../../../services/upload';
 import analytics from '../../../services/analytics';
 import { encryptFilename } from '../../../helpers';
 import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../lib/fs';
@@ -239,10 +239,12 @@ function UploadModal(): JSX.Element {
     filesAtSameLevel: { name: string; type: string }[],
     file: DocumentPickerResponse,
   ): UploadingFile {
+    const nameSplittedByDots = file.name.split('.');
+
     return {
       uri: file.uri,
       name: renameIfAlreadyExists(filesAtSameLevel, removeExtension(file.name), getFileExtension(file.name) || '')[2],
-      type: file.name.split('.')[1] || '',
+      type: nameSplittedByDots[nameSplittedByDots.length - 1] || '',
       currentFolder,
       createdAt: new Date().toString(),
       updatedAt: new Date().toString(),
