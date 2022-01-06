@@ -135,8 +135,8 @@ android {
         applicationId 'com.internxt.cloud'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 41
-        versionName "1.4.2"
+        versionCode 43
+        versionName "1.5.0"
     }
     splits {
         abi {
