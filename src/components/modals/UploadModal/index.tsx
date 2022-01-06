@@ -240,7 +240,6 @@ function UploadModal(): JSX.Element {
     file: DocumentPickerResponse,
   ): UploadingFile {
     const nameSplittedByDots = file.name.split('.');
-    console.log('file: ', file);
 
     return {
       uri: file.uri,
