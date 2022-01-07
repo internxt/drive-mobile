@@ -19,7 +19,6 @@
 // TEXT:      data (utf8 string) which should be encoded. modify the code to use Buffer for binary data!
 // ENCDATA:   encrypted data as base64 string (format mentioned on top)
 import crypto from 'react-native-crypto';
-import { REACT_NATIVE_MAGIC_IV, REACT_NATIVE_MAGIC_SALT } from '@env';
 
 const AesUtils = {
   /**
@@ -29,8 +28,8 @@ const AesUtils = {
    * @returns String encrypted text, base64 encoded
    */
   encrypt(text: string, password: string, randomIv = false): string {
-    const MAGIC_IV = process && process.env && REACT_NATIVE_MAGIC_IV;
-    const MAGIC_SALT = process && process.env && REACT_NATIVE_MAGIC_SALT;
+    const MAGIC_IV = process && process.env && process.env.REACT_NATIVE_MAGIC_IV;
+    const MAGIC_SALT = process && process.env && process.env.REACT_NATIVE_MAGIC_SALT;
 
     if (!MAGIC_IV || !MAGIC_SALT) {
       throw new Error('Missing secrets on ENV file');

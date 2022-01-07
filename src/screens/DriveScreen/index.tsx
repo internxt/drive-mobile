@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Text, View, Platform, Alert, BackHandler, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as Unicons from '@iconscout/react-native-unicons';
-import { REACT_NATIVE_DRIVE_API_URL } from '@env';
 
 import FileList from '../../components/FileList';
 import analytics, { getAnalyticsData } from '../../services/analytics';
@@ -176,7 +175,7 @@ function DriveScreen(): JSX.Element {
       const file = uri.replace(regex, '$2'); // if iOS remove file://
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(uri);
 
-      RNFetchBlob.fetch('POST', `${REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers, [
+      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers, [
         { name: 'xfile', filename: name, data: finalUri },
       ])
         .uploadProgress({ count: 10 }, (sent, total) => {

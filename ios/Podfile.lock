@@ -157,23 +157,23 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Permission-AppTrackingTransparency (3.1.0):
+  - Permission-AppTrackingTransparency (3.2.0):
     - RNPermissions
-  - Permission-Camera (3.1.0):
+  - Permission-Camera (3.2.0):
     - RNPermissions
-  - Permission-FaceID (3.1.0):
+  - Permission-FaceID (3.2.0):
     - RNPermissions
-  - Permission-MediaLibrary (3.1.0):
+  - Permission-MediaLibrary (3.2.0):
     - RNPermissions
-  - Permission-Notifications (3.1.0):
+  - Permission-Notifications (3.2.0):
     - RNPermissions
-  - Permission-PhotoLibrary (3.1.0):
+  - Permission-PhotoLibrary (3.2.0):
     - RNPermissions
-  - Permission-PhotoLibraryAddOnly (3.1.0):
+  - Permission-PhotoLibraryAddOnly (3.2.0):
     - RNPermissions
-  - Permission-Reminders (3.1.0):
+  - Permission-Reminders (3.2.0):
     - RNPermissions
-  - Permission-StoreKit (3.1.0):
+  - Permission-StoreKit (3.2.0):
     - RNPermissions
   - PromisesObjC (1.2.12)
   - RCTRequired (0.63.4)
@@ -438,6 +438,8 @@ PODS:
     - Segment-Firebase (~> 2.7.7)
   - RNCMaskedView (0.1.10):
     - React
+  - RNDeviceInfo (8.4.8):
+    - React-Core
   - RNFileViewer (2.1.4):
     - React-Core
   - RNFS (2.18.0):
@@ -446,7 +448,7 @@ PODS:
     - React-Core
   - RNOS (1.2.6):
     - React
-  - RNPermissions (3.1.0):
+  - RNPermissions (3.2.0):
     - React-Core
   - RNReanimated (2.2.4):
     - DoubleConversion
@@ -574,6 +576,7 @@ DEPENDENCIES:
   - "RNAnalytics (from `../node_modules/@segment/analytics-react-native`)"
   - "RNAnalyticsIntegration-Firebase (from `../node_modules/@segment/analytics-react-native-firebase`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
@@ -741,6 +744,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@segment/analytics-react-native-firebase"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNFileViewer:
     :path: "../node_modules/react-native-file-viewer"
   RNFS:
@@ -803,15 +808,15 @@ SPEC CHECKSUMS:
   GoogleDataTransport: cd9db2180fcecd8da1b561aea31e3e56cf834aa7
   GoogleUtilities: f8a43108b38a68eebe8b3540e1f4f2d28843ce20
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Permission-AppTrackingTransparency: 4bb348de427672bb61785e7fb1a28232e0680870
-  Permission-Camera: 0db4fd6e1c556c1cf47f38b989a8084cea3ec3dd
-  Permission-FaceID: 34794093f5de6410b373f9245b29632630beab6e
-  Permission-MediaLibrary: eb4dc997f8d3f81f28940f997651cd1a2bf16149
-  Permission-Notifications: e247d69c22ae72770d1c5314ad6ccd1256c57c83
-  Permission-PhotoLibrary: 9dcf80d1353d81b9f1e210c34291591236aaf2b6
-  Permission-PhotoLibraryAddOnly: 3d359683511129433080279c409b29e792d69c71
-  Permission-Reminders: d44880a66ac725c750ebed196e9e2ddec9b0a70e
-  Permission-StoreKit: 6642330f0c003789f76f639ae024cdf5ec6a5732
+  Permission-AppTrackingTransparency: 95c9308dd40819fa9f6830751d0ef3ea11498723
+  Permission-Camera: 53efcbb755b0e8bdf253dbb27cc7559ccfce8480
+  Permission-FaceID: e3d306dc6284b8985beb608b033817900388cbb8
+  Permission-MediaLibrary: d35adbe2a069f2e16121fd79cf15959e86a3f74a
+  Permission-Notifications: bb420c3d28328df24de1b476b41ed8249ccf2537
+  Permission-PhotoLibrary: 7bec836dcdd04a0bfb200c314f1aae06d4476357
+  Permission-PhotoLibraryAddOnly: 06fb0cdb1d35683b235ad8c464ef0ecc88859ea3
+  Permission-Reminders: 3c2d5d1e9c4b9fe90f937a23cbec9d8cf5ba52fd
+  Permission-StoreKit: ee68e7b70e9c44c2b16c6add64ddc58bd54c81c6
   PromisesObjC: 3113f7f76903778cf4a0586bd1ab89329a0b7b97
   RCTRequired: 082f10cd3f905d6c124597fd1c14f6f2655ff65e
   RCTTypeSafety: 8c9c544ecbf20337d069e4ae7fd9a377aadf504b
@@ -849,11 +854,12 @@ SPEC CHECKSUMS:
   RNAnalytics: a6dc48511d5d99b1ecaaf7157d8b5c618d15337e
   RNAnalyticsIntegration-Firebase: 3d3d80be74a53031fc9524d5c5adef2907c28d8f
   RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
+  RNDeviceInfo: 0400a6d0c94186d1120c3cbd97b23abc022187a9
   RNFileViewer: 83cc066ad795b1f986791d03b56fe0ee14b6a69f
   RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
-  RNPermissions: 4b54095940aea8c03fa3e6c92d4ac3647b31ed4e
+  RNPermissions: f7ebe52db07c00901127966ca080b4ec6a6ceb0a
   RNReanimated: e5040efc7c90da0b190a6525fcfc7e1e75973b21
   RNScreens: 21b73c94c9117e1110a79ee0ee80c93ccefed8ce
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
@@ -866,4 +872,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: ef1962b2ae2e999e81f12f4719ff804890b10294
 
-COCOAPODS: 1.11.2
+COCOAPODS: 1.10.2

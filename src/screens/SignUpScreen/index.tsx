@@ -106,7 +106,7 @@ function SignUpScreen(): JSX.Element {
 
       await Promise.all([
         analytics.identify(userData.uuid, { email: email }),
-        analytics.track('user-signup', {
+        analytics.track('User Signup', {
           properties: {
             userId: userData.uuid,
             email: email,

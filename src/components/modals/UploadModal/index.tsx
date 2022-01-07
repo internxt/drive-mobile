@@ -20,7 +20,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import * as Unicons from '@iconscout/react-native-unicons';
 import RNFS from 'react-native-fs';
 
-import { createFileEntry, FileEntry, getFinalUri, uploadFile, FileMeta } from '../../../services/upload';
+import { createFileEntry, FileEntry, getFinalUri } from '../../../services/upload';
 import analytics from '../../../services/analytics';
 import { encryptFilename } from '../../../helpers';
 import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../lib/fs';
@@ -35,6 +35,7 @@ import { UPLOAD_FILES_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import { filesActions, filesThunks } from '../../../store/slices/files';
+import { uploadFile } from '../../../services/network';
 
 interface UploadingFile {
   size: number;
@@ -42,8 +43,8 @@ interface UploadingFile {
   name: string;
   type: string;
   currentFolder: any;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   id: string;
   uri: string;
   path: string;
@@ -68,113 +69,134 @@ function removeExtension(filename: string) {
   return filename.substring(0, filename.length - (extension.length + 1));
 }
 
+type ProgressCallback = (progress: number) => void;
+
+async function uploadIOS(res: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
+  const result = { ...res };
+
+  // Set name for pics/photos
+  if (!result.name) {
+    result.name = result.uri.split('/').pop() || '';
+  }
+
+  const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
+  const fileUri = result.uri.replace(regex, '$2');
+  const extension = fileUri.split('.').pop() || '';
+  const finalUri = getFinalUri(fileUri, fileType);
+
+  const fileURI = finalUri;
+  const filename = result.name;
+  const fileExtension = extension;
+  const currentFolderId = result.currentFolder.toString();
+
+  return uploadAndCreateFileEntry(fileURI, filename, fileExtension, currentFolderId, progressCallback);
+}
+
+async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
+  const result = { ...res };
+
+  // Set name for pics/photos
+  if (!result.name) {
+    result.name = result.uri.split('/').pop() || '';
+  }
+
+  const destPath = `${getTemporaryDir()}/${result.name}`;
+  await copyFile(result.uri, destPath);
+
+  if (fileType === 'document') {
+    const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
+      title: 'Files Permission',
+      message: 'Internxt needs access to your files in order to upload documents',
+      buttonNegative: 'Cancel',
+      buttonPositive: 'Grant',
+    });
+
+    if (!granted) {
+      Alert.alert('Can not upload files. Grant permissions to upload files');
+      return;
+    }
+  }
+
+  const fileURI = 'file:///' + destPath;
+  const filename = result.name;
+  const fileExtension = result.type;
+  const currenFolderId = result.currentFolder.toString();
+
+  const createdFileEntry = await uploadAndCreateFileEntry(
+    fileURI,
+    filename,
+    fileExtension,
+    currenFolderId,
+    progressCallback,
+  );
+
+  unlink(destPath).catch(() => null);
+
+  return createdFileEntry;
+}
+
+async function uploadAndCreateFileEntry(
+  fileURI: string,
+  fileName: string,
+  fileExtension: string,
+  currentFolderId: string,
+  progressCallback: ProgressCallback,
+) {
+  const { bucket, bridgeUser, mnemonic, userId } = await deviceStorage.getUser();
+  const fileId = await uploadFile(
+    fileURI,
+    bucket,
+    process.env.REACT_NATIVE_BRIDGE_URL!,
+    {
+      encryptionKey: mnemonic,
+      user: bridgeUser,
+      password: userId,
+    },
+    {
+      progress: progressCallback,
+    },
+  );
+
+  const fileStat = await stat(fileURI);
+
+  const folderId = currentFolderId;
+  const name = encryptFilename(removeExtension(fileName), folderId);
+  const fileSize = fileStat.size;
+  const fileEntry: FileEntry = {
+    fileId,
+    file_id: fileId,
+    type: fileExtension,
+    bucket,
+    size: fileSize.toString(),
+    folder_id: folderId,
+    name,
+    encrypt_version: '03-aes',
+  };
+
+  return createFileEntry(fileEntry);
+}
+
 function UploadModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { folderContent, absolutePath } = useAppSelector((state) => state.files);
+  const { folderContent } = useAppSelector((state) => state.files);
   const { user } = useAppSelector((state) => state.auth);
   const currentFolder = folderContent?.currentFolder || user?.root_folder_id;
   const { showUploadModal } = useAppSelector((state) => state.layout);
-  async function uploadIOS(res: FileMeta, fileType: 'document' | 'image') {
-    const result = { ...res };
 
+  function upload(res: UploadingFile, fileType: 'document' | 'image') {
     function progressCallback(progress: number) {
       dispatch(filesActions.uploadFileSetProgress({ progress, id: res.id }));
     }
 
-    // Set name for pics/photos
-    if (!result.name) {
-      result.name = result.uri.split('/').pop() || '';
+    if (Platform.OS === 'ios') {
+      return uploadIOS(res, fileType, progressCallback);
     }
 
-    const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
-    const fileUri = result.uri.replace(regex, '$2');
-    const extension = fileUri.split('.').pop() || '';
-    const finalUri = getFinalUri(fileUri, fileType);
-
-    result.uri = finalUri;
-    result.type = fileType;
-    result.path = absolutePath + result.name;
-
-    const fileStat = await stat(finalUri);
-
-    if (Platform.OS === 'android' && fileType === 'image') {
-      result.uri = 'file:///' + result.uri;
+    if (Platform.OS === 'android') {
+      return uploadAndroid(res, fileType, progressCallback);
     }
 
-    const fileId = (await uploadFile(result, progressCallback)) as string;
-    const folderId = result.currentFolder.toString();
-    const name = encryptFilename(removeExtension(result.name), folderId);
-    const fileSize = fileStat.size;
-    const { bucket } = await deviceStorage.getUser();
-    const fileEntry: FileEntry = {
-      fileId,
-      file_id: fileId,
-      type: extension,
-      bucket,
-      size: fileSize.toString(),
-      folder_id: folderId,
-      name,
-      encrypt_version: '03-aes',
-    };
-
-    return createFileEntry(fileEntry);
-  }
-
-  async function uploadAndroid(res: FileMeta, fileType: 'document' | 'image') {
-    function progressCallback(progress: number) {
-      dispatch(filesActions.uploadFileSetProgress({ progress, id: res.id }));
-    }
-
-    const result = { ...res };
-
-    // Set name for pics/photos
-    if (!result.name) {
-      result.name = result.uri.split('/').pop() || '';
-    }
-    const destPath = `${getTemporaryDir()}/${result.name}`;
-
-    await copyFile(result.uri, destPath);
-
-    const extension = result.name.split('.').pop() || '';
-    const finalUri = destPath; // result.uri //getFinalUri(fileUri, fileType);
-
-    if (Platform.OS === 'android' && fileType === 'document') {
-      const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
-        title: 'Files Permission',
-        message: 'Internxt needs access to your files in order to upload documents',
-        buttonNegative: 'Cancel',
-        buttonPositive: 'Grant',
-      });
-
-      if (!granted) {
-        Alert.alert('Can not upload files');
-        return;
-      }
-    }
-
-    result.uri = finalUri;
-    result.type = fileType;
-    result.path = absolutePath + result.name;
-    result.uri = 'file:///' + result.uri;
-
-    const fileId = (await uploadFile(result, progressCallback)) as string;
-    const folderId = result.currentFolder.toString();
-    const name = encryptFilename(removeExtension(result.name), folderId);
-    const fileSize = result.size;
-    const { bucket } = await deviceStorage.getUser();
-    const fileEntry: FileEntry = {
-      fileId,
-      file_id: fileId,
-      type: extension,
-      bucket,
-      size: fileSize,
-      folder_id: folderId,
-      name,
-      encrypt_version: '03-aes',
-    };
-
-    unlink(destPath).catch(() => undefined);
-    return createFileEntry(fileEntry);
+    throw new Error('Unsuported platform');
   }
 
   async function trackUploadStart() {
@@ -209,7 +231,28 @@ function UploadModal(): JSX.Element {
   function processFilesFromPicker(documents: any[]): Promise<void> {
     documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
     dispatch(layoutActions.setShowUploadFileModal(false));
+
     return uploadDocuments(documents);
+  }
+
+  function toUploadingFile(
+    filesAtSameLevel: { name: string; type: string }[],
+    file: DocumentPickerResponse,
+  ): UploadingFile {
+    const nameSplittedByDots = file.name.split('.');
+
+    return {
+      uri: file.uri,
+      name: renameIfAlreadyExists(filesAtSameLevel, removeExtension(file.name), getFileExtension(file.name) || '')[2],
+      type: nameSplittedByDots[nameSplittedByDots.length - 1] || '',
+      currentFolder,
+      createdAt: new Date().toString(),
+      updatedAt: new Date().toString(),
+      id: uniqueId(),
+      path: '',
+      size: file.size,
+      progress: 0,
+    };
   }
 
   async function uploadDocuments(documents: DocumentPickerResponse[]) {
@@ -237,35 +280,36 @@ function UploadModal(): JSX.Element {
     const formattedFiles: UploadingFile[] = [];
 
     for (const fileToUpload of filesToUpload) {
-      const file: UploadingFile = {
-        uri: fileToUpload.uri,
-        name:
-          renameIfAlreadyExists(
+      let file: UploadingFile;
+
+      if (Platform.OS === 'android') {
+        file = toUploadingFile(filesAtSameLevel, fileToUpload);
+      } else {
+        file = {
+          uri: fileToUpload.uri,
+          name: renameIfAlreadyExists(
             filesAtSameLevel,
             removeExtension(fileToUpload.name),
             getFileExtension(fileToUpload.name) || '',
-          )[2] +
-          '.' +
-          getFileExtension(fileToUpload.name),
-        progress: 0,
-        type: getFileExtension(fileToUpload.uri) || '',
-        currentFolder,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        id: uniqueId(),
-        path: '',
-        size: fileToUpload.size,
-      };
+          )[2],
+          type: getFileExtension(fileToUpload.uri) || '',
+          currentFolder,
+          createdAt: new Date().toString(),
+          updatedAt: new Date().toString(),
+          id: uniqueId(),
+          path: '',
+          size: fileToUpload.size,
+          progress: 0,
+        };
+      }
 
       trackUploadStart();
       dispatch(filesActions.uploadFileStart(file.name));
-      dispatch(filesActions.addUploadingFile(file));
+      dispatch(filesActions.addUploadingFile({ ...file, isLoading: true }));
 
       formattedFiles.push(file);
-      filesAtSameLevel.push({ name: removeExtension(fileToUpload.name), type: fileToUpload.type });
+      filesAtSameLevel.push({ name: file.name, type: file.type });
     }
-
-    const upload = Platform.OS === 'ios' ? uploadIOS : uploadAndroid;
 
     if (Platform.OS === 'android') {
       await clearTempDir();
@@ -350,11 +394,13 @@ function UploadModal(): JSX.Element {
             const documents: DocumentPickerResponse[] = [];
 
             for (const asset of response.assets) {
-              const stat = await RNFS.stat(asset.uri as string);
+              const stat = await RNFS.stat(decodeURIComponent(asset.uri as string));
 
               documents.push({
                 fileCopyUri: asset.uri || '',
-                name: asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
+                name: decodeURIComponent(
+                  asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
+                ),
                 size: asset.fileSize || typeof stat.size === 'string' ? parseInt(stat.size) : stat.size,
                 type: asset.type || '',
                 uri: asset.uri || '',
@@ -414,7 +460,7 @@ function UploadModal(): JSX.Element {
       });
 
       if (error) {
-        return Alert.alert((error as any).message);
+        return Alert.alert((error as Error).message);
       }
 
       if (!result) {
@@ -430,9 +476,12 @@ function UploadModal(): JSX.Element {
         }
         file.progress = 0;
         file.currentFolder = currentFolder;
-        file.createdAt = new Date();
-        file.updatedAt = new Date();
+        file.createdAt = new Date().toString();
+        file.updatedAt = new Date().toString();
         file.id = uniqueId();
+
+        file.name = removeExtension(file.name);
+        file.type = getFileExtension(result.uri);
 
         trackUploadStart();
         dispatch(filesActions.uploadFileStart(file.name));
@@ -440,7 +489,7 @@ function UploadModal(): JSX.Element {
 
         dispatch(layoutActions.setShowUploadFileModal(false));
 
-        uploadIOS(file, 'image')
+        upload(file, 'image')
           .then(() => {
             uploadSuccess(file);
           })

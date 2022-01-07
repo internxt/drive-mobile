@@ -3,7 +3,7 @@ import { StyleSheet, Text } from 'react-native';
 import Modal from 'react-native-modalbox';
 
 import strings from '../../../../assets/lang/strings';
-import fileService, { sortTypes } from '../../../services/file';
+import { sortTypes } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { filesActions } from '../../../store/slices/files';
 import { layoutActions } from '../../../store/slices/layout';
@@ -14,7 +14,6 @@ function SortModal(): JSX.Element {
   const { showSortModal } = useAppSelector((state) => state.layout);
   const onSortTypePressed = (sortType: string) => {
     dispatch(filesActions.setSortType(sortType));
-    dispatch(filesActions.setSortFunction(fileService.getSortFunction(sortType)));
     dispatch(layoutActions.setShowSortModal(false));
   };
 

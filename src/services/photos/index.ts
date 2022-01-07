@@ -1,4 +1,3 @@
-import { REACT_NATIVE_PHOTOS_API_URL } from '@env';
 import { photos } from '@internxt/sdk';
 
 import { PhotosServiceModel } from '../../types';
@@ -27,8 +26,9 @@ export class PhotosService {
       accessToken,
       bucket: '',
       networkCredentials,
+      networkUrl: process.env.REACT_NATIVE_PHOTOS_API_URL || '',
     };
-    this.photosSdk = new photos.Photos(REACT_NATIVE_PHOTOS_API_URL, accessToken);
+    this.photosSdk = new photos.Photos(this.model.networkUrl, accessToken);
 
     this.cameraRollService = new PhotosCameraRollService();
     this.localDatabaseService = new PhotosLocalDatabaseService(this.model);

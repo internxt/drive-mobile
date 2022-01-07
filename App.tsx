@@ -7,7 +7,6 @@ import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import Toast from 'react-native-toast-message';
 import * as Unicons from '@iconscout/react-native-unicons';
 import axios from 'axios';
-import { NODE_ENV } from '@env';
 
 import { store } from './src/store';
 import AppNavigator from './src/AppNavigator';
@@ -79,7 +78,7 @@ export default function App(): JSX.Element {
 
     shouldForceUpdate()
       .then((shouldForce) => {
-        if (shouldForce && NODE_ENV === 'production') {
+        if (shouldForce && process.env.NODE_ENV === 'production') {
           forceCheckUpdates();
         }
       })

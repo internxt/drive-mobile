@@ -35,9 +35,10 @@ export default class PhotosDownloadService {
     networkCredentials: NetworkCredentials,
     fileId: string,
   ): Promise<string> {
-    const tmpPath = await network.downloadFile(photosBucket, fileId, networkCredentials, {
+    const tmpPath = await network.downloadFile(photosBucket, fileId, networkCredentials, this.model.networkUrl, {
       toPath: getDocumentsDir() + '/' + fileId,
-      progressCallback: () => undefined,
+      downloadProgressCallback: () => undefined,
+      decryptionProgressCallback: () => undefined,
     });
     const photoSource = await RNFetchBlob.fs.readFile(tmpPath, 'base64');
 

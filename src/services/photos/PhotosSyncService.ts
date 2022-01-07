@@ -1,7 +1,4 @@
-import { REACT_NATIVE_PHOTOS_API_URL } from '@env';
-import { request } from '@internxt/lib';
 import { photos } from '@internxt/sdk';
-import Axios from 'axios';
 import { getMacAddress, getDeviceName } from 'react-native-device-info';
 
 import { PhotosServiceModel } from '../../types';
@@ -74,8 +71,6 @@ export default class PhotosSyncService {
   private async initializeUser(): Promise<photos.User> {
     const mac = await getMacAddress();
     const name = await getDeviceName();
-
-    console.log(REACT_NATIVE_PHOTOS_API_URL);
 
     return this.photosSdk.users.initialize({
       mac,

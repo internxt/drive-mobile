@@ -133,6 +133,12 @@ const strings = new LocalizedStrings({
           month: 'month',
           months: 'months',
         },
+        features: {
+          0: 'Enjoy {0} forever',
+          1: 'Encrypted file storage and sharing',
+          2: 'Access your files from any device',
+          3: 'Get access to all our services',
+        },
       },
       create_folder: {
         input: 'Enter folder name',
@@ -187,7 +193,7 @@ const strings = new LocalizedStrings({
         upgradeNow: 'Upgrade now',
         uploadFiles: 'Upload files',
         uploadFromCameraRoll: 'Upload from camera roll',
-        takeAPhotoAnUpload: 'Take a photo an upload',
+        takeAPhotoAnUpload: 'Take a photo and upload',
         newFolder: 'New folder',
         changePlan: 'Change plan',
         select: 'Select',
@@ -255,8 +261,7 @@ const strings = new LocalizedStrings({
       },
       share_modal: {
         title: 'Internxt Drive file sharing',
-        message:
-          'Hello, \nHow are things going? I’m using Internxt Drive, a secure, simple and private cloud storage service https://internxt.com/drive \nI wanted to share a file ({0}) with you through this private link ({1} total uses), no sign up required: {2}',
+        message: '{0}',
         share: 'Share',
         copy: 'Copy',
         loading: 'Loading link...',
@@ -330,6 +335,9 @@ const strings = new LocalizedStrings({
       menu: 'Menú',
     },
     screens: {
+      photos: {
+        title: 'Próximamente',
+      },
       home: {
         title: 'Inicio',
       },
@@ -438,6 +446,12 @@ const strings = new LocalizedStrings({
           pre_pay: 'Prepaga',
           month: 'al mes',
           months: 'meses',
+        },
+        features: {
+          0: 'Disfruta de {0} para siempre',
+          1: 'Almacena y comparte tus archivos encriptados',
+          2: 'Accede a tus archivos desde cualquier dispositivo',
+          3: 'Utiliza todos nuestros servicios',
         },
       },
       create_folder: {
@@ -563,8 +577,7 @@ const strings = new LocalizedStrings({
       },
       share_modal: {
         title: 'Compartir archivo de Internxt Drive',
-        message:
-          'Hola, \n¿Cómo van las cosas? Estoy usando Internxt Drive, un servicio de almacenamiento en la nube seguro, simple y privado https://internxt.com/drive \nQuería compartir un archivo ({0}) contigo a través de este enlace privado ({1} usos totales) , no es necesario registrarse: {2}',
+        message: '{0}',
         share: 'Compartir',
         copy: 'Copiar',
         loading: 'Cargando link...',

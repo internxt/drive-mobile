@@ -113,4 +113,5 @@ export interface PhotosServiceModel {
   accessToken: string;
   bucket: string;
   networkCredentials: NetworkCredentials;
+  networkUrl: string;
 }

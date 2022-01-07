@@ -1,5 +1,3 @@
-import { REACT_NATIVE_DRIVE_API_URL } from '@env';
-
 import { getHeaders } from '../../../helpers/headers';
 import { isJsonString } from '../../../screens/SignUpScreen/registerUtils';
 
@@ -11,7 +9,7 @@ interface CreateFolderParam {
 }
 
 export async function createFolder(params: CreateFolderParam): Promise<any> {
-  return fetch(`${REACT_NATIVE_DRIVE_API_URL}/api/storage/folder`, {
+  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder`, {
     method: 'post',
     headers: await getHeaders(),
     body: JSON.stringify({

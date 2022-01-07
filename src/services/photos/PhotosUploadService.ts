@@ -24,10 +24,20 @@ export default class PhotosUploadService {
     const previewPath = await this.generatePreview(data.name, uri);
 
     console.log('Uploading preview for photo ' + data.name);
-    const previewId = await network.uploadFile(previewPath, this.model.bucket, this.model.networkCredentials);
+    const previewId = await network.uploadFile(
+      previewPath,
+      this.model.bucket,
+      this.model.networkUrl,
+      this.model.networkCredentials,
+    );
 
     console.log('Uploading photo for photo ' + data.name);
-    const fileId = await network.uploadFile(photoPath, this.model.bucket, this.model.networkCredentials);
+    const fileId = await network.uploadFile(
+      photoPath,
+      this.model.bucket,
+      this.model.networkUrl,
+      this.model.networkCredentials,
+    );
     const preview = await RNFetchBlob.fs.readFile(previewPath, 'base64');
 
     await RNFS.unlink(photoPath);

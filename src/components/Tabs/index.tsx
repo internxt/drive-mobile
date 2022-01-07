@@ -9,24 +9,17 @@ interface TabsProps {
   onTabChanged: (tabId: string) => void;
 }
 
-const Tabs = (props: TabsProps) => {
-  const headers = props.tabs.map((tab, index) => {
-    const isTheLast = index === props.tabs.length - 1;
+const Tabs = (props: TabsProps): JSX.Element => {
+  const headers = props.tabs.map((tab) => {
     const isActive = tab.id === props.value;
 
     return (
-      <TouchableOpacity
-        key={tab.id}
-        style={[
-          tailwind('pb-1'),
-          !isTheLast && tailwind('mr-4'),
-          isActive && tailwind('border-b border-neutral-500 text-neutral-500'),
-        ]}
-        onPress={() => props.onTabChanged(tab.id)}
-      >
+      <TouchableOpacity key={tab.id} style={[tailwind('px-2 pb-1')]} onPress={() => props.onTabChanged(tab.id)}>
         <Text style={[tailwind('text-base'), isActive ? tailwind('text-neutral-500') : tailwind('text-neutral-100')]}>
           {tab.title}
         </Text>
+
+        <View style={[isActive && tailwind('mt-1 text-neutral-500 border-b border-neutral-500')]}></View>
       </TouchableOpacity>
     );
   });
@@ -35,7 +28,7 @@ const Tabs = (props: TabsProps) => {
   return (
     <View style={tailwind('flex-1 mt-4')}>
       {/* HEADERS */}
-      <View style={tailwind('px-5 flex-row border-b border-neutral-20')}>{headers}</View>
+      <View style={tailwind('px-3 flex-row border-b border-neutral-20')}>{headers}</View>
 
       {/* CONTENT */}
       <View style={tailwind('flex-1')}>

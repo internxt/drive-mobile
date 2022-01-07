@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { IFile, IFolder, IUploadingFile } from '../../../components/FileList';
 import analytics, { getAnalyticsData } from '../../../services/analytics';
 import { notify } from '../../../services/toast';
-import fileService, { ArraySortFunction } from '../../../services/file';
+import fileService from '../../../services/file';
 import folderService from '../../../services/folder';
 
 import {
@@ -45,7 +45,6 @@ export interface FilesState {
   focusedItem: any | null;
   selectedItems: any[];
   sortType: string;
-  sortFunction: ArraySortFunction | null;
   searchString: string;
   isUploading: boolean;
   isUploadingFileName: string | null;
@@ -69,7 +68,6 @@ const initialState: FilesState = {
   focusedItem: null,
   selectedItems: [],
   sortType: 'Name_Asc',
-  sortFunction: null,
   searchString: '',
   isUploading: false,
   isUploadingFileName: '',
@@ -190,17 +188,20 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: 
       type: 'success',
     });
 
-    await fileService.deleteItems(items).catch((err) => {
-      notify({
-        text: err.message,
-        type: 'error',
+    await fileService
+      .deleteItems(items)
+      .catch((err) => {
+        notify({
+          text: err.message,
+          type: 'error',
+        });
+        throw err;
+      })
+      .finally(() => {
+        setTimeout(() => {
+          dispatch(getFolderContentThunk({ folderId: folderToReload }));
+        }, 1000);
       });
-      setTimeout(() => {
-        dispatch(getFolderContentThunk({ folderId: folderToReload }));
-      }, 3000);
-
-      throw err;
-    });
   },
 );
 
@@ -210,9 +211,6 @@ export const filesSlice = createSlice({
   reducers: {
     setSortType(state, action: PayloadAction<string>) {
       state.sortType = action.payload;
-    },
-    setSortFunction(state, action: PayloadAction<ArraySortFunction | null>) {
-      state.sortFunction = action.payload;
     },
     setUri(state, action: PayloadAction<any>) {
       if (action.payload) {
