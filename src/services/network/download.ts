@@ -132,7 +132,9 @@ async function decryptFile(
 }
 
 function requestDownloadUrlToFarmer(farmerUrl: string): Promise<string> {
-  return axios.get<{ result: string }>(farmerUrl).then((res) => {
+  const targetUrl = 'https://proxy01.api.internxt.com/' + farmerUrl;
+
+  return axios.get<{ result: string }>(targetUrl).then((res) => {
     return res.data.result;
   });
 }
