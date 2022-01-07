@@ -11,6 +11,7 @@ import EmptyList from '../EmptyList';
 import strings from '../../../assets/lang/strings';
 import { filesThunks } from '../../store/slices/files';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import fileService from '../../services/file';
 
 export interface IFolder {
   name: string;
@@ -74,7 +75,7 @@ function FileList(props: FileListProps): JSX.Element {
     filesCurrentlyUploading,
     searchString,
     filesAlreadyUploaded,
-    sortFunction,
+    sortType,
     isUploadingFileName,
     loading: filesLoading,
   } = useAppSelector((state) => state.files);
@@ -84,6 +85,7 @@ function FileList(props: FileListProps): JSX.Element {
   const [folderId, setFolderId] = useState<number>();
   let folderList: IFolder[] = (folderContent && folderContent.children) || [];
   let fileList: IFile[] = (folderContent && folderContent.files) || [];
+  const sortFunction = fileService.getSortFunction(sortType);
 
   useEffect(() => {
     setRefreshing(false);
@@ -106,10 +108,8 @@ function FileList(props: FileListProps): JSX.Element {
     folderList = folderList.filter((folder: IFolder) => folder.name.toLowerCase().includes(searchString.toLowerCase()));
   }
 
-  if (sortFunction) {
-    folderList.sort(sortFunction);
-    fileList.sort(sortFunction);
-  }
+  folderList = folderList.slice().sort(sortFunction);
+  fileList = fileList.slice().sort(sortFunction);
 
   const rootFolderId = user?.root_folder_id;
   const currentFolderId = folderContent && folderContent.currentFolder;
@@ -134,6 +134,7 @@ function FileList(props: FileListProps): JSX.Element {
 
   return (
     <FlatList
+      key={props.isGrid ? 'grid' : 'list'}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -168,15 +169,17 @@ function FileList(props: FileListProps): JSX.Element {
       data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}
       keyExtractor={(item) => `${props.isGrid}-${item.id}`}
       renderItem={({ item }) => {
-        return <FileItem
-          isLoading={item.isLoading}
-          isFolder={!!item.parentId}
-          key={`${props.isGrid}-${item.id}`}
-          item={item}
-          progress={isNaN(item.progress) ? -1 : item.progress}
-          isGrid={props.isGrid}
-          totalColumns={totalColumns}
-        />;
+        return (
+          <FileItem
+            isLoading={item.isLoading}
+            isFolder={!!item.parentId}
+            key={`${props.isGrid}-${item.id}`}
+            item={item}
+            progress={isNaN(item.progress) ? -1 : item.progress}
+            isGrid={props.isGrid}
+            totalColumns={totalColumns}
+          />
+        );
       }}
     />
   );
