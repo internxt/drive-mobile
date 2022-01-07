@@ -124,43 +124,42 @@ async function deleteItems(items: any[]): Promise<void> {
 
 export type ArraySortFunction = (a: IFolder | IFile, b: IFolder | IFile) => number;
 
-function getSortFunction(sortType: string): ArraySortFunction | null {
-  let sortFunc: any = null;
+function getSortFunction(sortType: string): ArraySortFunction | undefined {
+  let sortFunction: ArraySortFunction | undefined;
 
   switch (sortType) {
     case sortTypes.DATE_ADDED:
-      sortFunc = (a: any, b: any) => a.id > b.id;
+      sortFunction = (a: any, b: any) => (a.id < b.id ? 1 : -1);
       break;
     case sortTypes.FILETYPE_ASC:
-      sortFunc = (a: any, b: any) => {
+      sortFunction = (a: any, b: any) => {
         return a.type ? a.type.toLowerCase().localeCompare(b.type.toLowerCase()) : true;
       };
       break;
     case sortTypes.FILETYPE_DESC:
-      sortFunc = (a: any, b: any) => {
+      sortFunction = (a: any, b: any) => {
         return b.type ? b.type.toLowerCase().localeCompare(a.type.toLowerCase()) : true;
       };
       break;
     case sortTypes.NAME_ASC:
-      sortFunc = (a: any, b: any) => {
+      sortFunction = (a: any, b: any) => {
         return compare({ order: 'asc' })(a.name.toLowerCase(), b.name.toLowerCase());
       };
       break;
     case sortTypes.NAME_DESC:
-      sortFunc = (a: any, b: any) => {
+      sortFunction = (a: any, b: any) => {
         return compare({ order: 'desc' })(a.name.toLowerCase(), b.name.toLowerCase());
       };
       break;
     case sortTypes.SIZE_ASC:
-      sortFunc = (a: any, b: any) => (a.size ? a.size - b.size : true);
+      sortFunction = (a: any, b: any) => (a.size > b.size ? 1 : -1);
       break;
     case sortTypes.SIZE_DESC:
-      sortFunc = (a: any, b: any) => (b.size ? b.size - a.size : true);
-      break;
-    default:
+      sortFunction = (a: any, b: any) => (a.size < b.size ? 1 : -1);
       break;
   }
-  return sortFunc;
+
+  return sortFunction;
 }
 
 async function renameFileInNetwork(fileId: string, bucketId: string, relativePath: string): Promise<void> {

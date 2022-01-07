@@ -194,7 +194,7 @@ const strings = new LocalizedStrings({
         upgradeNow: 'Upgrade now',
         uploadFiles: 'Upload files',
         uploadFromCameraRoll: 'Upload from camera roll',
-        takeAPhotoAnUpload: 'Take a photo an upload',
+        takeAPhotoAnUpload: 'Take a photo and upload',
         newFolder: 'New folder',
         changePlan: 'Change plan',
         select: 'Select',
