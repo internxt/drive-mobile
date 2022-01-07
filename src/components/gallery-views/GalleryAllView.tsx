@@ -14,11 +14,10 @@ const GalleryAllView = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationStackProp>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
-  const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
+  const { isSelectionModeActivated, photos } = useAppSelector((state) => state.photos);
   const [refreshing, setRefreshing] = useState(false);
   const [columnsCount] = useState(3);
   const [gutter] = useState(3);
-  const [photos, setPhotos] = useState<{ data: Photo; preview: string }[]>([]);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
   const limit = 50;
   const offset = 0;
@@ -36,11 +35,9 @@ const GalleryAllView = (): JSX.Element => {
     isSelectionModeActivated ? onItemLongPressed(item) : navigation.push(PhotosScreen.Preview, { data: item });
   };
   const loadPhotos = async () => {
-    const results = await dispatch(photosThunks.loadLocalPhotosThunk({ limit, offset: 0 })).unwrap();
+    await dispatch(photosThunks.loadLocalPhotosThunk({ limit, offset }));
 
-    console.log('GalleryAllView.loadPhotos!');
-
-    setPhotos(results);
+    console.log('GalleryAllView.loadPhotos - completed!');
   };
 
   useEffect(() => {

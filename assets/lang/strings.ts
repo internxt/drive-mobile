@@ -310,8 +310,11 @@ const strings = new LocalizedStrings({
     },
     errors: {
       unknown: 'Unknown error',
+      photosInitialize: "Error initializing 'photos': {0}",
       photoShared: 'An error has ocurred during photo sharing',
       photosSync: 'Error during photos sync: {0}',
+      photosLoad: 'Error loading photos: {0}',
+      photosDelete: 'Error deleting photo/s: {0}',
     },
   },
   es: {
@@ -627,8 +630,11 @@ const strings = new LocalizedStrings({
     },
     errors: {
       unknown: 'Error desconocido',
+      photosInitialize: "Error al iniciar 'photos': {0}",
       photoShared: 'Ha habido un error al compartir la foto',
       photosSync: 'Error sincronizando fotos: {0}',
+      photosLoad: 'Error cargando fotos: {0}',
+      photosDelete: 'Error eliminando foto/s: {0}',
     },
   },
 });

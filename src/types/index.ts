@@ -1,5 +1,5 @@
 import { photos } from '@internxt/sdk';
-import { PhotoStatus } from '@internxt/sdk/dist/photos';
+import { PhotoStatus, User } from '@internxt/sdk/dist/photos';
 
 export enum AppScreen {
   SignUp = 'sign-up',
@@ -112,9 +112,9 @@ export const PHOTOS_DB_NAME = 'photos.db';
 
 export interface PhotosServiceModel {
   accessToken: string;
-  bucket: string;
   networkCredentials: NetworkCredentials;
   networkUrl: string;
+  user?: User;
 }
 
 export interface SqlitePhotoRow {

@@ -26,7 +26,7 @@ export default class PhotosUploadService {
     console.log('Uploading preview for photo ' + data.name);
     const previewId = await network.uploadFile(
       previewPath,
-      this.model.bucket,
+      this.model.user?.bucketId || '',
       this.model.networkUrl,
       this.model.networkCredentials,
     );
@@ -34,7 +34,7 @@ export default class PhotosUploadService {
     console.log('Uploading photo for photo ' + data.name);
     const fileId = await network.uploadFile(
       photoPath,
-      this.model.bucket,
+      this.model.user?.bucketId || '',
       this.model.networkUrl,
       this.model.networkCredentials,
     );

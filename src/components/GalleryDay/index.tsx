@@ -24,11 +24,10 @@ const GalleryDay = (): JSX.Element => {
   const navigation = useNavigation<NavigationStackProp>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
   const isAllPhotosSelected = false;
-  const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
+  const { isSelectionModeActivated, photos } = useAppSelector((state) => state.photos);
   const [refreshing, setRefreshing] = useState(false);
   const [columnsCount] = useState(3);
   const [gutter] = useState(3);
-  const [photos] = useState<{ data: Photo; preview: string }[]>([]);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
   const selectAll = () => {
     console.log('GalleryDay selectAll pressed!');

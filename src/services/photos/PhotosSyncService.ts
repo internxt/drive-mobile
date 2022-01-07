@@ -44,17 +44,17 @@ export default class PhotosSyncService {
       // the app could be reinstalled and the database is gone but the photos
       // are already uploaded
 
-      const user = await this.initializeUser();
-      this.model.bucket = user.bucketId;
-      console.log('[SYNC-MAIN]: USER INITIALIZED');
+      if (!this.model.user) {
+        throw new Error('photos user not found');
+      }
 
-      const device = await this.initializeDevice(user.id);
+      const device = await this.initializeDevice(this.model.user?.id);
       console.log('[SYNC-MAIN]: DEVICE INITIALIZED');
 
       await this.downloadRemotePhotos();
       console.log('[SYNC-MAIN]: REMOTE PHOTOS DOWNLOADED');
 
-      await this.uploadLocalPhotos(user.id, device.id);
+      await this.uploadLocalPhotos(this.model.user?.id, device.id);
       console.log('[SYNC-MAIN]: LOCAL PHOTOS UPLOADED');
 
       console.log('[SYNC-MAIN]: FINISHED');
@@ -66,18 +66,6 @@ export default class PhotosSyncService {
       console.log('[SYNC-MAIN]: FAILED:', JSON.stringify(err, undefined, 2));
       throw err;
     }
-  }
-
-  private async initializeUser(): Promise<photos.User> {
-    const mac = await getMacAddress();
-    const name = await getDeviceName();
-
-    return this.photosSdk.users.initialize({
-      mac,
-      name,
-      bridgeUser: this.model.networkCredentials.user,
-      bridgePassword: this.model.networkCredentials.password,
-    });
   }
 
   private async initializeDevice(userId: string): Promise<photos.Device> {

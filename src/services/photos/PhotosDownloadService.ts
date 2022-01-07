@@ -25,11 +25,16 @@ export default class PhotosDownloadService {
     if (photoIsOnTheDevice) {
       await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);
     } else {
-      const preview = await this.pullPhoto(this.model.bucket, this.model.networkCredentials, photo.previewId, {
-        toPath: getDocumentsDir() + '/' + photo.previewId,
-        downloadProgressCallback: () => undefined,
-        decryptionProgressCallback: () => undefined,
-      });
+      const preview = await this.pullPhoto(
+        this.model.user?.bucketId || '',
+        this.model.networkCredentials,
+        photo.previewId,
+        {
+          toPath: getDocumentsDir() + '/' + photo.previewId,
+          downloadProgressCallback: () => undefined,
+          decryptionProgressCallback: () => undefined,
+        },
+      );
       await this.localDatabaseService.insertPhoto(photo, preview);
     }
   }

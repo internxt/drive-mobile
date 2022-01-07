@@ -1,4 +1,5 @@
 import { photos } from '@internxt/sdk';
+import { getMacAddress, getDeviceName } from 'react-native-device-info';
 
 import { PhotosServiceModel } from '../../types';
 
@@ -24,7 +25,6 @@ export class PhotosService {
   constructor(accessToken: string, networkCredentials: NetworkCredentials) {
     this.model = {
       accessToken,
-      bucket: '',
       networkCredentials,
       networkUrl: process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL || '',
     };
@@ -34,7 +34,7 @@ export class PhotosService {
     this.localDatabaseService = new PhotosLocalDatabaseService(this.model);
     this.uploadService = new PhotosUploadService(this.model, this.photosSdk);
     this.downloadService = new PhotosDownloadService(this.model, this.localDatabaseService);
-    this.deleteService = new PhotosDeleteService(this.model, this.photosSdk);
+    this.deleteService = new PhotosDeleteService(this.model, this.photosSdk, this.localDatabaseService);
     this.syncService = new PhotosSyncService(
       this.model,
       this.photosSdk,
@@ -50,6 +50,21 @@ export class PhotosService {
     await this.localDatabaseService.initialize();
 
     console.log('(PhotosService) Local database initialized');
+  }
+
+  public async initializeUser(): Promise<photos.User> {
+    const mac = await getMacAddress();
+    const name = await getDeviceName();
+    const user = await this.photosSdk.users.initialize({
+      mac,
+      name,
+      bridgeUser: this.model.networkCredentials.user,
+      bridgePassword: this.model.networkCredentials.password,
+    });
+
+    this.model.user = user;
+
+    return user;
   }
 
   public sync(): Promise<void> {
@@ -92,11 +107,15 @@ export class PhotosService {
   ): Promise<string> {
     this.checkModel();
 
-    return this.downloadService.pullPhoto(this.model.bucket, this.model.networkCredentials, fileId, options);
+    return this.downloadService.pullPhoto(this.bucketId, this.model.networkCredentials, fileId, options);
+  }
+
+  private get bucketId() {
+    return this.model.user?.bucketId || '';
   }
 
   private checkModel() {
-    if (this.model.bucket) {
+    if (!this.bucketId) {
       throw new Error('(PhotosService) bucketId not found');
     }
   }

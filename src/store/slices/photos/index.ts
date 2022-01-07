@@ -18,6 +18,7 @@ import { PhotosService } from '../../../services/photos';
 import { notify } from '../../../services/toast';
 import strings from '../../../../assets/lang/strings';
 import { deviceStorage } from '../../../services/deviceStorage';
+import photo_source from '../../../services/photos/PhotosLocalDatabaseService/tables/photo_source';
 
 let photosService: PhotosService;
 
@@ -31,7 +32,7 @@ export interface PhotosState {
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
   allPhotosCount: number;
-
+  photos: { data: Photo; preview: string }[];
   selectedPhotos: Photo[];
 }
 
@@ -50,6 +51,7 @@ const initialState: PhotosState = {
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.All,
   allPhotosCount: 0,
+  photos: [],
   selectedPhotos: [],
 };
 
@@ -70,6 +72,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     if (photosSelectors.arePermissionsGranted(getState())) {
       await photosService.initializeLocalDatabase();
+      await photosService.initializeUser();
 
       dispatch(photosActions.setAllPhotosCount(await photosService.countPhotos()));
 
@@ -107,9 +110,12 @@ const askForPermissionsThunk = createAsyncThunk<boolean, void, { state: RootStat
 
 const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: RootState }>(
   'photos/deletePhotos',
-  async ({ photos }) => {
+  async ({ photos }, { dispatch }) => {
     for (const photo of photos) {
       await photosService.deletePhoto(photo);
+
+      dispatch(photosActions.deselectPhoto(photo));
+      dispatch(photosActions.popPhoto(photo));
     }
   },
 );
@@ -133,8 +139,11 @@ const loadLocalPhotosThunk = createAsyncThunk<
   { data: Photo; preview: string }[],
   { limit: number; offset?: number },
   { state: RootState }
->('photos/loadLocalPhotos', async ({ limit, offset = 0 }) => {
+>('photos/loadLocalPhotos', async ({ limit, offset = 0 }, { dispatch }) => {
   const results = await photosService.getPhotos({ limit, offset });
+
+  dispatch(photosActions.setPhotos(results));
+
   return results;
 });
 
@@ -155,6 +164,12 @@ export const photosSlice = createSlice({
     },
     setViewMode(state, action: PayloadAction<GalleryViewMode>) {
       state.viewMode = action.payload;
+    },
+    setPhotos(state, action: PayloadAction<{ data: Photo; preview: string }[]>) {
+      state.photos = action.payload;
+    },
+    popPhoto(state, action: PayloadAction<Photo>) {
+      state.photos = state.photos.filter((photo) => photo.data.id !== action.payload.id);
     },
     setAllPhotosCount(state, action: PayloadAction<number>) {
       state.allPhotosCount = action.payload;
@@ -181,7 +196,15 @@ export const photosSlice = createSlice({
       .addCase(initializeThunk.fulfilled, (state) => {
         state.isInitialized = true;
       })
-      .addCase(initializeThunk.rejected, () => undefined);
+      .addCase(initializeThunk.rejected, (state, action) => {
+        notify({
+          type: 'error',
+          text: strings.formatString(
+            strings.errors.photosInitialize,
+            action.error.message || strings.errors.unknown,
+          ) as string,
+        });
+      });
 
     builder
       .addCase(checkPermissionsThunk.pending, () => undefined)
@@ -206,7 +229,15 @@ export const photosSlice = createSlice({
     builder
       .addCase(deletePhotosThunk.pending, () => undefined)
       .addCase(deletePhotosThunk.fulfilled, () => undefined)
-      .addCase(deletePhotosThunk.rejected, () => undefined);
+      .addCase(deletePhotosThunk.rejected, (state, action) => {
+        notify({
+          type: 'error',
+          text: strings.formatString(
+            strings.errors.photosDelete,
+            action.error.message || strings.errors.unknown,
+          ) as string,
+        });
+      });
 
     builder
       .addCase(downloadPhotoThunk.pending, () => undefined)
@@ -216,7 +247,15 @@ export const photosSlice = createSlice({
     builder
       .addCase(loadLocalPhotosThunk.pending, () => undefined)
       .addCase(loadLocalPhotosThunk.fulfilled, () => undefined)
-      .addCase(loadLocalPhotosThunk.rejected, () => undefined);
+      .addCase(loadLocalPhotosThunk.rejected, (state, action) => {
+        notify({
+          type: 'error',
+          text: strings.formatString(
+            strings.errors.photosLoad,
+            action.error.message || strings.errors.unknown,
+          ) as string,
+        });
+      });
 
     builder
       .addCase(syncThunk.pending, (state) => {
