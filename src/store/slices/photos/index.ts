@@ -17,6 +17,7 @@ import { Platform } from 'react-native';
 import { PhotosService } from '../../../services/photos';
 import { notify } from '../../../services/toast';
 import strings from '../../../../assets/lang/strings';
+import { deviceStorage } from '../../../services/deviceStorage';
 
 let photosService: PhotosService;
 
@@ -30,7 +31,7 @@ export interface PhotosState {
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
   allPhotosCount: number;
-  photos: Photo[];
+
   selectedPhotos: Photo[];
 }
 
@@ -49,16 +50,17 @@ const initialState: PhotosState = {
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.All,
   allPhotosCount: 0,
-  photos: [],
   selectedPhotos: [],
 };
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
   async (payload: void, { dispatch, getState }) => {
-    const { photosToken, user } = getState().auth;
+    // ! const { photosToken, user } = getState();
+    const photosToken = await deviceStorage.getItem('photosToken');
+    const user = await deviceStorage.getUser();
 
-    photosService = new PhotosService(photosToken, {
+    photosService = new PhotosService(photosToken || '', {
       encryptionKey: user?.mnemonic || '',
       user: user?.bridgeUser || '',
       password: user?.userId || '',
@@ -112,18 +114,36 @@ const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: R
   },
 );
 
+const downloadPhotoThunk = createAsyncThunk<
+  string,
+  {
+    fileId: string;
+    options: {
+      toPath: string;
+      downloadProgressCallback: (progress: number) => void;
+      decryptionProgressCallback: (progress: number) => void;
+    };
+  },
+  { state: RootState }
+>('photos/downloadPhoto', async ({ fileId, options }) => {
+  return photosService.downloadPhoto(fileId, options);
+});
+
 const loadLocalPhotosThunk = createAsyncThunk<
-  { loadedPhotos: Photo[] },
+  { data: Photo; preview: string }[],
   { limit: number; offset?: number },
   { state: RootState }
 >('photos/loadLocalPhotos', async ({ limit, offset = 0 }) => {
-  const photos = await photosService.getPhotos({ limit, offset });
-
-  return { loadedPhotos: photos };
+  const results = await photosService.getPhotos({ limit, offset });
+  return results;
 });
 
 const syncThunk = createAsyncThunk<void, void, { state: RootState }>('photos/sync', async () => {
   await photosService.sync();
+});
+
+const selectAllThunk = createAsyncThunk<Photo[], void, { state: RootState }>('photos/selectAll', async () => {
+  return photosService.getAll();
 });
 
 export const photosSlice = createSlice({
@@ -148,9 +168,6 @@ export const photosSlice = createSlice({
       state.selectedPhotos.splice(itemIndex, 1);
 
       state.selectedPhotos = [...state.selectedPhotos];
-    },
-    selectAll(state) {
-      state.selectedPhotos = [...state.photos];
     },
     deselectAll(state) {
       state.selectedPhotos = [];
@@ -180,15 +197,25 @@ export const photosSlice = createSlice({
       .addCase(checkPermissionsThunk.rejected, () => undefined);
 
     builder
+      .addCase(selectAllThunk.pending, () => undefined)
+      .addCase(selectAllThunk.fulfilled, (state, action) => {
+        state.selectedPhotos = action.payload;
+      })
+      .addCase(selectAllThunk.rejected, () => undefined);
+
+    builder
       .addCase(deletePhotosThunk.pending, () => undefined)
       .addCase(deletePhotosThunk.fulfilled, () => undefined)
       .addCase(deletePhotosThunk.rejected, () => undefined);
 
     builder
+      .addCase(downloadPhotoThunk.pending, () => undefined)
+      .addCase(downloadPhotoThunk.fulfilled, () => undefined)
+      .addCase(downloadPhotoThunk.rejected, () => undefined);
+
+    builder
       .addCase(loadLocalPhotosThunk.pending, () => undefined)
-      .addCase(loadLocalPhotosThunk.fulfilled, (state, action) => {
-        state.photos = action.payload.loadedPhotos;
-      })
+      .addCase(loadLocalPhotosThunk.fulfilled, () => undefined)
       .addCase(loadLocalPhotosThunk.rejected, () => undefined);
 
     builder
@@ -242,7 +269,9 @@ export const photosThunks = {
   initializeThunk,
   checkPermissionsThunk,
   askForPermissionsThunk,
+  selectAllThunk,
   deletePhotosThunk,
+  downloadPhotoThunk,
   loadLocalPhotosThunk,
   syncThunk,
 };

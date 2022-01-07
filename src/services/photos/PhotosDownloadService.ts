@@ -25,20 +25,27 @@ export default class PhotosDownloadService {
     if (photoIsOnTheDevice) {
       await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);
     } else {
-      const preview = await this.pullPhoto(this.model.bucket, this.model.networkCredentials, photo.previewId);
+      const preview = await this.pullPhoto(this.model.bucket, this.model.networkCredentials, photo.previewId, {
+        toPath: getDocumentsDir() + '/' + photo.previewId,
+        downloadProgressCallback: () => undefined,
+        decryptionProgressCallback: () => undefined,
+      });
       await this.localDatabaseService.insertPhoto(photo, preview);
     }
   }
 
-  private async pullPhoto(
+  public async pullPhoto(
     photosBucket: string,
     networkCredentials: NetworkCredentials,
     fileId: string,
+    options: {
+      toPath: string;
+      downloadProgressCallback: (progress: number) => void;
+      decryptionProgressCallback: (progress: number) => void;
+    },
   ): Promise<string> {
     const tmpPath = await network.downloadFile(photosBucket, fileId, networkCredentials, this.model.networkUrl, {
-      toPath: getDocumentsDir() + '/' + fileId,
-      downloadProgressCallback: () => undefined,
-      decryptionProgressCallback: () => undefined,
+      ...options,
     });
     const photoSource = await RNFetchBlob.fs.readFile(tmpPath, 'base64');
 

@@ -26,9 +26,9 @@ export class PhotosService {
       accessToken,
       bucket: '',
       networkCredentials,
-      networkUrl: process.env.REACT_NATIVE_PHOTOS_API_URL || '',
+      networkUrl: process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL || '',
     };
-    this.photosSdk = new photos.Photos(this.model.networkUrl, accessToken);
+    this.photosSdk = new photos.Photos(process.env.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
 
     this.cameraRollService = new PhotosCameraRollService();
     this.localDatabaseService = new PhotosLocalDatabaseService(this.model);
@@ -60,16 +60,39 @@ export class PhotosService {
     return this.localDatabaseService.countPhotos();
   }
 
-  public getPhotos({ limit, offset = 0 }: { limit: number; offset?: number }): Promise<photos.Photo[]> {
+  public getPhotos({
+    limit,
+    offset = 0,
+  }: {
+    limit: number;
+    offset?: number;
+  }): Promise<{ data: photos.Photo; preview: string }[]> {
     this.checkModel();
 
     return this.localDatabaseService.getPhotos(offset, limit);
+  }
+
+  public getAll(): Promise<photos.Photo[]> {
+    return this.localDatabaseService.getAllWithoutPreview();
   }
 
   public deletePhoto(photo: photos.Photo): Promise<void> {
     this.checkModel();
 
     return this.deleteService.delete(photo);
+  }
+
+  public downloadPhoto(
+    fileId: string,
+    options: {
+      toPath: string;
+      downloadProgressCallback: (progress: number) => void;
+      decryptionProgressCallback: (progress: number) => void;
+    },
+  ): Promise<string> {
+    this.checkModel();
+
+    return this.downloadService.pullPhoto(this.model.bucket, this.model.networkCredentials, fileId, options);
   }
 
   private checkModel() {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Photo } from '@internxt/sdk/dist/photos';
 import { Dimensions, FlatList, ListRenderItemInfo, RefreshControl, View } from 'react-native';
 import { NavigationStackProp } from 'react-navigation-stack';
@@ -14,11 +14,14 @@ const GalleryAllView = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationStackProp>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
-  const { isSelectionModeActivated, photos } = useAppSelector((state) => state.photos);
+  const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
   const [refreshing, setRefreshing] = useState(false);
   const [columnsCount] = useState(3);
   const [gutter] = useState(3);
+  const [photos, setPhotos] = useState<{ data: Photo; preview: string }[]>([]);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
+  const limit = 50;
+  const offset = 0;
   const selectItem = (photo: Photo) => {
     dispatch(photosActions.selectPhoto(photo));
   };
@@ -32,9 +35,17 @@ const GalleryAllView = (): JSX.Element => {
   const onItemPressed = (item: Photo) => {
     isSelectionModeActivated ? onItemLongPressed(item) : navigation.push(PhotosScreen.Preview, { data: item });
   };
+  const loadPhotos = async () => {
+    const results = await dispatch(photosThunks.loadLocalPhotosThunk({ limit, offset: 0 })).unwrap();
 
-  const limit = 50;
-  const offset = 0;
+    console.log('GalleryAllView.loadPhotos!');
+
+    setPhotos(results);
+  };
+
+  useEffect(() => {
+    loadPhotos();
+  }, []);
 
   return (
     <FlatList
@@ -46,7 +57,7 @@ const GalleryAllView = (): JSX.Element => {
           refreshing={refreshing}
           onRefresh={async () => {
             setRefreshing(true);
-            await dispatch(photosThunks.loadLocalPhotosThunk({ limit: 10, offset: 0 }));
+            await loadPhotos();
             setRefreshing(false);
           }}
         />
@@ -62,23 +73,24 @@ const GalleryAllView = (): JSX.Element => {
         //   offset + limit:
         //   offset - limit;
 
-        await dispatch(photosThunks.loadLocalPhotosThunk({ limit, offset }));
+        await loadPhotos();
       }}
       numColumns={columnsCount}
       onEndReached={() => undefined}
       onEndReachedThreshold={3}
-      keyExtractor={(item) => item.id}
-      renderItem={(item: ListRenderItemInfo<Photo>) => {
+      keyExtractor={(item) => item.data.id}
+      renderItem={(item: ListRenderItemInfo<{ data: Photo; preview: string }>) => {
         const isTheLast = item.index === photos.length - 1;
 
         return (
           <>
             <GalleryItem
               size={itemSize}
-              data={item.item}
-              isSelected={isPhotoSelected(item.item)}
-              onPress={() => onItemPressed(item.item)}
-              onLongPress={() => onItemLongPressed(item.item)}
+              data={item.item.data}
+              preview={item.item.preview}
+              isSelected={isPhotoSelected(item.item.data)}
+              onPress={() => onItemPressed(item.item.data)}
+              onLongPress={() => onItemLongPressed(item.item.data)}
             />
             {!isTheLast && <View style={{ width: gutter }} />}
           </>

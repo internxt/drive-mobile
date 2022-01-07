@@ -24,10 +24,11 @@ const GalleryDay = (): JSX.Element => {
   const navigation = useNavigation<NavigationStackProp>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
   const isAllPhotosSelected = false;
-  const { isSelectionModeActivated, photos } = useAppSelector((state) => state.photos);
+  const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
   const [refreshing, setRefreshing] = useState(false);
   const [columnsCount] = useState(3);
   const [gutter] = useState(3);
+  const [photos] = useState<{ data: Photo; preview: string }[]>([]);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
   const selectAll = () => {
     console.log('GalleryDay selectAll pressed!');
@@ -92,18 +93,19 @@ const GalleryDay = (): JSX.Element => {
         numColumns={columnsCount}
         onEndReached={() => undefined}
         onEndReachedThreshold={3}
-        keyExtractor={(item) => item.id}
-        renderItem={(item: ListRenderItemInfo<Photo>) => {
+        keyExtractor={(item) => item.data.id}
+        renderItem={(item: ListRenderItemInfo<{ data: Photo; preview: string }>) => {
           const isTheLast = item.index === photos.length - 1;
 
           return (
             <>
               <GalleryItem
                 size={itemSize}
-                data={item.item}
-                isSelected={isPhotoSelected(item.item)}
-                onPress={() => onItemPressed(item.item)}
-                onLongPress={() => onItemLongPressed(item.item)}
+                data={item.item.data}
+                preview={item.item.preview}
+                isSelected={isPhotoSelected(item.item.data)}
+                onPress={() => onItemPressed(item.item.data)}
+                onLongPress={() => onItemLongPressed(item.item.data)}
               />
               {!isTheLast && <View style={{ width: gutter }} />}
             </>

@@ -3,7 +3,7 @@ import { Photo, PhotoId, PhotoStatus } from '@internxt/sdk/dist/photos';
 import sqliteService from '../../sqlite';
 import photosTable from './tables/photos';
 import syncDatesTable from './tables/syncDates';
-import { PhotosServiceModel, PHOTOS_DB_NAME } from '../../../types';
+import { PhotosServiceModel, PHOTOS_DB_NAME, SqlitePhotoRow } from '../../../types';
 
 export default class PhotosLocalDatabaseService {
   private readonly model: PhotosServiceModel;
@@ -37,12 +37,20 @@ export default class PhotosLocalDatabaseService {
     return result[0].rows.item(0).count;
   }
 
-  public async getPhotos(offset: number, limit = 60): Promise<Photo[]> {
+  public async getPhotos(offset: number, limit = 60): Promise<{ data: Photo; preview: string }[]> {
     return sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.get, [limit, offset]).then(([{ rows }]) => {
-      // TODO: Transform to Photo[]
       offset += limit;
 
-      return rows.raw() as unknown as Photo[];
+      return (rows.raw() as unknown as SqlitePhotoRow[]).map((row) => ({
+        data: this.mapPhotoRowToModel(row),
+        preview: row.preview,
+      }));
+    });
+  }
+
+  public async getAllWithoutPreview(): Promise<Photo[]> {
+    return sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.getAllWithoutPreview).then(([{ rows }]) => {
+      return (rows.raw() as unknown as SqlitePhotoRow[]).map((row) => this.mapPhotoRowToModel(row));
     });
   }
 
@@ -133,6 +141,8 @@ export default class PhotosLocalDatabaseService {
       photo.userId,
       photo.creationDate,
       photo.lastStatusChangeAt,
+      photo.createdAt,
+      photo.updatedAt,
       preview,
     ]);
   }
@@ -144,5 +154,25 @@ export default class PhotosLocalDatabaseService {
   public async resetDatabase(): Promise<void> {
     await sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.dropTable);
     await sqliteService.executeSql(PHOTOS_DB_NAME, syncDatesTable.statements.dropTable);
+  }
+
+  private mapPhotoRowToModel(row: SqlitePhotoRow): Photo {
+    return {
+      id: row.id,
+      status: row.status,
+      name: row.name,
+      width: row.width,
+      height: row.height,
+      size: row.size,
+      type: row.type,
+      userId: row.user_id,
+      deviceId: row.device_id,
+      fileId: row.file_id,
+      previewId: row.preview_id,
+      lastStatusChangeAt: row.last_status_change_at,
+      creationDate: row.creation_date,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
   }
 }

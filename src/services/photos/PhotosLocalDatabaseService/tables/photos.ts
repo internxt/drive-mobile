@@ -16,16 +16,19 @@ const statements = {
       user_id TEXT NOT NULL, \
       creation_date DATE NOT NULL, \
       last_status_change_at DATE NOT NULL, \
+      created_at DATE NOT NULL, \
+      updated_at DATE NOT NULL, \
       preview BLOB NOT NULL \
     );`,
   dropTable: `DROP TABLE ${tableName};`,
   insert: `INSERT INTO ${tableName} (\
-      id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, creation_date, last_status_change_at, preview \
+      id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, creation_date, last_status_change_at, created_at, updated_at, preview \
     ) \
-    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );`,
+    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );`,
   deleteById: `DELETE FROM ${tableName} WHERE id = ?;`,
   count: `SELECT COUNT(*) as count FROM ${tableName};`,
   getAll: `SELECT * FROM ${tableName};`,
+  getAllWithoutPreview: `SELECT id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, creation_date, last_status_change_at, created_at, updated_at FROM ${tableName};`,
   get: `SELECT * FROM ${tableName} LIMIT ? OFFSET ?;`,
   getMostRecentCreationDate: `SELECT MAX(creation_date) as creationDate FROM ${tableName}`,
   getPhotoByName: `SELECT * FROM ${tableName} WHERE name = ? LIMIT 1;`,

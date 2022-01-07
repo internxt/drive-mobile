@@ -88,7 +88,6 @@ export default class PhotosUploadService {
       rotation: 0,
       options: { mode: 'cover' },
     });
-    // await RNFS.copyAssetsFileIOS(uri, path, width, height, scale);
 
     return response.path;
   }

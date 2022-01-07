@@ -63,7 +63,7 @@ export default class PhotosSyncService {
       // await this.database.reset();
       // console.log('DB RESETED');
     } catch (err) {
-      console.log('[SYNC-MAIN]: FAILED:', err);
+      console.log('[SYNC-MAIN]: FAILED:', JSON.stringify(err, undefined, 2));
       throw err;
     }
   }

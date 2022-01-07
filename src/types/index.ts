@@ -1,4 +1,5 @@
 import { photos } from '@internxt/sdk';
+import { PhotoStatus } from '@internxt/sdk/dist/photos';
 
 export enum AppScreen {
   SignUp = 'sign-up',
@@ -114,4 +115,23 @@ export interface PhotosServiceModel {
   bucket: string;
   networkCredentials: NetworkCredentials;
   networkUrl: string;
+}
+
+export interface SqlitePhotoRow {
+  id: string;
+  status: PhotoStatus;
+  name: string;
+  width: number;
+  height: number;
+  size: number;
+  type: string;
+  user_id: string;
+  device_id: string;
+  file_id: string;
+  preview_id: string;
+  last_status_change_at: Date;
+  creation_date: Date;
+  created_at: Date;
+  updated_at: Date;
+  preview: string;
 }

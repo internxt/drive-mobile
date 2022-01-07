@@ -15,9 +15,9 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import strings from '../../../../assets/lang/strings';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
-import { downloadFile } from '../../../services/network';
 import { getDocumentsDir } from '../../../lib/fs';
 import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfoModal';
+import { photosThunks } from '../../../store/slices/photos';
 
 interface PreviewProps {
   route: {
@@ -63,29 +63,23 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
     setIsOptionsModalOpen(true);
   };
   const isPhotoAlreadyDownloaded = () => RNFS.exists(photoPath);
-
   const loadImage = () => {
-    // TODO: Get creds from store
-    downloadFile(
-      '',
-      props.route.params.data.fileId,
-      {
-        encryptionKey: '',
-        password: '',
-        user: '',
-      },
-      process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL!,
-      {
-        toPath: photoPath,
-        downloadProgressCallback: (progress) => {
-          setProgress(progress);
+    dispatch(
+      photosThunks.downloadPhotoThunk({
+        fileId: props.route.params.data.fileId,
+        options: {
+          toPath: photoPath,
+          downloadProgressCallback: (progress) => {
+            setProgress(progress);
+          },
+          decryptionProgressCallback: (progress) => {
+            // TODO
+          },
         },
-        decryptionProgressCallback: (progress) => {
-          // TODO
-        }
-      },
+      }),
     )
-      .then((fileUri) => {
+      .unwrap()
+      .then((fileUri: string) => {
         setUri(fileUri);
         setDownloadFinished(true);
       })

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Image, TouchableOpacity } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 
@@ -10,6 +10,7 @@ interface GalleryItemProps {
   type?: GalleryItemType;
   size: number;
   data: Photo;
+  preview: string;
   isSelected: boolean;
   onPress?: () => void;
   onLongPress?: () => void;
@@ -22,16 +23,15 @@ const defaultProps: Partial<GalleryItemProps> = {
 const GalleryItem = ({
   type = defaultProps.type as GalleryItemType,
   size,
-  data,
+  preview,
   isSelected,
   onPress,
   onLongPress,
 }: GalleryItemProps): JSX.Element => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const examplePhoto = require('../../../assets/images/photos/example.png');
+  const [uri] = useState('data:image/png;base64,' + preview);
   const getItemContent = () =>
     ({
-      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={examplePhoto} />,
+      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri }} />,
     }[type]());
 
   return (

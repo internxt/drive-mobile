@@ -14,6 +14,7 @@ import { photosActions, photosSelectors, photosThunks } from '../../../store/sli
 import { layoutActions } from '../../../store/slices/layout';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -32,7 +33,7 @@ function PhotosGalleryScreen(): JSX.Element {
     dispatch(photosActions.deselectAll());
   };
   const onSelectAllButtonPressed = () => {
-    dispatch(photosActions.selectAll());
+    dispatch(photosThunks.selectAllThunk());
   };
   const onShareSelectionButtonPressed = () => {
     dispatch(layoutActions.setIsSharePhotoModalOpen(true));
@@ -99,7 +100,7 @@ function PhotosGalleryScreen(): JSX.Element {
       <View style={tailwind('app-screen bg-white flex-1')}>
         {/* GALLERY TOP BAR */}
         <View style={tailwind('pb-3 h-16')}>
-          <View style={tailwind('flex-row justify-between')}>
+          <View style={tailwind('flex-row justify-between flex-1')}>
             {isSelectionModeActivated ? (
               <>
                 <View style={tailwind('flex-row items-center justify-between')}>
@@ -188,7 +189,7 @@ function PhotosGalleryScreen(): JSX.Element {
         {/* SELECTION MODE ACTIONS */}
         {isSelectionModeActivated && (
           <Portal>
-            <View style={[tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2')]}>
+            <SafeAreaView style={[tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2')]}>
               <TouchableWithoutFeedback
                 onPress={onShareSelectionButtonPressed}
                 disabled={hasNoPhotosSelected || hasManyPhotosSelected}
@@ -253,7 +254,7 @@ function PhotosGalleryScreen(): JSX.Element {
                   </Text>
                 </View>
               </TouchableWithoutFeedback>
-            </View>
+            </SafeAreaView>
           </Portal>
         )}
       </View>
