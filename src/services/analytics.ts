@@ -5,7 +5,9 @@ import { NavigationState } from '@react-navigation/native';
 
 export async function analyticsSetup(): Promise<void> {
   const WRITEKEY = (
-    process.env.NODE_ENV !== 'production' ? process.env.REACT_NATIVE_SEGMENT_API_DEV : process.env.REACT_NATIVE_SEGMENT_API
+    process.env.NODE_ENV !== 'production'
+      ? process.env.REACT_NATIVE_SEGMENT_API_DEV
+      : process.env.REACT_NATIVE_SEGMENT_API
   ) as string;
 
   if (!WRITEKEY) {
@@ -13,11 +15,15 @@ export async function analyticsSetup(): Promise<void> {
     // eslint-disable-next-line no-console
     console.warn('No WRITEKEY Key provided');
   }
-  await analytics.setup(WRITEKEY, {
-    recordScreenViews: true,
-    trackAppLifecycleEvents: true,
-    using: [Firebase],
-  });
+  if (!analytics.ready) {
+    await analytics
+      .setup(WRITEKEY, {
+        recordScreenViews: true,
+        trackAppLifecycleEvents: true,
+        using: [Firebase],
+      })
+      .catch(() => undefined); // ! hotfix - Ignore analytics initialization errors (segment analytics allocated multiple times)
+  }
 }
 
 export async function getAnalyticsUuid(): Promise<string> {
