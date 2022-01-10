@@ -104,7 +104,7 @@ function SignInScreen(): JSX.Element {
             <TextInput
               style={tailwind('input pl-4')}
               value={password}
-              onChangeText={(value) => setPassword(value)}
+              onChangeText={setPassword}
               onFocus={() => setPasswordFocus(true)}
               onBlur={() => setPasswordFocus(false)}
               placeholder={strings.components.inputs.password}
