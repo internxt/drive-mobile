@@ -64,6 +64,8 @@ export class PhotosService {
 
     this.model.user = user;
 
+    console.log('(PhotosService) User initialized');
+
     return user;
   }
 

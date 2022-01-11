@@ -18,12 +18,12 @@ import { PhotosService } from '../../../services/photos';
 import { notify } from '../../../services/toast';
 import strings from '../../../../assets/lang/strings';
 import { deviceStorage } from '../../../services/deviceStorage';
-import photo_source from '../../../services/photos/PhotosLocalDatabaseService/tables/photo_source';
 
 let photosService: PhotosService;
 
 export interface PhotosState {
   isInitialized: boolean;
+  initializeError: string | null;
   isSyncing: boolean;
   permissions: {
     android: { [key in AndroidPermission]?: PermissionStatus };
@@ -38,6 +38,7 @@ export interface PhotosState {
 
 const initialState: PhotosState = {
   isInitialized: false,
+  initializeError: null,
   isSyncing: false,
   permissions: {
     android: {
@@ -76,7 +77,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 
       dispatch(photosActions.setAllPhotosCount(await photosService.countPhotos()));
 
-      dispatch(syncThunk()).unwrap();
+      dispatch(syncThunk());
     }
   },
 );
@@ -147,9 +148,16 @@ const loadLocalPhotosThunk = createAsyncThunk<
   return results;
 });
 
-const syncThunk = createAsyncThunk<void, void, { state: RootState }>('photos/sync', async () => {
-  await photosService.sync();
-});
+const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/sync',
+  async (payload: void, { getState }) => {
+    const { isSyncing } = getState().photos;
+
+    if (!isSyncing) {
+      await photosService.sync();
+    }
+  },
+);
 
 const selectAllThunk = createAsyncThunk<Photo[], void, { state: RootState }>('photos/selectAll', async () => {
   return photosService.getAll();
@@ -197,12 +205,11 @@ export const photosSlice = createSlice({
         state.isInitialized = true;
       })
       .addCase(initializeThunk.rejected, (state, action) => {
+        state.initializeError = action.error.message || strings.errors.unknown;
+
         notify({
           type: 'error',
-          text: strings.formatString(
-            strings.errors.photosInitialize,
-            action.error.message || strings.errors.unknown,
-          ) as string,
+          text: strings.formatString(strings.errors.photosInitialize, state.initializeError) as string,
         });
       });
 

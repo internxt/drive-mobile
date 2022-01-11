@@ -84,16 +84,10 @@ export default class PhotosLocalDatabaseService {
     });
   }
 
-  public deletePhotoById(photoId: string): Promise<void> {
-    return sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.deleteById, [photoId]).then(() => undefined);
-  }
-
   public async updatePhotoStatusById(photoId: PhotoId, newStatus: PhotoStatus): Promise<void> {
     return sqliteService
       .executeSql(PHOTOS_DB_NAME, photosTable.statements.updatePhotoStatusById, [newStatus, photoId])
-      .then(() => {
-        //
-      });
+      .then(() => undefined);
   }
 
   public async getMostRecentPullFromRemoteDate(): Promise<Date | null> {
@@ -111,9 +105,7 @@ export default class PhotosLocalDatabaseService {
   public async updateLastPullFromRemoteDate(newDate: Date): Promise<void> {
     return sqliteService
       .executeSql(PHOTOS_DB_NAME, syncDatesTable.statements.updateByDate, [newDate.toUTCString()])
-      .then(() => {
-        //
-      });
+      .then(() => undefined);
   }
 
   public getSyncDatesCount(): Promise<number> {

@@ -1,3 +1,5 @@
+import { PhotoStatus } from '@internxt/sdk/dist/photos';
+
 const tableName = 'photos';
 
 const statements = {
@@ -26,10 +28,10 @@ const statements = {
     ) \
     VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );`,
   deleteById: `DELETE FROM ${tableName} WHERE id = ?;`,
-  count: `SELECT COUNT(*) as count FROM ${tableName};`,
-  getAll: `SELECT * FROM ${tableName};`,
-  getAllWithoutPreview: `SELECT id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, creation_date, last_status_change_at, created_at, updated_at FROM ${tableName};`,
-  get: `SELECT * FROM ${tableName} LIMIT ? OFFSET ?;`,
+  count: `SELECT COUNT(*) as count FROM ${tableName} WHERE status = ${PhotoStatus.Exists};`,
+  getAll: `SELECT * FROM ${tableName} WHERE status = ${PhotoStatus.Exists};`,
+  getAllWithoutPreview: `SELECT id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, creation_date, last_status_change_at, created_at, updated_at FROM ${tableName} WHERE status = ${PhotoStatus.Exists};`,
+  get: `SELECT * FROM ${tableName} LIMIT ? OFFSET ? WHERE status = ${PhotoStatus.Exists};`,
   getMostRecentCreationDate: `SELECT MAX(creation_date) as creationDate FROM ${tableName}`,
   getPhotoByName: `SELECT * FROM ${tableName} WHERE name = ? LIMIT 1;`,
   getById: `SELECT * FROM ${tableName} WHERE id = ?;`,

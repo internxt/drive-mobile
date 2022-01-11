@@ -13,7 +13,6 @@ import AppNavigator from './src/AppNavigator';
 import { analyticsSetup, trackStackScreen } from './src/services/analytics';
 import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './src/helpers';
 import { getColor, tailwind } from './src/helpers/designSystem';
-import strings from './assets/lang/strings';
 import { deviceStorage } from './src/services/deviceStorage';
 import { authActions, authThunks } from './src/store/slices/auth';
 import { filesActions } from './src/store/slices/files';
@@ -151,7 +150,7 @@ export default function App(): JSX.Element {
             routeNameRef.current = currentRouteName;
           }}
           linking={linking}
-          fallback={<Text>{strings.generic.loading}</Text>}
+          fallback={<View></View>}
         >
           {isAppInitialized ? (
             <SafeAreaView style={tailwind('flex-1')}>

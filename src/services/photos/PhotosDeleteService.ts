@@ -1,4 +1,5 @@
 import { photos } from '@internxt/sdk';
+import { PhotoStatus } from '@internxt/sdk/dist/photos';
 
 import { PhotosServiceModel } from '../../types';
 import * as network from '../network';
@@ -20,6 +21,6 @@ export default class PhotosDeleteService {
     await network.deleteFile(photo.fileId, this.model.user?.bucketId || '', this.model.networkCredentials);
     await this.photosSdk.photos.deletePhotoById(photo.id);
 
-    await this.localDatabaseService.deletePhotoById(photo.id);
+    await this.localDatabaseService.updatePhotoStatusById(photo.id, PhotoStatus.Trashed);
   }
 }
