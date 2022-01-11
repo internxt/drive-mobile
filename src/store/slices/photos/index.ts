@@ -59,7 +59,7 @@ const initialState: PhotosState = {
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
   async (payload: void, { dispatch, getState }) => {
-    // ! const { photosToken, user } = getState();
+    const { isSyncing } = getState().photos;
     const photosToken = await deviceStorage.getItem('photosToken');
     const user = await deviceStorage.getUser();
 
@@ -77,7 +77,9 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 
       dispatch(photosActions.setAllPhotosCount(await photosService.countPhotos()));
 
-      dispatch(syncThunk());
+      if (!isSyncing) {
+        dispatch(syncThunk());
+      }
     }
   },
 );
@@ -118,6 +120,9 @@ const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: R
       dispatch(photosActions.deselectPhoto(photo));
       dispatch(photosActions.popPhoto(photo));
     }
+
+    dispatch(photosActions.deselectAll());
+    dispatch(photosActions.setIsSelectionModeActivated(false));
   },
 );
 
@@ -148,16 +153,9 @@ const loadLocalPhotosThunk = createAsyncThunk<
   return results;
 });
 
-const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
-  'photos/sync',
-  async (payload: void, { getState }) => {
-    const { isSyncing } = getState().photos;
-
-    if (!isSyncing) {
-      await photosService.sync();
-    }
-  },
-);
+const syncThunk = createAsyncThunk<void, void, { state: RootState }>('photos/sync', async () => {
+  await photosService.sync();
+});
 
 const selectAllThunk = createAsyncThunk<Photo[], void, { state: RootState }>('photos/selectAll', async () => {
   return photosService.getAll();
@@ -270,6 +268,11 @@ export const photosSlice = createSlice({
       })
       .addCase(syncThunk.fulfilled, (state) => {
         state.isSyncing = false;
+
+        notify({
+          type: 'success',
+          text: strings.messages.photosSyncCompleted,
+        });
       })
       .addCase(syncThunk.rejected, (state, action) => {
         state.isSyncing = false;

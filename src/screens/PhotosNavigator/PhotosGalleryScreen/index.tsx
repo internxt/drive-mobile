@@ -136,17 +136,19 @@ function PhotosGalleryScreen(): JSX.Element {
               <>
                 <ScreenTitle text={strings.screens.gallery.title} showBackButton={false} />
 
-                <View style={tailwind('flex-row items-center justify-between pr-5')}>
-                  <TouchableOpacity
-                    style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
-                    onPress={onSelectButtonPressed}
-                    disabled={!hasPhotos}
-                  >
-                    <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                      {strings.components.buttons.select}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                {hasPhotos && (
+                  <View style={tailwind('flex-row items-center justify-between pr-5')}>
+                    <TouchableOpacity
+                      style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
+                      onPress={onSelectButtonPressed}
+                      disabled={!hasPhotos}
+                    >
+                      <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+                        {strings.components.buttons.select}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </>
             )}
           </View>

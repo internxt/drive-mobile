@@ -19,6 +19,7 @@ export default class PhotosCameraRollService {
       assetType: 'Photos',
       groupTypes: 'All',
       after: cursor,
+      include: ['filename', 'fileSize', 'imageSize'],
     });
     let lastCursor: string | undefined = undefined;
 
@@ -30,7 +31,6 @@ export default class PhotosCameraRollService {
           edge.node.type === 'image' ? 'jpg' : 'mov',
         );
       }
-      return;
     });
 
     return [photos.edges, lastCursor];

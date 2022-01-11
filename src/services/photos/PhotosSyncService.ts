@@ -130,19 +130,26 @@ export default class PhotosSyncService {
         cursor,
       );
       photosToUpload = galleryPhotos.map<{ data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId'>; uri: string }>(
-        (p) => ({
-          data: {
-            creationDate: new Date(p.node.timestamp * 1000),
-            userId: userId,
-            deviceId: deviceId,
-            height: p.node.image.height,
-            width: p.node.image.width,
-            size: p.node.image.fileSize!,
-            type: p.node.type,
-            name: p.node.image.filename!,
-          },
-          uri: p.node.image.uri,
-        }),
+        (p) => {
+          const nameWithExtension = p.node.image.filename as string;
+          const nameWithoutExtension = nameWithExtension.substring(0, nameWithExtension.lastIndexOf('.'));
+          const nameSplittedByDots = nameWithExtension.split('.');
+          const extension = nameSplittedByDots[nameSplittedByDots.length - 1] || '';
+
+          return {
+            data: {
+              creationDate: new Date(p.node.timestamp * 1000),
+              userId: userId,
+              deviceId: deviceId,
+              height: p.node.image.height,
+              width: p.node.image.width,
+              size: p.node.image.fileSize as number,
+              type: extension,
+              name: nameWithoutExtension,
+            },
+            uri: p.node.image.uri,
+          };
+        },
       );
 
       cursor = nextCursor;
@@ -169,6 +176,8 @@ export default class PhotosSyncService {
         }
 
         const [createdPhoto, preview] = await this.uploadService.upload(photo.data, photo.uri);
+
+        console.log('CREATED PHOTO: ', createdPhoto);
 
         await this.localDatabaseService.insertPhoto(createdPhoto, preview);
       }

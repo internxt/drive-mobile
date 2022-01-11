@@ -19,9 +19,13 @@ export default class PhotosUploadService {
   }
 
   public async upload(data: Omit<CreatePhotoData, 'fileId' | 'previewId'>, uri: string): Promise<[Photo, string]> {
+    const fullName = `${data.name}.${data.type}`;
     console.log('PhotosUploadService.upload - uri: ', uri);
-    const photoPath = await this.copyPhotoToDocumentsDir(data.name, data.width, data.height, uri);
-    const previewPath = await this.generatePreview(data.name, uri);
+    const photoPath = await this.copyPhotoToDocumentsDir(fullName, data.width, data.height, uri);
+    const previewPath = await this.generatePreview(data.name, data.type, uri);
+
+    console.log('PhotosUploadService - photoPath:', photoPath);
+    console.log('PhotosUploadService - previewPath: ', previewPath);
 
     console.log('Uploading preview for photo ' + data.name);
     const previewId = await network.uploadFile(
@@ -38,12 +42,13 @@ export default class PhotosUploadService {
       this.model.networkUrl,
       this.model.networkCredentials,
     );
+
     const preview = await RNFetchBlob.fs.readFile(previewPath, 'base64');
 
     await RNFS.unlink(photoPath);
     await RNFS.unlink(previewPath);
 
-    const createdPhoto = await this.photosSdk.photos.createPhoto({
+    const createPhotoData: CreatePhotoData = {
       creationDate: data.creationDate,
       deviceId: data.deviceId,
       height: data.height,
@@ -54,7 +59,8 @@ export default class PhotosUploadService {
       width: data.width,
       fileId,
       previewId,
-    });
+    };
+    const createdPhoto = await this.photosSdk.photos.createPhoto(createPhotoData);
 
     return [createdPhoto, preview];
   }
@@ -64,7 +70,7 @@ export default class PhotosUploadService {
     const scale = 1;
 
     if (Platform.OS === 'android') {
-      throw new Error('(PhotosUploadService.copyPhotoToDocumentsDir) not implement on Android');
+      await RNFS.copyFile(uri, path);
     } else {
       await RNFS.copyAssetsFileIOS(uri, path, width, height, scale);
     }
@@ -72,9 +78,8 @@ export default class PhotosUploadService {
     return path;
   }
 
-  private async generatePreview(filename: string, uri: string): Promise<string> {
-    const { filename: onlyFilename, extension } = items.getFilenameAndExt(filename);
-    const path = `${getDocumentsDir()}/${onlyFilename}-preview${extension ? '.' + extension : ''}`;
+  private async generatePreview(name: string, extension: string, uri: string): Promise<string> {
+    const path = `${getDocumentsDir()}/${name}-preview${extension ? '.' + extension : ''}`;
     const width = 128;
     const height = 128;
 
@@ -83,8 +88,8 @@ export default class PhotosUploadService {
       width,
       height,
       format: 'JPEG',
+      outputPath: Platform.OS === 'android' ? undefined : path,
       quality: 100,
-      outputPath: path,
       rotation: 0,
       options: { mode: 'cover' },
     });

@@ -10,7 +10,7 @@ export function notify(params: NotifyOptions): void {
     type: params.type,
     position: 'top',
     text1: params.text,
-    visibilityTime: 4000,
+    visibilityTime: 3000,
     autoHide: true,
     topOffset: 48,
   });
