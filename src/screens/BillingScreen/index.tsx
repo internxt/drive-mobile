@@ -120,7 +120,9 @@ function Billing(): JSX.Element {
     };
 
     fetch(
-      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${process.env.NODE_ENV === 'development' ? '?test=true' : ''}`,
+      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${
+        process.env.NODE_ENV === 'development' ? '?test=true' : ''
+      }`,
       {
         method: 'POST',
         headers: await getHeaders(),
@@ -132,7 +134,10 @@ function Billing(): JSX.Element {
         if (result.error) {
           throw Error(result.error);
         }
-        const link = `${process.env.REACT_NATIVE_DRIVE_API_URL}/checkout/${result.id}`;
+
+        const sessionId = result.id;
+        const link = `${process.env.REACT_NATIVE_DRIVE_API_URL}/checkout/${sessionId}`;
+        // store sessionId in Redux
 
         Linking.openURL(link);
       })
