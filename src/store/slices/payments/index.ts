@@ -1,25 +1,20 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface PaymentsState {
-  sessionId: string;
-  anonymousId: string;
+  sessionId: string
 }
 
 const initialState: PaymentsState = {
-  sessionId: '',
-  anonymousId: '',
+  sessionId: ''
 };
 
 export const paymentsSlice = createSlice({
   name: 'payments',
   initialState,
   reducers: {
-    setSessionId: (state: PaymentsState, action: PayloadAction<{ sessionId: string }>) => {
-      state.sessionId = action.payload.sessionId;
-    },
-    setAnonymousId(state, action: PayloadAction<{ anonymousId: string }>) {
-      state.anonymousId = action.payload.anonymousId;
-    },
+    setSessionId: (state: PaymentsState, action: PayloadAction<string>) => {
+      state.sessionId = action.payload;
+    }
   },
 });
 

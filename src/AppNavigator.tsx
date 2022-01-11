@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
 import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -21,6 +21,8 @@ import PhotosNavigator from './screens/PhotosNavigator';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { layoutActions } from './store/slices/layout';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
+import { getCheckoutSessionById } from './services/analytics';
+import { paymentsActions } from './store/slices/payments';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -49,11 +51,28 @@ const StackNav = createNativeStackNavigator();
 function AppNavigator(): JSX.Element {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
+  const sessionId = useAppSelector((state) => state.payments.sessionId);
   const initialRouteName = isLoggedIn ? AppScreen.TabExplorer : AppScreen.SignIn;
   const isLinkCopiedModalOpen = useAppSelector((state) => state.layout.isLinkCopiedModalOpen);
   const onLinkCopiedModalClosed = () => {
     dispatch(layoutActions.setIsLinkCopiedModalOpen(false));
   };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      const comesFromCheckout = sessionId !== '';
+
+      if (comesFromCheckout) {
+        getCheckoutSessionById(sessionId).then((res) => {
+          // return trackPayment({...});
+        }).catch((err) => {
+          // no op
+        }).finally(() => {
+          dispatch(paymentsActions.setSessionId(''));
+        });
+      }
+    }
+  });
 
   return (
     <>

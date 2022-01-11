@@ -65,16 +65,6 @@ export default function App(): JSX.Element {
     }
   };
 
-  useEffect(() => {
-    if (sessionId !== '') {
-      trackPayment();
-    }
-    // checkPaymentTrack();
-    // 1. Redux sessionId
-    // 2. Check if session id is paid
-    //  yes: track + clean redux
-  });
-
   // Initialize app
   useEffect(() => {
     if (!isAppInitialized) {

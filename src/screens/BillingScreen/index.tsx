@@ -22,6 +22,8 @@ import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreen } from '../../types';
+import { useAppDispatch } from '../../store/hooks';
+import { paymentsActions } from '../../store/slices/payments';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -71,6 +73,7 @@ const PERIODS = [
 
 function Billing(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
+  const dispatch = useAppDispatch();
   const getLinkOneTimePayment = async (plan: any) => {
     const body = {
       test: process.env.NODE_ENV !== 'production',
@@ -136,10 +139,11 @@ function Billing(): JSX.Element {
         }
 
         const sessionId = result.id;
-        const link = `${process.env.REACT_NATIVE_DRIVE_API_URL}/checkout/${sessionId}`;
-        // store sessionId in Redux
+        dispatch(paymentsActions.setSessionId(sessionId));
 
-        Linking.openURL(link);
+        const link = `${process.env.REACT_NATIVE_DRIVE_API_URL}/checkout/${sessionId}`;
+
+        return Linking.openURL(link);
       })
       .catch((err) => {
         Alert.alert('There has been an error', `${err.message}, please contact us.`, [
