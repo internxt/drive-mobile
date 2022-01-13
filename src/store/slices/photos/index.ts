@@ -33,6 +33,8 @@ export interface PhotosState {
   viewMode: GalleryViewMode;
   allPhotosCount: number;
   photos: { data: Photo; preview: string }[];
+  limit: number;
+  offset: number;
   selectedPhotos: Photo[];
 }
 
@@ -53,6 +55,8 @@ const initialState: PhotosState = {
   viewMode: GalleryViewMode.All,
   allPhotosCount: 0,
   photos: [],
+  limit: 25,
+  offset: 0,
   selectedPhotos: [],
 };
 
@@ -154,7 +158,11 @@ const loadLocalPhotosThunk = createAsyncThunk<
 });
 
 const syncThunk = createAsyncThunk<void, void, { state: RootState }>('photos/sync', async () => {
-  await photosService.sync();
+  const onPhotoAdded = (photo: Photo) => {
+    console.log('onPhotoAdded: ');
+  };
+
+  await photosService.sync({ onPhotoAdded });
 });
 
 const selectAllThunk = createAsyncThunk<Photo[], void, { state: RootState }>('photos/selectAll', async () => {
@@ -198,6 +206,7 @@ export const photosSlice = createSlice({
     builder
       .addCase(initializeThunk.pending, (state) => {
         state.isInitialized = false;
+        state.initializeError = null;
       })
       .addCase(initializeThunk.fulfilled, (state) => {
         state.isInitialized = true;

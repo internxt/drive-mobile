@@ -69,8 +69,8 @@ export class PhotosService {
     return user;
   }
 
-  public sync(): Promise<void> {
-    return this.syncService.run();
+  public sync(options: { onPhotoAdded: (photo: photos.Photo) => void }): Promise<void> {
+    return this.syncService.run(options);
   }
 
   public countPhotos(): Promise<number> {

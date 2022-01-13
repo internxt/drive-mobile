@@ -31,8 +31,10 @@ const GalleryAllView = (): JSX.Element => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
     isPhotoSelected(photo) ? deselectItem(photo) : selectItem(photo);
   };
-  const onItemPressed = (item: Photo) => {
-    isSelectionModeActivated ? onItemLongPressed(item) : navigation.push(PhotosScreen.Preview, { data: item });
+  const onItemPressed = (photo: Photo, preview: string) => {
+    isSelectionModeActivated
+      ? onItemLongPressed(photo)
+      : navigation.push(PhotosScreen.Preview, { data: photo, preview });
   };
   const loadPhotos = async () => {
     await dispatch(photosThunks.loadLocalPhotosThunk({ limit, offset }));
@@ -86,7 +88,7 @@ const GalleryAllView = (): JSX.Element => {
               data={item.item.data}
               preview={item.item.preview}
               isSelected={isPhotoSelected(item.item.data)}
-              onPress={() => onItemPressed(item.item.data)}
+              onPress={() => onItemPressed(item.item.data, item.item.preview)}
               onLongPress={() => onItemLongPressed(item.item.data)}
             />
             {!isTheLast && <View style={{ width: gutter }} />}

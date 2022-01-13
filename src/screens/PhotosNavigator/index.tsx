@@ -9,6 +9,10 @@ import PhotosGalleryScreen from './PhotosGalleryScreen';
 import PhotosPreviewScreen from './PhotosPreviewScreen';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosSelectors, photosThunks } from '../../store/slices/photos';
+import strings from '../../../assets/lang/strings';
+import { Text, View } from 'react-native';
+import { tailwind } from '../../helpers/designSystem';
+import BaseButton from '../../components/BaseButton';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -25,9 +29,12 @@ const routeConfig: RouteConfig = {
 const StackNav = createNativeStackNavigator();
 
 function PhotosNavigator(): JSX.Element {
-  const { isInitialized } = useAppSelector((state) => state.photos);
+  const { isInitialized, initializeError } = useAppSelector((state) => state.photos);
   const arePermissionsGranted = useAppSelector(photosSelectors.arePermissionsGranted);
   const dispatch = useAppDispatch();
+  const onTryAgainInitializeButtonPressed = () => {
+    dispatch(photosThunks.initializeThunk());
+  };
 
   useEffect(() => {
     dispatch(photosThunks.initializeThunk());
@@ -44,6 +51,22 @@ function PhotosNavigator(): JSX.Element {
             <StackNav.Screen key={name} name={name} component={component.screen} />
           ))}
         </StackNav.Navigator>
+      )}
+
+      {initializeError && (
+        <View style={tailwind('flex-1 items-center justify-center')}>
+          <View style={tailwind('px-5')}>
+            <Text style={tailwind('text-red-60')}>
+              {strings.formatString(strings.errors.photosInitialize, initializeError)}
+            </Text>
+            <BaseButton
+              style={tailwind('mt-5')}
+              type="accept"
+              title={strings.components.buttons.tryAgain}
+              onPress={onTryAgainInitializeButtonPressed}
+            />
+          </View>
+        </View>
       )}
     </>
   );

@@ -204,6 +204,7 @@ const strings = new LocalizedStrings({
         moveToThrash: 'Move to trash',
         copyLink: 'Copy link',
         startSyncingPhotos: 'Start syncing my photos',
+        tryAgain: 'Try again',
       },
       inputs: {
         email: 'Email address',
@@ -311,7 +312,7 @@ const strings = new LocalizedStrings({
     },
     errors: {
       unknown: 'Unknown error',
-      photosInitialize: "Error initializing 'photos': {0}",
+      photosInitialize: 'Error initializing Photos: {0}',
       photoShared: 'An error has ocurred during photo sharing',
       photosSync: 'Error during photos sync: {0}',
       photosLoad: 'Error loading photos: {0}',
@@ -523,6 +524,7 @@ const strings = new LocalizedStrings({
         moveToThrash: 'Mover a la papelera',
         copyLink: 'Copiar enlace',
         startSyncingPhotos: 'Sincronizar mis fotos',
+        tryAgain: 'Intentar de nuevo',
       },
       inputs: {
         email: 'Correo electrónico',
@@ -632,7 +634,7 @@ const strings = new LocalizedStrings({
     },
     errors: {
       unknown: 'Error desconocido',
-      photosInitialize: "Error al iniciar 'photos': {0}",
+      photosInitialize: 'Error al iniciar Photos: {0}',
       photoShared: 'Ha habido un error al compartir la foto',
       photosSync: 'Error sincronizando fotos: {0}',
       photosLoad: 'Error cargando fotos: {0}',

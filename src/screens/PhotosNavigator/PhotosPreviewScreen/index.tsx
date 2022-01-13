@@ -23,23 +23,18 @@ interface PreviewProps {
   route: {
     params: {
       data: Photo;
+      preview: string;
     };
   };
 }
 
 function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const examplePhoto = require('../../../../assets/images/photos/example.png');
   const photo = props.route.params.data;
-  /*
-    TODO: Transform from snake case to camel case when fields are queried on SQLite.
-    https://stackoverflow.com/a/38757038/9090874
-  */
   const photoPath = getDocumentsDir() + '/' + photo.fileId;
 
   const dispatch = useAppDispatch();
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const [uri, setUri] = useState('data:image/png;base64,' + 'PREVIEW DATA');
+  const [uri, setUri] = useState('data:image/png;base64,' + props.route.params.preview);
   const [downloadFinished, setDownloadFinished] = useState(false);
   const [progress, setProgress] = useState(0);
   const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
@@ -53,6 +48,9 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   };
   const onMoveToTrashButtonPressed = () => {
     dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
+  };
+  const onPhotoMovedToTrash = () => {
+    navigation.goBack();
   };
   const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
   const onPhotosPreviewOptionsModalClosed = () => {
@@ -115,6 +113,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
       <DeletePhotosModal
         isOpen={isDeletePhotosModalOpen}
         onClosed={() => dispatch(layoutActions.setIsDeletePhotosModalOpen(false))}
+        onPhotosDeleted={onPhotoMovedToTrash}
         data={[props.route.params.data]}
       />
       <SharePhotoModal
@@ -125,7 +124,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
       <View style={tailwind('h-full')}>
         {/* PHOTO */}
         <TapGestureHandler numberOfTaps={1} enabled={true}>
-          <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={examplePhoto} />
+          <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
         </TapGestureHandler>
 
         <SafeAreaView style={tailwind('flex-col justify-between h-full')}>

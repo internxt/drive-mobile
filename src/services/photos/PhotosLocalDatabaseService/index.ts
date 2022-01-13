@@ -2,7 +2,7 @@ import { Photo, PhotoId, PhotoStatus } from '@internxt/sdk/dist/photos';
 
 import sqliteService from '../../sqlite';
 import photosTable from './tables/photos';
-import syncDatesTable from './tables/syncDates';
+import syncTable from './tables/sync';
 import { PhotosServiceModel, PHOTOS_DB_NAME, SqlitePhotoRow } from '../../../types';
 
 export default class PhotosLocalDatabaseService {
@@ -16,7 +16,7 @@ export default class PhotosLocalDatabaseService {
     await sqliteService.open(PHOTOS_DB_NAME);
 
     await sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.createTable);
-    await sqliteService.executeSql(PHOTOS_DB_NAME, syncDatesTable.statements.createTable);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.createTable);
 
     const count = await this.getSyncDatesCount();
     const syncDatesNotInitialized = count === 0;
@@ -26,8 +26,9 @@ export default class PhotosLocalDatabaseService {
   }
 
   public async initSyncDates(): Promise<void> {
-    await sqliteService.executeSql(PHOTOS_DB_NAME, syncDatesTable.statements.insert, [
+    await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.insert, [
       new Date('January 1, 1971 00:00:01'),
+      new Date(),
     ]);
   }
 
@@ -90,11 +91,11 @@ export default class PhotosLocalDatabaseService {
       .then(() => undefined);
   }
 
-  public async getMostRecentPullFromRemoteDate(): Promise<Date | null> {
+  public async getStatusUpdatedDate(): Promise<Date | null> {
     return sqliteService
-      .executeSql(PHOTOS_DB_NAME, syncDatesTable.statements.getMostRecentPullFromRemoteDate)
+      .executeSql(PHOTOS_DB_NAME, syncTable.statements.getMostRecentPullFromRemoteDate)
       .then((res) => {
-        if (res[0].rows.item(0) && res[0].rows.item(0).lastPullFromRemote) {
+        if (res[0].rows.item(0) && res[0].rows.item(0).statusUpdatedDate) {
           return new Date(res[0].rows.item(0).lastPullFromRemote);
         } else {
           return null;
@@ -102,14 +103,32 @@ export default class PhotosLocalDatabaseService {
       });
   }
 
+  public async updateStatusUpdatedDate(date: Date): Promise<void> {
+    return sqliteService
+      .executeSql(PHOTOS_DB_NAME, syncTable.statements.updateStatusUpdatedDate, [date.toUTCString()])
+      .then(() => undefined);
+  }
+
+  public async getMostRecentPullFromRemoteDate(): Promise<Date> {
+    return sqliteService
+      .executeSql(PHOTOS_DB_NAME, syncTable.statements.getMostRecentPullFromRemoteDate)
+      .then((res) => {
+        if (res[0].rows.item(0) && res[0].rows.item(0).lastPullFromRemote) {
+          return new Date(res[0].rows.item(0).lastPullFromRemote);
+        } else {
+          return new Date('January 1, 1971 00:00:01');
+        }
+      });
+  }
+
   public async updateLastPullFromRemoteDate(newDate: Date): Promise<void> {
     return sqliteService
-      .executeSql(PHOTOS_DB_NAME, syncDatesTable.statements.updateByDate, [newDate.toUTCString()])
+      .executeSql(PHOTOS_DB_NAME, syncTable.statements.updateByDate, [newDate.toUTCString()])
       .then(() => undefined);
   }
 
   public getSyncDatesCount(): Promise<number> {
-    return sqliteService.executeSql(PHOTOS_DB_NAME, syncDatesTable.statements.selectCount).then((res) => {
+    return sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.selectCount).then((res) => {
       if (res[0].rows.item(0)) {
         return res[0].rows.item(0).count;
       } else {
@@ -145,7 +164,7 @@ export default class PhotosLocalDatabaseService {
 
   public async resetDatabase(): Promise<void> {
     await sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.dropTable);
-    await sqliteService.executeSql(PHOTOS_DB_NAME, syncDatesTable.statements.dropTable);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.dropTable);
   }
 
   private mapPhotoRowToModel(row: SqlitePhotoRow): Photo {

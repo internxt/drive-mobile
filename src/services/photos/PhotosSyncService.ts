@@ -1,4 +1,5 @@
 import { photos } from '@internxt/sdk';
+import Axios from 'axios';
 import { getMacAddress, getDeviceName } from 'react-native-device-info';
 
 import { PhotosServiceModel } from '../../types';
@@ -36,13 +37,9 @@ export default class PhotosSyncService {
     this.localDatabaseService = localDatabaseService;
   }
 
-  public async run(): Promise<void> {
+  public async run(options: { onPhotoAdded: (photo: photos.Photo) => void }): Promise<void> {
     try {
       console.log('[SYNC-MAIN]: STARTED');
-
-      // TODO: If first time, download all photos already uploaded because
-      // the app could be reinstalled and the database is gone but the photos
-      // are already uploaded
 
       if (!this.model.user) {
         throw new Error('photos user not found');
@@ -51,19 +48,18 @@ export default class PhotosSyncService {
       const device = await this.initializeDevice(this.model.user?.id);
       console.log('[SYNC-MAIN]: DEVICE INITIALIZED');
 
+      await this.updateLocalPhotosStatus();
+      console.log('[SYNC-MAIN]: UPDATED STATUS OF LOCAL PHOTOS');
+
       await this.downloadRemotePhotos();
       console.log('[SYNC-MAIN]: REMOTE PHOTOS DOWNLOADED');
 
-      await this.uploadLocalPhotos(this.model.user?.id, device.id);
+      await this.uploadLocalPhotos(this.model.user?.id, device.id, { onPhotoAdded: options.onPhotoAdded });
       console.log('[SYNC-MAIN]: LOCAL PHOTOS UPLOADED');
 
       console.log('[SYNC-MAIN]: FINISHED');
-
-      // console.log('RESETING DB');
-      // await this.database.reset();
-      // console.log('DB RESETED');
     } catch (err) {
-      console.log('[SYNC-MAIN]: FAILED:', JSON.stringify(err, undefined, 2));
+      console.log('[SYNC-MAIN]: FAILED:', err);
       throw err;
     }
   }
@@ -75,9 +71,20 @@ export default class PhotosSyncService {
     return this.photosSdk.devices.createDevice({ mac, name, userId });
   }
 
+  /**
+   * @description Updates status of local photos that were changed from another device
+   */
+  private async updateLocalPhotosStatus() {
+    const statusUpdatedDate = await this.localDatabaseService.getStatusUpdatedDate();
+
+    // TODO: get paginated photos with lastStatusChangeAt >= statusUpdatedDate
+  }
+
+  /**
+   * @description Downloads remote photos that are not on this device
+   */
   private async downloadRemotePhotos(): Promise<void> {
-    const lastUpdate =
-      (await this.localDatabaseService.getMostRecentPullFromRemoteDate()) ?? new Date('January 1, 1971 00:00:01');
+    const lastUpdate = await this.localDatabaseService.getMostRecentPullFromRemoteDate();
     const limit = 20;
     let offset = 0;
     let photos;
@@ -112,7 +119,14 @@ export default class PhotosSyncService {
     await this.localDatabaseService.updateLastPullFromRemoteDate(newPullFromRemoteDate);
   }
 
-  async uploadLocalPhotos(userId: photos.UserId, deviceId: photos.DeviceId): Promise<void> {
+  /**
+   * @description Uploads new local photos
+   */
+  async uploadLocalPhotos(
+    userId: photos.UserId,
+    deviceId: photos.DeviceId,
+    options: { onPhotoAdded: (photo: photos.Photo) => void },
+  ): Promise<void> {
     const lastUpdate =
       (await this.localDatabaseService.getMostRecentCreationDate()) ?? new Date('January 1, 1971 00:00:01');
     const limit = 20;
@@ -177,9 +191,8 @@ export default class PhotosSyncService {
 
         const [createdPhoto, preview] = await this.uploadService.upload(photo.data, photo.uri);
 
-        console.log('CREATED PHOTO: ', createdPhoto);
-
         await this.localDatabaseService.insertPhoto(createdPhoto, preview);
+        options.onPhotoAdded?.(createdPhoto);
       }
     } while (photosToUpload.length === limit);
   }
