@@ -17,7 +17,7 @@ import GalleryItem from '../GalleryItem';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
-import { PhotosScreen } from '../../types/photos';
+import { AppScreen } from '../../types';
 
 const GalleryDay = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -46,7 +46,7 @@ const GalleryDay = (): JSX.Element => {
     isPhotoSelected(photo) ? deselectItem(photo) : selectItem(photo);
   };
   const onItemPressed = (item: Photo) => {
-    isSelectionModeActivated ? onItemLongPressed(item) : navigation.push(PhotosScreen.Preview, { data: item });
+    isSelectionModeActivated ? onItemLongPressed(item) : navigation.push(AppScreen.PhotosPreview, { data: item });
   };
 
   return (

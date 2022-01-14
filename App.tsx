@@ -9,7 +9,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 import axios from 'axios';
 
 import { store } from './src/store';
-import AppNavigator from './src/AppNavigator';
+import AppNavigator from './src/screens/AppNavigator';
 import { analyticsSetup, trackStackScreen } from './src/services/analytics';
 import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './src/helpers';
 import { getColor, tailwind } from './src/helpers/designSystem';

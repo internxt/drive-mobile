@@ -5,7 +5,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import PhotosPermissionsScreen from './PhotosPermissionsScreen';
 import PhotosGalleryScreen from './PhotosGalleryScreen';
-import PhotosPreviewScreen from './PhotosPreviewScreen';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosSelectors, photosThunks } from '../../store/slices/photos';
 import strings from '../../../assets/lang/strings';
@@ -23,7 +22,6 @@ type RouteConfig = NavigationRouteConfigMap<
 const routeConfig: RouteConfig = {
   [PhotosScreen.Permissions]: { screen: PhotosPermissionsScreen },
   [PhotosScreen.Gallery]: { screen: PhotosGalleryScreen },
-  [PhotosScreen.Preview]: { screen: PhotosPreviewScreen },
 };
 
 const StackNav = createNativeStackNavigator();

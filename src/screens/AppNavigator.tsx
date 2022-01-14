@@ -3,24 +3,26 @@ import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'rea
 import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { AppScreen } from './types';
-import UpdateModal from './components/modals/UpdateModal';
-import CreateFolderScreen from './screens/CreateFolderScreen';
-import SignInScreen from './screens/SignInScreen';
-import SignUpScreen from './screens/SignUpScreen';
-import IntroScreen from './screens/IntroScreen';
-import HomeScreen from './screens/HomeScreen';
-import OutOfSpaceScreen from './screens/OutOfSpaceScreen';
-import StorageScreen from './screens/StorageScreen';
-import AuthenticatedNavigator from './screens/AuthenticatedNavigator';
-import BillingScreen from './screens/BillingScreen';
-import ChangePasswordScreen from './screens/ChangePasswordScreen';
-import RecoverPasswordScreen from './screens/RecoverPasswordScreen';
-import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
-import PhotosNavigator from './screens/PhotosNavigator';
-import { useAppDispatch, useAppSelector } from './store/hooks';
-import { layoutActions } from './store/slices/layout';
-import LinkCopiedModal from './components/modals/LinkCopiedModal';
+import { AppScreen } from '../types';
+import UpdateModal from '../components/modals/UpdateModal';
+import CreateFolderScreen from './CreateFolderScreen';
+import SignInScreen from './SignInScreen';
+import SignUpScreen from './SignUpScreen';
+import IntroScreen from './IntroScreen';
+import HomeScreen from './HomeScreen';
+import OutOfSpaceScreen from './OutOfSpaceScreen';
+import StorageScreen from './StorageScreen';
+import AuthenticatedNavigator from './AuthenticatedNavigator';
+import BillingScreen from './BillingScreen';
+import ChangePasswordScreen from './ChangePasswordScreen';
+import RecoverPasswordScreen from './RecoverPasswordScreen';
+import ForgotPasswordScreen from './ForgotPasswordScreen';
+import PhotosNavigator from './PhotosNavigator';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { layoutActions } from '../store/slices/layout';
+import LinkCopiedModal from '../components/modals/LinkCopiedModal';
+import { PhotosScreen } from '../types/photos';
+import PhotosPreviewScreen from './PhotosNavigator/PhotosPreviewScreen';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -42,6 +44,7 @@ const routeConfig: RouteConfig = {
   [AppScreen.ChangePassword]: { screen: ChangePasswordScreen },
   [AppScreen.RecoverPassword]: { screen: RecoverPasswordScreen },
   [AppScreen.Photos]: { screen: PhotosNavigator },
+  [AppScreen.PhotosPreview]: { screen: PhotosPreviewScreen },
 };
 
 const StackNav = createNativeStackNavigator();

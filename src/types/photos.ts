@@ -4,7 +4,6 @@ import { NetworkCredentials } from '.';
 export enum PhotosScreen {
   Permissions = 'photos-permissions',
   Gallery = 'photos-gallery',
-  Preview = 'photos-preview',
 }
 
 export enum GalleryViewMode {
