@@ -1,10 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, TextInput, TouchableHighlight, View, Text, Alert, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  TextInput,
+  TouchableHighlight,
+  View,
+  Text,
+  Alert,
+  ScrollView,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import CheckBox from '../../components/CheckBox';
 import strings from '../../../assets/lang/strings';
-import { deviceStorage } from '../../services/deviceStorage';
 import Intro from '../IntroScreen';
 import { doRegister } from './registerUtils';
 import InternxtLogo from '../../../assets/logo.svg';
@@ -13,8 +21,8 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import validationService from '../../services/validation';
 import authService from '../../services/auth';
 import { AppScreen, DevicePlatform } from '../../types';
-import { authActions, authThunks } from '../../store/slices/auth';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { authThunks } from '../../store/slices/auth';
+import { useAppDispatch } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import errorService from '../../services/error';
@@ -22,7 +30,6 @@ import errorService from '../../services/error';
 function SignUpScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
   const dispatch = useAppDispatch();
-  const { loggedIn, user, token } = useAppSelector((state) => state.auth);
   const [showIntro, setShowIntro] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const twoFactorCode = '';
@@ -34,21 +41,22 @@ function SignUpScreen(): JSX.Element {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptPolicy, setAcceptPolicy] = useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [firstNameFocus, setFirstNameFocus] = useState(false);
   const [lastNameFocus, setLastNameFocus] = useState(false);
   const [emailFocus, setEmailFocus] = useState(false);
   const [passwordFocus, setPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
-  const [recaptchaToken, setRecaptchaToken] = useState<string>('');
+  const [recaptchaToken] = useState<string>('');
 
   const isEmptyEmail = validationService.isNullOrEmpty(email);
   const isValidEmail = validationService.validateEmail(email);
   const isValidFirstName = !validationService.isNullOrEmpty(firstName);
   const isValidLastName = !validationService.isNullOrEmpty(lastName);
   const isEmptyPassword = validationService.isNullOrEmpty(password);
-  const isEmptyConfirmedPassword = validationService.isNullOrEmpty(confirmPassword);
+  const isConfirmPasswordEmpty = validationService.isNullOrEmpty(confirmPassword);
   const isValidPassword = validationService.isStrongPassword(password);
   const isValidConfirmedPassword = confirmPassword && password === confirmPassword;
 
@@ -56,26 +64,6 @@ function SignUpScreen(): JSX.Element {
     isValidEmail && isValidFirstName && isValidLastName && isValidPassword && isValidConfirmedPassword && acceptPolicy;
 
   const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
-
-  useEffect(() => {
-    if (loggedIn) {
-      const rootFolderId = user?.root_folder_id;
-
-      navigation.replace(AppScreen.Drive, {
-        folderId: rootFolderId,
-      });
-    } else {
-      (async () => {
-        const token = await deviceStorage.getToken();
-        const photosToken = await deviceStorage.getItem('photosToken');
-        const user = await deviceStorage.getUser();
-
-        if (token && user) {
-          dispatch(authActions.signIn({ token, photosToken: photosToken || '', user }));
-        }
-      })();
-    }
-  }, [loggedIn, token]);
 
   if (showIntro) {
     return <Intro onFinish={() => setShowIntro(false)} />;
@@ -118,6 +106,8 @@ function SignUpScreen(): JSX.Element {
       const userLoginData = await authService.apiLogin(email);
 
       await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }));
+
+      navigation.replace(AppScreen.TabExplorer);
     } catch (err) {
       const castedError = errorService.castError(err);
 
@@ -229,20 +219,29 @@ function SignUpScreen(): JSX.Element {
                   autoCapitalize="none"
                   autoCompleteType="password"
                   autoCorrect={false}
-                  secureTextEntry={true}
+                  secureTextEntry={!showPassword}
                   key="password"
                   onFocus={() => setPasswordFocus(true)}
                   onBlur={() => setPasswordFocus(false)}
                 />
-                <View style={[tailwind('justify-center p-3'), !passwordFocus && isEmptyPassword && tailwind('hidden')]}>
-                  <Unicons.UilEye color={getColor('neutral-80')} />
-                </View>
+
+                {(!isEmptyPassword || passwordFocus) && (
+                  <TouchableWithoutFeedback onPress={() => setShowPassword(!showPassword)}>
+                    <View style={tailwind('justify-center p-3')}>
+                      {showPassword ? (
+                        <Unicons.UilEyeSlash color={getColor('neutral-80')} />
+                      ) : (
+                        <Unicons.UilEye color={getColor('neutral-80')} />
+                      )}
+                    </View>
+                  </TouchableWithoutFeedback>
+                )}
               </View>
 
               <View
                 style={[
                   tailwind('input-wrapper my-2 items-stretch'),
-                  isEmptyConfirmedPassword ? {} : tailwind(isValidConfirmedPassword ? 'input-valid' : 'input-error'),
+                  !isConfirmPasswordEmpty && tailwind(isValidConfirmedPassword ? 'input-valid' : 'input-error'),
                 ]}
               >
                 <TextInput
@@ -251,21 +250,24 @@ function SignUpScreen(): JSX.Element {
                   onChangeText={(value) => setConfirmPassword(value)}
                   placeholder={strings.components.inputs.confirm_password}
                   placeholderTextColor="#666"
-                  secureTextEntry={true}
+                  secureTextEntry={!showConfirmPassword}
                   textContentType="password"
                   key="confirmPassword"
                   onFocus={() => setConfirmPasswordFocus(true)}
                   onBlur={() => setConfirmPasswordFocus(false)}
                 />
 
-                <View
-                  style={[
-                    tailwind('justify-center p-3'),
-                    !confirmPasswordFocus && isEmptyConfirmedPassword && tailwind('hidden'),
-                  ]}
-                >
-                  <Unicons.UilEye color={getColor('neutral-80')} />
-                </View>
+                {(!isConfirmPasswordEmpty || confirmPasswordFocus) && (
+                  <TouchableWithoutFeedback onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <View style={tailwind('justify-center p-3')}>
+                      {showConfirmPassword ? (
+                        <Unicons.UilEyeSlash color={getColor('neutral-80')} />
+                      ) : (
+                        <Unicons.UilEye color={getColor('neutral-80')} />
+                      )}
+                    </View>
+                  </TouchableWithoutFeedback>
+                )}
               </View>
             </View>
           </View>

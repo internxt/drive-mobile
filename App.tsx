@@ -67,13 +67,15 @@ export default function App(): JSX.Element {
 
   // Initialize app
   useEffect(() => {
-    Promise.all([loadFonts(), loadEnvVars(), analyticsSetup(), loadLocalUser()])
-      .then(() => {
-        setIsAppInitialized(true);
-      })
-      .catch((err: Error) => {
-        setLoadError(err.message);
-      });
+    if (!isAppInitialized) {
+      Promise.all([loadFonts(), loadEnvVars(), analyticsSetup(), loadLocalUser()])
+        .then(() => {
+          setIsAppInitialized(true);
+        })
+        .catch((err: Error) => {
+          setLoadError(err.message);
+        });
+    }
 
     shouldForceUpdate()
       .then((shouldForce) => {

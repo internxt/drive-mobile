@@ -15,11 +15,15 @@ export async function analyticsSetup(): Promise<void> {
     // eslint-disable-next-line no-console
     console.warn('No WRITEKEY Key provided');
   }
-  await analytics.setup(WRITEKEY, {
-    recordScreenViews: true,
-    trackAppLifecycleEvents: true,
-    using: [Firebase],
-  });
+  if (!analytics.ready) {
+    await analytics
+      .setup(WRITEKEY, {
+        recordScreenViews: true,
+        trackAppLifecycleEvents: true,
+        using: [Firebase],
+      })
+      .catch(() => undefined); // ! hotfix - Ignore analytics initialization errors (segment analytics allocated multiple times)
+  }
 }
 
 export async function getAnalyticsUuid(): Promise<string> {
