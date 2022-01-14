@@ -2,6 +2,30 @@ import CameraRoll from '@react-native-community/cameraroll';
 import { Platform } from 'react-native';
 
 export default class PhotosCameraRollService {
+  public async count({ from, to }: { from?: Date; to?: Date }): Promise<number> {
+    const PAGE_SIZE = 100;
+    let hasNextPage = true;
+    let cursor: string | undefined;
+    let count = 0;
+
+    do {
+      const { edges, page_info } = await CameraRoll.getPhotos({
+        first: PAGE_SIZE,
+        after: cursor,
+        fromTime: from && from.getTime(),
+        toTime: to && to.getTime(),
+        assetType: 'Photos',
+        groupTypes: 'All',
+      });
+
+      hasNextPage = page_info.has_next_page;
+      cursor = page_info.end_cursor;
+      count += edges.length;
+    } while (hasNextPage);
+
+    return count;
+  }
+
   public async loadLocalPhotos(
     from: Date,
     to: Date,

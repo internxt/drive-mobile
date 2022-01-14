@@ -1,24 +1,19 @@
-const tableName = 'sync_dates';
+const TABLE_NAME = 'sync_dates';
 
 const statements = {
-  cleanTable: `DELETE FROM ${tableName};`,
-  selectCount: `SELECT COUNT(*) as count FROM ${tableName}`,
-  createTable: `CREATE TABLE IF NOT EXISTS ${tableName} (\
+  cleanTable: `DELETE FROM ${TABLE_NAME};`,
+  createTable: `CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (\
       id TEXT PRIMARY KEY, \
-      last_pull_from_remote DATE NOT NULL, \
-      status_updated_date DATE NOT NULL \
+      updated_at DATE NOT NULL \
     );`,
-  getStatusUpdatedDate: `SELECT status_updated_date as statusUpdatedDate
-    FROM ${tableName} 
+  dropTable: `DROP TABLE ${TABLE_NAME};`,
+  selectCount: `SELECT COUNT(*) as count FROM ${TABLE_NAME}`,
+  getUpdatedAt: `SELECT updated_at as updatedAt
+    FROM ${TABLE_NAME} 
     LIMIT 1;`,
-  getMostRecentPullFromRemoteDate: `SELECT last_pull_from_remote as lastPullFromRemote
-    FROM ${tableName} 
-    LIMIT 1;`,
-  dropTable: `DROP TABLE ${tableName};`,
-  insert: `INSERT INTO ${tableName} (last_pull_from_remote, status_updated_date) \
-    VALUES ( ?, ? );`,
-  updateByDate: `UPDATE ${tableName} SET last_pull_from_remote = ?;`,
-  updateStatusUpdatedDate: `UPDATE ${tableName} SET status_updated_date = ?;`,
+  insert: `INSERT INTO ${TABLE_NAME} (updated_at) \
+    VALUES ( ? );`,
+  setUpdatedAt: `UPDATE ${TABLE_NAME} SET updated_at = ?;`,
 };
 
 export default {

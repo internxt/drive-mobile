@@ -1,13 +1,12 @@
 import RNFetchBlob from 'rn-fetch-blob';
 import RNFS from 'react-native-fs';
 import { Photo, Photos, CreatePhotoData } from '@internxt/sdk/dist/photos';
-import { items } from '@internxt/lib';
+import { Platform } from 'react-native';
 
 import * as network from '../network';
-import { PhotosServiceModel } from '../../types';
 import { getDocumentsDir } from '../../lib/fs';
 import imageService from '../image';
-import { Platform } from 'react-native';
+import { PhotosServiceModel } from '../../types/photos';
 
 export default class PhotosUploadService {
   private readonly model: PhotosServiceModel;
@@ -49,7 +48,7 @@ export default class PhotosUploadService {
     await RNFS.unlink(previewPath);
 
     const createPhotoData: CreatePhotoData = {
-      creationDate: data.creationDate,
+      takenAt: data.takenAt,
       deviceId: data.deviceId,
       height: data.height,
       name: data.name, // TODO: Encrypt name

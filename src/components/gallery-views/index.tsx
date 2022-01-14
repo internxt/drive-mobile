@@ -1,4 +1,4 @@
-import { GalleryViewMode } from '../../types';
+import { GalleryViewMode } from '../../types/photos';
 import GalleryAllView from './GalleryAllView';
 import GalleryDaysView from './GalleryDaysView';
 import GalleryMonthsView from './GalleryMonthsView';

@@ -9,8 +9,7 @@ import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { photosSelectors, photosThunks } from '../../../store/slices/photos';
 import globalStyle from '../../../styles/global.style';
-
-import { PhotosScreen } from '../../../types';
+import { PhotosScreen } from '../../../types/photos';
 
 function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackProp }): JSX.Element {
   const dispatch = useAppDispatch();

@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
+import { Photo } from '@internxt/sdk/dist/photos';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -16,8 +17,7 @@ import GalleryItem from '../GalleryItem';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
-import { PhotosScreen } from '../../types';
-import { Photo } from '@internxt/sdk/dist/photos';
+import { PhotosScreen } from '../../types/photos';
 
 const GalleryDay = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -81,7 +81,7 @@ const GalleryDay = (): JSX.Element => {
             refreshing={refreshing}
             onRefresh={async () => {
               setRefreshing(true);
-              await dispatch(photosThunks.loadLocalPhotosThunk({ limit: 15, offset: 0 }));
+              await dispatch(photosThunks.loadLocalPhotosThunk({ limit: 15, skip: 0 }));
               setRefreshing(false);
             }}
           />

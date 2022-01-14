@@ -3,8 +3,8 @@ import { View, Image, TouchableOpacity } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
-import { GalleryItemType } from '../../types';
 import { Photo } from '@internxt/sdk/dist/photos';
+import { GalleryItemType } from '../../types/photos';
 
 interface GalleryItemProps {
   type?: GalleryItemType;
@@ -36,7 +36,7 @@ const GalleryItem = ({
 
   return (
     <TouchableOpacity
-      style={[tailwind('bg-black'), { width: size, height: size }]}
+      style={[tailwind('bg-neutral-30'), { width: size, height: size }]}
       onPress={onPress}
       onLongPress={onLongPress}
     >

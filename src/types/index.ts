@@ -1,6 +1,3 @@
-import { photos } from '@internxt/sdk';
-import { PhotoStatus, User } from '@internxt/sdk/dist/photos';
-
 export enum AppScreen {
   SignUp = 'sign-up',
   SignIn = 'sign-in',
@@ -19,12 +16,6 @@ export enum AppScreen {
   Storage = 'storage',
   Billing = 'billing',
   Photos = 'photos',
-}
-
-export enum PhotosScreen {
-  Permissions = 'photos-permissions',
-  Gallery = 'photos-gallery',
-  Preview = 'photos-preview',
 }
 
 export enum DevicePlatform {
@@ -79,16 +70,6 @@ export interface DriveFileMetadataPayload {
   itemName: string;
 }
 
-export enum GalleryViewMode {
-  Years = 'years',
-  Months = 'months',
-  Days = 'days',
-  All = 'all',
-}
-export enum GalleryItemType {
-  Image = 'image',
-}
-
 export default class AppError extends Error {
   readonly status?: number;
 
@@ -106,32 +87,4 @@ export interface NetworkCredentials {
   encryptionKey: Mnemonic;
   user: NetworkUser;
   password: NetworkPass;
-}
-
-export const PHOTOS_DB_NAME = 'photos.db';
-
-export interface PhotosServiceModel {
-  accessToken: string;
-  networkCredentials: NetworkCredentials;
-  networkUrl: string;
-  user?: User;
-}
-
-export interface SqlitePhotoRow {
-  id: string;
-  status: PhotoStatus;
-  name: string;
-  width: number;
-  height: number;
-  size: number;
-  type: string;
-  user_id: string;
-  device_id: string;
-  file_id: string;
-  preview_id: string;
-  last_status_change_at: Date;
-  creation_date: Date;
-  created_at: Date;
-  updated_at: Date;
-  preview: string;
 }

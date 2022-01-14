@@ -7,8 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import { tailwind } from '../../helpers/designSystem';
 import GalleryItem from '../GalleryItem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { PhotosScreen } from '../../types';
 import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
+import { PhotosScreen } from '../../types/photos';
 
 const GalleryAllView = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -20,7 +20,7 @@ const GalleryAllView = (): JSX.Element => {
   const [gutter] = useState(3);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
   const limit = 50;
-  const offset = 0;
+  const skip = 0;
   const selectItem = (photo: Photo) => {
     dispatch(photosActions.selectPhoto(photo));
   };
@@ -37,7 +37,7 @@ const GalleryAllView = (): JSX.Element => {
       : navigation.push(PhotosScreen.Preview, { data: photo, preview });
   };
   const loadPhotos = async () => {
-    await dispatch(photosThunks.loadLocalPhotosThunk({ limit, offset }));
+    await dispatch(photosThunks.loadLocalPhotosThunk({ limit, skip }));
 
     console.log('GalleryAllView.loadPhotos - completed!');
   };

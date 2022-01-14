@@ -1,6 +1,8 @@
 import ImageResizer, { ResizeFormat, ResizeMode } from 'react-native-image-resizer';
 
 class ImageService {
+  public readonly BASE64_PREFIX = 'data:image/png;base64,';
+
   public async resize({
     uri,
     width,

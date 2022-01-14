@@ -10,6 +10,7 @@ const strings = new LocalizedStrings({
       security: 'Security',
       create: 'Create',
       creating: 'Creating...',
+      preparing: 'Preparing...',
       rename: 'Rename',
       close: 'Close',
       upload: 'Upload',
@@ -317,6 +318,7 @@ const strings = new LocalizedStrings({
       photosSync: 'Error during photos sync: {0}',
       photosLoad: 'Error loading photos: {0}',
       photosDelete: 'Error deleting photo/s: {0}',
+      photosFullSizeLoad: 'Error loading full size photo: {0}',
     },
   },
   es: {
@@ -326,6 +328,7 @@ const strings = new LocalizedStrings({
       security: 'Seguridad',
       create: 'Crear',
       creating: 'Creando...',
+      preparing: 'Preparando...',
       rename: 'Renombrar',
       close: 'Cerrar',
       upload: 'Subir',
@@ -639,6 +642,7 @@ const strings = new LocalizedStrings({
       photosSync: 'Error sincronizando fotos: {0}',
       photosLoad: 'Error cargando fotos: {0}',
       photosDelete: 'Error eliminando foto/s: {0}',
+      photosFullSizeLoad: 'Error cargando foto a tamaño completo: {0}',
     },
   },
 });

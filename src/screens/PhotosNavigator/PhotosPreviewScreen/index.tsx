@@ -18,6 +18,8 @@ import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import { getDocumentsDir } from '../../../lib/fs';
 import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfoModal';
 import { photosThunks } from '../../../store/slices/photos';
+import imageService from '../../../services/image';
+import LoadingSpinner from '../../../components/LoadingSpinner';
 
 interface PreviewProps {
   route: {
@@ -34,8 +36,8 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
 
   const dispatch = useAppDispatch();
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const [uri, setUri] = useState('data:image/png;base64,' + props.route.params.preview);
-  const [downloadFinished, setDownloadFinished] = useState(false);
+  const [uri, setUri] = useState(imageService.BASE64_PREFIX + props.route.params.preview);
+  const [isFullSizeLoaded, setIsFullSizeLoaded] = useState(false);
   const [progress, setProgress] = useState(0);
   const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
     (state) => state.layout,
@@ -78,19 +80,17 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
     )
       .unwrap()
       .then((fileUri: string) => {
-        setUri(fileUri);
-        setDownloadFinished(true);
+        setUri(imageService.BASE64_PREFIX + fileUri);
+        setIsFullSizeLoaded(true);
       })
-      .catch((err) => {
-        console.log(err.message);
-      });
+      .catch(() => undefined);
   };
 
   useEffect(() => {
     isPhotoAlreadyDownloaded().then((isDownloaded) => {
       if (isDownloaded) {
         setUri(photoPath);
-        setDownloadFinished(true);
+        setIsFullSizeLoaded(true);
       } else {
         loadImage();
       }
@@ -127,6 +127,14 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
           <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
         </TapGestureHandler>
 
+        {/* LOADING */}
+        {!isFullSizeLoaded && (
+          <View style={tailwind('absolute top-0 bottom-0 right-0 left-0 items-center justify-center')}>
+            <LoadingSpinner size={32} color={getColor('white')} />
+            <Text style={tailwind('text-white')}>{(progress * 100).toFixed(0) + '%'}</Text>
+          </View>
+        )}
+
         <SafeAreaView style={tailwind('flex-col justify-between h-full')}>
           <LinearGradient
             colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.24)', 'transparent']}
@@ -134,7 +142,6 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
           >
             <View style={tailwind('flex-row justify-between p-5')}>
               {/* BACK BUTTON */}
-              {/*<Text style={tailwind('text-white text-xs')}>{(progress * 100).toFixed(2) + '%'}</Text> */}
               <TouchableOpacity style={tailwind('z-10')} onPress={onBackButtonPressed}>
                 <Unicons.UilAngleLeft color={getColor('white')} size={32} />
               </TouchableOpacity>
@@ -155,7 +162,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
               <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.shareWithLink}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              disabled={!downloadFinished}
+              disabled={!isFullSizeLoaded}
               style={tailwind('items-center')}
               onPress={onDownloadButtonPressed}
             >

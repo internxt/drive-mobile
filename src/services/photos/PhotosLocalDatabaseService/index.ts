@@ -1,9 +1,10 @@
 import { Photo, PhotoId, PhotoStatus } from '@internxt/sdk/dist/photos';
+import { PhotosServiceModel, PHOTOS_DB_NAME, SqlitePhotoRow, SqlitePhotoSourceRow } from '../../../types/photos';
 
 import sqliteService from '../../sqlite';
-import photosTable from './tables/photos';
+import photoTable from './tables/photo';
+import photoSourceTable from './tables/photo_source';
 import syncTable from './tables/sync';
-import { PhotosServiceModel, PHOTOS_DB_NAME, SqlitePhotoRow } from '../../../types';
 
 export default class PhotosLocalDatabaseService {
   private readonly model: PhotosServiceModel;
@@ -15,7 +16,8 @@ export default class PhotosLocalDatabaseService {
   public async initialize(): Promise<void> {
     await sqliteService.open(PHOTOS_DB_NAME);
 
-    await sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.createTable);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.createTable);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, photoSourceTable.statements.createTable);
     await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.createTable);
 
     const count = await this.getSyncDatesCount();
@@ -26,108 +28,138 @@ export default class PhotosLocalDatabaseService {
   }
 
   public async initSyncDates(): Promise<void> {
-    await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.insert, [
-      new Date('January 1, 1971 00:00:01'),
-      new Date(),
-    ]);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.insert, [new Date('January 1, 1971 00:00:01')]);
   }
 
   public async countPhotos(): Promise<number> {
-    const result = await sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.count);
+    const result = await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.count);
 
     return result[0].rows.item(0).count;
   }
 
-  public async getPhotos(offset: number, limit = 60): Promise<{ data: Photo; preview: string }[]> {
-    return sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.get, [limit, offset]).then(([{ rows }]) => {
-      offset += limit;
+  public async getPhotos(offset: number, limit: number): Promise<{ data: Photo; preview: string }[]> {
+    return sqliteService
+      .executeSql(PHOTOS_DB_NAME, photoTable.statements.get, [limit, offset])
+      .then(async ([{ rows }]) => {
+        const results: { data: Photo; preview: string }[] = [];
 
-      return (rows.raw() as unknown as SqlitePhotoRow[]).map((row) => ({
-        data: this.mapPhotoRowToModel(row),
-        preview: row.preview,
-      }));
-    });
+        for (const row of rows.raw() as unknown as SqlitePhotoRow[]) {
+          const [{ rows }] = await sqliteService.executeSql(PHOTOS_DB_NAME, photoSourceTable.statements.getByPhotoId, [
+            row.id,
+          ]);
+          const photoSourceRow = rows.item(0) as SqlitePhotoSourceRow;
+
+          results.push({
+            data: this.mapPhotoRowToModel(row),
+            preview: photoSourceRow.preview_source,
+          });
+        }
+
+        return results;
+      });
   }
 
   public async getAllWithoutPreview(): Promise<Photo[]> {
-    return sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.getAllWithoutPreview).then(([{ rows }]) => {
+    return sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getAll).then(([{ rows }]) => {
       return (rows.raw() as unknown as SqlitePhotoRow[]).map((row) => this.mapPhotoRowToModel(row));
     });
   }
 
-  public async getMostRecentCreationDate(): Promise<Date | null> {
-    return sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.getMostRecentCreationDate).then((res) => {
-      if (res[0].rows.item(0) && res[0].rows.item(0).creationDate) {
-        return new Date(res[0].rows.item(0).creationDate);
+  public async getMostRecentTakenAt(): Promise<Date | null> {
+    return sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getMostRecentTakenAt).then((res) => {
+      if (res[0].rows.item(0) && res[0].rows.item(0).takenAt) {
+        return new Date(res[0].rows.item(0).takenAt);
       } else {
         return null;
       }
     });
   }
 
-  public async getPhotoByName(photoName: string): Promise<Photo | null> {
-    return sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.getPhotoByName, [photoName]).then((res) => {
-      if (res[0].rows.item(0)) {
-        return res[0].rows.item(0);
-      } else {
-        return null;
-      }
-    });
-  }
-
-  public async getPhotoById(photoId: PhotoId): Promise<Photo | null> {
-    return sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.getById, [photoId]).then((res) => {
-      if (res[0].rows.item(0)) {
-        return res[0].rows.item(0);
-      } else {
-        return null;
-      }
-    });
-  }
-
-  public async updatePhotoStatusById(photoId: PhotoId, newStatus: PhotoStatus): Promise<void> {
+  public async getPhotoByNameAndType(name: string, type: string): Promise<Photo | null> {
     return sqliteService
-      .executeSql(PHOTOS_DB_NAME, photosTable.statements.updatePhotoStatusById, [newStatus, photoId])
-      .then(() => undefined);
-  }
-
-  public async getStatusUpdatedDate(): Promise<Date | null> {
-    return sqliteService
-      .executeSql(PHOTOS_DB_NAME, syncTable.statements.getMostRecentPullFromRemoteDate)
+      .executeSql(PHOTOS_DB_NAME, photoTable.statements.getPhotoByNameAndType, [name, type])
       .then((res) => {
-        if (res[0].rows.item(0) && res[0].rows.item(0).statusUpdatedDate) {
-          return new Date(res[0].rows.item(0).lastPullFromRemote);
+        if (res[0].rows.item(0)) {
+          return res[0].rows.item(0);
         } else {
           return null;
         }
       });
   }
 
-  public async updateStatusUpdatedDate(date: Date): Promise<void> {
+  public async getPhotoById(photoId: PhotoId): Promise<Photo | null> {
+    return sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getById, [photoId]).then((res) => {
+      if (res[0].rows.item(0)) {
+        return res[0].rows.item(0);
+      } else {
+        return null;
+      }
+    });
+  }
+
+  public async getPhotoPreview(photoId: PhotoId): Promise<string | null> {
+    const [{ rows }] = await sqliteService.executeSql(PHOTOS_DB_NAME, photoSourceTable.statements.getByPhotoId, [
+      photoId,
+    ]);
+    const photoSourceRow: SqlitePhotoSourceRow | null = rows.item(0) || null;
+
+    return photoSourceRow && photoSourceRow.preview_source;
+  }
+
+  public async updatePhotoStatusById(photoId: PhotoId, newStatus: PhotoStatus): Promise<void> {
     return sqliteService
-      .executeSql(PHOTOS_DB_NAME, syncTable.statements.updateStatusUpdatedDate, [date.toUTCString()])
+      .executeSql(PHOTOS_DB_NAME, photoTable.statements.updatePhotoStatusById, [newStatus, photoId])
       .then(() => undefined);
   }
 
-  public async getMostRecentPullFromRemoteDate(): Promise<Date> {
-    return sqliteService
-      .executeSql(PHOTOS_DB_NAME, syncTable.statements.getMostRecentPullFromRemoteDate)
-      .then((res) => {
-        if (res[0].rows.item(0) && res[0].rows.item(0).lastPullFromRemote) {
-          return new Date(res[0].rows.item(0).lastPullFromRemote);
-        } else {
-          return new Date('January 1, 1971 00:00:01');
-        }
-      });
+  public async getSyncUpdatedAt(): Promise<Date> {
+    return sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.getUpdatedAt).then((res) => {
+      if (res[0].rows.item(0) && res[0].rows.item(0).updatedAt) {
+        return new Date(res[0].rows.item(0).updatedAt);
+      } else {
+        return new Date('January 1, 1971 00:00:01');
+      }
+    });
   }
 
-  public async updateLastPullFromRemoteDate(newDate: Date): Promise<void> {
+  public async setSyncUpdatedAt(date: Date): Promise<void> {
     return sqliteService
-      .executeSql(PHOTOS_DB_NAME, syncTable.statements.updateByDate, [newDate.toUTCString()])
+      .executeSql(PHOTOS_DB_NAME, syncTable.statements.setUpdatedAt, [date.toUTCString()])
       .then(() => undefined);
   }
 
-  public getSyncDatesCount(): Promise<number> {
+  public async insertPhoto(photo: Photo, preview: string): Promise<void> {
+    return sqliteService
+      .transaction(PHOTOS_DB_NAME, (tx) => {
+        tx.executeSql(photoTable.statements.insert, [
+          photo.id,
+          photo.name,
+          photo.type,
+          photo.size,
+          photo.width,
+          photo.height,
+          photo.status,
+          photo.fileId,
+          photo.previewId,
+          photo.deviceId,
+          photo.userId,
+          photo.takenAt,
+          photo.statusChangedAt,
+          photo.createdAt,
+          photo.updatedAt,
+        ]);
+        tx.executeSql(photoSourceTable.statements.insert, [photo.id, preview, null]);
+      })
+      .then(() => undefined);
+  }
+
+  public async resetDatabase(): Promise<void> {
+    await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.dropTable);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, photoSourceTable.statements.dropTable);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.dropTable);
+  }
+
+  private getSyncDatesCount(): Promise<number> {
     return sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.selectCount).then((res) => {
       if (res[0].rows.item(0)) {
         return res[0].rows.item(0).count;
@@ -135,36 +167,6 @@ export default class PhotosLocalDatabaseService {
         return null;
       }
     });
-  }
-
-  public async insertPhoto(photo: Photo, preview: string): Promise<void> {
-    sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.insert, [
-      photo.id,
-      photo.name,
-      photo.type,
-      photo.size,
-      photo.width,
-      photo.height,
-      photo.status,
-      photo.fileId,
-      photo.previewId,
-      photo.deviceId,
-      photo.userId,
-      photo.creationDate,
-      photo.lastStatusChangeAt,
-      photo.createdAt,
-      photo.updatedAt,
-      preview,
-    ]);
-  }
-
-  public async deletePhotosTable(): Promise<void> {
-    await sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.dropTable);
-  }
-
-  public async resetDatabase(): Promise<void> {
-    await sqliteService.executeSql(PHOTOS_DB_NAME, photosTable.statements.dropTable);
-    await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.dropTable);
   }
 
   private mapPhotoRowToModel(row: SqlitePhotoRow): Photo {
@@ -180,8 +182,8 @@ export default class PhotosLocalDatabaseService {
       deviceId: row.device_id,
       fileId: row.file_id,
       previewId: row.preview_id,
-      lastStatusChangeAt: row.last_status_change_at,
-      creationDate: row.creation_date,
+      statusChangedAt: row.status_changed_at,
+      takenAt: row.taken_at,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

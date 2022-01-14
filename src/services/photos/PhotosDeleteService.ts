@@ -1,7 +1,7 @@
 import { photos } from '@internxt/sdk';
 import { PhotoStatus } from '@internxt/sdk/dist/photos';
+import { PhotosServiceModel } from '../../types/photos';
 
-import { PhotosServiceModel } from '../../types';
 import * as network from '../network';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 

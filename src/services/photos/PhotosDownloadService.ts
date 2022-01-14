@@ -2,10 +2,11 @@ import { photos } from '@internxt/sdk';
 import RNFetchBlob from 'rn-fetch-blob';
 import RNFS from 'react-native-fs';
 
-import { NetworkCredentials, PhotosServiceModel } from '../../types';
+import { NetworkCredentials } from '../../types';
 import * as network from '../network';
 import { getDocumentsDir } from '../../lib/fs';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
+import { PhotosServiceModel } from '../../types/photos';
 
 export default class PhotosDownloadService {
   private readonly model: PhotosServiceModel;

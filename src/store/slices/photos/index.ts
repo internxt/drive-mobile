@@ -9,26 +9,27 @@ import {
   PermissionStatus,
   RESULTS,
 } from 'react-native-permissions';
-import { Photo } from '@internxt/sdk/dist/photos';
+import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 
 import { RootState } from '../..';
-import { GalleryViewMode } from '../../../types';
 import { Platform } from 'react-native';
 import { PhotosService } from '../../../services/photos';
 import { notify } from '../../../services/toast';
 import strings from '../../../../assets/lang/strings';
 import { deviceStorage } from '../../../services/deviceStorage';
+import { GalleryViewMode, PhotosSyncStatus, PhotosSyncTasksInfo, PhotosSyncTaskType } from '../../../types/photos';
 
 let photosService: PhotosService;
 
 export interface PhotosState {
   isInitialized: boolean;
   initializeError: string | null;
-  isSyncing: boolean;
   permissions: {
     android: { [key in AndroidPermission]?: PermissionStatus };
     ios: { [key in IOSPermission]?: PermissionStatus };
   };
+  isSyncing: boolean;
+  syncStatus: PhotosSyncStatus;
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
   allPhotosCount: number;
@@ -41,7 +42,6 @@ export interface PhotosState {
 const initialState: PhotosState = {
   isInitialized: false,
   initializeError: null,
-  isSyncing: false,
   permissions: {
     android: {
       [PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE]: RESULTS.DENIED,
@@ -50,6 +50,11 @@ const initialState: PhotosState = {
     ios: {
       [PERMISSIONS.IOS.PHOTO_LIBRARY]: RESULTS.DENIED,
     },
+  },
+  isSyncing: false,
+  syncStatus: {
+    completedTasks: 0,
+    totalTasks: 0,
   },
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.All,
@@ -147,23 +152,43 @@ const downloadPhotoThunk = createAsyncThunk<
 
 const loadLocalPhotosThunk = createAsyncThunk<
   { data: Photo; preview: string }[],
-  { limit: number; offset?: number },
+  { limit: number; skip?: number },
   { state: RootState }
->('photos/loadLocalPhotos', async ({ limit, offset = 0 }, { dispatch }) => {
-  const results = await photosService.getPhotos({ limit, offset });
+>('photos/loadLocalPhotos', async ({ limit, skip = 0 }, { dispatch }) => {
+  const results = await photosService.getPhotos({ limit, skip });
 
   dispatch(photosActions.setPhotos(results));
 
   return results;
 });
 
-const syncThunk = createAsyncThunk<void, void, { state: RootState }>('photos/sync', async () => {
-  const onPhotoAdded = (photo: Photo) => {
-    console.log('onPhotoAdded: ');
-  };
+const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/sync',
+  async (payload: void, { dispatch }) => {
+    const onStart = (tasksInfo: PhotosSyncTasksInfo) => {
+      dispatch(photosActions.updateSyncStatus({ totalTasks: tasksInfo.totalTasks }));
+    };
+    const onTaskCompleted = async ({
+      photo,
+      completedTasks,
+    }: {
+      taskType: PhotosSyncTaskType;
+      photo: Photo;
+      completedTasks: number;
+    }) => {
+      dispatch(photosActions.updateSyncStatus({ completedTasks }));
 
-  await photosService.sync({ onPhotoAdded });
-});
+      if (photo.status === PhotoStatus.Exists) {
+        const preview = (await photosService.getPhotoPreview(photo.id)) || '';
+        dispatch(photosActions.pushPhoto({ data: photo, preview }));
+      } else {
+        dispatch(photosActions.popPhoto(photo));
+      }
+    };
+
+    await photosService.sync({ onStart, onTaskCompleted });
+  },
+);
 
 const selectAllThunk = createAsyncThunk<Photo[], void, { state: RootState }>('photos/selectAll', async () => {
   return photosService.getAll();
@@ -173,6 +198,9 @@ export const photosSlice = createSlice({
   name: 'photos',
   initialState,
   reducers: {
+    updateSyncStatus(state, action: PayloadAction<Partial<PhotosSyncStatus>>) {
+      Object.assign(state.syncStatus, action.payload);
+    },
     setIsSelectionModeActivated(state, action: PayloadAction<boolean>) {
       state.isSelectionModeActivated = action.payload;
     },
@@ -181,6 +209,13 @@ export const photosSlice = createSlice({
     },
     setPhotos(state, action: PayloadAction<{ data: Photo; preview: string }[]>) {
       state.photos = action.payload;
+    },
+    pushPhoto(state, action: PayloadAction<{ data: Photo; preview: string }>) {
+      let photos = state.photos.filter((photo) => photo.data.id !== action.payload.data.id);
+      photos = [...photos, action.payload];
+      photos.sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime());
+
+      state.photos = photos;
     },
     popPhoto(state, action: PayloadAction<Photo>) {
       state.photos = state.photos.filter((photo) => photo.data.id !== action.payload.id);
@@ -256,7 +291,15 @@ export const photosSlice = createSlice({
     builder
       .addCase(downloadPhotoThunk.pending, () => undefined)
       .addCase(downloadPhotoThunk.fulfilled, () => undefined)
-      .addCase(downloadPhotoThunk.rejected, () => undefined);
+      .addCase(downloadPhotoThunk.rejected, (state, action) => {
+        notify({
+          type: 'error',
+          text: strings.formatString(
+            strings.errors.photosFullSizeLoad,
+            action.error.message || strings.errors.unknown,
+          ) as string,
+        });
+      });
 
     builder
       .addCase(loadLocalPhotosThunk.pending, () => undefined)

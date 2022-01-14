@@ -1,9 +1,8 @@
 import { photos } from '@internxt/sdk';
 import { getMacAddress, getDeviceName } from 'react-native-device-info';
 
-import { PhotosServiceModel } from '../../types';
-
 import { NetworkCredentials } from '../../types';
+import { PhotosServiceModel, PhotosSyncTasksInfo, PhotosSyncTaskType } from '../../types/photos';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosUploadService from './PhotosUploadService';
 import PhotosDeleteService from './PhotosDeleteService';
@@ -41,7 +40,6 @@ export class PhotosService {
       this.cameraRollService,
       this.uploadService,
       this.downloadService,
-      this.deleteService,
       this.localDatabaseService,
     );
   }
@@ -69,7 +67,10 @@ export class PhotosService {
     return user;
   }
 
-  public sync(options: { onPhotoAdded: (photo: photos.Photo) => void }): Promise<void> {
+  public sync(options: {
+    onStart?: (tasksInfo: PhotosSyncTasksInfo) => void;
+    onTaskCompleted?: (result: { taskType: PhotosSyncTaskType; photo: photos.Photo; completedTasks: number }) => void;
+  }): Promise<void> {
     return this.syncService.run(options);
   }
 
@@ -79,14 +80,18 @@ export class PhotosService {
 
   public getPhotos({
     limit,
-    offset = 0,
+    skip = 0,
   }: {
     limit: number;
-    offset?: number;
+    skip?: number;
   }): Promise<{ data: photos.Photo; preview: string }[]> {
     this.checkModel();
 
-    return this.localDatabaseService.getPhotos(offset, limit);
+    return this.localDatabaseService.getPhotos(skip, limit);
+  }
+
+  public getPhotoPreview(photoId: string): Promise<string | null> {
+    return this.localDatabaseService.getPhotoPreview(photoId);
   }
 
   public getAll(): Promise<photos.Photo[]> {

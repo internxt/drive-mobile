@@ -3,7 +3,6 @@ import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'rea
 import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { PhotosScreen } from '../../types';
 import PhotosPermissionsScreen from './PhotosPermissionsScreen';
 import PhotosGalleryScreen from './PhotosGalleryScreen';
 import PhotosPreviewScreen from './PhotosPreviewScreen';
@@ -13,6 +12,7 @@ import strings from '../../../assets/lang/strings';
 import { Text, View } from 'react-native';
 import { tailwind } from '../../helpers/designSystem';
 import BaseButton from '../../components/BaseButton';
+import { PhotosScreen } from '../../types/photos';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,

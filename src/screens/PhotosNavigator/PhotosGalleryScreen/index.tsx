@@ -5,7 +5,6 @@ import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
-import { GalleryViewMode } from '../../../types';
 import ScreenTitle from '../../../components/ScreenTitle';
 import strings from '../../../../assets/lang/strings';
 import galleryViews from '../../../components/gallery-views';
@@ -15,16 +14,20 @@ import { layoutActions } from '../../../store/slices/layout';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { GalleryViewMode } from '../../../types/photos';
+import LoadingSpinner from '../../../components/LoadingSpinner';
 
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
   const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.layout);
-  const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
-  const onDeletePhotosModalClosed = () => dispatch(layoutActions.setIsDeletePhotosModalOpen(false));
-  const { isSyncing, isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
+  const { isSyncing, syncStatus, isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector(
+    (state) => state.photos,
+  );
   const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
   const hasNoPhotosSelected = selectedPhotos.length === 0;
   const hasManyPhotosSelected = selectedPhotos.length > 1;
+  const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
+  const onDeletePhotosModalClosed = () => dispatch(layoutActions.setIsDeletePhotosModalOpen(false));
   const onSelectButtonPressed = () => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
   };
@@ -67,29 +70,10 @@ function PhotosGalleryScreen(): JSX.Element {
     );
   })();
 
-  // Sync status
-  const [syncingSpinnerRotationAnimation] = useState(new Animated.Value(0));
-  const syncingSpinnerRotationInterpolation = syncingSpinnerRotationAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-  const runSyncingSpinnerAnimation = () => {
-    syncingSpinnerRotationAnimation.setValue(0);
-
-    Animated.timing(syncingSpinnerRotationAnimation, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-      easing: Easing.linear,
-    }).start(() => runSyncingSpinnerAnimation());
-  };
-
   useEffect(() => {
-    runSyncingSpinnerAnimation();
-
     dispatch(photosActions.setViewMode(GalleryViewMode.All));
     dispatch(photosActions.deselectAll());
-    dispatch(photosThunks.loadLocalPhotosThunk({ limit: 15, offset: 0 }));
+    dispatch(photosThunks.loadLocalPhotosThunk({ limit: 15, skip: 0 }));
   }, []);
 
   return (
@@ -155,22 +139,15 @@ function PhotosGalleryScreen(): JSX.Element {
 
           {isSyncing && (
             <View style={tailwind('pl-5 flex-row items-center')}>
-              <Animated.View
-                style={[
-                  tailwind('justify-center mr-1'),
-                  {
-                    transform: [
-                      {
-                        rotate: syncingSpinnerRotationInterpolation,
-                      },
-                    ],
-                  },
-                ]}
-              >
-                <Unicons.UilSpinnerAlt size={16} color={getColor('neutral-100')} />
-              </Animated.View>
+              <LoadingSpinner style={tailwind('mr-1')} />
               <Text style={tailwind('text-sm text-neutral-100')}>
-                {strings.formatString(strings.screens.gallery.syncing, 0, 100)}
+                {syncStatus.totalTasks > 0
+                  ? strings.formatString(
+                      strings.screens.gallery.syncing,
+                      syncStatus.completedTasks,
+                      syncStatus.totalTasks,
+                    )
+                  : strings.generic.preparing}
               </Text>
             </View>
           )}
