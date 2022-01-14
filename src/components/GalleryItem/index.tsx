@@ -36,6 +36,7 @@ const GalleryItem = ({
 
   return (
     <TouchableOpacity
+      activeOpacity={0.7}
       style={[tailwind('bg-neutral-30'), { width: size, height: size }]}
       onPress={onPress}
       onLongPress={onLongPress}

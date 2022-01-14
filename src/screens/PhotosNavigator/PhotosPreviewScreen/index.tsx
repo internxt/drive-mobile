@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import RNFS from 'react-native-fs';
-import { View, Text, Image, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, SafeAreaView, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import tailwind, { getColor } from 'tailwind-rn';
 import * as Unicons from '@iconscout/react-native-unicons';
@@ -31,18 +31,22 @@ interface PreviewProps {
 }
 
 function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
-  const photo = props.route.params.data;
+  const { data: photo, preview } = props.route.params;
   const photoPath = getDocumentsDir() + '/' + photo.fileId;
 
   const dispatch = useAppDispatch();
+  const [showActions, setShowActions] = useState(true);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const [uri, setUri] = useState(imageService.BASE64_PREFIX + props.route.params.preview);
+  const [uri, setUri] = useState(imageService.BASE64_PREFIX + preview);
   const [isFullSizeLoaded, setIsFullSizeLoaded] = useState(false);
   const [progress, setProgress] = useState(0);
   const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
     (state) => state.layout,
   );
   const navigation = useNavigation<NavigationStackProp>();
+  const onScreenPressed = () => {
+    setShowActions(!showActions);
+  };
   const onBackButtonPressed = () => navigation.goBack();
   const onShareButtonPressed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(true));
   const onDownloadButtonPressed = () => {
@@ -121,61 +125,65 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         data={props.route.params.data}
         onClosed={onSharePhotoModalClosed}
       />
-      <View style={tailwind('h-full')}>
-        {/* PHOTO */}
-        <TapGestureHandler numberOfTaps={1} enabled={true}>
-          <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
-        </TapGestureHandler>
+      <TouchableWithoutFeedback onPress={onScreenPressed}>
+        <View style={tailwind('h-full')}>
+          {/* PHOTO */}
+          <TapGestureHandler numberOfTaps={1} enabled={true}>
+            <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
+          </TapGestureHandler>
 
-        {/* LOADING */}
-        {!isFullSizeLoaded && (
-          <View style={tailwind('absolute top-0 bottom-0 right-0 left-0 items-center justify-center')}>
-            <LoadingSpinner size={32} color={getColor('white')} />
-            <Text style={tailwind('text-white')}>{(progress * 100).toFixed(0) + '%'}</Text>
-          </View>
-        )}
-
-        <SafeAreaView style={tailwind('flex-col justify-between h-full')}>
-          <LinearGradient
-            colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.24)', 'transparent']}
-            style={tailwind('absolute w-full')}
-          >
-            <View style={tailwind('flex-row justify-between p-5')}>
-              {/* BACK BUTTON */}
-              <TouchableOpacity style={tailwind('z-10')} onPress={onBackButtonPressed}>
-                <Unicons.UilAngleLeft color={getColor('white')} size={32} />
-              </TouchableOpacity>
-
-              {/* OPTIONS BUTTON */}
-              <TouchableOpacity style={tailwind('z-10')} onPress={() => setIsOptionsModalOpen(true)}>
-                <Unicons.UilEllipsisH color={getColor('white')} size={32} />
-              </TouchableOpacity>
+          {/* LOADING */}
+          {!isFullSizeLoaded && (
+            <View style={tailwind('absolute top-0 bottom-0 right-0 left-0 items-center justify-center')}>
+              <LoadingSpinner size={32} color={getColor('white')} />
+              <Text style={tailwind('text-white')}>{(progress * 100).toFixed(0) + '%'}</Text>
             </View>
-          </LinearGradient>
+          )}
 
-          <LinearGradient
-            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.24)', 'rgba(0,0,0,0.6)']}
-            style={tailwind('flex-row justify-around p-3 absolute bottom-0 w-full')}
-          >
-            <TouchableOpacity style={tailwind('items-center')} onPress={onShareButtonPressed}>
-              <Unicons.UilLink color="white" size={26} />
-              <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.shareWithLink}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              disabled={!isFullSizeLoaded}
-              style={tailwind('items-center')}
-              onPress={onDownloadButtonPressed}
-            >
-              <Unicons.UilImport color="white" size={26} />
-              <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.download}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={tailwind('items-center')} onPress={onMoveToTrashButtonPressed}>
-              <Unicons.UilTrash color="white" size={26} />
-              <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.moveToThrash}</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </SafeAreaView>
-      </View>
+          {showActions && (
+            <SafeAreaView style={tailwind('flex-col justify-between h-full')}>
+              <LinearGradient
+                colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.24)', 'transparent']}
+                style={tailwind('absolute w-full')}
+              >
+                <View style={tailwind('flex-row justify-between p-5')}>
+                  {/* BACK BUTTON */}
+                  <TouchableOpacity style={tailwind('z-10')} onPress={onBackButtonPressed}>
+                    <Unicons.UilAngleLeft color={getColor('white')} size={32} />
+                  </TouchableOpacity>
+
+                  {/* OPTIONS BUTTON */}
+                  <TouchableOpacity style={tailwind('z-10')} onPress={() => setIsOptionsModalOpen(true)}>
+                    <Unicons.UilEllipsisH color={getColor('white')} size={32} />
+                  </TouchableOpacity>
+                </View>
+              </LinearGradient>
+
+              <LinearGradient
+                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.24)', 'rgba(0,0,0,0.6)']}
+                style={tailwind('flex-row justify-around p-3 absolute bottom-0 w-full')}
+              >
+                <TouchableOpacity style={tailwind('items-center')} onPress={onShareButtonPressed}>
+                  <Unicons.UilLink color="white" size={26} />
+                  <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.shareWithLink}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  disabled={!isFullSizeLoaded}
+                  style={tailwind('items-center')}
+                  onPress={onDownloadButtonPressed}
+                >
+                  <Unicons.UilImport color="white" size={26} />
+                  <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.download}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={tailwind('items-center')} onPress={onMoveToTrashButtonPressed}>
+                  <Unicons.UilTrash color="white" size={26} />
+                  <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.moveToThrash}</Text>
+                </TouchableOpacity>
+              </LinearGradient>
+            </SafeAreaView>
+          )}
+        </View>
+      </TouchableWithoutFeedback>
     </>
   );
 }
