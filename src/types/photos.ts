@@ -42,18 +42,11 @@ export interface SqlitePhotoRow {
   device_id: string;
   file_id: string;
   preview_id: string;
-  taken_at: Date;
-  status_changed_at: Date;
-  created_at: Date;
-  updated_at: Date;
-  preview: string;
-}
-
-export interface SqlitePhotoSourceRow {
-  id: number;
-  photo_id: string;
+  taken_at: number;
+  status_changed_at: number;
+  created_at: number;
+  updated_at: number;
   preview_source: string;
-  photo_source: string | null;
 }
 
 export interface PhotosSyncStatus {

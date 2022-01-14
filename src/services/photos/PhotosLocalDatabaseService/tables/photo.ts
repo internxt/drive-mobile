@@ -16,22 +16,27 @@ const statements = {
       preview_id TEXT UNIQUE, \
       device_id TEXT, \
       user_id TEXT NOT NULL, \
-      taken_at DATE NOT NULL, \
-      status_changed_at DATE NOT NULL, \
-      created_at DATE NOT NULL, \
-      updated_at DATE NOT NULL \
+      taken_at INTEGER NOT NULL, \
+      status_changed_at INTEGER NOT NULL, \
+      created_at INTEGER NOT NULL, \
+      updated_at INTEGER NOT NULL, \
+      preview_source BLOB NOT NULL \
     );`,
   dropTable: `DROP TABLE ${TABLE_NAME};`,
   insert: `INSERT INTO ${TABLE_NAME} (\
-      id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, taken_at, status_changed_at, created_at, updated_at \
+      id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, taken_at, status_changed_at, created_at, updated_at, preview_source \
     ) \
-    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );`,
+    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );`,
   deleteById: `DELETE FROM ${TABLE_NAME} WHERE id = ?;`,
   count: `SELECT COUNT(*) as count FROM ${TABLE_NAME} WHERE status = '${PhotoStatus.Exists}';`,
-  getAll: `SELECT * FROM ${TABLE_NAME} WHERE status = '${PhotoStatus.Exists}';`,
   get: `SELECT * FROM ${TABLE_NAME} WHERE status = '${PhotoStatus.Exists}' ORDER BY created_at DESC LIMIT ? OFFSET ?;`,
+  getAllWithoutPreview: `SELECT id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, taken_at, status_changed_at, created_at, updated_at FROM ${TABLE_NAME} WHERE status = '${PhotoStatus.Exists}';`,
   getMostRecentTakenAt: `SELECT MAX(taken_at) as takenAt FROM ${TABLE_NAME}`,
   getPhotoByNameAndType: `SELECT * FROM ${TABLE_NAME} WHERE name = ? AND type = ? LIMIT 1;`,
+  getYearsList: `SELECT strftime('%Y', taken_at / 1000, 'unixepoch') as 'year' FROM ${TABLE_NAME};`,
+  getLastPhotoOfTheYear: `SELECT preview_source, strftime('%Y', taken_at / 1000, 'unixepoch') as 'year' FROM ${TABLE_NAME} WHERE year = ?;`,
+  getLastPhotoOfTheMonth: `SELECT preview_source, strftime('%Y', taken_at / 1000, 'unixepoch') as 'year', strftime('%m', taken_at / 1000, 'unixepoch') as 'month' FROM ${TABLE_NAME} WHERE year = ? AND month = ?;`,
+  getMonthsList: `SELECT strftime('%Y', taken_at / 1000, 'unixepoch') as 'year', strftime('%m', taken_at / 1000, 'unixepoch') as 'month' FROM ${TABLE_NAME};`,
   getById: `SELECT * FROM ${TABLE_NAME} WHERE id = ?;`,
   updatePhotoStatusById: `UPDATE ${TABLE_NAME} SET status = ? WHERE id = ?;`,
 };

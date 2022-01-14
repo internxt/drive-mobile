@@ -90,6 +90,14 @@ export class PhotosService {
     return this.localDatabaseService.getPhotos(skip, limit);
   }
 
+  public getYearsList(): Promise<{ year: number; preview: string }[]> {
+    return this.localDatabaseService.getYearsList();
+  }
+
+  public getMonthsList(): Promise<{ year: number; month: number; preview: string }[]> {
+    return this.localDatabaseService.getMonthsList();
+  }
+
   public getPhotoPreview(photoId: string): Promise<string | null> {
     return this.localDatabaseService.getPhotoPreview(photoId);
   }

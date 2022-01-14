@@ -33,6 +33,8 @@ export interface PhotosState {
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
   allPhotosCount: number;
+  years: { year: number; preview: string }[];
+  months: { year: number; month: number; preview: string }[];
   photos: { data: Photo; preview: string }[];
   limit: number;
   offset: number;
@@ -59,6 +61,8 @@ const initialState: PhotosState = {
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.All,
   allPhotosCount: 0,
+  years: [],
+  months: [],
   photos: [],
   limit: 25,
   offset: 0,
@@ -160,6 +164,21 @@ const loadLocalPhotosThunk = createAsyncThunk<
   dispatch(photosActions.setPhotos(results));
 
   return results;
+});
+
+const loadYearsThunk = createAsyncThunk<{ year: number; preview: string }[], void, { state: RootState }>(
+  'photos/loadYears',
+  () => {
+    return photosService.getYearsList();
+  },
+);
+
+const loadMonthsThunk = createAsyncThunk<
+  { year: number; month: number; preview: string }[],
+  void,
+  { state: RootState }
+>('photos/loadMonths', () => {
+  return photosService.getMonthsList();
 });
 
 const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
@@ -315,6 +334,20 @@ export const photosSlice = createSlice({
       });
 
     builder
+      .addCase(loadYearsThunk.pending, () => undefined)
+      .addCase(loadYearsThunk.fulfilled, (state, action) => {
+        state.years = action.payload;
+      })
+      .addCase(loadYearsThunk.rejected, () => undefined);
+
+    builder
+      .addCase(loadMonthsThunk.pending, () => undefined)
+      .addCase(loadMonthsThunk.fulfilled, (state, action) => {
+        state.months = action.payload;
+      })
+      .addCase(loadMonthsThunk.rejected, () => undefined);
+
+    builder
       .addCase(syncThunk.pending, (state) => {
         state.isSyncing = true;
       })
@@ -373,6 +406,8 @@ export const photosThunks = {
   selectAllThunk,
   deletePhotosThunk,
   downloadPhotoThunk,
+  loadYearsThunk,
+  loadMonthsThunk,
   loadLocalPhotosThunk,
   syncThunk,
 };

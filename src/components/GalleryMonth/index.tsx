@@ -9,7 +9,7 @@ const GalleryMonth = (): JSX.Element => {
 
   return (
     <TouchableWithoutFeedback onPress={onMonthPressed}>
-      <View style={[tailwind('mb-5 w-full rounded-lg bg-blue-50'), { aspectRatio: 2 / 1 }]}>
+      <View style={[tailwind('mb-5 w-full rounded-lg bg-neutral-30'), { aspectRatio: 2 / 1 }]}>
         <Text style={tailwind('p-5 text-white text-2xl font-semibold')}>September</Text>
       </View>
     </TouchableWithoutFeedback>

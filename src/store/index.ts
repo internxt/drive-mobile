@@ -12,6 +12,7 @@ export const store = configureStore({
     layout: layoutReducer,
     photos: photosReducer,
   },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
