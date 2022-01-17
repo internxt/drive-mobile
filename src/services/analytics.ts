@@ -4,11 +4,7 @@ import Firebase from '@segment/analytics-react-native-firebase';
 import { NavigationState } from '@react-navigation/native';
 
 export async function analyticsSetup(): Promise<void> {
-  const WRITEKEY = (
-    process.env.NODE_ENV !== 'production'
-      ? process.env.REACT_NATIVE_SEGMENT_API_DEV
-      : process.env.REACT_NATIVE_SEGMENT_API
-  ) as string;
+  const WRITEKEY = process.env.REACT_NATIVE_SEGMENT_API as string;
 
   if (!WRITEKEY) {
     // This console log is neccesary to show devs if they are missing an env. variable

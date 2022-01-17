@@ -36,7 +36,7 @@ const intervalToMonth = (intervalName: string, intervalCount: number) => {
 };
 
 const getProducts = async () => {
-  const products = process.env.NODE_ENV === 'production' ? getProductionPlans() : getDevelopmentPlans();
+  const products = getProductionPlans();
   const perPlan: any = {};
 
   products.forEach((product) => {
@@ -120,7 +120,9 @@ function Billing(): JSX.Element {
     };
 
     fetch(
-      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${process.env.NODE_ENV === 'development' ? '?test=true' : ''}`,
+      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${
+        process.env.NODE_ENV === 'development' ? '?test=true' : ''
+      }`,
       {
         method: 'POST',
         headers: await getHeaders(),
