@@ -1,4 +1,4 @@
-import { PhotoStatus, User } from '@internxt/sdk/dist/photos';
+import { Device, PhotoStatus, User } from '@internxt/sdk/dist/photos';
 import { NetworkCredentials } from '.';
 
 export enum PhotosScreen {
@@ -24,10 +24,12 @@ export enum PhotosSyncTaskType {
 export const PHOTOS_DB_NAME = 'photos.db';
 
 export interface PhotosServiceModel {
+  isInitialized: boolean;
   accessToken: string;
   networkCredentials: NetworkCredentials;
   networkUrl: string;
   user?: User;
+  device?: Device;
 }
 
 export interface SqlitePhotoRow {

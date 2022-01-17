@@ -24,6 +24,8 @@ export default class PhotosLocalDatabaseService {
     if (syncDatesNotInitialized) {
       await this.initSyncDates();
     }
+
+    console.log('(PhotosService) Local database initialized');
   }
 
   public async initSyncDates(): Promise<void> {

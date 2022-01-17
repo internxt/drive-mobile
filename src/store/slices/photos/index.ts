@@ -85,8 +85,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     await dispatch(checkPermissionsThunk());
 
     if (photosSelectors.arePermissionsGranted(getState())) {
-      await photosService.initializeLocalDatabase();
-      await photosService.initializeUser();
+      await photosService.initialize();
 
       dispatch(photosActions.setAllPhotosCount(await photosService.countPhotos()));
 

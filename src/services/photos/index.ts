@@ -9,6 +9,8 @@ import PhotosDeleteService from './PhotosDeleteService';
 import PhotosSyncService from './PhotosSyncService';
 import PhotosCameraRollService from './PhotosCameraRollService';
 import PhotosDownloadService from './PhotosDownloadService';
+import PhotosDeviceService from './PhotosDeviceService';
+import PhotosUserService from './PhotosUserService';
 
 export class PhotosService {
   private readonly model: PhotosServiceModel;
@@ -16,6 +18,8 @@ export class PhotosService {
 
   private readonly cameraRollService: PhotosCameraRollService;
   private readonly localDatabaseService: PhotosLocalDatabaseService;
+  private readonly deviceService: PhotosDeviceService;
+  private readonly userService: PhotosUserService;
   private readonly uploadService: PhotosUploadService;
   private readonly downloadService: PhotosDownloadService;
   private readonly deleteService: PhotosDeleteService;
@@ -23,6 +27,7 @@ export class PhotosService {
 
   constructor(accessToken: string, networkCredentials: NetworkCredentials) {
     this.model = {
+      isInitialized: false,
       accessToken,
       networkCredentials,
       networkUrl: process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL || '',
@@ -31,6 +36,8 @@ export class PhotosService {
 
     this.cameraRollService = new PhotosCameraRollService();
     this.localDatabaseService = new PhotosLocalDatabaseService(this.model);
+    this.deviceService = new PhotosDeviceService(this.model, this.photosSdk, this.localDatabaseService);
+    this.userService = new PhotosUserService(this.model, this.photosSdk, this.deviceService);
     this.uploadService = new PhotosUploadService(this.model, this.photosSdk);
     this.downloadService = new PhotosDownloadService(this.model, this.localDatabaseService);
     this.deleteService = new PhotosDeleteService(this.model, this.photosSdk, this.localDatabaseService);
@@ -44,27 +51,14 @@ export class PhotosService {
     );
   }
 
-  public async initializeLocalDatabase(): Promise<void> {
+  public async initialize(): Promise<void> {
     await this.localDatabaseService.initialize();
+    await this.userService.initialize();
+    await this.deviceService.initialize();
 
-    console.log('(PhotosService) Local database initialized');
-  }
+    this.model.isInitialized = true;
 
-  public async initializeUser(): Promise<photos.User> {
-    const mac = await getMacAddress();
-    const name = await getDeviceName();
-    const user = await this.photosSdk.users.initialize({
-      mac,
-      name,
-      bridgeUser: this.model.networkCredentials.user,
-      bridgePassword: this.model.networkCredentials.password,
-    });
-
-    this.model.user = user;
-
-    console.log('(PhotosService) User initialized');
-
-    return user;
+    console.log('(PhotosService) initialized');
   }
 
   public sync(options: {
@@ -123,6 +117,10 @@ export class PhotosService {
     this.checkModel();
 
     return this.downloadService.pullPhoto(this.bucketId, this.model.networkCredentials, fileId, options);
+  }
+
+  public get isInitialized(): boolean {
+    return this.model.isInitialized;
   }
 
   private get bucketId() {

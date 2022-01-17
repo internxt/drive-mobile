@@ -3,7 +3,6 @@ import { getMacAddress, getDeviceName } from 'react-native-device-info';
 
 import { PhotosServiceModel, PhotosSyncTasksInfo, PhotosSyncTaskType } from '../../types/photos';
 import PhotosCameraRollService from './PhotosCameraRollService';
-import PhotosDeleteService from './PhotosDeleteService';
 import PhotosDownloadService from './PhotosDownloadService';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosUploadService from './PhotosUploadService';
@@ -47,11 +46,12 @@ export default class PhotosSyncService {
       console.log('[SYNC-MAIN]: STARTED');
 
       if (!this.model.user) {
-        throw new Error('photos user not found');
+        throw new Error('photos user not initialized');
       }
 
-      const device = await this.initializeDevice(this.model.user?.id);
-      console.log('[SYNC-MAIN]: DEVICE INITIALIZED');
+      if (!this.model.device) {
+        throw new Error('photos device not initialized');
+      }
 
       const tasksInfo = await this.calculateTotalTasks();
       options.onStart?.(tasksInfo);
@@ -62,7 +62,7 @@ export default class PhotosSyncService {
       await this.downloadRemotePhotos({ onPhotoDownloaded: onTaskCompletedFactory(PhotosSyncTaskType.Download) });
       console.log('[SYNC-MAIN]: REMOTE PHOTOS DOWNLOADED');
 
-      await this.uploadLocalPhotos(this.model.user?.id, device.id, {
+      await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
         onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
       });
       console.log('[SYNC-MAIN]: LOCAL PHOTOS UPLOADED');
@@ -72,13 +72,6 @@ export default class PhotosSyncService {
       console.log('[SYNC-MAIN]: FAILED:', err);
       throw err;
     }
-  }
-
-  private async initializeDevice(userId: string): Promise<photos.Device> {
-    const mac = await getMacAddress();
-    const name = await getDeviceName();
-
-    return this.photosSdk.devices.createDevice({ mac, name, userId });
   }
 
   private async calculateTotalTasks(): Promise<PhotosSyncTasksInfo> {
