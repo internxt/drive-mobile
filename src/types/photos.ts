@@ -1,4 +1,4 @@
-import { Device, PhotoStatus, User } from '@internxt/sdk/dist/photos';
+import { Photo, Device, PhotoStatus, User } from '@internxt/sdk/dist/photos';
 import { NetworkCredentials } from '.';
 
 export enum PhotosScreen {
@@ -61,3 +61,5 @@ export interface PhotosSyncTasksInfo {
   downloadTasks: number;
   uploadTasks: number;
 }
+
+export type PhotosDateRecord = Record<number, Record<number, Record<number, { data: Photo; preview: string }[]>>>;

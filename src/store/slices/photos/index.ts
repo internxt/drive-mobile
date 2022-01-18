@@ -17,7 +17,13 @@ import { PhotosService } from '../../../services/photos';
 import { notify } from '../../../services/toast';
 import strings from '../../../../assets/lang/strings';
 import { deviceStorage } from '../../../services/deviceStorage';
-import { GalleryViewMode, PhotosSyncStatus, PhotosSyncTasksInfo, PhotosSyncTaskType } from '../../../types/photos';
+import {
+  GalleryViewMode,
+  PhotosDateRecord,
+  PhotosSyncStatus,
+  PhotosSyncTasksInfo,
+  PhotosSyncTaskType,
+} from '../../../types/photos';
 
 let photosService: PhotosService;
 
@@ -129,7 +135,7 @@ const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: R
     for (const photo of photos) {
       await photosService.deletePhoto(photo);
 
-      dispatch(photosActions.deselectPhoto(photo));
+      dispatch(photosActions.deselectPhotos(photo));
       dispatch(photosActions.popPhoto(photo));
     }
 
@@ -241,15 +247,21 @@ export const photosSlice = createSlice({
     setAllPhotosCount(state, action: PayloadAction<number>) {
       state.allPhotosCount = action.payload;
     },
-    selectPhoto(state, action: PayloadAction<Photo>) {
-      state.selectedPhotos = [...state.selectedPhotos, action.payload];
+    selectPhotos(state, action: PayloadAction<Photo | Photo[]>) {
+      const photosToSelect = Array.isArray(action.payload) ? action.payload : [action.payload];
+
+      state.selectedPhotos = [...state.selectedPhotos, ...photosToSelect];
     },
-    deselectPhoto(state, action: PayloadAction<Photo>) {
-      const itemIndex = state.selectedPhotos.findIndex((i) => i.id === action.payload.id);
+    deselectPhotos(state, action: PayloadAction<Photo | Photo[]>) {
+      const photosToDeselect = Array.isArray(action.payload) ? action.payload : [action.payload];
 
-      state.selectedPhotos.splice(itemIndex, 1);
+      for (const photo of photosToDeselect) {
+        const itemIndex = state.selectedPhotos.findIndex((i) => i.id === photo.id);
 
-      state.selectedPhotos = [...state.selectedPhotos];
+        state.selectedPhotos.splice(itemIndex, 1);
+
+        state.selectedPhotos = [...state.selectedPhotos];
+      }
     },
     deselectAll(state) {
       state.selectedPhotos = [];
@@ -380,6 +392,10 @@ export const photosSelectors = {
     (state: RootState) =>
     (photo: Photo): boolean =>
       state.photos.selectedPhotos.some((i) => i.id === photo.id),
+  arePhotosSelected:
+    (state: RootState) =>
+    (photos: Photo[]): boolean =>
+      photos.reduce<boolean>((t, x) => t && photosSelectors.isPhotoSelected(state)(x), true),
   arePermissionsGranted: (state: RootState): boolean => {
     const result = Object.values(state.photos.permissions[Platform.OS as 'ios' | 'android']).reduce(
       (t, x) => t && x === RESULTS.GRANTED,
@@ -393,6 +409,36 @@ export const photosSelectors = {
       (t, x) => t || x === RESULTS.BLOCKED,
       false,
     );
+
+    return result;
+  },
+  photosDateRecord: (state: RootState): PhotosDateRecord => {
+    const result: PhotosDateRecord = {};
+
+    for (const photo of state.photos.photos) {
+      const year = photo.data.createdAt.getUTCFullYear();
+      const month = photo.data.createdAt.getUTCMonth();
+      const day = photo.data.createdAt.getUTCDay();
+      const yearItem = result[year];
+
+      if (yearItem) {
+        const monthItem = yearItem[month];
+
+        if (monthItem) {
+          const dayItem = monthItem[day];
+
+          if (dayItem) {
+            monthItem[day].push(photo);
+          } else {
+            monthItem[day] = [photo];
+          }
+        } else {
+          yearItem[month] = { [day]: [photo] };
+        }
+      } else {
+        result[year] = { [month]: { [day]: [photo] } };
+      }
+    }
 
     return result;
   },

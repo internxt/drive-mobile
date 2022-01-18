@@ -22,10 +22,10 @@ const GalleryAllView = (): JSX.Element => {
   const limit = 50;
   const skip = 0;
   const selectItem = (photo: Photo) => {
-    dispatch(photosActions.selectPhoto(photo));
+    dispatch(photosActions.selectPhotos(photo));
   };
   const deselectItem = (photo: Photo) => {
-    dispatch(photosActions.deselectPhoto(photo));
+    dispatch(photosActions.deselectPhotos(photo));
   };
   const onItemLongPressed = (photo: Photo) => {
     dispatch(photosActions.setIsSelectionModeActivated(true));

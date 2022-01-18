@@ -107,7 +107,7 @@ export default class PhotosLocalDatabaseService {
   private async getMonthPreview(year: number, month: number): Promise<string | null> {
     const [{ rows }] = await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getLastPhotoOfTheMonth, [
       year.toString(),
-      month.toString(),
+      month < 10 ? '0' + month.toString() : month,
     ]);
     const lastPhotoOfTheMonth = rows.item(0) as SqlitePhotoRow | null;
 
