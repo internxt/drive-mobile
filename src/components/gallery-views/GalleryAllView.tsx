@@ -19,8 +19,6 @@ const GalleryAllView = (): JSX.Element => {
   const [columnsCount] = useState(3);
   const [gutter] = useState(3);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
-  const limit = 50;
-  const skip = 0;
   const selectItem = (photo: Photo) => {
     dispatch(photosActions.selectPhotos(photo));
   };
@@ -37,7 +35,7 @@ const GalleryAllView = (): JSX.Element => {
       : navigation.push(AppScreen.PhotosPreview, { data: photo, preview });
   };
   const loadPhotos = async () => {
-    await dispatch(photosThunks.loadLocalPhotosThunk({ limit, skip }));
+    await dispatch(photosThunks.loadLocalPhotosThunk());
 
     console.log('GalleryAllView.loadPhotos - completed!');
   };

@@ -11,22 +11,24 @@ const GalleryDaysView = (): JSX.Element => {
   const photosDateRecord = useAppSelector(photosSelectors.photosDateRecord);
   const monthsList: JSX.Element[] = [];
 
-  for (const [yearKey, yearItem] of Object.entries(photosDateRecord)) {
+  for (const [yearKey, yearItem] of Object.entries(photosDateRecord).reverse()) {
     const yearMonths: JSX.Element[] = [];
 
-    for (const [monthKey, monthItem] of Object.entries(yearItem)) {
+    for (const [monthKey, monthItem] of Object.entries(yearItem).reverse()) {
       const monthName = moment.months(parseInt(monthKey));
-      const monthDays = Object.entries(monthItem).map(([dayKey, dayPhotos]) => {
-        return (
-          <GalleryDay
-            key={dayKey}
-            year={parseInt(yearKey)}
-            month={parseInt(monthKey)}
-            day={parseInt(dayKey)}
-            photos={dayPhotos}
-          />
-        );
-      });
+      const monthDays = Object.entries(monthItem)
+        .reverse()
+        .map(([dayKey, dayPhotos]) => {
+          return (
+            <GalleryDay
+              key={dayKey}
+              year={parseInt(yearKey)}
+              month={parseInt(monthKey)}
+              day={parseInt(dayKey)}
+              photos={dayPhotos}
+            />
+          );
+        });
 
       yearMonths.push(
         <View>

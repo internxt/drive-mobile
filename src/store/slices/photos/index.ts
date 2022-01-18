@@ -43,7 +43,7 @@ export interface PhotosState {
   months: { year: number; month: number; preview: string }[];
   photos: { data: Photo; preview: string }[];
   limit: number;
-  offset: number;
+  skip: number;
   selectedPhotos: Photo[];
 }
 
@@ -65,13 +65,13 @@ const initialState: PhotosState = {
     totalTasks: 0,
   },
   isSelectionModeActivated: false,
-  viewMode: GalleryViewMode.All,
+  viewMode: GalleryViewMode.Days,
   allPhotosCount: 0,
   years: [],
   months: [],
   photos: [],
   limit: 25,
-  offset: 0,
+  skip: 0,
   selectedPhotos: [],
 };
 
@@ -161,10 +161,13 @@ const downloadPhotoThunk = createAsyncThunk<
 
 const loadLocalPhotosThunk = createAsyncThunk<
   { data: Photo; preview: string }[],
-  { limit: number; skip?: number },
+  { limit?: number; skip?: number } | undefined,
   { state: RootState }
->('photos/loadLocalPhotos', async ({ limit, skip = 0 }, { dispatch }) => {
-  const results = await photosService.getPhotos({ limit, skip });
+>('photos/loadLocalPhotos', async (payload, { getState, dispatch }) => {
+  const photosState = getState().photos;
+  const defaultOptions = { limit: photosState.limit, skip: photosState.skip };
+  const options: { limit: number; skip: number } = Object.assign({}, defaultOptions, payload || defaultOptions);
+  const results = await photosService.getPhotos(options);
 
   dispatch(photosActions.setPhotos(results));
 

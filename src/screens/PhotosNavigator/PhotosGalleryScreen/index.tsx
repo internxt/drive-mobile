@@ -71,9 +71,9 @@ function PhotosGalleryScreen(): JSX.Element {
   })();
 
   useEffect(() => {
-    dispatch(photosActions.setViewMode(GalleryViewMode.All));
+    //dispatch(photosActions.setViewMode(GalleryViewMode.All));
     dispatch(photosActions.deselectAll());
-    dispatch(photosThunks.loadLocalPhotosThunk({ limit: 15, skip: 0 }));
+    dispatch(photosThunks.loadLocalPhotosThunk());
   }, []);
 
   return (
@@ -162,8 +162,8 @@ function PhotosGalleryScreen(): JSX.Element {
           </View>
         )}
 
-        {/*  GROUP BY MENU */}
-        {groupByMenu}
+        {/*  VIEW MODE MENU */}
+        {/* groupByMenu */}
 
         {/* SELECTION MODE ACTIONS */}
         {isSelectionModeActivated && (

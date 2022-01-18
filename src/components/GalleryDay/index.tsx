@@ -57,8 +57,10 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
     dispatch(photosActions.setIsSelectionModeActivated(true));
     isPhotoSelected(photo) ? deselectItem(photo) : selectItem(photo);
   };
-  const onItemPressed = (item: Photo) => {
-    isSelectionModeActivated ? onItemLongPressed(item) : navigation.push(AppScreen.PhotosPreview, { data: item });
+  const onItemPressed = (item: Photo, preview: string) => {
+    isSelectionModeActivated
+      ? onItemLongPressed(item)
+      : navigation.push(AppScreen.PhotosPreview, { data: item, preview });
   };
 
   return (
@@ -91,7 +93,7 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
             refreshing={refreshing}
             onRefresh={async () => {
               setRefreshing(true);
-              await dispatch(photosThunks.loadLocalPhotosThunk({ limit: 15, skip: 0 }));
+              await dispatch(photosThunks.loadLocalPhotosThunk());
               setRefreshing(false);
             }}
           />
@@ -113,7 +115,7 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
                 data={item.item.data}
                 preview={item.item.preview}
                 isSelected={isPhotoSelected(item.item.data)}
-                onPress={() => onItemPressed(item.item.data)}
+                onPress={() => onItemPressed(item.item.data, item.item.preview)}
                 onLongPress={() => onItemLongPressed(item.item.data)}
               />
               {!isTheLast && <View style={{ width: gutter }} />}
