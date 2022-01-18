@@ -202,16 +202,13 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
     };
     const onTaskCompleted = async ({
       photo,
-      completedTasks,
-      taskType,
+      completedTasks
     }: {
       taskType: PhotosSyncTaskType;
       photo: Photo;
       completedTasks: number;
     }) => {
       dispatch(photosActions.updateSyncStatus({ completedTasks }));
-
-      console.log('COMPLETED SYNC TASK: ', taskType, ', status:', photo.status);
 
       if (photo.status === PhotoStatus.Exists) {
         const preview = (await photosService.getPhotoPreview(photo.id)) || '';
@@ -229,10 +226,17 @@ const selectAllThunk = createAsyncThunk<Photo[], void, { state: RootState }>('ph
   return photosService.getAll();
 });
 
+const clearDataThunk = createAsyncThunk<void, void, { state: RootState }>('photos/clearData', async () => {
+  return photosService.clearData();
+});
+
 export const photosSlice = createSlice({
   name: 'photos',
   initialState,
   reducers: {
+    resetState(state) {
+      Object.assign(state, initialState);
+    },
     updateSyncStatus(state, action: PayloadAction<Partial<PhotosSyncStatusData>>) {
       Object.assign(state.syncStatus, action.payload);
     },
@@ -246,11 +250,14 @@ export const photosSlice = createSlice({
       state.photos = action.payload;
     },
     pushPhoto(state, action: PayloadAction<{ data: Photo; preview: string }>) {
-      let photos = state.photos.filter((photo) => photo.data.id !== action.payload.data.id);
-      photos = [...photos, action.payload];
-      photos.sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime());
+      const index = state.photos.findIndex((photo) => photo.data.id === action.payload.data.id);
 
-      state.photos = photos;
+      if (~index) {
+        Object.assign(state.photos[index], action.payload);
+      } else {
+        state.photos.push(action.payload);
+      }
+      state.photos.sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime());
     },
     popPhoto(state, action: PayloadAction<Photo>) {
       state.photos = state.photos.filter((photo) => photo.data.id !== action.payload.id);
@@ -392,13 +399,18 @@ export const photosSlice = createSlice({
           ) as string,
         });
       });
+
+    builder
+      .addCase(clearDataThunk.pending, () => undefined)
+      .addCase(clearDataThunk.fulfilled, () => undefined)
+      .addCase(clearDataThunk.rejected, () => undefined);
   },
 });
 
 export const photosActions = photosSlice.actions;
 
 export const photosSelectors = {
-  hasPhotos: (state: RootState): boolean => state.photos.allPhotosCount > 0,
+  hasPhotos: (state: RootState): boolean => state.photos.photos.length > 0,
   isPhotoSelected:
     (state: RootState) =>
     (photo: Photo): boolean =>
@@ -470,6 +482,7 @@ export const photosThunks = {
   loadMonthsThunk,
   loadLocalPhotosThunk,
   syncThunk,
+  clearDataThunk,
 };
 
 export default photosSlice.reducer;

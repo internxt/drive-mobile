@@ -35,12 +35,13 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data, preview }: PhotosPrevi
             {prettysize(data.size)}
             <Text style={globalStyle.fontWeight.bold}> · </Text>
           </>
-          {'Updated '}
-          {new Date(data.updatedAt).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
+          {strings.generic.updated +
+            ' ' +
+            new Date(data.updatedAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
         </Text>
       </View>
     </>

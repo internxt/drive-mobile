@@ -56,7 +56,6 @@ class ImageService {
         // dismissed
       }
     } catch (err) {
-      console.log('Err sharing photo: ', err);
       notify({ type: 'error', text: strings.errors.photoShared });
     }
   }

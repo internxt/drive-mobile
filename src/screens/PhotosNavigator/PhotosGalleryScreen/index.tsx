@@ -75,6 +75,8 @@ function PhotosGalleryScreen(): JSX.Element {
     dispatch(photosThunks.loadLocalPhotosThunk());
   }, []);
 
+  console.log('PhotosGalleryScreen render - hasPhotos: ', hasPhotos);
+
   return (
     <>
       <SharePhotoModal

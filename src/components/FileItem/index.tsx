@@ -50,25 +50,25 @@ function FileItem(props: FileItemProps): JSX.Element {
     }),
   ).start();
 
-  async function handleItemPressed() {
+  async function onItemPressed() {
     setIsLoading(true);
 
     if (props.isFolder) {
-      handleFolderClick();
+      onFolderPressed();
     } else {
-      await handleFileClick();
+      await onFilePressed();
     }
 
     setIsLoading(false);
   }
 
-  function handleFolderClick() {
+  function onFolderPressed() {
     trackFolderOpened();
     dispatch(filesThunks.getFolderContentThunk({ folderId: props.item.id as number }));
     dispatch(filesActions.addDepthAbsolutePath([props.item.name]));
   }
 
-  async function handleFileClick(): Promise<void> {
+  async function onFilePressed(): Promise<void> {
     const isRecentlyUploaded = props.item.isUploaded && props.item.uri;
 
     if (isLoading || !props.item.fileId) {
@@ -226,9 +226,7 @@ function FileItem(props: FileItemProps): JSX.Element {
           dispatch(layoutActions.setShowItemModal(true));
         }
       }}
-      onPress={async () => {
-        await handleItemPressed();
-      }}
+      onPress={onItemPressed}
     >
       <View style={!props.isGrid && tailwind('flex-row')}>
         <View

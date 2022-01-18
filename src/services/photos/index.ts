@@ -51,6 +51,10 @@ export class PhotosService {
     );
   }
 
+  public get isInitialized(): boolean {
+    return this.model.isInitialized;
+  }
+
   public async initialize(): Promise<void> {
     await this.localDatabaseService.initialize();
     await this.userService.initialize();
@@ -119,8 +123,8 @@ export class PhotosService {
     return this.downloadService.pullPhoto(this.bucketId, this.model.networkCredentials, fileId, options);
   }
 
-  public get isInitialized(): boolean {
-    return this.model.isInitialized;
+  public clearData(): Promise<void> {
+    return this.localDatabaseService.resetDatabase();
   }
 
   private get bucketId() {

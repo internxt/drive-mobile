@@ -227,6 +227,8 @@ export default class PhotosLocalDatabaseService {
   public async resetDatabase(): Promise<void> {
     await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.dropTable);
     await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.dropTable);
+    await sqliteService.close(PHOTOS_DB_NAME);
+    await sqliteService.delete(PHOTOS_DB_NAME);
   }
 
   private getSyncDatesCount(): Promise<number> {

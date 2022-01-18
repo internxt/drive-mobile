@@ -16,6 +16,7 @@ const strings = new LocalizedStrings({
       upload: 'Upload',
       delete: 'Delete',
       settings: 'Settings',
+      updated: 'Updated',
     },
     tabs: {
       home: 'Home',
@@ -336,6 +337,7 @@ const strings = new LocalizedStrings({
       upload: 'Subir',
       delete: 'Eliminar',
       settings: 'Configuración',
+      updated: 'Actualizado',
     },
     tabs: {
       home: 'Inicio',

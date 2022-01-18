@@ -6,6 +6,7 @@ import authService from '../../../services/auth';
 import userService from '../../../services/user';
 import analytics from '../../../services/analytics';
 import { DevicePlatform } from '../../../types';
+import { photosActions, photosThunks } from '../photos';
 
 export interface AuthState {
   loggedIn: boolean;
@@ -43,9 +44,15 @@ export const signInThunk = createAsyncThunk<
   return result;
 });
 
-export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>('auth/signOut', async () => {
-  return authService.signout();
-});
+export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'auth/signOut',
+  async (payload: void, { dispatch }) => {
+    await authService.signout();
+
+    await dispatch(photosThunks.clearDataThunk());
+    dispatch(photosActions.resetState());
+  },
+);
 
 export const paymentThunk = createAsyncThunk<void, { token: string; planId: string }, { state: RootState }>(
   'auth/payment',
