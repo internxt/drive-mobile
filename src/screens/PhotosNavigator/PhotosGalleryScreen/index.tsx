@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, TouchableWithoutFeedback, Animated, Easing } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import * as Unicons from '@iconscout/react-native-unicons';
 
@@ -14,15 +14,14 @@ import { layoutActions } from '../../../store/slices/layout';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GalleryViewMode } from '../../../types/photos';
-import LoadingSpinner from '../../../components/LoadingSpinner';
+import { GalleryViewMode, PhotosSyncStatus } from '../../../types/photos';
+import PhotosSyncStatusWidget from '../../../components/PhotosSyncStatusWidget';
 
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
+  const getPhotoPreview = useAppSelector(photosSelectors.getPhotoPreview);
   const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.layout);
-  const { isSyncing, syncStatus, isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector(
-    (state) => state.photos,
-  );
+  const { syncStatus, isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
   const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
   const hasNoPhotosSelected = selectedPhotos.length === 0;
   const hasManyPhotosSelected = selectedPhotos.length > 1;
@@ -78,7 +77,12 @@ function PhotosGalleryScreen(): JSX.Element {
 
   return (
     <>
-      <SharePhotoModal isOpen={isSharePhotoModalOpen} data={selectedPhotos[0]} onClosed={onSharePhotoModalClosed} />
+      <SharePhotoModal
+        isOpen={isSharePhotoModalOpen}
+        data={selectedPhotos[0]}
+        preview={hasNoPhotosSelected ? '' : getPhotoPreview(selectedPhotos[0])}
+        onClosed={onSharePhotoModalClosed}
+      />
       <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selectedPhotos} onClosed={onDeletePhotosModalClosed} />
 
       <View style={tailwind('app-screen bg-white flex-1')}>
@@ -137,20 +141,7 @@ function PhotosGalleryScreen(): JSX.Element {
             )}
           </View>
 
-          {isSyncing && (
-            <View style={tailwind('pl-5 flex-row items-center')}>
-              <LoadingSpinner style={tailwind('mr-1')} />
-              <Text style={tailwind('text-sm text-neutral-100')}>
-                {syncStatus.totalTasks > 0
-                  ? strings.formatString(
-                      strings.screens.gallery.syncing,
-                      syncStatus.completedTasks,
-                      syncStatus.totalTasks,
-                    )
-                  : strings.generic.preparing}
-              </Text>
-            </View>
-          )}
+          {syncStatus.status !== PhotosSyncStatus.Completed && <PhotosSyncStatusWidget />}
         </View>
 
         {/* GALLERY VIEW */}
@@ -187,7 +178,7 @@ function PhotosGalleryScreen(): JSX.Element {
                       tailwind('text-xs'),
                     ]}
                   >
-                    {strings.components.buttons.shareWithLink}
+                    {strings.components.buttons.share}
                   </Text>
                 </View>
               </TouchableWithoutFeedback>

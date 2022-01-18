@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import RNFS from 'react-native-fs';
 import { View, Text, Image, SafeAreaView, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { TapGestureHandler } from 'react-native-gesture-handler';
-import tailwind, { getColor } from 'tailwind-rn';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -20,6 +19,7 @@ import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfo
 import { photosThunks } from '../../../store/slices/photos';
 import imageService from '../../../services/image';
 import LoadingSpinner from '../../../components/LoadingSpinner';
+import { getColor, tailwind } from '../../../helpers/designSystem';
 
 interface PreviewProps {
   route: {
@@ -37,7 +37,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const dispatch = useAppDispatch();
   const [showActions, setShowActions] = useState(true);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const [uri, setUri] = useState(imageService.BASE64_PREFIX + preview);
+  const [uri, setUri] = useState(preview);
   const [isFullSizeLoaded, setIsFullSizeLoaded] = useState(false);
   const [progress, setProgress] = useState(0);
   const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
@@ -48,7 +48,10 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
     setShowActions(!showActions);
   };
   const onBackButtonPressed = () => navigation.goBack();
-  const onShareButtonPressed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(true));
+  const onShareButtonPressed = () => {
+    imageService.share(uri);
+    // dispatch(layoutActions.setIsSharePhotoModalOpen(true))
+  };
   const onDownloadButtonPressed = () => {
     console.log('onDownloadButtonPressed!');
   };
@@ -108,11 +111,13 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         isOpen={isOptionsModalOpen}
         onClosed={onPhotosPreviewOptionsModalClosed}
         data={props.route.params.data}
+        preview={props.route.params.preview}
       />
       <PhotosPreviewInfoModal
         isOpen={isPhotosPreviewInfoModalOpen}
         onClosed={onPhotosPreviewInfoModalClosed}
         data={props.route.params.data}
+        preview={props.route.params.preview}
       />
       <DeletePhotosModal
         isOpen={isDeletePhotosModalOpen}
@@ -124,6 +129,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         isOpen={isSharePhotoModalOpen}
         data={props.route.params.data}
         onClosed={onSharePhotoModalClosed}
+        preview={props.route.params.preview}
       />
       <TouchableWithoutFeedback onPress={onScreenPressed}>
         <View style={tailwind('h-full')}>
@@ -163,19 +169,37 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
                 colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.24)', 'rgba(0,0,0,0.6)']}
                 style={tailwind('flex-row justify-around p-3 absolute bottom-0 w-full')}
               >
-                <TouchableOpacity style={tailwind('items-center')} onPress={onShareButtonPressed}>
-                  <Unicons.UilLink color="white" size={26} />
-                  <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.shareWithLink}</Text>
+                <TouchableOpacity
+                  disabled={!isFullSizeLoaded}
+                  style={tailwind('items-center flex-1')}
+                  onPress={onShareButtonPressed}
+                >
+                  <Unicons.UilLink color={isFullSizeLoaded ? 'white' : getColor('neutral-100')} size={26} />
+                  <Text
+                    style={[
+                      tailwind('text-xs'),
+                      isFullSizeLoaded ? tailwind('text-white') : tailwind('text-neutral-100'),
+                    ]}
+                  >
+                    {strings.components.buttons.share}
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   disabled={!isFullSizeLoaded}
-                  style={tailwind('items-center')}
+                  style={tailwind('items-center flex-1')}
                   onPress={onDownloadButtonPressed}
                 >
-                  <Unicons.UilImport color="white" size={26} />
-                  <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.download}</Text>
+                  <Unicons.UilImport color={isFullSizeLoaded ? 'white' : getColor('neutral-100')} size={26} />
+                  <Text
+                    style={[
+                      tailwind('text-xs'),
+                      isFullSizeLoaded ? tailwind('text-white') : tailwind('text-neutral-100'),
+                    ]}
+                  >
+                    {strings.components.buttons.download}
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={tailwind('items-center')} onPress={onMoveToTrashButtonPressed}>
+                <TouchableOpacity style={tailwind('items-center flex-1')} onPress={onMoveToTrashButtonPressed}>
                   <Unicons.UilTrash color="white" size={26} />
                   <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.moveToThrash}</Text>
                 </TouchableOpacity>

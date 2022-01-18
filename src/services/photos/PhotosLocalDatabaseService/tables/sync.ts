@@ -4,16 +4,21 @@ const statements = {
   cleanTable: `DELETE FROM ${TABLE_NAME};`,
   createTable: `CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (\
       id TEXT PRIMARY KEY, \
-      updated_at DATE NOT NULL \
+      remote_sync_at DATE NOT NULL, \
+      last_upload_at DATE NOT NULL \
     );`,
   dropTable: `DROP TABLE ${TABLE_NAME};`,
   selectCount: `SELECT COUNT(*) as count FROM ${TABLE_NAME}`,
-  getUpdatedAt: `SELECT updated_at as updatedAt
+  getRemoteSyncAt: `SELECT remote_sync_at as remoteSyncAt
     FROM ${TABLE_NAME} 
     LIMIT 1;`,
-  insert: `INSERT INTO ${TABLE_NAME} (updated_at) \
-    VALUES ( ? );`,
-  setUpdatedAt: `UPDATE ${TABLE_NAME} SET updated_at = ?;`,
+  getLastUploadAt: `SELECT last_upload_at as lastUploadAt
+    FROM ${TABLE_NAME} 
+    LIMIT 1;`,
+  insert: `INSERT INTO ${TABLE_NAME} (remote_sync_at, last_upload_at) \
+    VALUES ( ?, ? );`,
+  setRemoteSyncAt: `UPDATE ${TABLE_NAME} SET remote_sync_at = ?;`,
+  setLastUploadAt: `UPDATE ${TABLE_NAME} SET last_upload_at = ?;`,
 };
 
 export default {

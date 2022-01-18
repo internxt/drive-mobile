@@ -12,14 +12,17 @@ import strings from '../../../../assets/lang/strings';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch } from '../../../store/hooks';
 
-function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo }): JSX.Element {
+interface PhotosPreviewOptionsModalProps extends BottomModalProps {
+  data: Photo;
+  preview: string;
+}
+
+function PhotosPreviewOptionsModal({ isOpen, onClosed, data, preview }: PhotosPreviewOptionsModalProps): JSX.Element {
   const dispatch = useAppDispatch();
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const examplePhoto = require('../../../../assets/images/photos/example.png');
   const header = (
     <>
       <View style={tailwind('mr-3')}>
-        <Image style={tailwind('bg-black w-10 h-10')} source={examplePhoto} />
+        <Image style={tailwind('bg-black w-10 h-10')} source={{ uri: preview }} />
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>
@@ -75,7 +78,7 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps 
           <BottomModalOption
             leftSlot={
               <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.shareWithLink}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.share}</Text>
               </View>
             }
             rightSlot={<Unicons.UilLink size={20} color={getColor('neutral-500')} />}

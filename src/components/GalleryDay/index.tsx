@@ -60,7 +60,7 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
   const onItemPressed = (item: Photo, preview: string) => {
     isSelectionModeActivated
       ? onItemLongPressed(item)
-      : navigation.push(AppScreen.PhotosPreview, { data: item, preview });
+      : navigation.navigate(AppScreen.PhotosPreview, { data: item, preview });
   };
 
   return (

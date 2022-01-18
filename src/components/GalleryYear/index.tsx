@@ -23,7 +23,7 @@ const GalleryYear = (props: GalleryYearProps): JSX.Element => {
     <TouchableWithoutFeedback onPress={onYearPressed}>
       <View style={[tailwind('mb-5 w-full rounded-lg bg-neutral-30'), { aspectRatio: 2 / 1 }]}>
         <ImageBackground
-          source={{ uri: imageService.BASE64_PREFIX + props.preview }}
+          source={{ uri: props.preview }}
           resizeMode="cover"
           style={tailwind('w-full h-full')}
           imageStyle={tailwind('rounded-lg')}

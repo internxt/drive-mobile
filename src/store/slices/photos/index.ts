@@ -21,6 +21,7 @@ import {
   GalleryViewMode,
   PhotosDateRecord,
   PhotosSyncStatus,
+  PhotosSyncStatusData,
   PhotosSyncTasksInfo,
   PhotosSyncTaskType,
 } from '../../../types/photos';
@@ -34,8 +35,7 @@ export interface PhotosState {
     android: { [key in AndroidPermission]?: PermissionStatus };
     ios: { [key in IOSPermission]?: PermissionStatus };
   };
-  isSyncing: boolean;
-  syncStatus: PhotosSyncStatus;
+  syncStatus: PhotosSyncStatusData;
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
   allPhotosCount: number;
@@ -59,8 +59,8 @@ const initialState: PhotosState = {
       [PERMISSIONS.IOS.PHOTO_LIBRARY]: RESULTS.DENIED,
     },
   },
-  isSyncing: false,
   syncStatus: {
+    status: PhotosSyncStatus.Unknown,
     completedTasks: 0,
     totalTasks: 0,
   },
@@ -78,7 +78,7 @@ const initialState: PhotosState = {
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
   async (payload: void, { dispatch, getState }) => {
-    const { isSyncing } = getState().photos;
+    const { syncStatus } = getState().photos;
     const photosToken = await deviceStorage.getItem('photosToken');
     const user = await deviceStorage.getUser();
 
@@ -95,7 +95,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 
       dispatch(photosActions.setAllPhotosCount(await photosService.countPhotos()));
 
-      if (!isSyncing) {
+      if (syncStatus.status !== PhotosSyncStatus.InProgress) {
         dispatch(syncThunk());
       }
     }
@@ -193,17 +193,25 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/sync',
   async (payload: void, { dispatch }) => {
     const onStart = (tasksInfo: PhotosSyncTasksInfo) => {
-      dispatch(photosActions.updateSyncStatus({ totalTasks: tasksInfo.totalTasks }));
+      dispatch(
+        photosActions.updateSyncStatus({
+          status: tasksInfo.totalTasks > 0 ? PhotosSyncStatus.InProgress : PhotosSyncStatus.Completed,
+          totalTasks: tasksInfo.totalTasks,
+        }),
+      );
     };
     const onTaskCompleted = async ({
       photo,
       completedTasks,
+      taskType,
     }: {
       taskType: PhotosSyncTaskType;
       photo: Photo;
       completedTasks: number;
     }) => {
       dispatch(photosActions.updateSyncStatus({ completedTasks }));
+
+      console.log('COMPLETED SYNC TASK: ', taskType, ', status:', photo.status);
 
       if (photo.status === PhotoStatus.Exists) {
         const preview = (await photosService.getPhotoPreview(photo.id)) || '';
@@ -225,7 +233,7 @@ export const photosSlice = createSlice({
   name: 'photos',
   initialState,
   reducers: {
-    updateSyncStatus(state, action: PayloadAction<Partial<PhotosSyncStatus>>) {
+    updateSyncStatus(state, action: PayloadAction<Partial<PhotosSyncStatusData>>) {
       Object.assign(state.syncStatus, action.payload);
     },
     setIsSelectionModeActivated(state, action: PayloadAction<boolean>) {
@@ -363,10 +371,10 @@ export const photosSlice = createSlice({
 
     builder
       .addCase(syncThunk.pending, (state) => {
-        state.isSyncing = true;
+        Object.assign(state.syncStatus, { status: PhotosSyncStatus.Calculating });
       })
       .addCase(syncThunk.fulfilled, (state) => {
-        state.isSyncing = false;
+        Object.assign(state.syncStatus, { status: PhotosSyncStatus.Completed });
 
         notify({
           type: 'success',
@@ -374,7 +382,7 @@ export const photosSlice = createSlice({
         });
       })
       .addCase(syncThunk.rejected, (state, action) => {
-        state.isSyncing = false;
+        Object.assign(state.syncStatus, { status: PhotosSyncStatus.Pending });
 
         notify({
           type: 'error',
@@ -399,6 +407,10 @@ export const photosSelectors = {
     (state: RootState) =>
     (photos: Photo[]): boolean =>
       photos.reduce<boolean>((t, x) => t && photosSelectors.isPhotoSelected(state)(x), true),
+  getPhotoPreview:
+    (state: RootState) =>
+    (photo: Photo): string =>
+      state.photos.photos.find((p) => p.data.id === photo.id)?.preview || '',
   arePermissionsGranted: (state: RootState): boolean => {
     const result = Object.values(state.photos.permissions[Platform.OS as 'ios' | 'android']).reduce(
       (t, x) => t && x === RESULTS.GRANTED,

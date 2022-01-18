@@ -205,6 +205,7 @@ const strings = new LocalizedStrings({
         moveToThrash: 'Move to trash',
         copyLink: 'Copy link',
         startSyncingPhotos: 'Start syncing my photos',
+        syncNow: 'Sync now',
         tryAgain: 'Try again',
       },
       inputs: {
@@ -309,6 +310,7 @@ const strings = new LocalizedStrings({
     messages: {
       photoShared: 'You have shared a photo!',
       pressAgainToExit: 'Press again to close the app',
+      photosSyncPending: 'Pending synchronization',
       photosSyncCompleted: 'Photos: your device is up to date',
     },
     errors: {
@@ -527,6 +529,7 @@ const strings = new LocalizedStrings({
         moveToThrash: 'Mover a la papelera',
         copyLink: 'Copiar enlace',
         startSyncingPhotos: 'Sincronizar mis fotos',
+        syncNow: 'Sincronizar ahora',
         tryAgain: 'Intentar de nuevo',
       },
       inputs: {
@@ -633,6 +636,7 @@ const strings = new LocalizedStrings({
     messages: {
       photoShared: '¡Has compartido una foto!',
       pressAgainToExit: 'Pulsa otra vez para cerrar la app',
+      photosSyncPending: 'Sincronización pendiente',
       photosSyncCompleted: 'Photos: tu dispositivo está sincronizado',
     },
     errors: {

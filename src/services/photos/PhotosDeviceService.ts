@@ -26,7 +26,7 @@ export default class PhotosDeviceService {
 
     this.model.device = device;
 
-    await this.localDatabaseService.setSyncUpdatedAt(device.synchronizedAt);
+    await this.localDatabaseService.setLastUploadAt(device.synchronizedAt);
 
     console.log('(PhotosService) Device initialized');
 

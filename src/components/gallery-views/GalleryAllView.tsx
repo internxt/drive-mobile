@@ -32,7 +32,7 @@ const GalleryAllView = (): JSX.Element => {
   const onItemPressed = (photo: Photo, preview: string) => {
     isSelectionModeActivated
       ? onItemLongPressed(photo)
-      : navigation.push(AppScreen.PhotosPreview, { data: photo, preview });
+      : navigation.navigate(AppScreen.PhotosPreview, { data: photo, preview });
   };
   const loadPhotos = async () => {
     await dispatch(photosThunks.loadLocalPhotosThunk());

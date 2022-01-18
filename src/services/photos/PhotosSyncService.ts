@@ -75,9 +75,10 @@ export default class PhotosSyncService {
   }
 
   private async calculateTotalTasks(): Promise<PhotosSyncTasksInfo> {
-    const syncUpdatedAt = await this.localDatabaseService.getSyncUpdatedAt();
-    const { count: downloadTasks } = await this.photosSdk.photos.getPhotos({ statusChangedAt: syncUpdatedAt });
-    const uploadTasks = await this.cameraRollService.count({ from: syncUpdatedAt });
+    const remoteSyncAt = await this.localDatabaseService.getRemoteSyncAt();
+    const lastUploadAt = await this.localDatabaseService.getLastUploadAt();
+    const { count: downloadTasks } = await this.photosSdk.photos.getPhotos({ statusChangedAt: remoteSyncAt });
+    const uploadTasks = await this.cameraRollService.count({ from: lastUploadAt });
 
     return {
       totalTasks: downloadTasks + uploadTasks,
@@ -90,13 +91,13 @@ export default class PhotosSyncService {
    * @description Downloads remote photos whose status changed after the last update
    */
   private async downloadRemotePhotos(options: { onPhotoDownloaded: (photo: photos.Photo) => void }): Promise<void> {
-    const syncUpdatedAt = await this.localDatabaseService.getSyncUpdatedAt();
+    const syncUpdatedAt = await this.localDatabaseService.getRemoteSyncAt();
     const now = new Date();
     const limit = 20;
     let skip = 0;
     let photos;
 
-    console.log('[SYNC-REMOTE]: LAST SYNC WAS AT', syncUpdatedAt.toDateString());
+    console.log('[SYNC-REMOTE]: LAST SYNC WAS AT', syncUpdatedAt.toUTCString());
 
     do {
       const { results } = await this.photosSdk.photos.getPhotos({ statusChangedAt: syncUpdatedAt }, skip, limit);
@@ -124,7 +125,7 @@ export default class PhotosSyncService {
      * To avoid this issue but keep using an efficient way to sync supported by
      * dates and acoted ranges, try to avoid skipping anything
      */
-    await this.localDatabaseService.setSyncUpdatedAt(now);
+    await this.localDatabaseService.setRemoteSyncAt(now);
   }
 
   /**

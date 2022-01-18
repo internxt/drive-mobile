@@ -47,7 +47,7 @@ function SignInScreen(): JSX.Element {
         setShowTwoFactor(true);
         setIsLoading(false);
       } else {
-        await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }));
+        await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode })).unwrap();
         navigation.replace(AppScreen.TabExplorer);
       }
     } catch (err) {

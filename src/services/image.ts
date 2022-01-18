@@ -1,4 +1,8 @@
+import Share from 'react-native-share';
 import ImageResizer, { ResizeFormat, ResizeMode } from 'react-native-image-resizer';
+
+import strings from '../../assets/lang/strings';
+import { notify } from './toast';
 
 class ImageService {
   public readonly BASE64_PREFIX = 'data:image/png;base64,';
@@ -40,6 +44,21 @@ class ImageService {
     );
 
     return response;
+  }
+
+  public async share(uri: string) {
+    try {
+      const result = await Share.open({ title: strings.modals.share_photo_modal.nativeMesage, url: uri });
+
+      if (result.success) {
+        notify({ type: 'success', text: strings.messages.photoShared });
+      } else if (result.dismissedAction) {
+        // dismissed
+      }
+    } catch (err) {
+      console.log('Err sharing photo: ', err);
+      notify({ type: 'error', text: strings.errors.photoShared });
+    }
   }
 }
 

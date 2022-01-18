@@ -21,6 +21,14 @@ export enum PhotosSyncTaskType {
   Upload = 'upload',
 }
 
+export enum PhotosSyncStatus {
+  Unknown = 'unknown',
+  Pending = 'pending',
+  Calculating = 'calculating',
+  InProgress = 'in-progress',
+  Completed = 'completed',
+}
+
 export const PHOTOS_DB_NAME = 'photos.db';
 
 export interface PhotosServiceModel {
@@ -51,7 +59,8 @@ export interface SqlitePhotoRow {
   preview_source: string;
 }
 
-export interface PhotosSyncStatus {
+export interface PhotosSyncStatusData {
+  status: PhotosSyncStatus;
   completedTasks: number;
   totalTasks: number;
 }

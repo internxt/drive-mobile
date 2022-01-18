@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, Platform, Share, Text, TouchableHighlight, View } from 'react-native';
+import { Image, Platform, Share, Text, TextInput, TouchableHighlight, View } from 'react-native';
 import { Photo } from '@internxt/sdk/dist/photos';
 import prettysize from 'prettysize';
 import * as Unicons from '@iconscout/react-native-unicons';
@@ -9,19 +9,21 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import BaseButton from '../../BaseButton';
-import { TextInput } from 'react-native-gesture-handler';
 import { notify } from '../../../services/toast';
 import { useAppDispatch } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 
-function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo }): JSX.Element {
+interface SharePhotoModalProps extends BottomModalProps {
+  data: Photo;
+  preview: string;
+}
+
+function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalProps): JSX.Element {
   if (!data) {
     return <View></View>;
   }
 
   const dispatch = useAppDispatch();
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const examplePhoto = require('../../../../assets/images/photos/example.png');
   const [times, setTimes] = useState(10);
   const [url, setUrl] = useState('LINK');
   const onCancelButtonPressed = () => {
@@ -70,7 +72,7 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
   const header = (
     <>
       <View style={tailwind('mr-3')}>
-        <Image style={tailwind('bg-black w-10 h-10')} source={examplePhoto} />
+        <Image style={tailwind('bg-black w-10 h-10')} source={{ uri: preview }} />
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>

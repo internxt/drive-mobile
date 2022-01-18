@@ -25,7 +25,7 @@ const GalleryMonth = ({ month, preview }: GalleryMonthProps): JSX.Element => {
     <TouchableWithoutFeedback onPress={onMonthPressed}>
       <View style={[tailwind('mb-5 w-full rounded-lg bg-neutral-30'), { aspectRatio: 2 / 1 }]}>
         <ImageBackground
-          source={{ uri: imageService.BASE64_PREFIX + preview }}
+          source={{ uri: preview }}
           resizeMode="cover"
           style={tailwind('w-full h-full')}
           imageStyle={tailwind('rounded-lg')}

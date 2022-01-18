@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Alert, ScrollView, RefreshControl, Text } from 'react-native';
 import _ from 'lodash';
 
-import { getShareList, IShare } from '../../services/shares';
+import { getShareList, IShare } from '../../services/storageShare';
 import FileItem from '../../components/FileItem';
 import { tailwind } from '../../helpers/designSystem';
 import SkinSkeleton from '../../components/SkinSkeleton';

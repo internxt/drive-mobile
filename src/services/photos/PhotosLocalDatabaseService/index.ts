@@ -5,6 +5,7 @@ import { PhotosServiceModel, PHOTOS_DB_NAME, SqlitePhotoRow } from '../../../typ
 import sqliteService from '../../sqlite';
 import photoTable from './tables/photo';
 import syncTable from './tables/sync';
+import imageService from '../../image';
 
 export default class PhotosLocalDatabaseService {
   private readonly model: PhotosServiceModel;
@@ -29,7 +30,10 @@ export default class PhotosLocalDatabaseService {
   }
 
   public async initSyncDates(): Promise<void> {
-    await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.insert, [new Date('January 1, 1971 00:00:01')]);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.insert, [
+      new Date('January 1, 1971 00:00:01'),
+      new Date('January 1, 1971 00:00:01'),
+    ]);
   }
 
   public async countPhotos(): Promise<number> {
@@ -47,7 +51,7 @@ export default class PhotosLocalDatabaseService {
         for (const row of rows.raw() as unknown as SqlitePhotoRow[]) {
           results.push({
             data: this.mapPhotoRowToModel(row),
-            preview: row.preview_source,
+            preview: imageService.BASE64_PREFIX + row.preview_source,
           });
         }
 
@@ -65,7 +69,7 @@ export default class PhotosLocalDatabaseService {
       const preview = await this.getYearPreview(year);
       results.push({
         year,
-        preview: preview || '',
+        preview: imageService.BASE64_PREFIX + preview || '',
       });
     }
 
@@ -97,7 +101,7 @@ export default class PhotosLocalDatabaseService {
       results.push({
         year,
         month,
-        preview: preview || '',
+        preview: imageService.BASE64_PREFIX + preview || '',
       });
     }
 
@@ -156,7 +160,7 @@ export default class PhotosLocalDatabaseService {
     const [{ rows }] = await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getById, [photoId]);
     const photoSourceRow: SqlitePhotoRow | null = rows.item(0) || null;
 
-    return photoSourceRow && photoSourceRow.preview_source;
+    return photoSourceRow && imageService.BASE64_PREFIX + photoSourceRow.preview_source;
   }
 
   public async updatePhotoStatusById(photoId: PhotoId, newStatus: PhotoStatus): Promise<void> {
@@ -165,19 +169,35 @@ export default class PhotosLocalDatabaseService {
       .then(() => undefined);
   }
 
-  public async getSyncUpdatedAt(): Promise<Date> {
-    return sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.getUpdatedAt).then((res) => {
-      if (res[0].rows.item(0) && res[0].rows.item(0).updatedAt) {
-        return new Date(res[0].rows.item(0).updatedAt);
+  public async getRemoteSyncAt(): Promise<Date> {
+    return sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.getRemoteSyncAt).then((res) => {
+      if (res[0].rows.item(0) && res[0].rows.item(0).remoteSyncAt) {
+        return new Date(res[0].rows.item(0).remoteSyncAt);
       } else {
         return new Date('January 1, 1971 00:00:01');
       }
     });
   }
 
-  public async setSyncUpdatedAt(date: Date): Promise<void> {
+  public async getLastUploadAt(): Promise<Date> {
+    return sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.getLastUploadAt).then((res) => {
+      if (res[0].rows.item(0) && res[0].rows.item(0).lastUploadAt) {
+        return new Date(res[0].rows.item(0).lastUploadAt);
+      } else {
+        return new Date('January 1, 1971 00:00:01');
+      }
+    });
+  }
+
+  public async setRemoteSyncAt(date: Date): Promise<void> {
     return sqliteService
-      .executeSql(PHOTOS_DB_NAME, syncTable.statements.setUpdatedAt, [date.toUTCString()])
+      .executeSql(PHOTOS_DB_NAME, syncTable.statements.setRemoteSyncAt, [date.toUTCString()])
+      .then(() => undefined);
+  }
+
+  public async setLastUploadAt(date: Date): Promise<void> {
+    return sqliteService
+      .executeSql(PHOTOS_DB_NAME, syncTable.statements.setLastUploadAt, [date.toUTCString()])
       .then(() => undefined);
   }
 

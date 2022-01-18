@@ -28,7 +28,7 @@ const GalleryItem = ({
   onPress,
   onLongPress,
 }: GalleryItemProps): JSX.Element => {
-  const [uri] = useState('data:image/png;base64,' + preview);
+  const [uri] = useState(preview);
   const getItemContent = () =>
     ({
       [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri }} />,
