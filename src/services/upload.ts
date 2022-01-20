@@ -5,7 +5,7 @@ import { eachLimit } from 'async';
 import { getEnvironmentConfig, Network } from '../lib/network';
 import { deviceStorage } from '../services/deviceStorage';
 import { getHeaders } from '../helpers/headers';
-import { getDocumentsDir } from './fs';
+import { getDocumentsDir } from './fileSystem';
 
 export interface FileMeta {
   progress: number;

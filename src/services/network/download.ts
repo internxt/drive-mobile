@@ -8,7 +8,7 @@ import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 
 import { eachLimit, retry } from 'async';
 import { FileId } from '@internxt/sdk/dist/photos';
-import { getDocumentsDir } from '../fs';
+import { getDocumentsDir } from '../fileSystem';
 import { NetworkCredentials } from '../../types';
 
 type FileDecryptedURI = string;

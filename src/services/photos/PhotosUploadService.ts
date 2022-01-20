@@ -4,7 +4,7 @@ import { Photo, Photos, CreatePhotoData } from '@internxt/sdk/dist/photos';
 import { Platform } from 'react-native';
 
 import * as network from '../network';
-import { getDocumentsDir } from '../fs';
+import { getDocumentsDir } from '../fileSystem';
 import imageService from '../image';
 import { PhotosServiceModel } from '../../types/photos';
 

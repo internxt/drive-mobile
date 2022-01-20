@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Platform, Animated, Easing } from 'react-native';
-import FileViewer from 'react-native-file-viewer';
-import * as FileSystem from 'expo-file-system';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import analytics from '../../services/analytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
-import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../services/fs';
+import {
+  createEmptyFile,
+  exists,
+  FileManager,
+  getDocumentsDir,
+  pathToUri,
+  showFileViewer,
+} from '../../services/fileSystem';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import prettysize from 'prettysize';
 import globalStyle from '../../styles/global.style';
@@ -19,6 +24,7 @@ import { layoutActions } from '../../store/slices/layout';
 import { downloadFile } from '../../services/network';
 import { LegacyDownloadRequiredError } from '../../services/network/download';
 import { downloadFile as legacyDownloadFile } from '../../services/download';
+import { pathToFileURL } from 'url';
 
 interface FileItemProps {
   isFolder: boolean;
@@ -105,13 +111,7 @@ function FileItem(props: FileItemProps): JSX.Element {
       .then(() => {
         trackDownloadSuccess();
 
-        console.log('Destination path', destinationPath);
-
-        if (Platform.OS === 'android') {
-          return showFileViewer('file://' + destinationPath);
-        }
-
-        return showFileViewer(destinationPath);
+        return showFileViewer(pathToUri(destinationPath));
       })
       .catch((err) => {
         trackDownloadError(err);
@@ -153,16 +153,6 @@ function FileItem(props: FileItemProps): JSX.Element {
       } else {
         throw err;
       }
-    });
-  }
-
-  function showFileViewer(fileUri: string) {
-    return FileSystem.getInfoAsync(fileUri).then((fileInfo) => {
-      if (!fileInfo.exists) {
-        throw new Error('File not found');
-      }
-
-      return FileViewer.open(fileInfo.uri);
     });
   }
 

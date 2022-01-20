@@ -6,7 +6,7 @@ import { logger } from './lib/utils/logger';
 import { FileMeta } from './api/FileObjectUpload';
 import { BUCKET_ID_NOT_PROVIDED, ENCRYPTION_KEY_NOT_PROVIDED } from './api/constants';
 import { ActionState, ActionTypes } from './api/actionState';
-import { FileManager } from '../services/fs';
+import { FileManager } from '../services/fileSystem';
 import { FileInfo, GetFileInfo } from './api/fileinfo';
 import { Bridge, CreateFileTokenResponse } from './services/api';
 

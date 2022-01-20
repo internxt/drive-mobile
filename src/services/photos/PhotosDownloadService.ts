@@ -4,7 +4,7 @@ import RNFS from 'react-native-fs';
 
 import { NetworkCredentials } from '../../types';
 import * as network from '../network';
-import { getDocumentsDir } from '../fs';
+import { getDocumentsDir } from '../fileSystem';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import { PhotosServiceModel } from '../../types/photos';
 import imageService from '../image';

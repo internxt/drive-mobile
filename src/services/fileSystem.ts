@@ -1,11 +1,68 @@
 import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
 import RNFetchBlob from 'rn-fetch-blob';
+import FileViewer from 'react-native-file-viewer';
+import * as FileSystem from 'expo-file-system';
 
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
   Base64 = 'base64',
+}
+
+interface FileWriter {
+  write(content: string): Promise<void>;
+  close(): void;
+}
+
+interface FileIterator {
+  next(): Promise<Buffer>;
+}
+
+export class FileManager {
+  private fileUri: string;
+
+  constructor(uri: string) {
+    this.fileUri = uri;
+  }
+
+  getStat(): Promise<RNFS.StatResult> {
+    return stat(this.fileUri).then((stat) => {
+      return stat;
+    });
+  }
+
+  exists(): Promise<boolean> {
+    return exists(this.fileUri);
+  }
+
+  stream(): void {
+    throw new Error('Not implemented yet');
+  }
+
+  iterator(chunkSize: number): FileIterator {
+    let pos = 0;
+
+    return {
+      next: () => {
+        pos += chunkSize;
+
+        return readFile(this.fileUri, chunkSize, pos - chunkSize);
+      },
+    };
+  }
+
+  writer(): Promise<FileWriter> {
+    return writeFileStream(this.fileUri);
+  }
+
+  read(length?: number, position?: number): Promise<Buffer> {
+    return readFile(this.fileUri, length, position);
+  }
+
+  destroy(): Promise<void> {
+    return unlink(this.fileUri);
+  }
 }
 
 const ANDROID_URI_PREFIX = 'file://';
@@ -86,62 +143,16 @@ export function writeFile(): void {
   throw new Error('Not implemented yet');
 }
 
-export function stat(fileUri: string): Promise<any> {
-  // return RNFS.stat(fileUri);
-  return RNFetchBlob.fs.stat(fileUri);
+export function stat(uri: string): Promise<any> {
+  return RNFetchBlob.fs.stat(uri);
 }
 
-interface FileWriter {
-  write(content: string): Promise<void>;
-  close(): void;
-}
+export function showFileViewer(uri: string): Promise<void> {
+  return FileSystem.getInfoAsync(uri).then((fileInfo) => {
+    if (!fileInfo.exists) {
+      throw new Error('File not found');
+    }
 
-interface FileIterator {
-  next(): Promise<Buffer>;
-}
-
-export class FileManager {
-  private fileUri: string;
-
-  constructor(uri: string) {
-    this.fileUri = uri;
-  }
-
-  getStat(): Promise<RNFS.StatResult> {
-    return stat(this.fileUri).then((stat) => {
-      return stat;
-    });
-  }
-
-  exists(): Promise<boolean> {
-    return exists(this.fileUri);
-  }
-
-  stream(): void {
-    throw new Error('Not implemented yet');
-  }
-
-  iterator(chunkSize: number): FileIterator {
-    let pos = 0;
-
-    return {
-      next: () => {
-        pos += chunkSize;
-
-        return readFile(this.fileUri, chunkSize, pos - chunkSize);
-      },
-    };
-  }
-
-  writer(): Promise<FileWriter> {
-    return writeFileStream(this.fileUri);
-  }
-
-  read(length?: number, position?: number): Promise<Buffer> {
-    return readFile(this.fileUri, length, position);
-  }
-
-  destroy(): Promise<void> {
-    return unlink(this.fileUri);
-  }
+    return FileViewer.open(fileInfo.uri);
+  });
 }
