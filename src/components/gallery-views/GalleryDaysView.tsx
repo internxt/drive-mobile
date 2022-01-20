@@ -11,8 +11,6 @@ const GalleryDaysView = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
   const photosByMonth = useAppSelector(photosSelectors.photosByMonth);
-  const photosDateRecord = useAppSelector(photosSelectors.photosDateRecord);
-  const monthsList: JSX.Element[] = [];
 
   /* for (const [yearKey, yearItem] of Object.entries(photosDateRecord).reverse()) {
     const yearMonths: JSX.Element[] = [];
@@ -87,9 +85,7 @@ const GalleryDaysView = (): JSX.Element => {
         dispatch(photosThunks.loadLocalPhotosThunk());
       }}
       onEndReachedThreshold={0.5}
-    >
-      {monthsList}
-    </FlatList>
+    />
   );
 };
 

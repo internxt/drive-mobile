@@ -256,6 +256,7 @@ export const photosSlice = createSlice({
       state.photos = [];
       state.skip = 0;
       state.selectedPhotos = [];
+      state.isSelectionModeActivated = false;
     },
     addPhotos(state, action: PayloadAction<{ data: Photo; preview: string }[]>) {
       state.photos.push(...action.payload);

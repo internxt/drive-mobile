@@ -125,16 +125,6 @@ export default class PhotosLocalDatabaseService {
     });
   }
 
-  public async getMostRecentTakenAt(): Promise<Date | null> {
-    return sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getMostRecentTakenAt).then((res) => {
-      if (res[0].rows.item(0) && res[0].rows.item(0).takenAt) {
-        return new Date(res[0].rows.item(0).takenAt);
-      } else {
-        return null;
-      }
-    });
-  }
-
   public async getPhotoByNameAndType(name: string, type: string): Promise<Photo | null> {
     return sqliteService
       .executeSql(PHOTOS_DB_NAME, photoTable.statements.getPhotoByNameAndType, [name, type])
