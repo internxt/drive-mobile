@@ -77,7 +77,6 @@ function PhotosGalleryScreen(): JSX.Element {
     dispatch(photosThunks.loadLocalPhotosThunk());
 
     return () => {
-      console.log('resetting photos');
       photosActions.resetPhotos();
     };
   }, []);
@@ -105,7 +104,7 @@ function PhotosGalleryScreen(): JSX.Element {
                 </View>
 
                 <View style={tailwind('flex-row pr-5')}>
-                  <View style={tailwind('flex-row items-center justify-between')}>
+                  {/*<View style={tailwind('flex-row items-center justify-between')}>
                     <TouchableOpacity
                       style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl mr-2')}
                       onPress={onSelectAllButtonPressed}
@@ -114,7 +113,7 @@ function PhotosGalleryScreen(): JSX.Element {
                         {strings.components.buttons.selectAll}
                       </Text>
                     </TouchableOpacity>
-                  </View>
+            </View>*/}
                   <View style={tailwind('flex-row items-center justify-between')}>
                     <TouchableOpacity
                       style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
@@ -169,7 +168,7 @@ function PhotosGalleryScreen(): JSX.Element {
         {isSelectionModeActivated && (
           <Portal>
             <SafeAreaView style={[tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2')]}>
-              <TouchableWithoutFeedback
+              {/*<TouchableWithoutFeedback
                 onPress={onShareSelectionButtonPressed}
                 disabled={hasNoPhotosSelected || hasManyPhotosSelected}
               >
@@ -190,8 +189,8 @@ function PhotosGalleryScreen(): JSX.Element {
                     {strings.components.buttons.share}
                   </Text>
                 </View>
-              </TouchableWithoutFeedback>
-              <TouchableWithoutFeedback
+                  </TouchableWithoutFeedback>*/}
+              {/*<TouchableWithoutFeedback
                 style={tailwind('flex-1')}
                 onPress={onDownloadSelectionButtonPressed}
                 disabled={hasNoPhotosSelected}
@@ -211,7 +210,7 @@ function PhotosGalleryScreen(): JSX.Element {
                     {strings.components.buttons.download}
                   </Text>
                 </View>
-              </TouchableWithoutFeedback>
+                  </TouchableWithoutFeedback>*/}
               <TouchableWithoutFeedback
                 style={tailwind('flex-1')}
                 onPress={onDeleteSelectionButtonPressed}

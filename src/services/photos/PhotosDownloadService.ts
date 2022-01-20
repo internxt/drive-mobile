@@ -1,5 +1,4 @@
 import { photos } from '@internxt/sdk';
-import RNFetchBlob from 'rn-fetch-blob';
 import RNFS from 'react-native-fs';
 
 import { NetworkCredentials } from '../../types';

@@ -216,6 +216,6 @@ export default class PhotosSyncService {
 
         options.onPhotoUploaded?.(createdPhoto);
       }
-    } while (photosToUpload.length === limit);
+    } while (cursor);
   }
 }

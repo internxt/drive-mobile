@@ -76,6 +76,7 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
 
       {/* PHOTOS LIST */}
       <FlatList
+        listKey={`${year}-${month}-${day}`}
         scrollEnabled={false}
         style={tailwind('bg-white')}
         ItemSeparatorComponent={() => <View style={{ height: gutter }} />}

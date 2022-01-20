@@ -21,7 +21,7 @@ export default class PhotosUploadService {
     const fullName = `${data.name}.${data.type}`;
     console.log('PhotosUploadService.upload - uri: ', uri);
     const photoPath = await this.copyPhotoToDocumentsDir(fullName, data.width, data.height, uri);
-    const previewPath = await this.generatePreview(data.name, data.type, uri);
+    const previewPath = await this.generatePreview(fullName, uri);
 
     console.log('PhotosUploadService - photoPath:', photoPath);
     console.log('PhotosUploadService - previewPath: ', previewPath);
@@ -77,8 +77,8 @@ export default class PhotosUploadService {
     return path;
   }
 
-  private async generatePreview(name: string, extension: string, uri: string): Promise<string> {
-    const path = `${getDocumentsDir()}/${name}-preview${extension ? '.' + extension : ''}`;
+  private async generatePreview(filename: string, uri: string): Promise<string> {
+    const path = `${getDocumentsDir()}/${filename}`;
     const width = 128;
     const height = 128;
 
