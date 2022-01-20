@@ -26,20 +26,25 @@ export default class PhotosCameraRollService {
     return count;
   }
 
-  public async loadLocalPhotos(
-    from: Date,
-    to: Date,
-    limit: number,
-    cursor?: string,
-  ): Promise<[CameraRoll.PhotoIdentifier[], string | undefined]> {
+  public async loadLocalPhotos({
+    from,
+    to,
+    limit,
+    cursor,
+  }: {
+    from?: Date;
+    to?: Date;
+    limit: number;
+    cursor?: string;
+  }): Promise<[CameraRoll.PhotoIdentifier[], string | undefined]> {
     const photos = await CameraRoll.getPhotos({
       first: limit,
       /**
        * BE CAREFUL: fromTime is not being exclusive at least
        * on iOS as stated on the docs
        */
-      fromTime: from.getTime(),
-      toTime: to.getTime(),
+      fromTime: from && from.getTime(),
+      toTime: to && to.getTime(),
       assetType: 'Photos',
       groupTypes: 'All',
       after: cursor,
@@ -47,7 +52,7 @@ export default class PhotosCameraRollService {
     });
     let lastCursor: string | undefined = undefined;
 
-    photos.edges.reverse().forEach((edge) => {
+    photos.edges.forEach((edge) => {
       if (Platform.OS === 'ios') {
         lastCursor = edge.node.image.uri;
         edge.node.image.uri = this.convertLocalIdentifierToAssetLibrary(

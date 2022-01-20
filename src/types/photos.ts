@@ -65,10 +65,12 @@ export interface PhotosSyncStatusData {
   totalTasks: number;
 }
 
-export interface PhotosSyncTasksInfo {
+export interface PhotosSyncInfo {
   totalTasks: number;
+  cameraRollCount: number;
   downloadTasks: number;
-  uploadTasks: number;
+  newerUploadTasks: number;
+  olderUploadTasks: number;
 }
 
 export type PhotosDateRecord = Record<number, Record<number, Record<number, { data: Photo; preview: string }[]>>>;

@@ -22,7 +22,7 @@ import {
   PhotosDateRecord,
   PhotosSyncStatus,
   PhotosSyncStatusData,
-  PhotosSyncTasksInfo,
+  PhotosSyncInfo,
   PhotosSyncTaskType,
 } from '../../../types/photos';
 
@@ -30,6 +30,7 @@ let photosService: PhotosService;
 
 export interface PhotosState {
   isInitialized: boolean;
+  isDeviceSynchronized: boolean;
   initializeError: string | null;
   permissions: {
     android: { [key in AndroidPermission]?: PermissionStatus };
@@ -38,7 +39,6 @@ export interface PhotosState {
   syncStatus: PhotosSyncStatusData;
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
-  allPhotosCount: number;
   years: { year: number; preview: string }[];
   months: { year: number; month: number; preview: string }[];
   photos: { data: Photo; preview: string }[];
@@ -49,6 +49,7 @@ export interface PhotosState {
 
 const initialState: PhotosState = {
   isInitialized: false,
+  isDeviceSynchronized: false,
   initializeError: null,
   permissions: {
     android: {
@@ -66,7 +67,6 @@ const initialState: PhotosState = {
   },
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.Days,
-  allPhotosCount: 0,
   years: [],
   months: [],
   photos: [],
@@ -90,10 +90,10 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     await dispatch(checkPermissionsThunk());
 
+    // TODO: check is device synchronized
+
     if (photosSelectors.arePermissionsGranted(getState())) {
       await photosService.initialize();
-
-      dispatch(photosActions.setAllPhotosCount(await photosService.countPhotos()));
 
       if (syncStatus.status !== PhotosSyncStatus.InProgress) {
         dispatch(syncThunk());
@@ -192,7 +192,7 @@ const loadMonthsThunk = createAsyncThunk<
 const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/sync',
   async (payload: void, { dispatch }) => {
-    const onStart = (tasksInfo: PhotosSyncTasksInfo) => {
+    const onStart = (tasksInfo: PhotosSyncInfo) => {
       dispatch(
         photosActions.updateSyncStatus({
           status: tasksInfo.totalTasks > 0 ? PhotosSyncStatus.InProgress : PhotosSyncStatus.Completed,
@@ -202,7 +202,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
     };
     const onTaskCompleted = async ({
       photo,
-      completedTasks
+      completedTasks,
     }: {
       taskType: PhotosSyncTaskType;
       photo: Photo;
@@ -257,13 +257,10 @@ export const photosSlice = createSlice({
       } else {
         state.photos.push(action.payload);
       }
-      state.photos.sort((a, b) => b.data.createdAt.getTime() - a.data.createdAt.getTime());
+      state.photos.sort((a, b) => b.data.takenAt.getTime() - a.data.takenAt.getTime());
     },
     popPhoto(state, action: PayloadAction<Photo>) {
       state.photos = state.photos.filter((photo) => photo.data.id !== action.payload.id);
-    },
-    setAllPhotosCount(state, action: PayloadAction<number>) {
-      state.allPhotosCount = action.payload;
     },
     selectPhotos(state, action: PayloadAction<Photo | Photo[]>) {
       const photosToSelect = Array.isArray(action.payload) ? action.payload : [action.payload];
@@ -443,9 +440,9 @@ export const photosSelectors = {
     const result: PhotosDateRecord = {};
 
     for (const photo of state.photos.photos) {
-      const year = photo.data.createdAt.getUTCFullYear();
-      const month = photo.data.createdAt.getUTCMonth();
-      const day = photo.data.createdAt.getUTCDay();
+      const year = photo.data.takenAt.getFullYear();
+      const month = photo.data.takenAt.getMonth();
+      const day = photo.data.takenAt.getDay();
       const yearItem = result[year];
 
       if (yearItem) {

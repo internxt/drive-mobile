@@ -33,6 +33,7 @@ export default class PhotosLocalDatabaseService {
     await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.insert, [
       new Date('January 1, 1971 00:00:01'),
       new Date('January 1, 1971 00:00:01'),
+      null,
     ]);
   }
 
@@ -179,10 +180,20 @@ export default class PhotosLocalDatabaseService {
     });
   }
 
-  public async getLastUploadAt(): Promise<Date> {
-    return sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.getLastUploadAt).then((res) => {
-      if (res[0].rows.item(0) && res[0].rows.item(0).lastUploadAt) {
-        return new Date(res[0].rows.item(0).lastUploadAt);
+  public async getNewestDate(): Promise<Date> {
+    return sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.getNewestDate).then((res) => {
+      if (res[0].rows.item(0) && res[0].rows.item(0).newestDate) {
+        return new Date(res[0].rows.item(0).newestDate);
+      } else {
+        return new Date('January 1, 1971 00:00:01');
+      }
+    });
+  }
+
+  public async getOldestDate(): Promise<Date | null> {
+    return sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.getOldestDate).then((res) => {
+      if (res[0].rows.item(0) && res[0].rows.item(0).oldestDate) {
+        return new Date(res[0].rows.item(0).oldestDate);
       } else {
         return new Date('January 1, 1971 00:00:01');
       }
@@ -195,9 +206,15 @@ export default class PhotosLocalDatabaseService {
       .then(() => undefined);
   }
 
-  public async setLastUploadAt(date: Date): Promise<void> {
+  public async setNewestDate(date: Date): Promise<void> {
     return sqliteService
-      .executeSql(PHOTOS_DB_NAME, syncTable.statements.setLastUploadAt, [date.toUTCString()])
+      .executeSql(PHOTOS_DB_NAME, syncTable.statements.setNewestDate, [date.toUTCString()])
+      .then(() => undefined);
+  }
+
+  public async setOldestDate(date: Date | null): Promise<void> {
+    return sqliteService
+      .executeSql(PHOTOS_DB_NAME, syncTable.statements.setOldestDate, [date && date.toUTCString()])
       .then(() => undefined);
   }
 

@@ -1,8 +1,7 @@
 import { photos } from '@internxt/sdk';
-import { getMacAddress, getDeviceName } from 'react-native-device-info';
 
 import { NetworkCredentials } from '../../types';
-import { PhotosServiceModel, PhotosSyncTasksInfo, PhotosSyncTaskType } from '../../types/photos';
+import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType } from '../../types/photos';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosUploadService from './PhotosUploadService';
 import PhotosDeleteService from './PhotosDeleteService';
@@ -66,7 +65,7 @@ export class PhotosService {
   }
 
   public sync(options: {
-    onStart?: (tasksInfo: PhotosSyncTasksInfo) => void;
+    onStart?: (tasksInfo: PhotosSyncInfo) => void;
     onTaskCompleted?: (result: { taskType: PhotosSyncTaskType; photo: photos.Photo; completedTasks: number }) => void;
   }): Promise<void> {
     return this.syncService.run(options);

@@ -26,18 +26,19 @@ export default class PhotosDeviceService {
 
     this.model.device = device;
 
-    await this.localDatabaseService.setLastUploadAt(device.synchronizedAt);
+    await this.localDatabaseService.setNewestDate(device.newestDate);
+    device.oldestDate ? await this.localDatabaseService.setOldestDate(device.oldestDate) : null;
 
     console.log('(PhotosService) Device initialized');
 
     return device;
   }
 
-  public getMacAddress() {
+  public getMacAddress(): Promise<string> {
     return getMacAddress();
   }
 
-  public getDeviceName() {
+  public getDeviceName(): Promise<string> {
     return getDeviceName();
   }
 }
