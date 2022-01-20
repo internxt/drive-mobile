@@ -41,7 +41,7 @@ export interface PhotosState {
   syncStatus: PhotosSyncStatusData;
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
-  isLoading: boolean;
+  loadingRequests: string[];
   years: { year: number; preview: string }[];
   months: { year: number; month: number; preview: string }[];
   photos: { data: Photo; preview: string }[];
@@ -71,7 +71,7 @@ const initialState: PhotosState = {
   },
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.Days,
-  isLoading: false,
+  loadingRequests: [],
   years: [],
   months: [],
   photos: [],
@@ -168,14 +168,22 @@ const loadLocalPhotosThunk = createAsyncThunk<
   { data: Photo; preview: string }[],
   { limit?: number; skip?: number } | undefined,
   { state: RootState }
->('photos/loadLocalPhotos', async (payload, { getState, dispatch }) => {
+>('photos/loadLocalPhotos', async (payload, { requestId, getState, dispatch }) => {
   const photosState = getState().photos;
+  const isAlreadyLoading = photosState.loadingRequests.filter((id) => id !== requestId).length > 0;
+
+  if (isAlreadyLoading) {
+    return [];
+  }
+
   const defaultOptions = { limit: photosState.limit, skip: photosState.skip };
   const options: { limit: number; skip: number } = Object.assign({}, defaultOptions, payload || defaultOptions);
   const results = await photosService.getPhotos(options);
+  const allPhotosCount = await photosService.countPhotos();
+  const newSkip = options.skip + options.limit > allPhotosCount ? allPhotosCount : options.skip + options.limit;
 
   dispatch(photosActions.addPhotos(results));
-  dispatch(photosActions.setSkip(options.skip + options.limit));
+  dispatch(photosActions.setSkip(newSkip));
 
   return results;
 });
@@ -197,7 +205,7 @@ const loadMonthsThunk = createAsyncThunk<
 
 const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/sync',
-  async (payload: void, { dispatch }) => {
+  async (payload: void, { getState, dispatch }) => {
     const onStart = (tasksInfo: PhotosSyncInfo) => {
       dispatch(
         photosActions.updateSyncStatus({
@@ -214,11 +222,14 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
       photo: Photo;
       completedTasks: number;
     }) => {
+      const { photos } = getState().photos;
       dispatch(photosActions.updateSyncStatus({ completedTasks }));
 
       if (photo.status === PhotoStatus.Exists) {
-        const preview = (await photosService.getPhotoPreview(photo.id)) || '';
-        dispatch(photosActions.pushPhoto({ data: photo, preview }));
+        if (photos.length === 0 || photo.takenAt.getTime() > photos[photos.length - 1].data.takenAt.getTime()) {
+          const preview = (await photosService.getPhotoPreview(photo.id)) || '';
+          dispatch(photosActions.pushPhoto({ data: photo, preview }));
+        }
       } else {
         dispatch(photosActions.popPhoto(photo));
       }
@@ -259,7 +270,15 @@ export const photosSlice = createSlice({
       state.isSelectionModeActivated = false;
     },
     addPhotos(state, action: PayloadAction<{ data: Photo; preview: string }[]>) {
-      state.photos.push(...action.payload);
+      for (const photo of action.payload) {
+        const index = state.photos.findIndex((p) => p.data.id === photo.data.id);
+
+        if (!~index) {
+          state.photos.push(photo);
+        }
+      }
+
+      state.photos.sort((a, b) => b.data.takenAt.getTime() - a.data.takenAt.getTime());
     },
     setSkip(state, action: PayloadAction<number>) {
       state.skip = action.payload;
@@ -268,7 +287,8 @@ export const photosSlice = createSlice({
       const index = state.photos.findIndex((photo) => photo.data.id === action.payload.data.id);
 
       if (~index) {
-        Object.assign(state.photos[index], action.payload);
+        Object.assign(state.photos[index].data, action.payload.data);
+        state.photos[index].preview = action.payload.preview;
       } else {
         state.photos.push(action.payload);
       }
@@ -362,14 +382,16 @@ export const photosSlice = createSlice({
       });
 
     builder
-      .addCase(loadLocalPhotosThunk.pending, (state) => {
-        state.isLoading = true;
+      .addCase(loadLocalPhotosThunk.pending, (state, action) => {
+        state.loadingRequests.push(action.meta.requestId);
       })
-      .addCase(loadLocalPhotosThunk.fulfilled, (state) => {
-        state.isLoading = false;
+      .addCase(loadLocalPhotosThunk.fulfilled, (state, action) => {
+        const index = state.loadingRequests.indexOf(action.meta.requestId);
+        state.loadingRequests.splice(index, 1);
       })
       .addCase(loadLocalPhotosThunk.rejected, (state, action) => {
-        state.isLoading = false;
+        const index = state.loadingRequests.indexOf(action.meta.requestId);
+        state.loadingRequests.splice(index, 1);
 
         notify({
           type: 'error',
@@ -431,6 +453,7 @@ export const photosSlice = createSlice({
 export const photosActions = photosSlice.actions;
 
 export const photosSelectors = {
+  isLoading: (state: RootState): boolean => state.photos.loadingRequests.length > 0,
   hasPhotos: (state: RootState): boolean => state.photos.photos.length > 0,
   isPhotoSelected:
     (state: RootState) =>
@@ -500,9 +523,9 @@ export const photosSelectors = {
     const result: PhotosDateRecord = {};
 
     for (const photo of state.photos.photos) {
-      const year = photo.data.takenAt.getFullYear();
-      const month = photo.data.takenAt.getMonth();
-      const day = photo.data.takenAt.getDay();
+      const year = photo.data.takenAt.getUTCFullYear();
+      const month = photo.data.takenAt.getUTCMonth();
+      const day = photo.data.takenAt.getUTCDay();
       const yearItem = result[year];
 
       if (yearItem) {

@@ -21,9 +21,8 @@ function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
   const getPhotoPreview = useAppSelector(photosSelectors.getPhotoPreview);
   const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.layout);
-  const { isLoading, syncStatus, isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector(
-    (state) => state.photos,
-  );
+  const isLoading = useAppSelector(photosSelectors.isLoading);
+  const { syncStatus, isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
   const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
   const hasNoPhotosSelected = selectedPhotos.length === 0;
   const hasManyPhotosSelected = selectedPhotos.length > 1;
@@ -73,11 +72,11 @@ function PhotosGalleryScreen(): JSX.Element {
 
   useEffect(() => {
     //dispatch(photosActions.setViewMode(GalleryViewMode.All));
-    dispatch(photosActions.deselectAll());
+    dispatch(photosActions.resetPhotos());
     dispatch(photosThunks.loadLocalPhotosThunk());
 
     return () => {
-      photosActions.resetPhotos();
+      dispatch(photosActions.resetPhotos());
     };
   }, []);
 
