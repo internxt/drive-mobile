@@ -56,7 +56,7 @@ class ImageService {
         // dismissed
       }
     } catch (err) {
-      notify({ type: 'error', text: strings.errors.photoShared });
+      // notify({ type: 'error', text: strings.errors.photoShared });
     }
   }
 }

@@ -12,13 +12,15 @@ import BaseButton from '../../BaseButton';
 import { notify } from '../../../services/toast';
 import { useAppDispatch } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
+import imageService from '../../../services/image';
 
 interface SharePhotoModalProps extends BottomModalProps {
   data: Photo;
   preview: string;
+  uri: string;
 }
 
-function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalProps): JSX.Element {
+function SharePhotoModal({ isOpen, onClosed, data, preview, uri }: SharePhotoModalProps): JSX.Element {
   if (!data) {
     return <View></View>;
   }
@@ -26,11 +28,13 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
   const dispatch = useAppDispatch();
   const [times, setTimes] = useState(10);
   const [url, setUrl] = useState('LINK');
+  const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const onCancelButtonPressed = () => {
     onClosed();
   };
   const onShareButtonPressed = async () => {
-    try {
+    /*try {
       const result = await Share.share(
         Platform.OS === 'android'
           ? {
@@ -52,7 +56,9 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
       onClosed();
     } catch (err) {
       notify({ type: 'error', text: strings.errors.photoShared });
-    }
+    } */
+
+    await imageService.share(uri);
   };
   const onLessTimesButtonPressed = () => {
     if (times > 0) {
@@ -99,12 +105,17 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
       </View>
     </>
   );
+  const message = (
+    isLoading
+      ? strings.formatString(strings.modals.share_photo_modal.decrypting, progress)
+      : strings.modals.share_photo_modal.photoReady
+  ) as string;
 
   return (
     <BottomModal isOpen={isOpen} onClosed={onClosed} header={header}>
       <View style={tailwind('bg-neutral-10')}>
         {/* LIMIT */}
-        <View style={tailwind('my-6')}>
+        {/* <View style={tailwind('my-6')}>
           <Text
             style={[
               tailwind('w-full text-center mb-2 text-base font-semibold text-neutral-500'),
@@ -139,9 +150,10 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
             </TouchableHighlight>
           </View>
         </View>
+        */}
 
         {/* LINK */}
-        <View style={tailwind('flex-row mb-9 justify-center items-center')}>
+        {/* <View style={tailwind('flex-row mb-9 justify-center items-center')}>
           <BaseButton
             title={
               <View style={tailwind('flex-row justify-center items-center')}>
@@ -152,6 +164,12 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
             type="accept"
             onPress={onCopyLinkButtonPressed}
           />
+        </View>
+        */}
+
+        {/* !!! TMP CONTENT */}
+        <View style={tailwind('items-center justify-center px-5 py-10')}>
+          <Text style={tailwind('text-lg text-green-60')}>{message}</Text>
         </View>
 
         {/* ACTIONS */}
@@ -169,6 +187,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
             title={strings.components.buttons.share}
             type="accept"
             onPress={onShareButtonPressed}
+            disabled={isLoading}
             style={tailwind('flex-1')}
           />
         </View>

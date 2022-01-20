@@ -49,8 +49,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   };
   const onBackButtonPressed = () => navigation.goBack();
   const onShareButtonPressed = () => {
-    imageService.share(uri);
-    // dispatch(layoutActions.setIsSharePhotoModalOpen(true))
+    dispatch(layoutActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
     console.log('onDownloadButtonPressed!');
@@ -130,6 +129,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         data={props.route.params.data}
         onClosed={onSharePhotoModalClosed}
         preview={props.route.params.preview}
+        uri={uri}
       />
       <TouchableWithoutFeedback onPress={onScreenPressed}>
         <View style={tailwind('h-full')}>

@@ -36,6 +36,7 @@ export interface PhotosState {
     android: { [key in AndroidPermission]?: PermissionStatus };
     ios: { [key in IOSPermission]?: PermissionStatus };
   };
+  isSyncing: boolean;
   syncStatus: PhotosSyncStatusData;
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
@@ -60,6 +61,7 @@ const initialState: PhotosState = {
       [PERMISSIONS.IOS.PHOTO_LIBRARY]: RESULTS.DENIED,
     },
   },
+  isSyncing: false,
   syncStatus: {
     status: PhotosSyncStatus.Unknown,
     completedTasks: 0,
@@ -78,7 +80,7 @@ const initialState: PhotosState = {
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
   async (payload: void, { dispatch, getState }) => {
-    const { syncStatus } = getState().photos;
+    const { isSyncing } = getState().photos;
     const photosToken = await deviceStorage.getItem('photosToken');
     const user = await deviceStorage.getUser();
 
@@ -95,7 +97,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     if (photosSelectors.arePermissionsGranted(getState())) {
       await photosService.initialize();
 
-      if (syncStatus.status !== PhotosSyncStatus.InProgress) {
+      if (!isSyncing) {
         dispatch(syncThunk());
       }
     }
@@ -375,9 +377,11 @@ export const photosSlice = createSlice({
 
     builder
       .addCase(syncThunk.pending, (state) => {
+        state.isSyncing = true;
         Object.assign(state.syncStatus, { status: PhotosSyncStatus.Calculating });
       })
       .addCase(syncThunk.fulfilled, (state) => {
+        state.isSyncing = false;
         Object.assign(state.syncStatus, { status: PhotosSyncStatus.Completed });
 
         notify({
@@ -386,6 +390,7 @@ export const photosSlice = createSlice({
         });
       })
       .addCase(syncThunk.rejected, (state, action) => {
+        state.isSyncing = false;
         Object.assign(state.syncStatus, { status: PhotosSyncStatus.Pending });
 
         notify({
