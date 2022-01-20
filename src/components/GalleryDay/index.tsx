@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Dimensions,
-  FlatList,
-  ListRenderItemInfo,
-  RefreshControl,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { Dimensions, FlatList, ListRenderItemInfo, Text, TouchableWithoutFeedback, View } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { Photo } from '@internxt/sdk/dist/photos';
 
@@ -16,7 +8,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import GalleryItem from '../GalleryItem';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
-import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
+import { photosActions, photosSelectors } from '../../store/slices/photos';
 import { AppScreen } from '../../types';
 import moment from 'moment';
 
@@ -33,7 +25,6 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
   const arePhotosSelected = useAppSelector(photosSelectors.arePhotosSelected);
   const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
-  const [refreshing, setRefreshing] = useState(false);
   const [columnsCount] = useState(3);
   const [gutter] = useState(3);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
@@ -85,25 +76,11 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
 
       {/* PHOTOS LIST */}
       <FlatList
+        scrollEnabled={false}
         style={tailwind('bg-white')}
-        showsVerticalScrollIndicator={true}
-        indicatorStyle={'black'}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={async () => {
-              setRefreshing(true);
-              await dispatch(photosThunks.loadLocalPhotosThunk());
-              setRefreshing(false);
-            }}
-          />
-        }
-        decelerationRate={0.5}
         ItemSeparatorComponent={() => <View style={{ height: gutter }} />}
         data={photos}
         numColumns={columnsCount}
-        onEndReached={() => undefined}
-        onEndReachedThreshold={3}
         keyExtractor={(item) => item.data.id}
         renderItem={(item: ListRenderItemInfo<{ data: Photo; preview: string }>) => {
           const isTheLast = item.index === photos.length - 1;

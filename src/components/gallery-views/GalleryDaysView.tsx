@@ -1,17 +1,20 @@
 import moment from 'moment';
-import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { FlatList, RefreshControl, Text, View } from 'react-native';
 
 import { tailwind } from '../../helpers/designSystem';
-import { useAppSelector } from '../../store/hooks';
-import { photosSelectors } from '../../store/slices/photos';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
 import GalleryDay from '../GalleryDay';
 
 const GalleryDaysView = (): JSX.Element => {
+  const dispatch = useAppDispatch();
+  const [refreshing, setRefreshing] = useState(false);
+  const photosByMonth = useAppSelector(photosSelectors.photosByMonth);
   const photosDateRecord = useAppSelector(photosSelectors.photosDateRecord);
   const monthsList: JSX.Element[] = [];
 
-  for (const [yearKey, yearItem] of Object.entries(photosDateRecord).reverse()) {
+  /* for (const [yearKey, yearItem] of Object.entries(photosDateRecord).reverse()) {
     const yearMonths: JSX.Element[] = [];
 
     for (const [monthKey, monthItem] of Object.entries(yearItem).reverse()) {
@@ -41,9 +44,53 @@ const GalleryDaysView = (): JSX.Element => {
     }
 
     monthsList.push(...yearMonths);
-  }
+  }*/
 
-  return <ScrollView>{monthsList}</ScrollView>;
+  return (
+    <FlatList
+      data={photosByMonth}
+      renderItem={({ item }) => {
+        const monthName = moment.months(item.month);
+        const monthDays = item.days.map((d) => {
+          return (
+            <GalleryDay key={d.day.toString()} year={item.year} month={item.month} day={d.day} photos={d.photos} />
+          );
+        });
+
+        return (
+          <View>
+            <Text
+              style={tailwind('px-5 pt-5 pb-2 font-bold text-neutral-700 text-2xl')}
+            >{`${monthName} - ${item.year}`}</Text>
+            {monthDays}
+          </View>
+        );
+      }}
+      showsVerticalScrollIndicator={true}
+      indicatorStyle={'black'}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={async () => {
+            setRefreshing(true);
+            dispatch(photosActions.resetPhotos());
+            await dispatch(photosThunks.loadLocalPhotosThunk());
+            setRefreshing(false);
+          }}
+        />
+      }
+      decelerationRate={0.5}
+      keyExtractor={(item) => `${item.year}-${item.month}`}
+      numColumns={1}
+      onEndReached={() => {
+        console.log('GalleryDaysView - loading more local photos...');
+        dispatch(photosThunks.loadLocalPhotosThunk());
+      }}
+      onEndReachedThreshold={0.5}
+    >
+      {monthsList}
+    </FlatList>
+  );
 };
 
 export default GalleryDaysView;

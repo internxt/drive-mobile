@@ -74,3 +74,14 @@ export interface PhotosSyncInfo {
 }
 
 export type PhotosDateRecord = Record<number, Record<number, Record<number, { data: Photo; preview: string }[]>>>;
+export type PhotosByMonthType = {
+  year: number;
+  month: number;
+  days: {
+    day: number;
+    photos: {
+      data: Photo;
+      preview: string;
+    }[];
+  }[];
+};

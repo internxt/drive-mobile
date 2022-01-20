@@ -166,6 +166,7 @@ const strings = new LocalizedStrings({
         title: 'Gallery',
         nPhotosSelected: '{0} selected',
         empty: 'No photos to show',
+        loading: 'Loading photos...',
         syncing: 'Syncing {0} of {1}',
         groupBy: {
           years: 'Years',
@@ -494,6 +495,7 @@ const strings = new LocalizedStrings({
         title: 'Galería',
         nPhotosSelected: '{0} seleccionadas',
         empty: 'No hay fotos para mostrar',
+        loading: 'Cargando fotos...',
         syncing: 'Sincronizando {0} de {1}',
         groupBy: {
           years: 'Años',

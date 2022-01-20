@@ -24,6 +24,7 @@ import {
   PhotosSyncStatusData,
   PhotosSyncInfo,
   PhotosSyncTaskType,
+  PhotosByMonthType,
 } from '../../../types/photos';
 
 let photosService: PhotosService;
@@ -40,6 +41,7 @@ export interface PhotosState {
   syncStatus: PhotosSyncStatusData;
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
+  isLoading: boolean;
   years: { year: number; preview: string }[];
   months: { year: number; month: number; preview: string }[];
   photos: { data: Photo; preview: string }[];
@@ -69,6 +71,7 @@ const initialState: PhotosState = {
   },
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.Days,
+  isLoading: false,
   years: [],
   months: [],
   photos: [],
@@ -358,9 +361,15 @@ export const photosSlice = createSlice({
       });
 
     builder
-      .addCase(loadLocalPhotosThunk.pending, () => undefined)
-      .addCase(loadLocalPhotosThunk.fulfilled, () => undefined)
+      .addCase(loadLocalPhotosThunk.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(loadLocalPhotosThunk.fulfilled, (state) => {
+        state.isLoading = false;
+      })
       .addCase(loadLocalPhotosThunk.rejected, (state, action) => {
+        state.isLoading = false;
+
         notify({
           type: 'error',
           text: strings.formatString(
@@ -447,6 +456,42 @@ export const photosSelectors = {
       (t, x) => t || x === RESULTS.BLOCKED,
       false,
     );
+
+    return result;
+  },
+  photosByMonth: (state: RootState): PhotosByMonthType[] => {
+    const result: PhotosByMonthType[] = [];
+
+    for (const photo of state.photos.photos) {
+      const year = photo.data.takenAt.getFullYear();
+      const month = photo.data.takenAt.getMonth();
+      const day = photo.data.takenAt.getDay();
+      const monthItem = result.find((m) => m.year === year && m.month === month);
+
+      if (monthItem) {
+        const dayItem = monthItem.days.find((d) => d.day === day);
+
+        if (dayItem) {
+          dayItem.photos.push(photo);
+        } else {
+          monthItem.days.push({
+            day,
+            photos: [photo],
+          });
+        }
+      } else {
+        result.push({
+          year,
+          month,
+          days: [
+            {
+              day,
+              photos: [photo],
+            },
+          ],
+        });
+      }
+    }
 
     return result;
   },
