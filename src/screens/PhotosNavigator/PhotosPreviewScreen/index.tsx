@@ -14,7 +14,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import strings from '../../../../assets/lang/strings';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
-import { getDocumentsDir, pathToUri, showFileViewer } from '../../../services/fileSystem';
+import { getTemporaryDir, pathToUri, showFileViewer } from '../../../services/fileSystem';
 import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfoModal';
 import { photosThunks } from '../../../store/slices/photos';
 import LoadingSpinner from '../../../components/LoadingSpinner';
@@ -32,7 +32,7 @@ interface PreviewProps {
 
 function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const { data: photo, preview } = props.route.params;
-  const photoPath = getDocumentsDir() + '/' + items.getItemDisplayName({ name: photo.name, type: photo.type });
+  const photoPath = getTemporaryDir() + '/' + items.getItemDisplayName({ name: photo.name, type: photo.type });
 
   const dispatch = useAppDispatch();
   const [showActions, setShowActions] = useState(true);
@@ -52,7 +52,6 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
     dispatch(layoutActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
-    console.log('uri: ', uri);
     showFileViewer(uri);
   };
   const onMoveToTrashButtonPressed = () => {
@@ -96,16 +95,12 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   useEffect(() => {
     isPhotoAlreadyDownloaded().then((isDownloaded) => {
       if (isDownloaded) {
-        setUri(photoPath);
+        setUri(pathToUri(photoPath));
         setIsFullSizeLoaded(true);
       } else {
         loadImage();
       }
     });
-
-    return () => {
-      RNFS.unlink(photoPath);
-    };
   }, []);
 
   return (
@@ -116,6 +111,8 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         onClosed={onPhotosPreviewOptionsModalClosed}
         data={props.route.params.data}
         preview={props.route.params.preview}
+        photoPath={photoPath}
+        isFullSizeLoaded={isFullSizeLoaded}
       />
       <PhotosPreviewInfoModal
         isOpen={isPhotosPreviewInfoModalOpen}
@@ -134,7 +131,6 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         data={props.route.params.data}
         onClosed={onSharePhotoModalClosed}
         preview={props.route.params.preview}
-        uri={uri}
       />
       <TouchableWithoutFeedback onPress={onScreenPressed}>
         <View style={tailwind('h-full')}>

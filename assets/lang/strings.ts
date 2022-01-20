@@ -304,7 +304,8 @@ const strings = new LocalizedStrings({
         nativeMesage: 'Take a look to this photo!',
         linkOpenLimit: 'Link open limit',
         decrypting: 'Decrypting image {0}%',
-        photoReady: 'Your photo is ready to be shared!',
+        photoReady: 'Your photo is ready!',
+        shareWithYourContacts: 'Share the photo with your contacts',
       },
       link_copied_modal: {
         message: 'Link copied to clipboard',
@@ -633,7 +634,8 @@ const strings = new LocalizedStrings({
         nativeMesage: '¡Echa un vistazo a esta foto!',
         linkOpenLimit: 'Límite de veces abierto',
         decrypting: 'Desencriptando imagen {0}%',
-        photoReady: '¡Tu foto está lista para ser compartida!',
+        photoReady: '¡Tu foto está lista!',
+        shareWithYourContacts: 'Comparte la foto con tus contactos',
       },
       link_copied_modal: {
         message: 'Enlace copiado al portapapeles',

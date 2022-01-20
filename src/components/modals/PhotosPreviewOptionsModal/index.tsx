@@ -11,13 +11,23 @@ import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch } from '../../../store/hooks';
+import { showFileViewer } from '../../../services/fileSystem';
 
 interface PhotosPreviewOptionsModalProps extends BottomModalProps {
   data: Photo;
   preview: string;
+  photoPath: string;
+  isFullSizeLoaded: boolean;
 }
 
-function PhotosPreviewOptionsModal({ isOpen, onClosed, data, preview }: PhotosPreviewOptionsModalProps): JSX.Element {
+function PhotosPreviewOptionsModal({
+  isOpen,
+  onClosed,
+  data,
+  preview,
+  photoPath,
+  isFullSizeLoaded,
+}: PhotosPreviewOptionsModalProps): JSX.Element {
   const dispatch = useAppDispatch();
   const header = (
     <>
@@ -57,7 +67,7 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data, preview }: PhotosPr
     dispatch(layoutActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
-    console.log('onDownloadButtonPressed');
+    showFileViewer(photoPath);
   };
   const onMoveToTrashButtonPressed = () => {
     dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
@@ -77,6 +87,7 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data, preview }: PhotosPr
             onPress={onInfoButtonPressed}
           />
           <BottomModalOption
+            disabled={!isFullSizeLoaded}
             leftSlot={
               <View style={tailwind('flex-grow')}>
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.share}</Text>
@@ -86,6 +97,7 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data, preview }: PhotosPr
             onPress={onShareButtonPressed}
           />
           <BottomModalOption
+            disabled={!isFullSizeLoaded}
             leftSlot={
               <View style={tailwind('flex-grow')}>
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.download}</Text>

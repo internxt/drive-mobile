@@ -81,7 +81,6 @@ function PhotosGalleryScreen(): JSX.Element {
         isOpen={isSharePhotoModalOpen}
         data={selectedPhotos[0]}
         preview={hasNoPhotosSelected ? '' : getPhotoPreview(selectedPhotos[0])}
-        uri={''}
         onClosed={onSharePhotoModalClosed}
       />
       <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selectedPhotos} onClosed={onDeletePhotosModalClosed} />

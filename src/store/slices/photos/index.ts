@@ -171,7 +171,8 @@ const loadLocalPhotosThunk = createAsyncThunk<
   const options: { limit: number; skip: number } = Object.assign({}, defaultOptions, payload || defaultOptions);
   const results = await photosService.getPhotos(options);
 
-  dispatch(photosActions.setPhotos(results));
+  dispatch(photosActions.addPhotos(results));
+  dispatch(photosActions.setSkip(options.skip + options.limit));
 
   return results;
 });
@@ -248,8 +249,16 @@ export const photosSlice = createSlice({
     setViewMode(state, action: PayloadAction<GalleryViewMode>) {
       state.viewMode = action.payload;
     },
-    setPhotos(state, action: PayloadAction<{ data: Photo; preview: string }[]>) {
-      state.photos = action.payload;
+    resetPhotos(state) {
+      state.photos = [];
+      state.skip = 0;
+      state.selectedPhotos = [];
+    },
+    addPhotos(state, action: PayloadAction<{ data: Photo; preview: string }[]>) {
+      state.photos.push(...action.payload);
+    },
+    setSkip(state, action: PayloadAction<number>) {
+      state.skip = action.payload;
     },
     pushPhoto(state, action: PayloadAction<{ data: Photo; preview: string }>) {
       const index = state.photos.findIndex((photo) => photo.data.id === action.payload.data.id);

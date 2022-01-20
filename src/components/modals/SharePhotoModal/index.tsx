@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, Platform, Share, Text, TextInput, TouchableHighlight, View } from 'react-native';
 import { Photo } from '@internxt/sdk/dist/photos';
 import prettysize from 'prettysize';
@@ -13,23 +13,28 @@ import { notify } from '../../../services/toast';
 import { useAppDispatch } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import imageService from '../../../services/image';
+import { items } from '@internxt/lib';
+import { exists, getTemporaryDir, pathToUri } from '../../../services/fileSystem';
+import { photosThunks } from '../../../store/slices/photos';
+import LoadingSpinner from '../../LoadingSpinner';
 
 interface SharePhotoModalProps extends BottomModalProps {
   data: Photo;
   preview: string;
-  uri: string;
 }
 
-function SharePhotoModal({ isOpen, onClosed, data, preview, uri }: SharePhotoModalProps): JSX.Element {
+function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalProps): JSX.Element {
   if (!data) {
     return <View></View>;
   }
 
-  const dispatch = useAppDispatch();
   const [times, setTimes] = useState(10);
   const [url, setUrl] = useState('LINK');
+  const dispatch = useAppDispatch();
+  const photoPath = getTemporaryDir() + '/' + items.getItemDisplayName({ name: data.name, type: data.type });
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [uri, setUri] = useState('');
   const onCancelButtonPressed = () => {
     onClosed();
   };
@@ -105,11 +110,33 @@ function SharePhotoModal({ isOpen, onClosed, data, preview, uri }: SharePhotoMod
       </View>
     </>
   );
-  const message = (
-    isLoading
-      ? strings.formatString(strings.modals.share_photo_modal.decrypting, progress)
-      : strings.modals.share_photo_modal.photoReady
-  ) as string;
+
+  useEffect(() => {
+    exists(photoPath).then((value) => {
+      if (value) {
+        setUri(pathToUri(photoPath));
+      } else {
+        setIsLoading(true);
+        dispatch(
+          photosThunks.downloadPhotoThunk({
+            fileId: data.fileId,
+            options: {
+              toPath: photoPath,
+              downloadProgressCallback: (p) => {
+                setProgress(p);
+              },
+              decryptionProgressCallback: (p) => undefined,
+            },
+          }),
+        )
+          .unwrap()
+          .then((path) => {
+            setUri(pathToUri(path));
+            setIsLoading(false);
+          });
+      }
+    });
+  }, []);
 
   return (
     <BottomModal isOpen={isOpen} onClosed={onClosed} header={header}>
@@ -168,8 +195,20 @@ function SharePhotoModal({ isOpen, onClosed, data, preview, uri }: SharePhotoMod
         */}
 
         {/* !!! TMP CONTENT */}
-        <View style={tailwind('items-center justify-center px-5 py-10')}>
-          <Text style={tailwind('text-lg text-green-60')}>{message}</Text>
+        <View style={tailwind('flex-row items-center justify-center px-5 py-10')}>
+          {isLoading ? (
+            <>
+              <LoadingSpinner size={20} style={tailwind('mr-2')} />
+              <Text style={tailwind('text-base')}>
+                {strings.formatString(strings.modals.share_photo_modal.decrypting, progress.toFixed(0))}
+              </Text>
+            </>
+          ) : (
+            <View style={tailwind('items-center')}>
+              <Text style={tailwind('text-sm text-green-60 mb-2')}>{strings.modals.share_photo_modal.photoReady}</Text>
+              <Text style={tailwind('text-base')}>{strings.modals.share_photo_modal.shareWithYourContacts}</Text>
+            </View>
+          )}
         </View>
 
         {/* ACTIONS */}
@@ -187,7 +226,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview, uri }: SharePhotoMod
             title={strings.components.buttons.share}
             type="accept"
             onPress={onShareButtonPressed}
-            disabled={isLoading}
+            disabled={!uri || isLoading}
             style={tailwind('flex-1')}
           />
         </View>
