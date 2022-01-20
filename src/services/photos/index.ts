@@ -109,6 +109,12 @@ export class PhotosService {
     return this.deleteService.delete(photo);
   }
 
+  /**
+   * @description Downloads the photo from the network
+   * @param fileId
+   * @param options
+   * @returns The photo path in the file system
+   */
   public downloadPhoto(
     fileId: string,
     options: {

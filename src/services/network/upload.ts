@@ -7,7 +7,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { request } from '@internxt/lib';
 
 import { GenerateFileKey, ripemd160, sha256, sha512HmacBuffer, EncryptFilename } from '../../@inxt-js/lib/crypto';
-import { getDocumentsDir } from '../../lib/fs';
+import { getDocumentsDir } from '../fs';
 import { ShardMeta } from '../../@inxt-js/lib/shardMeta';
 import { FileId } from '@internxt/sdk/dist/photos';
 import { NetworkCredentials, NetworkUser } from '../../types';

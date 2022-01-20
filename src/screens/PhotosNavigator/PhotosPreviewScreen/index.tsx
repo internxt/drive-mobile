@@ -14,10 +14,9 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import strings from '../../../../assets/lang/strings';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
-import { getDocumentsDir } from '../../../lib/fs';
+import { getDocumentsDir, pathToUri } from '../../../services/fs';
 import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfoModal';
 import { photosThunks } from '../../../store/slices/photos';
-import imageService from '../../../services/image';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 
@@ -85,8 +84,8 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
       }),
     )
       .unwrap()
-      .then((fileUri: string) => {
-        setUri(imageService.BASE64_PREFIX + fileUri);
+      .then((photoPath: string) => {
+        setUri(pathToUri(photoPath));
         setIsFullSizeLoaded(true);
       })
       .catch(() => undefined);
@@ -101,6 +100,10 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         loadImage();
       }
     });
+
+    return () => {
+      RNFS.unlink(photoPath);
+    };
   }, []);
 
   return (

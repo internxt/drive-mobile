@@ -4,9 +4,10 @@ import RNFS from 'react-native-fs';
 
 import { NetworkCredentials } from '../../types';
 import * as network from '../network';
-import { getDocumentsDir } from '../../lib/fs';
+import { getDocumentsDir } from '../fs';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import { PhotosServiceModel } from '../../types/photos';
+import imageService from '../image';
 
 export default class PhotosDownloadService {
   private readonly model: PhotosServiceModel;
@@ -26,7 +27,7 @@ export default class PhotosDownloadService {
     if (photoIsOnTheDevice) {
       await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);
     } else {
-      const preview = await this.pullPhoto(
+      const previewPath = await this.pullPhoto(
         this.model.user?.bucketId || '',
         this.model.networkCredentials,
         photo.previewId,
@@ -36,6 +37,8 @@ export default class PhotosDownloadService {
           decryptionProgressCallback: () => undefined,
         },
       );
+      const preview = await imageService.pathToBase64(previewPath);
+      await RNFS.unlink(previewPath);
       await this.localDatabaseService.insertPhoto(photo, preview);
     }
   }
@@ -53,10 +56,7 @@ export default class PhotosDownloadService {
     const tmpPath = await network.downloadFile(photosBucket, fileId, networkCredentials, this.model.networkUrl, {
       ...options,
     });
-    const photoSource = await RNFetchBlob.fs.readFile(tmpPath, 'base64');
 
-    await RNFS.unlink(tmpPath);
-
-    return photoSource;
+    return tmpPath;
   }
 }

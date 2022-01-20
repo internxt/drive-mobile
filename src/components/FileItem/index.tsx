@@ -7,7 +7,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 import analytics from '../../services/analytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
-import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../lib/fs';
+import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../services/fs';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import prettysize from 'prettysize';
 import globalStyle from '../../styles/global.style';

@@ -23,7 +23,7 @@ import RNFS from 'react-native-fs';
 import { createFileEntry, FileEntry, getFinalUri } from '../../../services/upload';
 import analytics from '../../../services/analytics';
 import { encryptFilename } from '../../../helpers';
-import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../lib/fs';
+import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../services/fs';
 import { renameIfAlreadyExists } from '../../../lib';
 import strings from '../../../../assets/lang/strings';
 import { notify } from '../../../services/toast';

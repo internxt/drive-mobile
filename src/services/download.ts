@@ -1,4 +1,4 @@
-import { FileManager } from '../lib/fs';
+import { FileManager } from './fs';
 import { getEnvironmentConfig, Network } from '../lib/network';
 
 interface DownloadFileParams {

@@ -3,6 +3,7 @@ import ImageResizer, { ResizeFormat, ResizeMode } from 'react-native-image-resiz
 
 import strings from '../../assets/lang/strings';
 import { notify } from './toast';
+import RNFetchBlob from 'rn-fetch-blob';
 
 class ImageService {
   public readonly BASE64_PREFIX = 'data:image/png;base64,';
@@ -58,6 +59,10 @@ class ImageService {
     } catch (err) {
       // notify({ type: 'error', text: strings.errors.photoShared });
     }
+  }
+
+  public async pathToBase64(uri: string): Promise<string> {
+    return await RNFetchBlob.fs.readFile(uri, 'base64');
   }
 }
 

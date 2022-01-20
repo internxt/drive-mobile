@@ -8,6 +8,12 @@ enum AcceptedEncodings {
   Base64 = 'base64',
 }
 
+const ANDROID_URI_PREFIX = 'file://';
+
+export function pathToUri(path: string): string {
+  return Platform.OS === 'android' ? ANDROID_URI_PREFIX + path : path;
+}
+
 export function getDocumentsDir(): string {
   return RNFS.DocumentDirectoryPath;
 }
