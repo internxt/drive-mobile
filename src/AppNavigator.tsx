@@ -21,7 +21,7 @@ import PhotosNavigator from './screens/PhotosNavigator';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { layoutActions } from './store/slices/layout';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
-import { getCheckoutSessionById } from './services/analytics';
+import { trackPayment } from './services/analytics';
 import { paymentsActions } from './store/slices/payments';
 
 type RouteConfig = NavigationRouteConfigMap<
@@ -63,8 +63,8 @@ function AppNavigator(): JSX.Element {
       const comesFromCheckout = sessionId !== '';
 
       if (comesFromCheckout) {
-        getCheckoutSessionById(sessionId).then((res) => {
-          // return trackPayment({...});
+        trackPayment(sessionId).then((res) => {
+          // no op
         }).catch((err) => {
           // no op
         }).finally(() => {

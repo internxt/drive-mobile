@@ -4,9 +4,11 @@ import { deviceStorage, User } from './deviceStorage';
 import Firebase from '@segment/analytics-react-native-firebase';
 import { NavigationState } from '@react-navigation/native';
 import { getHeaders } from '../helpers/headers';
+import _ from 'lodash';
 
 enum TrackTypes {
   PaymentConversionEvent = 'Payment Conversion',
+  CouponRedeemedEvent = 'Coupon Redeemed'
 }
 
 export async function analyticsSetup(): Promise<void> {
@@ -63,24 +65,74 @@ export async function getCheckoutSessionById(sessionId: string): Promise<any> {
   });
 }
 
-export async function trackPayment(plan: Plan): Promise<void> {
-  const user = await getAnalyticsData();
+async function getConversionData(sessionId: string) {
+  const session = await getCheckoutSessionById(sessionId);
+  let conversionData = {
+    traits: {},
+    properties: {},
+    coupon: {}
+  };
+  if (session.payment_status === 'paid') {
+    const amount = session.amount_total * 0.01;
+    const discounts = session.total_details.breakdown.discounts;
+    let coupon = {};
 
-  await analytics.identify(user.uuid, {
-    email: user.email,
-    plan: plan.id,
-    storage_limit: plan.maxSpaceBytes,
-    plan_name: plan.name
-  });
+    if (discounts.length > 0) {
+      const { discount } = discounts[0];
+      coupon = {
+        discount_id: discount.id,
+        coupon_id: discount.coupon.id,
+        coupon_name: discount.coupon.name.toLowerCase()
+      }
+    }
 
-  await analytics.track(TrackTypes.PaymentConversionEvent, {
-    price_id: plan.id,
-    email: user.email,
-    currency: plan.currency.toUpperCase(),
-    value: plan.unitAmount * 0.01,
-    type: plan.type,
-    plan_name: plan.name,
-  });
+    conversionData = {
+      properties: {
+        price_id: session.metadata.price_id,
+        email: session.customer_details.email,
+        product: session.metadata.product,
+        customer_id: session.customer,
+        currency: session.currency.toUpperCase(),
+        value: amount,
+        revenue: amount,
+        quantity: 1,
+        type: session.metadata.type,
+        plan_name: session.metadata.name,
+        impact_value: amount === 0 ? 5 : amount,
+        subscription_id: session.subscription,
+        payment_intent: session.payment_intent
+      },
+      traits: {
+        email: session.customer_details.email,
+        plan: session.metadata.priceId,
+        customer_id: session.customer,
+        storage_limit: session.metadata.maxSpaceBytes,
+        plan_name: session.metadata.name,
+        subscription_id: session.subscription,
+        payment_intent: session.payment_intent
+      },
+      coupon
+    }
+  }
+
+  return conversionData;
 }
 
-export default analytics;
+
+export async function trackPayment(sessionId: string): Promise<void> {
+  const user = await getAnalyticsData();
+  const conversionData = await getConversionData(sessionId);
+
+  if (!_.isEmpty(conversionData.properties)) {
+    await analytics.identify(user.uuid, conversionData.traits);
+
+    analytics.track(TrackTypes.PaymentConversionEvent, conversionData.properties);
+
+    if (!_.isEmpty(conversionData.coupon)) {
+      analytics.track(TrackTypes.CouponRedeemedEvent, conversionData.coupon)
+    }
+
+
+  }
+
+  export default analytics;
