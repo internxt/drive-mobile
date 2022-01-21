@@ -7,26 +7,28 @@ import * as network from '../network';
 import { getDocumentsDir } from '../fileSystem';
 import imageService from '../image';
 import { PhotosServiceModel } from '../../types/photos';
+import PhotosLogService from './PhotosLogService';
 
 export default class PhotosUploadService {
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: Photos;
+  private readonly logService: PhotosLogService;
 
-  constructor(model: PhotosServiceModel, photosSdk: Photos) {
+  constructor(model: PhotosServiceModel, photosSdk: Photos, logService: PhotosLogService) {
     this.model = model;
     this.photosSdk = photosSdk;
+    this.logService = logService;
   }
 
   public async upload(data: Omit<CreatePhotoData, 'fileId' | 'previewId'>, uri: string): Promise<[Photo, string]> {
     const fullName = `${data.name}.${data.type}`;
-    console.log('PhotosUploadService.upload - uri: ', uri);
     const photoPath = await this.copyPhotoToDocumentsDir(fullName, data.width, data.height, uri);
     const previewPath = await this.generatePreview(fullName, uri);
 
-    console.log('PhotosUploadService - photoPath:', photoPath);
-    console.log('PhotosUploadService - previewPath: ', previewPath);
+    this.logService.info('PhotosUploadService - photoPath: ' + photoPath);
+    this.logService.info('PhotosUploadService - previewPath: ' + previewPath);
 
-    console.log('Uploading preview for photo ' + data.name);
+    this.logService.info('Uploading preview for photo ' + data.name);
     const previewId = await network.uploadFile(
       previewPath,
       this.model.user?.bucketId || '',
@@ -34,7 +36,7 @@ export default class PhotosUploadService {
       this.model.networkCredentials,
     );
 
-    console.log('Uploading photo for photo ' + data.name);
+    this.logService.info('Uploading photo for photo ' + data.name);
     const fileId = await network.uploadFile(
       photoPath,
       this.model.user?.bucketId || '',

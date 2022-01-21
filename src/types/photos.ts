@@ -32,6 +32,7 @@ export enum PhotosSyncStatus {
 export const PHOTOS_DB_NAME = 'photos.db';
 
 export interface PhotosServiceModel {
+  debug: boolean;
   isInitialized: boolean;
   accessToken: string;
   networkCredentials: NetworkCredentials;

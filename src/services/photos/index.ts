@@ -10,11 +10,13 @@ import PhotosCameraRollService from './PhotosCameraRollService';
 import PhotosDownloadService from './PhotosDownloadService';
 import PhotosDeviceService from './PhotosDeviceService';
 import PhotosUserService from './PhotosUserService';
+import PhotosLogService from './PhotosLogService';
 
 export class PhotosService {
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: photos.Photos;
 
+  private readonly logService: PhotosLogService;
   private readonly cameraRollService: PhotosCameraRollService;
   private readonly localDatabaseService: PhotosLocalDatabaseService;
   private readonly deviceService: PhotosDeviceService;
@@ -26,6 +28,7 @@ export class PhotosService {
 
   constructor(accessToken: string, networkCredentials: NetworkCredentials) {
     this.model = {
+      debug: process.env.NODE_ENV !== 'production',
       isInitialized: false,
       accessToken,
       networkCredentials,
@@ -33,13 +36,24 @@ export class PhotosService {
     };
     this.photosSdk = new photos.Photos(process.env.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
 
-    this.cameraRollService = new PhotosCameraRollService();
-    this.localDatabaseService = new PhotosLocalDatabaseService(this.model);
-    this.deviceService = new PhotosDeviceService(this.model, this.photosSdk, this.localDatabaseService);
-    this.userService = new PhotosUserService(this.model, this.photosSdk, this.deviceService);
-    this.uploadService = new PhotosUploadService(this.model, this.photosSdk);
-    this.downloadService = new PhotosDownloadService(this.model, this.localDatabaseService);
-    this.deleteService = new PhotosDeleteService(this.model, this.photosSdk, this.localDatabaseService);
+    this.logService = new PhotosLogService(this.model);
+    this.cameraRollService = new PhotosCameraRollService(this.logService);
+    this.localDatabaseService = new PhotosLocalDatabaseService(this.model, this.logService);
+    this.deviceService = new PhotosDeviceService(
+      this.model,
+      this.photosSdk,
+      this.localDatabaseService,
+      this.logService,
+    );
+    this.userService = new PhotosUserService(this.model, this.photosSdk, this.deviceService, this.logService);
+    this.uploadService = new PhotosUploadService(this.model, this.photosSdk, this.logService);
+    this.downloadService = new PhotosDownloadService(this.model, this.localDatabaseService, this.logService);
+    this.deleteService = new PhotosDeleteService(
+      this.model,
+      this.photosSdk,
+      this.localDatabaseService,
+      this.logService,
+    );
     this.syncService = new PhotosSyncService(
       this.model,
       this.photosSdk,
@@ -47,6 +61,7 @@ export class PhotosService {
       this.uploadService,
       this.downloadService,
       this.localDatabaseService,
+      this.logService,
     );
   }
 
@@ -61,7 +76,7 @@ export class PhotosService {
 
     this.model.isInitialized = true;
 
-    console.log('(PhotosService) initialized');
+    this.logService.info('(PhotosService) initialized');
   }
 
   public sync(options: {

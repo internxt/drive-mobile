@@ -7,21 +7,27 @@ import { getDocumentsDir } from '../fileSystem';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import { PhotosServiceModel } from '../../types/photos';
 import imageService from '../image';
+import PhotosLogService from './PhotosLogService';
 
 export default class PhotosDownloadService {
   private readonly model: PhotosServiceModel;
-
   private readonly localDatabaseService: PhotosLocalDatabaseService;
+  private readonly logService: PhotosLogService;
 
-  constructor(model: PhotosServiceModel, localDatabaseService: PhotosLocalDatabaseService) {
+  constructor(
+    model: PhotosServiceModel,
+    localDatabaseService: PhotosLocalDatabaseService,
+    logService: PhotosLogService,
+  ) {
     this.model = model;
     this.localDatabaseService = localDatabaseService;
+    this.logService = logService;
   }
 
   public async downloadPhoto(photo: photos.Photo): Promise<void> {
     const photoIsOnTheDevice = !!(await this.localDatabaseService.getPhotoById(photo.id));
 
-    console.log('Photo ' + photo.name + ' is on the device? ' + photoIsOnTheDevice);
+    this.logService.info('Photo ' + photo.name + ' is on the device? ' + photoIsOnTheDevice);
 
     if (photoIsOnTheDevice) {
       await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);

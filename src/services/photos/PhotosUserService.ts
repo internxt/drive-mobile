@@ -2,16 +2,24 @@ import { photos } from '@internxt/sdk';
 
 import { PhotosServiceModel } from '../../types/photos';
 import PhotosDeviceService from './PhotosDeviceService';
+import PhotosLogService from './PhotosLogService';
 
 export default class PhotosUserService {
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: photos.Photos;
   private readonly deviceService: PhotosDeviceService;
+  private readonly logService: PhotosLogService;
 
-  constructor(model: PhotosServiceModel, photosSdk: photos.Photos, deviceService: PhotosDeviceService) {
+  constructor(
+    model: PhotosServiceModel,
+    photosSdk: photos.Photos,
+    deviceService: PhotosDeviceService,
+    logService: PhotosLogService,
+  ) {
     this.model = model;
     this.photosSdk = photosSdk;
     this.deviceService = deviceService;
+    this.logService = logService;
   }
 
   public async initialize(): Promise<photos.User> {
@@ -26,7 +34,7 @@ export default class PhotosUserService {
 
     this.model.user = user;
 
-    console.log('(PhotosService) User initialized');
+    this.logService.info('(PhotosService) User initialized');
 
     return user;
   }

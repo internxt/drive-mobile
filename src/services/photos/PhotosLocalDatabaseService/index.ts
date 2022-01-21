@@ -6,12 +6,15 @@ import sqliteService from '../../sqlite';
 import photoTable from './tables/photo';
 import syncTable from './tables/sync';
 import imageService from '../../image';
+import PhotosLogService from '../PhotosLogService';
 
 export default class PhotosLocalDatabaseService {
   private readonly model: PhotosServiceModel;
+  private readonly logService: PhotosLogService;
 
-  constructor(model: PhotosServiceModel) {
+  constructor(model: PhotosServiceModel, logService: PhotosLogService) {
     this.model = model;
+    this.logService = logService;
   }
 
   public async initialize(): Promise<void> {
@@ -26,7 +29,7 @@ export default class PhotosLocalDatabaseService {
       await this.initSyncDates();
     }
 
-    console.log('(PhotosService) Local database initialized');
+    this.logService.info('(PhotosService) Local database initialized');
   }
 
   public async initSyncDates(): Promise<void> {

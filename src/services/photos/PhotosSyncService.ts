@@ -4,6 +4,7 @@ import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType } from '../../ty
 import PhotosCameraRollService from './PhotosCameraRollService';
 import PhotosDownloadService from './PhotosDownloadService';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
+import PhotosLogService from './PhotosLogService';
 import PhotosUploadService from './PhotosUploadService';
 
 export default class PhotosSyncService {
@@ -14,6 +15,7 @@ export default class PhotosSyncService {
   private readonly uploadService: PhotosUploadService;
   private readonly downloadService: PhotosDownloadService;
   private readonly localDatabaseService: PhotosLocalDatabaseService;
+  private readonly logService: PhotosLogService;
 
   constructor(
     model: PhotosServiceModel,
@@ -22,6 +24,7 @@ export default class PhotosSyncService {
     uploadService: PhotosUploadService,
     downloadService: PhotosDownloadService,
     localDatabaseService: PhotosLocalDatabaseService,
+    logService: PhotosLogService,
   ) {
     this.model = model;
     this.photosSdk = photosSdk;
@@ -29,6 +32,7 @@ export default class PhotosSyncService {
     this.uploadService = uploadService;
     this.downloadService = downloadService;
     this.localDatabaseService = localDatabaseService;
+    this.logService = logService;
   }
 
   public async run(options: {
@@ -42,7 +46,7 @@ export default class PhotosSyncService {
         options.onTaskCompleted?.({ taskType, photo, completedTasks });
       };
 
-      console.log('[SYNC-MAIN]: STARTED');
+      this.logService.info('[SYNC-MAIN]: STARTED');
 
       if (!this.model.user) {
         throw new Error('photos user not initialized');
@@ -54,12 +58,12 @@ export default class PhotosSyncService {
 
       const syncInfo = await this.calculateSyncInfo();
       options.onStart?.(syncInfo);
-      console.log(
+      this.logService.info(
         `[SYNC-MAIN]: CALCULATED ${syncInfo.totalTasks} TASKS: ${syncInfo.downloadTasks} downloadTasks, ${syncInfo.newerUploadTasks} newerUploadTasks, ${syncInfo.olderUploadTasks} olderUploadTasks`,
       );
 
       await this.downloadRemotePhotos({ onPhotoDownloaded: onTaskCompletedFactory(PhotosSyncTaskType.Download) });
-      console.log('[SYNC-MAIN]: REMOTE PHOTOS DOWNLOADED');
+      this.logService.info('[SYNC-MAIN]: REMOTE PHOTOS DOWNLOADED');
 
       const newestDate = await this.localDatabaseService.getNewestDate();
       const oldestDate = await this.localDatabaseService.getOldestDate();
@@ -68,21 +72,21 @@ export default class PhotosSyncService {
         from: newestDate,
         onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
       });
-      console.log('[SYNC-MAIN]: NEWER LOCAL PHOTOS UPLOADED');
+      this.logService.info('[SYNC-MAIN]: NEWER LOCAL PHOTOS UPLOADED');
 
       if (!oldestDate) {
-        console.log('[SYNC-MAIN]: SKIPPED OLDER LOCAL PHOTOS UPLOAD');
+        this.logService.info('[SYNC-MAIN]: SKIPPED OLDER LOCAL PHOTOS UPLOAD');
       } else {
         await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
           to: oldestDate,
           onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
         });
-        console.log('[SYNC-MAIN]: OLDER LOCAL PHOTOS UPLOADED');
+        this.logService.info('[SYNC-MAIN]: OLDER LOCAL PHOTOS UPLOADED');
       }
 
-      console.log('[SYNC-MAIN]: FINISHED');
+      this.logService.info('[SYNC-MAIN]: FINISHED');
     } catch (err) {
-      console.log('[SYNC-MAIN]: FAILED:', err);
+      this.logService.info('[SYNC-MAIN]: FAILED:' + err);
       throw err;
     }
   }
@@ -115,7 +119,7 @@ export default class PhotosSyncService {
     let skip = 0;
     let photos;
 
-    console.log('[SYNC-REMOTE]: LAST SYNC WAS AT', remoteSyncAt.toUTCString());
+    this.logService.info('[SYNC-REMOTE]: LAST SYNC WAS AT ' + remoteSyncAt.toUTCString());
 
     do {
       const { results } = await this.photosSdk.photos.getPhotos({ statusChangedAt: remoteSyncAt }, skip, limit);
@@ -158,7 +162,7 @@ export default class PhotosSyncService {
     let cursor: string | undefined;
     let photosToUpload: { data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId'>; uri: string }[];
 
-    console.log(`[SYNC-LOCAL]: UPLOADING LOCAL PHOTOS FROM ${options.from} TO ${options.to}`);
+    this.logService.info(`[SYNC-LOCAL]: UPLOADING LOCAL PHOTOS FROM ${options.from} TO ${options.to}`);
 
     do {
       const [galleryPhotos, nextCursor] = await this.cameraRollService.loadLocalPhotos({
@@ -206,7 +210,7 @@ export default class PhotosSyncService {
         );
 
         if (alreadyExistentPhoto) {
-          console.log(`[SYNC-LOCAL]: ${photo.data.name} IS ALREADY UPLOADED, SKIPPING`);
+          this.logService.info(`[SYNC-LOCAL]: ${photo.data.name} IS ALREADY UPLOADED, SKIPPING`);
           continue;
         }
 

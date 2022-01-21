@@ -1,7 +1,14 @@
 import CameraRoll from '@react-native-community/cameraroll';
 import { Platform } from 'react-native';
+import PhotosLogService from './PhotosLogService';
 
 export default class PhotosCameraRollService {
+  private readonly logService: PhotosLogService;
+
+  constructor(logService: PhotosLogService) {
+    this.logService = logService;
+  }
+
   public async count({ from, to }: { from?: Date; to?: Date }): Promise<number> {
     const PAGE_SIZE = 100;
     let hasNextPage = true;

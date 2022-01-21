@@ -3,16 +3,24 @@ import { getMacAddress, getDeviceName } from 'react-native-device-info';
 
 import { PhotosServiceModel } from '../../types/photos';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
+import PhotosLogService from './PhotosLogService';
 
 export default class PhotosDeviceService {
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: photos.Photos;
   private readonly localDatabaseService: PhotosLocalDatabaseService;
+  private readonly logService: PhotosLogService;
 
-  constructor(model: PhotosServiceModel, photosSdk: photos.Photos, localDatabaseService: PhotosLocalDatabaseService) {
+  constructor(
+    model: PhotosServiceModel,
+    photosSdk: photos.Photos,
+    localDatabaseService: PhotosLocalDatabaseService,
+    logService: PhotosLogService,
+  ) {
     this.model = model;
     this.photosSdk = photosSdk;
     this.localDatabaseService = localDatabaseService;
+    this.logService = logService;
   }
 
   public async initialize(): Promise<photos.Device> {
@@ -29,7 +37,7 @@ export default class PhotosDeviceService {
     await this.localDatabaseService.setNewestDate(device.newestDate);
     device.oldestDate ? await this.localDatabaseService.setOldestDate(device.oldestDate) : null;
 
-    console.log('(PhotosService) Device initialized');
+    this.logService.info('(PhotosService) Device initialized');
 
     return device;
   }
