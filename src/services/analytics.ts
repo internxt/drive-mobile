@@ -8,7 +8,7 @@ import _ from 'lodash';
 
 enum TrackTypes {
   PaymentConversionEvent = 'Payment Conversion',
-  CouponRedeemedEvent = 'Coupon Redeemed'
+  CouponRedeemedEvent = 'Coupon Redeemed',
 }
 
 export async function analyticsSetup(): Promise<void> {
@@ -49,20 +49,22 @@ export async function trackStackScreen(state: NavigationState, params?: any): Pr
 }
 
 interface Plan {
-  id: string
-  type: string
-  name: string
-  currency: string
-  unitAmount: number
-  maxSpaceBytes: string
+  id: string;
+  type: string;
+  name: string;
+  currency: string;
+  unitAmount: number;
+  maxSpaceBytes: string;
 }
 
 export async function getCheckoutSessionById(sessionId: string): Promise<any> {
-  return axios.get(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session/?sessionId=${sessionId}`, {
-    headers: await getHeaders(),
-  }).then((res) => {
-    return res.data;
-  });
+  return axios
+    .get(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session/?sessionId=${sessionId}`, {
+      headers: await getHeaders(),
+    })
+    .then((res) => {
+      return res.data;
+    });
 }
 
 async function getConversionData(sessionId: string) {
@@ -70,7 +72,7 @@ async function getConversionData(sessionId: string) {
   let conversionData = {
     traits: {},
     properties: {},
-    coupon: {}
+    coupon: {},
   };
   if (session.payment_status === 'paid') {
     const amount = session.amount_total * 0.01;
@@ -82,8 +84,8 @@ async function getConversionData(sessionId: string) {
       coupon = {
         discount_id: discount.id,
         coupon_id: discount.coupon.id,
-        coupon_name: discount.coupon.name.toLowerCase()
-      }
+        coupon_name: discount.coupon.name.toLowerCase(),
+      };
     }
 
     conversionData = {
@@ -100,7 +102,7 @@ async function getConversionData(sessionId: string) {
         plan_name: session.metadata.name,
         impact_value: amount === 0 ? 5 : amount,
         subscription_id: session.subscription,
-        payment_intent: session.payment_intent
+        payment_intent: session.payment_intent,
       },
       traits: {
         email: session.customer_details.email,
@@ -109,15 +111,14 @@ async function getConversionData(sessionId: string) {
         storage_limit: session.metadata.maxSpaceBytes,
         plan_name: session.metadata.name,
         subscription_id: session.subscription,
-        payment_intent: session.payment_intent
+        payment_intent: session.payment_intent,
       },
-      coupon
-    }
+      coupon,
+    };
   }
 
   return conversionData;
 }
-
 
 export async function trackPayment(sessionId: string): Promise<void> {
   const user = await getAnalyticsData();
@@ -129,10 +130,9 @@ export async function trackPayment(sessionId: string): Promise<void> {
     analytics.track(TrackTypes.PaymentConversionEvent, conversionData.properties);
 
     if (!_.isEmpty(conversionData.coupon)) {
-      analytics.track(TrackTypes.CouponRedeemedEvent, conversionData.coupon)
+      analytics.track(TrackTypes.CouponRedeemedEvent, conversionData.coupon);
     }
-
-
   }
+}
 
-  export default analytics;
+export default analytics;

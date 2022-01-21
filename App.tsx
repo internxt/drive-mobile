@@ -17,7 +17,6 @@ import strings from './assets/lang/strings';
 import { deviceStorage } from './src/services/deviceStorage';
 import { authActions, authThunks } from './src/store/slices/auth';
 import { filesActions } from './src/store/slices/files';
-import { useAppSelector } from './src/store/hooks';
 
 process.nextTick = setImmediate;
 
@@ -32,7 +31,6 @@ axios.interceptors.response.use(undefined, (err) => {
 });
 
 export default function App(): JSX.Element {
-  const { sessionId } = useAppSelector((state) => state.payments);
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
   const prefix = 'inxt';

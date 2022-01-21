@@ -63,16 +63,19 @@ function AppNavigator(): JSX.Element {
       const comesFromCheckout = sessionId !== '';
 
       if (comesFromCheckout) {
-        trackPayment(sessionId).then((res) => {
-          // no op
-        }).catch((err) => {
-          // no op
-        }).finally(() => {
-          dispatch(paymentsActions.setSessionId(''));
-        });
+        trackPayment(sessionId)
+          .then((res) => {
+            // no op
+          })
+          .catch((err) => {
+            // no op
+          })
+          .finally(() => {
+            dispatch(paymentsActions.setSessionId(''));
+          });
       }
     }
-  });
+  }, []);
 
   return (
     <>
