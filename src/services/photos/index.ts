@@ -12,6 +12,7 @@ import PhotosDeviceService from './PhotosDeviceService';
 import PhotosUserService from './PhotosUserService';
 import PhotosLogService from './PhotosLogService';
 import PhotosFileSystemService from './PhotosFileSystemService';
+import PhotosUsageService from './PhotosUsageService';
 
 export class PhotosService {
   private readonly model: PhotosServiceModel;
@@ -21,6 +22,7 @@ export class PhotosService {
   private readonly fileSystemService: PhotosFileSystemService;
   private readonly cameraRollService: PhotosCameraRollService;
   private readonly localDatabaseService: PhotosLocalDatabaseService;
+  private readonly usageService: PhotosUsageService;
   private readonly deviceService: PhotosDeviceService;
   private readonly userService: PhotosUserService;
   private readonly uploadService: PhotosUploadService;
@@ -42,6 +44,7 @@ export class PhotosService {
     this.fileSystemService = new PhotosFileSystemService(this.model, this.logService);
     this.cameraRollService = new PhotosCameraRollService(this.logService);
     this.localDatabaseService = new PhotosLocalDatabaseService(this.model, this.logService);
+    this.usageService = new PhotosUsageService(this.model);
     this.deviceService = new PhotosDeviceService(
       this.model,
       this.photosSdk,
@@ -135,6 +138,10 @@ export class PhotosService {
     this.checkModel();
 
     return this.deleteService.delete(photo);
+  }
+
+  public getUsage(): Promise<number> {
+    return this.usageService.getUsage();
   }
 
   /**

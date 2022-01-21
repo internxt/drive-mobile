@@ -18,6 +18,7 @@ import { layoutActions } from '../layout';
 import { authThunks } from '../auth';
 import { getEnvironmentConfig } from '../../../lib/network';
 import errorService from '../../../services/error';
+import { loadUsage } from '../../../services/storage';
 
 interface FolderContent {
   id: number;
@@ -55,6 +56,7 @@ export interface FilesState {
   uri: any;
   pendingDeleteItems: { [key: string]: boolean };
   selectedFile: any;
+  usage: number;
 }
 
 const initialState: FilesState = {
@@ -77,6 +79,7 @@ const initialState: FilesState = {
   uri: undefined,
   pendingDeleteItems: {},
   selectedFile: null,
+  usage: 0,
 };
 
 const getFolderContentThunk = createAsyncThunk<
@@ -114,6 +117,10 @@ const fetchIfSameFolderThunk = createAsyncThunk<void, { folderId: number }, { st
     }
   },
 );
+
+const getUsageThunk = createAsyncThunk<number, void, { state: RootState }>('files/getUsage', async () => {
+  return loadUsage();
+});
 
 const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootState }>(
   'files/goBack',
@@ -315,6 +322,13 @@ export const filesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(getUsageThunk.pending, () => undefined)
+      .addCase(getUsageThunk.fulfilled, (state, action) => {
+        state.usage = action.payload;
+      })
+      .addCase(getUsageThunk.rejected, () => undefined);
+
+    builder
       .addCase(getFolderContentThunk.pending, (state) => {
         state.loading = true;
       })
@@ -409,6 +423,7 @@ export const filesSlice = createSlice({
 export const filesActions = filesSlice.actions;
 
 export const filesThunks = {
+  getUsageThunk,
   getFolderContentThunk,
   fetchIfSameFolderThunk,
   goBackThunk,

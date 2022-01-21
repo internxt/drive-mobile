@@ -11,6 +11,8 @@ import { getCurrentIndividualPlan } from '../../services/payments';
 import { notify } from '../../services/toast';
 import { loadValues } from '../../services/storage';
 import ScreenTitle from '../../components/ScreenTitle';
+import { useAppDispatch } from '../../store/hooks';
+import { photosThunks } from '../../store/slices/photos';
 
 interface StorageScreenProps {
   currentPlan: number;
@@ -22,6 +24,7 @@ interface CurrentPlan {
 }
 
 function StorageScreen(props: StorageScreenProps): JSX.Element {
+  const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationStackProp>();
   const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 });
   const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
@@ -42,7 +45,16 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
 
   useEffect(() => {
     loadValues()
-      .then((res) => setUsageValues(res))
+      .then((res) => {
+        dispatch(photosThunks.getUsageThunk())
+          .unwrap()
+          .then((photosUsage) => {
+            setUsageValues({
+              usage: res.usage + photosUsage,
+              limit: res.limit,
+            });
+          });
+      })
       .catch(() => undefined);
 
     getCurrentIndividualPlan()

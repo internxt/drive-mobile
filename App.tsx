@@ -16,6 +16,7 @@ import { getColor, tailwind } from './src/helpers/designSystem';
 import { deviceStorage } from './src/services/deviceStorage';
 import { authActions, authThunks } from './src/store/slices/auth';
 import { filesActions } from './src/store/slices/files';
+import { photosThunks } from './src/store/slices/photos';
 
 process.nextTick = setImmediate;
 

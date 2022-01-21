@@ -48,6 +48,7 @@ export interface PhotosState {
   limit: number;
   skip: number;
   selectedPhotos: Photo[];
+  usage: number;
 }
 
 const initialState: PhotosState = {
@@ -78,19 +79,26 @@ const initialState: PhotosState = {
   limit: 25,
   skip: 0,
   selectedPhotos: [],
+  usage: 0,
 };
+
+const setupSdkThunk = createAsyncThunk<void, void, { state: RootState }>('photos/setupSdk', async () => {
+  const photosToken = await deviceStorage.getItem('photosToken');
+  const user = await deviceStorage.getUser();
+
+  photosService = new PhotosService(photosToken || '', {
+    encryptionKey: user?.mnemonic || '',
+    user: user?.bridgeUser || '',
+    password: user?.userId || '',
+  });
+
+  console.log('PHOTOS SDK INITIALIZED');
+});
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
   async (payload: void, { dispatch, getState }) => {
-    const photosToken = await deviceStorage.getItem('photosToken');
-    const user = await deviceStorage.getUser();
-
-    photosService = new PhotosService(photosToken || '', {
-      encryptionKey: user?.mnemonic || '',
-      user: user?.bridgeUser || '',
-      password: user?.userId || '',
-    });
+    dispatch(getUsageThunk());
 
     await dispatch(checkPermissionsThunk());
 
@@ -130,6 +138,10 @@ const askForPermissionsThunk = createAsyncThunk<boolean, void, { state: RootStat
     return areGranted;
   },
 );
+
+const getUsageThunk = createAsyncThunk<number, void, { state: RootState }>('photos/getUsage', async () => {
+  return photosService.getUsage();
+});
 
 const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: RootState }>(
   'photos/deletePhotos',
@@ -214,12 +226,17 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
     const onTaskCompleted = async ({
       photo,
       completedTasks,
+      taskType,
     }: {
       taskType: PhotosSyncTaskType;
       photo: Photo;
       completedTasks: number;
     }) => {
       dispatch(photosActions.updateSyncStatus({ completedTasks }));
+
+      if (taskType === PhotosSyncTaskType.Upload) {
+        dispatch(getUsageThunk());
+      }
 
       if (photo.status === PhotoStatus.Exists) {
         const preview = (await photosService.getPhotoPreview(photo.id)) || '';
@@ -354,6 +371,13 @@ export const photosSlice = createSlice({
         state.selectedPhotos = action.payload;
       })
       .addCase(selectAllThunk.rejected, () => undefined);
+
+    builder
+      .addCase(getUsageThunk.pending, () => undefined)
+      .addCase(getUsageThunk.fulfilled, (state, action) => {
+        state.usage = action.payload;
+      })
+      .addCase(getUsageThunk.rejected, () => undefined);
 
     builder
       .addCase(deletePhotosThunk.pending, () => undefined)
@@ -557,7 +581,9 @@ export const photosSelectors = {
 };
 
 export const photosThunks = {
+  setupSdkThunk,
   initializeThunk,
+  getUsageThunk,
   checkPermissionsThunk,
   askForPermissionsThunk,
   selectAllThunk,

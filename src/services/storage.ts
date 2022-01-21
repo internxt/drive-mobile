@@ -33,7 +33,7 @@ function identifyPlanName(bytes: number): string {
   return bytes === 0 ? 'Free 10GB' : prettysize(bytes);
 }
 
-async function loadUsage(): Promise<number> {
+export async function loadUsage(): Promise<number> {
   return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/usage`, {
     method: 'get',
     headers: await getHeaders(),
