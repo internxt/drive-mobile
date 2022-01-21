@@ -24,12 +24,12 @@ export default class PhotosDownloadService {
     this.logService = logService;
   }
 
-  public async downloadPhoto(photo: photos.Photo): Promise<void> {
-    const photoIsOnTheDevice = !!(await this.localDatabaseService.getPhotoById(photo.id));
+  public async downloadPhoto(photo: photos.Photo): Promise<boolean> {
+    const isAlreadyOnTheDevice = !!(await this.localDatabaseService.getPhotoById(photo.id));
 
-    this.logService.info('Photo ' + photo.name + ' is on the device? ' + photoIsOnTheDevice);
+    this.logService.info('Photo ' + photo.name + ' is on the device? ' + isAlreadyOnTheDevice);
 
-    if (photoIsOnTheDevice) {
+    if (isAlreadyOnTheDevice) {
       await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);
     } else {
       const previewPath = await this.pullPhoto(
@@ -42,10 +42,10 @@ export default class PhotosDownloadService {
           decryptionProgressCallback: () => undefined,
         },
       );
-      const preview = await imageService.pathToBase64(previewPath);
-      await RNFS.unlink(previewPath);
-      await this.localDatabaseService.insertPhoto(photo, preview);
+      await this.localDatabaseService.insertPhoto(photo, previewPath);
     }
+
+    return isAlreadyOnTheDevice;
   }
 
   public async pullPhoto(

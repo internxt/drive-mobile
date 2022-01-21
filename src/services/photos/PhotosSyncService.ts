@@ -132,8 +132,11 @@ export default class PhotosSyncService {
       photos = results;
 
       for (const photo of photos) {
-        await this.downloadService.downloadPhoto(photo);
-        options.onPhotoDownloaded(photo);
+        const isAlreadyOnTheDevice = await this.downloadService.downloadPhoto(photo);
+
+        if (!isAlreadyOnTheDevice) {
+          options.onPhotoDownloaded(photo);
+        }
       }
 
       skip += limit;
