@@ -41,7 +41,7 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data }: BottomModalProps & {
       </View>
     </>
   );
-  const dimensionsText = `${data.width} x ${data.height}`;
+  const dimensionsText = `${data.width} x ${data.heigth}`;
 
   return (
     <BottomModal isOpen={isOpen} onClosed={onClosed} header={header}>

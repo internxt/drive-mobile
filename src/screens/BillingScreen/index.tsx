@@ -38,7 +38,7 @@ const intervalToMonth = (intervalName: string, intervalCount: number) => {
 };
 
 const getProducts = async () => {
-  const products = getProductionPlans();
+  const products = process.env.NODE_ENV === 'production' ? getProductionPlans() : getDevelopmentPlans();
   const perPlan: any = {};
 
   products.forEach((product) => {

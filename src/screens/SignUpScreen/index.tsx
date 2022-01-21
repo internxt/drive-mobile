@@ -118,6 +118,7 @@ function SignUpScreen(): JSX.Element {
       setIsLoading(false);
       setRegisterButtonClicked(false);
 
+      console.log('err: ', JSON.stringify(err));
       Alert.alert('Error while registering', castedError.message);
     }
   };
