@@ -10,11 +10,9 @@ import LoadingSpinner from '../LoadingSpinner';
 
 const PhotosSyncStatusWidget = (): JSX.Element => {
   const dispatch = useAppDispatch();
-  const { syncStatus, isSyncing } = useAppSelector((state) => state.photos);
+  const { syncStatus } = useAppSelector((state) => state.photos);
   const onSyncNowPressed = () => {
-    if (!isSyncing) {
-      dispatch(photosThunks.syncThunk());
-    }
+    dispatch(photosThunks.syncThunk());
   };
   const contentByStatus = {
     [PhotosSyncStatus.Unknown]: (

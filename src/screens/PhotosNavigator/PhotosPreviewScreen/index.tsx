@@ -14,9 +14,9 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import strings from '../../../../assets/lang/strings';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
-import { getTemporaryDir, pathToUri, showFileViewer } from '../../../services/fileSystem';
+import { pathToUri, showFileViewer } from '../../../services/fileSystem';
 import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfoModal';
-import { photosThunks } from '../../../store/slices/photos';
+import { photosSelectors, photosThunks } from '../../../store/slices/photos';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { items } from '@internxt/lib';
@@ -32,8 +32,8 @@ interface PreviewProps {
 
 function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const { data: photo, preview } = props.route.params;
-  const photoPath = getTemporaryDir() + '/' + items.getItemDisplayName({ name: photo.name, type: photo.type });
-
+  const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
+  const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: photo.name, type: photo.type });
   const dispatch = useAppDispatch();
   const [showActions, setShowActions] = useState(true);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);

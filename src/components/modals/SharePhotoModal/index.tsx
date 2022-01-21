@@ -10,12 +10,12 @@ import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import BaseButton from '../../BaseButton';
 import { notify } from '../../../services/toast';
-import { useAppDispatch } from '../../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import imageService from '../../../services/image';
 import { items } from '@internxt/lib';
-import { exists, getTemporaryDir, pathToUri } from '../../../services/fileSystem';
-import { photosThunks } from '../../../store/slices/photos';
+import { exists, pathToUri } from '../../../services/fileSystem';
+import { photosSelectors, photosThunks } from '../../../store/slices/photos';
 import LoadingSpinner from '../../LoadingSpinner';
 
 interface SharePhotoModalProps extends BottomModalProps {
@@ -31,7 +31,8 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
   const [times, setTimes] = useState(10);
   const [url, setUrl] = useState('LINK');
   const dispatch = useAppDispatch();
-  const photoPath = getTemporaryDir() + '/' + items.getItemDisplayName({ name: data.name, type: data.type });
+  const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
+  const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: data.name, type: data.type });
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [uri, setUri] = useState('');

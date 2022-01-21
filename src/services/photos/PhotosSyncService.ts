@@ -198,27 +198,31 @@ export default class PhotosSyncService {
       cursor = nextCursor;
 
       for (const photo of photosToUpload) {
-        /**
-         * WARNING: Camera roll does not filter properly by dates for photos with
-         * small deltas which can provoke the sync to re-update the last photo already
-         * uploaded or photos that have very similar timestamp by miliseconds
-         * (like photos bursts)
-         */
-        const alreadyExistentPhoto = await this.localDatabaseService.getPhotoByNameAndType(
-          photo.data.name,
-          photo.data.type,
-        );
+        try {
+          /**
+           * WARNING: Camera roll does not filter properly by dates for photos with
+           * small deltas which can provoke the sync to re-update the last photo already
+           * uploaded or photos that have very similar timestamp by miliseconds
+           * (like photos bursts)
+           */
+          const alreadyExistentPhoto = await this.localDatabaseService.getPhotoByNameAndType(
+            photo.data.name,
+            photo.data.type,
+          );
 
-        if (alreadyExistentPhoto) {
-          this.logService.info(`[SYNC-LOCAL]: ${photo.data.name} IS ALREADY UPLOADED, SKIPPING`);
-          continue;
+          if (alreadyExistentPhoto) {
+            this.logService.info(`[SYNC-LOCAL]: ${photo.data.name} IS ALREADY UPLOADED, SKIPPING`);
+          } else {
+            const [createdPhoto, preview] = await this.uploadService.upload(photo.data, photo.uri);
+
+            await this.localDatabaseService.insertPhoto(createdPhoto, preview);
+
+            options.onPhotoUploaded?.(createdPhoto);
+          }
+        } catch (err) {
+          this.logService.error('!!! CATCHING PHOTO UPLOAD ERR: ' + JSON.stringify(err));
+          throw err;
         }
-
-        const [createdPhoto, preview] = await this.uploadService.upload(photo.data, photo.uri);
-
-        await this.localDatabaseService.insertPhoto(createdPhoto, preview);
-
-        options.onPhotoUploaded?.(createdPhoto);
       }
     } while (cursor);
   }

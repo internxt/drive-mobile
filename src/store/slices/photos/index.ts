@@ -37,11 +37,11 @@ export interface PhotosState {
     android: { [key in AndroidPermission]?: PermissionStatus };
     ios: { [key in IOSPermission]?: PermissionStatus };
   };
-  isSyncing: boolean;
+  syncRequests: string[];
   syncStatus: PhotosSyncStatusData;
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
-  loadingRequests: string[];
+  loadPhotosRequests: string[];
   years: { year: number; preview: string }[];
   months: { year: number; month: number; preview: string }[];
   photos: { data: Photo; preview: string }[];
@@ -63,7 +63,7 @@ const initialState: PhotosState = {
       [PERMISSIONS.IOS.PHOTO_LIBRARY]: RESULTS.DENIED,
     },
   },
-  isSyncing: false,
+  syncRequests: [],
   syncStatus: {
     status: PhotosSyncStatus.Unknown,
     completedTasks: 0,
@@ -71,7 +71,7 @@ const initialState: PhotosState = {
   },
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.Days,
-  loadingRequests: [],
+  loadPhotosRequests: [],
   years: [],
   months: [],
   photos: [],
@@ -83,7 +83,6 @@ const initialState: PhotosState = {
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
   async (payload: void, { dispatch, getState }) => {
-    const { isSyncing } = getState().photos;
     const photosToken = await deviceStorage.getItem('photosToken');
     const user = await deviceStorage.getUser();
 
@@ -100,9 +99,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     if (photosSelectors.arePermissionsGranted(getState())) {
       await photosService.initialize();
 
-      if (!isSyncing) {
-        dispatch(syncThunk());
-      }
+      dispatch(syncThunk());
     }
   },
 );
@@ -170,7 +167,7 @@ const loadLocalPhotosThunk = createAsyncThunk<
   { state: RootState }
 >('photos/loadLocalPhotos', async (payload, { requestId, getState, dispatch }) => {
   const photosState = getState().photos;
-  const isAlreadyLoading = photosState.loadingRequests.filter((id) => id !== requestId).length > 0;
+  const isAlreadyLoading = photosState.loadPhotosRequests.filter((id) => id !== requestId).length > 0;
 
   if (isAlreadyLoading) {
     return [];
@@ -205,7 +202,7 @@ const loadMonthsThunk = createAsyncThunk<
 
 const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/sync',
-  async (payload: void, { getState, dispatch }) => {
+  async (payload: void, { requestId, getState, dispatch }) => {
     const onStart = (tasksInfo: PhotosSyncInfo) => {
       dispatch(
         photosActions.updateSyncStatus({
@@ -234,6 +231,12 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
         dispatch(photosActions.popPhoto(photo));
       }
     };
+    const photosState = getState().photos;
+    const isAlreadySyncing = photosState.syncRequests.filter((id) => id !== requestId).length > 0;
+
+    if (isAlreadySyncing) {
+      return;
+    }
 
     await photosService.sync({ onStart, onTaskCompleted });
   },
@@ -383,15 +386,15 @@ export const photosSlice = createSlice({
 
     builder
       .addCase(loadLocalPhotosThunk.pending, (state, action) => {
-        state.loadingRequests.push(action.meta.requestId);
+        state.loadPhotosRequests.push(action.meta.requestId);
       })
       .addCase(loadLocalPhotosThunk.fulfilled, (state, action) => {
-        const index = state.loadingRequests.indexOf(action.meta.requestId);
-        state.loadingRequests.splice(index, 1);
+        const index = state.loadPhotosRequests.indexOf(action.meta.requestId);
+        state.loadPhotosRequests.splice(index, 1);
       })
       .addCase(loadLocalPhotosThunk.rejected, (state, action) => {
-        const index = state.loadingRequests.indexOf(action.meta.requestId);
-        state.loadingRequests.splice(index, 1);
+        const index = state.loadPhotosRequests.indexOf(action.meta.requestId);
+        state.loadPhotosRequests.splice(index, 1);
 
         notify({
           type: 'error',
@@ -417,12 +420,13 @@ export const photosSlice = createSlice({
       .addCase(loadMonthsThunk.rejected, () => undefined);
 
     builder
-      .addCase(syncThunk.pending, (state) => {
-        state.isSyncing = true;
+      .addCase(syncThunk.pending, (state, action) => {
+        state.syncRequests.push(action.meta.requestId);
         Object.assign(state.syncStatus, { status: PhotosSyncStatus.Calculating });
       })
-      .addCase(syncThunk.fulfilled, (state) => {
-        state.isSyncing = false;
+      .addCase(syncThunk.fulfilled, (state, action) => {
+        const index = state.syncRequests.indexOf(action.meta.requestId);
+        state.syncRequests.splice(index, 1);
         Object.assign(state.syncStatus, { status: PhotosSyncStatus.Completed });
 
         notify({
@@ -431,7 +435,8 @@ export const photosSlice = createSlice({
         });
       })
       .addCase(syncThunk.rejected, (state, action) => {
-        state.isSyncing = false;
+        const index = state.syncRequests.indexOf(action.meta.requestId);
+        state.syncRequests.splice(index, 1);
         Object.assign(state.syncStatus, { status: PhotosSyncStatus.Pending });
 
         notify({
@@ -453,7 +458,8 @@ export const photosSlice = createSlice({
 export const photosActions = photosSlice.actions;
 
 export const photosSelectors = {
-  isLoading: (state: RootState): boolean => state.photos.loadingRequests.length > 0,
+  isLoading: (state: RootState): boolean => state.photos.loadPhotosRequests.length > 0,
+  isSyncing: (state: RootState): boolean => state.photos.syncRequests.length > 0,
   hasPhotos: (state: RootState): boolean => state.photos.photos.length > 0,
   isPhotoSelected:
     (state: RootState) =>
@@ -483,6 +489,8 @@ export const photosSelectors = {
 
     return result;
   },
+  photosDirectory: (): string => photosService.photosDirectory,
+  previewsDirectory: (): string => photosService.previewsDirectory,
   photosByMonth: (state: RootState): PhotosByMonthType[] => {
     const result: PhotosByMonthType[] = [];
 

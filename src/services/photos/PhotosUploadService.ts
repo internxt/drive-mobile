@@ -4,20 +4,27 @@ import { Photo, Photos, CreatePhotoData } from '@internxt/sdk/dist/photos';
 import { Platform } from 'react-native';
 
 import * as network from '../network';
-import { getDocumentsDir } from '../fileSystem';
 import imageService from '../image';
 import { PhotosServiceModel } from '../../types/photos';
 import PhotosLogService from './PhotosLogService';
+import PhotosFileSystemService from './PhotosFileSystemService';
 
 export default class PhotosUploadService {
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: Photos;
   private readonly logService: PhotosLogService;
+  private readonly fileSystemService: PhotosFileSystemService;
 
-  constructor(model: PhotosServiceModel, photosSdk: Photos, logService: PhotosLogService) {
+  constructor(
+    model: PhotosServiceModel,
+    photosSdk: Photos,
+    logService: PhotosLogService,
+    fileSystemService: PhotosFileSystemService,
+  ) {
     this.model = model;
     this.photosSdk = photosSdk;
     this.logService = logService;
+    this.fileSystemService = fileSystemService;
   }
 
   public async upload(data: Omit<CreatePhotoData, 'fileId' | 'previewId'>, uri: string): Promise<[Photo, string]> {
@@ -67,7 +74,7 @@ export default class PhotosUploadService {
   }
 
   private async copyPhotoToDocumentsDir(filename: string, width: number, height: number, uri: string): Promise<string> {
-    const path = `${getDocumentsDir()}/${filename}`;
+    const path = `${this.fileSystemService.photosDirectory}/${filename}`;
     const scale = 1;
 
     if (Platform.OS === 'android') {
@@ -80,7 +87,7 @@ export default class PhotosUploadService {
   }
 
   private async generatePreview(filename: string, uri: string): Promise<string> {
-    const path = `${getDocumentsDir()}/${filename}`;
+    const path = `${this.fileSystemService.previewsDirectory}/${filename}`;
     const width = 128;
     const height = 128;
 
@@ -89,7 +96,7 @@ export default class PhotosUploadService {
       width,
       height,
       format: 'JPEG',
-      outputPath: Platform.OS === 'android' ? undefined : path,
+      outputPath: Platform.OS === 'android' ? this.fileSystemService.previewsDirectory : path,
       quality: 100,
       rotation: 0,
       options: { mode: 'cover' },

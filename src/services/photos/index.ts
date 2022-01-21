@@ -11,12 +11,14 @@ import PhotosDownloadService from './PhotosDownloadService';
 import PhotosDeviceService from './PhotosDeviceService';
 import PhotosUserService from './PhotosUserService';
 import PhotosLogService from './PhotosLogService';
+import PhotosFileSystemService from './PhotosFileSystemService';
 
 export class PhotosService {
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: photos.Photos;
 
   private readonly logService: PhotosLogService;
+  private readonly fileSystemService: PhotosFileSystemService;
   private readonly cameraRollService: PhotosCameraRollService;
   private readonly localDatabaseService: PhotosLocalDatabaseService;
   private readonly deviceService: PhotosDeviceService;
@@ -37,6 +39,7 @@ export class PhotosService {
     this.photosSdk = new photos.Photos(process.env.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
 
     this.logService = new PhotosLogService(this.model);
+    this.fileSystemService = new PhotosFileSystemService(this.model, this.logService);
     this.cameraRollService = new PhotosCameraRollService(this.logService);
     this.localDatabaseService = new PhotosLocalDatabaseService(this.model, this.logService);
     this.deviceService = new PhotosDeviceService(
@@ -46,7 +49,7 @@ export class PhotosService {
       this.logService,
     );
     this.userService = new PhotosUserService(this.model, this.photosSdk, this.deviceService, this.logService);
-    this.uploadService = new PhotosUploadService(this.model, this.photosSdk, this.logService);
+    this.uploadService = new PhotosUploadService(this.model, this.photosSdk, this.logService, this.fileSystemService);
     this.downloadService = new PhotosDownloadService(this.model, this.localDatabaseService, this.logService);
     this.deleteService = new PhotosDeleteService(
       this.model,
@@ -69,7 +72,16 @@ export class PhotosService {
     return this.model.isInitialized;
   }
 
+  public get photosDirectory(): string {
+    return this.fileSystemService.photosDirectory;
+  }
+
+  public get previewsDirectory(): string {
+    return this.fileSystemService.previewsDirectory;
+  }
+
   public async initialize(): Promise<void> {
+    await this.fileSystemService.initialize();
     await this.localDatabaseService.initialize();
     await this.userService.initialize();
     await this.deviceService.initialize();
@@ -143,8 +155,12 @@ export class PhotosService {
     return this.downloadService.pullPhoto(this.bucketId, this.model.networkCredentials, fileId, options);
   }
 
-  public clearData(): Promise<void> {
-    return this.localDatabaseService.resetDatabase();
+  /**
+   * @description Clears all photos data from device
+   */
+  public async clearData(): Promise<void> {
+    await this.fileSystemService.clear();
+    await this.localDatabaseService.resetDatabase();
   }
 
   private get bucketId() {
