@@ -17,6 +17,8 @@ export default class PhotosSyncService {
   private readonly localDatabaseService: PhotosLocalDatabaseService;
   private readonly logService: PhotosLogService;
 
+  private currentSyncId = '';
+
   constructor(
     model: PhotosServiceModel,
     photosSdk: photos.Photos,
@@ -36,17 +38,20 @@ export default class PhotosSyncService {
   }
 
   public async run(options: {
+    id?: string;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
     onTaskCompleted?: (result: { taskType: PhotosSyncTaskType; photo: photos.Photo; completedTasks: number }) => void;
   }): Promise<void> {
     try {
+      this.currentSyncId = options.id || new Date().getTime().toString();
+
       let completedTasks = 0;
       const onTaskCompletedFactory = (taskType: PhotosSyncTaskType) => (photo: photos.Photo) => {
         completedTasks++;
         options.onTaskCompleted?.({ taskType, photo, completedTasks });
       };
 
-      this.logService.info('[SYNC-MAIN]: STARTED');
+      this.logService.info(`[SYNC-MAIN] ${this.currentSyncId}: STARTED`);
 
       if (!this.model.user) {
         throw new Error('photos user not initialized');
@@ -59,11 +64,11 @@ export default class PhotosSyncService {
       const syncInfo = await this.calculateSyncInfo();
       options.onStart?.(syncInfo);
       this.logService.info(
-        `[SYNC-MAIN]: CALCULATED ${syncInfo.totalTasks} TASKS: ${syncInfo.downloadTasks} downloadTasks, ${syncInfo.newerUploadTasks} newerUploadTasks, ${syncInfo.olderUploadTasks} olderUploadTasks`,
+        `[SYNC] ${this.currentSyncId}: CALCULATED ${syncInfo.totalTasks} TASKS: ${syncInfo.downloadTasks} downloadTasks, ${syncInfo.newerUploadTasks} newerUploadTasks, ${syncInfo.olderUploadTasks} olderUploadTasks`,
       );
 
       await this.downloadRemotePhotos({ onPhotoDownloaded: onTaskCompletedFactory(PhotosSyncTaskType.Download) });
-      this.logService.info('[SYNC-MAIN]: REMOTE PHOTOS DOWNLOADED');
+      this.logService.info(`[SYNC] ${this.currentSyncId}: REMOTE PHOTOS DOWNLOADED`);
 
       const newestDate = await this.localDatabaseService.getNewestDate();
       const oldestDate = await this.localDatabaseService.getOldestDate();
@@ -72,21 +77,21 @@ export default class PhotosSyncService {
         from: newestDate,
         onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
       });
-      this.logService.info('[SYNC-MAIN]: NEWER LOCAL PHOTOS UPLOADED');
+      this.logService.info(`[SYNC] ${this.currentSyncId}: NEWER LOCAL PHOTOS UPLOADED`);
 
       if (!oldestDate) {
-        this.logService.info('[SYNC-MAIN]: SKIPPED OLDER LOCAL PHOTOS UPLOAD');
+        this.logService.info(`[SYNC] ${this.currentSyncId}: SKIPPED OLDER LOCAL PHOTOS UPLOAD`);
       } else {
         await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
           to: oldestDate,
           onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
         });
-        this.logService.info('[SYNC-MAIN]: OLDER LOCAL PHOTOS UPLOADED');
+        this.logService.info(`[SYNC] ${this.currentSyncId}: OLDER LOCAL PHOTOS UPLOADED`);
       }
 
-      this.logService.info('[SYNC-MAIN]: FINISHED');
+      this.logService.info(`[SYNC] ${this.currentSyncId}: FINISHED`);
     } catch (err) {
-      this.logService.info('[SYNC-MAIN]: FAILED:' + err);
+      this.logService.info(`[SYNC] ${this.currentSyncId}: FAILED:` + err);
       throw err;
     }
   }
@@ -119,7 +124,7 @@ export default class PhotosSyncService {
     let skip = 0;
     let photos;
 
-    this.logService.info('[SYNC-REMOTE]: LAST SYNC WAS AT ' + remoteSyncAt.toUTCString());
+    this.logService.info(`[SYNC] ${this.currentSyncId}: LAST SYNC WAS AT ${remoteSyncAt.toUTCString()}`);
 
     do {
       const { results } = await this.photosSdk.photos.getPhotos({ statusChangedAt: remoteSyncAt }, skip, limit);
@@ -162,7 +167,7 @@ export default class PhotosSyncService {
     let cursor: string | undefined;
     let photosToUpload: { data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId'>; uri: string }[];
 
-    this.logService.info(`[SYNC-LOCAL]: UPLOADING LOCAL PHOTOS FROM ${options.from} TO ${options.to}`);
+    this.logService.info(`[SYNC] ${this.currentSyncId}: UPLOADING LOCAL PHOTOS FROM ${options.from} TO ${options.to}`);
 
     do {
       const [galleryPhotos, nextCursor] = await this.cameraRollService.loadLocalPhotos({
@@ -198,30 +203,25 @@ export default class PhotosSyncService {
       cursor = nextCursor;
 
       for (const photo of photosToUpload) {
-        try {
-          /**
-           * WARNING: Camera roll does not filter properly by dates for photos with
-           * small deltas which can provoke the sync to re-update the last photo already
-           * uploaded or photos that have very similar timestamp by miliseconds
-           * (like photos bursts)
-           */
-          const alreadyExistentPhoto = await this.localDatabaseService.getPhotoByNameAndType(
-            photo.data.name,
-            photo.data.type,
-          );
+        /**
+         * WARNING: Camera roll does not filter properly by dates for photos with
+         * small deltas which can provoke the sync to re-update the last photo already
+         * uploaded or photos that have very similar timestamp by miliseconds
+         * (like photos bursts)
+         */
+        const alreadyExistentPhoto = await this.localDatabaseService.getPhotoByNameAndType(
+          photo.data.name,
+          photo.data.type,
+        );
 
-          if (alreadyExistentPhoto) {
-            this.logService.info(`[SYNC-LOCAL]: ${photo.data.name} IS ALREADY UPLOADED, SKIPPING`);
-          } else {
-            const [createdPhoto, preview] = await this.uploadService.upload(photo.data, photo.uri);
+        if (alreadyExistentPhoto) {
+          this.logService.info(`[SYNC] ${this.currentSyncId}: ${photo.data.name} IS ALREADY UPLOADED, SKIPPING`);
+        } else {
+          const [createdPhoto, preview] = await this.uploadService.upload(photo.data, photo.uri);
 
-            await this.localDatabaseService.insertPhoto(createdPhoto, preview);
+          await this.localDatabaseService.insertPhoto(createdPhoto, preview);
 
-            options.onPhotoUploaded?.(createdPhoto);
-          }
-        } catch (err) {
-          this.logService.error('!!! CATCHING PHOTO UPLOAD ERR: ' + JSON.stringify(err));
-          throw err;
+          options.onPhotoUploaded?.(createdPhoto);
         }
       }
     } while (cursor);

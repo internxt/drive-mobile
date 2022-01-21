@@ -34,7 +34,7 @@ export default class PhotosUserService {
 
     this.model.user = user;
 
-    this.logService.info('(PhotosService) User initialized');
+    this.logService.info('User initialized');
 
     return user;
   }

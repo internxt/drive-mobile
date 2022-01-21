@@ -219,14 +219,11 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
       photo: Photo;
       completedTasks: number;
     }) => {
-      const { photos } = getState().photos;
       dispatch(photosActions.updateSyncStatus({ completedTasks }));
 
       if (photo.status === PhotoStatus.Exists) {
-        if (photos.length === 0 || photo.takenAt.getTime() > photos[photos.length - 1].data.takenAt.getTime()) {
-          const preview = (await photosService.getPhotoPreview(photo.id)) || '';
-          dispatch(photosActions.pushPhoto({ data: photo, preview }));
-        }
+        const preview = (await photosService.getPhotoPreview(photo.id)) || '';
+        dispatch(photosActions.pushPhoto({ data: photo, preview }));
       } else {
         dispatch(photosActions.popPhoto(photo));
       }
@@ -238,7 +235,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
       return;
     }
 
-    await photosService.sync({ onStart, onTaskCompleted });
+    await photosService.sync({ id: requestId, onStart, onTaskCompleted });
   },
 );
 
@@ -497,7 +494,7 @@ export const photosSelectors = {
     for (const photo of state.photos.photos) {
       const year = photo.data.takenAt.getFullYear();
       const month = photo.data.takenAt.getMonth();
-      const day = photo.data.takenAt.getDay();
+      const day = photo.data.takenAt.getDate();
       const monthItem = result.find((m) => m.year === year && m.month === month);
 
       if (monthItem) {
@@ -531,9 +528,9 @@ export const photosSelectors = {
     const result: PhotosDateRecord = {};
 
     for (const photo of state.photos.photos) {
-      const year = photo.data.takenAt.getUTCFullYear();
-      const month = photo.data.takenAt.getUTCMonth();
-      const day = photo.data.takenAt.getUTCDay();
+      const year = photo.data.takenAt.getFullYear();
+      const month = photo.data.takenAt.getMonth();
+      const day = photo.data.takenAt.getDate();
       const yearItem = result[year];
 
       if (yearItem) {

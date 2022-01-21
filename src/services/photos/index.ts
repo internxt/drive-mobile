@@ -88,10 +88,11 @@ export class PhotosService {
 
     this.model.isInitialized = true;
 
-    this.logService.info('(PhotosService) initialized');
+    this.logService.info('Initialized');
   }
 
   public sync(options: {
+    id?: string;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
     onTaskCompleted?: (result: { taskType: PhotosSyncTaskType; photo: photos.Photo; completedTasks: number }) => void;
   }): Promise<void> {

@@ -7,6 +7,7 @@ import photoTable from './tables/photo';
 import syncTable from './tables/sync';
 import imageService from '../../image';
 import PhotosLogService from '../PhotosLogService';
+import { pathToUri } from '../../fileSystem';
 
 export default class PhotosLocalDatabaseService {
   private readonly model: PhotosServiceModel;
@@ -29,7 +30,7 @@ export default class PhotosLocalDatabaseService {
       await this.initSyncDates();
     }
 
-    this.logService.info('(PhotosService) Local database initialized');
+    this.logService.info('Local database initialized');
   }
 
   public async initSyncDates(): Promise<void> {
@@ -55,7 +56,7 @@ export default class PhotosLocalDatabaseService {
         for (const row of rows.raw() as unknown as SqlitePhotoRow[]) {
           results.push({
             data: this.mapPhotoRowToModel(row),
-            preview: imageService.BASE64_PREFIX + row.preview_source,
+            preview: pathToUri(row.preview_path),
           });
         }
 
@@ -86,7 +87,7 @@ export default class PhotosLocalDatabaseService {
     ]);
     const lastPhotoOfTheYear = rows.item(0) as SqlitePhotoRow | null;
 
-    return lastPhotoOfTheYear && lastPhotoOfTheYear.preview_source;
+    return lastPhotoOfTheYear && pathToUri(lastPhotoOfTheYear.preview_path);
   }
 
   public async getMonthsList(): Promise<{ year: number; month: number; preview: string }[]> {
@@ -105,7 +106,7 @@ export default class PhotosLocalDatabaseService {
       results.push({
         year,
         month,
-        preview: imageService.BASE64_PREFIX + preview || '',
+        preview: preview || '',
       });
     }
 
@@ -119,7 +120,7 @@ export default class PhotosLocalDatabaseService {
     ]);
     const lastPhotoOfTheMonth = rows.item(0) as SqlitePhotoRow | null;
 
-    return lastPhotoOfTheMonth && lastPhotoOfTheMonth.preview_source;
+    return lastPhotoOfTheMonth && pathToUri(lastPhotoOfTheMonth.preview_path);
   }
 
   public async getAllWithoutPreview(): Promise<Photo[]> {
@@ -152,9 +153,9 @@ export default class PhotosLocalDatabaseService {
 
   public async getPhotoPreview(photoId: PhotoId): Promise<string | null> {
     const [{ rows }] = await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getById, [photoId]);
-    const photoSourceRow: SqlitePhotoRow | null = rows.item(0) || null;
+    const photoRow: SqlitePhotoRow | null = rows.item(0) || null;
 
-    return photoSourceRow && imageService.BASE64_PREFIX + photoSourceRow.preview_source;
+    return photoRow && pathToUri(photoRow.preview_path);
   }
 
   public async updatePhotoStatusById(photoId: PhotoId, newStatus: PhotoStatus): Promise<void> {
@@ -211,7 +212,7 @@ export default class PhotosLocalDatabaseService {
       .then(() => undefined);
   }
 
-  public async insertPhoto(photo: Photo, preview: string): Promise<void> {
+  public async insertPhoto(photo: Photo, previewPath: string): Promise<void> {
     return sqliteService
       .executeSql(PHOTOS_DB_NAME, photoTable.statements.insert, [
         photo.id,
@@ -229,7 +230,7 @@ export default class PhotosLocalDatabaseService {
         photo.statusChangedAt.getTime(),
         photo.createdAt.getTime(),
         photo.updatedAt.getTime(),
-        preview,
+        previewPath,
       ])
       .then(() => undefined);
   }

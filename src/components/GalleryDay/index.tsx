@@ -28,7 +28,7 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
   const [columnsCount] = useState(3);
   const [gutter] = useState(3);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
-  const date = moment().year(year).month(month).day(day);
+  const date = moment().year(year).month(month).date(day);
   const dateLabel = date.format('dddd, DD MMMM');
   const areAllPhotosSelected = arePhotosSelected(photos.map((p) => p.data));
   const selectAll = () => {

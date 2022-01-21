@@ -57,7 +57,7 @@ export interface SqlitePhotoRow {
   status_changed_at: number;
   created_at: number;
   updated_at: number;
-  preview_source: string;
+  preview_path: string;
 }
 
 export interface PhotosSyncStatusData {

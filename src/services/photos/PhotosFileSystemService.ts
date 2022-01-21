@@ -29,7 +29,7 @@ export default class PhotosFileSystemService {
   public async clear(): Promise<void> {
     await RNFS.unlink(this.rootDirectory);
 
-    this.logService.info('PhotosFileSystemService - cleared data');
+    this.logService.info('Cleared file system data');
   }
 
   private get rootDirectory(): string {

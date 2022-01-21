@@ -20,11 +20,11 @@ const statements = {
       status_changed_at INTEGER NOT NULL, \
       created_at INTEGER NOT NULL, \
       updated_at INTEGER NOT NULL, \
-      preview_source BLOB NOT NULL \
+      preview_path string NOT NULL \
     );`,
   dropTable: `DROP TABLE ${TABLE_NAME};`,
   insert: `INSERT INTO ${TABLE_NAME} (\
-      id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, taken_at, status_changed_at, created_at, updated_at, preview_source \
+      id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, taken_at, status_changed_at, created_at, updated_at, preview_path \
     ) \
     VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );`,
   deleteById: `DELETE FROM ${TABLE_NAME} WHERE id = ?;`,
@@ -33,8 +33,8 @@ const statements = {
   getAllWithoutPreview: `SELECT id, name, type, size, width, heigth, status, file_id, preview_id, device_id, user_id, taken_at, status_changed_at, created_at, updated_at FROM ${TABLE_NAME} WHERE status = '${PhotoStatus.Exists}';`,
   getPhotoByNameAndType: `SELECT * FROM ${TABLE_NAME} WHERE name = ? AND type = ? LIMIT 1;`,
   getYearsList: `SELECT strftime('%Y', taken_at / 1000, 'unixepoch') as 'year' FROM ${TABLE_NAME};`,
-  getLastPhotoOfTheYear: `SELECT preview_source, strftime('%Y', taken_at / 1000, 'unixepoch') as 'year' FROM ${TABLE_NAME} WHERE year = ?;`,
-  getLastPhotoOfTheMonth: `SELECT preview_source, strftime('%Y', taken_at / 1000, 'unixepoch') as 'year', strftime('%m', taken_at / 1000, 'unixepoch') as 'month' FROM ${TABLE_NAME} WHERE year = ? AND month = ?;`,
+  getLastPhotoOfTheYear: `SELECT preview_path, strftime('%Y', taken_at / 1000, 'unixepoch') as 'year' FROM ${TABLE_NAME} WHERE year = ?;`,
+  getLastPhotoOfTheMonth: `SELECT preview_path, strftime('%Y', taken_at / 1000, 'unixepoch') as 'year', strftime('%m', taken_at / 1000, 'unixepoch') as 'month' FROM ${TABLE_NAME} WHERE year = ? AND month = ?;`,
   getMonthsList: `SELECT strftime('%Y', taken_at / 1000, 'unixepoch') as 'year', strftime('%m', taken_at / 1000, 'unixepoch') as 'month' FROM ${TABLE_NAME};`,
   getById: `SELECT * FROM ${TABLE_NAME} WHERE id = ?;`,
   updatePhotoStatusById: `UPDATE ${TABLE_NAME} SET status = ? WHERE id = ?;`,

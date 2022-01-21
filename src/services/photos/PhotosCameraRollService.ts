@@ -44,7 +44,7 @@ export default class PhotosCameraRollService {
     limit: number;
     cursor?: string;
   }): Promise<[CameraRoll.PhotoIdentifier[], string | undefined]> {
-    const photos = await CameraRoll.getPhotos({
+    const { edges, page_info } = await CameraRoll.getPhotos({
       first: limit,
       /**
        * BE CAREFUL: fromTime is not being exclusive at least
@@ -57,11 +57,9 @@ export default class PhotosCameraRollService {
       after: cursor,
       include: ['filename', 'fileSize', 'imageSize'],
     });
-    let lastCursor: string | undefined = undefined;
 
-    photos.edges.forEach((edge) => {
+    edges.forEach((edge) => {
       if (Platform.OS === 'ios') {
-        lastCursor = edge.node.image.uri;
         edge.node.image.uri = this.convertLocalIdentifierToAssetLibrary(
           edge.node.image.uri.replace('ph://', ''),
           edge.node.type === 'image' ? 'jpg' : 'mov',
@@ -69,7 +67,7 @@ export default class PhotosCameraRollService {
       }
     });
 
-    return [photos.edges, lastCursor];
+    return [edges, page_info.end_cursor];
   }
 
   private convertLocalIdentifierToAssetLibrary(localIdentifier: string, ext: string): string {

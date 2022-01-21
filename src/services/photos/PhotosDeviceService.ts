@@ -37,7 +37,7 @@ export default class PhotosDeviceService {
     await this.localDatabaseService.setNewestDate(device.newestDate);
     device.oldestDate ? await this.localDatabaseService.setOldestDate(device.oldestDate) : null;
 
-    this.logService.info('(PhotosService) Device initialized');
+    this.logService.info('Device initialized');
 
     return device;
   }

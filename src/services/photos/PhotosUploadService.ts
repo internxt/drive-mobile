@@ -8,6 +8,8 @@ import imageService from '../image';
 import { PhotosServiceModel } from '../../types/photos';
 import PhotosLogService from './PhotosLogService';
 import PhotosFileSystemService from './PhotosFileSystemService';
+import { items } from '@internxt/lib';
+import { pathToUri } from '../fileSystem';
 
 export default class PhotosUploadService {
   private readonly model: PhotosServiceModel;
@@ -28,12 +30,11 @@ export default class PhotosUploadService {
   }
 
   public async upload(data: Omit<CreatePhotoData, 'fileId' | 'previewId'>, uri: string): Promise<[Photo, string]> {
-    const fullName = `${data.name}.${data.type}`;
-    const photoPath = await this.copyPhotoToDocumentsDir(fullName, data.width, data.height, uri);
-    const previewPath = await this.generatePreview(fullName, uri);
+    const photoPath = await this.copyPhotoToDocumentsDir(data, data.width, data.height, uri);
+    const previewPath = await this.generatePreview(data, uri);
 
-    this.logService.info('PhotosUploadService - photoPath: ' + photoPath);
-    this.logService.info('PhotosUploadService - previewPath: ' + previewPath);
+    this.logService.info('upload - photoPath: ' + photoPath);
+    this.logService.info('upload - previewPath: ' + previewPath);
 
     this.logService.info('Uploading preview for photo ' + data.name);
     const previewId = await network.uploadFile(
@@ -51,10 +52,7 @@ export default class PhotosUploadService {
       this.model.networkCredentials,
     );
 
-    const preview = await RNFetchBlob.fs.readFile(previewPath, 'base64');
-
     await RNFS.unlink(photoPath);
-    await RNFS.unlink(previewPath);
 
     const createPhotoData: CreatePhotoData = {
       takenAt: data.takenAt,
@@ -70,10 +68,16 @@ export default class PhotosUploadService {
     };
     const createdPhoto = await this.photosSdk.photos.createPhoto(createPhotoData);
 
-    return [createdPhoto, preview];
+    return [createdPhoto, pathToUri(previewPath)];
   }
 
-  private async copyPhotoToDocumentsDir(filename: string, width: number, height: number, uri: string): Promise<string> {
+  private async copyPhotoToDocumentsDir(
+    { name, type }: { name: string; type: string },
+    width: number,
+    height: number,
+    uri: string,
+  ): Promise<string> {
+    const filename = items.getItemDisplayName({ name, type });
     const path = `${this.fileSystemService.photosDirectory}/${filename}`;
     const scale = 1;
 
@@ -86,8 +90,8 @@ export default class PhotosUploadService {
     return path;
   }
 
-  private async generatePreview(filename: string, uri: string): Promise<string> {
-    const path = `${this.fileSystemService.previewsDirectory}/${filename}`;
+  private async generatePreview({ name }: { name: string; type: string }, uri: string): Promise<string> {
+    const path = `${this.fileSystemService.previewsDirectory}/${name}.JPEG`;
     const width = 128;
     const height = 128;
 
@@ -96,12 +100,15 @@ export default class PhotosUploadService {
       width,
       height,
       format: 'JPEG',
-      outputPath: Platform.OS === 'android' ? this.fileSystemService.previewsDirectory : path,
+      outputPath: this.fileSystemService.previewsDirectory,
       quality: 100,
       rotation: 0,
       options: { mode: 'cover' },
     });
 
-    return response.path;
+    await RNFS.copyFile(uri, path);
+    await RNFS.unlink(response.path);
+
+    return path;
   }
 }
