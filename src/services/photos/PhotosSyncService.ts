@@ -1,4 +1,7 @@
 import { photos } from '@internxt/sdk';
+import strings from '../../../assets/lang/strings';
+import { AppDispatch, RootState } from '../../store';
+import { layoutActions } from '../../store/slices/layout';
 
 import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType } from '../../types/photos';
 import PhotosCameraRollService from './PhotosCameraRollService';
@@ -39,6 +42,8 @@ export default class PhotosSyncService {
 
   public async run(options: {
     id?: string;
+    getState: () => RootState;
+    dispatch: AppDispatch;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
     onTaskCompleted?: (result: { taskType: PhotosSyncTaskType; photo: photos.Photo; completedTasks: number }) => void;
   }): Promise<void> {
@@ -75,6 +80,8 @@ export default class PhotosSyncService {
 
       await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
         from: newestDate,
+        getState: options.getState,
+        dispatch: options.dispatch,
         onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
       });
       this.logService.info(`[SYNC] ${this.currentSyncId}: NEWER LOCAL PHOTOS UPLOADED`);
@@ -84,6 +91,8 @@ export default class PhotosSyncService {
       } else {
         await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
           to: oldestDate,
+          getState: options.getState,
+          dispatch: options.dispatch,
           onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
         });
         this.logService.info(`[SYNC] ${this.currentSyncId}: OLDER LOCAL PHOTOS UPLOADED`);
@@ -164,7 +173,13 @@ export default class PhotosSyncService {
   async uploadLocalPhotos(
     userId: photos.UserId,
     deviceId: photos.DeviceId,
-    options: { from?: Date; to?: Date; onPhotoUploaded: (photo: photos.Photo) => void },
+    options: {
+      from?: Date;
+      to?: Date;
+      getState: () => RootState;
+      dispatch: AppDispatch;
+      onPhotoUploaded: (photo: photos.Photo) => void;
+    },
   ): Promise<void> {
     const limit = 25;
     let cursor: string | undefined;
@@ -206,6 +221,9 @@ export default class PhotosSyncService {
       cursor = nextCursor;
 
       for (const photo of photosToUpload) {
+        const usage = options.getState().files.usage + options.getState().photos.usage;
+        const limit = options.getState().files.limit;
+
         /**
          * WARNING: Camera roll does not filter properly by dates for photos with
          * small deltas which can provoke the sync to re-update the last photo already
@@ -220,6 +238,11 @@ export default class PhotosSyncService {
         if (alreadyExistentPhoto) {
           this.logService.info(`[SYNC] ${this.currentSyncId}: ${photo.data.name} IS ALREADY UPLOADED, SKIPPING`);
         } else {
+          if (photo.data.size + usage > limit) {
+            options.dispatch(layoutActions.setShowRunOutSpaceModal(true));
+            throw new Error(strings.errors.storageLimitReached);
+          }
+
           const [createdPhoto, preview] = await this.uploadService.upload(photo.data, photo.uri);
 
           await this.localDatabaseService.insertPhoto(createdPhoto, preview);

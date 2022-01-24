@@ -103,6 +103,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/startUsingPhotos',
   async (payload: void, { dispatch, getState }) => {
+    await dispatch(initializeThunk());
     await dispatch(checkPermissionsThunk());
 
     // TODO: check is device synchronized
@@ -255,7 +256,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
       return;
     }
 
-    await photosService.sync({ id: requestId, onStart, onTaskCompleted });
+    await photosService.sync({ id: requestId, getState, dispatch, onStart, onTaskCompleted });
   },
 );
 

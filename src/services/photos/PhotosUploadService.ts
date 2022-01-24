@@ -1,4 +1,3 @@
-import RNFetchBlob from 'rn-fetch-blob';
 import RNFS from 'react-native-fs';
 import { Photo, Photos, CreatePhotoData } from '@internxt/sdk/dist/photos';
 import { Platform } from 'react-native';
@@ -106,7 +105,7 @@ export default class PhotosUploadService {
       options: { mode: 'cover' },
     });
 
-    await RNFS.copyFile(uri, path);
+    await RNFS.copyFile(response.path, path);
     await RNFS.unlink(response.path);
 
     return path;

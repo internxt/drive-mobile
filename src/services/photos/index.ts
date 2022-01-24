@@ -13,6 +13,7 @@ import PhotosUserService from './PhotosUserService';
 import PhotosLogService from './PhotosLogService';
 import PhotosFileSystemService from './PhotosFileSystemService';
 import PhotosUsageService from './PhotosUsageService';
+import { AppDispatch, RootState } from '../../store';
 
 export class PhotosService {
   private readonly model: PhotosServiceModel;
@@ -96,6 +97,8 @@ export class PhotosService {
 
   public sync(options: {
     id?: string;
+    getState: () => RootState;
+    dispatch: AppDispatch;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
     onTaskCompleted?: (result: { taskType: PhotosSyncTaskType; photo: photos.Photo; completedTasks: number }) => void;
   }): Promise<void> {
