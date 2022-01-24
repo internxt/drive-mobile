@@ -10,7 +10,8 @@ import ProgressBar from '../../components/ProgressBar';
 import { getCurrentIndividualPlan } from '../../services/payments';
 import { notify } from '../../services/toast';
 import ScreenTitle from '../../components/ScreenTitle';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppSelector } from '../../store/hooks';
+import { INFINITE_PLAN } from '../../types';
 
 interface StorageScreenProps {
   currentPlan: number;
@@ -22,25 +23,23 @@ interface CurrentPlan {
 }
 
 function StorageScreen(props: StorageScreenProps): JSX.Element {
+  const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const { usage: storageUsage, limit } = useAppSelector((state) => state.files);
   const navigation = useNavigation<NavigationStackProp>();
-  const [usageValues, setUsageValues] = useState({ usage: storageUsage + photosUsage, limit });
-  const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
-
-  const parseLimit = () => {
+  const usageValues = { usage: storageUsage + photosUsage, limit };
+  const getLimitString = () => {
     if (usageValues.limit === 0) {
       return '...';
     }
 
-    const infinitePlan = Math.pow(1024, 4) * 99; // 99TB
-
-    if (usageValues.limit >= infinitePlan) {
+    if (usageValues.limit >= INFINITE_PLAN) {
       return '\u221E';
     }
 
     return prettysize(usageValues.limit, true);
   };
+  const getUsageString = () => prettysize(usageValues.usage);
 
   useEffect(() => {
     getCurrentIndividualPlan()
@@ -53,13 +52,6 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
       });
   }, []);
 
-  useEffect(() => {
-    setUsageValues({
-      usage: photosUsage + storageUsage,
-      limit,
-    });
-  }, [photosUsage, storageUsage, limit]);
-
   return (
     <View style={tailwind('app-screen bg-white h-full')}>
       <ScreenTitle text={strings.screens.storage.title} centerText onBackButtonPressed={() => navigation.goBack()} />
@@ -70,8 +62,8 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
         <View style={tailwind('mx-5 px-5 py-3 bg-gray-10 rounded-lg')}>
           <View>
             <Text style={tailwind('text-sm text-neutral-500')}>
-              {strings.screens.storage.space.used.used} {prettysize(usageValues.usage)}{' '}
-              {strings.screens.storage.space.used.of} {parseLimit()}
+              {strings.screens.storage.space.used.used} {getUsageString()} {strings.screens.storage.space.used.of}{' '}
+              {getLimitString()}
             </Text>
           </View>
           <View style={tailwind('my-2')}>
@@ -93,7 +85,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
 
       <View style={tailwind('mx-6')}>
         <View>
-          <Text style={tailwind('uppercase text-neutral-700 font-bold text-xl')}>{parseLimit()}</Text>
+          <Text style={tailwind('uppercase text-neutral-700 font-bold text-xl')}>{getLimitString()}</Text>
         </View>
 
         <View style={tailwind('mt-2')}>
@@ -101,7 +93,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
             <View style={tailwind('flex-row items-center')}>
               <Unicons.UilCheck color="#5291ff" />
               <Text style={tailwind('mx-1')}>
-                {strings.formatString(strings.screens.storage.features[0], parseLimit())}
+                {strings.formatString(strings.screens.storage.features[0], getLimitString())}
               </Text>
             </View>
           )}

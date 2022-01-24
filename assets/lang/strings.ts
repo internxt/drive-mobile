@@ -323,6 +323,8 @@ const strings = new LocalizedStrings({
     },
     errors: {
       unknown: 'Unknown error',
+      uploadFile: 'File upload error: {0}',
+      storageLimitReached: 'You have reached your storage limit',
       photosInitialize: 'Error initializing Photos: {0}',
       photoShared: 'An error has ocurred during photo sharing',
       photosSync: 'Error during photos sync: {0}',
@@ -658,6 +660,8 @@ const strings = new LocalizedStrings({
     },
     errors: {
       unknown: 'Error desconocido',
+      uploadFile: 'Error al subir archivo: {0}',
+      storageLimitReached: 'Has alcanzado tu límite de almacenamiento',
       photosInitialize: 'Error al iniciar Photos: {0}',
       photoShared: 'Ha habido un error al compartir la foto',
       photosSync: 'Error sincronizando fotos: {0}',

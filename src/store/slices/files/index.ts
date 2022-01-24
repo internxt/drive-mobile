@@ -290,8 +290,8 @@ export const filesSlice = createSlice({
     },
     uploadFileFailed(state, action: PayloadAction<{ errorMessage?: string; id?: string }>) {
       state.loading = false;
-      state.error = action.payload.errorMessage;
       state.isUploading = false;
+      state.error = action.payload.errorMessage;
       state.filesCurrentlyUploading = state.filesCurrentlyUploading.filter((file) => file.id !== action.payload.id);
     },
     uploadFileSetProgress(state, action: PayloadAction<{ progress: number; id?: string }>) {

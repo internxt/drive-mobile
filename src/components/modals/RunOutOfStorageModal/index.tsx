@@ -10,35 +10,31 @@ import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import strings from '../../../../assets/lang/strings';
 import { getCurrentIndividualPlan } from '../../../services/payments';
-import { AppScreen } from '../../../types';
+import { AppScreen, CurrentPlan, INFINITE_PLAN } from '../../../types';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-interface CurrentPlan {
-  name: string;
-  storageLimit: number;
-}
 
 function RunOutOfStorageModal(): JSX.Element {
+  const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationStackProp>();
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const { usage: storageUsage, limit } = useAppSelector((state) => state.files);
-  const [usageValues] = useState({ usage: photosUsage + storageUsage, limit });
-  const showRunOutOfSpaceModal = useAppSelector((state) => state.layout.showRunOutOfSpaceModal);
-  const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
-
-  const parseLimit = () => {
-    if (usageValues.limit === 0) {
+  const { showRunOutOfSpaceModal } = useAppSelector((state) => state.layout);
+  const usage = photosUsage + storageUsage;
+  const getLimitString = () => {
+    if (limit === 0) {
       return '...';
     }
 
-    const infinitePlan = Math.pow(1024, 4) * 99; // 99TB
-
-    if (usageValues.limit >= infinitePlan) {
+    if (limit >= INFINITE_PLAN) {
       return '\u221E';
     }
 
-    return prettysize(usageValues.limit, true);
+    return prettysize(limit, true);
+  };
+  const getUsageString = () => {
+    return prettysize(usage);
   };
 
   useEffect(() => {
@@ -76,7 +72,7 @@ function RunOutOfStorageModal(): JSX.Element {
             <View style={tailwind('h-1 w-20 bg-neutral-30 rounded-full')} />
           </View>
 
-          <View style={tailwind('bg-white justify-center p-3 pb-8')}>
+          <View style={tailwind('bg-white justify-center px-5 pt-3 pb-8')}>
             <Text style={[tailwind('text-center text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
               {strings.modals.out_of_space_modal.title}
             </Text>
@@ -87,14 +83,14 @@ function RunOutOfStorageModal(): JSX.Element {
               </View>
 
               <Text style={[tailwind('text-sm text-neutral-100 mt-3'), globalStyle.fontWeight.medium]}>
-                {strings.screens.storage.space.used.used} {prettysize(usageValues.usage)}{' '}
-                {strings.screens.storage.space.used.of} {parseLimit()}
+                {strings.screens.storage.space.used.used} {getUsageString()} {strings.screens.storage.space.used.of}{' '}
+                {getLimitString()}
               </Text>
             </View>
 
-            <View style={tailwind('flex-grow my-6')}>
+            <View style={tailwind('flex-grow mb-6')}>
               <Text style={tailwind('text-sm text-center text-neutral-100')}>
-                {strings.modals.run_out_of_storage?.advice}
+                {strings.modals.run_out_of_storage.advice}
               </Text>
             </View>
 

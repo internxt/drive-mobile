@@ -15,6 +15,7 @@ import {
   requestCameraPermissionsAsync,
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
 import * as Unicons from '@iconscout/react-native-unicons';
@@ -31,7 +32,7 @@ import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import { DevicePlatform } from '../../../types';
 import { deviceStorage } from '../../../services/deviceStorage';
-import { UPLOAD_FILES_LIMIT } from '../../../services/file';
+import { UPLOAD_FILE_SIZE_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import { filesActions, filesThunks } from '../../../store/slices/files';
@@ -47,7 +48,6 @@ interface UploadingFile {
   updatedAt: string;
   id: string;
   uri: string;
-  path: string;
   folderId?: number;
 }
 
@@ -143,6 +143,8 @@ async function uploadAndCreateFileEntry(
   progressCallback: ProgressCallback,
 ) {
   const { bucket, bridgeUser, mnemonic, userId } = await deviceStorage.getUser();
+  const fileStat = await stat(fileURI);
+  const fileSize = fileStat.size;
   const fileId = await uploadFile(
     fileURI,
     bucket,
@@ -157,17 +159,14 @@ async function uploadAndCreateFileEntry(
     },
   );
 
-  const fileStat = await stat(fileURI);
-
   const folderId = currentFolderId;
   const name = encryptFilename(removeExtension(fileName), folderId);
-  const fileSize = fileStat.size;
   const fileEntry: FileEntry = {
     fileId,
     file_id: fileId,
     type: fileExtension,
     bucket,
-    size: fileSize.toString(),
+    size: fileSize as number,
     folder_id: folderId,
     name,
     encrypt_version: '03-aes',
@@ -182,22 +181,27 @@ function UploadModal(): JSX.Element {
   const { user } = useAppSelector((state) => state.auth);
   const currentFolder = folderContent?.currentFolder || user?.root_folder_id;
   const { showUploadModal } = useAppSelector((state) => state.layout);
-
-  function upload(res: UploadingFile, fileType: 'document' | 'image') {
+  const { usage: photosUsage } = useAppSelector((state) => state.photos);
+  const { usage: storageUsage, limit } = useAppSelector((state) => state.files);
+  const usage = photosUsage + storageUsage;
+  const upload = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
     function progressCallback(progress: number) {
-      dispatch(filesActions.uploadFileSetProgress({ progress, id: res.id }));
+      dispatch(filesActions.uploadFileSetProgress({ progress, id: uploadingFile.id }));
+    }
+
+    if (uploadingFile.size + usage > limit) {
+      dispatch(layoutActions.setShowRunOutSpaceModal(true));
+      throw new Error(strings.errors.storageLimitReached);
     }
 
     if (Platform.OS === 'ios') {
-      return uploadIOS(res, fileType, progressCallback);
+      await uploadIOS(uploadingFile, fileType, progressCallback);
+    } else if (Platform.OS === 'android') {
+      await uploadAndroid(uploadingFile, fileType, progressCallback);
+    } else {
+      throw new Error('Unsuported platform');
     }
-
-    if (Platform.OS === 'android') {
-      return uploadAndroid(res, fileType, progressCallback);
-    }
-
-    throw new Error('Unsuported platform');
-  }
+  };
 
   async function trackUploadStart() {
     const { uuid, email } = await deviceStorage.getUser();
@@ -214,10 +218,14 @@ function UploadModal(): JSX.Element {
   }
 
   async function trackUploadError(err: Error) {
-    const { email, uuid } = await deviceStorage.getUser();
-    const uploadErrorTrack = { userId: uuid, email, device: DevicePlatform.Mobile, error: err.message };
+    try {
+      const { email, uuid } = await deviceStorage.getUser();
+      const uploadErrorTrack = { userId: uuid, email, device: DevicePlatform.Mobile, error: err.message };
 
-    analytics.track('file-upload-error', uploadErrorTrack).catch(() => null);
+      analytics.track('file-upload-error', uploadErrorTrack);
+    } catch (err) {
+      console.error('error tracking upload error: ', err);
+    }
   }
 
   function uploadSuccess(file: { id: string }) {
@@ -249,7 +257,6 @@ function UploadModal(): JSX.Element {
       createdAt: new Date().toString(),
       updatedAt: new Date().toString(),
       id: uniqueId(),
-      path: '',
       size: file.size,
       progress: 0,
     };
@@ -258,9 +265,10 @@ function UploadModal(): JSX.Element {
   async function uploadDocuments(documents: DocumentPickerResponse[]) {
     const filesToUpload: DocumentPickerResponse[] = [];
     const filesExcluded: DocumentPickerResponse[] = [];
+    const formattedFiles: UploadingFile[] = [];
 
     for (const file of documents) {
-      if (file.size <= UPLOAD_FILES_LIMIT) {
+      if (file.size <= UPLOAD_FILE_SIZE_LIMIT) {
         filesToUpload.push(file);
       } else {
         filesExcluded.push(file);
@@ -276,8 +284,6 @@ function UploadModal(): JSX.Element {
       folderContent?.files.map((file) => {
         return { name: removeExtension(file.name), type: file.type };
       }) || [];
-
-    const formattedFiles: UploadingFile[] = [];
 
     for (const fileToUpload of filesToUpload) {
       let file: UploadingFile;
@@ -297,7 +303,6 @@ function UploadModal(): JSX.Element {
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
           id: uniqueId(),
-          path: '',
           size: fileToUpload.size,
           progress: 0,
         };
@@ -323,8 +328,8 @@ function UploadModal(): JSX.Element {
           trackUploadError(err);
           dispatch(filesActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
           notify({
-            text: 'Cannot upload file: ' + err.message,
             type: 'error',
+            text: strings.formatString(strings.errors.uploadFile, err.message) as string,
           });
         })
         .finally(() => {
@@ -355,7 +360,7 @@ function UploadModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          Alert.alert('File upload error', err.message);
+          notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
         })
         .finally(() => {
           dispatch(layoutActions.setShowUploadFileModal(false));
@@ -377,7 +382,7 @@ function UploadModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          Alert.alert('File upload error', err.message);
+          notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
         })
         .finally(() => {
           dispatch(layoutActions.setShowUploadFileModal(false));
@@ -424,7 +429,7 @@ function UploadModal(): JSX.Element {
                 if (err.message === 'User canceled document picker') {
                   return;
                 }
-                Alert.alert('File upload error', err.message);
+                notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
               })
               .finally(() => {
                 dispatch(layoutActions.setShowUploadFileModal(false));
@@ -449,7 +454,7 @@ function UploadModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          Alert.alert('File upload error', err.message);
+          notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
         })
         .finally(() => {
           dispatch(layoutActions.setShowUploadFileModal(false));
@@ -461,59 +466,58 @@ function UploadModal(): JSX.Element {
     const { status } = await requestCameraPermissionsAsync();
 
     if (status === 'granted') {
-      let error = null;
+      try {
+        const result = await launchCameraAsync();
 
-      const result: any = await launchCameraAsync().catch((err) => {
-        error = err;
-      });
-
-      if (error) {
-        return Alert.alert((error as Error).message);
-      }
-
-      if (!result) {
-        return;
-      }
-
-      if (!result.cancelled) {
-        const file = result;
-
-        // Set name for pics/photos
-        if (!file.name) {
-          file.name = result.uri.split('/').pop();
+        if (!result) {
+          return;
         }
-        file.progress = 0;
-        file.currentFolder = currentFolder;
-        file.createdAt = new Date().toString();
-        file.updatedAt = new Date().toString();
-        file.id = uniqueId();
 
-        file.name = removeExtension(file.name);
-        file.type = getFileExtension(result.uri);
+        if (!result.cancelled) {
+          const name = removeExtension(result.uri.split('/').pop() as string);
+          const fileInfo = await FileSystem.getInfoAsync(result.uri);
+          const size = fileInfo.size;
+          const file: UploadingFile = {
+            name,
+            progress: 0,
+            currentFolder: currentFolder,
+            createdAt: new Date().toString(),
+            updatedAt: new Date().toString(),
+            id: uniqueId(),
+            type: getFileExtension(result.uri) as string,
+            size: size || 0,
+            uri: result.uri,
+          };
 
-        trackUploadStart();
-        dispatch(filesActions.uploadFileStart(file.name));
-        dispatch(filesActions.addUploadingFile(file));
+          trackUploadStart();
+          dispatch(filesActions.uploadFileStart(file.name));
+          dispatch(filesActions.addUploadingFile(file));
 
-        dispatch(layoutActions.setShowUploadFileModal(false));
+          dispatch(layoutActions.setShowUploadFileModal(false));
 
-        upload(file, 'image')
-          .then(() => {
-            uploadSuccess(file);
-          })
-          .catch((err) => {
-            trackUploadError(err);
-            dispatch(filesActions.uploadFileFailed(file.id));
-            Alert.alert('Error', 'Cannot upload file due to: ' + err.message);
-          })
-          .finally(() => {
-            dispatch(filesActions.uploadFileFinished());
-            dispatch(filesThunks.getUsageAndLimitThunk());
+          upload(file, 'image')
+            .then(() => {
+              uploadSuccess(file);
+            })
+            .catch((err) => {
+              trackUploadError(err);
+              dispatch(filesActions.uploadFileFailed({ id: file.id }));
+              throw err;
+            })
+            .finally(() => {
+              dispatch(filesActions.uploadFileFinished());
+              dispatch(filesThunks.getUsageAndLimitThunk());
 
-            if (currentFolder) {
-              dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
-            }
-          });
+              if (currentFolder) {
+                dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
+              }
+            });
+        }
+      } catch (err) {
+        notify({
+          type: 'error',
+          text: strings.formatString(strings.errors.uploadFile, (err as Error).message) as string,
+        });
       }
     }
   }

@@ -89,3 +89,31 @@ export interface NetworkCredentials {
   user: NetworkUser;
   password: NetworkPass;
 }
+
+export interface CurrentPlan {
+  name: string;
+  storageLimit: number;
+}
+
+export const INFINITE_PLAN = Math.pow(1024, 4) * 99; // 99TB
+
+export enum RenewalPeriod {
+  Monthly = 'monthly',
+  Annually = 'annually',
+  Lifetime = 'lifetime',
+}
+
+export type StoragePlan = {
+  planId: string;
+  productId: string;
+  name: string;
+  simpleName: string;
+  paymentInterval: RenewalPeriod;
+  price: number;
+  monthlyPrice: number;
+  currency: string;
+  isTeam: boolean;
+  isLifetime: boolean;
+  renewalPeriod: RenewalPeriod;
+  storageLimit: number;
+};
