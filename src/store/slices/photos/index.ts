@@ -82,24 +82,27 @@ const initialState: PhotosState = {
   usage: 0,
 };
 
-const setupSdkThunk = createAsyncThunk<void, void, { state: RootState }>('photos/setupSdk', async () => {
-  const photosToken = await deviceStorage.getItem('photosToken');
-  const user = await deviceStorage.getUser();
-
-  photosService = new PhotosService(photosToken || '', {
-    encryptionKey: user?.mnemonic || '',
-    user: user?.bridgeUser || '',
-    password: user?.userId || '',
-  });
-
-  console.log('PHOTOS SDK INITIALIZED');
-});
-
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
-  async (payload: void, { dispatch, getState }) => {
-    dispatch(getUsageThunk());
+  async (payload, { dispatch }) => {
+    const photosToken = await deviceStorage.getItem('photosToken');
+    const user = await deviceStorage.getUser();
 
+    photosService = new PhotosService(photosToken || '', {
+      encryptionKey: user?.mnemonic || '',
+      user: user?.bridgeUser || '',
+      password: user?.userId || '',
+    });
+
+    if (user && photosToken) {
+      dispatch(getUsageThunk());
+    }
+  },
+);
+
+const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/startUsingPhotos',
+  async (payload: void, { dispatch, getState }) => {
     await dispatch(checkPermissionsThunk());
 
     // TODO: check is device synchronized
@@ -336,14 +339,14 @@ export const photosSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(initializeThunk.pending, (state) => {
+      .addCase(startUsingPhotosThunk.pending, (state) => {
         state.isInitialized = false;
         state.initializeError = null;
       })
-      .addCase(initializeThunk.fulfilled, (state) => {
+      .addCase(startUsingPhotosThunk.fulfilled, (state) => {
         state.isInitialized = true;
       })
-      .addCase(initializeThunk.rejected, (state, action) => {
+      .addCase(startUsingPhotosThunk.rejected, (state, action) => {
         state.initializeError = action.error.message || strings.errors.unknown;
 
         notify({
@@ -581,8 +584,8 @@ export const photosSelectors = {
 };
 
 export const photosThunks = {
-  setupSdkThunk,
   initializeThunk,
+  startUsingPhotosThunk,
   getUsageThunk,
   checkPermissionsThunk,
   askForPermissionsThunk,

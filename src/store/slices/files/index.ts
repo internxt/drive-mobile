@@ -18,7 +18,8 @@ import { layoutActions } from '../layout';
 import { authThunks } from '../auth';
 import { getEnvironmentConfig } from '../../../lib/network';
 import errorService from '../../../services/error';
-import { loadUsage } from '../../../services/storage';
+import { loadValues } from '../../../services/storage';
+import { deviceStorage } from '../../../services/deviceStorage';
 
 interface FolderContent {
   id: number;
@@ -57,6 +58,7 @@ export interface FilesState {
   pendingDeleteItems: { [key: string]: boolean };
   selectedFile: any;
   usage: number;
+  limit: number;
 }
 
 const initialState: FilesState = {
@@ -80,7 +82,19 @@ const initialState: FilesState = {
   pendingDeleteItems: {},
   selectedFile: null,
   usage: 0,
+  limit: 0,
 };
+
+const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'files/initialize',
+  async (payload, { dispatch }) => {
+    const user = await deviceStorage.getUser();
+
+    if (user) {
+      await dispatch(getUsageAndLimitThunk());
+    }
+  },
+);
 
 const getFolderContentThunk = createAsyncThunk<
   FolderContent,
@@ -118,9 +132,12 @@ const fetchIfSameFolderThunk = createAsyncThunk<void, { folderId: number }, { st
   },
 );
 
-const getUsageThunk = createAsyncThunk<number, void, { state: RootState }>('files/getUsage', async () => {
-  return loadUsage();
-});
+const getUsageAndLimitThunk = createAsyncThunk<{ usage: number; limit: number }, void, { state: RootState }>(
+  'files/getUsageAndLimit',
+  async () => {
+    return loadValues();
+  },
+);
 
 const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootState }>(
   'files/goBack',
@@ -197,6 +214,9 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: 
 
     await fileService
       .deleteItems(items)
+      .then(() => {
+        dispatch(getUsageAndLimitThunk());
+      })
       .catch((err) => {
         notify({
           text: err.message,
@@ -322,11 +342,17 @@ export const filesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getUsageThunk.pending, () => undefined)
-      .addCase(getUsageThunk.fulfilled, (state, action) => {
-        state.usage = action.payload;
+      .addCase(initializeThunk.pending, () => undefined)
+      .addCase(initializeThunk.fulfilled, () => undefined)
+      .addCase(initializeThunk.rejected, () => undefined);
+
+    builder
+      .addCase(getUsageAndLimitThunk.pending, () => undefined)
+      .addCase(getUsageAndLimitThunk.fulfilled, (state, action) => {
+        state.usage = action.payload.usage;
+        state.limit = action.payload.limit;
       })
-      .addCase(getUsageThunk.rejected, () => undefined);
+      .addCase(getUsageAndLimitThunk.rejected, () => undefined);
 
     builder
       .addCase(getFolderContentThunk.pending, (state) => {
@@ -423,7 +449,8 @@ export const filesSlice = createSlice({
 export const filesActions = filesSlice.actions;
 
 export const filesThunks = {
-  getUsageThunk,
+  initializeThunk,
+  getUsageAndLimitThunk,
   getFolderContentThunk,
   fetchIfSameFolderThunk,
   goBackThunk,

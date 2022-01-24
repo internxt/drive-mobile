@@ -9,10 +9,8 @@ import { tailwind } from '../../helpers/designSystem';
 import ProgressBar from '../../components/ProgressBar';
 import { getCurrentIndividualPlan } from '../../services/payments';
 import { notify } from '../../services/toast';
-import { loadValues } from '../../services/storage';
 import ScreenTitle from '../../components/ScreenTitle';
-import { useAppDispatch } from '../../store/hooks';
-import { photosThunks } from '../../store/slices/photos';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 
 interface StorageScreenProps {
   currentPlan: number;
@@ -24,9 +22,10 @@ interface CurrentPlan {
 }
 
 function StorageScreen(props: StorageScreenProps): JSX.Element {
-  const dispatch = useAppDispatch();
+  const { usage: photosUsage } = useAppSelector((state) => state.photos);
+  const { usage: storageUsage, limit } = useAppSelector((state) => state.files);
   const navigation = useNavigation<NavigationStackProp>();
-  const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 });
+  const [usageValues, setUsageValues] = useState({ usage: storageUsage + photosUsage, limit });
   const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
 
   const parseLimit = () => {
@@ -44,19 +43,6 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
   };
 
   useEffect(() => {
-    loadValues()
-      .then((res) => {
-        dispatch(photosThunks.getUsageThunk())
-          .unwrap()
-          .then((photosUsage) => {
-            setUsageValues({
-              usage: res.usage + photosUsage,
-              limit: res.limit,
-            });
-          });
-      })
-      .catch(() => undefined);
-
     getCurrentIndividualPlan()
       .then(setCurrentPlan)
       .catch(() => {
@@ -66,6 +52,13 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
         });
       });
   }, []);
+
+  useEffect(() => {
+    setUsageValues({
+      usage: photosUsage + storageUsage,
+      limit,
+    });
+  }, [photosUsage, storageUsage, limit]);
 
   return (
     <View style={tailwind('app-screen bg-white h-full')}>

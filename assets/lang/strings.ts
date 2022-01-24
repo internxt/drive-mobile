@@ -311,6 +311,9 @@ const strings = new LocalizedStrings({
       link_copied_modal: {
         message: 'Link copied to clipboard',
       },
+      run_out_of_storage: {
+        advice: 'Get a higher plan or remove files you will no longer use in order to upload or sync your files again.',
+      },
     },
     messages: {
       photoShared: 'You have shared a photo!',
@@ -641,6 +644,10 @@ const strings = new LocalizedStrings({
       },
       link_copied_modal: {
         message: 'Enlace copiado al portapapeles',
+      },
+      run_out_of_storage: {
+        advice:
+          'Mejora tu plan o borra los archivos que no vayas a usar para subir o sincronizar tus archivos de nuevo.',
       },
     },
     messages: {

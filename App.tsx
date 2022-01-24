@@ -17,6 +17,7 @@ import { deviceStorage } from './src/services/deviceStorage';
 import { authActions, authThunks } from './src/store/slices/auth';
 import { filesActions } from './src/store/slices/files';
 import { photosThunks } from './src/store/slices/photos';
+import { appThunks } from './src/store/slices/app';
 
 process.nextTick = setImmediate;
 
@@ -50,6 +51,8 @@ export default function App(): JSX.Element {
 
     if (token && photosToken && user) {
       store.dispatch(authActions.signIn({ token, photosToken, user }));
+
+      store.dispatch(appThunks.initializeThunk());
     } else {
       store.dispatch(authThunks.signOutThunk());
     }

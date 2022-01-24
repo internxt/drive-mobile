@@ -31,11 +31,11 @@ function PhotosNavigator(): JSX.Element {
   const arePermissionsGranted = useAppSelector(photosSelectors.arePermissionsGranted);
   const dispatch = useAppDispatch();
   const onTryAgainInitializeButtonPressed = () => {
-    dispatch(photosThunks.initializeThunk());
+    dispatch(photosThunks.startUsingPhotosThunk());
   };
 
   useEffect(() => {
-    dispatch(photosThunks.initializeThunk());
+    dispatch(photosThunks.startUsingPhotosThunk());
   }, []);
 
   return (

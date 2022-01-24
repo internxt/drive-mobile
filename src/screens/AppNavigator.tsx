@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
 import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -21,8 +21,8 @@ import PhotosNavigator from './PhotosNavigator';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { layoutActions } from '../store/slices/layout';
 import LinkCopiedModal from '../components/modals/LinkCopiedModal';
-import { PhotosScreen } from '../types/photos';
 import PhotosPreviewScreen from './PhotosNavigator/PhotosPreviewScreen';
+import { appThunks } from '../store/slices/app';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -57,6 +57,10 @@ function AppNavigator(): JSX.Element {
   const onLinkCopiedModalClosed = () => {
     dispatch(layoutActions.setIsLinkCopiedModalOpen(false));
   };
+
+  useEffect(() => {
+    dispatch(appThunks.initializeThunk());
+  }, []);
 
   return (
     <>

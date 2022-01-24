@@ -10,7 +10,6 @@ import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import strings from '../../../../assets/lang/strings';
 import { getCurrentIndividualPlan } from '../../../services/payments';
-import { loadValues } from '../../../services/storage';
 import { AppScreen } from '../../../types';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -22,8 +21,10 @@ interface CurrentPlan {
 function RunOutOfStorageModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationStackProp>();
+  const { usage: photosUsage } = useAppSelector((state) => state.photos);
+  const { usage: storageUsage, limit } = useAppSelector((state) => state.files);
+  const [usageValues] = useState({ usage: photosUsage + storageUsage, limit });
   const showRunOutOfSpaceModal = useAppSelector((state) => state.layout.showRunOutOfSpaceModal);
-  const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 });
   const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
 
   const parseLimit = () => {
@@ -41,10 +42,6 @@ function RunOutOfStorageModal(): JSX.Element {
   };
 
   useEffect(() => {
-    loadValues()
-      .then((res) => setUsageValues(res))
-      .catch(() => undefined);
-
     getCurrentIndividualPlan()
       .then(setCurrentPlan)
       .catch(() => undefined);
@@ -97,10 +94,7 @@ function RunOutOfStorageModal(): JSX.Element {
 
             <View style={tailwind('flex-grow my-6')}>
               <Text style={tailwind('text-sm text-center text-neutral-100')}>
-                Get a higher plan or remove files you will no longer
-              </Text>
-              <Text style={tailwind('text-sm text-center text-neutral-100')}>
-                use in order to upload or sync your files again.
+                {strings.modals.run_out_of_storage?.advice}
               </Text>
             </View>
 

@@ -24,7 +24,6 @@ import { layoutActions } from '../../store/slices/layout';
 import { downloadFile } from '../../services/network';
 import { LegacyDownloadRequiredError } from '../../services/network/download';
 import { downloadFile as legacyDownloadFile } from '../../services/download';
-import { pathToFileURL } from 'url';
 
 interface FileItemProps {
   isFolder: boolean;

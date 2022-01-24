@@ -28,7 +28,7 @@ function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackPr
     );
   });
   const onPermissionsGranted = async () => {
-    dispatch(photosThunks.initializeThunk());
+    dispatch(photosThunks.startUsingPhotosThunk());
     navigation.replace(PhotosScreen.Gallery);
   };
   const onButtonPressed = async () => {

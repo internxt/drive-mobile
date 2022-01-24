@@ -7,6 +7,7 @@ import userService from '../../../services/user';
 import analytics from '../../../services/analytics';
 import { DevicePlatform } from '../../../types';
 import { photosActions, photosThunks } from '../photos';
+import { appThunks } from '../app';
 
 export interface AuthState {
   loggedIn: boolean;
@@ -34,12 +35,14 @@ export const signInThunk = createAsyncThunk<
   { token: string; photosToken: string; user: User },
   { email: string; password: string; sKey: string; twoFactorCode: string },
   { state: RootState }
->('auth/signIn', async (payload) => {
+>('auth/signIn', async (payload, { dispatch }) => {
   const result = await userService.signin(payload.email, payload.password, payload.sKey, payload.twoFactorCode);
 
   await deviceStorage.saveItem('xToken', result.token);
   await deviceStorage.saveItem('photosToken', result.photosToken); // Photos access token
   await deviceStorage.saveItem('xUser', JSON.stringify(result.user));
+
+  dispatch(appThunks.initializeThunk());
 
   return result;
 });

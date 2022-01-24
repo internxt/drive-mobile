@@ -345,6 +345,8 @@ function UploadModal(): JSX.Element {
           return uploadDocuments(documents);
         })
         .then(() => {
+          dispatch(filesThunks.getUsageAndLimitThunk());
+
           if (currentFolder) {
             dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
           }
@@ -365,6 +367,8 @@ function UploadModal(): JSX.Element {
       })
         .then(processFilesFromPicker)
         .then(() => {
+          dispatch(filesThunks.getUsageAndLimitThunk());
+
           if (currentFolder) {
             dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
           }
@@ -410,6 +414,8 @@ function UploadModal(): JSX.Element {
             dispatch(layoutActions.setShowUploadFileModal(false));
             uploadDocuments(documents)
               .then(() => {
+                dispatch(filesThunks.getUsageAndLimitThunk());
+
                 if (currentFolder) {
                   dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
                 }
@@ -433,6 +439,8 @@ function UploadModal(): JSX.Element {
       })
         .then(processFilesFromPicker)
         .then(() => {
+          dispatch(filesThunks.getUsageAndLimitThunk());
+
           if (currentFolder) {
             dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
           }
@@ -500,6 +508,8 @@ function UploadModal(): JSX.Element {
           })
           .finally(() => {
             dispatch(filesActions.uploadFileFinished());
+            dispatch(filesThunks.getUsageAndLimitThunk());
+
             if (currentFolder) {
               dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
             }
