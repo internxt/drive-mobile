@@ -1,7 +1,7 @@
 import { photos } from '@internxt/sdk';
 
 import { NetworkCredentials } from '../../types';
-import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType } from '../../types/photos';
+import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType, PhotosTaskCompletedInfo } from '../../types/photos';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosUploadService from './PhotosUploadService';
 import PhotosDeleteService from './PhotosDeleteService';
@@ -43,8 +43,8 @@ export class PhotosService {
 
     this.logService = new PhotosLogService(this.model);
     this.fileSystemService = new PhotosFileSystemService(this.model, this.logService);
-    this.cameraRollService = new PhotosCameraRollService(this.logService);
     this.localDatabaseService = new PhotosLocalDatabaseService(this.model, this.logService);
+    this.cameraRollService = new PhotosCameraRollService(this.logService, this.localDatabaseService);
     this.usageService = new PhotosUsageService(this.model);
     this.deviceService = new PhotosDeviceService(
       this.model,
@@ -64,6 +64,7 @@ export class PhotosService {
     this.syncService = new PhotosSyncService(
       this.model,
       this.photosSdk,
+      this.deviceService,
       this.cameraRollService,
       this.uploadService,
       this.downloadService,
@@ -100,7 +101,12 @@ export class PhotosService {
     getState: () => RootState;
     dispatch: AppDispatch;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
-    onTaskCompleted?: (result: { taskType: PhotosSyncTaskType; photo: photos.Photo; completedTasks: number }) => void;
+    onTaskCompleted?: (result: {
+      taskType: PhotosSyncTaskType;
+      photo: photos.Photo;
+      completedTasks: number;
+      info: PhotosTaskCompletedInfo;
+    }) => void;
   }): Promise<void> {
     return this.syncService.run(options);
   }
@@ -134,7 +140,7 @@ export class PhotosService {
   }
 
   public getAll(): Promise<photos.Photo[]> {
-    return this.localDatabaseService.getAllWithoutPreview();
+    return this.localDatabaseService.getAll();
   }
 
   public deletePhoto(photo: photos.Photo): Promise<void> {

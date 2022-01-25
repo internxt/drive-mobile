@@ -32,8 +32,8 @@ export default class PhotosUploadService {
     const photoPath = await this.copyPhotoToDocumentsDir(data, data.width, data.height, uri);
     const previewPath = await this.generatePreview(data, uri);
 
-    this.logService.info('upload - photoPath: ' + photoPath);
-    this.logService.info('upload - previewPath: ' + previewPath);
+    this.logService.info('PhotosUploadService.upload - photoPath: ' + photoPath);
+    this.logService.info('PhotosUploadService.upload - previewPath: ' + previewPath);
 
     this.logService.info('Uploading preview for photo ' + data.name);
     const previewId = await network.uploadFile(

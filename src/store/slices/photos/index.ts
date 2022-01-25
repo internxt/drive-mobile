@@ -25,6 +25,7 @@ import {
   PhotosSyncInfo,
   PhotosSyncTaskType,
   PhotosByMonthType,
+  PhotosTaskCompletedInfo,
 } from '../../../types/photos';
 
 let photosService: PhotosService;
@@ -231,10 +232,12 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
       photo,
       completedTasks,
       taskType,
+      info,
     }: {
       taskType: PhotosSyncTaskType;
       photo: Photo;
       completedTasks: number;
+      info: PhotosTaskCompletedInfo;
     }) => {
       dispatch(photosActions.updateSyncStatus({ completedTasks }));
 
@@ -243,8 +246,10 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
       }
 
       if (photo.status === PhotoStatus.Exists) {
-        const preview = (await photosService.getPhotoPreview(photo.id)) || '';
-        dispatch(photosActions.pushPhoto({ data: photo, preview }));
+        if (!info.isAlreadyOnTheDevice) {
+          const preview = (await photosService.getPhotoPreview(photo.id)) || '';
+          dispatch(photosActions.pushPhoto({ data: photo, preview }));
+        }
       } else {
         dispatch(photosActions.popPhoto(photo));
       }

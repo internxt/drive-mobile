@@ -1,28 +1,28 @@
 import CameraRoll from '@react-native-community/cameraroll';
 import { Platform } from 'react-native';
+import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosLogService from './PhotosLogService';
 
 export default class PhotosCameraRollService {
   private readonly logService: PhotosLogService;
+  private readonly localDatabaseService: PhotosLocalDatabaseService;
 
-  constructor(logService: PhotosLogService) {
+  constructor(logService: PhotosLogService, localDatabaseService: PhotosLocalDatabaseService) {
     this.logService = logService;
+    this.localDatabaseService = localDatabaseService;
   }
 
   public async count({ from, to }: { from?: Date; to?: Date }): Promise<number> {
-    const PAGE_SIZE = 100;
     let hasNextPage = true;
     let cursor: string | undefined;
     let count = 0;
 
     do {
-      const { edges, page_info } = await CameraRoll.getPhotos({
-        first: PAGE_SIZE,
-        after: cursor,
-        fromTime: from && from.getTime(),
-        toTime: to && to.getTime(),
-        assetType: 'Photos',
-        groupTypes: 'All',
+      const { edges, page_info } = await this.getPhotos({
+        limit: 100,
+        cursor,
+        from,
+        to,
       });
 
       hasNextPage = page_info.has_next_page;
@@ -33,7 +33,40 @@ export default class PhotosCameraRollService {
     return count;
   }
 
-  public async loadLocalPhotos({
+  /**
+   * @description Copies all the camera roll photos sqlite.
+   * !!! We use this to avoid sort by date errors found in the library @react-native-community/cameraroll
+   * !!! https://github.com/react-native-cameraroll/react-native-cameraroll/issues/372
+   */
+  public async copyToLocalDatabase(): Promise<{ count: number }> {
+    let hasNextPage = false;
+    let cursor: string | undefined;
+    let count = 0;
+
+    await this.localDatabaseService.cleanTmpCameraRollTable();
+
+    do {
+      const { edges, page_info } = await this.getPhotos({
+        limit: 100,
+        cursor,
+      });
+      const promises: Promise<void>[] = [];
+
+      hasNextPage = page_info.has_next_page;
+      cursor = page_info.end_cursor;
+
+      for (const edge of edges) {
+        promises.push(this.localDatabaseService.insertTmpCameraRollRow(edge).then(() => undefined));
+        count++;
+      }
+
+      await Promise.all(promises);
+    } while (hasNextPage);
+
+    return { count };
+  }
+
+  public async getPhotos({
     from,
     to,
     limit,
@@ -43,13 +76,12 @@ export default class PhotosCameraRollService {
     to?: Date;
     limit: number;
     cursor?: string;
-  }): Promise<[CameraRoll.PhotoIdentifier[], string | undefined]> {
+  }): Promise<{
+    edges: CameraRoll.PhotoIdentifier[];
+    page_info: { has_next_page: boolean; start_cursor?: string | undefined; end_cursor?: string | undefined };
+  }> {
     const { edges, page_info } = await CameraRoll.getPhotos({
       first: limit,
-      /**
-       * BE CAREFUL: fromTime is not being exclusive at least
-       * on iOS as stated on the docs
-       */
       fromTime: from && from.getTime(),
       toTime: to && to.getTime(),
       assetType: 'Photos',
@@ -67,7 +99,10 @@ export default class PhotosCameraRollService {
       }
     });
 
-    return [edges, page_info.end_cursor];
+    return {
+      edges,
+      page_info,
+    };
   }
 
   private convertLocalIdentifierToAssetLibrary(localIdentifier: string, ext: string): string {

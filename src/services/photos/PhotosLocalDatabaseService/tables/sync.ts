@@ -1,14 +1,14 @@
 const TABLE_NAME = 'sync_dates';
 
 const statements = {
-  cleanTable: `DELETE FROM ${TABLE_NAME};`,
   createTable: `CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (\
-      id TEXT PRIMARY KEY, \
+      id INTEGER PRIMARY KEY AUTOINCREMENT, \
       remote_sync_at DATE NOT NULL, \
       newest_date DATE NOT NULL, \
       oldest_date DATE \
     );`,
   dropTable: `DROP TABLE ${TABLE_NAME};`,
+  cleanTable: `DELETE FROM ${TABLE_NAME};`,
   selectCount: `SELECT COUNT(*) as count FROM ${TABLE_NAME}`,
   getRemoteSyncAt: `SELECT remote_sync_at as remoteSyncAt
     FROM ${TABLE_NAME} 

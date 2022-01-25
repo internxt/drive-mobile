@@ -60,15 +60,38 @@ export interface SqlitePhotoRow {
   preview_path: string;
 }
 
+export interface SqliteSyncRow {
+  id: number;
+  remote_sync_at: Date;
+  newest_date: Date;
+  oldest_date: Date | null;
+}
+
+export interface SqliteTmpCameraRollRow {
+  id: number;
+  modified: number;
+  group_name: string;
+  timestamp: number;
+  type: string;
+  filename: string;
+  fileSize: number;
+  height: number;
+  width: number;
+  uri: string;
+}
+
 export interface PhotosSyncStatusData {
   status: PhotosSyncStatus;
   completedTasks: number;
   totalTasks: number;
 }
 
+export interface PhotosTaskCompletedInfo {
+  isAlreadyOnTheDevice: boolean;
+}
+
 export interface PhotosSyncInfo {
   totalTasks: number;
-  cameraRollCount: number;
   downloadTasks: number;
   newerUploadTasks: number;
   olderUploadTasks: number;

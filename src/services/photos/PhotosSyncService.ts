@@ -3,7 +3,8 @@ import strings from '../../../assets/lang/strings';
 import { AppDispatch, RootState } from '../../store';
 import { layoutActions } from '../../store/slices/layout';
 
-import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType } from '../../types/photos';
+import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType, PhotosTaskCompletedInfo } from '../../types/photos';
+import PhotosDeviceService from './PhotosDeviceService';
 import PhotosCameraRollService from './PhotosCameraRollService';
 import PhotosDownloadService from './PhotosDownloadService';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
@@ -14,6 +15,7 @@ export default class PhotosSyncService {
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: photos.Photos;
 
+  private readonly deviceService: PhotosDeviceService;
   private readonly cameraRollService: PhotosCameraRollService;
   private readonly uploadService: PhotosUploadService;
   private readonly downloadService: PhotosDownloadService;
@@ -25,6 +27,7 @@ export default class PhotosSyncService {
   constructor(
     model: PhotosServiceModel,
     photosSdk: photos.Photos,
+    deviceService: PhotosDeviceService,
     cameraRollService: PhotosCameraRollService,
     uploadService: PhotosUploadService,
     downloadService: PhotosDownloadService,
@@ -33,6 +36,7 @@ export default class PhotosSyncService {
   ) {
     this.model = model;
     this.photosSdk = photosSdk;
+    this.deviceService = deviceService;
     this.cameraRollService = cameraRollService;
     this.uploadService = uploadService;
     this.downloadService = downloadService;
@@ -45,16 +49,22 @@ export default class PhotosSyncService {
     getState: () => RootState;
     dispatch: AppDispatch;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
-    onTaskCompleted?: (result: { taskType: PhotosSyncTaskType; photo: photos.Photo; completedTasks: number }) => void;
+    onTaskCompleted?: (result: {
+      taskType: PhotosSyncTaskType;
+      photo: photos.Photo;
+      completedTasks: number;
+      info: PhotosTaskCompletedInfo;
+    }) => void;
   }): Promise<void> {
     try {
       this.currentSyncId = options.id || new Date().getTime().toString();
 
       let completedTasks = 0;
-      const onTaskCompletedFactory = (taskType: PhotosSyncTaskType) => (photo: photos.Photo) => {
-        completedTasks++;
-        options.onTaskCompleted?.({ taskType, photo, completedTasks });
-      };
+      const onTaskCompletedFactory =
+        (taskType: PhotosSyncTaskType) => (photo: photos.Photo, info: PhotosTaskCompletedInfo) => {
+          completedTasks++;
+          options.onTaskCompleted?.({ taskType, photo, completedTasks, info });
+        };
 
       this.logService.info(`[SYNC-MAIN] ${this.currentSyncId}: STARTED`);
 
@@ -65,6 +75,11 @@ export default class PhotosSyncService {
       if (!this.model.device) {
         throw new Error('photos device not initialized');
       }
+
+      await this.deviceService.initialize();
+
+      const { count: cameraRollCount } = await this.cameraRollService.copyToLocalDatabase();
+      this.logService.info(`[SYNC] ${this.currentSyncId}: COPIED ${cameraRollCount} EDGES FROM CAMERA ROLL TO SQLITE`);
 
       const syncInfo = await this.calculateSyncInfo();
       options.onStart?.(syncInfo);
@@ -98,6 +113,9 @@ export default class PhotosSyncService {
         this.logService.info(`[SYNC] ${this.currentSyncId}: OLDER LOCAL PHOTOS UPLOADED`);
       }
 
+      await this.localDatabaseService.cleanTmpCameraRollTable();
+      this.logService.info(`[SYNC] ${this.currentSyncId}: CLEANED TMP CAMERA ROLL TABLE FROM SQLITE`);
+
       this.logService.info(`[SYNC] ${this.currentSyncId}: FINISHED`);
     } catch (err) {
       this.logService.info(`[SYNC] ${this.currentSyncId}: FAILED:` + err);
@@ -110,13 +128,11 @@ export default class PhotosSyncService {
     const newestDate = await this.localDatabaseService.getNewestDate();
     const oldestDate = await this.localDatabaseService.getOldestDate();
     const { count: downloadTasks } = await this.photosSdk.photos.getPhotos({ statusChangedAt: remoteSyncAt });
-    const cameraRollCount = await this.cameraRollService.count({});
-    const newerUploadTasks = await this.cameraRollService.count({ from: newestDate });
-    const olderUploadTasks = oldestDate ? await this.cameraRollService.count({ to: oldestDate }) : 0;
+    const newerUploadTasks = await this.localDatabaseService.countTmpCameraRoll({ from: newestDate });
+    const olderUploadTasks = oldestDate ? await this.localDatabaseService.countTmpCameraRoll({ to: oldestDate }) : 0;
 
     return {
       totalTasks: downloadTasks + newerUploadTasks + olderUploadTasks,
-      cameraRollCount,
       downloadTasks,
       newerUploadTasks,
       olderUploadTasks,
@@ -126,7 +142,9 @@ export default class PhotosSyncService {
   /**
    * @description Downloads remote photos whose status changed after the last update
    */
-  private async downloadRemotePhotos(options: { onPhotoDownloaded: (photo: photos.Photo) => void }): Promise<void> {
+  private async downloadRemotePhotos(options: {
+    onPhotoDownloaded: (photo: photos.Photo, info: PhotosTaskCompletedInfo) => void;
+  }): Promise<void> {
     const remoteSyncAt = await this.localDatabaseService.getRemoteSyncAt();
     const now = new Date();
     const limit = 25;
@@ -142,10 +160,7 @@ export default class PhotosSyncService {
 
       for (const photo of photos) {
         const isAlreadyOnTheDevice = await this.downloadService.downloadPhoto(photo);
-
-        if (!isAlreadyOnTheDevice) {
-          options.onPhotoDownloaded(photo);
-        }
+        options.onPhotoDownloaded(photo, { isAlreadyOnTheDevice });
       }
 
       skip += limit;
@@ -178,47 +193,46 @@ export default class PhotosSyncService {
       to?: Date;
       getState: () => RootState;
       dispatch: AppDispatch;
-      onPhotoUploaded: (photo: photos.Photo) => void;
+      onPhotoUploaded: (photo: photos.Photo, info: PhotosTaskCompletedInfo) => void;
     },
   ): Promise<void> {
-    const limit = 25;
-    let cursor: string | undefined;
+    const limit = 50;
+    let skip = 0;
     let photosToUpload: { data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId'>; uri: string }[];
 
     this.logService.info(`[SYNC] ${this.currentSyncId}: UPLOADING LOCAL PHOTOS FROM ${options.from} TO ${options.to}`);
 
     do {
-      const [galleryPhotos, nextCursor] = await this.cameraRollService.loadLocalPhotos({
+      const cameraRollPhotos = await this.localDatabaseService.getTmpCameraRollPhotos({
         from: options.from,
         to: options.to,
         limit,
-        cursor,
+        skip,
       });
 
-      photosToUpload = galleryPhotos.map<{ data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId'>; uri: string }>(
-        (p) => {
-          const nameWithExtension = p.node.image.filename as string;
-          const nameWithoutExtension = nameWithExtension.substring(0, nameWithExtension.lastIndexOf('.'));
-          const nameSplittedByDots = nameWithExtension.split('.');
-          const extension = nameSplittedByDots[nameSplittedByDots.length - 1] || '';
+      photosToUpload = cameraRollPhotos.map<{
+        data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId'>;
+        uri: string;
+      }>((p) => {
+        const nameWithExtension = p.filename as string;
+        const nameWithoutExtension = nameWithExtension.substring(0, nameWithExtension.lastIndexOf('.'));
+        const nameSplittedByDots = nameWithExtension.split('.');
+        const extension = nameSplittedByDots[nameSplittedByDots.length - 1] || '';
 
-          return {
-            data: {
-              takenAt: new Date(p.node.timestamp * 1000),
-              userId: userId,
-              deviceId: deviceId,
-              height: p.node.image.height,
-              width: p.node.image.width,
-              size: p.node.image.fileSize as number,
-              type: extension,
-              name: nameWithoutExtension,
-            },
-            uri: p.node.image.uri,
-          };
-        },
-      );
-
-      cursor = nextCursor;
+        return {
+          data: {
+            takenAt: new Date(p.timestamp),
+            userId: userId,
+            deviceId: deviceId,
+            height: p.height,
+            width: p.width,
+            size: p.fileSize as number,
+            type: extension,
+            name: nameWithoutExtension,
+          },
+          uri: p.uri,
+        };
+      });
 
       for (const photo of photosToUpload) {
         const usage = options.getState().files.usage + options.getState().photos.usage;
@@ -247,9 +261,11 @@ export default class PhotosSyncService {
 
           await this.localDatabaseService.insertPhoto(createdPhoto, preview);
 
-          options.onPhotoUploaded?.(createdPhoto);
+          options.onPhotoUploaded?.(createdPhoto, { isAlreadyOnTheDevice: false });
         }
       }
-    } while (cursor);
+
+      skip += limit;
+    } while (photosToUpload.length > 0);
   }
 }

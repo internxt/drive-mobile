@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { Photo, PhotoId, PhotoStatus } from '@internxt/sdk/dist/photos';
-import { PhotosServiceModel, PHOTOS_DB_NAME, SqlitePhotoRow } from '../../../types/photos';
+import { PhotosServiceModel, PHOTOS_DB_NAME, SqlitePhotoRow, SqliteTmpCameraRollRow } from '../../../types/photos';
 
 import sqliteService from '../../sqlite';
 import photoTable from './tables/photo';
@@ -8,6 +8,8 @@ import syncTable from './tables/sync';
 import imageService from '../../image';
 import PhotosLogService from '../PhotosLogService';
 import { pathToUri } from '../../fileSystem';
+import tmp_camera_roll from './tables/tmp_camera_roll';
+import CameraRoll from '@react-native-community/cameraroll';
 
 export default class PhotosLocalDatabaseService {
   private readonly model: PhotosServiceModel;
@@ -23,6 +25,7 @@ export default class PhotosLocalDatabaseService {
 
     await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.createTable);
     await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.createTable);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, tmp_camera_roll.statements.createTable);
 
     const count = await this.getSyncDatesCount();
     const syncDatesNotInitialized = count === 0;
@@ -47,6 +50,12 @@ export default class PhotosLocalDatabaseService {
     return result[0].rows.item(0).count;
   }
 
+  public async countTmpCameraRoll(filter: { from?: Date; to?: Date }): Promise<number> {
+    const result = await sqliteService.executeSql(PHOTOS_DB_NAME, tmp_camera_roll.statements.count(filter));
+
+    return result[0].rows.item(0).count;
+  }
+
   public async getPhotos(offset: number, limit: number): Promise<{ data: Photo; preview: string }[]> {
     return sqliteService
       .executeSql(PHOTOS_DB_NAME, photoTable.statements.get, [limit, offset])
@@ -61,6 +70,19 @@ export default class PhotosLocalDatabaseService {
         }
 
         return results;
+      });
+  }
+
+  public async getTmpCameraRollPhotos(options: {
+    from?: Date;
+    to?: Date;
+    limit: number;
+    skip: number;
+  }): Promise<SqliteTmpCameraRollRow[]> {
+    return sqliteService
+      .executeSql(PHOTOS_DB_NAME, tmp_camera_roll.statements.get(options))
+      .then(async ([{ rows }]) => {
+        return rows.raw() as unknown as SqliteTmpCameraRollRow[];
       });
   }
 
@@ -123,8 +145,8 @@ export default class PhotosLocalDatabaseService {
     return lastPhotoOfTheMonth && pathToUri(lastPhotoOfTheMonth.preview_path);
   }
 
-  public async getAllWithoutPreview(): Promise<Photo[]> {
-    return sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getAllWithoutPreview).then(([{ rows }]) => {
+  public async getAll(): Promise<Photo[]> {
+    return sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getAll).then(([{ rows }]) => {
       return (rows.raw() as unknown as SqlitePhotoRow[]).map((row) => this.mapPhotoRowToModel(row));
     });
   }
@@ -235,9 +257,26 @@ export default class PhotosLocalDatabaseService {
       .then(() => undefined);
   }
 
+  public async insertTmpCameraRollRow(edge: CameraRoll.PhotoIdentifier): Promise<void> {
+    return sqliteService
+      .executeSql(PHOTOS_DB_NAME, tmp_camera_roll.statements.insert, [
+        edge.node.group_name,
+        edge.node.timestamp * 1000,
+        edge.node.type,
+        edge.node.image.filename,
+        edge.node.image.fileSize,
+        edge.node.image.width,
+        edge.node.image.height,
+        edge.node.image.uri,
+      ])
+      .then(() => undefined);
+  }
+
+  public async cleanTmpCameraRollTable(): Promise<void> {
+    await sqliteService.executeSql(PHOTOS_DB_NAME, tmp_camera_roll.statements.cleanTable);
+  }
+
   public async resetDatabase(): Promise<void> {
-    await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.dropTable);
-    await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.dropTable);
     await sqliteService.close(PHOTOS_DB_NAME);
     await sqliteService.delete(PHOTOS_DB_NAME);
   }

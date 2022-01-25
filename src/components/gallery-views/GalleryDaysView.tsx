@@ -45,13 +45,12 @@ const GalleryDaysView = (): JSX.Element => {
           }}
         />
       }
-      decelerationRate={0.5}
       keyExtractor={(item) => `${item.year}-${item.month}`}
       numColumns={1}
       onEndReached={() => {
         dispatch(photosThunks.loadLocalPhotosThunk());
       }}
-      onEndReachedThreshold={0.5}
+      onEndReachedThreshold={0.95}
     />
   );
 };
