@@ -1,8 +1,9 @@
 import React from 'react';
 import { Text, TouchableWithoutFeedback, View } from 'react-native';
+import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';
-import { tailwind } from '../../helpers/designSystem';
+import { getColor, tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosThunks } from '../../store/slices/photos';
 import { PhotosSyncStatus } from '../../types/photos';
@@ -44,7 +45,10 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
       </>
     ),
     [PhotosSyncStatus.Completed]: (
-      <Text style={tailwind('text-sm text-neutral-100')}>{strings.messages.photosSyncCompleted}</Text>
+      <>
+        <Unicons.UilCheckCircle style={tailwind('mr-1')} color={getColor('green-60')} size={16} />
+        <Text style={tailwind('text-green-60 text-sm')}>{strings.messages.photosSyncCompleted}</Text>
+      </>
     ),
   };
 

@@ -493,11 +493,6 @@ export const photosSlice = createSlice({
         const index = state.syncRequests.indexOf(action.meta.requestId);
         state.syncRequests.splice(index, 1);
         Object.assign(state.syncStatus, { status: PhotosSyncStatus.Completed });
-
-        notify({
-          type: 'success',
-          text: strings.messages.photosSyncCompleted,
-        });
       })
       .addCase(syncThunk.rejected, (state, action) => {
         const index = state.syncRequests.indexOf(action.meta.requestId);

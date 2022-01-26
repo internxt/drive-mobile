@@ -14,7 +14,7 @@ import { layoutActions } from '../../../store/slices/layout';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GalleryViewMode, PhotosSyncStatus } from '../../../types/photos';
+import { GalleryViewMode } from '../../../types/photos';
 import PhotosSyncStatusWidget from '../../../components/PhotosSyncStatusWidget';
 
 function PhotosGalleryScreen(): JSX.Element {
@@ -22,10 +22,9 @@ function PhotosGalleryScreen(): JSX.Element {
   const getPhotoPreview = useAppSelector(photosSelectors.getPhotoPreview);
   const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.layout);
   const isLoading = useAppSelector(photosSelectors.isLoading);
-  const { syncStatus, isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
+  const { isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
   const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
   const hasNoPhotosSelected = selectedPhotos.length === 0;
-  const hasManyPhotosSelected = selectedPhotos.length > 1;
   const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
   const onDeletePhotosModalClosed = () => dispatch(layoutActions.setIsDeletePhotosModalOpen(false));
   const onSelectButtonPressed = () => {
@@ -92,7 +91,7 @@ function PhotosGalleryScreen(): JSX.Element {
 
       <View style={tailwind('app-screen bg-white flex-1')}>
         {/* GALLERY TOP BAR */}
-        <View style={tailwind('pb-3 h-16')}>
+        <View style={tailwind('pb-2 h-16')}>
           <View style={tailwind('flex-row justify-between flex-1')}>
             {isSelectionModeActivated ? (
               <>
@@ -146,7 +145,7 @@ function PhotosGalleryScreen(): JSX.Element {
             )}
           </View>
 
-          {syncStatus.status !== PhotosSyncStatus.Completed && <PhotosSyncStatusWidget />}
+          <PhotosSyncStatusWidget />
         </View>
 
         {/* GALLERY VIEW */}

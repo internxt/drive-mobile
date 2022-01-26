@@ -319,7 +319,7 @@ const strings = new LocalizedStrings({
       photoShared: 'You have shared a photo!',
       pressAgainToExit: 'Press again to close the app',
       photosSyncPending: 'Pending synchronization',
-      photosSyncCompleted: 'Photos: your device is up to date',
+      photosSyncCompleted: 'Your device is up to date',
     },
     errors: {
       unknown: 'Unknown error',
@@ -656,7 +656,7 @@ const strings = new LocalizedStrings({
       photoShared: '¡Has compartido una foto!',
       pressAgainToExit: 'Pulsa otra vez para cerrar la app',
       photosSyncPending: 'Sincronización pendiente',
-      photosSyncCompleted: 'Photos: tu dispositivo está sincronizado',
+      photosSyncCompleted: 'Tu dispositivo está sincronizado',
     },
     errors: {
       unknown: 'Error desconocido',
