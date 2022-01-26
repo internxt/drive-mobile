@@ -8,7 +8,7 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import globalStyle from '../../../styles/global.style';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { filesThunks } from '../../../store/slices/files';
+import { filesThunks } from '../../../store/slices/storage';
 import { layoutActions } from '../../../store/slices/layout';
 
 function DeleteItemModal(): JSX.Element {

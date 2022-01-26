@@ -19,7 +19,7 @@ import globalStyle from '../../../styles/global.style';
 import { notify } from '../../../services/toast';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
-import { filesThunks } from '../../../store/slices/files';
+import { filesThunks } from '../../../store/slices/storage';
 
 function CreateFolderModal(): JSX.Element {
   const dispatch = useAppDispatch();

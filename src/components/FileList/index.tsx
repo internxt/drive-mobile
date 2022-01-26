@@ -9,7 +9,7 @@ import EmptyDriveImage from '../../../assets/images/screens/empty-drive.svg';
 import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg';
 import EmptyList from '../EmptyList';
 import strings from '../../../assets/lang/strings';
-import { filesThunks } from '../../store/slices/files';
+import { filesThunks } from '../../store/slices/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import fileService from '../../services/file';
 

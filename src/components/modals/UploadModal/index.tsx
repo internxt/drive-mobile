@@ -35,7 +35,7 @@ import { deviceStorage } from '../../../services/deviceStorage';
 import { UPLOAD_FILE_SIZE_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
-import { filesActions, filesThunks } from '../../../store/slices/files';
+import { filesActions, filesThunks } from '../../../store/slices/storage';
 import { uploadFile } from '../../../services/network';
 
 interface UploadingFile {

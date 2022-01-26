@@ -15,7 +15,6 @@ import {
 } from '../../../types';
 import { RootState } from '../..';
 import { layoutActions } from '../layout';
-import { authThunks } from '../auth';
 import { getEnvironmentConfig } from '../../../lib/network';
 import errorService from '../../../services/error';
 import { loadValues } from '../../../services/storage';
@@ -105,20 +104,10 @@ const getFolderContentThunk = createAsyncThunk<
     return getState().files.folderContent;
   }
 
-  try {
-    const folderContent = await fileService.getFolderContent(folderId);
-    folderContent.currentFolder = folderId;
+  const folderContent = await fileService.getFolderContent(folderId);
+  folderContent.currentFolder = folderId;
 
-    return folderContent;
-  } catch (err) {
-    const castedError = errorService.castError(err);
-
-    if (castedError.status === 401) {
-      dispatch(authThunks.signOutThunk());
-    }
-
-    throw err;
-  }
+  return folderContent;
 });
 
 const fetchIfSameFolderThunk = createAsyncThunk<void, { folderId: number }, { state: RootState }>(

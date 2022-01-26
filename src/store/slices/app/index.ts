@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../..';
-import { filesThunks } from '../files';
+import { filesThunks } from '../storage';
 import { photosThunks } from '../photos';
 
 export interface AppState {

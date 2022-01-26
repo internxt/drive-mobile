@@ -7,7 +7,7 @@ import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import { notify } from '../../../services/toast';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { filesActions, filesThunks } from '../../../store/slices/files';
+import { filesActions, filesThunks } from '../../../store/slices/storage';
 import { layoutActions } from '../../../store/slices/layout';
 import errorService from '../../../services/error';
 import BaseButton from '../../BaseButton';

@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import appReducer from './slices/app';
 import authReducer from './slices/auth';
-import filesReducer from './slices/files';
+import filesReducer from './slices/storage';
 import layoutReducer from './slices/layout';
 import photosReducer from './slices/photos';
 

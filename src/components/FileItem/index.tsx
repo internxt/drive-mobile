@@ -17,7 +17,7 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import prettysize from 'prettysize';
 import globalStyle from '../../styles/global.style';
 import { DevicePlatform } from '../../types';
-import { filesActions, filesThunks } from '../../store/slices/files';
+import { filesActions, filesThunks } from '../../store/slices/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { deviceStorage } from '../../services/deviceStorage';
 import { layoutActions } from '../../store/slices/layout';

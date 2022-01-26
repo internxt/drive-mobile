@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 
 import { getAnalyticsData } from '../../../services/analytics';
 import analytics from '../../../services/analytics';
-import { filesThunks } from '../../../store/slices/files';
+import { filesThunks } from '../../../store/slices/storage';
 import { useAppDispatch } from '../../../store/hooks';
 
 interface FolderProps {

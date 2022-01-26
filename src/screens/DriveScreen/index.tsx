@@ -15,7 +15,7 @@ import Separator from '../../components/Separator';
 import { AppScreen, DevicePlatform, SortType } from '../../types';
 import { notify } from '../../services/toast';
 import { authActions, authThunks } from '../../store/slices/auth';
-import { filesActions, filesThunks } from '../../store/slices/files';
+import { filesActions, filesThunks } from '../../store/slices/storage';
 import { layoutActions } from '../../store/slices/layout';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
@@ -175,9 +175,12 @@ function DriveScreen(): JSX.Element {
       const file = uri.replace(regex, '$2'); // if iOS remove file://
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(uri);
 
-      RNFetchBlob.fetch('POST', `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${currentFolder}/upload`, headers, [
-        { name: 'xfile', filename: name, data: finalUri },
-      ])
+      RNFetchBlob.fetch(
+        'POST',
+        `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${currentFolder}/upload`,
+        headers,
+        [{ name: 'xfile', filename: name, data: finalUri }],
+      )
         .uploadProgress({ count: 10 }, (sent, total) => {
           dispatch(filesActions.uploadFileSetProgress({ progress: sent / total }));
         })

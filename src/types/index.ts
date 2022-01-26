@@ -1,3 +1,11 @@
+import { store as storeInstance } from '../store';
+
+type StoreType = typeof storeInstance;
+
+export interface AppPlugin {
+  install: (store: StoreType) => void;
+}
+
 export enum AppScreen {
   SignUp = 'sign-up',
   SignIn = 'sign-in',

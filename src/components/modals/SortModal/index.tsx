@@ -5,7 +5,7 @@ import Modal from 'react-native-modalbox';
 import strings from '../../../../assets/lang/strings';
 import { sortTypes } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { filesActions } from '../../../store/slices/files';
+import { filesActions } from '../../../store/slices/storage';
 import { layoutActions } from '../../../store/slices/layout';
 
 function SortModal(): JSX.Element {

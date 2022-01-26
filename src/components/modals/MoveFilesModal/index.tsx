@@ -9,7 +9,7 @@ import Separator from '../../Separator';
 import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
-import { filesThunks } from '../../../store/slices/files';
+import { filesThunks } from '../../../store/slices/storage';
 import { IFolder } from '../../FileList';
 
 function MoveFilesModal(): JSX.Element {
