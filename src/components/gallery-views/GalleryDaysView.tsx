@@ -24,7 +24,7 @@ const GalleryDaysView = (): JSX.Element => {
         });
 
         return (
-          <View>
+          <View style={tailwind('w-full')}>
             <Text
               style={tailwind('px-5 pt-5 pb-2 font-bold text-neutral-700 text-2xl')}
             >{`${monthName} - ${item.year}`}</Text>

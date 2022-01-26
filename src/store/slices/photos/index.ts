@@ -275,6 +275,8 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
       return;
     }
 
+    dispatch(photosActions.resetSyncStatus());
+
     await photosService.sync({ id: requestId, getState, dispatch, onStart, onTaskCompleted });
   },
 );
@@ -293,6 +295,9 @@ export const photosSlice = createSlice({
   reducers: {
     resetState(state) {
       Object.assign(state, initialState);
+    },
+    resetSyncStatus(state) {
+      Object.assign(state.syncStatus, { status: PhotosSyncStatus.Unknown, totalTasks: 0, completedTasks: 0 });
     },
     pushDownloadingPhoto(state, action: PayloadAction<string>) {
       state.downloadingPhotos.push({ id: action.payload, progress: 0 });
@@ -487,7 +492,6 @@ export const photosSlice = createSlice({
     builder
       .addCase(syncThunk.pending, (state, action) => {
         state.syncRequests.push(action.meta.requestId);
-        Object.assign(state.syncStatus, { status: PhotosSyncStatus.Calculating });
       })
       .addCase(syncThunk.fulfilled, (state, action) => {
         const index = state.syncRequests.indexOf(action.meta.requestId);

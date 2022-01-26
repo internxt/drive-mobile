@@ -158,6 +158,8 @@ export default class PhotosSyncService {
 
       photos = results;
 
+      console.log('photos: ', JSON.stringify(results, undefined, 2));
+
       for (const photo of photos) {
         const isAlreadyOnTheDevice = await this.downloadService.downloadPhoto(photo);
         options.onPhotoDownloaded(photo, { isAlreadyOnTheDevice });
