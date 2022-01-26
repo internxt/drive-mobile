@@ -12,5 +12,5 @@
     "emitDecoratorMetadata": true
   },
   "extends": "expo/tsconfig.base",
-  "include": ["src", "index.ts"]
+  "include": ["src"]
 }
