@@ -47,7 +47,7 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
     [PhotosSyncStatus.Completed]: (
       <>
         <Unicons.UilCheckCircle style={tailwind('mr-1')} color={getColor('green-60')} size={16} />
-        <Text style={tailwind('text-green-60 text-sm')}>{strings.messages.photosSyncCompleted}</Text>
+        <Text style={tailwind('text-neutral-100 text-sm')}>{strings.messages.photosSyncCompleted}</Text>
       </>
     ),
   };
