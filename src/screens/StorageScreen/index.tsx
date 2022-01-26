@@ -25,7 +25,7 @@ interface CurrentPlan {
 function StorageScreen(props: StorageScreenProps): JSX.Element {
   const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
-  const { usage: storageUsage, limit } = useAppSelector((state) => state.files);
+  const { usage: storageUsage, limit } = useAppSelector((state) => state.storage);
   const navigation = useNavigation<NavigationStackProp>();
   const usageValues = { usage: storageUsage + photosUsage, limit };
   const getLimitString = () => {

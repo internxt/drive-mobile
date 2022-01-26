@@ -7,7 +7,7 @@ import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import { notify } from '../../../services/toast';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { filesActions, filesThunks } from '../../../store/slices/storage';
+import { storageActions, storageThunks } from '../../../store/slices/storage';
 import { layoutActions } from '../../../store/slices/layout';
 import errorService from '../../../services/error';
 import BaseButton from '../../BaseButton';
@@ -15,7 +15,7 @@ import BaseButton from '../../BaseButton';
 function RenameModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { showRenameModal } = useAppSelector((state) => state.layout);
-  const { focusedItem, folderContent } = useAppSelector((state) => state.files);
+  const { focusedItem, folderContent } = useAppSelector((state) => state.storage);
   const currentFolderId = folderContent && folderContent.currentFolder;
   const [newName, setNewName] = useState('');
   const [originalName, setOriginalName] = useState('');
@@ -25,7 +25,7 @@ function RenameModal(): JSX.Element {
   const file = !isFolder && focusedItem;
   const onItemRenameSuccess = () => {
     if (currentFolderId) {
-      dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
+      dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
     }
     notify({ text: 'Renamed successfully', type: 'success' });
     setNewName('');
@@ -36,7 +36,7 @@ function RenameModal(): JSX.Element {
     setIsLoading(false);
   };
   const onCancelButtonPressed = () => {
-    dispatch(filesActions.deselectAll());
+    dispatch(storageActions.deselectAll());
     dispatch(layoutActions.setShowRenameModal(false));
   };
   const onRenameButtonPressed = async () => {
@@ -45,14 +45,14 @@ function RenameModal(): JSX.Element {
 
       if (isFolder) {
         await dispatch(
-          filesThunks.updateFolderMetadataThunk({
+          storageThunks.updateFolderMetadataThunk({
             folder: folder,
             metadata: { itemName: newName },
           }),
         );
       } else {
         await dispatch(
-          filesThunks.updateFileMetadataThunk({
+          storageThunks.updateFileMetadataThunk({
             file: file,
             metadata: { itemName: newName },
           }),

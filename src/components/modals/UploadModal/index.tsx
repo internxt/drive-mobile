@@ -35,7 +35,7 @@ import { deviceStorage } from '../../../services/deviceStorage';
 import { UPLOAD_FILE_SIZE_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
-import { filesActions, filesThunks } from '../../../store/slices/storage';
+import { storageActions, storageThunks } from '../../../store/slices/storage';
 import { uploadFile } from '../../../services/network';
 
 interface UploadingFile {
@@ -177,16 +177,15 @@ async function uploadAndCreateFileEntry(
 
 function UploadModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { folderContent } = useAppSelector((state) => state.files);
+  const { folderContent, usage: storageUsage, limit } = useAppSelector((state) => state.storage);
   const { user } = useAppSelector((state) => state.auth);
   const currentFolder = folderContent?.currentFolder || user?.root_folder_id;
   const { showUploadModal } = useAppSelector((state) => state.layout);
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
-  const { usage: storageUsage, limit } = useAppSelector((state) => state.files);
   const usage = photosUsage + storageUsage;
   const upload = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
     function progressCallback(progress: number) {
-      dispatch(filesActions.uploadFileSetProgress({ progress, id: uploadingFile.id }));
+      dispatch(storageActions.uploadFileSetProgress({ progress, id: uploadingFile.id }));
     }
 
     if (uploadingFile.size + usage > limit) {
@@ -231,9 +230,9 @@ function UploadModal(): JSX.Element {
   function uploadSuccess(file: { id: string }) {
     trackUploadSuccess();
 
-    dispatch(filesActions.removeUploadingFile(file.id));
-    dispatch(filesActions.updateUploadingFile(file.id));
-    dispatch(filesActions.setUri(undefined));
+    dispatch(storageActions.removeUploadingFile(file.id));
+    dispatch(storageActions.updateUploadingFile(file.id));
+    dispatch(storageActions.setUri(undefined));
   }
 
   function processFilesFromPicker(documents: any[]): Promise<void> {
@@ -309,8 +308,8 @@ function UploadModal(): JSX.Element {
       }
 
       trackUploadStart();
-      dispatch(filesActions.uploadFileStart(file.name));
-      dispatch(filesActions.addUploadingFile({ ...file, isLoading: true }));
+      dispatch(storageActions.uploadFileStart(file.name));
+      dispatch(storageActions.addUploadingFile({ ...file, isLoading: true }));
 
       formattedFiles.push(file);
       filesAtSameLevel.push({ name: file.name, type: file.type });
@@ -326,14 +325,14 @@ function UploadModal(): JSX.Element {
         })
         .catch((err) => {
           trackUploadError(err);
-          dispatch(filesActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
+          dispatch(storageActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
           notify({
             type: 'error',
             text: strings.formatString(strings.errors.uploadFile, err.message) as string,
           });
         })
         .finally(() => {
-          dispatch(filesActions.uploadFileFinished());
+          dispatch(storageActions.uploadFileFinished());
         });
     }
   }
@@ -350,10 +349,10 @@ function UploadModal(): JSX.Element {
           return uploadDocuments(documents);
         })
         .then(() => {
-          dispatch(filesThunks.getUsageAndLimitThunk());
+          dispatch(storageThunks.getUsageAndLimitThunk());
 
           if (currentFolder) {
-            dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
+            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
           }
         })
         .catch((err) => {
@@ -372,10 +371,10 @@ function UploadModal(): JSX.Element {
       })
         .then(processFilesFromPicker)
         .then(() => {
-          dispatch(filesThunks.getUsageAndLimitThunk());
+          dispatch(storageThunks.getUsageAndLimitThunk());
 
           if (currentFolder) {
-            dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
+            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
           }
         })
         .catch((err) => {
@@ -419,10 +418,10 @@ function UploadModal(): JSX.Element {
             dispatch(layoutActions.setShowUploadFileModal(false));
             uploadDocuments(documents)
               .then(() => {
-                dispatch(filesThunks.getUsageAndLimitThunk());
+                dispatch(storageThunks.getUsageAndLimitThunk());
 
                 if (currentFolder) {
-                  dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
+                  dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
                 }
               })
               .catch((err) => {
@@ -444,10 +443,10 @@ function UploadModal(): JSX.Element {
       })
         .then(processFilesFromPicker)
         .then(() => {
-          dispatch(filesThunks.getUsageAndLimitThunk());
+          dispatch(storageThunks.getUsageAndLimitThunk());
 
           if (currentFolder) {
-            dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
+            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
           }
         })
         .catch((err) => {
@@ -490,8 +489,8 @@ function UploadModal(): JSX.Element {
           };
 
           trackUploadStart();
-          dispatch(filesActions.uploadFileStart(file.name));
-          dispatch(filesActions.addUploadingFile(file));
+          dispatch(storageActions.uploadFileStart(file.name));
+          dispatch(storageActions.addUploadingFile(file));
 
           dispatch(layoutActions.setShowUploadFileModal(false));
 
@@ -501,15 +500,15 @@ function UploadModal(): JSX.Element {
             })
             .catch((err) => {
               trackUploadError(err);
-              dispatch(filesActions.uploadFileFailed({ id: file.id }));
+              dispatch(storageActions.uploadFileFailed({ id: file.id }));
               throw err;
             })
             .finally(() => {
-              dispatch(filesActions.uploadFileFinished());
-              dispatch(filesThunks.getUsageAndLimitThunk());
+              dispatch(storageActions.uploadFileFinished());
+              dispatch(storageThunks.getUsageAndLimitThunk());
 
               if (currentFolder) {
-                dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
+                dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
               }
             });
         }

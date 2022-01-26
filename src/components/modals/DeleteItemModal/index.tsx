@@ -8,18 +8,18 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import globalStyle from '../../../styles/global.style';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { filesThunks } from '../../../store/slices/storage';
+import { storageThunks } from '../../../store/slices/storage';
 import { layoutActions } from '../../../store/slices/layout';
 
 function DeleteItemModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { folderContent, focusedItem: item } = useAppSelector((state) => state.files);
+  const { folderContent, focusedItem: item } = useAppSelector((state) => state.storage);
   const { showDeleteModal } = useAppSelector((state) => state.layout);
   const currentFolderId = folderContent && folderContent.currentFolder;
   const isFolder = item && !!item.parentId;
   const FileIcon = getFileTypeIcon(item?.type);
   const handleDeleteSelectedItem = () => {
-    currentFolderId && dispatch(filesThunks.deleteItemsThunk({ items: [item], folderToReload: currentFolderId }));
+    currentFolderId && dispatch(storageThunks.deleteItemsThunk({ items: [item], folderToReload: currentFolderId }));
   };
 
   return (

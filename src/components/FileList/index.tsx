@@ -9,7 +9,7 @@ import EmptyDriveImage from '../../../assets/images/screens/empty-drive.svg';
 import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg';
 import EmptyList from '../EmptyList';
 import strings from '../../../assets/lang/strings';
-import { filesThunks } from '../../store/slices/storage';
+import { storageThunks } from '../../store/slices/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import fileService from '../../services/file';
 
@@ -78,7 +78,7 @@ function FileList(props: FileListProps): JSX.Element {
     sortType,
     isUploadingFileName,
     loading: filesLoading,
-  } = useAppSelector((state) => state.files);
+  } = useAppSelector((state) => state.storage);
   const { user } = useAppSelector((state) => state.auth);
   const [folderId, setFolderId] = useState<number>();
   let folderList: IFolder[] = (folderContent && folderContent.children) || [];
@@ -107,7 +107,7 @@ function FileList(props: FileListProps): JSX.Element {
 
   useEffect(() => {
     if (!folderContent && rootFolderId) {
-      dispatch(filesThunks.getFolderContentThunk({ folderId: rootFolderId }));
+      dispatch(storageThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
   }, []);
 
@@ -135,7 +135,7 @@ function FileList(props: FileListProps): JSX.Element {
             }
 
             if (currentFolderId) {
-              dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
+              dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
             }
           }}
         />

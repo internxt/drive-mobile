@@ -8,16 +8,15 @@ import Toast from 'react-native-toast-message';
 import * as Unicons from '@iconscout/react-native-unicons';
 import axios from 'axios';
 
-import { store } from './src/store';
-import AppNavigator from './src/screens/AppNavigator';
-import { analyticsSetup, trackStackScreen } from './src/services/analytics';
-import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './src/helpers';
-import { getColor, tailwind } from './src/helpers/designSystem';
-import { deviceStorage } from './src/services/deviceStorage';
-import { authActions, authThunks } from './src/store/slices/auth';
-import { filesActions } from './src/store/slices/storage';
-import { photosThunks } from './src/store/slices/photos';
-import { appThunks } from './src/store/slices/app';
+import { store } from './store';
+import AppNavigator from './screens/AppNavigator';
+import { analyticsSetup, trackStackScreen } from './services/analytics';
+import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './helpers';
+import { getColor, tailwind } from './helpers/designSystem';
+import { deviceStorage } from './services/deviceStorage';
+import { authActions, authThunks } from './store/slices/auth';
+import { storageActions } from './store/slices/storage';
+import { appThunks } from './store/slices/app';
 
 process.nextTick = setImmediate;
 
@@ -64,7 +63,7 @@ export default function App(): JSX.Element {
         const uri = e;
         const finalUri = uri.url.replace(regex, '');
 
-        store.dispatch(filesActions.setUri(finalUri));
+        store.dispatch(storageActions.setUri(finalUri));
       }
     }
   };
@@ -103,7 +102,7 @@ export default function App(): JSX.Element {
           if (uri.match(/inxt:\/\/.*:\/*/g)) {
             const finalUri = uri.replace(regex, '');
 
-            store.dispatch(filesActions.setUri(finalUri));
+            store.dispatch(storageActions.setUri(finalUri));
           }
         }
       });
@@ -116,7 +115,7 @@ export default function App(): JSX.Element {
             fileName: files[0].fileName,
           };
 
-          store.dispatch(filesActions.setUri(fileInfo));
+          store.dispatch(storageActions.setUri(fileInfo));
           ReceiveSharingIntent.clearReceivedFiles();
           // files returns as JSON Array example
           //[{ filePath: null, text: null, weblink: null, mimeType: null, contentUri: null, fileName: null, extension: null }]

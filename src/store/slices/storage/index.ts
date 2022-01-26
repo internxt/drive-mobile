@@ -16,7 +16,6 @@ import {
 import { RootState } from '../..';
 import { layoutActions } from '../layout';
 import { getEnvironmentConfig } from '../../../lib/network';
-import errorService from '../../../services/error';
 import { loadValues } from '../../../services/storage';
 import { deviceStorage } from '../../../services/deviceStorage';
 
@@ -35,7 +34,7 @@ interface FolderContent {
   files: IFile[];
 }
 
-export interface FilesState {
+export interface StorageState {
   absolutePath: string;
   loading: boolean;
   items: any[];
@@ -60,7 +59,7 @@ export interface FilesState {
   limit: number;
 }
 
-const initialState: FilesState = {
+const initialState: StorageState = {
   absolutePath: '/',
   loading: false,
   items: [],
@@ -101,7 +100,7 @@ const getFolderContentThunk = createAsyncThunk<
   { state: RootState }
 >('files/getFolderContent', async ({ folderId, quick }, { getState, dispatch }) => {
   if (quick) {
-    return getState().files.folderContent;
+    return getState().storage.folderContent;
   }
 
   const folderContent = await fileService.getFolderContent(folderId);
@@ -113,7 +112,7 @@ const getFolderContentThunk = createAsyncThunk<
 const fetchIfSameFolderThunk = createAsyncThunk<void, { folderId: number }, { state: RootState }>(
   'files/fetchIfSameFolder',
   async ({ folderId }, { getState, dispatch }) => {
-    const currentFolder = getState().files.folderContent?.currentFolder;
+    const currentFolder = getState().storage.folderContent?.currentFolder;
 
     if (currentFolder && folderId === currentFolder) {
       await dispatch(getFolderContentThunk({ folderId: currentFolder }));
@@ -134,7 +133,7 @@ const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootSt
     dispatch(layoutActions.setBackButtonEnabled(false));
 
     dispatch(getFolderContentThunk({ folderId })).finally(() => {
-      dispatch(filesActions.removeDepthAbsolutePath(1));
+      dispatch(storageActions.removeDepthAbsolutePath(1));
       dispatch(layoutActions.setBackButtonEnabled(true));
     });
   },
@@ -146,7 +145,7 @@ const updateFileMetadataThunk = createAsyncThunk<
   { state: RootState }
 >('files/updateFileMetadata', async ({ file, metadata }, { getState }) => {
   const { bucketId } = await getEnvironmentConfig();
-  const { absolutePath, focusedItem } = getState().files;
+  const { absolutePath, focusedItem } = getState().storage;
   const itemFullName = `${metadata.itemName}${focusedItem.type ? '.' + focusedItem.type : ''}`;
   const itemPath = `${absolutePath}${itemFullName}`;
 
@@ -159,7 +158,7 @@ const updateFolderMetadataThunk = createAsyncThunk<
   { state: RootState }
 >('files/updateFolderMetadata', async ({ folder, metadata }, { getState }) => {
   const { bucketId } = await getEnvironmentConfig();
-  const { absolutePath, focusedItem } = getState().files;
+  const { absolutePath, focusedItem } = getState().storage;
   const itemFullName = `${metadata.itemName}${focusedItem.type ? '.' + focusedItem.type : ''}`;
   const itemPath = `${absolutePath}${itemFullName}`;
 
@@ -221,8 +220,8 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: 
   },
 );
 
-export const filesSlice = createSlice({
-  name: 'files',
+export const storageSlice = createSlice({
+  name: 'storage',
   initialState,
   reducers: {
     setSortType(state, action: PayloadAction<string>) {
@@ -435,9 +434,9 @@ export const filesSlice = createSlice({
   },
 });
 
-export const filesActions = filesSlice.actions;
+export const storageActions = storageSlice.actions;
 
-export const filesThunks = {
+export const storageThunks = {
   initializeThunk,
   getUsageAndLimitThunk,
   getFolderContentThunk,
@@ -450,4 +449,4 @@ export const filesThunks = {
   deleteItemsThunk,
 };
 
-export default filesSlice.reducer;
+export default storageSlice.reducer;

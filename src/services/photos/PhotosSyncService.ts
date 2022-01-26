@@ -235,8 +235,8 @@ export default class PhotosSyncService {
       });
 
       for (const photo of photosToUpload) {
-        const usage = options.getState().files.usage + options.getState().photos.usage;
-        const limit = options.getState().files.limit;
+        const usage = options.getState().storage.usage + options.getState().photos.usage;
+        const limit = options.getState().storage.limit;
 
         /**
          * WARNING: Camera roll does not filter properly by dates for photos with

@@ -1,7 +1,7 @@
 import 'expo-asset';
 import { registerRootComponent } from 'expo';
 
-import App from './App';
+import App from './src/App';
 import plugins from './src/plugins';
 import store from './src/store';
 

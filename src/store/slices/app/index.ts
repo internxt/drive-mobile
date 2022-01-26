@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../..';
-import { filesThunks } from '../storage';
+import { storageThunks } from '../storage';
 import { photosThunks } from '../photos';
 
 export interface AppState {
@@ -14,7 +14,7 @@ const initialState: AppState = {
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'app/initialize',
   async (payload: void, { dispatch }) => {
-    dispatch(filesThunks.initializeThunk());
+    dispatch(storageThunks.initializeThunk());
     dispatch(photosThunks.initializeThunk());
   },
 );

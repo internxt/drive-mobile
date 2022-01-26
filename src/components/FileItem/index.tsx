@@ -17,7 +17,7 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import prettysize from 'prettysize';
 import globalStyle from '../../styles/global.style';
 import { DevicePlatform } from '../../types';
-import { filesActions, filesThunks } from '../../store/slices/storage';
+import { storageActions, storageThunks } from '../../store/slices/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { deviceStorage } from '../../services/deviceStorage';
 import { layoutActions } from '../../store/slices/layout';
@@ -39,7 +39,7 @@ interface FileItemProps {
 
 function FileItem(props: FileItemProps): JSX.Element {
   const dispatch = useAppDispatch();
-  const { selectedItems } = useAppSelector((state) => state.files);
+  const { selectedItems } = useAppSelector((state) => state.storage);
   const isSelectionMode = selectedItems.length > 0;
   const [downloadProgress, setDownloadProgress] = useState(-1);
   const [decryptionProgress, setDecryptionProgress] = useState(-1);
@@ -69,8 +69,8 @@ function FileItem(props: FileItemProps): JSX.Element {
 
   function onFolderPressed() {
     trackFolderOpened();
-    dispatch(filesThunks.getFolderContentThunk({ folderId: props.item.id as number }));
-    dispatch(filesActions.addDepthAbsolutePath([props.item.name]));
+    dispatch(storageThunks.getFolderContentThunk({ folderId: props.item.id as number }));
+    dispatch(storageActions.addDepthAbsolutePath([props.item.name]));
   }
 
   async function onFilePressed(): Promise<void> {
@@ -92,7 +92,7 @@ function FileItem(props: FileItemProps): JSX.Element {
 
     trackDownloadStart();
     setDownloadProgress(0);
-    dispatch(filesActions.downloadSelectedFileStart());
+    dispatch(storageActions.downloadSelectedFileStart());
 
     const fileAlreadyExists = await exists(destinationPath);
 
@@ -118,7 +118,7 @@ function FileItem(props: FileItemProps): JSX.Element {
         Alert.alert('Error downloading file', err.message);
       })
       .finally(() => {
-        dispatch(filesActions.downloadSelectedFileStop());
+        dispatch(storageActions.downloadSelectedFileStop());
         setDownloadProgress(-1);
         setDecryptionProgress(-1);
       });
@@ -211,7 +211,7 @@ function FileItem(props: FileItemProps): JSX.Element {
       underlayColor={getColor('neutral-20')}
       onLongPress={() => {
         if (props.isGrid) {
-          dispatch(filesActions.focusItem(props.item));
+          dispatch(storageActions.focusItem(props.item));
           dispatch(layoutActions.setShowItemModal(true));
         }
       }}
@@ -293,11 +293,11 @@ function FileItem(props: FileItemProps): JSX.Element {
               disabled={isUploading || isDownloading}
               style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
               onPress={() => {
-                dispatch(filesActions.focusItem(props.item));
+                dispatch(storageActions.focusItem(props.item));
                 dispatch(layoutActions.setShowItemModal(true));
               }}
               onLongPress={() => {
-                dispatch(filesActions.focusItem(props.item));
+                dispatch(storageActions.focusItem(props.item));
                 dispatch(layoutActions.setShowItemModal(true));
               }}
             >

@@ -5,15 +5,15 @@ import Modal from 'react-native-modalbox';
 import strings from '../../../../assets/lang/strings';
 import { sortTypes } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { filesActions } from '../../../store/slices/storage';
+import { storageActions } from '../../../store/slices/storage';
 import { layoutActions } from '../../../store/slices/layout';
 
 function SortModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { sortType } = useAppSelector((state) => state.files);
+  const { sortType } = useAppSelector((state) => state.storage);
   const { showSortModal } = useAppSelector((state) => state.layout);
   const onSortTypePressed = (sortType: string) => {
-    dispatch(filesActions.setSortType(sortType));
+    dispatch(storageActions.setSortType(sortType));
     dispatch(layoutActions.setShowSortModal(false));
   };
 
