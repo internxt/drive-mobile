@@ -38,8 +38,8 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const [showActions, setShowActions] = useState(true);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [uri, setUri] = useState(preview);
-  const [isFullSizeLoaded, setIsFullSizeLoaded] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const isFullSizeLoading = useAppSelector(photosSelectors.isPhotoDownloading)(photo.fileId);
+  const progress = useAppSelector(photosSelectors.getDownloadingPhotoProgress)(photo.fileId);
   const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
     (state) => state.layout,
   );
@@ -75,19 +75,12 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         fileId: props.route.params.data.fileId,
         options: {
           toPath: photoPath,
-          downloadProgressCallback: (progress) => {
-            setProgress(progress);
-          },
-          decryptionProgressCallback: (progress) => {
-            // TODO
-          },
         },
       }),
     )
       .unwrap()
       .then((photoPath: string) => {
         setUri(pathToUri(photoPath));
-        setIsFullSizeLoaded(true);
       })
       .catch(() => undefined);
   };
@@ -96,7 +89,6 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
     isPhotoAlreadyDownloaded().then((isDownloaded) => {
       if (isDownloaded) {
         setUri(pathToUri(photoPath));
-        setIsFullSizeLoaded(true);
       } else {
         loadImage();
       }
@@ -112,7 +104,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         data={props.route.params.data}
         preview={props.route.params.preview}
         photoPath={photoPath}
-        isFullSizeLoaded={isFullSizeLoaded}
+        isFullSizeLoading={isFullSizeLoading}
       />
       <PhotosPreviewInfoModal
         isOpen={isPhotosPreviewInfoModalOpen}
@@ -140,7 +132,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
           </TapGestureHandler>
 
           {/* LOADING */}
-          {!isFullSizeLoaded && (
+          {isFullSizeLoading && (
             <View style={tailwind('absolute top-0 bottom-0 right-0 left-0 items-center justify-center')}>
               <LoadingSpinner size={32} color={getColor('white')} />
               <Text style={tailwind('text-white')}>{(progress * 100).toFixed(0) + '%'}</Text>
@@ -171,30 +163,30 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
                 style={tailwind('flex-row justify-around p-3 absolute bottom-0 w-full')}
               >
                 <TouchableOpacity
-                  disabled={!isFullSizeLoaded}
+                  disabled={isFullSizeLoading}
                   style={tailwind('items-center flex-1')}
                   onPress={onShareButtonPressed}
                 >
-                  <Unicons.UilLink color={isFullSizeLoaded ? 'white' : getColor('neutral-100')} size={26} />
+                  <Unicons.UilLink color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
                   <Text
                     style={[
                       tailwind('text-xs'),
-                      isFullSizeLoaded ? tailwind('text-white') : tailwind('text-neutral-100'),
+                      !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
                     ]}
                   >
                     {strings.components.buttons.share}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  disabled={!isFullSizeLoaded}
+                  disabled={isFullSizeLoading}
                   style={tailwind('items-center flex-1')}
                   onPress={onDownloadButtonPressed}
                 >
-                  <Unicons.UilImport color={isFullSizeLoaded ? 'white' : getColor('neutral-100')} size={26} />
+                  <Unicons.UilImport color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
                   <Text
                     style={[
                       tailwind('text-xs'),
-                      isFullSizeLoaded ? tailwind('text-white') : tailwind('text-neutral-100'),
+                      !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
                     ]}
                   >
                     {strings.components.buttons.download}

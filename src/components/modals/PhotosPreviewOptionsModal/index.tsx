@@ -17,7 +17,7 @@ interface PhotosPreviewOptionsModalProps extends BottomModalProps {
   data: Photo;
   preview: string;
   photoPath: string;
-  isFullSizeLoaded: boolean;
+  isFullSizeLoading: boolean;
 }
 
 function PhotosPreviewOptionsModal({
@@ -26,7 +26,7 @@ function PhotosPreviewOptionsModal({
   data,
   preview,
   photoPath,
-  isFullSizeLoaded,
+  isFullSizeLoading,
 }: PhotosPreviewOptionsModalProps): JSX.Element {
   const dispatch = useAppDispatch();
   const header = (
@@ -87,7 +87,7 @@ function PhotosPreviewOptionsModal({
             onPress={onInfoButtonPressed}
           />
           <BottomModalOption
-            disabled={!isFullSizeLoaded}
+            disabled={isFullSizeLoading}
             leftSlot={
               <View style={tailwind('flex-grow')}>
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.share}</Text>
@@ -97,7 +97,7 @@ function PhotosPreviewOptionsModal({
             onPress={onShareButtonPressed}
           />
           <BottomModalOption
-            disabled={!isFullSizeLoaded}
+            disabled={isFullSizeLoading}
             leftSlot={
               <View style={tailwind('flex-grow')}>
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.download}</Text>

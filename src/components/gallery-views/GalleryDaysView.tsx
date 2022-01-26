@@ -46,11 +46,11 @@ const GalleryDaysView = (): JSX.Element => {
         />
       }
       keyExtractor={(item) => `${item.year}-${item.month}`}
-      numColumns={1}
+      numColumns={3}
       onEndReached={() => {
         dispatch(photosThunks.loadLocalPhotosThunk());
       }}
-      onEndReachedThreshold={0.95}
+      onEndReachedThreshold={2}
     />
   );
 };

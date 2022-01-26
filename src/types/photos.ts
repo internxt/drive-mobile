@@ -97,7 +97,6 @@ export interface PhotosSyncInfo {
   olderUploadTasks: number;
 }
 
-export type PhotosDateRecord = Record<number, Record<number, Record<number, { data: Photo; preview: string }[]>>>;
 export type PhotosByMonthType = {
   year: number;
   month: number;

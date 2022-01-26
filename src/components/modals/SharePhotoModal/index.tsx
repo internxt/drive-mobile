@@ -33,8 +33,8 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
   const dispatch = useAppDispatch();
   const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
   const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: data.name, type: data.type });
-  const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const isLoading = useAppSelector(photosSelectors.isPhotoDownloading)(data.fileId);
+  const progress = useAppSelector(photosSelectors.getDownloadingPhotoProgress)(data.fileId);
   const [uri, setUri] = useState('');
   const onCancelButtonPressed = () => {
     onClosed();
@@ -113,31 +113,27 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
   );
 
   useEffect(() => {
-    exists(photoPath).then((value) => {
-      if (value) {
-        setUri(pathToUri(photoPath));
-      } else {
-        setIsLoading(true);
-        dispatch(
-          photosThunks.downloadPhotoThunk({
-            fileId: data.fileId,
-            options: {
-              toPath: photoPath,
-              downloadProgressCallback: (p) => {
-                setProgress(p);
+    if (isOpen) {
+      exists(photoPath).then((value) => {
+        if (value) {
+          setUri(pathToUri(photoPath));
+        } else {
+          dispatch(
+            photosThunks.downloadPhotoThunk({
+              fileId: data.fileId,
+              options: {
+                toPath: photoPath,
               },
-              decryptionProgressCallback: (p) => undefined,
-            },
-          }),
-        )
-          .unwrap()
-          .then((path) => {
-            setUri(pathToUri(path));
-            setIsLoading(false);
-          });
-      }
-    });
-  }, []);
+            }),
+          )
+            .unwrap()
+            .then((path) => {
+              setUri(pathToUri(path));
+            });
+        }
+      });
+    }
+  }, [isOpen]);
 
   return (
     <BottomModal isOpen={isOpen} onClosed={onClosed} header={header}>

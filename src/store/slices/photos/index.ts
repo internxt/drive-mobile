@@ -19,7 +19,6 @@ import strings from '../../../../assets/lang/strings';
 import { deviceStorage } from '../../../services/deviceStorage';
 import {
   GalleryViewMode,
-  PhotosDateRecord,
   PhotosSyncStatus,
   PhotosSyncStatusData,
   PhotosSyncInfo,
@@ -43,6 +42,7 @@ export interface PhotosState {
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
   loadPhotosRequests: string[];
+  downloadingPhotos: { id: string; progress: number }[];
   years: { year: number; preview: string }[];
   months: { year: number; month: number; preview: string }[];
   photos: { data: Photo; preview: string }[];
@@ -74,6 +74,7 @@ const initialState: PhotosState = {
   isSelectionModeActivated: false,
   viewMode: GalleryViewMode.Days,
   loadPhotosRequests: [],
+  downloadingPhotos: [],
   years: [],
   months: [],
   photos: [],
@@ -169,13 +170,26 @@ const downloadPhotoThunk = createAsyncThunk<
     fileId: string;
     options: {
       toPath: string;
-      downloadProgressCallback: (progress: number) => void;
-      decryptionProgressCallback: (progress: number) => void;
     };
   },
-  { state: RootState }
->('photos/downloadPhoto', async ({ fileId, options }) => {
-  return photosService.downloadPhoto(fileId, options);
+  { state: RootState; rejectValue: { isAlreadyDownloading: boolean } }
+>('photos/downloadPhoto', async ({ fileId, options }, { dispatch, getState, rejectWithValue }) => {
+  const photosState = getState().photos;
+  const isAlreadyDownloading = photosState.downloadingPhotos.some((p) => p.id === fileId);
+
+  if (isAlreadyDownloading) {
+    return rejectWithValue({ isAlreadyDownloading });
+  } else {
+    dispatch(photosActions.pushDownloadingPhoto(fileId));
+  }
+
+  return photosService.downloadPhoto(fileId, {
+    toPath: options.toPath,
+    downloadProgressCallback: (progress) => {
+      dispatch(photosActions.setDownloadingPhotoProgress({ fileId, progress }));
+    },
+    decryptionProgressCallback: () => undefined,
+  });
 });
 
 const loadLocalPhotosThunk = createAsyncThunk<
@@ -279,6 +293,19 @@ export const photosSlice = createSlice({
   reducers: {
     resetState(state) {
       Object.assign(state, initialState);
+    },
+    pushDownloadingPhoto(state, action: PayloadAction<string>) {
+      state.downloadingPhotos.push({ id: action.payload, progress: 0 });
+    },
+    setDownloadingPhotoProgress(
+      state,
+      { payload: { fileId, progress } }: PayloadAction<{ fileId: string; progress: number }>,
+    ) {
+      const downloadStatus = state.downloadingPhotos.find((p) => p.id === fileId);
+
+      if (downloadStatus) {
+        downloadStatus.progress = progress;
+      }
     },
     updateSyncStatus(state, action: PayloadAction<Partial<PhotosSyncStatusData>>) {
       Object.assign(state.syncStatus, action.payload);
@@ -403,15 +430,23 @@ export const photosSlice = createSlice({
 
     builder
       .addCase(downloadPhotoThunk.pending, () => undefined)
-      .addCase(downloadPhotoThunk.fulfilled, () => undefined)
+      .addCase(downloadPhotoThunk.fulfilled, (state, action) => {
+        const index = state.downloadingPhotos.findIndex((p) => p.id === action.meta.arg.fileId);
+        state.downloadingPhotos.splice(index, 1);
+      })
       .addCase(downloadPhotoThunk.rejected, (state, action) => {
-        notify({
-          type: 'error',
-          text: strings.formatString(
-            strings.errors.photosFullSizeLoad,
-            action.error.message || strings.errors.unknown,
-          ) as string,
-        });
+        if (!action.payload || !action.payload.isAlreadyDownloading) {
+          const index = state.downloadingPhotos.findIndex((p) => p.id === action.meta.arg.fileId);
+          state.downloadingPhotos.splice(index, 1);
+
+          notify({
+            type: 'error',
+            text: strings.formatString(
+              strings.errors.photosFullSizeLoad,
+              action.error.message || strings.errors.unknown,
+            ) as string,
+          });
+        }
       });
 
     builder
@@ -495,6 +530,14 @@ export const photosSelectors = {
     (state: RootState) =>
     (photo: Photo): boolean =>
       state.photos.selectedPhotos.some((i) => i.id === photo.id),
+  isPhotoDownloading:
+    (state: RootState) =>
+    (fileId: string): boolean =>
+      state.photos.downloadingPhotos.some((p) => p.id === fileId),
+  getDownloadingPhotoProgress:
+    (state: RootState) =>
+    (fileId: string): number =>
+      state.photos.downloadingPhotos.find((p) => p.id === fileId)?.progress || 0,
   arePhotosSelected:
     (state: RootState) =>
     (photos: Photo[]): boolean =>
@@ -552,36 +595,6 @@ export const photosSelectors = {
             },
           ],
         });
-      }
-    }
-
-    return result;
-  },
-  photosDateRecord: (state: RootState): PhotosDateRecord => {
-    const result: PhotosDateRecord = {};
-
-    for (const photo of state.photos.photos) {
-      const year = photo.data.takenAt.getFullYear();
-      const month = photo.data.takenAt.getMonth();
-      const day = photo.data.takenAt.getDate();
-      const yearItem = result[year];
-
-      if (yearItem) {
-        const monthItem = yearItem[month];
-
-        if (monthItem) {
-          const dayItem = monthItem[day];
-
-          if (dayItem) {
-            monthItem[day].push(photo);
-          } else {
-            monthItem[day] = [photo];
-          }
-        } else {
-          yearItem[month] = { [day]: [photo] };
-        }
-      } else {
-        result[year] = { [month]: { [day]: [photo] } };
       }
     }
 
