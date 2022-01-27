@@ -31,7 +31,7 @@ const statements = {
   count: `SELECT COUNT(*) as count FROM ${TABLE_NAME} WHERE status = '${PhotoStatus.Exists}';`,
   get: `SELECT * FROM ${TABLE_NAME} WHERE status = '${PhotoStatus.Exists}' ORDER BY taken_at DESC, created_at DESC LIMIT ? OFFSET ?;`,
   getAll: `SELECT * FROM ${TABLE_NAME} WHERE status = '${PhotoStatus.Exists}';`,
-  getPhotoByNameAndType: `SELECT * FROM ${TABLE_NAME} WHERE name = ? AND type = ? LIMIT 1;`,
+  getPhotoByNameTypeAndDevice: `SELECT * FROM ${TABLE_NAME} WHERE name = ? AND type = ? AND device_id = ? LIMIT 1;`,
   getYearsList: `SELECT strftime('%Y', taken_at / 1000, 'unixepoch') as 'year' FROM ${TABLE_NAME};`,
   getLastPhotoOfTheYear: `SELECT preview_path, strftime('%Y', taken_at / 1000, 'unixepoch') as 'year' FROM ${TABLE_NAME} WHERE year = ?;`,
   getLastPhotoOfTheMonth: `SELECT preview_path, strftime('%Y', taken_at / 1000, 'unixepoch') as 'year', strftime('%m', taken_at / 1000, 'unixepoch') as 'month' FROM ${TABLE_NAME} WHERE year = ? AND month = ?;`,

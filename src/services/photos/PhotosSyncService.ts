@@ -10,6 +10,7 @@ import PhotosDownloadService from './PhotosDownloadService';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosLogService from './PhotosLogService';
 import PhotosUploadService from './PhotosUploadService';
+import { items } from '@internxt/lib';
 
 export default class PhotosSyncService {
   private readonly model: PhotosServiceModel;
@@ -246,13 +247,16 @@ export default class PhotosSyncService {
          * uploaded or photos that have very similar timestamp by miliseconds
          * (like photos bursts)
          */
-        const alreadyExistentPhoto = await this.localDatabaseService.getPhotoByNameAndType(
+        const alreadyExistentPhoto = await this.localDatabaseService.getPhotoByNameTypeAndDevice(
           photo.data.name,
           photo.data.type,
+          photo.data.deviceId,
         );
 
         if (alreadyExistentPhoto) {
-          this.logService.info(`[SYNC] ${this.currentSyncId}: ${photo.data.name} IS ALREADY UPLOADED, SKIPPING`);
+          this.logService.info(
+            `[SYNC] ${this.currentSyncId}: ${items.getItemDisplayName(photo.data)} IS ALREADY UPLOADED, SKIPPING`,
+          );
         } else {
           if (photo.data.size + usage > limit) {
             options.dispatch(layoutActions.setShowRunOutSpaceModal(true));

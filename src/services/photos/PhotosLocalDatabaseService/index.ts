@@ -151,9 +151,9 @@ export default class PhotosLocalDatabaseService {
     });
   }
 
-  public async getPhotoByNameAndType(name: string, type: string): Promise<Photo | null> {
+  public async getPhotoByNameTypeAndDevice(name: string, type: string, deviceId: string): Promise<Photo | null> {
     return sqliteService
-      .executeSql(PHOTOS_DB_NAME, photoTable.statements.getPhotoByNameAndType, [name, type])
+      .executeSql(PHOTOS_DB_NAME, photoTable.statements.getPhotoByNameTypeAndDevice, [name, type, deviceId])
       .then((res) => {
         if (res[0].rows.item(0)) {
           return res[0].rows.item(0);
