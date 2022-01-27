@@ -26,6 +26,7 @@ import {
   PhotosByMonthType,
   PhotosTaskCompletedInfo,
 } from '../../../types/photos';
+import { layoutActions } from '../layout';
 
 let photosService: PhotosService;
 
@@ -268,6 +269,9 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
         dispatch(photosActions.popPhoto(photo));
       }
     };
+    const onStorageLimitReached = () => {
+      dispatch(layoutActions.setShowRunOutSpaceModal(true));
+    };
     const photosState = getState().photos;
     const isAlreadySyncing = photosState.syncRequests.filter((id) => id !== requestId).length > 0;
 
@@ -277,7 +281,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(photosActions.resetSyncStatus());
 
-    await photosService.sync({ id: requestId, getState, dispatch, onStart, onTaskCompleted });
+    await photosService.sync({ id: requestId, getState, onStart, onTaskCompleted, onStorageLimitReached });
   },
 );
 

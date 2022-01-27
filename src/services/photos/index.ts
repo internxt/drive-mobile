@@ -96,10 +96,15 @@ export class PhotosService {
     this.logService.info('Initialized');
   }
 
+  /**
+   * @description Runs the synchronization process
+   * !!! TODO: Delete 'getState' property from 'options' and check limit on server
+   * @param options
+   * @returns
+   */
   public sync(options: {
     id?: string;
     getState: () => RootState;
-    dispatch: AppDispatch;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
     onTaskCompleted?: (result: {
       taskType: PhotosSyncTaskType;
@@ -107,6 +112,7 @@ export class PhotosService {
       completedTasks: number;
       info: PhotosTaskCompletedInfo;
     }) => void;
+    onStorageLimitReached: () => void;
   }): Promise<void> {
     return this.syncService.run(options);
   }

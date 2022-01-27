@@ -48,7 +48,6 @@ export default class PhotosSyncService {
   public async run(options: {
     id?: string;
     getState: () => RootState;
-    dispatch: AppDispatch;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
     onTaskCompleted?: (result: {
       taskType: PhotosSyncTaskType;
@@ -56,6 +55,7 @@ export default class PhotosSyncService {
       completedTasks: number;
       info: PhotosTaskCompletedInfo;
     }) => void;
+    onStorageLimitReached: () => void;
   }): Promise<void> {
     try {
       this.currentSyncId = options.id || new Date().getTime().toString();
@@ -97,7 +97,7 @@ export default class PhotosSyncService {
       await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
         from: newestDate,
         getState: options.getState,
-        dispatch: options.dispatch,
+        onStorageLimitReached: options.onStorageLimitReached,
         onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
       });
       this.logService.info(`[SYNC] ${this.currentSyncId}: NEWER LOCAL PHOTOS UPLOADED`);
@@ -108,7 +108,7 @@ export default class PhotosSyncService {
         await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
           to: oldestDate,
           getState: options.getState,
-          dispatch: options.dispatch,
+          onStorageLimitReached: options.onStorageLimitReached,
           onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
         });
         this.logService.info(`[SYNC] ${this.currentSyncId}: OLDER LOCAL PHOTOS UPLOADED`);
@@ -159,8 +159,6 @@ export default class PhotosSyncService {
 
       photos = results;
 
-      console.log('photos: ', JSON.stringify(results, undefined, 2));
-
       for (const photo of photos) {
         const isAlreadyOnTheDevice = await this.downloadService.downloadPhoto(photo);
         options.onPhotoDownloaded(photo, { isAlreadyOnTheDevice });
@@ -195,7 +193,7 @@ export default class PhotosSyncService {
       from?: Date;
       to?: Date;
       getState: () => RootState;
-      dispatch: AppDispatch;
+      onStorageLimitReached: () => void;
       onPhotoUploaded: (photo: photos.Photo, info: PhotosTaskCompletedInfo) => void;
     },
   ): Promise<void> {
@@ -259,7 +257,7 @@ export default class PhotosSyncService {
           );
         } else {
           if (photo.data.size + usage > limit) {
-            options.dispatch(layoutActions.setShowRunOutSpaceModal(true));
+            options.onStorageLimitReached();
             throw new Error(strings.errors.storageLimitReached);
           }
 
