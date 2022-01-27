@@ -12,6 +12,7 @@ import strings from '../../../../assets/lang/strings';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch } from '../../../store/hooks';
 import { showFileViewer } from '../../../services/fileSystem';
+import { items } from '@internxt/lib';
 
 interface PhotosPreviewOptionsModalProps extends BottomModalProps {
   data: Photo;
@@ -41,7 +42,7 @@ function PhotosPreviewOptionsModal({
           ellipsizeMode="middle"
           style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
         >
-          {data.name + '.' + data.type}
+          {items.getItemDisplayName(data)}
         </Text>
         <Text style={tailwind('text-xs text-neutral-100')}>
           <>
@@ -67,7 +68,7 @@ function PhotosPreviewOptionsModal({
     dispatch(layoutActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
-    showFileViewer(photoPath);
+    showFileViewer(photoPath, { displayName: items.getItemDisplayName(data) });
   };
   const onMoveToTrashButtonPressed = () => {
     dispatch(layoutActions.setIsDeletePhotosModalOpen(true));

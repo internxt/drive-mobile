@@ -33,7 +33,7 @@ interface PreviewProps {
 function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const { data: photo, preview } = props.route.params;
   const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
-  const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: photo.name, type: photo.type });
+  const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: photo.id, type: photo.type });
   const dispatch = useAppDispatch();
   const [showActions, setShowActions] = useState(true);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
@@ -52,7 +52,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
     dispatch(layoutActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
-    showFileViewer(uri);
+    showFileViewer(uri, { displayName: items.getItemDisplayName(photo) });
   };
   const onMoveToTrashButtonPressed = () => {
     dispatch(layoutActions.setIsDeletePhotosModalOpen(true));

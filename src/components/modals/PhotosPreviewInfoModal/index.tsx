@@ -9,6 +9,7 @@ import BottomModal, { BottomModalProps } from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
 import moment from 'moment';
+import { items } from '@internxt/lib';
 
 interface PhotosPreviewInfoModalProps extends BottomModalProps {
   data: Photo;
@@ -28,7 +29,7 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data, preview }: PhotosPrevi
           ellipsizeMode="middle"
           style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
         >
-          {data.name + '.' + data.type}
+          {items.getItemDisplayName(data)}
         </Text>
         <Text style={tailwind('text-xs text-neutral-100')}>
           <>
@@ -64,7 +65,7 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data, preview }: PhotosPrevi
             }
             rightSlot={
               <Text numberOfLines={1} ellipsizeMode="middle" style={tailwind('text-sm text-neutral-100')}>
-                {data.name}
+                {items.getItemDisplayName(data)}
               </Text>
             }
           />

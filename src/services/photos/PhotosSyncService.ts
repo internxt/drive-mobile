@@ -11,6 +11,7 @@ import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosLogService from './PhotosLogService';
 import PhotosUploadService from './PhotosUploadService';
 import { items } from '@internxt/lib';
+import { notify } from '../toast';
 
 export default class PhotosSyncService {
   private readonly model: PhotosServiceModel;
@@ -238,20 +239,14 @@ export default class PhotosSyncService {
       for (const photo of photosToUpload) {
         const usage = options.getState().storage.usage + options.getState().photos.usage;
         const limit = options.getState().storage.limit;
-
-        /**
-         * WARNING: Camera roll does not filter properly by dates for photos with
-         * small deltas which can provoke the sync to re-update the last photo already
-         * uploaded or photos that have very similar timestamp by miliseconds
-         * (like photos bursts)
-         */
-        const alreadyExistentPhoto = await this.localDatabaseService.getPhotoByNameTypeAndDevice(
+        const isAlreadyUploaded = await this.localDatabaseService.getPhotoByNameTypeAndDevice(
           photo.data.name,
           photo.data.type,
           photo.data.deviceId,
         );
 
-        if (alreadyExistentPhoto) {
+        // * Avoids to upload the same photo multiple times
+        if (isAlreadyUploaded) {
           this.logService.info(
             `[SYNC] ${this.currentSyncId}: ${items.getItemDisplayName(photo.data)} IS ALREADY UPLOADED, SKIPPING`,
           );

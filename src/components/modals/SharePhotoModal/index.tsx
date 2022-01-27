@@ -32,7 +32,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
   const [url, setUrl] = useState('LINK');
   const dispatch = useAppDispatch();
   const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
-  const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: data.name, type: data.type });
+  const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: data.id, type: data.type });
   const isLoading = useAppSelector(photosSelectors.isPhotoDownloading)(data.fileId);
   const progress = useAppSelector(photosSelectors.getDownloadingPhotoProgress)(data.fileId);
   const [uri, setUri] = useState('');
