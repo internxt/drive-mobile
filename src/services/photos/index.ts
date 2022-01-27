@@ -13,7 +13,7 @@ import PhotosUserService from './PhotosUserService';
 import PhotosLogService from './PhotosLogService';
 import PhotosFileSystemService from './PhotosFileSystemService';
 import PhotosUsageService from './PhotosUsageService';
-import { AppDispatch, RootState } from '../../store';
+import { RootState } from '../../store';
 
 export class PhotosService {
   private readonly model: PhotosServiceModel;

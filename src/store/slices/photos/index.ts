@@ -281,7 +281,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(photosActions.resetSyncStatus());
 
-    await photosService.sync({ id: requestId, getState, onStart, onTaskCompleted, onStorageLimitReached });
+    // await photosService.sync({ id: requestId, getState, onStart, onTaskCompleted, onStorageLimitReached });
   },
 );
 

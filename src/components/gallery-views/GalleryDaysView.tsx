@@ -26,7 +26,7 @@ const GalleryDaysView = (): JSX.Element => {
         return (
           <View style={tailwind('w-full')}>
             <Text
-              style={tailwind('px-5 pt-5 pb-2 font-bold text-neutral-700 text-2xl')}
+              style={tailwind('px-5 py-2 font-bold text-neutral-700 text-2xl')}
             >{`${monthName} - ${item.year}`}</Text>
             {monthDays}
           </View>
@@ -46,7 +46,7 @@ const GalleryDaysView = (): JSX.Element => {
         />
       }
       keyExtractor={(item) => `${item.year}-${item.month}`}
-      numColumns={3}
+      numColumns={1}
       onEndReached={() => {
         dispatch(photosThunks.loadLocalPhotosThunk());
       }}
