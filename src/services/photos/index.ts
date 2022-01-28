@@ -105,6 +105,7 @@ export class PhotosService {
    */
   public sync(options: {
     id?: string;
+    signal?: AbortSignal;
     getState: () => RootState;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
     onTaskCompleted?: (result: {
@@ -114,7 +115,7 @@ export class PhotosService {
       info: PhotosTaskCompletedInfo;
     }) => void;
     onStorageLimitReached: () => void;
-  }): { stop: () => void; promise: Promise<void> } {
+  }): Promise<void> {
     return this.syncService.run(options);
   }
 

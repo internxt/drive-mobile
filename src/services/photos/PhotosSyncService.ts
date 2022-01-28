@@ -2,13 +2,7 @@ import { photos } from '@internxt/sdk';
 import strings from '../../../assets/lang/strings';
 import { RootState } from '../../store';
 
-import {
-  PhotosServiceModel,
-  PhotosSyncInfo,
-  PhotosSyncProcessState,
-  PhotosSyncTaskType,
-  PhotosTaskCompletedInfo,
-} from '../../types/photos';
+import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType, PhotosTaskCompletedInfo } from '../../types/photos';
 import PhotosDeviceService from './PhotosDeviceService';
 import PhotosCameraRollService from './PhotosCameraRollService';
 import PhotosDownloadService from './PhotosDownloadService';
@@ -54,8 +48,9 @@ export default class PhotosSyncService {
     this.fileSystemService = fileSystemService;
   }
 
-  public run(options: {
+  public async run(options: {
     id?: string;
+    signal?: AbortSignal;
     getState: () => RootState;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
     onTaskCompleted?: (result: {
@@ -65,90 +60,83 @@ export default class PhotosSyncService {
       info: PhotosTaskCompletedInfo;
     }) => void;
     onStorageLimitReached: () => void;
-  }): { stop: () => void; promise: Promise<void> } {
-    const state: PhotosSyncProcessState = { status: 'in-process' };
-    const stop = () => {
-      state.status = 'aborted';
-    };
-    const fn = async () => {
-      try {
-        this.currentSyncId = options.id || new Date().getTime().toString();
+  }): Promise<void> {
+    try {
+      this.currentSyncId = options.id || new Date().getTime().toString();
 
-        let completedTasks = 0;
-        const onTaskCompletedFactory =
-          (taskType: PhotosSyncTaskType) => (photo: photos.Photo, info: PhotosTaskCompletedInfo) => {
-            completedTasks++;
-            options.onTaskCompleted?.({ taskType, photo, completedTasks, info });
-          };
+      let completedTasks = 0;
+      const onTaskCompletedFactory =
+        (taskType: PhotosSyncTaskType) => (photo: photos.Photo, info: PhotosTaskCompletedInfo) => {
+          completedTasks++;
+          options.onTaskCompleted?.({ taskType, photo, completedTasks, info });
+        };
 
-        this.logService.info(`[SYNC-MAIN] ${this.currentSyncId}: STARTED`);
+      this.logService.info(`[SYNC-MAIN] ${this.currentSyncId}: STARTED`);
 
-        if (!this.model.user) {
-          throw new Error('photos user not initialized');
-        }
+      if (!this.model.user) {
+        throw new Error('photos user not initialized');
+      }
 
-        if (!this.model.device) {
-          throw new Error('photos device not initialized');
-        }
+      if (!this.model.device) {
+        throw new Error('photos device not initialized');
+      }
 
-        await this.deviceService.initialize();
+      await this.deviceService.initialize();
 
-        const { count: cameraRollCount } = await this.cameraRollService.copyToLocalDatabase();
-        this.logService.info(
-          `[SYNC] ${this.currentSyncId}: COPIED ${cameraRollCount} EDGES FROM CAMERA ROLL TO SQLITE`,
-        );
+      const { count: cameraRollCount } = await this.cameraRollService.copyToLocalDatabase();
+      this.logService.info(`[SYNC] ${this.currentSyncId}: COPIED ${cameraRollCount} EDGES FROM CAMERA ROLL TO SQLITE`);
 
-        const syncInfo = await this.calculateSyncInfo();
-        options.onStart?.(syncInfo);
-        this.logService.info(
-          `[SYNC] ${this.currentSyncId}: CALCULATED ${syncInfo.totalTasks} TASKS: ${syncInfo.downloadTasks} downloadTasks, ${syncInfo.newerUploadTasks} newerUploadTasks, ${syncInfo.olderUploadTasks} olderUploadTasks`,
-        );
+      const syncInfo = await this.calculateSyncInfo();
+      options.onStart?.(syncInfo);
+      this.logService.info(
+        `[SYNC] ${this.currentSyncId}: CALCULATED ${syncInfo.totalTasks} TASKS: ${syncInfo.downloadTasks} downloadTasks, ${syncInfo.newerUploadTasks} newerUploadTasks, ${syncInfo.olderUploadTasks} olderUploadTasks`,
+      );
 
-        await this.downloadRemotePhotos(state, {
-          onPhotoDownloaded: onTaskCompletedFactory(PhotosSyncTaskType.Download),
-        });
-        this.logService.info(`[SYNC] ${this.currentSyncId}: REMOTE PHOTOS DOWNLOADED`);
+      await this.downloadRemotePhotos({
+        signal: options.signal,
+        onPhotoDownloaded: onTaskCompletedFactory(PhotosSyncTaskType.Download),
+      });
+      this.logService.info(`[SYNC] ${this.currentSyncId}: REMOTE PHOTOS DOWNLOADED`);
 
-        const newestDate = await this.localDatabaseService.getNewestDate();
-        const oldestDate = await this.localDatabaseService.getOldestDate();
+      const newestDate = await this.localDatabaseService.getNewestDate();
+      const oldestDate = await this.localDatabaseService.getOldestDate();
 
-        await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, state, {
-          from: newestDate,
+      await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
+        signal: options.signal,
+        from: newestDate,
+        getState: options.getState,
+        onStorageLimitReached: options.onStorageLimitReached,
+        onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
+      });
+      this.logService.info(`[SYNC] ${this.currentSyncId}: NEWER LOCAL PHOTOS UPLOADED`);
+
+      if (!oldestDate) {
+        this.logService.info(`[SYNC] ${this.currentSyncId}: SKIPPED OLDER LOCAL PHOTOS UPLOAD`);
+      } else {
+        await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
+          signal: options.signal,
+          to: oldestDate,
           getState: options.getState,
           onStorageLimitReached: options.onStorageLimitReached,
           onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
         });
-        this.logService.info(`[SYNC] ${this.currentSyncId}: NEWER LOCAL PHOTOS UPLOADED`);
-
-        if (!oldestDate) {
-          this.logService.info(`[SYNC] ${this.currentSyncId}: SKIPPED OLDER LOCAL PHOTOS UPLOAD`);
-        } else {
-          await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, state, {
-            to: oldestDate,
-            getState: options.getState,
-            onStorageLimitReached: options.onStorageLimitReached,
-            onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
-          });
-          this.logService.info(`[SYNC] ${this.currentSyncId}: OLDER LOCAL PHOTOS UPLOADED`);
-        }
-
-        if (state.status === 'in-process') {
-          this.logService.info(`[SYNC] ${this.currentSyncId}: FINISHED`);
-        } else if (state.status === 'aborted') {
-          this.logService.info(`[SYNC] ${this.currentSyncId}: ABORTED`);
-        }
-      } catch (err) {
-        this.logService.info(`[SYNC] ${this.currentSyncId}: FAILED:` + err);
-        throw err;
-      } finally {
-        await this.localDatabaseService.cleanTmpCameraRollTable();
-        await this.fileSystemService.clearTmp();
-
-        this.logService.info(`[SYNC] ${this.currentSyncId}: FINALLY CLEANED TMP DATA FROM FS AND SQLITE`);
+        this.logService.info(`[SYNC] ${this.currentSyncId}: OLDER LOCAL PHOTOS UPLOADED`);
       }
-    };
 
-    return { stop, promise: fn() };
+      if (options.signal?.aborted) {
+        this.logService.info(`[SYNC] ${this.currentSyncId}: ABORTED`);
+      } else {
+        this.logService.info(`[SYNC] ${this.currentSyncId}: FINISHED`);
+      }
+    } catch (err) {
+      this.logService.info(`[SYNC] ${this.currentSyncId}: FAILED:` + err);
+      throw err;
+    } finally {
+      await this.localDatabaseService.cleanTmpCameraRollTable();
+      await this.fileSystemService.clearTmp();
+
+      this.logService.info(`[SYNC] ${this.currentSyncId}: FINALLY CLEANED TMP DATA FROM FS AND SQLITE`);
+    }
   }
 
   private async calculateSyncInfo(): Promise<PhotosSyncInfo> {
@@ -170,12 +158,10 @@ export default class PhotosSyncService {
   /**
    * @description Downloads remote photos whose status changed after the last update
    */
-  private async downloadRemotePhotos(
-    state: PhotosSyncProcessState,
-    options: {
-      onPhotoDownloaded: (photo: photos.Photo, info: PhotosTaskCompletedInfo) => void;
-    },
-  ): Promise<void> {
+  private async downloadRemotePhotos(options: {
+    signal?: AbortSignal;
+    onPhotoDownloaded: (photo: photos.Photo, info: PhotosTaskCompletedInfo) => void;
+  }): Promise<void> {
     const remoteSyncAt = await this.localDatabaseService.getRemoteSyncAt();
     const now = new Date();
     const limit = 25;
@@ -191,7 +177,7 @@ export default class PhotosSyncService {
 
       for (const photo of photos) {
         // * Stops execution if sync was aborted
-        if (state.status === 'aborted') {
+        if (options.signal?.aborted) {
           return;
         }
 
@@ -224,8 +210,8 @@ export default class PhotosSyncService {
   async uploadLocalPhotos(
     userId: photos.UserId,
     deviceId: photos.DeviceId,
-    state: PhotosSyncProcessState,
     options: {
+      signal?: AbortSignal;
       from?: Date;
       to?: Date;
       getState: () => RootState;
@@ -273,7 +259,7 @@ export default class PhotosSyncService {
 
       for (const photo of photosToUpload) {
         // * Stops execution if sync was aborted
-        if (state.status === 'aborted') {
+        if (options.signal?.aborted) {
           return;
         }
 

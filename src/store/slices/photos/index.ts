@@ -285,19 +285,14 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(photosActions.resetSyncStatus());
 
-    const { stop, promise } = photosService.sync({
+    await photosService.sync({
       id: requestId,
+      signal,
       getState,
       onStart,
       onTaskCompleted,
       onStorageLimitReached,
     });
-
-    signal.addEventListener('abort', () => {
-      stop();
-    });
-
-    await promise;
   },
 );
 
