@@ -39,7 +39,7 @@ export class PhotosService {
       networkCredentials,
       networkUrl: process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL || '',
     };
-    this.photosSdk = new photos.Photos('https://photos.internxt.com/api' || '', accessToken);
+    this.photosSdk = new photos.Photos(process.env.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
 
     this.logService = new PhotosLogService(this.model);
     this.fileSystemService = new PhotosFileSystemService(this.model, this.logService);
@@ -70,6 +70,7 @@ export class PhotosService {
       this.downloadService,
       this.localDatabaseService,
       this.logService,
+      this.fileSystemService,
     );
   }
 
@@ -113,7 +114,7 @@ export class PhotosService {
       info: PhotosTaskCompletedInfo;
     }) => void;
     onStorageLimitReached: () => void;
-  }): Promise<void> {
+  }): { stop: () => void; promise: Promise<void> } {
     return this.syncService.run(options);
   }
 

@@ -13,9 +13,8 @@ export default class PhotosFileSystemService {
     this.logService = logService;
   }
 
-  public async initialize(): Promise<void> {
-    await RNFS.mkdir(this.photosDirectory);
-    await RNFS.mkdir(this.previewsDirectory);
+  public get tmpDirectory(): string {
+    return `${getDocumentsDir()}/tmp/photos`;
   }
 
   public get photosDirectory(): string {
@@ -26,13 +25,25 @@ export default class PhotosFileSystemService {
     return `${this.rootDirectory}/previews`;
   }
 
+  private get rootDirectory(): string {
+    return `${getDocumentsDir()}/photos`;
+  }
+
+  public async initialize(): Promise<void> {
+    await RNFS.mkdir(this.tmpDirectory);
+    await RNFS.mkdir(this.photosDirectory);
+    await RNFS.mkdir(this.previewsDirectory);
+  }
+
   public async clear(): Promise<void> {
+    await RNFS.unlink(this.tmpDirectory);
     await RNFS.unlink(this.rootDirectory);
 
     this.logService.info('Cleared file system data');
   }
 
-  private get rootDirectory(): string {
-    return `${getDocumentsDir()}/photos`;
+  public async clearTmp(): Promise<void> {
+    await RNFS.unlink(this.tmpDirectory);
+    await RNFS.mkdir(this.tmpDirectory);
   }
 }

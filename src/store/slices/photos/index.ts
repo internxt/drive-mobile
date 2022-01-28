@@ -109,7 +109,7 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
     await dispatch(initializeThunk());
     await dispatch(checkPermissionsThunk());
 
-    // TODO: check is device synchronized
+    // TODO: check if this device is synchronized or ask for start using photos
 
     if (photosSelectors.arePermissionsGranted(getState())) {
       await photosService.initialize();
@@ -234,14 +234,16 @@ const loadMonthsThunk = createAsyncThunk<
 
 const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/sync',
-  async (payload: void, { requestId, getState, dispatch }) => {
+  async (payload: void, { requestId, getState, dispatch, signal }) => {
     const onStart = (tasksInfo: PhotosSyncInfo) => {
-      dispatch(
-        photosActions.updateSyncStatus({
-          status: tasksInfo.totalTasks > 0 ? PhotosSyncStatus.InProgress : PhotosSyncStatus.Completed,
-          totalTasks: tasksInfo.totalTasks,
-        }),
-      );
+      if (!signal.aborted) {
+        dispatch(
+          photosActions.updateSyncStatus({
+            status: tasksInfo.totalTasks > 0 ? PhotosSyncStatus.InProgress : PhotosSyncStatus.Completed,
+            totalTasks: tasksInfo.totalTasks,
+          }),
+        );
+      }
     };
     const onTaskCompleted = async ({
       photo,
@@ -254,19 +256,21 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
       completedTasks: number;
       info: PhotosTaskCompletedInfo;
     }) => {
-      dispatch(photosActions.updateSyncStatus({ completedTasks }));
+      if (!signal.aborted) {
+        dispatch(photosActions.updateSyncStatus({ completedTasks }));
 
-      if (taskType === PhotosSyncTaskType.Upload) {
-        dispatch(getUsageThunk());
-      }
-
-      if (photo.status === PhotoStatus.Exists) {
-        if (!info.isAlreadyOnTheDevice) {
-          const preview = (await photosService.getPhotoPreview(photo.id)) || '';
-          dispatch(photosActions.pushPhoto({ data: photo, preview }));
+        if (taskType === PhotosSyncTaskType.Upload) {
+          dispatch(getUsageThunk());
         }
-      } else {
-        dispatch(photosActions.popPhoto(photo));
+
+        if (photo.status === PhotoStatus.Exists) {
+          if (!info.isAlreadyOnTheDevice) {
+            const preview = (await photosService.getPhotoPreview(photo.id)) || '';
+            dispatch(photosActions.pushPhoto({ data: photo, preview }));
+          }
+        } else {
+          dispatch(photosActions.popPhoto(photo));
+        }
       }
     };
     const onStorageLimitReached = () => {
@@ -281,7 +285,19 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(photosActions.resetSyncStatus());
 
-    await photosService.sync({ id: requestId, getState, onStart, onTaskCompleted, onStorageLimitReached });
+    const { stop, promise } = photosService.sync({
+      id: requestId,
+      getState,
+      onStart,
+      onTaskCompleted,
+      onStorageLimitReached,
+    });
+
+    signal.addEventListener('abort', () => {
+      stop();
+    });
+
+    await promise;
   },
 );
 

@@ -108,3 +108,7 @@ export type PhotosByMonthType = {
     }[];
   }[];
 };
+
+export interface PhotosSyncProcessState {
+  status: 'in-process' | 'aborted';
+}
