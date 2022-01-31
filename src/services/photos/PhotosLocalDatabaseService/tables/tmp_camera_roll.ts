@@ -34,7 +34,7 @@ const statements = {
 
 function getWhereString(filter: { from?: Date; to?: Date }): string {
   let where = filter.from || filter.to ? 'WHERE ' : '';
-  where += filter.from ? `timestamp > ${filter.from.getTime()}` : '';
+  where += filter.from ? `timestamp >= ${filter.from.getTime()}` : '';
   where += !!filter.from && !!filter.to ? ' AND ' : '';
   where += filter.to ? `timestamp <= ${filter.to.getTime()}` : '';
 

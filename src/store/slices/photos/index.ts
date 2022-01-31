@@ -351,7 +351,19 @@ export const photosSlice = createSlice({
         }
       }
 
-      state.photos.sort((a, b) => b.data.takenAt.getTime() - a.data.takenAt.getTime());
+      state.photos.sort((a, b) => {
+        const aTakenAtTime = a.data.takenAt.getTime();
+        const bTakenAtTime = b.data.takenAt.getTime();
+        let result = 0;
+
+        if (aTakenAtTime === bTakenAtTime) {
+          result = b.data.createdAt.getTime() - a.data.createdAt.getTime();
+        } else {
+          result = bTakenAtTime - aTakenAtTime;
+        }
+
+        return result;
+      });
     },
     setSkip(state, action: PayloadAction<number>) {
       state.skip = action.payload;
