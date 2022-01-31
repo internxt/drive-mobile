@@ -286,7 +286,7 @@ export default class PhotosSyncService {
 
         // * Avoids to upload the same photo multiple times
         if (isAlreadyUploaded) {
-          this.logService.warn(
+          this.logService.info(
             `[SYNC] ${this.currentSyncId}: ${items.getItemDisplayName(photo.data)} IS ALREADY UPLOADED, SKIPPING`,
           );
         } else {
