@@ -2,7 +2,7 @@ import { request } from '@internxt/lib';
 import RNFS from 'react-native-fs';
 import axios, { AxiosRequestConfig } from 'axios';
 import RNFetchBlob from 'rn-fetch-blob';
-import { createDecipheriv, Decipher } from 'react-native-crypto';
+import { createDecipheriv } from 'react-native-crypto';
 
 import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 
@@ -10,6 +10,8 @@ import { eachLimit, retry } from 'async';
 import { FileId } from '@internxt/sdk/dist/photos';
 import { getDocumentsDir } from '../fileSystem';
 import { NetworkCredentials } from '../../types';
+import { Platform } from 'react-native';
+import { decryptFile as nativeDecryptFile } from 'rn-crypto';
 
 type FileDecryptedURI = string;
 
@@ -92,11 +94,17 @@ async function decryptFile(
   fromPath: string,
   toPath: string,
   fileSize: number,
-  decipher: Decipher,
+  fileDecryptionKey: Buffer,
+  iv: Buffer,
   options?: {
     progress: (progress: number) => void;
   },
 ): Promise<FileDecryptedURI> {
+  const decipher = createDecipheriv(
+    'aes-256-ctr',
+    fileDecryptionKey.slice(0, 32),
+    iv,
+  );
   const twoMb = 2 * 1024 * 1024;
   const chunksOf = twoMb;
   const chunks = Math.ceil(fileSize / chunksOf);
@@ -107,6 +115,24 @@ async function decryptFile(
   let start = 0;
 
   options?.progress(0);
+
+  if (Platform.OS === 'android') {
+    return new Promise((resolve, reject) => {
+      nativeDecryptFile(
+        fromPath,
+        toPath,
+        fileDecryptionKey.toString('hex'),
+        iv.toString('hex'),
+        (err) => {
+          if (err) {
+            return reject(err);
+          }
+          options?.progress(100);
+          resolve(toPath);
+        }
+      );
+    });
+  }
 
   return eachLimit(new Array(chunks), 1, (_, cb) => {
     RNFS.read(fromPath, twoMb, start, 'base64')
@@ -243,15 +269,16 @@ export async function downloadFile(
     Buffer.from(fileInfo.index, 'hex'),
   );
 
-  const decipher = createDecipheriv(
-    'aes-256-ctr',
+  const fileURI = await decryptFile(
+    encryptedFileURI,
+    options.toPath,
+    fileInfo.size,
     fileDecryptionKey.slice(0, 32),
     Buffer.from(fileInfo.index, 'hex').slice(0, 16),
+    {
+      progress: options.decryptionProgressCallback,
+    }
   );
-
-  const fileURI = await decryptFile(encryptedFileURI, options.toPath, fileInfo.size, decipher, {
-    progress: options.decryptionProgressCallback,
-  });
 
   await RNFS.unlink(encryptedFileURI).catch(() => null);
 

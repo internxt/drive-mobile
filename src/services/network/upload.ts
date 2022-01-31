@@ -12,6 +12,9 @@ import { ShardMeta } from '../../@inxt-js/lib/shardMeta';
 import { FileId } from '@internxt/sdk/dist/photos';
 import { NetworkCredentials, NetworkUser } from '../../types';
 
+import { encryptFile as nativeEncryptFile } from 'rn-crypto';
+import { Platform } from 'react-native';
+
 type FrameId = string;
 type Timestamp = string;
 type BucketEntryId = string;
@@ -206,14 +209,34 @@ function generateCipher(key: Buffer, iv: Buffer): Cipher {
   return createCipheriv('aes-256-ctr', key, iv);
 }
 
-async function encryptFile(fileUri: string, fileSize: number, cipher: Cipher): Promise<FileEncryptedURI> {
+async function encryptFile(
+  fileUri: string,
+  fileSize: number,
+  fileEncryptionKey: Buffer,
+  iv: Buffer
+): Promise<FileEncryptedURI> {
+  const fileEncryptedURI: FileEncryptedURI = getDocumentsDir() + '/' + uuid.v4() + '.enc';
+
+  if (Platform.OS === 'android') {
+    return new Promise((resolve, reject) => nativeEncryptFile(
+      fileUri,
+      fileEncryptedURI,
+      fileEncryptionKey.toString('hex'),
+      iv.toString('hex'),
+      (err: Error) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(fileEncryptedURI);
+      }
+    ));
+  }
+
   const twoMb = 2 * 1024 * 1024;
   const chunksOf = twoMb;
   const chunks = Math.ceil(fileSize / chunksOf);
-
-  const fileEncryptedURI: FileEncryptedURI = getDocumentsDir() + '/' + uuid.v4() + '.enc';
   const writer = await RNFetchBlob.fs.writeStream(fileEncryptedURI, 'base64');
-
+  const cipher = generateCipher(fileEncryptionKey, iv);
   let start = 0;
 
   return eachLimit(new Array(chunks), 1, (_, cb) => {
@@ -285,18 +308,20 @@ export async function uploadFile(
   const frameId = await stageFile(networkUrl, defaultRequestOptions);
 
   // 3. Generate cipher
-  const index = randomBytes(32);
+  const index: Buffer = randomBytes(32);
   const fileEncryptionKey = await GenerateFileKey(credentials.encryptionKey, bucketId, index);
-  const cipher = generateCipher(fileEncryptionKey, index.slice(0, 16));
 
   // 4. Encrypt file
   const fileStats = await RFNS.stat(fileURI);
   const fileSize = parseInt(fileStats.size);
-  const fileEncryptedURI = await encryptFile(fileURI, fileSize, cipher);
+  const fileEncryptedURI = await encryptFile(
+    fileURI,
+    fileSize,
+    fileEncryptionKey,
+    index.slice(0, 16)
+  );
 
-  // TODO: Buffer from what? Hex?
   const fileHash = ripemd160(Buffer.from(await RFNS.hash(fileEncryptedURI, 'sha256'), 'hex'));
-
   const merkleTree = generateMerkleTree();
   const shardMetas: ShardMeta[] = [
     {
