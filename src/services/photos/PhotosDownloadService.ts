@@ -22,28 +22,19 @@ export default class PhotosDownloadService {
     this.logService = logService;
   }
 
-  public async downloadPhoto(photo: photos.Photo): Promise<boolean> {
-    const isAlreadyOnTheDevice = !!(await this.localDatabaseService.getPhotoById(photo.id));
+  public async downloadPhoto(photo: photos.Photo): Promise<string> {
+    const previewPath = await this.pullPhoto(
+      this.model.user?.bucketId || '',
+      this.model.networkCredentials,
+      photo.previewId,
+      {
+        toPath: getDocumentsDir() + '/' + photo.previewId,
+        downloadProgressCallback: () => undefined,
+        decryptionProgressCallback: () => undefined,
+      },
+    );
 
-    this.logService.info('Photo ' + photo.name + ' is on the device? ' + isAlreadyOnTheDevice);
-
-    if (isAlreadyOnTheDevice) {
-      await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);
-    } else {
-      const previewPath = await this.pullPhoto(
-        this.model.user?.bucketId || '',
-        this.model.networkCredentials,
-        photo.previewId,
-        {
-          toPath: getDocumentsDir() + '/' + photo.previewId,
-          downloadProgressCallback: () => undefined,
-          decryptionProgressCallback: () => undefined,
-        },
-      );
-      await this.localDatabaseService.insertPhoto(photo, previewPath);
-    }
-
-    return isAlreadyOnTheDevice;
+    return previewPath;
   }
 
   public async pullPhoto(

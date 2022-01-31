@@ -181,7 +181,17 @@ export default class PhotosSyncService {
           return;
         }
 
-        const isAlreadyOnTheDevice = await this.downloadService.downloadPhoto(photo);
+        const isAlreadyOnTheDevice = !!(await this.localDatabaseService.getPhotoById(photo.id));
+
+        this.logService.info('Photo ' + photo.name + ' is on the device? ' + isAlreadyOnTheDevice);
+
+        if (isAlreadyOnTheDevice) {
+          await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);
+        } else {
+          const previewPath = await this.downloadService.downloadPhoto(photo);
+          await this.localDatabaseService.insertPhoto(photo, previewPath);
+        }
+
         options.onPhotoDownloaded(photo, { isAlreadyOnTheDevice });
       }
 
