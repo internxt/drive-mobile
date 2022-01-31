@@ -9819,6 +9819,11 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
+rn-crypto@^0.1.1:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/rn-crypto/-/rn-crypto-0.1.2.tgz#133d78b3c6801cef43da3af29c7702b155eb0b0c"
+  integrity sha512-vbfLUKs0wxilEYjFgyEhsRhzQeVOSj4BtuEc7PSqIVr+QUBe+gWUKz/nFh07aNqVrg65RkYZTiGqKwzGVOA8eA==
+
 rn-fetch-blob@=0.11.2:
   version "0.11.2"
   resolved "https://registry.npmjs.org/rn-fetch-blob/-/rn-fetch-blob-0.11.2.tgz"
