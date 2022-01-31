@@ -58,6 +58,7 @@ export interface SqlitePhotoRow {
   created_at: number;
   updated_at: number;
   preview_path: string;
+  hash: string;
 }
 
 export interface SqliteSyncRow {

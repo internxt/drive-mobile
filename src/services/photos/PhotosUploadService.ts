@@ -51,6 +51,7 @@ export default class PhotosUploadService {
       this.model.networkCredentials,
     );
 
+    const hash = await RNFS.hash(uri, 'sha256');
     const createPhotoData: CreatePhotoData = {
       takenAt: data.takenAt,
       deviceId: data.deviceId,
@@ -62,6 +63,7 @@ export default class PhotosUploadService {
       width: data.width,
       fileId,
       previewId,
+      hash,
     };
     const createdPhoto = await this.photosSdk.photos.createPhoto(createPhotoData);
     const finalPreviewPath = `${this.fileSystemService.previewsDirectory}/${createdPhoto.id}.${PhotosUploadService.PREVIEW_EXTENSION}`;

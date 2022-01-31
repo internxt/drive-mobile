@@ -19,19 +19,20 @@ const statements = {
       status_changed_at INTEGER NOT NULL, \
       created_at INTEGER NOT NULL, \
       updated_at INTEGER NOT NULL, \
-      preview_path string NOT NULL \
+      preview_path TEXT NOT NULL, \
+      hash string TEXT NOT NULL \
     );`,
   dropTable: `DROP TABLE ${TABLE_NAME};`,
   cleanTable: `DELETE FROM ${TABLE_NAME};`,
   insert: `INSERT INTO ${TABLE_NAME} (\
-      id, name, type, size, width, height, status, file_id, preview_id, device_id, user_id, taken_at, status_changed_at, created_at, updated_at, preview_path \
+      id, name, type, size, width, height, status, file_id, preview_id, device_id, user_id, taken_at, status_changed_at, created_at, updated_at, preview_path, hash \
     ) \
-    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );`,
+    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? );`,
   deleteById: `DELETE FROM ${TABLE_NAME} WHERE id = ?;`,
   count: `SELECT COUNT(*) as count FROM ${TABLE_NAME} WHERE status = '${PhotoStatus.Exists}';`,
   get: `SELECT * FROM ${TABLE_NAME} WHERE status = '${PhotoStatus.Exists}' ORDER BY taken_at DESC, created_at DESC LIMIT ? OFFSET ?;`,
   getAll: `SELECT * FROM ${TABLE_NAME} WHERE status = '${PhotoStatus.Exists}';`,
-  getPhotoByNameTypeAndDevice: `SELECT * FROM ${TABLE_NAME} WHERE name = ? AND type = ? AND device_id = ? LIMIT 1;`,
+  getPhotoByNameTypeDeviceAndHash: `SELECT * FROM ${TABLE_NAME} WHERE name = ? AND type = ? AND device_id = ? AND hash = ? LIMIT 1;`,
   getYearsList: `SELECT strftime('%Y', taken_at / 1000, 'unixepoch') as 'year' FROM ${TABLE_NAME};`,
   getLastPhotoOfTheYear: `SELECT preview_path, strftime('%Y', taken_at / 1000, 'unixepoch') as 'year' FROM ${TABLE_NAME} WHERE year = ?;`,
   getLastPhotoOfTheMonth: `SELECT preview_path, strftime('%Y', taken_at / 1000, 'unixepoch') as 'year', strftime('%m', taken_at / 1000, 'unixepoch') as 'month' FROM ${TABLE_NAME} WHERE year = ? AND month = ?;`,

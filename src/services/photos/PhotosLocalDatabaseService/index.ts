@@ -38,8 +38,8 @@ export default class PhotosLocalDatabaseService {
 
   public async initSyncDates(): Promise<void> {
     await sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.insert, [
-      new Date('January 1, 1971 00:00:01'),
-      new Date('January 1, 1971 00:00:01'),
+      new Date('January 1, 1971 00:00:01').toUTCString(),
+      new Date('January 1, 1971 00:00:01').toUTCString(),
       null,
     ]);
   }
@@ -151,9 +151,14 @@ export default class PhotosLocalDatabaseService {
     });
   }
 
-  public async getPhotoByNameTypeAndDevice(name: string, type: string, deviceId: string): Promise<Photo | null> {
+  public async getPhotoByNameTypeDeviceAndHash(
+    name: string,
+    type: string,
+    deviceId: string,
+    hash: string,
+  ): Promise<Photo | null> {
     return sqliteService
-      .executeSql(PHOTOS_DB_NAME, photoTable.statements.getPhotoByNameTypeAndDevice, [name, type, deviceId])
+      .executeSql(PHOTOS_DB_NAME, photoTable.statements.getPhotoByNameTypeDeviceAndHash, [name, type, deviceId, hash])
       .then((res) => {
         if (res[0].rows.item(0)) {
           return res[0].rows.item(0);
@@ -253,6 +258,7 @@ export default class PhotosLocalDatabaseService {
         photo.createdAt.getTime(),
         photo.updatedAt.getTime(),
         previewPath,
+        photo.hash,
       ])
       .then(() => undefined);
   }
@@ -304,6 +310,7 @@ export default class PhotosLocalDatabaseService {
       deviceId: row.device_id,
       fileId: row.file_id,
       previewId: row.preview_id,
+      hash: row.hash,
       statusChangedAt: new Date(row.status_changed_at),
       takenAt: new Date(row.taken_at),
       createdAt: new Date(row.created_at),

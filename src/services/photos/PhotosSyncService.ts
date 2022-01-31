@@ -1,6 +1,7 @@
 import { photos } from '@internxt/sdk';
 import strings from '../../../assets/lang/strings';
 import { RootState } from '../../store';
+import RNFS from 'react-native-fs';
 
 import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType, PhotosTaskCompletedInfo } from '../../types/photos';
 import PhotosDeviceService from './PhotosDeviceService';
@@ -231,7 +232,7 @@ export default class PhotosSyncService {
   ): Promise<void> {
     const limit = 50;
     let skip = 0;
-    let photosToUpload: { data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId'>; uri: string }[];
+    let photosToUpload: { data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId' | 'hash'>; uri: string }[];
 
     this.logService.info(`[SYNC] ${this.currentSyncId}: UPLOADING LOCAL PHOTOS FROM ${options.from} TO ${options.to}`);
 
@@ -244,7 +245,7 @@ export default class PhotosSyncService {
       });
 
       photosToUpload = cameraRollPhotos.map<{
-        data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId'>;
+        data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId' | 'hash'>;
         uri: string;
       }>((p) => {
         const nameWithExtension = p.filename as string;
@@ -275,10 +276,12 @@ export default class PhotosSyncService {
 
         const usage = options.getState().storage.usage + options.getState().photos.usage;
         const limit = options.getState().storage.limit;
-        const isAlreadyUploaded = await this.localDatabaseService.getPhotoByNameTypeAndDevice(
+        const hash = await RNFS.hash(photo.uri, 'sha256');
+        const isAlreadyUploaded = await this.localDatabaseService.getPhotoByNameTypeDeviceAndHash(
           photo.data.name,
           photo.data.type,
           photo.data.deviceId,
+          hash,
         );
 
         // * Avoids to upload the same photo multiple times
@@ -292,7 +295,7 @@ export default class PhotosSyncService {
             throw new Error(strings.errors.storageLimitReached);
           }
 
-          const [createdPhoto, preview] = await this.uploadService.upload(photo.data, photo.uri);
+          const [createdPhoto, preview] = await this.uploadService.upload({ ...photo.data, hash }, photo.uri);
 
           await this.localDatabaseService.insertPhoto(createdPhoto, preview);
 
