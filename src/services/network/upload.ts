@@ -7,7 +7,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { request } from '@internxt/lib';
 
 import { GenerateFileKey, ripemd160, sha256, sha512HmacBuffer, EncryptFilename } from '../../@inxt-js/lib/crypto';
-import { getDocumentsDir } from '../fileSystem';
+import { getDocumentsDir, pathToUri } from '../fileSystem';
 import { ShardMeta } from '../../@inxt-js/lib/shardMeta';
 import { FileId } from '@internxt/sdk/dist/photos';
 import { NetworkCredentials, NetworkUser } from '../../types';
@@ -210,26 +210,28 @@ function generateCipher(key: Buffer, iv: Buffer): Cipher {
 }
 
 async function encryptFile(
-  fileUri: string,
+  filePath: string,
   fileSize: number,
   fileEncryptionKey: Buffer,
-  iv: Buffer
+  iv: Buffer,
 ): Promise<FileEncryptedURI> {
   const fileEncryptedURI: FileEncryptedURI = getDocumentsDir() + '/' + uuid.v4() + '.enc';
 
   if (Platform.OS === 'android') {
-    return new Promise((resolve, reject) => nativeEncryptFile(
-      fileUri,
-      fileEncryptedURI,
-      fileEncryptionKey.toString('hex'),
-      iv.toString('hex'),
-      (err: Error) => {
-        if (err) {
-          return reject(err);
-        }
-        return resolve(fileEncryptedURI);
-      }
-    ));
+    return new Promise((resolve, reject) =>
+      nativeEncryptFile(
+        filePath,
+        fileEncryptedURI,
+        fileEncryptionKey.toString('hex'),
+        iv.toString('hex'),
+        (err: Error) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve(fileEncryptedURI);
+        },
+      ),
+    );
   }
 
   const twoMb = 2 * 1024 * 1024;
@@ -240,7 +242,7 @@ async function encryptFile(
   let start = 0;
 
   return eachLimit(new Array(chunks), 1, (_, cb) => {
-    RFNS.read(fileUri, chunksOf, start, 'base64')
+    RFNS.read(pathToUri(filePath), chunksOf, start, 'base64')
       .then((res) => {
         cipher.write(Buffer.from(res, 'base64'));
         return writer.write(cipher.read().toString('base64'));
@@ -266,7 +268,7 @@ interface UploadOpts {
 }
 
 export async function uploadFile(
-  fileURI: string,
+  filePath: string,
   bucketId: string,
   networkUrl: string,
   credentials: NetworkCredentials,
@@ -312,14 +314,9 @@ export async function uploadFile(
   const fileEncryptionKey = await GenerateFileKey(credentials.encryptionKey, bucketId, index);
 
   // 4. Encrypt file
-  const fileStats = await RFNS.stat(fileURI);
+  const fileStats = await RFNS.stat(filePath);
   const fileSize = parseInt(fileStats.size);
-  const fileEncryptedURI = await encryptFile(
-    fileURI,
-    fileSize,
-    fileEncryptionKey,
-    index.slice(0, 16)
-  );
+  const fileEncryptedURI = await encryptFile(filePath, fileSize, fileEncryptionKey, index.slice(0, 16));
 
   const fileHash = ripemd160(Buffer.from(await RFNS.hash(fileEncryptedURI, 'sha256'), 'hex'));
   const merkleTree = generateMerkleTree();

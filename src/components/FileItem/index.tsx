@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Platform, Animated, Easing } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 
@@ -46,14 +46,16 @@ function FileItem(props: FileItemProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(!!props.isLoading);
   const spinValue = new Animated.Value(1);
 
-  Animated.loop(
-    Animated.timing(spinValue, {
-      toValue: 0,
-      duration: 800,
-      easing: Easing.linear,
-      useNativeDriver: true,
-    }),
-  ).start();
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 0,
+        duration: 800,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    ).start();
+  }, []);
 
   async function onItemPressed() {
     setIsLoading(true);

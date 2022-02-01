@@ -71,6 +71,10 @@ export function pathToUri(path: string): string {
   return Platform.OS === 'android' ? ANDROID_URI_PREFIX + path : path;
 }
 
+export function uriToPath(uri: string): string {
+  return uri.replace(ANDROID_URI_PREFIX, '');
+}
+
 export function getDocumentsDir(): string {
   return RNFS.DocumentDirectoryPath;
 }

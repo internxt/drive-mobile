@@ -100,11 +100,7 @@ async function decryptFile(
     progress: (progress: number) => void;
   },
 ): Promise<FileDecryptedURI> {
-  const decipher = createDecipheriv(
-    'aes-256-ctr',
-    fileDecryptionKey.slice(0, 32),
-    iv,
-  );
+  const decipher = createDecipheriv('aes-256-ctr', fileDecryptionKey.slice(0, 32), iv);
   const twoMb = 2 * 1024 * 1024;
   const chunksOf = twoMb;
   const chunks = Math.ceil(fileSize / chunksOf);
@@ -118,19 +114,13 @@ async function decryptFile(
 
   if (Platform.OS === 'android') {
     return new Promise((resolve, reject) => {
-      nativeDecryptFile(
-        fromPath,
-        toPath,
-        fileDecryptionKey.toString('hex'),
-        iv.toString('hex'),
-        (err) => {
-          if (err) {
-            return reject(err);
-          }
-          options?.progress(100);
-          resolve(toPath);
+      nativeDecryptFile(fromPath, toPath, fileDecryptionKey.toString('hex'), iv.toString('hex'), (err) => {
+        if (err) {
+          return reject(err);
         }
-      );
+        options?.progress(1);
+        resolve(toPath);
+      });
     });
   }
 
@@ -277,7 +267,7 @@ export async function downloadFile(
     Buffer.from(fileInfo.index, 'hex').slice(0, 16),
     {
       progress: options.decryptionProgressCallback,
-    }
+    },
   );
 
   await RNFS.unlink(encryptedFileURI).catch(() => null);

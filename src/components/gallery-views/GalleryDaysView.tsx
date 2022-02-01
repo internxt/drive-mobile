@@ -3,11 +3,13 @@ import React, { useState } from 'react';
 import { FlatList, RefreshControl, Text, View } from 'react-native';
 
 import { tailwind } from '../../helpers/designSystem';
+import useIsMounted from '../../hooks/useIsMounted';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
 import GalleryDay from '../GalleryDay';
 
 const GalleryDaysView = (): JSX.Element => {
+  const isMounted = useIsMounted();
   const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
   const photosByMonth = useAppSelector(photosSelectors.photosByMonth);
@@ -38,10 +40,10 @@ const GalleryDaysView = (): JSX.Element => {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={async () => {
-            setRefreshing(true);
+            isMounted && setRefreshing(true);
             dispatch(photosActions.resetPhotos());
             await dispatch(photosThunks.loadLocalPhotosThunk());
-            setRefreshing(false);
+            isMounted && setRefreshing(false);
           }}
         />
       }

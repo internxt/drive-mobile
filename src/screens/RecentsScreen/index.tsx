@@ -16,7 +16,7 @@ interface RecentsScreenProps {
 }
 
 function RecentsScreen(props: RecentsScreenProps): JSX.Element {
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [recents, setRecents] = useState<IFile[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const filteredRecents = recents.filter((file: IFile) =>
@@ -31,7 +31,7 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
         Alert.alert('Cannot load recents', err.message);
       })
       .finally(() => {
-        setLoading(false);
+        setIsLoading(false);
         setRefreshing(false);
       });
   };
@@ -42,7 +42,7 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
 
   return (
     <View style={tailwind('bg-white flex-1')}>
-      {loading && (
+      {isLoading && (
         <View>
           {_.times(20, (n) => (
             <SkinSkeleton key={n} />
@@ -50,7 +50,7 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
         </View>
       )}
 
-      {!loading && (
+      {!isLoading && (
         <ScrollView
           refreshControl={
             <RefreshControl

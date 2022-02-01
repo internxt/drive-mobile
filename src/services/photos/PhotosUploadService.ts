@@ -7,7 +7,7 @@ import imageService from '../image';
 import { PhotosServiceModel } from '../../types/photos';
 import PhotosLogService from './PhotosLogService';
 import PhotosFileSystemService from './PhotosFileSystemService';
-import { pathToUri } from '../fileSystem';
+import { pathToUri, uriToPath } from '../fileSystem';
 
 export default class PhotosUploadService {
   private static readonly PREVIEW_EXTENSION: ResizeFormat = 'JPEG';
@@ -45,7 +45,7 @@ export default class PhotosUploadService {
 
     this.logService.info('Uploading photo for photo ' + data.name);
     const fileId = await network.uploadFile(
-      uri,
+      uriToPath(uri),
       this.model.user?.bucketId || '',
       this.model.networkUrl,
       this.model.networkCredentials,

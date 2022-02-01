@@ -24,7 +24,7 @@ import RNFS from 'react-native-fs';
 import { createFileEntry, FileEntry, getFinalUri } from '../../../services/upload';
 import analytics from '../../../services/analytics';
 import { encryptFilename } from '../../../helpers';
-import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../services/fileSystem';
+import { stat, getTemporaryDir, copyFile, unlink, clearTempDir, pathToUri } from '../../../services/fileSystem';
 import { renameIfAlreadyExists } from '../../../lib';
 import strings from '../../../../assets/lang/strings';
 import { notify } from '../../../services/toast';
@@ -117,13 +117,12 @@ async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image',
     }
   }
 
-  const fileURI = 'file:///' + destPath;
   const filename = result.name;
   const fileExtension = result.type;
   const currenFolderId = result.currentFolder.toString();
 
   const createdFileEntry = await uploadAndCreateFileEntry(
-    fileURI,
+    destPath,
     filename,
     fileExtension,
     currenFolderId,
@@ -136,17 +135,17 @@ async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image',
 }
 
 async function uploadAndCreateFileEntry(
-  fileURI: string,
+  filePath: string,
   fileName: string,
   fileExtension: string,
   currentFolderId: string,
   progressCallback: ProgressCallback,
 ) {
   const { bucket, bridgeUser, mnemonic, userId } = await deviceStorage.getUser();
-  const fileStat = await stat(fileURI);
+  const fileStat = await stat(filePath);
   const fileSize = fileStat.size;
   const fileId = await uploadFile(
-    fileURI,
+    filePath,
     bucket,
     process.env.REACT_NATIVE_BRIDGE_URL!,
     {

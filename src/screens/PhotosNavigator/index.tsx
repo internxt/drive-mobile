@@ -55,8 +55,7 @@ function PhotosNavigator(): JSX.Element {
         <View style={tailwind('flex-1 items-center justify-center')}>
           <View style={tailwind('px-5')}>
             <Text style={tailwind('text-red-60')}>
-              {`URL: ${process.env.REACT_NATIVE_PHOTOS_API_URL}\n` +
-                strings.formatString(strings.errors.photosInitialize, initializeError)}
+              {strings.formatString(strings.errors.photosInitialize, initializeError)}
             </Text>
             <BaseButton
               style={tailwind('mt-5')}
