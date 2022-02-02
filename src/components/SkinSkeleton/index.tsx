@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Animated, Easing } from 'react-native';
 import { tailwind } from '../../helpers/designSystem';
 
 export default function SkinSkeleton(): JSX.Element {
-  const fadeAnim = new Animated.Value(1); // Initial value for opacity: 0
+  const [fadeAnim] = useState(new Animated.Value(1));
 
   Animated.loop(
     Animated.sequence([

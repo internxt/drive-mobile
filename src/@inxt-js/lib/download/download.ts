@@ -3,7 +3,7 @@ import { FileObject } from '../../api/FileObject';
 import { DOWNLOAD } from '../events';
 import { ActionState } from '../../api/actionState';
 import { DOWNLOAD_CANCELLED } from '../../api/constants';
-import { FileManager } from '../../../lib/fs';
+import { FileManager } from '../../../services/fileSystem';
 
 export interface Logger {
   info: (message?: any, ...optionalParams: any[]) => void;

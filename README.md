@@ -13,6 +13,22 @@ We can test the android application in any operating system, although for each o
 
 ### Android installation
 
+#### Ports mapping
+
+In order **to connect a real device or an emulator to localhost** interface, we have to map used ports in our computer with the device ports.
+
+First list the connected devices:
+
+```bash
+adb devices
+```
+
+Then use the following command to map **DEVICE_ID** device **PORT** to your localhost **PORT**:
+
+```bash
+adb -s DEVICE_ID reverse tcp:PORT tcp:PORT
+```
+
 #### ADB (Android Debug Bridge)
 
 To install the ADB in Mac OS or Linux, execute the following command:

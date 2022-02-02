@@ -22,7 +22,7 @@ import BottomModal from '../BottomModal';
 function ShareFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { showShareModal } = useAppSelector((state) => state.layout);
-  const { focusedItem } = useAppSelector((state) => state.files);
+  const { focusedItem } = useAppSelector((state) => state.storage);
   const [isOpen, setIsOpen] = useState(showShareModal);
   const [selectedFile, setSelectedFile] = useState<DriveFileData & DriveFolderData>();
   const [filename, setFileName] = useState('');

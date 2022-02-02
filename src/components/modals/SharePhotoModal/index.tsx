@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Image, Platform, Share, Text, TouchableHighlight, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, Platform, Share, Text, TextInput, TouchableHighlight, View } from 'react-native';
 import { Photo } from '@internxt/sdk/dist/photos';
 import prettysize from 'prettysize';
 import * as Unicons from '@iconscout/react-native-unicons';
@@ -9,26 +9,38 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import BaseButton from '../../BaseButton';
-import { TextInput } from 'react-native-gesture-handler';
 import { notify } from '../../../services/toast';
-import { useAppDispatch } from '../../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
+import imageService from '../../../services/image';
+import { items } from '@internxt/lib';
+import { exists, pathToUri } from '../../../services/fileSystem';
+import { photosSelectors, photosThunks } from '../../../store/slices/photos';
+import LoadingSpinner from '../../LoadingSpinner';
 
-function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo }): JSX.Element {
+interface SharePhotoModalProps extends BottomModalProps {
+  data: Photo;
+  preview: string;
+}
+
+function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalProps): JSX.Element {
   if (!data) {
     return <View></View>;
   }
 
-  const dispatch = useAppDispatch();
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const examplePhoto = require('../../../../assets/images/photos/example.png');
   const [times, setTimes] = useState(10);
   const [url, setUrl] = useState('LINK');
+  const dispatch = useAppDispatch();
+  const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
+  const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: data.id, type: data.type });
+  const isLoading = useAppSelector(photosSelectors.isPhotoDownloading)(data.fileId);
+  const progress = useAppSelector(photosSelectors.getDownloadingPhotoProgress)(data.fileId);
+  const [uri, setUri] = useState('');
   const onCancelButtonPressed = () => {
     onClosed();
   };
   const onShareButtonPressed = async () => {
-    try {
+    /*try {
       const result = await Share.share(
         Platform.OS === 'android'
           ? {
@@ -50,7 +62,9 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
       onClosed();
     } catch (err) {
       notify({ type: 'error', text: strings.errors.photoShared });
-    }
+    } */
+
+    await imageService.share(uri);
   };
   const onLessTimesButtonPressed = () => {
     if (times > 0) {
@@ -70,7 +84,7 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
   const header = (
     <>
       <View style={tailwind('mr-3')}>
-        <Image style={tailwind('bg-black w-10 h-10')} source={examplePhoto} />
+        <Image style={tailwind('bg-black w-10 h-10')} source={{ uri: preview }} />
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>
@@ -86,22 +100,46 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
             {prettysize(data.size)}
             <Text style={globalStyle.fontWeight.bold}> · </Text>
           </>
-          {'Updated '}
-          {new Date(data.updatedAt).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
+          {strings.generic.updated +
+            ' ' +
+            new Date(data.updatedAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
         </Text>
       </View>
     </>
   );
 
+  useEffect(() => {
+    if (isOpen) {
+      exists(photoPath).then((value) => {
+        if (value) {
+          setUri(pathToUri(photoPath));
+        } else {
+          dispatch(
+            photosThunks.downloadPhotoThunk({
+              fileId: data.fileId,
+              options: {
+                toPath: photoPath,
+              },
+            }),
+          )
+            .unwrap()
+            .then((path) => {
+              setUri(pathToUri(path));
+            });
+        }
+      });
+    }
+  }, [isOpen]);
+
   return (
     <BottomModal isOpen={isOpen} onClosed={onClosed} header={header}>
       <View style={tailwind('bg-neutral-10')}>
         {/* LIMIT */}
-        <View style={tailwind('my-6')}>
+        {/* <View style={tailwind('my-6')}>
           <Text
             style={[
               tailwind('w-full text-center mb-2 text-base font-semibold text-neutral-500'),
@@ -136,9 +174,10 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
             </TouchableHighlight>
           </View>
         </View>
+        */}
 
         {/* LINK */}
-        <View style={tailwind('flex-row mb-9 justify-center items-center')}>
+        {/* <View style={tailwind('flex-row mb-9 justify-center items-center')}>
           <BaseButton
             title={
               <View style={tailwind('flex-row justify-center items-center')}>
@@ -149,6 +188,24 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
             type="accept"
             onPress={onCopyLinkButtonPressed}
           />
+        </View>
+        */}
+
+        {/* !!! TMP CONTENT */}
+        <View style={tailwind('flex-row items-center justify-center px-5 py-10')}>
+          {isLoading ? (
+            <>
+              <LoadingSpinner size={20} style={tailwind('mr-2')} />
+              <Text style={tailwind('text-base')}>
+                {strings.formatString(strings.modals.share_photo_modal.decrypting, progress.toFixed(0))}
+              </Text>
+            </>
+          ) : (
+            <View style={tailwind('items-center')}>
+              <Text style={tailwind('text-sm text-green-60 mb-2')}>{strings.modals.share_photo_modal.photoReady}</Text>
+              <Text style={tailwind('text-base')}>{strings.modals.share_photo_modal.shareWithYourContacts}</Text>
+            </View>
+          )}
         </View>
 
         {/* ACTIONS */}
@@ -166,6 +223,7 @@ function SharePhotoModal({ isOpen, onClosed, data }: BottomModalProps & { data: 
             title={strings.components.buttons.share}
             type="accept"
             onPress={onShareButtonPressed}
+            disabled={!uri || isLoading}
             style={tailwind('flex-1')}
           />
         </View>

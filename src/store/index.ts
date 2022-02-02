@@ -1,18 +1,22 @@
 import { configureStore } from '@reduxjs/toolkit';
 
+import appReducer from './slices/app';
 import authReducer from './slices/auth';
-import filesReducer from './slices/files';
+import storageReducer from './slices/storage';
 import layoutReducer from './slices/layout';
 import photosReducer from './slices/photos';
 
 export const store = configureStore({
   reducer: {
+    app: appReducer,
     auth: authReducer,
-    files: filesReducer,
+    storage: storageReducer,
     layout: layoutReducer,
     photos: photosReducer,
   },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }),
 });
+export default store;
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

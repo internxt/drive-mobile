@@ -9,14 +9,14 @@ import Separator from '../../Separator';
 import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
-import { filesThunks } from '../../../store/slices/files';
+import { storageThunks } from '../../../store/slices/storage';
 import { IFolder } from '../../FileList';
 
 function MoveFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { showMoveModal } = useAppSelector((state) => state.layout);
-  const { rootFolderContent, folderContent, selectedFile } = useAppSelector((state) => state.files);
+  const { rootFolderContent, folderContent, selectedFile } = useAppSelector((state) => state.storage);
   const [currentFolderId, setCurrentFolderId] = useState<number>();
   const [folderlist, setFolderList] = useState<IFolder[]>([]);
   const [firstFolder, setFirstFolder] = useState<number>();
@@ -40,11 +40,11 @@ function MoveFilesModal(): JSX.Element {
 
   const moveFile = async (destinationFolderId: number) => {
     if (selectedfile) {
-      await dispatch(filesThunks.moveFileThunk({ fileId: selectedfile.fileId, destinationFolderId }));
+      await dispatch(storageThunks.moveFileThunk({ fileId: selectedfile.fileId, destinationFolderId }));
       dispatch(layoutActions.setShowMoveModal(false));
       const rootFolderId = user?.root_folder_id;
 
-      rootFolderId && dispatch(filesThunks.getFolderContentThunk({ folderId: rootFolderId }));
+      rootFolderId && dispatch(storageThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
   };
 
@@ -79,7 +79,7 @@ function MoveFilesModal(): JSX.Element {
           onPress={() => {
             dispatch(layoutActions.setShowMoveModal(false));
             if (firstFolder) {
-              dispatch(filesThunks.getFolderContentThunk({ folderId: firstFolder }));
+              dispatch(storageThunks.getFolderContentThunk({ folderId: firstFolder }));
             }
           }}
         >

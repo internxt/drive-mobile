@@ -11,15 +11,29 @@ import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch } from '../../../store/hooks';
+import { pathToUri, showFileViewer } from '../../../services/fileSystem';
+import { items } from '@internxt/lib';
 
-function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo }): JSX.Element {
+interface PhotosPreviewOptionsModalProps extends BottomModalProps {
+  data: Photo;
+  preview: string;
+  photoPath: string;
+  isFullSizeLoading: boolean;
+}
+
+function PhotosPreviewOptionsModal({
+  isOpen,
+  onClosed,
+  data,
+  preview,
+  photoPath,
+  isFullSizeLoading,
+}: PhotosPreviewOptionsModalProps): JSX.Element {
   const dispatch = useAppDispatch();
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const examplePhoto = require('../../../../assets/images/photos/example.png');
   const header = (
     <>
       <View style={tailwind('mr-3')}>
-        <Image style={tailwind('bg-black w-10 h-10')} source={examplePhoto} />
+        <Image style={tailwind('bg-black w-10 h-10')} source={{ uri: preview }} />
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>
@@ -28,19 +42,20 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps 
           ellipsizeMode="middle"
           style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
         >
-          {data.name + '.' + data.type}
+          {items.getItemDisplayName(data)}
         </Text>
         <Text style={tailwind('text-xs text-neutral-100')}>
           <>
             {prettysize(data.size)}
             <Text style={globalStyle.fontWeight.bold}> · </Text>
           </>
-          {'Updated '}
-          {new Date(data.updatedAt).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
+          {strings.generic.updated +
+            ' ' +
+            new Date(data.updatedAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
         </Text>
       </View>
     </>
@@ -53,7 +68,7 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps 
     dispatch(layoutActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
-    console.log('onDownloadButtonPressed');
+    showFileViewer(pathToUri(photoPath), { displayName: items.getItemDisplayName(data) });
   };
   const onMoveToTrashButtonPressed = () => {
     dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
@@ -73,15 +88,17 @@ function PhotosPreviewOptionsModal({ isOpen, onClosed, data }: BottomModalProps 
             onPress={onInfoButtonPressed}
           />
           <BottomModalOption
+            disabled={isFullSizeLoading}
             leftSlot={
               <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.shareWithLink}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.share}</Text>
               </View>
             }
             rightSlot={<Unicons.UilLink size={20} color={getColor('neutral-500')} />}
             onPress={onShareButtonPressed}
           />
           <BottomModalOption
+            disabled={isFullSizeLoading}
             leftSlot={
               <View style={tailwind('flex-grow')}>
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.download}</Text>

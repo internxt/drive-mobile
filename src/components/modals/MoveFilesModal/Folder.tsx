@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 
 import { getAnalyticsData } from '../../../services/analytics';
 import analytics from '../../../services/analytics';
-import { filesThunks } from '../../../store/slices/files';
+import { storageThunks } from '../../../store/slices/storage';
 import { useAppDispatch } from '../../../store/hooks';
 
 interface FolderProps {
@@ -25,7 +25,7 @@ function Folder(props: FolderProps): JSX.Element {
       // eslint-disable-next-line camelcase
       folder_id: props.item.id,
     });
-    dispatch(filesThunks.getFolderContentThunk({ folderId: props.item.id }));
+    dispatch(storageThunks.getFolderContentThunk({ folderId: props.item.id }));
   }
 
   return (

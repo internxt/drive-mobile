@@ -10,11 +10,13 @@ const strings = new LocalizedStrings({
       security: 'Security',
       create: 'Create',
       creating: 'Creating...',
+      preparing: 'Preparing...',
       rename: 'Rename',
       close: 'Close',
       upload: 'Upload',
       delete: 'Delete',
       settings: 'Settings',
+      updated: 'Updated',
     },
     tabs: {
       home: 'Home',
@@ -24,9 +26,6 @@ const strings = new LocalizedStrings({
       menu: 'Menu',
     },
     screens: {
-      photos: {
-        title: 'Coming soon',
-      },
       home: {
         title: 'Home',
       },
@@ -166,6 +165,9 @@ const strings = new LocalizedStrings({
       gallery: {
         title: 'Gallery',
         nPhotosSelected: '{0} selected',
+        empty: 'No photos to show',
+        loading: 'Loading photos...',
+        syncing: 'Syncing {0} of {1}',
         groupBy: {
           years: 'Years',
           months: 'Months',
@@ -205,6 +207,8 @@ const strings = new LocalizedStrings({
         moveToThrash: 'Move to trash',
         copyLink: 'Copy link',
         startSyncingPhotos: 'Start syncing my photos',
+        syncNow: 'Sync now',
+        tryAgain: 'Try again',
       },
       inputs: {
         email: 'Email address',
@@ -300,16 +304,33 @@ const strings = new LocalizedStrings({
       share_photo_modal: {
         nativeMesage: 'Take a look to this photo!',
         linkOpenLimit: 'Link open limit',
+        decrypting: 'Decrypting image {0}%',
+        photoReady: 'Your photo is ready!',
+        shareWithYourContacts: 'Share the photo with your contacts',
       },
       link_copied_modal: {
         message: 'Link copied to clipboard',
       },
+      run_out_of_storage: {
+        advice: 'Get a higher plan or remove files you will no longer use in order to upload or sync your files again.',
+      },
     },
     messages: {
       photoShared: 'You have shared a photo!',
+      pressAgainToExit: 'Press again to close the app',
+      photosSyncPending: 'Pending synchronization',
+      photosSyncCompleted: 'Your device is up to date',
     },
     errors: {
+      unknown: 'Unknown error',
+      uploadFile: 'File upload error: {0}',
+      storageLimitReached: 'You have reached your storage limit',
+      photosInitialize: 'Error initializing Photos: {0}',
       photoShared: 'An error has ocurred during photo sharing',
+      photosSync: 'Error during photos sync: {0}',
+      photosLoad: 'Error loading photos: {0}',
+      photosDelete: 'Error deleting photo/s: {0}',
+      photosFullSizeLoad: 'Error loading full size photo: {0}',
     },
   },
   es: {
@@ -319,11 +340,13 @@ const strings = new LocalizedStrings({
       security: 'Seguridad',
       create: 'Crear',
       creating: 'Creando...',
+      preparing: 'Preparando...',
       rename: 'Renombrar',
       close: 'Cerrar',
       upload: 'Subir',
       delete: 'Eliminar',
       settings: 'Configuración',
+      updated: 'Actualizado',
     },
     tabs: {
       home: 'Inicio',
@@ -476,6 +499,9 @@ const strings = new LocalizedStrings({
       gallery: {
         title: 'Galería',
         nPhotosSelected: '{0} seleccionadas',
+        empty: 'No hay fotos para mostrar',
+        loading: 'Cargando fotos...',
+        syncing: 'Sincronizando {0} de {1}',
         groupBy: {
           years: 'Años',
           months: 'Meses',
@@ -515,6 +541,8 @@ const strings = new LocalizedStrings({
         moveToThrash: 'Mover a la papelera',
         copyLink: 'Copiar enlace',
         startSyncingPhotos: 'Sincronizar mis fotos',
+        syncNow: 'Sincronizar ahora',
+        tryAgain: 'Intentar de nuevo',
       },
       inputs: {
         email: 'Correo electrónico',
@@ -612,16 +640,34 @@ const strings = new LocalizedStrings({
       share_photo_modal: {
         nativeMesage: '¡Echa un vistazo a esta foto!',
         linkOpenLimit: 'Límite de veces abierto',
+        decrypting: 'Desencriptando imagen {0}%',
+        photoReady: '¡Tu foto está lista!',
+        shareWithYourContacts: 'Comparte la foto con tus contactos',
       },
       link_copied_modal: {
         message: 'Enlace copiado al portapapeles',
       },
+      run_out_of_storage: {
+        advice:
+          'Mejora tu plan o borra los archivos que no vayas a usar para subir o sincronizar tus archivos de nuevo.',
+      },
     },
     messages: {
       photoShared: '¡Has compartido una foto!',
+      pressAgainToExit: 'Pulsa otra vez para cerrar la app',
+      photosSyncPending: 'Sincronización pendiente',
+      photosSyncCompleted: 'Tu dispositivo está sincronizado',
     },
     errors: {
+      unknown: 'Error desconocido',
+      uploadFile: 'Error al subir archivo: {0}',
+      storageLimitReached: 'Has alcanzado tu límite de almacenamiento',
+      photosInitialize: 'Error al iniciar Photos: {0}',
       photoShared: 'Ha habido un error al compartir la foto',
+      photosSync: 'Error sincronizando fotos: {0}',
+      photosLoad: 'Error cargando fotos: {0}',
+      photosDelete: 'Error eliminando foto/s: {0}',
+      photosFullSizeLoad: 'Error cargando foto a tamaño completo: {0}',
     },
   },
 });

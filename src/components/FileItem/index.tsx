@@ -1,18 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Platform, Animated, Easing } from 'react-native';
-import FileViewer from 'react-native-file-viewer';
-import * as FileSystem from 'expo-file-system';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import analytics from '../../services/analytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
-import { createEmptyFile, exists, FileManager, getDocumentsDir } from '../../lib/fs';
+import {
+  createEmptyFile,
+  exists,
+  FileManager,
+  getDocumentsDir,
+  pathToUri,
+  showFileViewer,
+} from '../../services/fileSystem';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import prettysize from 'prettysize';
 import globalStyle from '../../styles/global.style';
 import { DevicePlatform } from '../../types';
-import { filesActions, filesThunks } from '../../store/slices/files';
+import { storageActions, storageThunks } from '../../store/slices/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { deviceStorage } from '../../services/deviceStorage';
 import { layoutActions } from '../../store/slices/layout';
@@ -34,41 +39,43 @@ interface FileItemProps {
 
 function FileItem(props: FileItemProps): JSX.Element {
   const dispatch = useAppDispatch();
-  const { selectedItems } = useAppSelector((state) => state.files);
+  const { selectedItems } = useAppSelector((state) => state.storage);
   const isSelectionMode = selectedItems.length > 0;
   const [downloadProgress, setDownloadProgress] = useState(-1);
   const [decryptionProgress, setDecryptionProgress] = useState(-1);
   const [isLoading, setIsLoading] = useState(!!props.isLoading);
   const spinValue = new Animated.Value(1);
 
-  Animated.loop(
-    Animated.timing(spinValue, {
-      toValue: 0,
-      duration: 800,
-      easing: Easing.linear,
-      useNativeDriver: true,
-    }),
-  ).start();
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 0,
+        duration: 800,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    ).start();
+  }, []);
 
-  async function handleItemPressed() {
+  async function onItemPressed() {
     setIsLoading(true);
 
     if (props.isFolder) {
-      handleFolderClick();
+      onFolderPressed();
     } else {
-      await handleFileClick();
+      await onFilePressed();
     }
 
     setIsLoading(false);
   }
 
-  function handleFolderClick() {
+  function onFolderPressed() {
     trackFolderOpened();
-    dispatch(filesThunks.getFolderContentThunk({ folderId: props.item.id as number }));
-    dispatch(filesActions.addDepthAbsolutePath([props.item.name]));
+    dispatch(storageThunks.getFolderContentThunk({ folderId: props.item.id as number }));
+    dispatch(storageActions.addDepthAbsolutePath([props.item.name]));
   }
 
-  async function handleFileClick(): Promise<void> {
+  async function onFilePressed(): Promise<void> {
     const isRecentlyUploaded = props.item.isUploaded && props.item.uri;
 
     if (isLoading || !props.item.fileId) {
@@ -87,7 +94,7 @@ function FileItem(props: FileItemProps): JSX.Element {
 
     trackDownloadStart();
     setDownloadProgress(0);
-    dispatch(filesActions.downloadSelectedFileStart());
+    dispatch(storageActions.downloadSelectedFileStart());
 
     const fileAlreadyExists = await exists(destinationPath);
 
@@ -105,13 +112,7 @@ function FileItem(props: FileItemProps): JSX.Element {
       .then(() => {
         trackDownloadSuccess();
 
-        console.log('Destination path', destinationPath);
-
-        if (Platform.OS === 'android') {
-          return showFileViewer('file://' + destinationPath);
-        }
-
-        return showFileViewer(destinationPath);
+        return showFileViewer(pathToUri(destinationPath));
       })
       .catch((err) => {
         trackDownloadError(err);
@@ -119,7 +120,7 @@ function FileItem(props: FileItemProps): JSX.Element {
         Alert.alert('Error downloading file', err.message);
       })
       .finally(() => {
-        dispatch(filesActions.downloadSelectedFileStop());
+        dispatch(storageActions.downloadSelectedFileStop());
         setDownloadProgress(-1);
         setDecryptionProgress(-1);
       });
@@ -134,7 +135,7 @@ function FileItem(props: FileItemProps): JSX.Element {
       {
         encryptionKey: mnemonic,
         user: bridgeUser,
-        pass: userId,
+        password: userId,
       },
       process.env.REACT_NATIVE_BRIDGE_URL!,
       {
@@ -153,16 +154,6 @@ function FileItem(props: FileItemProps): JSX.Element {
       } else {
         throw err;
       }
-    });
-  }
-
-  function showFileViewer(fileUri: string) {
-    return FileSystem.getInfoAsync(fileUri).then((fileInfo) => {
-      if (!fileInfo.exists) {
-        throw new Error('File not found');
-      }
-
-      return FileViewer.open(fileInfo.uri);
     });
   }
 
@@ -222,13 +213,11 @@ function FileItem(props: FileItemProps): JSX.Element {
       underlayColor={getColor('neutral-20')}
       onLongPress={() => {
         if (props.isGrid) {
-          dispatch(filesActions.focusItem(props.item));
+          dispatch(storageActions.focusItem(props.item));
           dispatch(layoutActions.setShowItemModal(true));
         }
       }}
-      onPress={async () => {
-        await handleItemPressed();
-      }}
+      onPress={onItemPressed}
     >
       <View style={!props.isGrid && tailwind('flex-row')}>
         <View
@@ -306,11 +295,11 @@ function FileItem(props: FileItemProps): JSX.Element {
               disabled={isUploading || isDownloading}
               style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
               onPress={() => {
-                dispatch(filesActions.focusItem(props.item));
+                dispatch(storageActions.focusItem(props.item));
                 dispatch(layoutActions.setShowItemModal(true));
               }}
               onLongPress={() => {
-                dispatch(filesActions.focusItem(props.item));
+                dispatch(storageActions.focusItem(props.item));
                 dispatch(layoutActions.setShowItemModal(true));
               }}
             >
