@@ -11,7 +11,7 @@ import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch } from '../../../store/hooks';
-import { showFileViewer } from '../../../services/fileSystem';
+import { pathToUri, showFileViewer } from '../../../services/fileSystem';
 import { items } from '@internxt/lib';
 
 interface PhotosPreviewOptionsModalProps extends BottomModalProps {
@@ -68,7 +68,7 @@ function PhotosPreviewOptionsModal({
     dispatch(layoutActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
-    showFileViewer(photoPath, { displayName: items.getItemDisplayName(data) });
+    showFileViewer(pathToUri(photoPath), { displayName: items.getItemDisplayName(data) });
   };
   const onMoveToTrashButtonPressed = () => {
     dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
