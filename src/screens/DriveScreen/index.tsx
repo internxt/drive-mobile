@@ -20,9 +20,11 @@ import { layoutActions } from '../../store/slices/layout';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
+import { useRoute } from '@react-navigation/native';
 
 function DriveScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
+  const route = useRoute();
   const dispatch = useAppDispatch();
   const { token, user, loggedIn } = useAppSelector((state) => state.auth);
   const { folderContent, uri, sortType, searchString } = useAppSelector((state) => state.storage);
@@ -131,20 +133,22 @@ function DriveScreen(): JSX.Element {
 
     // BackHandler
     const backAction = () => {
-      if (folderContent && !folderContent.parentId) {
-        count++;
-        if (count < 2) {
-          notify({ type: 'warn', text: strings.messages.pressAgainToExit });
-        } else {
-          BackHandler.exitApp();
-        }
+      if (route.name === AppScreen.Drive) {
+        if (folderContent && !folderContent.parentId) {
+          count++;
+          if (count < 2) {
+            notify({ type: 'warn', text: strings.messages.pressAgainToExit });
+          } else {
+            BackHandler.exitApp();
+          }
 
-        // Reset if some time passes
-        setTimeout(() => {
-          count = 0;
-        }, 4000);
-      } else if (folderContent) {
-        dispatch(storageThunks.getFolderContentThunk({ folderId: folderContent.parentId as number }));
+          // Reset if some time passes
+          setTimeout(() => {
+            count = 0;
+          }, 4000);
+        } else if (folderContent) {
+          dispatch(storageThunks.getFolderContentThunk({ folderId: folderContent.parentId as number }));
+        }
       }
 
       return true;
