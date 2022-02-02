@@ -79,7 +79,7 @@ const initialState: PhotosState = {
   years: [],
   months: [],
   photos: [],
-  limit: 25,
+  limit: 60,
   skip: 0,
   selectedPhotos: [],
   usage: 0,

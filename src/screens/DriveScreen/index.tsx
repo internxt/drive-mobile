@@ -146,6 +146,7 @@ function DriveScreen(): JSX.Element {
       } else if (folderContent) {
         dispatch(storageThunks.getFolderContentThunk({ folderId: folderContent.parentId as number }));
       }
+
       return true;
     };
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);

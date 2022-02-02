@@ -52,7 +52,7 @@ const GalleryDaysView = (): JSX.Element => {
       onEndReached={() => {
         dispatch(photosThunks.loadLocalPhotosThunk());
       }}
-      onEndReachedThreshold={2}
+      onEndReachedThreshold={3}
     />
   );
 };
