@@ -91,18 +91,17 @@ function PhotosGalleryScreen(): JSX.Element {
 
       <View style={tailwind('app-screen bg-white flex-1')}>
         {/* GALLERY TOP BAR */}
-        <View style={tailwind('pb-2 h-16')}>
-          <View style={tailwind('flex-row justify-between flex-1')}>
-            {isSelectionModeActivated ? (
-              <>
-                <View style={tailwind('flex-row items-center justify-between')}>
-                  <Text style={tailwind('pl-5')}>
-                    {strings.formatString(strings.screens.gallery.nPhotosSelected, selectedPhotos.length)}
-                  </Text>
-                </View>
+        <View style={tailwind('pb-2')}>
+          {isSelectionModeActivated ? (
+            <View style={tailwind('flex-row justify-between')}>
+              <View style={tailwind('flex-row items-center justify-between')}>
+                <Text style={tailwind('pl-5')}>
+                  {strings.formatString(strings.screens.gallery.nPhotosSelected, selectedPhotos.length)}
+                </Text>
+              </View>
 
-                <View style={tailwind('flex-row pr-5')}>
-                  {/*<View style={tailwind('flex-row items-center justify-between')}>
+              <View style={tailwind('flex-row pr-5')}>
+                {/*<View style={tailwind('flex-row items-center justify-between')}>
                     <TouchableOpacity
                       style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl mr-2')}
                       onPress={onSelectAllButtonPressed}
@@ -112,38 +111,37 @@ function PhotosGalleryScreen(): JSX.Element {
                       </Text>
                     </TouchableOpacity>
             </View>*/}
-                  <View style={tailwind('flex-row items-center justify-between')}>
-                    <TouchableOpacity
-                      style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
-                      onPress={onCancelSelectButtonPressed}
-                    >
-                      <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                        {strings.components.buttons.cancel}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                <View style={tailwind('flex-row items-center justify-between')}>
+                  <TouchableOpacity
+                    style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
+                    onPress={onCancelSelectButtonPressed}
+                  >
+                    <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+                      {strings.components.buttons.cancel}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-              </>
-            ) : (
-              <>
-                <ScreenTitle text={strings.screens.gallery.title} showBackButton={false} />
+              </View>
+            </View>
+          ) : (
+            <View style={tailwind('flex-row justify-between')}>
+              <ScreenTitle text={strings.screens.gallery.title} showBackButton={false} />
 
-                {hasPhotos && (
-                  <View style={tailwind('flex-row items-center justify-between pr-5')}>
-                    <TouchableOpacity
-                      style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
-                      onPress={onSelectButtonPressed}
-                      disabled={!hasPhotos}
-                    >
-                      <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                        {strings.components.buttons.select}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </>
-            )}
-          </View>
+              {hasPhotos && (
+                <View style={tailwind('flex-row items-center justify-between pr-5')}>
+                  <TouchableOpacity
+                    style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
+                    onPress={onSelectButtonPressed}
+                    disabled={!hasPhotos}
+                  >
+                    <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+                      {strings.components.buttons.select}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
 
           <PhotosSyncStatusWidget />
         </View>
