@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { Text, View, TouchableOpacity, StyleProp, TextStyle } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -8,6 +8,8 @@ import { useAppSelector } from '../../store/hooks';
 
 interface ScreenTitleProps {
   text: string;
+  textStyle?: StyleProp<TextStyle>;
+  containerStyle?: StyleProp<TextStyle>;
   centerText?: boolean;
   showBackButton?: boolean;
   onBackButtonPressed?: () => void;
@@ -20,6 +22,8 @@ const defaultProps: Partial<ScreenTitleProps> = {
 
 const ScreenTitle = ({
   text,
+  textStyle,
+  containerStyle,
   centerText = defaultProps.centerText,
   showBackButton = defaultProps.showBackButton,
   onBackButtonPressed,
@@ -27,7 +31,7 @@ const ScreenTitle = ({
   const backButtonEnabled = useAppSelector((state) => state.layout.backButtonEnabled);
 
   return (
-    <View style={tailwind('flex-row justify-center items-center px-5')}>
+    <View style={[tailwind('flex-row justify-center items-center py-2 px-5'), containerStyle]}>
       {showBackButton && (
         <TouchableOpacity style={tailwind('w-6')} disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex justify-center items-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
@@ -36,8 +40,11 @@ const ScreenTitle = ({
         </TouchableOpacity>
       )}
 
-      <View style={[tailwind('flex-row my-2 flex-grow'), centerText && tailwind('justify-center')]}>
-        <Text numberOfLines={1} style={[tailwind('text-neutral-700 text-3xl'), globalStyle.fontWeight.medium]}>
+      <View style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
+        <Text
+          numberOfLines={1}
+          style={[tailwind('text-neutral-700 text-3xl'), globalStyle.fontWeight.medium, textStyle]}
+        >
           {text}
         </Text>
       </View>
