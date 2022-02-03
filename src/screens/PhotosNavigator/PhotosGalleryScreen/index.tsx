@@ -93,7 +93,7 @@ function PhotosGalleryScreen(): JSX.Element {
         {/* GALLERY TOP BAR */}
         <View style={tailwind('pb-2')}>
           {isSelectionModeActivated ? (
-            <View style={tailwind('flex-row justify-between')}>
+            <View style={tailwind('h-12 flex-row justify-between')}>
               <View style={tailwind('flex-row items-center justify-between')}>
                 <Text style={tailwind('pl-5')}>
                   {strings.formatString(strings.screens.gallery.nPhotosSelected, selectedPhotos.length)}
@@ -124,7 +124,7 @@ function PhotosGalleryScreen(): JSX.Element {
               </View>
             </View>
           ) : (
-            <View style={tailwind('flex-row justify-between')}>
+            <View style={tailwind('h-12 flex-row justify-between')}>
               <ScreenTitle text={strings.screens.gallery.title} showBackButton={false} />
 
               {hasPhotos && (

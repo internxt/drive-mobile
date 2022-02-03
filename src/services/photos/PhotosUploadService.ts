@@ -83,14 +83,12 @@ export default class PhotosUploadService {
       width,
       height,
       format: 'JPEG',
-      outputPath: this.fileSystemService.previewsDirectory,
       quality: 100,
       rotation: 0,
       options: { mode: 'cover' },
     });
 
     await RNFS.copyFile(response.path, path);
-    await RNFS.unlink(response.path);
 
     return path;
   }

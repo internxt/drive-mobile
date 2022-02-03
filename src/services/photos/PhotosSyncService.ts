@@ -12,6 +12,7 @@ import PhotosLogService from './PhotosLogService';
 import PhotosUploadService from './PhotosUploadService';
 import { items } from '@internxt/lib';
 import PhotosFileSystemService from './PhotosFileSystemService';
+import { Platform } from 'react-native';
 
 export default class PhotosSyncService {
   private readonly model: PhotosServiceModel;
@@ -218,7 +219,7 @@ export default class PhotosSyncService {
   /**
    * @description Uploads new local photos
    */
-  async uploadLocalPhotos(
+  private async uploadLocalPhotos(
     userId: photos.UserId,
     deviceId: photos.DeviceId,
     options: {
@@ -276,7 +277,8 @@ export default class PhotosSyncService {
 
         const usage = options.getState().storage.usage + options.getState().photos.usage;
         const limit = options.getState().storage.limit;
-        const hash = await RNFS.hash(photo.uri, 'sha256');
+        const uri = await this.cameraRollUriToFileSystemUri(photo.data, photo.data.width, photo.data.height, photo.uri);
+        const hash = await RNFS.hash(uri, 'sha256');
         const isAlreadyUploaded = await this.localDatabaseService.getPhotoByNameTypeDeviceAndHash(
           photo.data.name,
           photo.data.type,
@@ -295,7 +297,7 @@ export default class PhotosSyncService {
             throw new Error(strings.errors.storageLimitReached);
           }
 
-          const [createdPhoto, preview] = await this.uploadService.upload({ ...photo.data, hash }, photo.uri);
+          const [createdPhoto, preview] = await this.uploadService.upload({ ...photo.data, hash }, uri);
 
           await this.localDatabaseService.insertPhoto(createdPhoto, preview);
 
@@ -305,5 +307,24 @@ export default class PhotosSyncService {
 
       skip += limit;
     } while (photosToUpload.length > 0);
+  }
+
+  private async cameraRollUriToFileSystemUri(
+    { name, type }: { name: string; type: string },
+    width: number,
+    height: number,
+    uri: string,
+  ): Promise<string> {
+    const filename = items.getItemDisplayName({ name, type });
+    const iosPath = `${this.fileSystemService.tmpDirectory}/${filename}`;
+    const scale = 1;
+    let path = uri;
+
+    if (Platform.OS === 'ios') {
+      await RNFS.copyAssetsFileIOS(uri, iosPath, width, height, scale);
+      path = iosPath;
+    }
+
+    return path;
   }
 }
