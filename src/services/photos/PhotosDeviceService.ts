@@ -1,5 +1,5 @@
 import { photos } from '@internxt/sdk';
-import { getMacAddress, getDeviceName } from 'react-native-device-info';
+import { getUniqueId, getDeviceName, getMacAddress } from 'react-native-device-info';
 
 import { PhotosServiceModel } from '../../types/photos';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
@@ -28,7 +28,7 @@ export default class PhotosDeviceService {
       throw new Error('(PhotosDeviceService.initialize) user not found');
     }
 
-    const mac = await this.getMacAddress();
+    const mac = this.getUniqueId();
     const name = await this.getDeviceName();
     const device = await this.photosSdk.devices.createDevice({ mac, name, userId: this.model.user.id });
 
@@ -42,8 +42,16 @@ export default class PhotosDeviceService {
     return device;
   }
 
+  /**
+   * !!! @description Stop using mac address. Some devices returns empty string or a default address
+   * !!! Replace with getUniqueId()
+   */
   public getMacAddress(): Promise<string> {
     return getMacAddress();
+  }
+
+  public getUniqueId(): string {
+    return getUniqueId();
   }
 
   public getDeviceName(): Promise<string> {
