@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Linking, Platform, Text, View } from 'react-native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import SyncIcon from '../../../../assets/images/modals/sync.svg';
 import strings from '../../../../assets/lang/strings';
@@ -32,6 +32,12 @@ function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackPr
     navigation.replace(PhotosScreen.Gallery);
   };
   const onButtonPressed = async () => {
+    if (arePermissionsBlocked) {
+      if (Platform.OS === 'ios') {
+        await Linking.openSettings();
+      }
+    }
+
     await dispatch(photosThunks.askForPermissionsThunk())
       .unwrap()
       .then((areGranted) => {
