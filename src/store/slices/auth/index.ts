@@ -8,6 +8,7 @@ import analytics from '../../../services/analytics';
 import { DevicePlatform } from '../../../types';
 import { photosActions, photosThunks } from '../photos';
 import { appThunks } from '../app';
+import { storageActions } from '../storage';
 
 export interface AuthState {
   loggedIn: boolean;
@@ -52,6 +53,8 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   async (payload: void, { dispatch }) => {
     await authService.signout();
 
+    dispatch(authActions.resetState());
+    dispatch(storageActions.resetState());
     await dispatch(photosThunks.clearDataThunk());
     dispatch(photosActions.resetState());
   },
@@ -68,6 +71,9 @@ export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+    resetState(state) {
+      Object.assign(state, initialState);
+    },
     signIn: (state: AuthState, action: PayloadAction<{ token: string; photosToken: string; user: User }>) => {
       state.loggedIn = true;
       state.user = action.payload.user;

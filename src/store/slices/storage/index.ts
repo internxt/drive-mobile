@@ -98,7 +98,7 @@ const getFolderContentThunk = createAsyncThunk<
   FolderContent,
   { folderId: number; quick?: boolean },
   { state: RootState }
->('files/getFolderContent', async ({ folderId, quick }, { getState, dispatch }) => {
+>('files/getFolderContent', async ({ folderId, quick }, { getState }) => {
   if (quick) {
     return getState().storage.folderContent;
   }
@@ -224,6 +224,9 @@ export const storageSlice = createSlice({
   name: 'storage',
   initialState,
   reducers: {
+    resetState(state) {
+      Object.assign(state, initialState);
+    },
     setSortType(state, action: PayloadAction<string>) {
       state.sortType = action.payload;
     },
