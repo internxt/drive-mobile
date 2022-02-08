@@ -45,9 +45,7 @@ export default class PhotosCameraRollService {
 
     await this.localDatabaseService.cleanTmpCameraRollTable();
 
-    const slicesOf = Platform.OS === 'android' ? 100 : 10000;
-
-    const start = new Date().getTime();
+    const slicesOf = Platform.OS === 'android' ? 120 : 10000;
 
     do {
       const { edges, page_info } = await this.getPhotos({
