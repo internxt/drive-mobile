@@ -50,15 +50,10 @@ export default class PhotosCameraRollService {
     const start = new Date().getTime();
 
     do {
-      const gS = new Date().getTime();
       const { edges, page_info } = await this.getPhotos({
         limit: slicesOf,
         cursor,
       });
-      const gE = new Date().getTime();
-      console.log(`elapsed ${((gE - gS) / 1000).toFixed(2)}s to retrieve ${edges.length} photos`)
-
-      console.log(`${slicesOf} more`)
 
       hasNextPage = page_info.has_next_page;
       cursor = page_info.end_cursor;
@@ -66,10 +61,6 @@ export default class PhotosCameraRollService {
       await this.localDatabaseService.bulkInsertTmpCameraRollRow(edges);
       count += edges.length;
     } while (hasNextPage);
-
-    const end = new Date().getTime();
-
-    console.log(`Synced ${count} photos in ${(end - start) / 1000} seconds`);
 
     return { count };
   }

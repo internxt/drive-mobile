@@ -284,7 +284,6 @@ export default class PhotosLocalDatabaseService {
 
     let edge: CameraRoll.PhotoIdentifier;
 
-    let start = new Date().getTime();
     for (let i = 0; i < edges.length; i++) {
       edge = edges[i];
 
@@ -299,19 +298,8 @@ export default class PhotosLocalDatabaseService {
         edge.node.image.uri
       );
     }
-    let end = new Date().getTime();
-    let elapsed = (end - start);
 
-    console.log('elapsed on loop ' + elapsed + ' ms');
-
-    // console.log(query);
-    // console.log(values);
-
-    start = new Date().getTime();
-    await sqliteService.executeSql(PHOTOS_DB_NAME, query, values)
-    end = new Date().getTime();
-    elapsed = (end - start);
-    console.log('elapsed on insert ' + elapsed + ' ms');
+    await sqliteService.executeSql(PHOTOS_DB_NAME, query, values);
   }
 
   public async cleanTmpCameraRollTable(): Promise<void> {
