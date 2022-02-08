@@ -85,9 +85,12 @@ export default class PhotosSyncService {
 
       await this.deviceService.initialize();
 
+      console.log('.copyToLocalDatase() starts');
       const { count: cameraRollCount } = await this.cameraRollService.copyToLocalDatabase();
+      
       this.logService.info(`[SYNC] ${this.currentSyncId}: COPIED ${cameraRollCount} EDGES FROM CAMERA ROLL TO SQLITE`);
 
+      console.log('.calculateSyncInfo() starts');
       const syncInfo = await this.calculateSyncInfo();
       options.onStart?.(syncInfo);
       this.logService.info(

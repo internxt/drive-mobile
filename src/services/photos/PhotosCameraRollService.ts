@@ -45,23 +45,31 @@ export default class PhotosCameraRollService {
 
     await this.localDatabaseService.cleanTmpCameraRollTable();
 
+    const slicesOf = Platform.OS === 'android' ? 100 : 10000;
+
+    const start = new Date().getTime();
+
     do {
+      const gS = new Date().getTime();
       const { edges, page_info } = await this.getPhotos({
-        limit: 100,
+        limit: slicesOf,
         cursor,
       });
-      const promises: Promise<void>[] = [];
+      const gE = new Date().getTime();
+      console.log(`elapsed ${((gE - gS) / 1000).toFixed(2)}s to retrieve ${edges.length} photos`)
+
+      console.log(`${slicesOf} more`)
 
       hasNextPage = page_info.has_next_page;
       cursor = page_info.end_cursor;
 
-      for (const edge of edges) {
-        promises.push(this.localDatabaseService.insertTmpCameraRollRow(edge).then(() => undefined));
-        count++;
-      }
-
-      await Promise.all(promises);
+      await this.localDatabaseService.bulkInsertTmpCameraRollRow(edges);
+      count += edges.length;
     } while (hasNextPage);
+
+    const end = new Date().getTime();
+
+    console.log(`Synced ${count} photos in ${(end - start) / 1000} seconds`);
 
     return { count };
   }

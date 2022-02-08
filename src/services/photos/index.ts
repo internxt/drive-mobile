@@ -87,6 +87,8 @@ export class PhotosService {
   }
 
   public async initialize(): Promise<void> {
+    // await this.localDatabaseService.resetDatabase();
+
     await this.fileSystemService.initialize();
     await this.localDatabaseService.initialize();
     await this.userService.initialize();

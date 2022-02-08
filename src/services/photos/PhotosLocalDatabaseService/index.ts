@@ -278,6 +278,42 @@ export default class PhotosLocalDatabaseService {
       .then(() => undefined);
   }
 
+  public async bulkInsertTmpCameraRollRow(edges: CameraRoll.PhotoIdentifier[]): Promise<void> {
+    const query = tmp_camera_roll.statements.bulkInsert(edges.length);
+    const values = [];
+
+    let edge: CameraRoll.PhotoIdentifier;
+
+    let start = new Date().getTime();
+    for (let i = 0; i < edges.length; i++) {
+      edge = edges[i];
+
+      values.push(
+        edge.node.group_name,
+        edge.node.timestamp * 1000,
+        edge.node.type,
+        edge.node.image.filename,
+        edge.node.image.fileSize,
+        edge.node.image.width,
+        edge.node.image.height,
+        edge.node.image.uri
+      );
+    }
+    let end = new Date().getTime();
+    let elapsed = (end - start);
+
+    console.log('elapsed on loop ' + elapsed + ' ms');
+
+    // console.log(query);
+    // console.log(values);
+
+    start = new Date().getTime();
+    await sqliteService.executeSql(PHOTOS_DB_NAME, query, values)
+    end = new Date().getTime();
+    elapsed = (end - start);
+    console.log('elapsed on insert ' + elapsed + ' ms');
+  }
+
   public async cleanTmpCameraRollTable(): Promise<void> {
     await sqliteService.executeSql(PHOTOS_DB_NAME, tmp_camera_roll.statements.cleanTable);
   }

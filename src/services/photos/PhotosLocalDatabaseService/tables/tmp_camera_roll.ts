@@ -18,6 +18,17 @@ const statements = {
       group_name, timestamp, type, filename, fileSize, width, height, uri \
     ) \
     VALUES ( ?, ?, ?, ?, ?, ?, ?, ? );`,
+  bulkInsert: (size: number): string => {
+    let query = `INSERT INTO ${TABLE_NAME} (\
+      group_name, timestamp, type, filename, fileSize, width, height, uri \
+    ) VALUES `;
+
+    for (let i = 0; i < size; i++) {
+      query += `( ?, ?, ?, ?, ?, ?, ?, ? )${ i === (size - 1) ? ';' : ',' }`;
+    }
+
+    return query;
+  },
   count: (options: { from?: Date; to?: Date }): string => {
     const where = getWhereString(options);
     const query = `SELECT COUNT(*) AS count FROM ${TABLE_NAME} ${where};`;
