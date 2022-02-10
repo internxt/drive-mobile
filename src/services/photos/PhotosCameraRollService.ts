@@ -39,17 +39,16 @@ export default class PhotosCameraRollService {
    * !!! https://github.com/react-native-cameraroll/react-native-cameraroll/issues/372
    */
   public async copyToLocalDatabase(): Promise<{ count: number }> {
+    const limit = Platform.OS === 'android' ? 120 : 10000;
     let hasNextPage = false;
     let cursor: string | undefined;
     let count = 0;
 
     await this.localDatabaseService.cleanTmpCameraRollTable();
 
-    const slicesOf = Platform.OS === 'android' ? 120 : 10000;
-
     do {
       const { edges, page_info } = await this.getPhotos({
-        limit: slicesOf,
+        limit,
         cursor,
       });
 
