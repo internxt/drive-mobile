@@ -1750,10 +1750,9 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@react-native-community/cameraroll@4.1.2":
+"@react-native-community/cameraroll@github:internxt/react-native-cameraroll":
   version "4.1.2"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cameraroll/-/cameraroll-4.1.2.tgz#489c6bb6137571540d93c543d5fcf8c652b548ec"
-  integrity sha512-jkdhMByMKD2CZ/5MPeBieYn8vkCfC4MOTouPpBpps3I8N6HUYJk+1JnDdktVYl2WINnqXpQptDA2YptVyifYAg==
+  resolved "https://codeload.github.com/internxt/react-native-cameraroll/tar.gz/fe28d99d7c210c6bfe7151eb02f6891be87a70bc"
 
 "@react-native-community/cli-debugger-ui@^4.13.1":
   version "4.13.1"

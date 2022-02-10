@@ -45,22 +45,19 @@ export default class PhotosCameraRollService {
 
     await this.localDatabaseService.cleanTmpCameraRollTable();
 
+    const slicesOf = Platform.OS === 'android' ? 120 : 10000;
+
     do {
       const { edges, page_info } = await this.getPhotos({
-        limit: 100,
+        limit: slicesOf,
         cursor,
       });
-      const promises: Promise<void>[] = [];
 
       hasNextPage = page_info.has_next_page;
       cursor = page_info.end_cursor;
 
-      for (const edge of edges) {
-        promises.push(this.localDatabaseService.insertTmpCameraRollRow(edge).then(() => undefined));
-        count++;
-      }
-
-      await Promise.all(promises);
+      await this.localDatabaseService.bulkInsertTmpCameraRollRow(edges);
+      count += edges.length;
     } while (hasNextPage);
 
     return { count };
