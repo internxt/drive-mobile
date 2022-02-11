@@ -39,7 +39,7 @@ export class PhotosService {
       networkCredentials,
       networkUrl: process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL || '',
     };
-    this.photosSdk = new photos.Photos('http://172.25.210.8:8000/api' || '', accessToken);
+    this.photosSdk = new photos.Photos(process.env.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
 
     this.logService = new PhotosLogService(this.model);
     this.fileSystemService = new PhotosFileSystemService(this.model, this.logService);
