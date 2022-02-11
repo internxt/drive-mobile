@@ -40,14 +40,12 @@ export const deviceStorage = {
       .then((value) => {
         return value ? JSON.parse(value) : null;
       })
-      .catch((err) => {
-        notify({ type: 'success', text: err.message });
+      .catch(() => {
         return null;
       });
   },
   getToken(): Promise<Token | null> {
-    return getItem('xToken').catch((err) => {
-      notify({ type: 'error', text: err.message });
+    return getItem('xToken').catch(() => {
       return null;
     });
   },

@@ -24,7 +24,7 @@ const statements = {
     ) VALUES `;
 
     for (let i = 0; i < size; i++) {
-      query += `( ?, ?, ?, ?, ?, ?, ?, ? )${ i === (size - 1) ? ';' : ',' }`;
+      query += `( ?, ?, ?, ?, ?, ?, ?, ? )${i === size - 1 ? ';' : ','}`;
     }
 
     return query;

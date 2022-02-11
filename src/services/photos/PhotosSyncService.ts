@@ -86,10 +86,18 @@ export default class PhotosSyncService {
       await this.deviceService.initialize();
 
       const startLocalIndexingTime = new Date().getTime();
-      const { count: cameraRollCount } = await this.cameraRollService.copyToLocalDatabase();
-      const timeElapsedIndexing = ((new Date().getTime() - startLocalIndexingTime) / 1000);
+      await this.localDatabaseService.cleanTmpCameraRollTable();
+      const newestDate = await this.localDatabaseService.getNewestDate();
+      const oldestDate = await this.localDatabaseService.getOldestDate();
+      const { count: newerCameraRollCount } = await this.cameraRollService.copyToLocalDatabase({}); // Pending to optimize with filters
+      const timeElapsedIndexing = (new Date().getTime() - startLocalIndexingTime) / 1000;
+      const cameraRollCount = newerCameraRollCount;
 
-      this.logService.info(`[SYNC] ${this.currentSyncId}: COPIED ${cameraRollCount} EDGES FROM CAMERA ROLL TO SQLITE IN ${timeElapsedIndexing.toFixed(2)}s`);
+      this.logService.info(
+        `[SYNC] ${
+          this.currentSyncId
+        }: COPIED ${cameraRollCount} EDGES FROM CAMERA ROLL TO SQLITE IN ${timeElapsedIndexing.toFixed(2)}s`,
+      );
 
       const syncInfo = await this.calculateSyncInfo();
       options.onStart?.(syncInfo);
@@ -102,9 +110,6 @@ export default class PhotosSyncService {
         onPhotoDownloaded: onTaskCompletedFactory(PhotosSyncTaskType.Download),
       });
       this.logService.info(`[SYNC] ${this.currentSyncId}: REMOTE PHOTOS DOWNLOADED`);
-
-      const newestDate = await this.localDatabaseService.getNewestDate();
-      const oldestDate = await this.localDatabaseService.getOldestDate();
 
       await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
         signal: options.signal,
@@ -134,7 +139,7 @@ export default class PhotosSyncService {
         this.logService.info(`[SYNC] ${this.currentSyncId}: FINISHED`);
       }
     } catch (err) {
-      this.logService.info(`[SYNC] ${this.currentSyncId}: FAILED:` + err);
+      this.logService.info(`[SYNC] ${this.currentSyncId}: FAILED:` + JSON.stringify(err, undefined, 2));
       throw err;
     } finally {
       await this.localDatabaseService.cleanTmpCameraRollTable();

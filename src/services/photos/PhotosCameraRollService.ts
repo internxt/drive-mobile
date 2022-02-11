@@ -38,25 +38,27 @@ export default class PhotosCameraRollService {
    * !!! We use this to avoid sort by date errors found in the library @react-native-community/cameraroll
    * !!! https://github.com/react-native-cameraroll/react-native-cameraroll/issues/372
    */
-  public async copyToLocalDatabase(): Promise<{ count: number }> {
+  public async copyToLocalDatabase({ from, to }: { from?: Date; to?: Date }): Promise<{ count: number }> {
     const limit = Platform.OS === 'android' ? 120 : 10000;
     let hasNextPage = false;
     let cursor: string | undefined;
     let count = 0;
 
-    await this.localDatabaseService.cleanTmpCameraRollTable();
-
     do {
       const { edges, page_info } = await this.getPhotos({
         limit,
+        from,
+        to,
         cursor,
       });
 
       hasNextPage = page_info.has_next_page;
       cursor = page_info.end_cursor;
 
-      await this.localDatabaseService.bulkInsertTmpCameraRollRow(edges);
-      count += edges.length;
+      if (edges.length > 0) {
+        await this.localDatabaseService.bulkInsertTmpCameraRollRow(edges);
+        count += edges.length;
+      }
     } while (hasNextPage);
 
     return { count };
@@ -78,10 +80,9 @@ export default class PhotosCameraRollService {
   }> {
     const { edges, page_info } = await CameraRoll.getPhotos({
       first: limit,
-      fromTime: from && from.getTime(),
+      fromTime: from && from.getTime() - 1,
       toTime: to && to.getTime(),
       assetType: 'Photos',
-      groupTypes: 'All',
       after: cursor,
       include: ['filename', 'fileSize', 'imageSize'],
     });
