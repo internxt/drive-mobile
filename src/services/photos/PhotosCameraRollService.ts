@@ -83,7 +83,6 @@ export default class PhotosCameraRollService {
       fromTime: from && from.getTime() - 1,
       toTime: to && to.getTime(),
       assetType: 'Photos',
-      groupTypes: 'All',
       after: cursor,
       include: ['filename', 'fileSize', 'imageSize'],
     });
