@@ -89,12 +89,9 @@ export default class PhotosSyncService {
       await this.localDatabaseService.cleanTmpCameraRollTable();
       const newestDate = await this.localDatabaseService.getNewestDate();
       const oldestDate = await this.localDatabaseService.getOldestDate();
-      const { count: newerCameraRollCount } = await this.cameraRollService.copyToLocalDatabase({ from: newestDate });
-      const { count: olderCameraRollCount } = oldestDate
-        ? await this.cameraRollService.copyToLocalDatabase({ to: oldestDate })
-        : { count: 0 };
+      const { count: newerCameraRollCount } = await this.cameraRollService.copyToLocalDatabase({}); // Pending to optimize with filters
       const timeElapsedIndexing = (new Date().getTime() - startLocalIndexingTime) / 1000;
-      const cameraRollCount = newerCameraRollCount + olderCameraRollCount;
+      const cameraRollCount = newerCameraRollCount;
 
       this.logService.info(
         `[SYNC] ${
