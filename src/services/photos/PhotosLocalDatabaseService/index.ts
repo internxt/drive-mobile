@@ -215,9 +215,9 @@ export default class PhotosLocalDatabaseService {
     return sqliteService.executeSql(PHOTOS_DB_NAME, syncTable.statements.getOldestDate).then((res) => {
       if (res[0].rows.item(0) && res[0].rows.item(0).oldestDate) {
         return new Date(res[0].rows.item(0).oldestDate);
-      } else {
-        return new Date('January 1, 1971 00:00:01');
       }
+
+      return null;
     });
   }
 
@@ -295,7 +295,7 @@ export default class PhotosLocalDatabaseService {
         edge.node.image.fileSize,
         edge.node.image.width,
         edge.node.image.height,
-        edge.node.image.uri
+        edge.node.image.uri,
       );
     }
 
