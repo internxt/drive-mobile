@@ -36,8 +36,6 @@ const GalleryAllView = (): JSX.Element => {
   };
   const loadPhotos = async () => {
     await dispatch(photosThunks.loadLocalPhotosThunk());
-
-    console.log('GalleryAllView.loadPhotos - completed!');
   };
 
   useEffect(() => {

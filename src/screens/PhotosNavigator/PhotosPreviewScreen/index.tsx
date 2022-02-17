@@ -16,7 +16,7 @@ import strings from '../../../../assets/lang/strings';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import { pathToUri, showFileViewer } from '../../../services/fileSystem';
 import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfoModal';
-import { photosSelectors, photosThunks } from '../../../store/slices/photos';
+import { photosActions, photosSelectors, photosThunks } from '../../../store/slices/photos';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { items } from '@internxt/lib';
@@ -37,13 +37,14 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const dispatch = useAppDispatch();
   const [showActions, setShowActions] = useState(true);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const [uri, setUri] = useState(preview);
   const isFullSizeLoading = useAppSelector(photosSelectors.isPhotoDownloading)(photo.fileId);
   const progress = useAppSelector(photosSelectors.getDownloadingPhotoProgress)(photo.fileId);
   const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
     (state) => state.layout,
   );
   const navigation = useNavigation<NavigationStackProp>();
+  const isFullSizeDownloaded = useAppSelector(photosSelectors.isPhotoDownloaded)(photo.fileId);
+  const uri = isFullSizeDownloaded ? pathToUri(photoPath) : preview;
   const onScreenPressed = () => {
     setShowActions(!showActions);
   };
@@ -80,7 +81,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
     )
       .unwrap()
       .then((photoPath: string) => {
-        setUri(pathToUri(photoPath));
+        dispatch(photosActions.pushDownloadedPhoto({ fileId: photo.fileId, path: photoPath }));
       })
       .catch(() => undefined);
   };
@@ -88,7 +89,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   useEffect(() => {
     isPhotoAlreadyDownloaded().then((isDownloaded) => {
       if (isDownloaded) {
-        setUri(pathToUri(photoPath));
+        dispatch(photosActions.pushDownloadedPhoto({ fileId: photo.fileId, path: photoPath }));
       } else {
         loadImage();
       }

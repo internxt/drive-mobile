@@ -44,6 +44,7 @@ export interface PhotosState {
   viewMode: GalleryViewMode;
   loadPhotosRequests: string[];
   downloadingPhotos: { id: string; progress: number }[];
+  downloadedPhotos: { fileId: string; path: string }[];
   years: { year: number; preview: string }[];
   months: { year: number; month: number; preview: string }[];
   photos: { data: Photo; preview: string }[];
@@ -76,6 +77,7 @@ const initialState: PhotosState = {
   viewMode: GalleryViewMode.Days,
   loadPhotosRequests: [],
   downloadingPhotos: [],
+  downloadedPhotos: [],
   years: [],
   months: [],
   photos: [],
@@ -382,6 +384,9 @@ export const photosSlice = createSlice({
     popPhoto(state, action: PayloadAction<Photo>) {
       state.photos = state.photos.filter((photo) => photo.data.id !== action.payload.id);
     },
+    pushDownloadedPhoto(state, action: PayloadAction<{ fileId: string; path: string }>) {
+      state.downloadedPhotos.push(action.payload);
+    },
     selectPhotos(state, action: PayloadAction<Photo | Photo[]>) {
       const photosToSelect = Array.isArray(action.payload) ? action.payload : [action.payload];
 
@@ -560,6 +565,10 @@ export const photosSelectors = {
     (state: RootState) =>
     (fileId: string): boolean =>
       state.photos.downloadingPhotos.some((p) => p.id === fileId),
+  isPhotoDownloaded:
+    (state: RootState) =>
+    (fileId: string): boolean =>
+      state.photos.downloadedPhotos.some((i) => i.fileId === fileId),
   getDownloadingPhotoProgress:
     (state: RootState) =>
     (fileId: string): number =>
