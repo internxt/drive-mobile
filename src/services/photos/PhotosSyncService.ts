@@ -198,8 +198,14 @@ export default class PhotosSyncService {
         if (isAlreadyOnTheDevice) {
           await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);
         } else {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           const previewId = photo.previews && photo.previews.length > 0 ? photo.previews[0].fileId : photo.previewId;
-          const previewPath = await this.downloadService.downloadThumbnail(previewId);
+          const previewPath = await this.downloadService.pullPhoto(previewId, {
+            toPath: `${this.fileSystemService.previewsDirectory}/${previewId}`,
+            downloadProgressCallback: () => undefined,
+            decryptionProgressCallback: () => undefined,
+          });
           await this.localDatabaseService.insertPhoto({ ...photo, previewId }, previewPath);
         }
 

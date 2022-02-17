@@ -26,24 +26,7 @@ export default class PhotosDownloadService {
     this.fileSystemService = fileSystemService;
   }
 
-  public async downloadThumbnail(previewId: string): Promise<string> {
-    const previewPath = await this.pullPhoto(
-      this.model.user?.bucketId || '',
-      this.model.networkCredentials,
-      previewId,
-      {
-        toPath: `${this.fileSystemService.previewsDirectory}/${previewId}`,
-        downloadProgressCallback: () => undefined,
-        decryptionProgressCallback: () => undefined,
-      },
-    );
-
-    return previewPath;
-  }
-
   public async pullPhoto(
-    photosBucket: string,
-    networkCredentials: NetworkCredentials,
     fileId: string,
     options: {
       toPath: string;
@@ -51,9 +34,15 @@ export default class PhotosDownloadService {
       decryptionProgressCallback: (progress: number) => void;
     },
   ): Promise<string> {
-    const tmpPath = await network.downloadFile(photosBucket, fileId, networkCredentials, this.model.networkUrl, {
-      ...options,
-    });
+    const tmpPath = await network.downloadFile(
+      this.model.user?.bucketId || '',
+      fileId,
+      this.model.networkCredentials,
+      this.model.networkUrl,
+      {
+        ...options,
+      },
+    );
 
     return tmpPath;
   }

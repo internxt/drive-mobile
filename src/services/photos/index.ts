@@ -14,6 +14,7 @@ import PhotosLogService from './PhotosLogService';
 import PhotosFileSystemService from './PhotosFileSystemService';
 import PhotosUsageService from './PhotosUsageService';
 import { RootState } from '../../store';
+import PhotosPreviewService from './PhotosPreviewService';
 
 export class PhotosService {
   private readonly model: PhotosServiceModel;
@@ -30,6 +31,7 @@ export class PhotosService {
   private readonly downloadService: PhotosDownloadService;
   private readonly deleteService: PhotosDeleteService;
   private readonly syncService: PhotosSyncService;
+  private readonly previewService: PhotosPreviewService;
 
   constructor(accessToken: string, networkCredentials: NetworkCredentials) {
     this.model = {
@@ -54,13 +56,25 @@ export class PhotosService {
       this.localDatabaseService,
       this.logService,
     );
-    this.userService = new PhotosUserService(this.model, this.photosSdk, this.deviceService, this.logService);
-    this.uploadService = new PhotosUploadService(this.model, this.photosSdk, this.logService, this.fileSystemService);
     this.downloadService = new PhotosDownloadService(
       this.model,
       this.localDatabaseService,
       this.logService,
       this.fileSystemService,
+    );
+    this.userService = new PhotosUserService(this.model, this.photosSdk, this.deviceService, this.logService);
+    this.previewService = new PhotosPreviewService(
+      this.model,
+      this.photosSdk,
+      this.fileSystemService,
+      this.downloadService,
+    );
+    this.uploadService = new PhotosUploadService(
+      this.model,
+      this.photosSdk,
+      this.logService,
+      this.fileSystemService,
+      this.previewService,
     );
     this.deleteService = new PhotosDeleteService(
       this.model,
@@ -169,6 +183,15 @@ export class PhotosService {
   }
 
   /**
+   * @description Generates and updates a photo preview
+   * @param photo
+   * @returns
+   */
+  public async updatePhotoPreview(photo: photos.Photo): Promise<void> {
+    return this.previewService.update(photo);
+  }
+
+  /**
    * @description Downloads the photo from the network
    * @param fileId
    * @param options
@@ -184,7 +207,7 @@ export class PhotosService {
   ): Promise<string> {
     this.checkModel();
 
-    return this.downloadService.pullPhoto(this.bucketId, this.model.networkCredentials, fileId, options);
+    return this.downloadService.pullPhoto(fileId, options);
   }
 
   /**
