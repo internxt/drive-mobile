@@ -10,6 +10,7 @@ import PhotosFileSystemService from './PhotosFileSystemService';
 import { pathToUri, uriToPath } from '../fileSystem';
 
 export default class PhotosUploadService {
+  private static readonly PREVIEW_SIZE = 256;
   private static readonly PREVIEW_EXTENSION: ResizeFormat = 'JPEG';
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: Photos;
@@ -75,14 +76,13 @@ export default class PhotosUploadService {
 
   private async generatePreview(directory: string, name: string, uri: string): Promise<string> {
     const path = `${directory}/${name}.${PhotosUploadService.PREVIEW_EXTENSION}`;
-    const width = 128;
-    const height = 128;
-
+    const width = PhotosUploadService.PREVIEW_SIZE;
+    const height = PhotosUploadService.PREVIEW_SIZE;
     const response = await imageService.resize({
       uri,
       width,
       height,
-      format: 'JPEG',
+      format: PhotosUploadService.PREVIEW_EXTENSION,
       quality: 100,
       rotation: 0,
       options: { mode: 'cover' },

@@ -285,7 +285,7 @@ export default class PhotosSyncService {
 
         const usage = options.getState().storage.usage + options.getState().photos.usage;
         const limit = options.getState().storage.limit;
-        const uri = await this.cameraRollUriToFileSystemUri(photo.data, photo.data.width, photo.data.height, photo.uri);
+        const uri = await this.cameraRollUriToFileSystemUri(photo.data, photo.uri);
         const hash = await RNFS.hash(uri, 'sha256');
         const isAlreadyUploaded = await this.localDatabaseService.getPhotoByNameTypeDeviceAndHash(
           photo.data.name,
@@ -319,17 +319,14 @@ export default class PhotosSyncService {
 
   private async cameraRollUriToFileSystemUri(
     { name, type }: { name: string; type: string },
-    width: number,
-    height: number,
     uri: string,
   ): Promise<string> {
     const filename = items.getItemDisplayName({ name, type });
     const iosPath = `${this.fileSystemService.tmpDirectory}/${filename}`;
-    const scale = 1;
     let path = uri;
 
     if (Platform.OS === 'ios') {
-      await RNFS.copyAssetsFileIOS(uri, iosPath, width, height, scale);
+      await RNFS.copyAssetsFileIOS(uri, iosPath, 0, 0);
       path = iosPath;
     }
 
