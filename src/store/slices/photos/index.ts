@@ -591,7 +591,7 @@ export const photosSelectors = {
   },
   arePermissionsBlocked: (state: RootState): boolean => {
     const result = Object.values(state.photos.permissions[Platform.OS as 'ios' | 'android']).reduce(
-      (t, x) => t || x === RESULTS.BLOCKED,
+      (t, x) => t || x === RESULTS.BLOCKED || x === RESULTS.LIMITED,
       false,
     );
 
