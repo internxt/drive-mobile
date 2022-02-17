@@ -198,8 +198,9 @@ export default class PhotosSyncService {
         if (isAlreadyOnTheDevice) {
           await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);
         } else {
-          const previewPath = await this.downloadService.downloadPhoto(photo);
-          await this.localDatabaseService.insertPhoto(photo, previewPath);
+          const previewId = photo.previews && photo.previews.length > 0 ? photo.previews[0].fileId : photo.previewId;
+          const previewPath = await this.downloadService.downloadThumbnail(previewId);
+          await this.localDatabaseService.insertPhoto({ ...photo, previewId }, previewPath);
         }
 
         options.onPhotoDownloaded(photo, { isAlreadyOnTheDevice });

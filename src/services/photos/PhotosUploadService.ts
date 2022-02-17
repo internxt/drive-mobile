@@ -30,7 +30,7 @@ export default class PhotosUploadService {
   }
 
   public async upload(data: Omit<CreatePhotoData, 'fileId' | 'previewId'>, uri: string): Promise<[Photo, string]> {
-    const tmpPreviewPath = await this.generatePreview(
+    const { size: previewSize, path: tmpPreviewPath } = await this.generatePreview(
       this.fileSystemService.tmpDirectory,
       `${data.name}-${new Date().getTime()}`,
       uri,
@@ -64,6 +64,14 @@ export default class PhotosUploadService {
       width: data.width,
       fileId,
       previewId,
+      previews: [
+        {
+          width: PhotosUploadService.PREVIEW_SIZE,
+          height: PhotosUploadService.PREVIEW_SIZE,
+          size: previewSize,
+          fileId: previewId,
+        },
+      ],
       hash,
     };
     const createdPhoto = await this.photosSdk.photos.createPhoto(createPhotoData);
@@ -74,7 +82,7 @@ export default class PhotosUploadService {
     return [createdPhoto, pathToUri(finalPreviewPath)];
   }
 
-  private async generatePreview(directory: string, name: string, uri: string): Promise<string> {
+  private async generatePreview(directory: string, name: string, uri: string): Promise<{ size: number; path: string }> {
     const path = `${directory}/${name}.${PhotosUploadService.PREVIEW_EXTENSION}`;
     const width = PhotosUploadService.PREVIEW_SIZE;
     const height = PhotosUploadService.PREVIEW_SIZE;
@@ -90,6 +98,6 @@ export default class PhotosUploadService {
 
     await RNFS.copyFile(response.path, path);
 
-    return path;
+    return { size: response.size, path };
   }
 }

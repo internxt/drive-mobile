@@ -6,29 +6,33 @@ import { getDocumentsDir } from '../fileSystem';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import { PhotosServiceModel } from '../../types/photos';
 import PhotosLogService from './PhotosLogService';
+import PhotosFileSystemService from './PhotosFileSystemService';
 
 export default class PhotosDownloadService {
   private readonly model: PhotosServiceModel;
   private readonly localDatabaseService: PhotosLocalDatabaseService;
   private readonly logService: PhotosLogService;
+  private readonly fileSystemService: PhotosFileSystemService;
 
   constructor(
     model: PhotosServiceModel,
     localDatabaseService: PhotosLocalDatabaseService,
     logService: PhotosLogService,
+    fileSystemService: PhotosFileSystemService,
   ) {
     this.model = model;
     this.localDatabaseService = localDatabaseService;
     this.logService = logService;
+    this.fileSystemService = fileSystemService;
   }
 
-  public async downloadPhoto(photo: photos.Photo): Promise<string> {
+  public async downloadThumbnail(previewId: string): Promise<string> {
     const previewPath = await this.pullPhoto(
       this.model.user?.bucketId || '',
       this.model.networkCredentials,
-      photo.previewId,
+      previewId,
       {
-        toPath: getDocumentsDir() + '/' + photo.previewId,
+        toPath: `${this.fileSystemService.previewsDirectory}/${previewId}`,
         downloadProgressCallback: () => undefined,
         decryptionProgressCallback: () => undefined,
       },
