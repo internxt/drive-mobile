@@ -43,8 +43,6 @@ export class PhotosService {
     };
     this.photosSdk = new photos.Photos(process.env.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
 
-    console.log('photosSdk baseUrl: ', this.photosSdk.baseUrl);
-
     this.logService = new PhotosLogService(this.model);
     this.fileSystemService = new PhotosFileSystemService(this.model, this.logService);
     this.localDatabaseService = new PhotosLocalDatabaseService(this.model, this.logService);
@@ -56,12 +54,7 @@ export class PhotosService {
       this.localDatabaseService,
       this.logService,
     );
-    this.downloadService = new PhotosDownloadService(
-      this.model,
-      this.localDatabaseService,
-      this.logService,
-      this.fileSystemService,
-    );
+    this.downloadService = new PhotosDownloadService(this.model);
     this.userService = new PhotosUserService(this.model, this.photosSdk, this.deviceService, this.logService);
     this.previewService = new PhotosPreviewService(
       this.model,
