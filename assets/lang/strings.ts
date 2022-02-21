@@ -47,7 +47,7 @@ const strings = new LocalizedStrings({
         register: 'Get started',
         back: 'Back to login',
       },
-      register_screen: {
+      SignUpScreen: {
         first:
           '{0} is a {1} cloud storage service. A {2} place for all your files. Welcome to the {3}. Welcome to {4}.',
         second:
@@ -381,7 +381,7 @@ const strings = new LocalizedStrings({
         register: 'Crear una',
         back: 'Iniciar sesión',
       },
-      register_screen: {
+      SignUpScreen: {
         first:
           '{0} es un servicio de almacenamiento en la nube {1}. Un lugar {2} para todos tus archivos. Bienvenido a la {3}. Bienvenido a {4}.',
         second:

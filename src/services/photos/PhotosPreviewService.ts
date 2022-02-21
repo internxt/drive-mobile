@@ -12,8 +12,8 @@ import { pathToUri } from '../fileSystem';
 import * as network from '../network';
 
 export default class PhotosPreviewService {
-  private static readonly PREVIEW_WIDTH = 256;
-  private static readonly PREVIEW_HEIGHT = 256;
+  private static readonly PREVIEW_WIDTH = 512;
+  private static readonly PREVIEW_HEIGHT = 512;
   private static readonly PREVIEW_EXTENSION: ResizeFormat = 'JPEG';
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: Photos;

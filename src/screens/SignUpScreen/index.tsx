@@ -132,9 +132,7 @@ function SignUpScreen(): JSX.Element {
                 <InternxtLogo width={120} height={40} />
               </View>
               <View>
-                <Text style={tailwind('text-sm text-center')}>
-                  {strings.screens.register_screen.create_account_title}
-                </Text>
+                <Text style={tailwind('text-sm text-center')}>{strings.screens.SignUpScreen.create_account_title}</Text>
               </View>
             </View>
 
@@ -273,12 +271,12 @@ function SignUpScreen(): JSX.Element {
           </View>
 
           <View style={tailwind('mt-3')}>
-            <Text style={tailwind('text-xs text-gray-50')}>{strings.screens.register_screen.security_subtitle}</Text>
+            <Text style={tailwind('text-xs text-gray-50')}>{strings.screens.SignUpScreen.security_subtitle}</Text>
           </View>
 
           <View style={tailwind('py-3')}>
             <CheckBox
-              text={strings.screens.register_screen.acceptTermsAndConditions}
+              text={strings.screens.SignUpScreen.acceptTermsAndConditions}
               value={acceptPolicy}
               onChange={setAcceptPolicy}
             ></CheckBox>
