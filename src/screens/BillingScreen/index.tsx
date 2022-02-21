@@ -66,7 +66,6 @@ const getProducts = async () => {
 const PERIODS = [
   { index: 0, text: 'Monthly' },
   { index: 1, text: 'Annually' },
-  { index: 2, text: 'Lifetime' },
 ];
 
 function Billing(): JSX.Element {
@@ -74,7 +73,6 @@ function Billing(): JSX.Element {
   const getLinkOneTimePayment = async (plan: any) => {
     const body = {
       test: process.env.NODE_ENV !== 'production',
-      // eslint-disable-next-line camelcase
       lifetime_tier: plan.tier,
       mode: 'payment',
       priceId: plan.id,
