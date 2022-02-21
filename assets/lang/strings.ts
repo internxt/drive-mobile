@@ -63,6 +63,7 @@ const strings = new LocalizedStrings({
         suggestion_1: 'Store your password. Keep it safe and secure.',
         suggestion_2: 'Keep an offline backup of your password.',
         create_account_title: 'Create an Internxt account',
+        acceptTermsAndConditions: 'Accept terms, conditions and privacy policy',
       },
       forgot_password: {
         title: 'Internxt security',
@@ -396,6 +397,7 @@ const strings = new LocalizedStrings({
         suggestion_1: 'Guardes tu contraseña. Mantenla sana y salva.',
         suggestion_2: 'Guarda una copia local de todos tus archivos.',
         create_account_title: 'Crear cuenta',
+        acceptTermsAndConditions: 'Aceptar términos, condiciones y política de privacidad',
       },
       forgot_password: {
         title: 'Internxt security',

@@ -278,7 +278,7 @@ function SignUpScreen(): JSX.Element {
 
           <View style={tailwind('py-3')}>
             <CheckBox
-              text="Accept terms, conditions and privacy policy"
+              text={strings.screens.register_screen.acceptTermsAndConditions}
               value={acceptPolicy}
               onChange={setAcceptPolicy}
             ></CheckBox>
