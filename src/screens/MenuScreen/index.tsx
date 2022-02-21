@@ -57,13 +57,13 @@ function MenuScreen(): JSX.Element {
               navigation.push(AppScreen.Storage);
             }}
           />
-          {/*
-            <MenuItem
+
+          <MenuItem
             title={strings.screens.billing.title}
             onPress={() => {
               navigation.push(AppScreen.Billing);
             }}
-          /> */}
+          />
 
           <MenuSeparator />
 

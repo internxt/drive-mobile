@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import prettysize from 'prettysize';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableHighlight } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
@@ -11,7 +11,7 @@ import { getCurrentIndividualPlan } from '../../services/payments';
 import { notify } from '../../services/toast';
 import ScreenTitle from '../../components/ScreenTitle';
 import { useAppSelector } from '../../store/hooks';
-import { INFINITE_PLAN } from '../../types';
+import { AppScreen, INFINITE_PLAN } from '../../types';
 
 interface StorageScreenProps {
   currentPlan: number;
@@ -112,15 +112,15 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
         </View>
       </View>
 
-      {/* <TouchableHighlight
+      <TouchableHighlight
         underlayColor="#5291ff"
         style={tailwind('btn btn-primary my-5 mx-5')}
         onPress={() => {
-          navigation.push(AppScreen.Billing)
-        }}>
-
+          navigation.push(AppScreen.Billing);
+        }}
+      >
         <Text style={tailwind('text-white text-lg')}>Change plan</Text>
-      </TouchableHighlight> */}
+      </TouchableHighlight>
     </View>
   );
 }
