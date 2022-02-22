@@ -191,17 +191,20 @@ export default class PhotosSyncService {
           return;
         }
 
-        const isAlreadyOnTheDevice = !!(await this.localDatabaseService.getPhotoById(photo.id));
+        const photoInDevice = await this.localDatabaseService.getPhotoById(photo.id);
+        const isAlreadyOnTheDevice = !!photoInDevice;
+        let previewPath;
 
         this.logService.info('Photo ' + photo.name + ' is on the device? ' + isAlreadyOnTheDevice);
 
         if (isAlreadyOnTheDevice) {
+          previewPath = photoInDevice ? photoInDevice.preview_path : '';
           await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);
         } else {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           const previewId = photo.previews && photo.previews.length > 0 ? photo.previews[0].fileId : photo.previewId;
-          const previewPath = await this.downloadService.pullPhoto(previewId, {
+          previewPath = await this.downloadService.pullPhoto(previewId, {
             toPath: `${this.fileSystemService.previewsDirectory}/${previewId}`,
             downloadProgressCallback: () => undefined,
             decryptionProgressCallback: () => undefined,
@@ -209,7 +212,7 @@ export default class PhotosSyncService {
           await this.localDatabaseService.insertPhoto({ ...photo, previewId }, previewPath);
         }
 
-        options.onPhotoDownloaded(photo, { isAlreadyOnTheDevice });
+        options.onPhotoDownloaded(photo, { isAlreadyOnTheDevice, previewPath });
       }
 
       skip += limit;
@@ -312,11 +315,11 @@ export default class PhotosSyncService {
             throw new Error(strings.errors.storageLimitReached);
           }
 
-          const [createdPhoto, preview] = await this.uploadService.upload({ ...photo.data, hash }, uri);
+          const [createdPhoto, previewPath] = await this.uploadService.upload({ ...photo.data, hash }, uri);
 
-          await this.localDatabaseService.insertPhoto(createdPhoto, preview);
+          await this.localDatabaseService.insertPhoto(createdPhoto, previewPath);
 
-          options.onPhotoUploaded?.(createdPhoto, { isAlreadyOnTheDevice: false });
+          options.onPhotoUploaded?.(createdPhoto, { isAlreadyOnTheDevice: false, previewPath });
         }
       }
 

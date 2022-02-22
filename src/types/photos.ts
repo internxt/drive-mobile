@@ -89,6 +89,7 @@ export interface PhotosSyncStatusData {
 
 export interface PhotosTaskCompletedInfo {
   isAlreadyOnTheDevice: boolean;
+  previewPath: string;
 }
 
 export interface PhotosSyncInfo {

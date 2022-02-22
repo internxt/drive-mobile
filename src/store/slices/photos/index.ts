@@ -27,6 +27,7 @@ import {
   PhotosTaskCompletedInfo,
 } from '../../../types/photos';
 import { layoutActions } from '../layout';
+import { pathToUri } from '../../../services/fileSystem';
 
 let photosService: PhotosService;
 
@@ -267,8 +268,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
         if (photo.status === PhotoStatus.Exists) {
           if (!info.isAlreadyOnTheDevice) {
-            const preview = (await photosService.getPhotoPreview(photo.id)) || '';
-            dispatch(photosActions.pushPhoto({ data: photo, preview }));
+            dispatch(photosActions.pushPhoto({ data: photo, preview: pathToUri(info.previewPath) }));
           }
         } else {
           dispatch(photosActions.popPhoto(photo));

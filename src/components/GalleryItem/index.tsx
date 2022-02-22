@@ -21,6 +21,7 @@ const defaultProps: Partial<GalleryItemProps> = {
 };
 
 const GalleryItem = ({
+  data,
   type = defaultProps.type as GalleryItemType,
   size,
   preview,
@@ -33,6 +34,8 @@ const GalleryItem = ({
     ({
       [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri }} />,
     }[type]());
+
+  console.log('Rendering GalleryItem: ', data.id);
 
   return (
     <TouchableOpacity
