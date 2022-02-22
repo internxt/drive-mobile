@@ -62,6 +62,7 @@ export default class PhotosPreviewService {
         width: previewInfo.width,
         height: previewInfo.height,
         size: previewInfo.size,
+        type: previewInfo.format,
       },
     ];
 
