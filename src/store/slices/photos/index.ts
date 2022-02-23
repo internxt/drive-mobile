@@ -49,6 +49,7 @@ export interface PhotosState {
   years: { year: number; preview: string }[];
   months: { year: number; month: number; preview: string }[];
   photos: { data: Photo; preview: string }[];
+  photosByMonth: PhotosByMonthType[];
   limit: number;
   skip: number;
   selectedPhotos: Photo[];
@@ -81,6 +82,7 @@ const initialState: PhotosState = {
   downloadedPhotos: [],
   years: [],
   months: [],
+  photosByMonth: [],
   photos: [],
   limit: 60,
   skip: 0,
@@ -268,7 +270,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
         if (photo.status === PhotoStatus.Exists) {
           if (!info.isAlreadyOnTheDevice) {
-            dispatch(photosActions.pushPhoto({ data: photo, preview: pathToUri(info.previewPath) }));
+            dispatch(photosActions.addPhotos([{ data: photo, preview: pathToUri(info.previewPath) }]));
           }
         } else {
           dispatch(photosActions.popPhoto(photo));
@@ -340,6 +342,7 @@ export const photosSlice = createSlice({
     },
     resetPhotos(state) {
       state.photos = [];
+      state.photosByMonth = [];
       state.skip = 0;
       state.selectedPhotos = [];
       state.isSelectionModeActivated = false;
@@ -349,6 +352,35 @@ export const photosSlice = createSlice({
         const index = state.photos.findIndex((p) => p.data.id === photo.data.id);
 
         if (!~index) {
+          const year = photo.data.takenAt.getFullYear();
+          const month = photo.data.takenAt.getMonth();
+          const day = photo.data.takenAt.getDate();
+          const monthItem = state.photosByMonth.find((m) => m.year === year && m.month === month);
+
+          if (monthItem) {
+            const dayItem = monthItem.days.find((d) => d.day === day);
+
+            if (dayItem) {
+              dayItem.photos.push(photo);
+            } else {
+              monthItem.days.push({
+                day,
+                photos: [photo],
+              });
+            }
+          } else {
+            state.photosByMonth.push({
+              year,
+              month,
+              days: [
+                {
+                  day,
+                  photos: [photo],
+                },
+              ],
+            });
+          }
+
           state.photos.push(photo);
         }
       }
@@ -369,17 +401,6 @@ export const photosSlice = createSlice({
     },
     setSkip(state, action: PayloadAction<number>) {
       state.skip = action.payload;
-    },
-    pushPhoto(state, action: PayloadAction<{ data: Photo; preview: string }>) {
-      const index = state.photos.findIndex((photo) => photo.data.id === action.payload.data.id);
-
-      if (~index) {
-        Object.assign(state.photos[index].data, action.payload.data);
-        state.photos[index].preview = action.payload.preview;
-      } else {
-        state.photos.push(action.payload);
-      }
-      state.photos.sort((a, b) => b.data.takenAt.getTime() - a.data.takenAt.getTime());
     },
     popPhoto(state, action: PayloadAction<Photo>) {
       state.photos = state.photos.filter((photo) => photo.data.id !== action.payload.id);
