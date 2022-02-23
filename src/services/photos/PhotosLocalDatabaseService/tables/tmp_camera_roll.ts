@@ -18,13 +18,25 @@ const statements = {
       group_name, timestamp, type, filename, fileSize, width, height, uri \
     ) \
     VALUES ( ?, ?, ?, ?, ?, ?, ?, ? );`,
-  bulkInsert: (size: number): string => {
+  bulkInsert: (rows: any[][]): string => {
     let query = `INSERT INTO ${TABLE_NAME} (\
       group_name, timestamp, type, filename, fileSize, width, height, uri \
     ) VALUES `;
 
-    for (let i = 0; i < size; i++) {
-      query += `( ?, ?, ?, ?, ?, ?, ?, ? )${i === size - 1 ? ';' : ','}`;
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const isTheLastRow = i === rows.length - 1;
+
+      query += '(';
+      query += `"${row[0]}",`;
+      query += `${row[1]}, `;
+      query += `"${row[2]}", `;
+      query += `"${row[3]}", `;
+      query += `${row[4]}, `;
+      query += `${row[5]}, `;
+      query += `${row[6]}, `;
+      query += `"${row[7]}")`;
+      query += isTheLastRow ? ';' : ',';
     }
 
     return query;

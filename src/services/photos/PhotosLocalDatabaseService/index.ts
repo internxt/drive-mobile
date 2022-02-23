@@ -266,7 +266,7 @@ export default class PhotosLocalDatabaseService {
   public async insertTmpCameraRollRow(edge: CameraRoll.PhotoIdentifier): Promise<void> {
     return sqliteService
       .executeSql(PHOTOS_DB_NAME, tmp_camera_roll.statements.insert, [
-        edge.node.group_name,
+        edge.node.group_name || '',
         edge.node.timestamp * 1000,
         edge.node.type,
         edge.node.image.filename,
@@ -279,27 +279,24 @@ export default class PhotosLocalDatabaseService {
   }
 
   public async bulkInsertTmpCameraRollRow(edges: CameraRoll.PhotoIdentifier[]): Promise<void> {
-    const query = tmp_camera_roll.statements.bulkInsert(edges.length);
-    const values = [];
+    const rows = edges.map((edge) => {
+      const splittedUri = edge.node.image.uri.split('/');
+      const filename = edge.node.image.filename || splittedUri[splittedUri.length - 1];
 
-    let edge: CameraRoll.PhotoIdentifier;
-
-    for (let i = 0; i < edges.length; i++) {
-      edge = edges[i];
-
-      values.push(
-        edge.node.group_name,
+      return [
+        edge.node.group_name || '',
         edge.node.timestamp * 1000,
         edge.node.type,
-        edge.node.image.filename,
+        filename,
         edge.node.image.fileSize,
         edge.node.image.width,
         edge.node.image.height,
         edge.node.image.uri,
-      );
-    }
+      ];
+    });
+    const query = tmp_camera_roll.statements.bulkInsert(rows);
 
-    await sqliteService.executeSql(PHOTOS_DB_NAME, query, values);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, query);
   }
 
   public async cleanTmpCameraRollTable(): Promise<void> {
