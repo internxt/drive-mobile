@@ -35,8 +35,6 @@ const GalleryItem = ({
       [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri }} />,
     }[type]());
 
-  console.log('Rendering GalleryItem: ', data.id);
-
   return (
     <TouchableOpacity
       activeOpacity={0.7}
