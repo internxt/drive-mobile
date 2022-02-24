@@ -383,6 +383,12 @@ export const photosSlice = createSlice({
 
           state.photos.push(photo);
         }
+
+        state.photosByMonth.forEach((i) => {
+          i.days.sort((a, b) => {
+            return b.day - a.day;
+          });
+        });
       }
 
       state.photos.sort((a, b) => {
