@@ -96,8 +96,6 @@ export default class PhotosSyncService {
       const timeElapsedIndexing = (new Date().getTime() - startLocalIndexingTime) / 1000;
       const cameraRollCount = newerCameraRollCount + olderCameraRollCount;
 
-      console.log('cameraRollCount: ', cameraRollCount);
-
       this.logService.info(
         `[SYNC] ${
           this.currentSyncId
