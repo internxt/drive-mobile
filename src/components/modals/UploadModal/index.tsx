@@ -15,6 +15,7 @@ import {
   requestCameraPermissionsAsync,
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
 import * as Unicons from '@iconscout/react-native-unicons';
@@ -23,7 +24,7 @@ import RNFS from 'react-native-fs';
 import { createFileEntry, FileEntry, getFinalUri } from '../../../services/upload';
 import analytics from '../../../services/analytics';
 import { encryptFilename } from '../../../helpers';
-import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../lib/fs';
+import { stat, getTemporaryDir, copyFile, unlink, clearTempDir, pathToUri } from '../../../services/fileSystem';
 import { renameIfAlreadyExists } from '../../../lib';
 import strings from '../../../../assets/lang/strings';
 import { notify } from '../../../services/toast';
@@ -31,10 +32,10 @@ import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import { DevicePlatform } from '../../../types';
 import { deviceStorage } from '../../../services/deviceStorage';
-import { UPLOAD_FILES_LIMIT } from '../../../services/file';
+import { UPLOAD_FILE_SIZE_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
-import { filesActions, filesThunks } from '../../../store/slices/files';
+import { storageActions, storageThunks } from '../../../store/slices/storage';
 import { uploadFile } from '../../../services/network';
 
 interface UploadingFile {
@@ -47,7 +48,6 @@ interface UploadingFile {
   updatedAt: string;
   id: string;
   uri: string;
-  path: string;
   folderId?: number;
 }
 
@@ -117,13 +117,12 @@ async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image',
     }
   }
 
-  const fileURI = 'file:///' + destPath;
   const filename = result.name;
   const fileExtension = result.type;
   const currenFolderId = result.currentFolder.toString();
 
   const createdFileEntry = await uploadAndCreateFileEntry(
-    fileURI,
+    destPath,
     filename,
     fileExtension,
     currenFolderId,
@@ -136,38 +135,37 @@ async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image',
 }
 
 async function uploadAndCreateFileEntry(
-  fileURI: string,
+  filePath: string,
   fileName: string,
   fileExtension: string,
   currentFolderId: string,
   progressCallback: ProgressCallback,
 ) {
   const { bucket, bridgeUser, mnemonic, userId } = await deviceStorage.getUser();
+  const fileStat = await stat(filePath);
+  const fileSize = fileStat.size;
   const fileId = await uploadFile(
-    fileURI,
+    filePath,
     bucket,
     process.env.REACT_NATIVE_BRIDGE_URL!,
     {
       encryptionKey: mnemonic,
       user: bridgeUser,
-      pass: userId,
+      password: userId,
     },
     {
       progress: progressCallback,
     },
   );
 
-  const fileStat = await stat(fileURI);
-
   const folderId = currentFolderId;
   const name = encryptFilename(removeExtension(fileName), folderId);
-  const fileSize = fileStat.size;
   const fileEntry: FileEntry = {
     fileId,
     file_id: fileId,
     type: fileExtension,
     bucket,
-    size: fileSize.toString(),
+    size: fileSize as number,
     folder_id: folderId,
     name,
     encrypt_version: '03-aes',
@@ -178,26 +176,30 @@ async function uploadAndCreateFileEntry(
 
 function UploadModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { folderContent } = useAppSelector((state) => state.files);
+  const { folderContent, usage: storageUsage, limit } = useAppSelector((state) => state.storage);
   const { user } = useAppSelector((state) => state.auth);
   const currentFolder = folderContent?.currentFolder || user?.root_folder_id;
   const { showUploadModal } = useAppSelector((state) => state.layout);
-
-  function upload(res: UploadingFile, fileType: 'document' | 'image') {
+  const { usage: photosUsage } = useAppSelector((state) => state.photos);
+  const usage = photosUsage + storageUsage;
+  const upload = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
     function progressCallback(progress: number) {
-      dispatch(filesActions.uploadFileSetProgress({ progress, id: res.id }));
+      dispatch(storageActions.uploadFileSetProgress({ progress, id: uploadingFile.id }));
+    }
+
+    if (uploadingFile.size + usage > limit) {
+      dispatch(layoutActions.setShowRunOutSpaceModal(true));
+      throw new Error(strings.errors.storageLimitReached);
     }
 
     if (Platform.OS === 'ios') {
-      return uploadIOS(res, fileType, progressCallback);
+      await uploadIOS(uploadingFile, fileType, progressCallback);
+    } else if (Platform.OS === 'android') {
+      await uploadAndroid(uploadingFile, fileType, progressCallback);
+    } else {
+      throw new Error('Unsuported platform');
     }
-
-    if (Platform.OS === 'android') {
-      return uploadAndroid(res, fileType, progressCallback);
-    }
-
-    throw new Error('Unsuported platform');
-  }
+  };
 
   async function trackUploadStart() {
     const { uuid, email } = await deviceStorage.getUser();
@@ -214,18 +216,22 @@ function UploadModal(): JSX.Element {
   }
 
   async function trackUploadError(err: Error) {
-    const { email, uuid } = await deviceStorage.getUser();
-    const uploadErrorTrack = { userId: uuid, email, device: DevicePlatform.Mobile, error: err.message };
+    try {
+      const { email, uuid } = await deviceStorage.getUser();
+      const uploadErrorTrack = { userId: uuid, email, device: DevicePlatform.Mobile, error: err.message };
 
-    analytics.track('file-upload-error', uploadErrorTrack).catch(() => null);
+      analytics.track('file-upload-error', uploadErrorTrack);
+    } catch (err) {
+      console.error('error tracking upload error: ', err);
+    }
   }
 
   function uploadSuccess(file: { id: string }) {
     trackUploadSuccess();
 
-    dispatch(filesActions.removeUploadingFile(file.id));
-    dispatch(filesActions.updateUploadingFile(file.id));
-    dispatch(filesActions.setUri(undefined));
+    dispatch(storageActions.removeUploadingFile(file.id));
+    dispatch(storageActions.updateUploadingFile(file.id));
+    dispatch(storageActions.setUri(undefined));
   }
 
   function processFilesFromPicker(documents: any[]): Promise<void> {
@@ -249,7 +255,6 @@ function UploadModal(): JSX.Element {
       createdAt: new Date().toString(),
       updatedAt: new Date().toString(),
       id: uniqueId(),
-      path: '',
       size: file.size,
       progress: 0,
     };
@@ -258,9 +263,10 @@ function UploadModal(): JSX.Element {
   async function uploadDocuments(documents: DocumentPickerResponse[]) {
     const filesToUpload: DocumentPickerResponse[] = [];
     const filesExcluded: DocumentPickerResponse[] = [];
+    const formattedFiles: UploadingFile[] = [];
 
     for (const file of documents) {
-      if (file.size <= UPLOAD_FILES_LIMIT) {
+      if (file.size <= UPLOAD_FILE_SIZE_LIMIT) {
         filesToUpload.push(file);
       } else {
         filesExcluded.push(file);
@@ -276,8 +282,6 @@ function UploadModal(): JSX.Element {
       folderContent?.files.map((file) => {
         return { name: removeExtension(file.name), type: file.type };
       }) || [];
-
-    const formattedFiles: UploadingFile[] = [];
 
     for (const fileToUpload of filesToUpload) {
       let file: UploadingFile;
@@ -297,15 +301,14 @@ function UploadModal(): JSX.Element {
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
           id: uniqueId(),
-          path: '',
           size: fileToUpload.size,
           progress: 0,
         };
       }
 
       trackUploadStart();
-      dispatch(filesActions.uploadFileStart(file.name));
-      dispatch(filesActions.addUploadingFile({ ...file, isLoading: true }));
+      dispatch(storageActions.uploadFileStart(file.name));
+      dispatch(storageActions.addUploadingFile({ ...file, isLoading: true }));
 
       formattedFiles.push(file);
       filesAtSameLevel.push({ name: file.name, type: file.type });
@@ -321,14 +324,14 @@ function UploadModal(): JSX.Element {
         })
         .catch((err) => {
           trackUploadError(err);
-          dispatch(filesActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
+          dispatch(storageActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
           notify({
-            text: 'Cannot upload file: ' + err.message,
             type: 'error',
+            text: strings.formatString(strings.errors.uploadFile, err.message) as string,
           });
         })
         .finally(() => {
-          dispatch(filesActions.uploadFileFinished());
+          dispatch(storageActions.uploadFileFinished());
         });
     }
   }
@@ -345,15 +348,17 @@ function UploadModal(): JSX.Element {
           return uploadDocuments(documents);
         })
         .then(() => {
+          dispatch(storageThunks.getUsageAndLimitThunk());
+
           if (currentFolder) {
-            dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
+            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
           }
         })
         .catch((err) => {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          Alert.alert('File upload error', err.message);
+          notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
         })
         .finally(() => {
           dispatch(layoutActions.setShowUploadFileModal(false));
@@ -365,15 +370,17 @@ function UploadModal(): JSX.Element {
       })
         .then(processFilesFromPicker)
         .then(() => {
+          dispatch(storageThunks.getUsageAndLimitThunk());
+
           if (currentFolder) {
-            dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
+            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
           }
         })
         .catch((err) => {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          Alert.alert('File upload error', err.message);
+          notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
         })
         .finally(() => {
           dispatch(layoutActions.setShowUploadFileModal(false));
@@ -410,15 +417,17 @@ function UploadModal(): JSX.Element {
             dispatch(layoutActions.setShowUploadFileModal(false));
             uploadDocuments(documents)
               .then(() => {
+                dispatch(storageThunks.getUsageAndLimitThunk());
+
                 if (currentFolder) {
-                  dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
+                  dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
                 }
               })
               .catch((err) => {
                 if (err.message === 'User canceled document picker') {
                   return;
                 }
-                Alert.alert('File upload error', err.message);
+                notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
               })
               .finally(() => {
                 dispatch(layoutActions.setShowUploadFileModal(false));
@@ -433,15 +442,17 @@ function UploadModal(): JSX.Element {
       })
         .then(processFilesFromPicker)
         .then(() => {
+          dispatch(storageThunks.getUsageAndLimitThunk());
+
           if (currentFolder) {
-            dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
+            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
           }
         })
         .catch((err) => {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          Alert.alert('File upload error', err.message);
+          notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
         })
         .finally(() => {
           dispatch(layoutActions.setShowUploadFileModal(false));
@@ -453,57 +464,58 @@ function UploadModal(): JSX.Element {
     const { status } = await requestCameraPermissionsAsync();
 
     if (status === 'granted') {
-      let error = null;
+      try {
+        const result = await launchCameraAsync();
 
-      const result: any = await launchCameraAsync().catch((err) => {
-        error = err;
-      });
-
-      if (error) {
-        return Alert.alert((error as Error).message);
-      }
-
-      if (!result) {
-        return;
-      }
-
-      if (!result.cancelled) {
-        const file = result;
-
-        // Set name for pics/photos
-        if (!file.name) {
-          file.name = result.uri.split('/').pop();
+        if (!result) {
+          return;
         }
-        file.progress = 0;
-        file.currentFolder = currentFolder;
-        file.createdAt = new Date().toString();
-        file.updatedAt = new Date().toString();
-        file.id = uniqueId();
 
-        file.name = removeExtension(file.name);
-        file.type = getFileExtension(result.uri);
+        if (!result.cancelled) {
+          const name = removeExtension(result.uri.split('/').pop() as string);
+          const fileInfo = await FileSystem.getInfoAsync(result.uri);
+          const size = fileInfo.size;
+          const file: UploadingFile = {
+            name,
+            progress: 0,
+            currentFolder: currentFolder,
+            createdAt: new Date().toString(),
+            updatedAt: new Date().toString(),
+            id: uniqueId(),
+            type: getFileExtension(result.uri) as string,
+            size: size || 0,
+            uri: result.uri,
+          };
 
-        trackUploadStart();
-        dispatch(filesActions.uploadFileStart(file.name));
-        dispatch(filesActions.addUploadingFile(file));
+          trackUploadStart();
+          dispatch(storageActions.uploadFileStart(file.name));
+          dispatch(storageActions.addUploadingFile(file));
 
-        dispatch(layoutActions.setShowUploadFileModal(false));
+          dispatch(layoutActions.setShowUploadFileModal(false));
 
-        upload(file, 'image')
-          .then(() => {
-            uploadSuccess(file);
-          })
-          .catch((err) => {
-            trackUploadError(err);
-            dispatch(filesActions.uploadFileFailed(file.id));
-            Alert.alert('Error', 'Cannot upload file due to: ' + err.message);
-          })
-          .finally(() => {
-            dispatch(filesActions.uploadFileFinished());
-            if (currentFolder) {
-              dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolder }));
-            }
-          });
+          upload(file, 'image')
+            .then(() => {
+              uploadSuccess(file);
+            })
+            .catch((err) => {
+              trackUploadError(err);
+              dispatch(storageActions.uploadFileFailed({ id: file.id }));
+              throw err;
+            })
+            .finally(() => {
+              dispatch(storageActions.uploadFileFinished());
+              dispatch(storageThunks.getUsageAndLimitThunk());
+
+              if (currentFolder) {
+                dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
+              }
+            });
+        }
+      } catch (err) {
+        notify({
+          type: 'error',
+          text: strings.formatString(strings.errors.uploadFile, (err as Error).message) as string,
+        });
       }
     }
   }

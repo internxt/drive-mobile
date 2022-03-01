@@ -9,7 +9,7 @@ import EmptyDriveImage from '../../../assets/images/screens/empty-drive.svg';
 import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg';
 import EmptyList from '../EmptyList';
 import strings from '../../../assets/lang/strings';
-import { filesThunks } from '../../store/slices/files';
+import { storageThunks } from '../../store/slices/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import fileService from '../../services/file';
 
@@ -78,10 +78,8 @@ function FileList(props: FileListProps): JSX.Element {
     sortType,
     isUploadingFileName,
     loading: filesLoading,
-  } = useAppSelector((state) => state.files);
+  } = useAppSelector((state) => state.storage);
   const { user } = useAppSelector((state) => state.auth);
-  const [filesUploading, setFilesUploading] = useState<IUploadingFile[]>([]);
-  const [filesUploaded, setFilesUploaded] = useState<IUploadingFile[]>([]);
   const [folderId, setFolderId] = useState<number>();
   let folderList: IFolder[] = (folderContent && folderContent.children) || [];
   let fileList: IFile[] = (folderContent && folderContent.files) || [];
@@ -94,14 +92,6 @@ function FileList(props: FileListProps): JSX.Element {
       setFolderId(folderContent.currentFolder);
     }
   }, [folderContent]);
-
-  useEffect(() => {
-    setFilesUploading(filesCurrentlyUploading);
-  }, [filesCurrentlyUploading]);
-
-  useEffect(() => {
-    setFilesUploaded(filesAlreadyUploaded);
-  }, [filesAlreadyUploaded]);
 
   if (searchString) {
     fileList = fileList.filter((file: IFile) => file.name.toLowerCase().includes(searchString.toLowerCase()));
@@ -117,7 +107,7 @@ function FileList(props: FileListProps): JSX.Element {
 
   useEffect(() => {
     if (!folderContent && rootFolderId) {
-      dispatch(filesThunks.getFolderContentThunk({ folderId: rootFolderId }));
+      dispatch(storageThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
   }, []);
 
@@ -125,8 +115,8 @@ function FileList(props: FileListProps): JSX.Element {
   const isEmptyFolder =
     folderList.length === 0 &&
     fileList.length === 0 &&
-    filesUploading.length === 0 &&
-    filesUploaded.length === 0 &&
+    filesCurrentlyUploading.length === 0 &&
+    filesAlreadyUploaded.length === 0 &&
     !isUploading;
 
   const windowWidth = Dimensions.get('window').width;
@@ -145,7 +135,7 @@ function FileList(props: FileListProps): JSX.Element {
             }
 
             if (currentFolderId) {
-              dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
+              dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
             }
           }}
         />
@@ -166,7 +156,7 @@ function FileList(props: FileListProps): JSX.Element {
           <EmptyList {...strings.screens.drive.emptyFolder} image={<EmptyFolderImage width={100} height={100} />} />
         )
       }
-      data={[...filesUploading, ...folderList, ...fileList, ...filesUploaded]}
+      data={[...filesCurrentlyUploading, ...folderList, ...fileList, ...filesAlreadyUploaded]}
       keyExtractor={(item) => `${props.isGrid}-${item.id}`}
       renderItem={({ item }) => {
         return (

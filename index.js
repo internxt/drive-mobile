@@ -1,9 +1,11 @@
-import 'expo-asset'
+import 'expo-asset';
 import { registerRootComponent } from 'expo';
 
-import App from './App';
+import App from './src/App';
+import plugins from './src/plugins';
+import store from './src/store';
 
-// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
-// It also ensures that whether you load the app in the Expo client or in a native build,
-// the environment is set up appropriately
+// Installs plugins
+plugins.forEach((plugin) => plugin.install(store));
+
 registerRootComponent(App);

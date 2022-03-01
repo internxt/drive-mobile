@@ -10,41 +10,34 @@ import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import strings from '../../../../assets/lang/strings';
 import { getCurrentIndividualPlan } from '../../../services/payments';
-import { loadValues } from '../../../services/storage';
-import { AppScreen } from '../../../types';
+import { AppScreen, CurrentPlan, INFINITE_PLAN } from '../../../types';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-interface CurrentPlan {
-  name: string;
-  storageLimit: number;
-}
 
 function RunOutOfStorageModal(): JSX.Element {
+  const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationStackProp>();
-  const showRunOutOfSpaceModal = useAppSelector((state) => state.layout.showRunOutOfSpaceModal);
-  const [usageValues, setUsageValues] = useState({ usage: 0, limit: 0 });
-  const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
-
-  const parseLimit = () => {
-    if (usageValues.limit === 0) {
+  const { usage: photosUsage } = useAppSelector((state) => state.photos);
+  const { usage: storageUsage, limit } = useAppSelector((state) => state.storage);
+  const { showRunOutOfSpaceModal } = useAppSelector((state) => state.layout);
+  const usage = photosUsage + storageUsage;
+  const getLimitString = () => {
+    if (limit === 0) {
       return '...';
     }
 
-    const infinitePlan = Math.pow(1024, 4) * 99; // 99TB
-
-    if (usageValues.limit >= infinitePlan) {
+    if (limit >= INFINITE_PLAN) {
       return '\u221E';
     }
 
-    return prettysize(usageValues.limit, true);
+    return prettysize(limit, true);
+  };
+  const getUsageString = () => {
+    return prettysize(usage);
   };
 
   useEffect(() => {
-    loadValues()
-      .then((res) => setUsageValues(res))
-      .catch(() => undefined);
-
     getCurrentIndividualPlan()
       .then(setCurrentPlan)
       .catch(() => undefined);
@@ -79,7 +72,7 @@ function RunOutOfStorageModal(): JSX.Element {
             <View style={tailwind('h-1 w-20 bg-neutral-30 rounded-full')} />
           </View>
 
-          <View style={tailwind('bg-white justify-center p-3 pb-8')}>
+          <View style={tailwind('bg-white justify-center px-5 pt-3 pb-8')}>
             <Text style={[tailwind('text-center text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
               {strings.modals.out_of_space_modal.title}
             </Text>
@@ -90,17 +83,14 @@ function RunOutOfStorageModal(): JSX.Element {
               </View>
 
               <Text style={[tailwind('text-sm text-neutral-100 mt-3'), globalStyle.fontWeight.medium]}>
-                {strings.screens.storage.space.used.used} {prettysize(usageValues.usage)}{' '}
-                {strings.screens.storage.space.used.of} {parseLimit()}
+                {strings.screens.storage.space.used.used} {getUsageString()} {strings.screens.storage.space.used.of}{' '}
+                {getLimitString()}
               </Text>
             </View>
 
-            <View style={tailwind('flex-grow my-6')}>
+            <View style={tailwind('flex-grow mb-6')}>
               <Text style={tailwind('text-sm text-center text-neutral-100')}>
-                Get a higher plan or remove files you will no longer
-              </Text>
-              <Text style={tailwind('text-sm text-center text-neutral-100')}>
-                use in order to upload or sync your files again.
+                {strings.modals.run_out_of_storage.advice}
               </Text>
             </View>
 

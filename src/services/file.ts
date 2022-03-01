@@ -5,12 +5,6 @@ import { createHash } from 'crypto';
 import axios from 'axios';
 import { DriveFileMetadataPayload } from '../types';
 
-interface RenameFileInNetworkPayload {
-  fileId: string;
-  bucketId: string;
-  relativePath: string;
-}
-
 export const sortTypes = {
   DATE_ADDED: 'Date_Added',
   SIZE_ASC: 'Size_Asc',
@@ -21,7 +15,7 @@ export const sortTypes = {
   FILETYPE_DESC: 'File_Type_Asc',
 };
 
-export const UPLOAD_FILES_LIMIT = 1024 * 1024 * 1024;
+export const UPLOAD_FILE_SIZE_LIMIT = 1024 * 1024 * 1024;
 
 async function getFolderContent(folderId: number): Promise<any> {
   const headers = await getHeaders();

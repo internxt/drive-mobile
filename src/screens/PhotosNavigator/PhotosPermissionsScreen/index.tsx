@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Linking, Platform, Text, View } from 'react-native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import SyncIcon from '../../../../assets/images/modals/sync.svg';
 import strings from '../../../../assets/lang/strings';
@@ -9,8 +9,7 @@ import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { photosSelectors, photosThunks } from '../../../store/slices/photos';
 import globalStyle from '../../../styles/global.style';
-
-import { PhotosScreen } from '../../../types';
+import { PhotosScreen } from '../../../types/photos';
 
 function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackProp }): JSX.Element {
   const dispatch = useAppDispatch();
@@ -29,11 +28,16 @@ function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackPr
     );
   });
   const onPermissionsGranted = async () => {
-    await dispatch(photosThunks.initializeDatabaseThunk()).unwrap();
-    // TODO: init database error handling
+    dispatch(photosThunks.startUsingPhotosThunk());
     navigation.replace(PhotosScreen.Gallery);
   };
   const onButtonPressed = async () => {
+    if (arePermissionsBlocked) {
+      if (Platform.OS === 'ios') {
+        await Linking.openSettings();
+      }
+    }
+
     await dispatch(photosThunks.askForPermissionsThunk())
       .unwrap()
       .then((areGranted) => {

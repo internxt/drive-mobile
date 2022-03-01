@@ -1,109 +1,100 @@
 import React, { useState } from 'react';
-import {
-  Dimensions,
-  FlatList,
-  ListRenderItemInfo,
-  RefreshControl,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { Dimensions, FlatList, ListRenderItemInfo, Text, TouchableWithoutFeedback, View } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
+import { Photo } from '@internxt/sdk/dist/photos';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import GalleryItem from '../GalleryItem';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
-import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
-import { PhotosScreen } from '../../types';
-import { Photo } from '@internxt/sdk/dist/photos';
+import { photosActions, photosSelectors } from '../../store/slices/photos';
+import { AppScreen } from '../../types';
+import moment from 'moment';
 
-const GalleryDay = (): JSX.Element => {
+interface GalleryDayProps {
+  year: number;
+  month: number;
+  day: number;
+  photos: { data: Photo; preview: string }[];
+}
+
+const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationStackProp>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
-  const isAllPhotosSelected = false;
-  const { isSelectionModeActivated, photos } = useAppSelector((state) => state.photos);
-  const [refreshing, setRefreshing] = useState(false);
+  const arePhotosSelected = useAppSelector(photosSelectors.arePhotosSelected);
+  const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
   const [columnsCount] = useState(3);
   const [gutter] = useState(3);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
+  const date = moment().year(year).month(month).date(day);
+  const dateLabel = date.format('dddd, DD MMMM');
+  const areAllPhotosSelected = arePhotosSelected(photos.map((p) => p.data));
   const selectAll = () => {
-    console.log('GalleryDay selectAll pressed!');
+    dispatch(photosActions.setIsSelectionModeActivated(true));
+    dispatch(photosActions.selectPhotos(photos.map((p) => p.data)));
   };
   const deselectAll = () => {
-    console.log('GalleryDay deselectAll pressed!');
+    dispatch(photosActions.deselectPhotos(photos.map((p) => p.data)));
   };
   const selectItem = (photo: Photo) => {
-    dispatch(photosActions.selectPhoto(photo));
+    dispatch(photosActions.selectPhotos(photo));
   };
   const deselectItem = (photo: Photo) => {
-    dispatch(photosActions.deselectPhoto(photo));
+    dispatch(photosActions.deselectPhotos(photo));
   };
   const onItemLongPressed = (photo: Photo) => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
     isPhotoSelected(photo) ? deselectItem(photo) : selectItem(photo);
   };
-  const onItemPressed = (item: Photo) => {
-    isSelectionModeActivated ? onItemLongPressed(item) : navigation.push(PhotosScreen.Preview, { data: item });
+  const onItemPressed = (item: Photo, preview: string) => {
+    isSelectionModeActivated
+      ? onItemLongPressed(item)
+      : navigation.navigate(AppScreen.PhotosPreview, { data: item, preview });
   };
 
   return (
     <View style={tailwind('mb-6')}>
       {/* TITLE */}
       <View style={tailwind('flex-row justify-between px-5 mb-6')}>
-        <Text style={tailwind('text-base text-neutral-500')}>Sunday, 26 September</Text>
-        {isAllPhotosSelected ? (
-          <TouchableWithoutFeedback
-            style={[tailwind('bg-blue-60 w-5 h-5 flex justify-center items-center rounded-xl')]}
-            onPress={deselectAll}
-          >
-            <Unicons.UilCheckCircle color={getColor('white')} size={30} />
+        <Text style={tailwind('text-base text-neutral-500')}>{dateLabel}</Text>
+        {areAllPhotosSelected ? (
+          <TouchableWithoutFeedback onPress={deselectAll}>
+            <View style={[tailwind('w-6 h-6 bg-blue-60 flex justify-center items-center rounded-2xl')]}>
+              <Unicons.UilCheckCircle color={getColor('white')} size={32} />
+            </View>
           </TouchableWithoutFeedback>
         ) : (
-          <TouchableWithoutFeedback
-            onPress={selectAll}
-            style={[tailwind('bg-white w-5 h-5 flex justify-center items-center rounded-xl')]}
-          >
-            <Unicons.UilCheckCircle color={getColor('neutral-60')} size={30} />
+          <TouchableWithoutFeedback onPress={selectAll}>
+            <View style={[tailwind('bg-white w-6 h-6 flex justify-center items-center rounded-xl')]}>
+              <Unicons.UilCheckCircle color={getColor('neutral-60')} size={32} />
+            </View>
           </TouchableWithoutFeedback>
         )}
       </View>
 
       {/* PHOTOS LIST */}
       <FlatList
+        listKey={`${year}-${month}-${day}`}
+        scrollEnabled={false}
         style={tailwind('bg-white')}
-        showsVerticalScrollIndicator={true}
-        indicatorStyle={'black'}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={async () => {
-              setRefreshing(true);
-              await dispatch(photosThunks.loadLocalPhotosThunk({ limit: 15, offset: 0 }));
-              setRefreshing(false);
-            }}
-          />
-        }
-        decelerationRate={0.5}
         ItemSeparatorComponent={() => <View style={{ height: gutter }} />}
         data={photos}
         numColumns={columnsCount}
-        onEndReached={() => undefined}
-        onEndReachedThreshold={3}
-        keyExtractor={(item) => item.id}
-        renderItem={(item: ListRenderItemInfo<Photo>) => {
+        keyExtractor={(item) => item.data.id}
+        renderItem={(item: ListRenderItemInfo<{ data: Photo; preview: string }>) => {
           const isTheLast = item.index === photos.length - 1;
 
           return (
             <>
               <GalleryItem
                 size={itemSize}
-                data={item.item}
-                isSelected={isPhotoSelected(item.item)}
-                onPress={() => onItemPressed(item.item)}
-                onLongPress={() => onItemLongPressed(item.item)}
+                data={item.item.data}
+                preview={item.item.preview}
+                isSelected={isPhotoSelected(item.item.data)}
+                onPress={() => onItemPressed(item.item.data, item.item.preview)}
+                onLongPress={() => onItemLongPressed(item.item.data)}
               />
               {!isTheLast && <View style={{ width: gutter }} />}
             </>

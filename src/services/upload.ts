@@ -1,11 +1,6 @@
-import RFNS, { UploadFileItem } from 'react-native-fs';
-import { randomBytes, createCipheriv } from 'react-native-crypto';
-import { eachLimit } from 'async';
-
 import { getEnvironmentConfig, Network } from '../lib/network';
 import { deviceStorage } from '../services/deviceStorage';
 import { getHeaders } from '../helpers/headers';
-import { getDocumentsDir } from '../lib/fs';
 
 export interface FileMeta {
   progress: number;

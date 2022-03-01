@@ -8,14 +8,19 @@ import { tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
+import moment from 'moment';
+import { items } from '@internxt/lib';
 
-function PhotosPreviewInfoModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo }): JSX.Element {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const examplePhoto = require('../../../../assets/images/photos/example.png');
+interface PhotosPreviewInfoModalProps extends BottomModalProps {
+  data: Photo;
+  preview: string;
+}
+
+function PhotosPreviewInfoModal({ isOpen, onClosed, data, preview }: PhotosPreviewInfoModalProps): JSX.Element {
   const header = (
     <>
       <View style={tailwind('mr-3')}>
-        <Image style={tailwind('bg-black w-10 h-10')} source={examplePhoto} />
+        <Image style={tailwind('bg-black w-10 h-10')} source={{ uri: preview }} />
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>
@@ -24,24 +29,27 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data }: BottomModalProps & {
           ellipsizeMode="middle"
           style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
         >
-          {data.name + '.' + data.type}
+          {items.getItemDisplayName(data)}
         </Text>
         <Text style={tailwind('text-xs text-neutral-100')}>
           <>
             {prettysize(data.size)}
             <Text style={globalStyle.fontWeight.bold}> · </Text>
           </>
-          {'Updated '}
-          {new Date(data.updatedAt).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
+          {strings.generic.updated +
+            ' ' +
+            new Date(data.updatedAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
         </Text>
       </View>
     </>
   );
-  const dimensionsText = `${data.width} x ${data.heigth}`;
+  const dimensionsText = `${data.width} x ${data.height}`;
+  const createdAtText = moment(data.createdAt).format('LL');
+  const updatedAtText = moment(data.updatedAt).format('LL');
 
   return (
     <BottomModal isOpen={isOpen} onClosed={onClosed} header={header}>
@@ -55,7 +63,11 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data }: BottomModalProps & {
                 </Text>
               </View>
             }
-            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{data.name}</Text>}
+            rightSlot={
+              <Text numberOfLines={1} ellipsizeMode="middle" style={tailwind('text-sm text-neutral-100')}>
+                {items.getItemDisplayName(data)}
+              </Text>
+            }
           />
         </View>
 
@@ -68,7 +80,7 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data }: BottomModalProps & {
                 </Text>
               </View>
             }
-            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{data.createdAt}</Text>}
+            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{createdAtText}</Text>}
           />
           <BottomModalOption
             leftSlot={
@@ -78,7 +90,7 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data }: BottomModalProps & {
                 </Text>
               </View>
             }
-            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{data.updatedAt}</Text>}
+            rightSlot={<Text style={tailwind('text-sm text-neutral-100')}>{updatedAtText}</Text>}
           />
         </View>
 

@@ -1,3 +1,11 @@
+import { store as storeInstance } from '../store';
+
+type StoreType = typeof storeInstance;
+
+export interface AppPlugin {
+  install: (store: StoreType) => void;
+}
+
 export enum AppScreen {
   SignUp = 'sign-up',
   SignIn = 'sign-in',
@@ -16,12 +24,7 @@ export enum AppScreen {
   Storage = 'storage',
   Billing = 'billing',
   Photos = 'photos',
-}
-
-export enum PhotosScreen {
-  Permissions = 'photos-permissions',
-  Gallery = 'photos-gallery',
-  Preview = 'photos-preview',
+  PhotosPreview = 'photos-preview',
 }
 
 export enum DevicePlatform {
@@ -76,16 +79,6 @@ export interface DriveFileMetadataPayload {
   itemName: string;
 }
 
-export enum GalleryViewMode {
-  Years = 'years',
-  Months = 'months',
-  Days = 'days',
-  All = 'all',
-}
-export enum GalleryItemType {
-  Image = 'image',
-}
-
 export default class AppError extends Error {
   readonly status?: number;
 
@@ -95,3 +88,40 @@ export default class AppError extends Error {
     this.status = status;
   }
 }
+
+export type Mnemonic = string;
+export type NetworkUser = string;
+export type NetworkPass = string;
+export interface NetworkCredentials {
+  encryptionKey: Mnemonic;
+  user: NetworkUser;
+  password: NetworkPass;
+}
+
+export interface CurrentPlan {
+  name: string;
+  storageLimit: number;
+}
+
+export const INFINITE_PLAN = Math.pow(1024, 4) * 99; // 99TB
+
+export enum RenewalPeriod {
+  Monthly = 'monthly',
+  Annually = 'annually',
+  Lifetime = 'lifetime',
+}
+
+export type StoragePlan = {
+  planId: string;
+  productId: string;
+  name: string;
+  simpleName: string;
+  paymentInterval: RenewalPeriod;
+  price: number;
+  monthlyPrice: number;
+  currency: string;
+  isTeam: boolean;
+  isLifetime: boolean;
+  renewalPeriod: RenewalPeriod;
+  storageLimit: number;
+};

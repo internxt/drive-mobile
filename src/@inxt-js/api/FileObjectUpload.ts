@@ -23,7 +23,7 @@ import { INXTRequest } from '../lib';
 import { ShardObject } from './ShardObject';
 import { wrap } from '../lib/utils/error';
 
-import { FileManager } from '../../lib/fs';
+import { FileManager } from '../../services/fileSystem';
 
 export interface FileMeta {
   size: number;

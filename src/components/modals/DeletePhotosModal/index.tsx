@@ -7,14 +7,23 @@ import { tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import BaseButton from '../../BaseButton';
+import { useAppDispatch } from '../../../store/hooks';
+import { photosThunks } from '../../../store/slices/photos';
 
-function DeletePhotosModal({ isOpen, onClosed, data }: BottomModalProps & { data: Photo[] }): JSX.Element {
-  const isMultiple = data.length > 1;
+interface DeletePhotosModalProps extends BottomModalProps {
+  data: Photo[];
+  onPhotosDeleted?: () => void;
+}
+
+function DeletePhotosModal({ isOpen, onClosed, data, onPhotosDeleted }: DeletePhotosModalProps): JSX.Element {
+  const dispatch = useAppDispatch();
   const onCancelButtonPressed = () => {
     onClosed();
   };
-  const onMoveToTrashButtonPressed = () => {
-    console.log('moving photo to thrash...');
+  const onMoveToTrashButtonPressed = async () => {
+    await dispatch(photosThunks.deletePhotosThunk({ photos: data }));
+    onPhotosDeleted?.();
+    onClosed();
   };
 
   return (

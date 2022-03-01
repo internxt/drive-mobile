@@ -14,7 +14,7 @@ import BottomModal from '../BottomModal';
 
 function FileDetailsModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { focusedItem: item } = useAppSelector((state) => state.files);
+  const { focusedItem: item } = useAppSelector((state) => state.storage);
   const { showItemModal } = useAppSelector((state) => state.layout);
 
   if (!item) {

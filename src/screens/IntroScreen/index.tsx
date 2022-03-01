@@ -18,17 +18,17 @@ interface Slide {
 const slides: Slide[] = [
   {
     key: 'intro001',
-    text: strings.screens.register_screen.first,
+    text: strings.screens.SignUpScreen.first,
     image: require('../../../assets/images/intro/intro01.png'),
   },
   {
     key: 'intro002',
-    text: strings.screens.register_screen.second,
+    text: strings.screens.SignUpScreen.second,
     image: require('../../../assets/images/intro/intro02.png'),
   },
   {
     key: 'intro003',
-    text: strings.screens.register_screen.third,
+    text: strings.screens.SignUpScreen.third,
     image: require('../../../assets/images/intro/intro03.png'),
   },
 ];

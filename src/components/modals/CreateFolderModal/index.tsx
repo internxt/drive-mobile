@@ -19,11 +19,11 @@ import globalStyle from '../../../styles/global.style';
 import { notify } from '../../../services/toast';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
-import { filesThunks } from '../../../store/slices/files';
+import { storageThunks } from '../../../store/slices/storage';
 
 function CreateFolderModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { folderContent } = useAppSelector((state) => state.files);
+  const { folderContent } = useAppSelector((state) => state.storage);
   const { showCreateFolderModal } = useAppSelector((state) => state.layout);
   const currentFolderId = folderContent && folderContent.currentFolder;
   const [isOpen, setIsOpen] = useState(showCreateFolderModal);
@@ -40,7 +40,7 @@ function CreateFolderModal(): JSX.Element {
     currentFolderId &&
       createFolder({ folderName, parentId: currentFolderId })
         .then(() => {
-          dispatch(filesThunks.getFolderContentThunk({ folderId: currentFolderId }));
+          dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
           notify({ type: 'success', text: 'Folder created' });
           setFolderName('');
         })

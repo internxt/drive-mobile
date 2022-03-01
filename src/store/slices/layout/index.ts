@@ -50,6 +50,9 @@ export const layoutSlice = createSlice({
   name: 'layout',
   initialState,
   reducers: {
+    resetState(state) {
+      Object.assign(state, initialState);
+    },
     setSearchActive: (state, action: PayloadAction<boolean>) => {
       state.searchActive = action.payload;
     },

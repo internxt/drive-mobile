@@ -1,15 +1,20 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { User } from '../../../services/deviceStorage';
+import { deviceStorage, User } from '../../../services/deviceStorage';
 import { RootState } from '../..';
 import authService from '../../../services/auth';
 import userService from '../../../services/user';
 import analytics from '../../../services/analytics';
 import { DevicePlatform } from '../../../types';
+import { photosActions, photosThunks } from '../photos';
+import { appThunks } from '../app';
+import { storageActions } from '../storage';
+import { layoutActions } from '../layout';
 
 export interface AuthState {
   loggedIn: boolean;
   token: string;
+  photosToken: string;
   user?: User;
   error?: string;
   userStorage: {
@@ -22,22 +27,40 @@ export interface AuthState {
 const initialState: AuthState = {
   loggedIn: false,
   token: '',
+  photosToken: '',
   user: undefined,
   error: '',
   userStorage: { usage: 0, limit: 0, percentage: 0 },
 };
 
 export const signInThunk = createAsyncThunk<
-  { token: string; user: User },
+  { token: string; photosToken: string; user: User },
   { email: string; password: string; sKey: string; twoFactorCode: string },
   { state: RootState }
->('auth/signIn', async (payload) => {
-  return userService.signin(payload.email, payload.password, payload.sKey, payload.twoFactorCode);
+>('auth/signIn', async (payload, { dispatch }) => {
+  const result = await userService.signin(payload.email, payload.password, payload.sKey, payload.twoFactorCode);
+
+  await deviceStorage.saveItem('xToken', result.token);
+  await deviceStorage.saveItem('photosToken', result.photosToken); // Photos access token
+  await deviceStorage.saveItem('xUser', JSON.stringify(result.user));
+
+  dispatch(appThunks.initializeThunk());
+
+  return result;
 });
 
-export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>('auth/signOut', async () => {
-  return authService.signout();
-});
+export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'auth/signOut',
+  async (payload: void, { dispatch }) => {
+    await authService.signout();
+
+    dispatch(layoutActions.resetState());
+    dispatch(authActions.resetState());
+    dispatch(storageActions.resetState());
+    await dispatch(photosThunks.clearDataThunk());
+    dispatch(photosActions.resetState());
+  },
+);
 
 export const paymentThunk = createAsyncThunk<void, { token: string; planId: string }, { state: RootState }>(
   'auth/payment',
@@ -50,10 +73,14 @@ export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    signIn: (state: AuthState, action: PayloadAction<{ token: string; user: User }>) => {
+    resetState(state) {
+      Object.assign(state, initialState);
+    },
+    signIn: (state: AuthState, action: PayloadAction<{ token: string; photosToken: string; user: User }>) => {
       state.loggedIn = true;
       state.user = action.payload.user;
       state.token = action.payload.token;
+      state.photosToken = action.payload.photosToken;
     },
     setUserStorage(state, action: PayloadAction<any>) {
       state.userStorage = action.payload;
@@ -63,7 +90,7 @@ export const authSlice = createSlice({
     builder
       .addCase(signInThunk.pending, () => undefined)
       .addCase(signInThunk.fulfilled, (state, action) => {
-        const { token, user } = action.payload;
+        const { photosToken, token, user } = action.payload;
 
         analytics
           .identify(user.uuid, {
@@ -85,6 +112,7 @@ export const authSlice = createSlice({
 
         state.loggedIn = true;
         state.token = token;
+        state.photosToken = photosToken;
         state.user = user;
       })
       .addCase(signInThunk.rejected, (state, action) => {
@@ -93,7 +121,6 @@ export const authSlice = createSlice({
           message: action.error.message || '',
         });
 
-        state.loggedIn = false;
         state.error = action.error.message;
       });
 
@@ -102,6 +129,8 @@ export const authSlice = createSlice({
       .addCase(signOutThunk.fulfilled, (state) => {
         state.loggedIn = false;
         state.user = undefined;
+        state.token = '';
+        state.photosToken = '';
       })
       .addCase(signOutThunk.rejected, () => undefined);
 

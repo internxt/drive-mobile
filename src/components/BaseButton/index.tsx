@@ -15,7 +15,7 @@ interface BaseButtonProps {
 const BaseButton = (props: BaseButtonProps): JSX.Element => {
   const isTitleString = typeof props.title === 'string';
   const typeBgStyle = {
-    accept: tailwind('bg-blue-60'),
+    accept: props.disabled ? tailwind('bg-neutral-30') : tailwind('bg-blue-60'),
     cancel: tailwind('bg-neutral-20'),
     delete: tailwind('bg-red-60'),
   }[props.type];

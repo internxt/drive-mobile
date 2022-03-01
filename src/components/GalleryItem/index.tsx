@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Image, TouchableOpacity } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
-import { GalleryItemType } from '../../types';
 import { Photo } from '@internxt/sdk/dist/photos';
+import { GalleryItemType } from '../../types/photos';
 
 interface GalleryItemProps {
   type?: GalleryItemType;
   size: number;
   data: Photo;
+  preview: string;
   isSelected: boolean;
   onPress?: () => void;
   onLongPress?: () => void;
@@ -20,23 +21,24 @@ const defaultProps: Partial<GalleryItemProps> = {
 };
 
 const GalleryItem = ({
+  data,
   type = defaultProps.type as GalleryItemType,
   size,
-  data,
+  preview,
   isSelected,
   onPress,
   onLongPress,
 }: GalleryItemProps): JSX.Element => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const examplePhoto = require('../../../assets/images/photos/example.png');
+  const [uri] = useState(preview);
   const getItemContent = () =>
     ({
-      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={examplePhoto} />,
+      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri }} />,
     }[type]());
 
   return (
     <TouchableOpacity
-      style={[tailwind('bg-black'), { width: size, height: size }]}
+      activeOpacity={0.7}
+      style={[tailwind('bg-neutral-30'), { width: size, height: size }]}
       onPress={onPress}
       onLongPress={onLongPress}
     >

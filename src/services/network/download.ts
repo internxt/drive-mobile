@@ -2,14 +2,16 @@ import { request } from '@internxt/lib';
 import RNFS from 'react-native-fs';
 import axios, { AxiosRequestConfig } from 'axios';
 import RNFetchBlob from 'rn-fetch-blob';
-import { createDecipheriv, Decipher } from 'react-native-crypto';
+import { createDecipheriv } from 'react-native-crypto';
 
-import { BucketId, NetworkCredentials } from '../photosSync/types';
 import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 
 import { eachLimit, retry } from 'async';
 import { FileId } from '@internxt/sdk/dist/photos';
-import { getDocumentsDir } from '../../lib/fs';
+import { getDocumentsDir } from '../fileSystem';
+import { NetworkCredentials } from '../../types';
+import { Platform } from 'react-native';
+import { decryptFile as nativeDecryptFile } from 'rn-crypto';
 
 type FileDecryptedURI = string;
 
@@ -17,7 +19,7 @@ export class LegacyDownloadRequiredError extends Error {
   constructor() {
     super('Old download required');
   }
-};
+}
 
 interface FileInfo {
   bucket: string;
@@ -57,10 +59,10 @@ interface Shard {
 }
 
 function getFileInfo(
-  bucketId: BucketId,
+  bucketId: string,
   fileId: FileId,
   networkApiUrl: string,
-  options?: AxiosRequestConfig
+  options?: AxiosRequestConfig,
 ): Promise<FileInfo | undefined> {
   return axios
     .get<FileInfo>(`${networkApiUrl}/buckets/${bucketId}/files/${fileId}/info`, options)
@@ -71,10 +73,10 @@ function getFileInfo(
 }
 
 function getFileMirrors(
-  bucketId: BucketId,
+  bucketId: string,
   fileId: FileId,
   networkApiUrl: string,
-  options?: AxiosRequestConfig
+  options?: AxiosRequestConfig,
 ): Promise<Shard[]> {
   const requestUrl = `${networkApiUrl}/buckets/${bucketId}/files/${fileId}?limit=3&skip=0`;
 
@@ -92,11 +94,13 @@ async function decryptFile(
   fromPath: string,
   toPath: string,
   fileSize: number,
-  decipher: Decipher,
+  fileDecryptionKey: Buffer,
+  iv: Buffer,
   options?: {
-    progress: (progress: number) => void
-  }
+    progress: (progress: number) => void;
+  },
 ): Promise<FileDecryptedURI> {
+  const decipher = createDecipheriv('aes-256-ctr', fileDecryptionKey.slice(0, 32), iv);
   const twoMb = 2 * 1024 * 1024;
   const chunksOf = twoMb;
   const chunks = Math.ceil(fileSize / chunksOf);
@@ -107,6 +111,18 @@ async function decryptFile(
   let start = 0;
 
   options?.progress(0);
+
+  if (Platform.OS === 'android') {
+    return new Promise((resolve, reject) => {
+      nativeDecryptFile(fromPath, toPath, fileDecryptionKey.toString('hex'), iv.toString('hex'), (err) => {
+        if (err) {
+          return reject(err);
+        }
+        options?.progress(1);
+        resolve(toPath);
+      });
+    });
+  }
 
   return eachLimit(new Array(chunks), 1, (_, cb) => {
     RNFS.read(fromPath, twoMb, start, 'base64')
@@ -140,7 +156,7 @@ function requestDownloadUrlToFarmer(farmerUrl: string): Promise<string> {
 }
 
 export async function downloadFile(
-  bucketId: BucketId,
+  bucketId: string,
   fileId: FileId,
   credentials: NetworkCredentials,
   networkApiUrl: string,
@@ -162,7 +178,7 @@ export async function downloadFile(
     throw new Error('Download error code 3');
   }
 
-  if (!credentials.pass) {
+  if (!credentials.password) {
     throw new Error('Download error code 4');
   }
 
@@ -173,7 +189,7 @@ export async function downloadFile(
   const defaultRequestOptions: AxiosRequestConfig = {
     auth: {
       username: credentials.user,
-      password: sha256(Buffer.from(credentials.pass)).toString('hex'),
+      password: sha256(Buffer.from(credentials.password)).toString('hex'),
     },
   };
 
@@ -243,20 +259,15 @@ export async function downloadFile(
     Buffer.from(fileInfo.index, 'hex'),
   );
 
-  const decipher = createDecipheriv(
-    'aes-256-ctr',
+  const fileURI = await decryptFile(
+    encryptedFileURI,
+    options.toPath,
+    fileInfo.size,
     fileDecryptionKey.slice(0, 32),
     Buffer.from(fileInfo.index, 'hex').slice(0, 16),
-  );
-
-  const fileURI = await decryptFile(
-    encryptedFileURI, 
-    options.toPath, 
-    fileInfo.size, 
-    decipher,
     {
-      progress: options.decryptionProgressCallback
-    } 
+      progress: options.decryptionProgressCallback,
+    },
   );
 
   await RNFS.unlink(encryptedFileURI).catch(() => null);

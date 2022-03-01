@@ -9,61 +9,57 @@ import {
   PermissionStatus,
   RESULTS,
 } from 'react-native-permissions';
-import { photos } from '@internxt/sdk';
-import { Device, Photo } from '@internxt/sdk/dist/photos';
-const { Photos } = photos;
+import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 
 import { RootState } from '../..';
-import { GalleryViewMode } from '../../../types';
 import { Platform } from 'react-native';
-import photo from '../../../services/sqlite/tables/photo';
-import photo_source from '../../../services/sqlite/tables/photo_source';
-import device from '../../../services/sqlite/tables/device';
-import sqliteService from '../../../services/sqlite';
+import { PhotosService } from '../../../services/photos';
+import { notify } from '../../../services/toast';
+import strings from '../../../../assets/lang/strings';
+import { deviceStorage } from '../../../services/deviceStorage';
+import {
+  GalleryViewMode,
+  PhotosSyncStatus,
+  PhotosSyncStatusData,
+  PhotosSyncInfo,
+  PhotosSyncTaskType,
+  PhotosByMonthType,
+  PhotosTaskCompletedInfo,
+} from '../../../types/photos';
+import { layoutActions } from '../layout';
+import { pathToUri } from '../../../services/fileSystem';
 
-const photosSdk = new Photos(process.env.REACT_NATIVE_PHOTOS_API_URL as string);
-
-const SQLITE_DB_NAME = 'photos';
-
-interface PersistenceIterator<T> {
-  next(): Promise<T[]>;
-}
-
-class SQLitePhotosIterator implements PersistenceIterator<Photo> {
-  private limit: number;
-  private offset: number;
-
-  constructor(limit: number, offset = 0) {
-    this.limit = limit;
-    this.offset = offset;
-  }
-
-  async next(): Promise<Photo[]> {
-    return sqliteService.getPhotos(this.offset, this.limit).then(([{ rows }]) => {
-      // TODO: Transform to Photo[]
-      this.offset += this.limit;
-
-      return rows.raw() as unknown as Photo[];
-    });
-  }
-}
+let photosService: PhotosService;
 
 export interface PhotosState {
   isInitialized: boolean;
-  isDatabaseInitialized: boolean;
+  isDeviceSynchronized: boolean;
+  initializeError: string | null;
   permissions: {
     android: { [key in AndroidPermission]?: PermissionStatus };
     ios: { [key in IOSPermission]?: PermissionStatus };
   };
+  syncRequests: string[];
+  syncStatus: PhotosSyncStatusData;
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
-  photos: Photo[];
+  loadPhotosRequests: string[];
+  downloadingPhotos: { id: string; progress: number }[];
+  downloadedPhotos: { fileId: string; path: string }[];
+  years: { year: number; preview: string }[];
+  months: { year: number; month: number; preview: string }[];
+  photos: { data: Photo; preview: string }[];
+  photosByMonth: PhotosByMonthType[];
+  limit: number;
+  skip: number;
   selectedPhotos: Photo[];
+  usage: number;
 }
 
 const initialState: PhotosState = {
   isInitialized: false,
-  isDatabaseInitialized: false,
+  isDeviceSynchronized: false,
+  initializeError: null,
   permissions: {
     android: {
       [PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE]: RESULTS.DENIED,
@@ -73,33 +69,58 @@ const initialState: PhotosState = {
       [PERMISSIONS.IOS.PHOTO_LIBRARY]: RESULTS.DENIED,
     },
   },
+  syncRequests: [],
+  syncStatus: {
+    status: PhotosSyncStatus.Unknown,
+    completedTasks: 0,
+    totalTasks: 0,
+  },
   isSelectionModeActivated: false,
-  viewMode: GalleryViewMode.All,
+  viewMode: GalleryViewMode.Days,
+  loadPhotosRequests: [],
+  downloadingPhotos: [],
+  downloadedPhotos: [],
+  years: [],
+  months: [],
+  photosByMonth: [],
   photos: [],
+  limit: 60,
+  skip: 0,
   selectedPhotos: [],
+  usage: 0,
 };
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
-  async (payload: void, { dispatch, getState }) => {
-    await dispatch(checkPermissionsThunk());
+  async (payload, { dispatch }) => {
+    const photosToken = await deviceStorage.getItem('photosToken');
+    const user = await deviceStorage.getUser();
 
-    photosSdk.setAccessToken(getState().auth.token);
+    photosService = new PhotosService(photosToken || '', {
+      encryptionKey: user?.mnemonic || '',
+      user: user?.bridgeUser || '',
+      password: user?.userId || '',
+    });
 
-    if (photosSelectors.arePermissionsGranted(getState())) {
-      await dispatch(initializeDatabaseThunk()).unwrap();
+    if (user && photosToken) {
+      dispatch(getUsageThunk());
     }
   },
 );
 
-const initializeDatabaseThunk = createAsyncThunk<void, void, { state: RootState }>(
-  'photos/initializeDatabase',
-  async () => {
-    await sqliteService.open(SQLITE_DB_NAME);
+const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/startUsingPhotos',
+  async (payload: void, { dispatch, getState }) => {
+    await dispatch(initializeThunk());
+    await dispatch(checkPermissionsThunk());
 
-    await sqliteService.executeSql(SQLITE_DB_NAME, photo.statements.createTable);
-    await sqliteService.executeSql(SQLITE_DB_NAME, photo_source.statements.createTable);
-    await sqliteService.executeSql(SQLITE_DB_NAME, device.statements.createTable);
+    // TODO: check if this device is synchronized or ask for start using photos
+
+    if (photosSelectors.arePermissionsGranted(getState())) {
+      await photosService.initialize();
+
+      dispatch(syncThunk());
+    }
   },
 );
 
@@ -130,66 +151,284 @@ const askForPermissionsThunk = createAsyncThunk<boolean, void, { state: RootStat
   },
 );
 
-const createDeviceThunk = createAsyncThunk<void, { device: Device }, { state: RootState }>(
-  'photos/createDevice',
-  async ({ device }) => {
-    await photosSdk.devices.createDevice(device);
-  },
-);
-
-const createPhotoThunk = createAsyncThunk<void, { data: Photo }, { state: RootState }>(
-  'photos/createPhoto',
-  async ({ data }) => {
-    // TODO: upload photo and preview
-
-    await photosSdk.photos.createPhoto(data);
-  },
-);
+const getUsageThunk = createAsyncThunk<number, void, { state: RootState }>('photos/getUsage', async () => {
+  return photosService.getUsage();
+});
 
 const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: RootState }>(
   'photos/deletePhotos',
-  async ({ photos }) => {
+  async ({ photos }, { dispatch }) => {
     for (const photo of photos) {
-      await photosSdk.photos.deletePhotoById(photo.id);
+      await photosService.deletePhoto(photo);
+
+      dispatch(photosActions.deselectPhotos(photo));
+      dispatch(photosActions.popPhoto(photo));
     }
+
+    dispatch(photosActions.deselectAll());
+    dispatch(photosActions.setIsSelectionModeActivated(false));
   },
 );
 
+const downloadPhotoThunk = createAsyncThunk<
+  string,
+  {
+    fileId: string;
+    options: {
+      toPath: string;
+    };
+  },
+  { state: RootState; rejectValue: { isAlreadyDownloading: boolean } }
+>('photos/downloadPhoto', async ({ fileId, options }, { dispatch, getState, rejectWithValue }) => {
+  const photosState = getState().photos;
+  const isAlreadyDownloading = photosState.downloadingPhotos.some((p) => p.id === fileId);
+
+  if (isAlreadyDownloading) {
+    return rejectWithValue({ isAlreadyDownloading });
+  } else {
+    dispatch(photosActions.pushDownloadingPhoto(fileId));
+  }
+
+  return photosService.downloadPhoto(fileId, {
+    toPath: options.toPath,
+    downloadProgressCallback: (progress) => {
+      dispatch(photosActions.setDownloadingPhotoProgress({ fileId, progress }));
+    },
+    decryptionProgressCallback: () => undefined,
+  });
+});
+
 const loadLocalPhotosThunk = createAsyncThunk<
-  { loadedPhotos: Photo[] },
-  { limit: number; offset?: number },
+  { data: Photo; preview: string }[],
+  { limit?: number; skip?: number } | undefined,
   { state: RootState }
->('photos/loadLocalPhotos', async ({ limit, offset }) => {
-  const iterator: PersistenceIterator<Photo> = new SQLitePhotosIterator(limit, offset);
-  const photos = await iterator.next();
+>('photos/loadLocalPhotos', async (payload, { requestId, getState, dispatch }) => {
+  const photosState = getState().photos;
+  const isAlreadyLoading = photosState.loadPhotosRequests.filter((id) => id !== requestId).length > 0;
 
-  console.log('loadLocalPhotosThunk called-->', photos.length);
+  if (isAlreadyLoading) {
+    return [];
+  }
 
-  return { loadedPhotos: photos };
+  const defaultOptions = { limit: photosState.limit, skip: photosState.skip };
+  const options: { limit: number; skip: number } = Object.assign({}, defaultOptions, payload || defaultOptions);
+  const results = await photosService.getPhotos(options);
+  const allPhotosCount = await photosService.countPhotos();
+  const newSkip = options.skip + options.limit > allPhotosCount ? allPhotosCount : options.skip + options.limit;
+
+  dispatch(photosActions.addPhotos(results));
+  dispatch(photosActions.setSkip(newSkip));
+
+  return results;
+});
+
+const loadYearsThunk = createAsyncThunk<{ year: number; preview: string }[], void, { state: RootState }>(
+  'photos/loadYears',
+  () => {
+    return photosService.getYearsList();
+  },
+);
+
+const loadMonthsThunk = createAsyncThunk<
+  { year: number; month: number; preview: string }[],
+  void,
+  { state: RootState }
+>('photos/loadMonths', () => {
+  return photosService.getMonthsList();
+});
+
+const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/sync',
+  async (payload: void, { requestId, getState, dispatch, signal }) => {
+    const onStart = (tasksInfo: PhotosSyncInfo) => {
+      if (!signal.aborted) {
+        dispatch(
+          photosActions.updateSyncStatus({
+            status: tasksInfo.totalTasks > 0 ? PhotosSyncStatus.InProgress : PhotosSyncStatus.Completed,
+            totalTasks: tasksInfo.totalTasks,
+          }),
+        );
+      }
+    };
+    const onTaskCompleted = async ({
+      photo,
+      completedTasks,
+      taskType,
+      info,
+    }: {
+      taskType: PhotosSyncTaskType;
+      photo: Photo;
+      completedTasks: number;
+      info: PhotosTaskCompletedInfo;
+    }) => {
+      if (!signal.aborted) {
+        dispatch(photosActions.updateSyncStatus({ completedTasks }));
+
+        if (taskType === PhotosSyncTaskType.Upload) {
+          dispatch(getUsageThunk());
+        }
+
+        if (photo.status === PhotoStatus.Exists) {
+          if (!info.isAlreadyOnTheDevice) {
+            dispatch(photosActions.addPhotos([{ data: photo, preview: pathToUri(info.previewPath) }]));
+          }
+        } else {
+          dispatch(photosActions.popPhoto(photo));
+        }
+      }
+    };
+    const onStorageLimitReached = () => {
+      dispatch(layoutActions.setShowRunOutSpaceModal(true));
+    };
+    const photosState = getState().photos;
+    const isAlreadySyncing = photosState.syncRequests.filter((id) => id !== requestId).length > 0;
+
+    if (isAlreadySyncing) {
+      return;
+    }
+
+    dispatch(photosActions.resetSyncStatus());
+
+    await photosService.sync({
+      id: requestId,
+      signal,
+      getState,
+      onStart,
+      onTaskCompleted,
+      onStorageLimitReached,
+    });
+  },
+);
+
+const selectAllThunk = createAsyncThunk<Photo[], void, { state: RootState }>('photos/selectAll', async () => {
+  return photosService.getAll();
+});
+
+const clearDataThunk = createAsyncThunk<void, void, { state: RootState }>('photos/clearData', async () => {
+  return photosService.clearData();
 });
 
 export const photosSlice = createSlice({
   name: 'photos',
   initialState,
   reducers: {
+    resetState(state) {
+      Object.assign(state, initialState);
+    },
+    resetSyncStatus(state) {
+      Object.assign(state.syncStatus, { status: PhotosSyncStatus.Unknown, totalTasks: 0, completedTasks: 0 });
+    },
+    pushDownloadingPhoto(state, action: PayloadAction<string>) {
+      state.downloadingPhotos.push({ id: action.payload, progress: 0 });
+    },
+    setDownloadingPhotoProgress(
+      state,
+      { payload: { fileId, progress } }: PayloadAction<{ fileId: string; progress: number }>,
+    ) {
+      const downloadStatus = state.downloadingPhotos.find((p) => p.id === fileId);
+
+      if (downloadStatus) {
+        downloadStatus.progress = progress;
+      }
+    },
+    updateSyncStatus(state, action: PayloadAction<Partial<PhotosSyncStatusData>>) {
+      Object.assign(state.syncStatus, action.payload);
+    },
     setIsSelectionModeActivated(state, action: PayloadAction<boolean>) {
       state.isSelectionModeActivated = action.payload;
     },
     setViewMode(state, action: PayloadAction<GalleryViewMode>) {
       state.viewMode = action.payload;
     },
-    selectPhoto(state, action: PayloadAction<Photo>) {
-      state.selectedPhotos = [...state.selectedPhotos, action.payload];
+    resetPhotos(state) {
+      state.photos = [];
+      state.photosByMonth = [];
+      state.skip = 0;
+      state.selectedPhotos = [];
+      state.isSelectionModeActivated = false;
     },
-    deselectPhoto(state, action: PayloadAction<Photo>) {
-      const itemIndex = state.selectedPhotos.findIndex((i) => i.id === action.payload.id);
+    addPhotos(state, action: PayloadAction<{ data: Photo; preview: string }[]>) {
+      for (const photo of action.payload) {
+        const index = state.photos.findIndex((p) => p.data.id === photo.data.id);
 
-      state.selectedPhotos.splice(itemIndex, 1);
+        if (!~index) {
+          const year = photo.data.takenAt.getFullYear();
+          const month = photo.data.takenAt.getMonth();
+          const day = photo.data.takenAt.getDate();
+          const monthItem = state.photosByMonth.find((m) => m.year === year && m.month === month);
 
-      state.selectedPhotos = [...state.selectedPhotos];
+          if (monthItem) {
+            const dayItem = monthItem.days.find((d) => d.day === day);
+
+            if (dayItem) {
+              dayItem.photos.push(photo);
+            } else {
+              monthItem.days.push({
+                day,
+                photos: [photo],
+              });
+            }
+          } else {
+            state.photosByMonth.push({
+              year,
+              month,
+              days: [
+                {
+                  day,
+                  photos: [photo],
+                },
+              ],
+            });
+          }
+
+          state.photos.push(photo);
+        }
+
+        state.photosByMonth.forEach((i) => {
+          i.days.sort((a, b) => {
+            return b.day - a.day;
+          });
+        });
+      }
+
+      state.photos.sort((a, b) => {
+        const aTakenAtTime = a.data.takenAt.getTime();
+        const bTakenAtTime = b.data.takenAt.getTime();
+        let result = 0;
+
+        if (aTakenAtTime === bTakenAtTime) {
+          result = b.data.createdAt.getTime() - a.data.createdAt.getTime();
+        } else {
+          result = bTakenAtTime - aTakenAtTime;
+        }
+
+        return result;
+      });
     },
-    selectAll(state) {
-      state.selectedPhotos = [...state.photos];
+    setSkip(state, action: PayloadAction<number>) {
+      state.skip = action.payload;
+    },
+    popPhoto(state, action: PayloadAction<Photo>) {
+      state.photos = state.photos.filter((photo) => photo.data.id !== action.payload.id);
+    },
+    pushDownloadedPhoto(state, action: PayloadAction<{ fileId: string; path: string }>) {
+      state.downloadedPhotos.push(action.payload);
+    },
+    selectPhotos(state, action: PayloadAction<Photo | Photo[]>) {
+      const photosToSelect = Array.isArray(action.payload) ? action.payload : [action.payload];
+
+      state.selectedPhotos = [...state.selectedPhotos, ...photosToSelect];
+    },
+    deselectPhotos(state, action: PayloadAction<Photo | Photo[]>) {
+      const photosToDeselect = Array.isArray(action.payload) ? action.payload : [action.payload];
+
+      for (const photo of photosToDeselect) {
+        const itemIndex = state.selectedPhotos.findIndex((i) => i.id === photo.id);
+
+        state.selectedPhotos.splice(itemIndex, 1);
+
+        state.selectedPhotos = [...state.selectedPhotos];
+      }
     },
     deselectAll(state) {
       state.selectedPhotos = [];
@@ -197,22 +436,21 @@ export const photosSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(initializeThunk.pending, (state) => {
+      .addCase(startUsingPhotosThunk.pending, (state) => {
         state.isInitialized = false;
+        state.initializeError = null;
       })
-      .addCase(initializeThunk.fulfilled, (state) => {
+      .addCase(startUsingPhotosThunk.fulfilled, (state) => {
         state.isInitialized = true;
       })
-      .addCase(initializeThunk.rejected, () => undefined);
+      .addCase(startUsingPhotosThunk.rejected, (state, action) => {
+        state.initializeError = action.error.message || strings.errors.unknown;
 
-    builder
-      .addCase(initializeDatabaseThunk.pending, (state) => {
-        state.isDatabaseInitialized = false;
-      })
-      .addCase(initializeDatabaseThunk.fulfilled, (state) => {
-        state.isDatabaseInitialized = true;
-      })
-      .addCase(initializeDatabaseThunk.rejected, () => undefined);
+        notify({
+          type: 'error',
+          text: strings.formatString(strings.errors.photosInitialize, state.initializeError) as string,
+        });
+      });
 
     builder
       .addCase(checkPermissionsThunk.pending, () => undefined)
@@ -228,39 +466,151 @@ export const photosSlice = createSlice({
       .addCase(checkPermissionsThunk.rejected, () => undefined);
 
     builder
-      .addCase(createDeviceThunk.pending, () => undefined)
-      .addCase(createDeviceThunk.fulfilled, () => undefined)
-      .addCase(createDeviceThunk.rejected, () => undefined);
+      .addCase(selectAllThunk.pending, () => undefined)
+      .addCase(selectAllThunk.fulfilled, (state, action) => {
+        state.selectedPhotos = action.payload;
+      })
+      .addCase(selectAllThunk.rejected, () => undefined);
 
     builder
-      .addCase(createPhotoThunk.pending, () => undefined)
-      .addCase(createPhotoThunk.fulfilled, () => undefined)
-      .addCase(createPhotoThunk.rejected, () => undefined);
+      .addCase(getUsageThunk.pending, () => undefined)
+      .addCase(getUsageThunk.fulfilled, (state, action) => {
+        state.usage = action.payload;
+      })
+      .addCase(getUsageThunk.rejected, () => undefined);
 
     builder
       .addCase(deletePhotosThunk.pending, () => undefined)
       .addCase(deletePhotosThunk.fulfilled, () => undefined)
-      .addCase(deletePhotosThunk.rejected, () => undefined);
+      .addCase(deletePhotosThunk.rejected, (state, action) => {
+        notify({
+          type: 'error',
+          text: strings.formatString(
+            strings.errors.photosDelete,
+            action.error.message || strings.errors.unknown,
+          ) as string,
+        });
+      });
 
     builder
-      .addCase(loadLocalPhotosThunk.pending, () => undefined)
-      .addCase(loadLocalPhotosThunk.fulfilled, (state, action) => {
-        state.photos = action.payload.loadedPhotos;
+      .addCase(downloadPhotoThunk.pending, () => undefined)
+      .addCase(downloadPhotoThunk.fulfilled, (state, action) => {
+        const index = state.downloadingPhotos.findIndex((p) => p.id === action.meta.arg.fileId);
+        state.downloadingPhotos.splice(index, 1);
       })
-      .addCase(loadLocalPhotosThunk.rejected, () => undefined);
+      .addCase(downloadPhotoThunk.rejected, (state, action) => {
+        if (!action.payload || !action.payload.isAlreadyDownloading) {
+          const index = state.downloadingPhotos.findIndex((p) => p.id === action.meta.arg.fileId);
+          state.downloadingPhotos.splice(index, 1);
+
+          notify({
+            type: 'error',
+            text: strings.formatString(
+              strings.errors.photosFullSizeLoad,
+              action.error.message || strings.errors.unknown,
+            ) as string,
+          });
+        }
+      });
+
+    builder
+      .addCase(loadLocalPhotosThunk.pending, (state, action) => {
+        state.loadPhotosRequests.push(action.meta.requestId);
+      })
+      .addCase(loadLocalPhotosThunk.fulfilled, (state, action) => {
+        const index = state.loadPhotosRequests.indexOf(action.meta.requestId);
+        state.loadPhotosRequests.splice(index, 1);
+      })
+      .addCase(loadLocalPhotosThunk.rejected, (state, action) => {
+        const index = state.loadPhotosRequests.indexOf(action.meta.requestId);
+        state.loadPhotosRequests.splice(index, 1);
+
+        notify({
+          type: 'error',
+          text: strings.formatString(
+            strings.errors.photosLoad,
+            action.error.message || strings.errors.unknown,
+          ) as string,
+        });
+      });
+
+    builder
+      .addCase(loadYearsThunk.pending, () => undefined)
+      .addCase(loadYearsThunk.fulfilled, (state, action) => {
+        state.years = action.payload;
+      })
+      .addCase(loadYearsThunk.rejected, () => undefined);
+
+    builder
+      .addCase(loadMonthsThunk.pending, () => undefined)
+      .addCase(loadMonthsThunk.fulfilled, (state, action) => {
+        state.months = action.payload;
+      })
+      .addCase(loadMonthsThunk.rejected, () => undefined);
+
+    builder
+      .addCase(syncThunk.pending, (state, action) => {
+        state.syncRequests.push(action.meta.requestId);
+      })
+      .addCase(syncThunk.fulfilled, (state, action) => {
+        const index = state.syncRequests.indexOf(action.meta.requestId);
+        state.syncRequests.splice(index, 1);
+        Object.assign(state.syncStatus, { status: PhotosSyncStatus.Completed });
+      })
+      .addCase(syncThunk.rejected, (state, action) => {
+        const index = state.syncRequests.indexOf(action.meta.requestId);
+        state.syncRequests.splice(index, 1);
+        Object.assign(state.syncStatus, { status: PhotosSyncStatus.Pending });
+
+        notify({
+          type: 'error',
+          text: strings.formatString(
+            strings.errors.photosSync,
+            action.error.message || strings.errors.unknown,
+          ) as string,
+        });
+      });
+
+    builder
+      .addCase(clearDataThunk.pending, () => undefined)
+      .addCase(clearDataThunk.fulfilled, () => undefined)
+      .addCase(clearDataThunk.rejected, () => undefined);
   },
 });
 
 export const photosActions = photosSlice.actions;
 
 export const photosSelectors = {
+  isLoading: (state: RootState): boolean => state.photos.loadPhotosRequests.length > 0,
+  isSyncing: (state: RootState): boolean => state.photos.syncRequests.length > 0,
+  hasPhotos: (state: RootState): boolean => state.photos.photos.length > 0,
   isPhotoSelected:
     (state: RootState) =>
     (photo: Photo): boolean =>
       state.photos.selectedPhotos.some((i) => i.id === photo.id),
+  isPhotoDownloading:
+    (state: RootState) =>
+    (fileId: string): boolean =>
+      state.photos.downloadingPhotos.some((p) => p.id === fileId),
+  isPhotoDownloaded:
+    (state: RootState) =>
+    (fileId: string): boolean =>
+      state.photos.downloadedPhotos.some((i) => i.fileId === fileId),
+  getDownloadingPhotoProgress:
+    (state: RootState) =>
+    (fileId: string): number =>
+      state.photos.downloadingPhotos.find((p) => p.id === fileId)?.progress || 0,
+  arePhotosSelected:
+    (state: RootState) =>
+    (photos: Photo[]): boolean =>
+      photos.reduce<boolean>((t, x) => t && photosSelectors.isPhotoSelected(state)(x), true),
+  getPhotoPreview:
+    (state: RootState) =>
+    (photo: Photo): string =>
+      state.photos.photos.find((p) => p.data.id === photo.id)?.preview || '',
   arePermissionsGranted: (state: RootState): boolean => {
     const result = Object.values(state.photos.permissions[Platform.OS as 'ios' | 'android']).reduce(
-      (t, x) => t && x === 'granted',
+      (t, x) => t && x === RESULTS.GRANTED,
       true,
     );
 
@@ -268,9 +618,47 @@ export const photosSelectors = {
   },
   arePermissionsBlocked: (state: RootState): boolean => {
     const result = Object.values(state.photos.permissions[Platform.OS as 'ios' | 'android']).reduce(
-      (t, x) => t || x === 'blocked',
+      (t, x) => t || x === RESULTS.BLOCKED || x === RESULTS.LIMITED,
       false,
     );
+
+    return result;
+  },
+  photosDirectory: (): string => photosService.photosDirectory,
+  previewsDirectory: (): string => photosService.previewsDirectory,
+  photosByMonth: (state: RootState): PhotosByMonthType[] => {
+    const result: PhotosByMonthType[] = [];
+
+    for (const photo of state.photos.photos) {
+      const year = photo.data.takenAt.getFullYear();
+      const month = photo.data.takenAt.getMonth();
+      const day = photo.data.takenAt.getDate();
+      const monthItem = result.find((m) => m.year === year && m.month === month);
+
+      if (monthItem) {
+        const dayItem = monthItem.days.find((d) => d.day === day);
+
+        if (dayItem) {
+          dayItem.photos.push(photo);
+        } else {
+          monthItem.days.push({
+            day,
+            photos: [photo],
+          });
+        }
+      } else {
+        result.push({
+          year,
+          month,
+          days: [
+            {
+              day,
+              photos: [photo],
+            },
+          ],
+        });
+      }
+    }
 
     return result;
   },
@@ -278,13 +666,18 @@ export const photosSelectors = {
 
 export const photosThunks = {
   initializeThunk,
-  initializeDatabaseThunk,
+  startUsingPhotosThunk,
+  getUsageThunk,
   checkPermissionsThunk,
   askForPermissionsThunk,
-  createDeviceThunk,
-  createPhotoThunk,
+  selectAllThunk,
   deletePhotosThunk,
+  downloadPhotoThunk,
+  loadYearsThunk,
+  loadMonthsThunk,
   loadLocalPhotosThunk,
+  syncThunk,
+  clearDataThunk,
 };
 
 export default photosSlice.reducer;

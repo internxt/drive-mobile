@@ -7,10 +7,13 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { request } from '@internxt/lib';
 
 import { GenerateFileKey, ripemd160, sha256, sha512HmacBuffer, EncryptFilename } from '../../@inxt-js/lib/crypto';
-import { getDocumentsDir } from '../../lib/fs';
+import { getDocumentsDir, pathToUri } from '../fileSystem';
 import { ShardMeta } from '../../@inxt-js/lib/shardMeta';
-import { BucketId, NetworkCredentials, NetworkUser } from '../photosSync/types';
 import { FileId } from '@internxt/sdk/dist/photos';
+import { NetworkCredentials, NetworkUser } from '../../types';
+
+import { encryptFile as nativeEncryptFile } from 'rn-crypto';
+import { Platform } from 'react-native';
 
 type FrameId = string;
 type Timestamp = string;
@@ -110,7 +113,7 @@ function generateMerkleTree(): MerkleTree {
   };
 }
 
-function bucketExists(bucketId: BucketId, networkUrl: string, options?: AxiosRequestConfig): Promise<boolean> {
+function bucketExists(bucketId: string, networkUrl: string, options?: AxiosRequestConfig): Promise<boolean> {
   return axios
     .get(`${networkUrl}/buckets/${bucketId}`, options)
     .then(() => true)
@@ -128,7 +131,12 @@ function stageFile(networkUrl: string, options?: AxiosRequestConfig): Promise<Fr
     });
 }
 
-function negotiateContract(frameId: FrameId, shardMeta: ShardMeta, networkUrl: string, options?: AxiosRequestConfig): Promise<Contract> {
+function negotiateContract(
+  frameId: FrameId,
+  shardMeta: ShardMeta,
+  networkUrl: string,
+  options?: AxiosRequestConfig,
+): Promise<Contract> {
   return axios
     .request<Contract>({
       ...options,
@@ -159,7 +167,7 @@ function generateHmac(encryptionKey: Buffer, shardMetas: ShardMeta[]): string {
 }
 
 function createBucketEntry(
-  bucketId: BucketId,
+  bucketId: string,
   frameId: FrameId,
   filename: string,
   encryptionKey: Buffer,
@@ -201,18 +209,40 @@ function generateCipher(key: Buffer, iv: Buffer): Cipher {
   return createCipheriv('aes-256-ctr', key, iv);
 }
 
-async function encryptFile(fileUri: string, fileSize: number, cipher: Cipher): Promise<FileEncryptedURI> {
+async function encryptFile(
+  filePath: string,
+  fileSize: number,
+  fileEncryptionKey: Buffer,
+  iv: Buffer,
+): Promise<FileEncryptedURI> {
+  const fileEncryptedURI: FileEncryptedURI = getDocumentsDir() + '/' + uuid.v4() + '.enc';
+
+  if (Platform.OS === 'android') {
+    return new Promise((resolve, reject) =>
+      nativeEncryptFile(
+        filePath,
+        fileEncryptedURI,
+        fileEncryptionKey.toString('hex'),
+        iv.toString('hex'),
+        (err: Error) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve(fileEncryptedURI);
+        },
+      ),
+    );
+  }
+
   const twoMb = 2 * 1024 * 1024;
   const chunksOf = twoMb;
   const chunks = Math.ceil(fileSize / chunksOf);
-
-  const fileEncryptedURI: FileEncryptedURI = getDocumentsDir() + '/' + uuid.v4() + '.enc';
   const writer = await RNFetchBlob.fs.writeStream(fileEncryptedURI, 'base64');
-
+  const cipher = generateCipher(fileEncryptionKey, iv);
   let start = 0;
 
   return eachLimit(new Array(chunks), 1, (_, cb) => {
-    RFNS.read(fileUri, chunksOf, start, 'base64')
+    RFNS.read(pathToUri(filePath), chunksOf, start, 'base64')
       .then((res) => {
         cipher.write(Buffer.from(res, 'base64'));
         return writer.write(cipher.read().toString('base64'));
@@ -234,15 +264,15 @@ async function encryptFile(fileUri: string, fileSize: number, cipher: Cipher): P
 }
 
 interface UploadOpts {
-  progress: (processPercentage: number) => void
+  progress: (processPercentage: number) => void;
 }
 
 export async function uploadFile(
-  fileURI: string,
-  bucketId: BucketId,
+  filePath: string,
+  bucketId: string,
   networkUrl: string,
   credentials: NetworkCredentials,
-  uploadOptions?: UploadOpts
+  uploadOptions?: UploadOpts,
 ): Promise<FileId> {
   if (!bucketId) {
     throw new Error('Upload error code 1');
@@ -256,7 +286,7 @@ export async function uploadFile(
     throw new Error('Upload error code 3');
   }
 
-  if (!credentials.pass) {
+  if (!credentials.password) {
     throw new Error('Upload error code 4');
   }
 
@@ -265,7 +295,7 @@ export async function uploadFile(
   const defaultRequestOptions: AxiosRequestConfig = {
     auth: {
       username: credentials.user,
-      password: sha256(Buffer.from(credentials.pass)).toString('hex'),
+      password: sha256(Buffer.from(credentials.password)).toString('hex'),
     },
   };
 
@@ -280,18 +310,15 @@ export async function uploadFile(
   const frameId = await stageFile(networkUrl, defaultRequestOptions);
 
   // 3. Generate cipher
-  const index = randomBytes(32);
+  const index: Buffer = randomBytes(32);
   const fileEncryptionKey = await GenerateFileKey(credentials.encryptionKey, bucketId, index);
-  const cipher = generateCipher(fileEncryptionKey, index.slice(0, 16));
 
   // 4. Encrypt file
-  const fileStats = await RFNS.stat(fileURI);
+  const fileStats = await RFNS.stat(filePath);
   const fileSize = parseInt(fileStats.size);
-  const fileEncryptedURI = await encryptFile(fileURI, fileSize, cipher);
+  const fileEncryptedURI = await encryptFile(filePath, fileSize, fileEncryptionKey, index.slice(0, 16));
 
-  // TODO: Buffer from what? Hex?
   const fileHash = ripemd160(Buffer.from(await RFNS.hash(fileEncryptedURI, 'sha256'), 'hex'));
-
   const merkleTree = generateMerkleTree();
   const shardMetas: ShardMeta[] = [
     {
@@ -312,9 +339,9 @@ export async function uploadFile(
     'PUT',
     contract.url,
     {
-      'Content-Type': 'application/octet-stream'
+      'Content-Type': 'application/octet-stream',
     },
-    RNFetchBlob.wrap(fileEncryptedURI)
+    RNFetchBlob.wrap(fileEncryptedURI),
   ).uploadProgress({ interval: 250 }, (bytesSent, totalBytes) => {
     uploadOptions?.progress(bytesSent / totalBytes);
   });

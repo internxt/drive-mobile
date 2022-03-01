@@ -4,7 +4,7 @@ import { Environment } from '../@inxt-js';
 import { FileInfo } from '../@inxt-js/api/fileinfo';
 
 import { deviceStorage } from '../services/deviceStorage';
-import { FileManager } from './fs';
+import { FileManager } from '../services/fileSystem';
 
 type ProgressCallback = (progress: number, uploadedBytes: number | null, totalBytes: number | null) => void;
 
