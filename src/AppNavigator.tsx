@@ -60,9 +60,10 @@ function AppNavigator(): JSX.Element {
 
   useEffect(() => {
     if (isLoggedIn) {
-      const comesFromCheckout = sessionId !== '';
+      const comesFromCheckout = !!sessionId;
 
       if (comesFromCheckout) {
+        console.log('AppNavigator comesFromCheckout: ', sessionId);
         trackPayment(sessionId)
           .then((res) => {
             // no op
