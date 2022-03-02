@@ -69,7 +69,7 @@ function SignUpScreen(): JSX.Element {
     return <Intro onFinish={() => setShowIntro(false)} />;
   }
 
-  const handleOnPress = async () => {
+  const onSignUpButtonPressed = async () => {
     if (!isValidPassword) {
       return Alert.alert('', 'Please make sure your password contains at least six characters, a number, and a letter');
     }
@@ -118,14 +118,13 @@ function SignUpScreen(): JSX.Element {
       setIsLoading(false);
       setRegisterButtonClicked(false);
 
-      console.log('err: ', JSON.stringify(err));
       Alert.alert('Error while registering', castedError.message);
     }
   };
   const onGoToSignInButtonPressed = () => navigation.replace(AppScreen.SignIn);
 
   return (
-    <KeyboardAvoidingView behavior="height">
+    <KeyboardAvoidingView>
       <ScrollView style={tailwind('app-screen bg-white px-6')}>
         <View>
           <View style={tailwind('pb-6')}>
@@ -290,7 +289,7 @@ function SignUpScreen(): JSX.Element {
             !isValidForm || registerButtonClicked ? tailwind('opacity-50') : {},
           ]}
           underlayColor="#4585f5"
-          onPress={() => handleOnPress()}
+          onPress={() => onSignUpButtonPressed()}
         >
           <View>
             <Text style={tailwind('text-base btn-label')}>

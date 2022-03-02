@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import RNFS from 'react-native-fs';
 import { View, Text, Image, SafeAreaView, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
-import { TapGestureHandler } from 'react-native-gesture-handler';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -128,9 +127,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
       <TouchableWithoutFeedback onPress={onScreenPressed}>
         <View style={tailwind('h-full')}>
           {/* PHOTO */}
-          <TapGestureHandler numberOfTaps={1} enabled={true}>
-            <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
-          </TapGestureHandler>
+          <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
 
           {/* LOADING */}
           {isFullSizeLoading && (

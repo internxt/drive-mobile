@@ -30,8 +30,9 @@ export async function doRegister(params: RegisterParams): Promise<any> {
   const encSalt = encryptText(hashObj.salt);
   const mnemonic = await getNewBits();
   const encMnemonic = encryptTextWithKey(mnemonic, params.password);
+  const url = `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/register`;
 
-  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/register`, {
+  return fetch(url, {
     method: 'post',
     headers: await getHeaders(),
     body: JSON.stringify({

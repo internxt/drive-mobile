@@ -66,57 +66,19 @@ const getProducts = async () => {
 };
 
 const PERIODS = [
-  { index: 0, text: 'Monthly' },
-  { index: 1, text: 'Annually' },
+  { index: 0, text: strings.generic.monthly },
+  { index: 1, text: strings.generic.annually },
 ];
 
 function Billing(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
   const dispatch = useAppDispatch();
-  const getLinkOneTimePayment = async (plan: any) => {
-    const body = {
-      test: process.env.NODE_ENV !== 'production',
-      lifetime_tier: plan.tier,
-      mode: 'payment',
-      priceId: plan.id,
-      successUrl: 'https://drive.internxt.com/redirect/android',
-      canceledUrl: 'https://drive.internxt.com/redirect/android',
-    };
-
-    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/v2/stripe/session`, {
-      method: 'POST',
-      headers: await getHeaders(),
-      body: JSON.stringify(body),
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        if (result.error) {
-          throw Error(result.error);
-        }
-        const link = `${process.env.REACT_NATIVE_DRIVE_API_URL}/checkout/${result.id}`;
-
-        Linking.openURL(link);
-      })
-      .catch((err) => {
-        Alert.alert('There has been an error', `${err.message}, please contact us.`, [
-          {
-            text: 'Go back',
-            onPress: () => navigation.replace(AppScreen.Billing),
-          },
-        ]);
-      });
-  };
-
   const getLink = async (plan: any) => {
-    if (plan.interval === 0) {
-      // Only for Lifetimes
-      return getLinkOneTimePayment(plan);
-    }
     const body = {
       plan: plan.id,
       test: process.env.NODE_ENV === 'development',
-      SUCCESS_URL: 'https://drive.internxt.com/redirect/android',
-      CANCELED_URL: 'https://drive.internxt.com/redirect/android',
+      successUrl: 'https://drive.internxt.com/redirect/android',
+      canceledUrl: 'https://drive.internxt.com/redirect/android',
       isMobile: true,
     };
 
@@ -139,17 +101,21 @@ function Billing(): JSX.Element {
         const sessionId = result.id;
         dispatch(paymentsActions.setSessionId(sessionId));
 
-        const link = `${process.env.REACT_NATIVE_DRIVE_API_URL}/checkout/${sessionId}`;
+        const link = `${process.env.REACT_NATIVE_WEB_CLIENT_URL}/checkout/${sessionId}`;
 
         return Linking.openURL(link);
       })
       .catch((err) => {
-        Alert.alert('There has been an error', `${err.message}, please contact us.`, [
-          {
-            text: 'Go back',
-            onPress: () => navigation.replace(AppScreen.Billing),
-          },
-        ]);
+        Alert.alert(
+          strings.errors.generic.title,
+          strings.formatString(strings.errors.generic.message, err.message) as string,
+          [
+            {
+              text: strings.components.buttons.back,
+              onPress: () => navigation.replace(AppScreen.Billing),
+            },
+          ],
+        );
       });
   };
 
@@ -174,43 +140,6 @@ function Billing(): JSX.Element {
   useEffect(() => {
     const keys = _.keys(stripeProducts);
     const key = keys[selectedProductIndex];
-
-    if (selectedProductIndex === 2) {
-      const isTest = process.env.NODE_ENV !== 'production';
-
-      const lifetimes = [
-        {
-          tier: 'lifetime',
-          price: 0,
-          name: 'one-time payment',
-          pricePerMonth: 99,
-          productName: '1TB',
-          interval: 0,
-          id: isTest ? 'price_1JZBJVFAOdcgaBMQPDjuJsEh' : 'price_1JiFXDFAOdcgaBMQWwxbraL4',
-        },
-        {
-          tier: 'exclusive-lifetime',
-          price: 0,
-          name: 'one-time payment',
-          pricePerMonth: 299,
-          productName: '5TB',
-          interval: 0,
-          id: isTest ? 'price_1JZBJVFAOdcgaBMQPDjuJsEh' : 'price_1HrovfFAOdcgaBMQP33yyJdt',
-        },
-        {
-          tier: 'infinite',
-          price: 0,
-          name: 'one-time payment',
-          pricePerMonth: 499,
-          productName: '10TB',
-          interval: 0,
-          id: isTest ? 'price_1JZYmRFAOdcgaBMQfADnPmSf' : 'price_1IMA0AFAOdcgaBMQiZyoSIYU',
-        },
-      ];
-
-      setSelectedProduct(lifetimes);
-      return;
-    }
 
     stripeProducts && setSelectedProduct(stripeProducts[key]);
   }, [stripeProducts, selectedProductIndex]);
@@ -291,15 +220,21 @@ function Billing(): JSX.Element {
         <View>
           <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#42526E" />
-            <Text style={tailwind('text-base btn-label text-neutral-500 font-bold')}>30 days guarantee</Text>
+            <Text style={tailwind('ml-1 text-base btn-label text-neutral-500 font-bold')}>
+              {strings.screens.billing.features.guarantee}
+            </Text>
           </View>
           <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#42526E" />
-            <Text style={tailwind('text-base btn-label text-neutral-500')}>Private and secure file sharing</Text>
+            <Text style={tailwind('ml-1 text-base btn-label text-neutral-500')}>
+              {strings.screens.billing.features.share}
+            </Text>
           </View>
           <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#42526E" />
-            <Text style={tailwind('text-base btn-label text-neutral-500')}>Access your files from any device</Text>
+            <Text style={tailwind('ml-1 text-base btn-label text-neutral-500')}>
+              {strings.screens.billing.features.anyDevice}
+            </Text>
           </View>
         </View>
       </View>

@@ -36,8 +36,7 @@ function SignInScreen(): JSX.Element {
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [showPasswordText, setShowPasswordText] = useState(false);
   const [passwordFocus, setPasswordFocus] = useState(false);
-
-  const handleOnPress = async () => {
+  const onSignInButtonPressed = async () => {
     setIsLoading(true);
 
     try {
@@ -151,7 +150,11 @@ function SignInScreen(): JSX.Element {
         </View>
 
         <View>
-          <TouchableHighlight style={tailwind('btn btn-primary my-5')} underlayColor="#4585f5" onPress={handleOnPress}>
+          <TouchableHighlight
+            style={tailwind('btn btn-primary my-5')}
+            underlayColor="#4585f5"
+            onPress={onSignInButtonPressed}
+          >
             <Text style={tailwind('text-base btn-label')}>
               {isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}
             </Text>

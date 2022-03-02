@@ -806,7 +806,7 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.14.5"
 
-"@babel/plugin-transform-object-assign@^7.0.0", "@babel/plugin-transform-object-assign@^7.10.4":
+"@babel/plugin-transform-object-assign@^7.0.0":
   version "7.16.0"
   resolved "https://registry.npmjs.org/@babel/plugin-transform-object-assign/-/plugin-transform-object-assign-7.16.0.tgz"
   integrity sha512-TftKY6Hxo5Uf/EIoC3BKQyLvlH46tbtK4xub90vzi9+yS8z1+O/52YHyywCZvYeLPOvv//1j3BPokLuHTWPcbg==
@@ -1192,13 +1192,6 @@
   dependencies:
     exec-sh "^0.3.2"
     minimist "^1.2.0"
-
-"@egjs/hammerjs@^2.0.17":
-  version "2.0.17"
-  resolved "https://registry.npmjs.org/@egjs/hammerjs/-/hammerjs-2.0.17.tgz"
-  integrity sha512-XQsZgjm2EcVUiZQf11UBJQfmZeEmOW8DpI1gsFeln6w0ae0ii4dMQEQ0kjl6DspdWX1aGY1/loyXnP0JS06e/A==
-  dependencies:
-    "@types/hammerjs" "^2.0.36"
 
 "@eslint/eslintrc@^0.4.3":
   version "0.4.3"
@@ -2156,11 +2149,6 @@
   integrity sha512-anKkLmZZ+xm4p8JWBf4hElkM4XR+EZeA2M9BAkkTldmcyDY4mbdIJnRghDJH3Ov5ooY7/UAoENtmdMSkaAd7Cw==
   dependencies:
     "@types/node" "*"
-
-"@types/hammerjs@^2.0.36":
-  version "2.0.40"
-  resolved "https://registry.npmjs.org/@types/hammerjs/-/hammerjs-2.0.40.tgz"
-  integrity sha512-VbjwR1fhsn2h2KXAY4oy1fm7dCxaKy0D+deTb8Ilc3Eo3rc5+5eA4rfYmZaHgNJKxVyI0f6WIXzO2zLkVmQPHA==
 
 "@types/hoist-non-react-statics@^3.3.0":
   version "3.3.1"
@@ -3971,13 +3959,6 @@ create-react-class@^15.6.2:
     loose-envify "^1.3.1"
     object-assign "^4.1.1"
 
-cross-fetch@^3.0.4:
-  version "3.1.4"
-  resolved "https://registry.npmjs.org/cross-fetch/-/cross-fetch-3.1.4.tgz"
-  integrity sha512-1eAtFWdIubi6T4XPy6ei9iUFoKpUkIF971QLN8lIvvvwueI65+Nw5haMNKUwfJxabqlIIDODJKGrQ66gxC0PbQ==
-  dependencies:
-    node-fetch "2.6.1"
-
 cross-spawn@^5.1.0:
   version "5.1.0"
   resolved "https://registry.npmjs.org/cross-spawn/-/cross-spawn-5.1.0.tgz"
@@ -5281,19 +5262,6 @@ fbjs@^1.0.0:
     promise "^7.1.1"
     setimmediate "^1.0.5"
     ua-parser-js "^0.7.18"
-
-fbjs@^3.0.0:
-  version "3.0.1"
-  resolved "https://registry.npmjs.org/fbjs/-/fbjs-3.0.1.tgz"
-  integrity sha512-8+vkGyT4lNDRKHQNPp0yh/6E7FfkLg89XqQbOYnvntRh+8RiSD43yrh9E5ejp1muCizTL4nDVG+y8W4e+LROHg==
-  dependencies:
-    cross-fetch "^3.0.4"
-    fbjs-css-vars "^1.0.0"
-    loose-envify "^1.0.0"
-    object-assign "^4.1.0"
-    promise "^7.1.1"
-    setimmediate "^1.0.5"
-    ua-parser-js "^0.7.30"
 
 figures@^2.0.0:
   version "2.0.0"
@@ -7970,11 +7938,6 @@ mkdirp@^0.5.1, mkdirp@~0.5.1:
   dependencies:
     minimist "^1.2.5"
 
-mockdate@^3.0.2:
-  version "3.0.5"
-  resolved "https://registry.npmjs.org/mockdate/-/mockdate-3.0.5.tgz"
-  integrity sha512-iniQP4rj1FhBdBYS/+eQv7j1tadJ9lJtdzgOpvsOHng/GbcDh2Fhdeq+ZRldrPYdXvCyfFUmFeEwEGXZB5I/AQ==
-
 modern-normalize@^1.1.0:
   version "1.1.0"
   resolved "https://registry.npmjs.org/modern-normalize/-/modern-normalize-1.1.0.tgz"
@@ -8072,11 +8035,6 @@ node-emoji@^1.11.0:
   integrity sha512-wo2DpQkQp7Sjm2A0cq+sN7EHKO6Sl0ctXeBdFZrL9T9+UywORbufTcTZxom8YqpLQt/FqNMUkOpkZrJVYSKD3A==
   dependencies:
     lodash "^4.17.21"
-
-node-fetch@2.6.1:
-  version "2.6.1"
-  resolved "https://registry.npmjs.org/node-fetch/-/node-fetch-2.6.1.tgz"
-  integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
 
 node-fetch@^1.0.1:
   version "1.7.3"
@@ -9154,17 +9112,6 @@ react-native-fs@^2.16.6:
     base-64 "^0.1.0"
     utf8 "^3.0.0"
 
-react-native-gesture-handler@~1.10.2:
-  version "1.10.3"
-  resolved "https://registry.npmjs.org/react-native-gesture-handler/-/react-native-gesture-handler-1.10.3.tgz"
-  integrity sha512-cBGMi1IEsIVMgoox4RvMx7V2r6bNKw0uR1Mu1o7NbuHS6BRSVLq0dP34l2ecnPlC+jpWd3le6Yg1nrdCjby2Mw==
-  dependencies:
-    "@egjs/hammerjs" "^2.0.17"
-    fbjs "^3.0.0"
-    hoist-non-react-statics "^3.3.0"
-    invariant "^2.2.4"
-    prop-types "^15.7.2"
-
 react-native-image-pan-zoom@^2.1.12:
   version "2.1.12"
   resolved "https://registry.npmjs.org/react-native-image-pan-zoom/-/react-native-image-pan-zoom-2.1.12.tgz"
@@ -9246,16 +9193,6 @@ react-native-randombytes@^3.6.1:
   dependencies:
     buffer "^4.9.1"
     sjcl "^1.0.3"
-
-react-native-reanimated@~2.2.0:
-  version "2.2.4"
-  resolved "https://registry.npmjs.org/react-native-reanimated/-/react-native-reanimated-2.2.4.tgz"
-  integrity sha512-Nn648MfEEnTCEiWsl1YmfkojiLyV0NMY0EiRdDRbZNfJVfxBuyqhCxI/4Jd7aBi162qpgf8XK2mByYgvF4zLrQ==
-  dependencies:
-    "@babel/plugin-transform-object-assign" "^7.10.4"
-    fbjs "^3.0.0"
-    mockdate "^3.0.2"
-    string-hash-64 "^1.0.3"
 
 react-native-receive-sharing-intent@^1.1.0:
   version "1.1.0"
@@ -10409,11 +10346,6 @@ strict-uri-encode@^2.0.0:
   version "2.0.0"
   resolved "https://registry.npmjs.org/strict-uri-encode/-/strict-uri-encode-2.0.0.tgz"
   integrity sha1-ucczDHBChi9rFC3CdLvMWGbONUY=
-
-string-hash-64@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.npmjs.org/string-hash-64/-/string-hash-64-1.0.3.tgz"
-  integrity sha512-D5OKWKvDhyVWWn2x5Y9b+37NUllks34q1dCDhk/vYcso9fmhs+Tl3KR/gE4v5UNj2UA35cnX4KdVVGkG1deKqw==
 
 string-length@^3.1.0:
   version "3.1.0"

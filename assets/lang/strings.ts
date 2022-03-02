@@ -17,6 +17,8 @@ const strings = new LocalizedStrings({
       delete: 'Delete',
       settings: 'Settings',
       updated: 'Updated',
+      monthly: 'Monthly',
+      annually: 'Annually',
     },
     tabs: {
       home: 'Home',
@@ -150,6 +152,11 @@ const strings = new LocalizedStrings({
       },
       billing: {
         title: 'Billing',
+        features: {
+          guarantee: '30 days guarantee',
+          share: 'Private and secure file sharing',
+          anyDevice: 'Access your files from any device',
+        },
       },
       photosPermissions: {
         title: 'Sync all your photos with all your devices',
@@ -323,6 +330,10 @@ const strings = new LocalizedStrings({
       photosSyncCompleted: 'Your device is up to date',
     },
     errors: {
+      generic: {
+        title: 'There has been an error',
+        message: '{0}. Please contact us.',
+      },
       unknown: 'Unknown error',
       uploadFile: 'File upload error: {0}',
       storageLimitReached: 'You have reached your storage limit',
@@ -348,6 +359,8 @@ const strings = new LocalizedStrings({
       delete: 'Eliminar',
       settings: 'Configuración',
       updated: 'Actualizado',
+      monthly: 'Mensual',
+      annually: 'Anual',
     },
     tabs: {
       home: 'Inicio',
@@ -484,6 +497,11 @@ const strings = new LocalizedStrings({
       },
       billing: {
         title: 'Facturación',
+        features: {
+          guarantee: '30 días de garantía',
+          share: 'Comparte tus archivos de forma privada y segura',
+          anyDevice: 'Accede a tus archivos desde cualquier dispositivo',
+        },
       },
       photosPermissions: {
         title: 'Sincroniza tus fotos con todos tus dispositivos',
@@ -661,6 +679,10 @@ const strings = new LocalizedStrings({
       photosSyncCompleted: 'Tu dispositivo está sincronizado',
     },
     errors: {
+      generic: {
+        title: 'Ha habido un error',
+        message: '{0}. Por favor, contacta con nosotros.',
+      },
       unknown: 'Error desconocido',
       uploadFile: 'Error al subir archivo: {0}',
       storageLimitReached: 'Has alcanzado tu límite de almacenamiento',
