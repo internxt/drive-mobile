@@ -12,7 +12,6 @@ export async function loadEnvVars(): Promise<boolean> {
     process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL,
     process.env.REACT_NATIVE_RECAPTCHA_V3,
     process.env.REACT_NATIVE_SEGMENT_API,
-    process.env.REACT_NATIVE_SEGMENT_API_DEV,
   ];
 
   const VALID_ENVS = _.filter(ENVS, _.size);
