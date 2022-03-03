@@ -12,7 +12,7 @@
     "tw": "npx create-tailwind-rn",
     "link": "react-native link",
     "eject": "expo eject",
-    "lint": "eslint src",
+    "lint": "eslint src --ext .tsx,.ts",
     "lint:fix": "yarn lint --fix",
     "test": "yarn run check-ts && yarn run lint --quiet",
     "check-ts": "tsc --noEmit"
@@ -148,14 +148,14 @@
     "@types/react-redux": "^7.1.11",
     "@types/redux-thunk": "^2.1.0",
     "babel-jest": "~25.2.6",
-    "eslint": "^7.32.0",
     "husky": "^7.0.2",
     "jest": "~25.2.6",
-    "prettier": "^2.3.2",
     "jetifier": "^2.0.0",
+    "prettier": "^2.3.2",
     "react-native-svg-transformer": "^0.14.3",
     "react-test-renderer": "~16.13.1",
     "rn-nodeify": "^10.3.0",
+    "eslint": "^7.32.0",
     "typescript": "~4.0.0"
   },
   "react-native": {

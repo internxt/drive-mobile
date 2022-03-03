@@ -1,22 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  Text,
-  TouchableHighlight,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Text, TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
 import _ from 'lodash';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
+import * as Linking from 'expo-linking';
 
 import { notify } from '../../services/toast';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/Separator';
-import { getHeaders } from '../../helpers/headers';
 import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
 import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
@@ -24,6 +16,7 @@ import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreen } from '../../types';
 import { useAppDispatch } from '../../store/hooks';
 import { paymentsActions } from '../../store/slices/payments';
+import paymentService from '../../services/payment';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -73,25 +66,20 @@ const PERIODS = [
 function Billing(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
   const dispatch = useAppDispatch();
+  const redirectUrl = Linking.createURL('');
   const getLink = async (plan: any) => {
     const body = {
       plan: plan.id,
       test: process.env.NODE_ENV === 'development',
-      successUrl: 'https://drive.internxt.com/redirect/android',
-      canceledUrl: 'https://drive.internxt.com/redirect/android',
+      successUrl: redirectUrl,
+      canceledUrl: redirectUrl,
       isMobile: true,
     };
 
-    fetch(
-      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${
-        process.env.NODE_ENV === 'development' ? '?test=true' : ''
-      }`,
-      {
-        method: 'POST',
-        headers: await getHeaders(),
-        body: JSON.stringify(body),
-      },
-    )
+    console.log('redirectUrl: ', redirectUrl);
+
+    paymentService
+      .createSession(body)
       .then((result) => result.json())
       .then((result) => {
         if (result.error) {
@@ -99,9 +87,9 @@ function Billing(): JSX.Element {
         }
 
         const sessionId = result.id;
-        dispatch(paymentsActions.setSessionId(sessionId));
-
         const link = `${process.env.REACT_NATIVE_WEB_CLIENT_URL}/checkout/${sessionId}`;
+
+        dispatch(paymentsActions.setSessionId(sessionId));
 
         return Linking.openURL(link);
       })

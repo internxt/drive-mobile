@@ -1,10 +1,10 @@
 {
   "name": "drive-mobile",
-  "displayName": "drive-mobile",
+  "displayName": "Internxt",
   "expo": {
     "name": "drive-mobile",
     "slug": "drive-mobile",
-    "version": "1.0.0",
+    "version": "1.5.7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -15,9 +15,7 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.internxt.snacks",
@@ -37,10 +35,7 @@
               "scheme": "inxt"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },

@@ -9,10 +9,10 @@ import RunOutImage from '../../../../assets/images/modals/runout.svg';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import strings from '../../../../assets/lang/strings';
-import { getCurrentIndividualPlan } from '../../../services/payments';
 import { AppScreen, CurrentPlan, INFINITE_PLAN } from '../../../types';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import paymentService from '../../../services/payment';
 
 function RunOutOfStorageModal(): JSX.Element {
   const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
@@ -38,7 +38,8 @@ function RunOutOfStorageModal(): JSX.Element {
   };
 
   useEffect(() => {
-    getCurrentIndividualPlan()
+    paymentService
+      .getCurrentIndividualPlan()
       .then(setCurrentPlan)
       .catch(() => undefined);
   }, []);

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
 import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as Linking from 'expo-linking';
 
 import { AppScreen } from '../types';
 import UpdateModal from '../components/modals/UpdateModal';
@@ -60,8 +61,13 @@ function AppNavigator(): JSX.Element {
   const onLinkCopiedModalClosed = () => {
     dispatch(layoutActions.setIsLinkCopiedModalOpen(false));
   };
+  const onAppLinkOpened = (event: Linking.EventType) => {
+    console.log('LINKING OPENED URL: ', event);
+  };
 
   useEffect(() => {
+    Linking.addEventListener('url', onAppLinkOpened);
+
     if (isLoggedIn) {
       const comesFromCheckout = !!sessionId;
 
@@ -81,6 +87,10 @@ function AppNavigator(): JSX.Element {
     }
 
     dispatch(appThunks.initializeThunk());
+
+    return () => {
+      Linking.removeEventListener('url', onAppLinkOpened);
+    };
   }, []);
 
   return (
@@ -88,10 +98,7 @@ function AppNavigator(): JSX.Element {
       <UpdateModal />
       <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClosed={onLinkCopiedModalClosed} />
 
-      <StackNav.Navigator
-        initialRouteName={initialRouteName}
-        screenOptions={{ headerShown: false, statusBarHidden: false }}
-      >
+      <StackNav.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false }}>
         {Object.entries(routeConfig).map(([name, component]: [string, any]) => (
           <StackNav.Screen key={name} name={name} component={component.screen} />
         ))}

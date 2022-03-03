@@ -7,11 +7,11 @@ import { NavigationStackProp } from 'react-navigation-stack';
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import ProgressBar from '../../components/ProgressBar';
-import { getCurrentIndividualPlan } from '../../services/payments';
 import { notify } from '../../services/toast';
 import ScreenTitle from '../../components/ScreenTitle';
 import { useAppSelector } from '../../store/hooks';
 import { AppScreen, INFINITE_PLAN } from '../../types';
+import paymentService from '../../services/payment';
 
 interface StorageScreenProps {
   currentPlan: number;
@@ -42,7 +42,8 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
   const getUsageString = () => prettysize(usageValues.usage);
 
   useEffect(() => {
-    getCurrentIndividualPlan()
+    paymentService
+      .getCurrentIndividualPlan()
       .then(setCurrentPlan)
       .catch(() => {
         notify({
