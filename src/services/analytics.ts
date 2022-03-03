@@ -1,6 +1,6 @@
 import analytics from '@segment/analytics-react-native';
 import axios from 'axios';
-import { deviceStorage, User } from './deviceStorage';
+import { deviceStorage, User } from './asyncStorage';
 import Firebase from '@segment/analytics-react-native-firebase';
 import { NavigationState } from '@react-navigation/native';
 import { getHeaders } from '../helpers/headers';

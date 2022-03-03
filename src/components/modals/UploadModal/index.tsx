@@ -31,7 +31,7 @@ import { notify } from '../../../services/toast';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import { DevicePlatform } from '../../../types';
-import { deviceStorage } from '../../../services/deviceStorage';
+import { deviceStorage } from '../../../services/asyncStorage';
 import { UPLOAD_FILE_SIZE_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';

@@ -82,7 +82,6 @@ project.ext.react = [
     enableHermes: false
 ]
 
-apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
 apply from: "../../node_modules/react-native/react.gradle"
 apply from: "../../node_modules/expo-updates/scripts/create-manifest-android.gradle"
 
@@ -135,8 +134,8 @@ android {
         applicationId 'com.internxt.cloud'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 49
-        versionName "1.5.6"
+        versionCode 1
+        versionName "1.5.7"
     }
     splits {
         abi {
@@ -198,7 +197,6 @@ dependencies {
     debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.flipper'
     }
-    addUnimodulesDependencies()
 
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";

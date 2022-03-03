@@ -1,8 +1,8 @@
 {
-  "name": "drive-mobile",
+  "name": "Internxt",
   "displayName": "Internxt",
   "expo": {
-    "name": "drive-mobile",
+    "name": "Internxt",
     "slug": "drive-mobile",
     "version": "1.5.7",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "cover",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#091e42"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
@@ -24,7 +24,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#091e42"
       },
       "package": "com.internxt.cloud",
       "intentFilters": [
@@ -39,9 +39,15 @@
         }
       ]
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#091e42"
     },
-    "scheme": "inxt"
+    "androidNavigationBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#091e42"
+    },
+    "scheme": "inxt",
+    "entryPoint": "./index.js"
   }
 }

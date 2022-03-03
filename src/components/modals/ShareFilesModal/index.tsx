@@ -13,7 +13,7 @@ import { generateFileKey, Network } from '../../../lib/network';
 import { notify } from '../../../services/toast';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
-import { deviceStorage } from '../../../services/deviceStorage';
+import { deviceStorage } from '../../../services/asyncStorage';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import { DriveFileData, DriveFolderData } from '../../../types';

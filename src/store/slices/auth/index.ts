@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { deviceStorage, User } from '../../../services/deviceStorage';
+import { deviceStorage, User } from '../../../services/asyncStorage';
 import { RootState } from '../..';
 import authService from '../../../services/auth';
 import userService from '../../../services/user';

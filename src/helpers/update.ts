@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import * as Updates from 'expo-updates';
-import { deviceStorage } from '../services/deviceStorage';
+import { deviceStorage } from '../services/asyncStorage';
 import errorService from '../services/error';
 
 export async function shouldForceUpdate(): Promise<boolean> {

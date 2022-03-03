@@ -21,9 +21,11 @@ public class MainActivity extends ReactActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
+// @generated begin expo-splash-screen-mainActivity-onCreate-show-splash - expo prebuild (DO NOT MODIFY) sync-ac77211afc0d4d694d8aa502d057bd234773c363
+    SplashScreen.show(this, SplashScreenImageResizeMode.COVER, ReactRootView.class, false);
+// @generated end expo-splash-screen-mainActivity-onCreate-show-splash
     // SplashScreen.show(...) has to be called after super.onCreate(...)
     // Below line is handled by '@expo/configure-splash-screen' command and it's discouraged to modify it manually
-    SplashScreen.show(this, SplashScreenImageResizeMode.COVER, ReactRootView.class, false);
   }
 
     @Override

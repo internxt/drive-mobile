@@ -16,7 +16,7 @@ import { Platform } from 'react-native';
 import { PhotosService } from '../../../services/photos';
 import { notify } from '../../../services/toast';
 import strings from '../../../../assets/lang/strings';
-import { deviceStorage } from '../../../services/deviceStorage';
+import { deviceStorage } from '../../../services/asyncStorage';
 import {
   GalleryViewMode,
   PhotosSyncStatus,

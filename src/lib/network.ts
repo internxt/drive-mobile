@@ -3,7 +3,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 import { Environment } from '../@inxt-js';
 import { FileInfo } from '../@inxt-js/api/fileinfo';
 
-import { deviceStorage } from '../services/deviceStorage';
+import { deviceStorage } from '../services/asyncStorage';
 import { FileManager } from '../services/fileSystem';
 
 type ProgressCallback = (progress: number, uploadedBytes: number | null, totalBytes: number | null) => void;

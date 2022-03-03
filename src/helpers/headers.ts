@@ -1,4 +1,4 @@
-import { deviceStorage } from '../services/deviceStorage';
+import { deviceStorage } from '../services/asyncStorage';
 import PackageJson from '../../package.json';
 
 export async function getHeaders(authToken?: string, mnemonic?: string): Promise<Headers> {

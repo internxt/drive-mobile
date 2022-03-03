@@ -66,7 +66,7 @@ const PERIODS = [
 function Billing(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
   const dispatch = useAppDispatch();
-  const redirectUrl = Linking.createURL('');
+  const redirectUrl = Linking.createURL('home');
   const getLink = async (plan: any) => {
     const body = {
       plan: plan.id,

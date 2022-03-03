@@ -17,7 +17,7 @@ import { RootState } from '../..';
 import { layoutActions } from '../layout';
 import { getEnvironmentConfig } from '../../../lib/network';
 import { loadValues } from '../../../services/storage';
-import { deviceStorage } from '../../../services/deviceStorage';
+import { deviceStorage } from '../../../services/asyncStorage';
 
 interface FolderContent {
   id: number;

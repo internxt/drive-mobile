@@ -1,5 +1,4 @@
-import { AsyncStorage } from 'react-native';
-import { notify } from './toast';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { getItem, setItem, removeItem, getAllKeys, clear } = AsyncStorage;
 
@@ -49,7 +48,7 @@ export const deviceStorage = {
       return null;
     });
   },
-  listItems(): Promise<string[]> {
+  listItems(): Promise<readonly string[]> {
     return getAllKeys();
   },
   clearStorage(): Promise<void> {

@@ -3,7 +3,7 @@ import analytics, { getAnalyticsData } from './analytics';
 import { getHeaders } from '../helpers/headers';
 import { isJsonString } from '../screens/SignUpScreen/registerUtils';
 import { DevicePlatform } from '../types';
-import { deviceStorage } from './deviceStorage';
+import { deviceStorage } from './asyncStorage';
 
 interface LoginResponse {
   tfa: string;

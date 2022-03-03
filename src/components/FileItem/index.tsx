@@ -19,7 +19,7 @@ import globalStyle from '../../styles/global.style';
 import { DevicePlatform } from '../../types';
 import { storageActions, storageThunks } from '../../store/slices/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { deviceStorage } from '../../services/deviceStorage';
+import { deviceStorage } from '../../services/asyncStorage';
 import { layoutActions } from '../../store/slices/layout';
 import { downloadFile } from '../../services/network';
 import { LegacyDownloadRequiredError } from '../../services/network/download';

@@ -1,21 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Platform, Linking, Alert, SafeAreaView } from 'react-native';
-import { Provider } from 'react-redux';
 import Portal from '@burstware/react-native-portal';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import Toast from 'react-native-toast-message';
 import * as Unicons from '@iconscout/react-native-unicons';
+import * as NavigationBar from 'expo-navigation-bar';
 
 import { store } from './store';
 import AppNavigator from './screens/AppNavigator';
 import { analyticsSetup, trackStackScreen } from './services/analytics';
 import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './helpers';
 import { getColor, tailwind } from './helpers/designSystem';
-import { deviceStorage } from './services/deviceStorage';
+import { deviceStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
 import { storageActions } from './store/slices/storage';
 import { appThunks } from './store/slices/app';
+import { StatusBar } from 'react-native';
 
 process.nextTick = setImmediate;
 
@@ -80,6 +81,8 @@ export default function App(): JSX.Element {
 
   // useEffect to receive shared file
   useEffect(() => {
+    NavigationBar.setBackgroundColorAsync('#FFFFFF');
+
     if (Platform.OS === 'ios') {
       const regex = /inxt:\/\//g;
 
@@ -124,7 +127,8 @@ export default function App(): JSX.Element {
   const routeNameRef = useRef<string>();
 
   return (
-    <Provider store={store}>
+    <SafeAreaView style={tailwind('flex-1')}>
+      <StatusBar backgroundColor={'white'} barStyle="dark-content" />
       <Portal.Host>
         <NavigationContainer
           ref={navigationRef}
@@ -145,21 +149,30 @@ export default function App(): JSX.Element {
           }}
           linking={linking}
           fallback={<View></View>}
+          theme={{
+            dark: false,
+            colors: {
+              primary: '#091e42' as string,
+              background: '#FFFFFF' as string,
+              card: '#FFFFFF' as string,
+              border: '#091e42' as string,
+              notification: '#091e42' as string,
+              text: '#091e42' as string,
+            },
+          }}
         >
           {isAppInitialized ? (
-            <SafeAreaView style={tailwind('flex-1')}>
-              <AppNavigator />
-            </SafeAreaView>
+            <AppNavigator />
           ) : (
-            <SafeAreaView style={tailwind('items-center flex-1 justify-center')}>
+            <View style={tailwind('items-center flex-1 justify-center')}>
               {loadError ? <Text>{loadError}</Text> : null}
-            </SafeAreaView>
+            </View>
           )}
         </NavigationContainer>
 
         <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
       </Portal.Host>
-    </Provider>
+    </SafeAreaView>
   );
 }
 
