@@ -43,7 +43,7 @@ function PhotosNavigator(): JSX.Element {
       {isInitialized && (
         <StackNav.Navigator
           initialRouteName={arePermissionsGranted ? PhotosScreen.Gallery : PhotosScreen.Permissions}
-          screenOptions={{ headerShown: false, statusBarHidden: false }}
+          screenOptions={{ headerShown: false }}
         >
           {Object.entries(routeConfig).map(([name, component]: [string, any]) => (
             <StackNav.Screen key={name} name={name} component={component.screen} />
