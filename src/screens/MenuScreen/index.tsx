@@ -46,7 +46,7 @@ function MenuScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
 
   return (
-    <ScrollView contentContainerStyle={tailwind('app-screen h-full')}>
+    <ScrollView contentContainerStyle={tailwind('app-screen h-full bg-neutral-10')}>
       <View style={tailwind('h-full')}>
         <ScreenTitle text={strings.generic.settings} centerText onBackButtonPressed={navigation.goBack} />
 

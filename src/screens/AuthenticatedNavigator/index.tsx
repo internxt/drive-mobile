@@ -5,7 +5,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/
 
 import { tailwind } from '../../helpers/designSystem';
 import DriveScreen from '../DriveScreen';
-import Configuration from '../MenuScreen';
+import MenuScreen from '../MenuScreen';
 import BottomTabNavigator from '../../components/BottomTabNavigator';
 import VoidScreen from '../VoidScreen';
 import SettingsModal from '../../components/modals/SettingsModal';
@@ -50,7 +50,7 @@ export default function AuthenticatedNavigator(): JSX.Element {
         <Tab.Screen name={AppScreen.Drive} component={DriveScreen} />
         <Tab.Screen name="create" component={VoidScreen} />
         <Tab.Screen name="photos" component={PhotosNavigator} />
-        <Tab.Screen name={AppScreen.Menu} component={Configuration} />
+        <Tab.Screen name={AppScreen.Menu} component={MenuScreen} />
       </Tab.Navigator>
     </View>
   );

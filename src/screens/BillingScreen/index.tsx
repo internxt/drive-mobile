@@ -66,7 +66,7 @@ const PERIODS = [
 function Billing(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
   const dispatch = useAppDispatch();
-  const redirectUrl = Linking.createURL('home');
+  const redirectUrl = `${process.env.REACT_NATIVE_WEB_CLIENT_URL}/redirect-to-app`;
   const getLink = async (plan: any) => {
     const body = {
       plan: plan.id,
@@ -75,8 +75,6 @@ function Billing(): JSX.Element {
       canceledUrl: redirectUrl,
       isMobile: true,
     };
-
-    console.log('redirectUrl: ', redirectUrl);
 
     paymentService
       .createSession(body)

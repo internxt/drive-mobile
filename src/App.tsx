@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Platform, Linking, Alert, SafeAreaView } from 'react-native';
+import { View, Text, SafeAreaView } from 'react-native';
 import Portal from '@burstware/react-native-portal';
-import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
-import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
+import { LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import * as Unicons from '@iconscout/react-native-unicons';
-import * as NavigationBar from 'expo-navigation-bar';
 
 import { store } from './store';
 import AppNavigator from './screens/AppNavigator';
@@ -14,24 +12,20 @@ import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './
 import { getColor, tailwind } from './helpers/designSystem';
 import { deviceStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
-import { storageActions } from './store/slices/storage';
 import { appThunks } from './store/slices/app';
-import { StatusBar } from 'react-native';
 
 process.nextTick = setImmediate;
 
 export default function App(): JSX.Element {
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
-  const prefix = 'inxt';
-  const config = {
-    screens: {
-      Home: '/',
+  const linking: LinkingOptions<ReactNavigation.RootParamList> = {
+    prefixes: ['inxt'],
+    config: {
+      screens: {
+        'tab-explorer': 'tab-explorer',
+      },
     },
-  };
-  const linking = {
-    prefixes: [prefix],
-    config: config,
   };
   const loadLocalUser = async () => {
     const token = await deviceStorage.getToken();
@@ -44,17 +38,6 @@ export default function App(): JSX.Element {
       store.dispatch(appThunks.initializeThunk());
     } else {
       store.dispatch(authThunks.signOutThunk());
-    }
-  };
-  const handleOpenURL = (e: { url: string }) => {
-    if (e.url) {
-      if (e.url.match(/inxt:\/\/.*:\/*/g)) {
-        const regex = /inxt:\/\//g;
-        const uri = e;
-        const finalUri = uri.url.replace(regex, '');
-
-        store.dispatch(storageActions.setUri(finalUri));
-      }
     }
   };
 
@@ -79,56 +62,11 @@ export default function App(): JSX.Element {
       .catch(() => undefined);
   }, []);
 
-  // useEffect to receive shared file
-  useEffect(() => {
-    NavigationBar.setBackgroundColorAsync('#FFFFFF');
-
-    if (Platform.OS === 'ios') {
-      const regex = /inxt:\/\//g;
-
-      Linking.addEventListener('url', handleOpenURL);
-
-      Linking.getInitialURL().then((uri) => {
-        if (uri) {
-          // check if it's a file or it's an url redirect
-          if (uri.match(/inxt:\/\/.*:\/*/g)) {
-            const finalUri = uri.replace(regex, '');
-
-            store.dispatch(storageActions.setUri(finalUri));
-          }
-        }
-      });
-    } else {
-      // Receive the file from the intent using react-native-receive-sharing-intent
-      ReceiveSharingIntent.getReceivedFiles(
-        (files) => {
-          const fileInfo = {
-            fileUri: files[0].contentUri,
-            fileName: files[0].fileName,
-          };
-
-          store.dispatch(storageActions.setUri(fileInfo));
-          ReceiveSharingIntent.clearReceivedFiles();
-          // files returns as JSON Array example
-          //[{ filePath: null, text: null, weblink: null, mimeType: null, contentUri: null, fileName: null, extension: null }]
-        },
-        (error) => {
-          Alert.alert('There was an error', error.message);
-        },
-        'inxt',
-      );
-    }
-    return () => {
-      Linking.removeEventListener('url', handleOpenURL);
-    };
-  }, []);
-
   const navigationRef = useNavigationContainerRef();
   const routeNameRef = useRef<string>();
 
   return (
     <SafeAreaView style={tailwind('flex-1')}>
-      <StatusBar backgroundColor={'white'} barStyle="dark-content" />
       <Portal.Host>
         <NavigationContainer
           ref={navigationRef}

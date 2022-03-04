@@ -3,6 +3,7 @@ import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'rea
 import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
+import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 
 import { AppScreen } from '../types';
 import UpdateModal from '../components/modals/UpdateModal';
@@ -26,6 +27,8 @@ import PhotosPreviewScreen from './PhotosNavigator/PhotosPreviewScreen';
 import { trackPayment } from '../services/analytics';
 import { paymentsActions } from '../store/slices/payments';
 import { appThunks } from '../store/slices/app';
+import { storageActions } from '../store/slices/storage';
+import { Alert, Platform } from 'react-native';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -63,10 +66,52 @@ function AppNavigator(): JSX.Element {
   };
   const onAppLinkOpened = (event: Linking.EventType) => {
     console.log('LINKING OPENED URL: ', event);
+
+    if (event.url) {
+      const regex = /inxt:\/\//g;
+      if (event.url.match(/inxt:\/\/.*:\/*/g)) {
+        const finalUri = event.url.replace(regex, '');
+
+        dispatch(storageActions.setUri(finalUri));
+      }
+    }
   };
 
   useEffect(() => {
     Linking.addEventListener('url', onAppLinkOpened);
+
+    Linking.getInitialURL().then((uri) => {
+      if (uri) {
+        // check if it's a file or it's an url redirect
+        if (uri.match(/inxt:\/\/.*:\/*/g)) {
+          const regex = /inxt:\/\//g;
+          const finalUri = uri.replace(regex, '');
+
+          dispatch(storageActions.setUri(finalUri));
+        }
+      }
+    });
+
+    if (Platform.OS === 'android') {
+      // Receive the file from the intent using react-native-receive-sharing-intent
+      ReceiveSharingIntent.getReceivedFiles(
+        (files) => {
+          const fileInfo = {
+            fileUri: files[0].contentUri,
+            fileName: files[0].fileName,
+          };
+
+          dispatch(storageActions.setUri(fileInfo));
+          ReceiveSharingIntent.clearReceivedFiles();
+          // files returns as JSON Array example
+          //[{ filePath: null, text: null, weblink: null, mimeType: null, contentUri: null, fileName: null, extension: null }]
+        },
+        (error) => {
+          Alert.alert('There was an error', error.message);
+        },
+        'inxt',
+      );
+    }
 
     if (isLoggedIn) {
       const comesFromCheckout = !!sessionId;
@@ -100,7 +145,12 @@ function AppNavigator(): JSX.Element {
 
       <StackNav.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false }}>
         {Object.entries(routeConfig).map(([name, component]: [string, any]) => (
-          <StackNav.Screen key={name} name={name} component={component.screen} />
+          <StackNav.Screen
+            key={name}
+            name={name}
+            component={component.screen}
+            options={{ animation: 'slide_from_right' }}
+          />
         ))}
       </StackNav.Navigator>
     </>
