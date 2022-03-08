@@ -7,7 +7,7 @@ class UsersReferralsService {
 
   public initialize(accessToken: string, mnemonic: string) {
     this.client = Referrals.client(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api/users-referrals`,
+      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
       {
         clientName: appService.name,
         clientVersion: appService.version,

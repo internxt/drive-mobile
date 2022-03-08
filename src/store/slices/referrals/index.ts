@@ -53,6 +53,8 @@ export const referralsSlice = createSlice({
       .addCase(fetchReferralsThunk.rejected, (state, action) => {
         state.isReading = false;
 
+        console.error(action.error);
+
         notify({
           type: 'error',
           text: strings.formatString(
