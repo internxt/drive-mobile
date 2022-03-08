@@ -13,6 +13,7 @@ import { getColor, tailwind } from './helpers/designSystem';
 import { deviceStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
+import { AppScreen } from './types';
 
 process.nextTick = setImmediate;
 
@@ -23,7 +24,8 @@ export default function App(): JSX.Element {
     prefixes: ['inxt'],
     config: {
       screens: {
-        'tab-explorer': 'tab-explorer',
+        [AppScreen.TabExplorer]: AppScreen.TabExplorer,
+        checkout: AppScreen.Billing,
       },
     },
   };

@@ -54,9 +54,16 @@ interface Plan {
 }
 
 export async function getCheckoutSessionById(sessionId: string): Promise<any> {
+  const headers = await getHeaders();
+  const headersMap: Record<string, string> = {};
+
+  headers.forEach((value: string, key: string) => {
+    headersMap[key] = value;
+  });
+
   return axios
     .get(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session/?sessionId=${sessionId}`, {
-      headers: await getHeaders(),
+      headers: headersMap,
     })
     .then((res) => {
       return res.data;

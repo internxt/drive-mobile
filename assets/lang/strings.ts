@@ -1,6 +1,7 @@
 /* eslint-disable quotes */
 /* eslint-disable max-len */
 import LocalizedStrings from 'react-native-localization';
+import { ReferralTypes } from '@internxt/sdk/dist/drive/referrals';
 
 const strings = new LocalizedStrings({
   en_US: {
@@ -138,11 +139,16 @@ const strings = new LocalizedStrings({
           month: 'month',
           months: 'months',
         },
-        features: {
-          0: 'Enjoy {0} forever',
-          1: 'Encrypted file storage and sharing',
-          2: 'Access your files from any device',
-          3: 'Get access to all our services',
+        referrals: {
+          title: 'Unlock storage for free',
+          items: {
+            [ReferralTypes.ReferralKey.CreateAccount]: 'Crear una cuenta',
+            [ReferralTypes.ReferralKey.InstallMobileApp]: 'Instalar app móvil y subir un archivo',
+            [ReferralTypes.ReferralKey.ShareFile]: 'Compartir un archivo por enlace',
+            [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Suscribirse al newletter',
+            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Instalar app de escritorio y subir un archivo',
+            [ReferralTypes.ReferralKey.InviteFriends]: 'Invitar {completedSteps}/{steps} amigos',
+          },
         },
       },
       create_folder: {
@@ -151,7 +157,7 @@ const strings = new LocalizedStrings({
         confirm: 'Create',
       },
       billing: {
-        title: 'Billing',
+        title: 'Plans',
         features: {
           guarantee: '30 days guarantee',
           share: 'Private and secure file sharing',
@@ -343,6 +349,7 @@ const strings = new LocalizedStrings({
       photosLoad: 'Error loading photos: {0}',
       photosDelete: 'Error deleting photo/s: {0}',
       photosFullSizeLoad: 'Error loading full size photo: {0}',
+      fetchReferrals: 'Error fetching referrals: {0}',
     },
   },
   es: {
@@ -483,11 +490,16 @@ const strings = new LocalizedStrings({
           month: 'al mes',
           months: 'meses',
         },
-        features: {
-          0: 'Disfruta de {0} para siempre',
-          1: 'Almacena y comparte tus archivos encriptados',
-          2: 'Accede a tus archivos desde cualquier dispositivo',
-          3: 'Utiliza todos nuestros servicios',
+        referrals: {
+          title: 'Desbloquea almacenamiento gratis',
+          items: {
+            [ReferralTypes.ReferralKey.CreateAccount]: 'Create an account',
+            [ReferralTypes.ReferralKey.InstallMobileApp]: 'Install mobile app and upload a file',
+            [ReferralTypes.ReferralKey.ShareFile]: 'Share a file via link',
+            [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Subscribe to newsletter',
+            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Install desktop app and upload a file',
+            [ReferralTypes.ReferralKey.InviteFriends]: 'Invite {completedSteps}/{steps} friends',
+          },
         },
       },
       create_folder: {
@@ -496,7 +508,7 @@ const strings = new LocalizedStrings({
         confirm: 'Crear',
       },
       billing: {
-        title: 'Facturación',
+        title: 'Planes',
         features: {
           guarantee: '30 días de garantía',
           share: 'Comparte tus archivos de forma privada y segura',
@@ -692,6 +704,7 @@ const strings = new LocalizedStrings({
       photosLoad: 'Error cargando fotos: {0}',
       photosDelete: 'Error eliminando foto/s: {0}',
       photosFullSizeLoad: 'Error cargando foto a tamaño completo: {0}',
+      fetchReferrals: 'Error cargando referidos: {0}',
     },
   },
 });

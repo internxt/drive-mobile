@@ -25,10 +25,10 @@ import { layoutActions } from '../store/slices/layout';
 import LinkCopiedModal from '../components/modals/LinkCopiedModal';
 import PhotosPreviewScreen from './PhotosNavigator/PhotosPreviewScreen';
 import { trackPayment } from '../services/analytics';
-import { paymentsActions } from '../store/slices/payments';
 import { appThunks } from '../store/slices/app';
 import { storageActions } from '../store/slices/storage';
 import { Alert, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -58,14 +58,22 @@ const StackNav = createNativeStackNavigator();
 function AppNavigator(): JSX.Element {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
-  const sessionId = useAppSelector((state) => state.payments.sessionId);
   const initialRouteName = isLoggedIn ? AppScreen.TabExplorer : AppScreen.SignIn;
   const isLinkCopiedModalOpen = useAppSelector((state) => state.layout.isLinkCopiedModalOpen);
   const onLinkCopiedModalClosed = () => {
     dispatch(layoutActions.setIsLinkCopiedModalOpen(false));
   };
-  const onAppLinkOpened = (event: Linking.EventType) => {
-    console.log('LINKING OPENED URL: ', event);
+  const onAppLinkOpened = async (event: Linking.EventType) => {
+    const sessionId = await AsyncStorage.getItem('tmpCheckoutSessionId');
+
+    if (isLoggedIn) {
+      const comesFromCheckout = !!sessionId && event.url.includes('checkout');
+
+      if (comesFromCheckout) {
+        await trackPayment(sessionId as string);
+        await AsyncStorage.removeItem('tmpCheckoutSessionId');
+      }
+    }
 
     if (event.url) {
       const regex = /inxt:\/\//g;
@@ -111,24 +119,6 @@ function AppNavigator(): JSX.Element {
         },
         'inxt',
       );
-    }
-
-    if (isLoggedIn) {
-      const comesFromCheckout = !!sessionId;
-
-      if (comesFromCheckout) {
-        console.log('AppNavigator comesFromCheckout: ', sessionId);
-        trackPayment(sessionId)
-          .then((res) => {
-            // no op
-          })
-          .catch((err) => {
-            // no op
-          })
-          .finally(() => {
-            dispatch(paymentsActions.setSessionId(''));
-          });
-      }
     }
 
     dispatch(appThunks.initializeThunk());

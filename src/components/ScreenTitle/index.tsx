@@ -33,8 +33,8 @@ const ScreenTitle = ({
   return (
     <View style={[tailwind('flex-row justify-center items-center py-2 px-5'), containerStyle]}>
       {showBackButton && (
-        <TouchableOpacity style={tailwind('w-6')} disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
-          <View style={[tailwind('flex justify-center items-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
+        <TouchableOpacity style={tailwind('flex-1')} disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
+          <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
             <Unicons.UilAngleLeft color={getColor('blue-60')} size={32} />
           </View>
         </TouchableOpacity>
@@ -43,13 +43,13 @@ const ScreenTitle = ({
       <View style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
         <Text
           numberOfLines={1}
-          style={[tailwind('text-neutral-700 text-3xl'), globalStyle.fontWeight.medium, textStyle]}
+          style={[tailwind('text-neutral-700 text-2xl'), globalStyle.fontWeight.medium, textStyle]}
         >
           {text}
         </Text>
       </View>
 
-      {showBackButton && <View style={tailwind('w-6')} />}
+      {showBackButton && <View style={tailwind('flex-1')} />}
     </View>
   );
 };

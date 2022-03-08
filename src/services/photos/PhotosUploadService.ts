@@ -70,15 +70,15 @@ export default class PhotosUploadService {
       width: data.width,
       fileId,
       previewId,
-      // TODO: update @internxt/sdk on next release to fix types
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       previews: [
         {
           width: previewWidth,
           height: previewHeight,
           size: previewSize,
           fileId: previewId,
+          // TODO: update @internxt/sdk on next release to fix types
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           type: previewFormat,
         },
       ],

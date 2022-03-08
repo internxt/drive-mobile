@@ -25,7 +25,7 @@ export default function ProgressBar(props: ProgressBarProps): JSX.Element {
   };
 
   return (
-    <View style={tailwind('rounded h-2 bg-neutral-40')}>
+    <View style={tailwind('rounded h-2 bg-neutral-30')}>
       <View
         style={[
           tailwind('rounded-tl rounded-bl bg-blue-60'),

@@ -14,9 +14,8 @@ import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreen } from '../../types';
-import { useAppDispatch } from '../../store/hooks';
-import { paymentsActions } from '../../store/slices/payments';
 import paymentService from '../../services/payment';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -63,10 +62,9 @@ const PERIODS = [
   { index: 1, text: strings.generic.annually },
 ];
 
-function Billing(): JSX.Element {
+function BillingScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
-  const dispatch = useAppDispatch();
-  const redirectUrl = `${process.env.REACT_NATIVE_WEB_CLIENT_URL}/redirect-to-app`;
+  const redirectUrl = `${process.env.REACT_NATIVE_WEB_CLIENT_URL}/redirect-to-app?path=checkout`;
   const getLink = async (plan: any) => {
     const body = {
       plan: plan.id,
@@ -76,21 +74,9 @@ function Billing(): JSX.Element {
       isMobile: true,
     };
 
-    paymentService
+    const response = await paymentService
       .createSession(body)
-      .then((result) => result.json())
-      .then((result) => {
-        if (result.error) {
-          throw Error(result.error);
-        }
-
-        const sessionId = result.id;
-        const link = `${process.env.REACT_NATIVE_WEB_CLIENT_URL}/checkout/${sessionId}`;
-
-        dispatch(paymentsActions.setSessionId(sessionId));
-
-        return Linking.openURL(link);
-      })
+      .then((response) => response.json())
       .catch((err) => {
         Alert.alert(
           strings.errors.generic.title,
@@ -103,6 +89,17 @@ function Billing(): JSX.Element {
           ],
         );
       });
+
+    if (response.error) {
+      throw Error(response.error);
+    }
+
+    const sessionId = response.id;
+    const link = `${process.env.REACT_NATIVE_WEB_CLIENT_URL}/checkout/${sessionId}`;
+
+    await AsyncStorage.setItem('tmpCheckoutSessionId', sessionId);
+
+    Linking.openURL(link);
   };
 
   const [stripeProducts, setStripeProducts] = useState<any>();
@@ -228,4 +225,4 @@ function Billing(): JSX.Element {
   );
 }
 
-export default Billing;
+export default BillingScreen;

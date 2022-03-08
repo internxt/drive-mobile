@@ -1,20 +1,20 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface PaymentsState {
-  sessionId: string
+  sessionId: string;
 }
 
 const initialState: PaymentsState = {
-  sessionId: ''
+  sessionId: '',
 };
 
 export const paymentsSlice = createSlice({
   name: 'payments',
   initialState,
   reducers: {
-    setSessionId: (state: PaymentsState, action: PayloadAction<string>) => {
+    setSessionId: (state, action: PayloadAction<string>) => {
       state.sessionId = action.payload;
-    }
+    },
   },
 });
 

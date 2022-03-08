@@ -19,6 +19,7 @@ interface MenuItemProps {
 function MenuItem(props: MenuItemProps) {
   return (
     <TouchableHighlight
+      underlayColor={getColor('neutral-100')}
       onPress={(event) => {
         if (props.onPress) {
           props.onPress(event);
@@ -46,11 +47,11 @@ function MenuScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
 
   return (
-    <ScrollView contentContainerStyle={tailwind('app-screen h-full bg-neutral-10')}>
+    <ScrollView contentContainerStyle={tailwind('app-screen h-full bg-neutral-20')}>
       <View style={tailwind('h-full')}>
         <ScreenTitle text={strings.generic.settings} centerText onBackButtonPressed={navigation.goBack} />
 
-        <View style={tailwind('flex-grow')}>
+        <View style={tailwind('mt-6 flex-grow')}>
           <MenuItem
             title={strings.components.app_menu.settings.storage}
             onPress={() => {
