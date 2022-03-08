@@ -24,6 +24,7 @@ import { layoutActions } from '../../store/slices/layout';
 import { downloadFile } from '../../services/network';
 import { LegacyDownloadRequiredError } from '../../services/network/download';
 import { downloadFile as legacyDownloadFile } from '../../services/download';
+import { constants } from '../../services/app';
 
 interface FileItemProps {
   isFolder: boolean;
@@ -137,7 +138,7 @@ function FileItem(props: FileItemProps): JSX.Element {
         user: bridgeUser,
         password: userId,
       },
-      process.env.REACT_NATIVE_BRIDGE_URL!,
+      constants.REACT_NATIVE_BRIDGE_URL,
       {
         toPath: params.to,
         downloadProgressCallback: setDownloadProgress,

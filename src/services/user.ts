@@ -1,5 +1,6 @@
 import { decryptText, decryptTextWithKey, encryptText, passToHash } from '../helpers';
 import { getHeaders } from '../helpers/headers';
+import { constants } from './app';
 
 class UserService {
   public signin(
@@ -13,7 +14,7 @@ class UserService {
       const hashObj = passToHash({ password, salt });
       const encPass = encryptText(hashObj.hash);
 
-      fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/access`, {
+      fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/access`, {
         method: 'POST',
         headers: { 'content-type': 'application/json; charset=utf-8' },
         body: JSON.stringify({
@@ -50,7 +51,7 @@ class UserService {
   }
 
   public async initializeUser(email: string, mnemonic: string, token: string) {
-    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/initialize`, {
+    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/initialize`, {
       method: 'POST',
       headers: await getHeaders(token, mnemonic),
       body: JSON.stringify({
@@ -67,7 +68,7 @@ class UserService {
 
   public payment(token: string, stripePlan: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/buy`, {
+      fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/buy`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({

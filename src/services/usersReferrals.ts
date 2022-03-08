@@ -1,13 +1,13 @@
 import { UserReferral, ReferralKey } from '@internxt/sdk/dist/drive/referrals/types';
 import { Referrals } from '@internxt/sdk/dist/drive';
-import appService from './app';
+import appService, { constants } from './app';
 
 class UsersReferralsService {
   private client?: Referrals;
 
   public initialize(accessToken: string, mnemonic: string) {
     this.client = Referrals.client(
-      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/users-referrals`,
+      `${constants.REACT_NATIVE_DRIVE_API_URL}/api/users-referrals`,
       {
         clientName: appService.name,
         clientVersion: appService.version,

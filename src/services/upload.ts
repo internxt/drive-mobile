@@ -1,6 +1,7 @@
 import { getEnvironmentConfig, Network } from '../lib/network';
 import { deviceStorage } from './asyncStorage';
 import { getHeaders } from '../helpers/headers';
+import { constants } from './app';
 
 export interface FileMeta {
   progress: number;
@@ -48,5 +49,5 @@ export async function createFileEntry(entry: FileEntry): Promise<any> {
   const body = JSON.stringify({ file: entry });
   const params = { method: 'post', headers, body };
 
-  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/file`, params);
+  return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/file`, params);
 }

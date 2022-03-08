@@ -16,6 +16,7 @@ import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreen } from '../../types';
 import paymentService from '../../services/payment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { constants } from '../../services/app';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -30,7 +31,7 @@ const intervalToMonth = (intervalName: string, intervalCount: number) => {
 };
 
 const getProducts = async () => {
-  const products = process.env.NODE_ENV === 'production' ? getProductionPlans() : getDevelopmentPlans();
+  const products = constants.NODE_ENV === 'production' ? getProductionPlans() : getDevelopmentPlans();
   const perPlan: any = {};
 
   products.forEach((product) => {
@@ -64,11 +65,11 @@ const PERIODS = [
 
 function BillingScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
-  const redirectUrl = `${process.env.REACT_NATIVE_WEB_CLIENT_URL}/redirect-to-app?path=checkout`;
+  const redirectUrl = `${constants.REACT_NATIVE_WEB_CLIENT_URL}/redirect-to-app?path=checkout`;
   const getLink = async (plan: any) => {
     const body = {
       plan: plan.id,
-      test: process.env.NODE_ENV === 'development',
+      test: constants.NODE_ENV === 'development',
       successUrl: redirectUrl,
       canceledUrl: redirectUrl,
       isMobile: true,
@@ -95,7 +96,7 @@ function BillingScreen(): JSX.Element {
     }
 
     const sessionId = response.id;
-    const link = `${process.env.REACT_NATIVE_WEB_CLIENT_URL}/checkout/${sessionId}`;
+    const link = `${constants.REACT_NATIVE_WEB_CLIENT_URL}/checkout/${sessionId}`;
 
     await AsyncStorage.setItem('tmpCheckoutSessionId', sessionId);
 

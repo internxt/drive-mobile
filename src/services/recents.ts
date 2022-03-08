@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { IFile } from '../components/FileList';
 import { getHeaders } from '../helpers/headers';
+import { constants } from './app';
 
 export async function getRecents(): Promise<IFile[]> {
   const headers = await getHeaders();
@@ -11,7 +12,7 @@ export async function getRecents(): Promise<IFile[]> {
     headersMap[key] = value;
   });
 
-  const response = await axios.get(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/recents`, {
+  const response = await axios.get(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/recents`, {
     headers: headersMap,
   });
 

@@ -37,6 +37,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import { storageActions, storageThunks } from '../../../store/slices/storage';
 import { uploadFile } from '../../../services/network';
+import { constants } from '../../../services/app';
 
 interface UploadingFile {
   size: number;
@@ -147,7 +148,7 @@ async function uploadAndCreateFileEntry(
   const fileId = await uploadFile(
     filePath,
     bucket,
-    process.env.REACT_NATIVE_BRIDGE_URL!,
+    constants.REACT_NATIVE_BRIDGE_URL,
     {
       encryptionKey: mnemonic,
       user: bridgeUser,

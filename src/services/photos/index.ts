@@ -15,6 +15,7 @@ import PhotosFileSystemService from './PhotosFileSystemService';
 import PhotosUsageService from './PhotosUsageService';
 import { RootState } from '../../store';
 import PhotosPreviewService from './PhotosPreviewService';
+import { constants } from '../app';
 
 export class PhotosService {
   private readonly model: PhotosServiceModel;
@@ -35,13 +36,13 @@ export class PhotosService {
 
   constructor(accessToken: string, networkCredentials: NetworkCredentials) {
     this.model = {
-      debug: process.env.NODE_ENV !== 'production',
+      debug: constants.NODE_ENV !== 'production',
       isInitialized: false,
       accessToken,
       networkCredentials,
-      networkUrl: process.env.REACT_NATIVE_PHOTOS_NETWORK_API_URL || '',
+      networkUrl: constants.REACT_NATIVE_PHOTOS_NETWORK_API_URL || '',
     };
-    this.photosSdk = new photos.Photos(process.env.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
+    this.photosSdk = new photos.Photos(constants.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
 
     this.logService = new PhotosLogService(this.model);
     this.fileSystemService = new PhotosFileSystemService(this.model, this.logService);

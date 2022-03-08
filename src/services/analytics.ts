@@ -5,6 +5,7 @@ import Firebase from '@segment/analytics-react-native-firebase';
 import { NavigationState } from '@react-navigation/native';
 import { getHeaders } from '../helpers/headers';
 import _ from 'lodash';
+import { constants } from './app';
 
 enum TrackTypes {
   PaymentConversionEvent = 'Payment Conversion',
@@ -12,7 +13,7 @@ enum TrackTypes {
 }
 
 export async function analyticsSetup(): Promise<void> {
-  const WRITEKEY = process.env.REACT_NATIVE_SEGMENT_API as string;
+  const WRITEKEY = constants.REACT_NATIVE_SEGMENT_API as string;
 
   if (!WRITEKEY) {
     // This console log is neccesary to show devs if they are missing an env. variable
@@ -62,7 +63,7 @@ export async function getCheckoutSessionById(sessionId: string): Promise<any> {
   });
 
   return axios
-    .get(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session/?sessionId=${sessionId}`, {
+    .get(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session/?sessionId=${sessionId}`, {
       headers: headersMap,
     })
     .then((res) => {

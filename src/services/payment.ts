@@ -1,6 +1,7 @@
 import { getHeaders } from '../helpers/headers';
 import { StoragePlan } from '../types';
 import analytics from './analytics';
+import { constants } from './app';
 
 class PaymentService {
   public async createSession(body: {
@@ -11,8 +12,8 @@ class PaymentService {
     isMobile: boolean;
   }) {
     const response = await fetch(
-      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${
-        process.env.NODE_ENV === 'development' ? '?test=true' : ''
+      `${constants.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session${
+        constants.NODE_ENV === 'development' ? '?test=true' : ''
       }`,
       {
         method: 'POST',
@@ -26,7 +27,7 @@ class PaymentService {
   }
 
   public async getCurrentIndividualPlan(): Promise<StoragePlan> {
-    return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/plan/individual`, {
+    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/plan/individual`, {
       method: 'get',
       headers: await getHeaders(),
     })

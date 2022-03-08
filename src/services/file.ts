@@ -1,9 +1,11 @@
 import { compare } from 'natural-orderby';
-import { IFile, IFolder } from '../components/FileList';
-import { getHeaders } from '../helpers/headers';
 import { createHash } from 'crypto';
 import axios from 'axios';
+
 import { DriveFileMetadataPayload } from '../types';
+import { IFile, IFolder } from '../components/FileList';
+import { getHeaders } from '../helpers/headers';
+import { constants } from './app';
 
 export const sortTypes = {
   DATE_ADDED: 'Date_Added',
@@ -25,7 +27,7 @@ async function getFolderContent(folderId: number): Promise<any> {
     headersMap[key] = value;
   });
 
-  const response = await axios.get(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/v2/folder/${folderId}`, {
+  const response = await axios.get(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/v2/folder/${folderId}`, {
     headers: headersMap,
   });
 
@@ -38,7 +40,7 @@ async function createFolder(parentFolderId: number, folderName = 'Untitled folde
     parentFolderId,
     folderName,
   });
-  const response = await fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder`, {
+  const response = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder`, {
     method: 'POST',
     headers,
     body,
@@ -65,7 +67,7 @@ async function updateMetaData(
 
   return axios
     .post(
-      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/file/${fileId}/meta`,
+      `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/file/${fileId}/meta`,
       {
         metadata,
         bucketId,
@@ -80,7 +82,7 @@ async function moveFile(fileId: string, destination: number): Promise<number> {
   const headers = await getHeaders();
   const data = JSON.stringify({ fileId, destination });
 
-  const res = await fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/moveFile`, {
+  const res = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/moveFile`, {
     method: 'POST',
     headers,
     body: data,
@@ -102,8 +104,8 @@ async function deleteItems(items: any[]): Promise<void> {
     const isFolder = !item.fileId;
     const headers = await getHeaders();
     const url = isFolder
-      ? `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${item.id}`
-      : `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/bucket/${item.bucket}/file/${item.fileId}`;
+      ? `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${item.id}`
+      : `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/bucket/${item.bucket}/file/${item.fileId}`;
 
     const fetchObj = fetch(url, {
       method: 'DELETE',
@@ -166,7 +168,7 @@ async function renameFileInNetwork(fileId: string, bucketId: string, relativePat
   });
 
   await axios.post<{ message: string }>(
-    `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/rename-file-in-network`,
+    `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/rename-file-in-network`,
     {
       fileId,
       bucketId,

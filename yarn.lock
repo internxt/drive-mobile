@@ -2765,11 +2765,6 @@
   dependencies:
     "@types/react" "^16"
 
-"@types/react-native-dotenv@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/@types/react-native-dotenv/-/react-native-dotenv-0.2.0.tgz"
-  integrity sha512-ZxX+dU/yoQc0jTk+/NWttkiuXceJyN5FpOSqDl0WynN5GDzxwH7OMruQ47qcY8llo2RD3irjvzJ9BwC8gDiq0A==
-
 "@types/react-native-indicators@^0.16.0":
   version "0.16.1"
   resolved "https://registry.npmjs.org/@types/react-native-indicators/-/react-native-indicators-0.16.1.tgz"
@@ -4863,11 +4858,6 @@ domutils@^1.7.0:
   dependencies:
     dom-serializer "0"
     domelementtype "1"
-
-dotenv@^10.0.0:
-  version "10.0.0"
-  resolved "https://registry.npmjs.org/dotenv/-/dotenv-10.0.0.tgz"
-  integrity sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==
 
 ecc-jsbn@~0.1.1:
   version "0.1.2"
@@ -9536,13 +9526,6 @@ react-native-document-picker@^4.1.0:
   version "4.3.0"
   resolved "https://registry.npmjs.org/react-native-document-picker/-/react-native-document-picker-4.3.0.tgz"
   integrity sha512-ygcY0ijlVuhxzdWnhqd917yMUFT9FF0b4CM81LWoY4/bpQYz5PGUdRAdh25kS0VA+cEUYNL2iI7OpHXq00epPA==
-
-react-native-dotenv@^3.3.1:
-  version "3.3.1"
-  resolved "https://registry.npmjs.org/react-native-dotenv/-/react-native-dotenv-3.3.1.tgz"
-  integrity sha512-gAKXout1XCwCqJ3QPGoQAF2eRzOHgOnwg3x19z+ssow8bDIksJeKBqvoHDyGziVilAIP1J0bEC9Jf+VF8nFang==
-  dependencies:
-    dotenv "^10.0.0"
 
 react-native-file-viewer@^2.1.4:
   version "2.1.4"

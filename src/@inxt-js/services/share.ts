@@ -1,3 +1,5 @@
+import { constants } from '../../services/app';
+
 interface GenerateShareLinkResponse {
   token: string;
 }
@@ -33,7 +35,7 @@ export function generateShareLink(
   fileId: string,
   params: GenerateShareLinkRequestBody,
 ): Promise<string> {
-  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/share/file/${fileId}`, {
+  return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/share/file/${fileId}`, {
     method: 'POST',
     headers,
     body: JSON.stringify(params),
@@ -45,7 +47,7 @@ export function generateShareLink(
 }
 
 export function getShareInfo(token: string): Promise<GetShareInfoResponse> {
-  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/share/${token}`).then<GetShareInfoResponse>((res) =>
+  return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/share/${token}`).then<GetShareInfoResponse>((res) =>
     res.json(),
   );
 }

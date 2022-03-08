@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { getHeaders } from '../helpers/headers';
 import { DriveFileData, DriveFolderData, DriveFolderMetadataPayload } from '../types';
+import { constants } from './app';
 import fileService from './file';
 
 class FolderService {
@@ -19,7 +20,7 @@ class FolderService {
     });
 
     await axios.post(
-      `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${folderId}/meta`,
+      `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${folderId}/meta`,
       { metadata },
       { headers: headersMap },
     );

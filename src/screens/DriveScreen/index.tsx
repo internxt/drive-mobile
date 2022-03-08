@@ -21,6 +21,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { useRoute } from '@react-navigation/native';
+import { constants } from '../../services/app';
 
 function DriveScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -181,7 +182,7 @@ function DriveScreen(): JSX.Element {
 
       RNFetchBlob.fetch(
         'POST',
-        `${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${currentFolder}/upload`,
+        `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${currentFolder}/upload`,
         headers,
         [{ name: 'xfile', filename: name, data: finalUri }],
       )

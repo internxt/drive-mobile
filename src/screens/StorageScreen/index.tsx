@@ -56,12 +56,12 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
         </View>
 
         <TouchableHighlight
-          underlayColor="#5291ff"
+          underlayColor={getColor('neutral-30')}
           onPress={() => {
             navigation.push(AppScreen.Billing);
           }}
         >
-          <View style={tailwind('px-5 py-2 flex-row justify-between my-1.5 border-t border-neutral-20')}>
+          <View style={tailwind('px-5 py-3 flex-row justify-between border-t border-neutral-20')}>
             <Text style={tailwind('text-blue-60 text-lg')}>{strings.components.buttons.upgradeNow}</Text>
             <Unicons.UilAngleRight size={30} color={getColor('blue-60')} />
           </View>

@@ -14,6 +14,7 @@ import { deviceStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
 import { AppScreen } from './types';
+import appService from './services/app';
 
 process.nextTick = setImmediate;
 
@@ -57,7 +58,7 @@ export default function App(): JSX.Element {
 
     shouldForceUpdate()
       .then((shouldForce) => {
-        if (shouldForce && process.env.NODE_ENV === 'production') {
+        if (shouldForce && appService.constants.NODE_ENV === 'production') {
           forceCheckUpdates();
         }
       })

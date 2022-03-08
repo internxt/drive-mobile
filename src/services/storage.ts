@@ -4,6 +4,7 @@ import { getAnalyticsUuid } from '../services/analytics';
 import analytics from './analytics';
 import { getHeaders } from '../helpers/headers';
 import { DevicePlatform } from '../types';
+import { constants } from './app';
 
 export interface IProduct {
   id: string;
@@ -34,7 +35,7 @@ function identifyPlanName(bytes: number): string {
 }
 
 async function loadUsage(): Promise<number> {
-  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/usage`, {
+  return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/usage`, {
     method: 'get',
     headers: await getHeaders(),
   })
@@ -51,7 +52,7 @@ async function loadUsage(): Promise<number> {
 }
 
 async function loadLimit(): Promise<number> {
-  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/limit`, {
+  return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/limit`, {
     method: 'get',
     headers: await getHeaders(),
   })

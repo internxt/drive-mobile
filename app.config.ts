@@ -1,6 +1,29 @@
 import { ExpoConfig } from '@expo/config-types';
+import env from './env';
 
-const appConfig: ExpoConfig = {
+export enum AppStage {
+  Development = 'development',
+  Production = 'production',
+}
+
+export interface AppEnv {
+  NODE_ENV: AppStage;
+  REACT_NATIVE_CRYPTO_SECRET: string;
+  REACT_NATIVE_WEB_CLIENT_URL: string;
+  REACT_NATIVE_DRIVE_API_URL: string;
+  REACT_NATIVE_BRIDGE_URL: string;
+  REACT_NATIVE_PHOTOS_API_URL: string;
+  REACT_NATIVE_PHOTOS_NETWORK_API_URL: string;
+  REACT_NATIVE_SEGMENT_API: string;
+  REACT_NATIVE_CRYPTO_SECRET2: string;
+  REACT_NATIVE_MAGIC_IV: string;
+  REACT_NATIVE_MAGIC_SALT: string;
+  REACT_NATIVE_RECAPTCHA_V3: string;
+}
+
+const stage = AppStage.Production; // <- CHANGE STAGE
+
+const appConfig: ExpoConfig & { extra: AppEnv } = {
   name: 'Internxt',
   scheme: 'inxt',
   entryPoint: './index.js',
@@ -48,6 +71,7 @@ const appConfig: ExpoConfig = {
     barStyle: 'light-content',
     backgroundColor: '#FFFFFF',
   },
+  extra: { NODE_ENV: stage, ...env[stage] },
 };
 
 export default appConfig;

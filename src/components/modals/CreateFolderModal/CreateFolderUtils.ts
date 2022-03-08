@@ -1,7 +1,6 @@
 import { getHeaders } from '../../../helpers/headers';
 import { isJsonString } from '../../../screens/SignUpScreen/registerUtils';
-
-const invalidName = /[\\/]|[. ]$/;
+import { constants } from '../../../services/app';
 
 interface CreateFolderParam {
   folderName: string;
@@ -9,7 +8,7 @@ interface CreateFolderParam {
 }
 
 export async function createFolder(params: CreateFolderParam): Promise<any> {
-  return fetch(`${process.env.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder`, {
+  return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder`, {
     method: 'post',
     headers: await getHeaders(),
     body: JSON.stringify({

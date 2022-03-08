@@ -1,9 +1,10 @@
 import CryptoJS from 'crypto-js';
 import crypto from 'react-native-crypto';
+import { constants } from '../services/app';
 import errorService from '../services/error';
 import AesUtils from './aesUtils';
 
-const password = (process && process.env && process.env.REACT_NATIVE_CRYPTO_SECRET) || ''; // Force env var loading
+const password = constants.REACT_NATIVE_CRYPTO_SECRET || ''; // Force env var loading
 
 interface PassObjectInterface {
   password: string;
@@ -57,7 +58,7 @@ export function decryptTextWithKey(encryptedText: string, keyToDecrypt: string):
 
 export function probabilisticEncryption(content: string): string | null {
   try {
-    const b64 = crypto.createCipher('aes-256-gcm', process.env.REACT_NATIVE_CRYPTO_SECRET);
+    const b64 = crypto.createCipher('aes-256-gcm', constants.REACT_NATIVE_CRYPTO_SECRET);
 
     b64.write(content);
     // const b64 = CryptoJS.AES.encrypt(content, App.config.get('secrets').CRYPTO_SECRET).toString();
@@ -82,7 +83,7 @@ export function probabilisticDecryption(cipherText: string): string | null {
     const bytes = Buffer.from(reb64).toString('base64');
     // const bytes = reb64.toString(CryptoJS.enc.Base64);
 
-    const decrypt = crypto.createDecipher('aes-256-gcm', process.env.REACT_NATIVE_CRYPTO_SECRET);
+    const decrypt = crypto.createDecipher('aes-256-gcm', constants.REACT_NATIVE_CRYPTO_SECRET);
     // const decrypt = CryptoJS.AES.decrypt(bytes, App.config.get('secrets').CRYPTO_SECRET);
 
     const plain = Buffer.concat([decrypt.update(cipherText), decrypt.final()]).toString('utf8');
@@ -95,7 +96,7 @@ export function probabilisticDecryption(cipherText: string): string | null {
 }
 
 export function encryptFilename(filename: string, folderId: string): string {
-  const { REACT_NATIVE_CRYPTO_SECRET2: CRYPTO_KEY } = process.env;
+  const { REACT_NATIVE_CRYPTO_SECRET2: CRYPTO_KEY } = constants;
 
   if (!CRYPTO_KEY) {
     throw new Error('Cannot encrypt filename due to missing encryption key');
@@ -106,7 +107,7 @@ export function encryptFilename(filename: string, folderId: string): string {
 
 export function deterministicEncryption(content: string, salt?: string | number): string | null {
   try {
-    const key = Buffer.from(process.env.REACT_NATIVE_CRYPTO_SECRET as string).toString('hex');
+    const key = Buffer.from(constants.REACT_NATIVE_CRYPTO_SECRET as string).toString('hex');
     // const key = CryptoJS.enc.Hex.parse(App.config.get('secrets').CRYPTO_SECRET);
 
     const iv = salt ? Buffer.from(salt.toString()).toString('hex') : key;
@@ -129,7 +130,7 @@ export function deterministicEncryption(content: string, salt?: string | number)
 
 export function deterministicDecryption(cipherText: string, salt?: string | number): string | null {
   try {
-    const key = Buffer.from(process.env.REACT_NATIVE_CRYPTO_SECRET as string).toString('hex');
+    const key = Buffer.from(constants.REACT_NATIVE_CRYPTO_SECRET as string).toString('hex');
     // const key = CryptoJS.enc.Hex.parse(App.config.get('secrets').CRYPTO_SECRET);
 
     const iv = salt ? Buffer.from(salt.toString()).toString('hex') : key;
