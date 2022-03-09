@@ -107,7 +107,7 @@ function SignUpScreen(): JSX.Element {
 
       await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }));
 
-      navigation.replace(AppScreen.TabExplorer);
+      navigation.replace(AppScreen.TabExplorer, { showReferralsBanner: true });
     } catch (err) {
       const castedError = errorService.castError(err);
 

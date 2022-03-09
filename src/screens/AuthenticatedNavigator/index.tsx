@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
@@ -21,23 +21,29 @@ import RunOutOfStorageModal from '../../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../HomeScreen';
 import { AppScreen } from '../../types';
 import PhotosNavigator from '../PhotosNavigator';
+import ReferralsBanner from '../../components/ReferralsBanner';
+import { useAppDispatch } from '../../store/hooks';
+import { layoutActions } from '../../store/slices/layout';
 
 const Tab = createBottomTabNavigator();
 
-export default function AuthenticatedNavigator(): JSX.Element {
+interface AuthenticatedNavigatorProps {
+  route: {
+    params?: {
+      showReferralsBanner?: boolean;
+    };
+  };
+}
+
+export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProps): JSX.Element {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    props.route.params?.showReferralsBanner && dispatch(layoutActions.setIsReferralsBannerOpen(true));
+  }, []);
+
   return (
     <View style={tailwind('h-full')}>
-      <FileDetailsModal />
-      <SettingsModal />
-      <UploadModal />
-      <SortModal />
-      <DeleteItemModal />
-      <MoveFilesModal />
-      <ShareFilesModal />
-      <CreateFolderModal />
-      <RenameModal />
-      <RunOutOfStorageModal />
-
       <Tab.Navigator
         tabBar={(tabBarProps: BottomTabBarProps) => <BottomTabNavigator {...{ ...tabBarProps }} />}
         initialRouteName={AppScreen.Home}
@@ -52,6 +58,19 @@ export default function AuthenticatedNavigator(): JSX.Element {
         <Tab.Screen name="photos" component={PhotosNavigator} />
         <Tab.Screen name={AppScreen.Menu} component={MenuScreen} />
       </Tab.Navigator>
+
+      <FileDetailsModal />
+      <SettingsModal />
+      <UploadModal />
+      <SortModal />
+      <DeleteItemModal />
+      <MoveFilesModal />
+      <ShareFilesModal />
+      <CreateFolderModal />
+      <RenameModal />
+      <RunOutOfStorageModal />
+
+      <ReferralsBanner />
     </View>
   );
 }

@@ -275,6 +275,9 @@ const strings = new LocalizedStrings({
         delete: 'Delete',
         view: 'View',
       },
+      ReferralsBanner: {
+        message: 'Get up to 10GB for free',
+      },
     },
     modals: {
       move_modal: {
@@ -639,6 +642,9 @@ const strings = new LocalizedStrings({
         share: 'Compartir',
         delete: 'Borrar',
         view: 'Ver',
+      },
+      ReferralsBanner: {
+        message: 'Obtén hasta 10GB gratis',
       },
     },
     modals: {
