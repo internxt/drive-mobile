@@ -47,8 +47,9 @@ function ChangePassword(): JSX.Element {
   const isEmptyConfirmPassword = !confirmPassword;
 
   return (
-    <View style={tailwind('app-screen bg-white h-full')}>
+    <View style={tailwind('app-screen bg-neutral-20 h-full')}>
       <ScreenTitle
+        textStyle={tailwind('text-2xl')}
         text={strings.components.inputs.password}
         centerText
         onBackButtonPressed={() => navigation.goBack()}

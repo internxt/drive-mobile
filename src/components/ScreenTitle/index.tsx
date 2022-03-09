@@ -43,7 +43,7 @@ const ScreenTitle = ({
       <View style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
         <Text
           numberOfLines={1}
-          style={[tailwind('text-neutral-700 text-2xl'), globalStyle.fontWeight.medium, textStyle]}
+          style={[tailwind('text-neutral-700 text-3xl'), globalStyle.fontWeight.medium, textStyle]}
         >
           {text}
         </Text>

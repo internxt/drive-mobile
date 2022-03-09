@@ -3,6 +3,7 @@ import { RootState } from '../..';
 import { storageThunks } from '../storage';
 import { photosThunks } from '../photos';
 import { referralsThunks } from '../referrals';
+import { usersThunks } from '../users';
 
 export interface AppState {
   isInitializing: boolean;
@@ -18,6 +19,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     dispatch(storageThunks.initializeThunk());
     dispatch(photosThunks.initializeThunk());
     dispatch(referralsThunks.initializeThunk());
+    dispatch(usersThunks.initializeThunk());
   },
 );
 

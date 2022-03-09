@@ -26,7 +26,7 @@ const strings = new LocalizedStrings({
       drive: 'Drive',
       create: 'Create',
       photos: 'Photos',
-      menu: 'Menu',
+      menu: 'Settings',
     },
     screens: {
       home: {
@@ -259,7 +259,7 @@ const strings = new LocalizedStrings({
           storage: 'Storage',
           more: 'More info',
           drive: 'Drive',
-          contact: 'Contact',
+          contact: 'Support',
           signOut: 'Sign out',
           devTools: 'Dev tools',
         },
@@ -361,6 +361,7 @@ const strings = new LocalizedStrings({
       photosDelete: 'Error deleting photo/s: {0}',
       photosFullSizeLoad: 'Error loading full size photo: {0}',
       fetchReferrals: 'Error fetching referrals: {0}',
+      inviteAFriend: 'Error sending invitation: {0}',
     },
   },
   es: {
@@ -375,7 +376,7 @@ const strings = new LocalizedStrings({
       close: 'Cerrar',
       upload: 'Subir',
       delete: 'Eliminar',
-      settings: 'Configuración',
+      settings: 'Ajustes',
       updated: 'Actualizado',
       monthly: 'Mensual',
       annually: 'Anual',
@@ -385,7 +386,7 @@ const strings = new LocalizedStrings({
       drive: 'Drive',
       create: 'Crear',
       photos: 'Photos',
-      menu: 'Menú',
+      menu: 'Ajustes',
     },
     screens: {
       photos: {
@@ -623,7 +624,7 @@ const strings = new LocalizedStrings({
           storage: 'Almacenamiento',
           more: 'Más información',
           drive: 'Drive',
-          contact: 'Contacto',
+          contact: 'Soporte',
           signOut: 'Cerrar sesión',
           devTools: 'Herramientas de desarrollador',
         },
@@ -727,6 +728,7 @@ const strings = new LocalizedStrings({
       photosDelete: 'Error eliminando foto/s: {0}',
       photosFullSizeLoad: 'Error cargando foto a tamaño completo: {0}',
       fetchReferrals: 'Error cargando referidos: {0}',
+      inviteAFriend: 'Error enviando invitación: {0}',
     },
   },
 });

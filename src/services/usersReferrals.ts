@@ -3,10 +3,10 @@ import { Referrals } from '@internxt/sdk/dist/drive';
 import appService, { constants } from './app';
 
 class UsersReferralsService {
-  private client?: Referrals;
+  private sdk?: Referrals;
 
   public initialize(accessToken: string, mnemonic: string) {
-    this.client = Referrals.client(
+    this.sdk = Referrals.client(
       `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
       {
         clientName: appService.name,
@@ -20,7 +20,7 @@ class UsersReferralsService {
   }
 
   public async fetch(): Promise<UserReferral[]> {
-    return this.client?.getReferrals() || [];
+    return this.sdk?.getReferrals() || [];
   }
 
   public hasClickAction(referralKey: ReferralKey): boolean {

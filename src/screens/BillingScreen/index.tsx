@@ -130,7 +130,12 @@ function BillingScreen(): JSX.Element {
 
   return (
     <View style={tailwind('app-screen flex-1 bg-white')}>
-      <ScreenTitle text={strings.screens.billing.title} centerText onBackButtonPressed={() => navigation.goBack()} />
+      <ScreenTitle
+        textStyle={tailwind('text-2xl')}
+        text={strings.screens.billing.title}
+        centerText
+        onBackButtonPressed={() => navigation.goBack()}
+      />
 
       <View style={tailwind('flex-1 mx-4 justify-start')}>
         {/* Buttons inside this fragment does not work inside a separated component */}

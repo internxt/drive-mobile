@@ -22,7 +22,7 @@ function VersionUpdate(): JSX.Element {
 
   return (
     <View>
-      <Text style={tailwind('text-center text-base text-sm text-gray-50')}>
+      <Text style={tailwind('text-center text-base text-sm text-neutral-60')}>
         Internxt Drive v{PackageJson.version} (1)
       </Text>
     </View>

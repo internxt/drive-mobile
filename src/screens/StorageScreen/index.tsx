@@ -36,7 +36,12 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
 
   return (
     <View style={tailwind('app-screen bg-neutral-20 h-full')}>
-      <ScreenTitle text={strings.screens.storage.title} centerText onBackButtonPressed={() => navigation.goBack()} />
+      <ScreenTitle
+        textStyle={tailwind('text-2xl')}
+        text={strings.screens.storage.title}
+        centerText
+        onBackButtonPressed={() => navigation.goBack()}
+      />
 
       {/* USAGE */}
       <View style={tailwind('mt-6 mx-5 bg-white rounded-lg bg-white')}>

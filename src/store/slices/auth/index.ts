@@ -141,6 +141,20 @@ export const authSlice = createSlice({
   },
 });
 
+export const authSelectors = {
+  userFullName: (state: RootState): string => {
+    const { user } = state.auth;
+
+    return user ? `${user?.name} ${user?.lastname}` : '';
+  },
+  nameLetters: (state: RootState): string => {
+    const { user } = state.auth;
+    const nameLetters: string = (user as User).name[0] + ((user as User).lastname[0] || '');
+
+    return nameLetters.toUpperCase();
+  },
+};
+
 export const authActions = authSlice.actions;
 
 export const authThunks = {

@@ -1,8 +1,25 @@
+import { Users } from '@internxt/sdk/dist/drive';
 import { decryptText, decryptTextWithKey, encryptText, passToHash } from '../helpers';
 import { getHeaders } from '../helpers/headers';
-import { constants } from './app';
+import appService, { constants } from './app';
 
 class UserService {
+  private sdk?: Users;
+
+  public initialize(accessToken: string, mnemonic: string) {
+    this.sdk = Users.client(
+      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
+      {
+        clientName: appService.name,
+        clientVersion: appService.version,
+      },
+      {
+        token: accessToken,
+        mnemonic,
+      },
+    );
+  }
+
   public signin(
     email: string,
     password: string,
@@ -85,6 +102,10 @@ class UserService {
           reject(error);
         });
     });
+  }
+
+  public async inviteAFriend(email: string): Promise<void> {
+    return this.sdk?.sendInvitation(email);
   }
 }
 

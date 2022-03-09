@@ -7,6 +7,7 @@ import layoutReducer from './slices/layout';
 import photosReducer from './slices/photos';
 import paymentsReducer from './slices/payments';
 import referralsReducer from './slices/referrals';
+import usersReducer from './slices/users';
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
     photos: photosReducer,
     payments: paymentsReducer,
     referrals: referralsReducer,
+    users: usersReducer,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }),
 });

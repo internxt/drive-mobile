@@ -46,7 +46,7 @@ function ChangePasswordScreen(): JSX.Element {
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
   return (
-    <View style={tailwind('app-screen flex-1 bg-white')}>
+    <View style={tailwind('app-screen flex-1 bg-neutral-20')}>
       <ScreenTitle
         text={strings.components.inputs.password}
         centerText
