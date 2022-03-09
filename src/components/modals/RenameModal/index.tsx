@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { storageActions, storageThunks } from '../../../store/slices/storage';
 import { layoutActions } from '../../../store/slices/layout';
 import errorService from '../../../services/error';
-import BaseButton from '../../BaseButton';
+import AppButton from '../../AppButton';
 
 function RenameModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -140,7 +140,7 @@ function RenameModal(): JSX.Element {
               </View>
 
               <View style={tailwind('flex-row justify-between')}>
-                <BaseButton
+                <AppButton
                   title={strings.generic.cancel}
                   type={'cancel'}
                   onPress={onCancelButtonPressed}
@@ -150,7 +150,7 @@ function RenameModal(): JSX.Element {
 
                 <View style={tailwind('px-1')}></View>
 
-                <BaseButton
+                <AppButton
                   title={strings.generic.rename}
                   type={'accept'}
                   onPress={onRenameButtonPressed}

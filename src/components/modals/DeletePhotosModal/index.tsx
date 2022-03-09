@@ -6,7 +6,7 @@ import globalStyle from '../../../styles/global.style';
 import { tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
-import BaseButton from '../../BaseButton';
+import AppButton from '../../AppButton';
 import { useAppDispatch } from '../../../store/hooks';
 import { photosThunks } from '../../../store/slices/photos';
 
@@ -43,7 +43,7 @@ function DeletePhotosModal({ isOpen, onClosed, data, onPhotosDeleted }: DeletePh
 
       {/* ACTIONS */}
       <View style={tailwind('p-3 flex-row justify-center')}>
-        <BaseButton
+        <AppButton
           title={strings.components.buttons.cancel}
           type="cancel"
           onPress={onCancelButtonPressed}
@@ -52,7 +52,7 @@ function DeletePhotosModal({ isOpen, onClosed, data, onPhotosDeleted }: DeletePh
 
         <View style={tailwind('w-2')} />
 
-        <BaseButton
+        <AppButton
           title={strings.components.buttons.moveToThrash}
           type="delete"
           onPress={onMoveToTrashButtonPressed}

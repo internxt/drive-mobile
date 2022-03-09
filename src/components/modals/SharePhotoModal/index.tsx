@@ -8,7 +8,7 @@ import globalStyle from '../../../styles/global.style';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
-import BaseButton from '../../BaseButton';
+import AppButton from '../../AppButton';
 import { notify } from '../../../services/toast';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
@@ -178,7 +178,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
 
         {/* LINK */}
         {/* <View style={tailwind('flex-row mb-9 justify-center items-center')}>
-          <BaseButton
+          <AppButton
             title={
               <View style={tailwind('flex-row justify-center items-center')}>
                 <Text style={tailwind('text-white text-lg mr-2')}>{strings.components.buttons.copyLink}</Text>
@@ -210,7 +210,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
 
         {/* ACTIONS */}
         <View style={tailwind('p-3 flex-row justify-center')}>
-          <BaseButton
+          <AppButton
             title={strings.components.buttons.cancel}
             type="cancel"
             onPress={onCancelButtonPressed}
@@ -219,7 +219,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
 
           <View style={tailwind('w-2')} />
 
-          <BaseButton
+          <AppButton
             title={strings.components.buttons.share}
             type="accept"
             onPress={onShareButtonPressed}

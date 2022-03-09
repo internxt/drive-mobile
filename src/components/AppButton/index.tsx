@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleProp, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
+import { StyleProp, Text, TouchableHighlight, ViewStyle } from 'react-native';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import globalStyle from '../../styles/global.style';
 
-interface BaseButtonProps {
+interface AppButtonProps {
   title: string | JSX.Element;
   type: 'accept' | 'cancel' | 'delete';
   onPress: () => void;
@@ -12,7 +12,7 @@ interface BaseButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const BaseButton = (props: BaseButtonProps): JSX.Element => {
+const AppButton = (props: AppButtonProps): JSX.Element => {
   const isTitleString = typeof props.title === 'string';
   const typeBgStyle = {
     accept: props.disabled ? tailwind('bg-neutral-30') : tailwind('bg-blue-60'),
@@ -48,4 +48,4 @@ const BaseButton = (props: BaseButtonProps): JSX.Element => {
   );
 };
 
-export default BaseButton;
+export default AppButton;

@@ -20,6 +20,8 @@ export interface LayoutState {
   isSharePhotoModalOpen: boolean;
   isLinkCopiedModalOpen: boolean;
   isPhotosPreviewInfoModalOpen: boolean;
+  isNewsletterModalOpen: boolean;
+  isInviteFriendsModalOpen: boolean;
   fileViewMode: 'list' | 'grid';
 }
 
@@ -43,6 +45,8 @@ const initialState: LayoutState = {
   isSharePhotoModalOpen: false,
   isLinkCopiedModalOpen: false,
   isPhotosPreviewInfoModalOpen: false,
+  isNewsletterModalOpen: false,
+  isInviteFriendsModalOpen: false,
   fileViewMode: 'list',
 };
 
@@ -106,6 +110,12 @@ export const layoutSlice = createSlice({
     },
     setIsPhotosPreviewInfoModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isPhotosPreviewInfoModalOpen = action.payload;
+    },
+    setIsNewsletterModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isNewsletterModalOpen = action.payload;
+    },
+    setIsInviteFriendsModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isInviteFriendsModalOpen = action.payload;
     },
   },
 });

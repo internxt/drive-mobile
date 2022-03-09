@@ -223,6 +223,8 @@ const strings = new LocalizedStrings({
         startSyncingPhotos: 'Start syncing my photos',
         syncNow: 'Sync now',
         tryAgain: 'Try again',
+        subscribe: 'Subscribe',
+        invite: 'Invite',
       },
       inputs: {
         email: 'Email address',
@@ -327,6 +329,15 @@ const strings = new LocalizedStrings({
       },
       run_out_of_storage: {
         advice: 'Get a higher plan or remove files you will no longer use in order to upload or sync your files again.',
+      },
+      InviteFriendsModal: {
+        title: 'Invite a friend',
+        message:
+          'Get up to 4GB extra free storage by inviting your friends (1GB per user registered via your invitation)',
+      },
+      NewsletterModal: {
+        title: 'Subscribe to our newsletter',
+        message: 'Get the last news and updated right in your mail box',
       },
     },
     messages: {
@@ -575,6 +586,8 @@ const strings = new LocalizedStrings({
         startSyncingPhotos: 'Sincronizar mis fotos',
         syncNow: 'Sincronizar ahora',
         tryAgain: 'Intentar de nuevo',
+        subscribe: 'Suscribirse',
+        invite: 'Invitar',
       },
       inputs: {
         email: 'Correo electrónico',
@@ -682,6 +695,15 @@ const strings = new LocalizedStrings({
       run_out_of_storage: {
         advice:
           'Mejora tu plan o borra los archivos que no vayas a usar para subir o sincronizar tus archivos de nuevo.',
+      },
+      InviteFriendsModal: {
+        title: 'Invite a un amigo',
+        message:
+          'Obtén hasta 4GB de almacenamiento extra gratis invitando a tus amigos (1GB por usuario registrado a través de tu invitación)',
+      },
+      NewsletterModal: {
+        title: 'Suscríbete a nuestra newsletter',
+        message: 'Recibe las últimas novedades y actualizaciones en tu bandeja de entrada',
       },
     },
     messages: {

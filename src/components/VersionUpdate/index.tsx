@@ -4,14 +4,16 @@ import * as Updates from 'expo-updates';
 
 import PackageJson from '../../../package.json';
 import { tailwind } from '../../helpers/designSystem';
+import appService from '../../services/app';
 
 function VersionUpdate(): JSX.Element {
   const [, setDebugText] = useState('');
 
   useEffect(() => {
-    Updates.checkForUpdateAsync()
-      .then(() => undefined)
-      .catch(() => undefined);
+    appService.constants.NODE_ENV === 'production' &&
+      Updates.checkForUpdateAsync()
+        .then(() => undefined)
+        .catch(() => undefined);
 
     Updates.addListener((updateInfo) => {
       setDebugText(JSON.stringify(updateInfo));

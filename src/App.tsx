@@ -5,7 +5,6 @@ import { LinkingOptions, NavigationContainer, useNavigationContainerRef } from '
 import Toast from 'react-native-toast-message';
 import * as Unicons from '@iconscout/react-native-unicons';
 
-import { store } from './store';
 import AppNavigator from './screens/AppNavigator';
 import { analyticsSetup, trackStackScreen } from './services/analytics';
 import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './helpers';
@@ -15,11 +14,17 @@ import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
 import { AppScreen } from './types';
 import appService from './services/app';
+import InviteFriendsModal from './components/modals/InviteFriendsModal';
+import NewsletterModal from './components/modals/NewsletterModal';
+import { useAppDispatch, useAppSelector } from './store/hooks';
+import { layoutActions } from './store/slices/layout';
 
 process.nextTick = setImmediate;
 
 export default function App(): JSX.Element {
+  const dispatch = useAppDispatch();
   const [isAppInitialized, setIsAppInitialized] = useState(false);
+  const { isInviteFriendsModalOpen, isNewsletterModalOpen } = useAppSelector((state) => state.layout);
   const [loadError, setLoadError] = useState('');
   const linking: LinkingOptions<ReactNavigation.RootParamList> = {
     prefixes: ['inxt'],
@@ -36,11 +41,11 @@ export default function App(): JSX.Element {
     const user = await deviceStorage.getUser();
 
     if (token && photosToken && user) {
-      store.dispatch(authActions.signIn({ token, photosToken, user }));
+      dispatch(authActions.signIn({ token, photosToken, user }));
 
-      store.dispatch(appThunks.initializeThunk());
+      dispatch(appThunks.initializeThunk());
     } else {
-      store.dispatch(authThunks.signOutThunk());
+      dispatch(authThunks.signOutThunk());
     }
   };
 
@@ -112,6 +117,15 @@ export default function App(): JSX.Element {
         </NavigationContainer>
 
         <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
+
+        <InviteFriendsModal
+          isOpen={isInviteFriendsModalOpen}
+          onClosed={() => dispatch(layoutActions.setIsInviteFriendsModalOpen(false))}
+        />
+        <NewsletterModal
+          isOpen={isNewsletterModalOpen}
+          onClosed={() => dispatch(layoutActions.setIsNewsletterModalOpen(false))}
+        />
       </Portal.Host>
     </SafeAreaView>
   );

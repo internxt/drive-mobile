@@ -24,9 +24,7 @@ class UsersReferralsService {
   }
 
   public hasClickAction(referralKey: ReferralKey): boolean {
-    return [ReferralKey.SubscribeToNewsletter, ReferralKey.InstallDesktopApp, ReferralKey.InviteFriends].includes(
-      referralKey,
-    );
+    return [ReferralKey.SubscribeToNewsletter, ReferralKey.InviteFriends].includes(referralKey);
   }
 }
 

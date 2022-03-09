@@ -7,21 +7,27 @@ import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { referralsThunks } from '../../store/slices/referrals';
-import usersReferralsService from '../../services/usersReferrals';
+import { ReferralTypes } from '@internxt/sdk/dist/drive';
+import { layoutActions } from '../../store/slices/layout';
 
 const ReferralsWidget = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const { list: referrals } = useAppSelector((state) => state.referrals);
   const renderReferrals = () =>
     referrals.map((r, i) => {
+      const fn: { [key in ReferralTypes.ReferralKey]?: () => void } = {
+        [ReferralTypes.ReferralKey.SubscribeToNewsletter]: () => {
+          dispatch(layoutActions.setIsNewsletterModalOpen(true));
+        },
+        [ReferralTypes.ReferralKey.InviteFriends]: () => {
+          dispatch(layoutActions.setIsInviteFriendsModalOpen(true));
+        },
+      };
+      const hasClickAction = !!fn[r.key];
       const isTheLast = i === referrals.length - 1;
       const creditText = prettysize(r.credit);
       const text = strings.formatString(strings.screens.storage.referrals.items[r.key], r.completedSteps, r.steps);
-      const hasClickAction = usersReferralsService.hasClickAction(r.key);
-      const onPress = () => {
-        hasClickAction && console.log('referral itme pressed');
-      };
-
+      const onPress = () => fn[r.key]?.();
       return (
         <TouchableHighlight
           disabled={r.isCompleted || !hasClickAction}
@@ -31,7 +37,10 @@ const ReferralsWidget = (): JSX.Element => {
         >
           <View style={[tailwind('flex-row items-center p-4'), !isTheLast && tailwind('border-b border-neutral-20')]}>
             <View
-              style={[tailwind('py-1 px-2 mr-2'), r.isCompleted ? tailwind('bg-green-10') : tailwind('bg-neutral-20')]}
+              style={[
+                tailwind('py-1 px-2 mr-2 rounded-md'),
+                r.isCompleted ? tailwind('bg-green-10') : tailwind('bg-neutral-20'),
+              ]}
             >
               <Text style={[r.isCompleted ? tailwind('text-green-50') : tailwind('text-neutral-100')]}>
                 {creditText}

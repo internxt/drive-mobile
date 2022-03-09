@@ -3,7 +3,7 @@ import { Linking, Platform, Text, View } from 'react-native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import SyncIcon from '../../../../assets/images/modals/sync.svg';
 import strings from '../../../../assets/lang/strings';
-import BaseButton from '../../../components/BaseButton';
+import AppButton from '../../../components/AppButton';
 
 import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -67,7 +67,7 @@ function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackPr
         </View>
       )}
 
-      <BaseButton
+      <AppButton
         type="accept"
         title={strings.components.buttons.startSyncingPhotos}
         onPress={onButtonPressed}

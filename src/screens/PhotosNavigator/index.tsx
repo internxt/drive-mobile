@@ -10,7 +10,7 @@ import { photosSelectors, photosThunks } from '../../store/slices/photos';
 import strings from '../../../assets/lang/strings';
 import { Text, View } from 'react-native';
 import { tailwind } from '../../helpers/designSystem';
-import BaseButton from '../../components/BaseButton';
+import AppButton from '../../components/AppButton';
 import { PhotosScreen } from '../../types/photos';
 
 type RouteConfig = NavigationRouteConfigMap<
@@ -57,7 +57,7 @@ function PhotosNavigator(): JSX.Element {
             <Text style={tailwind('text-red-60')}>
               {strings.formatString(strings.errors.photosInitialize, initializeError)}
             </Text>
-            <BaseButton
+            <AppButton
               style={tailwind('mt-5')}
               type="accept"
               title={strings.components.buttons.tryAgain}
