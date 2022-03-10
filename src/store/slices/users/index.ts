@@ -50,8 +50,6 @@ export const usersSlice = createSlice({
       .addCase(inviteAFriendThunk.rejected, (state, action) => {
         state.isSendingInvitation = false;
 
-        console.error(action.error);
-
         notify({
           type: 'error',
           text: strings.formatString(

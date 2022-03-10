@@ -10,6 +10,7 @@ import validationService from '../../services/validation';
 import ScreenTitle from '../../components/ScreenTitle';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
+import AppTextInput from '../../components/AppTextInput';
 
 function ChangePassword(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -68,7 +69,8 @@ function ChangePassword(): JSX.Element {
               tailwind(newPassword === '' ? '' : isValidNewPassword ? 'input-valid' : 'input-error'),
             ]}
           >
-            <TextInput
+            <AppTextInput
+              containerStyle={tailwind('bg-white w-full')}
               style={tailwind('input pl-4')}
               value={newPassword}
               onChangeText={(value) => setNewPassword(value)}
@@ -98,7 +100,8 @@ function ChangePassword(): JSX.Element {
               tailwind(confirmPassword === '' ? '' : passwordConfirmed ? 'input-valid' : 'input-error'),
             ]}
           >
-            <TextInput
+            <AppTextInput
+              containerStyle={tailwind('bg-white w-full')}
               style={tailwind('input pl-4')}
               value={confirmPassword}
               onChangeText={(value) => setConfirmPassword(value)}

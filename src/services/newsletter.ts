@@ -1,4 +1,5 @@
 import Axios from 'axios';
+import { getHeaders } from '../helpers/headers';
 import appService from './app';
 import errorService from './error';
 
@@ -6,11 +7,24 @@ class NewsletterService {
   public readonly groupId = '103406410';
 
   public async subscribe(email: string): Promise<void> {
+    const headers = await getHeaders();
+    const headersMap: Record<string, string> = {};
+
+    headers.forEach((value: string, key: string) => {
+      headersMap[key] = value;
+    });
+
     try {
-      await Axios.post(appService.constants.REACT_NATIVE_DRIVE_API_URL + '/api/newsletter/subscribe', {
-        email,
-        groupId: this.groupId,
-      });
+      await Axios.post(
+        appService.constants.REACT_NATIVE_DRIVE_API_URL + '/api/newsletter/subscribe',
+        {
+          email,
+          groupId: this.groupId,
+        },
+        {
+          headers: headersMap,
+        },
+      );
     } catch (err) {
       const castedError = errorService.castError(err);
 

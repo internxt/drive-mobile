@@ -3,19 +3,24 @@ import { Text, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import { tailwind } from '../../../helpers/designSystem';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { usersThunks } from '../../../store/slices/users';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
 import CenterModal from '../CenterModal';
 
 const InviteFriendsModal = (props: { isOpen: boolean; onClosed: () => void }): JSX.Element => {
   const [email, setEmail] = useState('');
+  const dispatch = useAppDispatch();
+  const isSendingInvitation = useAppSelector((state) => state.users.isSendingInvitation);
   const onEmailInputChanged = (value: string) => {
     setEmail(value);
   };
   const onCancelButtonPressed = () => {
     props.onClosed();
   };
-  const onInviteButtonPressed = () => {
+  const onInviteButtonPressed = async () => {
+    await dispatch(usersThunks.inviteAFriendThunk(email));
     props.onClosed();
   };
 
@@ -34,7 +39,6 @@ const InviteFriendsModal = (props: { isOpen: boolean; onClosed: () => void }): J
           <AppTextInput
             containerStyle={tailwind('px-3 mb-9')}
             placeholder={strings.components.inputs.email}
-            editable={false}
             value={email}
             onChangeText={onEmailInputChanged}
           />
@@ -48,6 +52,7 @@ const InviteFriendsModal = (props: { isOpen: boolean; onClosed: () => void }): J
             style={tailwind('flex-1 mr-2')}
           ></AppButton>
           <AppButton
+            disabled={!email || isSendingInvitation}
             type="accept"
             title={strings.components.buttons.invite}
             onPress={onInviteButtonPressed}

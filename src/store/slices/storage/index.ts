@@ -18,6 +18,7 @@ import { layoutActions } from '../layout';
 import { getEnvironmentConfig } from '../../../lib/network';
 import { loadValues } from '../../../services/storage';
 import { deviceStorage } from '../../../services/asyncStorage';
+import strings from '../../../../assets/lang/strings';
 
 interface FolderContent {
   id: number;
@@ -196,7 +197,7 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: 
     dispatch(getFolderContentThunk({ folderId: folderToReload, quick: true }));
 
     notify({
-      text: 'Item deleted',
+      text: strings.messages.itemsDeleted,
       type: 'success',
     });
 

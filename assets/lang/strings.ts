@@ -344,6 +344,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      itemsDeleted: 'Item/s deleted',
       photoShared: 'You have shared a photo!',
       pressAgainToExit: 'Press again to close the app',
       photosSyncPending: 'Pending synchronization',
@@ -365,6 +366,7 @@ const strings = new LocalizedStrings({
       photosFullSizeLoad: 'Error loading full size photo: {0}',
       fetchReferrals: 'Error fetching referrals: {0}',
       inviteAFriend: 'Error sending invitation: {0}',
+      subscribeToNewsletter: 'Error subscribing to newsletter: {0}',
     },
   },
   es: {
@@ -714,6 +716,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      itemsDeleted: 'Elementos borrados',
       photoShared: '¡Has compartido una foto!',
       pressAgainToExit: 'Pulsa otra vez para cerrar la app',
       photosSyncPending: 'Sincronización pendiente',
@@ -735,6 +738,7 @@ const strings = new LocalizedStrings({
       photosFullSizeLoad: 'Error cargando foto a tamaño completo: {0}',
       fetchReferrals: 'Error cargando referidos: {0}',
       inviteAFriend: 'Error enviando invitación: {0}',
+      subscribeToNewsletter: 'Error al suscribirse al newsletter: {0}',
     },
   },
 });

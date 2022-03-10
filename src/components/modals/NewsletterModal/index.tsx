@@ -3,17 +3,21 @@ import { Text, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import { tailwind } from '../../../helpers/designSystem';
-import { useAppSelector } from '../../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { newsletterThunks } from '../../../store/slices/newsletter';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
 import CenterModal from '../CenterModal';
 
 const NewsletterModal = (props: { isOpen: boolean; onClosed: () => void }): JSX.Element => {
   const { user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+  const isLoading = useAppSelector((state) => state.newsletter.isSubscribing);
   const onCancelButtonPressed = () => {
     props.onClosed();
   };
-  const onSubscribeButtonPressed = () => {
+  const onSubscribeButtonPressed = async () => {
+    user && (await dispatch(newsletterThunks.subscribeThunk(user?.email)));
     props.onClosed();
   };
 
@@ -43,6 +47,7 @@ const NewsletterModal = (props: { isOpen: boolean; onClosed: () => void }): JSX.
             style={tailwind('flex-1 mr-2')}
           ></AppButton>
           <AppButton
+            disabled={isLoading}
             type="accept"
             title={strings.components.buttons.subscribe}
             onPress={onSubscribeButtonPressed}
