@@ -509,7 +509,7 @@ const strings = new LocalizedStrings({
         referrals: {
           title: 'Desbloquea almacenamiento gratis',
           items: {
-            [ReferralTypes.ReferralKey.CreateAccount]: 'Crear una cuenta',
+            [ReferralTypes.ReferralKey.CreateAccount]: 'Crear cuenta',
             [ReferralTypes.ReferralKey.InstallMobileApp]: 'Subir archivo',
             [ReferralTypes.ReferralKey.ShareFile]: 'Compartir link archivo',
             [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Suscribirse a newletter',

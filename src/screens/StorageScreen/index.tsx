@@ -11,6 +11,7 @@ import ScreenTitle from '../../components/ScreenTitle';
 import { useAppSelector } from '../../store/hooks';
 import { AppScreen, INFINITE_PLAN } from '../../types';
 import ReferralsWidget from '../../components/ReferralsWidget';
+import globalStyle from '../../styles/global.style';
 
 interface StorageScreenProps {
   currentPlan: number;
@@ -46,7 +47,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
       {/* USAGE */}
       <View style={tailwind('mt-6 mx-5 bg-white rounded-lg bg-white')}>
         <View style={tailwind('px-5 pt-3')}>
-          <Text style={tailwind('text-sm text-neutral-500')}>
+          <Text style={{ ...tailwind('text-base text-neutral-500'), ...globalStyle.fontWeight.semibold }}>
             {strings.screens.storage.space.used.used} {getUsageString()} {strings.screens.storage.space.used.of}{' '}
             {getLimitString()}
           </Text>
@@ -67,7 +68,9 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
           }}
         >
           <View style={tailwind('px-5 py-3 flex-row justify-between border-t border-neutral-20')}>
-            <Text style={tailwind('text-blue-60 text-lg')}>{strings.components.buttons.upgradeNow}</Text>
+            <Text style={{ ...tailwind('text-blue-60 text-lg'), ...globalStyle.fontWeight.semibold }}>
+              {strings.components.buttons.upgradeNow}
+            </Text>
             <Unicons.UilAngleRight size={30} color={getColor('blue-60')} />
           </View>
         </TouchableHighlight>

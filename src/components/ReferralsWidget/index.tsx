@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { referralsThunks } from '../../store/slices/referrals';
 import { ReferralTypes } from '@internxt/sdk/dist/drive';
 import { layoutActions } from '../../store/slices/layout';
+import globalStyle from '../../styles/global.style';
 
 const ReferralsWidget = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -25,7 +26,7 @@ const ReferralsWidget = (): JSX.Element => {
       };
       const hasClickAction = !!fn[r.key];
       const isTheLast = i === referrals.length - 1;
-      const creditText = prettysize(r.credit);
+      const creditText = prettysize(r.credit, true);
       const text = strings.formatString(strings.screens.storage.referrals.items[r.key], r.completedSteps, r.steps);
       const onPress = () => fn[r.key]?.();
       return (
@@ -47,7 +48,10 @@ const ReferralsWidget = (): JSX.Element => {
               </Text>
             </View>
 
-            <Text numberOfLines={1} style={[tailwind('flex-1'), r.isCompleted && tailwind('text-neutral-60')]}>
+            <Text
+              numberOfLines={1}
+              style={[tailwind('text-base flex-1'), r.isCompleted && tailwind('text-neutral-60')]}
+            >
               {text}
             </Text>
 
@@ -67,7 +71,9 @@ const ReferralsWidget = (): JSX.Element => {
 
   return (
     <View style={tailwind('mx-5 mt-7')}>
-      <Text style={tailwind('text-neutral-80 mb-2')}>{strings.screens.storage.referrals.title.toUpperCase()}</Text>
+      <Text style={[tailwind('text-xs text-neutral-80 mb-2'), { ...globalStyle.fontWeight.semibold }]}>
+        {strings.screens.storage.referrals.title.toUpperCase()}
+      </Text>
       <View style={tailwind('bg-white rounded-lg')}>{renderReferrals()}</View>
     </View>
   );
