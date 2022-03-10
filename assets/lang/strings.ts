@@ -260,8 +260,7 @@ const strings = new LocalizedStrings({
           more: 'More info',
           drive: 'Drive',
           contact: 'Support',
-          signOut: 'Sign out',
-          devTools: 'Dev tools',
+          signOut: 'Log out',
         },
       },
       file_and_folder_options: {
@@ -511,10 +510,10 @@ const strings = new LocalizedStrings({
           title: 'Desbloquea almacenamiento gratis',
           items: {
             [ReferralTypes.ReferralKey.CreateAccount]: 'Crear una cuenta',
-            [ReferralTypes.ReferralKey.InstallMobileApp]: 'Instalar app móvil y subir un archivo',
-            [ReferralTypes.ReferralKey.ShareFile]: 'Compartir un archivo por enlace',
-            [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Suscribirse al newletter',
-            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Instalar app de escritorio y subir un archivo',
+            [ReferralTypes.ReferralKey.InstallMobileApp]: 'Subir archivo',
+            [ReferralTypes.ReferralKey.ShareFile]: 'Compartir link archivo',
+            [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Suscribirse a newletter',
+            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Instalar app escritorio y subir un archivo',
             [ReferralTypes.ReferralKey.InviteFriends]: 'Invitar {0}/{1} amigos',
           },
         },
@@ -631,7 +630,6 @@ const strings = new LocalizedStrings({
           drive: 'Drive',
           contact: 'Soporte',
           signOut: 'Cerrar sesión',
-          devTools: 'Herramientas de desarrollador',
         },
       },
       file_and_folder_options: {

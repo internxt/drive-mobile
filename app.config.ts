@@ -68,7 +68,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     backgroundColor: '#FFFFFF',
   },
   androidNavigationBar: {
-    barStyle: 'light-content',
+    barStyle: 'dark-content',
     backgroundColor: '#FFFFFF',
   },
   extra: { NODE_ENV: stage, ...env[stage] },

@@ -51,7 +51,11 @@ const ReferralsWidget = (): JSX.Element => {
               {text}
             </Text>
 
-            {r.isCompleted && <Unicons.UilCheck color={getColor('green-50')} size={24} style={tailwind('ml-2')} />}
+            {r.isCompleted ? (
+              <Unicons.UilCheck color={getColor('green-50')} size={24} style={tailwind('ml-2')} />
+            ) : (
+              hasClickAction && <Unicons.UilAngleRight color={getColor('blue-60')} size={24} style={tailwind('ml-2')} />
+            )}
           </View>
         </TouchableHighlight>
       );

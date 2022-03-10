@@ -5,6 +5,7 @@
     <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
     <item name="android:navigationBarColor">@color/navigationBarColor</item>
     <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+    <item name="android:windowLightNavigationBar">true</item>
   </style>
   <style name="Theme.App.SplashScreen" parent="AppTheme">
     <item name="android:windowBackground">@drawable/splashscreen</item>
