@@ -103,6 +103,12 @@ arch -x86_64 pod install
 
 </br></br>
 
+### Environment
+
+To config the environment variables, you have to create **.env.development.json** and **.env.production.json** files inside **/env** folder.
+
+</br></br>
+
 ### Run
 
 ```bash
