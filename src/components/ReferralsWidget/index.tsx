@@ -43,7 +43,12 @@ const ReferralsWidget = (): JSX.Element => {
                 r.isCompleted ? tailwind('bg-green-10') : tailwind('bg-neutral-20'),
               ]}
             >
-              <Text style={[r.isCompleted ? tailwind('text-green-50') : tailwind('text-neutral-100')]}>
+              <Text
+                style={[
+                  r.isCompleted ? tailwind('text-green-50') : tailwind('text-neutral-100'),
+                  globalStyle.fontWeight.semibold,
+                ]}
+              >
                 {creditText}
               </Text>
             </View>

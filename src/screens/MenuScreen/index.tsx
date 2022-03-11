@@ -20,6 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors, authThunks } from '../../store/slices/auth';
+import globalStyle from '../../styles/global.style';
 
 interface MenuItemProps {
   title: string;
@@ -79,7 +80,11 @@ function MenuScreen(): JSX.Element {
               </View>
 
               <View style={tailwind('ml-3')}>
-                <Text style={tailwind('text-xl text-neutral-500 font-semibold')}>{userFullName}</Text>
+                <Text
+                  style={{ ...tailwind('text-xl text-neutral-500 font-semibold'), ...globalStyle.fontWeight.semibold }}
+                >
+                  {userFullName}
+                </Text>
                 <Text style={tailwind('text-neutral-100')}>{user?.email}</Text>
               </View>
             </View>
