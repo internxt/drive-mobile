@@ -74,60 +74,62 @@ export default function App(): JSX.Element {
   const routeNameRef = useRef<string>();
 
   return (
-    <SafeAreaView style={tailwind('flex-1')}>
+    <View style={tailwind('h-full w-full bg-white')}>
       <Portal.Host>
-        <NavigationContainer
-          ref={navigationRef}
-          onReady={() => {
-            const currentRoute = navigationRef.getCurrentRoute();
+        <SafeAreaView style={tailwind('flex-1')}>
+          <NavigationContainer
+            ref={navigationRef}
+            onReady={() => {
+              const currentRoute = navigationRef.getCurrentRoute();
 
-            routeNameRef.current = currentRoute && currentRoute.name;
-          }}
-          onStateChange={(route) => {
-            const previousRouteName = routeNameRef.current;
-            const currentRouteName = navigationRef.getCurrentRoute()?.name;
+              routeNameRef.current = currentRoute && currentRoute.name;
+            }}
+            onStateChange={(route) => {
+              const previousRouteName = routeNameRef.current;
+              const currentRouteName = navigationRef.getCurrentRoute()?.name;
 
-            if (previousRouteName !== currentRouteName) {
-              route && trackStackScreen(route, navigationRef.getCurrentRoute()?.params);
-            }
+              if (previousRouteName !== currentRouteName) {
+                route && trackStackScreen(route, navigationRef.getCurrentRoute()?.params);
+              }
 
-            routeNameRef.current = currentRouteName;
-          }}
-          linking={linking}
-          fallback={<View></View>}
-          theme={{
-            dark: false,
-            colors: {
-              primary: '#091e42' as string,
-              background: '#FFFFFF' as string,
-              card: '#FFFFFF' as string,
-              border: '#091e42' as string,
-              notification: '#091e42' as string,
-              text: '#091e42' as string,
-            },
-          }}
-        >
-          {isAppInitialized ? (
-            <AppNavigator />
-          ) : (
-            <View style={tailwind('items-center flex-1 justify-center')}>
-              {loadError ? <Text>{loadError}</Text> : null}
-            </View>
-          )}
-        </NavigationContainer>
+              routeNameRef.current = currentRouteName;
+            }}
+            linking={linking}
+            fallback={<View></View>}
+            theme={{
+              dark: false,
+              colors: {
+                primary: '#091e42' as string,
+                background: '#FFFFFF' as string,
+                card: '#FFFFFF' as string,
+                border: '#091e42' as string,
+                notification: '#091e42' as string,
+                text: '#091e42' as string,
+              },
+            }}
+          >
+            {isAppInitialized ? (
+              <AppNavigator />
+            ) : (
+              <View style={tailwind('items-center flex-1 justify-center')}>
+                {loadError ? <Text>{loadError}</Text> : null}
+              </View>
+            )}
+          </NavigationContainer>
 
-        <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
+          <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
 
-        <InviteFriendsModal
-          isOpen={isInviteFriendsModalOpen}
-          onClosed={() => dispatch(layoutActions.setIsInviteFriendsModalOpen(false))}
-        />
-        <NewsletterModal
-          isOpen={isNewsletterModalOpen}
-          onClosed={() => dispatch(layoutActions.setIsNewsletterModalOpen(false))}
-        />
+          <InviteFriendsModal
+            isOpen={isInviteFriendsModalOpen}
+            onClosed={() => dispatch(layoutActions.setIsInviteFriendsModalOpen(false))}
+          />
+          <NewsletterModal
+            isOpen={isNewsletterModalOpen}
+            onClosed={() => dispatch(layoutActions.setIsNewsletterModalOpen(false))}
+          />
+        </SafeAreaView>
       </Portal.Host>
-    </SafeAreaView>
+    </View>
   );
 }
 

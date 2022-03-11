@@ -44,6 +44,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     supportsTablet: true,
     bundleIdentifier: 'com.internxt.snacks',
     usesIcloudStorage: true,
+    backgroundColor: '#FFFFFF',
   },
   android: {
     adaptiveIcon: {
