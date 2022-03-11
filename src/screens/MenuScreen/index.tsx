@@ -72,15 +72,27 @@ function MenuScreen(): JSX.Element {
         />
 
         <View style={tailwind('px-5 mt-2 flex-grow')}>
-          <View style={tailwind('flex-row p-4 bg-white rounded-xl')}>
-            <View style={tailwind('bg-blue-20 rounded-3xl p-2.5')}>
-              <Text style={tailwind('text-blue-80 font-bold text-xl')}>{userNameLetters}</Text>
-            </View>
+          <View style={tailwind('bg-white rounded-xl')}>
+            <View style={tailwind('flex-row p-4')}>
+              <View style={tailwind('bg-blue-20 rounded-3xl p-2.5')}>
+                <Text style={tailwind('text-blue-80 font-bold text-xl')}>{userNameLetters}</Text>
+              </View>
 
-            <View style={tailwind('ml-3')}>
-              <Text style={tailwind('text-xl text-neutral-500 font-semibold')}>{userFullName}</Text>
-              <Text style={tailwind('text-neutral-100')}>{user?.email}</Text>
+              <View style={tailwind('ml-3')}>
+                <Text style={tailwind('text-xl text-neutral-500 font-semibold')}>{userFullName}</Text>
+                <Text style={tailwind('text-neutral-100')}>{user?.email}</Text>
+              </View>
             </View>
+            <MenuItem
+              title={strings.components.app_menu.settings.signOut}
+              onPress={() => {
+                dispatch(authThunks.signOutThunk());
+                navigation.replace(AppScreen.SignIn);
+              }}
+              textStyle={tailwind('text-red-60')}
+              arrowColor={getColor('red-60')}
+              style={tailwind('border-t border-neutral-20')}
+            />
           </View>
 
           <MenuSeparator />
@@ -128,15 +140,6 @@ function MenuScreen(): JSX.Element {
                 Linking.openURL('https://internxt.com');
               }}
               style={tailwind('border-b border-neutral-20')}
-            />
-            <MenuItem
-              title={strings.components.app_menu.settings.signOut}
-              onPress={() => {
-                dispatch(authThunks.signOutThunk());
-                navigation.replace(AppScreen.SignIn);
-              }}
-              textStyle={tailwind('text-red-60')}
-              arrowColor={getColor('red-60')}
             />
           </View>
 

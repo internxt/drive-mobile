@@ -45,7 +45,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
       />
 
       {/* USAGE */}
-      <View style={tailwind('mt-6 mx-5 bg-white rounded-lg bg-white')}>
+      <View style={tailwind('mt-6 mx-5 bg-white rounded-xl bg-white')}>
         <View style={tailwind('px-5 pt-3')}>
           <Text style={{ ...tailwind('text-base text-neutral-500'), ...globalStyle.fontWeight.semibold }}>
             {strings.screens.storage.space.used.used} {getUsageString()} {strings.screens.storage.space.used.of}{' '}

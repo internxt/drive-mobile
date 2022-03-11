@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
+import { View, StyleSheet, Text, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';
@@ -55,14 +55,14 @@ function ChangePassword(): JSX.Element {
         centerText
         onBackButtonPressed={() => navigation.goBack()}
       />
-      <View style={tailwind('mx-3')}>
+      <View style={tailwind('mx-5')}>
         <View style={tailwind('items-center my-3')}>
           <Text style={styles.titleText}>{strings.screens.recover_password.title}</Text>
         </View>
-        <View style={tailwind('')}>
+        <View>
           <Text style={styles.subtitleText}>{strings.screens.recover_password.warning}</Text>
         </View>
-        <View style={tailwind('m-3')}>
+        <View style={tailwind('my-3')}>
           <View
             style={[
               tailwind('input-wrapper my-2 items-stretch'),
@@ -84,7 +84,7 @@ function ChangePassword(): JSX.Element {
 
             {(!isEmptyPassword || newPasswordFocus) && (
               <TouchableWithoutFeedback onPress={() => setShowPassword(!showPassword)}>
-                <View style={tailwind('justify-center p-3')}>
+                <View style={tailwind('relative right-14 justify-center p-3')}>
                   {showPassword ? (
                     <Unicons.UilEyeSlash color={getColor('neutral-80')} />
                   ) : (
@@ -115,7 +115,7 @@ function ChangePassword(): JSX.Element {
 
             {(!isEmptyConfirmPassword || confirmPasswordFocus) && (
               <TouchableWithoutFeedback onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                <View style={tailwind('justify-center p-3')}>
+                <View style={tailwind('relative right-14 justify-center p-3')}>
                   {showConfirmPassword ? (
                     <Unicons.UilEyeSlash color={getColor('neutral-80')} />
                   ) : (

@@ -1,6 +1,0 @@
-module Pods_drivemobile {
-  umbrella header "Pods-drivemobile-umbrella.h"
-
-  export *
-  module * { export * }
-}

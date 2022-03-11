@@ -14,7 +14,7 @@ const tabIcons = {
   drive: Unicons.UilHdd,
   create: Unicons.UilPlus,
   photos: Unicons.UilImage,
-  menu: Unicons.UilBars,
+  menu: Unicons.UilSetting,
 };
 
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
@@ -54,7 +54,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         onPress={onPress}
         onLongPress={onLongPress}
       >
-        <View style={tailwind('flex-grow h-14 items-center justify-center')}>
+        <View style={tailwind('h-14 items-center justify-center flex-1')}>
           {isCreateRoute && <View style={tailwind('absolute bg-blue-60 h-8 w-8 rounded-3xl')} />}
 
           <Icon color={iconColor} size={24} />

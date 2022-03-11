@@ -1,1 +1,0 @@
-../../../../../node_modules/react-native-file-viewer/ios/RNFileViewerManager.h

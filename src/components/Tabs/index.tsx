@@ -14,7 +14,11 @@ const Tabs = (props: TabsProps): JSX.Element => {
     const isActive = tab.id === props.value;
 
     return (
-      <TouchableOpacity key={tab.id} style={[tailwind('px-2 pb-1')]} onPress={() => props.onTabChanged(tab.id)}>
+      <TouchableOpacity
+        key={tab.id}
+        style={[tailwind('relative top-1 px-2 pb-1')]}
+        onPress={() => props.onTabChanged(tab.id)}
+      >
         <Text style={[tailwind('text-base'), isActive ? tailwind('text-neutral-500') : tailwind('text-neutral-100')]}>
           {tab.title}
         </Text>

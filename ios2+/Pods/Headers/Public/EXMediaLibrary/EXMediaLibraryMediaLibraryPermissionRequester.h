@@ -1,1 +1,0 @@
-../../../../../node_modules/expo-media-library/ios/EXMediaLibrary/Permissions/EXMediaLibraryMediaLibraryPermissionRequester.h

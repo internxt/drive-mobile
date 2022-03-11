@@ -1,1 +1,0 @@
-../../../../../node_modules/@segment/analytics-react-native/ios/RNAnalytics/RNAnalytics.h

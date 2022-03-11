@@ -158,6 +158,7 @@ const strings = new LocalizedStrings({
       },
       billing: {
         title: 'Plans',
+        billedEachPeriod: '€{0} billed {1}',
         features: {
           guarantee: '30 days guarantee',
           share: 'Private and secure file sharing',
@@ -525,6 +526,7 @@ const strings = new LocalizedStrings({
       },
       billing: {
         title: 'Planes',
+        billedEachPeriod: '{0}€ facturados {1}',
         features: {
           guarantee: '30 días de garantía',
           share: 'Comparte tus archivos de forma privada y segura',

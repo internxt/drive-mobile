@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, Platform, Text, View } from 'react-native';
+import { Linking, Platform, ScrollView, Text, View } from 'react-native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import SyncIcon from '../../../../assets/images/modals/sync.svg';
 import strings from '../../../../assets/lang/strings';
@@ -48,7 +48,7 @@ function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackPr
   };
 
   return (
-    <View style={tailwind('app-screen items-center bg-white flex-1 px-5')}>
+    <ScrollView contentContainerStyle={tailwind('app-screen items-center bg-white px-5')}>
       <SyncIcon style={tailwind('mt-14 mb-6')} width={100} height={100} />
 
       <Text style={[tailwind('mb-5 text-center text-3xl text-neutral-900'), globalStyle.fontWeight.semibold]}>
@@ -74,7 +74,7 @@ function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackPr
         style={tailwind('mb-2 w-full')}
       />
       <Text style={tailwind('text-center text-xs text-neutral-100')}>{strings.screens.photosPermissions.access}</Text>
-    </View>
+    </ScrollView>
   );
 }
 

@@ -74,7 +74,7 @@ const ReferralsWidget = (): JSX.Element => {
       <Text style={[tailwind('text-xs text-neutral-80 mb-2'), { ...globalStyle.fontWeight.semibold }]}>
         {strings.screens.storage.referrals.title.toUpperCase()}
       </Text>
-      <View style={tailwind('bg-white rounded-lg')}>{renderReferrals()}</View>
+      <View style={tailwind('bg-white rounded-xl')}>{renderReferrals()}</View>
     </View>
   );
 };

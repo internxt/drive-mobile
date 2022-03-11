@@ -182,7 +182,11 @@ function BillingScreen(): JSX.Element {
                     <Text style={tailwind('text-base text-neutral-100')}>
                       {selectedProductIndex === 2
                         ? 'One-time payment'
-                        : `€${plan.price.toFixed(2)} billed ${plan.name.toLowerCase()}`}
+                        : strings.formatString(
+                            strings.screens.billing.billedEachPeriod,
+                            plan.price.toFixed(2),
+                            plan.name.toLowerCase(),
+                          )}
                     </Text>
                   </View>
                 </View>
@@ -196,7 +200,7 @@ function BillingScreen(): JSX.Element {
                   >
                     <Text style={[tailwind('btn-label mx-4'), globalStyle.fontWeight.medium]}>
                       €{plan.pricePerMonth.toFixed(selectedProductIndex !== 2 ? 2 : 0)}
-                      {selectedProductIndex !== 2 && ' / month'}
+                      {selectedProductIndex !== 2 && ' / ' + strings.screens.storage.plans.month}
                     </Text>
                   </TouchableHighlight>
                 </View>
@@ -209,7 +213,7 @@ function BillingScreen(): JSX.Element {
         <View>
           <View style={tailwind('flex-row items-center')}>
             <Unicons.UilCheck color="#42526E" />
-            <Text style={tailwind('ml-1 text-base btn-label text-neutral-500 font-bold')}>
+            <Text style={tailwind('ml-1 text-base btn-label text-neutral-500 font-bold flex-1')}>
               {strings.screens.billing.features.guarantee}
             </Text>
           </View>
