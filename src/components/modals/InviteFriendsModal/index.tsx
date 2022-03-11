@@ -39,6 +39,7 @@ const InviteFriendsModal = (props: { isOpen: boolean; onClosed: () => void }): J
           <AppTextInput
             containerStyle={tailwind('px-3 mb-9')}
             placeholder={strings.components.inputs.email}
+            autoCapitalize="none"
             value={email}
             onChangeText={onEmailInputChanged}
           />
