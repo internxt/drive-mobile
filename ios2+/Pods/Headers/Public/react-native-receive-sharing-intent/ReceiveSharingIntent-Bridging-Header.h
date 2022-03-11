@@ -1,0 +1,1 @@
+../../../../../node_modules/react-native-receive-sharing-intent/ios/ReceiveSharingIntent-Bridging-Header.h

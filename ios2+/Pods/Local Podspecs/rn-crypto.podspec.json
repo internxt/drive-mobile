@@ -1,0 +1,21 @@
+{
+  "name": "rn-crypto",
+  "version": "0.1.3",
+  "summary": "A library for using crypto in native modules",
+  "homepage": "https://github.com/sg-gs/rn-crypto#readme",
+  "license": "MIT",
+  "authors": "Sergio Gutierrez Villalba <gv.sergiodevs@gmail.com> (https://github.com/sg-gs)",
+  "platforms": {
+    "ios": "10.0"
+  },
+  "source": {
+    "git": "https://github.com/sg-gs/rn-crypto.git",
+    "tag": "0.1.3"
+  },
+  "source_files": "ios/**/*.{h,m,mm,swift}",
+  "dependencies": {
+    "React-Core": [
+
+    ]
+  }
+}

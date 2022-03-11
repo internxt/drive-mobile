@@ -1,0 +1,6 @@
+module rn_crypto {
+  umbrella header "rn-crypto-umbrella.h"
+
+  export *
+  module * { export * }
+}

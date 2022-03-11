@@ -1,0 +1,31 @@
+{
+  "name": "RNAnalytics",
+  "version": "1.5.0",
+  "summary": "The hassle-free way to add analytics to your React-Native app.",
+  "description": "Analytics for iOS provides a single API that lets you\nintegrate with over 100s of tools.",
+  "homepage": "http://segment.com/",
+  "social_media_url": "https://twitter.com/segment",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "Segment": "friends@segment.com"
+  },
+  "source": {
+    "git": "https://github.com/segmentio/analytics-react-native.git",
+    "tag": "1.5.0"
+  },
+  "platforms": {
+    "ios": "10.0"
+  },
+  "source_files": "ios/**/*.{m,h}",
+  "static_framework": true,
+  "dependencies": {
+    "Analytics": [
+
+    ],
+    "React-Core": [
+
+    ]
+  }
+}

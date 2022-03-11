@@ -1,0 +1,25 @@
+{
+  "name": "react-native-unicons",
+  "version": "1.0.3",
+  "summary": "Unicons - 1000+ vector icons as easy to use vector React Native Components",
+  "description": "react-native-unicons",
+  "homepage": "https://github.com/Iconscout/react-native-unicons",
+  "license": "MIT",
+  "authors": {
+    "Tarun Mangukiya": "tarunmangukiya@hotmail.com"
+  },
+  "platforms": {
+    "ios": "7.0"
+  },
+  "source": {
+    "git": "https://github.com/Iconscout/react-native-unicons.git",
+    "tag": "1.0.3"
+  },
+  "source_files": "ios/**/*.{h,m,swift}",
+  "requires_arc": true,
+  "dependencies": {
+    "React": [
+
+    ]
+  }
+}

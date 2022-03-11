@@ -1,0 +1,23 @@
+{
+  "name": "EXClipboard",
+  "version": "1.1.0",
+  "summary": "ExpoClipboard standalone module",
+  "description": "ExpoClipboard standalone module",
+  "license": "MIT",
+  "authors": "650 Industries, Inc.",
+  "homepage": "https://docs.expo.io/versions/latest/sdk/clipboard",
+  "platforms": {
+    "ios": "11.0"
+  },
+  "source": {
+    "git": "https://github.com/expo/expo.git"
+  },
+  "source_files": "EXClipboard/**/*.{h,m}",
+  "preserve_paths": "EXClipboard/**/*.{h,m}",
+  "requires_arc": true,
+  "dependencies": {
+    "UMCore": [
+
+    ]
+  }
+}
