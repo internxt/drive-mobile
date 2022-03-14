@@ -162,12 +162,12 @@ function SignInScreen(): JSX.Element {
 
           <Text
             style={tailwind('text-center text-sm m-2 text-blue-60')}
-            onPress={() => navigation.replace(AppScreen.ForgotPassword)}
+            onPress={() => navigation.navigate(AppScreen.ForgotPassword)}
           >
             {strings.screens.login_screen.forgot}
           </Text>
 
-          <Text style={tailwind('text-center mt-2')} onPress={() => navigation.replace(AppScreen.SignUp)}>
+          <Text style={tailwind('text-center mt-2')} onPress={() => navigation.navigate(AppScreen.SignUp)}>
             <Text style={tailwind('text-sm')}>{strings.screens.login_screen.no_register} </Text>
             <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.register}</Text>
           </Text>

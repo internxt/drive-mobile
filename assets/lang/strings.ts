@@ -413,8 +413,8 @@ const strings = new LocalizedStrings({
       login_screen: {
         title: 'Inicia sesión en Internxt',
         forgot: '¿Has olvidado la contraseña?',
-        no_register: 'No tengo cuenta',
-        register: 'Crear una',
+        no_register: '¿No tienes cuenta?',
+        register: 'Regístrate',
         back: 'Iniciar sesión',
       },
       SignUpScreen: {

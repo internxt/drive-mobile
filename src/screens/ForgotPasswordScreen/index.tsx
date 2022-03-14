@@ -95,7 +95,7 @@ function ForgotPasswordScreen(): JSX.Element {
                 </TouchableHighlight>
               </View>
               <View style={tailwind('py-5')}>
-                <TouchableWithoutFeedback style={tailwind('m-5')} onPress={() => navigation.replace(AppScreen.SignIn)}>
+                <TouchableWithoutFeedback style={tailwind('m-5')} onPress={() => navigation.navigate(AppScreen.SignIn)}>
                   <Text style={tailwind('text-blue-60 text-center')}> {strings.screens.login_screen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>
