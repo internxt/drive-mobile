@@ -32,8 +32,6 @@ target 'Internxt' do
   pod 'Permission-Notifications', :path => "#{permissions_path}/Notifications"
   pod 'Permission-PhotoLibrary', :path => "#{permissions_path}/PhotoLibrary"
   pod 'Permission-PhotoLibraryAddOnly', :path => "#{permissions_path}/PhotoLibraryAddOnly"
-  pod 'Permission-Reminders', :path => "#{permissions_path}/Reminders"
-  pod 'Permission-StoreKit', :path => "#{permissions_path}/StoreKit"
 
   post_install do |installer|
     react_native_post_install(installer)
