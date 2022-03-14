@@ -40,7 +40,6 @@ function DriveScreen(): JSX.Element {
       return null;
     }
   })();
-  let count = 0;
   const validateUri = () => {
     if (Platform.OS === 'ios') {
       return uri && folderContent && folderContent.currentFolder;
@@ -135,20 +134,10 @@ function DriveScreen(): JSX.Element {
     // BackHandler
     const backAction = () => {
       if (route.name === AppScreen.Drive) {
-        if (folderContent && !folderContent.parentId) {
-          count++;
-          if (count < 2) {
-            notify({ type: 'warn', text: strings.messages.pressAgainToExit });
-          } else {
-            BackHandler.exitApp();
-          }
-
-          // Reset if some time passes
-          setTimeout(() => {
-            count = 0;
-          }, 4000);
-        } else if (folderContent) {
+        if (folderContent && folderContent.parentId) {
           dispatch(storageThunks.getFolderContentThunk({ folderId: folderContent.parentId as number }));
+        } else {
+          return false;
         }
       }
 

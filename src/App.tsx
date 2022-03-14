@@ -76,7 +76,7 @@ export default function App(): JSX.Element {
   return (
     <View style={tailwind('h-full w-full bg-white')}>
       <Portal.Host>
-        <SafeAreaView style={tailwind('flex-1')}>
+        <View style={tailwind('flex-1')}>
           <NavigationContainer
             ref={navigationRef}
             onReady={() => {
@@ -127,7 +127,7 @@ export default function App(): JSX.Element {
             isOpen={isNewsletterModalOpen}
             onClosed={() => dispatch(layoutActions.setIsNewsletterModalOpen(false))}
           />
-        </SafeAreaView>
+        </View>
       </Portal.Host>
     </View>
   );

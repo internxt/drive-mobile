@@ -346,7 +346,6 @@ const strings = new LocalizedStrings({
     messages: {
       itemsDeleted: 'Item/s deleted',
       photoShared: 'You have shared a photo!',
-      pressAgainToExit: 'Press again to close the app',
       photosSyncPending: 'Pending synchronization',
       photosSyncCompleted: 'Your device is up to date',
     },
@@ -718,7 +717,6 @@ const strings = new LocalizedStrings({
     messages: {
       itemsDeleted: 'Elementos borrados',
       photoShared: '¡Has compartido una foto!',
-      pressAgainToExit: 'Pulsa otra vez para cerrar la app',
       photosSyncPending: 'Sincronización pendiente',
       photosSyncCompleted: 'Tu dispositivo está sincronizado',
     },

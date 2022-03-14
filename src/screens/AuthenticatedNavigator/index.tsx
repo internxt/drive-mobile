@@ -24,6 +24,7 @@ import PhotosNavigator from '../PhotosNavigator';
 import ReferralsBanner from '../../components/ReferralsBanner';
 import { useAppDispatch } from '../../store/hooks';
 import { layoutActions } from '../../store/slices/layout';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
 
@@ -43,7 +44,7 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
   }, []);
 
   return (
-    <View style={tailwind('h-full')}>
+    <SafeAreaView style={tailwind('h-full')}>
       <Tab.Navigator
         tabBar={(tabBarProps: BottomTabBarProps) => <BottomTabNavigator {...{ ...tabBarProps }} />}
         initialRouteName={AppScreen.Home}
@@ -71,6 +72,6 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
       <RunOutOfStorageModal />
 
       <ReferralsBanner />
-    </View>
+    </SafeAreaView>
   );
 }
