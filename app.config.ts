@@ -71,7 +71,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   androidNavigationBar: {
     barStyle: 'dark-content',
     backgroundColor: '#FFFFFF',
-    visible: 'immersive',
+    visible: 'sticky-immersive',
   },
   extra: { NODE_ENV: stage, ...env[stage] },
 };

@@ -7,6 +7,7 @@ import FileItem from '../FileItem';
 import SkinSkeleton from '../SkinSkeleton';
 import EmptyDriveImage from '../../../assets/images/screens/empty-drive.svg';
 import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg';
+import NoResultsImage from '../../../assets/images/screens/no-results.svg';
 import EmptyList from '../EmptyList';
 import strings from '../../../assets/lang/strings';
 import { storageThunks } from '../../store/slices/storage';
@@ -80,18 +81,9 @@ function FileList(props: FileListProps): JSX.Element {
     loading: filesLoading,
   } = useAppSelector((state) => state.storage);
   const { user } = useAppSelector((state) => state.auth);
-  const [folderId, setFolderId] = useState<number>();
   let folderList: IFolder[] = (folderContent && folderContent.children) || [];
   let fileList: IFile[] = (folderContent && folderContent.files) || [];
   const sortFunction = fileService.getSortFunction(sortType);
-
-  useEffect(() => {
-    setRefreshing(false);
-
-    if (folderContent && folderContent.currentFolder) {
-      setFolderId(folderContent.currentFolder);
-    }
-  }, [folderContent]);
 
   if (searchString) {
     fileList = fileList.filter((file: IFile) => file.name.toLowerCase().includes(searchString.toLowerCase()));
@@ -121,6 +113,9 @@ function FileList(props: FileListProps): JSX.Element {
 
   const windowWidth = Dimensions.get('window').width;
   const totalColumns = Math.min(Math.max(Math.trunc(windowWidth / 125), 2), 6);
+  const renderNoResults = () => (
+    <EmptyList {...strings.components.FileList.noResults} image={<NoResultsImage width={100} height={100} />} />
+  );
 
   return (
     <FlatList
@@ -151,7 +146,13 @@ function FileList(props: FileListProps): JSX.Element {
             ))}
           </View>
         ) : isRootFolder ? (
-          <EmptyList {...strings.screens.drive.emptyRoot} image={<EmptyDriveImage width={100} height={100} />} />
+          searchString ? (
+            renderNoResults()
+          ) : (
+            <EmptyList {...strings.screens.drive.emptyRoot} image={<EmptyDriveImage width={100} height={100} />} />
+          )
+        ) : searchString ? (
+          renderNoResults()
         ) : (
           <EmptyList {...strings.screens.drive.emptyFolder} image={<EmptyFolderImage width={100} height={100} />} />
         )

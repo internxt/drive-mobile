@@ -237,6 +237,12 @@ const strings = new LocalizedStrings({
         searchInRecents: 'Search in recents',
         searchInShared: 'Search in shared',
       },
+      FileList: {
+        noResults: {
+          title: 'No results found',
+          message: 'Any item in this folder match this search',
+        },
+      },
       empty_folder: {
         title: 'This looks empty!',
         subtitle: 'Click the upload button to get started.',
@@ -604,6 +610,12 @@ const strings = new LocalizedStrings({
         last_name: 'Primer apellido',
         searchInRecents: 'Buscar en recientes',
         searchInShared: 'Buscar en compartido',
+      },
+      FileList: {
+        noResults: {
+          title: 'Sin resultados',
+          message: 'Ningún elemento en esta carpeta coincide con esta búsqueda',
+        },
       },
       empty_folder: {
         title: '¡Esto parece vacío!',

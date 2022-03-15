@@ -9,6 +9,7 @@ import SkinSkeleton from '../../components/SkinSkeleton';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptyRecentsImage from '../../../assets/images/screens/empty-recents.svg';
+import NoResultsImage from '../../../assets/images/screens/no-results.svg';
 import { tailwind } from '../../helpers/designSystem';
 
 interface RecentsScreenProps {
@@ -35,6 +36,9 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
         setRefreshing(false);
       });
   };
+  const renderNoResults = () => (
+    <EmptyList {...strings.components.FileList.noResults} image={<NoResultsImage width={100} height={100} />} />
+  );
 
   useEffect(() => {
     loadRecents();
@@ -67,6 +71,8 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
             filteredRecents.map((item) => {
               return <FileItem totalColumns={1} key={item.id} item={item} isFolder={false} progress={-1} />;
             })
+          ) : props.searchText ? (
+            renderNoResults()
           ) : (
             <EmptyList {...strings.screens.recents.empty} image={<EmptyRecentsImage width={100} height={100} />} />
           )}

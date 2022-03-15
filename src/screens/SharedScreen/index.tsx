@@ -9,7 +9,7 @@ import SkinSkeleton from '../../components/SkinSkeleton';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptySharesImage from '../../../assets/images/screens/empty-shares.svg';
-import { IFile } from '../../components/FileList';
+import NoResultsImage from '../../../assets/images/screens/no-results.svg';
 
 interface SharedScreenProps {
   searchText?: string;
@@ -37,6 +37,9 @@ function SharedScreen(props: SharedScreenProps): JSX.Element {
         setRefreshing(false);
       });
   };
+  const renderNoResults = () => (
+    <EmptyList {...strings.components.FileList.noResults} image={<NoResultsImage width={100} height={100} />} />
+  );
 
   useEffect(() => {
     reloadShares();
@@ -84,6 +87,8 @@ function SharedScreen(props: SharedScreenProps): JSX.Element {
                 );
               })}
             </View>
+          ) : props.searchText ? (
+            renderNoResults()
           ) : (
             <EmptyList {...strings.screens.shared.empty} image={<EmptySharesImage width={100} height={100} />} />
           )}
