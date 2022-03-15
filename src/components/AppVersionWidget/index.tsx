@@ -6,7 +6,7 @@ import PackageJson from '../../../package.json';
 import { tailwind } from '../../helpers/designSystem';
 import appService from '../../services/app';
 
-function VersionUpdate(): JSX.Element {
+function AppVersionWidget(): JSX.Element {
   const [, setDebugText] = useState('');
 
   useEffect(() => {
@@ -29,4 +29,4 @@ function VersionUpdate(): JSX.Element {
   );
 }
 
-export default VersionUpdate;
+export default AppVersionWidget;

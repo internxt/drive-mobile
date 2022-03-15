@@ -46,7 +46,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
 
       {/* USAGE */}
       <View style={tailwind('mt-6 mx-5 bg-white rounded-xl bg-white')}>
-        <View style={tailwind('px-5 pt-3')}>
+        <View style={tailwind('px-5 py-3')}>
           <Text style={{ ...tailwind('text-base text-neutral-500'), ...globalStyle.fontWeight.semibold }}>
             {strings.screens.storage.space.used.used} {getUsageString()} {strings.screens.storage.space.used.of}{' '}
             {getLimitString()}
@@ -61,7 +61,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
           </View>
         </View>
 
-        <TouchableHighlight
+        {/*<TouchableHighlight
           underlayColor={getColor('neutral-30')}
           onPress={() => {
             navigation.push(AppScreen.Billing);
@@ -73,7 +73,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
             </Text>
             <Unicons.UilAngleRight size={30} color={getColor('blue-60')} />
           </View>
-        </TouchableHighlight>
+        </TouchableHighlight>*/}
       </View>
 
       <ReferralsWidget />

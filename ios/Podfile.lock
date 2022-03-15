@@ -162,10 +162,6 @@ PODS:
     - RNPermissions
   - Permission-PhotoLibraryAddOnly (3.2.0):
     - RNPermissions
-  - Permission-Reminders (3.2.0):
-    - RNPermissions
-  - Permission-StoreKit (3.2.0):
-    - RNPermissions
   - PromisesObjC (2.0.0)
   - RCT-Folly (2020.01.13.00):
     - boost-for-react-native
@@ -559,8 +555,6 @@ DEPENDENCIES:
   - Permission-Notifications (from `../node_modules/react-native-permissions/ios/Notifications`)
   - Permission-PhotoLibrary (from `../node_modules/react-native-permissions/ios/PhotoLibrary`)
   - Permission-PhotoLibraryAddOnly (from `../node_modules/react-native-permissions/ios/PhotoLibraryAddOnly`)
-  - Permission-Reminders (from `../node_modules/react-native-permissions/ios/Reminders`)
-  - Permission-StoreKit (from `../node_modules/react-native-permissions/ios/StoreKit`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
@@ -701,10 +695,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-permissions/ios/PhotoLibrary"
   Permission-PhotoLibraryAddOnly:
     :path: "../node_modules/react-native-permissions/ios/PhotoLibraryAddOnly"
-  Permission-Reminders:
-    :path: "../node_modules/react-native-permissions/ios/Reminders"
-  Permission-StoreKit:
-    :path: "../node_modules/react-native-permissions/ios/StoreKit"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTRequired:
@@ -838,7 +828,7 @@ SPEC CHECKSUMS:
   EXUpdates: bd5fa64f02685ed3e96be86b5ca350cdc2cd8d02
   EXUpdatesInterface: a9814f422d3cd6e7cfd260d13c27786148ece20e
   FBLazyVector: c71c5917ec0ad2de41d5d06a5855f6d5eda06971
-  FBReactNativeSpec: 99cbe528ed5b6dce749d732348af766c0d665b3e
+  FBReactNativeSpec: ca5494c0fafd3a0faa91831a0e6d393eee4975c8
   Firebase: fb5114cd2bf96e2ff7bcb01d0d9a156cf5fd2f07
   FirebaseAnalytics: 4ab446ce08a3fe52e8a4303dd997cf26276bf968
   FirebaseCore: c5aab092d9c4b8efea894946166b04c9d9ef0e68
@@ -856,8 +846,6 @@ SPEC CHECKSUMS:
   Permission-Notifications: bb420c3d28328df24de1b476b41ed8249ccf2537
   Permission-PhotoLibrary: 7bec836dcdd04a0bfb200c314f1aae06d4476357
   Permission-PhotoLibraryAddOnly: 06fb0cdb1d35683b235ad8c464ef0ecc88859ea3
-  Permission-Reminders: 3c2d5d1e9c4b9fe90f937a23cbec9d8cf5ba52fd
-  Permission-StoreKit: ee68e7b70e9c44c2b16c6add64ddc58bd54c81c6
   PromisesObjC: 68159ce6952d93e17b2dfe273b8c40907db5ba58
   RCT-Folly: ec7a233ccc97cc556cf7237f0db1ff65b986f27c
   RCTRequired: d34bf57e17cb6e3b2681f4809b13843c021feb6c
@@ -913,6 +901,6 @@ SPEC CHECKSUMS:
   TcpSockets: 14306fb79f9750ea7d2ddd02d8bed182abb01797
   Yoga: e6ecf3fa25af9d4c87e94ad7d5d292eedef49749
 
-PODFILE CHECKSUM: f45a91a2171a18c218038bf0afc1a31452b095cc
+PODFILE CHECKSUM: c734d2df3847b0c2f0ef80e9119a3d53bc18dbd9
 
 COCOAPODS: 1.11.2

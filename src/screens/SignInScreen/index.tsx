@@ -15,7 +15,7 @@ import strings from '../../../assets/lang/strings';
 import analytics from '../../services/analytics';
 import InternxtLogo from '../../../assets/logo.svg';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import VersionUpdate from '../../components/VersionUpdate';
+import AppVersionWidget from '../../components/AppVersionWidget';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
 import { AppScreen } from '../../types';
@@ -174,7 +174,7 @@ function SignInScreen(): JSX.Element {
         </View>
       </View>
 
-      <VersionUpdate />
+      <AppVersionWidget />
     </KeyboardAvoidingView>
   );
 }
