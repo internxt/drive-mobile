@@ -78,111 +78,110 @@ function SignInScreen(): JSX.Element {
   }, [authError]);
 
   return (
-    <AppScreen safeAreaTop safeAreaBottom>
-      <KeyboardAvoidingView behavior="height" style={tailwind('p-5 h-full justify-between')}>
-        <View></View>
-        <View style={isLoading ? tailwind('opacity-50') : tailwind('opacity-100')}>
-          <View>
-            <View style={tailwind('items-center pb-10')}>
-              <InternxtLogo />
-            </View>
-          </View>
+    <AppScreen safeAreaTop safeAreaBottom style={tailwind('p-5 h-full justify-between')}>
+      <View></View>
 
-          <View style={showTwoFactor ? tailwind('hidden') : tailwind('flex')}>
-            <View style={tailwind('input-wrapper my-2 items-stretch')}>
-              <TextInput
-                style={tailwind('input pl-4')}
-                value={email}
-                onChangeText={(value) => setEmail(value)}
-                placeholder={strings.components.inputs.email}
-                placeholderTextColor="#666"
-                maxLength={64}
-                keyboardType="email-address"
-                autoCapitalize={'none'}
-                autoCorrect={false}
-                autoCompleteType="username"
-                textContentType="emailAddress"
-                editable={!isLoading}
-              />
-            </View>
-
-            <View style={tailwind('input-wrapper my-2 items-stretch')}>
-              <TextInput
-                style={tailwind('input pl-4')}
-                value={password}
-                onChangeText={setPassword}
-                onFocus={() => setPasswordFocus(true)}
-                onBlur={() => setPasswordFocus(false)}
-                placeholder={strings.components.inputs.password}
-                placeholderTextColor="#666"
-                secureTextEntry={!showPasswordText}
-                autoCompleteType="password"
-                autoCapitalize="none"
-                textContentType="password"
-                editable={!isLoading}
-              />
-
-              {(!!password || passwordFocus) && (
-                <TouchableWithoutFeedback onPress={() => setShowPasswordText(!showPasswordText)}>
-                  <View style={tailwind('justify-center p-3')}>
-                    {showPasswordText ? (
-                      <Unicons.UilEyeSlash color={getColor('neutral-80')} />
-                    ) : (
-                      <Unicons.UilEye color={getColor('neutral-80')} />
-                    )}
-                  </View>
-                </TouchableWithoutFeedback>
-              )}
-            </View>
-          </View>
-
-          <View style={showTwoFactor ? tailwind('') : tailwind('hidden')}>
-            <View
-              style={[
-                tailwind('input-wrapper my-2 items-stretch'),
-                validationService.validate2FA(twoFactorCode) ? {} : tailwind('border-red-50'),
-              ]}
-            >
-              <TextInput
-                style={tailwind('input pl-4')}
-                value={twoFactorCode}
-                onChangeText={(value) => setTwoFactorCode(value)}
-                placeholder="Two-factor code"
-                placeholderTextColor="#666"
-                maxLength={64}
-                keyboardType="numeric"
-                textContentType="none"
-              />
-            </View>
-          </View>
-
-          <View>
-            <TouchableHighlight
-              style={tailwind('btn btn-primary my-5')}
-              underlayColor="#4585f5"
-              onPress={onSignInButtonPressed}
-            >
-              <Text style={tailwind('text-base btn-label')}>
-                {isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}
-              </Text>
-            </TouchableHighlight>
-
-            <Text
-              style={tailwind('text-center text-sm m-2 text-blue-60')}
-              onPress={() => navigation.navigate(AppScreenKey.ForgotPassword)}
-            >
-              {strings.screens.login_screen.forgot}
-            </Text>
-
-            <Text style={tailwind('text-center mt-2')} onPress={() => navigation.navigate(AppScreenKey.SignUp)}>
-              <Text style={tailwind('text-sm')}>{strings.screens.login_screen.no_register} </Text>
-              <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.register}</Text>
-            </Text>
+      <View style={[isLoading ? tailwind('opacity-50') : tailwind('opacity-100')]}>
+        <View>
+          <View style={tailwind('items-center pb-10')}>
+            <InternxtLogo />
           </View>
         </View>
 
-        <AppVersionWidget />
-      </KeyboardAvoidingView>
+        <View style={showTwoFactor ? tailwind('hidden') : tailwind('flex')}>
+          <View style={tailwind('input-wrapper my-2 items-stretch')}>
+            <TextInput
+              style={tailwind('input pl-4')}
+              value={email}
+              onChangeText={(value) => setEmail(value)}
+              placeholder={strings.components.inputs.email}
+              placeholderTextColor="#666"
+              maxLength={64}
+              keyboardType="email-address"
+              autoCapitalize={'none'}
+              autoCorrect={false}
+              autoCompleteType="username"
+              textContentType="emailAddress"
+              editable={!isLoading}
+            />
+          </View>
+
+          <View style={tailwind('input-wrapper my-2 items-stretch')}>
+            <TextInput
+              style={tailwind('input pl-4')}
+              value={password}
+              onChangeText={setPassword}
+              onFocus={() => setPasswordFocus(true)}
+              onBlur={() => setPasswordFocus(false)}
+              placeholder={strings.components.inputs.password}
+              placeholderTextColor="#666"
+              secureTextEntry={!showPasswordText}
+              autoCompleteType="password"
+              autoCapitalize="none"
+              textContentType="password"
+              editable={!isLoading}
+            />
+
+            {(!!password || passwordFocus) && (
+              <TouchableWithoutFeedback onPress={() => setShowPasswordText(!showPasswordText)}>
+                <View style={tailwind('justify-center p-3')}>
+                  {showPasswordText ? (
+                    <Unicons.UilEyeSlash color={getColor('neutral-80')} />
+                  ) : (
+                    <Unicons.UilEye color={getColor('neutral-80')} />
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
+            )}
+          </View>
+        </View>
+
+        <View style={showTwoFactor ? tailwind('') : tailwind('hidden')}>
+          <View
+            style={[
+              tailwind('input-wrapper my-2 items-stretch'),
+              validationService.validate2FA(twoFactorCode) ? {} : tailwind('border-red-50'),
+            ]}
+          >
+            <TextInput
+              style={tailwind('input pl-4')}
+              value={twoFactorCode}
+              onChangeText={(value) => setTwoFactorCode(value)}
+              placeholder="Two-factor code"
+              placeholderTextColor="#666"
+              maxLength={64}
+              keyboardType="numeric"
+              textContentType="none"
+            />
+          </View>
+        </View>
+
+        <View>
+          <TouchableHighlight
+            style={tailwind('btn btn-primary my-5')}
+            underlayColor="#4585f5"
+            onPress={onSignInButtonPressed}
+          >
+            <Text style={tailwind('text-base btn-label')}>
+              {isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}
+            </Text>
+          </TouchableHighlight>
+
+          <Text
+            style={tailwind('text-center text-sm m-2 text-blue-60')}
+            onPress={() => navigation.navigate(AppScreenKey.ForgotPassword)}
+          >
+            {strings.screens.login_screen.forgot}
+          </Text>
+
+          <Text style={tailwind('text-center mt-2')} onPress={() => navigation.navigate(AppScreenKey.SignUp)}>
+            <Text style={tailwind('text-sm')}>{strings.screens.login_screen.no_register} </Text>
+            <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.register}</Text>
+          </Text>
+        </View>
+      </View>
+
+      <AppVersionWidget />
     </AppScreen>
   );
 }

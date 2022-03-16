@@ -1,9 +1,9 @@
 import React from 'react';
-import { StyleProp, View, ViewStyle } from 'react-native';
+import { Keyboard, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar, StatusBarStyle } from 'expo-status-bar';
 
-import { getColor } from '../../helpers/designSystem';
+import { tailwind, getColor } from '../../helpers/designSystem';
 
 interface AppScreenProps {
   backgroundColor?: string;
@@ -36,6 +36,12 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
         translucent={props.statusBarTranslucent}
         backgroundColor={backgroundColor}
       />
+
+      {/* DISMISS KEYBOARD ON OUTSIDE TAP */}
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <View style={tailwind('absolute h-full w-full')}></View>
+      </TouchableWithoutFeedback>
+
       {props.children}
     </View>
   );

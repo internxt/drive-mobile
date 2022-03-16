@@ -76,7 +76,7 @@ export default function App(): JSX.Element {
   const routeNameRef = useRef<string>();
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={tailwind('h-full w-full')}>
+    <KeyboardAvoidingView behavior="height" style={tailwind('h-full w-full')}>
       <Portal.Host>
         <View style={tailwind('flex-1')}>
           <NavigationContainer

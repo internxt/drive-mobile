@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, TextInput, KeyboardAvoidingView, Platform, BackHandler } from 'react-native';
+import { StyleSheet, View, TextInput, Platform, BackHandler } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
@@ -24,7 +24,7 @@ function CreateFolderScreen(): JSX.Element {
   }, []);
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.actionsWrapper}></View>
 
       <View style={styles.folderWrapper}>
@@ -42,7 +42,7 @@ function CreateFolderScreen(): JSX.Element {
           clearTextOnFocus={true}
         />
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
