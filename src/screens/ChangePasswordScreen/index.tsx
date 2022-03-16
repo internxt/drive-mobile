@@ -10,7 +10,7 @@ import { tailwind } from '../../helpers/designSystem';
 import { doChangePassword } from './changePasswordUtils';
 import { notify } from '../../services/toast';
 import ScreenTitle from '../../components/ScreenTitle';
-import { AppScreen } from '../../types';
+import { AppScreenKey } from '../../types';
 
 function ChangePasswordScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -61,7 +61,7 @@ function ChangePasswordScreen(): JSX.Element {
         </View>
         <TouchableWithoutFeedback
           onPress={() => {
-            navigation.push(AppScreen.RecoverPassword);
+            navigation.push(AppScreenKey.RecoverPassword);
           }}
         >
           <Text style={tailwind('text-base text-sm text-blue-70 text-center m-3')}>

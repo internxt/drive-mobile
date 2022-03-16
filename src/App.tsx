@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, SafeAreaView } from 'react-native';
+import { View, Text } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -12,7 +12,7 @@ import { getColor, tailwind } from './helpers/designSystem';
 import { deviceStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
-import { AppScreen } from './types';
+import { AppScreenKey } from './types';
 import appService from './services/app';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
@@ -30,8 +30,8 @@ export default function App(): JSX.Element {
     prefixes: ['inxt'],
     config: {
       screens: {
-        [AppScreen.TabExplorer]: AppScreen.TabExplorer,
-        checkout: AppScreen.Billing,
+        [AppScreenKey.TabExplorer]: AppScreenKey.TabExplorer,
+        checkout: AppScreenKey.Billing,
       },
     },
   };

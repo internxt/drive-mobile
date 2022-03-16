@@ -9,7 +9,7 @@ import GalleryItem from '../GalleryItem';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { photosActions, photosSelectors } from '../../store/slices/photos';
-import { AppScreen } from '../../types';
+import { AppScreenKey } from '../../types';
 import moment from 'moment';
 
 interface GalleryDayProps {
@@ -51,7 +51,7 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
   const onItemPressed = (item: Photo, preview: string) => {
     isSelectionModeActivated
       ? onItemLongPressed(item)
-      : navigation.navigate(AppScreen.PhotosPreview, { data: item, preview });
+      : navigation.navigate(AppScreenKey.PhotosPreview, { data: item, preview });
   };
 
   return (

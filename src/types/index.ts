@@ -6,7 +6,7 @@ export interface AppPlugin {
   install: (store: StoreType) => void;
 }
 
-export enum AppScreen {
+export enum AppScreenKey {
   SignUp = 'sign-up',
   SignIn = 'sign-in',
   Intro = 'intro',

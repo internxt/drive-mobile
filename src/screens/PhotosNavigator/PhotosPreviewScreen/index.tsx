@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import RNFS from 'react-native-fs';
-import { View, Text, Image, SafeAreaView, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, Image, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -19,6 +19,7 @@ import { photosActions, photosSelectors, photosThunks } from '../../../store/sli
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { items } from '@internxt/lib';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface PreviewProps {
   route: {
@@ -31,6 +32,7 @@ interface PreviewProps {
 
 function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const { data: photo, preview } = props.route.params;
+  const safeAreaInsets = useSafeAreaInsets();
   const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
   const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: photo.id, type: photo.type });
   const dispatch = useAppDispatch();
@@ -124,11 +126,12 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         onClosed={onSharePhotoModalClosed}
         preview={props.route.params.preview}
       />
-      <TouchableWithoutFeedback onPress={onScreenPressed}>
-        <View style={tailwind('h-full')}>
-          {/* PHOTO */}
-          <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
 
+      {/* PHOTO */}
+      <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
+
+      <TouchableWithoutFeedback onPress={onScreenPressed}>
+        <View style={{ ...tailwind('h-full') }}>
           {/* LOADING */}
           {isFullSizeLoading && (
             <View style={tailwind('absolute top-0 bottom-0 right-0 left-0 items-center justify-center')}>
@@ -138,10 +141,13 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
           )}
 
           {showActions && (
-            <SafeAreaView style={tailwind('flex-col justify-between h-full')}>
+            <View style={tailwind('flex-col justify-between h-full')}>
               <LinearGradient
                 colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.24)', 'transparent']}
-                style={tailwind('absolute w-full')}
+                style={{
+                  ...tailwind('absolute w-full'),
+                  paddingTop: safeAreaInsets.top,
+                }}
               >
                 <View style={tailwind('flex-row justify-between p-5')}>
                   {/* BACK BUTTON */}
@@ -158,7 +164,10 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
 
               <LinearGradient
                 colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.24)', 'rgba(0,0,0,0.6)']}
-                style={tailwind('flex-row justify-around p-3 absolute bottom-0 w-full')}
+                style={{
+                  ...tailwind('flex-row justify-around p-3 absolute bottom-0 w-full'),
+                  paddingBottom: safeAreaInsets.bottom,
+                }}
               >
                 <TouchableOpacity
                   disabled={isFullSizeLoading}
@@ -195,7 +204,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
                   <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.moveToThrash}</Text>
                 </TouchableOpacity>
               </LinearGradient>
-            </SafeAreaView>
+            </View>
           )}
         </View>
       </TouchableWithoutFeedback>

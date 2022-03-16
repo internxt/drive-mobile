@@ -19,12 +19,12 @@ import SortModal from '../../components/modals/SortModal';
 import MoveFilesModal from '../../components/modals/MoveFilesModal';
 import RunOutOfStorageModal from '../../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../HomeScreen';
-import { AppScreen } from '../../types';
+import { AppScreenKey as AppScreenKey } from '../../types';
 import PhotosNavigator from '../PhotosNavigator';
 import ReferralsBanner from '../../components/ReferralsBanner';
 import { useAppDispatch } from '../../store/hooks';
 import { layoutActions } from '../../store/slices/layout';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
 
@@ -38,26 +38,27 @@ interface AuthenticatedNavigatorProps {
 
 export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProps): JSX.Element {
   const dispatch = useAppDispatch();
+  const safeAreaInsets = useSafeAreaInsets();
 
   useEffect(() => {
     props.route.params?.showReferralsBanner && dispatch(layoutActions.setIsReferralsBannerOpen(true));
   }, []);
 
   return (
-    <SafeAreaView style={tailwind('h-full')}>
+    <View style={{ ...tailwind('h-full'), paddingBottom: safeAreaInsets.bottom }}>
       <Tab.Navigator
         tabBar={(tabBarProps: BottomTabBarProps) => <BottomTabNavigator {...{ ...tabBarProps }} />}
-        initialRouteName={AppScreen.Home}
+        initialRouteName={AppScreenKey.Home}
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: true,
         }}
       >
-        <Tab.Screen name={AppScreen.Home} component={HomeScreen} />
-        <Tab.Screen name={AppScreen.Drive} component={DriveScreen} />
+        <Tab.Screen name={AppScreenKey.Home} component={HomeScreen} />
+        <Tab.Screen name={AppScreenKey.Drive} component={DriveScreen} />
         <Tab.Screen name="create" component={VoidScreen} />
         <Tab.Screen name="photos" component={PhotosNavigator} />
-        <Tab.Screen name={AppScreen.Menu} component={MenuScreen} />
+        <Tab.Screen name={AppScreenKey.Menu} component={MenuScreen} />
       </Tab.Navigator>
 
       <FileDetailsModal />
@@ -72,6 +73,6 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
       <RunOutOfStorageModal />
 
       <ReferralsBanner />
-    </SafeAreaView>
+    </View>
   );
 }

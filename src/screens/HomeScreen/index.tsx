@@ -8,6 +8,7 @@ import { tailwind } from '../../helpers/designSystem';
 import Tabs from '../../components/Tabs';
 import RecentsScreen from '../RecentsScreen';
 import SharedScreen from '../SharedScreen';
+import AppScreen from '../../components/AppScreen';
 
 enum HomeTab {
   Recents = 'recents',
@@ -40,11 +41,13 @@ const HomeScreen = (): JSX.Element => {
   };
 
   return (
-    <View style={tailwind('app-screen bg-white flex-1')}>
-      <ScreenTitle text={strings.screens.home.title} showBackButton={false} />
-      <SearchInput value={searchText} onChangeText={setSearchText} placeholder={searchPlaceholder} />
-      <Tabs value={currentTab} onTabChanged={onTabChanged} tabs={tabs} />
-    </View>
+    <AppScreen safeAreaTop style={tailwind('flex-1')}>
+      <View style={tailwind('bg-white flex-1')}>
+        <ScreenTitle text={strings.screens.home.title} showBackButton={false} />
+        <SearchInput value={searchText} onChangeText={setSearchText} placeholder={searchPlaceholder} />
+        <Tabs value={currentTab} onTabChanged={onTabChanged} tabs={tabs} />
+      </View>
+    </AppScreen>
   );
 };
 

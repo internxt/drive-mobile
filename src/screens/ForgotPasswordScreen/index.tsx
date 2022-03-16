@@ -16,7 +16,7 @@ import InternxtLogo from '../../../assets/logo.svg';
 import { tailwind } from '../../helpers/designSystem';
 import validationService from '../../services/validation';
 import authService from '../../services/auth';
-import { AppScreen } from '../../types';
+import { AppScreenKey } from '../../types';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 
@@ -95,7 +95,10 @@ function ForgotPasswordScreen(): JSX.Element {
                 </TouchableHighlight>
               </View>
               <View style={tailwind('py-5')}>
-                <TouchableWithoutFeedback style={tailwind('m-5')} onPress={() => navigation.navigate(AppScreen.SignIn)}>
+                <TouchableWithoutFeedback
+                  style={tailwind('m-5')}
+                  onPress={() => navigation.navigate(AppScreenKey.SignIn)}
+                >
                   <Text style={tailwind('text-blue-60 text-center')}> {strings.screens.login_screen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>
@@ -131,7 +134,10 @@ function ForgotPasswordScreen(): JSX.Element {
               </View>
 
               <View style={tailwind('py-5')}>
-                <TouchableWithoutFeedback style={tailwind('m-5')} onPress={() => navigation.replace(AppScreen.SignIn)}>
+                <TouchableWithoutFeedback
+                  style={tailwind('m-5')}
+                  onPress={() => navigation.replace(AppScreenKey.SignIn)}
+                >
                   <Text style={[]}> {strings.screens.login_screen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>

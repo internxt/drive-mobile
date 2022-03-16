@@ -9,9 +9,10 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import ProgressBar from '../../components/ProgressBar';
 import ScreenTitle from '../../components/ScreenTitle';
 import { useAppSelector } from '../../store/hooks';
-import { AppScreen, INFINITE_PLAN } from '../../types';
+import { AppScreenKey, INFINITE_PLAN } from '../../types';
 import ReferralsWidget from '../../components/ReferralsWidget';
 import globalStyle from '../../styles/global.style';
+import AppScreen from '../../components/AppScreen';
 
 interface StorageScreenProps {
   currentPlan: number;
@@ -36,7 +37,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
   const getUsageString = () => prettysize(usageValues.usage);
 
   return (
-    <View style={tailwind('app-screen bg-neutral-20 h-full')}>
+    <AppScreen safeAreaTop style={tailwind('h-full')} backgroundColor={getColor('neutral-20')}>
       <ScreenTitle
         textStyle={tailwind('text-2xl')}
         text={strings.screens.storage.title}
@@ -77,7 +78,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
       </View>
 
       <ReferralsWidget />
-    </View>
+    </AppScreen>
   );
 }
 

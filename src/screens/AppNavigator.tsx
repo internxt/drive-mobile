@@ -5,7 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 
-import { AppScreen } from '../types';
+import { AppScreenKey } from '../types';
 import UpdateModal from '../components/modals/UpdateModal';
 import CreateFolderScreen from './CreateFolderScreen';
 import SignInScreen from './SignInScreen';
@@ -37,20 +37,20 @@ type RouteConfig = NavigationRouteConfigMap<
 >;
 
 const routeConfig: RouteConfig = {
-  [AppScreen.SignUp]: { screen: SignUpScreen },
-  [AppScreen.SignIn]: { screen: SignInScreen },
-  [AppScreen.Intro]: { screen: IntroScreen },
-  [AppScreen.Home]: { screen: HomeScreen },
-  [AppScreen.TabExplorer]: { screen: AuthenticatedNavigator },
-  [AppScreen.CreateFolder]: { screen: CreateFolderScreen },
-  [AppScreen.ForgotPassword]: { screen: ForgotPasswordScreen },
-  [AppScreen.OutOfSpace]: { screen: OutOfSpaceScreen },
-  [AppScreen.Storage]: { screen: StorageScreen },
-  [AppScreen.Billing]: { screen: BillingScreen },
-  [AppScreen.ChangePassword]: { screen: ChangePasswordScreen },
-  [AppScreen.RecoverPassword]: { screen: RecoverPasswordScreen },
-  [AppScreen.Photos]: { screen: PhotosNavigator },
-  [AppScreen.PhotosPreview]: { screen: PhotosPreviewScreen },
+  [AppScreenKey.SignUp]: { screen: SignUpScreen },
+  [AppScreenKey.SignIn]: { screen: SignInScreen },
+  [AppScreenKey.Intro]: { screen: IntroScreen },
+  [AppScreenKey.Home]: { screen: HomeScreen },
+  [AppScreenKey.TabExplorer]: { screen: AuthenticatedNavigator },
+  [AppScreenKey.CreateFolder]: { screen: CreateFolderScreen },
+  [AppScreenKey.ForgotPassword]: { screen: ForgotPasswordScreen },
+  [AppScreenKey.OutOfSpace]: { screen: OutOfSpaceScreen },
+  [AppScreenKey.Storage]: { screen: StorageScreen },
+  [AppScreenKey.Billing]: { screen: BillingScreen },
+  [AppScreenKey.ChangePassword]: { screen: ChangePasswordScreen },
+  [AppScreenKey.RecoverPassword]: { screen: RecoverPasswordScreen },
+  [AppScreenKey.Photos]: { screen: PhotosNavigator },
+  [AppScreenKey.PhotosPreview]: { screen: PhotosPreviewScreen },
 };
 
 const StackNav = createNativeStackNavigator();
@@ -58,7 +58,7 @@ const StackNav = createNativeStackNavigator();
 function AppNavigator(): JSX.Element {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
-  const initialRouteName = isLoggedIn ? AppScreen.TabExplorer : AppScreen.SignIn;
+  const initialRouteName = isLoggedIn ? AppScreenKey.TabExplorer : AppScreenKey.SignIn;
   const isLinkCopiedModalOpen = useAppSelector((state) => state.layout.isLinkCopiedModalOpen);
   const onLinkCopiedModalClosed = () => {
     dispatch(layoutActions.setIsLinkCopiedModalOpen(false));

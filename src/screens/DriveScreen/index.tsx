@@ -12,8 +12,7 @@ import SearchInput from '../../components/SearchInput';
 import globalStyle from '../../styles/global.style';
 import ScreenTitle from '../../components/ScreenTitle';
 import Separator from '../../components/Separator';
-import { AppScreen, DevicePlatform, SortType } from '../../types';
-import { notify } from '../../services/toast';
+import { AppScreenKey as AppScreenKey, DevicePlatform, SortType } from '../../types';
 import { authActions, authThunks } from '../../store/slices/auth';
 import { storageActions, storageThunks } from '../../store/slices/storage';
 import { layoutActions } from '../../store/slices/layout';
@@ -22,6 +21,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { useRoute } from '@react-navigation/native';
 import { constants } from '../../services/app';
+import AppScreen from '../../components/AppScreen';
 
 function DriveScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -133,7 +133,7 @@ function DriveScreen(): JSX.Element {
 
     // BackHandler
     const backAction = () => {
-      if (route.name === AppScreen.Drive) {
+      if (route.name === AppScreenKey.Drive) {
         if (folderContent && folderContent.parentId) {
           dispatch(storageThunks.getFolderContentThunk({ folderId: folderContent.parentId as number }));
         } else {
@@ -188,7 +188,7 @@ function DriveScreen(): JSX.Element {
         })
         .then((res) => {
           if (res.respInfo.status === 402) {
-            navigation.replace(AppScreen.OutOfSpace);
+            navigation.replace(AppScreenKey.OutOfSpace);
           } else if (res.respInfo.status === 201) {
             analytics
               .track('file-upload-finished', {
@@ -226,11 +226,11 @@ function DriveScreen(): JSX.Element {
   };
 
   if (!loggedIn) {
-    navigation.replace(AppScreen.SignIn);
+    navigation.replace(AppScreenKey.SignIn);
   }
 
   return (
-    <View style={tailwind('app-screen bg-white flex-1')}>
+    <AppScreen safeAreaTop style={tailwind('flex-1')}>
       {/* DRIVE NAV */}
       <View
         style={[
@@ -315,7 +315,7 @@ function DriveScreen(): JSX.Element {
       <Separator />
 
       <FileList isGrid={fileViewMode === 'grid'} />
-    </View>
+    </AppScreen>
   );
 }
 

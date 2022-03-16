@@ -9,7 +9,7 @@ import RunOutImage from '../../../../assets/images/modals/runout.svg';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import strings from '../../../../assets/lang/strings';
-import { AppScreen, CurrentPlan, INFINITE_PLAN } from '../../../types';
+import { AppScreenKey, CurrentPlan, INFINITE_PLAN } from '../../../types';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import paymentService from '../../../services/payment';
@@ -100,7 +100,7 @@ function RunOutOfStorageModal(): JSX.Element {
               style={tailwind('bg-blue-60 rounded-lg py-2 mx-6 items-center justify-center')}
               onPress={() => {
                 dispatch(layoutActions.setShowRunOutSpaceModal(false));
-                navigation.push(AppScreen.Billing);
+                navigation.push(AppScreenKey.Billing);
               }}
             >
               <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>

@@ -74,13 +74,15 @@ const ReferralsWidget = (): JSX.Element => {
     dispatch(referralsThunks.fetchReferralsThunk());
   }, []);
 
-  return (
+  return referrals.length > 0 ? (
     <View style={tailwind('mx-5 mt-7')}>
       <Text style={[tailwind('text-xs text-neutral-80 mb-2'), { ...globalStyle.fontWeight.semibold }]}>
         {strings.screens.storage.referrals.title.toUpperCase()}
       </Text>
       <View style={tailwind('bg-white rounded-xl')}>{renderReferrals()}</View>
     </View>
+  ) : (
+    <View></View>
   );
 };
 

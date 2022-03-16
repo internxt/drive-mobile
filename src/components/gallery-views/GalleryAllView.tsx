@@ -8,7 +8,7 @@ import { tailwind } from '../../helpers/designSystem';
 import GalleryItem from '../GalleryItem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
-import { AppScreen } from '../../types';
+import { AppScreenKey } from '../../types';
 
 const GalleryAllView = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -32,7 +32,7 @@ const GalleryAllView = (): JSX.Element => {
   const onItemPressed = (photo: Photo, preview: string) => {
     isSelectionModeActivated
       ? onItemLongPressed(photo)
-      : navigation.navigate(AppScreen.PhotosPreview, { data: photo, preview });
+      : navigation.navigate(AppScreenKey.PhotosPreview, { data: photo, preview });
   };
   const loadPhotos = async () => {
     await dispatch(photosThunks.loadLocalPhotosThunk());

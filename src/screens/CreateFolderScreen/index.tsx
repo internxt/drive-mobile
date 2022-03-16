@@ -6,7 +6,7 @@ import { NavigationStackProp } from 'react-navigation-stack';
 
 import strings from '../../../assets/lang/strings';
 import { FolderIcon } from '../../helpers';
-import { AppScreen } from '../../types';
+import { AppScreenKey } from '../../types';
 
 function CreateFolderScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -14,7 +14,7 @@ function CreateFolderScreen(): JSX.Element {
 
   useEffect(() => {
     const backAction = () => {
-      navigation.replace(AppScreen.Drive);
+      navigation.replace(AppScreenKey.Drive);
 
       return true;
     };

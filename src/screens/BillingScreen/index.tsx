@@ -13,10 +13,11 @@ import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
 import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/ScreenTitle';
-import { AppScreen } from '../../types';
+import { AppScreenKey } from '../../types';
 import paymentService from '../../services/payment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { constants } from '../../services/app';
+import AppScreen from '../../components/AppScreen';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -85,7 +86,7 @@ function BillingScreen(): JSX.Element {
           [
             {
               text: strings.components.buttons.back,
-              onPress: () => navigation.replace(AppScreen.Billing),
+              onPress: () => navigation.replace(AppScreenKey.Billing),
             },
           ],
         );
@@ -129,7 +130,7 @@ function BillingScreen(): JSX.Element {
   }, [stripeProducts, selectedProductIndex]);
 
   return (
-    <View style={tailwind('app-screen flex-1 bg-white')}>
+    <AppScreen safeAreaTop style={tailwind('flex-1')}>
       <ScreenTitle
         textStyle={tailwind('text-2xl')}
         text={strings.screens.billing.title}
@@ -231,7 +232,7 @@ function BillingScreen(): JSX.Element {
           </View>
         </View>
       </View>
-    </View>
+    </AppScreen>
   );
 }
 

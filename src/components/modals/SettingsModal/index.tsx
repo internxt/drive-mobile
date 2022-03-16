@@ -8,7 +8,7 @@ import SettingsItem from './SettingsItem';
 import Separator from '../../Separator';
 import strings from '../../../../assets/lang/strings';
 import { tailwind } from '../../../helpers/designSystem';
-import { AppScreen } from '../../../types';
+import { AppScreenKey } from '../../../types';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import { authThunks } from '../../../store/slices/auth';
@@ -41,7 +41,7 @@ function SettingsModal(): JSX.Element {
         text={strings.components.app_menu.settings.storage}
         onPress={() => {
           dispatch(layoutActions.setShowSettingsModal(false));
-          navigation.replace(AppScreen.Storage);
+          navigation.replace(AppScreenKey.Storage);
         }}
       />
 

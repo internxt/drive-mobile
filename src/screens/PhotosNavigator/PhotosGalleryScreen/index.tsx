@@ -16,6 +16,7 @@ import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GalleryViewMode } from '../../../types/photos';
 import PhotosSyncStatusWidget from '../../../components/PhotosSyncStatusWidget';
+import AppScreen from '../../../components/AppScreen';
 
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -89,9 +90,9 @@ function PhotosGalleryScreen(): JSX.Element {
       />
       <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selectedPhotos} onClosed={onDeletePhotosModalClosed} />
 
-      <View style={tailwind('app-screen bg-white flex-1')}>
+      <AppScreen safeAreaTop>
         {/* GALLERY TOP BAR */}
-        <View style={tailwind('pb-2')}>
+        <View style={tailwind('pt-1.5 pb-2')}>
           {isSelectionModeActivated ? (
             <View style={tailwind('h-10 flex-row justify-between items-center')}>
               <View style={tailwind('flex-row items-center justify-between')}>
@@ -235,7 +236,7 @@ function PhotosGalleryScreen(): JSX.Element {
             </SafeAreaView>
           </Portal>
         )}
-      </View>
+      </AppScreen>
     </>
   );
 }

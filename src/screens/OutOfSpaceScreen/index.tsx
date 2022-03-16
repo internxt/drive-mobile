@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { NavigationStackProp } from 'react-navigation-stack';
 import strings from '../../../assets/lang/strings';
-import { AppScreen } from '../../types';
+import { AppScreenKey } from '../../types';
 
 function OutOfSpaceScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -30,7 +30,7 @@ function OutOfSpaceScreen(): JSX.Element {
         <TouchableOpacity
           style={[styles.button, styles.blue]}
           onPress={() => {
-            navigation.replace(AppScreen.Storage);
+            navigation.replace(AppScreenKey.Storage);
           }}
         >
           <Text style={[styles.buttonText, styles.white]}>{strings.components.buttons.upgrade}</Text>

@@ -11,6 +11,7 @@ import ScreenTitle from '../../components/ScreenTitle';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import AppTextInput from '../../components/AppTextInput';
+import AppScreen from '../../components/AppScreen';
 
 function ChangePassword(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -48,7 +49,7 @@ function ChangePassword(): JSX.Element {
   const isEmptyConfirmPassword = !confirmPassword;
 
   return (
-    <View style={tailwind('app-screen bg-neutral-20 h-full')}>
+    <AppScreen safeAreaTop backgroundColor={getColor('neutral-20')} style={tailwind('h-full')}>
       <ScreenTitle
         textStyle={tailwind('text-2xl')}
         text={strings.components.inputs.password}
@@ -135,7 +136,7 @@ function ChangePassword(): JSX.Element {
           </TouchableHighlight>
         </View>
       </View>
-    </View>
+    </AppScreen>
   );
 }
 

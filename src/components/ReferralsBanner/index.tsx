@@ -8,14 +8,14 @@ import strings from '../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { layoutActions } from '../../store/slices/layout';
 import { TouchableWithoutFeedback } from 'react-native';
-import { AppScreen } from '../../types';
+import { AppScreenKey } from '../../types';
 
 const ReferralsBanner = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationStackProp>();
   const isOpen = useAppSelector((state) => state.layout.isReferralsBannerOpen);
   const onBannerPressed = () => {
-    navigation.navigate(AppScreen.Storage);
+    navigation.navigate(AppScreenKey.Storage);
     dispatch(layoutActions.setIsReferralsBannerOpen(false));
   };
   const onCloseButtonPressed = () => {
