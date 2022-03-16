@@ -13,9 +13,8 @@ import { layoutActions } from '../../../store/slices/layout';
 
 function DeleteItemModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { folderContent, focusedItem: item } = useAppSelector((state) => state.storage);
+  const { currentFolderId, focusedItem: item } = useAppSelector((state) => state.storage);
   const { showDeleteModal } = useAppSelector((state) => state.layout);
-  const currentFolderId = folderContent && folderContent.currentFolder;
   const isFolder = item && !!item.parentId;
   const FileIcon = getFileTypeIcon(item?.type);
   const handleDeleteSelectedItem = () => {
@@ -93,7 +92,7 @@ function DeleteItemModal(): JSX.Element {
               }}
             >
               <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>
-                {strings.generic.cancel}
+                {strings.components.buttons.cancel}
               </Text>
             </TouchableHighlight>
 

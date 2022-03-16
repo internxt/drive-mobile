@@ -25,6 +25,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
+import { storageActions } from '../../store/slices/storage';
 
 function SignInScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -47,8 +48,12 @@ function SignInScreen(): JSX.Element {
         setShowTwoFactor(true);
         setIsLoading(false);
       } else {
-        await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode })).unwrap();
-        navigation.replace(AppScreenKey.TabExplorer);
+        await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }))
+          .unwrap()
+          .then((response) => {
+            dispatch(storageActions.setCurrentFolderId(response.user.root_folder_id));
+            navigation.replace(AppScreenKey.TabExplorer);
+          });
       }
     } catch (err) {
       const castedError = errorService.castError(err);

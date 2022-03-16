@@ -27,6 +27,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
+import { storageActions } from '../../store/slices/storage';
 
 function SignUpScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -106,9 +107,12 @@ function SignUpScreen(): JSX.Element {
 
       const userLoginData = await authService.apiLogin(email);
 
-      await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }));
-
-      navigation.replace(AppScreenKey.TabExplorer, { showReferralsBanner: true });
+      await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }))
+        .unwrap()
+        .then((response) => {
+          dispatch(storageActions.setCurrentFolderId(response.user.root_folder_id));
+          navigation.replace(AppScreenKey.TabExplorer, { showReferralsBanner: true });
+        });
     } catch (err) {
       const castedError = errorService.castError(err);
 

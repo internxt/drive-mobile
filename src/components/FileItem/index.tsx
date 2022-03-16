@@ -247,8 +247,8 @@ function FileItem(props: FileItemProps): JSX.Element {
                 tailwind(props.isGrid ? 'text-center' : 'text-left'),
                 globalStyle.fontWeight.medium,
               ]}
-              numberOfLines={props.isGrid ? 2 : 1}
-              ellipsizeMode={props.isGrid ? 'tail' : 'middle'}
+              numberOfLines={1}
+              ellipsizeMode={'middle'}
             >
               {props.item.name}
               {props.item.type ? '.' + props.item.type : ''}

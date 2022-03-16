@@ -18,7 +18,7 @@ export async function loadEnvVars(): Promise<boolean> {
   const VALID_ENVS = _.filter(ENVS, _.size);
 
   if (VALID_ENVS.length !== ENVS.length) {
-    throw Error('Check your envs');
+    throw Error('(loadEnvVars) Missing some environment variables!');
   }
 
   return true;

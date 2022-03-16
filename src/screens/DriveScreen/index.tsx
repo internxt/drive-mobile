@@ -28,7 +28,7 @@ function DriveScreen(): JSX.Element {
   const route = useRoute();
   const dispatch = useAppDispatch();
   const { token, user, loggedIn } = useAppSelector((state) => state.auth);
-  const { folderContent, uri, sortType, searchString } = useAppSelector((state) => state.storage);
+  const { currentFolderId, folderContent, uri, sortType, searchString } = useAppSelector((state) => state.storage);
   const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.layout);
   const onSearchTextChanged = (value: string) => {
     dispatch(storageActions.setSearchString(value));
@@ -42,112 +42,13 @@ function DriveScreen(): JSX.Element {
   })();
   const validateUri = () => {
     if (Platform.OS === 'ios') {
-      return uri && folderContent && folderContent.currentFolder;
+      return uri && folderContent;
     } else {
-      return uri.fileUri && folderContent && folderContent.currentFolder;
+      return uri.fileUri && folderContent;
     }
   };
   const isRootFolder = folderContent && folderContent.id === user?.root_folder_id;
   const screenTitle = !isRootFolder && folderContent ? folderContent.name : strings.screens.drive.title;
-
-  useEffect(() => {
-    getAnalyticsData()
-      .then((userData) => {
-        loadValues()
-          .then((res) => {
-            const currentPlan = {
-              usage: parseInt(res.usage.toFixed(1)),
-              limit: parseInt(res.limit.toFixed(1)),
-              percentage: parseInt((res.usage / res.limit).toFixed(1)),
-            };
-
-            dispatch(authActions.setUserStorage(currentPlan));
-            try {
-              if (res) {
-                analytics
-                  .identify(userData.uuid, {
-                    userId: userData.uuid,
-                    email: userData.email,
-                    platform: DevicePlatform.Mobile,
-                    // eslint-disable-next-line camelcase
-                    storage_used: currentPlan.usage,
-                    // eslint-disable-next-line camelcase
-                    storage_limit: currentPlan.limit,
-                    // eslint-disable-next-line camelcase
-                    storage_usage: currentPlan.percentage,
-                  })
-                  .catch(() => undefined);
-              }
-            } catch (err) {
-              console.log('Error in analytics.identify: ', err);
-            }
-          })
-          .catch(() => undefined);
-      })
-      .catch(() => undefined);
-  }, []);
-
-  // useEffect to trigger uploadFile while app on background
-  useEffect(() => {
-    if (Platform.OS === 'ios') {
-      if (uri && validateUri() && folderContent) {
-        const name = uri.split('/').pop();
-
-        setTimeout(() => {
-          uploadFile(uri, name, folderContent.currentFolder);
-        }, 3000);
-      }
-    } else {
-      if (uri && validateUri() && folderContent) {
-        const name = uri.fileUri.fileName.split('/').pop();
-
-        setTimeout(() => {
-          uploadFile(uri.fileUri, name, folderContent.currentFolder);
-        }, 3000);
-      }
-    }
-  }, [uri]);
-
-  // seEffect to trigger uploadFile while app closed
-  useEffect(() => {
-    if (Platform.OS === 'ios') {
-      if (validateUri() && folderContent) {
-        const name = uri.split('/').pop();
-
-        setTimeout(() => {
-          uploadFile(uri, name, folderContent.currentFolder);
-        }, 3000);
-      }
-    } else {
-      if (uri && validateUri() && folderContent) {
-        const name = uri.fileUri.fileName;
-
-        setTimeout(() => {
-          uploadFile(uri.fileUri, name, folderContent.currentFolder);
-        }, 3000);
-      }
-    }
-
-    // Set rootfoldercontent for MoveFilesModal
-    parentFolderId === null ? dispatch(storageActions.setRootFolderContent(folderContent)) : null;
-
-    // BackHandler
-    const backAction = () => {
-      if (route.name === AppScreenKey.Drive) {
-        if (folderContent && folderContent.parentId) {
-          dispatch(storageThunks.getFolderContentThunk({ folderId: folderContent.parentId as number }));
-        } else {
-          return false;
-        }
-      }
-
-      return true;
-    };
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-    return () => backHandler.remove();
-  }, [folderContent]);
-
   const uploadFile = async (uri: string, name: string, currentFolder: number) => {
     dispatch(storageActions.setUri(undefined));
     const userData = await getAnalyticsData();
@@ -198,7 +99,7 @@ function DriveScreen(): JSX.Element {
               })
               .catch(() => undefined);
 
-            folderContent && dispatch(storageThunks.getFolderContentThunk({ folderId: folderContent.currentFolder }));
+            folderContent && dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
           } else {
             Alert.alert('Error', 'Can not upload file');
           }
@@ -228,6 +129,102 @@ function DriveScreen(): JSX.Element {
   if (!loggedIn) {
     navigation.replace(AppScreenKey.SignIn);
   }
+
+  useEffect(() => {
+    getAnalyticsData()
+      .then((userData) => {
+        loadValues()
+          .then((res) => {
+            const currentPlan = {
+              usage: parseInt(res.usage.toFixed(1)),
+              limit: parseInt(res.limit.toFixed(1)),
+              percentage: parseInt((res.usage / res.limit).toFixed(1)),
+            };
+
+            dispatch(authActions.setUserStorage(currentPlan));
+            try {
+              if (res) {
+                analytics
+                  .identify(userData.uuid, {
+                    userId: userData.uuid,
+                    email: userData.email,
+                    platform: DevicePlatform.Mobile,
+                    // eslint-disable-next-line camelcase
+                    storage_used: currentPlan.usage,
+                    // eslint-disable-next-line camelcase
+                    storage_limit: currentPlan.limit,
+                    // eslint-disable-next-line camelcase
+                    storage_usage: currentPlan.percentage,
+                  })
+                  .catch(() => undefined);
+              }
+            } catch (err) {
+              console.log('Error in analytics.identify: ', err);
+            }
+          })
+          .catch(() => undefined);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      if (uri && validateUri() && folderContent) {
+        const name = uri.split('/').pop();
+
+        setTimeout(() => {
+          uploadFile(uri, name, currentFolderId);
+        }, 3000);
+      }
+    } else {
+      if (uri && validateUri() && folderContent) {
+        const name = uri.fileUri.fileName.split('/').pop();
+
+        setTimeout(() => {
+          uploadFile(uri.fileUri, name, currentFolderId);
+        }, 3000);
+      }
+    }
+  }, [uri]);
+
+  // seEffect to trigger uploadFile while app closed
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      if (validateUri() && folderContent) {
+        const name = uri.split('/').pop();
+
+        setTimeout(() => {
+          uploadFile(uri, name, currentFolderId);
+        }, 3000);
+      }
+    } else {
+      if (uri && validateUri() && folderContent) {
+        const name = uri.fileUri.fileName;
+
+        setTimeout(() => {
+          uploadFile(uri.fileUri, name, currentFolderId);
+        }, 3000);
+      }
+    }
+
+    parentFolderId === null ? dispatch(storageActions.setRootFolderContent(folderContent)) : null;
+
+    // BackHandler
+    const backAction = () => {
+      if (route.name === AppScreenKey.Drive) {
+        if (folderContent && folderContent.parentId) {
+          dispatch(storageThunks.getFolderContentThunk({ folderId: folderContent.parentId as number }));
+        } else {
+          return false;
+        }
+      }
+
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [folderContent]);
 
   return (
     <AppScreen safeAreaTop style={tailwind('flex-1')}>

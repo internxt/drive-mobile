@@ -107,7 +107,7 @@ function ChangePassword(): JSX.Element {
               value={confirmPassword}
               onChangeText={(value) => setConfirmPassword(value)}
               placeholder={strings.components.inputs.confirm_password}
-              placeholderTextColor="#666"
+              placeholderTextColor={getColor('neutral-100')}
               secureTextEntry={!showConfirmPassword}
               textContentType="password"
               onFocus={() => setConfirmPasswordFocus(true)}

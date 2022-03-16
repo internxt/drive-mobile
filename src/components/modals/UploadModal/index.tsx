@@ -108,8 +108,8 @@ async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image',
     const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
       title: 'Files Permission',
       message: 'Internxt needs access to your files in order to upload documents',
-      buttonNegative: 'Cancel',
-      buttonPositive: 'Grant',
+      buttonNegative: strings.components.buttons.cancel,
+      buttonPositive: strings.components.buttons.grant,
     });
 
     if (!granted) {
@@ -177,9 +177,7 @@ async function uploadAndCreateFileEntry(
 
 function UploadModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { folderContent, usage: storageUsage, limit } = useAppSelector((state) => state.storage);
-  const { user } = useAppSelector((state) => state.auth);
-  const currentFolder = folderContent?.currentFolder || user?.root_folder_id;
+  const { folderContent, usage: storageUsage, limit, currentFolderId } = useAppSelector((state) => state.storage);
   const { showUploadModal } = useAppSelector((state) => state.layout);
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const usage = photosUsage + storageUsage;
@@ -252,7 +250,7 @@ function UploadModal(): JSX.Element {
       uri: file.uri,
       name: renameIfAlreadyExists(filesAtSameLevel, removeExtension(file.name), getFileExtension(file.name) || '')[2],
       type: nameSplittedByDots[nameSplittedByDots.length - 1] || '',
-      currentFolder,
+      currentFolder: currentFolderId,
       createdAt: new Date().toString(),
       updatedAt: new Date().toString(),
       id: uniqueId(),
@@ -298,7 +296,7 @@ function UploadModal(): JSX.Element {
             getFileExtension(fileToUpload.name) || '',
           )[2],
           type: getFileExtension(fileToUpload.uri) || '',
-          currentFolder,
+          currentFolder: currentFolderId,
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
           id: uniqueId(),
@@ -351,8 +349,8 @@ function UploadModal(): JSX.Element {
         .then(() => {
           dispatch(storageThunks.getUsageAndLimitThunk());
 
-          if (currentFolder) {
-            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
+          if (currentFolderId) {
+            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
           }
         })
         .catch((err) => {
@@ -373,8 +371,8 @@ function UploadModal(): JSX.Element {
         .then(() => {
           dispatch(storageThunks.getUsageAndLimitThunk());
 
-          if (currentFolder) {
-            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
+          if (currentFolderId) {
+            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
           }
         })
         .catch((err) => {
@@ -420,8 +418,8 @@ function UploadModal(): JSX.Element {
               .then(() => {
                 dispatch(storageThunks.getUsageAndLimitThunk());
 
-                if (currentFolder) {
-                  dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
+                if (currentFolderId) {
+                  dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
                 }
               })
               .catch((err) => {
@@ -445,8 +443,8 @@ function UploadModal(): JSX.Element {
         .then(() => {
           dispatch(storageThunks.getUsageAndLimitThunk());
 
-          if (currentFolder) {
-            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
+          if (currentFolderId) {
+            dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
           }
         })
         .catch((err) => {
@@ -479,7 +477,7 @@ function UploadModal(): JSX.Element {
           const file: UploadingFile = {
             name,
             progress: 0,
-            currentFolder: currentFolder,
+            currentFolder: currentFolderId,
             createdAt: new Date().toString(),
             updatedAt: new Date().toString(),
             id: uniqueId(),
@@ -507,8 +505,8 @@ function UploadModal(): JSX.Element {
               dispatch(storageActions.uploadFileFinished());
               dispatch(storageThunks.getUsageAndLimitThunk());
 
-              if (currentFolder) {
-                dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolder }));
+              if (currentFolderId) {
+                dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
               }
             });
         }
@@ -630,7 +628,7 @@ function UploadModal(): JSX.Element {
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 items-center justify-center')}>
                 <Text style={[tailwind('text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
-                  {strings.generic.cancel}
+                  {strings.components.buttons.cancel}
                 </Text>
               </View>
             </TouchableHighlight>

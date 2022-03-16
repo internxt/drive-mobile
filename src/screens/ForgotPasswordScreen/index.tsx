@@ -19,6 +19,7 @@ import authService from '../../services/auth';
 import { AppScreenKey } from '../../types';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
+import AppScreen from '../../components/AppScreen';
 
 function ForgotPasswordScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -57,7 +58,7 @@ function ForgotPasswordScreen(): JSX.Element {
 
   if (currentContainer === 1) {
     return (
-      <KeyboardAvoidingView behavior="height" style={tailwind('app-screen p-5 bg-white h-full justify-center')}>
+      <AppScreen safeAreaTop style={tailwind('p-5 h-full justify-center')}>
         <View style={tailwind('p-6 py-0 bg-white')}>
           <View style={isLoading ? tailwind('opacity-50') : tailwind('opacity-100')}>
             <View>
@@ -105,13 +106,13 @@ function ForgotPasswordScreen(): JSX.Element {
             </View>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </AppScreen>
     );
   }
 
   if (currentContainer === 2) {
     return (
-      <KeyboardAvoidingView behavior="height" style={tailwind('p-5 bg-white h-full justify-center')}>
+      <AppScreen safeAreaTop style={tailwind('p-5 h-full justify-center')}>
         <View style={tailwind('py-0 bg-white')}>
           <View style={[tailwind(''), isLoading ? tailwind('opacity-50') : {}]}>
             <View>
@@ -144,7 +145,7 @@ function ForgotPasswordScreen(): JSX.Element {
             </View>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </AppScreen>
     );
   }
   return <></>;

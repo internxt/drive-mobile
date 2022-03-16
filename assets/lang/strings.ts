@@ -7,7 +7,6 @@ const strings = new LocalizedStrings({
   en_US: {
     generic: {
       loading: 'Loading',
-      cancel: 'Cancel',
       security: 'Security',
       create: 'Create',
       creating: 'Creating...',
@@ -143,10 +142,10 @@ const strings = new LocalizedStrings({
           title: 'Unlock storage for free',
           items: {
             [ReferralTypes.ReferralKey.CreateAccount]: 'Create an account',
-            [ReferralTypes.ReferralKey.InstallMobileApp]: 'Install mobile app and upload a file',
+            [ReferralTypes.ReferralKey.InstallMobileApp]: 'Upload a file',
             [ReferralTypes.ReferralKey.ShareFile]: 'Share a file via link',
             [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Subscribe to newsletter',
-            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Install desktop app and upload a file',
+            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Upload a file using the desktop app',
             [ReferralTypes.ReferralKey.InviteFriends]: 'Invite {0}/{1} friends',
           },
         },
@@ -154,6 +153,7 @@ const strings = new LocalizedStrings({
       create_folder: {
         input: 'Enter folder name',
         title: 'New folder',
+        defaultName: 'New folder',
         confirm: 'Create',
       },
       billing: {
@@ -226,6 +226,7 @@ const strings = new LocalizedStrings({
         tryAgain: 'Try again',
         subscribe: 'Subscribe',
         invite: 'Invite',
+        grant: 'Grant',
       },
       inputs: {
         email: 'Email address',
@@ -350,6 +351,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      folderCreated: 'Folder created',
       itemsDeleted: 'Item/s deleted',
       photoShared: 'You have shared a photo!',
       photosSyncPending: 'Pending synchronization',
@@ -377,7 +379,6 @@ const strings = new LocalizedStrings({
   es: {
     generic: {
       loading: 'Cargando',
-      cancel: 'Cancelar',
       security: 'Seguridad',
       create: 'Crear',
       creating: 'Creando...',
@@ -519,7 +520,7 @@ const strings = new LocalizedStrings({
             [ReferralTypes.ReferralKey.InstallMobileApp]: 'Subir archivo',
             [ReferralTypes.ReferralKey.ShareFile]: 'Compartir link archivo',
             [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Suscribirse a newletter',
-            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Instalar app escritorio y subir un archivo',
+            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Sube un archivo con la app de escritorio',
             [ReferralTypes.ReferralKey.InviteFriends]: 'Invitar {0}/{1} amigos',
           },
         },
@@ -527,6 +528,7 @@ const strings = new LocalizedStrings({
       create_folder: {
         input: 'Nombre de la carpeta',
         title: 'Crear carpeta',
+        defaultName: 'Nueva carpeta',
         confirm: 'Crear',
       },
       billing: {
@@ -600,6 +602,7 @@ const strings = new LocalizedStrings({
         tryAgain: 'Intentar de nuevo',
         subscribe: 'Suscribirse',
         invite: 'Invitar',
+        grant: 'Autorizar',
       },
       inputs: {
         email: 'Correo electrónico',
@@ -727,6 +730,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      folderCreated: 'Carpeta creada',
       itemsDeleted: 'Elementos borrados',
       photoShared: '¡Has compartido una foto!',
       photosSyncPending: 'Sincronización pendiente',

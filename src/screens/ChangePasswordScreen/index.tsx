@@ -11,6 +11,7 @@ import { doChangePassword } from './changePasswordUtils';
 import { notify } from '../../services/toast';
 import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreenKey } from '../../types';
+import AppScreen from '../../components/AppScreen';
 
 function ChangePasswordScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -46,7 +47,7 @@ function ChangePasswordScreen(): JSX.Element {
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
   return (
-    <View style={tailwind('app-screen flex-1 bg-neutral-20')}>
+    <AppScreen safeAreaTop style={tailwind('flex-1 bg-neutral-20')}>
       <ScreenTitle
         text={strings.components.inputs.password}
         centerText
@@ -145,7 +146,7 @@ function ChangePasswordScreen(): JSX.Element {
           </TouchableHighlight>
         </View>
       </View>
-    </View>
+    </AppScreen>
   );
 }
 

@@ -225,7 +225,7 @@ function ShareFilesModal(): JSX.Element {
           disabled={isLoading}
         >
           <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>
-            {strings.generic.cancel}
+            {strings.components.buttons.cancel}
           </Text>
         </TouchableHighlight>
 

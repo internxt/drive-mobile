@@ -171,7 +171,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
               >
                 <TouchableOpacity
                   disabled={isFullSizeLoading}
-                  style={tailwind('items-center flex-1')}
+                  style={tailwind('items-center flex-1 pb-2')}
                   onPress={onShareButtonPressed}
                 >
                   <Unicons.UilLink color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />

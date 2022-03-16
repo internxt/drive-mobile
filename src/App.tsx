@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, KeyboardAvoidingView } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -18,6 +18,7 @@ import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { layoutActions } from './store/slices/layout';
+import { storageActions } from './store/slices/storage';
 
 process.nextTick = setImmediate;
 
@@ -41,6 +42,7 @@ export default function App(): JSX.Element {
     const user = await deviceStorage.getUser();
 
     if (token && photosToken && user) {
+      dispatch(storageActions.setCurrentFolderId(user.root_folder_id));
       dispatch(authActions.signIn({ token, photosToken, user }));
 
       dispatch(appThunks.initializeThunk());
@@ -74,7 +76,7 @@ export default function App(): JSX.Element {
   const routeNameRef = useRef<string>();
 
   return (
-    <View style={tailwind('h-full w-full bg-white')}>
+    <KeyboardAvoidingView behavior="padding" style={tailwind('h-full w-full')}>
       <Portal.Host>
         <View style={tailwind('flex-1')}>
           <NavigationContainer
@@ -129,7 +131,7 @@ export default function App(): JSX.Element {
           />
         </View>
       </Portal.Host>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

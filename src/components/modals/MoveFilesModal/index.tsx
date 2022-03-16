@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Platform, FlatList, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
@@ -10,42 +10,28 @@ import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import { storageThunks } from '../../../store/slices/storage';
-import { IFolder } from '../../FileList';
 
 function MoveFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { showMoveModal } = useAppSelector((state) => state.layout);
-  const { rootFolderContent, folderContent, selectedFile } = useAppSelector((state) => state.storage);
-  const [currentFolderId, setCurrentFolderId] = useState<number>();
-  const [folderlist, setFolderList] = useState<IFolder[]>([]);
-  const [firstFolder, setFirstFolder] = useState<number>();
-  const [selectedfile, setSelectedFile] = useState<any>({});
+  const { currentFolderId, selectedFile } = useAppSelector((state) => state.storage);
 
-  useEffect(() => {
-    if (folderContent) {
-      setCurrentFolderId(folderContent.currentFolder);
-      setSelectedFile(selectedFile);
-      setFolderList(rootFolderContent.children);
-      setFirstFolder(folderContent.currentFolder);
-    }
-  }, [showMoveModal]);
+  const onMoveButtonPressed = async () => {
+    const rootFolderId = user?.root_folder_id;
 
-  useEffect(() => {
-    if (folderContent) {
-      setCurrentFolderId(folderContent.currentFolder);
-      setFolderList(folderContent.children);
-    }
-  }, [folderContent]);
-
-  const moveFile = async (destinationFolderId: number) => {
-    if (selectedfile) {
-      await dispatch(storageThunks.moveFileThunk({ fileId: selectedfile.fileId, destinationFolderId }));
+    if (selectedFile) {
+      await dispatch(
+        storageThunks.moveFileThunk({ fileId: selectedFile.fileId, destinationFolderId: currentFolderId }),
+      );
       dispatch(layoutActions.setShowMoveModal(false));
-      const rootFolderId = user?.root_folder_id;
 
       rootFolderId && dispatch(storageThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
+  };
+  const onCancelButtonPressed = () => {
+    dispatch(layoutActions.setShowMoveModal(false));
+    dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
   };
 
   return (
@@ -65,7 +51,7 @@ function MoveFilesModal(): JSX.Element {
 
       <View style={tailwind('flex-grow')}>
         <FlatList
-          data={folderlist}
+          data={[] as any[]}
           renderItem={(folder: any) => {
             return <FileItem totalColumns={1} key={folder.id} isFolder={true} item={folder.item} progress={-1} />;
           }}
@@ -74,24 +60,11 @@ function MoveFilesModal(): JSX.Element {
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            dispatch(layoutActions.setShowMoveModal(false));
-            if (firstFolder) {
-              dispatch(storageThunks.getFolderContentThunk({ folderId: firstFolder }));
-            }
-          }}
-        >
+        <TouchableOpacity style={styles.button} onPress={onCancelButtonPressed}>
           <Text style={styles.text}>{strings.components.buttons.cancel}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.button, styles.blue]}
-          onPress={() => {
-            currentFolderId && moveFile(currentFolderId);
-          }}
-        >
+        <TouchableOpacity style={[styles.button, styles.blue]} onPress={onMoveButtonPressed}>
           <Text style={[styles.text, styles.white]}>{strings.components.buttons.move}</Text>
         </TouchableOpacity>
       </View>

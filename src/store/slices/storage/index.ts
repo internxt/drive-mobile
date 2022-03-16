@@ -31,16 +31,16 @@ interface FolderContent {
   iconId: number | null;
   parentId: number | null;
   children: IFolder[];
-  currentFolder: number;
   files: IFile[];
 }
 
 export interface StorageState {
-  absolutePath: string;
-  loading: boolean;
+  isLoading: boolean;
   items: any[];
+  absolutePath: string;
   filesCurrentlyUploading: IUploadingFile[];
   filesAlreadyUploaded: any[];
+  currentFolderId: number;
   folderContent: FolderContent | null;
   rootFolderContent: any;
   focusedItem: any | null;
@@ -53,7 +53,7 @@ export interface StorageState {
   progress: number;
   startDownloadSelectedFile: boolean;
   error?: string | null;
-  uri: any;
+  uri?: any;
   pendingDeleteItems: { [key: string]: boolean };
   selectedFile: any;
   usage: number;
@@ -61,9 +61,10 @@ export interface StorageState {
 }
 
 const initialState: StorageState = {
-  absolutePath: '/',
-  loading: false,
+  isLoading: false,
   items: [],
+  currentFolderId: -1,
+  absolutePath: '/',
   filesCurrentlyUploading: [],
   filesAlreadyUploaded: [],
   folderContent: null,
@@ -96,30 +97,14 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 );
 
 const getFolderContentThunk = createAsyncThunk<
-  FolderContent,
+  { currentFolderId: number; folderContent: FolderContent },
   { folderId: number; quick?: boolean },
   { state: RootState }
->('files/getFolderContent', async ({ folderId, quick }, { getState }) => {
-  if (quick) {
-    return getState().storage.folderContent;
-  }
-
+>('files/getFolderContent', async ({ folderId }) => {
   const folderContent = await fileService.getFolderContent(folderId);
-  folderContent.currentFolder = folderId;
 
-  return folderContent;
+  return { currentFolderId: folderId, folderContent };
 });
-
-const fetchIfSameFolderThunk = createAsyncThunk<void, { folderId: number }, { state: RootState }>(
-  'files/fetchIfSameFolder',
-  async ({ folderId }, { getState, dispatch }) => {
-    const currentFolder = getState().storage.folderContent?.currentFolder;
-
-    if (currentFolder && folderId === currentFolder) {
-      await dispatch(getFolderContentThunk({ folderId: currentFolder }));
-    }
-  },
-);
 
 const getUsageAndLimitThunk = createAsyncThunk<{ usage: number; limit: number }, void, { state: RootState }>(
   'files/getUsageAndLimit',
@@ -194,7 +179,7 @@ const moveFileThunk = createAsyncThunk<void, { fileId: string; destinationFolder
 const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: number }, { state: RootState }>(
   'files/deleteItems',
   async ({ items, folderToReload }, { dispatch }) => {
-    dispatch(getFolderContentThunk({ folderId: folderToReload, quick: true }));
+    dispatch(getFolderContentThunk({ folderId: folderToReload }));
 
     notify({
       text: strings.messages.itemsDeleted,
@@ -228,6 +213,9 @@ export const storageSlice = createSlice({
     resetState(state) {
       Object.assign(state, initialState);
     },
+    setCurrentFolderId(state, action: PayloadAction<number>) {
+      state.currentFolderId = action.payload;
+    },
     setSortType(state, action: PayloadAction<string>) {
       state.sortType = action.payload;
     },
@@ -255,7 +243,7 @@ export const storageSlice = createSlice({
       state.searchString = action.payload;
     },
     uploadFileStart(state, action: PayloadAction<string>) {
-      state.loading = true;
+      state.isLoading = true;
       state.isUploading = true;
       state.isUploadingFileName = action.payload;
     },
@@ -276,12 +264,12 @@ export const storageSlice = createSlice({
       state.filesCurrentlyUploading = state.filesCurrentlyUploading.filter((file) => file.id !== action.payload);
     },
     uploadFileFinished(state) {
-      state.loading = false;
+      state.isLoading = false;
       state.isUploading = false;
       state.isUploadingFileName = null;
     },
     uploadFileFailed(state, action: PayloadAction<{ errorMessage?: string; id?: string }>) {
-      state.loading = false;
+      state.isLoading = false;
       state.isUploading = false;
       state.error = action.payload.errorMessage;
       state.filesCurrentlyUploading = state.filesCurrentlyUploading.filter((file) => file.id !== action.payload.id);
@@ -348,23 +336,24 @@ export const storageSlice = createSlice({
 
     builder
       .addCase(getFolderContentThunk.pending, (state) => {
-        state.loading = true;
+        state.isLoading = true;
       })
       .addCase(getFolderContentThunk.fulfilled, (state, action) => {
-        action.payload.children = action.payload.children.filter((item) => {
+        action.payload.folderContent.children = action.payload.folderContent.children.filter((item) => {
           return !state.pendingDeleteItems[item.id.toString()];
         });
-        action.payload.files = action.payload.files.filter((item) => {
+        action.payload.folderContent.files = action.payload.folderContent.files.filter((item) => {
           return !state.pendingDeleteItems[item.fileId];
         });
 
-        state.loading = false;
-        state.folderContent = action.payload;
+        state.isLoading = false;
+        state.currentFolderId = action.payload.currentFolderId;
+        state.folderContent = action.payload.folderContent;
         state.selectedItems = [];
         state.filesAlreadyUploaded = state.filesAlreadyUploaded.filter((file) => file.isUploaded === false);
       })
       .addCase(getFolderContentThunk.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
         state.error = action.error.message;
       });
 
@@ -375,49 +364,49 @@ export const storageSlice = createSlice({
 
     builder
       .addCase(updateFileMetadataThunk.pending, (state) => {
-        state.loading = true;
+        state.isLoading = true;
       })
       .addCase(updateFileMetadataThunk.fulfilled, () => undefined)
       .addCase(updateFileMetadataThunk.rejected, () => undefined);
 
     builder
       .addCase(updateFolderMetadataThunk.pending, (state) => {
-        state.loading = true;
+        state.isLoading = true;
       })
       .addCase(updateFolderMetadataThunk.fulfilled, () => undefined)
       .addCase(updateFolderMetadataThunk.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
         state.error = action.error.message;
       });
 
     builder
       .addCase(createFolderThunk.pending, (state) => {
-        state.loading = true;
+        state.isLoading = true;
       })
       .addCase(createFolderThunk.fulfilled, (state) => {
-        state.loading = false;
+        state.isLoading = false;
         state.selectedItems = [];
       })
       .addCase(createFolderThunk.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
         state.error = action.error.message;
       });
 
     builder
       .addCase(moveFileThunk.pending, (state) => {
-        state.loading = true;
+        state.isLoading = true;
       })
       .addCase(moveFileThunk.fulfilled, (state) => {
-        state.loading = false;
+        state.isLoading = false;
       })
       .addCase(moveFileThunk.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
         state.error = action.error.message;
       });
 
     builder
       .addCase(deleteItemsThunk.pending, (state, action) => {
-        state.loading = true;
+        state.isLoading = true;
         action.meta.arg.items.forEach((item) => {
           if (item.fileId) {
             state.pendingDeleteItems[item.fileId] = true;
@@ -427,11 +416,11 @@ export const storageSlice = createSlice({
         });
       })
       .addCase(deleteItemsThunk.fulfilled, (state) => {
-        state.loading = false;
+        state.isLoading = false;
         state.pendingDeleteItems = {};
       })
       .addCase(deleteItemsThunk.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
         state.pendingDeleteItems = {};
         state.error = action.error.message;
       });
@@ -444,7 +433,6 @@ export const storageThunks = {
   initializeThunk,
   getUsageAndLimitThunk,
   getFolderContentThunk,
-  fetchIfSameFolderThunk,
   goBackThunk,
   updateFileMetadataThunk,
   updateFolderMetadataThunk,

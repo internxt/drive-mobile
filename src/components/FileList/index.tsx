@@ -78,7 +78,8 @@ function FileList(props: FileListProps): JSX.Element {
     filesAlreadyUploaded,
     sortType,
     isUploadingFileName,
-    loading: filesLoading,
+    isLoading: filesLoading,
+    currentFolderId,
   } = useAppSelector((state) => state.storage);
   const { user } = useAppSelector((state) => state.auth);
   let folderList: IFolder[] = (folderContent && folderContent.children) || [];
@@ -94,7 +95,6 @@ function FileList(props: FileListProps): JSX.Element {
   fileList = fileList.slice().sort(sortFunction);
 
   const rootFolderId = user?.root_folder_id;
-  const currentFolderId = folderContent && folderContent.currentFolder;
   const isRootFolder = currentFolderId === rootFolderId;
 
   useEffect(() => {
@@ -123,15 +123,12 @@ function FileList(props: FileListProps): JSX.Element {
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={() => {
+          onRefresh={async () => {
             setRefreshing(true);
-            if (!folderContent) {
-              return setRefreshing(false);
-            }
 
-            if (currentFolderId) {
-              dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
-            }
+            await dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
+
+            setRefreshing(false);
           }}
         />
       }
