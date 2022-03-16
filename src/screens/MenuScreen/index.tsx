@@ -110,12 +110,14 @@ function MenuScreen(): JSX.Element {
             style={tailwind('border-b border-neutral-20')}
           />
 
-          {/*<MenuItem
-            title={strings.screens.billing.title}
-            onPress={() => {
-              navigation.push(AppScreen.Billing);
-            }}
-          />*/}
+          {
+            <MenuItem
+              title={strings.screens.billing.title}
+              onPress={() => {
+                navigation.push(AppScreen.Billing);
+              }}
+            />
+          }
         </View>
 
         <MenuSeparator />
