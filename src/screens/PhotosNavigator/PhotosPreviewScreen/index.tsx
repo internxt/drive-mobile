@@ -20,6 +20,7 @@ import LoadingSpinner from '../../../components/LoadingSpinner';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { items } from '@internxt/lib';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AppScreen from '../../../components/AppScreen';
 
 interface PreviewProps {
   route: {
@@ -127,87 +128,94 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         preview={props.route.params.preview}
       />
 
-      {/* PHOTO */}
-      <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
+      <AppScreen
+        statusBarHidden
+        statusBarStyle="light"
+        backgroundColor={getColor('black')}
+        style={{ ...tailwind('h-full') }}
+      >
+        {/* PHOTO */}
+        <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
 
-      <TouchableWithoutFeedback onPress={onScreenPressed}>
-        <View style={{ ...tailwind('h-full') }}>
-          {/* LOADING */}
-          {isFullSizeLoading && (
-            <View style={tailwind('absolute top-0 bottom-0 right-0 left-0 items-center justify-center')}>
-              <LoadingSpinner size={32} color={getColor('white')} />
-              <Text style={tailwind('text-white')}>{(progress * 100).toFixed(0) + '%'}</Text>
-            </View>
-          )}
+        <TouchableWithoutFeedback onPress={onScreenPressed}>
+          <View style={tailwind('absolute w-full h-full')}></View>
+        </TouchableWithoutFeedback>
 
-          {showActions && (
-            <View style={tailwind('flex-col justify-between h-full')}>
-              <LinearGradient
-                colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.24)', 'transparent']}
-                style={{
-                  ...tailwind('absolute w-full'),
-                  paddingTop: safeAreaInsets.top,
-                }}
+        {/* LOADING */}
+        {isFullSizeLoading && (
+          <View style={tailwind('absolute top-0 bottom-0 right-0 left-0 items-center justify-center')}>
+            <LoadingSpinner size={32} color={getColor('white')} />
+            <Text style={tailwind('text-white')}>{(progress * 100).toFixed(0) + '%'}</Text>
+          </View>
+        )}
+
+        {showActions && (
+          <View style={tailwind('flex-col justify-between h-full')}>
+            <LinearGradient
+              colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.24)', 'transparent']}
+              style={{
+                ...tailwind('absolute w-full'),
+                paddingTop: safeAreaInsets.top,
+              }}
+            >
+              <View style={tailwind('flex-row justify-between p-5')}>
+                {/* BACK BUTTON */}
+                <TouchableOpacity style={tailwind('z-10')} onPress={onBackButtonPressed}>
+                  <Unicons.UilAngleLeft color={getColor('white')} size={32} />
+                </TouchableOpacity>
+
+                {/* OPTIONS BUTTON */}
+                <TouchableOpacity style={tailwind('z-10')} onPress={() => setIsOptionsModalOpen(true)}>
+                  <Unicons.UilEllipsisH color={getColor('white')} size={32} />
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
+
+            <LinearGradient
+              colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.24)', 'rgba(0,0,0,0.6)']}
+              style={{
+                ...tailwind('flex-row justify-around p-3 absolute bottom-0 w-full'),
+                paddingBottom: safeAreaInsets.bottom,
+              }}
+            >
+              <TouchableOpacity
+                disabled={isFullSizeLoading}
+                style={tailwind('items-center flex-1 pb-2')}
+                onPress={onShareButtonPressed}
               >
-                <View style={tailwind('flex-row justify-between p-5')}>
-                  {/* BACK BUTTON */}
-                  <TouchableOpacity style={tailwind('z-10')} onPress={onBackButtonPressed}>
-                    <Unicons.UilAngleLeft color={getColor('white')} size={32} />
-                  </TouchableOpacity>
-
-                  {/* OPTIONS BUTTON */}
-                  <TouchableOpacity style={tailwind('z-10')} onPress={() => setIsOptionsModalOpen(true)}>
-                    <Unicons.UilEllipsisH color={getColor('white')} size={32} />
-                  </TouchableOpacity>
-                </View>
-              </LinearGradient>
-
-              <LinearGradient
-                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.24)', 'rgba(0,0,0,0.6)']}
-                style={{
-                  ...tailwind('flex-row justify-around p-3 absolute bottom-0 w-full'),
-                  paddingBottom: safeAreaInsets.bottom,
-                }}
+                <Unicons.UilLink color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
+                <Text
+                  style={[
+                    tailwind('text-xs'),
+                    !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
+                  ]}
+                >
+                  {strings.components.buttons.share}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={isFullSizeLoading}
+                style={tailwind('items-center flex-1')}
+                onPress={onDownloadButtonPressed}
               >
-                <TouchableOpacity
-                  disabled={isFullSizeLoading}
-                  style={tailwind('items-center flex-1 pb-2')}
-                  onPress={onShareButtonPressed}
+                <Unicons.UilImport color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
+                <Text
+                  style={[
+                    tailwind('text-xs'),
+                    !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
+                  ]}
                 >
-                  <Unicons.UilLink color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
-                  <Text
-                    style={[
-                      tailwind('text-xs'),
-                      !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
-                    ]}
-                  >
-                    {strings.components.buttons.share}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  disabled={isFullSizeLoading}
-                  style={tailwind('items-center flex-1')}
-                  onPress={onDownloadButtonPressed}
-                >
-                  <Unicons.UilImport color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
-                  <Text
-                    style={[
-                      tailwind('text-xs'),
-                      !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
-                    ]}
-                  >
-                    {strings.components.buttons.download}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={tailwind('items-center flex-1')} onPress={onMoveToTrashButtonPressed}>
-                  <Unicons.UilTrash color="white" size={26} />
-                  <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.moveToThrash}</Text>
-                </TouchableOpacity>
-              </LinearGradient>
-            </View>
-          )}
-        </View>
-      </TouchableWithoutFeedback>
+                  {strings.components.buttons.download}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={tailwind('items-center flex-1')} onPress={onMoveToTrashButtonPressed}>
+                <Unicons.UilTrash color="white" size={26} />
+                <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.moveToThrash}</Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
+        )}
+      </AppScreen>
     </>
   );
 }

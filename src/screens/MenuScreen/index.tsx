@@ -11,6 +11,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
+
 import { getColor, tailwind } from '../../helpers/designSystem';
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
@@ -65,14 +66,13 @@ function MenuScreen(): JSX.Element {
   const userFullName = useAppSelector(authSelectors.userFullName);
 
   return (
-    <AppScreen safeAreaTop backgroundColor={getColor('neutral-20')}>
-      <ScrollView contentContainerStyle={tailwind('h-full bg-neutral-20')}>
+    <AppScreen safeAreaTop backgroundColor={getColor('neutral-20')} style={tailwind('min-h-full')}>
+      <ScrollView>
         <ScreenTitle
           text={strings.generic.settings}
           showBackButton={false}
           textStyle={tailwind('text-3xl font-semibold')}
         />
-
         <View style={tailwind('px-5 mt-2 flex-grow')}>
           <View style={tailwind('bg-white rounded-xl')}>
             <View style={tailwind('flex-row p-4')}>
@@ -154,7 +154,7 @@ function MenuScreen(): JSX.Element {
           <MenuSeparator />
         </View>
 
-        <View style={tailwind('flex text-base mb-5')}>
+        <View style={tailwind('flex text-base my-5')}>
           <AppVersionWidget />
         </View>
       </ScrollView>

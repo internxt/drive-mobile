@@ -90,7 +90,7 @@ function PhotosGalleryScreen(): JSX.Element {
       />
       <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selectedPhotos} onClosed={onDeletePhotosModalClosed} />
 
-      <AppScreen safeAreaTop>
+      <AppScreen safeAreaTop style={tailwind('mb-14')}>
         {/* GALLERY TOP BAR */}
         <View style={tailwind('pt-1.5 pb-2')}>
           {isSelectionModeActivated ? (
@@ -168,7 +168,7 @@ function PhotosGalleryScreen(): JSX.Element {
         {/* SELECTION MODE ACTIONS */}
         {isSelectionModeActivated && (
           <Portal>
-            <SafeAreaView style={[tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2')]}>
+            <View style={[tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2')]}>
               {/*<TouchableWithoutFeedback
                 onPress={onShareSelectionButtonPressed}
                 disabled={hasNoPhotosSelected || hasManyPhotosSelected}
@@ -233,7 +233,7 @@ function PhotosGalleryScreen(): JSX.Element {
                   </Text>
                 </View>
               </TouchableWithoutFeedback>
-            </SafeAreaView>
+            </View>
           </Portal>
         )}
       </AppScreen>

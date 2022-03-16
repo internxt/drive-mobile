@@ -47,7 +47,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
 
       {/* USAGE */}
       <View style={tailwind('mt-6 mx-5 bg-white rounded-xl bg-white')}>
-        <View style={tailwind('px-5 py-3')}>
+        <View style={tailwind('px-5 pt-3')}>
           <Text style={{ ...tailwind('text-base text-neutral-500'), ...globalStyle.fontWeight.semibold }}>
             {strings.screens.storage.space.used.used} {getUsageString()} {strings.screens.storage.space.used.of}{' '}
             {getLimitString()}
@@ -62,19 +62,21 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
           </View>
         </View>
 
-        {/*<TouchableHighlight
-          underlayColor={getColor('neutral-30')}
-          onPress={() => {
-            navigation.push(AppScreen.Billing);
-          }}
-        >
-          <View style={tailwind('px-5 py-3 flex-row justify-between border-t border-neutral-20')}>
-            <Text style={{ ...tailwind('text-blue-60 text-lg'), ...globalStyle.fontWeight.semibold }}>
-              {strings.components.buttons.upgradeNow}
-            </Text>
-            <Unicons.UilAngleRight size={30} color={getColor('blue-60')} />
-          </View>
-        </TouchableHighlight>*/}
+        {
+          <TouchableHighlight
+            underlayColor={getColor('neutral-30')}
+            onPress={() => {
+              navigation.push(AppScreenKey.Billing);
+            }}
+          >
+            <View style={tailwind('px-5 py-3 flex-row justify-between border-t border-neutral-20')}>
+              <Text style={{ ...tailwind('text-blue-60 text-lg'), ...globalStyle.fontWeight.semibold }}>
+                {strings.components.buttons.upgradeNow}
+              </Text>
+              <Unicons.UilAngleRight size={30} color={getColor('blue-60')} />
+            </View>
+          </TouchableHighlight>
+        }
       </View>
 
       <ReferralsWidget />

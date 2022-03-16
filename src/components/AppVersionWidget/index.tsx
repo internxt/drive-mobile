@@ -23,7 +23,7 @@ function AppVersionWidget(): JSX.Element {
   return (
     <View>
       <Text style={tailwind('text-center text-base text-sm text-neutral-60')}>
-        Internxt Drive v{PackageJson.version} (1)
+        Internxt Drive v{PackageJson.version} ({appService.constants.REACT_NATIVE_APP_BUILD_NUMBER})
       </Text>
     </View>
   );
