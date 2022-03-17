@@ -206,6 +206,10 @@ function FileItem(props: FileItemProps): JSX.Element {
   const iconSize = props.isGrid ? 64 : 40;
   const isUploading = props.progress >= 0;
   const isDownloading = downloadProgress >= 0 || decryptionProgress >= 0;
+  const onActionsButtonPressed = () => {
+    dispatch(storageActions.focusItem(props.item));
+    dispatch(layoutActions.setShowItemModal(true));
+  };
 
   return (
     <TouchableHighlight
@@ -295,14 +299,8 @@ function FileItem(props: FileItemProps): JSX.Element {
             <TouchableOpacity
               disabled={isUploading || isDownloading}
               style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
-              onPress={() => {
-                dispatch(storageActions.focusItem(props.item));
-                dispatch(layoutActions.setShowItemModal(true));
-              }}
-              onLongPress={() => {
-                dispatch(storageActions.focusItem(props.item));
-                dispatch(layoutActions.setShowItemModal(true));
-              }}
+              onPress={onActionsButtonPressed}
+              onLongPress={onActionsButtonPressed}
             >
               <Unicons.UilEllipsisH size={24} color={getColor('neutral-60')} />
             </TouchableOpacity>

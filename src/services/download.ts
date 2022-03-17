@@ -1,5 +1,5 @@
-import { FileManager } from './fileSystem';
 import { getEnvironmentConfig, Network } from '../lib/network';
+import { FileManager } from './fileSystem';
 
 interface DownloadFileParams {
   progressCallback: (progress: number) => void;

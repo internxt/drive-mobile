@@ -1,3 +1,4 @@
+import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 import { store as storeInstance } from '../store';
 
 type StoreType = typeof storeInstance;
@@ -30,50 +31,8 @@ export enum AppScreenKey {
 export enum DevicePlatform {
   Mobile = 'mobile',
 }
-
-export enum SortType {
-  NameAsc = 'Name_Asc',
-  DateAdded = 'Date_Added',
-  SizeAsc = 'Size_Asc',
-  FileTypeAsc = 'File_Type_Asc',
-}
-
-export interface DriveFolderData {
-  id: number;
-  bucket: string | null;
-  color: string | null;
-  createdAt: string;
-  encrypt_version: string | null;
-  icon: string | null;
-  iconId: number | null;
-  icon_id: number | null;
-  isFolder: boolean;
-  name: string;
-  parentId: number;
-  parent_id: number | null;
-  updatedAt: string;
-  userId: number;
-  user_id: number;
-}
 export interface DriveFolderMetadataPayload {
   itemName: string;
-}
-
-export interface DriveFileData {
-  bucket: string;
-  createdAt: string;
-  created_at: string;
-  deleted: false;
-  deletedAt: null;
-  encrypt_version: string;
-  fileId: string;
-  folderId: number;
-  folder_id: number;
-  id: number;
-  name: string;
-  size: number;
-  type: string;
-  updatedAt: string;
 }
 export interface DriveFileMetadataPayload {
   itemName: string;
@@ -125,3 +84,16 @@ export type StoragePlan = {
   renewalPeriod: RenewalPeriod;
   storageLimit: number;
 };
+
+export enum SortDirection {
+  Asc = 'asc',
+  Desc = 'desc',
+}
+
+export enum SortType {
+  Name = 'name',
+  Size = 'size',
+  UpdatedAt = 'updatedAt',
+}
+
+export type DriveItemData = DriveFileData & DriveFolderData;

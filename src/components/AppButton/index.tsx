@@ -20,7 +20,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     delete: tailwind('bg-red-60'),
   }[props.type];
   const typeTextStyle = {
-    accept: tailwind('text-white'),
+    accept: props.disabled ? tailwind('text-neutral-60') : tailwind('text-white'),
     cancel: tailwind('text-neutral-300'),
     delete: tailwind('text-white'),
   }[props.type];

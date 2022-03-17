@@ -125,6 +125,13 @@ function DriveScreen(): JSX.Element {
       dispatch(storageActions.uploadFileFinished());
     }
   };
+  const onCurrentFolderActionsButtonPressed = () => {
+    dispatch(storageActions.focusItem(folderContent));
+    dispatch(layoutActions.setShowItemModal(true));
+  };
+  const onSortButtonPressed = () => {
+    dispatch(layoutActions.setShowSortModal(true));
+  };
 
   if (!loggedIn) {
     navigation.replace(AppScreenKey.SignIn);
@@ -258,12 +265,7 @@ function DriveScreen(): JSX.Element {
             </TouchableOpacity>
           </View>
           <View style={tailwind('items-center justify-center')}>
-            <TouchableOpacity
-              style={tailwind('p-2')}
-              onPress={() => {
-                dispatch(layoutActions.setShowSettingsModal(true));
-              }}
-            >
+            <TouchableOpacity style={tailwind('p-2')} onPress={onCurrentFolderActionsButtonPressed}>
               <Unicons.UilEllipsisH color={getColor('blue-60')} size={22} />
             </TouchableOpacity>
           </View>
@@ -281,14 +283,10 @@ function DriveScreen(): JSX.Element {
       )}
 
       {/* FILE LIST ACTIONS */}
-      <View style={[tailwind('flex-row justify-between mt-4 mb-2 px-5')]}>
-        <TouchableWithoutFeedback
-          onPress={() => {
-            dispatch(layoutActions.setShowSortModal(true));
-          }}
-        >
+      <View style={[tailwind('flex-row justify-between mt-5 mb-1.5 px-5')]}>
+        <TouchableWithoutFeedback onPress={onSortButtonPressed}>
           <View style={tailwind('flex-row items-center')}>
-            <Text style={tailwind('text-neutral-100')}>{strings.screens.drive.sort[sortType as SortType]}</Text>
+            <Text style={tailwind('text-base text-neutral-100')}>{strings.screens.drive.sort[sortType]}</Text>
             <Unicons.UilAngleDown size={20} color={getColor('neutral-100')} />
           </View>
         </TouchableWithoutFeedback>

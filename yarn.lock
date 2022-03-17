@@ -2773,9 +2773,9 @@
     "@types/react" "*"
     "@types/react-native" "*"
 
-"@types/react-native-modalbox@^1.4.8":
+"@types/react-native-modalbox@^1.4.10":
   version "1.4.10"
-  resolved "https://registry.npmjs.org/@types/react-native-modalbox/-/react-native-modalbox-1.4.10.tgz"
+  resolved "https://registry.yarnpkg.com/@types/react-native-modalbox/-/react-native-modalbox-1.4.10.tgz#d9ce6de8be9922678a4806e85f669ae7ef2f1a02"
   integrity sha512-QFyObrYuwf7SiKgKASAUAAs+iJPIrbpacibuMZ/b3+cYx0m0CNBzi1rK04oM4QBAPSCwK3FhMEu6QT+ZboZHXQ==
   dependencies:
     "@types/react" "*"

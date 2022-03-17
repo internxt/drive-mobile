@@ -77,6 +77,7 @@ function FileList(props: FileListProps): JSX.Element {
     searchString,
     filesAlreadyUploaded,
     sortType,
+    sortDirection,
     isUploadingFileName,
     isLoading: filesLoading,
     currentFolderId,
@@ -84,15 +85,15 @@ function FileList(props: FileListProps): JSX.Element {
   const { user } = useAppSelector((state) => state.auth);
   let folderList: IFolder[] = (folderContent && folderContent.children) || [];
   let fileList: IFile[] = (folderContent && folderContent.files) || [];
-  const sortFunction = fileService.getSortFunction(sortType);
+  const sortFunction = fileService.getSortFunction({ type: sortType, direction: sortDirection });
 
   if (searchString) {
     fileList = fileList.filter((file: IFile) => file.name.toLowerCase().includes(searchString.toLowerCase()));
     folderList = folderList.filter((folder: IFolder) => folder.name.toLowerCase().includes(searchString.toLowerCase()));
   }
 
-  folderList = folderList.slice().sort(sortFunction);
-  fileList = fileList.slice().sort(sortFunction);
+  folderList = folderList.slice().sort(sortFunction as any);
+  fileList = fileList.slice().sort(sortFunction as any);
 
   const rootFolderId = user?.root_folder_id;
   const isRootFolder = currentFolderId === rootFolderId;
@@ -168,6 +169,9 @@ function FileList(props: FileListProps): JSX.Element {
             totalColumns={totalColumns}
           />
         );
+      }}
+      ItemSeparatorComponent={() => {
+        return !props.isGrid ? <View style={{ height: 1, ...tailwind('bg-neutral-20') }}></View> : <View></View>;
       }}
     />
   );

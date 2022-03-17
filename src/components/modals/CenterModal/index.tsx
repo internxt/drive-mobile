@@ -1,5 +1,6 @@
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { Platform, TouchableWithoutFeedback, View } from 'react-native';
+import { Easing, Platform, TouchableWithoutFeedback, View } from 'react-native';
 import Modal from 'react-native-modalbox';
 
 import { tailwind } from '../../../helpers/designSystem';
@@ -17,12 +18,14 @@ const CenterModal = (props: CenterModalProps): JSX.Element => {
       onClosed={props.onClosed}
       position={'center'}
       style={tailwind('bg-transparent')}
-      coverScreen={Platform.OS === 'android'}
       backButtonClose={true}
       backdropPressToClose={false}
       animationDuration={250}
+      easing={Easing.ease}
     >
       <View style={tailwind('h-full')}>
+        <StatusBar hidden={true} />
+
         <TouchableWithoutFeedback onPress={props.onClosed}>
           <View style={tailwind('px-8 flex-grow justify-center items-center')}>
             <TouchableWithoutFeedback>

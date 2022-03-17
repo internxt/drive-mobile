@@ -7,7 +7,7 @@ import * as Unicons from '@iconscout/react-native-unicons';
 
 import AppNavigator from './screens/AppNavigator';
 import { analyticsSetup, trackStackScreen } from './services/analytics';
-import { forceCheckUpdates, loadEnvVars, loadFonts, shouldForceUpdate } from './helpers';
+import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
 import { getColor, tailwind } from './helpers/designSystem';
 import { deviceStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
@@ -19,6 +19,8 @@ import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { layoutActions } from './store/slices/layout';
 import { storageActions } from './store/slices/storage';
+import SortModal from './components/modals/SortModal';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 process.nextTick = setImmediate;
 
@@ -54,7 +56,7 @@ export default function App(): JSX.Element {
   // Initialize app
   useEffect(() => {
     if (!isAppInitialized) {
-      Promise.all([loadFonts(), loadEnvVars(), analyticsSetup(), loadLocalUser()])
+      Promise.all([loadFonts(), loadLocalUser(), analyticsSetup()])
         .then(() => {
           setIsAppInitialized(true);
         })
@@ -76,62 +78,65 @@ export default function App(): JSX.Element {
   const routeNameRef = useRef<string>();
 
   return (
-    <KeyboardAvoidingView behavior="height" style={tailwind('h-full w-full')}>
-      <Portal.Host>
-        <View style={tailwind('flex-1')}>
-          <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-              const currentRoute = navigationRef.getCurrentRoute();
+    <SafeAreaProvider>
+      <KeyboardAvoidingView behavior="height" style={tailwind('h-full w-full')}>
+        <Portal.Host>
+          <View style={tailwind('flex-1')}>
+            <NavigationContainer
+              ref={navigationRef}
+              onReady={() => {
+                const currentRoute = navigationRef.getCurrentRoute();
 
-              routeNameRef.current = currentRoute && currentRoute.name;
-            }}
-            onStateChange={(route) => {
-              const previousRouteName = routeNameRef.current;
-              const currentRouteName = navigationRef.getCurrentRoute()?.name;
+                routeNameRef.current = currentRoute && currentRoute.name;
+              }}
+              onStateChange={(route) => {
+                const previousRouteName = routeNameRef.current;
+                const currentRouteName = navigationRef.getCurrentRoute()?.name;
 
-              if (previousRouteName !== currentRouteName) {
-                route && trackStackScreen(route, navigationRef.getCurrentRoute()?.params);
-              }
+                if (previousRouteName !== currentRouteName) {
+                  route && trackStackScreen(route, navigationRef.getCurrentRoute()?.params);
+                }
 
-              routeNameRef.current = currentRouteName;
-            }}
-            linking={linking}
-            fallback={<View></View>}
-            theme={{
-              dark: false,
-              colors: {
-                primary: '#091e42' as string,
-                background: '#FFFFFF' as string,
-                card: '#FFFFFF' as string,
-                border: '#091e42' as string,
-                notification: '#091e42' as string,
-                text: '#091e42' as string,
-              },
-            }}
-          >
-            {isAppInitialized ? (
-              <AppNavigator />
-            ) : (
-              <View style={tailwind('items-center flex-1 justify-center')}>
-                {loadError ? <Text>{loadError}</Text> : null}
-              </View>
-            )}
-          </NavigationContainer>
+                routeNameRef.current = currentRouteName;
+              }}
+              linking={linking}
+              fallback={<View></View>}
+              theme={{
+                dark: false,
+                colors: {
+                  primary: '#091e42' as string,
+                  background: '#FFFFFF' as string,
+                  card: '#FFFFFF' as string,
+                  border: '#091e42' as string,
+                  notification: '#091e42' as string,
+                  text: '#091e42' as string,
+                },
+              }}
+            >
+              {isAppInitialized ? (
+                <AppNavigator />
+              ) : (
+                <View style={tailwind('items-center flex-1 justify-center')}>
+                  {loadError ? <Text>{loadError}</Text> : null}
+                </View>
+              )}
+            </NavigationContainer>
 
-          <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
+            <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
 
-          <InviteFriendsModal
-            isOpen={isInviteFriendsModalOpen}
-            onClosed={() => dispatch(layoutActions.setIsInviteFriendsModalOpen(false))}
-          />
-          <NewsletterModal
-            isOpen={isNewsletterModalOpen}
-            onClosed={() => dispatch(layoutActions.setIsNewsletterModalOpen(false))}
-          />
-        </View>
-      </Portal.Host>
-    </KeyboardAvoidingView>
+            <SortModal />
+            <InviteFriendsModal
+              isOpen={isInviteFriendsModalOpen}
+              onClosed={() => dispatch(layoutActions.setIsInviteFriendsModalOpen(false))}
+            />
+            <NewsletterModal
+              isOpen={isNewsletterModalOpen}
+              onClosed={() => dispatch(layoutActions.setIsNewsletterModalOpen(false))}
+            />
+          </View>
+        </Portal.Host>
+      </KeyboardAvoidingView>
+    </SafeAreaProvider>
   );
 }
 

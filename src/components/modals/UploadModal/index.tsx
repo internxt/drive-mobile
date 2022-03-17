@@ -25,7 +25,7 @@ import { createFileEntry, FileEntry, getFinalUri } from '../../../services/uploa
 import analytics from '../../../services/analytics';
 import { encryptFilename } from '../../../helpers';
 import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../services/fileSystem';
-import { renameIfAlreadyExists } from '../../../lib';
+import { renameIfAlreadyExists } from '../../../services/file';
 import strings from '../../../../assets/lang/strings';
 import { notify } from '../../../services/toast';
 import { tailwind, getColor } from '../../../helpers/designSystem';
@@ -36,8 +36,8 @@ import { UPLOAD_FILE_SIZE_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import { storageActions, storageThunks } from '../../../store/slices/storage';
-import { uploadFile } from '../../../services/network';
 import { constants } from '../../../services/app';
+import { uploadFile } from '../../../services/network';
 
 interface UploadingFile {
   size: number;

@@ -2,6 +2,7 @@
 /* eslint-disable max-len */
 import LocalizedStrings from 'react-native-localization';
 import { ReferralTypes } from '@internxt/sdk/dist/drive/referrals';
+import { SortType } from '../../src/types';
 
 const strings = new LocalizedStrings({
   en_US: {
@@ -84,11 +85,17 @@ const strings = new LocalizedStrings({
       },
       drive: {
         title: 'Drive',
+        aToZ: 'A to Z',
+        zToA: 'Z to A',
+        ascending: 'Ascending',
+        descending: 'Descending',
+        newerFirst: 'Newer First',
+        olderFirst: 'Older first',
+        sortBy: 'Sort by',
         sort: {
-          Name_Asc: 'Name',
-          Date_Added: 'Upload date',
-          Size_Asc: 'Size',
-          File_Type_Asc: 'File type',
+          name: 'Name',
+          updatedAt: 'Updated at',
+          size: 'Size',
         },
         emptyRoot: {
           title: 'Your drive is empty',
@@ -459,11 +466,17 @@ const strings = new LocalizedStrings({
       },
       drive: {
         title: 'Drive',
+        aToZ: 'Desde la A hasta la Z',
+        zToA: 'Desde la Z hasta la A',
+        ascending: 'Ascendiente',
+        descending: 'Descendiente',
+        newerFirst: 'Más nuevo primero',
+        olderFirst: 'Más antiguo primero',
+        sortBy: 'Ordenar por',
         sort: {
-          Name_Asc: 'Nombre',
-          Date_Added: 'Fecha de subida',
-          Size_Asc: 'Tamaño',
-          File_Type_Asc: 'Tipo de archivo',
+          [SortType.Name]: 'Nombre',
+          [SortType.UpdatedAt]: 'Fecha de modificación',
+          [SortType.Size]: 'Tamaño',
         },
         emptyRoot: {
           title: 'Tu drive está vacío',

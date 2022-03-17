@@ -121,7 +121,7 @@ function SignUpScreen(): JSX.Element {
 
   return (
     <AppScreen safeAreaBottom safeAreaTop>
-      <ScrollView style={tailwind('app-screen bg-white px-6')}>
+      <ScrollView style={tailwind('px-6')}>
         <View>
           <View style={tailwind('pb-6')}>
             <View style={tailwind('items-center mt-2')}>

@@ -1,14 +1,6 @@
 import React, { useEffect } from 'react';
 import { useState } from 'react';
-import {
-  View,
-  Text,
-  KeyboardAvoidingView,
-  Alert,
-  TextInput,
-  TouchableHighlight,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import { View, Text, Alert, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';
@@ -26,6 +18,7 @@ import { NavigationStackProp } from 'react-navigation-stack';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
 import { storageActions } from '../../store/slices/storage';
+import AppButton from '../../components/AppButton';
 
 function SignInScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -38,6 +31,7 @@ function SignInScreen(): JSX.Element {
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [showPasswordText, setShowPasswordText] = useState(false);
   const [passwordFocus, setPasswordFocus] = useState(false);
+  const isSubmitButtonDisabled = !email || !password;
   const onSignInButtonPressed = async () => {
     setIsLoading(true);
 
@@ -157,15 +151,13 @@ function SignInScreen(): JSX.Element {
         </View>
 
         <View>
-          <TouchableHighlight
-            style={tailwind('btn btn-primary my-5')}
-            underlayColor="#4585f5"
+          <AppButton
+            style={tailwind('py-4 my-5')}
+            type="accept"
             onPress={onSignInButtonPressed}
-          >
-            <Text style={tailwind('text-base btn-label')}>
-              {isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}
-            </Text>
-          </TouchableHighlight>
+            disabled={isSubmitButtonDisabled}
+            title={isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}
+          />
 
           <Text
             style={tailwind('text-center text-sm m-2 text-blue-60')}

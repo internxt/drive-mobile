@@ -16,16 +16,16 @@ import globalStyle from '../../../styles/global.style';
 import { deviceStorage } from '../../../services/asyncStorage';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
-import { DriveFileData, DriveFolderData } from '../../../types';
 import BottomModal from '../BottomModal';
 import { constants } from '../../../services/app';
+import { DriveItemData } from '../../../types';
 
 function ShareFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { showShareModal } = useAppSelector((state) => state.layout);
   const { focusedItem } = useAppSelector((state) => state.storage);
   const [isOpen, setIsOpen] = useState(showShareModal);
-  const [selectedFile, setSelectedFile] = useState<DriveFileData & DriveFolderData>();
+  const [selectedFile, setSelectedFile] = useState<DriveItemData>();
   const [filename, setFileName] = useState('');
   const [link, setLink] = useState('');
   const [isLoading, setIsLoading] = useState(true);

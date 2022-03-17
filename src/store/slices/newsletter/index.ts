@@ -1,4 +1,3 @@
-import { UserReferral } from '@internxt/sdk/dist/drive/referrals/types';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
@@ -7,14 +6,12 @@ import { notify } from '../../../services/toast';
 import { referralsThunks } from '../referrals';
 import { storageThunks } from '../storage';
 
-export interface ReferralsState {
+export interface NewsletterState {
   isSubscribing: boolean;
-  list: UserReferral[];
 }
 
-const initialState: ReferralsState = {
+const initialState: NewsletterState = {
   isSubscribing: false,
-  list: [],
 };
 
 const subscribeThunk = createAsyncThunk<void, string, { state: RootState }>(
@@ -40,8 +37,6 @@ export const newsletterSlice = createSlice({
       })
       .addCase(subscribeThunk.rejected, (state, action) => {
         state.isSubscribing = false;
-
-        console.error(action.error);
 
         notify({
           type: 'error',

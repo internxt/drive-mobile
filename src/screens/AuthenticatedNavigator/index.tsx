@@ -52,6 +52,7 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: true,
+          lazy: true,
         }}
       >
         <Tab.Screen name={AppScreenKey.Home} component={HomeScreen} />
@@ -64,7 +65,6 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
       <FileDetailsModal />
       <SettingsModal />
       <UploadModal />
-      <SortModal />
       <DeleteItemModal />
       <MoveFilesModal />
       <ShareFilesModal />

@@ -8,17 +8,18 @@ import folderService from '../../../services/folder';
 
 import {
   DevicePlatform,
-  DriveFileData,
   DriveFileMetadataPayload,
-  DriveFolderData,
   DriveFolderMetadataPayload,
+  SortDirection,
+  SortType,
 } from '../../../types';
 import { RootState } from '../..';
 import { layoutActions } from '../layout';
-import { getEnvironmentConfig } from '../../../lib/network';
 import { loadValues } from '../../../services/storage';
 import { deviceStorage } from '../../../services/asyncStorage';
 import strings from '../../../../assets/lang/strings';
+import { getEnvironmentConfig } from '../../../lib/network';
+import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 
 interface FolderContent {
   id: number;
@@ -45,7 +46,8 @@ export interface StorageState {
   rootFolderContent: any;
   focusedItem: any | null;
   selectedItems: any[];
-  sortType: string;
+  sortType: SortType;
+  sortDirection: SortDirection;
   searchString: string;
   isUploading: boolean;
   isUploadingFileName: string | null;
@@ -71,7 +73,8 @@ const initialState: StorageState = {
   rootFolderContent: [],
   focusedItem: null,
   selectedItems: [],
-  sortType: 'Name_Asc',
+  sortType: SortType.Name,
+  sortDirection: SortDirection.Asc,
   searchString: '',
   isUploading: false,
   isUploadingFileName: '',
@@ -216,8 +219,11 @@ export const storageSlice = createSlice({
     setCurrentFolderId(state, action: PayloadAction<number>) {
       state.currentFolderId = action.payload;
     },
-    setSortType(state, action: PayloadAction<string>) {
+    setSortType(state, action: PayloadAction<SortType>) {
       state.sortType = action.payload;
+    },
+    setSortDirection(state, action: PayloadAction<SortDirection>) {
+      state.sortDirection = action.payload;
     },
     setUri(state, action: PayloadAction<any>) {
       if (action.payload) {

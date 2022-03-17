@@ -1,30 +1,37 @@
 import React from 'react';
-import { Platform, TouchableWithoutFeedback, View } from 'react-native';
+import { Easing, Platform, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import Modal from 'react-native-modalbox';
 import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export interface BottomModalProps {
   isOpen: boolean;
   onClosed: () => void;
   header?: JSX.Element;
   children?: JSX.Element | JSX.Element[];
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 const BottomModal = (props: BottomModalProps): JSX.Element => {
+  const safeAreaInsets = useSafeAreaInsets();
+
   return (
     <Modal
       isOpen={props.isOpen}
       onClosed={props.onClosed}
       position={'bottom'}
-      style={tailwind('bg-transparent')}
-      coverScreen={Platform.OS === 'android'}
+      style={{ ...tailwind('bg-transparent'), paddingTop: safeAreaInsets.top, paddingBottom: safeAreaInsets.bottom }}
       backButtonClose={true}
       backdropPressToClose={false}
       animationDuration={250}
+      easing={Easing.ease}
     >
       <View style={tailwind('h-full')}>
+        <StatusBar hidden={true} />
+
         <TouchableWithoutFeedback onPress={props.onClosed}>
           <View style={tailwind('flex-grow')} />
         </TouchableWithoutFeedback>
@@ -43,7 +50,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
             </View>
           )}
 
-          {props.children}
+          <View style={props.containerStyle}>{props.children}</View>
         </View>
       </View>
     </Modal>

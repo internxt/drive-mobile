@@ -2,22 +2,46 @@ import { compare } from 'natural-orderby';
 import { createHash } from 'crypto';
 import axios from 'axios';
 
-import { DriveFileMetadataPayload } from '../types';
+import { DriveFileMetadataPayload, DriveItemData, SortDirection, SortType } from '../types';
 import { IFile, IFolder } from '../components/FileList';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
-
-export const sortTypes = {
-  DATE_ADDED: 'Date_Added',
-  SIZE_ASC: 'Size_Asc',
-  SIZE_DESC: 'Size_Desc',
-  NAME_ASC: 'Name_Asc',
-  NAME_DESC: 'Name_Desc',
-  FILETYPE_ASC: 'File_Type_Asc',
-  FILETYPE_DESC: 'File_Type_Asc',
-};
+import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 
 export const UPLOAD_FILE_SIZE_LIMIT = 1024 * 1024 * 1024;
+
+interface ItemMeta {
+  name: string;
+  type: string;
+}
+
+export function renameIfAlreadyExists(items: ItemMeta[], filename: string, type: string): [boolean, number, string] {
+  const FILENAME_INCREMENT_REGEX = /( \([0-9]+\))$/i;
+  const INCREMENT_INDEX_REGEX = /\(([^)]+)\)/;
+  const infoFilenames: { cleanName: string; type: string; incrementIndex: number }[] = items
+    .map((item) => {
+      const cleanName = item.name.replace(FILENAME_INCREMENT_REGEX, '');
+      const incrementString = item.name.match(FILENAME_INCREMENT_REGEX)?.pop()?.match(INCREMENT_INDEX_REGEX)?.pop();
+      const incrementIndex = parseInt(incrementString || '0');
+
+      return {
+        cleanName,
+        type: item.type,
+        incrementIndex,
+      };
+    })
+    .filter((item) => item.cleanName === filename && item.type === type)
+    .sort((a, b) => b.incrementIndex - a.incrementIndex);
+  const filenameExists = infoFilenames.length > 0;
+  const filenameIndex = infoFilenames[0] ? infoFilenames[0].incrementIndex + 1 : 0;
+  const finalFilename = filenameIndex > 0 ? getNextNewName(filename, filenameIndex) : filename;
+
+  return [filenameExists, filenameIndex, finalFilename];
+}
+
+export function getNextNewName(filename: string, i: number): string {
+  return `${filename} (${i})`;
+}
 
 async function getFolderContent(folderId: number): Promise<any> {
   const headers = await getHeaders();
@@ -118,40 +142,47 @@ async function deleteItems(items: any[]): Promise<void> {
   return Promise.all(fetchArray).then(() => undefined);
 }
 
-export type ArraySortFunction = (a: IFolder | IFile, b: IFolder | IFile) => number;
+export type ArraySortFunction = (a: DriveItemData, b: DriveItemData) => number;
 
-function getSortFunction(sortType: string): ArraySortFunction | undefined {
+function getSortFunction({
+  type,
+  direction,
+}: {
+  type: SortType;
+  direction: SortDirection;
+}): ArraySortFunction | undefined {
   let sortFunction: ArraySortFunction | undefined;
 
-  switch (sortType) {
-    case sortTypes.DATE_ADDED:
-      sortFunction = (a: any, b: any) => (a.id < b.id ? 1 : -1);
+  switch (type) {
+    case SortType.Name:
+      sortFunction =
+        direction === SortDirection.Asc
+          ? (a: DriveItemData, b: DriveItemData) => {
+              return compare({ order: 'asc' })(a.name.toLowerCase(), b.name.toLowerCase());
+            }
+          : (a: DriveItemData, b: DriveItemData) => {
+              return compare({ order: 'desc' })(a.name.toLowerCase(), b.name.toLowerCase());
+            };
       break;
-    case sortTypes.FILETYPE_ASC:
-      sortFunction = (a: any, b: any) => {
-        return a.type ? a.type.toLowerCase().localeCompare(b.type.toLowerCase()) : true;
-      };
+    case SortType.Size:
+      sortFunction =
+        direction === SortDirection.Asc
+          ? (a: DriveItemData, b: DriveItemData) => {
+              return a.size > b.size ? 1 : -1;
+            }
+          : (a: DriveItemData, b: DriveItemData) => {
+              return a.size < b.size ? 1 : -1;
+            };
       break;
-    case sortTypes.FILETYPE_DESC:
-      sortFunction = (a: any, b: any) => {
-        return b.type ? b.type.toLowerCase().localeCompare(a.type.toLowerCase()) : true;
-      };
-      break;
-    case sortTypes.NAME_ASC:
-      sortFunction = (a: any, b: any) => {
-        return compare({ order: 'asc' })(a.name.toLowerCase(), b.name.toLowerCase());
-      };
-      break;
-    case sortTypes.NAME_DESC:
-      sortFunction = (a: any, b: any) => {
-        return compare({ order: 'desc' })(a.name.toLowerCase(), b.name.toLowerCase());
-      };
-      break;
-    case sortTypes.SIZE_ASC:
-      sortFunction = (a: any, b: any) => (a.size > b.size ? 1 : -1);
-      break;
-    case sortTypes.SIZE_DESC:
-      sortFunction = (a: any, b: any) => (a.size < b.size ? 1 : -1);
+    case SortType.UpdatedAt:
+      sortFunction =
+        direction === SortDirection.Asc
+          ? (a: DriveItemData, b: DriveItemData) => {
+              return compare({ order: 'asc' })(a.updatedAt, b.updatedAt);
+            }
+          : (a: DriveItemData, b: DriveItemData) => {
+              return compare({ order: 'desc' })(a.updatedAt, b.updatedAt);
+            };
       break;
   }
 
