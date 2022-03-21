@@ -263,13 +263,6 @@ const strings = new LocalizedStrings({
           name: 'Name',
           type: 'File type',
         },
-        upload: {
-          title: 'Select type of file',
-          document: 'Upload a document',
-          media: 'Upload media',
-          take_photo: 'Take a photo',
-          cancel: 'Cancel',
-        },
         settings: {
           storage: 'Storage',
           more: 'More info',
@@ -294,10 +287,11 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
-      move_modal: {
+      UploadModal: {},
+      MoveModal: {
         title: 'Choose a folder to move this file.',
       },
-      share_modal: {
+      ShareModal: {
         title: 'Internxt Drive file sharing',
         message: '{0}',
         share: 'Share',
@@ -645,14 +639,6 @@ const strings = new LocalizedStrings({
           name: 'Nombre',
           type: 'Tipo de archivo',
         },
-        upload: {
-          title: 'Selecciona el tipo de archivo',
-          document: 'Sube un documento',
-          media: 'Sube multimedia',
-          take_photo: 'Haz una foto',
-          create_folder: 'Nombre de la carpeta',
-          cancel: 'Cancelar',
-        },
         settings: {
           storage: 'Almacenamiento',
           more: 'Más información',
@@ -677,10 +663,11 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
-      move_modal: {
+      UploadModal: {},
+      MoveModal: {
         title: 'Selecciona una carpeta a la que mover el archivo.',
       },
-      share_modal: {
+      ShareModal: {
         title: 'Compartir archivo de Internxt Drive',
         message: '{0}',
         share: 'Compartir',

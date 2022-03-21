@@ -3,16 +3,32 @@ import { createHash } from 'crypto';
 import axios from 'axios';
 
 import { DriveFileMetadataPayload, DriveItemData, SortDirection, SortType } from '../types';
-import { IFile, IFolder } from '../components/FileList';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 
 export const UPLOAD_FILE_SIZE_LIMIT = 1024 * 1024 * 1024;
 
 interface ItemMeta {
   name: string;
   type: string;
+}
+
+export function getExtensionFromUri(uri: string): string | undefined {
+  const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
+  const fileUri = uri.replace(regex, '$2');
+
+  return fileUri.split('.').pop();
+}
+
+export function removeExtension(filename: string): string {
+  const filenameSplitted = filename.split('.');
+  const extension = filenameSplitted && filenameSplitted.length > 1 ? (filenameSplitted.pop() as string) : '';
+
+  if (extension === '') {
+    return filename;
+  }
+
+  return filename.substring(0, filename.length - (extension.length + 1));
 }
 
 export function renameIfAlreadyExists(items: ItemMeta[], filename: string, type: string): [boolean, number, string] {

@@ -44,7 +44,7 @@ function MoveFilesModal(): JSX.Element {
       style={tailwind('w-11/12 h-5/6 p-3 rounded-lg')}
     >
       <View style={styles.breadcrumbs}>
-        <Text style={styles.title}>{strings.modals.move_modal.title}</Text>
+        <Text style={styles.title}>{strings.modals.MoveModal.title}</Text>
       </View>
 
       <Separator style={tailwind('my-3')} />

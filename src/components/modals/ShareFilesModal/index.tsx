@@ -40,8 +40,8 @@ function ShareFilesModal(): JSX.Element {
   const shareFile = async (file: any) => {
     // Share link on native share system
     await Share.share({
-      title: strings.modals.share_modal.title,
-      message: strings.formatString<string>(strings.modals.share_modal.message, link) as string,
+      title: strings.modals.ShareModal.title,
+      message: strings.formatString<string>(strings.modals.ShareModal.message, link) as string,
     });
   };
   const getFileToken = async (file: IFile, views: number) => {
@@ -244,7 +244,7 @@ function ShareFilesModal(): JSX.Element {
           disabled={isLoading}
         >
           <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>
-            {strings.modals.share_modal.share}
+            {strings.modals.ShareModal.share}
           </Text>
         </TouchableHighlight>
       </View>

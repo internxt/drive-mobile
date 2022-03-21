@@ -49,7 +49,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   },
   android: {
     splash: {
-      backgroundColor: '#091e42',
+      backgroundColor: '#FFFFFF',
     },
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',

@@ -45,7 +45,7 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
   }, []);
 
   return (
-    <View style={tailwind('bg-white flex-1')}>
+    <View style={tailwind('flex-1')}>
       {isLoading && (
         <View>
           {_.times(20, (n) => (

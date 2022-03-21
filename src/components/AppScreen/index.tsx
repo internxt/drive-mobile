@@ -20,6 +20,9 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
   const safeAreaInsets = useSafeAreaInsets();
   const propsStyle = Object.assign({}, props.style || {}) as Record<string, string>;
   const backgroundColor = props.backgroundColor || getColor('white');
+  const onBackgroundPressed = () => {
+    Keyboard.dismiss();
+  };
 
   return (
     <View
@@ -38,7 +41,7 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
       />
 
       {/* DISMISS KEYBOARD ON OUTSIDE TAP */}
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <TouchableWithoutFeedback onPress={onBackgroundPressed}>
         <View style={tailwind('absolute h-full w-full')}></View>
       </TouchableWithoutFeedback>
 

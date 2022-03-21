@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Keyboard, Platform } from 'react-native';
 
-import { createFolder } from './CreateFolderUtils';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon } from '../../../helpers';
 import strings from '../../../../assets/lang/strings';
@@ -12,6 +11,7 @@ import { storageThunks } from '../../../store/slices/storage';
 import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
+import folderService from '../../../services/folder';
 
 function CreateFolderModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -30,7 +30,8 @@ function CreateFolderModal(): JSX.Element {
     setIsLoading(true);
 
     Keyboard.dismiss;
-    createFolder({ folderName, parentId: currentFolderId })
+    folderService
+      .createFolder({ folderName, parentId: currentFolderId })
       .then(() => {
         dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
         notify({ type: 'success', text: strings.messages.folderCreated });
@@ -54,7 +55,9 @@ function CreateFolderModal(): JSX.Element {
 
           <AppTextInput
             containerStyle={[
-              tailwind('border border-neutral-30 items-center justify-center flex-shrink flex-grow bg-neutral-10'),
+              tailwind(
+                'border border-neutral-30 rounded-lg items-center justify-center flex-shrink flex-grow bg-neutral-10',
+              ),
               Platform.OS !== 'android' && tailwind('pb-3'),
             ]}
             style={tailwind('text-lg text-center text-neutral-600')}

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Text, View, Platform, Alert, BackHandler, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { Text, View, Platform, Alert, BackHandler, TouchableOpacity } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as Unicons from '@iconscout/react-native-unicons';
 
@@ -12,7 +12,7 @@ import SearchInput from '../../components/SearchInput';
 import globalStyle from '../../styles/global.style';
 import ScreenTitle from '../../components/ScreenTitle';
 import Separator from '../../components/Separator';
-import { AppScreenKey as AppScreenKey, DevicePlatform, SortType } from '../../types';
+import { AppScreenKey as AppScreenKey, DevicePlatform, SortDirection } from '../../types';
 import { authActions, authThunks } from '../../store/slices/auth';
 import { storageActions, storageThunks } from '../../store/slices/storage';
 import { layoutActions } from '../../store/slices/layout';
@@ -28,7 +28,9 @@ function DriveScreen(): JSX.Element {
   const route = useRoute();
   const dispatch = useAppDispatch();
   const { token, user, loggedIn } = useAppSelector((state) => state.auth);
-  const { currentFolderId, folderContent, uri, sortType, searchString } = useAppSelector((state) => state.storage);
+  const { currentFolderId, folderContent, uri, sortType, sortDirection, searchString } = useAppSelector(
+    (state) => state.storage,
+  );
   const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.layout);
   const onSearchTextChanged = (value: string) => {
     dispatch(storageActions.setSearchString(value));
@@ -283,28 +285,30 @@ function DriveScreen(): JSX.Element {
       )}
 
       {/* FILE LIST ACTIONS */}
-      <View style={[tailwind('flex-row justify-between mt-5 mb-1.5 px-5')]}>
-        <TouchableWithoutFeedback onPress={onSortButtonPressed}>
-          <View style={tailwind('flex-row items-center')}>
+      <View style={[tailwind('flex-row justify-between items-center mt-3')]}>
+        <TouchableOpacity onPress={onSortButtonPressed}>
+          <View style={tailwind('px-5 py-1 flex-row items-center')}>
             <Text style={tailwind('text-base text-neutral-100')}>{strings.screens.drive.sort[sortType]}</Text>
-            <Unicons.UilAngleDown size={20} color={getColor('neutral-100')} />
+            {sortDirection === SortDirection.Asc ? (
+              <Unicons.UilArrowUp size={20} color={getColor('neutral-100')} />
+            ) : (
+              <Unicons.UilArrowDown size={20} color={getColor('neutral-100')} />
+            )}
           </View>
-        </TouchableWithoutFeedback>
-        <View>
-          <TouchableOpacity
-            onPress={() => {
-              dispatch(layoutActions.switchFileViewMode());
-            }}
-          >
-            <>
-              {fileViewMode === 'list' ? (
-                <Unicons.UilApps size={22} color={getColor('neutral-100')} />
-              ) : (
-                <Unicons.UilListUl size={22} color={getColor('neutral-100')} />
-              )}
-            </>
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            dispatch(layoutActions.switchFileViewMode());
+          }}
+        >
+          <View style={tailwind('py-2 px-5')}>
+            {fileViewMode === 'list' ? (
+              <Unicons.UilApps size={22} color={getColor('neutral-100')} />
+            ) : (
+              <Unicons.UilListUl size={22} color={getColor('neutral-100')} />
+            )}
+          </View>
+        </TouchableOpacity>
       </View>
 
       <Separator />

@@ -213,7 +213,7 @@ function FileItem(props: FileItemProps): JSX.Element {
 
   return (
     <TouchableHighlight
-      style={props.isGrid && tailwind('px-3 py-1.5 w-1/' + props.totalColumns)}
+      style={props.isGrid && tailwind('py-1.5 w-1/' + props.totalColumns)}
       disabled={isUploading || isDownloading}
       underlayColor={getColor('neutral-20')}
       onLongPress={() => {
@@ -295,16 +295,16 @@ function FileItem(props: FileItemProps): JSX.Element {
         </View>
 
         {!props.isGrid && (
-          <View style={tailwind('items-center px-2 justify-center')}>
-            <TouchableOpacity
-              disabled={isUploading || isDownloading}
-              style={isSelectionMode ? tailwind('hidden') : tailwind('p-3')}
-              onPress={onActionsButtonPressed}
-              onLongPress={onActionsButtonPressed}
-            >
+          <TouchableOpacity
+            disabled={isUploading || isDownloading}
+            style={isSelectionMode && tailwind('hidden')}
+            onPress={onActionsButtonPressed}
+            onLongPress={onActionsButtonPressed}
+          >
+            <View style={tailwind('px-5 flex-1 items-center justify-center')}>
               <Unicons.UilEllipsisH size={24} color={getColor('neutral-60')} />
-            </TouchableOpacity>
-          </View>
+            </View>
+          </TouchableOpacity>
         )}
       </View>
     </TouchableHighlight>

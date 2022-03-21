@@ -25,7 +25,7 @@ import { createFileEntry, FileEntry, getFinalUri } from '../../../services/uploa
 import analytics from '../../../services/analytics';
 import { encryptFilename } from '../../../helpers';
 import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../services/fileSystem';
-import { renameIfAlreadyExists } from '../../../services/file';
+import { getExtensionFromUri, removeExtension, renameIfAlreadyExists } from '../../../services/file';
 import strings from '../../../../assets/lang/strings';
 import { notify } from '../../../services/toast';
 import { tailwind, getColor } from '../../../helpers/designSystem';
@@ -50,24 +50,6 @@ interface UploadingFile {
   id: string;
   uri: string;
   folderId?: number;
-}
-
-function getFileExtension(uri: string) {
-  const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
-  const fileUri = uri.replace(regex, '$2');
-
-  return fileUri.split('.').pop();
-}
-
-function removeExtension(filename: string) {
-  const filenameSplitted = filename.split('.');
-  const extension = filenameSplitted && filenameSplitted.length > 1 ? (filenameSplitted.pop() as string) : '';
-
-  if (extension === '') {
-    return filename;
-  }
-
-  return filename.substring(0, filename.length - (extension.length + 1));
 }
 
 type ProgressCallback = (progress: number) => void;
@@ -248,7 +230,11 @@ function UploadModal(): JSX.Element {
 
     return {
       uri: file.uri,
-      name: renameIfAlreadyExists(filesAtSameLevel, removeExtension(file.name), getFileExtension(file.name) || '')[2],
+      name: renameIfAlreadyExists(
+        filesAtSameLevel,
+        removeExtension(file.name),
+        getExtensionFromUri(file.name) || '',
+      )[2],
       type: nameSplittedByDots[nameSplittedByDots.length - 1] || '',
       currentFolder: currentFolderId,
       createdAt: new Date().toString(),
@@ -293,9 +279,9 @@ function UploadModal(): JSX.Element {
           name: renameIfAlreadyExists(
             filesAtSameLevel,
             removeExtension(fileToUpload.name),
-            getFileExtension(fileToUpload.name) || '',
+            getExtensionFromUri(fileToUpload.name) || '',
           )[2],
-          type: getFileExtension(fileToUpload.uri) || '',
+          type: getExtensionFromUri(fileToUpload.uri) || '',
           currentFolder: currentFolderId,
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
@@ -481,7 +467,7 @@ function UploadModal(): JSX.Element {
             createdAt: new Date().toString(),
             updatedAt: new Date().toString(),
             id: uniqueId(),
-            type: getFileExtension(result.uri) as string,
+            type: getExtensionFromUri(result.uri) as string,
             size: size || 0,
             uri: result.uri,
           };

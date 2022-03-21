@@ -40,7 +40,7 @@ const ScreenTitle = ({
         </TouchableOpacity>
       )}
 
-      <View style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
+      <View pointerEvents="none" style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
         <Text
           numberOfLines={1}
           style={[tailwind('text-neutral-700 text-3xl'), globalStyle.fontWeight.medium, textStyle]}
