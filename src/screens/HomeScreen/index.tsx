@@ -41,12 +41,10 @@ const HomeScreen = (): JSX.Element => {
   };
 
   return (
-    <AppScreen safeAreaTop style={tailwind('flex-grow')}>
-      <View style={tailwind('bg-white flex-1')}>
-        <ScreenTitle text={strings.screens.home.title} showBackButton={false} />
-        <SearchInput value={searchText} onChangeText={setSearchText} placeholder={searchPlaceholder} />
-        <Tabs value={currentTab} onTabChanged={onTabChanged} tabs={tabs} />
-      </View>
+    <AppScreen safeAreaTop style={tailwind('flex-1 flex-grow')}>
+      <ScreenTitle text={strings.screens.home.title} showBackButton={false} />
+      <SearchInput value={searchText} onChangeText={setSearchText} placeholder={searchPlaceholder} />
+      <Tabs value={currentTab} onTabChanged={onTabChanged} tabs={tabs} />
     </AppScreen>
   );
 };
