@@ -97,3 +97,12 @@ export enum SortType {
 }
 
 export type DriveItemData = DriveFileData & DriveFolderData;
+
+export enum ToastType {
+  Info = 'info',
+  Success = 'success',
+  Warning = 'warning',
+  Error = 'error',
+  Upload = 'upload',
+  Download = 'download',
+}

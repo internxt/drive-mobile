@@ -2,7 +2,8 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
 import newsletterService from '../../../services/newsletter';
-import { notify } from '../../../services/toast';
+import toastService from '../../../services/toast';
+import { ToastType } from '../../../types';
 import { referralsThunks } from '../referrals';
 import { storageThunks } from '../storage';
 
@@ -38,9 +39,9 @@ export const newsletterSlice = createSlice({
       .addCase(subscribeThunk.rejected, (state, action) => {
         state.isSubscribing = false;
 
-        notify({
-          type: 'error',
-          text: strings.formatString(
+        toastService.show({
+          type: ToastType.Error,
+          text1: strings.formatString(
             strings.errors.subscribeToNewsletter,
             action.error.message || strings.errors.unknown,
           ) as string,

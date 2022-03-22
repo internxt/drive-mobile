@@ -14,7 +14,6 @@ import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 import { RootState } from '../..';
 import { Platform } from 'react-native';
 import { PhotosService } from '../../../services/photos';
-import { notify } from '../../../services/toast';
 import strings from '../../../../assets/lang/strings';
 import { deviceStorage } from '../../../services/asyncStorage';
 import {
@@ -28,6 +27,8 @@ import {
 } from '../../../types/photos';
 import { layoutActions } from '../layout';
 import { pathToUri } from '../../../services/fileSystem';
+import toastService from '../../../services/toast';
+import { ToastType } from '../../../types';
 
 let photosService: PhotosService;
 
@@ -446,9 +447,9 @@ export const photosSlice = createSlice({
       .addCase(startUsingPhotosThunk.rejected, (state, action) => {
         state.initializeError = action.error.message || strings.errors.unknown;
 
-        notify({
-          type: 'error',
-          text: strings.formatString(strings.errors.photosInitialize, state.initializeError) as string,
+        toastService.show({
+          type: ToastType.Error,
+          text1: strings.formatString(strings.errors.photosInitialize, state.initializeError) as string,
         });
       });
 
@@ -483,9 +484,9 @@ export const photosSlice = createSlice({
       .addCase(deletePhotosThunk.pending, () => undefined)
       .addCase(deletePhotosThunk.fulfilled, () => undefined)
       .addCase(deletePhotosThunk.rejected, (state, action) => {
-        notify({
-          type: 'error',
-          text: strings.formatString(
+        toastService.show({
+          type: ToastType.Error,
+          text1: strings.formatString(
             strings.errors.photosDelete,
             action.error.message || strings.errors.unknown,
           ) as string,
@@ -503,9 +504,9 @@ export const photosSlice = createSlice({
           const index = state.downloadingPhotos.findIndex((p) => p.id === action.meta.arg.fileId);
           state.downloadingPhotos.splice(index, 1);
 
-          notify({
-            type: 'error',
-            text: strings.formatString(
+          toastService.show({
+            type: ToastType.Error,
+            text1: strings.formatString(
               strings.errors.photosFullSizeLoad,
               action.error.message || strings.errors.unknown,
             ) as string,
@@ -525,9 +526,9 @@ export const photosSlice = createSlice({
         const index = state.loadPhotosRequests.indexOf(action.meta.requestId);
         state.loadPhotosRequests.splice(index, 1);
 
-        notify({
-          type: 'error',
-          text: strings.formatString(
+        toastService.show({
+          type: ToastType.Error,
+          text1: strings.formatString(
             strings.errors.photosLoad,
             action.error.message || strings.errors.unknown,
           ) as string,
@@ -562,9 +563,9 @@ export const photosSlice = createSlice({
         state.syncRequests.splice(index, 1);
         Object.assign(state.syncStatus, { status: PhotosSyncStatus.Pending });
 
-        notify({
-          type: 'error',
-          text: strings.formatString(
+        toastService.show({
+          type: ToastType.Error,
+          text1: strings.formatString(
             strings.errors.photosSync,
             action.error.message || strings.errors.unknown,
           ) as string,

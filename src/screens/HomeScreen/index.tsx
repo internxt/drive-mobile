@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
 import strings from '../../../assets/lang/strings';
 
 import SearchInput from '../../components/SearchInput';

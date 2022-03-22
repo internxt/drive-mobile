@@ -357,6 +357,9 @@ const strings = new LocalizedStrings({
       photoShared: 'You have shared a photo!',
       photosSyncPending: 'Pending synchronization',
       photosSyncCompleted: 'Your device is up to date',
+      renamedSuccessfully: 'Renamed successfully',
+      linkCopied: 'Link copied',
+      passwordChanged: 'Password changed',
     },
     errors: {
       generic: {
@@ -375,6 +378,7 @@ const strings = new LocalizedStrings({
       fetchReferrals: 'Error fetching referrals: {0}',
       inviteAFriend: 'Error sending invitation: {0}',
       subscribeToNewsletter: 'Error subscribing to newsletter: {0}',
+      loadProducts: 'Cannot load products: {0}',
     },
   },
   es: {
@@ -735,6 +739,9 @@ const strings = new LocalizedStrings({
       photoShared: '¡Has compartido una foto!',
       photosSyncPending: 'Sincronización pendiente',
       photosSyncCompleted: 'Tu dispositivo está sincronizado',
+      renamedSuccessfully: 'Renombrado correctamente',
+      linkCopied: 'Enlace copiado',
+      passwordChanged: 'Contraseña cambiada',
     },
     errors: {
       generic: {
@@ -753,6 +760,7 @@ const strings = new LocalizedStrings({
       fetchReferrals: 'Error cargando referidos: {0}',
       inviteAFriend: 'Error enviando invitación: {0}',
       subscribeToNewsletter: 'Error al suscribirse al newsletter: {0}',
+      loadProducts: 'Error al cargar productos: {0}',
     },
   },
 });

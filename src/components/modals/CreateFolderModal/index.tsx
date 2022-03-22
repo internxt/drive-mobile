@@ -4,7 +4,6 @@ import { View, Keyboard, Platform } from 'react-native';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon } from '../../../helpers';
 import strings from '../../../../assets/lang/strings';
-import { notify } from '../../../services/toast';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import { storageThunks } from '../../../store/slices/storage';
@@ -12,6 +11,8 @@ import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
 import folderService from '../../../services/folder';
+import toastService from '../../../services/toast';
+import { ToastType } from '../../../types';
 
 function CreateFolderModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -34,10 +35,10 @@ function CreateFolderModal(): JSX.Element {
       .createFolder({ folderName, parentId: currentFolderId })
       .then(() => {
         dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
-        notify({ type: 'success', text: strings.messages.folderCreated });
+        toastService.show({ type: ToastType.Success, text1: strings.messages.folderCreated });
       })
       .catch((err) => {
-        notify({ type: 'error', text: err.message });
+        toastService.show({ type: ToastType.Error, text1: err.message });
       })
       .finally(() => {
         setIsLoading(false);

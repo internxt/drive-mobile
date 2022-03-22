@@ -5,12 +5,13 @@ import Modal from 'react-native-modalbox';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
-import { notify } from '../../../services/toast';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { storageActions, storageThunks } from '../../../store/slices/storage';
 import { layoutActions } from '../../../store/slices/layout';
 import errorService from '../../../services/error';
 import AppButton from '../../AppButton';
+import toastService from '../../../services/toast';
+import { ToastType } from '../../../types';
 
 function RenameModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -25,7 +26,7 @@ function RenameModal(): JSX.Element {
     if (currentFolderId) {
       dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
     }
-    notify({ text: 'Renamed successfully', type: 'success' });
+    toastService.show({ text1: strings.messages.renamedSuccessfully, type: ToastType.Success });
     setNewName('');
   };
   const onItemRenameFinally = () => {
@@ -60,7 +61,7 @@ function RenameModal(): JSX.Element {
       onItemRenameSuccess();
     } catch (err) {
       const castedError = errorService.castError(err);
-      notify({ text: castedError.message, type: 'error' });
+      toastService.show({ text1: castedError.message, type: ToastType.Error });
     } finally {
       onItemRenameFinally();
     }

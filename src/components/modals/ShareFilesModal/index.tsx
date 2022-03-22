@@ -10,7 +10,6 @@ import strings from '../../../../assets/lang/strings';
 import { generateShareLink } from '../../../@inxt-js/services/share';
 import { getFileTypeIcon } from '../../../helpers';
 import { generateFileKey, Network } from '../../../lib/network';
-import { notify } from '../../../services/toast';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
 import { deviceStorage } from '../../../services/asyncStorage';
@@ -18,7 +17,8 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import BottomModal from '../BottomModal';
 import { constants } from '../../../services/app';
-import { DriveItemData } from '../../../types';
+import { DriveItemData, ToastType } from '../../../types';
+import toastService from '../../../services/toast';
 
 function ShareFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -191,9 +191,9 @@ function ShareFilesModal(): JSX.Element {
               onPress={() => {
                 if (!isLoading) {
                   setString(link);
-                  notify({
-                    type: 'success',
-                    text: 'Link copied',
+                  toastService.show({
+                    type: ToastType.Success,
+                    text1: strings.messages.linkCopied,
                   });
                   dispatch(layoutActions.setShowShareModal(false));
                 }

@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
 import { IFile, IFolder, IUploadingFile } from '../../../components/FileList';
 import analytics, { getAnalyticsData } from '../../../services/analytics';
-import { notify } from '../../../services/toast';
 import fileService from '../../../services/file';
 import folderService from '../../../services/folder';
 
@@ -12,6 +11,7 @@ import {
   DriveFolderMetadataPayload,
   SortDirection,
   SortType,
+  ToastType,
 } from '../../../types';
 import { RootState } from '../..';
 import { layoutActions } from '../layout';
@@ -20,6 +20,7 @@ import { deviceStorage } from '../../../services/asyncStorage';
 import strings from '../../../../assets/lang/strings';
 import { getEnvironmentConfig } from '../../../lib/network';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import toastService from '../../../services/toast';
 
 interface FolderContent {
   id: number;
@@ -184,9 +185,9 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: 
   async ({ items, folderToReload }, { dispatch }) => {
     dispatch(getFolderContentThunk({ folderId: folderToReload }));
 
-    notify({
-      text: strings.messages.itemsDeleted,
-      type: 'success',
+    toastService.show({
+      text1: strings.messages.itemsDeleted,
+      type: ToastType.Success,
     });
 
     await fileService
@@ -195,9 +196,9 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: 
         dispatch(getUsageAndLimitThunk());
       })
       .catch((err) => {
-        notify({
-          text: err.message,
-          type: 'error',
+        toastService.show({
+          text1: err.message,
+          type: ToastType.Error,
         });
         throw err;
       })

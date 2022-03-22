@@ -9,7 +9,6 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../AppButton';
-import { notify } from '../../../services/toast';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import imageService from '../../../services/image';
@@ -54,14 +53,14 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
       );
 
       if (result.action === Share.sharedAction) {
-        notify({ type: 'success', text: strings.messages.photoShared });
+        toastService.show({ type: ToastType.Success, text: strings.messages.photoShared });
       } else if (result.action === Share.dismissedAction) {
         // dismissed
       }
 
       onClosed();
     } catch (err) {
-      notify({ type: 'error', text: strings.errors.photoShared });
+      toastService.show({ type: ToastType.Error, text: strings.errors.photoShared });
     } */
 
     await imageService.share(uri);

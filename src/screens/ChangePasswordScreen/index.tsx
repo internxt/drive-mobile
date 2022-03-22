@@ -8,10 +8,10 @@ import validationService from '../../services/validation';
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import { doChangePassword } from './changePasswordUtils';
-import { notify } from '../../services/toast';
 import ScreenTitle from '../../components/ScreenTitle';
-import { AppScreenKey } from '../../types';
+import { AppScreenKey, ToastType } from '../../types';
 import AppScreen from '../../components/AppScreen';
+import toastService from '../../services/toast';
 
 function ChangePasswordScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -24,13 +24,13 @@ function ChangePasswordScreen(): JSX.Element {
     setIsLoading(true);
     doChangePassword({ password, newPassword })
       .then(() => {
-        notify({ text: 'Password changed', type: 'success' });
+        toastService.show({ text1: strings.messages.passwordChanged, type: ToastType.Success });
         setPassword('');
         setNewPassword('');
         setConfirmPassword('');
       })
       .catch((err: Error) => {
-        notify({ type: 'error', text: err.message });
+        toastService.show({ type: ToastType.Error, text1: err.message });
       })
       .finally(() => {
         setIsLoading(false);

@@ -2,8 +2,9 @@ import Share from 'react-native-share';
 import ImageResizer, { ResizeFormat, ResizeMode } from 'react-native-image-resizer';
 
 import strings from '../../assets/lang/strings';
-import { notify } from './toast';
 import RNFetchBlob from 'rn-fetch-blob';
+import toastService from './toast';
+import { ToastType } from '../types';
 
 class ImageService {
   public readonly BASE64_PREFIX = 'data:image/png;base64,';
@@ -52,12 +53,12 @@ class ImageService {
       const result = await Share.open({ title: strings.modals.share_photo_modal.nativeMesage, url: uri });
 
       if (result.success) {
-        notify({ type: 'success', text: strings.messages.photoShared });
+        toastService.show({ type: ToastType.Success, text1: strings.messages.photoShared });
       } else if (result.dismissedAction) {
         // dismissed
       }
     } catch (err) {
-      // notify({ type: 'error', text: strings.errors.photoShared });
+      // toastService.show({ type: ToastType.Error, text1: strings.errors.photoShared });
     }
   }
 

@@ -2,17 +2,16 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, KeyboardAvoidingView } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
-import Toast from 'react-native-toast-message';
-import * as Unicons from '@iconscout/react-native-unicons';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import AppNavigator from './screens/AppNavigator';
 import { analyticsSetup, trackStackScreen } from './services/analytics';
 import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
-import { getColor, tailwind } from './helpers/designSystem';
+import { tailwind } from './helpers/designSystem';
 import { deviceStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
-import { AppScreenKey } from './types';
+import { AppScreenKey, ToastType } from './types';
 import appService from './services/app';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
@@ -20,9 +19,8 @@ import { useAppDispatch, useAppSelector } from './store/hooks';
 import { layoutActions } from './store/slices/layout';
 import { storageActions } from './store/slices/storage';
 import SortModal from './components/modals/SortModal';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-
-process.nextTick = setImmediate;
+import AppToast from './components/AppToast';
+import toastService from './services/toast';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -55,6 +53,12 @@ export default function App(): JSX.Element {
 
   // Initialize app
   useEffect(() => {
+    toastService.show({
+      text1: 'Más vale pájaro en mano que ciento volando',
+      text2: 'My name is carlos nice to meet you.',
+      type: ToastType.Success,
+    });
+
     if (!isAppInitialized) {
       Promise.all([loadFonts(), loadLocalUser(), analyticsSetup()])
         .then(() => {
@@ -122,7 +126,7 @@ export default function App(): JSX.Element {
               )}
             </NavigationContainer>
 
-            <Toast config={toastConfig} ref={(ref) => Toast.setRef(ref)} />
+            <AppToast />
 
             <SortModal />
             <InviteFriendsModal
@@ -139,42 +143,3 @@ export default function App(): JSX.Element {
     </SafeAreaProvider>
   );
 }
-
-const toastConfig = {
-  success: function successToast({ text1 }: any) {
-    return (
-      <View style={tailwind('flex flex-row items-center bg-blue-100 p-3 w-full h-16')}>
-        <View>
-          <Unicons.UilCheckCircle color={getColor('green-50')} size={24} />
-        </View>
-        <View style={tailwind('flex-grow ml-3')}>
-          <Text style={tailwind('text-white')}>{text1}</Text>
-        </View>
-      </View>
-    );
-  },
-  error: function errorToast({ text1 }: any) {
-    return (
-      <View style={tailwind('flex flex-row items-center bg-red-60 p-3 w-full h-16')}>
-        <View>
-          <Unicons.UilTimesCircle color={getColor('white')} size={24} />
-        </View>
-        <View style={tailwind('flex-grow ml-3')}>
-          <Text style={tailwind('text-white')}>{text1}</Text>
-        </View>
-      </View>
-    );
-  },
-  warn: function warnToast({ text1 }: any) {
-    return (
-      <View style={tailwind('flex flex-row items-center bg-yellow-30 p-3 w-full h-16')}>
-        <View>
-          <Unicons.UilExclamationTriangle color={getColor('neutral-900')} size={24} />
-        </View>
-        <View style={tailwind('flex-grow ml-3')}>
-          <Text style={tailwind('text-neutral-900')}>{text1}</Text>
-        </View>
-      </View>
-    );
-  },
-};

@@ -27,10 +27,9 @@ import { encryptFilename } from '../../../helpers';
 import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../services/fileSystem';
 import { getExtensionFromUri, removeExtension, renameIfAlreadyExists } from '../../../services/file';
 import strings from '../../../../assets/lang/strings';
-import { notify } from '../../../services/toast';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
-import { DevicePlatform } from '../../../types';
+import { DevicePlatform, ToastType } from '../../../types';
 import { deviceStorage } from '../../../services/asyncStorage';
 import { UPLOAD_FILE_SIZE_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -38,6 +37,7 @@ import { layoutActions } from '../../../store/slices/layout';
 import { storageActions, storageThunks } from '../../../store/slices/storage';
 import { constants } from '../../../services/app';
 import { uploadFile } from '../../../services/network';
+import toastService from '../../../services/toast';
 
 interface UploadingFile {
   size: number;
@@ -310,9 +310,9 @@ function UploadModal(): JSX.Element {
         .catch((err) => {
           trackUploadError(err);
           dispatch(storageActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
-          notify({
-            type: 'error',
-            text: strings.formatString(strings.errors.uploadFile, err.message) as string,
+          toastService.show({
+            type: ToastType.Error,
+            text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
           });
         })
         .finally(() => {
@@ -343,7 +343,10 @@ function UploadModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
+          toastService.show({
+            type: ToastType.Error,
+            text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+          });
         })
         .finally(() => {
           dispatch(layoutActions.setShowUploadFileModal(false));
@@ -365,7 +368,10 @@ function UploadModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
+          toastService.show({
+            type: ToastType.Error,
+            text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+          });
         })
         .finally(() => {
           dispatch(layoutActions.setShowUploadFileModal(false));
@@ -412,7 +418,10 @@ function UploadModal(): JSX.Element {
                 if (err.message === 'User canceled document picker') {
                   return;
                 }
-                notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
+                toastService.show({
+                  type: ToastType.Error,
+                  text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+                });
               })
               .finally(() => {
                 dispatch(layoutActions.setShowUploadFileModal(false));
@@ -437,7 +446,10 @@ function UploadModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          notify({ type: 'error', text: strings.formatString(strings.errors.uploadFile, err.message) as string });
+          toastService.show({
+            type: ToastType.Error,
+            text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+          });
         })
         .finally(() => {
           dispatch(layoutActions.setShowUploadFileModal(false));
@@ -497,9 +509,9 @@ function UploadModal(): JSX.Element {
             });
         }
       } catch (err) {
-        notify({
-          type: 'error',
-          text: strings.formatString(strings.errors.uploadFile, (err as Error).message) as string,
+        toastService.show({
+          type: ToastType.Error,
+          text1: strings.formatString(strings.errors.uploadFile, (err as Error).message) as string,
         });
       }
     }

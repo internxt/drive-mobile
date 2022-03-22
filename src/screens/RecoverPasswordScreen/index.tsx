@@ -4,7 +4,6 @@ import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import { notify } from '../../services/toast';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
 import ScreenTitle from '../../components/ScreenTitle';
@@ -12,6 +11,8 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import AppTextInput from '../../components/AppTextInput';
 import AppScreen from '../../components/AppScreen';
+import { ToastType } from '../../types';
+import toastService from '../../services/toast';
 
 function ChangePassword(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -26,12 +27,12 @@ function ChangePassword(): JSX.Element {
     authService
       .doRecoverPassword(newPassword)
       .then(() => {
-        notify({ text: 'Password changed', type: 'success' });
+        toastService.show({ text1: strings.messages.passwordChanged, type: ToastType.Success });
         setNewPassword('');
         setConfirmPassword('');
       })
       .catch((err: Error) => {
-        notify({ type: 'error', text: err.message });
+        toastService.show({ type: ToastType.Error, text1: err.message });
       })
       .finally(() => {
         setIsLoading(false);

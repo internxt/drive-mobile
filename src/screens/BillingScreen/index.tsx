@@ -6,18 +6,18 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import * as Linking from 'expo-linking';
 
-import { notify } from '../../services/toast';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/Separator';
 import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
 import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/ScreenTitle';
-import { AppScreenKey } from '../../types';
+import { AppScreenKey, ToastType } from '../../types';
 import paymentService from '../../services/payment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { constants } from '../../services/app';
 import AppScreen from '../../components/AppScreen';
+import toastService from '../../services/toast';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -115,9 +115,9 @@ function BillingScreen(): JSX.Element {
         setStripeProducts(products);
       })
       .catch((err) => {
-        notify({
-          type: 'warn',
-          text: 'Cannot load products: ' + err.message,
+        toastService.show({
+          type: ToastType.Warning,
+          text1: strings.formatString(strings.errors.loadProducts, err.message) as string,
         });
       });
   }, []);
