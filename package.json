@@ -76,6 +76,7 @@
     "natural-orderby": "^2.0.3",
     "node-forge": "^0.10.0",
     "path-browserify": "0.0.0",
+    "phosphor-react-native": "^1.1.1",
     "postcss": "^8.2.15",
     "prettysize": "^2.0.0",
     "process": "^0.11.10",

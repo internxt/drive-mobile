@@ -1,10 +1,11 @@
 import { ReactNode } from 'react';
 import * as Unicons from '@iconscout/react-native-unicons';
 import Toast, { BaseToast, BaseToastProps, ToastConfigParams } from 'react-native-toast-message';
+import { CheckCircle } from 'phosphor-react-native';
 
 import { ToastType } from '../../types';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import { Dimensions, View } from 'react-native';
+import { CheckBox, Dimensions, View } from 'react-native';
 
 const AppToast = (): JSX.Element => {
   const screenDimensions = Dimensions.get('screen');
@@ -30,9 +31,7 @@ const AppToast = (): JSX.Element => {
       <BaseToast
         {...defaultProps}
         {...props}
-        renderLeadingIcon={() =>
-          renderIcon(<Unicons.UilCheckCircle {...iconDefaultProps} color={getColor('green-40')} />)
-        }
+        renderLeadingIcon={() => renderIcon(<CheckCircle {...iconDefaultProps} color={getColor('green-40')} />)}
       />
     ),
     [ToastType.Warning]: (props) => (
