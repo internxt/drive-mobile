@@ -8,7 +8,9 @@ export enum AppStage {
 
 export interface AppEnv {
   NODE_ENV: AppStage;
+  REACT_NATIVE_DEBUG: boolean;
   REACT_NATIVE_APP_BUILD_NUMBER: number;
+  REACT_NATIVE_SHOW_BILLING: boolean;
   REACT_NATIVE_CRYPTO_SECRET: string;
   REACT_NATIVE_WEB_CLIENT_URL: string;
   REACT_NATIVE_DRIVE_API_URL: string;

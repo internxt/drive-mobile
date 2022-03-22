@@ -2,7 +2,7 @@
 /* eslint-disable max-len */
 import LocalizedStrings from 'react-native-localization';
 import { ReferralTypes } from '@internxt/sdk/dist/drive/referrals';
-import { SortType } from '../../src/types';
+import { SortType, ToastType } from '../../src/types';
 
 const strings = new LocalizedStrings({
   en_US: {
@@ -29,6 +29,23 @@ const strings = new LocalizedStrings({
       menu: 'Settings',
     },
     screens: {
+      DebugScreen: {
+        title: 'Debug',
+        notifications: {
+          title: 'Notifications',
+          advice: 'Test all notification types.',
+          type: {
+            [ToastType.Success]: 'Success',
+            [ToastType.Warning]: 'Warning',
+            [ToastType.Error]: 'Error',
+            [ToastType.Upload]: 'Upload',
+            [ToastType.Download]: 'Download',
+          },
+          test: {
+            text1: 'This is a test notification',
+          },
+        },
+      },
       home: {
         title: 'Home',
       },
@@ -234,6 +251,7 @@ const strings = new LocalizedStrings({
         subscribe: 'Subscribe',
         invite: 'Invite',
         grant: 'Grant',
+        dismiss: 'Dismiss',
       },
       inputs: {
         email: 'Email address',
@@ -405,8 +423,22 @@ const strings = new LocalizedStrings({
       menu: 'Ajustes',
     },
     screens: {
-      photos: {
-        title: 'Próximamente',
+      DebugScreen: {
+        title: 'Depuración',
+        notifications: {
+          title: 'Notificaciones',
+          advice: 'Prueba todos los tipos de notificaciones.',
+          type: {
+            [ToastType.Success]: 'Éxito',
+            [ToastType.Warning]: 'Advertencia',
+            [ToastType.Error]: 'Error',
+            [ToastType.Upload]: 'Subida',
+            [ToastType.Download]: 'Descarga',
+          },
+          test: {
+            text1: 'Esta es una notificación de prueba',
+          },
+        },
       },
       home: {
         title: 'Inicio',
@@ -614,6 +646,7 @@ const strings = new LocalizedStrings({
         subscribe: 'Suscribirse',
         invite: 'Invitar',
         grant: 'Autorizar',
+        dismiss: 'Cerrar',
       },
       inputs: {
         email: 'Correo electrónico',

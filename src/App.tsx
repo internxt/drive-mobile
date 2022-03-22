@@ -11,7 +11,7 @@ import { getColor, tailwind } from './helpers/designSystem';
 import { deviceStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
-import { AppScreenKey, ToastType } from './types';
+import { AppScreenKey } from './types';
 import appService from './services/app';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
@@ -20,7 +20,6 @@ import { layoutActions } from './store/slices/layout';
 import { storageActions } from './store/slices/storage';
 import SortModal from './components/modals/SortModal';
 import AppToast from './components/AppToast';
-import toastService from './services/toast';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -53,12 +52,6 @@ export default function App(): JSX.Element {
 
   // Initialize app
   useEffect(() => {
-    toastService.show({
-      text1: 'Más vale pájaro en mano que ciento volando',
-      text2: 'My name is carlos nice to meet you.',
-      type: ToastType.Success,
-    });
-
     if (!isAppInitialized) {
       Promise.all([loadFonts(), loadLocalUser(), analyticsSetup()])
         .then(() => {

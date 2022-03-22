@@ -8,6 +8,7 @@ export interface AppPlugin {
 }
 
 export enum AppScreenKey {
+  Debug = 'debug',
   SignUp = 'sign-up',
   SignIn = 'sign-in',
   Intro = 'intro',

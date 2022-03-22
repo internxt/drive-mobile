@@ -23,6 +23,7 @@ import { authSelectors, authThunks } from '../../store/slices/auth';
 import globalStyle from '../../styles/global.style';
 import AppScreen from '../../components/AppScreen';
 import { CaretRight } from 'phosphor-react-native';
+import appService from '../../services/app';
 
 interface MenuItemProps {
   title: string;
@@ -112,14 +113,14 @@ function MenuScreen(): JSX.Element {
               style={tailwind('border-b border-neutral-20')}
             />
 
-            {
+            {appService.constants.REACT_NATIVE_SHOW_BILLING && (
               <MenuItem
                 title={strings.screens.billing.title}
                 onPress={() => {
                   navigation.push(AppScreenKey.Billing);
                 }}
               />
-            }
+            )}
           </View>
 
           <MenuSeparator />
@@ -132,6 +133,7 @@ function MenuScreen(): JSX.Element {
               }}
             />
           </View>
+
           <MenuSeparator />
 
           <View style={tailwind('bg-white rounded-xl')}>
@@ -152,9 +154,18 @@ function MenuScreen(): JSX.Element {
           </View>
 
           <MenuSeparator />
+
+          <View style={tailwind('bg-white rounded-xl')}>
+            <MenuItem
+              title={strings.screens.DebugScreen.title}
+              onPress={() => {
+                navigation.push(AppScreenKey.Debug);
+              }}
+            />
+          </View>
         </View>
 
-        <View style={tailwind('flex text-base my-5')}>
+        <View style={tailwind('flex text-base mt-9 mb-5')}>
           <AppVersionWidget />
         </View>
       </ScrollView>

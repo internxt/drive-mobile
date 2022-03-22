@@ -29,6 +29,7 @@ import { appThunks } from '../store/slices/app';
 import { storageActions } from '../store/slices/storage';
 import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DebugScreen from './DebugScreen';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -37,6 +38,7 @@ type RouteConfig = NavigationRouteConfigMap<
 >;
 
 const routeConfig: RouteConfig = {
+  [AppScreenKey.Debug]: { screen: DebugScreen },
   [AppScreenKey.SignUp]: { screen: SignUpScreen },
   [AppScreenKey.SignIn]: { screen: SignInScreen },
   [AppScreenKey.Intro]: { screen: IntroScreen },

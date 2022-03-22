@@ -300,7 +300,7 @@ function DriveScreen(): JSX.Element {
             {sortDirection === SortDirection.Asc ? (
               <ArrowUp weight="bold" size={15} color={getColor('neutral-100')} />
             ) : (
-              <ArrowDown weight="bold" size={159} color={getColor('neutral-100')} />
+              <ArrowDown weight="bold" size={15} color={getColor('neutral-100')} />
             )}
           </View>
         </TouchableOpacity>

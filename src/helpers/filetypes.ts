@@ -1,5 +1,6 @@
 import React from 'react';
 import { SvgProps } from 'react-native-svg';
+
 import audio from '../../assets/icons/file-types/audio.svg';
 import code from '../../assets/icons/file-types/code.svg';
 import defaultIcon from '../../assets/icons/file-types/default.svg';
@@ -10,14 +11,12 @@ import txt from '../../assets/icons/file-types/txt.svg';
 import video from '../../assets/icons/file-types/video.svg';
 import word from '../../assets/icons/file-types/word.svg';
 import xls from '../../assets/icons/file-types/xls.svg';
-import xml from '../../assets/icons/file-types/xml.svg';
 import zip from '../../assets/icons/file-types/zip.svg';
 import folder from '../../assets/icons/file-types/folder.svg';
 
 export const extensions: Record<string, React.FC<SvgProps>> = {
   txt: txt,
   zip: zip,
-  xml: xml,
   xls: xls,
   xlsx: xls,
   avi: video,
@@ -46,7 +45,7 @@ export const extensions: Record<string, React.FC<SvgProps>> = {
 };
 
 export function getFileTypeIcon(ext: string): React.FC<SvgProps> {
-  const exists = Object.keys(extensions).indexOf(ext) > -1;
+  const exists = ~Object.keys(extensions).indexOf(ext);
 
   if (exists) {
     return extensions[ext];

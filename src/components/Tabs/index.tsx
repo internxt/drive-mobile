@@ -32,7 +32,7 @@ const Tabs = (props: TabsProps): JSX.Element => {
   return (
     <View style={tailwind('flex-1 mt-4')}>
       {/* HEADERS */}
-      <View style={tailwind('px-3 flex-row border-b border-neutral-20')}>{headers}</View>
+      <View style={tailwind('px-3 flex-row border-b border-neutral-30')}>{headers}</View>
 
       {/* CONTENT */}
       <View style={tailwind('flex-1')}>

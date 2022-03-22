@@ -14,6 +14,7 @@ import ReferralsWidget from '../../components/ReferralsWidget';
 import globalStyle from '../../styles/global.style';
 import AppScreen from '../../components/AppScreen';
 import { CaretRight } from 'phosphor-react-native';
+import appService from '../../services/app';
 
 interface StorageScreenProps {
   currentPlan: number;
@@ -48,7 +49,12 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
 
       {/* USAGE */}
       <View style={tailwind('mt-6 mx-5 bg-white rounded-xl bg-white')}>
-        <View style={tailwind('px-5 pt-3')}>
+        <View
+          style={[
+            appService.constants.REACT_NATIVE_SHOW_BILLING ? tailwind('pt-3') : tailwind('py-3'),
+            tailwind('px-5'),
+          ]}
+        >
           <Text style={{ ...tailwind('text-base text-neutral-500'), ...globalStyle.fontWeight.semibold }}>
             {strings.screens.storage.space.used.used} {getUsageString()} {strings.screens.storage.space.used.of}{' '}
             {getLimitString()}
@@ -63,7 +69,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
           </View>
         </View>
 
-        {
+        {appService.constants.REACT_NATIVE_SHOW_BILLING && (
           <TouchableHighlight
             underlayColor={getColor('neutral-30')}
             onPress={() => {
@@ -77,7 +83,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
               <CaretRight size={24} color={getColor('blue-60')} />
             </View>
           </TouchableHighlight>
-        }
+        )}
       </View>
 
       <ReferralsWidget />
