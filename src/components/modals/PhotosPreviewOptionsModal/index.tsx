@@ -2,7 +2,6 @@ import React from 'react';
 import { Image, Text, View } from 'react-native';
 import prettysize from 'prettysize';
 import { Photo } from '@internxt/sdk/dist/photos';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import globalStyle from '../../../styles/global.style';
 import { getColor, tailwind } from '../../../helpers/designSystem';
@@ -13,6 +12,7 @@ import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch } from '../../../store/hooks';
 import { pathToUri, showFileViewer } from '../../../services/fileSystem';
 import { items } from '@internxt/lib';
+import { DownloadSimple, Info, Link, Trash } from 'phosphor-react-native';
 
 interface PhotosPreviewOptionsModalProps extends BottomModalProps {
   data: Photo;
@@ -84,7 +84,7 @@ function PhotosPreviewOptionsModal({
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.info}</Text>
               </View>
             }
-            rightSlot={<Unicons.UilInfoCircle size={20} color={getColor('neutral-500')} />}
+            rightSlot={<Info size={20} color={getColor('neutral-500')} />}
             onPress={onInfoButtonPressed}
           />
           <BottomModalOption
@@ -94,7 +94,7 @@ function PhotosPreviewOptionsModal({
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.share}</Text>
               </View>
             }
-            rightSlot={<Unicons.UilLink size={20} color={getColor('neutral-500')} />}
+            rightSlot={<Link size={20} color={getColor('neutral-500')} />}
             onPress={onShareButtonPressed}
           />
           <BottomModalOption
@@ -104,7 +104,7 @@ function PhotosPreviewOptionsModal({
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.download}</Text>
               </View>
             }
-            rightSlot={<Unicons.UilDownloadAlt size={20} color={getColor('neutral-500')} />}
+            rightSlot={<DownloadSimple size={20} color={getColor('neutral-500')} />}
             onPress={onDownloadButtonPressed}
           />
         </View>
@@ -116,7 +116,7 @@ function PhotosPreviewOptionsModal({
                 <Text style={tailwind('text-lg text-red-60')}>{strings.components.buttons.moveToThrash}</Text>
               </View>
             }
-            rightSlot={<Unicons.UilTrash size={20} color={getColor('red-60')} />}
+            rightSlot={<Trash size={20} color={getColor('red-60')} />}
             onPress={onMoveToTrashButtonPressed}
           />
         </View>

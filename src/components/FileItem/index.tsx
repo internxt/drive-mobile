@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Platform, Animated, Easing } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
+import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Animated, Easing } from 'react-native';
 
 import analytics from '../../services/analytics';
 import { IFile, IFolder, IUploadingFile } from '../FileList';
@@ -25,6 +24,7 @@ import { downloadFile } from '../../services/network';
 import { LegacyDownloadRequiredError } from '../../services/network/download';
 import { downloadFile as legacyDownloadFile } from '../../services/download';
 import { constants } from '../../services/app';
+import { DotsThree } from 'phosphor-react-native';
 
 interface FileItemProps {
   isFolder: boolean;
@@ -248,7 +248,7 @@ function FileItem(props: FileItemProps): JSX.Element {
             <Text
               style={[
                 tailwind('text-base text-neutral-500'),
-                tailwind(props.isGrid ? 'text-center' : 'text-left'),
+                tailwind(props.isGrid ? 'text-center px-1.5' : 'text-left'),
                 globalStyle.fontWeight.medium,
               ]}
               numberOfLines={1}
@@ -302,7 +302,7 @@ function FileItem(props: FileItemProps): JSX.Element {
             onLongPress={onActionsButtonPressed}
           >
             <View style={tailwind('px-5 flex-1 items-center justify-center')}>
-              <Unicons.UilEllipsisH size={24} color={getColor('neutral-60')} />
+              <DotsThree weight="bold" size={24} color={getColor('neutral-60')} />
             </View>
           </TouchableOpacity>
         )}

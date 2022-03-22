@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Text, View, Platform, Alert, BackHandler, TouchableOpacity } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import FileList from '../../components/FileList';
 import analytics, { getAnalyticsData } from '../../services/analytics';
@@ -22,6 +21,15 @@ import { NavigationStackProp } from 'react-navigation-stack';
 import { useRoute } from '@react-navigation/native';
 import { constants } from '../../services/app';
 import AppScreen from '../../components/AppScreen';
+import {
+  ArrowDown,
+  ArrowUp,
+  CaretLeft,
+  DotsThree,
+  ListBullets,
+  MagnifyingGlass,
+  SquaresFour,
+} from 'phosphor-react-native';
 
 function DriveScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -250,7 +258,7 @@ function DriveScreen(): JSX.Element {
             onPress={() => dispatch(storageThunks.goBackThunk({ folderId: parentFolderId as number }))}
           >
             <View style={[tailwind('flex-row items-center'), !parentFolderId && tailwind('opacity-50')]}>
-              <Unicons.UilAngleLeft color={getColor('blue-60')} style={tailwind('-ml-2 -mr-1')} size={32} />
+              <CaretLeft color={getColor('blue-60')} style={tailwind('-ml-2 -mr-1')} size={32} />
               <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>
                 {strings.components.buttons.back}
               </Text>
@@ -263,12 +271,12 @@ function DriveScreen(): JSX.Element {
               style={tailwind('p-2')}
               onPress={() => dispatch(layoutActions.setSearchActive(!searchActive))}
             >
-              <Unicons.UilSearch color={getColor('blue-60')} size={22} />
+              <MagnifyingGlass color={getColor('blue-60')} size={22} />
             </TouchableOpacity>
           </View>
           <View style={tailwind('items-center justify-center')}>
             <TouchableOpacity style={tailwind('p-2')} onPress={onCurrentFolderActionsButtonPressed}>
-              <Unicons.UilEllipsisH color={getColor('blue-60')} size={22} />
+              <DotsThree weight="bold" color={getColor('blue-60')} size={22} />
             </TouchableOpacity>
           </View>
         </View>
@@ -288,11 +296,11 @@ function DriveScreen(): JSX.Element {
       <View style={[tailwind('flex-row justify-between items-center mt-3')]}>
         <TouchableOpacity onPress={onSortButtonPressed}>
           <View style={tailwind('px-5 py-1 flex-row items-center')}>
-            <Text style={tailwind('text-base text-neutral-100')}>{strings.screens.drive.sort[sortType]}</Text>
+            <Text style={tailwind('text-base text-neutral-100 mr-1')}>{strings.screens.drive.sort[sortType]}</Text>
             {sortDirection === SortDirection.Asc ? (
-              <Unicons.UilArrowUp size={20} color={getColor('neutral-100')} />
+              <ArrowUp weight="bold" size={15} color={getColor('neutral-100')} />
             ) : (
-              <Unicons.UilArrowDown size={20} color={getColor('neutral-100')} />
+              <ArrowDown weight="bold" size={159} color={getColor('neutral-100')} />
             )}
           </View>
         </TouchableOpacity>
@@ -303,9 +311,9 @@ function DriveScreen(): JSX.Element {
         >
           <View style={tailwind('py-2 px-5')}>
             {fileViewMode === 'list' ? (
-              <Unicons.UilApps size={22} color={getColor('neutral-100')} />
+              <SquaresFour size={22} color={getColor('neutral-100')} />
             ) : (
-              <Unicons.UilListUl size={22} color={getColor('neutral-100')} />
+              <ListBullets size={22} color={getColor('neutral-100')} />
             )}
           </View>
         </TouchableOpacity>

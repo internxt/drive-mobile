@@ -1,11 +1,10 @@
 import { ReactNode } from 'react';
-import * as Unicons from '@iconscout/react-native-unicons';
 import Toast, { BaseToast, BaseToastProps, ToastConfigParams } from 'react-native-toast-message';
-import { CheckCircle } from 'phosphor-react-native';
+import { ArrowCircleDown, ArrowCircleUp, CheckCircle, Warning, WarningOctagon } from 'phosphor-react-native';
 
 import { ToastType } from '../../types';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import { CheckBox, Dimensions, View } from 'react-native';
+import { Dimensions, View } from 'react-native';
 
 const AppToast = (): JSX.Element => {
   const screenDimensions = Dimensions.get('screen');
@@ -31,7 +30,9 @@ const AppToast = (): JSX.Element => {
       <BaseToast
         {...defaultProps}
         {...props}
-        renderLeadingIcon={() => renderIcon(<CheckCircle {...iconDefaultProps} color={getColor('green-40')} />)}
+        renderLeadingIcon={() =>
+          renderIcon(<CheckCircle {...iconDefaultProps} weight="fill" color={getColor('green-40')} />)
+        }
       />
     ),
     [ToastType.Warning]: (props) => (
@@ -39,7 +40,7 @@ const AppToast = (): JSX.Element => {
         {...defaultProps}
         {...props}
         renderLeadingIcon={() =>
-          renderIcon(<Unicons.UilExclamationTriangle {...iconDefaultProps} color={getColor('yellow-30')} />)
+          renderIcon(<Warning {...iconDefaultProps} weight="fill" color={getColor('yellow-30')} />)
         }
       />
     ),
@@ -48,7 +49,7 @@ const AppToast = (): JSX.Element => {
         {...defaultProps}
         {...props}
         renderLeadingIcon={() =>
-          renderIcon(<Unicons.UilTimesCircle {...iconDefaultProps} color={getColor('red-60')} />)
+          renderIcon(<WarningOctagon {...iconDefaultProps} weight="fill" color={getColor('red-50')} />)
         }
       />
     ),
@@ -56,14 +57,18 @@ const AppToast = (): JSX.Element => {
       <BaseToast
         {...defaultProps}
         {...props}
-        renderLeadingIcon={() => renderIcon(<Unicons.UilArrowCircleUp color={getColor('blue-60')} size={20} />)}
+        renderLeadingIcon={() =>
+          renderIcon(<ArrowCircleUp {...iconDefaultProps} weight="fill" color={getColor('blue-60')} />)
+        }
       />
     ),
     [ToastType.Download]: (props) => (
       <BaseToast
         {...props}
         contentContainerStyle={{}}
-        renderLeadingIcon={() => renderIcon(<Unicons.UilArrowCircleDown color={getColor('blue-60')} size={20} />)}
+        renderLeadingIcon={() =>
+          renderIcon(<ArrowCircleDown {...iconDefaultProps} weight="fill" color={getColor('blue-60')} />)
+        }
       />
     ),
   };

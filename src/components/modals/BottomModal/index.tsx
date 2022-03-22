@@ -1,11 +1,11 @@
 import React from 'react';
-import { Easing, Platform, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
+import { Easing, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import Modal from 'react-native-modalbox';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { X } from 'phosphor-react-native';
 
 export interface BottomModalProps {
   isOpen: boolean;
@@ -43,7 +43,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
               <View>
                 <TouchableWithoutFeedback onPress={props.onClosed}>
                   <View style={tailwind('bg-neutral-20 rounded-full h-8 w-8 justify-center items-center ml-5')}>
-                    <Unicons.UilTimes color={getColor('neutral-60')} size={24} />
+                    <X color={getColor('neutral-60')} size={24} />
                   </View>
                 </TouchableWithoutFeedback>
               </View>

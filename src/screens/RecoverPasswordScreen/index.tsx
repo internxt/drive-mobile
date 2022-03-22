@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -13,6 +12,7 @@ import AppTextInput from '../../components/AppTextInput';
 import AppScreen from '../../components/AppScreen';
 import { ToastType } from '../../types';
 import toastService from '../../services/toast';
+import { Eye, EyeSlash } from 'phosphor-react-native';
 
 function ChangePassword(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -59,10 +59,14 @@ function ChangePassword(): JSX.Element {
       />
       <View style={tailwind('mx-5')}>
         <View style={tailwind('items-center my-3')}>
-          <Text style={styles.titleText}>{strings.screens.recover_password.title}</Text>
+          <Text style={{ ...styles.titleText, ...tailwind('text-base') }}>
+            {strings.screens.recover_password.title}
+          </Text>
         </View>
         <View>
-          <Text style={styles.subtitleText}>{strings.screens.recover_password.warning}</Text>
+          <Text style={{ ...styles.subtitleText, ...tailwind('text-center') }}>
+            {strings.screens.recover_password.warning}
+          </Text>
         </View>
         <View style={tailwind('my-3')}>
           <View
@@ -87,11 +91,7 @@ function ChangePassword(): JSX.Element {
             {(!isEmptyPassword || newPasswordFocus) && (
               <TouchableWithoutFeedback onPress={() => setShowPassword(!showPassword)}>
                 <View style={tailwind('relative right-14 justify-center p-3')}>
-                  {showPassword ? (
-                    <Unicons.UilEyeSlash color={getColor('neutral-80')} />
-                  ) : (
-                    <Unicons.UilEye color={getColor('neutral-80')} />
-                  )}
+                  {showPassword ? <EyeSlash color={getColor('neutral-80')} /> : <Eye color={getColor('neutral-80')} />}
                 </View>
               </TouchableWithoutFeedback>
             )}
@@ -119,9 +119,9 @@ function ChangePassword(): JSX.Element {
               <TouchableWithoutFeedback onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                 <View style={tailwind('relative right-14 justify-center p-3')}>
                   {showConfirmPassword ? (
-                    <Unicons.UilEyeSlash color={getColor('neutral-80')} />
+                    <EyeSlash color={getColor('neutral-80')} />
                   ) : (
-                    <Unicons.UilEye color={getColor('neutral-80')} />
+                    <Eye color={getColor('neutral-80')} />
                   )}
                 </View>
               </TouchableWithoutFeedback>
@@ -145,13 +145,9 @@ const styles = StyleSheet.create({
   titleText: {
     color: '#091E42',
     fontWeight: 'bold',
-    fontSize: 16,
-    fontFamily: 'NeueEinstellung-Regular',
   },
   subtitleText: {
-    textAlign: 'center',
     color: '#253858',
-    fontFamily: 'NeueEinstellung-Regular',
   },
 });
 

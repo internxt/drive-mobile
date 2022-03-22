@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import validationService from '../../services/validation';
 import strings from '../../../assets/lang/strings';
@@ -12,6 +11,7 @@ import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreenKey, ToastType } from '../../types';
 import AppScreen from '../../components/AppScreen';
 import toastService from '../../services/toast';
+import { Eye } from 'phosphor-react-native';
 
 function ChangePasswordScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -87,7 +87,7 @@ function ChangePasswordScreen(): JSX.Element {
               onFocus={() => setPasswordFocus(true)}
               onBlur={() => setPasswordFocus(false)}
             />
-            <Unicons.UilEye
+            <Eye
               style={tailwind('input-icon hidden')}
               color={passwordFocus && isValidPassword ? '#42BE65' : '#7A869A'}
             />
@@ -109,7 +109,7 @@ function ChangePasswordScreen(): JSX.Element {
               onFocus={() => setNewPasswordFocus(true)}
               onBlur={() => setNewPasswordFocus(false)}
             />
-            <Unicons.UilEye
+            <Eye
               style={tailwind('input-icon hidden')}
               color={newPasswordFocus && isValidNewPassword ? '#42BE65' : '#7A869A'}
             />
@@ -131,7 +131,7 @@ function ChangePasswordScreen(): JSX.Element {
               onFocus={() => setConfirmPasswordFocus(true)}
               onBlur={() => setConfirmPasswordFocus(false)}
             />
-            <Unicons.UilEye
+            <Eye
               style={tailwind('input-icon hidden')}
               color={confirmPasswordFocus && passwordConfirmed ? '#42BE65' : '#7A869A'}
             />

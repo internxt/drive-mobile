@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Dimensions, FlatList, ListRenderItemInfo, Text, TouchableWithoutFeedback, View } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 import { Photo } from '@internxt/sdk/dist/photos';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -11,6 +10,7 @@ import { NavigationStackProp } from 'react-navigation-stack';
 import { photosActions, photosSelectors } from '../../store/slices/photos';
 import { AppScreenKey } from '../../types';
 import moment from 'moment';
+import { CheckCircle } from 'phosphor-react-native';
 
 interface GalleryDayProps {
   year: number;
@@ -62,13 +62,13 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
         {areAllPhotosSelected ? (
           <TouchableWithoutFeedback onPress={deselectAll}>
             <View style={[tailwind('w-6 h-6 bg-blue-60 flex justify-center items-center rounded-2xl')]}>
-              <Unicons.UilCheckCircle color={getColor('white')} size={32} />
+              <CheckCircle color={getColor('white')} size={32} />
             </View>
           </TouchableWithoutFeedback>
         ) : (
           <TouchableWithoutFeedback onPress={selectAll}>
             <View style={[tailwind('bg-white w-6 h-6 flex justify-center items-center rounded-xl')]}>
-              <Unicons.UilCheckCircle color={getColor('neutral-60')} size={32} />
+              <CheckCircle color={getColor('neutral-60')} size={32} />
             </View>
           </TouchableWithoutFeedback>
         )}

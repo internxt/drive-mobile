@@ -1,8 +1,8 @@
+import { X } from 'phosphor-react-native';
 import React from 'react';
 import { View, Text, TouchableWithoutFeedback } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { tailwind } from '../../../helpers/designSystem';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 function UpdateModal(): JSX.Element {
   return (
@@ -17,7 +17,7 @@ function UpdateModal(): JSX.Element {
           <View style={tailwind('h-12 flex')}>
             <TouchableWithoutFeedback onPress={() => undefined}>
               <View style={tailwind('bg-neutral-20 rounded-full p-1 self-end m-3')}>
-                <Unicons.UilTimes color={'#B3BAC5'} />
+                <X color={'#B3BAC5'} />
               </View>
             </TouchableWithoutFeedback>
           </View>

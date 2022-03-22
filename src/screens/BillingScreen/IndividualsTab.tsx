@@ -1,8 +1,9 @@
+import { CaretDown } from 'phosphor-react-native';
 import React, { useState } from 'react';
 import { View, Text } from 'react-native';
 import Accordion from 'react-native-collapsible/Accordion';
-import * as Unicons from '@iconscout/react-native-unicons';
-import { tailwind } from '../../helpers/designSystem';
+
+import { getColor, tailwind } from '../../helpers/designSystem';
 
 interface Section {
   title: string;
@@ -81,7 +82,7 @@ const _renderHeader = (section: Section) => {
       </View>
 
       <View>
-        <Unicons.UilAngleDown color="gray" />
+        <CaretDown color={getColor('neutral-500')} />
       </View>
     </View>
   );

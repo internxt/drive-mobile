@@ -1,9 +1,9 @@
 import React from 'react';
 import prettysize from 'prettysize';
 import { View, Text, TouchableHighlight } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
+
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import ProgressBar from '../../components/ProgressBar';
@@ -13,6 +13,7 @@ import { AppScreenKey, INFINITE_PLAN } from '../../types';
 import ReferralsWidget from '../../components/ReferralsWidget';
 import globalStyle from '../../styles/global.style';
 import AppScreen from '../../components/AppScreen';
+import { CaretRight } from 'phosphor-react-native';
 
 interface StorageScreenProps {
   currentPlan: number;
@@ -73,7 +74,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
               <Text style={{ ...tailwind('text-blue-60 text-lg'), ...globalStyle.fontWeight.semibold }}>
                 {strings.components.buttons.upgradeNow}
               </Text>
-              <Unicons.UilAngleRight size={30} color={getColor('blue-60')} />
+              <CaretRight size={24} color={getColor('blue-60')} />
             </View>
           </TouchableHighlight>
         }

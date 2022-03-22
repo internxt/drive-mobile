@@ -1928,11 +1928,6 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@iconscout/react-native-unicons@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.npmjs.org/@iconscout/react-native-unicons/-/react-native-unicons-1.0.3.tgz"
-  integrity sha512-fP/INOvoqNv6j7Ysft4uiB/vRi0jAPNpLaefM3SNGtDssCN619DJtHUKLQR6wTb+5aIbhwu99Hb+GrpM5S8Vtw==
-
 "@internxt/eslint-config-internxt@^1.0.8":
   version "1.0.8"
   resolved "https://npm.pkg.github.com/download/@internxt/eslint-config-internxt/1.0.8/8ef873f092c1d57edd19bf32a5bf6deea0fb8932b09c601a719031433324d16c#449ef77f7e1d353ad424425143a551e5df41d162"

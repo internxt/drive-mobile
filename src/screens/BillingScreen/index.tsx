@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Text, TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
 import _ from 'lodash';
-import * as Unicons from '@iconscout/react-native-unicons';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import * as Linking from 'expo-linking';
@@ -18,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { constants } from '../../services/app';
 import AppScreen from '../../components/AppScreen';
 import toastService from '../../services/toast';
+import { Check } from 'phosphor-react-native';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -213,19 +213,19 @@ function BillingScreen(): JSX.Element {
 
         <View>
           <View style={tailwind('flex-row items-center')}>
-            <Unicons.UilCheck color="#42526E" />
+            <Check color="#42526E" />
             <Text style={tailwind('ml-1 text-base btn-label text-neutral-500 font-bold flex-1')}>
               {strings.screens.billing.features.guarantee}
             </Text>
           </View>
           <View style={tailwind('flex-row items-center')}>
-            <Unicons.UilCheck color="#42526E" />
+            <Check color="#42526E" />
             <Text style={tailwind('ml-1 text-base btn-label text-neutral-500')}>
               {strings.screens.billing.features.share}
             </Text>
           </View>
           <View style={tailwind('flex-row items-center')}>
-            <Unicons.UilCheck color="#42526E" />
+            <Check color="#42526E" />
             <Text style={tailwind('ml-1 text-base btn-label text-neutral-500')}>
               {strings.screens.billing.features.anyDevice}
             </Text>

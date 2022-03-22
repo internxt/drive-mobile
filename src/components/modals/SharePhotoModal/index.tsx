@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Image, Platform, Share, Text, TextInput, TouchableHighlight, View } from 'react-native';
 import { Photo } from '@internxt/sdk/dist/photos';
 import prettysize from 'prettysize';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import globalStyle from '../../../styles/global.style';
 import { getColor, tailwind } from '../../../helpers/designSystem';

@@ -1,6 +1,6 @@
+import { CheckCircle } from 'phosphor-react-native';
 import React from 'react';
 import { Text, TouchableWithoutFeedback, View } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -46,7 +46,7 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
     ),
     [PhotosSyncStatus.Completed]: (
       <>
-        <Unicons.UilCheckCircle style={tailwind('mr-1')} color={getColor('green-60')} size={16} />
+        <CheckCircle weight="fill" style={tailwind('mr-1')} color={getColor('green-40')} size={16} />
         <Text style={tailwind('text-neutral-100 text-sm')}>{strings.messages.photosSyncCompleted}</Text>
       </>
     ),

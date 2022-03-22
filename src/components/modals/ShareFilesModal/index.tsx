@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Share, TouchableOpacity, TouchableHighlight, ActivityIndicator } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 import prettysize from 'prettysize';
 import { setString } from 'expo-clipboard';
 
@@ -19,6 +18,7 @@ import BottomModal from '../BottomModal';
 import { constants } from '../../../services/app';
 import { DriveItemData, ToastType } from '../../../types';
 import toastService from '../../../services/toast';
+import { Copy, Minus, Plus } from 'phosphor-react-native';
 
 function ShareFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -144,7 +144,7 @@ function ShareFilesModal(): JSX.Element {
               inputValue === '1' && tailwind('bg-neutral-30'),
             ]}
           >
-            <Unicons.UilMinus color="white" size={26} />
+            <Minus color="white" size={26} />
           </TouchableHighlight>
           <View style={tailwind('bg-white justify-center')}>
             <View style={tailwind('text-xl mx-8 flex-row items-center')}>
@@ -166,7 +166,7 @@ function ShareFilesModal(): JSX.Element {
               inputValue === '100' && tailwind('bg-neutral-30'),
             ]}
           >
-            <Unicons.UilPlus color="white" size={26} />
+            <Plus color="white" size={26} />
           </TouchableHighlight>
         </View>
 
@@ -209,7 +209,7 @@ function ShareFilesModal(): JSX.Element {
               >
                 {isLoading ? 'Generating share link' : 'Copy share link'}
               </Text>
-              {isLoading ? <ActivityIndicator /> : <Unicons.UilCopy color={getColor('blue-60')} />}
+              {isLoading ? <ActivityIndicator /> : <Copy color={getColor('blue-60')} />}
             </TouchableOpacity>
           </View>
         </View>

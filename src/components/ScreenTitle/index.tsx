@@ -1,10 +1,10 @@
 import React from 'react';
 import { Text, View, TouchableOpacity, StyleProp, TextStyle } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import globalStyle from '../../styles/global.style';
 import { useAppSelector } from '../../store/hooks';
+import { CaretLeft } from 'phosphor-react-native';
 
 interface ScreenTitleProps {
   text: string;
@@ -35,7 +35,7 @@ const ScreenTitle = ({
       {showBackButton && (
         <TouchableOpacity style={tailwind('flex-1')} disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
-            <Unicons.UilAngleLeft color={getColor('blue-60')} size={32} />
+            <CaretLeft color={getColor('blue-60')} size={24} />
           </View>
         </TouchableOpacity>
       )}

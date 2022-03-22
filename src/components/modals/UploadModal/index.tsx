@@ -18,7 +18,6 @@ import {
 import * as FileSystem from 'expo-file-system';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
-import * as Unicons from '@iconscout/react-native-unicons';
 import RNFS from 'react-native-fs';
 
 import { createFileEntry, FileEntry, getFinalUri } from '../../../services/upload';
@@ -38,6 +37,7 @@ import { storageActions, storageThunks } from '../../../store/slices/storage';
 import { constants } from '../../../services/app';
 import { uploadFile } from '../../../services/network';
 import toastService from '../../../services/toast';
+import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 
 interface UploadingFile {
   size: number;
@@ -554,7 +554,7 @@ function UploadModal(): JSX.Element {
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.uploadFiles}</Text>
                 <View style={tailwind('h-12 w-12 items-center justify-center')}>
-                  <Unicons.UilFileUpload color={getColor('neutral-500')} size={20} />
+                  <FileArrowUp color={getColor('neutral-500')} size={20} />
                 </View>
               </View>
             </TouchableHighlight>
@@ -573,7 +573,7 @@ function UploadModal(): JSX.Element {
                   {strings.components.buttons.uploadFromCameraRoll}
                 </Text>
                 <View style={tailwind('h-12 w-12 items-center justify-center')}>
-                  <Unicons.UilImages color={getColor('neutral-500')} size={20} />
+                  <ImageSquare color={getColor('neutral-500')} size={20} />
                 </View>
               </View>
             </TouchableHighlight>
@@ -592,7 +592,7 @@ function UploadModal(): JSX.Element {
                   {strings.components.buttons.takeAPhotoAnUpload}
                 </Text>
                 <View style={tailwind('h-12 w-12 items-center justify-center')}>
-                  <Unicons.UilCameraPlus color={getColor('neutral-500')} size={20} />
+                  <Camera color={getColor('neutral-500')} size={20} />
                 </View>
               </View>
             </TouchableHighlight>
@@ -610,7 +610,7 @@ function UploadModal(): JSX.Element {
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.newFolder}</Text>
                 <View style={tailwind('h-12 w-12 items-center justify-center')}>
-                  <Unicons.UilFolderPlus color={getColor('neutral-500')} size={20} />
+                  <FolderSimplePlus color={getColor('neutral-500')} size={20} />
                 </View>
               </View>
             </TouchableHighlight>

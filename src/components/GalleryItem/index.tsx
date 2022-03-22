@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Image, TouchableOpacity } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { Photo } from '@internxt/sdk/dist/photos';
 import { GalleryItemType } from '../../types/photos';
+import { CheckCircle } from 'phosphor-react-native';
 
 interface GalleryItemProps {
   type?: GalleryItemType;
@@ -48,7 +48,7 @@ const GalleryItem = ({
         <View
           style={[tailwind('absolute bg-blue-60 w-5 h-5 bottom-3 right-3 flex justify-center items-center rounded-xl')]}
         >
-          <Unicons.UilCheckCircle color={getColor('white')} size={30} />
+          <CheckCircle color={getColor('white')} size={30} />
         </View>
       )}
     </TouchableOpacity>

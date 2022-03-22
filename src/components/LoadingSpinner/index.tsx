@@ -1,6 +1,6 @@
+import { Spinner } from 'phosphor-react-native';
 import React, { useEffect, useState } from 'react';
 import { Animated, Easing, StyleProp, ViewStyle } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 
@@ -45,7 +45,7 @@ const LoadingSpinner = ({ size = 16, color = getColor('neutral-100'), style }: L
         style,
       ]}
     >
-      <Unicons.UilSpinnerAlt size={size} color={color} />
+      <Spinner size={size} color={color} />
     </Animated.View>
   );
 };

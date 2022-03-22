@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { TextInput, TouchableHighlight, View, Text, Alert, ScrollView, TouchableWithoutFeedback } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import CheckBox from '../../components/CheckBox';
 import strings from '../../../assets/lang/strings';
@@ -19,6 +18,7 @@ import { NavigationStackProp } from 'react-navigation-stack';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
 import { storageActions } from '../../store/slices/storage';
+import { Eye, EyeSlash } from 'phosphor-react-native';
 
 function SignUpScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -223,9 +223,9 @@ function SignUpScreen(): JSX.Element {
                 <TouchableWithoutFeedback onPress={() => setShowPassword(!showPassword)}>
                   <View style={tailwind('justify-center p-3')}>
                     {showPassword ? (
-                      <Unicons.UilEyeSlash color={getColor('neutral-80')} />
+                      <EyeSlash color={getColor('neutral-80')} />
                     ) : (
-                      <Unicons.UilEye color={getColor('neutral-80')} />
+                      <Eye color={getColor('neutral-80')} />
                     )}
                   </View>
                 </TouchableWithoutFeedback>
@@ -255,9 +255,9 @@ function SignUpScreen(): JSX.Element {
                 <TouchableWithoutFeedback onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                   <View style={tailwind('justify-center p-3')}>
                     {showConfirmPassword ? (
-                      <Unicons.UilEyeSlash color={getColor('neutral-80')} />
+                      <EyeSlash color={getColor('neutral-80')} />
                     ) : (
-                      <Unicons.UilEye color={getColor('neutral-80')} />
+                      <Eye color={getColor('neutral-80')} />
                     )}
                   </View>
                 </TouchableWithoutFeedback>

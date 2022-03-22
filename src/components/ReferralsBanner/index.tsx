@@ -1,5 +1,4 @@
 import { Text, View } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 
@@ -9,6 +8,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { layoutActions } from '../../store/slices/layout';
 import { TouchableWithoutFeedback } from 'react-native';
 import { AppScreenKey } from '../../types';
+import { X } from 'phosphor-react-native';
 
 const ReferralsBanner = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -28,7 +28,7 @@ const ReferralsBanner = (): JSX.Element => {
         <>
           <Text style={tailwind('text-white text-lg')}>{strings.components.ReferralsBanner.message}</Text>
           <TouchableWithoutFeedback onPress={onCloseButtonPressed}>
-            <Unicons.UilTimes color={getColor('blue-40')} size={26} />
+            <X color={getColor('blue-40')} size={26} />
           </TouchableWithoutFeedback>
         </>
       </View>

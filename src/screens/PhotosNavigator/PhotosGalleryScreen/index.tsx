@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import Portal from '@burstware/react-native-portal';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles/global.style';
@@ -13,10 +12,10 @@ import { photosActions, photosSelectors, photosThunks } from '../../../store/sli
 import { layoutActions } from '../../../store/slices/layout';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { GalleryViewMode } from '../../../types/photos';
 import PhotosSyncStatusWidget from '../../../components/PhotosSyncStatusWidget';
 import AppScreen from '../../../components/AppScreen';
+import { Trash } from 'phosphor-react-native';
 
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -218,10 +217,7 @@ function PhotosGalleryScreen(): JSX.Element {
                 disabled={hasNoPhotosSelected}
               >
                 <View style={tailwind('items-center flex-1')}>
-                  <Unicons.UilTrash
-                    color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('red-60')}
-                    size={24}
-                  />
+                  <Trash color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('red-60')} size={24} />
                   <Text
                     numberOfLines={1}
                     style={[

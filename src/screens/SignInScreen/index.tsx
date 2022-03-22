@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useState } from 'react';
-import { View, Text, Alert, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
+import { View, Text, Alert, TextInput, TouchableWithoutFeedback } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
 import analytics from '../../services/analytics';
@@ -19,6 +18,7 @@ import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
 import { storageActions } from '../../store/slices/storage';
 import AppButton from '../../components/AppButton';
+import { Eye, EyeSlash } from 'phosphor-react-native';
 
 function SignInScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -120,9 +120,9 @@ function SignInScreen(): JSX.Element {
               <TouchableWithoutFeedback onPress={() => setShowPasswordText(!showPasswordText)}>
                 <View style={tailwind('justify-center p-3')}>
                   {showPasswordText ? (
-                    <Unicons.UilEyeSlash color={getColor('neutral-80')} />
+                    <EyeSlash color={getColor('neutral-80')} />
                   ) : (
-                    <Unicons.UilEye color={getColor('neutral-80')} />
+                    <Eye color={getColor('neutral-80')} />
                   )}
                 </View>
               </TouchableWithoutFeedback>

@@ -1,6 +1,7 @@
+import { MagnifyingGlass, XCircle } from 'phosphor-react-native';
 import React, { createRef, useState } from 'react';
 import { View, TextInput, StyleProp, ViewStyle, TouchableOpacity } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
+
 import { getColor, tailwind } from '../../helpers/designSystem';
 
 interface SearchInputProps {
@@ -30,7 +31,7 @@ function SearchInput(props: SearchInputProps): JSX.Element {
         <View style={tailwind('flex-row items-center')}>
           {showSearchIcon && (
             <View style={tailwind('pl-3')}>
-              <Unicons.UilSearch color={getColor('neutral-60')} size={18} />
+              <MagnifyingGlass color={getColor('neutral-60')} size={18} />
             </View>
           )}
 
@@ -48,7 +49,7 @@ function SearchInput(props: SearchInputProps): JSX.Element {
           {!!props.value && (
             <TouchableOpacity onPress={onClearButtonPressed}>
               <View style={tailwind('py-1.5 px-3 items-center justify-center')}>
-                <Unicons.UilTimesCircle color={getColor('neutral-100')} size={24} />
+                <XCircle color={getColor('neutral-100')} size={24} />
               </View>
             </TouchableOpacity>
           )}

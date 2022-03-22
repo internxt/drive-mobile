@@ -1,7 +1,6 @@
 import prettysize from 'prettysize';
 import { useEffect } from 'react';
 import { Text, TouchableHighlight, View } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -10,6 +9,7 @@ import { referralsThunks } from '../../store/slices/referrals';
 import { ReferralTypes } from '@internxt/sdk/dist/drive';
 import { layoutActions } from '../../store/slices/layout';
 import globalStyle from '../../styles/global.style';
+import { CaretRight, Check } from 'phosphor-react-native';
 
 const ReferralsWidget = (): JSX.Element => {
   const dispatch = useAppDispatch();
@@ -61,9 +61,9 @@ const ReferralsWidget = (): JSX.Element => {
             </Text>
 
             {r.isCompleted ? (
-              <Unicons.UilCheck color={getColor('green-50')} size={24} style={tailwind('ml-2')} />
+              <Check color={getColor('green-50')} size={24} style={tailwind('ml-2')} />
             ) : (
-              hasClickAction && <Unicons.UilAngleRight color={getColor('blue-60')} size={24} style={tailwind('ml-2')} />
+              hasClickAction && <CaretRight color={getColor('blue-60')} size={24} style={tailwind('ml-2')} />
             )}
           </View>
         </TouchableHighlight>

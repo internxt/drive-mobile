@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import RNFS from 'react-native-fs';
 import { View, Text, Image, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
@@ -21,6 +20,7 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import { items } from '@internxt/lib';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppScreen from '../../../components/AppScreen';
+import { CaretLeft, DotsThree, DownloadSimple, Link, Trash } from 'phosphor-react-native';
 
 interface PreviewProps {
   route: {
@@ -161,12 +161,12 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
               <View style={tailwind('flex-row justify-between p-5')}>
                 {/* BACK BUTTON */}
                 <TouchableOpacity style={tailwind('z-10')} onPress={onBackButtonPressed}>
-                  <Unicons.UilAngleLeft color={getColor('white')} size={32} />
+                  <CaretLeft color={getColor('white')} size={32} />
                 </TouchableOpacity>
 
                 {/* OPTIONS BUTTON */}
                 <TouchableOpacity style={tailwind('z-10')} onPress={() => setIsOptionsModalOpen(true)}>
-                  <Unicons.UilEllipsisH color={getColor('white')} size={32} />
+                  <DotsThree weight="bold" color={getColor('white')} size={32} />
                 </TouchableOpacity>
               </View>
             </LinearGradient>
@@ -183,7 +183,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
                 style={tailwind('items-center flex-1 pb-2')}
                 onPress={onShareButtonPressed}
               >
-                <Unicons.UilLink color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
+                <Link color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
                 <Text
                   style={[
                     tailwind('text-xs'),
@@ -198,7 +198,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
                 style={tailwind('items-center flex-1')}
                 onPress={onDownloadButtonPressed}
               >
-                <Unicons.UilImport color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
+                <DownloadSimple color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
                 <Text
                   style={[
                     tailwind('text-xs'),
@@ -209,7 +209,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity style={tailwind('items-center flex-1')} onPress={onMoveToTrashButtonPressed}>
-                <Unicons.UilTrash color="white" size={26} />
+                <Trash color={getColor('white')} size={26} />
                 <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.moveToThrash}</Text>
               </TouchableOpacity>
             </LinearGradient>

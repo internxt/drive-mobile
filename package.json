@@ -21,7 +21,6 @@
     "@babel/plugin-proposal-decorators": "^7.14.5",
     "@babel/runtime": "^7.14.6",
     "@burstware/react-native-portal": "^1.0.2",
-    "@iconscout/react-native-unicons": "^1.0.3",
     "@internxt/lib": "^1.1.5",
     "@internxt/sdk": "^0.4.1",
     "@react-native-async-storage/async-storage": "^1.16.1",

@@ -10,7 +10,6 @@ import {
   TextStyle,
   ViewStyle,
 } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import strings from '../../../assets/lang/strings';
@@ -23,6 +22,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors, authThunks } from '../../store/slices/auth';
 import globalStyle from '../../styles/global.style';
 import AppScreen from '../../components/AppScreen';
+import { CaretRight } from 'phosphor-react-native';
 
 interface MenuItemProps {
   title: string;
@@ -47,7 +47,7 @@ function MenuItem(props: MenuItemProps) {
           <Text style={[tailwind('text-lg text-neutral-500'), props.textStyle]}>{props.title}</Text>
         </View>
         <View style={tailwind('justify-center')}>
-          <Unicons.UilAngleRightB color={props.arrowColor || getColor('neutral-60')} />
+          <CaretRight color={props.arrowColor || getColor('neutral-60')} />
         </View>
       </View>
     </TouchableHighlight>

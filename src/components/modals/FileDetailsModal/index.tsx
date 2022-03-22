@@ -1,7 +1,6 @@
 import prettysize from 'prettysize';
 import React from 'react';
 import { Text, View } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 
 import strings from '../../../../assets/lang/strings';
 import { getColor, tailwind } from '../../../helpers/designSystem';
@@ -11,6 +10,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import BottomModalOption from '../../BottomModalOption';
 import BottomModal from '../BottomModal';
+import { Link, PencilSimpleLine, Trash } from 'phosphor-react-native';
 
 function FileDetailsModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -70,7 +70,7 @@ function FileDetailsModal(): JSX.Element {
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.generic.rename}</Text>
               </View>
             }
-            rightSlot={<Unicons.UilEditAlt size={20} color={getColor('neutral-500')} />}
+            rightSlot={<PencilSimpleLine size={20} color={getColor('neutral-500')} />}
             onPress={() => {
               dispatch(layoutActions.setShowItemModal(false));
               dispatch(layoutActions.setShowRenameModal(true));
@@ -86,7 +86,7 @@ function FileDetailsModal(): JSX.Element {
                   </Text>
                 </View>
               }
-              rightSlot={<Unicons.UilLink size={20} color={getColor('neutral-500')} />}
+              rightSlot={<Link size={20} color={getColor('neutral-500')} />}
               onPress={() => {
                 dispatch(layoutActions.setShowItemModal(false));
                 dispatch(layoutActions.setShowShareModal(true));
@@ -102,7 +102,7 @@ function FileDetailsModal(): JSX.Element {
                 <Text style={tailwind('text-lg text-red-60')}>{strings.components.file_and_folder_options.delete}</Text>
               </View>
             }
-            rightSlot={<Unicons.UilTrash size={20} color={getColor('red-60')} />}
+            rightSlot={<Trash size={20} color={getColor('red-60')} />}
             onPress={() => {
               dispatch(layoutActions.setShowItemModal(false));
               dispatch(layoutActions.setShowDeleteModal(true));

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, TouchableWithoutFeedback, Text } from 'react-native';
-import * as Unicons from '@iconscout/react-native-unicons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -8,13 +7,14 @@ import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch } from '../../store/hooks';
 import { layoutActions } from '../../store/slices/layout';
+import { Folder, Gear, House, ImageSquare, Plus } from 'phosphor-react-native';
 
 const tabIcons = {
-  home: Unicons.UilEstate,
-  drive: Unicons.UilHdd,
-  create: Unicons.UilPlus,
-  photos: Unicons.UilImage,
-  menu: Unicons.UilSetting,
+  home: House,
+  drive: Folder,
+  create: Plus,
+  photos: ImageSquare,
+  menu: Gear,
 };
 
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
@@ -57,7 +57,8 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         <View style={tailwind('h-14 items-center justify-center flex-1')}>
           {isCreateRoute && <View style={tailwind('absolute bg-blue-60 h-8 w-8 rounded-3xl')} />}
 
-          <Icon color={iconColor} size={24} />
+          <Icon weight={isFocused ? 'fill' : undefined} color={iconColor} size={24} />
+
           {options.tabBarShowLabel && !isCreateRoute && (
             <Text
               style={[
