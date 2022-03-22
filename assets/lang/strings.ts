@@ -35,6 +35,7 @@ const strings = new LocalizedStrings({
           title: 'Notifications',
           advice: 'Test all notification types.',
           type: {
+            [ToastType.Info]: 'Info',
             [ToastType.Success]: 'Success',
             [ToastType.Warning]: 'Warning',
             [ToastType.Error]: 'Error',
@@ -429,6 +430,7 @@ const strings = new LocalizedStrings({
           title: 'Notificaciones',
           advice: 'Prueba todos los tipos de notificaciones.',
           type: {
+            [ToastType.Info]: 'Info',
             [ToastType.Success]: 'Éxito',
             [ToastType.Warning]: 'Advertencia',
             [ToastType.Error]: 'Error',

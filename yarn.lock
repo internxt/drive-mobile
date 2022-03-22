@@ -9616,6 +9616,13 @@ react-native-modalbox@^2.0.2:
   dependencies:
     prop-types "^15.5.10"
 
+react-native-network-bandwith-speed@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-network-bandwith-speed/-/react-native-network-bandwith-speed-3.0.0.tgz#38913535912edfa9d3c731af3b29a44d3664cc10"
+  integrity sha512-BuVuhXY55KAMWl/D+yWuFAY/cZX1f3p6RG/acgY1sYdfnHSYsb/WEgjFsQUA6t0EGrexVpwc9rMUSjuYvLFdrg==
+  dependencies:
+    rn-fetch-blob "^0.10.16"
+
 react-native-os@^1.2.6:
   version "1.2.6"
   resolved "https://registry.npmjs.org/react-native-os/-/react-native-os-1.2.6.tgz"
@@ -10309,6 +10316,14 @@ rn-fetch-blob@=0.11.2:
   version "0.11.2"
   resolved "https://registry.npmjs.org/rn-fetch-blob/-/rn-fetch-blob-0.11.2.tgz"
   integrity sha512-oKszdNtA7vZ56d0Rfr+RDEUexwlZxu/HOqwULa36PRHhQsTO5ia7uKk+va3WzuwYxzhF9e0bY8n3k+GC6Df14A==
+  dependencies:
+    base-64 "0.1.0"
+    glob "7.0.6"
+
+rn-fetch-blob@^0.10.16:
+  version "0.10.16"
+  resolved "https://registry.yarnpkg.com/rn-fetch-blob/-/rn-fetch-blob-0.10.16.tgz#bd54f66c94f7a8e06c213077483646478ae8d230"
+  integrity sha512-hZV+nF0HK4CWmspXGMw7/G8Q8qugpS/wbKiNLsFpdBZR8XYzjFZNvBWgGyC0F5JWQn3sjmK2w/FJjBlwdQWNQg==
   dependencies:
     base-64 "0.1.0"
     glob "7.0.6"

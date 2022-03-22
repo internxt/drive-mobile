@@ -101,6 +101,7 @@
     "react-native-level-fs": "^3.0.1",
     "react-native-localization": "^2.1.6",
     "react-native-modalbox": "^2.0.2",
+    "react-native-network-bandwith-speed": "^3.0.0",
     "react-native-os": "^1.2.6",
     "react-native-permissions": "^3.2.0",
     "react-native-randombytes": "^3.6.1",
