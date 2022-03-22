@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import * as Unicons from '@iconscout/react-native-unicons';
@@ -53,12 +53,12 @@ function ChangePasswordScreen(): JSX.Element {
         centerText
         onBackButtonPressed={() => navigation.goBack()}
       />
-      <View style={styles.mainContainer}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.titleText}>{strings.screens.change_password.title}</Text>
+      <View style={tailwind('px-8')}>
+        <View style={tailwind('items-center p-1')}>
+          <Text style={tailwind('text-base text-neutral-900')}>{strings.screens.change_password.title}</Text>
         </View>
-        <View style={styles.titleContainer}>
-          <Text style={styles.subtitleText}>{strings.screens.change_password.warning}</Text>
+        <View style={tailwind('items-center p-1')}>
+          <Text style={tailwind('text-center text-neutral-700')}>{strings.screens.change_password.warning}</Text>
         </View>
         <TouchableWithoutFeedback
           onPress={() => {
@@ -69,7 +69,7 @@ function ChangePasswordScreen(): JSX.Element {
             {strings.screens.change_password.iDontRememberMyPassword}
           </Text>
         </TouchableWithoutFeedback>
-        <View style={styles.container}>
+        <View style={tailwind('p-2')}>
           <View
             style={[
               tailwind('input-wrapper my-2'),
@@ -151,27 +151,3 @@ function ChangePasswordScreen(): JSX.Element {
 }
 
 export default ChangePasswordScreen;
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    alignItems: 'center',
-    padding: 4,
-  },
-  titleText: {
-    color: '#091E42',
-    fontWeight: 'bold',
-    fontSize: 16,
-    fontFamily: 'NeueEinstellung-Regular',
-  },
-  subtitleText: {
-    textAlign: 'center',
-    color: '#253858',
-    fontFamily: 'NeueEinstellung-Regular',
-  },
-  mainContainer: {
-    paddingHorizontal: 30,
-  },
-  container: {
-    padding: 8,
-  },
-});

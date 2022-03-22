@@ -7,7 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './screens/AppNavigator';
 import { analyticsSetup, trackStackScreen } from './services/analytics';
 import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
-import { tailwind } from './helpers/designSystem';
+import { getColor, tailwind } from './helpers/designSystem';
 import { deviceStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
@@ -108,12 +108,12 @@ export default function App(): JSX.Element {
               theme={{
                 dark: false,
                 colors: {
-                  primary: '#091e42' as string,
-                  background: '#FFFFFF' as string,
-                  card: '#FFFFFF' as string,
-                  border: '#091e42' as string,
-                  notification: '#091e42' as string,
-                  text: '#091e42' as string,
+                  primary: getColor('neutral-900'),
+                  background: getColor('white'),
+                  card: getColor('white'),
+                  border: getColor('neutral-900'),
+                  notification: getColor('neutral-900'),
+                  text: getColor('neutral-900'),
                 },
               }}
             >
