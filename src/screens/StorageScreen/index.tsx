@@ -63,9 +63,9 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
           <View style={tailwind('my-2')}>
             <ProgressBar
               {...props}
-              styleProgress={tailwind('h-2')}
+              progressStyle={tailwind('h-2')}
               totalValue={usageValues.limit}
-              usedValue={usageValues.usage}
+              currentValue={usageValues.usage}
             />
           </View>
         </View>

@@ -537,6 +537,8 @@ const strings = new LocalizedStrings({
           message: 'Prueba a subir un archivo o crear una carpeta',
         },
         searchInThisFolder: 'Buscar en esta carpeta',
+        encrypting: 'Encriptando',
+        decrypting: 'Desencriptando',
       },
       recents: {
         title: 'Recientes',

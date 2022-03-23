@@ -24,8 +24,9 @@ import { downloadFile } from '../../services/network';
 import { LegacyDownloadRequiredError } from '../../services/network/download';
 import { downloadFile as legacyDownloadFile } from '../../services/download';
 import { constants } from '../../services/app';
-import { DotsThree } from 'phosphor-react-native';
+import { ArrowCircleUp, DotsThree } from 'phosphor-react-native';
 import strings from '../../../assets/lang/strings';
+import ProgressBar from '../ProgressBar';
 
 interface FileItemProps {
   isFolder: boolean;
@@ -257,11 +258,24 @@ function FileItem(props: FileItemProps): JSX.Element {
               {props.item.type ? '.' + props.item.type : ''}
             </Text>
 
-            {inProgress && (
-              <Text style={tailwind('text-xs text-blue-60')}>
-                {props.progress === 0 && strings.screens.drive.encrypting}
-                {props.progress > 0 && 'Uploading ' + (props.progress * 100).toFixed(0) + '%'}
+            {isUploading &&
+              (props.progress === 0 ? (
+                <Text style={tailwind('text-xs text-blue-60')}>{strings.screens.drive.encrypting}</Text>
+              ) : (
+                <View style={tailwind('flex-row')}>
+                  <ArrowCircleUp weight="fill" color={getColor('blue-60')} size={16} />
+                  <Text style={tailwind('ml-1.5 text-xs text-blue-60')}>{(props.progress * 100).toFixed(0) + '%'}</Text>
+                  <ProgressBar
+                    style={tailwind('flex-grow')}
+                    progressStyle={tailwind('h-1')}
+                    totalValue={100}
+                    currentValue={50}
+                  />
+                </View>
+              ))}
 
+            {isDownloading && (
+              <Text style={tailwind('ml-1.5 text-xs text-blue-60')}>
                 {downloadProgress >= 0 &&
                   downloadProgress < 1 &&
                   'Downloading ' + (downloadProgress * 100).toFixed(0) + '%'}
