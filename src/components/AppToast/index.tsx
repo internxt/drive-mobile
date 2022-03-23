@@ -33,7 +33,13 @@ const AppToast = (): JSX.Element => {
   const config: {
     [key in ToastType]: (props: ToastConfigParams<Record<string, never>>) => ReactNode;
   } = {
-    [ToastType.Info]: (props) => <BaseToast {...defaultProps} {...props} />,
+    [ToastType.Info]: (props) => (
+      <BaseToast
+        {...defaultProps}
+        {...props}
+        renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
+      />
+    ),
     [ToastType.Success]: (props) => (
       <BaseToast
         {...defaultProps}
@@ -78,7 +84,6 @@ const AppToast = (): JSX.Element => {
       <BaseToast
         {...defaultProps}
         {...props}
-        contentContainerStyle={{}}
         renderLeadingIcon={() =>
           renderIcon(<ArrowCircleDown {...iconDefaultProps} weight="fill" color={getColor('blue-60')} />)
         }

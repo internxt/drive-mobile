@@ -6,7 +6,7 @@ class ToastService {
   private readonly defaultShowOptions: Partial<ToastShowParams> = {
     visibilityTime: 3000,
     position: 'bottom',
-    autoHide: false,
+    autoHide: true,
     bottomOffset: 70,
   };
 

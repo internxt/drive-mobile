@@ -370,8 +370,6 @@ PODS:
     - React-Core
   - react-native-sqlite-storage (6.0.1):
     - React-Core
-  - react-native-unicons (1.0.3):
-    - React
   - react-native-webview (11.15.0):
     - React-Core
   - React-perflogger (0.64.3)
@@ -573,7 +571,6 @@ DEPENDENCIES:
   - react-native-receive-sharing-intent (from `../node_modules/react-native-receive-sharing-intent`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-sqlite-storage (from `../node_modules/react-native-sqlite-storage`)
-  - "react-native-unicons (from `../node_modules/@iconscout/react-native-unicons`)"
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -728,8 +725,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-sqlite-storage:
     :path: "../node_modules/react-native-sqlite-storage"
-  react-native-unicons:
-    :path: "../node_modules/@iconscout/react-native-unicons"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   React-perflogger:
@@ -823,7 +818,7 @@ SPEC CHECKSUMS:
   EXUpdates: bd5fa64f02685ed3e96be86b5ca350cdc2cd8d02
   EXUpdatesInterface: a9814f422d3cd6e7cfd260d13c27786148ece20e
   FBLazyVector: c71c5917ec0ad2de41d5d06a5855f6d5eda06971
-  FBReactNativeSpec: ca5494c0fafd3a0faa91831a0e6d393eee4975c8
+  FBReactNativeSpec: 99cbe528ed5b6dce749d732348af766c0d665b3e
   Firebase: fb5114cd2bf96e2ff7bcb01d0d9a156cf5fd2f07
   FirebaseAnalytics: 4ab446ce08a3fe52e8a4303dd997cf26276bf968
   FirebaseCore: c5aab092d9c4b8efea894946166b04c9d9ef0e68
@@ -860,7 +855,6 @@ SPEC CHECKSUMS:
   react-native-receive-sharing-intent: 648f1eb35ae70886a8733d6be949042aa5111ffb
   react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
   react-native-sqlite-storage: f6d515e1c446d1e6d026aa5352908a25d4de3261
-  react-native-unicons: 3f98688cbfc9f47e3ae45dd1560b7a2ab65075f4
   react-native-webview: e89bf2dba26a04cda967814df3ed1be99f291233
   React-perflogger: cc76a4254d19640f1d8ad1c66fdee800414b805c
   React-RCTActionSheet: 7448f049318d8d7e8a9a1ebb742ada721757eea8
