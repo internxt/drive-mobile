@@ -132,6 +132,8 @@ const strings = new LocalizedStrings({
           message: 'Try uploading a file or creating a folder',
         },
         searchInThisFolder: 'Search in this folder',
+        encrypting: 'Encrypting',
+        decrypting: 'Decrypting',
       },
       recents: {
         title: 'Recents',

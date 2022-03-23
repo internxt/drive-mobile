@@ -25,6 +25,7 @@ import { LegacyDownloadRequiredError } from '../../services/network/download';
 import { downloadFile as legacyDownloadFile } from '../../services/download';
 import { constants } from '../../services/app';
 import { DotsThree } from 'phosphor-react-native';
+import strings from '../../../assets/lang/strings';
 
 interface FileItemProps {
   isFolder: boolean;
@@ -54,15 +55,15 @@ function FileItem(props: FileItemProps): JSX.Element {
     }
   };
   async function onItemPressed() {
-    setIsLoading(true);
+    if (isLoading) {
+      return;
+    }
 
     if (props.isFolder) {
       onFolderPressed();
     } else {
-      await onFilePressed();
+      onFilePressed();
     }
-
-    setIsLoading(false);
   }
   function onFolderPressed() {
     trackFolderOpened();
@@ -72,7 +73,7 @@ function FileItem(props: FileItemProps): JSX.Element {
   async function onFilePressed(): Promise<void> {
     const isRecentlyUploaded = props.item.isUploaded && props.item.uri;
 
-    if (isLoading || !props.item.fileId) {
+    if (!props.item.fileId) {
       return;
     }
 
@@ -80,6 +81,8 @@ function FileItem(props: FileItemProps): JSX.Element {
       showFileViewer(props.item.uri as string);
       return;
     }
+
+    setIsLoading(true);
 
     const filename = props.item.name;
     const extension = props.item.type;
@@ -98,8 +101,7 @@ function FileItem(props: FileItemProps): JSX.Element {
     }
 
     await createEmptyFile(destinationPath);
-
-    return download({
+    await download({
       fileId: props.item.fileId.toString(),
       to: destinationPath,
     })
@@ -117,6 +119,7 @@ function FileItem(props: FileItemProps): JSX.Element {
         dispatch(storageActions.downloadSelectedFileStop());
         setDownloadProgress(-1);
         setDecryptionProgress(-1);
+        setIsLoading(false);
       });
   }
   async function download(params: { fileId: string; to: string }) {
@@ -226,7 +229,7 @@ function FileItem(props: FileItemProps): JSX.Element {
             tailwind(props.isGrid ? 'flex-col items-center' : 'flex-row'),
           ]}
         >
-          <View style={tailwind('my-3 ml-5 mr-4')}>
+          <View style={[tailwind('my-3 ml-5 mr-4'), isUploading && tailwind('opacity-40')]}>
             {props.isFolder ? (
               <FolderIcon width={iconSize} height={iconSize} />
             ) : (
@@ -242,6 +245,7 @@ function FileItem(props: FileItemProps): JSX.Element {
           >
             <Text
               style={[
+                isUploading && tailwind('opacity-40'),
                 tailwind('text-base text-neutral-500'),
                 tailwind(props.isGrid ? 'text-center px-1.5' : 'text-left'),
                 globalStyle.fontWeight.medium,
@@ -255,7 +259,7 @@ function FileItem(props: FileItemProps): JSX.Element {
 
             {inProgress && (
               <Text style={tailwind('text-xs text-blue-60')}>
-                {props.progress === 0 && 'Encrypting'}
+                {props.progress === 0 && strings.screens.drive.encrypting}
                 {props.progress > 0 && 'Uploading ' + (props.progress * 100).toFixed(0) + '%'}
 
                 {downloadProgress >= 0 &&
@@ -296,7 +300,7 @@ function FileItem(props: FileItemProps): JSX.Element {
             onPress={onActionsButtonPressed}
             onLongPress={onActionsButtonPressed}
           >
-            <View style={tailwind('px-5 flex-1 items-center justify-center')}>
+            <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
               <DotsThree weight="bold" size={22} color={getColor('neutral-60')} />
             </View>
           </TouchableOpacity>

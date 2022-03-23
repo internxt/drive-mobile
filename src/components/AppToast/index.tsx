@@ -6,14 +6,17 @@ import { ToastType } from '../../types';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { Dimensions, Text, TouchableHighlight, View } from 'react-native';
 import strings from '../../../assets/lang/strings';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const AppToast = (): JSX.Element => {
+  const safeAreaInsets = useSafeAreaInsets();
   const screenDimensions = Dimensions.get('screen');
   const defaultProps: BaseToastProps = {
     text1NumberOfLines: 1,
     style: {
       ...tailwind('rounded-xl border-0 border-neutral-20 border pl-3.5 h-12'),
       width: screenDimensions.width - 24,
+      marginBottom: safeAreaInsets.bottom,
     },
     contentContainerStyle: tailwind('p-0'),
     text1Style: tailwind('text-base text-neutral-700 font-normal m-0 pr-3.5'),
