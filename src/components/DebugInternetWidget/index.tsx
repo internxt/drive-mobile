@@ -4,11 +4,11 @@ import { measureConnectionSpeed, NetworkBandwidthTestResults } from 'react-nativ
 import { getColor, tailwind } from '../../helpers/designSystem';
 import AppText from '../AppText';
 
-interface InternetWidgetProps {
+interface DebugInternetWidgetProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const InternetWidget = (props: InternetWidgetProps): JSX.Element => {
+const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
   const [speed, setSpeed] = useState(0);
   const bySpeedFeatures = [
     { min: 20, color: getColor('green-40') },
@@ -52,4 +52,4 @@ const InternetWidget = (props: InternetWidgetProps): JSX.Element => {
   );
 };
 
-export default InternetWidget;
+export default DebugInternetWidget;

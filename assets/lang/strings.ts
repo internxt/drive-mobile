@@ -31,6 +31,14 @@ const strings = new LocalizedStrings({
     screens: {
       DebugScreen: {
         title: 'Debug',
+        upload: {
+          title: 'File upload',
+          advice: 'Test the performance of file upload.',
+        },
+        download: {
+          title: 'File download',
+          advice: 'Test the performance of file download.',
+        },
         notifications: {
           title: 'Notifications',
           advice: 'Test all notification types.',
@@ -426,6 +434,14 @@ const strings = new LocalizedStrings({
     screens: {
       DebugScreen: {
         title: 'Depuración',
+        upload: {
+          title: 'Subida de archivos',
+          advice: 'Prueba el rendimiento de la subida de archivos.',
+        },
+        download: {
+          title: 'Descarga de archivos',
+          advice: 'Prueba el rendimiento de la descarga de archivos.',
+        },
         notifications: {
           title: 'Notificaciones',
           advice: 'Prueba todos los tipos de notificaciones.',
