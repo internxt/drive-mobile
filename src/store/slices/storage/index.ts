@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
 import { IFile, IFolder, IUploadingFile } from '../../../components/FileList';
-import analytics, { getAnalyticsData } from '../../../services/analytics';
+import analytics, { AnalyticsEventKey } from '../../../services/analytics';
 import fileService from '../../../services/file';
 import folderService from '../../../services/folder';
 
@@ -161,9 +161,9 @@ const createFolderThunk = createAsyncThunk<
   { state: RootState }
 >('files/createFolder', async ({ parentFolderId, newFolderName }, { dispatch }) => {
   await fileService.createFolder(parentFolderId, newFolderName);
-  const userData = await getAnalyticsData();
+  const userData = await deviceStorage.getUser();
 
-  await analytics.track('folder-created', {
+  await analytics.track(AnalyticsEventKey.FolderCreated, {
     userId: userData.uuid,
     platform: DevicePlatform.Mobile,
     email: userData.email,
@@ -228,8 +228,8 @@ export const storageSlice = createSlice({
     },
     setUri(state, action: PayloadAction<any>) {
       if (action.payload) {
-        getAnalyticsData().then((user) => {
-          analytics.track('share-to', {
+        deviceStorage.getUser().then((user) => {
+          analytics.track(AnalyticsEventKey.ShareTo, {
             email: user.email,
             uri: action.payload.fileUri ? action.payload.fileUri : action.payload.toString && action.payload.toString(),
           });

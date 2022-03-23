@@ -5,7 +5,7 @@ import { LinkingOptions, NavigationContainer, useNavigationContainerRef } from '
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import AppNavigator from './screens/AppNavigator';
-import { analyticsSetup, trackStackScreen } from './services/analytics';
+import analyticsService from './services/analytics';
 import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
 import { getColor, tailwind } from './helpers/designSystem';
 import { deviceStorage } from './services/asyncStorage';
@@ -53,7 +53,7 @@ export default function App(): JSX.Element {
   // Initialize app
   useEffect(() => {
     if (!isAppInitialized) {
-      Promise.all([loadFonts(), loadLocalUser(), analyticsSetup()])
+      Promise.all([loadFonts(), loadLocalUser(), analyticsService.setup()])
         .then(() => {
           setIsAppInitialized(true);
         })
@@ -91,7 +91,7 @@ export default function App(): JSX.Element {
                 const currentRouteName = navigationRef.getCurrentRoute()?.name;
 
                 if (previousRouteName !== currentRouteName) {
-                  route && trackStackScreen(route, navigationRef.getCurrentRoute()?.params);
+                  route && analyticsService.trackStackScreen(route, navigationRef.getCurrentRoute()?.params);
                 }
 
                 routeNameRef.current = currentRouteName;

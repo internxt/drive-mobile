@@ -24,12 +24,12 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { layoutActions } from '../store/slices/layout';
 import LinkCopiedModal from '../components/modals/LinkCopiedModal';
 import PhotosPreviewScreen from './PhotosNavigator/PhotosPreviewScreen';
-import { trackPayment } from '../services/analytics';
 import { appThunks } from '../store/slices/app';
 import { storageActions } from '../store/slices/storage';
 import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DebugScreen from './DebugScreen';
+import analyticsService from '../services/analytics';
 
 type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -72,7 +72,7 @@ function AppNavigator(): JSX.Element {
       const comesFromCheckout = !!sessionId && event.url.includes('checkout');
 
       if (comesFromCheckout) {
-        await trackPayment(sessionId as string);
+        await analyticsService.trackPayment(sessionId as string);
         await AsyncStorage.removeItem('tmpCheckoutSessionId');
       }
     }

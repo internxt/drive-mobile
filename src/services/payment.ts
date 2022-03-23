@@ -1,6 +1,6 @@
 import { getHeaders } from '../helpers/headers';
 import { StoragePlan } from '../types';
-import analytics from './analytics';
+import analytics, { AnalyticsEventKey } from './analytics';
 import { constants } from './app';
 
 class PaymentService {
@@ -21,7 +21,7 @@ class PaymentService {
         body: JSON.stringify(body),
       },
     );
-    analytics.track('Checkout Opened', { price_id: body.plan });
+    analytics.track(AnalyticsEventKey.CheckoutOpened, { price_id: body.plan });
 
     return response;
   }

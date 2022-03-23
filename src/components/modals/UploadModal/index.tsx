@@ -21,7 +21,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
 
 import { createFileEntry, FileEntry, getFinalUri } from '../../../services/upload';
-import analytics from '../../../services/analytics';
+import analytics, { AnalyticsEventKey } from '../../../services/analytics';
 import { encryptFilename } from '../../../helpers';
 import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../services/fileSystem';
 import { getExtensionFromUri, removeExtension, renameIfAlreadyExists } from '../../../services/file';
@@ -38,6 +38,7 @@ import { constants } from '../../../services/app';
 import { uploadFile } from '../../../services/network';
 import toastService from '../../../services/toast';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface UploadingFile {
   size: number;
@@ -159,6 +160,7 @@ async function uploadAndCreateFileEntry(
 
 function UploadModal(): JSX.Element {
   const dispatch = useAppDispatch();
+  const safeAreaInsets = useSafeAreaInsets();
   const { folderContent, usage: storageUsage, limit, currentFolderId } = useAppSelector((state) => state.storage);
   const { showUploadModal } = useAppSelector((state) => state.layout);
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
@@ -186,25 +188,21 @@ function UploadModal(): JSX.Element {
     const { uuid, email } = await deviceStorage.getUser();
     const uploadStartedTrack = { userId: uuid, email, device: DevicePlatform.Mobile };
 
-    analytics.track('file-upload-start', uploadStartedTrack).catch(() => null);
+    analytics.track(AnalyticsEventKey.FileUploadStart, uploadStartedTrack);
   }
 
   async function trackUploadSuccess() {
     const { email, uuid } = await deviceStorage.getUser();
     const uploadFinishedTrack = { userId: uuid, email, device: DevicePlatform.Mobile };
 
-    analytics.track('file-upload-finished', uploadFinishedTrack).catch(() => null);
+    analytics.track(AnalyticsEventKey.FileUploadFinished, uploadFinishedTrack);
   }
 
   async function trackUploadError(err: Error) {
-    try {
-      const { email, uuid } = await deviceStorage.getUser();
-      const uploadErrorTrack = { userId: uuid, email, device: DevicePlatform.Mobile, error: err.message };
+    const { email, uuid } = await deviceStorage.getUser();
+    const uploadErrorTrack = { userId: uuid, email, device: DevicePlatform.Mobile, error: err.message };
 
-      analytics.track('file-upload-error', uploadErrorTrack);
-    } catch (err) {
-      console.error('error tracking upload error: ', err);
-    }
+    analytics.track(AnalyticsEventKey.FileUploadError, uploadErrorTrack);
   }
 
   function uploadSuccess(file: { id: string }) {
@@ -521,7 +519,7 @@ function UploadModal(): JSX.Element {
     <Modal
       swipeToClose={false}
       position={'bottom'}
-      style={tailwind('bg-transparent')}
+      style={{ ...tailwind('bg-transparent'), paddingBottom: safeAreaInsets.bottom }}
       coverScreen={Platform.OS === 'android'}
       isOpen={showUploadModal}
       entry={'bottom'}
@@ -553,7 +551,7 @@ function UploadModal(): JSX.Element {
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.uploadFiles}</Text>
-                <View style={tailwind('h-12 w-12 items-center justify-center')}>
+                <View style={tailwind('p-3.5 items-center justify-center')}>
                   <FileArrowUp color={getColor('neutral-500')} size={20} />
                 </View>
               </View>
@@ -572,7 +570,7 @@ function UploadModal(): JSX.Element {
                 <Text style={tailwind('text-lg text-neutral-500')}>
                   {strings.components.buttons.uploadFromCameraRoll}
                 </Text>
-                <View style={tailwind('h-12 w-12 items-center justify-center')}>
+                <View style={tailwind('p-3.5 items-center justify-center')}>
                   <ImageSquare color={getColor('neutral-500')} size={20} />
                 </View>
               </View>
@@ -591,7 +589,7 @@ function UploadModal(): JSX.Element {
                 <Text style={tailwind('text-lg text-neutral-500')}>
                   {strings.components.buttons.takeAPhotoAnUpload}
                 </Text>
-                <View style={tailwind('h-12 w-12 items-center justify-center')}>
+                <View style={tailwind('p-3.5 items-center justify-center')}>
                   <Camera color={getColor('neutral-500')} size={20} />
                 </View>
               </View>
@@ -609,14 +607,14 @@ function UploadModal(): JSX.Element {
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.newFolder}</Text>
-                <View style={tailwind('h-12 w-12 items-center justify-center')}>
+                <View style={tailwind('p-3.5 items-center justify-center')}>
                   <FolderSimplePlus color={getColor('neutral-500')} size={20} />
                 </View>
               </View>
             </TouchableHighlight>
           </View>
 
-          <View style={tailwind('mt-4 rounded-xl overflow-hidden')}>
+          <View style={tailwind('mt-3.5 rounded-xl overflow-hidden')}>
             <TouchableHighlight
               style={tailwind('flex-grow')}
               underlayColor={getColor('neutral-80')}

@@ -1,5 +1,5 @@
 import { encryptText, encryptTextWithKey, passToHash } from '../helpers';
-import analytics, { getAnalyticsData } from './analytics';
+import analytics, { AnalyticsEventKey } from './analytics';
 import { getHeaders } from '../helpers/headers';
 import { isJsonString } from '../screens/SignUpScreen/registerUtils';
 import { DevicePlatform } from '../types';
@@ -35,11 +35,13 @@ class AuthService {
 
   public async signout(): Promise<void> {
     try {
-      const userData = await getAnalyticsData();
+      const userData = await deviceStorage.getUser();
 
-      analytics
-        .track('user-signout', { userId: userData?.uuid, email: userData?.email, platform: DevicePlatform.Mobile })
-        .catch(() => undefined);
+      analytics.track(AnalyticsEventKey.UserSignOut, {
+        userId: userData?.uuid,
+        email: userData?.email,
+        platform: DevicePlatform.Mobile,
+      });
 
       await deviceStorage.clearStorage();
     } catch (err) {

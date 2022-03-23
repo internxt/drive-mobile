@@ -7,6 +7,10 @@ import App from './src/App';
 import plugins from './src/plugins';
 import store from './src/store';
 
+// Polyfill
+// eslint-disable-next-line no-undef
+process.nextTick = setImmediate;
+
 // Installs plugins
 plugins.forEach((plugin) => plugin.install(store));
 

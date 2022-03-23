@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { View, Text, Alert, TextInput, TouchableWithoutFeedback } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
-import analytics from '../../services/analytics';
+import analytics, { AnalyticsEventKey } from '../../services/analytics';
 import InternxtLogo from '../../../assets/logo.svg';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import AppVersionWidget from '../../components/AppVersionWidget';
@@ -52,12 +52,10 @@ function SignInScreen(): JSX.Element {
     } catch (err) {
       const castedError = errorService.castError(err);
 
-      analytics
-        .track('user-signin-attempted', {
-          status: 'error',
-          message: castedError.message,
-        })
-        .catch(() => undefined);
+      analytics.track(AnalyticsEventKey.UserSignInAttempted, {
+        status: 'error',
+        message: castedError.message,
+      });
 
       Alert.alert('Could not log in', castedError.message);
       setIsLoading(false);
@@ -72,7 +70,7 @@ function SignInScreen(): JSX.Element {
   }, [authError]);
 
   return (
-    <AppScreen safeAreaTop safeAreaBottom style={tailwind('p-5 h-full justify-between')}>
+    <AppScreen safeAreaTop safeAreaBottom style={tailwind('px-5 h-full justify-between')}>
       <View></View>
 
       <View style={[isLoading ? tailwind('opacity-50') : tailwind('opacity-100')]}>

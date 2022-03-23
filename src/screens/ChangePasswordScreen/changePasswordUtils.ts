@@ -2,8 +2,8 @@ import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../
 import { getHeaders } from '../../helpers/headers';
 import { isJsonString } from '../SignUpScreen/registerUtils';
 import AesUtils from '../../helpers/aesUtils';
-import { getAnalyticsData } from '../../services/analytics';
 import { constants } from '../../services/app';
+import { deviceStorage } from '../../services/asyncStorage';
 interface ChangePasswordParam {
   password: string;
   newPassword: string;
@@ -22,7 +22,7 @@ async function getSalt(email: string) {
 }
 
 export async function doChangePassword(params: ChangePasswordParam): Promise<any> {
-  const xUser = await getAnalyticsData();
+  const xUser = await deviceStorage.getUser();
   const salt = await getSalt(xUser.email);
 
   if (!salt) {

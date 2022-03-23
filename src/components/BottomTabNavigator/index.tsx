@@ -7,12 +7,12 @@ import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch } from '../../store/hooks';
 import { layoutActions } from '../../store/slices/layout';
-import { Folder, Gear, House, ImageSquare, Plus } from 'phosphor-react-native';
+import { Folder, Gear, House, ImageSquare, PlusCircle } from 'phosphor-react-native';
 
 const tabIcons = {
   home: House,
   drive: Folder,
-  create: Plus,
+  create: PlusCircle,
   photos: ImageSquare,
   menu: Gear,
 };
@@ -55,14 +55,16 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         onLongPress={onLongPress}
       >
         <View style={tailwind('h-14 items-center justify-center flex-1')}>
-          {isCreateRoute && <View style={tailwind('absolute bg-blue-60 h-8 w-8 rounded-3xl')} />}
-
-          <Icon weight={isFocused ? 'fill' : undefined} color={iconColor} size={24} />
+          {isCreateRoute ? (
+            <Icon weight="fill" color={getColor('blue-60')} size={40} />
+          ) : (
+            <Icon weight={isFocused ? 'fill' : undefined} color={iconColor} size={26} />
+          )}
 
           {options.tabBarShowLabel && !isCreateRoute && (
             <Text
               style={[
-                tailwind('text-supporting-2 mt-0.5'),
+                tailwind('text-supporting-2'),
                 isFocused ? tailwind('text-blue-60') : tailwind('text-neutral-80'),
                 isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
               ]}
