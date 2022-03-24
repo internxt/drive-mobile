@@ -23,7 +23,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       isOpen={props.isOpen}
       onClosed={props.onClosed}
       position={'bottom'}
-      style={{ ...tailwind('bg-transparent'), paddingTop: safeAreaInsets.top, paddingBottom: safeAreaInsets.bottom }}
+      style={{ ...tailwind('bg-transparent'), paddingTop: safeAreaInsets.top }}
       backButtonClose={true}
       backdropPressToClose={false}
       animationDuration={250}
@@ -51,6 +51,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
           )}
 
           <View style={props.containerStyle}>{props.children}</View>
+          <View style={{ ...tailwind('bg-white'), height: safeAreaInsets.bottom }}></View>
         </View>
       </View>
     </Modal>

@@ -37,6 +37,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
     return prettysize(usageValues.limit, true);
   };
   const getUsageString = () => prettysize(usageValues.usage);
+  const onBackButtonPressed = () => navigation.goBack();
 
   return (
     <AppScreen safeAreaTop style={tailwind('h-full')} backgroundColor={getColor('neutral-20')}>
@@ -44,7 +45,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
         textStyle={tailwind('text-2xl')}
         text={strings.screens.storage.title}
         centerText
-        onBackButtonPressed={() => navigation.goBack()}
+        onBackButtonPressed={onBackButtonPressed}
       />
 
       {/* USAGE */}
@@ -62,9 +63,9 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
           <View style={tailwind('my-2')}>
             <ProgressBar
               {...props}
-              styleProgress={tailwind('h-2')}
+              progressStyle={tailwind('h-2')}
               totalValue={usageValues.limit}
-              usedValue={usageValues.usage}
+              currentValue={usageValues.usage}
             />
           </View>
         </View>

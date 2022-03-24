@@ -1,10 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 
-import { getAnalyticsData } from '../../../services/analytics';
-import analytics from '../../../services/analytics';
+import analytics, { AnalyticsEventKey } from '../../../services/analytics';
 import { storageThunks } from '../../../store/slices/storage';
-import { useAppDispatch } from '../../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 
 interface FolderProps {
   isFolder: boolean;
@@ -14,17 +13,15 @@ interface FolderProps {
 
 function Folder(props: FolderProps): JSX.Element {
   const dispatch = useAppDispatch();
-  const item = props.item;
+  const { user } = useAppSelector((state) => state.auth);
 
   async function handleClick(props: any) {
-    const userData = await getAnalyticsData();
-
-    analytics.track('folder-opened', {
-      userId: userData.uuid,
-      email: userData.email,
-      // eslint-disable-next-line camelcase
+    analytics.track(AnalyticsEventKey.FolderOpened, {
+      userId: user?.uuid || null,
+      email: user?.email || null,
       folder_id: props.item.id,
     });
+
     dispatch(storageThunks.getFolderContentThunk({ folderId: props.item.id }));
   }
 

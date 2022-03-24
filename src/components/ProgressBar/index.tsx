@@ -1,36 +1,32 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import { tailwind } from '../../helpers/designSystem';
 
 interface ProgressBarProps {
-  usedValue: number;
+  currentValue: number;
   totalValue: number;
-  styleProgress: any;
+  style?: StyleProp<ViewStyle>;
+  progressStyle?: StyleProp<ViewStyle>;
 }
 
 export default function ProgressBar(props: ProgressBarProps): JSX.Element {
-  const { totalValue, styleProgress } = props;
-  let usedValue = props.usedValue;
-  let rightRounded = false;
+  const { totalValue, progressStyle } = props;
+  const currentValue = props.currentValue >= totalValue ? totalValue : props.currentValue;
+  const rightRounded = currentValue >= totalValue;
 
-  if (usedValue >= totalValue) {
-    usedValue = totalValue;
-    rightRounded = true;
-  }
-
-  const usedValueStyle = {
+  const currentValueStyle = {
     size: {
-      width: (usedValue * 100) / totalValue + '%',
+      width: (currentValue * 100) / totalValue + '%',
     },
   };
 
   return (
-    <View style={tailwind('rounded h-2 bg-neutral-30')}>
+    <View style={[tailwind('rounded h-2 bg-neutral-30'), props.style]}>
       <View
         style={[
           tailwind('rounded-tl rounded-bl bg-blue-60'),
-          usedValueStyle.size,
-          styleProgress,
+          currentValueStyle.size,
+          progressStyle,
           rightRounded && tailwind('rounded-tr rounded-br'),
         ]}
       />

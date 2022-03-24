@@ -6,7 +6,7 @@ import strings from '../../../assets/lang/strings';
 import Intro from '../IntroScreen';
 import { doRegister } from './registerUtils';
 import InternxtLogo from '../../../assets/logo.svg';
-import analytics from '../../services/analytics';
+import analytics, { AnalyticsEventKey } from '../../services/analytics';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import validationService from '../../services/validation';
 import authService from '../../services/auth';
@@ -87,7 +87,7 @@ function SignUpScreen(): JSX.Element {
 
       await Promise.all([
         analytics.identify(userData.uuid, { email: email }),
-        analytics.track('User Signup', {
+        analytics.track(AnalyticsEventKey.UserSignUp, {
           properties: {
             userId: userData.uuid,
             email: email,
@@ -107,7 +107,7 @@ function SignUpScreen(): JSX.Element {
     } catch (err) {
       const castedError = errorService.castError(err);
 
-      await analytics.track('user-signin-attempted', {
+      await analytics.track(AnalyticsEventKey.UserSignInAttempted, {
         status: 'error',
         message: castedError.message,
       });

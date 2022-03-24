@@ -50,6 +50,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     backgroundColor: '#FFFFFF',
   },
   android: {
+    versionCode: 50,
     splash: {
       backgroundColor: '#FFFFFF',
     },

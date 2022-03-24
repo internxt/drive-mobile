@@ -3,7 +3,7 @@ import { Text, View, Platform, Alert, BackHandler, TouchableOpacity } from 'reac
 import RNFetchBlob from 'rn-fetch-blob';
 
 import FileList from '../../components/FileList';
-import analytics, { getAnalyticsData } from '../../services/analytics';
+import analytics, { AnalyticsEventKey } from '../../services/analytics';
 import { loadValues } from '../../services/storage';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -30,6 +30,7 @@ import {
   MagnifyingGlass,
   SquaresFour,
 } from 'phosphor-react-native';
+import { deviceStorage } from '../../services/asyncStorage';
 
 function DriveScreen(): JSX.Element {
   const navigation = useNavigation<NavigationStackProp>();
@@ -61,7 +62,7 @@ function DriveScreen(): JSX.Element {
   const screenTitle = !isRootFolder && folderContent ? folderContent.name : strings.screens.drive.title;
   const uploadFile = async (uri: string, name: string, currentFolder: number) => {
     dispatch(storageActions.setUri(undefined));
-    const userData = await getAnalyticsData();
+    const userData = await deviceStorage.getUser();
 
     try {
       const mnemonic = user?.mnemonic as string;
@@ -72,9 +73,12 @@ function DriveScreen(): JSX.Element {
       };
       const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
 
-      analytics
-        .track('file-upload-start', { userId: userData.uuid, email: userData.email, device: DevicePlatform.Mobile })
-        .catch(() => undefined);
+      analytics.track(AnalyticsEventKey.FileUploadStart, {
+        userId: userData.uuid,
+        email: userData.email,
+        device: DevicePlatform.Mobile,
+      });
+
       dispatch(storageActions.uploadFileStart(name));
 
       const file = uri.replace(regex, '$2'); // if iOS remove file://
@@ -101,13 +105,11 @@ function DriveScreen(): JSX.Element {
           if (res.respInfo.status === 402) {
             navigation.replace(AppScreenKey.OutOfSpace);
           } else if (res.respInfo.status === 201) {
-            analytics
-              .track('file-upload-finished', {
-                userId: userData.uuid,
-                email: userData.email,
-                device: DevicePlatform.Mobile,
-              })
-              .catch(() => undefined);
+            analytics.track(AnalyticsEventKey.FileUploadFinished, {
+              userId: userData.uuid,
+              email: userData.email,
+              device: DevicePlatform.Mobile,
+            });
 
             folderContent && dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
           } else {
@@ -128,9 +130,11 @@ function DriveScreen(): JSX.Element {
           dispatch(storageActions.uploadFileFinished());
         });
     } catch (error) {
-      analytics
-        .track('file-upload-error', { userId: userData.uuid, email: userData.email, device: DevicePlatform.Mobile })
-        .catch(() => undefined);
+      analytics.track(AnalyticsEventKey.FileUploadError, {
+        userId: userData.uuid,
+        email: userData.email,
+        device: DevicePlatform.Mobile,
+      });
       dispatch(storageActions.uploadFileFailed({}));
       dispatch(storageActions.uploadFileFinished());
     }
@@ -148,7 +152,8 @@ function DriveScreen(): JSX.Element {
   }
 
   useEffect(() => {
-    getAnalyticsData()
+    deviceStorage
+      .getUser()
       .then((userData) => {
         loadValues()
           .then((res) => {

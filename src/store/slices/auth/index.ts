@@ -4,7 +4,7 @@ import { deviceStorage, User } from '../../../services/asyncStorage';
 import { RootState } from '../..';
 import authService from '../../../services/auth';
 import userService from '../../../services/user';
-import analytics from '../../../services/analytics';
+import analytics, { AnalyticsEventKey } from '../../../services/analytics';
 import { DevicePlatform } from '../../../types';
 import { photosActions, photosThunks } from '../photos';
 import { appThunks } from '../app';
@@ -103,7 +103,7 @@ export const authSlice = createSlice({
             createdAt: user.createdAt,
           })
           .then(() => {
-            analytics.track('user-signin', {
+            analytics.track(AnalyticsEventKey.UserSignIn, {
               email: user.email,
               userId: user.uuid,
               platform: DevicePlatform.Mobile,
@@ -116,7 +116,7 @@ export const authSlice = createSlice({
         state.user = user;
       })
       .addCase(signInThunk.rejected, (state, action) => {
-        analytics.track('user-signin-attempted', {
+        analytics.track(AnalyticsEventKey.UserSignInAttempted, {
           status: 'error',
           message: action.error.message || '',
         });

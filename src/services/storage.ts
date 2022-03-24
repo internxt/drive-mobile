@@ -1,10 +1,10 @@
 import prettysize from 'prettysize';
 
-import { getAnalyticsUuid } from '../services/analytics';
 import analytics from './analytics';
 import { getHeaders } from '../helpers/headers';
 import { DevicePlatform } from '../types';
 import { constants } from './app';
+import { deviceStorage } from './asyncStorage';
 
 export interface IProduct {
   id: string;
@@ -71,15 +71,14 @@ async function loadLimit(): Promise<number> {
 export async function loadValues(): Promise<{ usage: number; limit: number }> {
   const limit = await loadLimit();
   const usage = await loadUsage();
-
-  const uuid = await getAnalyticsUuid();
+  const user = await deviceStorage.getUser();
 
   analytics
-    .identify(uuid, {
+    .identify(user.uuid, {
       platform: DevicePlatform.Mobile,
       storage: usage,
       plan: identifyPlanName(limit),
-      userId: uuid,
+      userId: user.uuid,
     })
     .catch(() => undefined);
 
