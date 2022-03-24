@@ -30,7 +30,7 @@ const Tabs = (props: TabsProps): JSX.Element => {
   const currentTab = props.tabs.find((tab) => tab.id === props.value);
 
   return (
-    <View style={tailwind('flex-1 mt-4')}>
+    <View style={tailwind('flex-1 mt-1')}>
       {/* HEADERS */}
       <View style={tailwind('px-3 flex-row border-b border-neutral-30')}>{headers}</View>
 

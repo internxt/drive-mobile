@@ -293,7 +293,7 @@ function DriveScreen(): JSX.Element {
       )}
 
       {/* FILE LIST ACTIONS */}
-      <View style={[tailwind('flex-row justify-between items-center mt-3')]}>
+      <View style={[tailwind('flex-row justify-between items-center')]}>
         <TouchableOpacity onPress={onSortButtonPressed}>
           <View style={tailwind('px-5 py-1 flex-row items-center')}>
             <Text style={tailwind('text-base text-neutral-100 mr-1')}>{strings.screens.drive.sort[sortType]}</Text>

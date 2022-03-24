@@ -7,11 +7,11 @@ import globalStyle from '../../styles/global.style';
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch } from '../../store/hooks';
 import { layoutActions } from '../../store/slices/layout';
-import { Folder, Gear, House, ImageSquare, Plus } from 'phosphor-react-native';
+import { FolderSimple, Gear, House, ImageSquare, Plus } from 'phosphor-react-native';
 
 const tabIcons = {
   home: House,
-  drive: Folder,
+  drive: FolderSimple,
   create: Plus,
   photos: ImageSquare,
   menu: Gear,
