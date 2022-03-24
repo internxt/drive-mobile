@@ -78,7 +78,6 @@ const AppToast = (): JSX.Element => {
       <BaseToast
         {...defaultProps}
         {...props}
-        contentContainerStyle={{}}
         renderLeadingIcon={() =>
           renderIcon(<ArrowCircleDown {...iconDefaultProps} weight="fill" color={getColor('blue-60')} />)
         }
