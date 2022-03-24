@@ -31,11 +31,11 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   scheme: 'inxt',
   entryPoint: './index.js',
   slug: 'drive-mobile',
-  version: '1.5.7',
+  version: '1.5.8',
   orientation: 'portrait',
   icon: './assets/icon.png',
   splash: {
-    image: './assets/splash.png',
+    image: './assets/images/splash.png',
     resizeMode: 'cover',
     backgroundColor: '#FFFFFF',
   },

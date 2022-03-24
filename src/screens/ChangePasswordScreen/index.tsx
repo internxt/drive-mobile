@@ -8,9 +8,9 @@ import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import { doChangePassword } from './changePasswordUtils';
 import ScreenTitle from '../../components/ScreenTitle';
-import { AppScreenKey, ToastType } from '../../types';
+import { AppScreenKey, NotificationType } from '../../types';
 import AppScreen from '../../components/AppScreen';
-import toastService from '../../services/toast';
+import notificationsService from '../../services/notifications';
 import { Eye } from 'phosphor-react-native';
 
 function ChangePasswordScreen(): JSX.Element {
@@ -24,13 +24,13 @@ function ChangePasswordScreen(): JSX.Element {
     setIsLoading(true);
     doChangePassword({ password, newPassword })
       .then(() => {
-        toastService.show({ text1: strings.messages.passwordChanged, type: ToastType.Success });
+        notificationsService.show({ text1: strings.messages.passwordChanged, type: NotificationType.Success });
         setPassword('');
         setNewPassword('');
         setConfirmPassword('');
       })
       .catch((err: Error) => {
-        toastService.show({ type: ToastType.Error, text1: err.message });
+        notificationsService.show({ type: NotificationType.Error, text1: err.message });
       })
       .finally(() => {
         setIsLoading(false);

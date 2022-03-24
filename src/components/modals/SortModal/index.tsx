@@ -7,7 +7,7 @@ import { storageActions } from '../../../store/slices/storage';
 import { layoutActions } from '../../../store/slices/layout';
 import BottomModal from '../BottomModal';
 import { tailwind, getColor } from '../../../helpers/designSystem';
-import globalStyle from '../../../styles/global.style';
+import globalStyle from '../../../styles';
 import { SortDirection, SortType } from '../../../types';
 
 function SortModalItem(props: { direction: SortDirection; type: SortType; text: string; advice: string }) {

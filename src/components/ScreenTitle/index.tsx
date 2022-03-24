@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View, TouchableOpacity, StyleProp, TextStyle } from 'react-native';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
-import globalStyle from '../../styles/global.style';
+import globalStyle from '../../styles';
 import { useAppSelector } from '../../store/hooks';
 import { CaretLeft } from 'phosphor-react-native';
 

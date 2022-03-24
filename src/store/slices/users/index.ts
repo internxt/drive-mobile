@@ -3,9 +3,9 @@ import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
 
 import { deviceStorage } from '../../../services/asyncStorage';
-import toastService from '../../../services/toast';
+import notificationsService from '../../../services/notifications';
 import userService from '../../../services/user';
-import { ToastType } from '../../../types';
+import { NotificationType } from '../../../types';
 
 export interface UsersState {
   isSendingInvitation: boolean;
@@ -51,8 +51,8 @@ export const usersSlice = createSlice({
       .addCase(inviteAFriendThunk.rejected, (state, action) => {
         state.isSendingInvitation = false;
 
-        toastService.show({
-          type: ToastType.Error,
+        notificationsService.show({
+          type: NotificationType.Error,
           text1: strings.formatString(
             strings.errors.inviteAFriend,
             action.error.message || strings.errors.unknown,

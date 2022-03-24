@@ -3,9 +3,9 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
 import { deviceStorage } from '../../../services/asyncStorage';
-import toastService from '../../../services/toast';
+import notificationsService from '../../../services/notifications';
 import usersReferralsService from '../../../services/usersReferrals';
-import { ToastType } from '../../../types';
+import { NotificationType } from '../../../types';
 
 export interface ReferralsState {
   isReading: boolean;
@@ -56,8 +56,8 @@ export const referralsSlice = createSlice({
 
         console.error(action.error);
 
-        toastService.show({
-          type: ToastType.Error,
+        notificationsService.show({
+          type: NotificationType.Error,
           text1: strings.formatString(
             strings.errors.fetchReferrals,
             action.error.message || strings.errors.unknown,

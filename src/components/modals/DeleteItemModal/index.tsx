@@ -5,7 +5,7 @@ import prettysize from 'prettysize';
 import strings from '../../../../assets/lang/strings';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
-import globalStyle from '../../../styles/global.style';
+import globalStyle from '../../../styles';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { storageThunks } from '../../../store/slices/storage';
 import { layoutActions } from '../../../store/slices/layout';

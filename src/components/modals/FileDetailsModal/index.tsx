@@ -5,7 +5,7 @@ import { Text, View } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
-import globalStyle from '../../../styles/global.style';
+import globalStyle from '../../../styles';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import BottomModalOption from '../../BottomModalOption';

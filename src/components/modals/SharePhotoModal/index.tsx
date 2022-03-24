@@ -3,7 +3,7 @@ import { Image, Platform, Share, Text, TextInput, TouchableHighlight, View } fro
 import { Photo } from '@internxt/sdk/dist/photos';
 import prettysize from 'prettysize';
 
-import globalStyle from '../../../styles/global.style';
+import globalStyle from '../../../styles';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
@@ -52,14 +52,14 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
       );
 
       if (result.action === Share.sharedAction) {
-        toastService.show({ type: ToastType.Success, text: strings.messages.photoShared });
+        notificationsService.show({ type: ToastType.Success, text: strings.messages.photoShared });
       } else if (result.action === Share.dismissedAction) {
         // dismissed
       }
 
       onClosed();
     } catch (err) {
-      toastService.show({ type: ToastType.Error, text: strings.errors.photoShared });
+      notificationsService.show({ type: ToastType.Error, text: strings.errors.photoShared });
     } */
 
     await imageService.share(uri);

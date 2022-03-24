@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import tailwind from 'tailwind-rn';
 
 interface IconFileProps {
   label: string;
@@ -12,7 +13,7 @@ function IconFile(props: IconFileProps): JSX.Element {
   return (
     <View style={styles.wrapper}>
       {isLoading ? (
-        <ActivityIndicator style={styles.pAbsolute} size="small" color="gray" />
+        <ActivityIndicator style={tailwind('absolute')} size="small" color="gray" />
       ) : (
         <Text numberOfLines={1} style={styles.text}>
           {label.toUpperCase()}
@@ -47,7 +48,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: 44,
   },
-  pAbsolute: { position: 'absolute' },
 });
 
 export default IconFile;

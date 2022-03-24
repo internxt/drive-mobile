@@ -11,7 +11,7 @@ import {
   DriveFolderMetadataPayload,
   SortDirection,
   SortType,
-  ToastType,
+  NotificationType,
 } from '../../../types';
 import { RootState } from '../..';
 import { layoutActions } from '../layout';
@@ -20,7 +20,7 @@ import { deviceStorage } from '../../../services/asyncStorage';
 import strings from '../../../../assets/lang/strings';
 import { getEnvironmentConfig } from '../../../lib/network';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
-import toastService from '../../../services/toast';
+import notificationsService from '../../../services/notifications';
 
 interface FolderContent {
   id: number;
@@ -185,9 +185,9 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: 
   async ({ items, folderToReload }, { dispatch }) => {
     dispatch(getFolderContentThunk({ folderId: folderToReload }));
 
-    toastService.show({
+    notificationsService.show({
       text1: strings.messages.itemsDeleted,
-      type: ToastType.Success,
+      type: NotificationType.Success,
     });
 
     await fileService
@@ -196,9 +196,9 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: 
         dispatch(getUsageAndLimitThunk());
       })
       .catch((err) => {
-        toastService.show({
+        notificationsService.show({
           text1: err.message,
-          type: ToastType.Error,
+          type: NotificationType.Error,
         });
         throw err;
       })

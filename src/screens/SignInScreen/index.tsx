@@ -171,7 +171,7 @@ function SignInScreen(): JSX.Element {
         </View>
       </View>
 
-      <AppVersionWidget />
+      <AppVersionWidget style={tailwind('mb-5')} />
     </AppScreen>
   );
 }

@@ -10,14 +10,14 @@ import { generateShareLink } from '../../../@inxt-js/services/share';
 import { getFileTypeIcon } from '../../../helpers';
 import { generateFileKey, Network } from '../../../lib/network';
 import { getColor, tailwind } from '../../../helpers/designSystem';
-import globalStyle from '../../../styles/global.style';
+import globalStyle from '../../../styles';
 import { deviceStorage } from '../../../services/asyncStorage';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import BottomModal from '../BottomModal';
 import { constants } from '../../../services/app';
-import { DriveItemData, ToastType } from '../../../types';
-import toastService from '../../../services/toast';
+import { DriveItemData, NotificationType } from '../../../types';
+import notificationsService from '../../../services/notifications';
 import { Copy, Minus, Plus } from 'phosphor-react-native';
 
 function ShareFilesModal(): JSX.Element {
@@ -191,8 +191,8 @@ function ShareFilesModal(): JSX.Element {
               onPress={() => {
                 if (!isLoading) {
                   setString(link);
-                  toastService.show({
-                    type: ToastType.Success,
+                  notificationsService.show({
+                    type: NotificationType.Success,
                     text1: strings.messages.linkCopied,
                   });
                   dispatch(layoutActions.setShowShareModal(false));

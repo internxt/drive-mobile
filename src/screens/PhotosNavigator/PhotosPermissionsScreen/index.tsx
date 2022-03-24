@@ -8,7 +8,7 @@ import AppButton from '../../../components/AppButton';
 import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { photosSelectors, photosThunks } from '../../../store/slices/photos';
-import globalStyle from '../../../styles/global.style';
+import globalStyle from '../../../styles';
 import { PhotosScreen } from '../../../types/photos';
 
 function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackProp }): JSX.Element {

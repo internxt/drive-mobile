@@ -10,8 +10,8 @@ import { storageActions, storageThunks } from '../../../store/slices/storage';
 import { layoutActions } from '../../../store/slices/layout';
 import errorService from '../../../services/error';
 import AppButton from '../../AppButton';
-import toastService from '../../../services/toast';
-import { ToastType } from '../../../types';
+import notificationsService from '../../../services/notifications';
+import { NotificationType } from '../../../types';
 
 function RenameModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -26,7 +26,7 @@ function RenameModal(): JSX.Element {
     if (currentFolderId) {
       dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
     }
-    toastService.show({ text1: strings.messages.renamedSuccessfully, type: ToastType.Success });
+    notificationsService.show({ text1: strings.messages.renamedSuccessfully, type: NotificationType.Success });
     setNewName('');
   };
   const onItemRenameFinally = () => {
@@ -61,7 +61,7 @@ function RenameModal(): JSX.Element {
       onItemRenameSuccess();
     } catch (err) {
       const castedError = errorService.castError(err);
-      toastService.show({ text1: castedError.message, type: ToastType.Error });
+      notificationsService.show({ text1: castedError.message, type: NotificationType.Error });
     } finally {
       onItemRenameFinally();
     }

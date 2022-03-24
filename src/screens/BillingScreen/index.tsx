@@ -8,15 +8,15 @@ import * as Linking from 'expo-linking';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/Separator';
 import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
-import globalStyle from '../../styles/global.style';
+import globalStyle from '../../styles';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/ScreenTitle';
-import { AppScreenKey, ToastType } from '../../types';
+import { AppScreenKey, NotificationType } from '../../types';
 import paymentService from '../../services/payment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { constants } from '../../services/app';
 import AppScreen from '../../components/AppScreen';
-import toastService from '../../services/toast';
+import notificationsService from '../../services/notifications';
 import { Check } from 'phosphor-react-native';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
@@ -115,8 +115,8 @@ function BillingScreen(): JSX.Element {
         setStripeProducts(products);
       })
       .catch((err) => {
-        toastService.show({
-          type: ToastType.Warning,
+        notificationsService.show({
+          type: NotificationType.Warning,
           text1: strings.formatString(strings.errors.loadProducts, err.message) as string,
         });
       });

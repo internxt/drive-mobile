@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-na
 import Portal from '@burstware/react-native-portal';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
-import globalStyle from '../../../styles/global.style';
+import globalStyle from '../../../styles';
 import ScreenTitle from '../../../components/ScreenTitle';
 import strings from '../../../../assets/lang/strings';
 import galleryViews from '../../../components/gallery-views';

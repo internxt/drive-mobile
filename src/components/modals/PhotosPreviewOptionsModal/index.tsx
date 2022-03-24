@@ -3,7 +3,7 @@ import { Image, Text, View } from 'react-native';
 import prettysize from 'prettysize';
 import { Photo } from '@internxt/sdk/dist/photos';
 
-import globalStyle from '../../../styles/global.style';
+import globalStyle from '../../../styles';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';

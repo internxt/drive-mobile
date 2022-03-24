@@ -3,8 +3,8 @@ import { FlatList, StyleProp, View, ViewStyle } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import toastService from '../../services/toast';
-import { ToastType } from '../../types';
+import notificationsService from '../../services/notifications';
+import { NotificationType } from '../../types';
 import AppButton from '../AppButton';
 import AppText from '../AppText';
 
@@ -15,32 +15,32 @@ interface DebugNotificationsWidgetProps {
 const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Element => {
   const notifications = [
     {
-      type: ToastType.Info,
+      type: NotificationType.Info,
       icon: null,
     },
     {
-      type: ToastType.Success,
+      type: NotificationType.Success,
       icon: <CheckCircle weight="fill" color={getColor('green-40')} style={tailwind('mr-2')} />,
     },
     {
-      type: ToastType.Warning,
+      type: NotificationType.Warning,
       icon: <Warning weight="fill" color={getColor('yellow-30')} style={tailwind('mr-2')} />,
     },
     {
-      type: ToastType.Error,
+      type: NotificationType.Error,
       icon: <WarningOctagon weight="fill" color={getColor('red-50')} style={tailwind('mr-2')} />,
     },
     {
-      type: ToastType.Upload,
+      type: NotificationType.Upload,
       icon: <ArrowCircleUp weight="fill" color={getColor('blue-30')} style={tailwind('mr-2')} />,
     },
     {
-      type: ToastType.Download,
+      type: NotificationType.Download,
       icon: <ArrowCircleDown weight="fill" color={getColor('blue-30')} style={tailwind('mr-2')} />,
     },
   ];
-  const onNotificationButtonPressed = ({ type }: { type: ToastType; icon: JSX.Element | null }) =>
-    toastService.show({ text1: strings.screens.DebugScreen.notifications.test.text1, type });
+  const onNotificationButtonPressed = ({ type }: { type: NotificationType; icon: JSX.Element | null }) =>
+    notificationsService.show({ text1: strings.screens.DebugScreen.notifications.test.text1, type });
 
   return (
     <View style={[tailwind('px-5'), props.style]}>

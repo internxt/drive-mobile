@@ -20,7 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors, authThunks } from '../../store/slices/auth';
-import globalStyle from '../../styles/global.style';
+import globalStyle from '../../styles';
 import AppScreen from '../../components/AppScreen';
 import { CaretRight } from 'phosphor-react-native';
 import appService from '../../services/app';

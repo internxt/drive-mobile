@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { Photo } from '@internxt/sdk/dist/photos';
 
-import globalStyle from '../../../styles/global.style';
+import globalStyle from '../../../styles';
 import { tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';

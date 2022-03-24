@@ -15,7 +15,7 @@ interface SearchInputProps {
 
 function SearchInput(props: SearchInputProps): JSX.Element {
   const [inputRef] = useState(createRef<TextInput>());
-  const [isFocused, setIsFocused] = useState(true);
+  const [isFocused, setIsFocused] = useState(false);
   const onBlur = () => {
     setIsFocused(false);
   };

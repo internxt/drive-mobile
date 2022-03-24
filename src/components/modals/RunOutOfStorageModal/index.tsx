@@ -7,7 +7,7 @@ import { NavigationStackProp } from 'react-navigation-stack';
 
 import RunOutImage from '../../../../assets/images/modals/runout.svg';
 import { tailwind, getColor } from '../../../helpers/designSystem';
-import globalStyle from '../../../styles/global.style';
+import globalStyle from '../../../styles';
 import strings from '../../../../assets/lang/strings';
 import { AppScreenKey, CurrentPlan, INFINITE_PLAN } from '../../../types';
 import { layoutActions } from '../../../store/slices/layout';

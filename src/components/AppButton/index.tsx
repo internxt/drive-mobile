@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleProp, Text, TouchableHighlight, ViewStyle } from 'react-native';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
-import globalStyle from '../../styles/global.style';
+import globalStyle from '../../styles';
 
 interface AppButtonProps {
   title: string | JSX.Element;

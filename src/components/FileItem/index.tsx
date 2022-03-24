@@ -14,7 +14,7 @@ import {
 } from '../../services/fileSystem';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import prettysize from 'prettysize';
-import globalStyle from '../../styles/global.style';
+import globalStyle from '../../styles';
 import { DevicePlatform } from '../../types';
 import { storageActions, storageThunks } from '../../store/slices/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -262,14 +262,14 @@ function FileItem(props: FileItemProps): JSX.Element {
               (props.progress === 0 ? (
                 <Text style={tailwind('text-xs text-blue-60')}>{strings.screens.drive.encrypting}</Text>
               ) : (
-                <View style={tailwind('flex-row')}>
+                <View style={tailwind('flex-row items-center')}>
                   <ArrowCircleUp weight="fill" color={getColor('blue-60')} size={16} />
                   <Text style={tailwind('ml-1.5 text-xs text-blue-60')}>{(props.progress * 100).toFixed(0) + '%'}</Text>
                   <ProgressBar
-                    style={tailwind('flex-grow')}
+                    style={tailwind('flex-grow h-1 ml-1.5')}
                     progressStyle={tailwind('h-1')}
-                    totalValue={100}
-                    currentValue={50}
+                    totalValue={1}
+                    currentValue={props.progress}
                   />
                 </View>
               ))}

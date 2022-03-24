@@ -27,8 +27,8 @@ import {
 } from '../../../types/photos';
 import { layoutActions } from '../layout';
 import { pathToUri } from '../../../services/fileSystem';
-import toastService from '../../../services/toast';
-import { ToastType } from '../../../types';
+import notificationsService from '../../../services/notifications';
+import { NotificationType } from '../../../types';
 
 let photosService: PhotosService;
 
@@ -447,8 +447,8 @@ export const photosSlice = createSlice({
       .addCase(startUsingPhotosThunk.rejected, (state, action) => {
         state.initializeError = action.error.message || strings.errors.unknown;
 
-        toastService.show({
-          type: ToastType.Error,
+        notificationsService.show({
+          type: NotificationType.Error,
           text1: strings.formatString(strings.errors.photosInitialize, state.initializeError) as string,
         });
       });
@@ -484,8 +484,8 @@ export const photosSlice = createSlice({
       .addCase(deletePhotosThunk.pending, () => undefined)
       .addCase(deletePhotosThunk.fulfilled, () => undefined)
       .addCase(deletePhotosThunk.rejected, (state, action) => {
-        toastService.show({
-          type: ToastType.Error,
+        notificationsService.show({
+          type: NotificationType.Error,
           text1: strings.formatString(
             strings.errors.photosDelete,
             action.error.message || strings.errors.unknown,
@@ -504,8 +504,8 @@ export const photosSlice = createSlice({
           const index = state.downloadingPhotos.findIndex((p) => p.id === action.meta.arg.fileId);
           state.downloadingPhotos.splice(index, 1);
 
-          toastService.show({
-            type: ToastType.Error,
+          notificationsService.show({
+            type: NotificationType.Error,
             text1: strings.formatString(
               strings.errors.photosFullSizeLoad,
               action.error.message || strings.errors.unknown,
@@ -526,8 +526,8 @@ export const photosSlice = createSlice({
         const index = state.loadPhotosRequests.indexOf(action.meta.requestId);
         state.loadPhotosRequests.splice(index, 1);
 
-        toastService.show({
-          type: ToastType.Error,
+        notificationsService.show({
+          type: NotificationType.Error,
           text1: strings.formatString(
             strings.errors.photosLoad,
             action.error.message || strings.errors.unknown,
@@ -563,8 +563,8 @@ export const photosSlice = createSlice({
         state.syncRequests.splice(index, 1);
         Object.assign(state.syncStatus, { status: PhotosSyncStatus.Pending });
 
-        toastService.show({
-          type: ToastType.Error,
+        notificationsService.show({
+          type: NotificationType.Error,
           text1: strings.formatString(
             strings.errors.photosSync,
             action.error.message || strings.errors.unknown,

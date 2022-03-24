@@ -8,7 +8,7 @@ import { loadValues } from '../../services/storage';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import SearchInput from '../../components/SearchInput';
-import globalStyle from '../../styles/global.style';
+import globalStyle from '../../styles';
 import ScreenTitle from '../../components/ScreenTitle';
 import Separator from '../../components/Separator';
 import { AppScreenKey as AppScreenKey, DevicePlatform, SortDirection } from '../../types';

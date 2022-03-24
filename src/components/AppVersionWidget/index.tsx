@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { StyleProp, Text, View, ViewStyle } from 'react-native';
 import * as Updates from 'expo-updates';
 
-import PackageJson from '../../../package.json';
+import packageJson from '../../../package.json';
 import { tailwind } from '../../helpers/designSystem';
 import appService from '../../services/app';
 
-function AppVersionWidget(): JSX.Element {
+interface AppVersionWidgetProps {
+  style?: StyleProp<ViewStyle>;
+}
+
+function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
   const [, setDebugText] = useState('');
 
   useEffect(() => {
@@ -21,9 +25,9 @@ function AppVersionWidget(): JSX.Element {
   }, []);
 
   return (
-    <View>
+    <View style={props.style}>
       <Text style={tailwind('text-center text-base text-sm text-neutral-60')}>
-        Internxt Drive v{PackageJson.version} ({appService.constants.REACT_NATIVE_APP_BUILD_NUMBER})
+        Internxt Drive v{packageJson.version} ({appService.constants.REACT_NATIVE_APP_BUILD_NUMBER})
       </Text>
     </View>
   );

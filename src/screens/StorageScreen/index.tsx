@@ -11,7 +11,7 @@ import ScreenTitle from '../../components/ScreenTitle';
 import { useAppSelector } from '../../store/hooks';
 import { AppScreenKey, INFINITE_PLAN } from '../../types';
 import ReferralsWidget from '../../components/ReferralsWidget';
-import globalStyle from '../../styles/global.style';
+import globalStyle from '../../styles';
 import AppScreen from '../../components/AppScreen';
 import { CaretRight } from 'phosphor-react-native';
 import appService from '../../services/app';

@@ -2,7 +2,7 @@
 /* eslint-disable max-len */
 import LocalizedStrings from 'react-native-localization';
 import { ReferralTypes } from '@internxt/sdk/dist/drive/referrals';
-import { SortType, ToastType } from '../../src/types';
+import { SortType, NotificationType } from '../../src/types';
 
 const strings = new LocalizedStrings({
   en_US: {
@@ -43,12 +43,12 @@ const strings = new LocalizedStrings({
           title: 'Notifications',
           advice: 'Test all notification types.',
           type: {
-            [ToastType.Info]: 'Info',
-            [ToastType.Success]: 'Success',
-            [ToastType.Warning]: 'Warning',
-            [ToastType.Error]: 'Error',
-            [ToastType.Upload]: 'Upload',
-            [ToastType.Download]: 'Download',
+            [NotificationType.Info]: 'Info',
+            [NotificationType.Success]: 'Success',
+            [NotificationType.Warning]: 'Warning',
+            [NotificationType.Error]: 'Error',
+            [NotificationType.Upload]: 'Upload',
+            [NotificationType.Download]: 'Download',
           },
           test: {
             text1: 'This is a test notification',
@@ -448,12 +448,12 @@ const strings = new LocalizedStrings({
           title: 'Notificaciones',
           advice: 'Prueba todos los tipos de notificaciones.',
           type: {
-            [ToastType.Info]: 'Info',
-            [ToastType.Success]: 'Éxito',
-            [ToastType.Warning]: 'Advertencia',
-            [ToastType.Error]: 'Error',
-            [ToastType.Upload]: 'Subida',
-            [ToastType.Download]: 'Descarga',
+            [NotificationType.Info]: 'Info',
+            [NotificationType.Success]: 'Éxito',
+            [NotificationType.Warning]: 'Advertencia',
+            [NotificationType.Error]: 'Error',
+            [NotificationType.Upload]: 'Subida',
+            [NotificationType.Download]: 'Descarga',
           },
           test: {
             text1: 'Esta es una notificación de prueba',

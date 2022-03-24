@@ -1,4 +1,4 @@
-import { constants } from '../services/app';
+import { constants } from './app';
 
 function isUserActivated(email: string): Promise<Response> {
   // Set api call settings

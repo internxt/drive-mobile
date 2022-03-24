@@ -10,8 +10,8 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import AppTextInput from '../../components/AppTextInput';
 import AppScreen from '../../components/AppScreen';
-import { ToastType } from '../../types';
-import toastService from '../../services/toast';
+import { NotificationType } from '../../types';
+import notificationsService from '../../services/notifications';
 import { Eye, EyeSlash } from 'phosphor-react-native';
 
 function ChangePassword(): JSX.Element {
@@ -27,12 +27,12 @@ function ChangePassword(): JSX.Element {
     authService
       .doRecoverPassword(newPassword)
       .then(() => {
-        toastService.show({ text1: strings.messages.passwordChanged, type: ToastType.Success });
+        notificationsService.show({ text1: strings.messages.passwordChanged, type: NotificationType.Success });
         setNewPassword('');
         setConfirmPassword('');
       })
       .catch((err: Error) => {
-        toastService.show({ type: ToastType.Error, text1: err.message });
+        notificationsService.show({ type: NotificationType.Error, text1: err.message });
       })
       .finally(() => {
         setIsLoading(false);

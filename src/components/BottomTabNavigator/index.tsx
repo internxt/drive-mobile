@@ -3,16 +3,16 @@ import { View, TouchableWithoutFeedback, Text } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
-import globalStyle from '../../styles/global.style';
+import globalStyle from '../../styles';
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch } from '../../store/hooks';
 import { layoutActions } from '../../store/slices/layout';
-import { FolderSimple, Gear, House, ImageSquare, Plus } from 'phosphor-react-native';
+import { FolderSimple, Gear, House, ImageSquare, PlusCircle } from 'phosphor-react-native';
 
 const tabIcons = {
   home: House,
   drive: FolderSimple,
-  create: Plus,
+  create: PlusCircle,
   photos: ImageSquare,
   menu: Gear,
 };

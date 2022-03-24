@@ -27,8 +27,8 @@ import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../
 import { getExtensionFromUri, removeExtension, renameIfAlreadyExists } from '../../../services/file';
 import strings from '../../../../assets/lang/strings';
 import { tailwind, getColor } from '../../../helpers/designSystem';
-import globalStyle from '../../../styles/global.style';
-import { DevicePlatform, ToastType } from '../../../types';
+import globalStyle from '../../../styles';
+import { DevicePlatform, NotificationType } from '../../../types';
 import { deviceStorage } from '../../../services/asyncStorage';
 import { UPLOAD_FILE_SIZE_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -36,7 +36,7 @@ import { layoutActions } from '../../../store/slices/layout';
 import { storageActions, storageThunks } from '../../../store/slices/storage';
 import { constants } from '../../../services/app';
 import { uploadFile } from '../../../services/network';
-import toastService from '../../../services/toast';
+import notificationsService from '../../../services/notifications';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -308,8 +308,8 @@ function UploadModal(): JSX.Element {
         .catch((err) => {
           trackUploadError(err);
           dispatch(storageActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
-          toastService.show({
-            type: ToastType.Error,
+          notificationsService.show({
+            type: NotificationType.Error,
             text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
           });
         })
@@ -341,8 +341,8 @@ function UploadModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          toastService.show({
-            type: ToastType.Error,
+          notificationsService.show({
+            type: NotificationType.Error,
             text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
           });
         })
@@ -366,8 +366,8 @@ function UploadModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          toastService.show({
-            type: ToastType.Error,
+          notificationsService.show({
+            type: NotificationType.Error,
             text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
           });
         })
@@ -416,8 +416,8 @@ function UploadModal(): JSX.Element {
                 if (err.message === 'User canceled document picker') {
                   return;
                 }
-                toastService.show({
-                  type: ToastType.Error,
+                notificationsService.show({
+                  type: NotificationType.Error,
                   text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
                 });
               })
@@ -444,8 +444,8 @@ function UploadModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
-          toastService.show({
-            type: ToastType.Error,
+          notificationsService.show({
+            type: NotificationType.Error,
             text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
           });
         })
@@ -507,8 +507,8 @@ function UploadModal(): JSX.Element {
             });
         }
       } catch (err) {
-        toastService.show({
-          type: ToastType.Error,
+        notificationsService.show({
+          type: NotificationType.Error,
           text1: strings.formatString(strings.errors.uploadFile, (err as Error).message) as string,
         });
       }

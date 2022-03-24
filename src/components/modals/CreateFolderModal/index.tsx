@@ -11,8 +11,8 @@ import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
 import folderService from '../../../services/folder';
-import toastService from '../../../services/toast';
-import { ToastType } from '../../../types';
+import notificationsService from '../../../services/notifications';
+import { NotificationType } from '../../../types';
 
 function CreateFolderModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -35,10 +35,10 @@ function CreateFolderModal(): JSX.Element {
       .createFolder({ folderName, parentId: currentFolderId })
       .then(() => {
         dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
-        toastService.show({ type: ToastType.Success, text1: strings.messages.folderCreated });
+        notificationsService.show({ type: NotificationType.Success, text1: strings.messages.folderCreated });
       })
       .catch((err) => {
-        toastService.show({ type: ToastType.Error, text1: err.message });
+        notificationsService.show({ type: NotificationType.Error, text1: err.message });
       })
       .finally(() => {
         setIsLoading(false);

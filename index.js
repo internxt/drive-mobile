@@ -2,6 +2,7 @@ import 'expo-asset';
 import { registerRootComponent } from 'expo';
 import { createElement } from 'react';
 import { Provider } from 'react-redux';
+import './shim';
 
 import App from './src/App';
 import plugins from './src/plugins';

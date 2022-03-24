@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import Toast, { BaseToast, BaseToastProps, ToastConfigParams } from 'react-native-toast-message';
 import { ArrowCircleDown, ArrowCircleUp, CheckCircle, Warning, WarningOctagon } from 'phosphor-react-native';
 
-import { ToastType } from '../../types';
+import { NotificationType } from '../../types';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { Dimensions, Text, TouchableHighlight, View } from 'react-native';
 import strings from '../../../assets/lang/strings';
@@ -34,16 +34,16 @@ const AppToast = (): JSX.Element => {
     </TouchableHighlight>
   );
   const config: {
-    [key in ToastType]: (props: ToastConfigParams<Record<string, never>>) => ReactNode;
+    [key in NotificationType]: (props: ToastConfigParams<Record<string, never>>) => ReactNode;
   } = {
-    [ToastType.Info]: (props) => (
+    [NotificationType.Info]: (props) => (
       <BaseToast
         {...defaultProps}
         {...props}
         renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
       />
     ),
-    [ToastType.Success]: (props) => (
+    [NotificationType.Success]: (props) => (
       <BaseToast
         {...defaultProps}
         {...props}
@@ -53,7 +53,7 @@ const AppToast = (): JSX.Element => {
         renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
       />
     ),
-    [ToastType.Warning]: (props) => (
+    [NotificationType.Warning]: (props) => (
       <BaseToast
         {...defaultProps}
         {...props}
@@ -63,7 +63,7 @@ const AppToast = (): JSX.Element => {
         renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
       />
     ),
-    [ToastType.Error]: (props) => (
+    [NotificationType.Error]: (props) => (
       <BaseToast
         {...defaultProps}
         {...props}
@@ -73,7 +73,7 @@ const AppToast = (): JSX.Element => {
         renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
       />
     ),
-    [ToastType.Upload]: (props) => (
+    [NotificationType.Upload]: (props) => (
       <BaseToast
         {...defaultProps}
         {...props}
@@ -83,7 +83,7 @@ const AppToast = (): JSX.Element => {
         renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
       />
     ),
-    [ToastType.Download]: (props) => (
+    [NotificationType.Download]: (props) => (
       <BaseToast
         {...defaultProps}
         {...props}

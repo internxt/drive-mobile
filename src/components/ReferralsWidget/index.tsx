@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { referralsThunks } from '../../store/slices/referrals';
 import { ReferralTypes } from '@internxt/sdk/dist/drive';
 import { layoutActions } from '../../store/slices/layout';
-import globalStyle from '../../styles/global.style';
+import globalStyle from '../../styles';
 import { CaretRight, Check } from 'phosphor-react-native';
 
 const ReferralsWidget = (): JSX.Element => {
