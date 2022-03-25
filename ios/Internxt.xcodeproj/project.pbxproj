@@ -316,7 +316,7 @@
 				CODE_SIGN_ENTITLEMENTS = Internxt/Internxt.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 0;
 				DEVELOPMENT_TEAM = JR4S3SY396;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -326,6 +326,7 @@
 				INFOPLIST_FILE = Internxt/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.5.8;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -350,11 +351,12 @@
 				CODE_SIGN_ENTITLEMENTS = Internxt/Internxt.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 0;
 				DEVELOPMENT_TEAM = JR4S3SY396;
 				INFOPLIST_FILE = Internxt/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.5.8;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
