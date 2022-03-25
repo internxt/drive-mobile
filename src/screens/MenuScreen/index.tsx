@@ -155,14 +155,16 @@ function MenuScreen(): JSX.Element {
 
           <MenuSeparator />
 
-          <View style={tailwind('bg-white rounded-xl')}>
-            <MenuItem
-              title={strings.screens.DebugScreen.title}
-              onPress={() => {
-                navigation.push(AppScreenKey.Debug);
-              }}
-            />
-          </View>
+          {appService.constants.REACT_NATIVE_SHOW_BILLING && (
+            <View style={tailwind('bg-white rounded-xl')}>
+              <MenuItem
+                title={strings.screens.DebugScreen.title}
+                onPress={() => {
+                  navigation.push(AppScreenKey.Debug);
+                }}
+              />
+            </View>
+          )}
         </View>
 
         <View style={tailwind('flex text-base mt-9 mb-5')}>
