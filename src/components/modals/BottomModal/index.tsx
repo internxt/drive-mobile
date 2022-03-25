@@ -36,7 +36,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
           <View style={tailwind('flex-grow')} />
         </TouchableWithoutFeedback>
 
-        <View style={tailwind('bg-white rounded-t-xl')}>
+        <View style={[tailwind('bg-white rounded-t-xl'), props.containerStyle]}>
           {props.header && (
             <View style={tailwind('flex-row px-5 py-4 items-center justify-between border-b border-neutral-20')}>
               {props.header}
@@ -50,7 +50,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
             </View>
           )}
 
-          <View style={props.containerStyle}>{props.children}</View>
+          <View>{props.children}</View>
           <View style={{ ...tailwind('bg-white'), height: safeAreaInsets.bottom }}></View>
         </View>
       </View>

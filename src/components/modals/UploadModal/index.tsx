@@ -1,15 +1,6 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Alert,
-  Platform,
-  PermissionsAndroid,
-  TouchableWithoutFeedback,
-  TouchableHighlight,
-} from 'react-native';
+import { View, Text, Alert, Platform, PermissionsAndroid, TouchableHighlight } from 'react-native';
 import { uniqueId } from 'lodash';
-import Modal from 'react-native-modalbox';
 import {
   launchCameraAsync,
   requestCameraPermissionsAsync,
@@ -39,6 +30,7 @@ import { uploadFile } from '../../../services/network';
 import notificationsService from '../../../services/notifications';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BottomModal from '../BottomModal';
 
 interface UploadingFile {
   size: number;
@@ -516,122 +508,102 @@ function UploadModal(): JSX.Element {
   }
 
   return (
-    <Modal
-      swipeToClose={false}
-      position={'bottom'}
-      style={{ ...tailwind('bg-transparent'), paddingBottom: safeAreaInsets.bottom }}
-      coverScreen={Platform.OS === 'android'}
+    <BottomModal
+      containerStyle={{ ...tailwind('bg-transparent'), paddingBottom: safeAreaInsets.bottom }}
       isOpen={showUploadModal}
-      entry={'bottom'}
       onClosed={() => {
         dispatch(layoutActions.setShowUploadFileModal(false));
       }}
-      backButtonClose={true}
-      backdropPressToClose={true}
-      animationDuration={250}
     >
-      <View style={tailwind('h-full')}>
-        <TouchableWithoutFeedback
-          style={tailwind('flex-grow')}
-          onPress={() => {
-            dispatch(layoutActions.setShowUploadFileModal(false));
-          }}
-        >
-          <View style={tailwind('flex-grow')} />
-        </TouchableWithoutFeedback>
-
-        <View style={tailwind('p-4')}>
-          <View style={tailwind('rounded-xl overflow-hidden')}>
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('neutral-80')}
-              onPress={() => {
-                handleUploadFiles();
-              }}
-            >
-              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.uploadFiles}</Text>
-                <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <FileArrowUp color={getColor('neutral-500')} size={20} />
-                </View>
+      <View style={tailwind('p-4')}>
+        <View style={tailwind('rounded-xl overflow-hidden')}>
+          <TouchableHighlight
+            style={tailwind('flex-grow')}
+            underlayColor={getColor('neutral-80')}
+            onPress={() => {
+              handleUploadFiles();
+            }}
+          >
+            <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+              <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.uploadFiles}</Text>
+              <View style={tailwind('p-3.5 items-center justify-center')}>
+                <FileArrowUp color={getColor('neutral-500')} size={20} />
               </View>
-            </TouchableHighlight>
+            </View>
+          </TouchableHighlight>
 
-            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+          <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
 
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('neutral-80')}
-              onPress={() => {
-                handleUploadFromCameraRoll();
-              }}
-            >
-              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>
-                  {strings.components.buttons.uploadFromCameraRoll}
-                </Text>
-                <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <ImageSquare color={getColor('neutral-500')} size={20} />
-                </View>
+          <TouchableHighlight
+            style={tailwind('flex-grow')}
+            underlayColor={getColor('neutral-80')}
+            onPress={() => {
+              handleUploadFromCameraRoll();
+            }}
+          >
+            <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+              <Text style={tailwind('text-lg text-neutral-500')}>
+                {strings.components.buttons.uploadFromCameraRoll}
+              </Text>
+              <View style={tailwind('p-3.5 items-center justify-center')}>
+                <ImageSquare color={getColor('neutral-500')} size={20} />
               </View>
-            </TouchableHighlight>
+            </View>
+          </TouchableHighlight>
 
-            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+          <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
 
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('neutral-80')}
-              onPress={() => {
-                handleTakePhotoAndUpload();
-              }}
-            >
-              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>
-                  {strings.components.buttons.takeAPhotoAnUpload}
-                </Text>
-                <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <Camera color={getColor('neutral-500')} size={20} />
-                </View>
+          <TouchableHighlight
+            style={tailwind('flex-grow')}
+            underlayColor={getColor('neutral-80')}
+            onPress={() => {
+              handleTakePhotoAndUpload();
+            }}
+          >
+            <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+              <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.takeAPhotoAnUpload}</Text>
+              <View style={tailwind('p-3.5 items-center justify-center')}>
+                <Camera color={getColor('neutral-500')} size={20} />
               </View>
-            </TouchableHighlight>
+            </View>
+          </TouchableHighlight>
 
-            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+          <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
 
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('neutral-80')}
-              onPress={() => {
-                dispatch(layoutActions.setShowCreateFolderModal(true));
-                dispatch(layoutActions.setShowUploadFileModal(false));
-              }}
-            >
-              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.newFolder}</Text>
-                <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <FolderSimplePlus color={getColor('neutral-500')} size={20} />
-                </View>
+          <TouchableHighlight
+            style={tailwind('flex-grow')}
+            underlayColor={getColor('neutral-80')}
+            onPress={() => {
+              dispatch(layoutActions.setShowCreateFolderModal(true));
+              dispatch(layoutActions.setShowUploadFileModal(false));
+            }}
+          >
+            <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+              <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.newFolder}</Text>
+              <View style={tailwind('p-3.5 items-center justify-center')}>
+                <FolderSimplePlus color={getColor('neutral-500')} size={20} />
               </View>
-            </TouchableHighlight>
-          </View>
+            </View>
+          </TouchableHighlight>
+        </View>
 
-          <View style={tailwind('mt-3.5 rounded-xl overflow-hidden')}>
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('neutral-80')}
-              onPress={() => {
-                dispatch(layoutActions.setShowUploadFileModal(false));
-              }}
-            >
-              <View style={tailwind('flex-row flex-grow bg-white h-12 items-center justify-center')}>
-                <Text style={[tailwind('text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
-                  {strings.components.buttons.cancel}
-                </Text>
-              </View>
-            </TouchableHighlight>
-          </View>
+        <View style={tailwind('mt-3.5 rounded-xl overflow-hidden')}>
+          <TouchableHighlight
+            style={tailwind('flex-grow')}
+            underlayColor={getColor('neutral-80')}
+            onPress={() => {
+              dispatch(layoutActions.setShowUploadFileModal(false));
+            }}
+          >
+            <View style={tailwind('flex-row flex-grow bg-white h-12 items-center justify-center')}>
+              <Text style={[tailwind('text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
+                {strings.components.buttons.cancel}
+              </Text>
+            </View>
+          </TouchableHighlight>
         </View>
       </View>
-    </Modal>
+    </BottomModal>
   );
 }
 
