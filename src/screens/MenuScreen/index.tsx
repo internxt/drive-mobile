@@ -155,7 +155,7 @@ function MenuScreen(): JSX.Element {
 
           <MenuSeparator />
 
-          {appService.constants.REACT_NATIVE_SHOW_BILLING && (
+          {appService.constants.REACT_NATIVE_DEBUG && (
             <View style={tailwind('bg-white rounded-xl')}>
               <MenuItem
                 title={strings.screens.DebugScreen.title}
