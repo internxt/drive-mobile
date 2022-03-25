@@ -44,7 +44,7 @@ DerivedData
 project.xcworkspace
 
 # Android/IntelliJ
-#
+android/app/release
 build/
 .idea
 .gradle

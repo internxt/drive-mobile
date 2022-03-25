@@ -275,7 +275,7 @@ function FileItem(props: FileItemProps): JSX.Element {
               ))}
 
             {isDownloading && (
-              <Text style={tailwind('ml-1.5 text-xs text-blue-60')}>
+              <Text style={tailwind('text-xs text-blue-60')}>
                 {downloadProgress >= 0 &&
                   downloadProgress < 1 &&
                   'Downloading ' + (downloadProgress * 100).toFixed(0) + '%'}
