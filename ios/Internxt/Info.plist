@@ -50,15 +50,15 @@
 	<key>NSAppleMusicUsageDescription</key>
 	<string>This app requires apple music usage description in order to work properly</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Allow $(PRODUCT_NAME) to access your camera</string>
+	<string>Allow $(PRODUCT_NAME) to access your camera to upload a newly captured photo to the storage service</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Allow $(PRODUCT_NAME) to use Face ID</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Allow $(PRODUCT_NAME) to access your microphone</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Allow $(PRODUCT_NAME) to save photos</string>
+	<string>Allow $(PRODUCT_NAME) to save/download photos from the storage service</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Allow $(PRODUCT_NAME) to access your photos</string>
+	<string>Allow $(PRODUCT_NAME) to access your photos to sync your device's camera roll with our Photos cloud service</string>
 	<key>RCTRootViewBackgroundColor</key>
 	<integer>4294967295</integer>
 	<key>UIBackgroundModes</key>
