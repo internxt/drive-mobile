@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { measureConnectionSpeed, NetworkBandwidthTestResults } from 'react-native-network-bandwith-speed';
 import { getColor, tailwind } from '../../helpers/designSystem';
+import notificationsService from '../../services/notifications';
+import { NotificationType } from '../../types';
 import AppText from '../AppText';
 
 interface DebugInternetWidgetProps {
@@ -37,7 +39,7 @@ const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
         const result: NetworkBandwidthTestResults = await measureConnectionSpeed();
         setSpeed(result.speed);
       } catch (err) {
-        console.log(err);
+        notificationsService.show({ text1: err.message, type: NotificationType.Error });
       }
     };
 

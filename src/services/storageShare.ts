@@ -2,7 +2,9 @@ import axios from 'axios';
 import { IFile } from '../components/FileList';
 import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
+import { NotificationType } from '../types';
 import { constants } from './app';
+import notificationsService from './notifications';
 
 export interface IShare {
   token: string;
@@ -25,7 +27,7 @@ async function decryptFileNames(shares: IShare[]) {
 
       share.fileInfo.name = decryptedName;
     } catch (err) {
-      console.error('Error decrypting files: ', err);
+      notificationsService.show({ text1: 'Error decrypting files: ' + err.message, type: NotificationType.Error });
     }
   });
 

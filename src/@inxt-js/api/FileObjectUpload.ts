@@ -292,20 +292,6 @@ export class FileObjectUpload extends EventEmitter {
   }
 }
 
-function updateProgress(
-  totalBytes: number,
-  currentBytesUploaded: number,
-  newBytesUploaded: number,
-  progress: UploadProgressCallback,
-): number {
-  const newCurrentBytes = currentBytesUploaded + newBytesUploaded;
-  const progressCounter = newCurrentBytes / totalBytes;
-
-  progress(progressCounter, newCurrentBytes, totalBytes);
-
-  return newCurrentBytes;
-}
-
 export function generateBucketEntry(
   fileObject: FileObjectUpload,
   fileMeta: FileMeta,

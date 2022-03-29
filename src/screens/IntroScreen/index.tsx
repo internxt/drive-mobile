@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableHighlight, ImageURISource } from 'react-native';
 
 import { normalize } from '../../helpers';
@@ -41,16 +41,16 @@ function IntroScreen(props: IntroProps): JSX.Element {
       </View>
     </View>
   );
-  const renderNextButton = () => (
+  /*const renderNextButton = () => (
     <TouchableHighlight style={styles.buttonSkip} activeOpacity={1} underlayColor="#007aff">
       <Text style={styles.buttonSkipText}>{strings.components.buttons.next}</Text>
     </TouchableHighlight>
-  );
-  const renderDoneButton = () => (
+  );*/
+  /*const renderDoneButton = () => (
     <TouchableHighlight style={styles.buttonSkip} activeOpacity={1} underlayColor="#007aff">
       <Text style={styles.buttonSkipText}>{strings.components.buttons.get_started}</Text>
     </TouchableHighlight>
-  );
+  );*/
 
   /*<AppIntroSlider
       data={slides}
