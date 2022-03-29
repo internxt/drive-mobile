@@ -10,7 +10,6 @@ import UpdateModal from '../components/modals/UpdateModal';
 import CreateFolderScreen from './CreateFolderScreen';
 import SignInScreen from './SignInScreen';
 import SignUpScreen from './SignUpScreen';
-import IntroScreen from './IntroScreen';
 import HomeScreen from './HomeScreen';
 import OutOfSpaceScreen from './OutOfSpaceScreen';
 import StorageScreen from './StorageScreen';
@@ -42,7 +41,6 @@ const routeConfig: RouteConfig = {
   [AppScreenKey.Debug]: { screen: DebugScreen },
   [AppScreenKey.SignUp]: { screen: SignUpScreen },
   [AppScreenKey.SignIn]: { screen: SignInScreen },
-  [AppScreenKey.Intro]: { screen: IntroScreen },
   [AppScreenKey.Home]: { screen: HomeScreen },
   [AppScreenKey.TabExplorer]: { screen: AuthenticatedNavigator },
   [AppScreenKey.CreateFolder]: { screen: CreateFolderScreen },

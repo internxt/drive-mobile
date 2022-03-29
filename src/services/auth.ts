@@ -1,7 +1,6 @@
 import { encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import analytics, { AnalyticsEventKey } from './analytics';
 import { getHeaders } from '../helpers/headers';
-import { isJsonString } from '../screens/SignUpScreen/registerUtils';
 import { DevicePlatform } from '../types';
 import { deviceStorage } from './asyncStorage';
 import { constants } from './app';
@@ -19,7 +18,7 @@ class AuthService {
       body: JSON.stringify({ email: email }),
     }).then(async (res) => {
       const data = await res.text();
-      const json = isJsonString(data);
+      const json = JSON.parse(data);
 
       if (res.status === 200) {
         return json;

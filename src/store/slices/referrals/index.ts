@@ -54,8 +54,6 @@ export const referralsSlice = createSlice({
       .addCase(fetchReferralsThunk.rejected, (state, action) => {
         state.isReading = false;
 
-        console.error(action.error);
-
         notificationsService.show({
           type: NotificationType.Error,
           text1: strings.formatString(

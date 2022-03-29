@@ -15,7 +15,6 @@ import RenameModal from '../../components/modals/RenameModal';
 import CreateFolderModal from '../../components/modals/CreateFolderModal';
 import ShareFilesModal from '../../components/modals/ShareFilesModal';
 import DeleteItemModal from '../../components/modals/DeleteItemModal';
-import SortModal from '../../components/modals/SortModal';
 import MoveFilesModal from '../../components/modals/MoveFilesModal';
 import RunOutOfStorageModal from '../../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../HomeScreen';

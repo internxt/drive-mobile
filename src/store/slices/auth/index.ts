@@ -82,7 +82,7 @@ export const authSlice = createSlice({
       state.token = action.payload.token;
       state.photosToken = action.payload.photosToken;
     },
-    setUserStorage(state, action: PayloadAction<any>) {
+    setUserStorage(state, action: PayloadAction<{ usage: number; limit: number; percentage: number }>) {
       state.userStorage = action.payload;
     },
   },

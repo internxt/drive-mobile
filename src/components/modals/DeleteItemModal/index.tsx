@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableHighlight } from 'react-native';
 import prettysize from 'prettysize';
 
 import strings from '../../../../assets/lang/strings';

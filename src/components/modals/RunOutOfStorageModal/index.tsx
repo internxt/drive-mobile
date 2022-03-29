@@ -8,14 +8,13 @@ import RunOutImage from '../../../../assets/images/modals/runout.svg';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
 import strings from '../../../../assets/lang/strings';
-import { AppScreenKey, CurrentPlan, INFINITE_PLAN } from '../../../types';
+import { AppScreenKey, INFINITE_PLAN } from '../../../types';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import paymentService from '../../../services/payment';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 function RunOutOfStorageModal(): JSX.Element {
-  const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
@@ -38,10 +37,7 @@ function RunOutOfStorageModal(): JSX.Element {
   };
 
   useEffect(() => {
-    paymentService
-      .getCurrentIndividualPlan()
-      .then(setCurrentPlan)
-      .catch(() => undefined);
+    paymentService.getCurrentIndividualPlan().catch(() => undefined);
   }, []);
 
   return (

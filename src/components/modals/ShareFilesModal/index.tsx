@@ -26,7 +26,6 @@ function ShareFilesModal(): JSX.Element {
   const { focusedItem } = useAppSelector((state) => state.storage);
   const [isOpen, setIsOpen] = useState(showShareModal);
   const [selectedFile, setSelectedFile] = useState<DriveItemData>();
-  const [filename, setFileName] = useState('');
   const [link, setLink] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [inputValue, setInputValue] = useState('10');
@@ -105,7 +104,6 @@ function ShareFilesModal(): JSX.Element {
 
     if (showShareModal && focusedItem) {
       setSelectedFile(focusedItem);
-      setFileName(focusedItem.name);
       getLink(focusedItem, parseInt(inputValue)).then(() => setIsLoading(false));
     }
   }, [showShareModal]);

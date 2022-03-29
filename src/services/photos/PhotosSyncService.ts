@@ -1,4 +1,5 @@
 import { photos } from '@internxt/sdk';
+const { PhotoStatus } = photos;
 import strings from '../../../assets/lang/strings';
 import { RootState } from '../../store';
 import RNFS from 'react-native-fs';
@@ -160,7 +161,10 @@ export default class PhotosSyncService {
     const remoteSyncAt = await this.localDatabaseService.getRemoteSyncAt();
     const newestDate = await this.localDatabaseService.getNewestDate();
     const oldestDate = await this.localDatabaseService.getOldestDate();
-    const { count: downloadTasks } = await this.photosSdk.photos.getPhotos({ statusChangedAt: remoteSyncAt });
+    const { count: downloadTasks } = await this.photosSdk.photos.getPhotos({
+      statusChangedAt: remoteSyncAt,
+      status: PhotoStatus.Exists,
+    });
     const newerUploadTasks = await this.cameraRollService.count({ from: newestDate });
     const olderUploadTasks = oldestDate ? await this.cameraRollService.count({ to: oldestDate }) : 0;
 
@@ -188,7 +192,11 @@ export default class PhotosSyncService {
     this.logService.info(`[SYNC] ${this.currentSyncId}: LAST SYNC WAS AT ${remoteSyncAt.toUTCString()}`);
 
     do {
-      const { results } = await this.photosSdk.photos.getPhotos({ statusChangedAt: remoteSyncAt }, skip, limit);
+      const { results } = await this.photosSdk.photos.getPhotos(
+        { statusChangedAt: remoteSyncAt, status: PhotoStatus.Exists },
+        skip,
+        limit,
+      );
 
       photos = results;
 
@@ -257,7 +265,6 @@ export default class PhotosSyncService {
     },
   ): Promise<void> {
     const limit = 50;
-    let skip = 0;
     let photosToUpload: { data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId' | 'hash'>; uri: string }[];
     let cursor;
 
@@ -332,7 +339,6 @@ export default class PhotosSyncService {
         }
       }
 
-      skip += limit;
       cursor = page_info.end_cursor;
     } while (photosToUpload.length > 0);
   }

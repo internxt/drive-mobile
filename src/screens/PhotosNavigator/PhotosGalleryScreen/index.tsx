@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, TouchableWithoutFeedback, BackHandler } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
@@ -40,11 +40,14 @@ function PhotosGalleryScreen(): JSX.Element {
   const onShareSelectionButtonPressed = () => {
     dispatch(layoutActions.setIsSharePhotoModalOpen(true));
   };
-  const onDownloadSelectionButtonPressed = () => {
-    console.log('onDownloadSelectionButtonPressed!');
-  };
+  const onDownloadSelectionButtonPressed = () => undefined;
   const onDeleteSelectionButtonPressed = () => {
     dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
+  };
+  const onBackButtonPressed = () => {
+    onCancelSelectButtonPressed();
+
+    return false;
   };
   const GalleryView = galleryViews[viewMode];
   const groupByMenu = (function () {
@@ -74,8 +77,11 @@ function PhotosGalleryScreen(): JSX.Element {
     dispatch(photosActions.resetPhotos());
     dispatch(photosThunks.loadLocalPhotosThunk());
 
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressed);
+
     return () => {
       dispatch(photosActions.resetPhotos());
+      backHandler.remove();
     };
   }, []);
 

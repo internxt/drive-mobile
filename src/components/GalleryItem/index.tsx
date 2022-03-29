@@ -21,7 +21,6 @@ const defaultProps: Partial<GalleryItemProps> = {
 };
 
 const GalleryItem = ({
-  data,
   type = defaultProps.type as GalleryItemType,
   size,
   preview,

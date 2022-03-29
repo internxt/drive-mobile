@@ -17,14 +17,6 @@ export async function getNewBits(): Promise<string> {
     .then((bits) => decryptText(bits));
 }
 
-export function isJsonString(str: string): any {
-  try {
-    return JSON.parse(str);
-  } catch (e) {
-    return null;
-  }
-}
-
 export async function doRegister(params: RegisterParams): Promise<any> {
   const hashObj = passToHash({ password: params.password });
   const encPass = encryptText(hashObj.hash);
@@ -51,7 +43,7 @@ export async function doRegister(params: RegisterParams): Promise<any> {
       return res.json();
     } else {
       const body = await res.text();
-      const json = isJsonString(body);
+      const json = JSON.parse(body);
 
       if (json) {
         throw Error(json.message);

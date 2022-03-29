@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { Easing, Platform, TouchableWithoutFeedback, View } from 'react-native';
+import { Easing, TouchableWithoutFeedback, View } from 'react-native';
 import Modal from 'react-native-modalbox';
 
 import { tailwind } from '../../../helpers/designSystem';

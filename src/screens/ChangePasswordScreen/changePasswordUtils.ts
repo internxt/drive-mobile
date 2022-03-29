@@ -1,9 +1,10 @@
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
-import { isJsonString } from '../SignUpScreen/registerUtils';
 import AesUtils from '../../helpers/aesUtils';
 import { constants } from '../../services/app';
 import { deviceStorage } from '../../services/asyncStorage';
+import notificationsService from '../../services/notifications';
+import { NotificationType } from '../../types';
 interface ChangePasswordParam {
   password: string;
   newPassword: string;
@@ -44,7 +45,7 @@ export async function doChangePassword(params: ChangePasswordParam): Promise<any
 
     privateKeyEncrypted = AesUtils.encrypt(privateKey, params.newPassword);
   } catch (err) {
-    console.log('Error encrypting private key: ', err);
+    notificationsService.show({ text1: 'Error encrypting private key: ' + err.message, type: NotificationType.Error });
   }
 
   return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/user/password`, {
@@ -62,7 +63,7 @@ export async function doChangePassword(params: ChangePasswordParam): Promise<any
       return res.json();
     } else {
       const body = await res.text();
-      const json = isJsonString(body);
+      const json = JSON.parse(body);
 
       if (json) {
         throw Error(json.error);
