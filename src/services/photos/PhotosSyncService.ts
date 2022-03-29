@@ -2,17 +2,23 @@ import { photos } from '@internxt/sdk';
 import strings from '../../../assets/lang/strings';
 import { RootState } from '../../store';
 import RNFS from 'react-native-fs';
+import { Platform } from 'react-native';
+import { items } from '@internxt/lib';
 
-import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType, PhotosTaskCompletedInfo } from '../../types/photos';
+import {
+  PhotosServiceModel,
+  PhotosSyncInfo,
+  PhotosSyncTaskType,
+  PhotosTaskCompletedInfo,
+  PhotosCameraRollGetPhotosResponse,
+} from '../../types/photos';
 import PhotosDeviceService from './PhotosDeviceService';
 import PhotosCameraRollService from './PhotosCameraRollService';
 import PhotosDownloadService from './PhotosDownloadService';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosLogService from './PhotosLogService';
 import PhotosUploadService from './PhotosUploadService';
-import { items } from '@internxt/lib';
 import PhotosFileSystemService from './PhotosFileSystemService';
-import { Platform } from 'react-native';
 
 export default class PhotosSyncService {
   private readonly model: PhotosServiceModel;
@@ -89,23 +95,21 @@ export default class PhotosSyncService {
       await this.localDatabaseService.cleanTmpCameraRollTable();
       const newestDate = await this.localDatabaseService.getNewestDate();
       const oldestDate = await this.localDatabaseService.getOldestDate();
-      const { count: newerCameraRollCount } = await this.cameraRollService.copyToLocalDatabase({ from: newestDate });
-      const { count: olderCameraRollCount } = oldestDate
-        ? await this.cameraRollService.copyToLocalDatabase({ to: oldestDate })
-        : { count: 0 };
-      const timeElapsedIndexing = (new Date().getTime() - startLocalIndexingTime) / 1000;
+      const newerCameraRollCount = await this.cameraRollService.count({ from: newestDate });
+      const olderCameraRollCount = oldestDate ? await this.cameraRollService.count({ to: oldestDate }) : 0;
+      const timeElapsedIndexing = (new Date().getTime() - startLocalIndexingTime) * 0.001;
       const cameraRollCount = newerCameraRollCount + olderCameraRollCount;
 
-      this.logService.info(
-        `[SYNC] ${
-          this.currentSyncId
-        }: COPIED ${cameraRollCount} EDGES FROM CAMERA ROLL TO SQLITE IN ${timeElapsedIndexing.toFixed(2)}s`,
-      );
+      this.logService.info(`[SYNC] ${this.currentSyncId}: COPIED ${cameraRollCount} EDGES FROM CAMERA ROLL TO SQLITE`);
 
       const syncInfo = await this.calculateSyncInfo();
       options.onStart?.(syncInfo);
       this.logService.info(
-        `[SYNC] ${this.currentSyncId}: CALCULATED ${syncInfo.totalTasks} TASKS: ${syncInfo.downloadTasks} downloadTasks, ${syncInfo.newerUploadTasks} newerUploadTasks, ${syncInfo.olderUploadTasks} olderUploadTasks`,
+        `[SYNC] ${this.currentSyncId}: CALCULATED ${syncInfo.totalTasks} TASKS: ${
+          syncInfo.downloadTasks
+        } downloadTasks, ${syncInfo.newerUploadTasks} newerUploadTasks, ${
+          syncInfo.olderUploadTasks
+        } olderUploadTasks IN ${timeElapsedIndexing.toFixed(2)}s`,
       );
 
       await this.downloadRemotePhotos({
@@ -157,8 +161,8 @@ export default class PhotosSyncService {
     const newestDate = await this.localDatabaseService.getNewestDate();
     const oldestDate = await this.localDatabaseService.getOldestDate();
     const { count: downloadTasks } = await this.photosSdk.photos.getPhotos({ statusChangedAt: remoteSyncAt });
-    const newerUploadTasks = await this.localDatabaseService.countTmpCameraRoll({ from: newestDate });
-    const olderUploadTasks = oldestDate ? await this.localDatabaseService.countTmpCameraRoll({ to: oldestDate }) : 0;
+    const newerUploadTasks = await this.cameraRollService.count({ from: newestDate });
+    const olderUploadTasks = oldestDate ? await this.cameraRollService.count({ to: oldestDate }) : 0;
 
     return {
       totalTasks: downloadTasks + newerUploadTasks + olderUploadTasks,
@@ -255,38 +259,40 @@ export default class PhotosSyncService {
     const limit = 50;
     let skip = 0;
     let photosToUpload: { data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId' | 'hash'>; uri: string }[];
+    let cursor;
 
     this.logService.info(`[SYNC] ${this.currentSyncId}: UPLOADING LOCAL PHOTOS FROM ${options.from} TO ${options.to}`);
 
     do {
-      const cameraRollPhotos = await this.localDatabaseService.getTmpCameraRollPhotos({
-        from: options.from,
-        to: options.to,
-        limit,
-        skip,
-      });
+      const { edges: cameraRollPhotos, page_info }: PhotosCameraRollGetPhotosResponse =
+        await this.cameraRollService.getPhotos({
+          from: options.from,
+          to: options.to,
+          limit,
+          cursor,
+        });
 
       photosToUpload = cameraRollPhotos.map<{
         data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId' | 'hash'>;
         uri: string;
       }>((p) => {
-        const nameWithExtension = p.filename as string;
+        const nameWithExtension = p.node.image.filename as string;
         const nameWithoutExtension = nameWithExtension.substring(0, nameWithExtension.lastIndexOf('.'));
         const nameSplittedByDots = nameWithExtension.split('.');
         const extension = nameSplittedByDots[nameSplittedByDots.length - 1] || '';
 
         return {
           data: {
-            takenAt: new Date(p.timestamp),
+            takenAt: new Date(p.node.timestamp * 1000),
             userId: userId,
             deviceId: deviceId,
-            height: p.height,
-            width: p.width,
-            size: p.fileSize as number,
+            height: p.node.image.height,
+            width: p.node.image.width,
+            size: p.node.image.fileSize as number,
             type: extension,
             name: nameWithoutExtension,
           },
-          uri: p.uri,
+          uri: p.node.image.uri,
         };
       });
 
@@ -327,6 +333,7 @@ export default class PhotosSyncService {
       }
 
       skip += limit;
+      cursor = page_info.end_cursor;
     } while (photosToUpload.length > 0);
   }
 

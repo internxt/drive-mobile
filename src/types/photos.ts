@@ -1,4 +1,5 @@
 import { Photo, Device, PhotoStatus, User } from '@internxt/sdk/dist/photos';
+import CameraRoll from '@react-native-community/cameraroll';
 import { NetworkCredentials } from '.';
 
 export enum PhotosScreen {
@@ -110,3 +111,8 @@ export type PhotosByMonthType = {
     }[];
   }[];
 };
+
+export interface PhotosCameraRollGetPhotosResponse {
+  edges: CameraRoll.PhotoIdentifier[];
+  page_info: { has_next_page: boolean; start_cursor?: string | undefined; end_cursor?: string | undefined };
+}

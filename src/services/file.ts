@@ -1,4 +1,3 @@
-import { compare } from 'natural-orderby';
 import { createHash } from 'crypto';
 import axios from 'axios';
 
@@ -174,10 +173,16 @@ function getSortFunction({
       sortFunction =
         direction === SortDirection.Asc
           ? (a: DriveItemData, b: DriveItemData) => {
-              return compare({ order: 'asc' })(a.name.toLowerCase(), b.name.toLowerCase());
+              const aName = a.name.toLowerCase();
+              const bName = b.name.toLowerCase();
+
+              return aName < bName ? -1 : aName > bName ? 1 : 0;
             }
           : (a: DriveItemData, b: DriveItemData) => {
-              return compare({ order: 'desc' })(a.name.toLowerCase(), b.name.toLowerCase());
+              const aName = a.name.toLowerCase();
+              const bName = b.name.toLowerCase();
+
+              return aName < bName ? 1 : aName > bName ? -1 : 0;
             };
       break;
     case SortType.Size:
@@ -194,10 +199,16 @@ function getSortFunction({
       sortFunction =
         direction === SortDirection.Asc
           ? (a: DriveItemData, b: DriveItemData) => {
-              return compare({ order: 'asc' })(a.updatedAt, b.updatedAt);
+              const aTime = new Date(a.updatedAt).getTime();
+              const bTime = new Date(b.updatedAt).getTime();
+
+              return aTime < bTime ? -1 : aTime > bTime ? 1 : 0;
             }
           : (a: DriveItemData, b: DriveItemData) => {
-              return compare({ order: 'desc' })(a.updatedAt, b.updatedAt);
+              const aTime = new Date(a.updatedAt).getTime();
+              const bTime = new Date(b.updatedAt).getTime();
+
+              return aTime < bTime ? 1 : aTime > bTime ? -1 : 0;
             };
       break;
   }

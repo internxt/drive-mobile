@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Photo } from '@internxt/sdk/dist/photos';
 import { Dimensions, FlatList, ListRenderItemInfo, RefreshControl, View } from 'react-native';
-import { NavigationStackProp } from 'react-navigation-stack';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { tailwind } from '../../helpers/designSystem';
 import GalleryItem from '../GalleryItem';
@@ -12,7 +12,7 @@ import { AppScreenKey } from '../../types';
 
 const GalleryAllView = (): JSX.Element => {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
   const { isSelectionModeActivated, photos } = useAppSelector((state) => state.photos);
   const [refreshing, setRefreshing] = useState(false);
@@ -60,14 +60,7 @@ const GalleryAllView = (): JSX.Element => {
       decelerationRate={0.5}
       ItemSeparatorComponent={() => <View style={{ height: gutter }} />}
       data={photos}
-      onScrollEndDrag={async (event) => {
-        const scrollingToBottom = (event.nativeEvent.velocity?.y ?? 0) > 0;
-
-        // Move to store
-        // offset = scrollingToBottom ?
-        //   offset + limit:
-        //   offset - limit;
-
+      onScrollEndDrag={async () => {
         await loadPhotos();
       }}
       numColumns={columnsCount}

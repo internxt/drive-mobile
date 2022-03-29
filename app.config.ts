@@ -37,7 +37,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'cover',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#091e42',
   },
   updates: {
     fallbackToCacheTimeout: 0,
@@ -51,9 +51,6 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   },
   android: {
     versionCode: 50,
-    splash: {
-      backgroundColor: '#FFFFFF',
-    },
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#091e42',
@@ -72,13 +69,12 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     ],
   },
   androidStatusBar: {
-    barStyle: 'dark-content',
-    backgroundColor: '#FFFFFF',
+    barStyle: 'light-content',
+    backgroundColor: '#091e42',
   },
   androidNavigationBar: {
-    barStyle: 'dark-content',
-    backgroundColor: '#FFFFFF',
-    visible: 'sticky-immersive',
+    barStyle: 'light-content',
+    backgroundColor: '#091e42',
   },
   extra: { NODE_ENV: stage, ...env[stage] },
 };

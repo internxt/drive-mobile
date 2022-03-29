@@ -20,6 +20,7 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
   const safeAreaInsets = useSafeAreaInsets();
   const propsStyle = Object.assign({}, props.style || {}) as Record<string, string>;
   const backgroundColor = props.backgroundColor || getColor('white');
+  const statusBarStyle = props.statusBarStyle || 'dark';
   const onBackgroundPressed = () => {
     Keyboard.dismiss();
   };
@@ -35,7 +36,7 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
     >
       <StatusBar
         hidden={props.statusBarHidden}
-        style={props.statusBarStyle}
+        style={statusBarStyle}
         translucent={props.statusBarTranslucent}
         backgroundColor={backgroundColor}
       />

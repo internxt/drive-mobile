@@ -14,14 +14,14 @@ import { AppScreenKey as AppScreenKey, DevicePlatform } from '../../types';
 import { authThunks } from '../../store/slices/auth';
 import { useAppDispatch } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
 import { storageActions } from '../../store/slices/storage';
 import { Eye, EyeSlash } from 'phosphor-react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 function SignUpScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const dispatch = useAppDispatch();
   const [showIntro, setShowIntro] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

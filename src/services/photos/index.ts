@@ -36,7 +36,7 @@ export class PhotosService {
 
   constructor(accessToken: string, networkCredentials: NetworkCredentials) {
     this.model = {
-      debug: constants.NODE_ENV !== 'production',
+      debug: constants.REACT_NATIVE_DEBUG,
       isInitialized: false,
       accessToken,
       networkCredentials,

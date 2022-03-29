@@ -3,8 +3,11 @@ import RNFS from 'react-native-fs';
 import { View, Text, Image, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 import { Photo } from '@internxt/sdk/dist/photos';
+import { CaretLeft, DotsThree, DownloadSimple, Link, Trash } from 'phosphor-react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { items } from '@internxt/lib';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import PhotosPreviewOptionsModal from '../../../components/modals/PhotosPreviewOptionsModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
@@ -17,10 +20,7 @@ import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfo
 import { photosActions, photosSelectors, photosThunks } from '../../../store/slices/photos';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import { getColor, tailwind } from '../../../helpers/designSystem';
-import { items } from '@internxt/lib';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppScreen from '../../../components/AppScreen';
-import { CaretLeft, DotsThree, DownloadSimple, Link, Trash } from 'phosphor-react-native';
 
 interface PreviewProps {
   route: {
@@ -44,7 +44,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
     (state) => state.layout,
   );
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const isFullSizeDownloaded = useAppSelector(photosSelectors.isPhotoDownloaded)(photo.fileId);
   const uri = isFullSizeDownloaded ? pathToUri(photoPath) : preview;
   const onScreenPressed = () => {

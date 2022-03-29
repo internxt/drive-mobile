@@ -1,6 +1,5 @@
 import { Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import strings from '../../../assets/lang/strings';
@@ -9,10 +8,11 @@ import { layoutActions } from '../../store/slices/layout';
 import { TouchableWithoutFeedback } from 'react-native';
 import { AppScreenKey } from '../../types';
 import { X } from 'phosphor-react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const ReferralsBanner = (): JSX.Element => {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const isOpen = useAppSelector((state) => state.layout.isReferralsBannerOpen);
   const onBannerPressed = () => {
     navigation.navigate(AppScreenKey.Storage);

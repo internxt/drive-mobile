@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
-import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
+// import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
+//import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
@@ -31,11 +31,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DebugScreen from './DebugScreen';
 import analyticsService from '../services/analytics';
 
-type RouteConfig = NavigationRouteConfigMap<
+/*type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
   StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>,
   any
->;
+>;*/
+type RouteConfig = any;
 
 const routeConfig: RouteConfig = {
   [AppScreenKey.Debug]: { screen: DebugScreen },

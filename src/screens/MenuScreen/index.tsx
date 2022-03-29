@@ -10,19 +10,19 @@ import {
   TextStyle,
   ViewStyle,
 } from 'react-native';
+import { CaretRight } from 'phosphor-react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
 import ScreenTitle from '../../components/ScreenTitle';
 import { AppScreenKey as AppScreenKey } from '../../types';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors, authThunks } from '../../store/slices/auth';
 import globalStyle from '../../styles';
 import AppScreen from '../../components/AppScreen';
-import { CaretRight } from 'phosphor-react-native';
 import appService from '../../services/app';
 
 interface MenuItemProps {
@@ -60,7 +60,7 @@ function MenuSeparator() {
 }
 
 function MenuScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const userNameLetters = useAppSelector(authSelectors.nameLetters);

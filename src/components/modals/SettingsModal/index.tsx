@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, Linking, Alert } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 
 import SettingsItem from './SettingsItem';
 import Separator from '../../Separator';
@@ -12,9 +11,10 @@ import { AppScreenKey } from '../../../types';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { layoutActions } from '../../../store/slices/layout';
 import { authThunks } from '../../../store/slices/auth';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 function SettingsModal(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const showSettingsModal = useAppSelector((state) => state.layout.showSettingsModal);

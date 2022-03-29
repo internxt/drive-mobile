@@ -17,7 +17,6 @@ import { storageActions, storageThunks } from '../../store/slices/storage';
 import { layoutActions } from '../../store/slices/layout';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 import { useRoute } from '@react-navigation/native';
 import { constants } from '../../services/app';
 import AppScreen from '../../components/AppScreen';
@@ -31,9 +30,10 @@ import {
   SquaresFour,
 } from 'phosphor-react-native';
 import { deviceStorage } from '../../services/asyncStorage';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 function DriveScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute();
   const dispatch = useAppDispatch();
   const { token, user, loggedIn } = useAppSelector((state) => state.auth);

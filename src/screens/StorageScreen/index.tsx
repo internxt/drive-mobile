@@ -2,7 +2,6 @@ import React from 'react';
 import prettysize from 'prettysize';
 import { View, Text, TouchableHighlight } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -15,6 +14,7 @@ import globalStyle from '../../styles';
 import AppScreen from '../../components/AppScreen';
 import { CaretRight } from 'phosphor-react-native';
 import appService from '../../services/app';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 interface StorageScreenProps {
   currentPlan: number;
@@ -23,7 +23,7 @@ interface StorageScreenProps {
 function StorageScreen(props: StorageScreenProps): JSX.Element {
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const { usage: storageUsage, limit } = useAppSelector((state) => state.storage);
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const usageValues = { usage: storageUsage + photosUsage, limit };
   const getLimitString = () => {
     if (usageValues.limit === 0) {

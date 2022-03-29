@@ -1,5 +1,6 @@
 import CameraRoll from '@react-native-community/cameraroll';
 import { Platform } from 'react-native';
+import { PhotosCameraRollGetPhotosResponse } from '../../types/photos';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosLogService from './PhotosLogService';
 
@@ -74,10 +75,7 @@ export default class PhotosCameraRollService {
     to?: Date;
     limit: number;
     cursor?: string;
-  }): Promise<{
-    edges: CameraRoll.PhotoIdentifier[];
-    page_info: { has_next_page: boolean; start_cursor?: string | undefined; end_cursor?: string | undefined };
-  }> {
+  }): Promise<PhotosCameraRollGetPhotosResponse> {
     const { edges, page_info } = await CameraRoll.getPhotos({
       first: limit,
       fromTime: from && from.getTime() - 1,
@@ -96,10 +94,12 @@ export default class PhotosCameraRollService {
       }
     });
 
-    return {
+    const response: PhotosCameraRollGetPhotosResponse = {
       edges,
       page_info,
     };
+
+    return response;
   }
 
   private convertLocalIdentifierToAssetLibrary(localIdentifier: string, ext: string): string {

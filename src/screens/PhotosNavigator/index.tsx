@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
-import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
+// import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
+//import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import PhotosPermissionsScreen from './PhotosPermissionsScreen';
@@ -13,11 +13,12 @@ import { tailwind } from '../../helpers/designSystem';
 import AppButton from '../../components/AppButton';
 import { PhotosScreen } from '../../types/photos';
 
-type RouteConfig = NavigationRouteConfigMap<
+/* type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
   StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>,
   any
->;
+>; */
+type RouteConfig = any;
 
 const routeConfig: RouteConfig = {
   [PhotosScreen.Permissions]: { screen: PhotosPermissionsScreen },

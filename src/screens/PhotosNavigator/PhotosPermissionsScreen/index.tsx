@@ -1,6 +1,6 @@
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { Linking, Platform, ScrollView, Text, View } from 'react-native';
-import { NavigationStackProp } from 'react-navigation-stack';
 import SyncIcon from '../../../../assets/images/modals/sync.svg';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../../components/AppButton';
@@ -11,7 +11,7 @@ import { photosSelectors, photosThunks } from '../../../store/slices/photos';
 import globalStyle from '../../../styles';
 import { PhotosScreen } from '../../../types/photos';
 
-function PhotosPermissionsScreen({ navigation }: { navigation: NavigationStackProp }): JSX.Element {
+function PhotosPermissionsScreen({ navigation }: { navigation: NativeStackNavigationProp<any> }): JSX.Element {
   const dispatch = useAppDispatch();
   const arePermissionsBlocked = useAppSelector(photosSelectors.arePermissionsBlocked);
   const features = [

@@ -3,6 +3,7 @@ import { View, Text, KeyboardAvoidingView } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as NavigationBar from 'expo-navigation-bar';
 
 import AppNavigator from './screens/AppNavigator';
 import analyticsService from './services/analytics';
@@ -52,6 +53,8 @@ export default function App(): JSX.Element {
 
   // Initialize app
   useEffect(() => {
+    NavigationBar.setBackgroundColorAsync(getColor('white')).then(() => NavigationBar.setButtonStyleAsync('dark'));
+
     if (!isAppInitialized) {
       Promise.all([loadFonts(), loadLocalUser(), analyticsService.setup()])
         .then(() => {

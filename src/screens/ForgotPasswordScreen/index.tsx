@@ -1,13 +1,4 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  TextInput,
-  TouchableHighlight,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import { View, Text, StyleSheet, Alert, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import React, { useEffect, useState } from 'react';
 
 import { normalize } from '../../helpers';
@@ -18,11 +9,12 @@ import validationService from '../../services/validation';
 import authService from '../../services/auth';
 import { AppScreenKey } from '../../types';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
 import AppScreen from '../../components/AppScreen';
 
 function ForgotPasswordScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   // Get email form field

@@ -7,15 +7,15 @@ import authService from '../../services/auth';
 import validationService from '../../services/validation';
 import ScreenTitle from '../../components/ScreenTitle';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 import AppTextInput from '../../components/AppTextInput';
 import AppScreen from '../../components/AppScreen';
 import { NotificationType } from '../../types';
 import notificationsService from '../../services/notifications';
 import { Eye, EyeSlash } from 'phosphor-react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 function ChangePassword(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

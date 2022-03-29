@@ -3,7 +3,6 @@ import prettysize from 'prettysize';
 import { Text, View, Platform, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 
 import RunOutImage from '../../../../assets/images/modals/runout.svg';
 import { tailwind, getColor } from '../../../helpers/designSystem';
@@ -13,11 +12,12 @@ import { AppScreenKey, CurrentPlan, INFINITE_PLAN } from '../../../types';
 import { layoutActions } from '../../../store/slices/layout';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import paymentService from '../../../services/payment';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 function RunOutOfStorageModal(): JSX.Element {
   const [currentPlan, setCurrentPlan] = useState<CurrentPlan>();
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const { usage: storageUsage, limit } = useAppSelector((state) => state.storage);
   const { showRunOutOfSpaceModal } = useAppSelector((state) => state.layout);

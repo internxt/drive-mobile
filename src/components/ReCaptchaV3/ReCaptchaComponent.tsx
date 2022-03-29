@@ -50,7 +50,7 @@ class ReCaptchaComponent extends React.PureComponent<IProps> {
     }
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <View style={{ flex: 0.0001, width: 0, height: 0 }}>
         <WebView
