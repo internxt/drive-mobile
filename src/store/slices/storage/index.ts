@@ -14,7 +14,7 @@ import {
   NotificationType,
 } from '../../../types';
 import { RootState } from '../..';
-import { layoutActions } from '../layout';
+import { uiActions } from '../ui';
 import { loadValues } from '../../../services/storage';
 import { deviceStorage } from '../../../services/asyncStorage';
 import strings from '../../../../assets/lang/strings';
@@ -120,11 +120,11 @@ const getUsageAndLimitThunk = createAsyncThunk<{ usage: number; limit: number },
 const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootState }>(
   'files/goBack',
   async ({ folderId }, { dispatch }) => {
-    dispatch(layoutActions.setBackButtonEnabled(false));
+    dispatch(uiActions.setBackButtonEnabled(false));
 
     dispatch(getFolderContentThunk({ folderId })).finally(() => {
       dispatch(storageActions.removeDepthAbsolutePath(1));
-      dispatch(layoutActions.setBackButtonEnabled(true));
+      dispatch(uiActions.setBackButtonEnabled(true));
     });
   },
 );

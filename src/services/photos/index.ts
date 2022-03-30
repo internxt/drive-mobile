@@ -123,6 +123,7 @@ export class PhotosService {
     signal?: AbortSignal;
     getState: () => RootState;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
+    onTaskSkipped?: () => void;
     onTaskCompleted?: (result: {
       taskType: PhotosSyncTaskType;
       photo: photos.Photo;

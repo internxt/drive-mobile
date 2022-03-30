@@ -8,13 +8,13 @@ import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import globalStyle from '../../../styles';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { storageThunks } from '../../../store/slices/storage';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
 
 function DeleteItemModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { currentFolderId, focusedItem: item } = useAppSelector((state) => state.storage);
-  const { showDeleteModal } = useAppSelector((state) => state.layout);
+  const { showDeleteModal } = useAppSelector((state) => state.ui);
   const isFolder = item && !!item.parentId;
   const FileIcon = getFileTypeIcon(item?.type);
   const handleDeleteSelectedItem = () => {
@@ -25,7 +25,7 @@ function DeleteItemModal(): JSX.Element {
     <BottomModal
       isOpen={showDeleteModal}
       onClosed={() => {
-        dispatch(layoutActions.setShowDeleteModal(false));
+        dispatch(uiActions.setShowDeleteModal(false));
       }}
     >
       <View style={tailwind('flex-row bg-white px-5 py-3 rounded-t-xl justify-center')}>
@@ -71,7 +71,7 @@ function DeleteItemModal(): JSX.Element {
           underlayColor={getColor('neutral-30')}
           style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
           onPress={() => {
-            dispatch(layoutActions.setShowDeleteModal(false));
+            dispatch(uiActions.setShowDeleteModal(false));
           }}
         >
           <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>
@@ -86,7 +86,7 @@ function DeleteItemModal(): JSX.Element {
           style={tailwind('bg-red-60 rounded-lg py-2 flex-grow items-center justify-center')}
           onPress={() => {
             handleDeleteSelectedItem();
-            dispatch(layoutActions.setShowDeleteModal(false));
+            dispatch(uiActions.setShowDeleteModal(false));
           }}
         >
           <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.generic.delete}</Text>

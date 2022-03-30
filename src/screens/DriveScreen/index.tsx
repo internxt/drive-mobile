@@ -14,7 +14,7 @@ import Separator from '../../components/Separator';
 import { AppScreenKey as AppScreenKey, DevicePlatform, SortDirection } from '../../types';
 import { authActions, authThunks } from '../../store/slices/auth';
 import { storageActions, storageThunks } from '../../store/slices/storage';
-import { layoutActions } from '../../store/slices/layout';
+import { uiActions } from '../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
@@ -40,7 +40,7 @@ function DriveScreen(): JSX.Element {
   const { currentFolderId, folderContent, uri, sortType, sortDirection, searchString } = useAppSelector(
     (state) => state.storage,
   );
-  const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.layout);
+  const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.ui);
   const onSearchTextChanged = (value: string) => {
     dispatch(storageActions.setSearchString(value));
   };
@@ -141,10 +141,10 @@ function DriveScreen(): JSX.Element {
   };
   const onCurrentFolderActionsButtonPressed = () => {
     dispatch(storageActions.focusItem(folderContent));
-    dispatch(layoutActions.setShowItemModal(true));
+    dispatch(uiActions.setShowItemModal(true));
   };
   const onSortButtonPressed = () => {
-    dispatch(layoutActions.setShowSortModal(true));
+    dispatch(uiActions.setShowSortModal(true));
   };
 
   if (!loggedIn) {
@@ -274,7 +274,7 @@ function DriveScreen(): JSX.Element {
           <View style={tailwind('items-center justify-center')}>
             <TouchableOpacity
               style={tailwind('p-2')}
-              onPress={() => dispatch(layoutActions.setSearchActive(!searchActive))}
+              onPress={() => dispatch(uiActions.setSearchActive(!searchActive))}
             >
               <MagnifyingGlass color={getColor('blue-60')} size={22} />
             </TouchableOpacity>
@@ -311,7 +311,7 @@ function DriveScreen(): JSX.Element {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
-            dispatch(layoutActions.switchFileViewMode());
+            dispatch(uiActions.switchFileViewMode());
           }}
         >
           <View style={tailwind('py-2 px-5')}>

@@ -8,7 +8,7 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import { useAppDispatch } from '../../../store/hooks';
 import { pathToUri, showFileViewer } from '../../../services/fileSystem';
 import { items } from '@internxt/lib';
@@ -61,17 +61,17 @@ function PhotosPreviewOptionsModal({
     </>
   );
   const onInfoButtonPressed = () => {
-    dispatch(layoutActions.setIsPhotosPreviewInfoModalOpen(true));
+    dispatch(uiActions.setIsPhotosPreviewInfoModalOpen(true));
     onClosed();
   };
   const onShareButtonPressed = () => {
-    dispatch(layoutActions.setIsSharePhotoModalOpen(true));
+    dispatch(uiActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
     showFileViewer(pathToUri(photoPath), { displayName: items.getItemDisplayName(data) });
   };
   const onMoveToTrashButtonPressed = () => {
-    dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
+    dispatch(uiActions.setIsDeletePhotosModalOpen(true));
   };
 
   return (

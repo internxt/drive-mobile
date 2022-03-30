@@ -20,7 +20,7 @@ import RecoverPasswordScreen from './RecoverPasswordScreen';
 import ForgotPasswordScreen from './ForgotPasswordScreen';
 import PhotosNavigator from './PhotosNavigator';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { layoutActions } from '../store/slices/layout';
+import { uiActions } from '../store/slices/ui';
 import LinkCopiedModal from '../components/modals/LinkCopiedModal';
 import PhotosPreviewScreen from './PhotosNavigator/PhotosPreviewScreen';
 import { appThunks } from '../store/slices/app';
@@ -60,9 +60,9 @@ function AppNavigator(): JSX.Element {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
   const initialRouteName = isLoggedIn ? AppScreenKey.TabExplorer : AppScreenKey.SignIn;
-  const isLinkCopiedModalOpen = useAppSelector((state) => state.layout.isLinkCopiedModalOpen);
+  const isLinkCopiedModalOpen = useAppSelector((state) => state.ui.isLinkCopiedModalOpen);
   const onLinkCopiedModalClosed = () => {
-    dispatch(layoutActions.setIsLinkCopiedModalOpen(false));
+    dispatch(uiActions.setIsLinkCopiedModalOpen(false));
   };
   const onAppLinkOpened = async (event: Linking.EventType) => {
     const sessionId = await AsyncStorage.getItem('tmpCheckoutSessionId');

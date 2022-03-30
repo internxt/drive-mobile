@@ -23,7 +23,7 @@ import { DevicePlatform, NotificationType } from '../../../types';
 import { deviceStorage } from '../../../services/asyncStorage';
 import { UPLOAD_FILE_SIZE_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import { storageActions, storageThunks } from '../../../store/slices/storage';
 import { constants } from '../../../services/app';
 import { uploadFile } from '../../../services/network';
@@ -154,7 +154,7 @@ function UploadModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
   const { folderContent, usage: storageUsage, limit, currentFolderId } = useAppSelector((state) => state.storage);
-  const { showUploadModal } = useAppSelector((state) => state.layout);
+  const { showUploadModal } = useAppSelector((state) => state.ui);
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const usage = photosUsage + storageUsage;
   const upload = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
@@ -163,7 +163,7 @@ function UploadModal(): JSX.Element {
     }
 
     if (uploadingFile.size + usage > limit) {
-      dispatch(layoutActions.setShowRunOutSpaceModal(true));
+      dispatch(uiActions.setShowRunOutSpaceModal(true));
       throw new Error(strings.errors.storageLimitReached);
     }
 
@@ -207,7 +207,7 @@ function UploadModal(): JSX.Element {
 
   function processFilesFromPicker(documents: any[]): Promise<void> {
     documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
-    dispatch(layoutActions.setShowUploadFileModal(false));
+    dispatch(uiActions.setShowUploadFileModal(false));
 
     return uploadDocuments(documents);
   }
@@ -319,7 +319,7 @@ function UploadModal(): JSX.Element {
       })
         .then((documents) => {
           documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
-          dispatch(layoutActions.setShowUploadFileModal(false));
+          dispatch(uiActions.setShowUploadFileModal(false));
           return uploadDocuments(documents);
         })
         .then(() => {
@@ -339,7 +339,7 @@ function UploadModal(): JSX.Element {
           });
         })
         .finally(() => {
-          dispatch(layoutActions.setShowUploadFileModal(false));
+          dispatch(uiActions.setShowUploadFileModal(false));
         });
     } else {
       DocumentPicker.pickMultiple({
@@ -364,7 +364,7 @@ function UploadModal(): JSX.Element {
           });
         })
         .finally(() => {
-          dispatch(layoutActions.setShowUploadFileModal(false));
+          dispatch(uiActions.setShowUploadFileModal(false));
         });
     }
   }
@@ -395,7 +395,7 @@ function UploadModal(): JSX.Element {
               });
             }
 
-            dispatch(layoutActions.setShowUploadFileModal(false));
+            dispatch(uiActions.setShowUploadFileModal(false));
             uploadDocuments(documents)
               .then(() => {
                 dispatch(storageThunks.getUsageAndLimitThunk());
@@ -414,7 +414,7 @@ function UploadModal(): JSX.Element {
                 });
               })
               .finally(() => {
-                dispatch(layoutActions.setShowUploadFileModal(false));
+                dispatch(uiActions.setShowUploadFileModal(false));
               });
           }
         });
@@ -442,7 +442,7 @@ function UploadModal(): JSX.Element {
           });
         })
         .finally(() => {
-          dispatch(layoutActions.setShowUploadFileModal(false));
+          dispatch(uiActions.setShowUploadFileModal(false));
         });
     }
   }
@@ -478,7 +478,7 @@ function UploadModal(): JSX.Element {
           dispatch(storageActions.uploadFileStart(file.name));
           dispatch(storageActions.addUploadingFile(file));
 
-          dispatch(layoutActions.setShowUploadFileModal(false));
+          dispatch(uiActions.setShowUploadFileModal(false));
 
           upload(file, 'image')
             .then(() => {
@@ -512,7 +512,7 @@ function UploadModal(): JSX.Element {
       containerStyle={{ ...tailwind('bg-transparent'), paddingBottom: safeAreaInsets.bottom }}
       isOpen={showUploadModal}
       onClosed={() => {
-        dispatch(layoutActions.setShowUploadFileModal(false));
+        dispatch(uiActions.setShowUploadFileModal(false));
       }}
     >
       <View style={tailwind('p-4')}>
@@ -574,8 +574,8 @@ function UploadModal(): JSX.Element {
             style={tailwind('flex-grow')}
             underlayColor={getColor('neutral-80')}
             onPress={() => {
-              dispatch(layoutActions.setShowCreateFolderModal(true));
-              dispatch(layoutActions.setShowUploadFileModal(false));
+              dispatch(uiActions.setShowCreateFolderModal(true));
+              dispatch(uiActions.setShowUploadFileModal(false));
             }}
           >
             <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
@@ -592,7 +592,7 @@ function UploadModal(): JSX.Element {
             style={tailwind('flex-grow')}
             underlayColor={getColor('neutral-80')}
             onPress={() => {
-              dispatch(layoutActions.setShowUploadFileModal(false));
+              dispatch(uiActions.setShowUploadFileModal(false));
             }}
           >
             <View style={tailwind('flex-row flex-grow bg-white h-12 items-center justify-center')}>

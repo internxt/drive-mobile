@@ -9,7 +9,7 @@ import strings from '../../../../assets/lang/strings';
 import galleryViews from '../../../components/gallery-views';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { photosActions, photosSelectors, photosThunks } from '../../../store/slices/photos';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
 import { GalleryViewMode } from '../../../types/photos';
@@ -20,13 +20,13 @@ import { Trash } from 'phosphor-react-native';
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
   const getPhotoPreview = useAppSelector(photosSelectors.getPhotoPreview);
-  const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.layout);
+  const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.ui);
   const isLoading = useAppSelector(photosSelectors.isLoading);
   const { isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
   const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
   const hasNoPhotosSelected = selectedPhotos.length === 0;
-  const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
-  const onDeletePhotosModalClosed = () => dispatch(layoutActions.setIsDeletePhotosModalOpen(false));
+  const onSharePhotoModalClosed = () => dispatch(uiActions.setIsSharePhotoModalOpen(false));
+  const onDeletePhotosModalClosed = () => dispatch(uiActions.setIsDeletePhotosModalOpen(false));
   const onSelectButtonPressed = () => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
   };
@@ -38,11 +38,11 @@ function PhotosGalleryScreen(): JSX.Element {
     dispatch(photosThunks.selectAllThunk());
   };
   const onShareSelectionButtonPressed = () => {
-    dispatch(layoutActions.setIsSharePhotoModalOpen(true));
+    dispatch(uiActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadSelectionButtonPressed = () => undefined;
   const onDeleteSelectionButtonPressed = () => {
-    dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
+    dispatch(uiActions.setIsDeletePhotosModalOpen(true));
   };
   const onBackButtonPressed = () => {
     onCancelSelectButtonPressed();

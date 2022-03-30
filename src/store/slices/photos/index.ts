@@ -25,7 +25,7 @@ import {
   PhotosByMonthType,
   PhotosTaskCompletedInfo,
 } from '../../../types/photos';
-import { layoutActions } from '../layout';
+import { uiActions } from '../ui';
 import { pathToUri } from '../../../services/fileSystem';
 import notificationsService from '../../../services/notifications';
 import { NotificationType } from '../../../types';
@@ -278,8 +278,12 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
         }
       }
     };
+    const onTaskSkipped = () => {
+      const { syncStatus } = getState().photos;
+      dispatch(photosActions.updateSyncStatus({ totalTasks: syncStatus.totalTasks - 1 }));
+    };
     const onStorageLimitReached = () => {
-      dispatch(layoutActions.setShowRunOutSpaceModal(true));
+      dispatch(uiActions.setShowRunOutSpaceModal(true));
     };
     const photosState = getState().photos;
     const isAlreadySyncing = photosState.syncRequests.filter((id) => id !== requestId).length > 0;
@@ -295,6 +299,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
       signal,
       getState,
       onStart,
+      onTaskSkipped,
       onTaskCompleted,
       onStorageLimitReached,
     });

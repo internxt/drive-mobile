@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import PhotosPreviewOptionsModal from '../../../components/modals/PhotosPreviewOptionsModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import strings from '../../../../assets/lang/strings';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import { pathToUri, showFileViewer } from '../../../services/fileSystem';
@@ -42,7 +42,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const isFullSizeLoading = useAppSelector(photosSelectors.isPhotoDownloading)(photo.fileId);
   const progress = useAppSelector(photosSelectors.getDownloadingPhotoProgress)(photo.fileId);
   const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
-    (state) => state.layout,
+    (state) => state.ui,
   );
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const isFullSizeDownloaded = useAppSelector(photosSelectors.isPhotoDownloaded)(photo.fileId);
@@ -52,23 +52,23 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   };
   const onBackButtonPressed = () => navigation.goBack();
   const onShareButtonPressed = () => {
-    dispatch(layoutActions.setIsSharePhotoModalOpen(true));
+    dispatch(uiActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
     showFileViewer(uri, { displayName: items.getItemDisplayName(photo) });
   };
   const onMoveToTrashButtonPressed = () => {
-    dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
+    dispatch(uiActions.setIsDeletePhotosModalOpen(true));
   };
   const onPhotoMovedToTrash = () => {
     navigation.goBack();
   };
-  const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
+  const onSharePhotoModalClosed = () => dispatch(uiActions.setIsSharePhotoModalOpen(false));
   const onPhotosPreviewOptionsModalClosed = () => {
     setIsOptionsModalOpen(false);
   };
   const onPhotosPreviewInfoModalClosed = () => {
-    dispatch(layoutActions.setIsPhotosPreviewInfoModalOpen(false));
+    dispatch(uiActions.setIsPhotosPreviewInfoModalOpen(false));
     setIsOptionsModalOpen(true);
   };
   const isPhotoAlreadyDownloaded = () => RNFS.exists(photoPath);
@@ -117,7 +117,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
       />
       <DeletePhotosModal
         isOpen={isDeletePhotosModalOpen}
-        onClosed={() => dispatch(layoutActions.setIsDeletePhotosModalOpen(false))}
+        onClosed={() => dispatch(uiActions.setIsDeletePhotosModalOpen(false))}
         onPhotosDeleted={onPhotoMovedToTrash}
         data={[props.route.params.data]}
       />

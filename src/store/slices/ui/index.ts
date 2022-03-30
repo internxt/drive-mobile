@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export interface LayoutState {
+export interface UIState {
   searchActive: boolean;
   createFolderActive: boolean;
   showSettingsModal: boolean;
@@ -26,7 +26,7 @@ export interface LayoutState {
   fileViewMode: 'list' | 'grid';
 }
 
-const initialState: LayoutState = {
+const initialState: UIState = {
   searchActive: false,
   createFolderActive: false,
   showSettingsModal: false,
@@ -48,12 +48,12 @@ const initialState: LayoutState = {
   isPhotosPreviewInfoModalOpen: false,
   isNewsletterModalOpen: false,
   isInviteFriendsModalOpen: false,
-  isReferralsBannerOpen: false,
+  isReferralsBannerOpen: true,
   fileViewMode: 'list',
 };
 
-export const layoutSlice = createSlice({
-  name: 'layout',
+export const uiSlice = createSlice({
+  name: 'ui',
   initialState,
   reducers: {
     resetState(state) {
@@ -125,6 +125,6 @@ export const layoutSlice = createSlice({
   },
 });
 
-export const layoutActions = layoutSlice.actions;
+export const uiActions = uiSlice.actions;
 
-export default layoutSlice.reducer;
+export default uiSlice.reducer;

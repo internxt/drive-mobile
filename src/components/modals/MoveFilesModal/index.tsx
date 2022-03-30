@@ -8,13 +8,13 @@ import FileItem from '../../FileItem';
 import Separator from '../../Separator';
 import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import { storageThunks } from '../../../store/slices/storage';
 
 function MoveFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-  const { showMoveModal } = useAppSelector((state) => state.layout);
+  const { showMoveModal } = useAppSelector((state) => state.ui);
   const { currentFolderId, selectedFile } = useAppSelector((state) => state.storage);
 
   const onMoveButtonPressed = async () => {
@@ -24,13 +24,13 @@ function MoveFilesModal(): JSX.Element {
       await dispatch(
         storageThunks.moveFileThunk({ fileId: selectedFile.fileId, destinationFolderId: currentFolderId }),
       );
-      dispatch(layoutActions.setShowMoveModal(false));
+      dispatch(uiActions.setShowMoveModal(false));
 
       rootFolderId && dispatch(storageThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
   };
   const onCancelButtonPressed = () => {
-    dispatch(layoutActions.setShowMoveModal(false));
+    dispatch(uiActions.setShowMoveModal(false));
     dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
   };
 
@@ -38,7 +38,7 @@ function MoveFilesModal(): JSX.Element {
     <Modal
       isOpen={showMoveModal}
       onClosed={() => {
-        dispatch(layoutActions.setShowMoveModal(false));
+        dispatch(uiActions.setShowMoveModal(false));
       }}
       position="center"
       style={tailwind('w-11/12 h-5/6 p-3 rounded-lg')}

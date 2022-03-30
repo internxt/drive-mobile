@@ -9,7 +9,7 @@ import strings from '../../../../assets/lang/strings';
 import { tailwind } from '../../../helpers/designSystem';
 import { AppScreenKey } from '../../../types';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import { authThunks } from '../../../store/slices/auth';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -17,14 +17,14 @@ function SettingsModal(): JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-  const showSettingsModal = useAppSelector((state) => state.layout.showSettingsModal);
+  const showSettingsModal = useAppSelector((state) => state.ui.showSettingsModal);
 
   return (
     <Modal
       isOpen={showSettingsModal}
       position={'bottom'}
       style={styles.modalSettings}
-      onClosed={() => dispatch(layoutActions.setShowSettingsModal(false))}
+      onClosed={() => dispatch(uiActions.setShowSettingsModal(false))}
       backButtonClose={true}
       animationDuration={200}
       coverScreen={true}
@@ -40,7 +40,7 @@ function SettingsModal(): JSX.Element {
       <SettingsItem
         text={strings.components.app_menu.settings.storage}
         onPress={() => {
-          dispatch(layoutActions.setShowSettingsModal(false));
+          dispatch(uiActions.setShowSettingsModal(false));
           navigation.replace(AppScreenKey.Storage);
         }}
       />
@@ -68,7 +68,7 @@ function SettingsModal(): JSX.Element {
       <SettingsItem
         text={strings.components.app_menu.settings.signOut}
         onPress={() => {
-          dispatch(layoutActions.setShowSettingsModal(false));
+          dispatch(uiActions.setShowSettingsModal(false));
           dispatch(authThunks.signOutThunk());
         }}
       />

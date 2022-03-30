@@ -22,7 +22,7 @@ import { AppScreenKey as AppScreenKey } from '../../types';
 import PhotosNavigator from '../PhotosNavigator';
 import ReferralsBanner from '../../components/ReferralsBanner';
 import { useAppDispatch } from '../../store/hooks';
-import { layoutActions } from '../../store/slices/layout';
+import { uiActions } from '../../store/slices/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
@@ -40,7 +40,7 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
   const safeAreaInsets = useSafeAreaInsets();
 
   useEffect(() => {
-    props.route.params?.showReferralsBanner && dispatch(layoutActions.setIsReferralsBannerOpen(true));
+    props.route.params?.showReferralsBanner && dispatch(uiActions.setIsReferralsBannerOpen(true));
   }, []);
 
   return (

@@ -7,7 +7,7 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { referralsThunks } from '../../store/slices/referrals';
 import { ReferralTypes } from '@internxt/sdk/dist/drive';
-import { layoutActions } from '../../store/slices/layout';
+import { uiActions } from '../../store/slices/ui';
 import globalStyle from '../../styles';
 import { CaretRight, Check } from 'phosphor-react-native';
 
@@ -18,10 +18,10 @@ const ReferralsWidget = (): JSX.Element => {
     referrals.map((r, i) => {
       const fn: { [key in ReferralTypes.ReferralKey]?: () => void } = {
         [ReferralTypes.ReferralKey.SubscribeToNewsletter]: () => {
-          dispatch(layoutActions.setIsNewsletterModalOpen(true));
+          dispatch(uiActions.setIsNewsletterModalOpen(true));
         },
         [ReferralTypes.ReferralKey.InviteFriends]: () => {
-          dispatch(layoutActions.setIsInviteFriendsModalOpen(true));
+          dispatch(uiActions.setIsInviteFriendsModalOpen(true));
         },
       };
       const hasClickAction = !!fn[r.key];

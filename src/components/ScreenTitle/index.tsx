@@ -28,7 +28,7 @@ const ScreenTitle = ({
   showBackButton = defaultProps.showBackButton,
   onBackButtonPressed,
 }: ScreenTitleProps): JSX.Element => {
-  const backButtonEnabled = useAppSelector((state) => state.layout.backButtonEnabled);
+  const backButtonEnabled = useAppSelector((state) => state.ui.backButtonEnabled);
 
   return (
     <View style={[tailwind('pt-4 flex-row justify-center items-center py-2 px-5'), containerStyle]}>

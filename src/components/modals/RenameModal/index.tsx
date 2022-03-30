@@ -7,7 +7,7 @@ import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { storageActions, storageThunks } from '../../../store/slices/storage';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import errorService from '../../../services/error';
 import AppButton from '../../AppButton';
 import notificationsService from '../../../services/notifications';
@@ -15,7 +15,7 @@ import { NotificationType } from '../../../types';
 
 function RenameModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { showRenameModal } = useAppSelector((state) => state.layout);
+  const { showRenameModal } = useAppSelector((state) => state.ui);
   const { focusedItem, currentFolderId } = useAppSelector((state) => state.storage);
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,13 +30,13 @@ function RenameModal(): JSX.Element {
     setNewName('');
   };
   const onItemRenameFinally = () => {
-    dispatch(layoutActions.setShowRenameModal(false));
-    dispatch(layoutActions.setShowItemModal(false));
+    dispatch(uiActions.setShowRenameModal(false));
+    dispatch(uiActions.setShowItemModal(false));
     setIsLoading(false);
   };
   const onCancelButtonPressed = () => {
     dispatch(storageActions.deselectAll());
-    dispatch(layoutActions.setShowRenameModal(false));
+    dispatch(uiActions.setShowRenameModal(false));
   };
   const onRenameButtonPressed = async () => {
     try {
@@ -76,7 +76,7 @@ function RenameModal(): JSX.Element {
       coverScreen={Platform.OS === 'android'}
       isOpen={showRenameModal}
       onClosed={() => {
-        dispatch(layoutActions.setShowRenameModal(false));
+        dispatch(uiActions.setShowRenameModal(false));
         setNewName('');
       }}
       onOpened={() => {
@@ -89,7 +89,7 @@ function RenameModal(): JSX.Element {
       <View style={tailwind('h-full')}>
         <TouchableWithoutFeedback
           onPress={() => {
-            !isLoading && dispatch(layoutActions.setShowRenameModal(false));
+            !isLoading && dispatch(uiActions.setShowRenameModal(false));
           }}
         >
           <View style={tailwind('flex-grow')} />
@@ -98,7 +98,7 @@ function RenameModal(): JSX.Element {
         <View style={tailwind('flex-row w-full max-w-full items-center justify-center')}>
           <TouchableWithoutFeedback
             onPress={() => {
-              !isLoading && dispatch(layoutActions.setShowRenameModal(false));
+              !isLoading && dispatch(uiActions.setShowRenameModal(false));
             }}
           >
             <View style={tailwind('self-stretch w-8 -mr-8')} />
@@ -155,7 +155,7 @@ function RenameModal(): JSX.Element {
 
           <TouchableWithoutFeedback
             onPress={() => {
-              !isLoading && dispatch(layoutActions.setShowRenameModal(false));
+              !isLoading && dispatch(uiActions.setShowRenameModal(false));
             }}
           >
             <View style={tailwind('self-stretch w-8 -ml-8')} />
@@ -164,7 +164,7 @@ function RenameModal(): JSX.Element {
 
         <TouchableWithoutFeedback
           onPress={() => {
-            !isLoading && dispatch(layoutActions.setShowRenameModal(false));
+            !isLoading && dispatch(uiActions.setShowRenameModal(false));
           }}
         >
           <View style={tailwind('flex-grow')} />

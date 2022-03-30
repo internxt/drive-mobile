@@ -3,7 +3,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import appReducer from './slices/app';
 import authReducer from './slices/auth';
 import storageReducer from './slices/storage';
-import layoutReducer from './slices/layout';
+import uiReducer from './slices/ui';
 import photosReducer from './slices/photos';
 import paymentsReducer from './slices/payments';
 import referralsReducer from './slices/referrals';
@@ -15,7 +15,7 @@ export const store = configureStore({
     app: appReducer,
     auth: authReducer,
     storage: storageReducer,
-    layout: layoutReducer,
+    ui: uiReducer,
     photos: photosReducer,
     payments: paymentsReducer,
     referrals: referralsReducer,

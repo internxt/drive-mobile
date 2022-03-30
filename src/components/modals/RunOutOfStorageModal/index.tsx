@@ -9,7 +9,7 @@ import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
 import strings from '../../../../assets/lang/strings';
 import { AppScreenKey, INFINITE_PLAN } from '../../../types';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import paymentService from '../../../services/payment';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,7 +19,7 @@ function RunOutOfStorageModal(): JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const { usage: storageUsage, limit } = useAppSelector((state) => state.storage);
-  const { showRunOutOfSpaceModal } = useAppSelector((state) => state.layout);
+  const { showRunOutOfSpaceModal } = useAppSelector((state) => state.ui);
   const usage = photosUsage + storageUsage;
   const getLimitString = () => {
     if (limit === 0) {
@@ -47,8 +47,8 @@ function RunOutOfStorageModal(): JSX.Element {
       coverScreen={Platform.OS === 'android'}
       isOpen={showRunOutOfSpaceModal}
       onClosed={() => {
-        dispatch(layoutActions.setShowDeleteModal(false));
-        dispatch(layoutActions.setShowRunOutSpaceModal(false));
+        dispatch(uiActions.setShowDeleteModal(false));
+        dispatch(uiActions.setShowRunOutSpaceModal(false));
       }}
       backButtonClose={true}
       backdropPressToClose={true}
@@ -58,7 +58,7 @@ function RunOutOfStorageModal(): JSX.Element {
         <TouchableWithoutFeedback
           style={tailwind('flex-grow')}
           onPress={() => {
-            dispatch(layoutActions.setShowRunOutSpaceModal(false));
+            dispatch(uiActions.setShowRunOutSpaceModal(false));
           }}
         >
           <View style={tailwind('flex-grow')} />
@@ -95,7 +95,7 @@ function RunOutOfStorageModal(): JSX.Element {
               underlayColor={getColor('blue-70')}
               style={tailwind('bg-blue-60 rounded-lg py-2 mx-6 items-center justify-center')}
               onPress={() => {
-                dispatch(layoutActions.setShowRunOutSpaceModal(false));
+                dispatch(uiActions.setShowRunOutSpaceModal(false));
                 navigation.push(AppScreenKey.Billing);
               }}
             >

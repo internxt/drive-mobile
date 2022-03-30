@@ -13,7 +13,7 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
 import { deviceStorage } from '../../../services/asyncStorage';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
 import { constants } from '../../../services/app';
 import { DriveItemData, NotificationType } from '../../../types';
@@ -22,7 +22,7 @@ import { Copy, Minus, Plus } from 'phosphor-react-native';
 
 function ShareFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { showShareModal } = useAppSelector((state) => state.layout);
+  const { showShareModal } = useAppSelector((state) => state.ui);
   const { focusedItem } = useAppSelector((state) => state.storage);
   const [isOpen, setIsOpen] = useState(showShareModal);
   const [selectedFile, setSelectedFile] = useState<DriveItemData>();
@@ -64,7 +64,7 @@ function ShareFilesModal(): JSX.Element {
     return generatedLink;
   };
   const onClosed = () => {
-    dispatch(layoutActions.setShowShareModal(false));
+    dispatch(uiActions.setShowShareModal(false));
     setLink('');
     setIsOpen(false);
     setIsLoading(true);
@@ -193,7 +193,7 @@ function ShareFilesModal(): JSX.Element {
                     type: NotificationType.Success,
                     text1: strings.messages.linkCopied,
                   });
-                  dispatch(layoutActions.setShowShareModal(false));
+                  dispatch(uiActions.setShowShareModal(false));
                 }
               }}
               style={tailwind('flex-row items-center')}
@@ -218,7 +218,7 @@ function ShareFilesModal(): JSX.Element {
           underlayColor={getColor('neutral-30')}
           style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
           onPress={() => {
-            dispatch(layoutActions.setShowShareModal(false));
+            dispatch(uiActions.setShowShareModal(false));
           }}
           disabled={isLoading}
         >
@@ -237,7 +237,7 @@ function ShareFilesModal(): JSX.Element {
           ]}
           onPress={() => {
             shareFile(selectedFile);
-            dispatch(layoutActions.setShowShareModal(false));
+            dispatch(uiActions.setShowShareModal(false));
           }}
           disabled={isLoading}
         >

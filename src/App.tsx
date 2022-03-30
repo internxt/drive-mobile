@@ -17,7 +17,7 @@ import appService from './services/app';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';
-import { layoutActions } from './store/slices/layout';
+import { uiActions } from './store/slices/ui';
 import { storageActions } from './store/slices/storage';
 import SortModal from './components/modals/SortModal';
 import AppToast from './components/AppToast';
@@ -25,7 +25,7 @@ import AppToast from './components/AppToast';
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const [isAppInitialized, setIsAppInitialized] = useState(false);
-  const { isInviteFriendsModalOpen, isNewsletterModalOpen } = useAppSelector((state) => state.layout);
+  const { isInviteFriendsModalOpen, isNewsletterModalOpen } = useAppSelector((state) => state.ui);
   const [loadError, setLoadError] = useState('');
   const linking: LinkingOptions<ReactNavigation.RootParamList> = {
     prefixes: ['inxt'],
@@ -127,11 +127,11 @@ export default function App(): JSX.Element {
             <SortModal />
             <InviteFriendsModal
               isOpen={isInviteFriendsModalOpen}
-              onClosed={() => dispatch(layoutActions.setIsInviteFriendsModalOpen(false))}
+              onClosed={() => dispatch(uiActions.setIsInviteFriendsModalOpen(false))}
             />
             <NewsletterModal
               isOpen={isNewsletterModalOpen}
-              onClosed={() => dispatch(layoutActions.setIsNewsletterModalOpen(false))}
+              onClosed={() => dispatch(uiActions.setIsNewsletterModalOpen(false))}
             />
           </View>
         </Portal.Host>

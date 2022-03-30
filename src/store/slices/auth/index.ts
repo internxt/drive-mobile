@@ -9,7 +9,7 @@ import { DevicePlatform } from '../../../types';
 import { photosActions, photosThunks } from '../photos';
 import { appThunks } from '../app';
 import { storageActions } from '../storage';
-import { layoutActions } from '../layout';
+import { uiActions } from '../ui';
 
 export interface AuthState {
   loggedIn: boolean;
@@ -54,7 +54,7 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   async (payload: void, { dispatch }) => {
     await authService.signout();
 
-    dispatch(layoutActions.resetState());
+    dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
     dispatch(storageActions.resetState());
     await dispatch(photosThunks.clearDataThunk());
