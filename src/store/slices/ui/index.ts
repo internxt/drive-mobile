@@ -48,7 +48,7 @@ const initialState: UIState = {
   isPhotosPreviewInfoModalOpen: false,
   isNewsletterModalOpen: false,
   isInviteFriendsModalOpen: false,
-  isReferralsBannerOpen: true,
+  isReferralsBannerOpen: false,
   fileViewMode: 'list',
 };
 

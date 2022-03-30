@@ -42,7 +42,7 @@ export default class PhotosUploadService {
       `${data.name}-${new Date().getTime()}`,
     );
 
-    this.logService.info('Uploading preview for photo ' + data.name);
+    this.logService.info('Uploading preview image for photo ' + data.name);
     const previewId = await network.uploadFile(
       tmpPreviewPath,
       this.model.user?.bucketId || '',
@@ -50,7 +50,7 @@ export default class PhotosUploadService {
       this.model.networkCredentials,
     );
 
-    this.logService.info('Uploading photo for photo ' + data.name);
+    this.logService.info('Uploading original image for photo ' + data.name);
     const fileId = await network.uploadFile(
       uriToPath(uri),
       this.model.user?.bucketId || '',

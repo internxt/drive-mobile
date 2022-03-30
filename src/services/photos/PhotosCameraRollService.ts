@@ -14,13 +14,14 @@ export default class PhotosCameraRollService {
   }
 
   public async count({ from, to }: { from?: Date; to?: Date }): Promise<number> {
+    const limit = 100;
     let hasNextPage = true;
     let cursor: string | undefined;
     let count = 0;
 
     do {
       const { edges, page_info } = await this.getPhotos({
-        limit: 100,
+        limit,
         cursor,
         from,
         to,

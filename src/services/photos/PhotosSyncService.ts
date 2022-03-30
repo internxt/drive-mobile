@@ -93,24 +93,15 @@ export default class PhotosSyncService {
       }
 
       await this.deviceService.initialize();
-
-      const startLocalIndexingTime = new Date().getTime();
       await this.localDatabaseService.cleanTmpCameraRollTable();
+
       const newestDate = await this.localDatabaseService.getNewestDate();
       const aDayBeforeNewestDate = moment(newestDate).subtract(1, 'day').toDate();
       const oldestDate = await this.localDatabaseService.getOldestDate();
       const aDayAfterOldestDate = moment(oldestDate).add(1, 'day').toDate();
-      const timeElapsedIndexing = (new Date().getTime() - startLocalIndexingTime) * 0.001;
-
       const syncInfo = await this.calculateSyncInfo();
+
       options.onStart?.(syncInfo);
-      this.logService.info(
-        `[SYNC] ${this.currentSyncId}: CALCULATED ${syncInfo.totalTasks} TASKS: ${
-          syncInfo.downloadTasks
-        } downloadTasks, ${syncInfo.newerUploadTasks} newerUploadTasks, ${
-          syncInfo.olderUploadTasks
-        } olderUploadTasks IN ${timeElapsedIndexing.toFixed(2)}s`,
-      );
 
       await this.downloadRemotePhotos({
         signal: options.signal,
@@ -153,24 +144,35 @@ export default class PhotosSyncService {
   }
 
   private async calculateSyncInfo(): Promise<PhotosSyncInfo> {
+    const initialTime = new Date().getTime();
     const remoteSyncAt = await this.localDatabaseService.getRemoteSyncAt();
     const newestDate = await this.localDatabaseService.getNewestDate();
     const aDayBeforeNewestDate = moment(newestDate).subtract(1, 'day').toDate();
     const oldestDate = await this.localDatabaseService.getOldestDate();
-    const aDayAfterOldestDate = moment(oldestDate).add(1, 'day').toDate();
+    const aDayAfterOldestDate = oldestDate && moment(oldestDate).add(1, 'day').toDate();
     const { count: downloadTasks } = await this.photosSdk.photos.getPhotos({
       statusChangedAt: remoteSyncAt,
       status: PhotoStatus.Exists,
     });
     const newerUploadTasks = await this.cameraRollService.count({ from: aDayBeforeNewestDate });
-    const olderUploadTasks = oldestDate ? await this.cameraRollService.count({ to: aDayAfterOldestDate }) : 0;
-
-    return {
+    const olderUploadTasks = aDayAfterOldestDate ? await this.cameraRollService.count({ to: aDayAfterOldestDate }) : 0;
+    const syncInfo = {
       totalTasks: downloadTasks + newerUploadTasks + olderUploadTasks,
       downloadTasks,
       newerUploadTasks,
       olderUploadTasks,
     };
+    const elapsedTime = (new Date().getTime() - initialTime) * 0.001;
+
+    this.logService.info(
+      `[SYNC] ${this.currentSyncId}: CALCULATED ${syncInfo.totalTasks} TASKS: ${
+        syncInfo.downloadTasks
+      } downloadTasks, ${syncInfo.newerUploadTasks} newerUploadTasks, ${
+        syncInfo.olderUploadTasks
+      } olderUploadTasks IN ${elapsedTime.toFixed(2)}s`,
+    );
+
+    return syncInfo;
   }
 
   /**
@@ -189,11 +191,7 @@ export default class PhotosSyncService {
     this.logService.info(`[SYNC] ${this.currentSyncId}: LAST SYNC WAS AT ${remoteSyncAt.toUTCString()}`);
 
     do {
-      const { results } = await this.photosSdk.photos.getPhotos(
-        { statusChangedAt: remoteSyncAt, status: PhotoStatus.Exists },
-        skip,
-        limit,
-      );
+      const { results } = await this.photosSdk.photos.getPhotos({ statusChangedAt: remoteSyncAt }, skip, limit);
 
       photos = results;
 
@@ -265,6 +263,7 @@ export default class PhotosSyncService {
     const limit = 50;
     let photosToUpload: { data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId' | 'hash'>; uri: string }[];
     let cursor;
+    let hasNextPage = false;
 
     this.logService.info(`[SYNC] ${this.currentSyncId}: UPLOADING LOCAL PHOTOS FROM ${options.from} TO ${options.to}`);
 
@@ -318,9 +317,6 @@ export default class PhotosSyncService {
           hash,
         );
 
-        this.logService.info('photo: ' + JSON.stringify(photo.data, undefined, 2));
-        this.logService.info('isAlreadyUploaded: ' + isAlreadyUploaded);
-
         // * Avoids to upload the same photo multiple times
         if (isAlreadyUploaded) {
           this.logService.info(
@@ -342,7 +338,8 @@ export default class PhotosSyncService {
       }
 
       cursor = page_info.end_cursor;
-    } while (photosToUpload.length > 0);
+      hasNextPage = page_info.has_next_page;
+    } while (hasNextPage);
   }
 
   private async cameraRollUriToFileSystemUri(
