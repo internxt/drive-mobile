@@ -246,7 +246,7 @@ export class Bridge extends InxtApi {
   }
 
   createEntryFromFrame(bucketId: string, body: CreateEntryFromFrameBody, params?: AxiosRequestConfig): INXTRequest {
-    const targetUrl = `${this.url}/buckets/${bucketId}/files`;
+    const targetUrl = `${this.url}/buckets/${bucketId}/files/ensure`;
     const defParams: AxiosRequestConfig = {
       headers: {
         'Content-Type': 'application/octet-stream',

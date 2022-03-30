@@ -248,7 +248,7 @@ export function createEntryFromFrame(
   params?: AxiosRequestConfig,
 ): Promise<CreateEntryFromFrameResponse | void> {
   const URL = config.bridgeUrl ? config.bridgeUrl : INXT_API_URL;
-  const targetUrl = `${URL}/buckets/${bucketId}/files`;
+  const targetUrl = `${URL}/buckets/${bucketId}/files/ensure`;
   const defParams: AxiosRequestConfig = {
     headers: {
       'Content-Type': 'application/octet-stream',
