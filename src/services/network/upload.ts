@@ -180,7 +180,7 @@ function createBucketEntry(
   const newBucketEntry = generateBucketEntry(frameId, filename, index, hmac);
 
   return axios
-    .post<CreateEntryFromFrameResponse>(`${networkUrl}/buckets/${bucketId}/files`, newBucketEntry, options)
+    .post<CreateEntryFromFrameResponse>(`${networkUrl}/buckets/${bucketId}/files/ensure`, newBucketEntry, options)
     .then((res) => {
       return res.data.id;
     })
