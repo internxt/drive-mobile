@@ -119,8 +119,6 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
 
     if (photosSelectors.arePermissionsGranted(getState())) {
       await photosService.initialize();
-
-      dispatch(syncThunk());
     }
   },
 );

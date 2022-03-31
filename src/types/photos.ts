@@ -26,6 +26,8 @@ export enum PhotosSyncStatus {
   Unknown = 'unknown',
   Pending = 'pending',
   Calculating = 'calculating',
+  Pausing = 'pausing',
+  Paused = 'paused',
   InProgress = 'in-progress',
   Completed = 'completed',
 }

@@ -12,6 +12,7 @@ import { Text, View } from 'react-native';
 import { tailwind } from '../../helpers/designSystem';
 import AppButton from '../../components/AppButton';
 import { PhotosScreen } from '../../types/photos';
+import usePhotos from '../../hooks/usePhotos';
 
 /* type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -28,15 +29,22 @@ const routeConfig: RouteConfig = {
 const StackNav = createNativeStackNavigator();
 
 function PhotosNavigator(): JSX.Element {
+  const { setSyncAbort } = usePhotos();
   const { isInitialized, initializeError } = useAppSelector((state) => state.photos);
   const arePermissionsGranted = useAppSelector(photosSelectors.arePermissionsGranted);
   const dispatch = useAppDispatch();
+  const startUsingPhotos = async () => {
+    await dispatch(photosThunks.startUsingPhotosThunk());
+    const syncThunk = dispatch(photosThunks.syncThunk());
+
+    setSyncAbort(syncThunk.abort);
+  };
   const onTryAgainInitializeButtonPressed = () => {
-    dispatch(photosThunks.startUsingPhotosThunk());
+    startUsingPhotos();
   };
 
   useEffect(() => {
-    dispatch(photosThunks.startUsingPhotosThunk());
+    startUsingPhotos();
   }, []);
 
   return (
