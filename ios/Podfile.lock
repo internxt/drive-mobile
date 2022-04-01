@@ -34,8 +34,6 @@ PODS:
     - ExpoModulesCore
   - ExpoLinearGradient (11.0.3):
     - ExpoModulesCore
-  - ExpoLocalization (12.0.1):
-    - ExpoModulesCore
   - ExpoModulesCore (0.6.5):
     - React-Core
     - ReactCommon/turbomodule/core
@@ -450,18 +448,14 @@ PODS:
     - React-Core
     - RNAnalytics
     - Segment-Firebase (~> 2.7.7)
-  - RNCAsyncStorage (1.16.1):
+  - RNCAsyncStorage (1.17.0):
     - React-Core
-  - RNCMaskedView (0.1.10):
-    - React
   - RNDeviceInfo (8.4.8):
     - React-Core
   - RNFileViewer (2.1.4):
     - React-Core
   - RNFS (2.18.0):
     - React
-  - RNGestureHandler (2.1.3):
-    - React-Core
   - RNOS (1.2.6):
     - React
   - RNPermissions (3.2.0):
@@ -506,7 +500,6 @@ DEPENDENCIES:
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - Expo (from `../node_modules/expo/ios`)
   - ExpoLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
-  - ExpoLocalization (from `../node_modules/expo-localization/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core/ios`)
   - ExpoSystemUI (from `../node_modules/expo-system-ui/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
@@ -562,11 +555,9 @@ DEPENDENCIES:
   - "RNAnalytics (from `../node_modules/@segment/analytics-react-native`)"
   - "RNAnalyticsIntegration-Firebase (from `../node_modules/@segment/analytics-react-native-firebase`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
-  - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - RNFS (from `../node_modules/react-native-fs`)
-  - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNOS (from `../node_modules/react-native-os`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -626,8 +617,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo/ios"
   ExpoLinearGradient:
     :path: "../node_modules/expo-linear-gradient/ios"
-  ExpoLocalization:
-    :path: "../node_modules/expo-localization/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core/ios"
   ExpoSystemUI:
@@ -734,16 +723,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@segment/analytics-react-native-firebase"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
-  RNCMaskedView:
-    :path: "../node_modules/@react-native-community/masked-view"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
   RNFileViewer:
     :path: "../node_modules/react-native-file-viewer"
   RNFS:
     :path: "../node_modules/react-native-fs"
-  RNGestureHandler:
-    :path: "../node_modules/react-native-gesture-handler"
   RNOS:
     :path: "../node_modules/react-native-os"
   RNPermissions:
@@ -779,7 +764,6 @@ SPEC CHECKSUMS:
   EXPermissions: 2f8db9cfb1919d6c6776f462bb2c5a903e423b2a
   Expo: 534e51e607aba8229293297da5585f4b26f50fa1
   ExpoLinearGradient: fd591c223c81f6779036ed4cef4deb20ecb87c50
-  ExpoLocalization: 72b4524c167da6c4e2a0bbe09176ff8b2c4eddbe
   ExpoModulesCore: 32c0ccb47f477d330ee93db72505380adf0de09a
   ExpoSystemUI: 182c672dd49bd2345023c2042257f68c075527cd
   EXSplashScreen: 21669e598804ee810547dbb6692c8deb5dd8dbf3
@@ -842,12 +826,10 @@ SPEC CHECKSUMS:
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
   RNAnalytics: a6dc48511d5d99b1ecaaf7157d8b5c618d15337e
   RNAnalyticsIntegration-Firebase: 3d3d80be74a53031fc9524d5c5adef2907c28d8f
-  RNCAsyncStorage: b49b4e38a1548d03b74b30e558a1d18465b94be7
-  RNCMaskedView: 5a8ec07677aa885546a0d98da336457e2bea557f
+  RNCAsyncStorage: 4efdcd2f7378421b29467c9de58f43552b60cf5b
   RNDeviceInfo: 0400a6d0c94186d1120c3cbd97b23abc022187a9
   RNFileViewer: 83cc066ad795b1f986791d03b56fe0ee14b6a69f
   RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
-  RNGestureHandler: e1099204721a17a89c81fcd1cc2e92143dc040fb
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNPermissions: f7ebe52db07c00901127966ca080b4ec6a6ceb0a
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868

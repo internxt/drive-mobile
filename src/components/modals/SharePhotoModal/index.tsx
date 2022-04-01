@@ -80,7 +80,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
     dispatch(uiActions.setIsLinkCopiedModalOpen(true));
   };
   const header = (
-    <>
+    <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
         <Image style={tailwind('bg-black w-10 h-10')} source={{ uri: preview }} />
       </View>
@@ -107,7 +107,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
             })}
         </Text>
       </View>
-    </>
+    </View>
   );
 
   useEffect(() => {

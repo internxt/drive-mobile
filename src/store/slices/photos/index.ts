@@ -122,6 +122,9 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
 
     if (photosSelectors.arePermissionsGranted(getState())) {
       await PhotosService.instance.startUsingPhotos();
+
+      const syncThunk = dispatch(photosThunks.syncThunk());
+      PhotosService.instance.setSyncAbort(() => syncThunk.abort());
     }
   },
 );
@@ -295,6 +298,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(photosActions.resetSyncStatus());
 
+    console.log('syncThunk');
     await PhotosService.instance.sync({
       id: requestId,
       signal,

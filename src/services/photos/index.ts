@@ -120,7 +120,7 @@ export class PhotosService {
     PhotosService.instance = new PhotosService(accessToken, networkCredentials);
   }
 
-  public async startUsingPhotos() {
+  public async startUsingPhotos(): Promise<void> {
     await this.fileSystemService.initialize();
     await this.localDatabaseService.initialize();
     await this.userService.initialize();
@@ -129,7 +129,7 @@ export class PhotosService {
     this.model.isInitialized = true;
   }
 
-  public addListener(event: PhotosEventKey, handler: () => void) {
+  public addListener(event: PhotosEventKey, handler: () => void): void {
     return this.eventEmitter.addListener(event, handler);
   }
 

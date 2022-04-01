@@ -11,8 +11,7 @@ import strings from '../../../assets/lang/strings';
 import { Text, View } from 'react-native';
 import { tailwind } from '../../helpers/designSystem';
 import AppButton from '../../components/AppButton';
-import { PhotosEventKey, PhotosScreen } from '../../types/photos';
-import { PhotosService } from '../../services/photos';
+import { PhotosScreen } from '../../types/photos';
 
 /* type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
@@ -34,9 +33,6 @@ function PhotosNavigator(): JSX.Element {
   const dispatch = useAppDispatch();
   const startUsingPhotos = async () => {
     await dispatch(photosThunks.startUsingPhotosThunk());
-    const syncThunk = dispatch(photosThunks.syncThunk());
-
-    PhotosService.instance.setSyncAbort(() => syncThunk.abort());
   };
   const onTryAgainInitializeButtonPressed = () => {
     startUsingPhotos();
