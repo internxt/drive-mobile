@@ -10,8 +10,10 @@ import { AppScreenKey } from '../../types';
 import { X } from 'phosphor-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AppText from '../AppText';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const ReferralsBanner = (): JSX.Element => {
+  const safeAreaInsets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const isOpen = useAppSelector((state) => state.ui.isReferralsBannerOpen);
@@ -24,7 +26,12 @@ const ReferralsBanner = (): JSX.Element => {
   };
 
   return isOpen ? (
-    <View style={tailwind('absolute bottom-14 w-full px-5 bg-blue-60 flex-row justify-between items-center')}>
+    <View
+      style={[
+        tailwind('absolute bottom-14 w-full px-5 bg-blue-60 flex-row justify-between items-center'),
+        { marginBottom: safeAreaInsets.bottom },
+      ]}
+    >
       <AppText onPress={onBannerPressed} style={tailwind('flex-grow py-2.5 text-white text-lg')}>
         {strings.components.ReferralsBanner.message}
       </AppText>

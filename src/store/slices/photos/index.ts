@@ -420,7 +420,11 @@ export const photosSlice = createSlice({
       state.skip = action.payload;
     },
     popPhoto(state, action: PayloadAction<Photo>) {
-      state.photos = state.photos.filter((photo) => photo.data.id !== action.payload.id);
+      const index = state.photos.findIndex((p) => p.data.id === action.payload.id);
+
+      if (~index) {
+        state.photos.splice(index, 1);
+      }
     },
     pushDownloadedPhoto(state, action: PayloadAction<{ fileId: string; path: string }>) {
       state.downloadedPhotos.push(action.payload);
