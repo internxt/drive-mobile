@@ -77,7 +77,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
               navigation.push(AppScreenKey.Billing);
             }}
           >
-            <View style={tailwind('px-5 py-3 flex-row justify-between border-t border-neutral-20')}>
+            <View style={tailwind('px-5 py-3 flex-row items-center justify-between border-t border-neutral-20')}>
               <Text style={{ ...tailwind('text-blue-60 text-lg'), ...globalStyle.fontWeight.semibold }}>
                 {strings.components.buttons.upgradeNow}
               </Text>
