@@ -41,8 +41,7 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
     ),
     [PhotosSyncStatus.Pausing]: (
       <View style={tailwind('flex-row items-center')}>
-        <LoadingSpinner style={tailwind('mr-2')} size={14} />
-        <Text style={tailwind('text-sm text-neutral-100')}>{strings.screens.gallery.pausing}</Text>
+        <Text style={tailwind('text-sm text-neutral-100')}>{strings.screens.gallery.paused}</Text>
       </View>
     ),
     [PhotosSyncStatus.Paused]: (
@@ -79,16 +78,16 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
     <View style={tailwind('px-5 flex-row items-center justify-between')}>
       {contentByStatus[syncStatus.status]}
       {!isCompleted ? (
-        !isPaused ? (
-          <TouchableOpacity disabled={isPausing} onPress={onPauseButtonPressed}>
-            <View style={[tailwind('py-1 flex-row items-center'), isPausing && tailwind('opacity-30')]}>
+        !isPaused && !isPausing ? (
+          <TouchableOpacity onPress={onPauseButtonPressed}>
+            <View style={[tailwind('py-1 flex-row items-center')]}>
               <Pause weight="fill" color={getColor('blue-60')} size={12} />
               <AppText style={tailwind('ml-1 text-blue-60 text-sm')}>{strings.components.buttons.pause}</AppText>
             </View>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity onPress={onResumeButtonPressed}>
-            <View style={tailwind('py-1 flex-row items-center')}>
+          <TouchableOpacity disabled={isPausing} onPress={onResumeButtonPressed}>
+            <View style={[tailwind('py-1 flex-row items-center'), isPausing && tailwind('opacity-30')]}>
               <Play weight="fill" color={getColor('blue-60')} size={12} />
               <AppText style={tailwind('ml-1 text-blue-60 text-sm')}>{strings.components.buttons.resume}</AppText>
             </View>

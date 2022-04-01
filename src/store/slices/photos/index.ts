@@ -298,7 +298,6 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(photosActions.resetSyncStatus());
 
-    console.log('syncThunk');
     await PhotosService.instance.sync({
       id: requestId,
       signal,

@@ -31,7 +31,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   scheme: 'inxt',
   entryPoint: './index.js',
   slug: 'drive-mobile',
-  version: '1.5.8',
+  version: '1.5.9',
   orientation: 'portrait',
   icon: './assets/icon.png',
   splash: {
@@ -50,7 +50,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     backgroundColor: '#FFFFFF',
   },
   android: {
-    versionCode: 50,
+    versionCode: 52,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#091e42',
