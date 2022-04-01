@@ -36,7 +36,7 @@ function PhotosNavigator(): JSX.Element {
     await dispatch(photosThunks.startUsingPhotosThunk());
     const syncThunk = dispatch(photosThunks.syncThunk());
 
-    PhotosService.instance.addListener(PhotosEventKey.CancelSync, () => syncThunk.abort());
+    PhotosService.instance.setSyncAbort(() => syncThunk.abort());
   };
   const onTryAgainInitializeButtonPressed = () => {
     startUsingPhotos();

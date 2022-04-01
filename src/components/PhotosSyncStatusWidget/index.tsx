@@ -59,7 +59,7 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
     ),
     [PhotosSyncStatus.Completed]: (
       <View style={tailwind('flex-row items-center')}>
-        <CheckCircle weight="fill" style={tailwind('mr-1')} color={getColor('green-40')} size={16} />
+        <CheckCircle weight="fill" style={tailwind('mr-1')} color={getColor('green-40')} size={14} />
         <Text style={tailwind('text-neutral-100 text-sm')}>{strings.messages.photosSyncCompleted}</Text>
       </View>
     ),
@@ -73,7 +73,7 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
 
   return (
     <View style={tailwind('px-5 flex-row items-center justify-between')}>
-      {contentByStatus['calculating']}
+      {contentByStatus[syncStatus.status]}
       {syncStatus.status !== PhotosSyncStatus.Completed ? (
         syncStatus.status !== PhotosSyncStatus.Paused ? (
           <TouchableOpacity onPress={onPauseButtonPressed}>

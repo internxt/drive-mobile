@@ -46,7 +46,7 @@ export interface PhotosServiceModel {
   networkUrl: string;
   user?: User;
   device?: Device;
-  syncAbortSignal?: AbortSignal;
+  syncAbort?: (reason?: string) => void;
 }
 
 export interface SqlitePhotoRow {

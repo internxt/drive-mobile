@@ -81,7 +81,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
               <Text style={{ ...tailwind('text-blue-60 text-lg'), ...globalStyle.fontWeight.semibold }}>
                 {strings.components.buttons.upgradeNow}
               </Text>
-              <CaretRight size={24} color={getColor('blue-60')} />
+              <CaretRight size={22} color={getColor('blue-60')} weight="bold" />
             </View>
           </TouchableHighlight>
         )}

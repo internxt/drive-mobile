@@ -32,7 +32,7 @@ function ShareFilesModal(): JSX.Element {
   const getLink = async (file: any, views: number) => {
     const tokenLink = await getFileToken(file, views);
 
-    const url = `${constants.REACT_NATIVE_DRIVE_API_URL}/${tokenLink}`;
+    const url = `${constants.REACT_NATIVE_DRIVE_API_URL}/s/file/${tokenLink}`;
 
     setLink(url);
   };
@@ -72,7 +72,7 @@ function ShareFilesModal(): JSX.Element {
   };
   const FileIcon = getFileTypeIcon((selectedFile && selectedFile.type) || '');
   const header = (
-    <>
+    <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
         <FileIcon width={40} height={40} />
       </View>
@@ -96,7 +96,7 @@ function ShareFilesModal(): JSX.Element {
           })}
         </Text>
       </View>
-    </>
+    </View>
   );
 
   useEffect(() => {
@@ -193,7 +193,6 @@ function ShareFilesModal(): JSX.Element {
                     type: NotificationType.Success,
                     text1: strings.messages.linkCopied,
                   });
-                  dispatch(uiActions.setShowShareModal(false));
                 }
               }}
               style={tailwind('flex-row items-center')}

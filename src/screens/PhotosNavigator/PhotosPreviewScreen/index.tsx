@@ -145,7 +145,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         {isFullSizeLoading && (
           <View style={tailwind('absolute top-0 bottom-0 right-0 left-0 items-center justify-center')}>
             <LoadingSpinner size={32} color={getColor('white')} />
-            <Text style={tailwind('text-white')}>{(progress * 100).toFixed(0) + '%'}</Text>
+            <Text style={tailwind('mt-2 text-white')}>{(progress * 100).toFixed(0) + '%'}</Text>
           </View>
         )}
 
@@ -158,15 +158,19 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
                 paddingTop: safeAreaInsets.top,
               }}
             >
-              <View style={tailwind('flex-row justify-between p-5')}>
+              <View style={tailwind('flex-row justify-between')}>
                 {/* BACK BUTTON */}
                 <TouchableOpacity style={tailwind('z-10')} onPress={onBackButtonPressed}>
-                  <CaretLeft color={getColor('white')} size={32} />
+                  <View style={tailwind('p-5')}>
+                    <CaretLeft color={getColor('white')} size={24} weight="bold" />
+                  </View>
                 </TouchableOpacity>
 
                 {/* OPTIONS BUTTON */}
                 <TouchableOpacity style={tailwind('z-10')} onPress={() => setIsOptionsModalOpen(true)}>
-                  <DotsThree weight="bold" color={getColor('white')} size={32} />
+                  <View style={tailwind('p-5')}>
+                    <DotsThree weight="bold" color={getColor('white')} size={24} />
+                  </View>
                 </TouchableOpacity>
               </View>
             </LinearGradient>

@@ -97,6 +97,8 @@ export class PhotosService {
       this.logService,
       this.fileSystemService,
     );
+
+    this.eventEmitter.addListener(PhotosEventKey.CancelSync, this.onPhotosSyncCanceled);
   }
 
   public get isInitialized(): boolean {
@@ -148,8 +150,11 @@ export class PhotosService {
     }) => void;
     onStorageLimitReached: () => void;
   }): Promise<void> {
-    this.model.syncAbortSignal = options.signal;
     return this.syncService.run(options);
+  }
+
+  public setSyncAbort(syncAbort: (reason?: string) => void) {
+    this.model.syncAbort = syncAbort;
   }
 
   public cancelSync() {
@@ -232,6 +237,10 @@ export class PhotosService {
   public async clearData(): Promise<void> {
     await this.fileSystemService.clear();
     await this.localDatabaseService.resetDatabase();
+  }
+
+  private onPhotosSyncCanceled() {
+    this.model.syncAbort?.();
   }
 
   private get bucketId() {

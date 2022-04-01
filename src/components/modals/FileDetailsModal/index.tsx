@@ -24,7 +24,7 @@ function FileDetailsModal(): JSX.Element {
   const isFolder = !item.fileId;
   const FileIcon = getFileTypeIcon(item?.type);
   const header = (
-    <>
+    <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
         {isFolder ? <FolderIcon width={40} height={40} /> : <FileIcon width={40} height={40} />}
       </View>
@@ -53,7 +53,7 @@ function FileDetailsModal(): JSX.Element {
           })}
         </Text>
       </View>
-    </>
+    </View>
   );
 
   return (

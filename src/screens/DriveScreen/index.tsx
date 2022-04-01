@@ -20,15 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import { constants } from '../../services/app';
 import AppScreen from '../../components/AppScreen';
-import {
-  ArrowDown,
-  ArrowUp,
-  CaretLeft,
-  DotsThree,
-  ListBullets,
-  MagnifyingGlass,
-  SquaresFour,
-} from 'phosphor-react-native';
+import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
 import { deviceStorage } from '../../services/asyncStorage';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -145,6 +137,9 @@ function DriveScreen(): JSX.Element {
   };
   const onSortButtonPressed = () => {
     dispatch(uiActions.setShowSortModal(true));
+  };
+  const onViewModeButtonPressed = () => {
+    dispatch(uiActions.switchFileViewMode());
   };
 
   if (!loggedIn) {
@@ -309,16 +304,12 @@ function DriveScreen(): JSX.Element {
             )}
           </View>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            dispatch(uiActions.switchFileViewMode());
-          }}
-        >
+        <TouchableOpacity onPress={onViewModeButtonPressed}>
           <View style={tailwind('py-2 px-5')}>
             {fileViewMode === 'list' ? (
               <SquaresFour size={22} color={getColor('neutral-100')} />
             ) : (
-              <ListBullets size={22} color={getColor('neutral-100')} />
+              <Rows size={22} color={getColor('neutral-100')} />
             )}
           </View>
         </TouchableOpacity>

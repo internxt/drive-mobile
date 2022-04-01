@@ -55,7 +55,7 @@ function SortModal(): JSX.Element {
     dispatch(uiActions.setShowSortModal(false));
   };
   const header = (
-    <View style={tailwind('flex-shrink w-full')}>
+    <View>
       <Text
         numberOfLines={1}
         ellipsizeMode="middle"
