@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, TextInput, Platform, BackHandler } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 
 import strings from '../../../assets/lang/strings';
 import { FolderIcon } from '../../helpers';
 import { AppScreenKey } from '../../types';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 function CreateFolderScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [folderName, setFolderName] = useState('');
 
   useEffect(() => {

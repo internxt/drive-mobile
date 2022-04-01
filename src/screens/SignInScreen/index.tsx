@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { useState } from 'react';
 import { View, Text, Alert, TextInput, TouchableWithoutFeedback } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Eye, EyeSlash } from 'phosphor-react-native';
 
 import strings from '../../../assets/lang/strings';
 import analytics, { AnalyticsEventKey } from '../../services/analytics';
@@ -9,19 +11,17 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import AppVersionWidget from '../../components/AppVersionWidget';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
-import { AppScreenKey as AppScreenKey } from '../../types';
+import { AppScreenKey } from '../../types';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authThunks } from '../../store/slices/auth';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
 import { storageActions } from '../../store/slices/storage';
 import AppButton from '../../components/AppButton';
-import { Eye, EyeSlash } from 'phosphor-react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 function SignInScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const dispatch = useAppDispatch();
   const { error: authError } = useAppSelector((state) => state.auth);
   const [isLoading, setIsLoading] = useState(false);
@@ -148,21 +148,20 @@ function SignInScreen(): JSX.Element {
           </View>
         </View>
 
-        <View>
+        <View style={tailwind('items-center')}>
           <AppButton
-            style={tailwind('py-4 my-5')}
+            style={tailwind('py-4 my-5 w-full')}
             type="accept"
             onPress={onSignInButtonPressed}
             disabled={isSubmitButtonDisabled}
             title={isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}
           />
 
-          <Text
-            style={tailwind('text-center text-sm m-2 text-blue-60')}
-            onPress={() => navigation.navigate(AppScreenKey.ForgotPassword)}
-          >
-            {strings.screens.login_screen.forgot}
-          </Text>
+          <TouchableWithoutFeedback onPress={() => navigation.navigate(AppScreenKey.ForgotPassword)}>
+            <View style={tailwind('w-64 text-sm py-2')}>
+              <Text style={tailwind('text-center text-blue-60')}>{strings.screens.login_screen.forgot}</Text>
+            </View>
+          </TouchableWithoutFeedback>
 
           <Text style={tailwind('text-center mt-2')} onPress={() => navigation.navigate(AppScreenKey.SignUp)}>
             <Text style={tailwind('text-sm')}>{strings.screens.login_screen.no_register} </Text>

@@ -2,9 +2,6 @@ import * as Font from 'expo-font';
 import React from 'react';
 import { Text } from 'react-native';
 
-/**
- * Load fonts from assets
- */
 async function loadFontsAsync(): Promise<void> {
   await Font.loadAsync({
     'NeueEinstellung-Black': require('../../assets/fonts/NeueEinstellung-Black.otf'),

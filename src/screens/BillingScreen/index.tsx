@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Text, TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
 import _ from 'lodash';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 import * as Linking from 'expo-linking';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -18,6 +17,7 @@ import { constants } from '../../services/app';
 import AppScreen from '../../components/AppScreen';
 import notificationsService from '../../services/notifications';
 import { Check } from 'phosphor-react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -65,7 +65,7 @@ const PERIODS = [
 ];
 
 function BillingScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const redirectUrl = `${constants.REACT_NATIVE_WEB_CLIENT_URL}/redirect-to-app?path=checkout`;
   const getLink = async (plan: any) => {
     const body = {

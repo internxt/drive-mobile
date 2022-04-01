@@ -190,14 +190,11 @@ class InxtApi implements InxtApiI {
   }
 }
 
-// tslint:disable-next-line: max-classes-per-file
 export class EmptyBridgeUrlError extends Error {
   constructor() {
     super('Empty bridge url');
   }
 }
-
-// tslint:disable-next-line: max-classes-per-file
 export class Bridge extends InxtApi {
   constructor(config: EnvironmentConfig) {
     if (config.bridgeUrl === '') {

@@ -6,17 +6,17 @@ import { widthPercentageToDP } from 'react-native-responsive-screen';
 import strings from '../../../../assets/lang/strings';
 import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 
 const ComingSoonModal = (): JSX.Element => {
   const dispatch = useAppDispatch();
-  const { showComingSoonModal } = useAppSelector((state) => state.layout);
+  const { showComingSoonModal } = useAppSelector((state) => state.ui);
 
   return (
     <Modal
       isOpen={showComingSoonModal}
       onClosed={() => {
-        dispatch(layoutActions.setShowComingSoonModal(false));
+        dispatch(uiActions.setShowComingSoonModal(false));
       }}
       position="center"
       style={styles.modalContainer}
@@ -35,7 +35,7 @@ const ComingSoonModal = (): JSX.Element => {
         <TouchableOpacity
           style={[styles.button, styles.blue]}
           onPress={() => {
-            dispatch(layoutActions.setShowComingSoonModal(false));
+            dispatch(uiActions.setShowComingSoonModal(false));
           }}
         >
           <Text style={[styles.text, styles.white]}>{strings.modals.coming_soon_modal.got_it}</Text>

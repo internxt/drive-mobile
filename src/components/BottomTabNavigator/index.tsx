@@ -6,7 +6,7 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import globalStyle from '../../styles';
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch } from '../../store/hooks';
-import { layoutActions } from '../../store/slices/layout';
+import { uiActions } from '../../store/slices/ui';
 import { FolderSimple, Gear, House, ImageSquare, PlusCircle } from 'phosphor-react-native';
 
 const tabIcons = {
@@ -26,7 +26,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     const isCreateRoute = route.name === 'create';
     const onPress = () => {
       if (isCreateRoute) {
-        return dispatch(layoutActions.setShowUploadFileModal(true));
+        return dispatch(uiActions.setShowUploadFileModal(true));
       }
       const event = props.navigation.emit({
         type: 'tabPress',

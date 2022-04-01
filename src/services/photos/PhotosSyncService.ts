@@ -1,23 +1,34 @@
 import { photos } from '@internxt/sdk';
+const { PhotoStatus } = photos;
 import strings from '../../../assets/lang/strings';
 import { RootState } from '../../store';
 import RNFS from 'react-native-fs';
+import { Platform } from 'react-native';
+import { items } from '@internxt/lib';
+import moment from 'moment';
 
-import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType, PhotosTaskCompletedInfo } from '../../types/photos';
+import {
+  PhotosServiceModel,
+  PhotosSyncInfo,
+  PhotosSyncTaskType,
+  PhotosTaskCompletedInfo,
+  PhotosCameraRollGetPhotosResponse,
+  PhotosEventKey,
+} from '../../types/photos';
 import PhotosDeviceService from './PhotosDeviceService';
 import PhotosCameraRollService from './PhotosCameraRollService';
 import PhotosDownloadService from './PhotosDownloadService';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosLogService from './PhotosLogService';
 import PhotosUploadService from './PhotosUploadService';
-import { items } from '@internxt/lib';
 import PhotosFileSystemService from './PhotosFileSystemService';
-import { Platform } from 'react-native';
+import PhotosEventEmitter from './PhotosEventEmitter';
 
 export default class PhotosSyncService {
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: photos.Photos;
 
+  private readonly eventEmitter: PhotosEventEmitter;
   private readonly deviceService: PhotosDeviceService;
   private readonly cameraRollService: PhotosCameraRollService;
   private readonly uploadService: PhotosUploadService;
@@ -31,6 +42,7 @@ export default class PhotosSyncService {
   constructor(
     model: PhotosServiceModel,
     photosSdk: photos.Photos,
+    eventEmitter: PhotosEventEmitter,
     deviceService: PhotosDeviceService,
     cameraRollService: PhotosCameraRollService,
     uploadService: PhotosUploadService,
@@ -41,6 +53,7 @@ export default class PhotosSyncService {
   ) {
     this.model = model;
     this.photosSdk = photosSdk;
+    this.eventEmitter = eventEmitter;
     this.deviceService = deviceService;
     this.cameraRollService = cameraRollService;
     this.uploadService = uploadService;
@@ -55,6 +68,7 @@ export default class PhotosSyncService {
     signal?: AbortSignal;
     getState: () => RootState;
     onStart?: (tasksInfo: PhotosSyncInfo) => void;
+    onTaskSkipped?: () => void;
     onTaskCompleted?: (result: {
       taskType: PhotosSyncTaskType;
       photo: photos.Photo;
@@ -84,66 +98,55 @@ export default class PhotosSyncService {
       }
 
       await this.deviceService.initialize();
-
-      const startLocalIndexingTime = new Date().getTime();
       await this.localDatabaseService.cleanTmpCameraRollTable();
+
       const newestDate = await this.localDatabaseService.getNewestDate();
+      const aDayBeforeNewestDate = moment(newestDate).subtract(1, 'day').toDate();
       const oldestDate = await this.localDatabaseService.getOldestDate();
-      const { count: newerCameraRollCount } = await this.cameraRollService.copyToLocalDatabase({ from: newestDate });
-      const { count: olderCameraRollCount } = oldestDate
-        ? await this.cameraRollService.copyToLocalDatabase({ to: oldestDate })
-        : { count: 0 };
-      const timeElapsedIndexing = (new Date().getTime() - startLocalIndexingTime) / 1000;
-      const cameraRollCount = newerCameraRollCount + olderCameraRollCount;
-
-      this.logService.info(
-        `[SYNC] ${
-          this.currentSyncId
-        }: COPIED ${cameraRollCount} EDGES FROM CAMERA ROLL TO SQLITE IN ${timeElapsedIndexing.toFixed(2)}s`,
-      );
-
+      const aDayAfterOldestDate = moment(oldestDate).add(1, 'day').toDate();
       const syncInfo = await this.calculateSyncInfo();
-      options.onStart?.(syncInfo);
-      this.logService.info(
-        `[SYNC] ${this.currentSyncId}: CALCULATED ${syncInfo.totalTasks} TASKS: ${syncInfo.downloadTasks} downloadTasks, ${syncInfo.newerUploadTasks} newerUploadTasks, ${syncInfo.olderUploadTasks} olderUploadTasks`,
-      );
 
-      await this.downloadRemotePhotos({
-        signal: options.signal,
-        onPhotoDownloaded: onTaskCompletedFactory(PhotosSyncTaskType.Download),
-      });
-      this.logService.info(`[SYNC] ${this.currentSyncId}: REMOTE PHOTOS DOWNLOADED`);
+      if (!options.signal?.aborted) {
+        options.onStart?.(syncInfo);
 
-      await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
-        signal: options.signal,
-        from: newestDate,
-        getState: options.getState,
-        onStorageLimitReached: options.onStorageLimitReached,
-        onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
-      });
-      this.logService.info(`[SYNC] ${this.currentSyncId}: NEWER LOCAL PHOTOS UPLOADED`);
-
-      if (!oldestDate) {
-        this.logService.info(`[SYNC] ${this.currentSyncId}: SKIPPED OLDER LOCAL PHOTOS UPLOAD`);
-      } else {
-        await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
+        await this.downloadRemotePhotos({
           signal: options.signal,
-          to: oldestDate,
-          getState: options.getState,
-          onStorageLimitReached: options.onStorageLimitReached,
+          onPhotoDownloaded: onTaskCompletedFactory(PhotosSyncTaskType.Download),
+        });
+        this.logService.info(`[SYNC] ${this.currentSyncId}: REMOTE PHOTOS DOWNLOADED`);
+
+        await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
+          ...options,
+          from: aDayBeforeNewestDate,
           onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
         });
-        this.logService.info(`[SYNC] ${this.currentSyncId}: OLDER LOCAL PHOTOS UPLOADED`);
+        this.logService.info(`[SYNC] ${this.currentSyncId}: NEWER LOCAL PHOTOS UPLOADED`);
+
+        if (!oldestDate) {
+          this.logService.info(`[SYNC] ${this.currentSyncId}: SKIPPED OLDER LOCAL PHOTOS UPLOAD`);
+        } else {
+          await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
+            ...options,
+            to: aDayAfterOldestDate,
+            onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
+          });
+          this.logService.info(`[SYNC] ${this.currentSyncId}: OLDER LOCAL PHOTOS UPLOADED`);
+        }
       }
 
       if (options.signal?.aborted) {
+        this.eventEmitter.emit(PhotosEventKey.CancelSyncEnd);
         this.logService.info(`[SYNC] ${this.currentSyncId}: ABORTED`);
       } else {
         this.logService.info(`[SYNC] ${this.currentSyncId}: FINISHED`);
       }
     } catch (err) {
-      this.logService.info(`[SYNC] ${this.currentSyncId}: FAILED:` + JSON.stringify(err, undefined, 2));
-      throw err;
+      if (options.signal?.aborted) {
+        this.logService.warn(`[SYNC] ${this.currentSyncId}: SILENT ERROR AFTER ABORT`);
+      } else {
+        this.logService.error(`[SYNC] ${this.currentSyncId}: FAILED:` + JSON.stringify(err, undefined, 2));
+        throw err;
+      }
     } finally {
       await this.localDatabaseService.cleanTmpCameraRollTable();
       await this.fileSystemService.clearTmp();
@@ -153,19 +156,35 @@ export default class PhotosSyncService {
   }
 
   private async calculateSyncInfo(): Promise<PhotosSyncInfo> {
+    const initialTime = new Date().getTime();
     const remoteSyncAt = await this.localDatabaseService.getRemoteSyncAt();
     const newestDate = await this.localDatabaseService.getNewestDate();
+    const aDayBeforeNewestDate = moment(newestDate).subtract(1, 'day').toDate();
     const oldestDate = await this.localDatabaseService.getOldestDate();
-    const { count: downloadTasks } = await this.photosSdk.photos.getPhotos({ statusChangedAt: remoteSyncAt });
-    const newerUploadTasks = await this.localDatabaseService.countTmpCameraRoll({ from: newestDate });
-    const olderUploadTasks = oldestDate ? await this.localDatabaseService.countTmpCameraRoll({ to: oldestDate }) : 0;
-
-    return {
+    const aDayAfterOldestDate = oldestDate && moment(oldestDate).add(1, 'day').toDate();
+    const { count: downloadTasks } = await this.photosSdk.photos.getPhotos({
+      statusChangedAt: remoteSyncAt,
+      status: PhotoStatus.Exists,
+    });
+    const newerUploadTasks = await this.cameraRollService.count({ from: aDayBeforeNewestDate });
+    const olderUploadTasks = aDayAfterOldestDate ? await this.cameraRollService.count({ to: aDayAfterOldestDate }) : 0;
+    const syncInfo = {
       totalTasks: downloadTasks + newerUploadTasks + olderUploadTasks,
       downloadTasks,
       newerUploadTasks,
       olderUploadTasks,
     };
+    const elapsedTime = (new Date().getTime() - initialTime) * 0.001;
+
+    this.logService.info(
+      `[SYNC] ${this.currentSyncId}: CALCULATED ${syncInfo.totalTasks} TASKS: ${
+        syncInfo.downloadTasks
+      } downloadTasks, ${syncInfo.newerUploadTasks} newerUploadTasks, ${
+        syncInfo.olderUploadTasks
+      } olderUploadTasks IN ${elapsedTime.toFixed(2)}s`,
+    );
+
+    return syncInfo;
   }
 
   /**
@@ -248,45 +267,48 @@ export default class PhotosSyncService {
       from?: Date;
       to?: Date;
       getState: () => RootState;
+      onTaskSkipped?: () => void;
       onStorageLimitReached: () => void;
       onPhotoUploaded: (photo: photos.Photo, info: PhotosTaskCompletedInfo) => void;
     },
   ): Promise<void> {
     const limit = 50;
-    let skip = 0;
     let photosToUpload: { data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId' | 'hash'>; uri: string }[];
+    let cursor;
+    let hasNextPage = false;
 
     this.logService.info(`[SYNC] ${this.currentSyncId}: UPLOADING LOCAL PHOTOS FROM ${options.from} TO ${options.to}`);
 
     do {
-      const cameraRollPhotos = await this.localDatabaseService.getTmpCameraRollPhotos({
-        from: options.from,
-        to: options.to,
-        limit,
-        skip,
-      });
+      const { edges: cameraRollPhotos, page_info }: PhotosCameraRollGetPhotosResponse =
+        await this.cameraRollService.getPhotos({
+          from: options.from,
+          to: options.to,
+          limit,
+          cursor,
+        });
 
       photosToUpload = cameraRollPhotos.map<{
         data: Omit<photos.CreatePhotoData, 'fileId' | 'previewId' | 'hash'>;
         uri: string;
       }>((p) => {
-        const nameWithExtension = p.filename as string;
+        const nameWithExtension = p.node.image.filename as string;
         const nameWithoutExtension = nameWithExtension.substring(0, nameWithExtension.lastIndexOf('.'));
         const nameSplittedByDots = nameWithExtension.split('.');
         const extension = nameSplittedByDots[nameSplittedByDots.length - 1] || '';
 
         return {
           data: {
-            takenAt: new Date(p.timestamp),
+            takenAt: new Date(p.node.timestamp * 1000),
             userId: userId,
             deviceId: deviceId,
-            height: p.height,
-            width: p.width,
-            size: p.fileSize as number,
+            height: p.node.image.height,
+            width: p.node.image.width,
+            size: p.node.image.fileSize as number,
             type: extension,
             name: nameWithoutExtension,
           },
-          uri: p.uri,
+          uri: p.node.image.uri,
         };
       });
 
@@ -312,6 +334,7 @@ export default class PhotosSyncService {
           this.logService.info(
             `[SYNC] ${this.currentSyncId}: ${items.getItemDisplayName(photo.data)} IS ALREADY UPLOADED, SKIPPING`,
           );
+          options.onTaskSkipped?.();
         } else {
           if (photo.data.size + usage > limit) {
             options.onStorageLimitReached();
@@ -326,8 +349,9 @@ export default class PhotosSyncService {
         }
       }
 
-      skip += limit;
-    } while (photosToUpload.length > 0);
+      cursor = page_info.end_cursor;
+      hasNextPage = page_info.has_next_page;
+    } while (hasNextPage);
   }
 
   private async cameraRollUriToFileSystemUri(

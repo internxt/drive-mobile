@@ -28,14 +28,14 @@ const ScreenTitle = ({
   showBackButton = defaultProps.showBackButton,
   onBackButtonPressed,
 }: ScreenTitleProps): JSX.Element => {
-  const backButtonEnabled = useAppSelector((state) => state.layout.backButtonEnabled);
+  const backButtonEnabled = useAppSelector((state) => state.ui.backButtonEnabled);
 
   return (
     <View style={[tailwind('pt-4 flex-row justify-center items-center py-2 px-5'), containerStyle]}>
       {showBackButton && (
         <TouchableOpacity style={tailwind('flex-1')} disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
-            <CaretLeft color={getColor('blue-60')} size={24} />
+            <CaretLeft weight="bold" color={getColor('blue-60')} size={24} />
           </View>
         </TouchableOpacity>
       )}

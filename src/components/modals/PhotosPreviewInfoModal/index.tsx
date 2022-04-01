@@ -18,7 +18,7 @@ interface PhotosPreviewInfoModalProps extends BottomModalProps {
 
 function PhotosPreviewInfoModal({ isOpen, onClosed, data, preview }: PhotosPreviewInfoModalProps): JSX.Element {
   const header = (
-    <>
+    <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
         <Image style={tailwind('bg-black w-10 h-10')} source={{ uri: preview }} />
       </View>
@@ -45,7 +45,7 @@ function PhotosPreviewInfoModal({ isOpen, onClosed, data, preview }: PhotosPrevi
             })}
         </Text>
       </View>
-    </>
+    </View>
   );
   const dimensionsText = `${data.width} x ${data.height}`;
   const createdAtText = moment(data.createdAt).format('LL');

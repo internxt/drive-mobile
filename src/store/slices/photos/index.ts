@@ -24,13 +24,12 @@ import {
   PhotosSyncTaskType,
   PhotosByMonthType,
   PhotosTaskCompletedInfo,
+  PhotosEventKey,
 } from '../../../types/photos';
-import { layoutActions } from '../layout';
+import { uiActions } from '../ui';
 import { pathToUri } from '../../../services/fileSystem';
 import notificationsService from '../../../services/notifications';
 import { NotificationType } from '../../../types';
-
-let photosService: PhotosService;
 
 export interface PhotosState {
   isInitialized: boolean;
@@ -97,10 +96,14 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     const photosToken = await deviceStorage.getItem('photosToken');
     const user = await deviceStorage.getUser();
 
-    photosService = new PhotosService(photosToken || '', {
+    await PhotosService.initialize(photosToken || '', {
       encryptionKey: user?.mnemonic || '',
       user: user?.bridgeUser || '',
       password: user?.userId || '',
+    });
+
+    PhotosService.instance.addListener(PhotosEventKey.CancelSyncEnd, () => {
+      dispatch(photosActions.updateSyncStatus({ status: PhotosSyncStatus.Paused }));
     });
 
     if (user && photosToken) {
@@ -118,9 +121,10 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
     // TODO: check if this device is synchronized or ask for start using photos
 
     if (photosSelectors.arePermissionsGranted(getState())) {
-      await photosService.initialize();
+      await PhotosService.instance.startUsingPhotos();
 
-      dispatch(syncThunk());
+      const syncThunk = dispatch(photosThunks.syncThunk());
+      PhotosService.instance.setSyncAbort(() => syncThunk.abort());
     }
   },
 );
@@ -153,14 +157,14 @@ const askForPermissionsThunk = createAsyncThunk<boolean, void, { state: RootStat
 );
 
 const getUsageThunk = createAsyncThunk<number, void, { state: RootState }>('photos/getUsage', async () => {
-  return photosService.getUsage();
+  return PhotosService.instance.getUsage();
 });
 
 const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: RootState }>(
   'photos/deletePhotos',
   async ({ photos }, { dispatch }) => {
     for (const photo of photos) {
-      await photosService.deletePhoto(photo);
+      await PhotosService.instance.deletePhoto(photo);
 
       dispatch(photosActions.deselectPhotos(photo));
       dispatch(photosActions.popPhoto(photo));
@@ -190,7 +194,7 @@ const downloadPhotoThunk = createAsyncThunk<
     dispatch(photosActions.pushDownloadingPhoto(fileId));
   }
 
-  return photosService.downloadPhoto(fileId, {
+  return PhotosService.instance.downloadPhoto(fileId, {
     toPath: options.toPath,
     downloadProgressCallback: (progress) => {
       dispatch(photosActions.setDownloadingPhotoProgress({ fileId, progress }));
@@ -213,8 +217,8 @@ const loadLocalPhotosThunk = createAsyncThunk<
 
   const defaultOptions = { limit: photosState.limit, skip: photosState.skip };
   const options: { limit: number; skip: number } = Object.assign({}, defaultOptions, payload || defaultOptions);
-  const results = await photosService.getPhotos(options);
-  const allPhotosCount = await photosService.countPhotos();
+  const results = await PhotosService.instance.getPhotos(options);
+  const allPhotosCount = await PhotosService.instance.countPhotos();
   const newSkip = options.skip + options.limit > allPhotosCount ? allPhotosCount : options.skip + options.limit;
 
   dispatch(photosActions.addPhotos(results));
@@ -226,7 +230,7 @@ const loadLocalPhotosThunk = createAsyncThunk<
 const loadYearsThunk = createAsyncThunk<{ year: number; preview: string }[], void, { state: RootState }>(
   'photos/loadYears',
   () => {
-    return photosService.getYearsList();
+    return PhotosService.instance.getYearsList();
   },
 );
 
@@ -235,7 +239,7 @@ const loadMonthsThunk = createAsyncThunk<
   void,
   { state: RootState }
 >('photos/loadMonths', () => {
-  return photosService.getMonthsList();
+  return PhotosService.instance.getMonthsList();
 });
 
 const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
@@ -278,8 +282,12 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
         }
       }
     };
+    const onTaskSkipped = () => {
+      const { syncStatus } = getState().photos;
+      dispatch(photosActions.updateSyncStatus({ totalTasks: syncStatus.totalTasks - 1 }));
+    };
     const onStorageLimitReached = () => {
-      dispatch(layoutActions.setShowRunOutSpaceModal(true));
+      dispatch(uiActions.setShowRunOutSpaceModal(true));
     };
     const photosState = getState().photos;
     const isAlreadySyncing = photosState.syncRequests.filter((id) => id !== requestId).length > 0;
@@ -290,23 +298,28 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(photosActions.resetSyncStatus());
 
-    await photosService.sync({
+    await PhotosService.instance.sync({
       id: requestId,
       signal,
       getState,
       onStart,
+      onTaskSkipped,
       onTaskCompleted,
       onStorageLimitReached,
     });
   },
 );
 
+const cancelSyncThunk = createAsyncThunk<void, void, { state: RootState }>('photos/cancelSync', () => {
+  PhotosService.instance.cancelSync();
+});
+
 const selectAllThunk = createAsyncThunk<Photo[], void, { state: RootState }>('photos/selectAll', async () => {
-  return photosService.getAll();
+  return PhotosService.instance.getAll();
 });
 
 const clearDataThunk = createAsyncThunk<void, void, { state: RootState }>('photos/clearData', async () => {
-  return photosService.clearData();
+  return PhotosService.instance.clearData();
 });
 
 export const photosSlice = createSlice({
@@ -410,7 +423,11 @@ export const photosSlice = createSlice({
       state.skip = action.payload;
     },
     popPhoto(state, action: PayloadAction<Photo>) {
-      state.photos = state.photos.filter((photo) => photo.data.id !== action.payload.id);
+      const index = state.photos.findIndex((p) => p.data.id === action.payload.id);
+
+      if (~index) {
+        state.photos.splice(index, 1);
+      }
     },
     pushDownloadedPhoto(state, action: PayloadAction<{ fileId: string; path: string }>) {
       state.downloadedPhotos.push(action.payload);
@@ -561,16 +578,25 @@ export const photosSlice = createSlice({
       .addCase(syncThunk.rejected, (state, action) => {
         const index = state.syncRequests.indexOf(action.meta.requestId);
         state.syncRequests.splice(index, 1);
-        Object.assign(state.syncStatus, { status: PhotosSyncStatus.Pending });
 
-        notificationsService.show({
-          type: NotificationType.Error,
-          text1: strings.formatString(
-            strings.errors.photosSync,
-            action.error.message || strings.errors.unknown,
-          ) as string,
-        });
+        if (!action.meta.aborted) {
+          Object.assign(state.syncStatus, { status: PhotosSyncStatus.Pending });
+          notificationsService.show({
+            type: NotificationType.Error,
+            text1: strings.formatString(
+              strings.errors.photosSync,
+              action.error.message || strings.errors.unknown,
+            ) as string,
+          });
+        }
       });
+
+    builder
+      .addCase(cancelSyncThunk.pending, (state) => {
+        state.syncStatus.status = PhotosSyncStatus.Pausing;
+      })
+      .addCase(cancelSyncThunk.fulfilled, () => undefined)
+      .addCase(cancelSyncThunk.rejected, () => undefined);
 
     builder
       .addCase(clearDataThunk.pending, () => undefined)
@@ -625,8 +651,8 @@ export const photosSelectors = {
 
     return result;
   },
-  photosDirectory: (): string => photosService.photosDirectory,
-  previewsDirectory: (): string => photosService.previewsDirectory,
+  photosDirectory: (): string => PhotosService.instance.photosDirectory,
+  previewsDirectory: (): string => PhotosService.instance.previewsDirectory,
   photosByMonth: (state: RootState): PhotosByMonthType[] => {
     const result: PhotosByMonthType[] = [];
 
@@ -678,6 +704,7 @@ export const photosThunks = {
   loadMonthsThunk,
   loadLocalPhotosThunk,
   syncThunk,
+  cancelSyncThunk,
   clearDataThunk,
 };
 

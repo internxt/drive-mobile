@@ -19,7 +19,7 @@ import { DevicePlatform } from '../../types';
 import { storageActions, storageThunks } from '../../store/slices/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { deviceStorage } from '../../services/asyncStorage';
-import { layoutActions } from '../../store/slices/layout';
+import { uiActions } from '../../store/slices/ui';
 import { downloadFile } from '../../services/network';
 import { LegacyDownloadRequiredError } from '../../services/network/download';
 import { downloadFile as legacyDownloadFile } from '../../services/download';
@@ -52,7 +52,7 @@ function FileItem(props: FileItemProps): JSX.Element {
   const onItemLongPressed = () => {
     if (props.isGrid) {
       dispatch(storageActions.focusItem(props.item));
-      dispatch(layoutActions.setShowItemModal(true));
+      dispatch(uiActions.setShowItemModal(true));
     }
   };
   async function onItemPressed() {
@@ -201,7 +201,7 @@ function FileItem(props: FileItemProps): JSX.Element {
   const isDownloading = downloadProgress >= 0 || decryptionProgress >= 0;
   const onActionsButtonPressed = () => {
     dispatch(storageActions.focusItem(props.item));
-    dispatch(layoutActions.setShowItemModal(true));
+    dispatch(uiActions.setShowItemModal(true));
   };
 
   useEffect(() => {

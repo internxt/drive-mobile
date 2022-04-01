@@ -9,7 +9,7 @@ import { DevicePlatform } from '../../../types';
 import { photosActions, photosThunks } from '../photos';
 import { appThunks } from '../app';
 import { storageActions } from '../storage';
-import { layoutActions } from '../layout';
+import { uiActions } from '../ui';
 
 export interface AuthState {
   loggedIn: boolean;
@@ -54,9 +54,10 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   async (payload: void, { dispatch }) => {
     await authService.signout();
 
-    dispatch(layoutActions.resetState());
+    dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
     dispatch(storageActions.resetState());
+    await dispatch(photosThunks.cancelSyncThunk());
     await dispatch(photosThunks.clearDataThunk());
     dispatch(photosActions.resetState());
   },
@@ -82,7 +83,7 @@ export const authSlice = createSlice({
       state.token = action.payload.token;
       state.photosToken = action.payload.photosToken;
     },
-    setUserStorage(state, action: PayloadAction<any>) {
+    setUserStorage(state, action: PayloadAction<{ usage: number; limit: number; percentage: number }>) {
       state.userStorage = action.payload;
     },
   },

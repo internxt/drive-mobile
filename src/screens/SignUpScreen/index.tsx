@@ -3,7 +3,6 @@ import { TextInput, TouchableHighlight, View, Text, Alert, ScrollView, Touchable
 
 import CheckBox from '../../components/CheckBox';
 import strings from '../../../assets/lang/strings';
-import Intro from '../IntroScreen';
 import { doRegister } from './registerUtils';
 import InternxtLogo from '../../../assets/logo.svg';
 import analytics, { AnalyticsEventKey } from '../../services/analytics';
@@ -14,16 +13,15 @@ import { AppScreenKey as AppScreenKey, DevicePlatform } from '../../types';
 import { authThunks } from '../../store/slices/auth';
 import { useAppDispatch } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
 import { storageActions } from '../../store/slices/storage';
 import { Eye, EyeSlash } from 'phosphor-react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 function SignUpScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const dispatch = useAppDispatch();
-  const [showIntro, setShowIntro] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const twoFactorCode = '';
 
@@ -36,9 +34,6 @@ function SignUpScreen(): JSX.Element {
   const [acceptPolicy, setAcceptPolicy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [firstNameFocus, setFirstNameFocus] = useState(false);
-  const [lastNameFocus, setLastNameFocus] = useState(false);
-  const [emailFocus, setEmailFocus] = useState(false);
   const [passwordFocus, setPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
@@ -57,10 +52,6 @@ function SignUpScreen(): JSX.Element {
     isValidEmail && isValidFirstName && isValidLastName && isValidPassword && isValidConfirmedPassword && acceptPolicy;
 
   const [registerButtonClicked, setRegisterButtonClicked] = useState(false);
-
-  if (showIntro) {
-    return <Intro onFinish={() => setShowIntro(false)} />;
-  }
 
   const onSignUpButtonPressed = async () => {
     if (!isValidPassword) {
@@ -147,8 +138,6 @@ function SignUpScreen(): JSX.Element {
                 autoCompleteType="off"
                 key="name"
                 autoCorrect={false}
-                onFocus={() => setFirstNameFocus(true)}
-                onBlur={() => setFirstNameFocus(false)}
               />
             </View>
 
@@ -166,8 +155,6 @@ function SignUpScreen(): JSX.Element {
                 autoCompleteType="off"
                 key="lastname"
                 autoCorrect={false}
-                onFocus={() => setLastNameFocus(true)}
-                onBlur={() => setLastNameFocus(false)}
               />
             </View>
 
@@ -190,8 +177,6 @@ function SignUpScreen(): JSX.Element {
                 autoCorrect={false}
                 key="mailaddress"
                 textContentType="emailAddress"
-                onFocus={() => setEmailFocus(true)}
-                onBlur={() => setEmailFocus(false)}
               />
             </View>
           </View>

@@ -9,7 +9,7 @@ import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../AppButton';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import imageService from '../../../services/image';
 import { items } from '@internxt/lib';
 import { exists, pathToUri } from '../../../services/fileSystem';
@@ -77,10 +77,10 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
   };
   const onCopyLinkButtonPressed = () => {
     onClosed();
-    dispatch(layoutActions.setIsLinkCopiedModalOpen(true));
+    dispatch(uiActions.setIsLinkCopiedModalOpen(true));
   };
   const header = (
-    <>
+    <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
         <Image style={tailwind('bg-black w-10 h-10')} source={{ uri: preview }} />
       </View>
@@ -107,7 +107,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
             })}
         </Text>
       </View>
-    </>
+    </View>
   );
 
   useEffect(() => {

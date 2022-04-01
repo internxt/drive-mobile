@@ -11,7 +11,6 @@ export enum AppScreenKey {
   Debug = 'debug',
   SignUp = 'sign-up',
   SignIn = 'sign-in',
-  Intro = 'intro',
   TabExplorer = 'tab-explorer',
   Home = 'home',
   Menu = 'menu',

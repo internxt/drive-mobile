@@ -1,13 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { NavigationStackProp } from 'react-navigation-stack';
 import strings from '../../../assets/lang/strings';
 import { AppScreenKey } from '../../types';
 
 function OutOfSpaceScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
   return (
     <View style={styles.container}>

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, TouchableWithoutFeedback, BackHandler } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
@@ -9,24 +9,26 @@ import strings from '../../../../assets/lang/strings';
 import galleryViews from '../../../components/gallery-views';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { photosActions, photosSelectors, photosThunks } from '../../../store/slices/photos';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
 import { GalleryViewMode } from '../../../types/photos';
 import PhotosSyncStatusWidget from '../../../components/PhotosSyncStatusWidget';
 import AppScreen from '../../../components/AppScreen';
 import { Trash } from 'phosphor-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
+  const safeAreaInsets = useSafeAreaInsets();
   const getPhotoPreview = useAppSelector(photosSelectors.getPhotoPreview);
-  const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.layout);
+  const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.ui);
   const isLoading = useAppSelector(photosSelectors.isLoading);
   const { isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
   const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
   const hasNoPhotosSelected = selectedPhotos.length === 0;
-  const onSharePhotoModalClosed = () => dispatch(layoutActions.setIsSharePhotoModalOpen(false));
-  const onDeletePhotosModalClosed = () => dispatch(layoutActions.setIsDeletePhotosModalOpen(false));
+  const onSharePhotoModalClosed = () => dispatch(uiActions.setIsSharePhotoModalOpen(false));
+  const onDeletePhotosModalClosed = () => dispatch(uiActions.setIsDeletePhotosModalOpen(false));
   const onSelectButtonPressed = () => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
   };
@@ -38,13 +40,16 @@ function PhotosGalleryScreen(): JSX.Element {
     dispatch(photosThunks.selectAllThunk());
   };
   const onShareSelectionButtonPressed = () => {
-    dispatch(layoutActions.setIsSharePhotoModalOpen(true));
+    dispatch(uiActions.setIsSharePhotoModalOpen(true));
   };
-  const onDownloadSelectionButtonPressed = () => {
-    console.log('onDownloadSelectionButtonPressed!');
-  };
+  const onDownloadSelectionButtonPressed = () => undefined;
   const onDeleteSelectionButtonPressed = () => {
-    dispatch(layoutActions.setIsDeletePhotosModalOpen(true));
+    dispatch(uiActions.setIsDeletePhotosModalOpen(true));
+  };
+  const onBackButtonPressed = () => {
+    onCancelSelectButtonPressed();
+
+    return false;
   };
   const GalleryView = galleryViews[viewMode];
   const groupByMenu = (function () {
@@ -74,8 +79,11 @@ function PhotosGalleryScreen(): JSX.Element {
     dispatch(photosActions.resetPhotos());
     dispatch(photosThunks.loadLocalPhotosThunk());
 
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressed);
+
     return () => {
       dispatch(photosActions.resetPhotos());
+      backHandler.remove();
     };
   }, []);
 
@@ -167,7 +175,12 @@ function PhotosGalleryScreen(): JSX.Element {
         {/* SELECTION MODE ACTIONS */}
         {isSelectionModeActivated && (
           <Portal>
-            <View style={[tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2')]}>
+            <View
+              style={[
+                tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2'),
+                { marginBottom: safeAreaInsets.bottom },
+              ]}
+            >
               {/*<TouchableWithoutFeedback
                 onPress={onShareSelectionButtonPressed}
                 disabled={hasNoPhotosSelected || hasManyPhotosSelected}

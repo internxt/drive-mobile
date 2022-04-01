@@ -14,33 +14,25 @@ import Separator from '../../components/Separator';
 import { AppScreenKey as AppScreenKey, DevicePlatform, SortDirection } from '../../types';
 import { authActions, authThunks } from '../../store/slices/auth';
 import { storageActions, storageThunks } from '../../store/slices/storage';
-import { layoutActions } from '../../store/slices/layout';
+import { uiActions } from '../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 import { useRoute } from '@react-navigation/native';
 import { constants } from '../../services/app';
 import AppScreen from '../../components/AppScreen';
-import {
-  ArrowDown,
-  ArrowUp,
-  CaretLeft,
-  DotsThree,
-  ListBullets,
-  MagnifyingGlass,
-  SquaresFour,
-} from 'phosphor-react-native';
+import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
 import { deviceStorage } from '../../services/asyncStorage';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 function DriveScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute();
   const dispatch = useAppDispatch();
   const { token, user, loggedIn } = useAppSelector((state) => state.auth);
   const { currentFolderId, folderContent, uri, sortType, sortDirection, searchString } = useAppSelector(
     (state) => state.storage,
   );
-  const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.layout);
+  const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.ui);
   const onSearchTextChanged = (value: string) => {
     dispatch(storageActions.setSearchString(value));
   };
@@ -141,10 +133,13 @@ function DriveScreen(): JSX.Element {
   };
   const onCurrentFolderActionsButtonPressed = () => {
     dispatch(storageActions.focusItem(folderContent));
-    dispatch(layoutActions.setShowItemModal(true));
+    dispatch(uiActions.setShowItemModal(true));
   };
   const onSortButtonPressed = () => {
-    dispatch(layoutActions.setShowSortModal(true));
+    dispatch(uiActions.setShowSortModal(true));
+  };
+  const onViewModeButtonPressed = () => {
+    dispatch(uiActions.switchFileViewMode());
   };
 
   if (!loggedIn) {
@@ -263,7 +258,7 @@ function DriveScreen(): JSX.Element {
             onPress={() => dispatch(storageThunks.goBackThunk({ folderId: parentFolderId as number }))}
           >
             <View style={[tailwind('flex-row items-center'), !parentFolderId && tailwind('opacity-50')]}>
-              <CaretLeft color={getColor('blue-60')} style={tailwind('-ml-2 -mr-1')} size={32} />
+              <CaretLeft weight="bold" color={getColor('blue-60')} style={tailwind('-ml-2 mr-1')} size={24} />
               <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>
                 {strings.components.buttons.back}
               </Text>
@@ -274,14 +269,14 @@ function DriveScreen(): JSX.Element {
           <View style={tailwind('items-center justify-center')}>
             <TouchableOpacity
               style={tailwind('p-2')}
-              onPress={() => dispatch(layoutActions.setSearchActive(!searchActive))}
+              onPress={() => dispatch(uiActions.setSearchActive(!searchActive))}
             >
-              <MagnifyingGlass color={getColor('blue-60')} size={22} />
+              <MagnifyingGlass weight="bold" color={getColor('blue-60')} size={24} />
             </TouchableOpacity>
           </View>
           <View style={tailwind('items-center justify-center')}>
             <TouchableOpacity style={tailwind('p-2')} onPress={onCurrentFolderActionsButtonPressed}>
-              <DotsThree weight="bold" color={getColor('blue-60')} size={22} />
+              <DotsThree weight="bold" color={getColor('blue-60')} size={24} />
             </TouchableOpacity>
           </View>
         </View>
@@ -309,16 +304,12 @@ function DriveScreen(): JSX.Element {
             )}
           </View>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            dispatch(layoutActions.switchFileViewMode());
-          }}
-        >
+        <TouchableOpacity onPress={onViewModeButtonPressed}>
           <View style={tailwind('py-2 px-5')}>
             {fileViewMode === 'list' ? (
               <SquaresFour size={22} color={getColor('neutral-100')} />
             ) : (
-              <ListBullets size={22} color={getColor('neutral-100')} />
+              <Rows size={22} color={getColor('neutral-100')} />
             )}
           </View>
         </TouchableOpacity>

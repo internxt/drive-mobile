@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationStackProp } from 'react-navigation-stack';
 
 import validationService from '../../services/validation';
 import strings from '../../../assets/lang/strings';
@@ -12,9 +11,10 @@ import { AppScreenKey, NotificationType } from '../../types';
 import AppScreen from '../../components/AppScreen';
 import notificationsService from '../../services/notifications';
 import { Eye } from 'phosphor-react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 function ChangePasswordScreen(): JSX.Element {
-  const navigation = useNavigation<NavigationStackProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

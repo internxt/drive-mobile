@@ -2,6 +2,7 @@ import { createHash } from 'react-native-crypto';
 import RNFetchBlob from 'rn-fetch-blob';
 import { Environment } from '../@inxt-js';
 import { FileInfo } from '../@inxt-js/api/fileinfo';
+import appService from '../services/app';
 
 import { deviceStorage } from '../services/asyncStorage';
 import { FileManager } from '../services/fileSystem';
@@ -28,7 +29,6 @@ interface EnvironmentConfig {
 
 export class Network {
   private environment: Environment;
-  private bridgeUrl = 'https://api.internxt.com';
   private static Errors = {
     BridgeUserNotProvided: 'Bridge user not provided',
     BridgePassNotProvided: 'Bridge pass not provided',
@@ -50,7 +50,12 @@ export class Network {
       throw new Error(Network.Errors.EncryptKeyNotProvided);
     }
 
-    this.environment = new Environment({ bridgePass, bridgeUser, encryptionKey, bridgeUrl: this.bridgeUrl });
+    this.environment = new Environment({
+      bridgePass,
+      bridgeUser,
+      encryptionKey,
+      bridgeUrl: appService.constants.REACT_NATIVE_BRIDGE_URL,
+    });
   }
 
   /**

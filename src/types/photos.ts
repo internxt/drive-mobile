@@ -1,4 +1,5 @@
 import { Photo, Device, PhotoStatus, User } from '@internxt/sdk/dist/photos';
+import CameraRoll from '@react-native-community/cameraroll';
 import { NetworkCredentials } from '.';
 
 export enum PhotosScreen {
@@ -25,11 +26,18 @@ export enum PhotosSyncStatus {
   Unknown = 'unknown',
   Pending = 'pending',
   Calculating = 'calculating',
+  Pausing = 'pausing',
+  Paused = 'paused',
   InProgress = 'in-progress',
   Completed = 'completed',
 }
 
 export const PHOTOS_DB_NAME = 'photos.db';
+
+export enum PhotosEventKey {
+  CancelSync = 'cancel-sync',
+  CancelSyncEnd = 'cancel-sync-end',
+}
 
 export interface PhotosServiceModel {
   debug: boolean;
@@ -39,6 +47,7 @@ export interface PhotosServiceModel {
   networkUrl: string;
   user?: User;
   device?: Device;
+  syncAbort?: (reason?: string) => void;
 }
 
 export interface SqlitePhotoRow {
@@ -110,3 +119,8 @@ export type PhotosByMonthType = {
     }[];
   }[];
 };
+
+export interface PhotosCameraRollGetPhotosResponse {
+  edges: CameraRoll.PhotoIdentifier[];
+  page_info: { has_next_page: boolean; start_cursor?: string | undefined; end_cursor?: string | undefined };
+}

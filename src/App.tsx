@@ -3,6 +3,7 @@ import { View, Text, KeyboardAvoidingView } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as NavigationBar from 'expo-navigation-bar';
 
 import AppNavigator from './screens/AppNavigator';
 import analyticsService from './services/analytics';
@@ -16,7 +17,7 @@ import appService from './services/app';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';
-import { layoutActions } from './store/slices/layout';
+import { uiActions } from './store/slices/ui';
 import { storageActions } from './store/slices/storage';
 import SortModal from './components/modals/SortModal';
 import AppToast from './components/AppToast';
@@ -24,7 +25,7 @@ import AppToast from './components/AppToast';
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const [isAppInitialized, setIsAppInitialized] = useState(false);
-  const { isInviteFriendsModalOpen, isNewsletterModalOpen } = useAppSelector((state) => state.layout);
+  const { isInviteFriendsModalOpen, isNewsletterModalOpen } = useAppSelector((state) => state.ui);
   const [loadError, setLoadError] = useState('');
   const linking: LinkingOptions<ReactNavigation.RootParamList> = {
     prefixes: ['inxt'],
@@ -52,6 +53,8 @@ export default function App(): JSX.Element {
 
   // Initialize app
   useEffect(() => {
+    NavigationBar.setBackgroundColorAsync(getColor('white')).then(() => NavigationBar.setButtonStyleAsync('dark'));
+
     if (!isAppInitialized) {
       Promise.all([loadFonts(), loadLocalUser(), analyticsService.setup()])
         .then(() => {
@@ -124,11 +127,11 @@ export default function App(): JSX.Element {
             <SortModal />
             <InviteFriendsModal
               isOpen={isInviteFriendsModalOpen}
-              onClosed={() => dispatch(layoutActions.setIsInviteFriendsModalOpen(false))}
+              onClosed={() => dispatch(uiActions.setIsInviteFriendsModalOpen(false))}
             />
             <NewsletterModal
               isOpen={isNewsletterModalOpen}
-              onClosed={() => dispatch(layoutActions.setIsNewsletterModalOpen(false))}
+              onClosed={() => dispatch(uiActions.setIsNewsletterModalOpen(false))}
             />
           </View>
         </Portal.Host>

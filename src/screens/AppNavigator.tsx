@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
-import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
+// import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
+//import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
@@ -10,7 +10,6 @@ import UpdateModal from '../components/modals/UpdateModal';
 import CreateFolderScreen from './CreateFolderScreen';
 import SignInScreen from './SignInScreen';
 import SignUpScreen from './SignUpScreen';
-import IntroScreen from './IntroScreen';
 import HomeScreen from './HomeScreen';
 import OutOfSpaceScreen from './OutOfSpaceScreen';
 import StorageScreen from './StorageScreen';
@@ -21,7 +20,7 @@ import RecoverPasswordScreen from './RecoverPasswordScreen';
 import ForgotPasswordScreen from './ForgotPasswordScreen';
 import PhotosNavigator from './PhotosNavigator';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { layoutActions } from '../store/slices/layout';
+import { uiActions } from '../store/slices/ui';
 import LinkCopiedModal from '../components/modals/LinkCopiedModal';
 import PhotosPreviewScreen from './PhotosNavigator/PhotosPreviewScreen';
 import { appThunks } from '../store/slices/app';
@@ -31,17 +30,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DebugScreen from './DebugScreen';
 import analyticsService from '../services/analytics';
 
-type RouteConfig = NavigationRouteConfigMap<
+/*type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,
   StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>,
   any
->;
+>;*/
+type RouteConfig = any;
 
 const routeConfig: RouteConfig = {
   [AppScreenKey.Debug]: { screen: DebugScreen },
   [AppScreenKey.SignUp]: { screen: SignUpScreen },
   [AppScreenKey.SignIn]: { screen: SignInScreen },
-  [AppScreenKey.Intro]: { screen: IntroScreen },
   [AppScreenKey.Home]: { screen: HomeScreen },
   [AppScreenKey.TabExplorer]: { screen: AuthenticatedNavigator },
   [AppScreenKey.CreateFolder]: { screen: CreateFolderScreen },
@@ -61,9 +60,9 @@ function AppNavigator(): JSX.Element {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
   const initialRouteName = isLoggedIn ? AppScreenKey.TabExplorer : AppScreenKey.SignIn;
-  const isLinkCopiedModalOpen = useAppSelector((state) => state.layout.isLinkCopiedModalOpen);
+  const isLinkCopiedModalOpen = useAppSelector((state) => state.ui.isLinkCopiedModalOpen);
   const onLinkCopiedModalClosed = () => {
-    dispatch(layoutActions.setIsLinkCopiedModalOpen(false));
+    dispatch(uiActions.setIsLinkCopiedModalOpen(false));
   };
   const onAppLinkOpened = async (event: Linking.EventType) => {
     const sessionId = await AsyncStorage.getItem('tmpCheckoutSessionId');

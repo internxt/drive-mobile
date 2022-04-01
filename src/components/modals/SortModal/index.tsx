@@ -4,7 +4,7 @@ import { Text, TouchableHighlight, View } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { storageActions } from '../../../store/slices/storage';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
@@ -17,7 +17,7 @@ function SortModalItem(props: { direction: SortDirection; type: SortType; text: 
   const onPress = () => {
     dispatch(storageActions.setSortType(props.type));
     dispatch(storageActions.setSortDirection(props.direction));
-    dispatch(layoutActions.setShowSortModal(false));
+    dispatch(uiActions.setShowSortModal(false));
   };
 
   return (
@@ -50,12 +50,12 @@ function SortModalItem(props: { direction: SortDirection; type: SortType; text: 
 
 function SortModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { showSortModal } = useAppSelector((state) => state.layout);
+  const { showSortModal } = useAppSelector((state) => state.ui);
   const onClosed = () => {
-    dispatch(layoutActions.setShowSortModal(false));
+    dispatch(uiActions.setShowSortModal(false));
   };
   const header = (
-    <View style={tailwind('flex-shrink w-full')}>
+    <View>
       <Text
         numberOfLines={1}
         ellipsizeMode="middle"

@@ -15,7 +15,6 @@ import RenameModal from '../../components/modals/RenameModal';
 import CreateFolderModal from '../../components/modals/CreateFolderModal';
 import ShareFilesModal from '../../components/modals/ShareFilesModal';
 import DeleteItemModal from '../../components/modals/DeleteItemModal';
-import SortModal from '../../components/modals/SortModal';
 import MoveFilesModal from '../../components/modals/MoveFilesModal';
 import RunOutOfStorageModal from '../../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../HomeScreen';
@@ -23,7 +22,7 @@ import { AppScreenKey as AppScreenKey } from '../../types';
 import PhotosNavigator from '../PhotosNavigator';
 import ReferralsBanner from '../../components/ReferralsBanner';
 import { useAppDispatch } from '../../store/hooks';
-import { layoutActions } from '../../store/slices/layout';
+import { uiActions } from '../../store/slices/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
@@ -41,7 +40,7 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
   const safeAreaInsets = useSafeAreaInsets();
 
   useEffect(() => {
-    props.route.params?.showReferralsBanner && dispatch(layoutActions.setIsReferralsBannerOpen(true));
+    props.route.params?.showReferralsBanner && dispatch(uiActions.setIsReferralsBannerOpen(true));
   }, []);
 
   return (

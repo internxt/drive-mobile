@@ -7,7 +7,7 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import globalStyle from '../../../styles';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import BottomModalOption from '../../BottomModalOption';
 import BottomModal from '../BottomModal';
 import { Link, PencilSimpleLine, Trash } from 'phosphor-react-native';
@@ -15,7 +15,7 @@ import { Link, PencilSimpleLine, Trash } from 'phosphor-react-native';
 function FileDetailsModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { focusedItem: item } = useAppSelector((state) => state.storage);
-  const { showItemModal } = useAppSelector((state) => state.layout);
+  const { showItemModal } = useAppSelector((state) => state.ui);
 
   if (!item) {
     return <></>;
@@ -24,7 +24,7 @@ function FileDetailsModal(): JSX.Element {
   const isFolder = !item.fileId;
   const FileIcon = getFileTypeIcon(item?.type);
   const header = (
-    <>
+    <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
         {isFolder ? <FolderIcon width={40} height={40} /> : <FileIcon width={40} height={40} />}
       </View>
@@ -53,15 +53,11 @@ function FileDetailsModal(): JSX.Element {
           })}
         </Text>
       </View>
-    </>
+    </View>
   );
 
   return (
-    <BottomModal
-      isOpen={showItemModal}
-      onClosed={() => dispatch(layoutActions.setShowItemModal(false))}
-      header={header}
-    >
+    <BottomModal isOpen={showItemModal} onClosed={() => dispatch(uiActions.setShowItemModal(false))} header={header}>
       <View style={tailwind('bg-neutral-10 p-4 flex-grow')}>
         <View style={tailwind('rounded-xl bg-white')}>
           <BottomModalOption
@@ -72,8 +68,8 @@ function FileDetailsModal(): JSX.Element {
             }
             rightSlot={<PencilSimpleLine size={20} color={getColor('neutral-500')} />}
             onPress={() => {
-              dispatch(layoutActions.setShowItemModal(false));
-              dispatch(layoutActions.setShowRenameModal(true));
+              dispatch(uiActions.setShowItemModal(false));
+              dispatch(uiActions.setShowRenameModal(true));
             }}
           />
 
@@ -88,8 +84,8 @@ function FileDetailsModal(): JSX.Element {
               }
               rightSlot={<Link size={20} color={getColor('neutral-500')} />}
               onPress={() => {
-                dispatch(layoutActions.setShowItemModal(false));
-                dispatch(layoutActions.setShowShareModal(true));
+                dispatch(uiActions.setShowItemModal(false));
+                dispatch(uiActions.setShowShareModal(true));
               }}
             />
           )}
@@ -104,8 +100,8 @@ function FileDetailsModal(): JSX.Element {
             }
             rightSlot={<Trash size={20} color={getColor('red-60')} />}
             onPress={() => {
-              dispatch(layoutActions.setShowItemModal(false));
-              dispatch(layoutActions.setShowDeleteModal(true));
+              dispatch(uiActions.setShowItemModal(false));
+              dispatch(uiActions.setShowDeleteModal(true));
             }}
           />
         </View>

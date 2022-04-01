@@ -1,16 +1,7 @@
 {
-  "compilerOptions": {
-    "strict": true,
-    "allowSyntheticDefaultImports": true,
-    "jsx": "react-native",
-    "lib": ["dom", "esnext"],
-    "moduleResolution": "node",
-    "noEmit": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  },
   "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true
+  },
   "include": ["src", "app.config.ts"]
 }

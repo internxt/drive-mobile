@@ -218,6 +218,8 @@ const strings = new LocalizedStrings({
         empty: 'No photos to show',
         loading: 'Loading photos...',
         syncing: 'Syncing {0} of {1}',
+        pausing: 'Pausing sync...',
+        paused: 'Sync paused',
         groupBy: {
           years: 'Years',
           months: 'Months',
@@ -263,6 +265,8 @@ const strings = new LocalizedStrings({
         invite: 'Invite',
         grant: 'Grant',
         dismiss: 'Dismiss',
+        pause: 'Pause',
+        resume: 'Resume',
       },
       inputs: {
         email: 'Email address',
@@ -624,6 +628,8 @@ const strings = new LocalizedStrings({
         empty: 'No hay fotos para mostrar',
         loading: 'Cargando fotos...',
         syncing: 'Sincronizando {0} de {1}',
+        pausing: 'Pausando sincronización...',
+        paused: 'Sincronización pausada',
         groupBy: {
           years: 'Años',
           months: 'Meses',
@@ -669,6 +675,8 @@ const strings = new LocalizedStrings({
         invite: 'Invitar',
         grant: 'Autorizar',
         dismiss: 'Cerrar',
+        pause: 'Pausar',
+        resume: 'Reanudar',
       },
       inputs: {
         email: 'Correo electrónico',

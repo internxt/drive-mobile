@@ -31,13 +31,13 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   scheme: 'inxt',
   entryPoint: './index.js',
   slug: 'drive-mobile',
-  version: '1.5.8',
+  version: '1.5.9',
   orientation: 'portrait',
   icon: './assets/icon.png',
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'cover',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#091e42',
   },
   updates: {
     fallbackToCacheTimeout: 0,
@@ -50,10 +50,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     backgroundColor: '#FFFFFF',
   },
   android: {
-    versionCode: 50,
-    splash: {
-      backgroundColor: '#FFFFFF',
-    },
+    versionCode: 52,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#091e42',
@@ -72,13 +69,12 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     ],
   },
   androidStatusBar: {
-    barStyle: 'dark-content',
-    backgroundColor: '#FFFFFF',
+    barStyle: 'light-content',
+    backgroundColor: '#091e42',
   },
   androidNavigationBar: {
-    barStyle: 'dark-content',
-    backgroundColor: '#FFFFFF',
-    visible: 'sticky-immersive',
+    barStyle: 'light-content',
+    backgroundColor: '#091e42',
   },
   extra: { NODE_ENV: stage, ...env[stage] },
 };

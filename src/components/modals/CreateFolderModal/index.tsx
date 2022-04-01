@@ -5,7 +5,7 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon } from '../../../helpers';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { layoutActions } from '../../../store/slices/layout';
+import { uiActions } from '../../../store/slices/ui';
 import { storageThunks } from '../../../store/slices/storage';
 import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
@@ -17,15 +17,15 @@ import { NotificationType } from '../../../types';
 function CreateFolderModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { currentFolderId } = useAppSelector((state) => state.storage);
-  const { showCreateFolderModal } = useAppSelector((state) => state.layout);
+  const { showCreateFolderModal } = useAppSelector((state) => state.ui);
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
   const onCancelButtonPressed = () => {
-    !isLoading && dispatch(layoutActions.setShowCreateFolderModal(false));
+    !isLoading && dispatch(uiActions.setShowCreateFolderModal(false));
   };
   const onClosed = () => {
     setFolderName(strings.screens.create_folder.defaultName);
-    dispatch(layoutActions.setShowCreateFolderModal(false));
+    dispatch(uiActions.setShowCreateFolderModal(false));
   };
   const onCreateFolderButtonPressed = () => {
     setIsLoading(true);
