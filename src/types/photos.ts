@@ -36,6 +36,7 @@ export const PHOTOS_DB_NAME = 'photos.db';
 
 export enum PhotosEventKey {
   CancelSync = 'cancel-sync',
+  CancelSyncEnd = 'cancel-sync-end',
 }
 
 export interface PhotosServiceModel {

@@ -24,6 +24,7 @@ import {
   PhotosSyncTaskType,
   PhotosByMonthType,
   PhotosTaskCompletedInfo,
+  PhotosEventKey,
 } from '../../../types/photos';
 import { uiActions } from '../ui';
 import { pathToUri } from '../../../services/fileSystem';
@@ -99,6 +100,10 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
       encryptionKey: user?.mnemonic || '',
       user: user?.bridgeUser || '',
       password: user?.userId || '',
+    });
+
+    PhotosService.instance.addListener(PhotosEventKey.CancelSyncEnd, () => {
+      dispatch(photosActions.updateSyncStatus({ status: PhotosSyncStatus.Paused }));
     });
 
     if (user && photosToken) {
@@ -566,19 +571,23 @@ export const photosSlice = createSlice({
       .addCase(syncThunk.rejected, (state, action) => {
         const index = state.syncRequests.indexOf(action.meta.requestId);
         state.syncRequests.splice(index, 1);
-        Object.assign(state.syncStatus, { status: PhotosSyncStatus.Pending });
 
-        notificationsService.show({
-          type: NotificationType.Error,
-          text1: strings.formatString(
-            strings.errors.photosSync,
-            action.error.message || strings.errors.unknown,
-          ) as string,
-        });
+        if (!action.meta.aborted) {
+          Object.assign(state.syncStatus, { status: PhotosSyncStatus.Pending });
+          notificationsService.show({
+            type: NotificationType.Error,
+            text1: strings.formatString(
+              strings.errors.photosSync,
+              action.error.message || strings.errors.unknown,
+            ) as string,
+          });
+        }
       });
 
     builder
-      .addCase(cancelSyncThunk.pending, () => undefined)
+      .addCase(cancelSyncThunk.pending, (state) => {
+        state.syncStatus.status = PhotosSyncStatus.Pausing;
+      })
       .addCase(cancelSyncThunk.fulfilled, () => undefined)
       .addCase(cancelSyncThunk.rejected, () => undefined);
 

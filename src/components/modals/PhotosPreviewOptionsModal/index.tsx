@@ -31,7 +31,7 @@ function PhotosPreviewOptionsModal({
 }: PhotosPreviewOptionsModalProps): JSX.Element {
   const dispatch = useAppDispatch();
   const header = (
-    <>
+    <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
         <Image style={tailwind('bg-black w-10 h-10')} source={{ uri: preview }} />
       </View>
@@ -58,7 +58,7 @@ function PhotosPreviewOptionsModal({
             })}
         </Text>
       </View>
-    </>
+    </View>
   );
   const onInfoButtonPressed = () => {
     dispatch(uiActions.setIsPhotosPreviewInfoModalOpen(true));

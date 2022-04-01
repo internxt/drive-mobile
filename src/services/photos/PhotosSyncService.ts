@@ -13,6 +13,7 @@ import {
   PhotosSyncTaskType,
   PhotosTaskCompletedInfo,
   PhotosCameraRollGetPhotosResponse,
+  PhotosEventKey,
 } from '../../types/photos';
 import PhotosDeviceService from './PhotosDeviceService';
 import PhotosCameraRollService from './PhotosCameraRollService';
@@ -21,11 +22,13 @@ import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosLogService from './PhotosLogService';
 import PhotosUploadService from './PhotosUploadService';
 import PhotosFileSystemService from './PhotosFileSystemService';
+import PhotosEventEmitter from './PhotosEventEmitter';
 
 export default class PhotosSyncService {
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: photos.Photos;
 
+  private readonly eventEmitter: PhotosEventEmitter;
   private readonly deviceService: PhotosDeviceService;
   private readonly cameraRollService: PhotosCameraRollService;
   private readonly uploadService: PhotosUploadService;
@@ -39,6 +42,7 @@ export default class PhotosSyncService {
   constructor(
     model: PhotosServiceModel,
     photosSdk: photos.Photos,
+    eventEmitter: PhotosEventEmitter,
     deviceService: PhotosDeviceService,
     cameraRollService: PhotosCameraRollService,
     uploadService: PhotosUploadService,
@@ -49,6 +53,7 @@ export default class PhotosSyncService {
   ) {
     this.model = model;
     this.photosSdk = photosSdk;
+    this.eventEmitter = eventEmitter;
     this.deviceService = deviceService;
     this.cameraRollService = cameraRollService;
     this.uploadService = uploadService;
@@ -101,33 +106,36 @@ export default class PhotosSyncService {
       const aDayAfterOldestDate = moment(oldestDate).add(1, 'day').toDate();
       const syncInfo = await this.calculateSyncInfo();
 
-      options.onStart?.(syncInfo);
+      if (!options.signal?.aborted) {
+        options.onStart?.(syncInfo);
 
-      await this.downloadRemotePhotos({
-        signal: options.signal,
-        onPhotoDownloaded: onTaskCompletedFactory(PhotosSyncTaskType.Download),
-      });
-      this.logService.info(`[SYNC] ${this.currentSyncId}: REMOTE PHOTOS DOWNLOADED`);
+        await this.downloadRemotePhotos({
+          signal: options.signal,
+          onPhotoDownloaded: onTaskCompletedFactory(PhotosSyncTaskType.Download),
+        });
+        this.logService.info(`[SYNC] ${this.currentSyncId}: REMOTE PHOTOS DOWNLOADED`);
 
-      await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
-        ...options,
-        from: aDayBeforeNewestDate,
-        onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
-      });
-      this.logService.info(`[SYNC] ${this.currentSyncId}: NEWER LOCAL PHOTOS UPLOADED`);
-
-      if (!oldestDate) {
-        this.logService.info(`[SYNC] ${this.currentSyncId}: SKIPPED OLDER LOCAL PHOTOS UPLOAD`);
-      } else {
         await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
           ...options,
-          to: aDayAfterOldestDate,
+          from: aDayBeforeNewestDate,
           onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
         });
-        this.logService.info(`[SYNC] ${this.currentSyncId}: OLDER LOCAL PHOTOS UPLOADED`);
+        this.logService.info(`[SYNC] ${this.currentSyncId}: NEWER LOCAL PHOTOS UPLOADED`);
+
+        if (!oldestDate) {
+          this.logService.info(`[SYNC] ${this.currentSyncId}: SKIPPED OLDER LOCAL PHOTOS UPLOAD`);
+        } else {
+          await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
+            ...options,
+            to: aDayAfterOldestDate,
+            onPhotoUploaded: onTaskCompletedFactory(PhotosSyncTaskType.Upload),
+          });
+          this.logService.info(`[SYNC] ${this.currentSyncId}: OLDER LOCAL PHOTOS UPLOADED`);
+        }
       }
 
       if (options.signal?.aborted) {
+        this.eventEmitter.emit(PhotosEventKey.CancelSyncEnd);
         this.logService.info(`[SYNC] ${this.currentSyncId}: ABORTED`);
       } else {
         this.logService.info(`[SYNC] ${this.currentSyncId}: FINISHED`);

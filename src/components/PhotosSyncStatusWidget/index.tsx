@@ -9,12 +9,14 @@ import { photosThunks } from '../../store/slices/photos';
 import { PhotosSyncStatus } from '../../types/photos';
 import LoadingSpinner from '../LoadingSpinner';
 import AppText from '../AppText';
+import { PhotosService } from '../../services/photos';
 
 const PhotosSyncStatusWidget = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const { syncStatus } = useAppSelector((state) => state.photos);
   const onSyncNowPressed = () => {
-    dispatch(photosThunks.syncThunk());
+    const syncThunk = dispatch(photosThunks.syncThunk());
+    PhotosService.instance.setSyncAbort(() => syncThunk.abort());
   };
   const contentByStatus = {
     [PhotosSyncStatus.Unknown]: (
@@ -45,7 +47,6 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
     ),
     [PhotosSyncStatus.Paused]: (
       <View style={tailwind('flex-row items-center')}>
-        <Pause style={tailwind('mr-2')} size={14} />
         <Text style={tailwind('text-sm text-neutral-100')}>{strings.screens.gallery.paused}</Text>
       </View>
     ),
@@ -70,13 +71,16 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
   const onResumeButtonPressed = () => {
     onSyncNowPressed();
   };
+  const isCompleted = syncStatus.status === PhotosSyncStatus.Completed;
+  const isPaused = syncStatus.status === PhotosSyncStatus.Paused;
+  const isPausing = syncStatus.status === PhotosSyncStatus.Pausing;
 
   return (
     <View style={tailwind('px-5 flex-row items-center justify-between')}>
       {contentByStatus[syncStatus.status]}
-      {syncStatus.status !== PhotosSyncStatus.Completed ? (
-        syncStatus.status !== PhotosSyncStatus.Paused ? (
-          <TouchableOpacity onPress={onPauseButtonPressed}>
+      {!isCompleted ? (
+        !isPaused ? (
+          <TouchableOpacity disabled={isPausing} onPress={onPauseButtonPressed}>
             <View style={tailwind('py-1 flex-row items-center')}>
               <Pause weight="fill" color={getColor('blue-60')} size={12} />
               <AppText style={tailwind('ml-1 text-blue-60 text-sm')}>{strings.components.buttons.pause}</AppText>

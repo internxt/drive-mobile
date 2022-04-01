@@ -89,6 +89,7 @@ export class PhotosService {
     this.syncService = new PhotosSyncService(
       this.model,
       this.photosSdk,
+      this.eventEmitter,
       this.deviceService,
       this.cameraRollService,
       this.uploadService,
@@ -98,7 +99,9 @@ export class PhotosService {
       this.fileSystemService,
     );
 
-    this.eventEmitter.addListener(PhotosEventKey.CancelSync, this.onPhotosSyncCanceled);
+    this.eventEmitter.addListener(PhotosEventKey.CancelSync, () => {
+      this.onSyncCanceled();
+    });
   }
 
   public get isInitialized(): boolean {
@@ -158,7 +161,7 @@ export class PhotosService {
   }
 
   public cancelSync() {
-    return this.eventEmitter.emit(PhotosEventKey.CancelSync);
+    this.eventEmitter.emit(PhotosEventKey.CancelSync);
   }
 
   public countPhotos(): Promise<number> {
@@ -239,7 +242,7 @@ export class PhotosService {
     await this.localDatabaseService.resetDatabase();
   }
 
-  private onPhotosSyncCanceled() {
+  private onSyncCanceled() {
     this.model.syncAbort?.();
   }
 

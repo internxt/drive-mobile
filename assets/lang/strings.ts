@@ -219,7 +219,7 @@ const strings = new LocalizedStrings({
         loading: 'Loading photos...',
         syncing: 'Syncing {0} of {1}',
         pausing: 'Pausing sync...',
-        paused: 'Paused sync',
+        paused: 'Sync paused',
         groupBy: {
           years: 'Years',
           months: 'Months',

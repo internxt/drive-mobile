@@ -18,4 +18,12 @@ export default class PhotosEventEmitter {
   public addListener(event: PhotosEventKey, handler: () => void) {
     this.eventEmitter.addListener(event, handler);
   }
+
+  public removeListener(event: PhotosEventKey, listener: () => void) {
+    this.eventEmitter.removeListener(event, listener);
+  }
+
+  public removeAllListeners(event: PhotosEventKey) {
+    this.eventEmitter.removeAllListeners(event);
+  }
 }
