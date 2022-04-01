@@ -16,9 +16,11 @@ import { GalleryViewMode } from '../../../types/photos';
 import PhotosSyncStatusWidget from '../../../components/PhotosSyncStatusWidget';
 import AppScreen from '../../../components/AppScreen';
 import { Trash } from 'phosphor-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
+  const safeAreaInsets = useSafeAreaInsets();
   const getPhotoPreview = useAppSelector(photosSelectors.getPhotoPreview);
   const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.ui);
   const isLoading = useAppSelector(photosSelectors.isLoading);
@@ -173,7 +175,12 @@ function PhotosGalleryScreen(): JSX.Element {
         {/* SELECTION MODE ACTIONS */}
         {isSelectionModeActivated && (
           <Portal>
-            <View style={[tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2')]}>
+            <View
+              style={[
+                tailwind('flex-row w-full absolute bottom-0 bg-white px-4 py-2'),
+                { marginBottom: safeAreaInsets.bottom },
+              ]}
+            >
               {/*<TouchableWithoutFeedback
                 onPress={onShareSelectionButtonPressed}
                 disabled={hasNoPhotosSelected || hasManyPhotosSelected}
