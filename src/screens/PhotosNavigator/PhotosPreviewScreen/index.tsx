@@ -137,10 +137,6 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
         {/* PHOTO */}
         <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
 
-        <TouchableWithoutFeedback onPress={onScreenPressed}>
-          <View style={tailwind('absolute w-full h-full')}></View>
-        </TouchableWithoutFeedback>
-
         {/* LOADING */}
         {isFullSizeLoading && (
           <View style={tailwind('absolute top-0 bottom-0 right-0 left-0 items-center justify-center')}>
@@ -149,76 +145,80 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
           </View>
         )}
 
-        {showActions && (
-          <View style={tailwind('flex-col justify-between h-full')}>
-            <LinearGradient
-              colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.24)', 'transparent']}
-              style={{
-                ...tailwind('absolute w-full'),
-                paddingTop: safeAreaInsets.top,
-              }}
-            >
-              <View style={tailwind('flex-row justify-between')}>
-                {/* BACK BUTTON */}
-                <TouchableOpacity style={tailwind('z-10')} onPress={onBackButtonPressed}>
-                  <View style={tailwind('p-5')}>
-                    <CaretLeft color={getColor('white')} size={24} weight="bold" />
-                  </View>
-                </TouchableOpacity>
-
-                {/* OPTIONS BUTTON */}
-                <TouchableOpacity style={tailwind('z-10')} onPress={() => setIsOptionsModalOpen(true)}>
-                  <View style={tailwind('p-5')}>
-                    <DotsThree weight="bold" color={getColor('white')} size={24} />
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </LinearGradient>
-
-            <LinearGradient
-              colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.24)', 'rgba(0,0,0,0.6)']}
-              style={{
-                ...tailwind('flex-row justify-around p-3 absolute bottom-0 w-full'),
-                paddingBottom: safeAreaInsets.bottom,
-              }}
-            >
-              <TouchableOpacity
-                disabled={isFullSizeLoading}
-                style={tailwind('items-center flex-1 pb-2')}
-                onPress={onShareButtonPressed}
+        <TouchableWithoutFeedback onPress={onScreenPressed}>
+          {showActions ? (
+            <View style={tailwind('flex-col justify-between h-full')}>
+              <LinearGradient
+                colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.24)', 'transparent']}
+                style={{
+                  ...tailwind('absolute w-full'),
+                  paddingTop: safeAreaInsets.top,
+                }}
               >
-                <Link color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
-                <Text
-                  style={[
-                    tailwind('text-xs'),
-                    !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
-                  ]}
-                >
-                  {strings.components.buttons.share}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                disabled={isFullSizeLoading}
-                style={tailwind('items-center flex-1')}
-                onPress={onDownloadButtonPressed}
+                <View style={tailwind('flex-row justify-between')}>
+                  {/* BACK BUTTON */}
+                  <TouchableOpacity style={tailwind('z-20')} onPress={onBackButtonPressed}>
+                    <View style={tailwind('p-5')}>
+                      <CaretLeft color={getColor('white')} size={24} weight="bold" />
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* OPTIONS BUTTON */}
+                  <TouchableOpacity style={tailwind('z-10')} onPress={() => setIsOptionsModalOpen(true)}>
+                    <View style={tailwind('p-5')}>
+                      <DotsThree weight="bold" color={getColor('white')} size={24} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </LinearGradient>
+
+              <LinearGradient
+                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.24)', 'rgba(0,0,0,0.6)']}
+                style={{
+                  ...tailwind('flex-row justify-around p-3 absolute bottom-0 w-full'),
+                  paddingBottom: safeAreaInsets.bottom,
+                }}
               >
-                <DownloadSimple color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
-                <Text
-                  style={[
-                    tailwind('text-xs'),
-                    !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
-                  ]}
+                <TouchableOpacity
+                  disabled={isFullSizeLoading}
+                  style={tailwind('items-center flex-1 pb-2')}
+                  onPress={onShareButtonPressed}
                 >
-                  {strings.components.buttons.download}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={tailwind('items-center flex-1')} onPress={onMoveToTrashButtonPressed}>
-                <Trash color={getColor('white')} size={26} />
-                <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.moveToThrash}</Text>
-              </TouchableOpacity>
-            </LinearGradient>
-          </View>
-        )}
+                  <Link color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
+                  <Text
+                    style={[
+                      tailwind('text-xs'),
+                      !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
+                    ]}
+                  >
+                    {strings.components.buttons.share}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  disabled={isFullSizeLoading}
+                  style={tailwind('items-center flex-1')}
+                  onPress={onDownloadButtonPressed}
+                >
+                  <DownloadSimple color={!isFullSizeLoading ? 'white' : getColor('neutral-100')} size={26} />
+                  <Text
+                    style={[
+                      tailwind('text-xs'),
+                      !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
+                    ]}
+                  >
+                    {strings.components.buttons.download}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={tailwind('items-center flex-1')} onPress={onMoveToTrashButtonPressed}>
+                  <Trash color={getColor('white')} size={26} />
+                  <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.moveToThrash}</Text>
+                </TouchableOpacity>
+              </LinearGradient>
+            </View>
+          ) : (
+            <View style={tailwind('w-full h-full')}></View>
+          )}
+        </TouchableWithoutFeedback>
       </AppScreen>
     </>
   );
