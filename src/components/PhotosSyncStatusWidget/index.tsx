@@ -81,7 +81,7 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
       {!isCompleted ? (
         !isPaused ? (
           <TouchableOpacity disabled={isPausing} onPress={onPauseButtonPressed}>
-            <View style={tailwind('py-1 flex-row items-center')}>
+            <View style={[tailwind('py-1 flex-row items-center'), isPausing && tailwind('opacity-30')]}>
               <Pause weight="fill" color={getColor('blue-60')} size={12} />
               <AppText style={tailwind('ml-1 text-blue-60 text-sm')}>{strings.components.buttons.pause}</AppText>
             </View>

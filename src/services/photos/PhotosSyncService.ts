@@ -141,8 +141,12 @@ export default class PhotosSyncService {
         this.logService.info(`[SYNC] ${this.currentSyncId}: FINISHED`);
       }
     } catch (err) {
-      this.logService.error(`[SYNC] ${this.currentSyncId}: FAILED:` + JSON.stringify(err, undefined, 2));
-      throw err;
+      if (options.signal?.aborted) {
+        this.logService.warn(`[SYNC] ${this.currentSyncId}: SILENT ERROR AFTER ABORT`);
+      } else {
+        this.logService.error(`[SYNC] ${this.currentSyncId}: FAILED:` + JSON.stringify(err, undefined, 2));
+        throw err;
+      }
     } finally {
       await this.localDatabaseService.cleanTmpCameraRollTable();
       await this.fileSystemService.clearTmp();
