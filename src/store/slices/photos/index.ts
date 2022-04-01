@@ -30,8 +30,6 @@ import { pathToUri } from '../../../services/fileSystem';
 import notificationsService from '../../../services/notifications';
 import { NotificationType } from '../../../types';
 
-let photosService: PhotosService;
-
 export interface PhotosState {
   isInitialized: boolean;
   isDeviceSynchronized: boolean;
@@ -97,7 +95,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     const photosToken = await deviceStorage.getItem('photosToken');
     const user = await deviceStorage.getUser();
 
-    photosService = new PhotosService(photosToken || '', {
+    await PhotosService.initialize(photosToken || '', {
       encryptionKey: user?.mnemonic || '',
       user: user?.bridgeUser || '',
       password: user?.userId || '',
@@ -118,7 +116,7 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
     // TODO: check if this device is synchronized or ask for start using photos
 
     if (photosSelectors.arePermissionsGranted(getState())) {
-      await photosService.initialize();
+      await PhotosService.instance.startUsingPhotos();
     }
   },
 );
@@ -151,14 +149,14 @@ const askForPermissionsThunk = createAsyncThunk<boolean, void, { state: RootStat
 );
 
 const getUsageThunk = createAsyncThunk<number, void, { state: RootState }>('photos/getUsage', async () => {
-  return photosService.getUsage();
+  return PhotosService.instance.getUsage();
 });
 
 const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: RootState }>(
   'photos/deletePhotos',
   async ({ photos }, { dispatch }) => {
     for (const photo of photos) {
-      await photosService.deletePhoto(photo);
+      await PhotosService.instance.deletePhoto(photo);
 
       dispatch(photosActions.deselectPhotos(photo));
       dispatch(photosActions.popPhoto(photo));
@@ -188,7 +186,7 @@ const downloadPhotoThunk = createAsyncThunk<
     dispatch(photosActions.pushDownloadingPhoto(fileId));
   }
 
-  return photosService.downloadPhoto(fileId, {
+  return PhotosService.instance.downloadPhoto(fileId, {
     toPath: options.toPath,
     downloadProgressCallback: (progress) => {
       dispatch(photosActions.setDownloadingPhotoProgress({ fileId, progress }));
@@ -211,8 +209,8 @@ const loadLocalPhotosThunk = createAsyncThunk<
 
   const defaultOptions = { limit: photosState.limit, skip: photosState.skip };
   const options: { limit: number; skip: number } = Object.assign({}, defaultOptions, payload || defaultOptions);
-  const results = await photosService.getPhotos(options);
-  const allPhotosCount = await photosService.countPhotos();
+  const results = await PhotosService.instance.getPhotos(options);
+  const allPhotosCount = await PhotosService.instance.countPhotos();
   const newSkip = options.skip + options.limit > allPhotosCount ? allPhotosCount : options.skip + options.limit;
 
   dispatch(photosActions.addPhotos(results));
@@ -224,7 +222,7 @@ const loadLocalPhotosThunk = createAsyncThunk<
 const loadYearsThunk = createAsyncThunk<{ year: number; preview: string }[], void, { state: RootState }>(
   'photos/loadYears',
   () => {
-    return photosService.getYearsList();
+    return PhotosService.instance.getYearsList();
   },
 );
 
@@ -233,7 +231,7 @@ const loadMonthsThunk = createAsyncThunk<
   void,
   { state: RootState }
 >('photos/loadMonths', () => {
-  return photosService.getMonthsList();
+  return PhotosService.instance.getMonthsList();
 });
 
 const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
@@ -292,7 +290,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(photosActions.resetSyncStatus());
 
-    await photosService.sync({
+    /*await PhotosService.instance.sync({
       id: requestId,
       signal,
       getState,
@@ -300,16 +298,20 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
       onTaskSkipped,
       onTaskCompleted,
       onStorageLimitReached,
-    });
+    });*/
   },
 );
 
+const cancelSyncThunk = createAsyncThunk<void, void, { state: RootState }>('photos/cancelSync', () => {
+  PhotosService.instance.cancelSync();
+});
+
 const selectAllThunk = createAsyncThunk<Photo[], void, { state: RootState }>('photos/selectAll', async () => {
-  return photosService.getAll();
+  return PhotosService.instance.getAll();
 });
 
 const clearDataThunk = createAsyncThunk<void, void, { state: RootState }>('photos/clearData', async () => {
-  return photosService.clearData();
+  return PhotosService.instance.clearData();
 });
 
 export const photosSlice = createSlice({
@@ -576,6 +578,11 @@ export const photosSlice = createSlice({
       });
 
     builder
+      .addCase(cancelSyncThunk.pending, () => undefined)
+      .addCase(cancelSyncThunk.fulfilled, () => undefined)
+      .addCase(cancelSyncThunk.rejected, () => undefined);
+
+    builder
       .addCase(clearDataThunk.pending, () => undefined)
       .addCase(clearDataThunk.fulfilled, () => undefined)
       .addCase(clearDataThunk.rejected, () => undefined);
@@ -628,8 +635,8 @@ export const photosSelectors = {
 
     return result;
   },
-  photosDirectory: (): string => photosService.photosDirectory,
-  previewsDirectory: (): string => photosService.previewsDirectory,
+  photosDirectory: (): string => PhotosService.instance.photosDirectory,
+  previewsDirectory: (): string => PhotosService.instance.previewsDirectory,
   photosByMonth: (state: RootState): PhotosByMonthType[] => {
     const result: PhotosByMonthType[] = [];
 
@@ -681,6 +688,7 @@ export const photosThunks = {
   loadMonthsThunk,
   loadLocalPhotosThunk,
   syncThunk,
+  cancelSyncThunk,
   clearDataThunk,
 };
 

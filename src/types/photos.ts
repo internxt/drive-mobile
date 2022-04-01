@@ -34,6 +34,10 @@ export enum PhotosSyncStatus {
 
 export const PHOTOS_DB_NAME = 'photos.db';
 
+export enum PhotosEventKey {
+  CancelSync = 'cancel-sync',
+}
+
 export interface PhotosServiceModel {
   debug: boolean;
   isInitialized: boolean;
@@ -42,6 +46,7 @@ export interface PhotosServiceModel {
   networkUrl: string;
   user?: User;
   device?: Device;
+  syncAbortSignal?: AbortSignal;
 }
 
 export interface SqlitePhotoRow {

@@ -35,7 +35,7 @@ const ScreenTitle = ({
       {showBackButton && (
         <TouchableOpacity style={tailwind('flex-1')} disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
-            <CaretLeft color={getColor('blue-60')} size={24} />
+            <CaretLeft weight="bold" color={getColor('blue-60')} size={24} />
           </View>
         </TouchableOpacity>
       )}

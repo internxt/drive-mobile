@@ -265,6 +265,8 @@ const strings = new LocalizedStrings({
         invite: 'Invite',
         grant: 'Grant',
         dismiss: 'Dismiss',
+        pause: 'Pause',
+        resume: 'Resume',
       },
       inputs: {
         email: 'Email address',
@@ -673,6 +675,8 @@ const strings = new LocalizedStrings({
         invite: 'Invitar',
         grant: 'Autorizar',
         dismiss: 'Cerrar',
+        pause: 'Pausar',
+        resume: 'Reanudar',
       },
       inputs: {
         email: 'Correo electrónico',

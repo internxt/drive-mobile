@@ -263,7 +263,7 @@ function DriveScreen(): JSX.Element {
             onPress={() => dispatch(storageThunks.goBackThunk({ folderId: parentFolderId as number }))}
           >
             <View style={[tailwind('flex-row items-center'), !parentFolderId && tailwind('opacity-50')]}>
-              <CaretLeft color={getColor('blue-60')} style={tailwind('-ml-2 -mr-1')} size={32} />
+              <CaretLeft weight="bold" color={getColor('blue-60')} style={tailwind('-ml-2 mr-1')} size={24} />
               <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>
                 {strings.components.buttons.back}
               </Text>
@@ -276,12 +276,12 @@ function DriveScreen(): JSX.Element {
               style={tailwind('p-2')}
               onPress={() => dispatch(uiActions.setSearchActive(!searchActive))}
             >
-              <MagnifyingGlass color={getColor('blue-60')} size={22} />
+              <MagnifyingGlass weight="bold" color={getColor('blue-60')} size={24} />
             </TouchableOpacity>
           </View>
           <View style={tailwind('items-center justify-center')}>
             <TouchableOpacity style={tailwind('p-2')} onPress={onCurrentFolderActionsButtonPressed}>
-              <DotsThree weight="bold" color={getColor('blue-60')} size={22} />
+              <DotsThree weight="bold" color={getColor('blue-60')} size={24} />
             </TouchableOpacity>
           </View>
         </View>

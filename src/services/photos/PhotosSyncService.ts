@@ -133,7 +133,7 @@ export default class PhotosSyncService {
         this.logService.info(`[SYNC] ${this.currentSyncId}: FINISHED`);
       }
     } catch (err) {
-      this.logService.info(`[SYNC] ${this.currentSyncId}: FAILED:` + JSON.stringify(err, undefined, 2));
+      this.logService.error(`[SYNC] ${this.currentSyncId}: FAILED:` + JSON.stringify(err, undefined, 2));
       throw err;
     } finally {
       await this.localDatabaseService.cleanTmpCameraRollTable();

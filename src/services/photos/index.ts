@@ -1,7 +1,15 @@
 import { photos } from '@internxt/sdk';
 
+import { constants } from '../app';
+import { RootState } from '../../store';
 import { NetworkCredentials } from '../../types';
-import { PhotosServiceModel, PhotosSyncInfo, PhotosSyncTaskType, PhotosTaskCompletedInfo } from '../../types/photos';
+import {
+  PhotosEventKey,
+  PhotosServiceModel,
+  PhotosSyncInfo,
+  PhotosSyncTaskType,
+  PhotosTaskCompletedInfo,
+} from '../../types/photos';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosUploadService from './PhotosUploadService';
 import PhotosDeleteService from './PhotosDeleteService';
@@ -13,15 +21,16 @@ import PhotosUserService from './PhotosUserService';
 import PhotosLogService from './PhotosLogService';
 import PhotosFileSystemService from './PhotosFileSystemService';
 import PhotosUsageService from './PhotosUsageService';
-import { RootState } from '../../store';
 import PhotosPreviewService from './PhotosPreviewService';
-import { constants } from '../app';
+import PhotosEventEmitter from './PhotosEventEmitter';
 
 export class PhotosService {
+  public static instance: PhotosService;
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: photos.Photos;
 
   private readonly logService: PhotosLogService;
+  private readonly eventEmitter: PhotosEventEmitter;
   private readonly fileSystemService: PhotosFileSystemService;
   private readonly cameraRollService: PhotosCameraRollService;
   private readonly localDatabaseService: PhotosLocalDatabaseService;
@@ -34,7 +43,7 @@ export class PhotosService {
   private readonly syncService: PhotosSyncService;
   private readonly previewService: PhotosPreviewService;
 
-  constructor(accessToken: string, networkCredentials: NetworkCredentials) {
+  private constructor(accessToken: string, networkCredentials: NetworkCredentials) {
     this.model = {
       debug: constants.REACT_NATIVE_DEBUG,
       isInitialized: false,
@@ -45,6 +54,7 @@ export class PhotosService {
     this.photosSdk = new photos.Photos(constants.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
 
     this.logService = new PhotosLogService(this.model);
+    this.eventEmitter = new PhotosEventEmitter(this.model);
     this.fileSystemService = new PhotosFileSystemService(this.model, this.logService);
     this.localDatabaseService = new PhotosLocalDatabaseService(this.model, this.logService);
     this.cameraRollService = new PhotosCameraRollService(this.logService, this.localDatabaseService);
@@ -101,15 +111,21 @@ export class PhotosService {
     return this.fileSystemService.previewsDirectory;
   }
 
-  public async initialize(): Promise<void> {
+  public static async initialize(accessToken: string, networkCredentials: NetworkCredentials): Promise<void> {
+    PhotosService.instance = new PhotosService(accessToken, networkCredentials);
+  }
+
+  public async startUsingPhotos() {
     await this.fileSystemService.initialize();
     await this.localDatabaseService.initialize();
     await this.userService.initialize();
     await this.deviceService.initialize();
 
     this.model.isInitialized = true;
+  }
 
-    this.logService.info('Initialized');
+  public addListener(event: PhotosEventKey, handler: () => void) {
+    return this.eventEmitter.addListener(event, handler);
   }
 
   /**
@@ -132,7 +148,12 @@ export class PhotosService {
     }) => void;
     onStorageLimitReached: () => void;
   }): Promise<void> {
+    this.model.syncAbortSignal = options.signal;
     return this.syncService.run(options);
+  }
+
+  public cancelSync() {
+    return this.eventEmitter.emit(PhotosEventKey.CancelSync);
   }
 
   public countPhotos(): Promise<number> {
