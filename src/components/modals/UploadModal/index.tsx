@@ -509,7 +509,8 @@ function UploadModal(): JSX.Element {
 
   return (
     <BottomModal
-      containerStyle={{ ...tailwind('bg-transparent'), paddingBottom: safeAreaInsets.bottom }}
+      style={tailwind('bg-transparent')}
+      containerStyle={{ paddingBottom: safeAreaInsets.bottom }}
       isOpen={showUploadModal}
       onClosed={() => {
         dispatch(uiActions.setShowUploadFileModal(false));
