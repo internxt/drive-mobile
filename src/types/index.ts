@@ -96,8 +96,6 @@ export enum SortType {
   UpdatedAt = 'updatedAt',
 }
 
-export type DriveItemData = DriveFileData & DriveFolderData;
-
 export enum NotificationType {
   Info = 'info',
   Success = 'success',
@@ -111,4 +109,21 @@ export interface NotificationData {
   type: NotificationType;
   text1: string;
   text2?: string;
+}
+
+export type DriveItemData = DriveFileData & DriveFolderData;
+
+export enum FileListViewMode {
+  List = 'list',
+  Grid = 'grid',
+}
+
+export enum FileListType {
+  Drive = 'drive',
+  Shared = 'shared',
+}
+
+export enum FileItemStatus {
+  Uploaded = 'uploaded',
+  Uploading = 'uploading',
 }

@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { FileListViewMode } from '../../../types';
 
 export interface UIState {
   searchActive: boolean;
@@ -23,7 +24,7 @@ export interface UIState {
   isNewsletterModalOpen: boolean;
   isInviteFriendsModalOpen: boolean;
   isReferralsBannerOpen: boolean;
-  fileViewMode: 'list' | 'grid';
+  fileViewMode: FileListViewMode;
 }
 
 const initialState: UIState = {
@@ -49,7 +50,7 @@ const initialState: UIState = {
   isNewsletterModalOpen: false,
   isInviteFriendsModalOpen: false,
   isReferralsBannerOpen: false,
-  fileViewMode: 'list',
+  fileViewMode: FileListViewMode.List,
 };
 
 export const uiSlice = createSlice({
@@ -96,7 +97,7 @@ export const uiSlice = createSlice({
       state.showMoveModal = action.payload;
     },
     switchFileViewMode(state) {
-      state.fileViewMode = state.fileViewMode === 'list' ? 'grid' : 'list';
+      state.fileViewMode = state.fileViewMode === FileListViewMode.List ? FileListViewMode.Grid : FileListViewMode.List;
     },
     setBackButtonEnabled: (state, action: PayloadAction<boolean>) => {
       state.backButtonEnabled = action.payload;

@@ -11,7 +11,7 @@ import SearchInput from '../../components/SearchInput';
 import globalStyle from '../../styles';
 import ScreenTitle from '../../components/ScreenTitle';
 import Separator from '../../components/Separator';
-import { AppScreenKey as AppScreenKey, DevicePlatform, SortDirection } from '../../types';
+import { AppScreenKey as AppScreenKey, DevicePlatform, FileListType, SortDirection } from '../../types';
 import { authActions, authThunks } from '../../store/slices/auth';
 import { storageActions, storageThunks } from '../../store/slices/storage';
 import { uiActions } from '../../store/slices/ui';
@@ -317,7 +317,7 @@ function DriveScreen(): JSX.Element {
 
       <Separator />
 
-      <FileList isGrid={fileViewMode === 'grid'} />
+      <FileList type={FileListType.Drive} viewMode={fileViewMode} />
     </AppScreen>
   );
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, Alert, Platform, PermissionsAndroid, TouchableHighlight } from 'react-native';
-import { uniqueId } from 'lodash';
 import {
   launchCameraAsync,
   requestCameraPermissionsAsync,
@@ -33,6 +32,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomModal from '../BottomModal';
 
 interface UploadingFile {
+  id: number;
   size: number;
   progress: number;
   name: string;
@@ -40,7 +40,6 @@ interface UploadingFile {
   currentFolder: any;
   createdAt: string;
   updatedAt: string;
-  id: string;
   uri: string;
   folderId?: number;
 }
@@ -197,15 +196,15 @@ function UploadModal(): JSX.Element {
     analytics.track(AnalyticsEventKey.FileUploadError, uploadErrorTrack);
   }
 
-  function uploadSuccess(file: { id: string }) {
+  function uploadSuccess(id: number) {
     trackUploadSuccess();
 
-    dispatch(storageActions.removeUploadingFile(file.id));
-    dispatch(storageActions.updateUploadingFile(file.id));
+    dispatch(storageActions.uploadingFileEnd(id));
+    dispatch(storageActions.updateUploadingFile(id));
     dispatch(storageActions.setUri(undefined));
   }
 
-  function processFilesFromPicker(documents: any[]): Promise<void> {
+  function processFilesFromPicker(documents: DocumentPickerResponse[]): Promise<void> {
     documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
     dispatch(uiActions.setShowUploadFileModal(false));
 
@@ -219,6 +218,7 @@ function UploadModal(): JSX.Element {
     const nameSplittedByDots = file.name.split('.');
 
     return {
+      id: new Date().getTime(),
       uri: file.uri,
       name: renameIfAlreadyExists(
         filesAtSameLevel,
@@ -229,7 +229,6 @@ function UploadModal(): JSX.Element {
       currentFolder: currentFolderId,
       createdAt: new Date().toString(),
       updatedAt: new Date().toString(),
-      id: uniqueId(),
       size: file.size,
       progress: 0,
     };
@@ -265,6 +264,7 @@ function UploadModal(): JSX.Element {
         file = toUploadingFile(filesAtSameLevel, fileToUpload);
       } else {
         file = {
+          id: new Date().getTime(),
           uri: fileToUpload.uri,
           name: renameIfAlreadyExists(
             filesAtSameLevel,
@@ -275,7 +275,6 @@ function UploadModal(): JSX.Element {
           currentFolder: currentFolderId,
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
-          id: uniqueId(),
           size: fileToUpload.size,
           progress: 0,
         };
@@ -295,7 +294,7 @@ function UploadModal(): JSX.Element {
     for (const file of formattedFiles) {
       await upload(file, 'document')
         .then(() => {
-          uploadSuccess(file);
+          uploadSuccess(file.id);
         })
         .catch((err) => {
           trackUploadError(err);
@@ -463,12 +462,12 @@ function UploadModal(): JSX.Element {
           const fileInfo = await FileSystem.getInfoAsync(result.uri);
           const size = fileInfo.size;
           const file: UploadingFile = {
+            id: new Date().getTime(),
             name,
             progress: 0,
             currentFolder: currentFolderId,
             createdAt: new Date().toString(),
             updatedAt: new Date().toString(),
-            id: uniqueId(),
             type: getExtensionFromUri(result.uri) as string,
             size: size || 0,
             uri: result.uri,

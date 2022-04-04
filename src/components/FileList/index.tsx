@@ -13,59 +13,12 @@ import strings from '../../../assets/lang/strings';
 import { storageThunks } from '../../store/slices/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import fileService from '../../services/file';
-
-export interface IFolder {
-  name: string;
-  id: number;
-  createdAt: Date;
-  updatedAt: Date;
-  size: number;
-  type: string;
-  fileId: string;
-  progress: number;
-  folderId?: number;
-  parentId: undefined;
-  uri?: string;
-  isUploaded?: boolean;
-  isLoading?: boolean;
-}
-
-export interface IUploadingFile {
-  currentFolder: number;
-  progress: number;
-  uri: string;
-  id: string;
-  type: string;
-  createdAt: Date;
-  updatedAt: Date;
-  size: number;
-  name: string;
-  folderId: number;
-  fileId?: number;
-  isUploaded?: boolean;
-  isLoading?: boolean;
-  parentId: number;
-}
-
-export interface IFile {
-  bucket: string;
-  createdAt: Date;
-  folderId: number;
-  fileId: string;
-  id: number;
-  name: string;
-  type: string;
-  updatedAt: Date;
-  size: number;
-  progress: number;
-  uri?: string;
-  isUploaded?: boolean;
-  isLoading?: boolean;
-  parentId: string;
-}
+import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { FileListType, FileListViewMode } from '../../types';
 
 interface FileListProps {
-  isGrid: boolean;
+  type: FileListType;
+  viewMode: FileListViewMode;
 }
 
 function FileList(props: FileListProps): JSX.Element {
@@ -73,7 +26,7 @@ function FileList(props: FileListProps): JSX.Element {
   const [refreshing, setRefreshing] = useState(false);
   const {
     folderContent,
-    filesCurrentlyUploading,
+    uploadingFiles,
     searchString,
     filesAlreadyUploaded,
     sortType,
@@ -83,13 +36,13 @@ function FileList(props: FileListProps): JSX.Element {
     currentFolderId,
   } = useAppSelector((state) => state.storage);
   const { user } = useAppSelector((state) => state.auth);
-  let folderList: IFolder[] = (folderContent && folderContent.children) || [];
-  let fileList: IFile[] = (folderContent && folderContent.files) || [];
+  let folderList: DriveFolderData[] = (folderContent && folderContent.children) || [];
+  let fileList: DriveFileData[] = (folderContent && folderContent.files) || [];
   const sortFunction = fileService.getSortFunction({ type: sortType, direction: sortDirection });
 
   if (searchString) {
-    fileList = fileList.filter((file: IFile) => file.name.toLowerCase().includes(searchString.toLowerCase()));
-    folderList = folderList.filter((folder: IFolder) => folder.name.toLowerCase().includes(searchString.toLowerCase()));
+    fileList = fileList.filter((file) => file.name.toLowerCase().includes(searchString.toLowerCase()));
+    folderList = folderList.filter((folder) => folder.name.toLowerCase().includes(searchString.toLowerCase()));
   }
 
   folderList = folderList.slice().sort(sortFunction as any);
@@ -108,7 +61,7 @@ function FileList(props: FileListProps): JSX.Element {
   const isEmptyFolder =
     folderList.length === 0 &&
     fileList.length === 0 &&
-    filesCurrentlyUploading.length === 0 &&
+    uploadingFiles.length === 0 &&
     filesAlreadyUploaded.length === 0 &&
     !isUploading;
 
@@ -120,7 +73,7 @@ function FileList(props: FileListProps): JSX.Element {
 
   return (
     <FlatList
-      key={props.isGrid ? 'grid' : 'list'}
+      key={props.viewMode}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -133,7 +86,7 @@ function FileList(props: FileListProps): JSX.Element {
           }}
         />
       }
-      numColumns={props.isGrid ? totalColumns : 1}
+      numColumns={props.viewMode === FileListViewMode.Grid ? totalColumns : 1}
       collapsable={true}
       contentContainerStyle={isEmptyFolder && tailwind('h-full justify-center')}
       ListEmptyComponent={
@@ -155,17 +108,17 @@ function FileList(props: FileListProps): JSX.Element {
           <EmptyList {...strings.screens.drive.emptyFolder} image={<EmptyFolderImage width={100} height={100} />} />
         )
       }
-      data={[...filesCurrentlyUploading, ...folderList, ...fileList, ...filesAlreadyUploaded]}
-      keyExtractor={(item) => `${props.isGrid}-${item.id}`}
+      data={[...uploadingFiles, ...folderList, ...fileList, ...filesAlreadyUploaded]}
+      keyExtractor={(item) => `${props.viewMode}-${item.id}`}
       renderItem={({ item }) => {
         return (
           <FileItem
             isLoading={item.isLoading}
             isFolder={!!item.parentId}
-            key={`${props.isGrid}-${item.id}`}
+            type={props.type}
             item={item}
             progress={isNaN(item.progress) ? -1 : item.progress}
-            isGrid={props.isGrid}
+            viewMode={props.viewMode}
             totalColumns={totalColumns}
           />
         );

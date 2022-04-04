@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
-import { IFile, IFolder, IUploadingFile } from '../../../components/FileList';
 import analytics, { AnalyticsEventKey } from '../../../services/analytics';
 import fileService from '../../../services/file';
 import folderService from '../../../services/folder';
@@ -12,6 +11,7 @@ import {
   SortDirection,
   SortType,
   NotificationType,
+  DriveItemData,
 } from '../../../types';
 import { RootState } from '../..';
 import { uiActions } from '../ui';
@@ -32,21 +32,20 @@ interface FolderContent {
   userId: number | null;
   iconId: number | null;
   parentId: number | null;
-  children: IFolder[];
-  files: IFile[];
+  children: DriveFolderData[];
+  files: DriveFileData[];
 }
 
 export interface StorageState {
   isLoading: boolean;
-  items: any[];
   absolutePath: string;
-  filesCurrentlyUploading: IUploadingFile[];
-  filesAlreadyUploaded: any[];
+  items: DriveItemData[];
+  uploadingFiles: { parentId: number; progress: number; data: DriveItemData }[];
+  selectedItems: DriveItemData[];
   currentFolderId: number;
   folderContent: FolderContent | null;
   rootFolderContent: any;
   focusedItem: any | null;
-  selectedItems: any[];
   sortType: SortType;
   sortDirection: SortDirection;
   searchString: string;
@@ -68,7 +67,7 @@ const initialState: StorageState = {
   items: [],
   currentFolderId: -1,
   absolutePath: '/',
-  filesCurrentlyUploading: [],
+  uploadingFiles: [],
   filesAlreadyUploaded: [],
   folderContent: null,
   rootFolderContent: [],
@@ -238,7 +237,7 @@ export const storageSlice = createSlice({
 
       state.uri = action.payload;
     },
-    updateUploadingFile(state, action: PayloadAction<string>) {
+    updateUploadingFile(state, action: PayloadAction<number>) {
       state.filesAlreadyUploaded = state.filesAlreadyUploaded.map((file) =>
         file.id === action.payload ? { ...file, isUploaded: true } : file,
       );
@@ -261,32 +260,31 @@ export const storageSlice = createSlice({
       state.startDownloadSelectedFile = false;
     },
     addUploadingFile(state, action: PayloadAction<any>) {
-      state.filesCurrentlyUploading = [...state.filesCurrentlyUploading, action.payload];
+      state.uploadingFiles = [...state.uploadingFiles, action.payload];
     },
-    removeUploadingFile(state, action: PayloadAction<string>) {
-      state.filesAlreadyUploaded = [
-        ...state.filesAlreadyUploaded,
-        state.filesCurrentlyUploading.find((file) => file.id === action.payload),
-      ];
-      state.filesCurrentlyUploading = state.filesCurrentlyUploading.filter((file) => file.id !== action.payload);
+    uploadingFileEnd(state, action: PayloadAction<number>) {
+      const uploadingFile = state.uploadingFiles.find((f) => f.data.id === action.payload);
+
+      state.currentFolderId === uploadingFile?.parentId && state.items.push(uploadingFile.data);
+      state.uploadingFiles = state.uploadingFiles.filter((file) => file.data.id !== action.payload);
     },
     uploadFileFinished(state) {
       state.isLoading = false;
       state.isUploading = false;
       state.isUploadingFileName = null;
     },
-    uploadFileFailed(state, action: PayloadAction<{ errorMessage?: string; id?: string }>) {
+    uploadFileFailed(state, action: PayloadAction<{ errorMessage?: string; id?: number }>) {
       state.isLoading = false;
       state.isUploading = false;
       state.error = action.payload.errorMessage;
-      state.filesCurrentlyUploading = state.filesCurrentlyUploading.filter((file) => file.id !== action.payload.id);
+      state.uploadingFiles = state.uploadingFiles.filter((file) => file.data.id !== action.payload.id);
     },
-    uploadFileSetProgress(state, action: PayloadAction<{ progress: number; id?: string }>) {
-      if (state.filesCurrentlyUploading.length > 0) {
-        const index = state.filesCurrentlyUploading.findIndex((x) => x.id === action.payload.id);
+    uploadFileSetProgress(state, action: PayloadAction<{ progress: number; id?: number }>) {
+      if (state.uploadingFiles.length > 0) {
+        const index = state.uploadingFiles.findIndex((x) => x.data.id === action.payload.id);
 
-        if (state.filesCurrentlyUploading[index]) {
-          state.filesCurrentlyUploading[index].progress = action.payload.progress;
+        if (state.uploadingFiles[index]) {
+          state.uploadingFiles[index].progress = action.payload.progress;
         }
       }
     },
@@ -357,7 +355,6 @@ export const storageSlice = createSlice({
         state.currentFolderId = action.payload.currentFolderId;
         state.folderContent = action.payload.folderContent;
         state.selectedItems = [];
-        state.filesAlreadyUploaded = state.filesAlreadyUploaded.filter((file) => file.isUploaded === false);
       })
       .addCase(getFolderContentThunk.rejected, (state, action) => {
         state.isLoading = false;
