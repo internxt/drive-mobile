@@ -21,11 +21,14 @@ import { uiActions } from './store/slices/ui';
 import { storageActions } from './store/slices/storage';
 import SortModal from './components/modals/SortModal';
 import AppToast from './components/AppToast';
+import LinkCopiedModal from './components/modals/LinkCopiedModal';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const [isAppInitialized, setIsAppInitialized] = useState(false);
-  const { isInviteFriendsModalOpen, isNewsletterModalOpen } = useAppSelector((state) => state.ui);
+  const { isLinkCopiedModalOpen, isInviteFriendsModalOpen, isNewsletterModalOpen } = useAppSelector(
+    (state) => state.ui,
+  );
   const [loadError, setLoadError] = useState('');
   const linking: LinkingOptions<ReactNavigation.RootParamList> = {
     prefixes: ['inxt'],
@@ -50,6 +53,9 @@ export default function App(): JSX.Element {
       dispatch(authThunks.signOutThunk());
     }
   };
+  const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
+  const onInviteFriendsModalClosed = () => dispatch(uiActions.setIsInviteFriendsModalOpen(false));
+  const onNewsletterModalClosed = () => dispatch(uiActions.setIsNewsletterModalOpen(false));
 
   // Initialize app
   useEffect(() => {
@@ -125,14 +131,9 @@ export default function App(): JSX.Element {
             <AppToast />
 
             <SortModal />
-            <InviteFriendsModal
-              isOpen={isInviteFriendsModalOpen}
-              onClosed={() => dispatch(uiActions.setIsInviteFriendsModalOpen(false))}
-            />
-            <NewsletterModal
-              isOpen={isNewsletterModalOpen}
-              onClosed={() => dispatch(uiActions.setIsNewsletterModalOpen(false))}
-            />
+            <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClosed={onLinkCopiedModalClosed} />
+            <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClosed={onInviteFriendsModalClosed} />
+            <NewsletterModal isOpen={isNewsletterModalOpen} onClosed={onNewsletterModalClosed} />
           </View>
         </Portal.Host>
       </KeyboardAvoidingView>

@@ -58,7 +58,7 @@ open -a /Applications/Android\ Studio.app
 
 ### Run
 
-Configure a virtual device in Android Studio or connect by USB a real device with ADB to run the Android application with the following command:
+Configure a virtual device in Android Studio or connect by USB a real device with ADB to run the Android application with the following command using the Expo CLI:
 
 ```bash
 yarn android
@@ -113,16 +113,4 @@ To config the environment variables, you have to create **.env.development.json*
 
 ```bash
 yarn ios
-```
-
-Or specify a simulator:
-
-```bash
-yarn ios --simulator "iPhone X"
-```
-
-Or specify a connected device:
-
-```bash
-yarn ios --device "My iPhone"
 ```

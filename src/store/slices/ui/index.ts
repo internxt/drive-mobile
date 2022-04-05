@@ -4,7 +4,6 @@ import { FileListViewMode } from '../../../types';
 export interface UIState {
   searchActive: boolean;
   createFolderActive: boolean;
-  showSettingsModal: boolean;
   showItemModal: boolean;
   showAddItemModal: boolean;
   showSortModal: boolean;
@@ -30,7 +29,6 @@ export interface UIState {
 const initialState: UIState = {
   searchActive: false,
   createFolderActive: false,
-  showSettingsModal: false,
   showItemModal: false,
   showAddItemModal: false,
   showSortModal: false,
@@ -62,9 +60,6 @@ export const uiSlice = createSlice({
     },
     setSearchActive: (state, action: PayloadAction<boolean>) => {
       state.searchActive = action.payload;
-    },
-    setShowSettingsModal: (state, action: PayloadAction<boolean>) => {
-      state.showSettingsModal = action.payload;
     },
     setShowSortModal: (state, action: PayloadAction<boolean>) => {
       state.showSortModal = action.payload;

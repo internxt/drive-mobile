@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { IFile } from '../components/FileList';
+import { IFile } from '../components/DriveList';
 import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
 import { NotificationType } from '../types';

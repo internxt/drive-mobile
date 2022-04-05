@@ -3,6 +3,11 @@ import { store as storeInstance } from '../store';
 
 type StoreType = typeof storeInstance;
 
+export enum AppStage {
+  Development = 'development',
+  Production = 'production',
+}
+
 export interface AppPlugin {
   install: (store: StoreType) => void;
 }
@@ -124,6 +129,14 @@ export enum FileListType {
 }
 
 export enum FileItemStatus {
-  Uploaded = 'uploaded',
+  Idle = 'idle',
   Uploading = 'uploading',
+  Downloading = 'downloading',
 }
+
+export interface UploadingFile {
+  progress: number;
+  data: DriveFileData;
+}
+
+export type ProgressCallback = (progress: number) => void;

@@ -9,7 +9,6 @@ const strings = new LocalizedStrings({
     generic: {
       loading: 'Loading',
       security: 'Security',
-      create: 'Create',
       creating: 'Creating...',
       preparing: 'Preparing...',
       rename: 'Rename',
@@ -24,7 +23,7 @@ const strings = new LocalizedStrings({
     tabs: {
       home: 'Home',
       drive: 'Drive',
-      create: 'Create',
+      add: 'Add',
       photos: 'Photos',
       menu: 'Settings',
     },
@@ -433,7 +432,7 @@ const strings = new LocalizedStrings({
     tabs: {
       home: 'Inicio',
       drive: 'Drive',
-      create: 'Crear',
+      add: 'Añadir',
       photos: 'Photos',
       menu: 'Ajustes',
     },

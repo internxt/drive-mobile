@@ -6,7 +6,6 @@ import * as Linking from 'expo-linking';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 
 import { AppScreenKey } from '../types';
-import UpdateModal from '../components/modals/UpdateModal';
 import CreateFolderScreen from './CreateFolderScreen';
 import SignInScreen from './SignInScreen';
 import SignUpScreen from './SignUpScreen';
@@ -20,8 +19,6 @@ import RecoverPasswordScreen from './RecoverPasswordScreen';
 import ForgotPasswordScreen from './ForgotPasswordScreen';
 import PhotosNavigator from './PhotosNavigator';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { uiActions } from '../store/slices/ui';
-import LinkCopiedModal from '../components/modals/LinkCopiedModal';
 import PhotosPreviewScreen from './PhotosNavigator/PhotosPreviewScreen';
 import { appThunks } from '../store/slices/app';
 import { storageActions } from '../store/slices/storage';
@@ -60,10 +57,6 @@ function AppNavigator(): JSX.Element {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
   const initialRouteName = isLoggedIn ? AppScreenKey.TabExplorer : AppScreenKey.SignIn;
-  const isLinkCopiedModalOpen = useAppSelector((state) => state.ui.isLinkCopiedModalOpen);
-  const onLinkCopiedModalClosed = () => {
-    dispatch(uiActions.setIsLinkCopiedModalOpen(false));
-  };
   const onAppLinkOpened = async (event: Linking.EventType) => {
     const sessionId = await AsyncStorage.getItem('tmpCheckoutSessionId');
 
@@ -130,21 +123,16 @@ function AppNavigator(): JSX.Element {
   }, []);
 
   return (
-    <>
-      <UpdateModal />
-      <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClosed={onLinkCopiedModalClosed} />
-
-      <StackNav.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false }}>
-        {Object.entries(routeConfig).map(([name, component]: [string, any]) => (
-          <StackNav.Screen
-            key={name}
-            name={name}
-            component={component.screen}
-            options={{ animation: 'slide_from_right' }}
-          />
-        ))}
-      </StackNav.Navigator>
-    </>
+    <StackNav.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false }}>
+      {Object.entries(routeConfig).map(([name, component]: [string, any]) => (
+        <StackNav.Screen
+          key={name}
+          name={name}
+          component={component.screen}
+          options={{ animation: 'slide_from_right' }}
+        />
+      ))}
+    </StackNav.Navigator>
   );
 }
 

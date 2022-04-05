@@ -68,7 +68,6 @@ const initialState: StorageState = {
   currentFolderId: -1,
   absolutePath: '/',
   uploadingFiles: [],
-  filesAlreadyUploaded: [],
   folderContent: null,
   rootFolderContent: [],
   focusedItem: null,
@@ -236,11 +235,6 @@ export const storageSlice = createSlice({
       }
 
       state.uri = action.payload;
-    },
-    updateUploadingFile(state, action: PayloadAction<number>) {
-      state.filesAlreadyUploaded = state.filesAlreadyUploaded.map((file) =>
-        file.id === action.payload ? { ...file, isUploaded: true } : file,
-      );
     },
     setRootFolderContent(state, action: PayloadAction<any>) {
       state.rootFolderContent = action.payload;
@@ -430,6 +424,25 @@ export const storageSlice = createSlice({
       });
   },
 });
+
+export const storageSelectors = {
+  driveItems(state: RootState) {
+    const { folderContent, uploadingFiles, searchString, sortType, sortDirection } = state.storage;
+    const sortFunction = fileService.getSortFunction({ type: sortType, direction: sortDirection });
+    let folderList: DriveFolderData[] = (folderContent && folderContent.children) || [];
+    let fileList: DriveFileData[] = (folderContent && folderContent.files) || [];
+
+    if (searchString) {
+      fileList = fileList.filter((file) => file.name.toLowerCase().includes(searchString.toLowerCase()));
+      folderList = folderList.filter((folder) => folder.name.toLowerCase().includes(searchString.toLowerCase()));
+    }
+
+    folderList = folderList.slice().sort(sortFunction as any);
+    fileList = fileList.slice().sort(sortFunction as any);
+
+    return [...uploadingFiles, ...folderList, ...fileList];
+  },
+};
 
 export const storageActions = storageSlice.actions;
 

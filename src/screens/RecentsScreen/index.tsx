@@ -3,8 +3,8 @@ import { StyleSheet, View, Alert, ScrollView, RefreshControl } from 'react-nativ
 import _ from 'lodash';
 
 import { getRecents } from '../../services/recents';
-import { IFile } from '../../components/FileList';
-import FileItem from '../../components/FileItem';
+import { IFile } from '../../components/DriveList';
+import FileItem from '../../components/DriveItem';
 import SkinSkeleton from '../../components/SkinSkeleton';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';

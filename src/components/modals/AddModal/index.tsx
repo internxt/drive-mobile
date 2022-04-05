@@ -18,7 +18,7 @@ import { getExtensionFromUri, removeExtension, renameIfAlreadyExists } from '../
 import strings from '../../../../assets/lang/strings';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
-import { DevicePlatform, NotificationType } from '../../../types';
+import { DevicePlatform, NotificationType, ProgressCallback, UploadingFile } from '../../../types';
 import { deviceStorage } from '../../../services/asyncStorage';
 import { UPLOAD_FILE_SIZE_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -31,40 +31,18 @@ import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomModal from '../BottomModal';
 
-interface UploadingFile {
-  id: number;
-  size: number;
-  progress: number;
-  name: string;
-  type: string;
-  currentFolder: any;
-  createdAt: string;
-  updatedAt: string;
-  uri: string;
-  folderId?: number;
-}
-
-type ProgressCallback = (progress: number) => void;
-
-async function uploadIOS(res: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
-  const result = { ...res };
-
-  // Set name for pics/photos
-  if (!result.name) {
-    result.name = result.uri.split('/').pop() || '';
-  }
+async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
+  const name = file.data.uri.split('/').pop() || '';
 
   const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
-  const fileUri = result.uri.replace(regex, '$2');
+  const fileUri = file.data.uri.replace(regex, '$2');
   const extension = fileUri.split('.').pop() || '';
   const finalUri = getFinalUri(fileUri, fileType);
 
   const fileURI = finalUri;
-  const filename = result.name;
   const fileExtension = extension;
-  const currentFolderId = result.currentFolder.toString();
 
-  return uploadAndCreateFileEntry(fileURI, filename, fileExtension, currentFolderId, progressCallback);
+  return uploadAndCreateFileEntry(fileURI, filename, fileExtension, file.parentId, progressCallback);
 }
 
 async function uploadAndroid(res: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
@@ -113,7 +91,7 @@ async function uploadAndCreateFileEntry(
   filePath: string,
   fileName: string,
   fileExtension: string,
-  currentFolderId: string,
+  currentFolderId: number,
   progressCallback: ProgressCallback,
 ) {
   const { bucket, bridgeUser, mnemonic, userId } = await deviceStorage.getUser();
@@ -134,14 +112,14 @@ async function uploadAndCreateFileEntry(
   );
 
   const folderId = currentFolderId;
-  const name = encryptFilename(removeExtension(fileName), folderId);
+  const name = encryptFilename(removeExtension(fileName), folderId.toString());
   const fileEntry: FileEntry = {
     fileId,
     file_id: fileId,
     type: fileExtension,
     bucket,
     size: fileSize as number,
-    folder_id: folderId,
+    folder_id: folderId.toString(),
     name,
     encrypt_version: '03-aes',
   };
@@ -200,7 +178,6 @@ function UploadModal(): JSX.Element {
     trackUploadSuccess();
 
     dispatch(storageActions.uploadingFileEnd(id));
-    dispatch(storageActions.updateUploadingFile(id));
     dispatch(storageActions.setUri(undefined));
   }
 
@@ -476,12 +453,11 @@ function UploadModal(): JSX.Element {
           trackUploadStart();
           dispatch(storageActions.uploadFileStart(file.name));
           dispatch(storageActions.addUploadingFile(file));
-
           dispatch(uiActions.setShowUploadFileModal(false));
 
           upload(file, 'image')
             .then(() => {
-              uploadSuccess(file);
+              uploadSuccess(file.id);
             })
             .catch((err) => {
               trackUploadError(err);

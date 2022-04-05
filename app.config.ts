@@ -1,5 +1,6 @@
 import { ExpoConfig } from '@expo/config-types';
 import env from './env';
+import packageJson from './package.json';
 
 export enum AppStage {
   Development = 'development',
@@ -31,7 +32,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   scheme: 'inxt',
   entryPoint: './index.js',
   slug: 'drive-mobile',
-  version: '1.5.9',
+  version: packageJson.version,
   orientation: 'portrait',
   icon: './assets/icon.png',
   splash: {

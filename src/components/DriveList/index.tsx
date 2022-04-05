@@ -3,7 +3,7 @@ import { RefreshControl, View, FlatList, Dimensions } from 'react-native';
 import _ from 'lodash';
 
 import { tailwind } from '../../helpers/designSystem';
-import FileItem from '../FileItem';
+import FileItem from '../DriveItem';
 import SkinSkeleton from '../SkinSkeleton';
 import EmptyDriveImage from '../../../assets/images/screens/empty-drive.svg';
 import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg';
@@ -12,13 +12,12 @@ import EmptyList from '../EmptyList';
 import strings from '../../../assets/lang/strings';
 import { storageThunks } from '../../store/slices/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import fileService from '../../services/file';
-import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
-import { FileListType, FileListViewMode } from '../../types';
+import { DriveItemData, FileItemStatus, FileListType, FileListViewMode } from '../../types';
 
 interface FileListProps {
   type: FileListType;
   viewMode: FileListViewMode;
+  items: { status: FileItemStatus; data: DriveItemData }[];
 }
 
 function FileList(props: FileListProps): JSX.Element {
@@ -26,50 +25,26 @@ function FileList(props: FileListProps): JSX.Element {
   const [refreshing, setRefreshing] = useState(false);
   const {
     folderContent,
-    uploadingFiles,
     searchString,
-    filesAlreadyUploaded,
-    sortType,
-    sortDirection,
-    isUploadingFileName,
     isLoading: filesLoading,
     currentFolderId,
   } = useAppSelector((state) => state.storage);
   const { user } = useAppSelector((state) => state.auth);
-  let folderList: DriveFolderData[] = (folderContent && folderContent.children) || [];
-  let fileList: DriveFileData[] = (folderContent && folderContent.files) || [];
-  const sortFunction = fileService.getSortFunction({ type: sortType, direction: sortDirection });
-
-  if (searchString) {
-    fileList = fileList.filter((file) => file.name.toLowerCase().includes(searchString.toLowerCase()));
-    folderList = folderList.filter((folder) => folder.name.toLowerCase().includes(searchString.toLowerCase()));
-  }
-
-  folderList = folderList.slice().sort(sortFunction as any);
-  fileList = fileList.slice().sort(sortFunction as any);
-
+  const isGrid = props.viewMode === FileListViewMode.Grid;
   const rootFolderId = user?.root_folder_id;
   const isRootFolder = currentFolderId === rootFolderId;
+  const isEmptyFolder = props.items.length > 0;
+  const windowWidth = Dimensions.get('window').width;
+  const totalColumns = Math.min(Math.max(Math.trunc(windowWidth / 125), 2), 6);
+  const renderNoResults = () => (
+    <EmptyList {...strings.components.FileList.noResults} image={<NoResultsImage width={100} height={100} />} />
+  );
 
   useEffect(() => {
     if (!folderContent && rootFolderId) {
       dispatch(storageThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
   }, []);
-
-  const isUploading = isUploadingFileName;
-  const isEmptyFolder =
-    folderList.length === 0 &&
-    fileList.length === 0 &&
-    uploadingFiles.length === 0 &&
-    filesAlreadyUploaded.length === 0 &&
-    !isUploading;
-
-  const windowWidth = Dimensions.get('window').width;
-  const totalColumns = Math.min(Math.max(Math.trunc(windowWidth / 125), 2), 6);
-  const renderNoResults = () => (
-    <EmptyList {...strings.components.FileList.noResults} image={<NoResultsImage width={100} height={100} />} />
-  );
 
   return (
     <FlatList
@@ -108,23 +83,22 @@ function FileList(props: FileListProps): JSX.Element {
           <EmptyList {...strings.screens.drive.emptyFolder} image={<EmptyFolderImage width={100} height={100} />} />
         )
       }
-      data={[...uploadingFiles, ...folderList, ...fileList, ...filesAlreadyUploaded]}
+      data={props.items}
       keyExtractor={(item) => `${props.viewMode}-${item.id}`}
       renderItem={({ item }) => {
         return (
           <FileItem
-            isLoading={item.isLoading}
-            isFolder={!!item.parentId}
             type={props.type}
-            item={item}
+            data={item.data}
+            status={item.status}
+            isLoading={item.isLoading}
             progress={isNaN(item.progress) ? -1 : item.progress}
             viewMode={props.viewMode}
-            totalColumns={totalColumns}
           />
         );
       }}
       ItemSeparatorComponent={() => {
-        return !props.isGrid ? <View style={{ height: 1, ...tailwind('bg-neutral-20') }}></View> : <View></View>;
+        return isGrid ? <View></View> : <View style={{ height: 1, ...tailwind('bg-neutral-20') }}></View>;
       }}
     />
   );

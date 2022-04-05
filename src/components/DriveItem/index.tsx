@@ -27,14 +27,13 @@ import { ArrowCircleUp, DotsThree } from 'phosphor-react-native';
 import strings from '../../../assets/lang/strings';
 import ProgressBar from '../ProgressBar';
 import { items } from '@internxt/lib';
+import AppText from '../AppText';
 
 interface FileItemProps {
   type: FileListType;
   viewMode: FileListViewMode;
-  totalColumns: number;
-  isFolder: boolean;
-  data: DriveItemData;
   status: FileItemStatus;
+  data: DriveItemData;
   isLoading?: boolean;
   nameEncrypted?: boolean;
   selectable?: boolean;
@@ -51,7 +50,13 @@ function FileItem(props: FileItemProps): JSX.Element {
   const [decryptionProgress, setDecryptionProgress] = useState(-1);
   const [isLoading, setIsLoading] = useState(!!props.isLoading);
   const spinValue = new Animated.Value(1);
+  const isFolder = !!props.data.parentId;
   const isGrid = props.viewMode === FileListViewMode.Grid;
+  const isIdle = props.status === 'idle';
+  const isUploading = props.status === FileItemStatus.Uploading;
+  const isDownloading = props.status === FileItemStatus.Downloading;
+  const IconFile = getFileTypeIcon(props.data.type);
+  const iconSize = isGrid ? 64 : 40;
   const onItemLongPressed = () => {
     if (isGrid) {
       dispatch(storageActions.focusItem(props.data));
@@ -63,7 +68,7 @@ function FileItem(props: FileItemProps): JSX.Element {
       return;
     }
 
-    if (props.isFolder) {
+    if (isFolder) {
       onFolderPressed();
     } else {
       onFilePressed();
@@ -71,18 +76,11 @@ function FileItem(props: FileItemProps): JSX.Element {
   }
   function onFolderPressed() {
     trackFolderOpened();
-    dispatch(storageThunks.getFolderContentThunk({ folderId: props.item.id as number }));
-    dispatch(storageActions.addDepthAbsolutePath([props.item.name]));
+    dispatch(storageThunks.getFolderContentThunk({ folderId: props.data.id }));
+    dispatch(storageActions.addDepthAbsolutePath([props.data.name]));
   }
   async function onFilePressed(): Promise<void> {
-    const isRecentlyUploaded = props.item.isUploaded && props.item.uri;
-
-    if (!props.item.fileId) {
-      return;
-    }
-
-    if (isRecentlyUploaded) {
-      showFileViewer(props.data.uri as string);
+    if (!isIdle) {
       return;
     }
 
@@ -195,11 +193,6 @@ function FileItem(props: FileItemProps): JSX.Element {
       userId: user?.uuid || null,
     });
   }
-  const IconFile = getFileTypeIcon(props.data.type);
-  const inProgress = props.progress >= 0 || downloadProgress >= 0;
-  const iconSize = isGrid ? 64 : 40;
-  const isUploading = props.progress >= 0;
-  const isDownloading = downloadProgress >= 0 || decryptionProgress >= 0;
   const onActionsButtonPressed = () => {
     dispatch(storageActions.focusItem(props.data));
     dispatch(uiActions.setShowItemModal(true));
@@ -218,7 +211,7 @@ function FileItem(props: FileItemProps): JSX.Element {
 
   return (
     <TouchableHighlight
-      style={isGrid && tailwind('py-1.5 w-1/' + props.totalColumns)}
+      style={isGrid && tailwind('py-1.5 flex-1')}
       disabled={isUploading || isDownloading}
       underlayColor={getColor('neutral-20')}
       onLongPress={onItemLongPressed}
@@ -232,7 +225,7 @@ function FileItem(props: FileItemProps): JSX.Element {
           ]}
         >
           <View style={[tailwind('my-3 ml-5 mr-4'), isUploading && tailwind('opacity-40')]}>
-            {props.isFolder ? (
+            {isFolder ? (
               <FolderIcon width={iconSize} height={iconSize} />
             ) : (
               <IconFile width={iconSize} height={iconSize} />
@@ -264,12 +257,14 @@ function FileItem(props: FileItemProps): JSX.Element {
               ) : (
                 <View style={tailwind('flex-row items-center')}>
                   <ArrowCircleUp weight="fill" color={getColor('blue-60')} size={16} />
-                  <Text style={tailwind('ml-1.5 text-xs text-blue-60')}>{(props.progress * 100).toFixed(0) + '%'}</Text>
+                  <AppText style={tailwind('ml-1.5 text-xs text-blue-60')}>
+                    {((props.progress || 0) * 100).toFixed(0) + '%'}
+                  </AppText>
                   <ProgressBar
                     style={tailwind('flex-grow h-1 ml-1.5')}
                     progressStyle={tailwind('h-1')}
                     totalValue={1}
-                    currentValue={props.progress}
+                    currentValue={props.progress || 0}
                   />
                 </View>
               ))}
@@ -285,12 +280,12 @@ function FileItem(props: FileItemProps): JSX.Element {
             )}
 
             {!isGrid &&
-              !inProgress &&
+              isIdle &&
               (props.subtitle ? (
                 props.subtitle
               ) : (
                 <Text style={tailwind('text-xs text-neutral-100')}>
-                  {!props.isFolder && (
+                  {!isFolder && (
                     <>
                       {prettysize(props.data.size)}
                       <Text style={globalStyle.fontWeight.bold}> · </Text>

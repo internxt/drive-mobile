@@ -4,7 +4,7 @@ import prettysize from 'prettysize';
 import { setString } from 'expo-clipboard';
 
 import { getHeaders } from '../../../helpers/headers';
-import { IFile } from '../../FileList';
+import { IFile } from '../../DriveList';
 import strings from '../../../../assets/lang/strings';
 import { generateShareLink } from '../../../@inxt-js/services/share';
 import { getFileTypeIcon } from '../../../helpers';

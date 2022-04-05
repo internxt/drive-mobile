@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Text, View, Platform, Alert, BackHandler, TouchableOpacity } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 
-import FileList from '../../components/FileList';
+import FileList from '../../components/DriveList';
 import analytics, { AnalyticsEventKey } from '../../services/analytics';
 import { loadValues } from '../../services/storage';
 import strings from '../../../assets/lang/strings';
@@ -13,7 +13,7 @@ import ScreenTitle from '../../components/ScreenTitle';
 import Separator from '../../components/Separator';
 import { AppScreenKey as AppScreenKey, DevicePlatform, FileListType, SortDirection } from '../../types';
 import { authActions, authThunks } from '../../store/slices/auth';
-import { storageActions, storageThunks } from '../../store/slices/storage';
+import { storageActions, storageSelectors, storageThunks } from '../../store/slices/storage';
 import { uiActions } from '../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
@@ -32,6 +32,7 @@ function DriveScreen(): JSX.Element {
   const { currentFolderId, folderContent, uri, sortType, sortDirection, searchString } = useAppSelector(
     (state) => state.storage,
   );
+  const driveItems = useAppSelector(storageSelectors.driveItems);
   const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.ui);
   const onSearchTextChanged = (value: string) => {
     dispatch(storageActions.setSearchString(value));
@@ -317,7 +318,7 @@ function DriveScreen(): JSX.Element {
 
       <Separator />
 
-      <FileList type={FileListType.Drive} viewMode={fileViewMode} />
+      <FileList items={driveItems} type={FileListType.Drive} viewMode={fileViewMode} />
     </AppScreen>
   );
 }

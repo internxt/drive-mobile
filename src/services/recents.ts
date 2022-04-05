@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { IFile } from '../components/FileList';
+import { IFile } from '../components/DriveList';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
 

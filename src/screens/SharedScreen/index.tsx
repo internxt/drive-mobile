@@ -3,7 +3,7 @@ import { View, Alert, ScrollView, RefreshControl, Text } from 'react-native';
 import _ from 'lodash';
 
 import { getShareList, IShare } from '../../services/storageShare';
-import FileItem from '../../components/FileItem';
+import FileItem from '../../components/DriveItem';
 import { tailwind } from '../../helpers/designSystem';
 import SkinSkeleton from '../../components/SkinSkeleton';
 import strings from '../../../assets/lang/strings';
