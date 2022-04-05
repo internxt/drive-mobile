@@ -35,8 +35,14 @@ export enum PhotosSyncStatus {
 export const PHOTOS_DB_NAME = 'photos.db';
 
 export enum PhotosEventKey {
-  CancelSync = 'cancel-sync',
-  CancelSyncEnd = 'cancel-sync-end',
+  SyncStart = 'sync-start',
+  DownloadTasksCalculated = 'sync-download-tasks-calculated',
+  NewerUploadTasksPageCalculated = 'sync-newer-upload-tasks-page-calculated',
+  OlderUploadTasksPageCalculated = 'sync-older-upload-tasks-page-calculated',
+  SyncTasksCalculated = 'sync-tasks-calculated',
+  SyncTaskSkipped = 'sync-task-skipped',
+  CancelSync = 'sync-cancel',
+  CancelSyncEnd = 'sync-cancel-end',
 }
 
 export interface PhotosServiceModel {

@@ -82,7 +82,9 @@ function MenuScreen(): JSX.Element {
           <View style={tailwind('bg-white rounded-xl')}>
             <View style={tailwind('items-center flex-row p-4')}>
               <View style={tailwind('bg-blue-20 items-center justify-center rounded-3xl w-10 h-10')}>
-                <Text style={tailwind('text-blue-80 font-bold text-xl')}>{userNameLetters}</Text>
+                <Text style={{ ...tailwind('text-blue-80 font-bold text-xl'), ...globalStyle.fontWeight.bold }}>
+                  {userNameLetters}
+                </Text>
               </View>
 
               <View style={tailwind('ml-3')}>

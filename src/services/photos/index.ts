@@ -99,8 +99,11 @@ export class PhotosService {
       this.fileSystemService,
     );
 
-    this.eventEmitter.addListener(PhotosEventKey.CancelSync, () => {
-      this.onSyncCanceled();
+    this.eventEmitter.addListener({
+      event: PhotosEventKey.CancelSync,
+      listener: () => {
+        this.onSyncCanceled();
+      },
     });
   }
 
@@ -129,8 +132,28 @@ export class PhotosService {
     this.model.isInitialized = true;
   }
 
-  public addListener(event: PhotosEventKey, handler: () => void): void {
-    return this.eventEmitter.addListener(event, handler);
+  public addListener({
+    id,
+    event,
+    listener,
+  }: {
+    id?: string;
+    event: PhotosEventKey;
+    listener: (...args: any[]) => void;
+  }): void {
+    return this.eventEmitter.addListener({ id, event, listener });
+  }
+
+  public removeListener({
+    id,
+    event,
+    listener,
+  }: {
+    id?: string;
+    event: PhotosEventKey;
+    listener: (...args: any[]) => void;
+  }) {
+    return this.eventEmitter.removeListener({ id, event, listener });
   }
 
   /**
@@ -161,7 +184,7 @@ export class PhotosService {
   }
 
   public cancelSync() {
-    this.eventEmitter.emit(PhotosEventKey.CancelSync);
+    this.eventEmitter.emit({ event: PhotosEventKey.CancelSync });
   }
 
   public countPhotos(): Promise<number> {

@@ -102,8 +102,11 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
       password: user?.userId || '',
     });
 
-    PhotosService.instance.addListener(PhotosEventKey.CancelSyncEnd, () => {
-      dispatch(photosActions.updateSyncStatus({ status: PhotosSyncStatus.Paused }));
+    PhotosService.instance.addListener({
+      event: PhotosEventKey.CancelSyncEnd,
+      listener: () => {
+        dispatch(photosActions.updateSyncStatus({ status: PhotosSyncStatus.Paused }));
+      },
     });
 
     if (user && photosToken) {
@@ -245,15 +248,27 @@ const loadMonthsThunk = createAsyncThunk<
 const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/sync',
   async (payload: void, { requestId, getState, dispatch, signal }) => {
-    const onStart = (tasksInfo: PhotosSyncInfo) => {
-      if (!signal.aborted) {
-        dispatch(
-          photosActions.updateSyncStatus({
-            status: tasksInfo.totalTasks > 0 ? PhotosSyncStatus.InProgress : PhotosSyncStatus.Completed,
-            totalTasks: tasksInfo.totalTasks,
-          }),
-        );
-      }
+    const onSyncStart = () => {
+      dispatch(
+        photosActions.updateSyncStatus({
+          status: PhotosSyncStatus.InProgress,
+        }),
+      );
+    };
+    const onDownloadTasksCalculated = ([n]: [number]) => {
+      console.log('onDownloadTasksCalculated: ', n);
+      dispatch(photosActions.updateSyncStatus({ totalTasks: getState().photos.syncStatus.totalTasks + n }));
+    };
+    const onNewerUploadTasksPageCalculated = ([n]: [number]) => {
+      console.log('onNewerUploadTasksPageCalculated: ', n);
+      dispatch(photosActions.updateSyncStatus({ totalTasks: getState().photos.syncStatus.totalTasks + n }));
+    };
+    const onOlderUploadTasksPageCalculated = ([n]: [number]) => {
+      console.log('onOlderUploadTasksPageCalculated: ', n);
+      dispatch(photosActions.updateSyncStatus({ totalTasks: getState().photos.syncStatus.totalTasks + n }));
+    };
+    const onSyncTasksCalculated = (syncInfo: PhotosSyncInfo) => {
+      // TODO
     };
     const onTaskCompleted = async ({
       photo,
@@ -282,7 +297,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
         }
       }
     };
-    const onTaskSkipped = () => {
+    const onSyncTaskSkipped = () => {
       const { syncStatus } = getState().photos;
       dispatch(photosActions.updateSyncStatus({ totalTasks: syncStatus.totalTasks - 1 }));
     };
@@ -298,15 +313,69 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(photosActions.resetSyncStatus());
 
-    await PhotosService.instance.sync({
-      id: requestId,
-      signal,
-      getState,
-      onStart,
-      onTaskSkipped,
-      onTaskCompleted,
-      onStorageLimitReached,
-    });
+    try {
+      PhotosService.instance.addListener({ id: requestId, event: PhotosEventKey.SyncStart, listener: onSyncStart });
+      PhotosService.instance.addListener({
+        id: requestId,
+        event: PhotosEventKey.DownloadTasksCalculated,
+        listener: onDownloadTasksCalculated,
+      });
+      PhotosService.instance.addListener({
+        id: requestId,
+        event: PhotosEventKey.NewerUploadTasksPageCalculated,
+        listener: onNewerUploadTasksPageCalculated,
+      });
+      PhotosService.instance.addListener({
+        id: requestId,
+        event: PhotosEventKey.OlderUploadTasksPageCalculated,
+        listener: onOlderUploadTasksPageCalculated,
+      });
+      PhotosService.instance.addListener({
+        id: requestId,
+        event: PhotosEventKey.SyncTasksCalculated,
+        listener: onSyncTasksCalculated,
+      });
+      PhotosService.instance.addListener({
+        id: requestId,
+        event: PhotosEventKey.SyncTaskSkipped,
+        listener: onSyncTaskSkipped,
+      });
+
+      await PhotosService.instance.sync({
+        id: requestId,
+        signal,
+        getState,
+        onTaskCompleted,
+        onStorageLimitReached,
+      });
+    } finally {
+      PhotosService.instance.removeListener({ id: requestId, event: PhotosEventKey.SyncStart, listener: onSyncStart });
+      PhotosService.instance.removeListener({
+        id: requestId,
+        event: PhotosEventKey.DownloadTasksCalculated,
+        listener: onDownloadTasksCalculated,
+      });
+      PhotosService.instance.removeListener({
+        id: requestId,
+        event: PhotosEventKey.NewerUploadTasksPageCalculated,
+        listener: onNewerUploadTasksPageCalculated,
+      });
+      PhotosService.instance.removeListener({
+        id: requestId,
+        event: PhotosEventKey.OlderUploadTasksPageCalculated,
+        listener: onOlderUploadTasksPageCalculated,
+      });
+      PhotosService.instance.removeListener({
+        id: requestId,
+        event: PhotosEventKey.SyncTasksCalculated,
+        listener: onSyncTasksCalculated,
+      });
+      PhotosService.instance.removeListener({
+        id: requestId,
+        event: PhotosEventKey.SyncTaskSkipped,
+        listener: onSyncTaskSkipped,
+      });
+    }
   },
 );
 

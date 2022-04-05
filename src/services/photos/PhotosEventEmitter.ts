@@ -11,19 +11,39 @@ export default class PhotosEventEmitter {
     this.eventEmitter = new EventEmitter();
   }
 
-  public emit(event: PhotosEventKey) {
-    return this.eventEmitter.emit(event);
+  public emit({ id, event }: { id?: string; event: PhotosEventKey }, ...args: any[]) {
+    return this.eventEmitter.emit(this.getEventKey({ id, event }), args);
   }
 
-  public addListener(event: PhotosEventKey, handler: () => void) {
-    this.eventEmitter.addListener(event, handler);
+  public addListener({
+    id,
+    event,
+    listener,
+  }: {
+    id?: string;
+    event: PhotosEventKey;
+    listener: (...args: any[]) => void;
+  }) {
+    this.eventEmitter.addListener(this.getEventKey({ id, event }), listener);
   }
 
-  public removeListener(event: PhotosEventKey, listener: () => void) {
-    this.eventEmitter.removeListener(event, listener);
+  public removeListener({
+    id,
+    event,
+    listener,
+  }: {
+    id?: string;
+    event: PhotosEventKey;
+    listener: (...args: any[]) => void;
+  }) {
+    this.eventEmitter.removeListener(this.getEventKey({ id, event }), listener);
   }
 
-  public removeAllListeners(event: PhotosEventKey) {
-    this.eventEmitter.removeAllListeners(event);
+  public removeAllListeners({ id, event }: { id?: string; event: PhotosEventKey }) {
+    this.eventEmitter.removeAllListeners(this.getEventKey({ id, event }));
+  }
+
+  private getEventKey({ id, event }: { id?: string; event: PhotosEventKey }) {
+    return id ? `${event}-${id}` : event;
   }
 }

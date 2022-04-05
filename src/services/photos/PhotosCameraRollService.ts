@@ -35,6 +35,40 @@ export default class PhotosCameraRollService {
     return count;
   }
 
+  public async countByPages({
+    from,
+    to,
+    onPageRead,
+    signal,
+  }: {
+    from?: Date;
+    to?: Date;
+    onPageRead: (n: number) => void;
+    signal?: AbortSignal;
+  }) {
+    const limit = 100;
+    let hasNextPage = true;
+    let cursor: string | undefined;
+    let count = 0;
+
+    do {
+      const { edges, page_info } = await this.getPhotos({
+        limit,
+        cursor,
+        from,
+        to,
+      });
+
+      hasNextPage = page_info.has_next_page;
+      cursor = page_info.end_cursor;
+      count += edges.length;
+
+      onPageRead(edges.length);
+    } while (hasNextPage && !signal?.aborted);
+
+    return count;
+  }
+
   /**
    * @description Copies all the camera roll photos sqlite.
    * !!! We use this to avoid sort by date errors found in the library @react-native-community/cameraroll

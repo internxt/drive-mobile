@@ -9,6 +9,7 @@ import BottomModal from '../BottomModal';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
 import { SortDirection, SortType } from '../../../types';
+import AppText from '../../AppText';
 
 function SortModalItem(props: { direction: SortDirection; type: SortType; text: string; advice: string }) {
   const dispatch = useAppDispatch();
@@ -22,8 +23,8 @@ function SortModalItem(props: { direction: SortDirection; type: SortType; text: 
 
   return (
     <TouchableHighlight underlayColor={getColor('neutral-30')} style={tailwind('rounded-lg')} onPress={onPress}>
-      <View style={[tailwind('flex-row rounded-lg px-4 py-2.5'), isSelected && tailwind('bg-blue-10')]}>
-        <Text
+      <View style={[tailwind('items-center flex-row rounded-lg px-4 py-2.5'), isSelected && tailwind('bg-blue-10')]}>
+        <AppText
           style={[
             tailwind('text-lg text-neutral-500 mr-2'),
             globalStyle.fontWeight.semibold,
@@ -31,18 +32,16 @@ function SortModalItem(props: { direction: SortDirection; type: SortType; text: 
           ]}
         >
           {props.text}
-        </Text>
-        <Text
-          allowFontScaling
-          adjustsFontSizeToFit
+        </AppText>
+        <AppText
           style={[
             { textAlignVertical: 'center' },
-            tailwind('text-neutral-500 text-base opacity-50'),
+            tailwind('text-neutral-500 opacity-50'),
             isSelected && tailwind('text-blue-60'),
           ]}
         >
           {props.advice}
-        </Text>
+        </AppText>
       </View>
     </TouchableHighlight>
   );
