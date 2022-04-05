@@ -2,6 +2,7 @@ import { getEnvironmentConfig, Network } from '../lib/network';
 import { deviceStorage } from './asyncStorage';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
+import { AsyncStorageKey } from '../types';
 
 export interface FileMeta {
   progress: number;
@@ -43,8 +44,7 @@ export interface FileEntry {
 
 export async function createFileEntry(entry: FileEntry): Promise<any> {
   const { mnemonic } = await deviceStorage.getUser();
-  const token = (await deviceStorage.getToken()) as string;
-
+  const token = (await deviceStorage.getItem(AsyncStorageKey.Token)) as string;
   const headers = await getHeaders(token, mnemonic);
   const body = JSON.stringify({ file: entry });
   const params = { method: 'post', headers, body };

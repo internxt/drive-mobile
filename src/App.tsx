@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, KeyboardAvoidingView } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -12,7 +12,7 @@ import { getColor, tailwind } from './helpers/designSystem';
 import { deviceStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
-import { AppScreenKey } from './types';
+import { AppScreenKey, AsyncStorageKey } from './types';
 import appService from './services/app';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
@@ -37,8 +37,8 @@ export default function App(): JSX.Element {
     },
   };
   const loadLocalUser = async () => {
-    const token = await deviceStorage.getToken();
-    const photosToken = await deviceStorage.getItem('photosToken');
+    const token = await deviceStorage.getItem(AsyncStorageKey.Token);
+    const photosToken = await deviceStorage.getItem(AsyncStorageKey.PhotosToken);
     const user = await deviceStorage.getUser();
 
     if (token && photosToken && user) {
@@ -53,7 +53,8 @@ export default function App(): JSX.Element {
 
   // Initialize app
   useEffect(() => {
-    NavigationBar.setBackgroundColorAsync(getColor('white')).then(() => NavigationBar.setButtonStyleAsync('dark'));
+    Platform.OS === 'android' &&
+      NavigationBar.setBackgroundColorAsync(getColor('white')).then(() => NavigationBar.setButtonStyleAsync('dark'));
 
     if (!isAppInitialized) {
       Promise.all([loadFonts(), loadLocalUser(), analyticsService.setup()])

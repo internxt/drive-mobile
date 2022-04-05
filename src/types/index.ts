@@ -112,3 +112,29 @@ export interface NotificationData {
   text1: string;
   text2?: string;
 }
+
+export interface User {
+  bucket: string;
+  createdAt: string;
+  credit: number;
+  email: string;
+  username: string;
+  bridgeUser: string;
+  lastname: string;
+  mnemonic: string;
+  name: string;
+  privateKey: string;
+  publicKey: string;
+  registerCompleted: boolean;
+  revocateKey: string;
+  root_folder_id: number;
+  teams: boolean;
+  userId: string;
+  uuid: string;
+}
+
+export enum AsyncStorageKey {
+  User = 'xUser',
+  Token = 'xToken',
+  PhotosToken = 'photosToken',
+}

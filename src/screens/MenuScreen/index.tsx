@@ -65,6 +65,10 @@ function MenuScreen(): JSX.Element {
   const { user } = useAppSelector((state) => state.auth);
   const userNameLetters = useAppSelector(authSelectors.nameLetters);
   const userFullName = useAppSelector(authSelectors.userFullName);
+  const onLogoutPressed = () => {
+    dispatch(authThunks.signOutThunk());
+    navigation.replace(AppScreenKey.SignIn);
+  };
 
   return (
     <AppScreen safeAreaTop backgroundColor={getColor('neutral-20')} style={tailwind('min-h-full')}>
@@ -76,8 +80,8 @@ function MenuScreen(): JSX.Element {
         />
         <View style={tailwind('px-5 mt-2 flex-grow')}>
           <View style={tailwind('bg-white rounded-xl')}>
-            <View style={tailwind('flex-row p-4')}>
-              <View style={tailwind('bg-blue-20 rounded-3xl p-2.5')}>
+            <View style={tailwind('items-center flex-row p-4')}>
+              <View style={tailwind('bg-blue-20 items-center justify-center rounded-3xl w-10 h-10')}>
                 <Text style={tailwind('text-blue-80 font-bold text-xl')}>{userNameLetters}</Text>
               </View>
 
@@ -92,10 +96,7 @@ function MenuScreen(): JSX.Element {
             </View>
             <MenuItem
               title={strings.components.app_menu.settings.signOut}
-              onPress={() => {
-                dispatch(authThunks.signOutThunk());
-                navigation.replace(AppScreenKey.SignIn);
-              }}
+              onPress={onLogoutPressed}
               textStyle={tailwind('text-red-60')}
               arrowColor={getColor('red-60')}
               style={tailwind('border-t border-neutral-20')}

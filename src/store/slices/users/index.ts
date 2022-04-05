@@ -5,7 +5,7 @@ import strings from '../../../../assets/lang/strings';
 import { deviceStorage } from '../../../services/asyncStorage';
 import notificationsService from '../../../services/notifications';
 import userService from '../../../services/user';
-import { NotificationType } from '../../../types';
+import { AsyncStorageKey, NotificationType } from '../../../types';
 
 export interface UsersState {
   isSendingInvitation: boolean;
@@ -16,7 +16,7 @@ const initialState: UsersState = {
 };
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>('users/initialize', async () => {
-  const accessToken = await deviceStorage.getToken();
+  const accessToken = await deviceStorage.getItem(AsyncStorageKey.Token);
   const user = await deviceStorage.getUser();
 
   if (user) {

@@ -40,6 +40,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     backgroundColor: '#091e42',
   },
   updates: {
+    url: '',
     fallbackToCacheTimeout: 0,
   },
   assetBundlePatterns: ['**/*'],
@@ -53,7 +54,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
         'Allow $(PRODUCT_NAME) to access your camera to upload a newly captured photo to the storage service',
       NSPhotoLibraryAddUsageDescription: 'Allow $(PRODUCT_NAME) to save/download photos from the storage service',
       NSPhotoLibraryUsageDescription:
-        "Allow $(PRODUCT_NAME) to access your photos to sync your device's camera roll with our Photos cloud service",
+        'Allow $(PRODUCT_NAME) to access your photos to sync your device camera roll with our Photos cloud service',
     },
   },
   android: {

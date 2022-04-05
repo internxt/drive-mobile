@@ -33,27 +33,21 @@ class AuthService {
   }
 
   public async signout(): Promise<void> {
-    try {
-      const userData = await deviceStorage.getUser();
+    const userData = await deviceStorage.getUser();
 
-      analytics.track(AnalyticsEventKey.UserSignOut, {
-        userId: userData?.uuid,
-        email: userData?.email,
-        platform: DevicePlatform.Mobile,
-      });
+    analytics.track(AnalyticsEventKey.UserSignOut, {
+      userId: userData?.uuid,
+      email: userData?.email,
+      platform: DevicePlatform.Mobile,
+    });
 
-      await deviceStorage.clearStorage();
-    } catch (err) {
-      console.error('Error during signout: ', err);
-    }
+    await deviceStorage.clearStorage();
   }
 
   public async doRecoverPassword(newPassword: string): Promise<Response> {
     const xUser = await deviceStorage.getUser();
-
     const mnemonic = xUser.mnemonic;
     const hashPass = passToHash({ password: newPassword });
-
     const encryptedPassword = encryptText(hashPass.hash);
     const encryptedSalt = encryptText(hashPass.salt);
     const encryptedMnemonic = encryptTextWithKey(mnemonic, newPassword);

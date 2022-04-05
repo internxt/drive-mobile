@@ -29,7 +29,7 @@ import {
 import { uiActions } from '../ui';
 import { pathToUri } from '../../../services/fileSystem';
 import notificationsService from '../../../services/notifications';
-import { NotificationType } from '../../../types';
+import { AsyncStorageKey, NotificationType } from '../../../types';
 
 export interface PhotosState {
   isInitialized: boolean;
@@ -93,7 +93,7 @@ const initialState: PhotosState = {
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
   async (payload, { dispatch }) => {
-    const photosToken = await deviceStorage.getItem('photosToken');
+    const photosToken = await deviceStorage.getItem(AsyncStorageKey.PhotosToken);
     const user = await deviceStorage.getUser();
 
     await PhotosService.initialize(photosToken || '', {
