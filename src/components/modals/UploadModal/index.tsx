@@ -29,7 +29,6 @@ import { constants } from '../../../services/app';
 import { uploadFile } from '../../../services/network';
 import notificationsService from '../../../services/notifications';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomModal from '../BottomModal';
 
 interface UploadingFile {
@@ -152,7 +151,6 @@ async function uploadAndCreateFileEntry(
 
 function UploadModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const safeAreaInsets = useSafeAreaInsets();
   const { folderContent, usage: storageUsage, limit, currentFolderId } = useAppSelector((state) => state.storage);
   const { showUploadModal } = useAppSelector((state) => state.ui);
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
