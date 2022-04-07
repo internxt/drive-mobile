@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 import { getHeaders } from '../helpers/headers';
-import { DriveFolderMetadataPayload } from '../types';
+import { DriveFolderMetadataPayload } from '../types/drive';
 import { constants } from './app';
 import fileService from './file';
 

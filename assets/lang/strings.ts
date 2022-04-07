@@ -2,14 +2,14 @@
 /* eslint-disable max-len */
 import LocalizedStrings from 'react-native-localization';
 import { ReferralTypes } from '@internxt/sdk/dist/drive/referrals';
-import { SortType, NotificationType } from '../../src/types';
+import { NotificationType } from '../../src/types';
+import { SortType } from '../../src/types/drive';
 
 const strings = new LocalizedStrings({
   en_US: {
     generic: {
       loading: 'Loading',
       security: 'Security',
-      create: 'Create',
       creating: 'Creating...',
       preparing: 'Preparing...',
       rename: 'Rename',
@@ -24,7 +24,7 @@ const strings = new LocalizedStrings({
     tabs: {
       home: 'Home',
       drive: 'Drive',
-      create: 'Create',
+      add: 'Add',
       photos: 'Photos',
       menu: 'Settings',
     },
@@ -278,7 +278,7 @@ const strings = new LocalizedStrings({
         searchInRecents: 'Search in recents',
         searchInShared: 'Search in shared',
       },
-      FileList: {
+      DriveList: {
         noResults: {
           title: 'No results found',
           message: 'Any item in this folder match this search',
@@ -433,7 +433,7 @@ const strings = new LocalizedStrings({
     tabs: {
       home: 'Inicio',
       drive: 'Drive',
-      create: 'Crear',
+      add: 'Añadir',
       photos: 'Photos',
       menu: 'Ajustes',
     },
@@ -688,7 +688,7 @@ const strings = new LocalizedStrings({
         searchInRecents: 'Buscar en recientes',
         searchInShared: 'Buscar en compartido',
       },
-      FileList: {
+      DriveList: {
         noResults: {
           title: 'Sin resultados',
           message: 'Ningún elemento en esta carpeta coincide con esta búsqueda',

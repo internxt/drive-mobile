@@ -5,7 +5,7 @@ import newsletterService from '../../../services/newsletter';
 import notificationsService from '../../../services/notifications';
 import { NotificationType } from '../../../types';
 import { referralsThunks } from '../referrals';
-import { storageThunks } from '../storage';
+import { driveThunks } from '../drive';
 
 export interface NewsletterState {
   isSubscribing: boolean;
@@ -20,7 +20,7 @@ const subscribeThunk = createAsyncThunk<void, string, { state: RootState }>(
   async (email, { dispatch }) => {
     await newsletterService.subscribe(email);
     dispatch(referralsThunks.fetchReferralsThunk());
-    dispatch(storageThunks.getUsageAndLimitThunk());
+    dispatch(driveThunks.getUsageAndLimitThunk());
   },
 );
 

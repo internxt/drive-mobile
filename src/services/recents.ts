@@ -1,10 +1,10 @@
+import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import axios from 'axios';
 
-import { IFile } from '../components/FileList';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
 
-export async function getRecents(): Promise<IFile[]> {
+export async function getRecents(): Promise<DriveFileData[]> {
   const headers = await getHeaders();
   const headersMap: Record<string, string> = {};
 

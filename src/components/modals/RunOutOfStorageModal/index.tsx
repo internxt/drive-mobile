@@ -18,7 +18,7 @@ function RunOutOfStorageModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
-  const { usage: storageUsage, limit } = useAppSelector((state) => state.storage);
+  const { usage: storageUsage, limit } = useAppSelector((state) => state.drive);
   const { showRunOutOfSpaceModal } = useAppSelector((state) => state.ui);
   const usage = photosUsage + storageUsage;
   const getLimitString = () => {

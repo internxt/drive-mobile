@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 
 import analytics, { AnalyticsEventKey } from '../../../services/analytics';
-import { storageThunks } from '../../../store/slices/storage';
+import { driveThunks } from '../../../store/slices/drive';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 
 interface FolderProps {
@@ -22,7 +22,7 @@ function Folder(props: FolderProps): JSX.Element {
       folder_id: props.item.id,
     });
 
-    dispatch(storageThunks.getFolderContentThunk({ folderId: props.item.id }));
+    dispatch(driveThunks.getFolderContentThunk({ folderId: props.item.id }));
   }
 
   return (

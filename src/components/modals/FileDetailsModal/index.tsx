@@ -14,7 +14,7 @@ import { Link, PencilSimpleLine, Trash } from 'phosphor-react-native';
 
 function FileDetailsModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { focusedItem: item } = useAppSelector((state) => state.storage);
+  const { focusedItem: item } = useAppSelector((state) => state.drive);
   const { showItemModal } = useAppSelector((state) => state.ui);
 
   if (!item) {

@@ -8,7 +8,7 @@ import analytics, { AnalyticsEventKey } from '../../../services/analytics';
 import { AsyncStorageKey, DevicePlatform, User } from '../../../types';
 import { photosActions, photosThunks } from '../photos';
 import { appThunks } from '../app';
-import { storageActions } from '../storage';
+import { driveActions } from '../drive';
 import { uiActions } from '../ui';
 
 export interface AuthState {
@@ -56,7 +56,7 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
-    dispatch(storageActions.resetState());
+    dispatch(driveActions.resetState());
     dispatch(photosThunks.cancelSyncThunk());
     dispatch(photosThunks.clearDataThunk());
     dispatch(photosActions.resetState());

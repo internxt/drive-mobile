@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Text, View, Platform, Alert, BackHandler, TouchableOpacity } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 
-import FileList from '../../components/FileList';
+import DriveList from '../../components/DriveList';
 import analytics, { AnalyticsEventKey } from '../../services/analytics';
 import { loadValues } from '../../services/storage';
 import strings from '../../../assets/lang/strings';
@@ -11,9 +11,9 @@ import SearchInput from '../../components/SearchInput';
 import globalStyle from '../../styles';
 import ScreenTitle from '../../components/ScreenTitle';
 import Separator from '../../components/Separator';
-import { AppScreenKey as AppScreenKey, DevicePlatform, SortDirection } from '../../types';
+import { AppScreenKey as AppScreenKey, DevicePlatform } from '../../types';
 import { authActions, authThunks } from '../../store/slices/auth';
-import { storageActions, storageThunks } from '../../store/slices/storage';
+import { driveActions, storageSelectors, driveThunks } from '../../store/slices/drive';
 import { uiActions } from '../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
@@ -23,6 +23,7 @@ import AppScreen from '../../components/AppScreen';
 import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
 import { deviceStorage } from '../../services/asyncStorage';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { DriveListType, SortDirection } from '../../types/drive';
 
 function DriveScreen(): JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -30,11 +31,12 @@ function DriveScreen(): JSX.Element {
   const dispatch = useAppDispatch();
   const { token, user, loggedIn } = useAppSelector((state) => state.auth);
   const { currentFolderId, folderContent, uri, sortType, sortDirection, searchString } = useAppSelector(
-    (state) => state.storage,
+    (state) => state.drive,
   );
+  const driveItems = useAppSelector(storageSelectors.driveItems);
   const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.ui);
   const onSearchTextChanged = (value: string) => {
-    dispatch(storageActions.setSearchString(value));
+    dispatch(driveActions.setSearchString(value));
   };
   const parentFolderId = (() => {
     if (folderContent) {
@@ -53,7 +55,7 @@ function DriveScreen(): JSX.Element {
   const isRootFolder = folderContent && folderContent.id === user?.root_folder_id;
   const screenTitle = !isRootFolder && folderContent ? folderContent.name : strings.screens.drive.title;
   const uploadFile = async (uri: string, name: string, currentFolder: number) => {
-    dispatch(storageActions.setUri(undefined));
+    dispatch(driveActions.setUri(undefined));
     const userData = await deviceStorage.getUser();
 
     try {
@@ -71,7 +73,7 @@ function DriveScreen(): JSX.Element {
         device: DevicePlatform.Mobile,
       });
 
-      dispatch(storageActions.uploadFileStart(name));
+      dispatch(driveActions.uploadFileStart(name));
 
       const file = uri.replace(regex, '$2'); // if iOS remove file://
       const finalUri = Platform.OS === 'ios' ? RNFetchBlob.wrap(decodeURIComponent(file)) : RNFetchBlob.wrap(uri);
@@ -83,7 +85,7 @@ function DriveScreen(): JSX.Element {
         [{ name: 'xfile', filename: name, data: finalUri }],
       )
         .uploadProgress({ count: 10 }, (sent, total) => {
-          dispatch(storageActions.uploadFileSetProgress({ progress: sent / total }));
+          dispatch(driveActions.uploadFileSetProgress({ progress: sent / total }));
         })
         .then((res) => {
           if (res.respInfo.status === 401) {
@@ -103,13 +105,13 @@ function DriveScreen(): JSX.Element {
               device: DevicePlatform.Mobile,
             });
 
-            folderContent && dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
+            folderContent && dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
           } else {
             Alert.alert('Error', 'Can not upload file');
           }
 
-          dispatch(storageActions.uploadFileSetProgress({ progress: 0 }));
-          dispatch(storageActions.uploadFileFinished());
+          dispatch(driveActions.uploadFileSetProgress({ progress: 0 }));
+          dispatch(driveActions.uploadFileFinished());
         })
         .catch((err) => {
           if (err.status === 401) {
@@ -118,8 +120,8 @@ function DriveScreen(): JSX.Element {
             Alert.alert('Error', 'Cannot upload file\n' + err.message);
           }
 
-          dispatch(storageActions.uploadFileFailed({}));
-          dispatch(storageActions.uploadFileFinished());
+          dispatch(driveActions.uploadFileFailed({}));
+          dispatch(driveActions.uploadFileFinished());
         });
     } catch (error) {
       analytics.track(AnalyticsEventKey.FileUploadError, {
@@ -127,12 +129,12 @@ function DriveScreen(): JSX.Element {
         email: userData.email,
         device: DevicePlatform.Mobile,
       });
-      dispatch(storageActions.uploadFileFailed({}));
-      dispatch(storageActions.uploadFileFinished());
+      dispatch(driveActions.uploadFileFailed({}));
+      dispatch(driveActions.uploadFileFinished());
     }
   };
   const onCurrentFolderActionsButtonPressed = () => {
-    dispatch(storageActions.focusItem(folderContent));
+    dispatch(driveActions.focusItem(folderContent));
     dispatch(uiActions.setShowItemModal(true));
   };
   const onSortButtonPressed = () => {
@@ -224,13 +226,13 @@ function DriveScreen(): JSX.Element {
       }
     }
 
-    parentFolderId === null ? dispatch(storageActions.setRootFolderContent(folderContent)) : null;
+    parentFolderId === null ? dispatch(driveActions.setRootFolderContent(folderContent)) : null;
 
     // BackHandler
     const backAction = () => {
       if (route.name === AppScreenKey.Drive) {
         if (folderContent && folderContent.parentId) {
-          dispatch(storageThunks.getFolderContentThunk({ folderId: folderContent.parentId as number }));
+          dispatch(driveThunks.getFolderContentThunk({ folderId: folderContent.parentId as number }));
         } else {
           return false;
         }
@@ -255,7 +257,7 @@ function DriveScreen(): JSX.Element {
         <View>
           <TouchableOpacity
             disabled={!backButtonEnabled}
-            onPress={() => dispatch(storageThunks.goBackThunk({ folderId: parentFolderId as number }))}
+            onPress={() => dispatch(driveThunks.goBackThunk({ folderId: parentFolderId as number }))}
           >
             <View style={[tailwind('flex-row items-center'), !parentFolderId && tailwind('opacity-50')]}>
               <CaretLeft weight="bold" color={getColor('blue-60')} style={tailwind('-ml-2 mr-1')} size={24} />
@@ -317,7 +319,7 @@ function DriveScreen(): JSX.Element {
 
       <Separator />
 
-      <FileList isGrid={fileViewMode === 'grid'} />
+      <DriveList items={driveItems} type={DriveListType.Drive} viewMode={fileViewMode} />
     </AppScreen>
   );
 }

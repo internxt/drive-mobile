@@ -3,6 +3,9 @@ import React from 'react';
 import { Text } from 'react-native';
 
 async function loadFontsAsync(): Promise<void> {
+  const TextComponent: any = Text;
+  const oldRender = TextComponent.render;
+
   await Font.loadAsync({
     'NeueEinstellung-Black': require('../../assets/fonts/NeueEinstellung-Black.otf'),
     'NeueEinstellung-Bold': require('../../assets/fonts/NeueEinstellung-Black.otf'),
@@ -14,10 +17,6 @@ async function loadFontsAsync(): Promise<void> {
     'NeueEinstellung-SemiBold': require('../../assets/fonts/NeueEinstellung-SemiBold.otf'),
     'NeueEinstellung-Thin': require('../../assets/fonts/NeueEinstellung-Thin.otf'),
   });
-
-  const TextComponent: any = Text;
-
-  const oldRender = TextComponent.render;
 
   TextComponent.render = function (...args: any[]) {
     const origin = oldRender.call(this, ...args);

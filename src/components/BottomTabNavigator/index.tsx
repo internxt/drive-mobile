@@ -12,7 +12,7 @@ import { FolderSimple, Gear, House, ImageSquare, PlusCircle } from 'phosphor-rea
 const tabIcons = {
   home: House,
   drive: FolderSimple,
-  create: PlusCircle,
+  add: PlusCircle,
   photos: ImageSquare,
   menu: Gear,
 };
@@ -23,7 +23,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     const { options } = props.descriptors[route.key];
     const label = strings.tabs[route.name as keyof typeof tabIcons];
     const isFocused = props.state.index === index;
-    const isCreateRoute = route.name === 'create';
+    const isCreateRoute = route.name === 'add';
     const onPress = () => {
       if (isCreateRoute) {
         return dispatch(uiActions.setShowUploadFileModal(true));

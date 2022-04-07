@@ -6,7 +6,7 @@ import { FolderIcon } from '../../../helpers';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
-import { storageThunks } from '../../../store/slices/storage';
+import { driveThunks } from '../../../store/slices/drive';
 import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
@@ -16,7 +16,7 @@ import { NotificationType } from '../../../types';
 
 function CreateFolderModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { currentFolderId } = useAppSelector((state) => state.storage);
+  const { currentFolderId } = useAppSelector((state) => state.drive);
   const { showCreateFolderModal } = useAppSelector((state) => state.ui);
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +34,7 @@ function CreateFolderModal(): JSX.Element {
     folderService
       .createFolder({ folderName, parentId: currentFolderId })
       .then(() => {
-        dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
+        dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
         notificationsService.show({ type: NotificationType.Success, text1: strings.messages.folderCreated });
       })
       .catch((err) => {
@@ -86,7 +86,7 @@ function CreateFolderModal(): JSX.Element {
           <View style={tailwind('px-1')}></View>
 
           <AppButton
-            title={isLoading ? strings.generic.creating : strings.generic.create}
+            title={isLoading ? strings.generic.creating : strings.components.buttons.create}
             type="accept"
             onPress={onCreateFolderButtonPressed}
             disabled={isLoading}

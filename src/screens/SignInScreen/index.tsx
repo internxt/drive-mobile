@@ -16,7 +16,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authThunks } from '../../store/slices/auth';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
-import { storageActions } from '../../store/slices/storage';
+import { driveActions } from '../../store/slices/drive';
 import AppButton from '../../components/AppButton';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -45,7 +45,7 @@ function SignInScreen(): JSX.Element {
         await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }))
           .unwrap()
           .then((response) => {
-            dispatch(storageActions.setCurrentFolderId(response.user.root_folder_id));
+            dispatch(driveActions.setCurrentFolderId(response.user.root_folder_id));
             navigation.replace(AppScreenKey.TabExplorer);
           });
       }

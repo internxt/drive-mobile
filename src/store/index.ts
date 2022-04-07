@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import appReducer from './slices/app';
 import authReducer from './slices/auth';
-import storageReducer from './slices/storage';
+import driveReducer from './slices/drive';
 import uiReducer from './slices/ui';
 import photosReducer from './slices/photos';
 import paymentsReducer from './slices/payments';
@@ -14,7 +14,7 @@ export const store = configureStore({
   reducer: {
     app: appReducer,
     auth: authReducer,
-    storage: storageReducer,
+    drive: driveReducer,
     ui: uiReducer,
     photos: photosReducer,
     payments: paymentsReducer,

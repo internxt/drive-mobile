@@ -3,21 +3,21 @@ import { Text, TouchableHighlight, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { storageActions } from '../../../store/slices/storage';
+import { driveActions } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
-import { SortDirection, SortType } from '../../../types';
 import AppText from '../../AppText';
+import { SortDirection, SortType } from '../../../types/drive';
 
 function SortModalItem(props: { direction: SortDirection; type: SortType; text: string; advice: string }) {
   const dispatch = useAppDispatch();
-  const { sortType, sortDirection } = useAppSelector((state) => state.storage);
+  const { sortType, sortDirection } = useAppSelector((state) => state.drive);
   const isSelected = sortType === props.type && sortDirection === props.direction;
   const onPress = () => {
-    dispatch(storageActions.setSortType(props.type));
-    dispatch(storageActions.setSortDirection(props.direction));
+    dispatch(driveActions.setSortType(props.type));
+    dispatch(driveActions.setSortDirection(props.direction));
     dispatch(uiActions.setShowSortModal(false));
   };
 

@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import axios from 'axios';
 
-import { DriveFileMetadataPayload, DriveItemData, SortDirection, SortType } from '../types';
+import { DriveFileMetadataPayload, DriveItemData, SortDirection, SortType } from '../types/drive';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
 
@@ -10,6 +10,13 @@ export const UPLOAD_FILE_SIZE_LIMIT = 1024 * 1024 * 1024;
 interface ItemMeta {
   name: string;
   type: string;
+}
+
+export function getNameFromUri(uri: string): string {
+  const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
+  const fileUri = uri.replace(regex, '$2');
+
+  return fileUri.split('/').pop() || '';
 }
 
 export function getExtensionFromUri(uri: string): string | undefined {

@@ -22,7 +22,7 @@ interface StorageScreenProps {
 
 function StorageScreen(props: StorageScreenProps): JSX.Element {
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
-  const { usage: storageUsage, limit } = useAppSelector((state) => state.storage);
+  const { usage: storageUsage, limit } = useAppSelector((state) => state.drive);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const usageValues = { usage: storageUsage + photosUsage, limit };
   const getLimitString = () => {

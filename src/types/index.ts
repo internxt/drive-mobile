@@ -1,7 +1,11 @@
-import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 import { store as storeInstance } from '../store';
 
 type StoreType = typeof storeInstance;
+
+export enum AppStage {
+  Development = 'development',
+  Production = 'production',
+}
 
 export interface AppPlugin {
   install: (store: StoreType) => void;
@@ -30,12 +34,6 @@ export enum AppScreenKey {
 
 export enum DevicePlatform {
   Mobile = 'mobile',
-}
-export interface DriveFolderMetadataPayload {
-  itemName: string;
-}
-export interface DriveFileMetadataPayload {
-  itemName: string;
 }
 
 export default class AppError extends Error {
@@ -85,19 +83,6 @@ export type StoragePlan = {
   storageLimit: number;
 };
 
-export enum SortDirection {
-  Asc = 'asc',
-  Desc = 'desc',
-}
-
-export enum SortType {
-  Name = 'name',
-  Size = 'size',
-  UpdatedAt = 'updatedAt',
-}
-
-export type DriveItemData = DriveFileData & DriveFolderData;
-
 export enum NotificationType {
   Info = 'info',
   Success = 'success',
@@ -138,3 +123,5 @@ export enum AsyncStorageKey {
   Token = 'xToken',
   PhotosToken = 'photosToken',
 }
+
+export type ProgressCallback = (progress: number) => void;

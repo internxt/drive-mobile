@@ -7,10 +7,9 @@ import { tailwind } from '../../helpers/designSystem';
 import DriveScreen from '../DriveScreen';
 import MenuScreen from '../MenuScreen';
 import BottomTabNavigator from '../../components/BottomTabNavigator';
-import VoidScreen from '../VoidScreen';
-import SettingsModal from '../../components/modals/SettingsModal';
+import EmptyScreen from '../EmptyScreen';
 import FileDetailsModal from '../../components/modals/FileDetailsModal';
-import UploadModal from '../../components/modals/UploadModal';
+import AddModal from '../../components/modals/AddModal';
 import RenameModal from '../../components/modals/RenameModal';
 import CreateFolderModal from '../../components/modals/CreateFolderModal';
 import ShareFilesModal from '../../components/modals/ShareFilesModal';
@@ -56,14 +55,13 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
       >
         <Tab.Screen name={AppScreenKey.Home} component={HomeScreen} />
         <Tab.Screen name={AppScreenKey.Drive} component={DriveScreen} />
-        <Tab.Screen name="create" component={VoidScreen} />
+        <Tab.Screen name="add" component={EmptyScreen} />
         <Tab.Screen name="photos" component={PhotosNavigator} />
         <Tab.Screen name={AppScreenKey.Menu} component={MenuScreen} />
       </Tab.Navigator>
 
+      <AddModal />
       <FileDetailsModal />
-      <SettingsModal />
-      <UploadModal />
       <DeleteItemModal />
       <MoveFilesModal />
       <ShareFilesModal />

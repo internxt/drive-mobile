@@ -15,7 +15,7 @@ import { useAppDispatch } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
-import { storageActions } from '../../store/slices/storage';
+import { driveActions } from '../../store/slices/drive';
 import { Eye, EyeSlash } from 'phosphor-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -92,7 +92,7 @@ function SignUpScreen(): JSX.Element {
       await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }))
         .unwrap()
         .then((response) => {
-          dispatch(storageActions.setCurrentFolderId(response.user.root_folder_id));
+          dispatch(driveActions.setCurrentFolderId(response.user.root_folder_id));
           navigation.replace(AppScreenKey.TabExplorer, { showReferralsBanner: true });
         });
     } catch (err) {

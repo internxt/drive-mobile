@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Alert, ScrollView, RefreshControl } from 'react-native';
+import { View, Alert, ScrollView, RefreshControl } from 'react-native';
 import _ from 'lodash';
 
 import { getRecents } from '../../services/recents';
-import { IFile } from '../../components/FileList';
-import FileItem from '../../components/FileItem';
+import DriveItem from '../../components/DriveItem';
 import SkinSkeleton from '../../components/SkinSkeleton';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptyRecentsImage from '../../../assets/images/screens/empty-recents.svg';
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
 import { tailwind } from '../../helpers/designSystem';
+import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveItemData, DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
 
 interface RecentsScreenProps {
   searchText?: string;
@@ -18,9 +19,9 @@ interface RecentsScreenProps {
 
 function RecentsScreen(props: RecentsScreenProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
-  const [recents, setRecents] = useState<IFile[]>([]);
+  const [recents, setRecents] = useState<DriveFileData[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const filteredRecents = recents.filter((file: IFile) =>
+  const filteredRecents = recents.filter((file) =>
     file.name.toLowerCase().includes((props.searchText || '').toLowerCase()),
   );
   const loadRecents = async () => {
@@ -37,7 +38,7 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
       });
   };
   const renderNoResults = () => (
-    <EmptyList {...strings.components.FileList.noResults} image={<NoResultsImage width={100} height={100} />} />
+    <EmptyList {...strings.components.DriveList.noResults} image={<NoResultsImage width={100} height={100} />} />
   );
 
   useEffect(() => {
@@ -65,11 +66,20 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
               }}
             />
           }
-          contentContainerStyle={styles.fileListContentsScrollView}
+          contentContainerStyle={tailwind('flex-grow')}
         >
           {filteredRecents.length > 0 ? (
             filteredRecents.map((item) => {
-              return <FileItem totalColumns={1} key={item.id} item={item} isFolder={false} progress={-1} />;
+              return (
+                <DriveItem
+                  key={item.id}
+                  status={DriveItemStatus.Idle}
+                  type={DriveListType.Drive}
+                  viewMode={DriveListViewMode.List}
+                  data={item as DriveItemData}
+                  progress={-1}
+                />
+              );
             })
           ) : props.searchText ? (
             renderNoResults()
@@ -81,11 +91,5 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  fileListContentsScrollView: {
-    flexGrow: 1,
-  },
-});
 
 export default RecentsScreen;

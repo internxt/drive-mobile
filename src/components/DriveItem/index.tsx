@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Alert, TouchableOpacity, TouchableHighlight, Animated, Easing } from 'react-native';
 
 import analytics, { AnalyticsEventKey } from '../../services/analytics';
-import { IFile, IFolder, IUploadingFile } from '../FileList';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import {
   createEmptyFile,
@@ -16,7 +15,7 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import prettysize from 'prettysize';
 import globalStyle from '../../styles';
 import { DevicePlatform } from '../../types';
-import { storageActions, storageThunks } from '../../store/slices/storage';
+import { driveActions, driveThunks } from '../../store/slices/drive';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { deviceStorage } from '../../services/asyncStorage';
 import { uiActions } from '../../store/slices/ui';
@@ -27,31 +26,42 @@ import { constants } from '../../services/app';
 import { ArrowCircleUp, DotsThree } from 'phosphor-react-native';
 import strings from '../../../assets/lang/strings';
 import ProgressBar from '../ProgressBar';
+import { items } from '@internxt/lib';
+import AppText from '../AppText';
 
-interface FileItemProps {
-  isFolder: boolean;
-  item: IFile | IFolder | IUploadingFile;
+import { DriveItemDataProps, DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
+
+interface DriveItemProps {
+  type: DriveListType;
+  viewMode: DriveListViewMode;
+  status: DriveItemStatus;
+  data: DriveItemDataProps;
   isLoading?: boolean;
   nameEncrypted?: boolean;
   selectable?: boolean;
   subtitle?: JSX.Element;
-  isGrid?: boolean;
-  totalColumns: number;
-  progress: number;
+  progress?: number;
 }
 
-function FileItem(props: FileItemProps): JSX.Element {
+function DriveItem(props: DriveItemProps): JSX.Element {
   const dispatch = useAppDispatch();
-  const { selectedItems } = useAppSelector((state) => state.storage);
+  const { selectedItems } = useAppSelector((state) => state.drive);
+  const { user } = useAppSelector((state) => state.auth);
   const isSelectionMode = selectedItems.length > 0;
   const [downloadProgress, setDownloadProgress] = useState(-1);
   const [decryptionProgress, setDecryptionProgress] = useState(-1);
   const [isLoading, setIsLoading] = useState(!!props.isLoading);
   const spinValue = new Animated.Value(1);
-  const { user } = useAppSelector((state) => state.auth);
+  const isFolder = !!props.data.parentId;
+  const isGrid = props.viewMode === DriveListViewMode.Grid;
+  const isIdle = props.status === DriveItemStatus.Idle;
+  const isUploading = props.status === DriveItemStatus.Uploading;
+  const isDownloading = props.status === DriveItemStatus.Downloading;
+  const IconFile = getFileTypeIcon(props.data.type || '');
+  const iconSize = isGrid ? 64 : 40;
   const onItemLongPressed = () => {
-    if (props.isGrid) {
-      dispatch(storageActions.focusItem(props.item));
+    if (isGrid) {
+      dispatch(driveActions.focusItem(props.data));
       dispatch(uiActions.setShowItemModal(true));
     }
   };
@@ -60,7 +70,7 @@ function FileItem(props: FileItemProps): JSX.Element {
       return;
     }
 
-    if (props.isFolder) {
+    if (isFolder) {
       onFolderPressed();
     } else {
       onFilePressed();
@@ -68,42 +78,37 @@ function FileItem(props: FileItemProps): JSX.Element {
   }
   function onFolderPressed() {
     trackFolderOpened();
-    dispatch(storageThunks.getFolderContentThunk({ folderId: props.item.id as number }));
-    dispatch(storageActions.addDepthAbsolutePath([props.item.name]));
+    dispatch(driveThunks.getFolderContentThunk({ folderId: props.data.id }));
+    dispatch(driveActions.addDepthAbsolutePath([props.data.name]));
   }
   async function onFilePressed(): Promise<void> {
-    const isRecentlyUploaded = props.item.isUploaded && props.item.uri;
-
-    if (!props.item.fileId) {
+    if (!isIdle) {
       return;
     }
 
-    if (isRecentlyUploaded) {
-      showFileViewer(props.item.uri as string);
+    if (!props.data.fileId) {
       return;
     }
 
     setIsLoading(true);
 
-    const filename = props.item.name;
-    const extension = props.item.type;
+    const { name, type } = props.data;
     const destinationDir = await getDocumentsDir();
-    let destinationPath = destinationDir + '/' + filename + (extension ? '.' + extension : '');
+    let destinationPath = destinationDir + '/' + name + (type ? '.' + type : '');
 
     trackDownloadStart();
     setDownloadProgress(0);
-    dispatch(storageActions.downloadSelectedFileStart());
+    dispatch(driveActions.downloadSelectedFileStart());
 
     const fileAlreadyExists = await exists(destinationPath);
 
     if (fileAlreadyExists) {
-      destinationPath =
-        destinationDir + '/' + filename + '-' + Date.now().toString() + (extension ? '.' + extension : '');
+      destinationPath = destinationDir + '/' + name + '-' + Date.now().toString() + (type ? '.' + type : '');
     }
 
     await createEmptyFile(destinationPath);
     await download({
-      fileId: props.item.fileId.toString(),
+      fileId: props.data.fileId.toString(),
       to: destinationPath,
     })
       .then(() => {
@@ -117,7 +122,7 @@ function FileItem(props: FileItemProps): JSX.Element {
         Alert.alert('Error downloading file', err.message);
       })
       .finally(() => {
-        dispatch(storageActions.downloadSelectedFileStop());
+        dispatch(driveActions.downloadSelectedFileStop());
         setDownloadProgress(-1);
         setDecryptionProgress(-1);
         setIsLoading(false);
@@ -155,10 +160,10 @@ function FileItem(props: FileItemProps): JSX.Element {
   }
   function trackDownloadStart() {
     return analytics.track(AnalyticsEventKey.FileDownloadStart, {
-      file_id: props.item.id,
-      file_size: props.item.size,
-      file_type: props.item.type,
-      folder_id: props.item.folderId || null,
+      file_id: props.data.id,
+      file_size: props.data.size || 0,
+      file_type: props.data.type || '',
+      folder_id: props.data.parentId || null,
       platform: DevicePlatform.Mobile,
       email: user?.email || null,
       userId: user?.uuid || null,
@@ -166,10 +171,10 @@ function FileItem(props: FileItemProps): JSX.Element {
   }
   function trackDownloadSuccess() {
     return analytics.track(AnalyticsEventKey.FileDownloadFinished, {
-      file_id: props.item.id,
-      file_size: props.item.size,
-      file_type: props.item.type,
-      folder_id: props.item.folderId || null,
+      file_id: props.data.id,
+      file_size: props.data.size || 0,
+      file_type: props.data.type || '',
+      folder_id: props.data.parentId || null,
       platform: DevicePlatform.Mobile,
       email: user?.email || null,
       userId: user?.uuid || null,
@@ -177,10 +182,10 @@ function FileItem(props: FileItemProps): JSX.Element {
   }
   function trackDownloadError(err: Error) {
     return analytics.track(AnalyticsEventKey.FileDownloadError, {
-      file_id: props.item.id,
-      file_size: props.item.size,
-      file_type: props.item.type,
-      folder_id: props.item.folderId || null,
+      file_id: props.data.id,
+      file_size: props.data.size || 0,
+      file_type: props.data.type || '',
+      folder_id: props.data.parentId || null,
       platform: DevicePlatform.Mobile,
       error: err.message,
       email: user?.email || null,
@@ -189,18 +194,13 @@ function FileItem(props: FileItemProps): JSX.Element {
   }
   function trackFolderOpened() {
     return analytics.track(AnalyticsEventKey.FolderOpened, {
-      folder_id: props.item.id,
+      folder_id: props.data.id,
       email: user?.email || null,
       userId: user?.uuid || null,
     });
   }
-  const IconFile = getFileTypeIcon(props.item.type);
-  const inProgress = props.progress >= 0 || downloadProgress >= 0;
-  const iconSize = props.isGrid ? 64 : 40;
-  const isUploading = props.progress >= 0;
-  const isDownloading = downloadProgress >= 0 || decryptionProgress >= 0;
   const onActionsButtonPressed = () => {
-    dispatch(storageActions.focusItem(props.item));
+    dispatch(driveActions.focusItem(props.data));
     dispatch(uiActions.setShowItemModal(true));
   };
 
@@ -217,21 +217,26 @@ function FileItem(props: FileItemProps): JSX.Element {
 
   return (
     <TouchableHighlight
-      style={props.isGrid && tailwind('py-1.5 w-1/' + props.totalColumns)}
+      style={isGrid && tailwind('py-1.5 flex-1')}
       disabled={isUploading || isDownloading}
       underlayColor={getColor('neutral-20')}
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}
     >
-      <View style={!props.isGrid && tailwind('flex-row')}>
+      <View style={[isGrid ? { aspectRatio: 1, borderWidth: 1 } : tailwind('flex-row')]}>
         <View
           style={[
             tailwind('flex-grow flex-shrink overflow-hidden'),
-            tailwind(props.isGrid ? 'flex-col items-center' : 'flex-row'),
+            isGrid ? tailwind('flex-col items-center justify-center') : tailwind('flex-row'),
           ]}
         >
-          <View style={[tailwind('my-3 ml-5 mr-4'), isUploading && tailwind('opacity-40')]}>
-            {props.isFolder ? (
+          <View
+            style={[
+              tailwind('w-full mb-1 flex-grow items-center justify-center'),
+              isUploading && tailwind('opacity-40'),
+            ]}
+          >
+            {isFolder ? (
               <FolderIcon width={iconSize} height={iconSize} />
             ) : (
               <IconFile width={iconSize} height={iconSize} />
@@ -240,23 +245,22 @@ function FileItem(props: FileItemProps): JSX.Element {
 
           <View
             style={[
-              tailwind('flex items-start justify-center flex-shrink flex-grow'),
-              props.isGrid && tailwind('items-center'),
+              tailwind('flex items-start justify-center border'),
+              isGrid ? tailwind('items-center') : tailwind('flex-grow'),
             ]}
           >
-            <Text
+            <AppText
               style={[
-                isUploading && tailwind('opacity-40'),
                 tailwind('text-base text-neutral-500'),
-                tailwind(props.isGrid ? 'text-center px-1.5' : 'text-left'),
+                isUploading && tailwind('opacity-40'),
+                tailwind(isGrid ? 'text-center px-1.5' : 'text-left'),
                 globalStyle.fontWeight.medium,
               ]}
               numberOfLines={1}
               ellipsizeMode={'middle'}
             >
-              {props.item.name}
-              {props.item.type ? '.' + props.item.type : ''}
-            </Text>
+              {items.getItemDisplayName(props.data)}
+            </AppText>
 
             {isUploading &&
               (props.progress === 0 ? (
@@ -264,12 +268,14 @@ function FileItem(props: FileItemProps): JSX.Element {
               ) : (
                 <View style={tailwind('flex-row items-center')}>
                   <ArrowCircleUp weight="fill" color={getColor('blue-60')} size={16} />
-                  <Text style={tailwind('ml-1.5 text-xs text-blue-60')}>{(props.progress * 100).toFixed(0) + '%'}</Text>
+                  <AppText style={tailwind('ml-1.5 text-xs text-blue-60')}>
+                    {((props.progress || 0) * 100).toFixed(0) + '%'}
+                  </AppText>
                   <ProgressBar
                     style={tailwind('flex-grow h-1 ml-1.5')}
                     progressStyle={tailwind('h-1')}
                     totalValue={1}
-                    currentValue={props.progress}
+                    currentValue={props.progress || 0}
                   />
                 </View>
               ))}
@@ -284,20 +290,20 @@ function FileItem(props: FileItemProps): JSX.Element {
               </Text>
             )}
 
-            {!props.isGrid &&
-              !inProgress &&
+            {!isGrid &&
+              isIdle &&
               (props.subtitle ? (
                 props.subtitle
               ) : (
                 <Text style={tailwind('text-xs text-neutral-100')}>
-                  {!props.isFolder && (
+                  {!isFolder && (
                     <>
-                      {prettysize(props.item.size)}
+                      {prettysize(props.data.size || 0)}
                       <Text style={globalStyle.fontWeight.bold}> · </Text>
                     </>
                   )}
                   Updated{' '}
-                  {new Date(props.item.updatedAt).toLocaleDateString('en-GB', {
+                  {new Date(props.data.updatedAt).toLocaleDateString('en-GB', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric',
@@ -307,7 +313,7 @@ function FileItem(props: FileItemProps): JSX.Element {
           </View>
         </View>
 
-        {!props.isGrid && (
+        {!isGrid && (
           <TouchableOpacity
             disabled={isUploading || isDownloading}
             style={isSelectionMode && tailwind('hidden')}
@@ -324,4 +330,4 @@ function FileItem(props: FileItemProps): JSX.Element {
   );
 }
 
-export default FileItem;
+export default DriveItem;

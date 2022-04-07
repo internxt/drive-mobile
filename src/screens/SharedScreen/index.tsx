@@ -3,13 +3,14 @@ import { View, Alert, ScrollView, RefreshControl, Text } from 'react-native';
 import _ from 'lodash';
 
 import { getShareList, IShare } from '../../services/storageShare';
-import FileItem from '../../components/FileItem';
+import DriveItem from '../../components/DriveItem';
 import { tailwind } from '../../helpers/designSystem';
 import SkinSkeleton from '../../components/SkinSkeleton';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptySharesImage from '../../../assets/images/screens/empty-shares.svg';
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
+import { DriveItemData, DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
 
 interface SharedScreenProps {
   searchText?: string;
@@ -38,7 +39,7 @@ function SharedScreen(props: SharedScreenProps): JSX.Element {
       });
   };
   const renderNoResults = () => (
-    <EmptyList {...strings.components.FileList.noResults} image={<NoResultsImage width={100} height={100} />} />
+    <EmptyList {...strings.components.DriveList.noResults} image={<NoResultsImage width={100} height={100} />} />
   );
 
   useEffect(() => {
@@ -72,11 +73,12 @@ function SharedScreen(props: SharedScreenProps): JSX.Element {
             <View>
               {filteredSharedList.map((item, i) => {
                 return (
-                  <FileItem
+                  <DriveItem
                     key={i}
-                    item={item.fileInfo}
-                    isFolder={false}
-                    totalColumns={1}
+                    type={DriveListType.Shared}
+                    status={DriveItemStatus.Idle}
+                    viewMode={DriveListViewMode.List}
+                    data={item.fileInfo as DriveItemData}
                     subtitle={
                       <View style={tailwind('flex flex-row items-center')}>
                         <Text style={tailwind('text-base text-sm text-blue-60')}>Left {item.views} times to share</Text>

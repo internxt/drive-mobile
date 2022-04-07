@@ -4,7 +4,6 @@ import prettysize from 'prettysize';
 import { setString } from 'expo-clipboard';
 
 import { getHeaders } from '../../../helpers/headers';
-import { IFile } from '../../FileList';
 import strings from '../../../../assets/lang/strings';
 import { generateShareLink } from '../../../@inxt-js/services/share';
 import { getFileTypeIcon } from '../../../helpers';
@@ -16,14 +15,16 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
 import { constants } from '../../../services/app';
-import { DriveItemData, NotificationType } from '../../../types';
+import { NotificationType } from '../../../types';
 import notificationsService from '../../../services/notifications';
 import { Copy, Minus, Plus } from 'phosphor-react-native';
+import { DriveItemData } from '../../../types/drive';
+import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 
 function ShareFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { showShareModal } = useAppSelector((state) => state.ui);
-  const { focusedItem } = useAppSelector((state) => state.storage);
+  const { focusedItem } = useAppSelector((state) => state.drive);
   const [isOpen, setIsOpen] = useState(showShareModal);
   const [selectedFile, setSelectedFile] = useState<DriveItemData>();
   const [link, setLink] = useState('');
@@ -43,7 +44,7 @@ function ShareFilesModal(): JSX.Element {
       message: strings.formatString<string>(strings.modals.ShareModal.message, link) as string,
     });
   };
-  const getFileToken = async (file: IFile, views: number) => {
+  const getFileToken = async (file: DriveFileData, views: number) => {
     const fileId = file.fileId;
 
     const { bucket, mnemonic, userId, email } = await deviceStorage.getUser();

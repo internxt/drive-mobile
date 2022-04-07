@@ -4,34 +4,33 @@ import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 import strings from '../../../../assets/lang/strings';
-import FileItem from '../../FileItem';
 import Separator from '../../Separator';
 import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
-import { storageThunks } from '../../../store/slices/storage';
+import { driveThunks } from '../../../store/slices/drive';
+import DriveItem from '../../DriveItem';
+import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
 
 function MoveFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { showMoveModal } = useAppSelector((state) => state.ui);
-  const { currentFolderId, selectedFile } = useAppSelector((state) => state.storage);
+  const { currentFolderId, selectedFile } = useAppSelector((state) => state.drive);
 
   const onMoveButtonPressed = async () => {
     const rootFolderId = user?.root_folder_id;
 
     if (selectedFile) {
-      await dispatch(
-        storageThunks.moveFileThunk({ fileId: selectedFile.fileId, destinationFolderId: currentFolderId }),
-      );
+      await dispatch(driveThunks.moveFileThunk({ fileId: selectedFile.fileId, destinationFolderId: currentFolderId }));
       dispatch(uiActions.setShowMoveModal(false));
 
-      rootFolderId && dispatch(storageThunks.getFolderContentThunk({ folderId: rootFolderId }));
+      rootFolderId && dispatch(driveThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
   };
   const onCancelButtonPressed = () => {
     dispatch(uiActions.setShowMoveModal(false));
-    dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
+    dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
   };
 
   return (
@@ -53,7 +52,16 @@ function MoveFilesModal(): JSX.Element {
         <FlatList
           data={[] as any[]}
           renderItem={(folder: any) => {
-            return <FileItem totalColumns={1} key={folder.id} isFolder={true} item={folder.item} progress={-1} />;
+            return (
+              <DriveItem
+                key={folder.id}
+                type={DriveListType.Drive}
+                status={DriveItemStatus.Idle}
+                viewMode={DriveListViewMode.List}
+                data={folder.item}
+                progress={-1}
+              />
+            );
           }}
           keyExtractor={(folder) => folder.id.toString()}
         />

@@ -1,18 +1,10 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
-import { IFile, IFolder, IUploadingFile } from '../../../components/FileList';
 import analytics, { AnalyticsEventKey } from '../../../services/analytics';
 import fileService from '../../../services/file';
 import folderService from '../../../services/folder';
 
-import {
-  DevicePlatform,
-  DriveFileMetadataPayload,
-  DriveFolderMetadataPayload,
-  SortDirection,
-  SortType,
-  NotificationType,
-} from '../../../types';
+import { DevicePlatform, NotificationType } from '../../../types';
 import { RootState } from '../..';
 import { uiActions } from '../ui';
 import { loadValues } from '../../../services/storage';
@@ -21,6 +13,16 @@ import strings from '../../../../assets/lang/strings';
 import { getEnvironmentConfig } from '../../../lib/network';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 import notificationsService from '../../../services/notifications';
+import {
+  DriveFileMetadataPayload,
+  DriveFolderMetadataPayload,
+  DriveItemData,
+  DriveItemStatus,
+  DriveListItem,
+  SortDirection,
+  SortType,
+  UploadingFile,
+} from '../../../types/drive';
 
 interface FolderContent {
   id: number;
@@ -32,21 +34,20 @@ interface FolderContent {
   userId: number | null;
   iconId: number | null;
   parentId: number | null;
-  children: IFolder[];
-  files: IFile[];
+  children: DriveFolderData[];
+  files: DriveFileData[];
 }
 
-export interface StorageState {
+export interface DriveState {
   isLoading: boolean;
-  items: any[];
   absolutePath: string;
-  filesCurrentlyUploading: IUploadingFile[];
-  filesAlreadyUploaded: any[];
+  items: DriveItemData[];
+  uploadingFiles: UploadingFile[];
+  selectedItems: DriveItemData[];
   currentFolderId: number;
   folderContent: FolderContent | null;
   rootFolderContent: any;
   focusedItem: any | null;
-  selectedItems: any[];
   sortType: SortType;
   sortDirection: SortDirection;
   searchString: string;
@@ -63,13 +64,12 @@ export interface StorageState {
   limit: number;
 }
 
-const initialState: StorageState = {
+const initialState: DriveState = {
   isLoading: false,
   items: [],
   currentFolderId: -1,
   absolutePath: '/',
-  filesCurrentlyUploading: [],
-  filesAlreadyUploaded: [],
+  uploadingFiles: [],
   folderContent: null,
   rootFolderContent: [],
   focusedItem: null,
@@ -90,7 +90,7 @@ const initialState: StorageState = {
 };
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
-  'files/initialize',
+  'drive/initialize',
   async (payload, { dispatch }) => {
     const user = await deviceStorage.getUser();
 
@@ -104,26 +104,26 @@ const getFolderContentThunk = createAsyncThunk<
   { currentFolderId: number; folderContent: FolderContent },
   { folderId: number; quick?: boolean },
   { state: RootState }
->('files/getFolderContent', async ({ folderId }) => {
+>('drive/getFolderContent', async ({ folderId }) => {
   const folderContent = await fileService.getFolderContent(folderId);
 
   return { currentFolderId: folderId, folderContent };
 });
 
 const getUsageAndLimitThunk = createAsyncThunk<{ usage: number; limit: number }, void, { state: RootState }>(
-  'files/getUsageAndLimit',
+  'drive/getUsageAndLimit',
   async () => {
     return loadValues();
   },
 );
 
 const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootState }>(
-  'files/goBack',
+  'drive/goBack',
   async ({ folderId }, { dispatch }) => {
     dispatch(uiActions.setBackButtonEnabled(false));
 
     dispatch(getFolderContentThunk({ folderId })).finally(() => {
-      dispatch(storageActions.removeDepthAbsolutePath(1));
+      dispatch(driveActions.removeDepthAbsolutePath(1));
       dispatch(uiActions.setBackButtonEnabled(true));
     });
   },
@@ -133,9 +133,9 @@ const updateFileMetadataThunk = createAsyncThunk<
   void,
   { file: DriveFileData; metadata: DriveFileMetadataPayload },
   { state: RootState }
->('files/updateFileMetadata', async ({ file, metadata }, { getState }) => {
+>('drive/updateFileMetadata', async ({ file, metadata }, { getState }) => {
   const { bucketId } = await getEnvironmentConfig();
-  const { absolutePath, focusedItem } = getState().storage;
+  const { absolutePath, focusedItem } = getState().drive;
   const itemFullName = `${metadata.itemName}${focusedItem.type ? '.' + focusedItem.type : ''}`;
   const itemPath = `${absolutePath}${itemFullName}`;
 
@@ -146,9 +146,9 @@ const updateFolderMetadataThunk = createAsyncThunk<
   void,
   { folder: DriveFolderData; metadata: DriveFolderMetadataPayload },
   { state: RootState }
->('files/updateFolderMetadata', async ({ folder, metadata }, { getState }) => {
+>('drive/updateFolderMetadata', async ({ folder, metadata }, { getState }) => {
   const { bucketId } = await getEnvironmentConfig();
-  const { absolutePath, focusedItem } = getState().storage;
+  const { absolutePath, focusedItem } = getState().drive;
   const itemFullName = `${metadata.itemName}${focusedItem.type ? '.' + focusedItem.type : ''}`;
   const itemPath = `${absolutePath}${itemFullName}`;
 
@@ -159,7 +159,7 @@ const createFolderThunk = createAsyncThunk<
   void,
   { parentFolderId: number; newFolderName: string },
   { state: RootState }
->('files/createFolder', async ({ parentFolderId, newFolderName }, { dispatch }) => {
+>('drive/createFolder', async ({ parentFolderId, newFolderName }, { dispatch }) => {
   await fileService.createFolder(parentFolderId, newFolderName);
   const userData = await deviceStorage.getUser();
 
@@ -173,7 +173,7 @@ const createFolderThunk = createAsyncThunk<
 });
 
 const moveFileThunk = createAsyncThunk<void, { fileId: string; destinationFolderId: number }, { state: RootState }>(
-  'files/moveFile',
+  'drive/moveFile',
   async ({ fileId, destinationFolderId }, { dispatch }) => {
     await fileService.moveFile(fileId, destinationFolderId);
     dispatch(getFolderContentThunk({ folderId: destinationFolderId }));
@@ -181,7 +181,7 @@ const moveFileThunk = createAsyncThunk<void, { fileId: string; destinationFolder
 );
 
 const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: number }, { state: RootState }>(
-  'files/deleteItems',
+  'drive/deleteItems',
   async ({ items, folderToReload }, { dispatch }) => {
     dispatch(getFolderContentThunk({ folderId: folderToReload }));
 
@@ -210,8 +210,8 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: 
   },
 );
 
-export const storageSlice = createSlice({
-  name: 'storage',
+export const driveSlice = createSlice({
+  name: 'drive',
   initialState,
   reducers: {
     resetState(state) {
@@ -238,11 +238,6 @@ export const storageSlice = createSlice({
 
       state.uri = action.payload;
     },
-    updateUploadingFile(state, action: PayloadAction<string>) {
-      state.filesAlreadyUploaded = state.filesAlreadyUploaded.map((file) =>
-        file.id === action.payload ? { ...file, isUploaded: true } : file,
-      );
-    },
     setRootFolderContent(state, action: PayloadAction<any>) {
       state.rootFolderContent = action.payload;
     },
@@ -260,33 +255,32 @@ export const storageSlice = createSlice({
     downloadSelectedFileStop(state) {
       state.startDownloadSelectedFile = false;
     },
-    addUploadingFile(state, action: PayloadAction<any>) {
-      state.filesCurrentlyUploading = [...state.filesCurrentlyUploading, action.payload];
+    addUploadingFile(state, action: PayloadAction<UploadingFile>) {
+      state.uploadingFiles = [...state.uploadingFiles, action.payload];
     },
-    removeUploadingFile(state, action: PayloadAction<string>) {
-      state.filesAlreadyUploaded = [
-        ...state.filesAlreadyUploaded,
-        state.filesCurrentlyUploading.find((file) => file.id === action.payload),
-      ];
-      state.filesCurrentlyUploading = state.filesCurrentlyUploading.filter((file) => file.id !== action.payload);
+    uploadingFileEnd(state, action: PayloadAction<number>) {
+      const uploadingFile = state.uploadingFiles.find((f) => f.id === action.payload);
+
+      // TODO: state.currentFolderId === uploadingFile?.parentId && state.items.push(uploadingFile);
+      state.uploadingFiles = state.uploadingFiles.filter((file) => file.id !== action.payload);
     },
     uploadFileFinished(state) {
       state.isLoading = false;
       state.isUploading = false;
       state.isUploadingFileName = null;
     },
-    uploadFileFailed(state, action: PayloadAction<{ errorMessage?: string; id?: string }>) {
+    uploadFileFailed(state, action: PayloadAction<{ errorMessage?: string; id?: number }>) {
       state.isLoading = false;
       state.isUploading = false;
       state.error = action.payload.errorMessage;
-      state.filesCurrentlyUploading = state.filesCurrentlyUploading.filter((file) => file.id !== action.payload.id);
+      state.uploadingFiles = state.uploadingFiles.filter((file) => file.id !== action.payload.id);
     },
-    uploadFileSetProgress(state, action: PayloadAction<{ progress: number; id?: string }>) {
-      if (state.filesCurrentlyUploading.length > 0) {
-        const index = state.filesCurrentlyUploading.findIndex((x) => x.id === action.payload.id);
+    uploadFileSetProgress(state, action: PayloadAction<{ progress: number; id?: number }>) {
+      if (state.uploadingFiles.length > 0) {
+        const index = state.uploadingFiles.findIndex((f) => f.id === action.payload.id);
 
-        if (state.filesCurrentlyUploading[index]) {
-          state.filesCurrentlyUploading[index].progress = action.payload.progress;
+        if (state.uploadingFiles[index]) {
+          state.uploadingFiles[index].progress = action.payload.progress;
         }
       }
     },
@@ -357,7 +351,6 @@ export const storageSlice = createSlice({
         state.currentFolderId = action.payload.currentFolderId;
         state.folderContent = action.payload.folderContent;
         state.selectedItems = [];
-        state.filesAlreadyUploaded = state.filesAlreadyUploaded.filter((file) => file.isUploaded === false);
       })
       .addCase(getFolderContentThunk.rejected, (state, action) => {
         state.isLoading = false;
@@ -434,9 +427,44 @@ export const storageSlice = createSlice({
   },
 });
 
-export const storageActions = storageSlice.actions;
+export const storageSelectors = {
+  driveItems(state: RootState): DriveListItem[] {
+    const { folderContent, uploadingFiles, searchString, sortType, sortDirection } = state.drive;
+    const sortFunction = fileService.getSortFunction({ type: sortType, direction: sortDirection });
+    let folderList: DriveFolderData[] = (folderContent && folderContent.children) || [];
+    let fileList: DriveFileData[] = (folderContent && folderContent.files) || [];
 
-export const storageThunks = {
+    if (searchString) {
+      fileList = fileList.filter((file) => file.name.toLowerCase().includes(searchString.toLowerCase()));
+      folderList = folderList.filter((folder) => folder.name.toLowerCase().includes(searchString.toLowerCase()));
+    }
+
+    folderList = folderList.slice().sort(sortFunction as any);
+    fileList = fileList.slice().sort(sortFunction as any);
+
+    return [
+      ...uploadingFiles.map<DriveListItem>((f) => ({
+        status: DriveItemStatus.Uploading,
+        progress: f.progress,
+        data: {
+          ...f,
+        },
+      })),
+      ...folderList.map<DriveListItem>((f) => ({
+        status: DriveItemStatus.Idle,
+        data: f,
+      })),
+      ...fileList.map<DriveListItem>((f) => ({
+        status: DriveItemStatus.Idle,
+        data: f,
+      })),
+    ];
+  },
+};
+
+export const driveActions = driveSlice.actions;
+
+export const driveThunks = {
   initializeThunk,
   getUsageAndLimitThunk,
   getFolderContentThunk,
@@ -448,4 +476,4 @@ export const storageThunks = {
   deleteItemsThunk,
 };
 
-export default storageSlice.reducer;
+export default driveSlice.reducer;

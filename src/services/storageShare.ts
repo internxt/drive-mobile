@@ -1,9 +1,10 @@
+import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import axios from 'axios';
-import { IFile } from '../components/FileList';
 import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
 import { NotificationType } from '../types';
 import { constants } from './app';
+import errorService from './error';
 import notificationsService from './notifications';
 
 export interface IShare {
@@ -14,7 +15,7 @@ export interface IShare {
   fileToken: string;
   isFolder: boolean;
   views: number;
-  fileInfo: IFile;
+  fileInfo: DriveFileData;
 }
 
 async function decryptFileNames(shares: IShare[]) {
@@ -27,7 +28,11 @@ async function decryptFileNames(shares: IShare[]) {
 
       share.fileInfo.name = decryptedName;
     } catch (err) {
-      notificationsService.show({ text1: 'Error decrypting files: ' + err.message, type: NotificationType.Error });
+      const castedError = errorService.castError(err);
+      notificationsService.show({
+        text1: 'Error decrypting files: ' + castedError.message,
+        type: NotificationType.Error,
+      });
     }
   });
 

@@ -332,8 +332,8 @@ export default class PhotosSyncService {
           return;
         }
 
-        const usage = options.getState().storage.usage + options.getState().photos.usage;
-        const limit = options.getState().storage.limit;
+        const usage = options.getState().drive.usage + options.getState().photos.usage;
+        const limit = options.getState().drive.limit;
         const uri = await this.cameraRollUriToFileSystemUri(photo.data, photo.uri);
         const hash = await RNFS.hash(uri, 'sha256');
         const isAlreadyUploaded = await this.localDatabaseService.getPhotoByNameTypeDeviceAndHash(

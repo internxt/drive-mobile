@@ -6,7 +6,7 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { storageActions, storageThunks } from '../../../store/slices/storage';
+import { driveActions, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import errorService from '../../../services/error';
 import AppButton from '../../AppButton';
@@ -16,7 +16,7 @@ import { NotificationType } from '../../../types';
 function RenameModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { showRenameModal } = useAppSelector((state) => state.ui);
-  const { focusedItem, currentFolderId } = useAppSelector((state) => state.storage);
+  const { focusedItem, currentFolderId } = useAppSelector((state) => state.drive);
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const isFolder = focusedItem?.parentId;
@@ -24,7 +24,7 @@ function RenameModal(): JSX.Element {
   const file = !isFolder && focusedItem;
   const onItemRenameSuccess = () => {
     if (currentFolderId) {
-      dispatch(storageThunks.getFolderContentThunk({ folderId: currentFolderId }));
+      dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
     }
     notificationsService.show({ text1: strings.messages.renamedSuccessfully, type: NotificationType.Success });
     setNewName('');
@@ -35,7 +35,7 @@ function RenameModal(): JSX.Element {
     setIsLoading(false);
   };
   const onCancelButtonPressed = () => {
-    dispatch(storageActions.deselectAll());
+    dispatch(driveActions.deselectAll());
     dispatch(uiActions.setShowRenameModal(false));
   };
   const onRenameButtonPressed = async () => {
@@ -44,14 +44,14 @@ function RenameModal(): JSX.Element {
 
       if (isFolder) {
         await dispatch(
-          storageThunks.updateFolderMetadataThunk({
+          driveThunks.updateFolderMetadataThunk({
             folder: folder,
             metadata: { itemName: newName },
           }),
         );
       } else {
         await dispatch(
-          storageThunks.updateFileMetadataThunk({
+          driveThunks.updateFileMetadataThunk({
             file: file,
             metadata: { itemName: newName },
           }),
