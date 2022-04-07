@@ -57,8 +57,8 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
     dispatch(storageActions.resetState());
-    await dispatch(photosThunks.cancelSyncThunk());
-    await dispatch(photosThunks.clearDataThunk());
+    dispatch(photosThunks.cancelSyncThunk());
+    dispatch(photosThunks.clearDataThunk());
     dispatch(photosActions.resetState());
   },
 );

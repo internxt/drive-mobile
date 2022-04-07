@@ -73,11 +73,13 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
   const isCompleted = syncStatus.status === PhotosSyncStatus.Completed;
   const isPaused = syncStatus.status === PhotosSyncStatus.Paused;
   const isPausing = syncStatus.status === PhotosSyncStatus.Pausing;
+  const isPending = syncStatus.status === PhotosSyncStatus.Pending;
+  const showPauseResumeButton = !isCompleted && !isPending;
 
   return (
     <View style={tailwind('px-5 flex-row items-center justify-between')}>
       {contentByStatus[syncStatus.status]}
-      {!isCompleted ? (
+      {showPauseResumeButton ? (
         !isPaused && !isPausing ? (
           <TouchableOpacity onPress={onPauseButtonPressed}>
             <View style={[tailwind('py-1 flex-row items-center')]}>
