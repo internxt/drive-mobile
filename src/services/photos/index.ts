@@ -139,6 +139,7 @@ export class PhotosService {
   }: {
     id?: string;
     event: PhotosEventKey;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     listener: (...args: any[]) => void;
   }): void {
     return this.eventEmitter.addListener({ id, event, listener });
@@ -151,6 +152,7 @@ export class PhotosService {
   }: {
     id?: string;
     event: PhotosEventKey;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     listener: (...args: any[]) => void;
   }) {
     return this.eventEmitter.removeListener({ id, event, listener });

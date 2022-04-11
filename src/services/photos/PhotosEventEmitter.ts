@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import EventEmitter from 'events';
 import { PhotosEventKey, PhotosServiceModel } from '../../types/photos';

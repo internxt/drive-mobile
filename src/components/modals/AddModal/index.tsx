@@ -20,7 +20,6 @@ import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
 import { DevicePlatform, NotificationType, ProgressCallback } from '../../../types';
 import { deviceStorage } from '../../../services/asyncStorage';
-import { UPLOAD_FILE_SIZE_LIMIT } from '../../../services/file';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
@@ -29,7 +28,7 @@ import { uploadFile } from '../../../services/network';
 import notificationsService from '../../../services/notifications';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import BottomModal from '../BottomModal';
-import { UploadingFile } from '../../../types/drive';
+import { UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
 
 async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
   const name = file.uri.split('/').pop() || '';

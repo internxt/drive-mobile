@@ -83,7 +83,7 @@ class UserService {
     });
   }
 
-  public payment(token: string, stripePlan: string): Promise<any> {
+  public payment(token: string, stripePlan: string): Promise<void> {
     return new Promise((resolve, reject) => {
       fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/buy`, {
         method: 'POST',

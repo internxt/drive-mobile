@@ -5,13 +5,6 @@ import { DriveFileMetadataPayload, DriveItemData, SortDirection, SortType } from
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
 
-export const UPLOAD_FILE_SIZE_LIMIT = 1024 * 1024 * 1024;
-
-interface ItemMeta {
-  name: string;
-  type: string;
-}
-
 export function getNameFromUri(uri: string): string {
   const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
   const fileUri = uri.replace(regex, '$2');
@@ -37,7 +30,11 @@ export function removeExtension(filename: string): string {
   return filename.substring(0, filename.length - (extension.length + 1));
 }
 
-export function renameIfAlreadyExists(items: ItemMeta[], filename: string, type: string): [boolean, number, string] {
+export function renameIfAlreadyExists(
+  items: { type: string; name: string }[],
+  filename: string,
+  type: string,
+): [boolean, number, string] {
   const FILENAME_INCREMENT_REGEX = /( \([0-9]+\))$/i;
   const INCREMENT_INDEX_REGEX = /\(([^)]+)\)/;
   const infoFilenames: { cleanName: string; type: string; incrementIndex: number }[] = items

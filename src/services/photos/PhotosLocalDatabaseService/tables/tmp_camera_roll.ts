@@ -1,3 +1,5 @@
+import { CreateSqliteTmpCameraRollRowData } from '../../../../types/photos';
+
 const TABLE_NAME = 'tmp_camera_roll';
 
 const statements = {
@@ -7,7 +9,7 @@ const statements = {
       timestamp INTEGER NOT NULL, \
       type TEXT NOT NULL, \
       filename TEXT NOT NULL, \
-      fileSize INTEGER NOT NULL, \
+      file_size INTEGER NOT NULL, \
       width INTEGER NOT NULL, \
       height INTEGER NOT NULL, \
       uri TEXT NOT NULL \
@@ -15,12 +17,12 @@ const statements = {
   dropTable: `DROP TABLE ${TABLE_NAME};`,
   cleanTable: `DELETE FROM ${TABLE_NAME};`,
   insert: `INSERT INTO ${TABLE_NAME} (\
-      group_name, timestamp, type, filename, fileSize, width, height, uri \
+      group_name, timestamp, type, filename, file_size, width, height, uri \
     ) \
     VALUES ( ?, ?, ?, ?, ?, ?, ?, ? );`,
-  bulkInsert: (rows: any[][]): string => {
+  bulkInsert: (rows: CreateSqliteTmpCameraRollRowData[]): string => {
     let query = `INSERT INTO ${TABLE_NAME} (\
-      group_name, timestamp, type, filename, fileSize, width, height, uri \
+      group_name, timestamp, type, filename, file_size, width, height, uri \
     ) VALUES `;
 
     for (let i = 0; i < rows.length; i++) {
@@ -28,14 +30,14 @@ const statements = {
       const isTheLastRow = i === rows.length - 1;
 
       query += '(';
-      query += `"${row[0]}",`;
-      query += `${row[1]}, `;
-      query += `"${row[2]}", `;
-      query += `"${row[3]}", `;
-      query += `${row[4]}, `;
-      query += `${row[5]}, `;
-      query += `${row[6]}, `;
-      query += `"${row[7]}")`;
+      query += `"${row.group_name}",`;
+      query += `${row.timestamp}, `;
+      query += `"${row.type}", `;
+      query += `"${row.filename}", `;
+      query += `${row.file_size}, `;
+      query += `${row.width}, `;
+      query += `${row.height}, `;
+      query += `"${row.uri}")`;
       query += isTheLastRow ? ';' : ',';
     }
 

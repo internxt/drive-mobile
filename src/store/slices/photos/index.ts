@@ -20,7 +20,6 @@ import {
   GalleryViewMode,
   PhotosSyncStatus,
   PhotosSyncStatusData,
-  PhotosSyncInfo,
   PhotosSyncTaskType,
   PhotosByMonthType,
   PhotosTaskCompletedInfo,

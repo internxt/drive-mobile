@@ -90,12 +90,16 @@ export interface SqliteTmpCameraRollRow {
   timestamp: number;
   type: string;
   filename: string;
-  fileSize: number;
+  file_size: number;
   height: number;
   width: number;
   uri: string;
 }
 
+export type CreateSqliteTmpCameraRollRowData = Pick<
+  SqliteTmpCameraRollRow,
+  'group_name' | 'timestamp' | 'type' | 'filename' | 'file_size' | 'width' | 'height' | 'uri'
+>;
 export interface PhotosSyncStatusData {
   status: PhotosSyncStatus;
   completedTasks: number;

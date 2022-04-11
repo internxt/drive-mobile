@@ -1,6 +1,12 @@
 import _ from 'lodash';
 import { Photo, PhotoId, PhotoStatus } from '@internxt/sdk/dist/photos';
-import { PhotosServiceModel, PHOTOS_DB_NAME, SqlitePhotoRow, SqliteTmpCameraRollRow } from '../../../types/photos';
+import {
+  CreateSqliteTmpCameraRollRowData,
+  PhotosServiceModel,
+  PHOTOS_DB_NAME,
+  SqlitePhotoRow,
+  SqliteTmpCameraRollRow,
+} from '../../../types/photos';
 
 import sqliteService from '../../sqlite';
 import photoTable from './tables/photo';
@@ -279,20 +285,20 @@ export default class PhotosLocalDatabaseService {
   }
 
   public async bulkInsertTmpCameraRollRow(edges: CameraRoll.PhotoIdentifier[]): Promise<void> {
-    const rows = edges.map((edge) => {
+    const rows = edges.map<CreateSqliteTmpCameraRollRowData>((edge) => {
       const splittedUri = edge.node.image.uri.split('/');
       const filename = edge.node.image.filename || splittedUri[splittedUri.length - 1];
 
-      return [
-        edge.node.group_name || '',
-        edge.node.timestamp * 1000,
-        edge.node.type,
+      return {
+        group_name: edge.node.group_name || '',
+        timestamp: edge.node.timestamp * 1000,
+        type: edge.node.type,
         filename,
-        edge.node.image.fileSize,
-        edge.node.image.width,
-        edge.node.image.height,
-        edge.node.image.uri,
-      ];
+        file_size: edge.node.image.fileSize as number,
+        width: edge.node.image.width,
+        height: edge.node.image.height,
+        uri: edge.node.image.uri,
+      };
     });
     const query = tmp_camera_roll.statements.bulkInsert(rows);
 

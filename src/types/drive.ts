@@ -1,5 +1,7 @@
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 
+export const UPLOAD_FILE_SIZE_LIMIT = 1024 * 1024 * 1024;
+
 export type DriveItemData = DriveFileData & DriveFolderData;
 
 export interface DriveFolderMetadataPayload {
