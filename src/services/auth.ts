@@ -2,7 +2,7 @@ import { encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import analytics, { AnalyticsEventKey } from './analytics';
 import { getHeaders } from '../helpers/headers';
 import { DevicePlatform } from '../types';
-import { deviceStorage } from './asyncStorage';
+import { asyncStorage } from './asyncStorage';
 import { constants } from './app';
 
 interface LoginResponse {
@@ -33,7 +33,7 @@ class AuthService {
   }
 
   public async signout(): Promise<void> {
-    const userData = await deviceStorage.getUser();
+    const userData = await asyncStorage.getUser();
 
     analytics.track(AnalyticsEventKey.UserSignOut, {
       userId: userData?.uuid,
@@ -41,11 +41,11 @@ class AuthService {
       platform: DevicePlatform.Mobile,
     });
 
-    await deviceStorage.clearStorage();
+    await asyncStorage.clearStorage();
   }
 
   public async doRecoverPassword(newPassword: string): Promise<Response> {
-    const xUser = await deviceStorage.getUser();
+    const xUser = await asyncStorage.getUser();
     const mnemonic = xUser.mnemonic;
     const hashPass = passToHash({ password: newPassword });
     const encryptedPassword = encryptText(hashPass.hash);

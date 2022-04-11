@@ -2,7 +2,7 @@ import { UserReferral } from '@internxt/sdk/dist/drive/referrals/types';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
-import { deviceStorage } from '../../../services/asyncStorage';
+import { asyncStorage } from '../../../services/asyncStorage';
 import notificationsService from '../../../services/notifications';
 import usersReferralsService from '../../../services/usersReferrals';
 import { AsyncStorageKey, NotificationType } from '../../../types';
@@ -18,8 +18,8 @@ const initialState: ReferralsState = {
 };
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>('referrals/initialize', async () => {
-  const accessToken = await deviceStorage.getItem(AsyncStorageKey.Token);
-  const user = await deviceStorage.getUser();
+  const accessToken = await asyncStorage.getItem(AsyncStorageKey.Token);
+  const user = await asyncStorage.getUser();
 
   if (user) {
     usersReferralsService.initialize(accessToken || '', user.mnemonic);

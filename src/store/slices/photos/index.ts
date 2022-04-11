@@ -15,7 +15,7 @@ import { RootState } from '../..';
 import { Platform } from 'react-native';
 import { PhotosService } from '../../../services/photos';
 import strings from '../../../../assets/lang/strings';
-import { deviceStorage } from '../../../services/asyncStorage';
+import { asyncStorage } from '../../../services/asyncStorage';
 import {
   GalleryViewMode,
   PhotosSyncStatus,
@@ -92,8 +92,8 @@ const initialState: PhotosState = {
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/initialize',
   async (payload, { dispatch }) => {
-    const photosToken = await deviceStorage.getItem(AsyncStorageKey.PhotosToken);
-    const user = await deviceStorage.getUser();
+    const photosToken = await asyncStorage.getItem(AsyncStorageKey.PhotosToken);
+    const user = await asyncStorage.getUser();
 
     await PhotosService.initialize(photosToken || '', {
       encryptionKey: user?.mnemonic || '',

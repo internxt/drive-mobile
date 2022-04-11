@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { deviceStorage } from '../../../services/asyncStorage';
+import { asyncStorage } from '../../../services/asyncStorage';
 import { RootState } from '../..';
 import authService from '../../../services/auth';
 import userService from '../../../services/user';
@@ -40,9 +40,9 @@ export const signInThunk = createAsyncThunk<
 >('auth/signIn', async (payload, { dispatch }) => {
   const result = await userService.signin(payload.email, payload.password, payload.sKey, payload.twoFactorCode);
 
-  await deviceStorage.saveItem(AsyncStorageKey.Token, result.token);
-  await deviceStorage.saveItem(AsyncStorageKey.PhotosToken, result.photosToken); // Photos access token
-  await deviceStorage.saveItem(AsyncStorageKey.User, JSON.stringify(result.user));
+  await asyncStorage.saveItem(AsyncStorageKey.Token, result.token);
+  await asyncStorage.saveItem(AsyncStorageKey.PhotosToken, result.photosToken); // Photos access token
+  await asyncStorage.saveItem(AsyncStorageKey.User, JSON.stringify(result.user));
 
   dispatch(appThunks.initializeThunk());
 

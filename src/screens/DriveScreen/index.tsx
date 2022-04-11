@@ -21,7 +21,7 @@ import { useRoute } from '@react-navigation/native';
 import { constants } from '../../services/app';
 import AppScreen from '../../components/AppScreen';
 import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
-import { deviceStorage } from '../../services/asyncStorage';
+import { asyncStorage } from '../../services/asyncStorage';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DriveListType, SortDirection } from '../../types/drive';
 
@@ -56,7 +56,7 @@ function DriveScreen(): JSX.Element {
   const screenTitle = !isRootFolder && folderContent ? folderContent.name : strings.screens.drive.title;
   const uploadFile = async (uri: string, name: string, currentFolder: number) => {
     dispatch(driveActions.setUri(undefined));
-    const userData = await deviceStorage.getUser();
+    const userData = await asyncStorage.getUser();
 
     try {
       const mnemonic = user?.mnemonic as string;
@@ -149,7 +149,7 @@ function DriveScreen(): JSX.Element {
   }
 
   useEffect(() => {
-    deviceStorage
+    asyncStorage
       .getUser()
       .then((userData) => {
         loadValues()

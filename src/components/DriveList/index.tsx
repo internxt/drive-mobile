@@ -3,7 +3,8 @@ import { RefreshControl, View, FlatList, Dimensions } from 'react-native';
 import _ from 'lodash';
 
 import { tailwind } from '../../helpers/designSystem';
-import DriveItem from '../DriveItem';
+import DriveItemTable from '../DriveItemTable';
+import DriveItemGrid from '../DriveItemGrid';
 import SkinSkeleton from '../SkinSkeleton';
 import EmptyDriveImage from '../../../assets/images/screens/empty-drive.svg';
 import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg';
@@ -36,6 +37,11 @@ function DriveList(props: DriveListProps): JSX.Element {
   const isEmptyFolder = props.items.length === 0;
   const windowWidth = Dimensions.get('window').width;
   const numColumns = Math.min(Math.max(Math.trunc(windowWidth / 125), 2), 6);
+  const itemByViewMode = {
+    [DriveListViewMode.List]: DriveItemTable,
+    [DriveListViewMode.Grid]: DriveItemGrid,
+  };
+  const ItemComponent = itemByViewMode[props.viewMode];
   const renderNoResults = () => (
     <EmptyList {...strings.components.DriveList.noResults} image={<NoResultsImage width={100} height={100} />} />
   );
@@ -87,7 +93,7 @@ function DriveList(props: DriveListProps): JSX.Element {
       keyExtractor={(item) => `${props.viewMode}-${item.data.id}`}
       renderItem={({ item }) => {
         return (
-          <DriveItem
+          <ItemComponent
             type={props.type}
             data={item.data}
             status={item.status}

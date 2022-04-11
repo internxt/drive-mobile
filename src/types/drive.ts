@@ -58,3 +58,15 @@ export type DriveItemDataProps = Pick<DriveItemData, 'id' | 'name' | 'updatedAt'
 };
 
 export type DriveListItem = { status: DriveItemStatus; progress?: number; data: DriveItemDataProps };
+
+export interface DriveItemProps {
+  type: DriveListType;
+  viewMode: DriveListViewMode;
+  status: DriveItemStatus;
+  data: DriveItemDataProps;
+  isLoading?: boolean;
+  nameEncrypted?: boolean;
+  selectable?: boolean;
+  subtitle?: JSX.Element;
+  progress?: number;
+}

@@ -7,7 +7,7 @@ import _ from 'lodash';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
 import { Options } from '@segment/analytics-react-native/build/esm/bridge';
-import { deviceStorage } from './asyncStorage';
+import { asyncStorage } from './asyncStorage';
 
 export enum AnalyticsEventKey {
   UserSignUp = 'User Signup',
@@ -135,7 +135,7 @@ class AnalyticsService {
   }
 
   public async trackPayment(sessionId: string): Promise<void> {
-    const user = await deviceStorage.getUser();
+    const user = await asyncStorage.getUser();
     const conversionData = await this.getConversionData(sessionId);
 
     if (!_.isEmpty(conversionData.properties)) {

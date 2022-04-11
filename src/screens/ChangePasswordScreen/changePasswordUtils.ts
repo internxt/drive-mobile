@@ -2,7 +2,7 @@ import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../
 import { getHeaders } from '../../helpers/headers';
 import AesUtils from '../../helpers/aesUtils';
 import { constants } from '../../services/app';
-import { deviceStorage } from '../../services/asyncStorage';
+import { asyncStorage } from '../../services/asyncStorage';
 import notificationsService from '../../services/notifications';
 import { NotificationType } from '../../types';
 interface ChangePasswordParam {
@@ -23,7 +23,7 @@ async function getSalt(email: string) {
 }
 
 export async function doChangePassword(params: ChangePasswordParam): Promise<any> {
-  const xUser = await deviceStorage.getUser();
+  const xUser = await asyncStorage.getUser();
   const salt = await getSalt(xUser.email);
 
   if (!salt) {

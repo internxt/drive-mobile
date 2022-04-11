@@ -19,7 +19,7 @@ import strings from '../../../../assets/lang/strings';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
 import { DevicePlatform, NotificationType, ProgressCallback } from '../../../types';
-import { deviceStorage } from '../../../services/asyncStorage';
+import { asyncStorage } from '../../../services/asyncStorage';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
@@ -86,7 +86,7 @@ async function uploadAndCreateFileEntry(
   currentFolderId: number,
   progressCallback: ProgressCallback,
 ) {
-  const { bucket, bridgeUser, mnemonic, userId } = await deviceStorage.getUser();
+  const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
   const fileStat = await stat(filePath);
   const fileSize = fileStat.size;
   const fileId = await uploadFile(
@@ -145,21 +145,21 @@ function UploadModal(): JSX.Element {
   };
 
   async function trackUploadStart() {
-    const { uuid, email } = await deviceStorage.getUser();
+    const { uuid, email } = await asyncStorage.getUser();
     const uploadStartedTrack = { userId: uuid, email, device: DevicePlatform.Mobile };
 
     analytics.track(AnalyticsEventKey.FileUploadStart, uploadStartedTrack);
   }
 
   async function trackUploadSuccess() {
-    const { email, uuid } = await deviceStorage.getUser();
+    const { email, uuid } = await asyncStorage.getUser();
     const uploadFinishedTrack = { userId: uuid, email, device: DevicePlatform.Mobile };
 
     analytics.track(AnalyticsEventKey.FileUploadFinished, uploadFinishedTrack);
   }
 
   async function trackUploadError(err: Error) {
-    const { email, uuid } = await deviceStorage.getUser();
+    const { email, uuid } = await asyncStorage.getUser();
     const uploadErrorTrack = { userId: uuid, email, device: DevicePlatform.Mobile, error: err.message };
 
     analytics.track(AnalyticsEventKey.FileUploadError, uploadErrorTrack);

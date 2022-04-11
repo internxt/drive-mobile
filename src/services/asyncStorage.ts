@@ -3,7 +3,7 @@ import { AsyncStorageKey, User } from '../types';
 
 const { getItem, setItem, removeItem, getAllKeys, multiRemove } = AsyncStorage;
 
-export const deviceStorage = {
+export const asyncStorage = {
   saveItem(key: string, value: string): Promise<void> {
     return setItem(key, value).catch(() => undefined);
   },

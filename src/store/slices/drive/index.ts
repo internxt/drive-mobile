@@ -8,7 +8,7 @@ import { DevicePlatform, NotificationType } from '../../../types';
 import { RootState } from '../..';
 import { uiActions } from '../ui';
 import { loadValues } from '../../../services/storage';
-import { deviceStorage } from '../../../services/asyncStorage';
+import { asyncStorage } from '../../../services/asyncStorage';
 import strings from '../../../../assets/lang/strings';
 import { getEnvironmentConfig } from '../../../lib/network';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
@@ -92,7 +92,7 @@ const initialState: DriveState = {
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'drive/initialize',
   async (payload, { dispatch }) => {
-    const user = await deviceStorage.getUser();
+    const user = await asyncStorage.getUser();
 
     if (user) {
       await dispatch(getUsageAndLimitThunk());
@@ -161,7 +161,7 @@ const createFolderThunk = createAsyncThunk<
   { state: RootState }
 >('drive/createFolder', async ({ parentFolderId, newFolderName }, { dispatch }) => {
   await fileService.createFolder(parentFolderId, newFolderName);
-  const userData = await deviceStorage.getUser();
+  const userData = await asyncStorage.getUser();
 
   await analytics.track(AnalyticsEventKey.FolderCreated, {
     userId: userData.uuid,
@@ -228,7 +228,7 @@ export const driveSlice = createSlice({
     },
     setUri(state, action: PayloadAction<any>) {
       if (action.payload) {
-        deviceStorage.getUser().then((user) => {
+        asyncStorage.getUser().then((user) => {
           analytics.track(AnalyticsEventKey.ShareTo, {
             email: user.email,
             uri: action.payload.fileUri ? action.payload.fileUri : action.payload.toString && action.payload.toString(),

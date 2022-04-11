@@ -1,4 +1,4 @@
-import { deviceStorage } from '../services/asyncStorage';
+import { asyncStorage } from '../services/asyncStorage';
 import PackageJson from '../../package.json';
 import { AsyncStorageKey } from '../types';
 
@@ -6,7 +6,7 @@ export async function getHeaders(authToken?: string, mnemonic?: string): Promise
   let storedAuthToken;
 
   if (!authToken) {
-    storedAuthToken = await deviceStorage.getItem(AsyncStorageKey.Token);
+    storedAuthToken = await asyncStorage.getItem(AsyncStorageKey.Token);
   } else {
     storedAuthToken = authToken;
   }
@@ -14,7 +14,7 @@ export async function getHeaders(authToken?: string, mnemonic?: string): Promise
   let storedMnemonic;
 
   if (!mnemonic) {
-    const xUser = await deviceStorage.getUser();
+    const xUser = await asyncStorage.getUser();
 
     storedMnemonic = xUser && xUser.mnemonic;
   } else {

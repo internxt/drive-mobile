@@ -10,7 +10,7 @@ import { getFileTypeIcon } from '../../../helpers';
 import { generateFileKey, Network } from '../../../lib/network';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
-import { deviceStorage } from '../../../services/asyncStorage';
+import { asyncStorage } from '../../../services/asyncStorage';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
@@ -47,7 +47,7 @@ function ShareFilesModal(): JSX.Element {
   const getFileToken = async (file: DriveFileData, views: number) => {
     const fileId = file.fileId;
 
-    const { bucket, mnemonic, userId, email } = await deviceStorage.getUser();
+    const { bucket, mnemonic, userId, email } = await asyncStorage.getUser();
     const network = new Network(email, userId, mnemonic);
     const { index } = await network.getFileInfo(bucket, fileId);
     const fileToken = await network.createFileToken(bucket, fileId, 'PULL');

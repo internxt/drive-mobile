@@ -9,7 +9,7 @@ import AppNavigator from './screens/AppNavigator';
 import analyticsService from './services/analytics';
 import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
 import { getColor, tailwind } from './helpers/designSystem';
-import { deviceStorage } from './services/asyncStorage';
+import { asyncStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
 import { AppScreenKey, AsyncStorageKey } from './types';
@@ -40,9 +40,9 @@ export default function App(): JSX.Element {
     },
   };
   const loadLocalUser = async () => {
-    const token = await deviceStorage.getItem(AsyncStorageKey.Token);
-    const photosToken = await deviceStorage.getItem(AsyncStorageKey.PhotosToken);
-    const user = await deviceStorage.getUser();
+    const token = await asyncStorage.getItem(AsyncStorageKey.Token);
+    const photosToken = await asyncStorage.getItem(AsyncStorageKey.PhotosToken);
+    const user = await asyncStorage.getUser();
 
     if (token && photosToken && user) {
       dispatch(driveActions.setCurrentFolderId(user.root_folder_id));

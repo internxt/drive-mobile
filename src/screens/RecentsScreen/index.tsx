@@ -3,7 +3,7 @@ import { View, Alert, ScrollView, RefreshControl } from 'react-native';
 import _ from 'lodash';
 
 import { getRecents } from '../../services/recents';
-import DriveItem from '../../components/DriveItem';
+import DriveItem from '../../components/DriveItemTable';
 import SkinSkeleton from '../../components/SkinSkeleton';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';

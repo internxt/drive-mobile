@@ -9,7 +9,7 @@ import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import { driveThunks } from '../../../store/slices/drive';
-import DriveItem from '../../DriveItem';
+import DriveItem from '../../DriveItemTable';
 import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
 
 function MoveFilesModal(): JSX.Element {
