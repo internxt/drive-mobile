@@ -7,7 +7,7 @@ import globalStyle from '../../styles';
 import { useAppSelector } from '../../store/hooks';
 import { ArrowCircleUp, DotsThree } from 'phosphor-react-native';
 import strings from '../../../assets/lang/strings';
-import ProgressBar from '../ProgressBar';
+import ProgressBar from '../AppProgressBar';
 import { items } from '@internxt/lib';
 import AppText from '../AppText';
 

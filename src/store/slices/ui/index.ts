@@ -50,7 +50,7 @@ const initialState: UIState = {
   isPhotosPreviewInfoModalOpen: false,
   isNewsletterModalOpen: false,
   isInviteFriendsModalOpen: false,
-  isDriveDownloadModalOpen: false,
+  isDriveDownloadModalOpen: true,
 };
 
 export const uiSlice = createSlice({
