@@ -32,7 +32,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
   const [isDisabled, setIsDisabled] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [decryptionProgress, setDecryptionProgress] = useState(0);
-  const isFolder = !!props.data.parentId;
+  const isFolder = !props.data.type;
   const isIdle = props.status === DriveItemStatus.Idle;
   const isUploading = props.status === DriveItemStatus.Uploading;
   const isDownloading = props.status === DriveItemStatus.Downloading;
