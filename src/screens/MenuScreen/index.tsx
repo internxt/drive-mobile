@@ -24,6 +24,7 @@ import { authSelectors, authThunks } from '../../store/slices/auth';
 import globalStyle from '../../styles';
 import AppScreen from '../../components/AppScreen';
 import appService from '../../services/app';
+import AppText from '../../components/AppText';
 
 interface MenuItemProps {
   title: string;
@@ -82,9 +83,9 @@ function MenuScreen(): JSX.Element {
           <View style={tailwind('bg-white rounded-xl')}>
             <View style={tailwind('items-center flex-row p-4')}>
               <View style={tailwind('bg-blue-20 items-center justify-center rounded-3xl w-10 h-10')}>
-                <Text style={{ ...tailwind('text-blue-80 font-bold text-xl'), ...globalStyle.fontWeight.bold }}>
+                <AppText semibold style={tailwind('text-blue-80 font-bold text-xl')}>
                   {userNameLetters}
-                </Text>
+                </AppText>
               </View>
 
               <View style={tailwind('ml-3')}>

@@ -5,6 +5,7 @@ import { driveActions, driveThunks } from '../store/slices/drive';
 import { uiActions } from '../store/slices/ui';
 import { DriveItemDataProps, DriveItemStatus } from '../types/drive';
 import analytics, { AnalyticsEventKey } from '../services/analytics';
+import driveEventEmitter from '../services/DriveEventEmitter';
 
 interface UseDriveItemProps {
   data: DriveItemDataProps;
@@ -42,7 +43,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
 
     setIsDisabled(true);
 
-    await dispatch(
+    const thunk = dispatch(
       driveThunks.downloadFileThunk({
         ...props.data,
         size: props.data.size as number,
@@ -52,6 +53,13 @@ const useDriveItem = (props: UseDriveItemProps) => {
         fileId: props.data.fileId as string,
       }),
     );
+    const downloadAbort = () => {
+      thunk.abort();
+    };
+
+    driveEventEmitter.setDownloadAbort(downloadAbort);
+
+    await thunk;
 
     setIsDisabled(false);
 

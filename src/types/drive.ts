@@ -40,7 +40,7 @@ export interface UploadingFile {
 }
 
 export interface DownloadingFile {
-  data: { id: number; fileId: string; name: string; type: string; size: number };
+  data: { id: number; fileId: string; name: string; type: string; size: number; updatedAt: string };
   downloadProgress: number;
   decryptProgress: number;
 }

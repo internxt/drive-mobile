@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction, SerializedError } from '@reduxjs/toolkit';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import Share from 'react-native-share';
 
 import { constants } from '../../../services/app';
 import { LegacyDownloadRequiredError } from '../../../services/network/download';
@@ -35,6 +36,7 @@ import {
   pathToUri,
   showFileViewer,
 } from '../../../services/fileSystem';
+import { items } from '@internxt/lib';
 
 interface FolderContent {
   id: number;
@@ -145,7 +147,7 @@ const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootSt
 
 const downloadFileThunk = createAsyncThunk<
   void,
-  { id: number; size: number; parentId: number; name: string; type: string; fileId: string },
+  { id: number; size: number; parentId: number; name: string; type: string; fileId: string; updatedAt: string },
   { state: RootState }
 >('drive/downloadFile', async ({ id, size, parentId, name, type, fileId }, { getState, dispatch }) => {
   const { user } = getState().auth;
@@ -227,11 +229,21 @@ const downloadFileThunk = createAsyncThunk<
     fileId,
     to: destinationPath,
   })
-    .then(() => {
+    .then(async () => {
       const uri = pathToUri(destinationPath);
       trackDownloadSuccess();
 
-      return showFileViewer(uri);
+      try {
+        const result = await Share.open({ title: items.getItemDisplayName({ name, type }), url: uri });
+
+        if (result.success) {
+          trackDownloadSuccess();
+        } else if (result.dismissedAction) {
+          // dismissed
+        }
+      } catch (err) {
+        // * Ignores native share cancelation
+      }
     })
     .finally(() => {
       dispatch(uiActions.setIsDriveDownloadModalOpen(false));

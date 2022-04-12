@@ -12,6 +12,7 @@ import ProgressBar from '../../AppProgressBar';
 import AppText from '../../AppText';
 import { items } from '@internxt/lib';
 import prettysize from 'prettysize';
+import moment from 'moment';
 
 function DriveDownloadModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -49,6 +50,7 @@ function DriveDownloadModal(): JSX.Element {
   };
   const { downloadProgress, decryptProgress } = downloadingFile || { downloadProgress: 0, decryptProgress: 0 };
   const currentProgress = downloadProgress < 1 ? downloadProgress : decryptProgress;
+  const updatedAtText = (downloadingFile && moment(downloadingFile?.data.updatedAt).format('MMMM DD YYYY')) || '';
 
   return (
     <CenterModal isOpen={isDriveDownloadModalOpen} onClosed={onClosed} backdropPressToClose={false}>
@@ -64,7 +66,7 @@ function DriveDownloadModal(): JSX.Element {
             </AppText>
 
             <AppText style={tailwind('text-neutral-100 text-center text-sm')}>
-              {prettysize(downloadingFile.data.size) + '·' + 'Updated Feb 9 2022'}
+              {`${prettysize(downloadingFile.data.size, true)} · ${strings.generic.updated} ${updatedAtText}`}
             </AppText>
 
             <ProgressBar currentValue={currentProgress} totalValue={1} style={tailwind('mt-4 mb-1.5 mx-4')} />
