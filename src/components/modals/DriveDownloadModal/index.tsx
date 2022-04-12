@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { tailwind } from '../../../helpers/designSystem';
-import { FolderIcon, getFileTypeIcon } from '../../../helpers';
+import { getFileTypeIcon } from '../../../helpers';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
@@ -10,11 +10,14 @@ import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
 import ProgressBar from '../../AppProgressBar';
 import AppText from '../../AppText';
+import { items } from '@internxt/lib';
+import prettysize from 'prettysize';
 
 function DriveDownloadModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const iconSize = 80;
-  const FileIcon = getFileTypeIcon('');
+  const { downloadingFile } = useAppSelector((state) => state.drive);
+  const FileIcon = getFileTypeIcon(downloadingFile?.data.type || '');
   const { isDriveDownloadModalOpen } = useAppSelector((state) => state.ui);
   const onClosed = () => {
     dispatch(uiActions.setIsDriveDownloadModalOpen(false));
@@ -22,25 +25,55 @@ function DriveDownloadModal(): JSX.Element {
   const onCancelButtonPressed = () => {
     dispatch(uiActions.setIsDriveDownloadModalOpen(false));
   };
+  const getProgressMessage = () => {
+    if (!downloadingFile) {
+      return;
+    }
+
+    const { downloadProgress, decryptProgress } = downloadingFile;
+    let progressMessage;
+
+    if (downloadProgress < 1) {
+      progressMessage = strings.formatString(
+        strings.screens.drive.downloadingPercent,
+        (downloadProgress * 100).toFixed(0),
+      );
+    } else {
+      progressMessage = strings.formatString(
+        strings.screens.drive.decryptingPercent,
+        (decryptProgress * 100).toFixed(0),
+      );
+    }
+
+    return progressMessage;
+  };
+  const { downloadProgress, decryptProgress } = downloadingFile || { downloadProgress: 0, decryptProgress: 0 };
+  const currentProgress = downloadProgress < 1 ? downloadProgress : decryptProgress;
 
   return (
     <CenterModal isOpen={isDriveDownloadModalOpen} onClosed={onClosed} backdropPressToClose={false}>
       <View style={tailwind('w-full px-3 pb-3')}>
-        <View style={tailwind('w-full px-10 pt-7 pb-2 flex-grow justify-center items-center')}>
-          <FileIcon width={iconSize} height={iconSize} />
-        </View>
+        {downloadingFile ? (
+          <>
+            <View style={tailwind('w-full px-10 pt-7 pb-2 flex-grow justify-center items-center')}>
+              <FileIcon width={iconSize} height={iconSize} />
+            </View>
 
-        <AppText style={tailwind('text-center text-sm')}>{'FILE NAME'}</AppText>
+            <AppText style={tailwind('mx-4 text-center text-sm')} numberOfLines={1} ellipsizeMode="middle">
+              {items.getItemDisplayName(downloadingFile.data)}
+            </AppText>
 
-        <AppText style={tailwind('text-neutral-100 text-center text-sm')}>{'2.7MB · Updated Feb 9 2022'}</AppText>
+            <AppText style={tailwind('text-neutral-100 text-center text-sm')}>
+              {prettysize(downloadingFile.data.size) + '·' + 'Updated Feb 9 2022'}
+            </AppText>
 
-        <ProgressBar currentValue={0.5} totalValue={1} style={tailwind('mt-4 mb-1.5 mx-4')} />
+            <ProgressBar currentValue={currentProgress} totalValue={1} style={tailwind('mt-4 mb-1.5 mx-4')} />
 
-        <AppText style={tailwind('mb-7 text-center text-sm text-blue-60')}>
-          {strings.formatString(strings.screens.drive.downloadingPercent, 0)}
-        </AppText>
+            <AppText style={tailwind('mb-7 text-center text-sm text-blue-60')}>{getProgressMessage()}</AppText>
 
-        <AppButton title={strings.components.buttons.cancel} type="cancel-2" onPress={onCancelButtonPressed} />
+            <AppButton title={strings.components.buttons.cancel} type="cancel-2" onPress={onCancelButtonPressed} />
+          </>
+        ) : null}
       </View>
     </CenterModal>
   );

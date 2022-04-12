@@ -39,6 +39,12 @@ export interface UploadingFile {
   progress: number;
 }
 
+export interface DownloadingFile {
+  data: { id: number; fileId: string; name: string; type: string; size: number };
+  downloadProgress: number;
+  decryptProgress: number;
+}
+
 export enum SortDirection {
   Asc = 'asc',
   Desc = 'desc',
@@ -69,4 +75,9 @@ export interface DriveItemProps {
   selectable?: boolean;
   subtitle?: JSX.Element;
   progress?: number;
+}
+
+export enum DriveEventKey {
+  CancelDownload = 'cancel-download',
+  CancelDownloadEnd = 'cancel-download-end',
 }

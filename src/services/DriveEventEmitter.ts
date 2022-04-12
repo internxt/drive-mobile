@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import EventEmitter from 'events';
-import { PhotosEventKey, PhotosServiceModel } from '../../types/photos';
+import { DriveEventKey } from '../types/drive';
 
-export default class PhotosEventEmitter {
-  private readonly model: PhotosServiceModel;
+class DriveEventEmitter {
   private readonly eventEmitter: EventEmitter;
+  private downloadAbort?: (reason?: string) => void;
 
-  constructor(model: PhotosServiceModel) {
-    this.model = model;
+  constructor() {
     this.eventEmitter = new EventEmitter();
+
+    this.eventEmitter.addListener(DriveEventKey.CancelDownload, this.onDownloadCanceled);
   }
 
-  public emit({ id, event }: { id?: string; event: PhotosEventKey }, ...args: any[]) {
+  public emit({ id, event }: { id?: string; event: DriveEventKey }, ...args: any[]) {
     return this.eventEmitter.emit(this.getEventKey({ id, event }), args);
   }
 
@@ -21,7 +22,7 @@ export default class PhotosEventEmitter {
     listener,
   }: {
     id?: string;
-    event: PhotosEventKey;
+    event: DriveEventKey;
     listener: (...args: any[]) => void;
   }) {
     this.eventEmitter.addListener(this.getEventKey({ id, event }), listener);
@@ -33,17 +34,28 @@ export default class PhotosEventEmitter {
     listener,
   }: {
     id?: string;
-    event: PhotosEventKey;
+    event: DriveEventKey;
     listener: (...args: any[]) => void;
   }) {
     this.eventEmitter.removeListener(this.getEventKey({ id, event }), listener);
   }
 
-  public removeAllListeners({ id, event }: { id?: string; event: PhotosEventKey }) {
+  public removeAllListeners({ id, event }: { id?: string; event: DriveEventKey }) {
     this.eventEmitter.removeAllListeners(this.getEventKey({ id, event }));
   }
 
-  private getEventKey({ id, event }: { id?: string; event: PhotosEventKey }) {
+  public setDownloadAbort(downloadAbort: (reason?: string) => void) {
+    this.downloadAbort = downloadAbort;
+  }
+
+  private getEventKey({ id, event }: { id?: string; event: DriveEventKey }) {
     return id ? `${event}-${id}` : event;
   }
+
+  private onDownloadCanceled() {
+    this.downloadAbort?.();
+  }
 }
+
+const driveEventEmitter = new DriveEventEmitter();
+export default driveEventEmitter;

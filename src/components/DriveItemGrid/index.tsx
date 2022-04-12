@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, TouchableHighlight, Animated, Easing } from 'react-native';
+import { View, TouchableOpacity, TouchableHighlight, Animated, Easing } from 'react-native';
 
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import globalStyle from '../../styles';
 import { useAppSelector } from '../../store/hooks';
 import { ArrowCircleUp, DotsThree } from 'phosphor-react-native';
-import strings from '../../../assets/lang/strings';
-import ProgressBar from '../AppProgressBar';
 import { items } from '@internxt/lib';
 import AppText from '../AppText';
 
@@ -20,16 +18,8 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
   const spinValue = new Animated.Value(1);
   const IconFile = getFileTypeIcon(props.data.type || '');
   const iconSize = 64;
-  const {
-    isFolder,
-    isUploading,
-    isDownloading,
-    downloadProgress,
-    decryptionProgress,
-    onItemPressed,
-    onItemLongPressed,
-    onActionsButtonPressed,
-  } = useDriveItem(props);
+  const { isFolder, isUploading, isDownloading, onItemPressed, onItemLongPressed, onActionsButtonPressed } =
+    useDriveItem(props);
 
   useEffect(() => {
     Animated.loop(
@@ -84,16 +74,6 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
             >
               {items.getItemDisplayName(props.data)}
             </AppText>
-
-            {isDownloading && (
-              <Text style={tailwind('text-xs text-blue-60')}>
-                {downloadProgress >= 0 &&
-                  downloadProgress < 1 &&
-                  'Downloading ' + (downloadProgress * 100).toFixed(0) + '%'}
-                {downloadProgress >= 1 && decryptionProgress === -1 && 'Decrypting'}
-                {decryptionProgress >= 0 && 'Decrypting ' + Math.max(decryptionProgress * 100, 0).toFixed(0) + '%'}
-              </Text>
-            )}
           </View>
         </View>
 
