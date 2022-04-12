@@ -23,6 +23,7 @@ import ReferralsBanner from '../../components/ReferralsBanner';
 import { useAppDispatch } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DriveDownloadModal from '../../components/modals/DriveDownloadModal';
 
 const Tab = createBottomTabNavigator();
 
@@ -65,6 +66,7 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
       <DeleteItemModal />
       <MoveFilesModal />
       <ShareFilesModal />
+      <DriveDownloadModal />
       <CreateFolderModal />
       <RenameModal />
       <RunOutOfStorageModal />

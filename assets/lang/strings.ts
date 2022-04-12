@@ -134,6 +134,8 @@ const strings = new LocalizedStrings({
         searchInThisFolder: 'Search in this folder',
         encrypting: 'Encrypting',
         decrypting: 'Decrypting',
+        downloadingPercent: 'Downloading... {0}%',
+        decryptingPercent: 'Decrypting... {0}%',
       },
       recents: {
         title: 'Recents',
@@ -543,6 +545,8 @@ const strings = new LocalizedStrings({
         searchInThisFolder: 'Buscar en esta carpeta',
         encrypting: 'Encriptando',
         decrypting: 'Desencriptando',
+        downloadingPercent: 'Descargando... {0}%',
+        decryptingPercent: 'Desencriptando... {0}%',
       },
       recents: {
         title: 'Recientes',

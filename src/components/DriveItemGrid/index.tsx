@@ -53,11 +53,22 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
       <View style={[tailwind('py-3.5')]}>
         <View style={[tailwind('flex-grow overflow-hidden'), tailwind('flex-col items-center justify-center')]}>
           {/* Icon */}
-          <View style={[tailwind('w-full mb-1 items-center justify-center'), isUploading && tailwind('opacity-40')]}>
+          <View style={tailwind('w-full mb-1 items-center justify-center')}>
             {isFolder ? (
-              <FolderIcon width={iconSize} height={iconSize} />
+              <FolderIcon width={iconSize} height={iconSize} style={isUploading && tailwind('opacity-40')} />
             ) : (
               <IconFile width={iconSize} height={iconSize} />
+            )}
+
+            {isUploading && (
+              <View style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}>
+                <View style={tailwind('rounded px-1 py-0.5 bg-blue-60 flex-row')}>
+                  <ArrowCircleUp weight="fill" color={getColor('white')} size={16} />
+                  <AppText style={tailwind('ml-1.5 text-xs text-white')}>
+                    {((props.progress || 0) * 100).toFixed(0) + '%'}
+                  </AppText>
+                </View>
+              </View>
             )}
           </View>
 
@@ -73,24 +84,6 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
             >
               {items.getItemDisplayName(props.data)}
             </AppText>
-
-            {isUploading &&
-              (props.progress === 0 ? (
-                <Text style={tailwind('text-xs text-blue-60')}>{strings.screens.drive.encrypting}</Text>
-              ) : (
-                <View style={tailwind('flex-row items-center')}>
-                  <ArrowCircleUp weight="fill" color={getColor('blue-60')} size={16} />
-                  <AppText style={tailwind('ml-1.5 text-xs text-blue-60')}>
-                    {((props.progress || 0) * 100).toFixed(0) + '%'}
-                  </AppText>
-                  <ProgressBar
-                    style={tailwind('flex-grow h-1 ml-1.5')}
-                    progressStyle={tailwind('h-1')}
-                    totalValue={1}
-                    currentValue={props.progress || 0}
-                  />
-                </View>
-              ))}
 
             {isDownloading && (
               <Text style={tailwind('text-xs text-blue-60')}>

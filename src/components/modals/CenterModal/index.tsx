@@ -7,15 +7,29 @@ import { tailwind } from '../../../helpers/designSystem';
 
 export interface CenterModalProps {
   isOpen: boolean;
+  backdropPressToClose?: boolean;
   onClosed: () => void;
   children?: JSX.Element;
 }
 
-const CenterModal = (props: CenterModalProps): JSX.Element => {
+const defaultProps: Partial<CenterModalProps> = {
+  backdropPressToClose: true,
+};
+
+const CenterModal = ({
+  isOpen,
+  onClosed,
+  children,
+  backdropPressToClose = defaultProps.backdropPressToClose,
+}: CenterModalProps): JSX.Element => {
+  const onBackdropPressed = () => {
+    backdropPressToClose && onClosed();
+  };
+
   return (
     <Modal
-      isOpen={props.isOpen}
-      onClosed={props.onClosed}
+      isOpen={isOpen}
+      onClosed={onClosed}
       position={'center'}
       style={tailwind('bg-transparent')}
       backButtonClose={true}
@@ -26,10 +40,10 @@ const CenterModal = (props: CenterModalProps): JSX.Element => {
       <View style={tailwind('h-full')}>
         <StatusBar hidden={true} />
 
-        <TouchableWithoutFeedback onPress={props.onClosed}>
+        <TouchableWithoutFeedback onPress={onBackdropPressed}>
           <View style={tailwind('px-8 flex-grow justify-center items-center')}>
             <TouchableWithoutFeedback>
-              <View style={tailwind(' w-full bg-white rounded-xl')}>{props.children}</View>
+              <View style={tailwind(' w-full bg-white rounded-xl')}>{children}</View>
             </TouchableWithoutFeedback>
           </View>
         </TouchableWithoutFeedback>

@@ -21,17 +21,8 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
   const spinValue = new Animated.Value(1);
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
-  const {
-    isFolder,
-    isIdle,
-    isUploading,
-    isDownloading,
-    downloadProgress,
-    decryptionProgress,
-    onItemPressed,
-    onItemLongPressed,
-    onActionsButtonPressed,
-  } = useDriveItem(props);
+  const { isFolder, isIdle, isUploading, isDownloading, onItemPressed, onItemLongPressed, onActionsButtonPressed } =
+    useDriveItem(props);
 
   useEffect(() => {
     Animated.loop(
@@ -91,16 +82,6 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
                   />
                 </View>
               ))}
-
-            {isDownloading && (
-              <Text style={tailwind('text-xs text-blue-60')}>
-                {downloadProgress >= 0 &&
-                  downloadProgress < 1 &&
-                  'Downloading ' + (downloadProgress * 100).toFixed(0) + '%'}
-                {downloadProgress >= 1 && decryptionProgress === -1 && 'Decrypting'}
-                {decryptionProgress >= 0 && 'Decrypting ' + Math.max(decryptionProgress * 100, 0).toFixed(0) + '%'}
-              </Text>
-            )}
 
             {isIdle &&
               (props.subtitle ? (

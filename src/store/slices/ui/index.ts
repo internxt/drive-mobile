@@ -3,6 +3,8 @@ import { DriveListViewMode } from '../../../types/drive';
 
 export interface UIState {
   searchActive: boolean;
+  isReferralsBannerOpen: boolean;
+  fileViewMode: DriveListViewMode;
   createFolderActive: boolean;
   showItemModal: boolean;
   showAddItemModal: boolean;
@@ -22,12 +24,13 @@ export interface UIState {
   isPhotosPreviewInfoModalOpen: boolean;
   isNewsletterModalOpen: boolean;
   isInviteFriendsModalOpen: boolean;
-  isReferralsBannerOpen: boolean;
-  fileViewMode: DriveListViewMode;
+  isDriveDownloadModalOpen: boolean;
 }
 
 const initialState: UIState = {
   searchActive: false,
+  isReferralsBannerOpen: false,
+  fileViewMode: DriveListViewMode.List,
   createFolderActive: false,
   showItemModal: false,
   showAddItemModal: false,
@@ -47,8 +50,7 @@ const initialState: UIState = {
   isPhotosPreviewInfoModalOpen: false,
   isNewsletterModalOpen: false,
   isInviteFriendsModalOpen: false,
-  isReferralsBannerOpen: false,
-  fileViewMode: DriveListViewMode.List,
+  isDriveDownloadModalOpen: false,
 };
 
 export const uiSlice = createSlice({
@@ -118,6 +120,9 @@ export const uiSlice = createSlice({
     },
     setIsReferralsBannerOpen: (state, action: PayloadAction<boolean>) => {
       state.isReferralsBannerOpen = action.payload;
+    },
+    setIsDriveDownloadModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isDriveDownloadModalOpen = action.payload;
     },
   },
 });

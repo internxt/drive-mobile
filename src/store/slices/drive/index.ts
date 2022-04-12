@@ -442,8 +442,6 @@ export const storageSelectors = {
     folderList = folderList.slice().sort(sortFunction as any);
     fileList = fileList.slice().sort(sortFunction as any);
 
-    console.log(uploadingFiles);
-
     return [
       ...uploadingFiles.map<DriveListItem>((f) => ({
         status: DriveItemStatus.Uploading,
