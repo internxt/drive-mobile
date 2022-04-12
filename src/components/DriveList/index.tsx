@@ -54,6 +54,7 @@ function DriveList(props: DriveListProps): JSX.Element {
 
   return (
     <FlatList
+      contentContainerStyle={[isEmptyFolder && tailwind('h-full justify-center')]}
       key={props.viewMode}
       refreshControl={
         <RefreshControl
@@ -69,7 +70,6 @@ function DriveList(props: DriveListProps): JSX.Element {
       }
       numColumns={props.viewMode === DriveListViewMode.Grid ? numColumns : 1}
       collapsable={true}
-      contentContainerStyle={isEmptyFolder && tailwind('h-full justify-center')}
       ListEmptyComponent={
         filesLoading ? (
           <View style={tailwind('h-full')}>

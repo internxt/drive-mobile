@@ -48,17 +48,12 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
       underlayColor={getColor('neutral-20')}
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}
+      style={{ flex: 1 / 3 }}
     >
-      <View style={[tailwind('py-1.5 flex-1'), { aspectRatio: 1, borderWidth: 1 }]}>
-        <View
-          style={[tailwind('flex-grow flex-shrink overflow-hidden'), tailwind('flex-col items-center justify-center')]}
-        >
-          <View
-            style={[
-              tailwind('w-full mb-1 flex-grow items-center justify-center'),
-              isUploading && tailwind('opacity-40'),
-            ]}
-          >
+      <View style={[tailwind('py-3.5')]}>
+        <View style={[tailwind('flex-grow overflow-hidden'), tailwind('flex-col items-center justify-center')]}>
+          {/* Icon */}
+          <View style={[tailwind('w-full mb-1 items-center justify-center'), isUploading && tailwind('opacity-40')]}>
             {isFolder ? (
               <FolderIcon width={iconSize} height={iconSize} />
             ) : (
@@ -66,14 +61,14 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
             )}
           </View>
 
-          <View style={[tailwind('flex items-start justify-center border items-center')]}>
+          <View style={[tailwind('flex items-start justify-center items-center')]}>
             <AppText
               style={[
-                tailwind('text-base text-neutral-500 text-center px-1.5'),
+                tailwind('text-base text-neutral-500 text-center px-5'),
                 isUploading && tailwind('opacity-40'),
                 globalStyle.fontWeight.medium,
               ]}
-              numberOfLines={1}
+              numberOfLines={2}
               ellipsizeMode={'middle'}
             >
               {items.getItemDisplayName(props.data)}
@@ -115,7 +110,7 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
           onPress={onActionsButtonPressed}
           onLongPress={onActionsButtonPressed}
         >
-          <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
+          <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 h-6 items-center justify-center')]}>
             <DotsThree weight="bold" size={22} color={getColor('neutral-60')} />
           </View>
         </TouchableOpacity>

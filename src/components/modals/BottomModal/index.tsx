@@ -14,10 +14,12 @@ export interface BottomModalProps {
   children?: JSX.Element | JSX.Element[];
   style?: StyleProp<ViewStyle>;
   containerStyle?: StyleProp<ViewStyle>;
+  safeAreaColor?: string;
 }
 
 const BottomModal = (props: BottomModalProps): JSX.Element => {
   const safeAreaInsets = useSafeAreaInsets();
+  const safeAreaColor = props.safeAreaColor || getColor('white');
 
   return (
     <Modal
@@ -50,7 +52,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
           )}
 
           <View style={props.containerStyle}>{props.children}</View>
-          <View style={{ ...tailwind('bg-white'), height: safeAreaInsets.bottom }}></View>
+          <View style={{ backgroundColor: safeAreaColor, height: safeAreaInsets.bottom }}></View>
         </View>
       </View>
     </Modal>

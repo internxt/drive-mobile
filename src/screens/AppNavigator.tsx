@@ -6,7 +6,6 @@ import * as Linking from 'expo-linking';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 
 import { AppScreenKey } from '../types';
-import CreateFolderScreen from './CreateFolderScreen';
 import SignInScreen from './SignInScreen';
 import SignUpScreen from './SignUpScreen';
 import HomeScreen from './HomeScreen';
@@ -40,7 +39,6 @@ const routeConfig: RouteConfig = {
   [AppScreenKey.SignIn]: { screen: SignInScreen },
   [AppScreenKey.Home]: { screen: HomeScreen },
   [AppScreenKey.TabExplorer]: { screen: AuthenticatedNavigator },
-  [AppScreenKey.CreateFolder]: { screen: CreateFolderScreen },
   [AppScreenKey.ForgotPassword]: { screen: ForgotPasswordScreen },
   [AppScreenKey.OutOfSpace]: { screen: OutOfSpaceScreen },
   [AppScreenKey.Storage]: { screen: StorageScreen },

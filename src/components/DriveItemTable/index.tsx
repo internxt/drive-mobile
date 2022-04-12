@@ -61,7 +61,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
             )}
           </View>
 
-          <View style={[tailwind('flex-grow flex items-start justify-center')]}>
+          <View style={[tailwind('flex-1 flex items-start justify-center')]}>
             <AppText
               style={[
                 tailwind('text-left text-base text-neutral-500'),

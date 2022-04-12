@@ -475,6 +475,7 @@ function UploadModal(): JSX.Element {
 
   return (
     <BottomModal
+      safeAreaColor="transparent"
       style={tailwind('bg-transparent')}
       isOpen={showUploadModal}
       onClosed={() => {
