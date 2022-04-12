@@ -231,7 +231,8 @@ const downloadFileThunk = createAsyncThunk<
   })
     .then(async () => {
       const uri = pathToUri(destinationPath);
-      trackDownloadSuccess();
+
+      dispatch(uiActions.setIsDriveDownloadModalOpen(false));
 
       try {
         const result = await Share.open({ title: items.getItemDisplayName({ name, type }), url: uri });
@@ -246,7 +247,6 @@ const downloadFileThunk = createAsyncThunk<
       }
     })
     .finally(() => {
-      dispatch(uiActions.setIsDriveDownloadModalOpen(false));
       dispatch(driveActions.downloadSelectedFileStop());
       downloadProgressCallback(0);
       decryptionProgressCallback(0);
