@@ -44,13 +44,12 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
 
   return (
     <TouchableHighlight
-      style={tailwind('py-1.5 flex-1')}
       disabled={isUploading || isDownloading}
       underlayColor={getColor('neutral-20')}
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}
     >
-      <View style={[{ aspectRatio: 1, borderWidth: 1 }]}>
+      <View style={[tailwind('py-1.5 flex-1'), { aspectRatio: 1, borderWidth: 1 }]}>
         <View
           style={[tailwind('flex-grow flex-shrink overflow-hidden'), tailwind('flex-col items-center justify-center')]}
         >

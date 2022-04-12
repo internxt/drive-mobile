@@ -4,7 +4,7 @@ import Modal from 'react-native-modalbox';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 import strings from '../../../../assets/lang/strings';
-import Separator from '../../Separator';
+import Separator from '../../AppSeparator';
 import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';

@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
-import ScreenTitle from '../../components/ScreenTitle';
+import ScreenTitle from '../../components/AppScreenTitle';
 import { AppScreenKey as AppScreenKey } from '../../types';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors, authThunks } from '../../store/slices/auth';

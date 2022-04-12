@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { getRecents } from '../../services/recents';
 import DriveItem from '../../components/DriveItemTable';
-import SkinSkeleton from '../../components/SkinSkeleton';
+import DriveItemSkinSkeleton from '../../components/DriveItemSkinSkeleton';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptyRecentsImage from '../../../assets/images/screens/empty-recents.svg';
@@ -50,7 +50,7 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
       {isLoading && (
         <View>
           {_.times(20, (n) => (
-            <SkinSkeleton key={n} />
+            <DriveItemSkinSkeleton key={n} />
           ))}
         </View>
       )}

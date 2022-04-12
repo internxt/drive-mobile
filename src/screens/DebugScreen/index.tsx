@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import ScreenTitle from '../../components/ScreenTitle';
+import ScreenTitle from '../../components/AppScreenTitle';
 import AppScreen from '../../components/AppScreen';
 import DebugNotificationsWidget from '../../components/DebugNotificationsWidget';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';

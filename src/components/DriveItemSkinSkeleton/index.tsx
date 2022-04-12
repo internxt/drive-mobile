@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Animated, Easing } from 'react-native';
 import { tailwind } from '../../helpers/designSystem';
 
-export default function SkinSkeleton(): JSX.Element {
+export default function DriveItemSkinSkeleton(): JSX.Element {
   const [fadeAnim] = useState(new Animated.Value(1));
 
   Animated.loop(

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput, TouchableHighlight, View, Text, Alert, ScrollView, TouchableWithoutFeedback } from 'react-native';
 
-import CheckBox from '../../components/CheckBox';
+import CheckBox from '../../components/AppCheckBox';
 import strings from '../../../assets/lang/strings';
 import { doRegister } from './registerUtils';
 import InternxtLogo from '../../../assets/logo.svg';

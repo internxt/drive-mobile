@@ -4,7 +4,7 @@ import Portal from '@burstware/react-native-portal';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
-import ScreenTitle from '../../../components/ScreenTitle';
+import ScreenTitle from '../../../components/AppScreenTitle';
 import strings from '../../../../assets/lang/strings';
 import galleryViews from '../../../components/gallery-views';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';

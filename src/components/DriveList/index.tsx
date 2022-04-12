@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { tailwind } from '../../helpers/designSystem';
 import DriveItemTable from '../DriveItemTable';
 import DriveItemGrid from '../DriveItemGrid';
-import SkinSkeleton from '../SkinSkeleton';
+import DriveItemSkinSkeleton from '../DriveItemSkinSkeleton';
 import EmptyDriveImage from '../../../assets/images/screens/empty-drive.svg';
 import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg';
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
@@ -74,7 +74,7 @@ function DriveList(props: DriveListProps): JSX.Element {
         filesLoading ? (
           <View style={tailwind('h-full')}>
             {_.times(20, (n) => (
-              <SkinSkeleton key={n} />
+              <DriveItemSkinSkeleton key={n} />
             ))}
           </View>
         ) : isRootFolder ? (

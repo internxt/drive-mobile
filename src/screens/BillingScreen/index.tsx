@@ -5,11 +5,11 @@ import { useNavigation } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
-import Separator from '../../components/Separator';
+import Separator from '../../components/AppSeparator';
 import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
 import globalStyle from '../../styles';
 import strings from '../../../assets/lang/strings';
-import ScreenTitle from '../../components/ScreenTitle';
+import ScreenTitle from '../../components/AppScreenTitle';
 import { AppScreenKey, NotificationType } from '../../types';
 import paymentService from '../../services/payment';
 import AsyncStorage from '@react-native-async-storage/async-storage';

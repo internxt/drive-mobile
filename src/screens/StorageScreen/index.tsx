@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import ProgressBar from '../../components/ProgressBar';
-import ScreenTitle from '../../components/ScreenTitle';
+import ScreenTitle from '../../components/AppScreenTitle';
 import { useAppSelector } from '../../store/hooks';
 import { AppScreenKey, INFINITE_PLAN } from '../../types';
 import ReferralsWidget from '../../components/ReferralsWidget';

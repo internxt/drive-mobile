@@ -143,14 +143,15 @@ const useDriveItem = (props: UseDriveItemProps) => {
       to: destinationPath,
     })
       .then(() => {
+        const uri = pathToUri(destinationPath);
         trackDownloadSuccess();
 
-        return showFileViewer(pathToUri(destinationPath));
+        return showFileViewer(uri);
       })
       .catch((err) => {
         trackDownloadError(err);
 
-        notificationsService.show({ type: NotificationType.Error, text1: 'Error downloading file' + err.message });
+        notificationsService.show({ type: NotificationType.Error, text1: 'Error downloading file' });
       })
       .finally(() => {
         dispatch(driveActions.downloadSelectedFileStop());

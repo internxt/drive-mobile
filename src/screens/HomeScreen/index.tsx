@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import strings from '../../../assets/lang/strings';
 
 import SearchInput from '../../components/SearchInput';
-import ScreenTitle from '../../components/ScreenTitle';
+import ScreenTitle from '../../components/AppScreenTitle';
 import { tailwind } from '../../helpers/designSystem';
 import Tabs from '../../components/Tabs';
 import RecentsScreen from '../RecentsScreen';

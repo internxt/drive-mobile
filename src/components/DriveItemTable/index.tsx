@@ -12,7 +12,7 @@ import ProgressBar from '../ProgressBar';
 import { items } from '@internxt/lib';
 import AppText from '../AppText';
 
-import { DriveItemProps, DriveItemStatus } from '../../types/drive';
+import { DriveItemProps } from '../../types/drive';
 import useDriveItem from '../../hooks/useDriveItem';
 
 function DriveItemTable(props: DriveItemProps): JSX.Element {
@@ -51,14 +51,9 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}
     >
-      <View style={[tailwind('flex-row')]}>
-        <View style={[tailwind('flex-grow flex-shrink overflow-hidden flex-row')]}>
-          <View
-            style={[
-              tailwind('w-full mb-1 flex-grow items-center justify-center'),
-              isUploading && tailwind('opacity-40'),
-            ]}
-          >
+      <View style={[tailwind('flex-row pl-5')]}>
+        <View style={[tailwind('flex-row flex-1 py-3')]}>
+          <View style={[tailwind('mb-1 mr-4 items-center justify-center'), isUploading && tailwind('opacity-40')]}>
             {isFolder ? (
               <FolderIcon width={iconSize} height={iconSize} />
             ) : (
@@ -66,7 +61,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
             )}
           </View>
 
-          <View style={[tailwind('flex-grow flex items-start justify-center border')]}>
+          <View style={[tailwind('flex-grow flex items-start justify-center')]}>
             <AppText
               style={[
                 tailwind('text-left text-base text-neutral-500'),
@@ -111,11 +106,11 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
               (props.subtitle ? (
                 props.subtitle
               ) : (
-                <Text style={tailwind('text-xs text-neutral-100')}>
+                <AppText style={tailwind('text-xs text-neutral-100')}>
                   {!isFolder && (
                     <>
                       {prettysize(props.data.size || 0)}
-                      <Text style={globalStyle.fontWeight.bold}> · </Text>
+                      <AppText bold> · </AppText>
                     </>
                   )}
                   Updated{' '}
@@ -124,7 +119,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
                     month: 'short',
                     year: 'numeric',
                   })}
-                </Text>
+                </AppText>
               ))}
           </View>
         </View>

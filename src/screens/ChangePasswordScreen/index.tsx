@@ -6,7 +6,7 @@ import validationService from '../../services/validation';
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import { doChangePassword } from './changePasswordUtils';
-import ScreenTitle from '../../components/ScreenTitle';
+import ScreenTitle from '../../components/AppScreenTitle';
 import { AppScreenKey, NotificationType } from '../../types';
 import AppScreen from '../../components/AppScreen';
 import notificationsService from '../../services/notifications';

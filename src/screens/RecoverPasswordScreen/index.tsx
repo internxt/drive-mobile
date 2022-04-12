@@ -5,7 +5,7 @@ import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
-import ScreenTitle from '../../components/ScreenTitle';
+import ScreenTitle from '../../components/AppScreenTitle';
 import { useNavigation } from '@react-navigation/native';
 import AppTextInput from '../../components/AppTextInput';
 import AppScreen from '../../components/AppScreen';

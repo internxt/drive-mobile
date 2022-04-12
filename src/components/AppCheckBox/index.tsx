@@ -3,13 +3,13 @@ import { View, Text, TouchableWithoutFeedback } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { tailwind } from '../../helpers/designSystem';
 
-interface CheckBoxProps {
+interface AppCheckBoxProps {
   text: string;
   onChange?: (value: boolean) => void;
   value?: boolean;
 }
 
-export default function CheckBox(props: CheckBoxProps): JSX.Element {
+const AppCheckBox = (props: AppCheckBoxProps): JSX.Element => {
   const [checked, setChecked] = useState(props.value || false);
 
   const handleOnPress = () => {
@@ -61,4 +61,6 @@ export default function CheckBox(props: CheckBoxProps): JSX.Element {
       </TouchableWithoutFeedback>
     </View>
   );
-}
+};
+
+export default AppCheckBox;

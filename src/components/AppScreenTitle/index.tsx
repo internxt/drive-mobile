@@ -6,7 +6,7 @@ import globalStyle from '../../styles';
 import { useAppSelector } from '../../store/hooks';
 import { CaretLeft } from 'phosphor-react-native';
 
-interface ScreenTitleProps {
+interface AppScreenTitleProps {
   text: string;
   textStyle?: StyleProp<TextStyle>;
   containerStyle?: StyleProp<TextStyle>;
@@ -15,19 +15,19 @@ interface ScreenTitleProps {
   onBackButtonPressed?: () => void;
 }
 
-const defaultProps: Partial<ScreenTitleProps> = {
+const defaultProps: Partial<AppScreenTitleProps> = {
   centerText: false,
   showBackButton: true,
 };
 
-const ScreenTitle = ({
+const AppScreenTitle = ({
   text,
   textStyle,
   containerStyle,
   centerText = defaultProps.centerText,
   showBackButton = defaultProps.showBackButton,
   onBackButtonPressed,
-}: ScreenTitleProps): JSX.Element => {
+}: AppScreenTitleProps): JSX.Element => {
   const backButtonEnabled = useAppSelector((state) => state.ui.backButtonEnabled);
 
   return (
@@ -54,4 +54,4 @@ const ScreenTitle = ({
   );
 };
 
-export default ScreenTitle;
+export default AppScreenTitle;

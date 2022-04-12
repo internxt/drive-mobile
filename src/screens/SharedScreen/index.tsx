@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { getShareList, IShare } from '../../services/storageShare';
 import DriveItem from '../../components/DriveItemTable';
 import { tailwind } from '../../helpers/designSystem';
-import SkinSkeleton from '../../components/SkinSkeleton';
+import DriveItemSkinSkeleton from '../../components/DriveItemSkinSkeleton';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptySharesImage from '../../../assets/images/screens/empty-shares.svg';
@@ -51,7 +51,7 @@ function SharedScreen(props: SharedScreenProps): JSX.Element {
       {loading && (
         <View>
           {_.times(20, (n) => (
-            <SkinSkeleton key={n} />
+            <DriveItemSkinSkeleton key={n} />
           ))}
         </View>
       )}
