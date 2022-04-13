@@ -152,10 +152,18 @@ const downloadFileThunk = createAsyncThunk<
 >('drive/downloadFile', async ({ id, size, parentId, name, type, fileId }, { getState, dispatch }) => {
   const { user } = getState().auth;
   const downloadProgressCallback = (progress: number) => {
-    dispatch(driveActions.updateDownloadingFile({ downloadProgress: progress }));
+    dispatch(
+      driveActions.updateDownloadingFile({
+        downloadProgress: progress,
+      }),
+    );
   };
   const decryptionProgressCallback = (progress: number) => {
-    dispatch(driveActions.updateDownloadingFile({ decryptProgress: progress }));
+    dispatch(
+      driveActions.updateDownloadingFile({
+        decryptProgress: Math.max(getState().drive.downloadingFile?.downloadProgress || 0, progress),
+      }),
+    );
   };
   async function download(params: { fileId: string; to: string }) {
     if (!user) {
