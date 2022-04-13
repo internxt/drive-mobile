@@ -41,11 +41,11 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
 
         <View style={[tailwind('bg-white rounded-t-xl'), props.style]}>
           {props.header && (
-            <View style={tailwind('flex-row px-5 py-4 items-center justify-between border-b border-neutral-20')}>
+            <View style={tailwind('flex-row px-5 py-4 items-center justify-between')}>
               <View style={tailwind('flex-1')}>{props.header}</View>
               <TouchableWithoutFeedback onPress={props.onClosed}>
                 <View style={tailwind('bg-neutral-20 rounded-full h-8 w-8 justify-center items-center ml-5')}>
-                  <X color={getColor('neutral-60')} size={24} />
+                  <X weight="bold" color={getColor('neutral-60')} size={20} />
                 </View>
               </TouchableWithoutFeedback>
             </View>
