@@ -244,8 +244,8 @@ const downloadFileThunk = createAsyncThunk<
       dispatch(driveActions.updateDownloadingFile({ status: 'cancelling' }));
     };
     const onCancelEnd = () => {
+      console.warn('Download aborted');
       dispatch(driveActions.updateDownloadingFile({ status: 'cancelled' }));
-      dispatch(uiActions.setIsDriveDownloadModalOpen(false));
     };
 
     try {
