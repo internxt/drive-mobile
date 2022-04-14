@@ -22,7 +22,7 @@ export const store = configureStore({
     users: usersReducer,
     newsletter: newsletterReducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware({ immutableCheck: false, serializableCheck: false }),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }),
 });
 export default store;
 

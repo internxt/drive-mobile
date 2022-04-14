@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import EventEmitter from 'events';
+import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
+
 import { Abortable } from '../types';
 import { DriveEventKey } from '../types/drive';
 
@@ -73,7 +75,7 @@ class DriveEventEmitter {
 
     DriveEventEmitter.downloadAbort?.();
     DriveEventEmitter.legacyAbortable?.();
-    //DriveEventEmitter.jobId !== undefined && RNFS.stopDownload(DriveEventEmitter.jobId);
+    Platform.OS === 'android' && DriveEventEmitter.jobId !== undefined && RNFS.stopDownload(DriveEventEmitter.jobId);
 
     DriveEventEmitter.downloadAbort = undefined;
     DriveEventEmitter.jobId = undefined;
