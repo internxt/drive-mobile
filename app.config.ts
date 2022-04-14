@@ -57,7 +57,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
       NSPhotoLibraryUsageDescription:
         'Allow $(PRODUCT_NAME) to access your photos to sync your device camera roll with our Photos cloud service',
     },
-    googleServicesFile: './google-services.json',
+    googleServicesFile: './GoogleService-Info.plist',
   },
   android: {
     googleServicesFile: './google-services.json',

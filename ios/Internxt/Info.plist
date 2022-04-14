@@ -29,6 +29,12 @@
           <string>com.internxt.snacks</string>
         </array>
       </dict>
+      <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>com.googleusercontent.apps.407912627452-s39p81ojes20f59q16ohbgik2vvthf5e</string>
+        </array>
+      </dict>
     </array>
     <key>CFBundleVersion</key>
     <string>1</string>
