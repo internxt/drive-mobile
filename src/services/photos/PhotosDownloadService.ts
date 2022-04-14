@@ -16,7 +16,7 @@ export default class PhotosDownloadService {
       decryptionProgressCallback: (progress: number) => void;
     },
   ): Promise<string> {
-    const tmpPath = await network.downloadFile(
+    const response = await network.downloadFile(
       this.model.user?.bucketId || '',
       fileId,
       this.model.networkCredentials,
@@ -26,6 +26,6 @@ export default class PhotosDownloadService {
       },
     );
 
-    return tmpPath;
+    return response.promise;
   }
 }

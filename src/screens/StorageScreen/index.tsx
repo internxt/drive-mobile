@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import ProgressBar from '../../components/AppProgressBar';
+import AppProgressBar from '../../components/AppProgressBar';
 import ScreenTitle from '../../components/AppScreenTitle';
 import { useAppSelector } from '../../store/hooks';
 import { AppScreenKey, INFINITE_PLAN } from '../../types';
@@ -61,7 +61,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
             {getLimitString()}
           </Text>
           <View style={tailwind('my-2')}>
-            <ProgressBar
+            <AppProgressBar
               {...props}
               progressStyle={tailwind('h-2')}
               totalValue={usageValues.limit}

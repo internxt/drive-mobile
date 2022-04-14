@@ -32,7 +32,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
     dispatch(driveThunks.getFolderContentThunk({ folderId: props.data.id }));
     dispatch(driveActions.addDepthAbsolutePath([props.data.name]));
   }
-  const onFilePressed = async () => {
+  const onFilePressed = () => {
     if (!isIdle) {
       return;
     }
@@ -59,11 +59,11 @@ const useDriveItem = (props: UseDriveItemProps) => {
 
     driveEventEmitter.setDownloadAbort(downloadAbort);
 
-    await thunk;
+    thunk.then(() => {
+      setIsDisabled(false);
 
-    setIsDisabled(false);
-
-    dispatch(driveActions.downloadSelectedFileStart());
+      dispatch(driveActions.downloadSelectedFileStart());
+    });
   };
   const onItemPressed = () => {
     if (isDisabled) {

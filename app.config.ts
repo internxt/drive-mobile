@@ -57,8 +57,10 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
       NSPhotoLibraryUsageDescription:
         'Allow $(PRODUCT_NAME) to access your photos to sync your device camera roll with our Photos cloud service',
     },
+    googleServicesFile: './google-services.json',
   },
   android: {
+    googleServicesFile: './google-services.json',
     versionCode: 52,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
@@ -82,7 +84,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     backgroundColor: '#091e42',
   },
   androidNavigationBar: {
-    barStyle: 'light-content',
+    barStyle: 'dark-content',
     backgroundColor: '#091e42',
   },
   extra: { NODE_ENV: stage, ...env[stage] },

@@ -13,6 +13,7 @@ import AppText from '../../AppText';
 import { items } from '@internxt/lib';
 import prettysize from 'prettysize';
 import moment from 'moment';
+import { driveThunks } from '../../../store/slices/drive';
 
 function DriveDownloadModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -24,7 +25,8 @@ function DriveDownloadModal(): JSX.Element {
     dispatch(uiActions.setIsDriveDownloadModalOpen(false));
   };
   const onCancelButtonPressed = () => {
-    dispatch(uiActions.setIsDriveDownloadModalOpen(false));
+    console.log('DriveDownloadModal.onCancelButtonPressed');
+    dispatch(driveThunks.cancelDownloadThunk());
   };
   const getProgressMessage = () => {
     if (!downloadingFile) {
@@ -51,6 +53,7 @@ function DriveDownloadModal(): JSX.Element {
   const { downloadProgress, decryptProgress } = downloadingFile || { downloadProgress: 0, decryptProgress: 0 };
   const currentProgress = downloadProgress < 1 ? downloadProgress : decryptProgress;
   const updatedAtText = (downloadingFile && moment(downloadingFile?.data.updatedAt).format('MMMM DD YYYY')) || '';
+  const isCancelling = downloadingFile?.status === 'cancelling';
 
   return (
     <CenterModal isOpen={isDriveDownloadModalOpen} onClosed={onClosed} backdropPressToClose={false}>
@@ -73,7 +76,12 @@ function DriveDownloadModal(): JSX.Element {
 
             <AppText style={tailwind('mb-7 text-center text-sm text-blue-60')}>{getProgressMessage()}</AppText>
 
-            <AppButton title={strings.components.buttons.cancel} type="cancel-2" onPress={onCancelButtonPressed} />
+            <AppButton
+              disabled={downloadingFile.status !== 'idle'}
+              title={isCancelling ? strings.generic.cancelling : strings.components.buttons.cancel}
+              type="cancel-2"
+              onPress={onCancelButtonPressed}
+            />
           </>
         ) : null}
       </View>

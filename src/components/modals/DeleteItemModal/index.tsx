@@ -16,7 +16,7 @@ function DeleteItemModal(): JSX.Element {
   const { currentFolderId, focusedItem: item } = useAppSelector((state) => state.drive);
   const { showDeleteModal } = useAppSelector((state) => state.ui);
   const isFolder = item && !!item.parentId;
-  const FileIcon = getFileTypeIcon(item?.type);
+  const FileIcon = getFileTypeIcon(item?.type || '');
   const handleDeleteSelectedItem = () => {
     currentFolderId && dispatch(driveThunks.deleteItemsThunk({ items: [item], folderToReload: currentFolderId }));
   };
@@ -52,12 +52,12 @@ function DeleteItemModal(): JSX.Element {
           <Text style={tailwind('text-neutral-100')}>
             {!isFolder && (
               <>
-                {prettysize(item?.size)}
+                {prettysize(item?.size || 0)}
                 <Text style={globalStyle.fontWeight.bold}> · </Text>
               </>
             )}
             Updated{' '}
-            {new Date(item?.updatedAt).toLocaleDateString('en-GB', {
+            {new Date(item?.updatedAt || '').toLocaleDateString('en-GB', {
               day: 'numeric',
               month: 'short',
               year: 'numeric',

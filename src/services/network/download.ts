@@ -6,7 +6,7 @@ import { createDecipheriv } from 'react-native-crypto';
 
 import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 
-import { eachLimit, retry } from 'async';
+import { eachLimit } from 'async';
 import { FileId } from '@internxt/sdk/dist/photos';
 import { getDocumentsDir } from '../fileSystem';
 import { NetworkCredentials } from '../../types';
@@ -164,8 +164,9 @@ export async function downloadFile(
     toPath: string;
     downloadProgressCallback: (progress: number) => void;
     decryptionProgressCallback: (progress: number) => void;
+    signal?: AbortSignal;
   },
-): Promise<FileDecryptedURI> {
+): Promise<{ promise: Promise<string>; jobId: number }> {
   if (!bucketId) {
     throw new Error('Download error code 1');
   }
@@ -184,6 +185,10 @@ export async function downloadFile(
 
   if (!credentials.user) {
     throw new Error('Download error code 5');
+  }
+
+  if (options.signal?.aborted) {
+    throw new Error('Download process aborted before start download');
   }
 
   const defaultRequestOptions: AxiosRequestConfig = {
@@ -212,65 +217,62 @@ export async function downloadFile(
   }
 
   const [mirror] = mirrors;
-
   const farmerUrl = `http://${mirror.farmer.address}:${mirror.farmer.port}/download/link/${mirror.hash}`;
   const downloadUrl = await requestDownloadUrlToFarmer(farmerUrl);
-
-  // 3. Download file
   const encryptedFileURI = getDocumentsDir() + '/' + mirror.hash + '.enc';
 
-  await retry({ times: 3, interval: 500 }, (nextTry) => {
-    const downloadResult = RNFS.downloadFile({
-      fromUrl: downloadUrl,
-      toFile: encryptedFileURI,
-      discretionary: true,
-      cacheable: false,
-      begin: () => undefined,
-      progressInterval: 500,
-      progress: (res) => {
-        options.downloadProgressCallback(res.bytesWritten / res.contentLength);
-      },
-    });
+  if (options.signal?.aborted) {
+    throw new Error('Download process aborted after get the farmer url');
+  }
 
-    downloadResult.promise
-      .then(() => {
-        return RNFS.hash(encryptedFileURI, 'sha256');
-      })
-      .then((sha256hash) => {
-        const fileHash = ripemd160(Buffer.from(sha256hash, 'hex')).toString('hex');
-
-        if (fileHash === mirror.hash) {
-          nextTry(null);
-        } else {
-          nextTry(new Error('Hash mismatch'));
-        }
-      })
-      .catch((err) => {
-        nextTry(err);
-      });
-  });
-
-  options.downloadProgressCallback(1);
-
-  // 4. Decrypt file
-  const fileDecryptionKey = await GenerateFileKey(
-    credentials.encryptionKey,
-    bucketId,
-    Buffer.from(fileInfo.index, 'hex'),
-  );
-
-  const fileURI = await decryptFile(
-    encryptedFileURI,
-    options.toPath,
-    fileInfo.size,
-    fileDecryptionKey.slice(0, 32),
-    Buffer.from(fileInfo.index, 'hex').slice(0, 16),
-    {
-      progress: options.decryptionProgressCallback,
+  // 3. Download file
+  const downloadResult = RNFS.downloadFile({
+    fromUrl: downloadUrl,
+    toFile: encryptedFileURI,
+    discretionary: true,
+    cacheable: false,
+    begin: () => undefined,
+    progress: (res) => {
+      options.downloadProgressCallback(res.bytesWritten / res.contentLength);
     },
-  );
+  });
+  const promise = (async () => {
+    await downloadResult.promise;
 
-  await RNFS.unlink(encryptedFileURI).catch(() => null);
+    const sha256hash = await RNFS.hash(encryptedFileURI, 'sha256');
+    const fileHash = ripemd160(Buffer.from(sha256hash, 'hex')).toString('hex');
 
-  return fileURI;
+    if (fileHash !== mirror.hash) {
+      throw new Error('Hash mismatch');
+    }
+
+    options.downloadProgressCallback(1);
+
+    // 4. Decrypt file
+    const fileDecryptionKey = await GenerateFileKey(
+      credentials.encryptionKey,
+      bucketId,
+      Buffer.from(fileInfo.index, 'hex'),
+    );
+
+    const fileURI = await decryptFile(
+      encryptedFileURI,
+      options.toPath,
+      fileInfo.size,
+      fileDecryptionKey.slice(0, 32),
+      Buffer.from(fileInfo.index, 'hex').slice(0, 16),
+      {
+        progress: options.decryptionProgressCallback,
+      },
+    );
+
+    await RNFS.unlink(encryptedFileURI).catch(() => null);
+
+    return fileURI;
+  })();
+
+  return {
+    promise,
+    jobId: downloadResult.jobId,
+  };
 }

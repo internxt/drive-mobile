@@ -45,14 +45,14 @@ function RenameModal(): JSX.Element {
       if (isFolder) {
         await dispatch(
           driveThunks.updateFolderMetadataThunk({
-            folder: folder,
+            folder: folder as any,
             metadata: { itemName: newName },
           }),
         );
       } else {
         await dispatch(
           driveThunks.updateFileMetadataThunk({
-            file: file,
+            file: file as any,
             metadata: { itemName: newName },
           }),
         );
@@ -66,7 +66,7 @@ function RenameModal(): JSX.Element {
       onItemRenameFinally();
     }
   };
-  const IconFile = getFileTypeIcon(focusedItem?.type);
+  const IconFile = getFileTypeIcon(focusedItem?.type || '');
   const IconFolder = FolderIcon;
 
   return (
@@ -80,7 +80,7 @@ function RenameModal(): JSX.Element {
         setNewName('');
       }}
       onOpened={() => {
-        setNewName(focusedItem?.name);
+        setNewName(focusedItem?.name || '');
       }}
       backButtonClose={true}
       backdropPressToClose={true}

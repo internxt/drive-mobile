@@ -1,6 +1,7 @@
 import { createHash } from 'react-native-crypto';
 import RNFetchBlob from 'rn-fetch-blob';
 import { Environment } from '../@inxt-js';
+import { ActionState } from '../@inxt-js/api/actionState';
 import { FileInfo } from '../@inxt-js/api/fileinfo';
 import appService from '../services/app';
 
@@ -98,7 +99,22 @@ export class Network {
    * @param params Required params for downloading a file
    * @returns
    */
-  downloadFile(bucketId: string, fileId: string, params: IDownloadParams): Promise<void> {
+  downloadFile(bucketId: string, fileId: string, params: IDownloadParams): [() => void, Promise<void>] {
+    let actionState: ActionState;
+    const fn = () => {
+      return new Promise<void>((resolve, reject) => {
+        actionState = this.environment.downloadFile(bucketId, fileId, {
+          ...params,
+          finishedCallback: (err: Error | null) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve();
+          },
+        });
+      });
+    };
+
     if (!bucketId) {
       throw new Error(Network.Errors.BucketIdNotProvided);
     }
@@ -107,17 +123,12 @@ export class Network {
       throw new Error(Network.Errors.FileIdNotProvided);
     }
 
-    return new Promise((resolve, reject) => {
-      this.environment.downloadFile(bucketId, fileId, {
-        ...params,
-        finishedCallback: (err: Error | null) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve();
-        },
-      });
-    });
+    return [
+      () => {
+        actionState?.stop();
+      },
+      fn(),
+    ];
   }
 
   getFileInfo(bucketId: string, fileId: string): Promise<FileInfo> {

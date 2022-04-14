@@ -43,6 +43,7 @@ export interface DownloadingFile {
   data: { id: number; fileId: string; name: string; type: string; size: number; updatedAt: string };
   downloadProgress: number;
   decryptProgress: number;
+  status: 'idle' | 'cancelling' | 'cancelled';
 }
 
 export enum SortDirection {

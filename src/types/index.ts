@@ -125,3 +125,5 @@ export enum AsyncStorageKey {
 }
 
 export type ProgressCallback = (progress: number) => void;
+
+export type Abortable = (reason?: string) => void;

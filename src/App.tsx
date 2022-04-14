@@ -59,8 +59,11 @@ export default function App(): JSX.Element {
 
   // Initialize app
   useEffect(() => {
-    Platform.OS === 'android' &&
-      NavigationBar.setBackgroundColorAsync(getColor('white')).then(() => NavigationBar.setButtonStyleAsync('dark'));
+    if (Platform.OS === 'android') {
+      NavigationBar.setPositionAsync('absolute');
+      NavigationBar.setBackgroundColorAsync(getColor('white'));
+      setTimeout(() => NavigationBar.setButtonStyleAsync('dark'), 100);
+    }
 
     if (!isAppInitialized) {
       Promise.all([loadFonts(), loadLocalUser(), analyticsService.setup()])

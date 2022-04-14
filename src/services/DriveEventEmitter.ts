@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import EventEmitter from 'events';
+import RNFS from 'react-native-fs';
+import { Abortable } from '../types';
 import { DriveEventKey } from '../types/drive';
 
 class DriveEventEmitter {
   private readonly eventEmitter: EventEmitter;
-  private downloadAbort?: (reason?: string) => void;
+  private static downloadAbort?: Abortable;
+  private static jobId?: number;
+  private static legacyAbortable?: Abortable;
 
   constructor() {
     this.eventEmitter = new EventEmitter();
@@ -44,8 +48,16 @@ class DriveEventEmitter {
     this.eventEmitter.removeAllListeners(this.getEventKey({ id, event }));
   }
 
-  public setDownloadAbort(downloadAbort: (reason?: string) => void) {
-    this.downloadAbort = downloadAbort;
+  public setDownloadAbort(value: Abortable) {
+    DriveEventEmitter.downloadAbort = value;
+  }
+
+  public setLegacyAbortable(legacyAbortable: Abortable) {
+    DriveEventEmitter.legacyAbortable = legacyAbortable;
+  }
+
+  public setJobId(jobId: number) {
+    DriveEventEmitter.jobId = jobId;
   }
 
   private getEventKey({ id, event }: { id?: string; event: DriveEventKey }) {
@@ -53,7 +65,13 @@ class DriveEventEmitter {
   }
 
   private onDownloadCanceled() {
-    this.downloadAbort?.();
+    DriveEventEmitter.downloadAbort?.();
+    DriveEventEmitter.jobId !== undefined && RNFS.stopDownload(DriveEventEmitter.jobId);
+    DriveEventEmitter.legacyAbortable?.();
+
+    DriveEventEmitter.downloadAbort = undefined;
+    DriveEventEmitter.jobId = undefined;
+    DriveEventEmitter.legacyAbortable = undefined;
   }
 }
 

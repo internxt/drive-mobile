@@ -35,8 +35,7 @@ function DriveList(props: DriveListProps): JSX.Element {
   const rootFolderId = user?.root_folder_id;
   const isRootFolder = currentFolderId === rootFolderId;
   const isEmptyFolder = props.items.length === 0;
-  const windowWidth = Dimensions.get('window').width;
-  const numColumns = Math.min(Math.max(Math.trunc(windowWidth / 125), 2), 6);
+  const numColumns = 3;
   const itemByViewMode = {
     [DriveListViewMode.List]: DriveItemTable,
     [DriveListViewMode.Grid]: DriveItemGrid,

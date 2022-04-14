@@ -27,16 +27,11 @@ import {
   SortType,
   UploadingFile,
   DownloadingFile,
+  DriveEventKey,
 } from '../../../types/drive';
-import {
-  createEmptyFile,
-  exists,
-  FileManager,
-  getDocumentsDir,
-  pathToUri,
-  showFileViewer,
-} from '../../../services/fileSystem';
+import { createEmptyFile, exists, FileManager, getDocumentsDir, pathToUri } from '../../../services/fileSystem';
 import { items } from '@internxt/lib';
+import driveEventEmitter from '../../../services/DriveEventEmitter';
 
 interface FolderContent {
   id: number;
@@ -62,7 +57,7 @@ export interface DriveState {
   currentFolderId: number;
   folderContent: FolderContent | null;
   rootFolderContent: any;
-  focusedItem: any | null;
+  focusedItem: DriveItemData | null;
   sortType: SortType;
   sortDirection: SortDirection;
   searchString: string;
@@ -145,121 +140,177 @@ const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootSt
   },
 );
 
+const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('drive/cancelDownload', () => {
+  driveEventEmitter.emit({ event: DriveEventKey.CancelDownload });
+});
+
 const downloadFileThunk = createAsyncThunk<
   void,
   { id: number; size: number; parentId: number; name: string; type: string; fileId: string; updatedAt: string },
   { state: RootState }
->('drive/downloadFile', async ({ id, size, parentId, name, type, fileId }, { getState, dispatch }) => {
-  const { user } = getState().auth;
-  const downloadProgressCallback = (progress: number) => {
-    dispatch(
-      driveActions.updateDownloadingFile({
-        downloadProgress: progress,
-      }),
-    );
-  };
-  const decryptionProgressCallback = (progress: number) => {
-    dispatch(
-      driveActions.updateDownloadingFile({
-        decryptProgress: Math.max(getState().drive.downloadingFile?.downloadProgress || 0, progress),
-      }),
-    );
-  };
-  async function download(params: { fileId: string; to: string }) {
-    if (!user) {
-      return;
-    }
-
-    return downloadFile(
-      user?.bucket,
-      params.fileId,
-      {
-        encryptionKey: user.mnemonic,
-        user: user.bridgeUser,
-        password: user.userId,
-      },
-      constants.REACT_NATIVE_BRIDGE_URL,
-      {
-        toPath: params.to,
-        downloadProgressCallback,
-        decryptionProgressCallback,
-      },
-    ).catch((err) => {
-      if (err instanceof LegacyDownloadRequiredError) {
-        const fileManager = new FileManager(params.to);
-
-        return legacyDownloadFile(params.fileId, {
-          fileManager,
-          progressCallback: downloadProgressCallback,
-        });
-      } else {
-        throw err;
+>(
+  'drive/downloadFile',
+  async ({ id, size, parentId, name, type, fileId }, { signal, getState, dispatch, rejectWithValue }) => {
+    const { user } = getState().auth;
+    const downloadProgressCallback = (progress: number) => {
+      dispatch(
+        driveActions.updateDownloadingFile({
+          downloadProgress: progress,
+        }),
+      );
+    };
+    const decryptionProgressCallback = (progress: number) => {
+      if (signal.aborted) {
+        return;
       }
-    });
-  }
-  function trackDownloadStart() {
-    return analytics.track(AnalyticsEventKey.FileDownloadStart, {
-      file_id: id,
-      file_size: size || 0,
-      file_type: type || '',
-      folder_id: parentId || null,
-      platform: DevicePlatform.Mobile,
-      email: user?.email || null,
-      userId: user?.uuid || null,
-    });
-  }
-  function trackDownloadSuccess() {
-    return analytics.track(AnalyticsEventKey.FileDownloadFinished, {
-      file_id: id,
-      file_size: size || 0,
-      file_type: type || '',
-      folder_id: parentId || null,
-      platform: DevicePlatform.Mobile,
-      email: user?.email || null,
-      userId: user?.uuid || null,
-    });
-  }
 
-  dispatch(uiActions.setIsDriveDownloadModalOpen(true));
-  const destinationDir = await getDocumentsDir();
-  let destinationPath = destinationDir + '/' + name + (type ? '.' + type : '');
+      dispatch(
+        driveActions.updateDownloadingFile({
+          decryptProgress: Math.max(getState().drive.downloadingFile?.downloadProgress || 0, progress),
+        }),
+      );
+    };
+    const download = async (params: { fileId: string; to: string }) => {
+      const networkConfig = await getEnvironmentConfig();
 
-  trackDownloadStart();
-  downloadProgressCallback(0);
-  const fileAlreadyExists = await exists(destinationPath);
+      if (!user) {
+        return;
+      }
 
-  if (fileAlreadyExists) {
-    destinationPath = destinationDir + '/' + name + '-' + Date.now().toString() + (type ? '.' + type : '');
-  }
+      return downloadFile(
+        user?.bucket,
+        params.fileId,
+        {
+          encryptionKey: user.mnemonic,
+          user: user.bridgeUser,
+          password: user.userId,
+        },
+        constants.REACT_NATIVE_BRIDGE_URL,
+        {
+          toPath: params.to,
+          downloadProgressCallback,
+          decryptionProgressCallback,
+          signal,
+        },
+      ).catch(async (err) => {
+        if (err instanceof LegacyDownloadRequiredError) {
+          const fileManager = new FileManager(params.to);
 
-  await createEmptyFile(destinationPath);
-  await download({
-    fileId,
-    to: destinationPath,
-  })
-    .then(async () => {
+          const [legacyAbortable, promise] = legacyDownloadFile(
+            networkConfig.bucketId,
+            {
+              user: networkConfig.bridgeUser,
+              password: networkConfig.bridgePass,
+              encryptionKey: networkConfig.encryptionKey,
+            },
+            params.fileId,
+            {
+              fileManager,
+              progressCallback: downloadProgressCallback,
+            },
+          );
+
+          driveEventEmitter.setLegacyAbortable(legacyAbortable);
+
+          await promise;
+        } else {
+          throw err;
+        }
+      });
+    };
+    const trackDownloadStart = () => {
+      return analytics.track(AnalyticsEventKey.FileDownloadStart, {
+        file_id: id,
+        file_size: size || 0,
+        file_type: type || '',
+        folder_id: parentId || null,
+        platform: DevicePlatform.Mobile,
+        email: user?.email || null,
+        userId: user?.uuid || null,
+      });
+    };
+    const trackDownloadSuccess = () => {
+      return analytics.track(AnalyticsEventKey.FileDownloadFinished, {
+        file_id: id,
+        file_size: size || 0,
+        file_type: type || '',
+        folder_id: parentId || null,
+        platform: DevicePlatform.Mobile,
+        email: user?.email || null,
+        userId: user?.uuid || null,
+      });
+    };
+    const onCancelStart = () => {
+      dispatch(driveActions.updateDownloadingFile({ status: 'cancelling' }));
+    };
+    const onCancelEnd = () => {
+      dispatch(driveActions.updateDownloadingFile({ status: 'cancelled' }));
+      dispatch(uiActions.setIsDriveDownloadModalOpen(false));
+    };
+
+    try {
+      driveEventEmitter.addListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
+      driveEventEmitter.addListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
+      dispatch(uiActions.setIsDriveDownloadModalOpen(true));
+      trackDownloadStart();
+      downloadProgressCallback(0);
+
+      const destinationDir = await getDocumentsDir();
+      let destinationPath = destinationDir + '/' + name + (type ? '.' + type : '');
+      const fileAlreadyExists = await exists(destinationPath);
+
+      if (fileAlreadyExists) {
+        destinationPath = destinationDir + '/' + name + '-' + Date.now().toString() + (type ? '.' + type : '');
+      }
+
+      await createEmptyFile(destinationPath);
+
+      if (signal.aborted) {
+        return rejectWithValue(null);
+      }
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const response: { promise: Promise<void>; jobId: number } = await download({
+        fileId,
+        to: destinationPath,
+      });
       const uri = pathToUri(destinationPath);
+
+      driveEventEmitter.setJobId(response?.jobId || 0);
+
+      await response.promise;
 
       dispatch(uiActions.setIsDriveDownloadModalOpen(false));
 
-      try {
-        const result = await Share.open({ title: items.getItemDisplayName({ name, type }), url: uri });
+      if (!signal.aborted) {
+        try {
+          const result = await Share.open({ title: items.getItemDisplayName({ name, type }), url: uri });
 
-        if (result.success) {
-          trackDownloadSuccess();
-        } else if (result.dismissedAction) {
-          // dismissed
+          if (result.success) {
+            trackDownloadSuccess();
+          } else if (result.dismissedAction) {
+            // dismissed
+          }
+        } catch (err) {
+          // * Ignores native share cancelation
         }
-      } catch (err) {
-        // * Ignores native share cancelation
       }
-    })
-    .finally(() => {
+    } catch (err) {
+      dispatch(uiActions.setIsDriveDownloadModalOpen(false));
+    } finally {
+      if (signal.aborted) {
+        driveEventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
+      }
+
+      driveEventEmitter.removeListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
+      driveEventEmitter.removeListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
       dispatch(driveActions.downloadSelectedFileStop());
       downloadProgressCallback(0);
       decryptionProgressCallback(0);
-    });
-});
+    }
+  },
+);
 
 const updateFileMetadataThunk = createAsyncThunk<
   void,
@@ -268,7 +319,7 @@ const updateFileMetadataThunk = createAsyncThunk<
 >('drive/updateFileMetadata', async ({ file, metadata }, { getState }) => {
   const { bucketId } = await getEnvironmentConfig();
   const { absolutePath, focusedItem } = getState().drive;
-  const itemFullName = `${metadata.itemName}${focusedItem.type ? '.' + focusedItem.type : ''}`;
+  const itemFullName = `${metadata.itemName}${focusedItem?.type ? '.' + focusedItem.type : ''}`;
   const itemPath = `${absolutePath}${itemFullName}`;
 
   return fileService.updateMetaData(file.fileId, metadata, bucketId, itemPath);
@@ -281,7 +332,7 @@ const updateFolderMetadataThunk = createAsyncThunk<
 >('drive/updateFolderMetadata', async ({ folder, metadata }, { getState }) => {
   const { bucketId } = await getEnvironmentConfig();
   const { absolutePath, focusedItem } = getState().drive;
-  const itemFullName = `${metadata.itemName}${focusedItem.type ? '.' + focusedItem.type : ''}`;
+  const itemFullName = `${metadata.itemName}${focusedItem?.type ? '.' + focusedItem.type : ''}`;
   const itemPath = `${absolutePath}${itemFullName}`;
 
   folderService.updateMetaData(folder.id, metadata, bucketId, itemPath);
@@ -498,6 +549,7 @@ export const driveSlice = createSlice({
       .addCase(downloadFileThunk.pending, (state, action) => {
         state.downloadingFile = {
           data: action.meta.arg,
+          status: 'idle',
           downloadProgress: 0,
           decryptProgress: 0,
         };
@@ -521,8 +573,6 @@ export const driveSlice = createSlice({
             userId: uuid || null,
           });
         };
-
-        state.downloadingFile = undefined;
 
         if (!action.meta.aborted) {
           trackDownloadError(action.error);
@@ -637,6 +687,7 @@ export const driveThunks = {
   getUsageAndLimitThunk,
   getFolderContentThunk,
   goBackThunk,
+  cancelDownloadThunk,
   downloadFileThunk,
   updateFileMetadataThunk,
   updateFolderMetadataThunk,
