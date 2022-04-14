@@ -284,9 +284,6 @@ const downloadFileThunk = createAsyncThunk<
             }
           }
         })
-        .catch((err) => {
-          console.error('response.promise catch: ', err);
-        })
         .finally(() => {
           driveEventEmitter.emit({ event: DriveEventKey.DownloadFinally });
         });

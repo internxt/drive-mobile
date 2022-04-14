@@ -237,9 +237,7 @@ export async function downloadFile(
     },
   });
   const promise = (async () => {
-    await downloadResult.promise.catch((err) => {
-      console.error('response.promise catch: ', err);
-    });
+    await downloadResult.promise;
 
     const sha256hash = await RNFS.hash(encryptedFileURI, 'sha256');
     const fileHash = ripemd160(Buffer.from(sha256hash, 'hex')).toString('hex');
