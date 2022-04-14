@@ -41,7 +41,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     backgroundColor: '#091e42',
   },
   updates: {
-    url: '',
+    url: 'https://exp.host/@internxt/drive-mobile',
     fallbackToCacheTimeout: 0,
   },
   assetBundlePatterns: ['**/*'],
