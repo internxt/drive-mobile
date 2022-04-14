@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
 
 import { tailwind } from '../../../helpers/designSystem';
@@ -13,20 +13,22 @@ import AppText from '../../AppText';
 import { items } from '@internxt/lib';
 import prettysize from 'prettysize';
 import moment from 'moment';
-import { driveThunks } from '../../../store/slices/drive';
+import { driveActions, driveThunks } from '../../../store/slices/drive';
+import driveEventEmitter from '../../../services/DriveEventEmitter';
+import { DriveEventKey } from '../../../types/drive';
+import analytics, { AnalyticsEventKey } from '../../../services/analytics';
+import { asyncStorage } from '../../../services/asyncStorage';
+import { DevicePlatform, NotificationType } from '../../../types';
+import notificationsService from '../../../services/notifications';
 
 function DriveDownloadModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const iconSize = 80;
-  const { downloadingFile } = useAppSelector((state) => state.drive);
+  const { currentFolderId, downloadingFile } = useAppSelector((state) => state.drive);
   const FileIcon = getFileTypeIcon(downloadingFile?.data.type || '');
   const { isDriveDownloadModalOpen } = useAppSelector((state) => state.ui);
   const onClosed = () => {
     dispatch(uiActions.setIsDriveDownloadModalOpen(false));
-  };
-  const onCancelButtonPressed = () => {
-    console.log('DriveDownloadModal.onCancelButtonPressed');
-    dispatch(driveThunks.cancelDownloadThunk());
   };
   const getProgressMessage = () => {
     if (!downloadingFile) {
@@ -54,6 +56,63 @@ function DriveDownloadModal(): JSX.Element {
   const currentProgress = downloadProgress < 1 ? downloadProgress : decryptProgress;
   const updatedAtText = (downloadingFile && moment(downloadingFile?.data.updatedAt).format('MMMM DD YYYY')) || '';
   const isCancelling = downloadingFile?.status === 'cancelling';
+  const onCancelButtonPressed = () => {
+    dispatch(driveThunks.cancelDownloadThunk());
+  };
+  const onDownloadCompleted = () => undefined;
+  const onDownloadError = (err: Error) => {
+    const trackDownloadError = async (err: Error) => {
+      const { email, uuid } = await asyncStorage.getUser();
+
+      return analytics.track(AnalyticsEventKey.FileDownloadError, {
+        file_id: downloadingFile?.data.id || 0,
+        file_size: downloadingFile?.data.size || 0,
+        file_type: downloadingFile?.data.type || '',
+        folder_id: currentFolderId,
+        platform: DevicePlatform.Mobile,
+        error: err.message || strings.errors.unknown,
+        email: email || null,
+        userId: uuid || null,
+      });
+    };
+
+    trackDownloadError(err);
+    notificationsService.show({ type: NotificationType.Error, text1: 'Error downloading file' });
+  };
+  const onDownloadFinally = () => {
+    console.log('onDownloadFinally');
+    dispatch(uiActions.setIsDriveDownloadModalOpen(false));
+  };
+  const onCancelStart = () => {
+    dispatch(driveActions.updateDownloadingFile({ status: 'cancelling' }));
+
+    if (driveEventEmitter.jobId !== undefined) {
+      console.log('Emitting CancelDownloadEnd and DownloadFinally');
+      driveEventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
+      driveEventEmitter.emit({ event: DriveEventKey.DownloadFinally });
+    }
+  };
+  const onCancelEnd = () => {
+    console.warn('Download aborted');
+    dispatch(uiActions.setIsDriveDownloadModalOpen(false));
+    dispatch(driveActions.updateDownloadingFile({ status: 'cancelled' }));
+  };
+
+  useEffect(() => {
+    driveEventEmitter.addListener({ event: DriveEventKey.DownloadCompleted, listener: onDownloadCompleted });
+    driveEventEmitter.addListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
+    driveEventEmitter.addListener({ event: DriveEventKey.DownloadFinally, listener: onDownloadFinally });
+    driveEventEmitter.addListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
+    driveEventEmitter.addListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
+
+    return () => {
+      driveEventEmitter.removeListener({ event: DriveEventKey.DownloadCompleted, listener: onDownloadCompleted });
+      driveEventEmitter.removeListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
+      driveEventEmitter.removeListener({ event: DriveEventKey.DownloadFinally, listener: onDownloadFinally });
+      driveEventEmitter.removeListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
+      driveEventEmitter.removeListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
+    };
+  }, []);
 
   return (
     <CenterModal isOpen={isDriveDownloadModalOpen} onClosed={onClosed} backdropPressToClose={false}>

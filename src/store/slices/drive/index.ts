@@ -65,7 +65,6 @@ export interface DriveState {
   isUploadingFileName: string | null;
   uploadFileUri: string | undefined | null;
   progress: number;
-  startDownloadSelectedFile: boolean;
   error?: string | null;
   uri?: any;
   pendingDeleteItems: { [key: string]: boolean };
@@ -92,7 +91,6 @@ const initialState: DriveState = {
   isUploadingFileName: '',
   uploadFileUri: '',
   progress: 0,
-  startDownloadSelectedFile: false,
   uri: undefined,
   pendingDeleteItems: {},
   selectedFile: null,
@@ -240,17 +238,8 @@ const downloadFileThunk = createAsyncThunk<
         userId: user?.uuid || null,
       });
     };
-    const onCancelStart = () => {
-      dispatch(driveActions.updateDownloadingFile({ status: 'cancelling' }));
-    };
-    const onCancelEnd = () => {
-      console.warn('Download aborted');
-      dispatch(driveActions.updateDownloadingFile({ status: 'cancelled' }));
-    };
 
     try {
-      driveEventEmitter.addListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
-      driveEventEmitter.addListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
       dispatch(uiActions.setIsDriveDownloadModalOpen(true));
       trackDownloadStart();
       downloadProgressCallback(0);
@@ -279,35 +268,36 @@ const downloadFileThunk = createAsyncThunk<
 
       driveEventEmitter.setJobId(response?.jobId || 0);
 
-      await response.promise;
+      response.promise
+        .then(async () => {
+          if (!signal.aborted) {
+            try {
+              const result = await Share.open({ title: items.getItemDisplayName({ name, type }), url: uri });
 
-      dispatch(uiActions.setIsDriveDownloadModalOpen(false));
-
-      if (!signal.aborted) {
-        try {
-          const result = await Share.open({ title: items.getItemDisplayName({ name, type }), url: uri });
-
-          if (result.success) {
-            trackDownloadSuccess();
-          } else if (result.dismissedAction) {
-            // dismissed
+              if (result.success) {
+                trackDownloadSuccess();
+              } else if (result.dismissedAction) {
+                // dismissed
+              }
+            } catch (err) {
+              // * Ignores native share cancelation
+            }
           }
-        } catch (err) {
-          // * Ignores native share cancelation
-        }
-      }
+        })
+        .catch((err) => {
+          console.error('response.promise catch: ', err);
+        })
+        .finally(() => {
+          driveEventEmitter.emit({ event: DriveEventKey.DownloadFinally });
+        });
     } catch (err) {
-      dispatch(uiActions.setIsDriveDownloadModalOpen(false));
+      if (!signal.aborted) {
+        driveEventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
+      }
     } finally {
       if (signal.aborted) {
         driveEventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
       }
-
-      driveEventEmitter.removeListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
-      driveEventEmitter.removeListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
-      dispatch(driveActions.downloadSelectedFileStop());
-      downloadProgressCallback(0);
-      decryptionProgressCallback(0);
     }
   },
 );
@@ -432,12 +422,6 @@ export const driveSlice = createSlice({
       state.isUploading = true;
       state.isUploadingFileName = action.payload;
     },
-    downloadSelectedFileStart(state) {
-      state.startDownloadSelectedFile = true;
-    },
-    downloadSelectedFileStop(state) {
-      state.startDownloadSelectedFile = false;
-    },
     addUploadingFile(state, action: PayloadAction<UploadingFile>) {
       state.uploadingFiles = [...state.uploadingFiles, action.payload];
     },
@@ -554,31 +538,8 @@ export const driveSlice = createSlice({
           decryptProgress: 0,
         };
       })
-      .addCase(downloadFileThunk.fulfilled, (state) => {
-        state.downloadingFile = undefined;
-      })
-      .addCase(downloadFileThunk.rejected, (state, action) => {
-        const { id, size, type, parentId } = action.meta.arg;
-        const trackDownloadError = async (err: SerializedError) => {
-          const { email, uuid } = await asyncStorage.getUser();
-
-          return analytics.track(AnalyticsEventKey.FileDownloadError, {
-            file_id: id,
-            file_size: size || 0,
-            file_type: type || '',
-            folder_id: parentId || null,
-            platform: DevicePlatform.Mobile,
-            error: err.message || strings.errors.unknown,
-            email: email || null,
-            userId: uuid || null,
-          });
-        };
-
-        if (!action.meta.aborted) {
-          trackDownloadError(action.error);
-          notificationsService.show({ type: NotificationType.Error, text1: 'Error downloading file' });
-        }
-      });
+      .addCase(downloadFileThunk.fulfilled, () => undefined)
+      .addCase(downloadFileThunk.rejected, () => undefined);
 
     builder
       .addCase(updateFileMetadataThunk.pending, (state) => {

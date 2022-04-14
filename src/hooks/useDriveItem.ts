@@ -61,8 +61,6 @@ const useDriveItem = (props: UseDriveItemProps) => {
 
     thunk.then(() => {
       setIsDisabled(false);
-
-      dispatch(driveActions.downloadSelectedFileStart());
     });
   };
   const onItemPressed = () => {

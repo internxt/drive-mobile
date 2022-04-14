@@ -79,6 +79,9 @@ export interface DriveItemProps {
 }
 
 export enum DriveEventKey {
+  DownloadCompleted = 'download-completed',
+  DownloadError = 'download-error',
+  DownloadFinally = 'download-finally',
   CancelDownload = 'cancel-download',
   CancelDownloadEnd = 'cancel-download-end',
 }
