@@ -5,11 +5,21 @@
 </p>
 <p align="center" style="margin-top: 10px;">Internxt</p>
 
-## Installation
+## Setup
+
+Follow these steps before running the project.
+
+### 1. Installation
 
 - Create a `.npmrc` file from the `.npmrc.template` example provided in the repo.
 - Replace `TOKEN` with your own [Github Personal Access Token](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token) with `read:packages` permission **ONLY**
 - Use `yarn` to install project dependencies.
+
+### 2. Firebase
+
+Copy **/GoogleService-Info.plist** and **/google-services.json** from your Firebase application.
+
+This is required to eject the app from expo properly using the **expo eject** command of expo-cli.
 
 ## Android
 
