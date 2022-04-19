@@ -29,7 +29,14 @@ import {
   DownloadingFile,
   DriveEventKey,
 } from '../../../types/drive';
-import { createEmptyFile, exists, FileManager, getDocumentsDir, pathToUri } from '../../../services/fileSystem';
+import {
+  createEmptyFile,
+  exists,
+  FileManager,
+  getDocumentsDir,
+  pathToUri,
+  showFileViewer,
+} from '../../../services/fileSystem';
 import { items } from '@internxt/lib';
 import driveEventEmitter from '../../../services/DriveEventEmitter';
 
@@ -271,17 +278,8 @@ const downloadFileThunk = createAsyncThunk<
       response.promise
         .then(async () => {
           if (!signal.aborted) {
-            try {
-              const result = await Share.open({ title: items.getItemDisplayName({ name, type }), url: uri });
-
-              if (result.success) {
-                trackDownloadSuccess();
-              } else if (result.dismissedAction) {
-                // dismissed
-              }
-            } catch (err) {
-              // * Ignores native share cancelation
-            }
+            await showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
+            trackDownloadSuccess();
           }
         })
         .finally(() => {
