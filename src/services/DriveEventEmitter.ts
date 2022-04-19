@@ -70,12 +70,14 @@ class DriveEventEmitter {
   }
 
   private onDownloadCanceled() {
-    console.log('onDownloadCanceled - jobId: ', DriveEventEmitter.jobId);
-    console.log('onDownloadCanceled - legacyAbortable: ', DriveEventEmitter.legacyAbortable);
-
     DriveEventEmitter.downloadAbort?.();
     DriveEventEmitter.legacyAbortable?.();
     Platform.OS === 'android' && DriveEventEmitter.jobId !== undefined && RNFS.stopDownload(DriveEventEmitter.jobId);
+
+    if (driveEventEmitter.jobId !== undefined) {
+      driveEventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
+      driveEventEmitter.emit({ event: DriveEventKey.DownloadFinally });
+    }
 
     DriveEventEmitter.downloadAbort = undefined;
     DriveEventEmitter.jobId = undefined;

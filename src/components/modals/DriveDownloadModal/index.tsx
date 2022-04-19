@@ -85,12 +85,6 @@ function DriveDownloadModal(): JSX.Element {
   };
   const onCancelStart = () => {
     dispatch(driveActions.updateDownloadingFile({ status: 'cancelling' }));
-
-    if (driveEventEmitter.jobId !== undefined) {
-      console.log('Emitting CancelDownloadEnd and DownloadFinally');
-      driveEventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
-      driveEventEmitter.emit({ event: DriveEventKey.DownloadFinally });
-    }
   };
   const onCancelEnd = () => {
     console.warn('Download aborted');
