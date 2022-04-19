@@ -80,7 +80,6 @@ function DriveDownloadModal(): JSX.Element {
     notificationsService.show({ type: NotificationType.Error, text1: 'Error downloading file' });
   };
   const onDownloadFinally = () => {
-    console.log('onDownloadFinally');
     dispatch(uiActions.setIsDriveDownloadModalOpen(false));
   };
   const onCancelStart = () => {
