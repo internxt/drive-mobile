@@ -270,6 +270,7 @@ const strings = new LocalizedStrings({
         dismiss: 'Dismiss',
         pause: 'Pause',
         resume: 'Resume',
+        signOut: 'Log out',
       },
       inputs: {
         email: 'Email address',
@@ -385,6 +386,10 @@ const strings = new LocalizedStrings({
       NewsletterModal: {
         title: 'Subscribe to our newsletter',
         message: 'Get the last news and updated right in your mail box',
+      },
+      SignOutModal: {
+        title: 'Log out',
+        message: 'Are you sure you want to log out?',
       },
     },
     messages: {
@@ -683,6 +688,7 @@ const strings = new LocalizedStrings({
         dismiss: 'Cerrar',
         pause: 'Pausar',
         resume: 'Reanudar',
+        signOut: 'Cerrar sesión',
       },
       inputs: {
         email: 'Correo electrónico',
@@ -800,6 +806,10 @@ const strings = new LocalizedStrings({
       NewsletterModal: {
         title: 'Suscríbete a nuestra newsletter',
         message: 'Recibe las últimas novedades y actualizaciones en tu bandeja de entrada',
+      },
+      SignOutModal: {
+        title: 'Cerrar sesión',
+        message: '¿Estás seguro de que quieres cerrar sessión?',
       },
     },
     messages: {

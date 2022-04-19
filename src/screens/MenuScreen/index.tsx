@@ -20,11 +20,12 @@ import AppVersionWidget from '../../components/AppVersionWidget';
 import ScreenTitle from '../../components/AppScreenTitle';
 import { AppScreenKey as AppScreenKey } from '../../types';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { authSelectors, authThunks } from '../../store/slices/auth';
+import { authSelectors } from '../../store/slices/auth';
 import globalStyle from '../../styles';
 import AppScreen from '../../components/AppScreen';
 import appService from '../../services/app';
 import AppText from '../../components/AppText';
+import { uiActions } from '../../store/slices/ui';
 
 interface MenuItemProps {
   title: string;
@@ -67,8 +68,7 @@ function MenuScreen(): JSX.Element {
   const userNameLetters = useAppSelector(authSelectors.nameLetters);
   const userFullName = useAppSelector(authSelectors.userFullName);
   const onLogoutPressed = () => {
-    dispatch(authThunks.signOutThunk());
-    navigation.replace(AppScreenKey.SignIn);
+    dispatch(uiActions.setIsSignOutModalOpen(true));
   };
 
   return (

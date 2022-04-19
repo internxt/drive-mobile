@@ -25,6 +25,7 @@ export interface UIState {
   isNewsletterModalOpen: boolean;
   isInviteFriendsModalOpen: boolean;
   isDriveDownloadModalOpen: boolean;
+  isSignOutModalOpen: boolean;
 }
 
 const initialState: UIState = {
@@ -51,6 +52,7 @@ const initialState: UIState = {
   isNewsletterModalOpen: false,
   isInviteFriendsModalOpen: false,
   isDriveDownloadModalOpen: false,
+  isSignOutModalOpen: false,
 };
 
 export const uiSlice = createSlice({
@@ -123,6 +125,9 @@ export const uiSlice = createSlice({
     },
     setIsDriveDownloadModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isDriveDownloadModalOpen = action.payload;
+    },
+    setIsSignOutModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isSignOutModalOpen = action.payload;
     },
   },
 });

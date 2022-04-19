@@ -24,6 +24,7 @@ import { useAppDispatch } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DriveDownloadModal from '../../components/modals/DriveDownloadModal';
+import SignOutModal from '../../components/modals/SignOutModal';
 
 const Tab = createBottomTabNavigator();
 
@@ -70,6 +71,7 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
       <CreateFolderModal />
       <RenameModal />
       <RunOutOfStorageModal />
+      <SignOutModal />
 
       <ReferralsBanner />
     </View>

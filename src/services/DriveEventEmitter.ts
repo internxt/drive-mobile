@@ -72,7 +72,7 @@ class DriveEventEmitter {
   private onDownloadCanceled() {
     DriveEventEmitter.downloadAbort?.();
     DriveEventEmitter.legacyAbortable?.();
-    Platform.OS === 'android' && DriveEventEmitter.jobId !== undefined && RNFS.stopDownload(DriveEventEmitter.jobId);
+    DriveEventEmitter.jobId !== undefined && RNFS.stopDownload(DriveEventEmitter.jobId);
 
     if (driveEventEmitter.jobId !== undefined) {
       driveEventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
