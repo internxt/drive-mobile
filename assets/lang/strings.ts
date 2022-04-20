@@ -234,9 +234,9 @@ const strings = new LocalizedStrings({
     components: {
       buttons: {
         sign_in: 'Sign in',
-        create: 'Create an account',
+        createAccount: 'Create account',
+        create: 'Create',
         next: 'Next',
-        get_started: 'Get started',
         continue: 'Continue',
         back: 'Back',
         creating_button: 'Creating...',
@@ -652,9 +652,9 @@ const strings = new LocalizedStrings({
     components: {
       buttons: {
         sign_in: 'Iniciar sesión',
-        create: 'Crear cuenta',
+        createAccount: 'Crear cuenta',
+        create: 'Crear',
         next: 'Siguiente',
-        get_started: 'Empezar',
         continue: 'Continuar',
         back: 'Atrás',
         creating_button: 'Creando...',

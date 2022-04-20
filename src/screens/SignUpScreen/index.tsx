@@ -18,6 +18,7 @@ import AppScreen from '../../components/AppScreen';
 import { driveActions } from '../../store/slices/drive';
 import { Eye, EyeSlash } from 'phosphor-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AppText from '../../components/AppText';
 
 function SignUpScreen(): JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -274,14 +275,16 @@ function SignUpScreen(): JSX.Element {
         >
           <View>
             <Text style={tailwind('text-base btn-label')}>
-              {registerButtonClicked ? strings.components.buttons.creating_button : strings.components.buttons.create}
+              {registerButtonClicked
+                ? strings.components.buttons.creating_button
+                : strings.components.buttons.createAccount}
             </Text>
           </View>
         </TouchableHighlight>
 
-        <Text style={tailwind('text-center mb-10')} onPress={onGoToSignInButtonPressed}>
-          <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.title}</Text>
-        </Text>
+        <AppText style={tailwind('text-center mb-10')} onPress={onGoToSignInButtonPressed}>
+          <AppText style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.title}</AppText>
+        </AppText>
       </ScrollView>
     </AppScreen>
   );
