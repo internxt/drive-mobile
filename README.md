@@ -21,10 +21,18 @@ Copy **/GoogleService-Info.plist** and **/google-services.json** from your Fireb
 
 This is required to eject the app from expo properly using the **expo eject** command of expo-cli.
 
+### 3. Environment
+
+In order to configure the environment, you have to create **/env/.env.development.json** and **/env/.env.production.json** files.
+
+Take a look to **/env/.env.example.json** file to know the required environment variables.
+
+</br>
+
 ## Android
 
 We can test the android application in any operating system, although for each one we will have to follow some different steps
-</br></br>
+</br>
 
 ### Android installation
 
@@ -115,12 +123,6 @@ sudo arch -x86_64 gem install ffi
 
 arch -x86_64 pod install
 ```
-
-</br></br>
-
-### Environment
-
-To config the environment variables, you have to create **.env.development.json** and **.env.production.json** files inside **/env** folder.
 
 </br></br>
 

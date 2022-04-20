@@ -25,10 +25,10 @@ const ComingSoonModal = (): JSX.Element => {
 
       <View style={styles.textContainer}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>{strings.modals.coming_soon_modal.title}</Text>
+          <Text style={styles.title}>{strings.modals.ComingSoonModal.title}</Text>
         </View>
 
-        <Text style={styles.subtitle}>{strings.modals.coming_soon_modal.subtitle}</Text>
+        <Text style={styles.subtitle}>{strings.modals.ComingSoonModal.subtitle}</Text>
       </View>
 
       <View style={styles.buttonContainer}>
@@ -38,7 +38,7 @@ const ComingSoonModal = (): JSX.Element => {
             dispatch(uiActions.setShowComingSoonModal(false));
           }}
         >
-          <Text style={[styles.text, styles.white]}>{strings.modals.coming_soon_modal.got_it}</Text>
+          <Text style={[styles.text, styles.white]}>{strings.modals.ComingSoonModal.got_it}</Text>
         </TouchableOpacity>
       </View>
     </Modal>

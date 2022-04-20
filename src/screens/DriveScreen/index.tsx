@@ -97,7 +97,7 @@ function DriveScreen(): JSX.Element {
         })
         .then((res) => {
           if (res.respInfo.status === 402) {
-            navigation.replace(AppScreenKey.OutOfSpace);
+            dispatch(uiActions.setShowRunOutSpaceModal(true));
           } else if (res.respInfo.status === 201) {
             analytics.track(AnalyticsEventKey.FileUploadFinished, {
               userId: userData.uuid,
