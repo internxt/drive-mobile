@@ -1,5 +1,4 @@
 const TABLE_NAME = 'sync_dates';
-
 const statements = {
   createTable: `CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (\
       id INTEGER PRIMARY KEY AUTOINCREMENT, \
