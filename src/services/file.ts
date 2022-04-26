@@ -206,13 +206,13 @@ function getSortFunction({
               const aTime = new Date(a.updatedAt).getTime();
               const bTime = new Date(b.updatedAt).getTime();
 
-              return aTime < bTime ? -1 : aTime > bTime ? 1 : 0;
+              return aTime < bTime ? 1 : -1;
             }
           : (a: DriveItemData, b: DriveItemData) => {
               const aTime = new Date(a.updatedAt).getTime();
               const bTime = new Date(b.updatedAt).getTime();
 
-              return aTime < bTime ? 1 : aTime > bTime ? -1 : 0;
+              return aTime > bTime ? 1 : -1;
             };
       break;
   }

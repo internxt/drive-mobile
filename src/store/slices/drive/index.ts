@@ -1,6 +1,5 @@
-import { createSlice, createAsyncThunk, PayloadAction, SerializedError } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
-import Share from 'react-native-share';
 
 import { constants } from '../../../services/app';
 import { LegacyDownloadRequiredError } from '../../../services/network/download';
@@ -534,7 +533,14 @@ export const driveSlice = createSlice({
         };
       })
       .addCase(downloadFileThunk.fulfilled, () => undefined)
-      .addCase(downloadFileThunk.rejected, () => undefined);
+      .addCase(downloadFileThunk.rejected, (state, action) => {
+        if (!action.meta.aborted) {
+          notificationsService.show({
+            type: NotificationType.Error,
+            text1: action.error.message || strings.errors.unknown,
+          });
+        }
+      });
 
     builder
       .addCase(updateFileMetadataThunk.pending, (state) => {

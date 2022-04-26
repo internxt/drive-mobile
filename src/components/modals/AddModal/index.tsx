@@ -31,7 +31,7 @@ import BottomModal from '../BottomModal';
 import { UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
 
 async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
-  const name = file.uri.split('/').pop() || '';
+  const name = decodeURI(file.uri).split('/').pop() || '';
   const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
   const fileUri = file.uri.replace(regex, '$2');
   const extension = fileUri.split('.').pop() || '';

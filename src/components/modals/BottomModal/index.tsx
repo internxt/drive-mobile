@@ -1,5 +1,5 @@
 import React from 'react';
-import { Easing, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
+import { Easing, Platform, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import Modal from 'react-native-modalbox';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
@@ -33,7 +33,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       easing={Easing.ease}
     >
       <View style={tailwind('h-full')}>
-        <StatusBar hidden={true} />
+        <StatusBar hidden translucent />
 
         <TouchableWithoutFeedback onPress={props.onClosed}>
           <View style={tailwind('flex-grow')} />
