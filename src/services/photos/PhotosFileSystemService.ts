@@ -46,4 +46,8 @@ export default class PhotosFileSystemService {
     await RNFS.unlink(this.tmpDirectory);
     await RNFS.mkdir(this.tmpDirectory);
   }
+
+  public async readDir(path: string): Promise<RNFS.ReadDirItem[]> {
+    return RNFS.readDir(path);
+  }
 }

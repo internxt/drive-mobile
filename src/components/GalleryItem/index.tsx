@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Image, TouchableOpacity } from 'react-native';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -28,10 +28,9 @@ const GalleryItem = ({
   onPress,
   onLongPress,
 }: GalleryItemProps): JSX.Element => {
-  const [uri] = useState(preview);
   const getItemContent = () =>
     ({
-      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri }} />,
+      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri: preview }} />,
     }[type]());
 
   return (

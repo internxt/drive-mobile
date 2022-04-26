@@ -708,42 +708,6 @@ export const photosSelectors = {
   },
   photosDirectory: (): string => PhotosService.instance.photosDirectory,
   previewsDirectory: (): string => PhotosService.instance.previewsDirectory,
-  photosByMonth: (state: RootState): PhotosByMonthType[] => {
-    const result: PhotosByMonthType[] = [];
-
-    for (const photo of state.photos.photos) {
-      const year = photo.data.takenAt.getFullYear();
-      const month = photo.data.takenAt.getMonth();
-      const day = photo.data.takenAt.getDate();
-      const monthItem = result.find((m) => m.year === year && m.month === month);
-
-      if (monthItem) {
-        const dayItem = monthItem.days.find((d) => d.day === day);
-
-        if (dayItem) {
-          dayItem.photos.push(photo);
-        } else {
-          monthItem.days.push({
-            day,
-            photos: [photo],
-          });
-        }
-      } else {
-        result.push({
-          year,
-          month,
-          days: [
-            {
-              day,
-              photos: [photo],
-            },
-          ],
-        });
-      }
-    }
-
-    return result;
-  },
 };
 
 export const photosThunks = {

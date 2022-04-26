@@ -56,7 +56,7 @@ export class PhotosService {
     this.logService = new PhotosLogService(this.model);
     this.eventEmitter = new PhotosEventEmitter(this.model);
     this.fileSystemService = new PhotosFileSystemService(this.model, this.logService);
-    this.localDatabaseService = new PhotosLocalDatabaseService(this.model, this.logService);
+    this.localDatabaseService = new PhotosLocalDatabaseService(this.model, this.logService, this.fileSystemService);
     this.cameraRollService = new PhotosCameraRollService(this.logService, this.localDatabaseService);
     this.usageService = new PhotosUsageService(this.model);
     this.deviceService = new PhotosDeviceService(
@@ -193,7 +193,7 @@ export class PhotosService {
     return this.localDatabaseService.countPhotos();
   }
 
-  public getPhotos({
+  public async getPhotos({
     limit,
     skip = 0,
   }: {
@@ -202,7 +202,8 @@ export class PhotosService {
   }): Promise<{ data: photos.Photo; preview: string }[]> {
     this.checkModel();
 
-    return this.localDatabaseService.getPhotos(skip, limit);
+    const results = await this.localDatabaseService.getPhotos(skip, limit);
+    return results;
   }
 
   public getYearsList(): Promise<{ year: number; preview: string }[]> {

@@ -16,14 +16,17 @@ import PhotosLogService from '../PhotosLogService';
 import { pathToUri } from '../../fileSystem';
 import tmp_camera_roll from './tables/tmp_camera_roll';
 import CameraRoll from '@react-native-community/cameraroll';
+import PhotosFileSystemService from '../PhotosFileSystemService';
 
 export default class PhotosLocalDatabaseService {
   private readonly model: PhotosServiceModel;
   private readonly logService: PhotosLogService;
+  private readonly fileSystemService: PhotosFileSystemService;
 
-  constructor(model: PhotosServiceModel, logService: PhotosLogService) {
+  constructor(model: PhotosServiceModel, logService: PhotosLogService, fileSystemService: PhotosFileSystemService) {
     this.model = model;
     this.logService = logService;
+    this.fileSystemService = fileSystemService;
   }
 
   public async initialize(): Promise<void> {
@@ -71,7 +74,7 @@ export default class PhotosLocalDatabaseService {
         for (const row of rows.raw() as unknown as SqlitePhotoRow[]) {
           results.push({
             data: this.mapPhotoRowToModel(row),
-            preview: pathToUri(row.preview_path),
+            preview: pathToUri(`${this.fileSystemService.previewsDirectory}/${row.preview_id}`),
           });
         }
 
@@ -115,7 +118,9 @@ export default class PhotosLocalDatabaseService {
     ]);
     const lastPhotoOfTheYear = rows.item(0) as SqlitePhotoRow | null;
 
-    return lastPhotoOfTheYear && pathToUri(lastPhotoOfTheYear.preview_path);
+    return (
+      lastPhotoOfTheYear && pathToUri(`${this.fileSystemService.previewsDirectory}/${lastPhotoOfTheYear.preview_id}`)
+    );
   }
 
   public async getMonthsList(): Promise<{ year: number; month: number; preview: string }[]> {
@@ -188,7 +193,7 @@ export default class PhotosLocalDatabaseService {
     const [{ rows }] = await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getById, [photoId]);
     const photoRow: SqlitePhotoRow | null = rows.item(0) || null;
 
-    return photoRow && pathToUri(photoRow.preview_path);
+    return photoRow && pathToUri(`${this.fileSystemService.previewsDirectory}/${photoRow.preview_id}`);
   }
 
   public async updatePhotoStatusById(photoId: PhotoId, newStatus: PhotoStatus): Promise<void> {
