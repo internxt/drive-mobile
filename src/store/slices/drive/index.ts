@@ -277,7 +277,9 @@ const downloadFileThunk = createAsyncThunk<
       response.promise
         .then(async () => {
           if (!signal.aborted) {
-            await showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
+            await showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) }).catch((err) =>
+              driveEventEmitter.emit({ event: DriveEventKey.DownloadError }, err),
+            );
             trackDownloadSuccess();
           }
         })
@@ -533,14 +535,7 @@ export const driveSlice = createSlice({
         };
       })
       .addCase(downloadFileThunk.fulfilled, () => undefined)
-      .addCase(downloadFileThunk.rejected, (state, action) => {
-        if (!action.meta.aborted) {
-          notificationsService.show({
-            type: NotificationType.Error,
-            text1: action.error.message || strings.errors.unknown,
-          });
-        }
-      });
+      .addCase(downloadFileThunk.rejected, () => undefined);
 
     builder
       .addCase(updateFileMetadataThunk.pending, (state) => {

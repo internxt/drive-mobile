@@ -60,7 +60,7 @@ function DriveDownloadModal(): JSX.Element {
     dispatch(driveThunks.cancelDownloadThunk());
   };
   const onDownloadCompleted = () => undefined;
-  const onDownloadError = (err: Error) => {
+  const onDownloadError = ([err]: [Error]) => {
     const trackDownloadError = async (err: Error) => {
       const { email, uuid } = await asyncStorage.getUser();
 
@@ -77,7 +77,7 @@ function DriveDownloadModal(): JSX.Element {
     };
 
     trackDownloadError(err);
-    notificationsService.show({ type: NotificationType.Error, text1: 'Error downloading file' });
+    notificationsService.show({ type: NotificationType.Error, text1: err.message });
   };
   const onDownloadFinally = () => {
     dispatch(uiActions.setIsDriveDownloadModalOpen(false));
