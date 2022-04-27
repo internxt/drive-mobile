@@ -220,7 +220,8 @@ const strings = new LocalizedStrings({
         nPhotosSelected: '{0} selected',
         empty: 'No photos to show',
         loading: 'Loading photos...',
-        syncing: 'Syncing {0} of {1}',
+        syncing: 'Syncing...',
+        syncingTasks: 'Syncing {0} of {1}',
         pausing: 'Pausing sync...',
         paused: 'Sync paused',
         groupBy: {
@@ -636,7 +637,8 @@ const strings = new LocalizedStrings({
         nPhotosSelected: '{0} seleccionadas',
         empty: 'No hay fotos para mostrar',
         loading: 'Cargando fotos...',
-        syncing: 'Sincronizando {0} de {1}',
+        syncing: 'Sincronizando...',
+        syncingTasks: 'Sincronizando {0} de {1}',
         pausing: 'Pausando sincronización...',
         paused: 'Sincronización pausada',
         groupBy: {
