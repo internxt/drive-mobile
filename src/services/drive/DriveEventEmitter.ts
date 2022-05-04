@@ -52,17 +52,14 @@ class DriveEventEmitter {
   }
 
   public setDownloadAbort(abortable: Abortable) {
-    this.logService.info('setDownloadAbort: ' + abortable);
     this.downloadAbort = abortable;
   }
 
   public setLegacyAbortable(legacyAbortable: Abortable) {
-    this.logService.info('setLegacyAbortable' + legacyAbortable);
     this.legacyAbortable = legacyAbortable;
   }
 
   public setJobId(jobId: number) {
-    this.logService.info('setJobId: ' + jobId);
     this._jobId = jobId;
   }
 

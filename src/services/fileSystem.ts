@@ -158,5 +158,5 @@ export async function showFileViewer(uri: string, options?: RNFileViewerOptions)
     throw new Error('File not found');
   }
 
-  return FileViewer.open(fileInfo.uri, options);
+  return FileViewer.open(uri, options);
 }

@@ -277,9 +277,9 @@ const downloadFileThunk = createAsyncThunk<
       response.promise
         .then(async () => {
           if (!signal.aborted) {
-            await showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) }).catch((err) =>
-              driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err),
-            );
+            await showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) }).catch((err) => {
+              driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
+            });
             trackDownloadSuccess();
           }
         })
