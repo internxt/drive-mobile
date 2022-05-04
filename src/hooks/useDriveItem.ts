@@ -5,7 +5,7 @@ import { driveActions, driveThunks } from '../store/slices/drive';
 import { uiActions } from '../store/slices/ui';
 import { DriveItemDataProps, DriveItemStatus } from '../types/drive';
 import analytics, { AnalyticsEventKey } from '../services/analytics';
-import driveEventEmitter from '../services/DriveEventEmitter';
+import driveService from '../services/drive';
 
 interface UseDriveItemProps {
   data: DriveItemDataProps;
@@ -57,7 +57,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
       thunk.abort();
     };
 
-    driveEventEmitter.setDownloadAbort(downloadAbort);
+    driveService.eventEmitter.setDownloadAbort(downloadAbort);
 
     thunk.then(() => {
       setIsDisabled(false);

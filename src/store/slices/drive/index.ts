@@ -37,7 +37,7 @@ import {
   showFileViewer,
 } from '../../../services/fileSystem';
 import { items } from '@internxt/lib';
-import driveEventEmitter from '../../../services/DriveEventEmitter';
+import driveService from '../../../services/drive';
 
 interface FolderContent {
   id: number;
@@ -145,7 +145,7 @@ const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootSt
 );
 
 const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('drive/cancelDownload', () => {
-  driveEventEmitter.emit({ event: DriveEventKey.CancelDownload });
+  driveService.eventEmitter.emit({ event: DriveEventKey.CancelDownload });
 });
 
 const downloadFileThunk = createAsyncThunk<
@@ -214,7 +214,7 @@ const downloadFileThunk = createAsyncThunk<
             },
           );
 
-          driveEventEmitter.setLegacyAbortable(legacyAbortable);
+          driveService.eventEmitter.setLegacyAbortable(legacyAbortable);
 
           await promise;
         } else {
@@ -272,27 +272,27 @@ const downloadFileThunk = createAsyncThunk<
       });
       const uri = pathToUri(destinationPath);
 
-      driveEventEmitter.setJobId(response?.jobId || 0);
+      driveService.eventEmitter.setJobId(response?.jobId || 0);
 
       response.promise
         .then(async () => {
           if (!signal.aborted) {
             await showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) }).catch((err) =>
-              driveEventEmitter.emit({ event: DriveEventKey.DownloadError }, err),
+              driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err),
             );
             trackDownloadSuccess();
           }
         })
         .finally(() => {
-          driveEventEmitter.emit({ event: DriveEventKey.DownloadFinally });
+          driveService.eventEmitter.emit({ event: DriveEventKey.DownloadFinally });
         });
     } catch (err) {
       if (!signal.aborted) {
-        driveEventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
+        driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
       }
     } finally {
       if (signal.aborted) {
-        driveEventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
+        driveService.eventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
       }
     }
   },

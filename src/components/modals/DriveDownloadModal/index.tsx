@@ -14,7 +14,7 @@ import { items } from '@internxt/lib';
 import prettysize from 'prettysize';
 import moment from 'moment';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
-import driveEventEmitter from '../../../services/DriveEventEmitter';
+import driveService from '../../../services/drive';
 import { DriveEventKey } from '../../../types/drive';
 import analytics, { AnalyticsEventKey } from '../../../services/analytics';
 import { asyncStorage } from '../../../services/asyncStorage';
@@ -92,18 +92,21 @@ function DriveDownloadModal(): JSX.Element {
   };
 
   useEffect(() => {
-    driveEventEmitter.addListener({ event: DriveEventKey.DownloadCompleted, listener: onDownloadCompleted });
-    driveEventEmitter.addListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
-    driveEventEmitter.addListener({ event: DriveEventKey.DownloadFinally, listener: onDownloadFinally });
-    driveEventEmitter.addListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
-    driveEventEmitter.addListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
+    driveService.eventEmitter.addListener({ event: DriveEventKey.DownloadCompleted, listener: onDownloadCompleted });
+    driveService.eventEmitter.addListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
+    driveService.eventEmitter.addListener({ event: DriveEventKey.DownloadFinally, listener: onDownloadFinally });
+    driveService.eventEmitter.addListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
+    driveService.eventEmitter.addListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
 
     return () => {
-      driveEventEmitter.removeListener({ event: DriveEventKey.DownloadCompleted, listener: onDownloadCompleted });
-      driveEventEmitter.removeListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
-      driveEventEmitter.removeListener({ event: DriveEventKey.DownloadFinally, listener: onDownloadFinally });
-      driveEventEmitter.removeListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
-      driveEventEmitter.removeListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
+      driveService.eventEmitter.removeListener({
+        event: DriveEventKey.DownloadCompleted,
+        listener: onDownloadCompleted,
+      });
+      driveService.eventEmitter.removeListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
+      driveService.eventEmitter.removeListener({ event: DriveEventKey.DownloadFinally, listener: onDownloadFinally });
+      driveService.eventEmitter.removeListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
+      driveService.eventEmitter.removeListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
     };
   }, []);
 

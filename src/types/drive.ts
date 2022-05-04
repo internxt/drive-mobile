@@ -85,3 +85,7 @@ export enum DriveEventKey {
   CancelDownload = 'cancel-download',
   CancelDownloadEnd = 'cancel-download-end',
 }
+
+export interface DriveServiceModel {
+  debug: boolean;
+}
