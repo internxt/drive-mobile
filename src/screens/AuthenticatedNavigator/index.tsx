@@ -8,9 +8,9 @@ import DriveScreen from '../DriveScreen';
 import MenuScreen from '../MenuScreen';
 import BottomTabNavigator from '../../components/BottomTabNavigator';
 import EmptyScreen from '../EmptyScreen';
-import FileDetailsModal from '../../components/modals/FileDetailsModal';
+import DriveItemInfoModal from '../../components/modals/DriveItemInfoModal';
 import AddModal from '../../components/modals/AddModal';
-import RenameModal from '../../components/modals/RenameModal';
+import DriveRenameModal from '../../components/modals/DriveRenameModal';
 import CreateFolderModal from '../../components/modals/CreateFolderModal';
 import ShareFilesModal from '../../components/modals/ShareFilesModal';
 import DeleteItemModal from '../../components/modals/DeleteItemModal';
@@ -63,13 +63,13 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
       </Tab.Navigator>
 
       <AddModal />
-      <FileDetailsModal />
+      <DriveItemInfoModal />
       <DeleteItemModal />
       <MoveFilesModal />
       <ShareFilesModal />
       <DriveDownloadModal />
       <CreateFolderModal />
-      <RenameModal />
+      <DriveRenameModal />
       <RunOutOfStorageModal />
       <SignOutModal />
 

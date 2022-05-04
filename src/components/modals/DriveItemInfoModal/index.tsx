@@ -12,7 +12,7 @@ import BottomModalOption from '../../BottomModalOption';
 import BottomModal from '../BottomModal';
 import { Link, PencilSimpleLine, Trash } from 'phosphor-react-native';
 
-function FileDetailsModal(): JSX.Element {
+function DriveItemInfoModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { focusedItem: item } = useAppSelector((state) => state.drive);
   const { showItemModal } = useAppSelector((state) => state.ui);
@@ -110,4 +110,4 @@ function FileDetailsModal(): JSX.Element {
   );
 }
 
-export default FileDetailsModal;
+export default DriveItemInfoModal;

@@ -45,13 +45,14 @@ function CreateFolderModal(): JSX.Element {
         onClosed();
       });
   };
+  const iconSize = 80;
 
   return (
     <CenterModal isOpen={showCreateFolderModal} onClosed={onClosed}>
       <View style={tailwind('w-full p-4')}>
         <View style={tailwind('w-full px-10 pt-4 pb-8 flex-grow justify-center')}>
           <View style={tailwind('items-center pb-3')}>
-            <FolderIcon width={80} height={80} />
+            <FolderIcon width={iconSize} height={iconSize} />
           </View>
 
           <AppTextInput

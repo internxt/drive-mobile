@@ -42,9 +42,8 @@ function RunOutOfStorageModal(): JSX.Element {
 
   return (
     <Modal
-      position={'bottom'}
+      position="bottom"
       style={tailwind('bg-transparent')}
-      coverScreen={Platform.OS === 'android'}
       isOpen={showRunOutOfSpaceModal}
       onClosed={() => {
         dispatch(uiActions.setShowDeleteModal(false));
