@@ -16,7 +16,7 @@ class DriveEventEmitter {
   constructor(logService: DriveLogService) {
     this.logService = logService;
     this.eventEmitter = new EventEmitter();
-    this.eventEmitter.addListener(DriveEventKey.CancelDownload, this.onDownloadCanceled);
+    this.eventEmitter.addListener(DriveEventKey.CancelDownload, () => this.onDownloadCanceled());
   }
 
   public emit({ id, event }: { id?: string; event: DriveEventKey }, ...args: any[]) {
