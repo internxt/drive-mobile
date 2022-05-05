@@ -32,7 +32,7 @@ function CreateFolderModal(): JSX.Element {
 
     Keyboard.dismiss;
     folderService
-      .createFolder({ folderName, parentId: currentFolderId })
+      .createFolder(currentFolderId, folderName)
       .then(() => {
         dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
         notificationsService.show({ type: NotificationType.Success, text1: strings.messages.folderCreated });

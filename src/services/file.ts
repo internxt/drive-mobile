@@ -77,23 +77,6 @@ async function getFolderContent(folderId: number): Promise<any> {
   return response.data;
 }
 
-async function createFolder(parentFolderId: number, folderName = 'Untitled folder'): Promise<void> {
-  const headers = await getHeaders();
-  const body = JSON.stringify({
-    parentFolderId,
-    folderName,
-  });
-  const response = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder`, {
-    method: 'POST',
-    headers,
-    body,
-  }).then((response) => response.json());
-
-  if (response.error) {
-    throw new Error(response.error);
-  }
-}
-
 async function updateMetaData(
   fileId: string,
   metadata: DriveFileMetadataPayload,
@@ -242,7 +225,6 @@ async function renameFileInNetwork(fileId: string, bucketId: string, relativePat
 
 const fileService = {
   getFolderContent,
-  createFolder,
   getSortFunction,
   moveFile,
   deleteItems,

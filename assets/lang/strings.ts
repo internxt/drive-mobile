@@ -32,6 +32,9 @@ const strings = new LocalizedStrings({
     screens: {
       DebugScreen: {
         title: 'Debug',
+        internet: {
+          speed: 'Internet speed',
+        },
         upload: {
           title: 'File upload',
           advice: 'Test the performance of file upload.',
@@ -448,6 +451,9 @@ const strings = new LocalizedStrings({
     screens: {
       DebugScreen: {
         title: 'Depuración',
+        internet: {
+          speed: 'Velocidad de Internet',
+        },
         upload: {
           title: 'Subida de archivos',
           advice: 'Prueba el rendimiento de la subida de archivos.',

@@ -329,7 +329,7 @@ const createFolderThunk = createAsyncThunk<
   { parentFolderId: number; newFolderName: string },
   { state: RootState }
 >('drive/createFolder', async ({ parentFolderId, newFolderName }, { dispatch }) => {
-  await fileService.createFolder(parentFolderId, newFolderName);
+  await folderService.createFolder(parentFolderId, newFolderName);
   const userData = await asyncStorage.getUser();
 
   await analytics.track(AnalyticsEventKey.FolderCreated, {
