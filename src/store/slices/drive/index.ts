@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, DriveFolderData, FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
 
 import { constants } from '../../../services/app';
 import { LegacyDownloadRequiredError } from '../../../services/network/download';
@@ -39,20 +39,6 @@ import {
 import { items } from '@internxt/lib';
 import driveService from '../../../services/drive';
 
-interface FolderContent {
-  id: number;
-  name: string;
-  bucket: string;
-  encrypt_version: string | null;
-  createdAt: Date | null;
-  updatedAt: Date | null;
-  userId: number | null;
-  iconId: number | null;
-  parentId: number | null;
-  children: DriveFolderData[];
-  files: DriveFileData[];
-}
-
 export interface DriveState {
   isLoading: boolean;
   absolutePath: string;
@@ -61,7 +47,7 @@ export interface DriveState {
   downloadingFile?: DownloadingFile;
   selectedItems: DriveItemData[];
   currentFolderId: number;
-  folderContent: FolderContent | null;
+  folderContent: FetchFolderContentResponse | null;
   rootFolderContent: any;
   focusedItem: DriveItemData | null;
   sortType: SortType;
@@ -116,7 +102,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 );
 
 const getFolderContentThunk = createAsyncThunk<
-  { currentFolderId: number; folderContent: FolderContent },
+  { currentFolderId: number; folderContent: FetchFolderContentResponse },
   { folderId: number; quick?: boolean },
   { state: RootState }
 >('drive/getFolderContent', async ({ folderId }) => {
@@ -606,7 +592,8 @@ export const storageSelectors = {
   driveItems(state: RootState): DriveListItem[] {
     const { folderContent, uploadingFiles, searchString, sortType, sortDirection } = state.drive;
     const sortFunction = fileService.getSortFunction({ type: sortType, direction: sortDirection });
-    let folderList: DriveFolderData[] = (folderContent && folderContent.children) || [];
+    let folderList: DriveFolderData[] =
+      (folderContent && folderContent.children.map<DriveFolderData>((i) => ({ ...i, isFolder: true }))) || [];
     let fileList: DriveFileData[] = (folderContent && folderContent.files) || [];
 
     if (searchString) {

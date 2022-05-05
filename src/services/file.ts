@@ -4,6 +4,7 @@ import axios from 'axios';
 import { DriveFileMetadataPayload, DriveItemData, SortDirection, SortType } from '../types/drive';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
+import { FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
 
 export function getNameFromUri(uri: string): string {
   const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
@@ -62,7 +63,7 @@ export function getNextNewName(filename: string, i: number): string {
   return `${filename} (${i})`;
 }
 
-async function getFolderContent(folderId: number): Promise<any> {
+async function getFolderContent(folderId: number): Promise<FetchFolderContentResponse> {
   const headers = await getHeaders();
   const headersMap: Record<string, string> = {};
 
@@ -70,9 +71,12 @@ async function getFolderContent(folderId: number): Promise<any> {
     headersMap[key] = value;
   });
 
-  const response = await axios.get(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/v2/folder/${folderId}`, {
-    headers: headersMap,
-  });
+  const response = await axios.get<FetchFolderContentResponse>(
+    `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/v2/folder/${folderId}`,
+    {
+      headers: headersMap,
+    },
+  );
 
   return response.data;
 }
