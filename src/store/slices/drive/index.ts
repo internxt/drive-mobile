@@ -106,7 +106,19 @@ const getFolderContentThunk = createAsyncThunk<
   { folderId: number; quick?: boolean },
   { state: RootState }
 >('drive/getFolderContent', async ({ folderId }) => {
-  const folderContent = await fileService.getFolderContent(folderId);
+  const folderContentPromise = fileService.getFolderContent(folderId);
+  const isFolderInDatabase = await driveService.localDatabaseService.isFolderInDatabase(folderId);
+
+  if (isFolderInDatabase) {
+    const databaseContent = await driveService.localDatabaseService.getDriveItems(folderId);
+  } else {
+    await folderContentPromise;
+  }
+
+  folderContentPromise.then((response) => {
+    const folders = response.children.map((folder) => ({ ...folder, isFolder: true }));
+    const items = _.concat(folders as DriveItemData[], response.files as DriveItemData[]);
+  });
 
   return { currentFolderId: folderId, folderContent };
 });

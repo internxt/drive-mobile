@@ -9,6 +9,7 @@ import {
 import sqliteService from '../../sqlite';
 import PhotosLogService from '../DriveLogService';
 import driveItemTable from './tables/drive_item';
+import folderRecordTable from './tables/folder_record';
 
 export default class DriveLocalDatabaseService {
   private readonly model: DriveServiceModel;
@@ -22,6 +23,7 @@ export default class DriveLocalDatabaseService {
   public async initialize(): Promise<void> {
     await sqliteService.open(DRIVE_DB_NAME);
     await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.createTable);
+    await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.createTable);
 
     this.logService.info('Local database initialized');
   }
@@ -70,8 +72,23 @@ export default class DriveLocalDatabaseService {
     return sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteFolderContent, [folderId]);
   }
 
+  public async isFolderInDatabase(folderId: number): boolean {
+    const result = await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.getById, [folderId]);
+
+    // TODO: result to bool
+  }
+
+  public deleteFolderRecord(folderId: number) {
+    return sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.deleteById, [folderId]);
+  }
+
+  public insertFolderRecord(folderId: number) {
+    return sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.insert, [folderId]);
+  }
+
   public async resetDatabase(): Promise<void> {
     await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.cleanTable);
+    await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.cleanTable);
     await sqliteService.close(DRIVE_DB_NAME);
     await sqliteService.delete(DRIVE_DB_NAME);
   }
