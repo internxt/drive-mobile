@@ -102,25 +102,26 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 );
 
 const getFolderContentThunk = createAsyncThunk<
-  { currentFolderId: number; folderContent: FetchFolderContentResponse },
-  { folderId: number; quick?: boolean },
+  { currentFolderId: number; folderContent: DriveItemData[] },
+  { folderId: number },
   { state: RootState }
->('drive/getFolderContent', async ({ folderId }) => {
+>('drive/getFolderContent', async ({ folderId }, { dispatch }) => {
   const folderContentPromise = fileService.getFolderContent(folderId);
   const isFolderInDatabase = await driveService.localDatabaseService.isFolderInDatabase(folderId);
 
   if (isFolderInDatabase) {
-    const databaseContent = await driveService.localDatabaseService.getDriveItems(folderId);
+    const folderContent = await driveService.localDatabaseService.getDriveItems(folderId);
+
+    dispatch(driveThunks.getFolderContentThunk({ folderId }));
+
+    return { currentFolderId: folderId, folderContent };
   } else {
-    await folderContentPromise;
-  }
-
-  folderContentPromise.then((response) => {
+    const response = await folderContentPromise;
     const folders = response.children.map((folder) => ({ ...folder, isFolder: true }));
-    const items = _.concat(folders as DriveItemData[], response.files as DriveItemData[]);
-  });
+    const folderContent = _.concat(folders as unknown as DriveItemData[], response.files as DriveItemData[]);
 
-  return { currentFolderId: folderId, folderContent };
+    return { currentFolderId: folderId, folderContent };
+  }
 });
 
 const getUsageAndLimitThunk = createAsyncThunk<{ usage: number; limit: number }, void, { state: RootState }>(

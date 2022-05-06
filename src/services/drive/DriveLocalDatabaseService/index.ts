@@ -72,10 +72,10 @@ export default class DriveLocalDatabaseService {
     return sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteFolderContent, [folderId]);
   }
 
-  public async isFolderInDatabase(folderId: number): boolean {
-    const result = await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.getById, [folderId]);
+  public async isFolderInDatabase(folderId: number): Promise<boolean> {
+    const [{ rows }] = await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.getById, [folderId]);
 
-    // TODO: result to bool
+    return rows.raw().length > 0;
   }
 
   public deleteFolderRecord(folderId: number) {
@@ -109,8 +109,7 @@ export default class DriveLocalDatabaseService {
         icon: row.icon,
         iconId: row.icon_id,
         icon_id: row.icon_id,
-        isFolder: true,
-        parentId: row.parent_id as number,
+        parentId: row.parent_id,
         parent_id: row.parent_id,
         user_id: row.user_id,
       };

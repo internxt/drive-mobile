@@ -78,7 +78,7 @@ function SharedScreen(props: SharedScreenProps): JSX.Element {
                     type={DriveListType.Shared}
                     status={DriveItemStatus.Idle}
                     viewMode={DriveListViewMode.List}
-                    data={item.fileInfo as DriveItemData}
+                    data={item.fileInfo}
                     subtitle={
                       <View style={tailwind('flex flex-row items-center')}>
                         <Text style={tailwind('text-base text-sm text-blue-60')}>Left {item.views} times to share</Text>

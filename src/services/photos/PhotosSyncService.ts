@@ -178,10 +178,14 @@ export default class PhotosSyncService {
     const onOlderUploadTasksCalculated = (n: number) => {
       this.eventEmitter.emit({ id: this.currentSyncId, event: PhotosEventKey.OlderUploadTasksPageCalculated }, n);
     };
-    const { count: downloadTasks } = await this.photosSdk.photos.getPhotos({
-      statusChangedAt: remoteSyncAt,
-      status: PhotoStatus.Exists,
-    });
+    const { count: downloadTasks } = await this.photosSdk.photos.getPhotos(
+      {
+        statusChangedAt: remoteSyncAt,
+        status: PhotoStatus.Exists,
+      },
+      0,
+      0,
+    );
     this.eventEmitter.emit({ id: this.currentSyncId, event: PhotosEventKey.DownloadTasksCalculated }, downloadTasks);
     const newerUploadTasks = await this.cameraRollService.countByPages({
       from: aDayBeforeNewestDate,

@@ -59,7 +59,7 @@ export enum SortType {
 
 export type DriveItemDataProps = Pick<DriveItemData, 'id' | 'name' | 'updatedAt' | 'createdAt'> & {
   fileId?: string;
-  parentId?: number;
+  parentId?: number | null;
   size?: number;
   type?: string;
 };
