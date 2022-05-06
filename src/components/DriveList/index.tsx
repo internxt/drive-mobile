@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { RefreshControl, View, FlatList, Dimensions } from 'react-native';
+import { RefreshControl, View, FlatList } from 'react-native';
 import _ from 'lodash';
 
 import { tailwind } from '../../helpers/designSystem';
@@ -24,12 +24,7 @@ interface DriveListProps {
 function DriveList(props: DriveListProps): JSX.Element {
   const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
-  const {
-    folderContent,
-    searchString,
-    isLoading: filesLoading,
-    currentFolderId,
-  } = useAppSelector((state) => state.drive);
+  const { searchString, isLoading: filesLoading, currentFolderId } = useAppSelector((state) => state.drive);
   const { user } = useAppSelector((state) => state.auth);
   const isGrid = props.viewMode === DriveListViewMode.Grid;
   const rootFolderId = user?.root_folder_id;
@@ -46,7 +41,7 @@ function DriveList(props: DriveListProps): JSX.Element {
   );
 
   useEffect(() => {
-    if (!folderContent && rootFolderId) {
+    if (rootFolderId) {
       dispatch(driveThunks.getFolderContentThunk({ folderId: rootFolderId }));
     }
   }, []);

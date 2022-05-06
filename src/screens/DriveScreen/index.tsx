@@ -30,30 +30,30 @@ function DriveScreen(): JSX.Element {
   const route = useRoute();
   const dispatch = useAppDispatch();
   const { token, user, loggedIn } = useAppSelector((state) => state.auth);
-  const { currentFolderId, folderContent, uri, sortType, sortDirection, searchString } = useAppSelector(
-    (state) => state.drive,
-  );
+  const {
+    folderContentResponse,
+    currentFolderId,
+    currentFolderName,
+    parentFolderId,
+    uri,
+    sortType,
+    sortDirection,
+    searchString,
+  } = useAppSelector((state) => state.drive);
   const driveItems = useAppSelector(storageSelectors.driveItems);
   const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.ui);
   const onSearchTextChanged = (value: string) => {
     dispatch(driveActions.setSearchString(value));
   };
-  const parentFolderId = (() => {
-    if (folderContent) {
-      return folderContent.parentId || null;
-    } else {
-      return null;
-    }
-  })();
   const validateUri = () => {
     if (Platform.OS === 'ios') {
-      return uri && folderContent;
+      return uri;
     } else {
-      return uri.fileUri && folderContent;
+      return uri.fileUri;
     }
   };
-  const isRootFolder = folderContent && folderContent.id === user?.root_folder_id;
-  const screenTitle = !isRootFolder && folderContent ? folderContent.name : strings.screens.drive.title;
+  const isRootFolder = currentFolderId === user?.root_folder_id;
+  const screenTitle = !isRootFolder ? currentFolderName : strings.screens.drive.title;
   const uploadFile = async (uri: string, name: string, currentFolder: number) => {
     dispatch(driveActions.setUri(undefined));
     const userData = await asyncStorage.getUser();
@@ -105,7 +105,7 @@ function DriveScreen(): JSX.Element {
               device: DevicePlatform.Mobile,
             });
 
-            folderContent && dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
+            dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
           } else {
             Alert.alert('Error', 'Can not upload file');
           }
@@ -134,7 +134,7 @@ function DriveScreen(): JSX.Element {
     }
   };
   const onCurrentFolderActionsButtonPressed = () => {
-    dispatch(driveActions.focusItem(folderContent));
+    dispatch(driveActions.focusItem(folderContentResponse));
     dispatch(uiActions.setShowItemModal(true));
   };
   const onSortButtonPressed = () => {
@@ -184,11 +184,29 @@ function DriveScreen(): JSX.Element {
           .catch(() => undefined);
       })
       .catch(() => undefined);
+
+    // BackHandler
+    const backAction = () => {
+      if (route.name === AppScreenKey.Drive) {
+        if (~currentFolderId && parentFolderId) {
+          dispatch(driveThunks.getFolderContentThunk({ folderId: parentFolderId }));
+        } else {
+          return false;
+        }
+      }
+
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => {
+      backHandler.remove();
+    };
   }, []);
 
   useEffect(() => {
     if (Platform.OS === 'ios') {
-      if (uri && validateUri() && folderContent) {
+      if (uri && validateUri() && ~currentFolderId) {
         const name = uri.split('/').pop();
 
         setTimeout(() => {
@@ -196,7 +214,7 @@ function DriveScreen(): JSX.Element {
         }, 3000);
       }
     } else {
-      if (uri && validateUri() && folderContent) {
+      if (uri && validateUri() && ~currentFolderId) {
         const name = uri.fileUri.fileName.split('/').pop();
 
         setTimeout(() => {
@@ -209,7 +227,7 @@ function DriveScreen(): JSX.Element {
   // seEffect to trigger uploadFile while app closed
   useEffect(() => {
     if (Platform.OS === 'ios') {
-      if (validateUri() && folderContent) {
+      if (validateUri() && ~currentFolderId) {
         const name = uri.split('/').pop();
 
         setTimeout(() => {
@@ -217,7 +235,7 @@ function DriveScreen(): JSX.Element {
         }, 3000);
       }
     } else {
-      if (uri && validateUri() && folderContent) {
+      if (uri && validateUri() && ~currentFolderId) {
         const name = uri.fileUri.fileName;
 
         setTimeout(() => {
@@ -225,35 +243,12 @@ function DriveScreen(): JSX.Element {
         }, 3000);
       }
     }
-
-    parentFolderId === null ? dispatch(driveActions.setRootFolderContent(folderContent)) : null;
-
-    // BackHandler
-    const backAction = () => {
-      if (route.name === AppScreenKey.Drive) {
-        if (folderContent && folderContent.parentId) {
-          dispatch(driveThunks.getFolderContentThunk({ folderId: folderContent.parentId as number }));
-        } else {
-          return false;
-        }
-      }
-
-      return true;
-    };
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-    return () => backHandler.remove();
-  }, [folderContent]);
+  }, [currentFolderId]);
 
   return (
     <AppScreen safeAreaTop style={tailwind('flex-1')}>
       {/* DRIVE NAV */}
-      <View
-        style={[
-          tailwind('flex-row items-center justify-between my-2 px-5'),
-          (isRootFolder || !folderContent) && tailwind('hidden'),
-        ]}
-      >
+      <View style={[tailwind('flex-row items-center justify-between my-2 px-5'), isRootFolder && tailwind('hidden')]}>
         <View>
           <TouchableOpacity
             disabled={!backButtonEnabled}
@@ -286,7 +281,7 @@ function DriveScreen(): JSX.Element {
 
       <ScreenTitle text={screenTitle} showBackButton={false} />
 
-      {(isRootFolder || !folderContent || searchActive) && (
+      {(isRootFolder || searchActive) && (
         <SearchInput
           value={searchString}
           onChangeText={onSearchTextChanged}
