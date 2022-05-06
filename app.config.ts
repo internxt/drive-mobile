@@ -25,7 +25,7 @@ export interface AppEnv {
   REACT_NATIVE_RECAPTCHA_V3: string;
 }
 
-const stage = AppStage.Development; // <- CHANGE STAGE
+const stage = AppStage.Production; // <- CHANGE STAGE
 
 const appConfig: ExpoConfig & { extra: AppEnv } = {
   name: 'Internxt',
