@@ -71,6 +71,14 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     intentFilters: [
       {
         action: 'VIEW',
+        data: [
+          {
+            mimeType: '*/*',
+          },
+        ],
+      },
+      {
+        action: 'VIEW',
         category: ['BROWSABLE', 'DEFAULT'],
         data: [
           {
