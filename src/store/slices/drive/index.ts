@@ -1,13 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { DriveFileData, DriveFolderData, FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
 
-import { constants } from '../../../services/app';
-import { LegacyDownloadRequiredError } from '../../../services/network/download';
 import analytics, { AnalyticsEventKey } from '../../../services/analytics';
 import fileService from '../../../services/file';
 import folderService from '../../../services/folder';
-import { downloadFile } from '../../../services/network';
-import { downloadFile as legacyDownloadFile } from '../../../services/download';
 import { DevicePlatform, NotificationType } from '../../../types';
 import { RootState } from '../..';
 import { uiActions } from '../ui';
@@ -31,14 +27,15 @@ import {
 import {
   createEmptyFile,
   exists,
-  FileManager,
   getDocumentsDir,
   pathToUri,
   showFileViewer,
 } from '../../../services/fileSystem';
 import { items } from '@internxt/lib';
+import { downloadFile } from '../../../network/download';
 import driveService from '../../../services/drive';
 import _ from 'lodash';
+
 
 export interface DriveState {
   isLoading: boolean;
@@ -197,54 +194,32 @@ const downloadFileThunk = createAsyncThunk<
         }),
       );
     };
-    const download = async (params: { fileId: string; to: string }) => {
-      const networkConfig = await getEnvironmentConfig();
 
+    const download = (params: { fileId: string; to: string }) => {
       if (!user) {
         return;
       }
 
       return downloadFile(
-        user?.bucket,
         params.fileId,
+        user?.bucket,
+        user.mnemonic,
         {
-          encryptionKey: user.mnemonic,
-          user: user.bridgeUser,
-          password: user.userId,
+          pass: user.userId,
+          user: user.bridgeUser
         },
-        constants.REACT_NATIVE_BRIDGE_URL,
         {
           toPath: params.to,
           downloadProgressCallback,
           decryptionProgressCallback,
           signal,
         },
-      ).catch(async (err) => {
-        if (err instanceof LegacyDownloadRequiredError) {
-          const fileManager = new FileManager(params.to);
-
-          const [legacyAbortable, promise] = legacyDownloadFile(
-            networkConfig.bucketId,
-            {
-              user: networkConfig.bridgeUser,
-              password: networkConfig.bridgePass,
-              encryptionKey: networkConfig.encryptionKey,
-            },
-            params.fileId,
-            {
-              fileManager,
-              progressCallback: downloadProgressCallback,
-            },
-          );
-
-          driveService.eventEmitter.setLegacyAbortable(legacyAbortable);
-
-          await promise;
-        } else {
-          throw err;
+        (abortable) => {
+          driveService.eventEmitter.setLegacyAbortable(abortable);
         }
-      });
+      );
     };
+
     const trackDownloadStart = () => {
       return analytics.track(AnalyticsEventKey.FileDownloadStart, {
         file_id: id,
@@ -287,28 +262,12 @@ const downloadFileThunk = createAsyncThunk<
         return rejectWithValue(null);
       }
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const response: { promise: Promise<void>; jobId: number } = await download({
-        fileId,
-        to: destinationPath,
-      });
+      await download({ fileId, to: destinationPath });
+
       const uri = pathToUri(destinationPath);
 
-      driveService.eventEmitter.setJobId(response?.jobId || 0);
-
-      response.promise
-        .then(async () => {
-          if (!signal.aborted) {
-            await showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) }).catch((err) => {
-              driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
-            });
-            trackDownloadSuccess();
-          }
-        })
-        .finally(() => {
-          driveService.eventEmitter.emit({ event: DriveEventKey.DownloadFinally });
-        });
+      await showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
+      trackDownloadSuccess();
     } catch (err) {
       if (!signal.aborted) {
         driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
@@ -317,6 +276,7 @@ const downloadFileThunk = createAsyncThunk<
       if (signal.aborted) {
         driveService.eventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
       }
+      driveService.eventEmitter.emit({ event: DriveEventKey.DownloadFinally });
     }
   },
 );
