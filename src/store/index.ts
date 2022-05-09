@@ -9,6 +9,7 @@ import paymentsReducer from './slices/payments';
 import referralsReducer from './slices/referrals';
 import usersReducer from './slices/users';
 import newsletterReducer from './slices/newsletter';
+import { rtkQueryErrorMiddleware } from './middlewares/rtkQueryErrorMiddleware';
 
 export const store = configureStore({
   reducer: {
@@ -22,7 +23,8 @@ export const store = configureStore({
     users: usersReducer,
     newsletter: newsletterReducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ serializableCheck: false }).concat(rtkQueryErrorMiddleware),
 });
 export default store;
 

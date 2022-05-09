@@ -11,7 +11,7 @@ import EmptyRecentsImage from '../../../assets/images/screens/empty-recents.svg'
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
 import { tailwind } from '../../helpers/designSystem';
 import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
-import { DriveItemData, DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
+import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
 
 interface RecentsScreenProps {
   searchText?: string;
@@ -76,7 +76,7 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
                   status={DriveItemStatus.Idle}
                   type={DriveListType.Drive}
                   viewMode={DriveListViewMode.List}
-                  data={item as DriveItemData}
+                  data={item}
                   progress={-1}
                 />
               );

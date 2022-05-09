@@ -92,7 +92,7 @@ function ForgotPasswordScreen(): JSX.Element {
                   style={tailwind('m-5')}
                   onPress={() => navigation.navigate(AppScreenKey.SignIn)}
                 >
-                  <Text style={tailwind('text-blue-60 text-center')}> {strings.screens.login_screen.back}</Text>
+                  <Text style={tailwind('text-blue-60 text-center')}> {strings.screens.SignInScreen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>
             </View>
@@ -131,7 +131,7 @@ function ForgotPasswordScreen(): JSX.Element {
                   style={tailwind('m-5')}
                   onPress={() => navigation.replace(AppScreenKey.SignIn)}
                 >
-                  <Text style={[]}> {strings.screens.login_screen.back}</Text>
+                  <Text style={[]}> {strings.screens.SignInScreen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>
             </View>

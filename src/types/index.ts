@@ -25,7 +25,6 @@ export enum AppScreenKey {
   ForgotPassword = 'forgot-password',
   ChangePassword = 'change-password',
   RecoverPassword = 'recover-password',
-  OutOfSpace = 'out-of-space',
   Storage = 'storage',
   Billing = 'billing',
   Photos = 'photos',

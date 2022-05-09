@@ -59,7 +59,7 @@ export enum SortType {
 
 export type DriveItemDataProps = Pick<DriveItemData, 'id' | 'name' | 'updatedAt' | 'createdAt'> & {
   fileId?: string;
-  parentId?: number;
+  parentId?: number | null;
   size?: number;
   type?: string;
 };
@@ -85,3 +85,46 @@ export enum DriveEventKey {
   CancelDownload = 'cancel-download',
   CancelDownloadEnd = 'cancel-download-end',
 }
+
+export interface DriveServiceModel {
+  debug: boolean;
+}
+
+export const DRIVE_DB_NAME = 'drive.db';
+
+export interface SqliteDriveItemRow {
+  id: number;
+  bucket: string | null;
+  color: string | null;
+  encrypt_version: string | null;
+  icon: string | null;
+  icon_id: number | null;
+  is_folder: boolean;
+  name: string;
+  parent_id: number | null;
+  user_id: number;
+  file_id: string | null;
+  size: number | null;
+  type: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type InsertSqliteDriveItemRowData = Pick<
+  SqliteDriveItemRow,
+  | 'id'
+  | 'bucket'
+  | 'color'
+  | 'encrypt_version'
+  | 'icon'
+  | 'icon_id'
+  | 'is_folder'
+  | 'name'
+  | 'parent_id'
+  | 'user_id'
+  | 'file_id'
+  | 'size'
+  | 'type'
+  | 'created_at'
+  | 'updated_at'
+>;

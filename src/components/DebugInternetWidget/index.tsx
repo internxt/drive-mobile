@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { measureConnectionSpeed, NetworkBandwidthTestResults } from 'react-native-network-bandwith-speed';
+import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
+import errorService from '../../services/error';
 import notificationsService from '../../services/notifications';
 import { NotificationType } from '../../types';
 import AppText from '../AppText';
@@ -39,7 +41,8 @@ const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
         const result: NetworkBandwidthTestResults = await measureConnectionSpeed();
         setSpeed(result.speed);
       } catch (err) {
-        notificationsService.show({ text1: err.message, type: NotificationType.Error });
+        const castedError = errorService.castError(err);
+        notificationsService.show({ text1: castedError.message, type: NotificationType.Error });
       }
     };
 
@@ -48,7 +51,7 @@ const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
 
   return (
     <View style={[tailwind('flex-row justify-center'), props.style]}>
-      <AppText style={tailwind('text-neutral-300')}>{'Internet speed: '}</AppText>
+      <AppText style={tailwind('text-neutral-300')}>{`${strings.screens.DebugScreen.internet.speed}: `}</AppText>
       <AppText style={{ color: getSpeedColor() }}>{speed > 0 ? speed.toFixed(2) : '-'}</AppText>
     </View>
   );

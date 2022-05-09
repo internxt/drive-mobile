@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useState } from 'react';
 import { View, Text, Alert, TextInput, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -12,7 +12,7 @@ import AppVersionWidget from '../../components/AppVersionWidget';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
 import { AppScreenKey } from '../../types';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppDispatch } from '../../store/hooks';
 import { authThunks } from '../../store/slices/auth';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
@@ -23,7 +23,6 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 function SignInScreen(): JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const dispatch = useAppDispatch();
-  const { error: authError } = useAppSelector((state) => state.auth);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,12 +41,13 @@ function SignInScreen(): JSX.Element {
         setShowTwoFactor(true);
         setIsLoading(false);
       } else {
-        await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }))
-          .unwrap()
-          .then((response) => {
-            dispatch(driveActions.setCurrentFolderId(response.user.root_folder_id));
-            navigation.replace(AppScreenKey.TabExplorer);
-          });
+        const response = await dispatch(
+          authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }),
+        ).unwrap();
+
+        dispatch(driveActions.setCurrentFolderId(response.user.root_folder_id));
+        setIsLoading(false);
+        navigation.replace(AppScreenKey.TabExplorer);
       }
     } catch (err) {
       const castedError = errorService.castError(err);
@@ -57,17 +57,11 @@ function SignInScreen(): JSX.Element {
         message: castedError.message,
       });
 
-      Alert.alert('Could not log in', castedError.message);
       setIsLoading(false);
+
+      Alert.alert('Could not log in', castedError.message);
     }
   };
-
-  useEffect(() => {
-    if (authError) {
-      Alert.alert('Login error', authError);
-      setIsLoading(false);
-    }
-  }, [authError]);
 
   return (
     <AppScreen safeAreaTop safeAreaBottom style={tailwind('px-5 h-full justify-between')}>
@@ -87,7 +81,7 @@ function SignInScreen(): JSX.Element {
               value={email}
               onChangeText={(value) => setEmail(value)}
               placeholder={strings.components.inputs.email}
-              placeholderTextColor="#666"
+              placeholderTextColor={getColor('neutral-100')}
               maxLength={64}
               keyboardType="email-address"
               autoCapitalize={'none'}
@@ -106,7 +100,7 @@ function SignInScreen(): JSX.Element {
               onFocus={() => setPasswordFocus(true)}
               onBlur={() => setPasswordFocus(false)}
               placeholder={strings.components.inputs.password}
-              placeholderTextColor="#666"
+              placeholderTextColor={getColor('neutral-100')}
               secureTextEntry={!showPasswordText}
               autoCompleteType="password"
               autoCapitalize="none"
@@ -140,7 +134,7 @@ function SignInScreen(): JSX.Element {
               value={twoFactorCode}
               onChangeText={(value) => setTwoFactorCode(value)}
               placeholder="Two-factor code"
-              placeholderTextColor="#666"
+              placeholderTextColor={getColor('neutral-100')}
               maxLength={64}
               keyboardType="numeric"
               textContentType="none"
@@ -159,13 +153,13 @@ function SignInScreen(): JSX.Element {
 
           <TouchableWithoutFeedback onPress={() => navigation.navigate(AppScreenKey.ForgotPassword)}>
             <View style={tailwind('w-64 text-sm py-2')}>
-              <Text style={tailwind('text-center text-blue-60')}>{strings.screens.login_screen.forgot}</Text>
+              <Text style={tailwind('text-center text-blue-60')}>{strings.screens.SignInScreen.forgot}</Text>
             </View>
           </TouchableWithoutFeedback>
 
           <Text style={tailwind('text-center mt-2')} onPress={() => navigation.navigate(AppScreenKey.SignUp)}>
-            <Text style={tailwind('text-sm')}>{strings.screens.login_screen.no_register} </Text>
-            <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.register}</Text>
+            <Text style={tailwind('text-sm')}>{strings.screens.SignInScreen.no_register} </Text>
+            <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.SignInScreen.register}</Text>
           </Text>
         </View>
       </View>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import prettysize from 'prettysize';
 import { Text, View, Platform, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import Modal from 'react-native-modalbox';
@@ -42,9 +42,8 @@ function RunOutOfStorageModal(): JSX.Element {
 
   return (
     <Modal
-      position={'bottom'}
+      position="bottom"
       style={tailwind('bg-transparent')}
-      coverScreen={Platform.OS === 'android'}
       isOpen={showRunOutOfSpaceModal}
       onClosed={() => {
         dispatch(uiActions.setShowDeleteModal(false));
@@ -71,7 +70,7 @@ function RunOutOfStorageModal(): JSX.Element {
 
           <View style={tailwind('bg-white justify-center px-5 pt-3 pb-8')}>
             <Text style={[tailwind('text-center text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
-              {strings.modals.out_of_space_modal.title}
+              {strings.modals.OutOfSpaceModal.title}
             </Text>
 
             <View style={tailwind('items-center my-6')}>
@@ -87,7 +86,7 @@ function RunOutOfStorageModal(): JSX.Element {
 
             <View style={tailwind('flex-grow mb-6')}>
               <Text style={tailwind('text-sm text-center text-neutral-100')}>
-                {strings.modals.run_out_of_storage.advice}
+                {strings.modals.OutOfSpaceModal.advice}
               </Text>
             </View>
 

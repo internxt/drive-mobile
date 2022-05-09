@@ -221,9 +221,11 @@ function UploadModal(): JSX.Element {
 
     // TODO: load files in current folder
     const filesAtSameLevel =
-      folderContent?.files.map((file) => {
-        return { name: removeExtension(file.name), type: file.type };
-      }) || [];
+      folderContent
+        ?.filter((item) => item.fileId)
+        .map((file) => {
+          return { name: removeExtension(file.name), type: file.type };
+        }) || [];
 
     for (const fileToUpload of filesToUpload) {
       let file: UploadingFile;

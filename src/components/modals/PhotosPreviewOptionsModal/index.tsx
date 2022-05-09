@@ -33,7 +33,7 @@ function PhotosPreviewOptionsModal({
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
-        <Image style={tailwind('bg-black w-10 h-10')} source={{ uri: preview }} />
+        <Image style={tailwind('bg-neutral-30 w-10 h-10')} source={{ uri: preview }} />
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>

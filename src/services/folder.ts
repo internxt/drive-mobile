@@ -5,13 +5,8 @@ import { DriveFolderMetadataPayload } from '../types/drive';
 import { constants } from './app';
 import fileService from './file';
 
-interface CreateFolderParam {
-  folderName: string;
-  parentId: number;
-}
-
 class FolderService {
-  public async createFolder(params: CreateFolderParam): Promise<any> {
+  public async createFolder(parentFolderId: number, folderName = 'Untitled folder'): Promise<void> {
     const headers = await getHeaders();
     const headersMap: Record<string, string> = {};
 
@@ -19,16 +14,18 @@ class FolderService {
       headersMap[key] = value;
     });
 
-    return axios.post(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder`,
-      {
-        parentFolderId: params.parentId,
-        folderName: params.folderName,
-      },
-      {
-        headers: headersMap,
-      },
-    );
+    return axios
+      .post(
+        `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder`,
+        {
+          parentFolderId,
+          folderName,
+        },
+        {
+          headers: headersMap,
+        },
+      )
+      .then(() => undefined);
   }
 
   public async updateMetaData(

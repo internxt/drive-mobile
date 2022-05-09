@@ -151,12 +151,12 @@ export function stat(uri: string): Promise<any> {
   return RNFetchBlob.fs.stat(uri);
 }
 
-export function showFileViewer(uri: string, options?: RNFileViewerOptions): Promise<void> {
-  return FileSystem.getInfoAsync(uri).then((fileInfo) => {
-    if (!fileInfo.exists) {
-      throw new Error('File not found');
-    }
+export async function showFileViewer(uri: string, options?: RNFileViewerOptions): Promise<void> {
+  const fileInfo = await FileSystem.getInfoAsync(uri);
 
-    return FileViewer.open(fileInfo.uri, options);
-  });
+  if (!fileInfo.exists) {
+    throw new Error('File not found');
+  }
+
+  return FileViewer.open(uri, options);
 }

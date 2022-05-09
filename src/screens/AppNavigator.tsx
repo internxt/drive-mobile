@@ -9,7 +9,6 @@ import { AppScreenKey } from '../types';
 import SignInScreen from './SignInScreen';
 import SignUpScreen from './SignUpScreen';
 import HomeScreen from './HomeScreen';
-import OutOfSpaceScreen from './OutOfSpaceScreen';
 import StorageScreen from './StorageScreen';
 import AuthenticatedNavigator from './AuthenticatedNavigator';
 import BillingScreen from './BillingScreen';
@@ -40,7 +39,6 @@ const routeConfig: RouteConfig = {
   [AppScreenKey.Home]: { screen: HomeScreen },
   [AppScreenKey.TabExplorer]: { screen: AuthenticatedNavigator },
   [AppScreenKey.ForgotPassword]: { screen: ForgotPasswordScreen },
-  [AppScreenKey.OutOfSpace]: { screen: OutOfSpaceScreen },
   [AppScreenKey.Storage]: { screen: StorageScreen },
   [AppScreenKey.Billing]: { screen: BillingScreen },
   [AppScreenKey.ChangePassword]: { screen: ChangePasswordScreen },

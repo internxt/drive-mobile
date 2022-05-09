@@ -283,7 +283,7 @@ function SignUpScreen(): JSX.Element {
         </TouchableHighlight>
 
         <AppText style={tailwind('text-center mb-10')} onPress={onGoToSignInButtonPressed}>
-          <AppText style={tailwind('text-sm text-blue-60')}>{strings.screens.login_screen.title}</AppText>
+          <AppText style={tailwind('text-sm text-blue-60')}>{strings.screens.SignInScreen.title}</AppText>
         </AppText>
       </ScrollView>
     </AppScreen>

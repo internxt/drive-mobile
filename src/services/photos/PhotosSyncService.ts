@@ -63,6 +63,14 @@ export default class PhotosSyncService {
     this.fileSystemService = fileSystemService;
   }
 
+  /**
+   * @description Runs the sync
+   * 1. Initializes the photos device
+   * 2. Starts calculating sync tasks count
+   * 3. Downloads remote photos: photo.statusChangedAt > remoteSyncAt
+   * 4. Uploads photos: photo.timestamp > device.newestDate
+   * 5. Uploads photos: photo.timestamp < device.oldestDate
+   */
   public async run(options: {
     id?: string;
     signal?: AbortSignal;
@@ -76,18 +84,14 @@ export default class PhotosSyncService {
     }) => void;
     onStorageLimitReached: () => void;
   }): Promise<void> {
+    let completedTasks = 0;
+    const onTaskCompletedFactory =
+      (taskType: PhotosSyncTaskType) => (photo: photos.Photo, info: PhotosTaskCompletedInfo) => {
+        completedTasks++;
+        options.onTaskCompleted?.({ taskType, photo, completedTasks, info });
+      };
+
     try {
-      this.currentSyncId = options.id || new Date().getTime().toString();
-
-      let completedTasks = 0;
-      const onTaskCompletedFactory =
-        (taskType: PhotosSyncTaskType) => (photo: photos.Photo, info: PhotosTaskCompletedInfo) => {
-          completedTasks++;
-          options.onTaskCompleted?.({ taskType, photo, completedTasks, info });
-        };
-
-      this.logService.info(`[SYNC-MAIN] ${this.currentSyncId}: STARTED`);
-
       if (!this.model.user) {
         throw new Error('photos user not initialized');
       }
@@ -96,11 +100,19 @@ export default class PhotosSyncService {
         throw new Error('photos device not initialized');
       }
 
+      this.currentSyncId = options.id || new Date().getTime().toString();
+
+      this.logService.info(`[SYNC-MAIN] ${this.currentSyncId}: STARTED`);
+
+      // 1.
       await this.deviceService.initialize();
+
+      // 2.
       this.calculateSyncInfo(options.signal);
 
       this.eventEmitter.emit({ id: options.id, event: PhotosEventKey.SyncStart });
 
+      // 3.
       await this.downloadRemotePhotos({
         signal: options.signal,
         onPhotoDownloaded: onTaskCompletedFactory(PhotosSyncTaskType.Download),
@@ -112,6 +124,7 @@ export default class PhotosSyncService {
       const oldestDate = await this.localDatabaseService.getOldestDate();
       const aDayAfterOldestDate = moment(oldestDate).add(1, 'day').toDate();
 
+      // 4.
       await this.uploadLocalPhotos(this.model.user.id, this.model.device.id, {
         ...options,
         from: aDayBeforeNewestDate,
@@ -119,6 +132,7 @@ export default class PhotosSyncService {
       });
       this.logService.info(`[SYNC] ${this.currentSyncId}: NEWER LOCAL PHOTOS UPLOADED`);
 
+      // 5.
       if (!oldestDate) {
         this.logService.info(`[SYNC] ${this.currentSyncId}: SKIPPED OLDER LOCAL PHOTOS UPLOAD`);
       } else {
@@ -164,10 +178,14 @@ export default class PhotosSyncService {
     const onOlderUploadTasksCalculated = (n: number) => {
       this.eventEmitter.emit({ id: this.currentSyncId, event: PhotosEventKey.OlderUploadTasksPageCalculated }, n);
     };
-    const { count: downloadTasks } = await this.photosSdk.photos.getPhotos({
-      statusChangedAt: remoteSyncAt,
-      status: PhotoStatus.Exists,
-    });
+    const { count: downloadTasks } = await this.photosSdk.photos.getPhotos(
+      {
+        statusChangedAt: remoteSyncAt,
+        status: PhotoStatus.Exists,
+      },
+      0,
+      0,
+    );
     this.eventEmitter.emit({ id: this.currentSyncId, event: PhotosEventKey.DownloadTasksCalculated }, downloadTasks);
     const newerUploadTasks = await this.cameraRollService.countByPages({
       from: aDayBeforeNewestDate,

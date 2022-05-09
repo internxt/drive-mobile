@@ -10,13 +10,13 @@ import { photosActions, photosThunks } from '../photos';
 import { appThunks } from '../app';
 import { driveActions } from '../drive';
 import { uiActions } from '../ui';
+import { Alert } from 'react-native';
 
 export interface AuthState {
   loggedIn: boolean;
   token: string;
   photosToken: string;
   user?: User;
-  error?: string;
   userStorage: {
     usage: number;
     limit: number;
@@ -29,7 +29,6 @@ const initialState: AuthState = {
   token: '',
   photosToken: '',
   user: undefined,
-  error: '',
   userStorage: { usage: 0, limit: 0, percentage: 0 },
 };
 
@@ -116,14 +115,7 @@ export const authSlice = createSlice({
         state.photosToken = photosToken;
         state.user = user;
       })
-      .addCase(signInThunk.rejected, (state, action) => {
-        analytics.track(AnalyticsEventKey.UserSignInAttempted, {
-          status: 'error',
-          message: action.error.message || '',
-        });
-
-        state.error = action.error.message;
-      });
+      .addCase(signInThunk.rejected, () => undefined);
 
     builder
       .addCase(signOutThunk.pending, () => undefined)

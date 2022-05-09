@@ -34,7 +34,6 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   slug: 'drive-mobile',
   version: packageJson.version,
   orientation: 'portrait',
-  icon: './assets/icon.png',
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'cover',
@@ -46,6 +45,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   },
   assetBundlePatterns: ['**/*'],
   ios: {
+    icon: './assets/icon-ios.png',
     supportsTablet: true,
     bundleIdentifier: 'com.internxt.snacks',
     usesIcloudStorage: true,
@@ -62,8 +62,9 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   android: {
     googleServicesFile: './google-services.json',
     versionCode: 53,
+    icon: './assets/icon-android.png',
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
+      foregroundImage: './assets/icon-android.png',
       backgroundColor: '#091e42',
     },
     package: 'com.internxt.cloud',

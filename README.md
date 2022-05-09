@@ -15,16 +15,26 @@ Follow these steps before running the project.
 - Replace `TOKEN` with your own [Github Personal Access Token](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token) with `read:packages` permission **ONLY**
 - Use `yarn` to install project dependencies.
 
-### 2. Firebase
+### 2. Firebase (Optional)
 
 Copy **/GoogleService-Info.plist** and **/google-services.json** from your Firebase application.
 
 This is required to eject the app from expo properly using the **expo eject** command of expo-cli.
 
+### 3. Environment
+
+In order to configure the environment, you have to create **/env/.env.development.json** and **/env/.env.production.json** files.
+
+Take a look to **/env/.env.example.json** file to know the required environment variables.
+
+</br>
+<hr>
+</br>
+
 ## Android
 
 We can test the android application in any operating system, although for each one we will have to follow some different steps
-</br></br>
+</br>
 
 ### Android installation
 
@@ -69,7 +79,7 @@ Try opening Android Studio with the command below to ensure Android Studio is ab
 open -a /Applications/Android\ Studio.app
 ```
 
-</br></br>
+</br>
 
 ### Run
 
@@ -77,14 +87,6 @@ Configure a virtual device in Android Studio or connect by USB a real device wit
 
 ```bash
 yarn android
-```
-
-</br></br>
-
-### Test Deep Link on Android
-
-```bash
-adb shell am start -a android.intent.action.VIEW -d "inxt:https://drive.internxt.com"
 ```
 
 </br>
@@ -116,13 +118,7 @@ sudo arch -x86_64 gem install ffi
 arch -x86_64 pod install
 ```
 
-</br></br>
-
-### Environment
-
-To config the environment variables, you have to create **.env.development.json** and **.env.production.json** files inside **/env** folder.
-
-</br></br>
+</br>
 
 ### Run
 

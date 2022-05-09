@@ -32,6 +32,9 @@ const strings = new LocalizedStrings({
     screens: {
       DebugScreen: {
         title: 'Debug',
+        internet: {
+          speed: 'Internet speed',
+        },
         upload: {
           title: 'File upload',
           advice: 'Test the performance of file upload.',
@@ -56,21 +59,7 @@ const strings = new LocalizedStrings({
           },
         },
       },
-      home: {
-        title: 'Home',
-      },
-      change_password: {
-        confirm: 'Delete account',
-        title: 'Change password',
-        warning:
-          'Remember that if you change your password, you will be signed out in all your devices. You will need these credentials for logining in again.',
-        iDontRememberMyPassword: "I don't remember my password",
-      },
-      recover_password: {
-        title: 'Recover password',
-        warning: 'You can use this device to set a new password and recover your account',
-      },
-      login_screen: {
+      SignInScreen: {
         title: 'Login in to Internxt',
         forgot: 'Forgot your password?',
         no_register: "Don't have account?",
@@ -94,6 +83,20 @@ const strings = new LocalizedStrings({
         suggestion_2: 'Keep an offline backup of your password.',
         create_account_title: 'Create an Internxt account',
         acceptTermsAndConditions: 'Accept terms, conditions and privacy policy',
+      },
+      home: {
+        title: 'Home',
+      },
+      change_password: {
+        confirm: 'Delete account',
+        title: 'Change password',
+        warning:
+          'Remember that if you change your password, you will be signed out in all your devices. You will need these credentials for logining in again.',
+        iDontRememberMyPassword: "I don't remember my password",
+      },
+      recover_password: {
+        title: 'Recover password',
+        warning: 'You can use this device to set a new password and recover your account',
       },
       forgot_password: {
         title: 'Internxt security',
@@ -220,7 +223,8 @@ const strings = new LocalizedStrings({
         nPhotosSelected: '{0} selected',
         empty: 'No photos to show',
         loading: 'Loading photos...',
-        syncing: 'Syncing {0} of {1}',
+        syncing: 'Syncing...',
+        syncingTasks: 'Syncing {0} of {1}',
         pausing: 'Pausing sync...',
         paused: 'Sync paused',
         groupBy: {
@@ -341,12 +345,13 @@ const strings = new LocalizedStrings({
         warning: 'This action cannot be undone',
         delete: 'Delete',
       },
-      out_of_space_modal: {
+      OutOfSpaceModal: {
         title: 'Ran out of storage',
         subtitle:
           'You have currently used 3GB of storage. To start uploading more files, please upgrade your storage plan.',
+        advice: 'Get a higher plan or remove files you will no longer use in order to upload or sync your files again.',
       },
-      coming_soon_modal: {
+      ComingSoonModal: {
         title: 'Coming soon!',
         subtitle: 'Our fantastic devs are working on it, so stay tuned!',
         got_it: 'Got it!',
@@ -374,9 +379,6 @@ const strings = new LocalizedStrings({
       },
       link_copied_modal: {
         message: 'Link copied to clipboard',
-      },
-      run_out_of_storage: {
-        advice: 'Get a higher plan or remove files you will no longer use in order to upload or sync your files again.',
       },
       InviteFriendsModal: {
         title: 'Invite a friend',
@@ -449,6 +451,9 @@ const strings = new LocalizedStrings({
     screens: {
       DebugScreen: {
         title: 'Depuración',
+        internet: {
+          speed: 'Velocidad de Internet',
+        },
         upload: {
           title: 'Subida de archivos',
           advice: 'Prueba el rendimiento de la subida de archivos.',
@@ -473,21 +478,7 @@ const strings = new LocalizedStrings({
           },
         },
       },
-      home: {
-        title: 'Inicio',
-      },
-      change_password: {
-        title: 'Cambiar contraseña',
-        confirm: 'Borrar cuenta',
-        warning:
-          'Recuerda que si cambias tu contraseña, se cerrará sesión en todos tus dispositivos. Necesitarás la nueva contraseña para acceder otra vez.',
-        iDontRememberMyPassword: 'No recuerdo mi contraseña',
-      },
-      recover_password: {
-        title: 'Recuperar contraseña',
-        warning: 'Usa este dispositivo para cambiar tu contraseña y recuperar tu cuenta.',
-      },
-      login_screen: {
+      SignInScreen: {
         title: 'Inicia sesión en Internxt',
         forgot: '¿Has olvidado la contraseña?',
         no_register: '¿No tienes cuenta?',
@@ -511,6 +502,20 @@ const strings = new LocalizedStrings({
         suggestion_2: 'Guarda una copia local de todos tus archivos.',
         create_account_title: 'Crear cuenta',
         acceptTermsAndConditions: 'Aceptar términos, condiciones y política de privacidad',
+      },
+      home: {
+        title: 'Inicio',
+      },
+      change_password: {
+        title: 'Cambiar contraseña',
+        confirm: 'Borrar cuenta',
+        warning:
+          'Recuerda que si cambias tu contraseña, se cerrará sesión en todos tus dispositivos. Necesitarás la nueva contraseña para acceder otra vez.',
+        iDontRememberMyPassword: 'No recuerdo mi contraseña',
+      },
+      recover_password: {
+        title: 'Recuperar contraseña',
+        warning: 'Usa este dispositivo para cambiar tu contraseña y recuperar tu cuenta.',
       },
       forgot_password: {
         title: 'Internxt security',
@@ -638,7 +643,8 @@ const strings = new LocalizedStrings({
         nPhotosSelected: '{0} seleccionadas',
         empty: 'No hay fotos para mostrar',
         loading: 'Cargando fotos...',
-        syncing: 'Sincronizando {0} de {1}',
+        syncing: 'Sincronizando...',
+        syncingTasks: 'Sincronizando {0} de {1}',
         pausing: 'Pausando sincronización...',
         paused: 'Sincronización pausada',
         groupBy: {
@@ -759,12 +765,14 @@ const strings = new LocalizedStrings({
         warning: 'Esta acción no puede deshacerse',
         delete: 'Borrar',
       },
-      out_of_space_modal: {
+      OutOfSpaceModal: {
         title: 'No tienes más espacio',
         subtitle:
           'Actualmente has usado 10GB de almaceniamiento. Para seguir subiendo más archivos, por favor, mejora tu plan de almacenamiento.',
+        advice:
+          'Mejora tu plan o borra los archivos que no vayas a usar para subir o sincronizar tus archivos de nuevo.',
       },
-      coming_soon_modal: {
+      ComingSoonModal: {
         title: '¡Próximamente!',
         subtitle: 'Nuestros fantásticos programadores están trabajando en ello, así que mantente al tanto!',
         got_it: 'Entendido!',
@@ -793,10 +801,6 @@ const strings = new LocalizedStrings({
       },
       link_copied_modal: {
         message: 'Enlace copiado al portapapeles',
-      },
-      run_out_of_storage: {
-        advice:
-          'Mejora tu plan o borra los archivos que no vayas a usar para subir o sincronizar tus archivos de nuevo.',
       },
       InviteFriendsModal: {
         title: 'Invite a un amigo',

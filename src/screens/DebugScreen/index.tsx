@@ -7,6 +7,9 @@ import ScreenTitle from '../../components/AppScreenTitle';
 import AppScreen from '../../components/AppScreen';
 import DebugNotificationsWidget from '../../components/DebugNotificationsWidget';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import DebugInternetWidget from '../../components/DebugInternetWidget';
+import DebugUploadWidget from '../../components/DebugUploadWidget';
+import DebugDownloadWidget from '../../components/DebugDownloadWidget';
 
 function DebugScreen(): JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -20,6 +23,10 @@ function DebugScreen(): JSX.Element {
         centerText
         onBackButtonPressed={onBackButtonPressed}
       />
+
+      <DebugInternetWidget />
+      <DebugUploadWidget style={tailwind('mb-5')} />
+      <DebugDownloadWidget style={tailwind('mb-5')} />
       <DebugNotificationsWidget />
     </AppScreen>
   );

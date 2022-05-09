@@ -4,6 +4,7 @@ import axios from 'axios';
 import { DriveFileMetadataPayload, DriveItemData, SortDirection, SortType } from '../types/drive';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
+import { FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
 
 export function getNameFromUri(uri: string): string {
   const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
@@ -62,7 +63,7 @@ export function getNextNewName(filename: string, i: number): string {
   return `${filename} (${i})`;
 }
 
-async function getFolderContent(folderId: number): Promise<any> {
+async function getFolderContent(folderId: number): Promise<FetchFolderContentResponse> {
   const headers = await getHeaders();
   const headersMap: Record<string, string> = {};
 
@@ -70,28 +71,14 @@ async function getFolderContent(folderId: number): Promise<any> {
     headersMap[key] = value;
   });
 
-  const response = await axios.get(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/v2/folder/${folderId}`, {
-    headers: headersMap,
-  });
+  const response = await axios.get<FetchFolderContentResponse>(
+    `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/v2/folder/${folderId}`,
+    {
+      headers: headersMap,
+    },
+  );
 
   return response.data;
-}
-
-async function createFolder(parentFolderId: number, folderName = 'Untitled folder'): Promise<void> {
-  const headers = await getHeaders();
-  const body = JSON.stringify({
-    parentFolderId,
-    folderName,
-  });
-  const response = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder`, {
-    method: 'POST',
-    headers,
-    body,
-  }).then((response) => response.json());
-
-  if (response.error) {
-    throw new Error(response.error);
-  }
 }
 
 async function updateMetaData(
@@ -206,13 +193,13 @@ function getSortFunction({
               const aTime = new Date(a.updatedAt).getTime();
               const bTime = new Date(b.updatedAt).getTime();
 
-              return aTime < bTime ? -1 : aTime > bTime ? 1 : 0;
+              return aTime < bTime ? 1 : -1;
             }
           : (a: DriveItemData, b: DriveItemData) => {
               const aTime = new Date(a.updatedAt).getTime();
               const bTime = new Date(b.updatedAt).getTime();
 
-              return aTime < bTime ? 1 : aTime > bTime ? -1 : 0;
+              return aTime > bTime ? 1 : -1;
             };
       break;
   }
@@ -242,7 +229,6 @@ async function renameFileInNetwork(fileId: string, bucketId: string, relativePat
 
 const fileService = {
   getFolderContent,
-  createFolder,
   getSortFunction,
   moveFile,
   deleteItems,

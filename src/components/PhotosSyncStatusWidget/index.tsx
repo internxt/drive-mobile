@@ -53,7 +53,13 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
       <View style={tailwind('flex-row items-center')}>
         <LoadingSpinner style={tailwind('mr-2')} size={14} />
         <Text style={tailwind('text-sm text-neutral-100')}>
-          {strings.formatString(strings.screens.gallery.syncing, syncStatus.completedTasks, syncStatus.totalTasks)}
+          {syncStatus.totalTasks > 0
+            ? strings.formatString(
+                strings.screens.gallery.syncingTasks,
+                syncStatus.completedTasks,
+                syncStatus.totalTasks,
+              )
+            : strings.screens.gallery.syncing}
         </Text>
       </View>
     ),
