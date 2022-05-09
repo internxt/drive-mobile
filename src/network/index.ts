@@ -1,7 +1,9 @@
-import { decryptFile } from 'rn-crypto';
-import { randomBytes } from 'react-native-crypto';
+import { decryptFile, encryptFile } from 'rn-crypto';
+import { randomBytes, createCipheriv } from 'react-native-crypto';
 import { Platform } from 'react-native';
 import * as RNFS from 'react-native-fs';
+import RNFetchBlob from 'rn-fetch-blob';
+import uuid from 'react-native-uuid';
 import { validateMnemonic } from 'react-native-bip39';
 import { Network, ALGORITHMS } from '@internxt/sdk/dist/network';
 import { Crypto } from '@internxt/sdk/dist/network/types';
@@ -15,6 +17,8 @@ import appService from '../services/app';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
 import { decryptFileFromFs } from './crypto';
 import { getDocumentsDir } from '../services/fileSystem';
+import { pathToUri } from '../services/fileSystem';
+import { eachLimit } from 'async';
 
 export interface DownloadFileParams {
   toPath: string;
@@ -24,7 +28,7 @@ export interface DownloadFileParams {
 }
 
 type UploadOptions = {
-  progress: (progress: number) => void
+  progress?: (progress: number) => void
 }
 
 export function getNetwork(apiUrl: string, creds: NetworkCredentials): NetworkFacade {
@@ -63,6 +67,58 @@ export class NetworkFacade {
     };
   }
 
+  async upload(
+    bucketId: string,
+    mnemonic: string,
+    filePath: string,
+    options: UploadOptions
+  ): Promise<[Promise<string>, Abortable]> {
+    let fileHash: string;
+
+    const plainFilePath = filePath;
+    const encryptedFilePath = getDocumentsDir() + '/' + uuid.v4() + '.enc';
+
+    const encryptFileFunction = Platform.OS === 'android' ?
+      androidEncryptFileFromFs :
+      iosEncryptFileFromFs;
+
+    const fileSize = parseInt((await RNFS.stat(plainFilePath)).size);
+
+
+    const uploadFilePromise = uploadFile(
+      this.network,
+      this.cryptoLib,
+      bucketId,
+      mnemonic,
+      fileSize,
+      async (algorithm, key, iv) => {
+        await encryptFileFunction(
+          plainFilePath,
+          encryptedFilePath,
+          (key as Buffer),
+          (iv as Buffer)
+        );
+
+        fileHash = ripemd160(Buffer.from(await RNFS.hash(encryptedFilePath, 'sha256'), 'hex')).toString('hex');
+      },
+      async (url: string) => {
+        await RNFetchBlob.fetch(
+          'PUT',
+          url,
+          {
+            'Content-Type': 'application/octet-stream'
+          },
+          RNFetchBlob.wrap(encryptedFilePath)
+        ).uploadProgress({ interval: 500 }, (bytesSent, totalBytes) => {
+          options.progress && options.progress(bytesSent / totalBytes);
+        });
+
+        return fileHash;
+      }
+    );
+
+    return [uploadFilePromise, () => null];
+  }
 
   download(
     fileId: string,
@@ -182,4 +238,68 @@ const iosDecryptFileFromFs: DecryptFileFromFsFunction = (
     iv,
     notifyProgress && { progress: notifyProgress }
   ).then();
+};
+
+type EncryptFileFromFsFunction = (
+  plainFilePath: string,
+  encryptedFilePath: string,
+  key: Buffer,
+  iv: Buffer,
+  progress?: (progress: number) => void
+) => Promise<void>;
+
+const androidEncryptFileFromFs: EncryptFileFromFsFunction = (
+  plainFilePath: string,
+  encryptedFilePath: string,
+  key: Buffer,
+  iv: Buffer
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    encryptFile(
+      plainFilePath,
+      encryptedFilePath,
+      key.toString('hex'),
+      iv.toString('hex'),
+      (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      }
+    );
+  });
+};
+
+const iosEncryptFileFromFs: EncryptFileFromFsFunction = async (
+  plainFilePath: string,
+  encryptedFilePath: string,
+  key: Buffer,
+  iv: Buffer
+): Promise<void> => {
+  const twoMb = 2 * 1024 * 1024;
+  const chunksOf = twoMb;
+  const fileSize = parseInt((await RNFS.stat(plainFilePath)).size);
+  const chunks = Math.ceil(fileSize / chunksOf);
+  const writer = await RNFetchBlob.fs.writeStream(encryptedFilePath, 'base64');
+  const cipher = createCipheriv('aes-256-ctr', key, iv);
+  let start = 0;
+
+  return eachLimit(new Array(chunks), 1, (_, cb) => {
+    RNFS.read(pathToUri(plainFilePath), chunksOf, start, 'base64')
+      .then((res) => {
+        cipher.write(Buffer.from(res, 'base64'));
+        return writer.write(cipher.read().toString('base64'));
+      })
+      .then(() => {
+        start += twoMb;
+        cb(null);
+      })
+      .catch((err) => {
+        cb(err);
+      });
+  })
+    .then(() => {
+      return writer.close();
+    });
 };

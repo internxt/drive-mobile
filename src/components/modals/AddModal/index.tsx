@@ -23,8 +23,7 @@ import { asyncStorage } from '../../../services/asyncStorage';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
-import { constants } from '../../../services/app';
-import { uploadFile } from '../../../services/network';
+import { uploadFile } from '../../../network/upload';
 import notificationsService from '../../../services/notifications';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import BottomModal from '../BottomModal';
@@ -92,15 +91,14 @@ async function uploadAndCreateFileEntry(
   const fileId = await uploadFile(
     filePath,
     bucket,
-    constants.REACT_NATIVE_BRIDGE_URL,
+    mnemonic,
     {
-      encryptionKey: mnemonic,
       user: bridgeUser,
-      password: userId,
+      pass: userId
     },
     {
-      progress: progressCallback,
-    },
+      notifyProgress: progressCallback
+    }
   );
 
   const folderId = currentFolderId;
