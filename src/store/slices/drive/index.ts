@@ -276,6 +276,7 @@ const downloadFileThunk = createAsyncThunk<
       if (signal.aborted) {
         driveService.eventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
       }
+      driveService.eventEmitter.emit({ event: DriveEventKey.DownloadFinally });
     }
   },
 );
