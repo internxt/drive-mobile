@@ -1,4 +1,3 @@
-import { Drive } from '@internxt/sdk';
 import { DriveServiceModel } from '../../types/drive';
 import { constants } from '../app';
 import DriveEventEmitter from './DriveEventEmitter';

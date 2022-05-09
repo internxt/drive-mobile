@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
-import RNFetchBlob from 'rn-fetch-blob';
+import RNFetchBlob, { RNFetchBlobStat } from 'rn-fetch-blob';
 import FileViewer, { RNFileViewerOptions } from 'react-native-file-viewer';
 import * as FileSystem from 'expo-file-system';
 
@@ -24,12 +24,6 @@ export class FileManager {
 
   constructor(uri: string) {
     this.fileUri = uri;
-  }
-
-  getStat(): Promise<RNFS.StatResult> {
-    return stat(this.fileUri).then((stat) => {
-      return stat;
-    });
   }
 
   exists(): Promise<boolean> {
@@ -147,7 +141,7 @@ export function writeFile(): void {
   throw new Error('Not implemented yet');
 }
 
-export function stat(uri: string): Promise<any> {
+export function stat(uri: string): Promise<RNFetchBlobStat> {
   return RNFetchBlob.fs.stat(uri);
 }
 

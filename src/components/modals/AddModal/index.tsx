@@ -88,6 +88,7 @@ async function uploadAndCreateFileEntry(
 ) {
   const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
   const fileStat = await stat(filePath);
+  console.log('fileState: ', fileStat);
   const fileSize = fileStat.size;
   const fileId = await uploadFile(
     filePath,
@@ -110,7 +111,7 @@ async function uploadAndCreateFileEntry(
     file_id: fileId,
     type: fileExtension,
     bucket,
-    size: fileSize as number,
+    size: fileSize as unknown as number,
     folder_id: folderId.toString(),
     name,
     encrypt_version: '03-aes',

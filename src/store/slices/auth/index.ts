@@ -10,7 +10,6 @@ import { photosActions, photosThunks } from '../photos';
 import { appThunks } from '../app';
 import { driveActions } from '../drive';
 import { uiActions } from '../ui';
-import { Alert } from 'react-native';
 
 export interface AuthState {
   loggedIn: boolean;

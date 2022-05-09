@@ -161,24 +161,20 @@ function DriveScreen(): JSX.Element {
             };
 
             dispatch(authActions.setUserStorage(currentPlan));
-            try {
-              if (res) {
-                analytics
-                  .identify(userData.uuid, {
-                    userId: userData.uuid,
-                    email: userData.email,
-                    platform: DevicePlatform.Mobile,
-                    // eslint-disable-next-line camelcase
-                    storage_used: currentPlan.usage,
-                    // eslint-disable-next-line camelcase
-                    storage_limit: currentPlan.limit,
-                    // eslint-disable-next-line camelcase
-                    storage_usage: currentPlan.percentage,
-                  })
-                  .catch(() => undefined);
-              }
-            } catch (err) {
-              console.log('Error in analytics.identify: ', err);
+            if (res) {
+              analytics
+                .identify(userData.uuid, {
+                  userId: userData.uuid,
+                  email: userData.email,
+                  platform: DevicePlatform.Mobile,
+                  // eslint-disable-next-line camelcase
+                  storage_used: currentPlan.usage,
+                  // eslint-disable-next-line camelcase
+                  storage_limit: currentPlan.limit,
+                  // eslint-disable-next-line camelcase
+                  storage_usage: currentPlan.percentage,
+                })
+                .catch(() => undefined);
             }
           })
           .catch(() => undefined);
