@@ -123,7 +123,7 @@ export interface InxtApiI {
   sendShardToNode(shard: Shard, shardContent: Buffer): INXTRequest;
   getShardFromNode(shard: Shard): INXTRequest;
   createFileToken(bucketId: string, fileId: string, operation: 'PUSH' | 'PULL'): INXTRequest;
-  requestPut(shard: Shard): INXTRequest;
+  requestPut(shard: Omit<Shard, 'url'>): INXTRequest;
   requestGet(shard: Shard): INXTRequest;
   putShard(url: string, content: Buffer): INXTRequest;
 }
