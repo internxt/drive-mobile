@@ -1,3 +1,8 @@
 declare module 'react-native-bip39' {
-  export { mnemonicToSeed };
+  const validateMnemonic: (mnemonic: string, wordlist?: string) => boolean;
+
+  export {
+    mnemonicToSeed,
+    validateMnemonic
+  };
 }

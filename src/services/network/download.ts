@@ -56,6 +56,7 @@ interface Shard {
     lastSeen: Date;
   };
   operation: string;
+  url: string;
 }
 
 function getFileInfo(
@@ -147,14 +148,6 @@ async function decryptFile(
     });
 }
 
-function requestDownloadUrlToFarmer(farmerUrl: string): Promise<string> {
-  const targetUrl = 'https://proxy01.api.internxt.com/' + farmerUrl;
-
-  return axios.get<{ result: string }>(targetUrl).then((res) => {
-    return res.data.result;
-  });
-}
-
 export async function downloadFile(
   bucketId: string,
   fileId: FileId,
@@ -217,8 +210,6 @@ export async function downloadFile(
   }
 
   const [mirror] = mirrors;
-  const farmerUrl = `http://${mirror.farmer.address}:${mirror.farmer.port}/download/link/${mirror.hash}`;
-  const downloadUrl = await requestDownloadUrlToFarmer(farmerUrl);
   const encryptedFileURI = getDocumentsDir() + '/' + mirror.hash + '.enc';
 
   if (options.signal?.aborted) {
@@ -227,7 +218,7 @@ export async function downloadFile(
 
   // 3. Download file
   const downloadResult = RNFS.downloadFile({
-    fromUrl: downloadUrl,
+    fromUrl: mirror.url,
     toFile: encryptedFileURI,
     discretionary: true,
     cacheable: false,

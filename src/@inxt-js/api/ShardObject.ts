@@ -6,11 +6,10 @@ import { ContractNegotiated } from '../lib/contracts';
 import { ShardMeta } from '../lib/shardMeta';
 import { wrap } from '../lib/utils/error';
 import { logger } from '../lib/utils/logger';
-import { InxtApiI, SendShardToNodeResponse } from '../services/api';
+import { InxtApiI } from '../services/api';
 import { Shard } from './shard';
 import { get, getBuffer } from '../services/request';
 
-type PutUrl = string;
 type GetUrl = string;
 
 export class ShardObject extends EventEmitter {
@@ -68,7 +67,7 @@ export class ShardObject extends EventEmitter {
     );
 
     const farmer = { ...contract.farmer, lastSeen: new Date() };
-    const shard: Shard = {
+    const shard: Omit<Shard, 'url'> = {
       index: this.getIndex(),
       replaceCount: 0,
       hash: this.getHash(),
@@ -94,7 +93,7 @@ export class ShardObject extends EventEmitter {
     });
   }
 
-  private put(shard: Shard, content: Buffer): Promise<any> {
+  private put(shard: Omit<Shard, 'url'>, content: Buffer): Promise<unknown> {
     let success = true;
 
     return this.api
@@ -131,41 +130,12 @@ export class ShardObject extends EventEmitter {
   }
 
   static download(shard: Shard, cb: (err: Error | null, content: Buffer | null) => void): void {
-    ShardObject.requestGet(buildRequestUrl(shard)).then((url: GetUrl) => {
-      getBuffer(url, { useProxy: false })
-        .then((content) => {
-          cb(null, content);
-        })
-        .catch((err) => {
-          cb(err, null);
-        });
-    });
-  }
-
-  // TODO: Remove if upload is stable
-  private sendShardToNode(content: Buffer, shard: Shard): Promise<SendShardToNodeResponse> {
-    const req = this.api.sendShardToNode(shard, content);
-
-    this.requests.push(req);
-
-    let success = true;
-
-    return req
-      .start<SendShardToNodeResponse>()
-      .catch((err: AxiosError) => {
-        if (err.response && err.response.status < 400) {
-          return { result: err.response.data && err.response.data.error };
-        }
-
-        success = false;
-
-        throw wrap('Farmer request error', err);
+    getBuffer(shard.url, { useProxy: false })
+      .then((content) => {
+        cb(null, content);
       })
-      .finally(() => {
-        const hash = shard.hash;
-        const nodeID = shard.farmer.nodeID;
-
-        this.emit(ShardObject.Events.NodeTransferFinished, [{ hash, nodeID, success }]);
+      .catch((err) => {
+        cb(err, null);
       });
   }
 
@@ -186,10 +156,4 @@ export class ShardObject extends EventEmitter {
 
     return req.buffer();
   }
-}
-
-export function buildRequestUrl(shard: Shard) {
-  const { address, port } = shard.farmer;
-
-  return `http://${address}:${port}/download/link/${shard.hash}`;
 }
