@@ -1,6 +1,6 @@
 import RNFS from 'react-native-fs';
 
-import { getNetwork } from '.';
+import { getNetwork } from './NetworkFacade';
 import { downloadFile as downloadFileV1, LegacyDownloadRequiredError } from '../services/network/download';
 import { downloadFile as downloadFileV1Legacy } from '../services/download';
 import { constants } from '../services/app';

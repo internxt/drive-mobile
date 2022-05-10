@@ -1,4 +1,4 @@
-import { getNetwork } from '.';
+import { getNetwork } from './NetworkFacade';
 import { constants } from '../services/app';
 import { Abortable } from '../types';
 import { NetworkCredentials } from './requests';

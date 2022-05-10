@@ -32,7 +32,7 @@ import {
   showFileViewer,
 } from '../../../services/fileSystem';
 import { items } from '@internxt/lib';
-import { downloadFile } from '../../../network/download';
+import network from '../../../network';
 import driveService from '../../../services/drive';
 import _ from 'lodash';
 
@@ -200,7 +200,7 @@ const downloadFileThunk = createAsyncThunk<
         return;
       }
 
-      return downloadFile(
+      return network.downloadFile(
         params.fileId,
         user?.bucket,
         user.mnemonic,
