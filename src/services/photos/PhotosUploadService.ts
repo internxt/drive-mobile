@@ -1,7 +1,7 @@
 import RNFS from 'react-native-fs';
 import { Photo, Photos, CreatePhotoData } from '@internxt/sdk/dist/photos';
 
-import * as network from '../network';
+import network from '../../network';
 import { PhotosServiceModel } from '../../types/photos';
 import PhotosLogService from './PhotosLogService';
 import PhotosFileSystemService from './PhotosFileSystemService';
@@ -46,16 +46,24 @@ export default class PhotosUploadService {
     const previewId = await network.uploadFile(
       tmpPreviewPath,
       this.model.user?.bucketId || '',
-      this.model.networkUrl,
-      this.model.networkCredentials,
+      this.model.networkCredentials.encryptionKey,
+      {
+        user: this.model.networkCredentials.user,
+        pass: this.model.networkCredentials.password
+      },
+      {}
     );
 
     this.logService.info('Uploading original image for photo ' + data.name);
     const fileId = await network.uploadFile(
       uriToPath(uri),
       this.model.user?.bucketId || '',
-      this.model.networkUrl,
-      this.model.networkCredentials,
+      this.model.networkCredentials.encryptionKey,
+      {
+        user: this.model.networkCredentials.user,
+        pass: this.model.networkCredentials.password
+      },
+      {}
     );
 
     const hash = await RNFS.hash(uri, 'sha256');
