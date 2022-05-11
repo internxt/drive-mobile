@@ -19,7 +19,6 @@ import { NotificationType } from '../../../types';
 import notificationsService from '../../../services/notifications';
 import { Copy, Minus, Plus } from 'phosphor-react-native';
 import { DriveItemData } from '../../../types/drive';
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 
 function ShareFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -30,23 +29,19 @@ function ShareFilesModal(): JSX.Element {
   const [link, setLink] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [inputValue, setInputValue] = useState('10');
-  const getLink = async (file: any, views: number) => {
-    const tokenLink = await getFileToken(file, views);
-
+  const getLink = async (fileId: string, views: number) => {
+    const tokenLink = await getFileToken(fileId, views);
     const url = `${constants.REACT_NATIVE_DRIVE_API_URL}/s/file/${tokenLink}`;
 
     setLink(url);
   };
-  const shareFile = async (file: any) => {
-    // Share link on native share system
+  const shareFile = async () => {
     await Share.share({
       title: strings.modals.ShareModal.title,
       message: strings.formatString<string>(strings.modals.ShareModal.message, link) as string,
     });
   };
-  const getFileToken = async (file: DriveFileData, views: number) => {
-    const fileId = file.fileId;
-
+  const getFileToken = async (fileId: string, views: number) => {
     const { bucket, mnemonic, userId, email } = await asyncStorage.getUser();
     const network = new Network(email, userId, mnemonic);
     const { index } = await network.getFileInfo(bucket, fileId);
@@ -99,13 +94,17 @@ function ShareFilesModal(): JSX.Element {
       </View>
     </View>
   );
+  const onShareButtonPressed = () => {
+    shareFile();
+    dispatch(uiActions.setShowShareModal(false));
+  };
 
   useEffect(() => {
-    setIsOpen(showShareModal === true);
+    setIsOpen(showShareModal);
 
     if (showShareModal && focusedItem) {
       setSelectedFile(focusedItem);
-      getLink(focusedItem, parseInt(inputValue)).then(() => setIsLoading(false));
+      getLink(focusedItem.fileId, parseInt(inputValue)).then(() => setIsLoading(false));
     }
   }, [showShareModal]);
 
@@ -115,7 +114,7 @@ function ShareFilesModal(): JSX.Element {
     }
     setIsLoading(true);
     const delay = setTimeout(() => {
-      getLink(selectedFile, parseInt(inputValue)).then(() => setIsLoading(false));
+      selectedFile && getLink(selectedFile.fileId, parseInt(inputValue)).then(() => setIsLoading(false));
     }, 1000);
 
     return () => {
@@ -235,10 +234,7 @@ function ShareFilesModal(): JSX.Element {
             tailwind('bg-blue-60 rounded-lg py-2 flex-grow items-center justify-center'),
             isLoading && tailwind('bg-blue-30'),
           ]}
-          onPress={() => {
-            shareFile(selectedFile);
-            dispatch(uiActions.setShowShareModal(false));
-          }}
+          onPress={onShareButtonPressed}
           disabled={isLoading}
         >
           <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>

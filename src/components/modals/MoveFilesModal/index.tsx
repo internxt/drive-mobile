@@ -8,7 +8,7 @@ import Separator from '../../AppSeparator';
 import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
-import { driveThunks } from '../../../store/slices/drive';
+import { driveSelectors, driveThunks } from '../../../store/slices/drive';
 import DriveItem from '../../DriveItemTable';
 import { DriveItemData, DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
 
@@ -16,7 +16,8 @@ function MoveFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { showMoveModal } = useAppSelector((state) => state.ui);
-  const { currentFolderId, selectedFile } = useAppSelector((state) => state.drive);
+  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
+  const selectedFile: any = null; // TODO: selectedFile from store
 
   const onMoveButtonPressed = async () => {
     const rootFolderId = user?.root_folder_id;

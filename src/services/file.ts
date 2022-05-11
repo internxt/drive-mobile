@@ -127,8 +127,8 @@ async function moveFile(fileId: string, destination: number): Promise<number> {
   }
 }
 
-async function deleteItems(items: any[]): Promise<void> {
-  const fetchArray: any[] = [];
+async function deleteItems(items: DriveItemData[]): Promise<void> {
+  const fetchArray: Promise<Response>[] = [];
 
   for (const item of items) {
     const isFolder = !item.fileId;

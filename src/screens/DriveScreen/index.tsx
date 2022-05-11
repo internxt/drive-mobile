@@ -13,7 +13,7 @@ import ScreenTitle from '../../components/AppScreenTitle';
 import Separator from '../../components/AppSeparator';
 import { AppScreenKey as AppScreenKey, DevicePlatform } from '../../types';
 import { authActions, authThunks } from '../../store/slices/auth';
-import { driveActions, storageSelectors, driveThunks } from '../../store/slices/drive';
+import { driveActions, driveSelectors, driveThunks } from '../../store/slices/drive';
 import { uiActions } from '../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { useNavigation } from '@react-navigation/native';
@@ -30,17 +30,13 @@ function DriveScreen(): JSX.Element {
   const route = useRoute();
   const dispatch = useAppDispatch();
   const { token, user, loggedIn } = useAppSelector((state) => state.auth);
+  const { folderContentResponse, uri, sortType, sortDirection, searchString } = useAppSelector((state) => state.drive);
   const {
-    folderContentResponse,
-    currentFolderId,
-    currentFolderName,
-    parentFolderId,
-    uri,
-    sortType,
-    sortDirection,
-    searchString,
-  } = useAppSelector((state) => state.drive);
-  const driveItems = useAppSelector(storageSelectors.driveItems);
+    id: currentFolderId,
+    name: currentFolderName,
+    parentId: currentFolderParentId,
+  } = useAppSelector(driveSelectors.navigationStackPeek);
+  const driveItems = useAppSelector(driveSelectors.driveItems);
   const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.ui);
   const onSearchTextChanged = (value: string) => {
     dispatch(driveActions.setSearchString(value));
@@ -143,6 +139,9 @@ function DriveScreen(): JSX.Element {
   const onViewModeButtonPressed = () => {
     dispatch(uiActions.switchFileViewMode());
   };
+  const onBackButtonPressed = () => {
+    dispatch(driveThunks.goBackThunk({ folderId: currentFolderParentId as number }));
+  };
 
   if (!loggedIn) {
     navigation.replace(AppScreenKey.SignIn);
@@ -184,8 +183,8 @@ function DriveScreen(): JSX.Element {
     // BackHandler
     const backAction = () => {
       if (route.name === AppScreenKey.Drive) {
-        if (~currentFolderId && parentFolderId) {
-          dispatch(driveThunks.getFolderContentThunk({ folderId: parentFolderId }));
+        if (~currentFolderId && currentFolderParentId) {
+          dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderParentId }));
         } else {
           return false;
         }
@@ -224,7 +223,7 @@ function DriveScreen(): JSX.Element {
   useEffect(() => {
     if (Platform.OS === 'ios') {
       if (validateUri() && ~currentFolderId) {
-        const name = uri.split('/').pop();
+        const name = uri?.split('/').pop();
 
         setTimeout(() => {
           uploadFile(uri, name, currentFolderId);
@@ -245,19 +244,14 @@ function DriveScreen(): JSX.Element {
     <AppScreen safeAreaTop style={tailwind('flex-1')}>
       {/* DRIVE NAV */}
       <View style={[tailwind('flex-row items-center justify-between my-2 px-5'), isRootFolder && tailwind('hidden')]}>
-        <View>
-          <TouchableOpacity
-            disabled={!backButtonEnabled}
-            onPress={() => dispatch(driveThunks.goBackThunk({ folderId: parentFolderId as number }))}
-          >
-            <View style={[tailwind('flex-row items-center'), !parentFolderId && tailwind('opacity-50')]}>
-              <CaretLeft weight="bold" color={getColor('blue-60')} style={tailwind('-ml-2 mr-1')} size={24} />
-              <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>
-                {strings.components.buttons.back}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
+          <View style={[tailwind('flex-row items-center pr-4'), !currentFolderParentId && tailwind('opacity-50')]}>
+            <CaretLeft weight="bold" color={getColor('blue-60')} style={tailwind('-ml-2 mr-1')} size={24} />
+            <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>
+              {strings.components.buttons.back}
+            </Text>
+          </View>
+        </TouchableOpacity>
         <View style={tailwind('flex-row -m-2')}>
           <View style={tailwind('items-center justify-center')}>
             <TouchableOpacity

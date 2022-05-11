@@ -5,7 +5,7 @@ const statements = {
       id INTEGER PRIMARY KEY, \
       parent_id INTEGER, \
       name TEXT NOT NULL, \
-      date TEXT NOT NULL, \
+      date TEXT NOT NULL \
     );`,
   dropTable: `DROP TABLE ${TABLE_NAME};`,
   cleanTable: `DELETE FROM ${TABLE_NAME};`,

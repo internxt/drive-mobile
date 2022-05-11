@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, TouchableWithoutFeedback, TextInput, Platform } from 'react-native';
+import { View, TextInput, Platform } from 'react-native';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { driveActions, driveThunks } from '../../../store/slices/drive';
+import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import errorService from '../../../services/error';
 import AppButton from '../../AppButton';
@@ -16,12 +16,11 @@ import CenterModal from '../CenterModal';
 function RenameModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { showRenameModal } = useAppSelector((state) => state.ui);
-  const { focusedItem, currentFolderId } = useAppSelector((state) => state.drive);
+  const { focusedItem } = useAppSelector((state) => state.drive);
+  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const isFolder = focusedItem?.parentId;
-  const folder = isFolder && focusedItem;
-  const file = !isFolder && focusedItem;
+  const isFolder = !!focusedItem?.parentId;
   const onItemRenameSuccess = () => {
     if (currentFolderId) {
       dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
@@ -45,14 +44,14 @@ function RenameModal(): JSX.Element {
       if (isFolder) {
         await dispatch(
           driveThunks.updateFolderMetadataThunk({
-            folder: folder as any,
+            folderId: focusedItem.id,
             metadata: { itemName: newName },
           }),
         );
       } else {
         await dispatch(
           driveThunks.updateFileMetadataThunk({
-            file: file as any,
+            fileId: focusedItem?.fileId as string,
             metadata: { itemName: newName },
           }),
         );

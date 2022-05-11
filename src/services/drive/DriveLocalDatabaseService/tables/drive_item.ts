@@ -12,13 +12,13 @@ const statements = {
       icon_id INTEGER, \
       is_folder INTEGER NOT NULL, \
       name TEXT NOT NULL, \
-      parent_id INTEGER NOT NULL, \
+      parent_id INTEGER, \
       user_id TEXT, \
       file_id TEXT, \
       size INTEGER, \
       type TEXT, \
       created_at TEXT NOT NULL, \
-      updated_at TEXT NOT NULL, \
+      updated_at TEXT NOT NULL \
     );`,
   dropTable: `DROP TABLE ${TABLE_NAME};`,
   cleanTable: `DELETE FROM ${TABLE_NAME};`,
@@ -37,26 +37,24 @@ const statements = {
       query += row.color ? `"${row.color}", ` : `${null},`;
       query += row.encrypt_version ? `"${row.encrypt_version}", ` : `${null},`;
       query += row.icon ? `"${row.icon}", ` : `${null},`;
-      query += `${row.icon_id}, `;
+      query += `${row.icon_id || null}, `;
       query += `${row.is_folder}, `;
       query += `"${row.name}", `;
-      query += `${row.parent_id}, `;
+      query += `${row.parent_id || null}, `;
       query += row.user_id ? `"${row.user_id}", ` : `${null},`;
       query += row.file_id ? `"${row.file_id}", ` : `${null},`;
-      query += `${row.size}, `;
+      query += `${row.size || null}, `;
       query += row.type ? `"${row.type}", ` : `${null},`;
       query += `"${row.created_at}", `;
       query += `"${row.updated_at}")`;
       query += isTheLastRow ? ';' : ',';
     }
 
-    console.log('query: ' + query);
-
     return query;
   },
   deleteFolderContent: `DELETE FROM ${TABLE_NAME} WHERE parent_id = ?;`,
   get: (options: { parentId: number }): string => {
-    const query = `SELECT * FROM ${TABLE_NAME} WHERE parent_id=${options.parentId} ORDER BY timestamp DESC;`;
+    const query = `SELECT * FROM ${TABLE_NAME} WHERE parent_id=${options.parentId} ORDER BY is_folder ASC;`;
 
     return query;
   },

@@ -1,11 +1,10 @@
 import { useState } from 'react';
 
-import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useAppDispatch } from '../store/hooks';
 import { driveActions, driveThunks } from '../store/slices/drive';
 import { uiActions } from '../store/slices/ui';
 import { DriveItemDataProps, DriveItemStatus } from '../types/drive';
-import analytics, { AnalyticsEventKey } from '../services/analytics';
-import driveService from '../services/drive';
+import DriveService from '../services/drive';
 
 interface UseDriveItemProps {
   data: DriveItemDataProps;
@@ -14,30 +13,18 @@ interface UseDriveItemProps {
 
 const useDriveItem = (props: UseDriveItemProps) => {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
   const [isDisabled, setIsDisabled] = useState(false);
   const isFolder = !props.data.type;
   const isIdle = props.status === DriveItemStatus.Idle;
   const isUploading = props.status === DriveItemStatus.Uploading;
   const isDownloading = props.status === DriveItemStatus.Downloading;
-  function trackFolderOpened() {
-    return analytics.track(AnalyticsEventKey.FolderOpened, {
-      folder_id: props.data.id,
-      email: user?.email || null,
-      userId: user?.uuid || null,
-    });
-  }
-  function onFolderPressed() {
-    trackFolderOpened();
-    dispatch(driveThunks.getFolderContentThunk({ folderId: props.data.id }));
-    dispatch(driveActions.addDepthAbsolutePath([props.data.name]));
-  }
+  const onFolderPressed = () => {
+    dispatch(
+      driveThunks.navigateToFolderThunk({ ...props.data, parentId: props.data.parentId as number, item: props.data }),
+    );
+  };
   const onFilePressed = () => {
     if (!isIdle) {
-      return;
-    }
-
-    if (!props.data.fileId) {
       return;
     }
 
@@ -57,7 +44,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
       thunk.abort();
     };
 
-    driveService.eventEmitter.setDownloadAbort(downloadAbort);
+    DriveService.instance.eventEmitter.setDownloadAbort(downloadAbort);
 
     thunk.then(() => {
       setIsDisabled(false);

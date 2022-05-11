@@ -27,6 +27,9 @@ import {
   UploadingFile,
   DownloadingFile,
   DriveEventKey,
+  DriveNavigationStack,
+  DriveNavigationStackItem,
+  DriveItemFocused,
 } from '../../../types/drive';
 import {
   createEmptyFile,
@@ -37,22 +40,19 @@ import {
   showFileViewer,
 } from '../../../services/fileSystem';
 import { items } from '@internxt/lib';
-import driveService from '../../../services/drive';
 import _ from 'lodash';
+import DriveService from '../../../services/drive';
 
 export interface DriveState {
+  navigationStack: DriveNavigationStack;
   isLoading: boolean;
-  absolutePath: string;
   items: DriveItemData[];
   uploadingFiles: UploadingFile[];
   downloadingFile?: DownloadingFile;
   selectedItems: DriveItemData[];
-  currentFolderId: number;
-  currentFolderName: string;
-  parentFolderId: number | null;
   folderContent: DriveItemData[];
   folderContentResponse: FetchFolderContentResponse | null;
-  focusedItem: DriveItemData | null;
+  focusedItem: DriveItemFocused;
   sortType: SortType;
   sortDirection: SortDirection;
   searchString: string;
@@ -63,21 +63,17 @@ export interface DriveState {
   error?: string | null;
   uri?: any;
   pendingDeleteItems: { [key: string]: boolean };
-  selectedFile: any;
   usage: number;
   limit: number;
 }
 
 const initialState: DriveState = {
+  navigationStack: [],
   isLoading: false,
   items: [],
-  currentFolderName: '',
-  currentFolderId: -1,
-  parentFolderId: null,
   folderContentResponse: null,
   folderContent: [],
   focusedItem: null,
-  absolutePath: '/',
   uploadingFiles: [],
   downloadingFile: undefined,
   selectedItems: [],
@@ -90,7 +86,6 @@ const initialState: DriveState = {
   progress: 0,
   uri: undefined,
   pendingDeleteItems: {},
-  selectedFile: null,
   usage: 0,
   limit: 0,
 };
@@ -101,49 +96,61 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     const user = await asyncStorage.getUser();
 
     if (user) {
+      DriveService.initialize();
       await dispatch(getUsageAndLimitThunk());
     }
   },
 );
 
+const navigateToFolderThunk = createAsyncThunk<void, DriveNavigationStackItem, { state: RootState }>(
+  'drive/navigateToFolder',
+  async (stackItem, { dispatch, getState }) => {
+    const { user } = getState().auth;
+
+    dispatch(driveActions.pushToNavigationStack(stackItem));
+    dispatch(driveThunks.getFolderContentThunk({ folderId: stackItem.id }));
+
+    return analytics.track(AnalyticsEventKey.FolderOpened, {
+      folder_id: stackItem.id,
+      email: user?.email || null,
+      userId: user?.uuid || null,
+    });
+  },
+);
+
 const getFolderContentThunk = createAsyncThunk<
   {
-    currentFolderId: number;
-    currentFolderName: string;
-    parentFolderId: number | null;
+    focusedItem: DriveItemFocused;
     folderContent: DriveItemData[];
-    folderContentResponse: FetchFolderContentResponse | null;
   },
   { folderId: number },
   { state: RootState }
->('drive/getFolderContent', async ({ folderId }, { dispatch }) => {
+>('drive/getFolderContent', async ({ folderId }) => {
   const folderContentPromise = fileService.getFolderContent(folderId);
-  // const isFolderInDatabase = await driveService.localDatabaseService.isFolderInDatabase(folderId);
-  const isFolderInDatabase = false;
-
-  if (isFolderInDatabase) {
-    const folderContent = await driveService.localDatabaseService.getDriveItems(folderId);
-
-    dispatch(driveThunks.getFolderContentThunk({ folderId }));
-
-    return {
-      currentFolderId: folderId,
-      currentFolderName: '',
-      parentFolderId: null,
-      folderContent,
-      folderContentResponse: null,
-    };
-  } else {
+  const folderRecord = await DriveService.instance.localDatabaseService.getFolderRecord(folderId);
+  const getFolderContent = async () => {
     const response = await folderContentPromise;
-    const folders = response.children.map((folder) => ({ ...folder, isFolder: true }));
+    const folders = response.children.map((folder) => ({ ...folder }));
     const folderContent = _.concat(folders as unknown as DriveItemData[], response.files as DriveItemData[]);
 
+    return { response, folderContent };
+  };
+
+  if (folderRecord) {
+    const folderContent = await DriveService.instance.localDatabaseService.getDriveItems(folderId);
+
     return {
-      currentFolderId: folderId,
-      currentFolderName: response.name,
-      parentFolderId: response.parentId,
+      focusedItem: null,
       folderContent,
-      folderContentResponse: response,
+    };
+  } else {
+    const { response, folderContent } = await getFolderContent();
+
+    DriveService.instance.localDatabaseService.saveFolderContent(response, folderContent);
+
+    return {
+      focusedItem: null,
+      folderContent,
     };
   }
 });
@@ -161,14 +168,14 @@ const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootSt
     dispatch(uiActions.setBackButtonEnabled(false));
 
     dispatch(getFolderContentThunk({ folderId })).finally(() => {
-      dispatch(driveActions.removeDepthAbsolutePath(1));
+      dispatch(driveActions.popFromNavigationStack());
       dispatch(uiActions.setBackButtonEnabled(true));
     });
   },
 );
 
 const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('drive/cancelDownload', () => {
-  driveService.eventEmitter.emit({ event: DriveEventKey.CancelDownload });
+  DriveService.instance.eventEmitter.emit({ event: DriveEventKey.CancelDownload });
 });
 
 const downloadFileThunk = createAsyncThunk<
@@ -237,7 +244,7 @@ const downloadFileThunk = createAsyncThunk<
             },
           );
 
-          driveService.eventEmitter.setLegacyAbortable(legacyAbortable);
+          DriveService.instance.eventEmitter.setLegacyAbortable(legacyAbortable);
 
           await promise;
         } else {
@@ -295,27 +302,27 @@ const downloadFileThunk = createAsyncThunk<
       });
       const uri = pathToUri(destinationPath);
 
-      driveService.eventEmitter.setJobId(response?.jobId || 0);
+      DriveService.instance.eventEmitter.setJobId(response?.jobId || 0);
 
       response.promise
         .then(async () => {
           if (!signal.aborted) {
             await showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) }).catch((err) => {
-              driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
+              DriveService.instance.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
             });
             trackDownloadSuccess();
           }
         })
         .finally(() => {
-          driveService.eventEmitter.emit({ event: DriveEventKey.DownloadFinally });
+          DriveService.instance.eventEmitter.emit({ event: DriveEventKey.DownloadFinally });
         });
     } catch (err) {
       if (!signal.aborted) {
-        driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
+        DriveService.instance.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
       }
     } finally {
       if (signal.aborted) {
-        driveService.eventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
+        DriveService.instance.eventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
       }
     }
   },
@@ -323,28 +330,30 @@ const downloadFileThunk = createAsyncThunk<
 
 const updateFileMetadataThunk = createAsyncThunk<
   void,
-  { file: DriveFileData; metadata: DriveFileMetadataPayload },
+  { fileId: string; metadata: DriveFileMetadataPayload },
   { state: RootState }
->('drive/updateFileMetadata', async ({ file, metadata }, { getState }) => {
+>('drive/updateFileMetadata', async ({ fileId, metadata }, { getState }) => {
   const { bucketId } = await getEnvironmentConfig();
-  const { absolutePath, focusedItem } = getState().drive;
+  const { focusedItem } = getState().drive;
+  const absolutePath = driveSelectors.absolutePath(getState());
   const itemFullName = `${metadata.itemName}${focusedItem?.type ? '.' + focusedItem.type : ''}`;
   const itemPath = `${absolutePath}${itemFullName}`;
 
-  return fileService.updateMetaData(file.fileId, metadata, bucketId, itemPath);
+  return fileService.updateMetaData(fileId, metadata, bucketId, itemPath);
 });
 
 const updateFolderMetadataThunk = createAsyncThunk<
   void,
-  { folder: DriveFolderData; metadata: DriveFolderMetadataPayload },
+  { folderId: number; metadata: DriveFolderMetadataPayload },
   { state: RootState }
->('drive/updateFolderMetadata', async ({ folder, metadata }, { getState }) => {
+>('drive/updateFolderMetadata', async ({ folderId, metadata }, { getState }) => {
   const { bucketId } = await getEnvironmentConfig();
-  const { absolutePath, focusedItem } = getState().drive;
+  const { focusedItem } = getState().drive;
+  const absolutePath = driveSelectors.absolutePath(getState());
   const itemFullName = `${metadata.itemName}${focusedItem?.type ? '.' + focusedItem.type : ''}`;
   const itemPath = `${absolutePath}${itemFullName}`;
 
-  folderService.updateMetaData(folder.id, metadata, bucketId, itemPath);
+  folderService.updateMetaData(folderId, metadata, bucketId, itemPath);
 });
 
 const createFolderThunk = createAsyncThunk<
@@ -402,15 +411,19 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[]; folderToReload: 
   },
 );
 
+const clearLocalDatabaseThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'drive/clearLocalDatabase',
+  async () => {
+    DriveService.instance.localDatabaseService.resetDatabase();
+  },
+);
+
 export const driveSlice = createSlice({
   name: 'drive',
   initialState,
   reducers: {
     resetState(state) {
       Object.assign(state, initialState);
-    },
-    setCurrentFolderId(state, action: PayloadAction<number>) {
-      state.currentFolderId = action.payload;
     },
     setSortType(state, action: PayloadAction<SortType>) {
       state.sortType = action.payload;
@@ -492,13 +505,11 @@ export const driveSlice = createSlice({
     blurItem(state) {
       state.focusedItem = null;
     },
-    addDepthAbsolutePath(state, action: PayloadAction<string[]>) {
-      state.absolutePath = action.payload.reduce((acumm, depth) => acumm + depth + '/', state.absolutePath);
+    pushToNavigationStack(state, action: PayloadAction<DriveNavigationStackItem>) {
+      state.navigationStack.unshift(action.payload);
     },
-    removeDepthAbsolutePath(state, action: PayloadAction<number>) {
-      const pathSplitted = state.absolutePath.split('/');
-
-      state.absolutePath = pathSplitted.slice(0, pathSplitted.length - (action.payload + 1)).join('/') + '/' || '/';
+    popFromNavigationStack(state) {
+      state.navigationStack.shift();
     },
     updateDownloadingFile(state, action: PayloadAction<Partial<DownloadingFile>>) {
       Object.assign(state.downloadingFile, action.payload);
@@ -509,6 +520,11 @@ export const driveSlice = createSlice({
       .addCase(initializeThunk.pending, () => undefined)
       .addCase(initializeThunk.fulfilled, () => undefined)
       .addCase(initializeThunk.rejected, () => undefined);
+
+    builder
+      .addCase(navigateToFolderThunk.pending, () => undefined)
+      .addCase(navigateToFolderThunk.fulfilled, () => undefined)
+      .addCase(navigateToFolderThunk.rejected, () => undefined);
 
     builder
       .addCase(getUsageAndLimitThunk.pending, () => undefined)
@@ -531,11 +547,8 @@ export const driveSlice = createSlice({
         });
 
         state.isLoading = false;
-        state.currentFolderId = action.payload.currentFolderId;
-        state.currentFolderName = action.payload.currentFolderName;
-        state.parentFolderId = action.payload.parentFolderId;
         state.folderContent = action.payload.folderContent;
-        state.folderContentResponse = action.payload.folderContentResponse;
+        state.focusedItem = action.payload.focusedItem;
         state.selectedItems = [];
       })
       .addCase(getFolderContentThunk.rejected, (state, action) => {
@@ -622,10 +635,23 @@ export const driveSlice = createSlice({
         state.pendingDeleteItems = {};
         state.error = action.error.message;
       });
+
+    builder
+      .addCase(clearLocalDatabaseThunk.pending, () => undefined)
+      .addCase(clearLocalDatabaseThunk.fulfilled, () => undefined)
+      .addCase(clearLocalDatabaseThunk.rejected, () => undefined);
   },
 });
 
-export const storageSelectors = {
+export const driveSelectors = {
+  absolutePath: (state: RootState) => {
+    return state.drive.navigationStack.reduce((result, item) => result + item.name + '/', '/');
+  },
+  navigationStackPeek: (state: RootState) => {
+    return state.drive.navigationStack.length > 0
+      ? state.drive.navigationStack[0]
+      : { id: state.auth.user?.root_folder_id || -1, name: '', parentId: null };
+  },
   driveItems(state: RootState): DriveListItem[] {
     const { folderContent, uploadingFiles, searchString, sortType, sortDirection } = state.drive;
     const sortFunction = fileService.getSortFunction({ type: sortType, direction: sortDirection });
@@ -663,6 +689,7 @@ export const driveActions = driveSlice.actions;
 
 export const driveThunks = {
   initializeThunk,
+  navigateToFolderThunk,
   getUsageAndLimitThunk,
   getFolderContentThunk,
   goBackThunk,
@@ -673,6 +700,7 @@ export const driveThunks = {
   createFolderThunk,
   moveFileThunk,
   deleteItemsThunk,
+  clearLocalDatabaseThunk,
 };
 
 export default driveSlice.reducer;

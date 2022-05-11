@@ -5,12 +5,13 @@ import DriveLocalDatabaseService from './DriveLocalDatabaseService';
 import DriveLogService from './DriveLogService';
 
 class DriveService {
+  public static instance: DriveService;
   public readonly model: DriveServiceModel;
   public readonly logService: DriveLogService;
   public readonly eventEmitter: DriveEventEmitter;
   public readonly localDatabaseService: DriveLocalDatabaseService;
 
-  constructor() {
+  private constructor() {
     this.model = {
       debug: constants.REACT_NATIVE_DEBUG,
     };
@@ -18,7 +19,11 @@ class DriveService {
     this.eventEmitter = new DriveEventEmitter(this.logService);
     this.localDatabaseService = new DriveLocalDatabaseService(this.model, this.logService);
   }
+
+  public static async initialize() {
+    DriveService.instance = new DriveService();
+    await DriveService.instance.localDatabaseService.initialize();
+  }
 }
 
-const driveService = new DriveService();
-export default driveService;
+export default DriveService;

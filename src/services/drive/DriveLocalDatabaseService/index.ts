@@ -5,6 +5,7 @@ import {
   SqliteDriveItemRow,
   DriveItemData,
   InsertSqliteDriveItemRowData,
+  SqliteDriveFolderRecord,
 } from '../../../types/drive';
 import sqliteService from '../../sqlite';
 import PhotosLogService from '../DriveLogService';
@@ -42,48 +43,55 @@ export default class DriveLocalDatabaseService {
       });
   }
 
-  public async insertDriveItems(items: DriveItemData | DriveItemData[]): Promise<void> {
-    const itemsArray = Array.isArray(items) ? items : [items];
-    const rows = itemsArray.map<InsertSqliteDriveItemRowData>((item) => {
-      return {
-        id: item.id,
-        bucket: item.bucket,
-        color: item.color,
-        encrypt_version: item.encrypt_version,
-        icon: item.icon,
-        icon_id: item.icon_id,
-        is_folder: item.parentId !== undefined,
-        created_at: item.createdAt,
-        updated_at: item.updatedAt,
-        file_id: item.fileId,
-        name: item.name,
-        parent_id: item.parentId,
-        size: item.size,
-        type: item.type,
-        user_id: item.userId,
-      };
-    });
-    const query = driveItemTable.statements.bulkInsert(rows);
+  public async getFolderRecord(folderId: number): Promise<SqliteDriveFolderRecord | null> {
+    const [{ rows }] = await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.getById, [folderId]);
 
-    await sqliteService.executeSql(DRIVE_DB_NAME, query);
+    return rows.raw().length > 0 ? (rows.raw()[0] as SqliteDriveFolderRecord) : null;
+  }
+
+  public async saveFolderContent(
+    folderRecordData: { id: number; parentId: number; name: string },
+    items: DriveItemData[],
+  ) {
+    const { id, parentId, name } = folderRecordData;
+    await sqliteService.transaction(DRIVE_DB_NAME, async (tx) => {
+      tx.executeSql(folderRecordTable.statements.deleteById, [id]);
+      tx.executeSql(driveItemTable.statements.deleteFolderContent, [id]);
+      tx.executeSql(folderRecordTable.statements.insert, [id, parentId, name, new Date().toString()]);
+
+      if (items.length > 0) {
+        const rows = items.map<InsertSqliteDriveItemRowData>((item) => {
+          return {
+            id: item.id,
+            bucket: item.bucket,
+            color: item.color,
+            encrypt_version: item.encrypt_version,
+            icon: item.icon,
+            icon_id: item.icon_id,
+            is_folder: item.parentId !== undefined,
+            created_at: item.createdAt,
+            updated_at: item.updatedAt,
+            file_id: item.fileId,
+            name: item.name,
+            parent_id: item.parentId || item.folderId,
+            size: item.size,
+            type: item.type,
+            user_id: item.userId,
+          };
+        });
+        const bulkInsertQuery = driveItemTable.statements.bulkInsert(rows);
+
+        tx.executeSql(bulkInsertQuery);
+      }
+    });
   }
 
   public async deleteFolderContent(folderId: number) {
     return sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteFolderContent, [folderId]);
   }
 
-  public async isFolderInDatabase(folderId: number): Promise<boolean> {
-    const [{ rows }] = await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.getById, [folderId]);
-
-    return rows.raw().length > 0;
-  }
-
   public deleteFolderRecord(folderId: number) {
     return sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.deleteById, [folderId]);
-  }
-
-  public insertFolderRecord(folderId: number) {
-    return sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.insert, [folderId]);
   }
 
   public async resetDatabase(): Promise<void> {

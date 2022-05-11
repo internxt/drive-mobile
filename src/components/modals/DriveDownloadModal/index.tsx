@@ -13,8 +13,8 @@ import AppText from '../../AppText';
 import { items } from '@internxt/lib';
 import prettysize from 'prettysize';
 import moment from 'moment';
-import { driveActions, driveThunks } from '../../../store/slices/drive';
-import driveService from '../../../services/drive';
+import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
+import DriveService from '../../../services/drive';
 import { DriveEventKey } from '../../../types/drive';
 import analytics, { AnalyticsEventKey } from '../../../services/analytics';
 import { asyncStorage } from '../../../services/asyncStorage';
@@ -24,7 +24,8 @@ import notificationsService from '../../../services/notifications';
 function DriveDownloadModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const iconSize = 80;
-  const { currentFolderId, downloadingFile } = useAppSelector((state) => state.drive);
+  const { downloadingFile } = useAppSelector((state) => state.drive);
+  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const FileIcon = getFileTypeIcon(downloadingFile?.data.type || '');
   const { isDriveDownloadModalOpen } = useAppSelector((state) => state.ui);
   const onClosed = () => {
@@ -92,21 +93,39 @@ function DriveDownloadModal(): JSX.Element {
   };
 
   useEffect(() => {
-    driveService.eventEmitter.addListener({ event: DriveEventKey.DownloadCompleted, listener: onDownloadCompleted });
-    driveService.eventEmitter.addListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
-    driveService.eventEmitter.addListener({ event: DriveEventKey.DownloadFinally, listener: onDownloadFinally });
-    driveService.eventEmitter.addListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
-    driveService.eventEmitter.addListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
+    DriveService.instance.eventEmitter.addListener({
+      event: DriveEventKey.DownloadCompleted,
+      listener: onDownloadCompleted,
+    });
+    DriveService.instance.eventEmitter.addListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
+    DriveService.instance.eventEmitter.addListener({
+      event: DriveEventKey.DownloadFinally,
+      listener: onDownloadFinally,
+    });
+    DriveService.instance.eventEmitter.addListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
+    DriveService.instance.eventEmitter.addListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
 
     return () => {
-      driveService.eventEmitter.removeListener({
+      DriveService.instance.eventEmitter.removeListener({
         event: DriveEventKey.DownloadCompleted,
         listener: onDownloadCompleted,
       });
-      driveService.eventEmitter.removeListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
-      driveService.eventEmitter.removeListener({ event: DriveEventKey.DownloadFinally, listener: onDownloadFinally });
-      driveService.eventEmitter.removeListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
-      driveService.eventEmitter.removeListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
+      DriveService.instance.eventEmitter.removeListener({
+        event: DriveEventKey.DownloadError,
+        listener: onDownloadError,
+      });
+      DriveService.instance.eventEmitter.removeListener({
+        event: DriveEventKey.DownloadFinally,
+        listener: onDownloadFinally,
+      });
+      DriveService.instance.eventEmitter.removeListener({
+        event: DriveEventKey.CancelDownload,
+        listener: onCancelStart,
+      });
+      DriveService.instance.eventEmitter.removeListener({
+        event: DriveEventKey.CancelDownloadEnd,
+        listener: onCancelEnd,
+      });
     };
   }, []);
 

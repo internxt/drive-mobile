@@ -7,13 +7,14 @@ import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import globalStyle from '../../../styles';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { driveThunks } from '../../../store/slices/drive';
+import { driveSelectors, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
 
 function DeleteItemModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { currentFolderId, focusedItem: item } = useAppSelector((state) => state.drive);
+  const { focusedItem: item } = useAppSelector((state) => state.drive);
+  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const { showDeleteModal } = useAppSelector((state) => state.ui);
   const isFolder = item && !!item.parentId;
   const FileIcon = getFileTypeIcon(item?.type || '');

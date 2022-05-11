@@ -813,7 +813,7 @@ const strings = new LocalizedStrings({
       },
       SignOutModal: {
         title: 'Cerrar sesión',
-        message: '¿Estás seguro de que quieres cerrar sessión?',
+        message: '¿Estás seguro de que quieres cerrar sesión?',
       },
     },
     messages: {

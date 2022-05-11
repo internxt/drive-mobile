@@ -45,7 +45,6 @@ export default function App(): JSX.Element {
     const user = await asyncStorage.getUser();
 
     if (token && photosToken && user) {
-      dispatch(driveActions.setCurrentFolderId(user.root_folder_id));
       dispatch(authActions.signIn({ token, photosToken, user }));
 
       dispatch(appThunks.initializeThunk());

@@ -6,7 +6,7 @@ import { FolderIcon } from '../../../helpers';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
-import { driveThunks } from '../../../store/slices/drive';
+import { driveSelectors, driveThunks } from '../../../store/slices/drive';
 import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
@@ -16,7 +16,7 @@ import { NotificationType } from '../../../types';
 
 function CreateFolderModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { currentFolderId } = useAppSelector((state) => state.drive);
+  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const { showCreateFolderModal } = useAppSelector((state) => state.ui);
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
