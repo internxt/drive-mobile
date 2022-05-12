@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { DriveFileData, DriveFolderData, FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 
 import { constants } from '../../../services/app';
 import { LegacyDownloadRequiredError } from '../../../services/network/download';
@@ -51,7 +51,6 @@ export interface DriveState {
   downloadingFile?: DownloadingFile;
   selectedItems: DriveItemData[];
   folderContent: DriveItemData[];
-  folderContentResponse: FetchFolderContentResponse | null;
   focusedItem: DriveItemFocused;
   sortType: SortType;
   sortDirection: SortDirection;
@@ -61,7 +60,7 @@ export interface DriveState {
   uploadFileUri: string | undefined | null;
   progress: number;
   error?: string | null;
-  uri?: any;
+  uri?: string;
   pendingDeleteItems: { [key: string]: boolean };
   usage: number;
   limit: number;
@@ -71,7 +70,6 @@ const initialState: DriveState = {
   navigationStack: [],
   isLoading: false,
   items: [],
-  folderContentResponse: null,
   folderContent: [],
   focusedItem: null,
   uploadingFiles: [],
@@ -109,8 +107,7 @@ const navigateToFolderThunk = createAsyncThunk<void, DriveNavigationStackItem, {
 
     dispatch(driveActions.pushToNavigationStack(stackItem));
     dispatch(driveThunks.getFolderContentThunk({ folderId: stackItem.id }));
-
-    return analytics.track(AnalyticsEventKey.FolderOpened, {
+    analytics.track(AnalyticsEventKey.FolderOpened, {
       folder_id: stackItem.id,
       email: user?.email || null,
       userId: user?.uuid || null,
@@ -431,12 +428,12 @@ export const driveSlice = createSlice({
     setSortDirection(state, action: PayloadAction<SortDirection>) {
       state.sortDirection = action.payload;
     },
-    setUri(state, action: PayloadAction<any>) {
+    setUri(state, action: PayloadAction<string | undefined>) {
       if (action.payload) {
         asyncStorage.getUser().then((user) => {
           analytics.track(AnalyticsEventKey.ShareTo, {
             email: user.email,
-            uri: action.payload.fileUri ? action.payload.fileUri : action.payload.toString && action.payload.toString(),
+            uri: action.payload || '',
           });
         });
       }
@@ -499,7 +496,7 @@ export const driveSlice = createSlice({
     deselectAll(state) {
       state.selectedItems = [];
     },
-    focusItem(state, action: PayloadAction<any>) {
+    focusItem(state, action: PayloadAction<DriveItemFocused>) {
       state.focusedItem = action.payload;
     },
     blurItem(state) {
