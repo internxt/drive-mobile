@@ -22,7 +22,7 @@ import { DevicePlatform, NotificationType, ProgressCallback } from '../../../typ
 import { asyncStorage } from '../../../services/asyncStorage';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
-import { driveActions, driveThunks } from '../../../store/slices/drive';
+import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
 import { constants } from '../../../services/app';
 import { uploadFile } from '../../../services/network';
 import notificationsService from '../../../services/notifications';
@@ -30,101 +30,101 @@ import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-rea
 import BottomModal from '../BottomModal';
 import { UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
 
-async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
-  const name = decodeURI(file.uri).split('/').pop() || '';
-  const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
-  const fileUri = file.uri.replace(regex, '$2');
-  const extension = fileUri.split('.').pop() || '';
-  const finalUri = getFinalUri(fileUri, fileType);
-  const fileURI = finalUri;
-  const fileExtension = extension;
-
-  return uploadAndCreateFileEntry(fileURI, name, fileExtension, file.parentId, progressCallback);
-}
-
-async function uploadAndroid(
-  fileToUpload: UploadingFile,
-  fileType: 'document' | 'image',
-  progressCallback: ProgressCallback,
-) {
-  const name = fileToUpload.name || getNameFromUri(fileToUpload.uri);
-  const destPath = `${getTemporaryDir()}/${name}`;
-
-  await copyFile(fileToUpload.uri, destPath);
-
-  if (fileType === 'document') {
-    const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
-      title: 'Files Permission',
-      message: 'Internxt needs access to your files in order to upload documents',
-      buttonNegative: strings.components.buttons.cancel,
-      buttonPositive: strings.components.buttons.grant,
-    });
-
-    if (!granted) {
-      Alert.alert('Can not upload files. Grant permissions to upload files');
-      return;
-    }
-  }
-  const fileExtension = fileToUpload.type;
-  const createdFileEntry = await uploadAndCreateFileEntry(
-    destPath,
-    name,
-    fileExtension,
-    fileToUpload.parentId,
-    progressCallback,
-  );
-
-  unlink(destPath).catch(() => null);
-
-  return createdFileEntry;
-}
-
-async function uploadAndCreateFileEntry(
-  filePath: string,
-  fileName: string,
-  fileExtension: string,
-  currentFolderId: number,
-  progressCallback: ProgressCallback,
-) {
-  const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
-  const fileStat = await stat(filePath);
-  const fileSize = fileStat.size;
-  const fileId = await uploadFile(
-    filePath,
-    bucket,
-    constants.REACT_NATIVE_BRIDGE_URL,
-    {
-      encryptionKey: mnemonic,
-      user: bridgeUser,
-      password: userId,
-    },
-    {
-      progress: progressCallback,
-    },
-  );
-
-  const folderId = currentFolderId;
-  const name = encryptFilename(removeExtension(fileName), folderId.toString());
-  const fileEntry: FileEntry = {
-    fileId,
-    file_id: fileId,
-    type: fileExtension,
-    bucket,
-    size: fileSize as number,
-    folder_id: folderId.toString(),
-    name,
-    encrypt_version: '03-aes',
-  };
-
-  return createFileEntry(fileEntry);
-}
-
-function UploadModal(): JSX.Element {
+function AddModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { folderContent, usage: storageUsage, limit, currentFolderId } = useAppSelector((state) => state.drive);
+  const { folderContent, usage: storageUsage, limit } = useAppSelector((state) => state.drive);
+  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const { showUploadModal } = useAppSelector((state) => state.ui);
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const usage = photosUsage + storageUsage;
+  async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
+    const name = decodeURI(file.uri).split('/').pop() || '';
+    const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
+    const fileUri = file.uri.replace(regex, '$2');
+    const extension = fileUri.split('.').pop() || '';
+    const finalUri = getFinalUri(fileUri, fileType);
+    const fileURI = finalUri;
+    const fileExtension = extension;
+
+    return uploadAndCreateFileEntry(fileURI, name, fileExtension, file.parentId, progressCallback);
+  }
+
+  async function uploadAndroid(
+    fileToUpload: UploadingFile,
+    fileType: 'document' | 'image',
+    progressCallback: ProgressCallback,
+  ) {
+    const name = fileToUpload.name || getNameFromUri(fileToUpload.uri);
+    const destPath = `${getTemporaryDir()}/${name}`;
+
+    await copyFile(fileToUpload.uri, destPath);
+
+    if (fileType === 'document') {
+      const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
+        title: 'Files Permission',
+        message: 'Internxt needs access to your files in order to upload documents',
+        buttonNegative: strings.components.buttons.cancel,
+        buttonPositive: strings.components.buttons.grant,
+      });
+
+      if (!granted) {
+        Alert.alert('Can not upload files. Grant permissions to upload files');
+        return;
+      }
+    }
+    const fileExtension = fileToUpload.type;
+    const createdFileEntry = await uploadAndCreateFileEntry(
+      destPath,
+      name,
+      fileExtension,
+      fileToUpload.parentId,
+      progressCallback,
+    );
+
+    unlink(destPath).catch(() => null);
+
+    return createdFileEntry;
+  }
+
+  async function uploadAndCreateFileEntry(
+    filePath: string,
+    fileName: string,
+    fileExtension: string,
+    currentFolderId: number,
+    progressCallback: ProgressCallback,
+  ) {
+    const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
+    const fileStat = await stat(filePath);
+    const fileSize = fileStat.size;
+    const fileId = await uploadFile(
+      filePath,
+      bucket,
+      constants.REACT_NATIVE_BRIDGE_URL,
+      {
+        encryptionKey: mnemonic,
+        user: bridgeUser,
+        password: userId,
+      },
+      {
+        progress: progressCallback,
+      },
+    );
+
+    const folderId = currentFolderId;
+    const name = encryptFilename(removeExtension(fileName), folderId.toString());
+    const fileEntry: FileEntry = {
+      fileId,
+      file_id: fileId,
+      type: fileExtension,
+      bucket,
+      size: fileSize as unknown as number,
+      folder_id: folderId.toString(),
+      name,
+      encrypt_version: '03-aes',
+    };
+
+    return createFileEntry(fileEntry);
+  }
   const upload = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
     function progressCallback(progress: number) {
       dispatch(driveActions.uploadFileSetProgress({ progress, id: uploadingFile.id }));
@@ -576,4 +576,4 @@ function UploadModal(): JSX.Element {
   );
 }
 
-export default UploadModal;
+export default AddModal;

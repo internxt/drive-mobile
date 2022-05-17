@@ -463,6 +463,9 @@ PODS:
   - RNScreens (3.10.2):
     - React-Core
     - React-RCTImage
+  - RNSentry (3.4.2):
+    - React-Core
+    - Sentry (= 7.11.0)
   - RNShare (7.3.3):
     - React-Core
   - RNSVG (12.1.1):
@@ -478,6 +481,9 @@ PODS:
     - Firebase (~> 8.7)
     - Firebase/Core (~> 8.7)
     - FirebaseAnalytics (~> 8.7)
+  - Sentry (7.11.0):
+    - Sentry/Core (= 7.11.0)
+  - Sentry/Core (7.11.0)
   - TcpSockets (3.3.2):
     - React
   - Yoga (1.14.0)
@@ -561,6 +567,7 @@ DEPENDENCIES:
   - RNOS (from `../node_modules/react-native-os`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - TcpSockets (from `../node_modules/react-native-tcp`)
@@ -581,6 +588,7 @@ SPEC REPOS:
     - nanopb
     - PromisesObjC
     - Segment-Firebase
+    - Sentry
 
 EXTERNAL SOURCES:
   DoubleConversion:
@@ -735,6 +743,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-permissions"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSentry:
+    :path: "../node_modules/@sentry/react-native"
   RNShare:
     :path: "../node_modules/react-native-share"
   RNSVG:
@@ -833,9 +843,11 @@ SPEC CHECKSUMS:
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNPermissions: f7ebe52db07c00901127966ca080b4ec6a6ceb0a
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
+  RNSentry: 2cd1daa124b0d9fd0dfc2cb6094fdd168cb579bc
   RNShare: 3185c074441b7e8897014d95ba982434a0a024a1
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   Segment-Firebase: e4515bc7e36d5f0435d122a8c225c43db1504c02
+  Sentry: 0c5cd63d714187b4a39c331c1f0eb04ba7868341
   TcpSockets: 14306fb79f9750ea7d2ddd02d8bed182abb01797
   Yoga: e6ecf3fa25af9d4c87e94ad7d5d292eedef49749
 

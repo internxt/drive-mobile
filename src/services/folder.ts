@@ -35,7 +35,7 @@ class FolderService {
     relativePath: string,
   ): Promise<void> {
     const headers = await getHeaders();
-    const headersMap: any = {};
+    const headersMap: Record<string, string> = {};
 
     headers.forEach((value: string, key: string) => {
       headersMap[key] = value;

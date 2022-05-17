@@ -92,8 +92,7 @@ function SignUpScreen(): JSX.Element {
 
       await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }))
         .unwrap()
-        .then((response) => {
-          dispatch(driveActions.setCurrentFolderId(response.user.root_folder_id));
+        .then(() => {
           navigation.replace(AppScreenKey.TabExplorer, { showReferralsBanner: true });
         });
     } catch (err) {

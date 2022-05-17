@@ -32,20 +32,19 @@ function ForgotPasswordScreen(): JSX.Element {
   }, [isLoading]);
 
   const sendDeactivationEmail = () => {
-    if (isLoading) {
-      return;
+    if (!isLoading) {
+      setIsLoading(true);
+      authService
+        .sendDeactivationsEmail(email)
+        .then(() => {
+          setIsLoading(false);
+          setCurrentCointainer(2);
+        })
+        .catch(() => {
+          setIsLoading(false);
+          return Alert.alert('Error', 'Connection to server failed');
+        });
     }
-    setIsLoading(true);
-    authService
-      .sendDeactivationsEmail(email)
-      .then(() => {
-        setIsLoading(false);
-        setCurrentCointainer(2);
-      })
-      .catch(() => {
-        setIsLoading(false);
-        return Alert.alert('Error', 'Connection to server failed');
-      });
   };
 
   if (currentContainer === 1) {

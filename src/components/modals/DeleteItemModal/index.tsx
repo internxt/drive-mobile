@@ -10,15 +10,18 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
+import AppText from '../../AppText';
+import { items } from '@internxt/lib';
 
 function DeleteItemModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const { currentFolderId, focusedItem: item } = useAppSelector((state) => state.drive);
+  const { focusedItem: item } = useAppSelector((state) => state.drive);
   const { showDeleteModal } = useAppSelector((state) => state.ui);
-  const isFolder = item && !!item.parentId;
+  const isFolder = item && !item.fileId;
   const FileIcon = getFileTypeIcon(item?.type || '');
-  const handleDeleteSelectedItem = () => {
-    currentFolderId && dispatch(driveThunks.deleteItemsThunk({ items: [item], folderToReload: currentFolderId }));
+  const onDeleteButtonPressed = () => {
+    dispatch(driveThunks.deleteItemsThunk({ items: [item] }));
+    dispatch(uiActions.setShowDeleteModal(false));
   };
 
   return (
@@ -33,21 +36,20 @@ function DeleteItemModal(): JSX.Element {
       </View>
 
       <View style={tailwind('bg-white justify-center py-3')}>
-        <Text style={[tailwind('text-center text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
+        <AppText style={[tailwind('text-center text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
           {strings.modals.delete_modal.title}
-        </Text>
+        </AppText>
         <Text style={tailwind('text-center text-sm text-neutral-100')}>{strings.modals.delete_modal.warning}</Text>
 
         <View style={tailwind('items-center my-8')}>
           {isFolder ? <FolderIcon width={80} height={80} /> : <FileIcon width={80} height={80} />}
-          <Text
+          <AppText
             style={[tailwind('text-base text-neutral-500 mt-3 px-10'), globalStyle.fontWeight.medium]}
             numberOfLines={1}
             ellipsizeMode={'middle'}
           >
-            {item?.name}
-            {item?.type ? '.' + item.type : ''}
-          </Text>
+            {item && items.getItemDisplayName(item)}
+          </AppText>
 
           <Text style={tailwind('text-neutral-100')}>
             {!isFolder && (
@@ -84,10 +86,7 @@ function DeleteItemModal(): JSX.Element {
         <TouchableHighlight
           underlayColor={getColor('red-70')}
           style={tailwind('bg-red-60 rounded-lg py-2 flex-grow items-center justify-center')}
-          onPress={() => {
-            handleDeleteSelectedItem();
-            dispatch(uiActions.setShowDeleteModal(false));
-          }}
+          onPress={onDeleteButtonPressed}
         >
           <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.generic.delete}</Text>
         </TouchableHighlight>

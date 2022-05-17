@@ -4,7 +4,6 @@ import moment from 'moment';
 
 import { tailwind } from '../../helpers/designSystem';
 import { LinearGradient } from 'expo-linear-gradient';
-import imageService from '../../services/image';
 import { GalleryViewMode } from '../../types/photos';
 import { photosActions } from '../../store/slices/photos';
 import { useAppDispatch } from '../../store/hooks';

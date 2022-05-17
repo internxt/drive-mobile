@@ -119,7 +119,7 @@ export class PhotosService {
     return this.fileSystemService.previewsDirectory;
   }
 
-  public static async initialize(accessToken: string, networkCredentials: NetworkCredentials): Promise<void> {
+  public static initialize(accessToken: string, networkCredentials: NetworkCredentials) {
     PhotosService.instance = new PhotosService(accessToken, networkCredentials);
   }
 

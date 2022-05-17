@@ -41,11 +41,8 @@ function SignInScreen(): JSX.Element {
         setShowTwoFactor(true);
         setIsLoading(false);
       } else {
-        const response = await dispatch(
-          authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }),
-        ).unwrap();
+        await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode })).unwrap();
 
-        dispatch(driveActions.setCurrentFolderId(response.user.root_folder_id));
         setIsLoading(false);
         navigation.replace(AppScreenKey.TabExplorer);
       }

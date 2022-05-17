@@ -10,7 +10,7 @@ import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptySharesImage from '../../../assets/images/screens/empty-shares.svg';
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
-import { DriveItemData, DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
+import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
 
 interface SharedScreenProps {
   searchText?: string;

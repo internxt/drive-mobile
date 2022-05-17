@@ -1,7 +1,7 @@
 interface Plan {
   id: string;
   name: string;
-  metadata: any;
+  metadata: Record<string, string>;
   plans: { id: string; price: number; name: string; interval: string; interval_count: number }[];
 }
 

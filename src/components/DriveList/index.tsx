@@ -11,7 +11,7 @@ import EmptyFolderImage from '../../../assets/images/screens/empty-folder.svg';
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
 import EmptyList from '../EmptyList';
 import strings from '../../../assets/lang/strings';
-import { driveThunks } from '../../store/slices/drive';
+import { driveSelectors, driveThunks } from '../../store/slices/drive';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { DriveListType, DriveListViewMode, DriveListItem } from '../../types/drive';
 
@@ -24,7 +24,8 @@ interface DriveListProps {
 function DriveList(props: DriveListProps): JSX.Element {
   const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
-  const { searchString, isLoading: filesLoading, currentFolderId } = useAppSelector((state) => state.drive);
+  const { searchString, isLoading: filesLoading } = useAppSelector((state) => state.drive);
+  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const { user } = useAppSelector((state) => state.auth);
   const isGrid = props.viewMode === DriveListViewMode.Grid;
   const rootFolderId = user?.root_folder_id;

@@ -64,7 +64,7 @@ class AuthService {
     });
   }
 
-  public sendDeactivationsEmail(email: string): Promise<any> {
+  public sendDeactivationsEmail(email: string): Promise<void> {
     return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/reset/${email}`, {}).then(async (res) => {
       if (res.status !== 200) {
         throw Error();

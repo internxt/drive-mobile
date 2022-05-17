@@ -80,7 +80,6 @@ function AppNavigator(): JSX.Element {
 
     Linking.getInitialURL().then((uri) => {
       if (uri) {
-        // check if it's a file or it's an url redirect
         if (uri.match(/inxt:\/\/.*:\/*/g)) {
           const regex = /inxt:\/\//g;
           const finalUri = uri.replace(regex, '');
@@ -91,7 +90,6 @@ function AppNavigator(): JSX.Element {
     });
 
     if (Platform.OS === 'android') {
-      // Receive the file from the intent using react-native-receive-sharing-intent
       ReceiveSharingIntent.getReceivedFiles(
         (files) => {
           const fileInfo = {
@@ -99,10 +97,8 @@ function AppNavigator(): JSX.Element {
             fileName: files[0].fileName,
           };
 
-          dispatch(driveActions.setUri(fileInfo));
+          dispatch(driveActions.setUri(fileInfo.fileUri));
           ReceiveSharingIntent.clearReceivedFiles();
-          // files returns as JSON Array example
-          //[{ filePath: null, text: null, weblink: null, mimeType: null, contentUri: null, fileName: null, extension: null }]
         },
         (error) => {
           Alert.alert('There was an error', error.message);

@@ -373,7 +373,7 @@ const selectAllThunk = createAsyncThunk<Photo[], void, { state: RootState }>('ph
   return PhotosService.instance.getAll();
 });
 
-const clearDataThunk = createAsyncThunk<void, void, { state: RootState }>('photos/clearData', async () => {
+const clearLocalDatabaseThunk = createAsyncThunk<void, void, { state: RootState }>('photos/clearData', async () => {
   return PhotosService.instance.clearData();
 });
 
@@ -479,10 +479,7 @@ export const photosSlice = createSlice({
     },
     popPhoto(state, action: PayloadAction<Photo>) {
       const index = state.photos.findIndex((p) => p.data.id === action.payload.id);
-
-      if (~index) {
-        state.photos.splice(index, 1);
-      }
+      ~index && state.photos.splice(index, 1);
     },
     pushDownloadedPhoto(state, action: PayloadAction<{ fileId: string; path: string }>) {
       state.downloadedPhotos.push(action.payload);
@@ -654,9 +651,9 @@ export const photosSlice = createSlice({
       .addCase(cancelSyncThunk.rejected, () => undefined);
 
     builder
-      .addCase(clearDataThunk.pending, () => undefined)
-      .addCase(clearDataThunk.fulfilled, () => undefined)
-      .addCase(clearDataThunk.rejected, () => undefined);
+      .addCase(clearLocalDatabaseThunk.pending, () => undefined)
+      .addCase(clearLocalDatabaseThunk.fulfilled, () => undefined)
+      .addCase(clearLocalDatabaseThunk.rejected, () => undefined);
   },
 });
 
@@ -724,7 +721,7 @@ export const photosThunks = {
   loadLocalPhotosThunk,
   syncThunk,
   cancelSyncThunk,
-  clearDataThunk,
+  clearLocalDatabaseThunk,
 };
 
 export default photosSlice.reducer;
