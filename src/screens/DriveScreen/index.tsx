@@ -39,7 +39,13 @@ function DriveScreen(): JSX.Element {
   const isRootFolder = currentFolderId === user?.root_folder_id;
   const screenTitle = !isRootFolder ? currentFolderName : strings.screens.drive.title;
   const onCurrentFolderActionsButtonPressed = () => {
-    dispatch(driveActions.focusItem({ ...currentFolder, parentId: currentFolderParentId as number }));
+    dispatch(
+      driveActions.setFocusedItem({
+        ...currentFolder,
+        parentId: currentFolderParentId as number,
+        updatedAt: currentFolder.updatedAt,
+      }),
+    );
     dispatch(uiActions.setShowItemModal(true));
   };
   const onSortButtonPressed = () => {

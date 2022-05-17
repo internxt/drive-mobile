@@ -7,6 +7,7 @@ export interface DriveNavigationStackItem {
   parentId: number;
   name: string;
   item: DriveItemDataProps;
+  updatedAt: string;
 }
 export type DriveNavigationStack = DriveNavigationStackItem[];
 
@@ -14,10 +15,12 @@ export type DriveItemData = DriveFileData & DriveFolderData;
 
 export type DriveItemFocused = {
   id: number;
+  name: string;
   parentId?: number;
   fileId?: string;
-  name: string;
   type?: string;
+  size?: number;
+  updatedAt: string;
 } | null;
 
 export interface DriveFolderMetadataPayload {
@@ -130,6 +133,7 @@ export interface SqliteDriveFolderRecord {
   id: number;
   parent_id: number;
   name: string;
+  updated_at: string;
   date: string;
 }
 

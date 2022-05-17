@@ -53,6 +53,7 @@ const statements = {
     return query;
   },
   deleteFolderContent: `DELETE FROM ${TABLE_NAME} WHERE parent_id = ?;`,
+  deleteItem: `DELETE FROM ${TABLE_NAME} WHERE id = ? AND is_folder = ?;`,
   get: (options: { parentId: number }): string => {
     const query = `SELECT * FROM ${TABLE_NAME} WHERE parent_id=${options.parentId} ORDER BY is_folder ASC;`;
 

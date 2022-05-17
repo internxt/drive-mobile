@@ -24,7 +24,7 @@ import notificationsService from '../../../services/notifications';
 function DriveDownloadModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const iconSize = 80;
-  const { downloadingFile } = useAppSelector((state) => state.drive);
+  const { isInitialized, downloadingFile } = useAppSelector((state) => state.drive);
   const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const FileIcon = getFileTypeIcon(downloadingFile?.data.type || '');
   const { isDriveDownloadModalOpen } = useAppSelector((state) => state.ui);
@@ -93,17 +93,19 @@ function DriveDownloadModal(): JSX.Element {
   };
 
   useEffect(() => {
-    DriveService.instance.eventEmitter.addListener({
-      event: DriveEventKey.DownloadCompleted,
-      listener: onDownloadCompleted,
-    });
-    DriveService.instance.eventEmitter.addListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
-    DriveService.instance.eventEmitter.addListener({
-      event: DriveEventKey.DownloadFinally,
-      listener: onDownloadFinally,
-    });
-    DriveService.instance.eventEmitter.addListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
-    DriveService.instance.eventEmitter.addListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
+    if (isInitialized) {
+      DriveService.instance.eventEmitter.addListener({
+        event: DriveEventKey.DownloadCompleted,
+        listener: onDownloadCompleted,
+      });
+      DriveService.instance.eventEmitter.addListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
+      DriveService.instance.eventEmitter.addListener({
+        event: DriveEventKey.DownloadFinally,
+        listener: onDownloadFinally,
+      });
+      DriveService.instance.eventEmitter.addListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
+      DriveService.instance.eventEmitter.addListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
+    }
 
     return () => {
       DriveService.instance.eventEmitter.removeListener({
@@ -127,7 +129,7 @@ function DriveDownloadModal(): JSX.Element {
         listener: onCancelEnd,
       });
     };
-  }, []);
+  }, [isInitialized]);
 
   return (
     <CenterModal isOpen={isDriveDownloadModalOpen} onClosed={onClosed} backdropPressToClose={false}>

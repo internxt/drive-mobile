@@ -50,14 +50,15 @@ export default class DriveLocalDatabaseService {
   }
 
   public async saveFolderContent(
-    folderRecordData: { id: number; parentId: number; name: string },
+    folderRecordData: { id: number; parentId: number; name: string; updatedAt: string },
     items: DriveItemData[],
   ) {
-    const { id, parentId, name } = folderRecordData;
+    const { id, parentId, name, updatedAt } = folderRecordData;
+
     await sqliteService.transaction(DRIVE_DB_NAME, async (tx) => {
       tx.executeSql(folderRecordTable.statements.deleteById, [id]);
       tx.executeSql(driveItemTable.statements.deleteFolderContent, [id]);
-      tx.executeSql(folderRecordTable.statements.insert, [id, parentId, name, new Date().toString()]);
+      tx.executeSql(folderRecordTable.statements.insert, [id, parentId, name, updatedAt, new Date().toString()]);
 
       if (items.length > 0) {
         const rows = items.map<InsertSqliteDriveItemRowData>((item) => {
@@ -94,11 +95,17 @@ export default class DriveLocalDatabaseService {
     return sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.deleteById, [folderId]);
   }
 
+  public deleteItem({ id, isFolder }: { id: number; isFolder: boolean }) {
+    return sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteItem, [id, isFolder]);
+  }
+
   public async resetDatabase(): Promise<void> {
     await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.cleanTable);
     await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.cleanTable);
     await sqliteService.close(DRIVE_DB_NAME);
     await sqliteService.delete(DRIVE_DB_NAME);
+
+    this.logService.info('Local database reset');
   }
 
   private mapDriveItemRowToModel(row: SqliteDriveItemRow): DriveItemData {

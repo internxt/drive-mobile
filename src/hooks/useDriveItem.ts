@@ -57,13 +57,19 @@ const useDriveItem = (props: UseDriveItemProps) => {
 
     isFolder ? onFolderPressed() : onFilePressed();
   };
-  const onItemLongPressed = () => {
-    dispatch(driveActions.focusItem(props.data));
+  const onActionsButtonPressed = () => {
+    dispatch(
+      driveActions.setFocusedItem({
+        ...props.data,
+        parentId: props.data.parentId as number,
+        size: props.data.size,
+        updatedAt: props.data.updatedAt,
+      }),
+    );
     dispatch(uiActions.setShowItemModal(true));
   };
-  const onActionsButtonPressed = () => {
-    dispatch(driveActions.focusItem(props.data));
-    dispatch(uiActions.setShowItemModal(true));
+  const onItemLongPressed = () => {
+    onActionsButtonPressed();
   };
 
   return {

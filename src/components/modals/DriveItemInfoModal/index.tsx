@@ -22,7 +22,7 @@ function DriveItemInfoModal(): JSX.Element {
   }
 
   const isFolder = !item.fileId;
-  const FileIcon = getFileTypeIcon(item?.type);
+  const FileIcon = getFileTypeIcon(item?.type || '');
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
@@ -41,7 +41,7 @@ function DriveItemInfoModal(): JSX.Element {
         <Text style={tailwind('text-xs text-neutral-100')}>
           {!isFolder && (
             <>
-              {prettysize(item?.size)}
+              {prettysize(item?.size || 0)}
               <Text style={globalStyle.fontWeight.bold}> · </Text>
             </>
           )}

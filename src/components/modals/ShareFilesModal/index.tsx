@@ -25,7 +25,6 @@ function ShareFilesModal(): JSX.Element {
   const { showShareModal } = useAppSelector((state) => state.ui);
   const { focusedItem } = useAppSelector((state) => state.drive);
   const [isOpen, setIsOpen] = useState(showShareModal);
-  const [selectedFile, setSelectedFile] = useState<DriveItemData>();
   const [link, setLink] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [inputValue, setInputValue] = useState('10');
@@ -66,7 +65,7 @@ function ShareFilesModal(): JSX.Element {
     setIsLoading(true);
     setInputValue('10');
   };
-  const FileIcon = getFileTypeIcon((selectedFile && selectedFile.type) || '');
+  const FileIcon = getFileTypeIcon(focusedItem?.type || '');
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
@@ -79,13 +78,13 @@ function ShareFilesModal(): JSX.Element {
           ellipsizeMode="middle"
           style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
         >
-          {selectedFile?.name}
-          {selectedFile?.type ? '.' + selectedFile.type : ''}
+          {focusedItem?.name}
+          {focusedItem?.type ? '.' + focusedItem.type : ''}
         </Text>
         <Text style={tailwind('text-xs text-neutral-100')}>
-          {prettysize(selectedFile?.size || 0)}
+          {prettysize(focusedItem?.size || 0)}
           <Text style={globalStyle.fontWeight.bold}> · </Text>Updated{' '}
-          {new Date(selectedFile?.updatedAt || 0).toLocaleDateString('en-GB', {
+          {new Date(focusedItem?.updatedAt || 0).toLocaleDateString('en-GB', {
             day: 'numeric',
             month: 'short',
             year: 'numeric',
@@ -103,8 +102,7 @@ function ShareFilesModal(): JSX.Element {
     setIsOpen(showShareModal);
 
     if (showShareModal && focusedItem) {
-      setSelectedFile(focusedItem);
-      getLink(focusedItem.fileId, parseInt(inputValue)).then(() => setIsLoading(false));
+      focusedItem.fileId && getLink(focusedItem.fileId, parseInt(inputValue)).then(() => setIsLoading(false));
     }
   }, [showShareModal]);
 
@@ -114,7 +112,9 @@ function ShareFilesModal(): JSX.Element {
     }
     setIsLoading(true);
     const delay = setTimeout(() => {
-      selectedFile && getLink(selectedFile.fileId, parseInt(inputValue)).then(() => setIsLoading(false));
+      focusedItem &&
+        focusedItem?.fileId &&
+        getLink(focusedItem.fileId, parseInt(inputValue)).then(() => setIsLoading(false));
     }, 1000);
 
     return () => {

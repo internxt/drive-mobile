@@ -41,7 +41,7 @@ function RenameModal(): JSX.Element {
     try {
       setIsLoading(true);
 
-      if (isFolder) {
+      if (focusedItem && isFolder) {
         await dispatch(
           driveThunks.updateFolderMetadataThunk({
             folderId: focusedItem.id,
