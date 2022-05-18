@@ -66,7 +66,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   },
   android: {
     googleServicesFile: './google-services.json',
-    versionCode: 53,
+    versionCode: 55,
     icon: './assets/icon-android.png',
     adaptiveIcon: {
       foregroundImage: './assets/icon-android.png',
