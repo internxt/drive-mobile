@@ -3,5 +3,5 @@
   "rules": {
     "max-len": "off"
   },
-  "ignorePatterns": ["env", "app.config.js", "babel.config.js", "shim.js", "metro.config.js"]
+  "ignorePatterns": ["env", "babel.config.js", "shim.js", "metro.config.js"]
 }

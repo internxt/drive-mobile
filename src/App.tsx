@@ -18,7 +18,6 @@ import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { uiActions } from './store/slices/ui';
-import { driveActions } from './store/slices/drive';
 import SortModal from './components/modals/SortModal';
 import AppToast from './components/AppToast';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
