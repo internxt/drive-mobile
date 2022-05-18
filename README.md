@@ -106,10 +106,6 @@ You can only test the iOS application on a Mac OS computer.
 ```bash
 cd ios
 
-pod deintegrate
-
-sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-
 pod install
 ```
 

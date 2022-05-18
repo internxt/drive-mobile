@@ -23,7 +23,11 @@ export interface AppEnv {
   REACT_NATIVE_MAGIC_IV: string;
   REACT_NATIVE_MAGIC_SALT: string;
   REACT_NATIVE_RECAPTCHA_V3: string;
-  REACT_NATIVE_SENTRY_DSN: string;
+  SENTRY_DSN: string;
+  SENTRY_ORGANIZATION: string;
+  SENTRY_PROJECT: string;
+  SENTRY_URL: string;
+  SENTRY_AUTH_TOKEN: string;
 }
 
 const stage = AppStage.Development; // <- CHANGE STAGE
@@ -102,10 +106,10 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
       {
         file: 'sentry-expo/upload-sourcemaps',
         config: {
-          organization: 'internxt',
-          project: 'internxt',
-          authToken: '604a69819acc43e4baa48c7103a4bc7d6b43b2d92f7e447c943241f704c2a76a',
-          url: 'https://sentry.internxt.com',
+          organization: env[stage].SENTRY_ORGANIZATION,
+          project: env[stage].SENTRY_PROJECT,
+          authToken: env[stage].SENTRY_AUTH_TOKEN,
+          url: env[stage].SENTRY_URL,
         },
       },
     ],

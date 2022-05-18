@@ -10,11 +10,9 @@ beforeAll(() => {
 });
 
 test('Collect error events', function () {
-  // TODO: captureException
   expect(testkit.reports()).toHaveLength(0);
 });
 
 test('Collect performance events', function () {
-  // TODO: startTransaction
   expect(testkit.transactions()).toHaveLength(0);
 });
