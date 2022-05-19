@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Text, View, BackHandler, TouchableOpacity } from 'react-native';
 
 import DriveList from '../../components/DriveList';
@@ -21,23 +21,35 @@ import AppScreen from '../../components/AppScreen';
 import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
 import { asyncStorage } from '../../services/asyncStorage';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { DriveListType, SortDirection } from '../../types/drive';
+import { DriveListType, SortDirection, SortType } from '../../types/drive';
+import SortModal, { SortMode } from '../../components/modals/SortModal';
+import fileService from '../../services/file';
 
 function DriveScreen(): JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const route = useRoute();
   const dispatch = useAppDispatch();
+  const [sortModalOpen, setSortModalOpen] = useState(false);
+  const [sortMode, setSortMode] = useState({
+    type: SortType.Name,
+    direction: SortDirection.Asc,
+  });
+
   const { user, loggedIn } = useAppSelector((state) => state.auth);
-  const { sortType, sortDirection, searchString } = useAppSelector((state) => state.drive);
+  const { searchString } = useAppSelector((state) => state.drive);
   const currentFolder = useAppSelector(driveSelectors.navigationStackPeek);
   const { id: currentFolderId, name: currentFolderName, parentId: currentFolderParentId } = currentFolder;
-  const driveItems = useAppSelector(driveSelectors.driveItems);
+  const { uploading: driveUploadingItems, items: driveItems } = useAppSelector(driveSelectors.driveItems);
   const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.ui);
   const onSearchTextChanged = (value: string) => {
     dispatch(driveActions.setSearchString(value));
   };
   const isRootFolder = currentFolderId === user?.root_folder_id;
   const screenTitle = !isRootFolder ? currentFolderName : strings.screens.drive.title;
+  const driveSortedItems = useMemo(
+    () => [...driveUploadingItems, ...driveItems.sort(fileService.getSortFunction(sortMode))],
+    [sortMode, driveUploadingItems, driveItems],
+  );
   const onCurrentFolderActionsButtonPressed = () => {
     dispatch(
       driveActions.setFocusedItem({
@@ -49,13 +61,22 @@ function DriveScreen(): JSX.Element {
     dispatch(uiActions.setShowItemModal(true));
   };
   const onSortButtonPressed = () => {
-    dispatch(uiActions.setShowSortModal(true));
+    setSortModalOpen(true);
   };
   const onViewModeButtonPressed = () => {
     dispatch(uiActions.switchFileViewMode());
   };
   const onBackButtonPressed = () => {
     dispatch(driveThunks.goBackThunk({ folderId: currentFolderParentId as number }));
+  };
+
+  const onSortModeChange = (mode: SortMode) => {
+    setSortMode(mode);
+    setSortModalOpen(false);
+  };
+
+  const onCloseSortModal = () => {
+    setSortModalOpen(false);
   };
 
   if (!loggedIn) {
@@ -154,8 +175,8 @@ function DriveScreen(): JSX.Element {
       <View style={[tailwind('flex-row justify-between items-center')]}>
         <TouchableOpacity onPress={onSortButtonPressed}>
           <View style={tailwind('px-5 py-1 flex-row items-center')}>
-            <Text style={tailwind('text-base text-neutral-100 mr-1')}>{strings.screens.drive.sort[sortType]}</Text>
-            {sortDirection === SortDirection.Asc ? (
+            <Text style={tailwind('text-base text-neutral-100 mr-1')}>{strings.screens.drive.sort[sortMode.type]}</Text>
+            {sortMode.direction === SortDirection.Asc ? (
               <ArrowUp weight="bold" size={15} color={getColor('neutral-100')} />
             ) : (
               <ArrowDown weight="bold" size={15} color={getColor('neutral-100')} />
@@ -175,7 +196,13 @@ function DriveScreen(): JSX.Element {
 
       <Separator />
 
-      <DriveList items={driveItems} type={DriveListType.Drive} viewMode={fileViewMode} />
+      <DriveList items={driveSortedItems} type={DriveListType.Drive} viewMode={fileViewMode} />
+      <SortModal
+        isOpen={sortModalOpen}
+        sortMode={sortMode}
+        onSortModeChange={onSortModeChange}
+        onClose={onCloseSortModal}
+      />
     </AppScreen>
   );
 }

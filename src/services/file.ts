@@ -1,7 +1,14 @@
 import { createHash } from 'crypto';
 import axios from 'axios';
 
-import { DriveFileMetadataPayload, DriveItemData, SortDirection, SortType } from '../types/drive';
+import {
+  DriveFileMetadataPayload,
+  DriveItemData,
+  DriveItemStatus,
+  DriveListItem,
+  SortDirection,
+  SortType,
+} from '../types/drive';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
 import { FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
@@ -148,7 +155,7 @@ async function deleteItems(items: DriveItemData[]): Promise<void> {
   return Promise.all(fetchArray).then(() => undefined);
 }
 
-export type ArraySortFunction = (a: DriveItemData, b: DriveItemData) => number;
+export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
 
 function getSortFunction({
   type,
@@ -163,15 +170,15 @@ function getSortFunction({
     case SortType.Name:
       sortFunction =
         direction === SortDirection.Asc
-          ? (a: DriveItemData, b: DriveItemData) => {
-              const aName = a.name.toLowerCase();
-              const bName = b.name.toLowerCase();
+          ? (a: DriveListItem, b: DriveListItem) => {
+              const aName = a.data.name.toLowerCase();
+              const bName = b.data.name.toLowerCase();
 
               return aName < bName ? -1 : aName > bName ? 1 : 0;
             }
-          : (a: DriveItemData, b: DriveItemData) => {
-              const aName = a.name.toLowerCase();
-              const bName = b.name.toLowerCase();
+          : (a: DriveListItem, b: DriveListItem) => {
+              const aName = a.data.name.toLowerCase();
+              const bName = b.data.name.toLowerCase();
 
               return aName < bName ? 1 : aName > bName ? -1 : 0;
             };
@@ -179,25 +186,25 @@ function getSortFunction({
     case SortType.Size:
       sortFunction =
         direction === SortDirection.Asc
-          ? (a: DriveItemData, b: DriveItemData) => {
-              return a.size > b.size ? 1 : -1;
+          ? (a: DriveListItem, b: DriveListItem) => {
+              return a.data?.size || 0 > (b.data?.size || 0) ? 1 : -1;
             }
-          : (a: DriveItemData, b: DriveItemData) => {
-              return a.size < b.size ? 1 : -1;
+          : (a: DriveListItem, b: DriveListItem) => {
+              return (a.data?.size || 0) < (b.data?.size || 0) ? 1 : -1;
             };
       break;
     case SortType.UpdatedAt:
       sortFunction =
         direction === SortDirection.Asc
-          ? (a: DriveItemData, b: DriveItemData) => {
-              const aTime = new Date(a.updatedAt).getTime();
-              const bTime = new Date(b.updatedAt).getTime();
+          ? (a: DriveListItem, b: DriveListItem) => {
+              const aTime = new Date(a.data.updatedAt).getTime();
+              const bTime = new Date(b.data.updatedAt).getTime();
 
               return aTime < bTime ? 1 : -1;
             }
-          : (a: DriveItemData, b: DriveItemData) => {
-              const aTime = new Date(a.updatedAt).getTime();
-              const bTime = new Date(b.updatedAt).getTime();
+          : (a: DriveListItem, b: DriveListItem) => {
+              const aTime = new Date(a.data.updatedAt).getTime();
+              const bTime = new Date(b.data.updatedAt).getTime();
 
               return aTime > bTime ? 1 : -1;
             };
