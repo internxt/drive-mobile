@@ -9,7 +9,7 @@ import globalStyle from '../../../styles';
 import AppText from '../../AppText';
 import { SortDirection, SortType } from '../../../types/drive';
 
-type SortMode = {
+export type SortMode = {
   direction: SortDirection;
   type: SortType;
 };

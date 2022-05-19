@@ -22,7 +22,7 @@ import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, Square
 import { asyncStorage } from '../../services/asyncStorage';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DriveListType, SortDirection, SortType } from '../../types/drive';
-import SortModal from '../../components/modals/SortModal';
+import SortModal, { SortMode } from '../../components/modals/SortModal';
 import fileService from '../../services/file';
 
 function DriveScreen(): JSX.Element {
@@ -30,7 +30,7 @@ function DriveScreen(): JSX.Element {
   const route = useRoute();
   const dispatch = useAppDispatch();
   const [sortModalOpen, setSortModalOpen] = useState(false);
-  const [sortOptions, setSortOptions] = useState({
+  const [sortMode, setSortMode] = useState({
     type: SortType.Name,
     direction: SortDirection.Asc,
   });
@@ -47,8 +47,8 @@ function DriveScreen(): JSX.Element {
   const isRootFolder = currentFolderId === user?.root_folder_id;
   const screenTitle = !isRootFolder ? currentFolderName : strings.screens.drive.title;
   const driveSortedItems = useMemo(
-    () => [...driveUploadingItems, ...driveItems.sort(fileService.getSortFunction(sortOptions))],
-    [sortOptions, driveUploadingItems, driveItems],
+    () => [...driveUploadingItems, ...driveItems.sort(fileService.getSortFunction(sortMode))],
+    [sortMode, driveUploadingItems, driveItems],
   );
   const onCurrentFolderActionsButtonPressed = () => {
     dispatch(
@@ -68,6 +68,15 @@ function DriveScreen(): JSX.Element {
   };
   const onBackButtonPressed = () => {
     dispatch(driveThunks.goBackThunk({ folderId: currentFolderParentId as number }));
+  };
+
+  const onSortModeChange = (mode: SortMode) => {
+    setSortMode(mode);
+    setSortModalOpen(false);
+  };
+
+  const onCloseSortModal = () => {
+    setSortModalOpen(false);
   };
 
   if (!loggedIn) {
@@ -166,10 +175,8 @@ function DriveScreen(): JSX.Element {
       <View style={[tailwind('flex-row justify-between items-center')]}>
         <TouchableOpacity onPress={onSortButtonPressed}>
           <View style={tailwind('px-5 py-1 flex-row items-center')}>
-            <Text style={tailwind('text-base text-neutral-100 mr-1')}>
-              {strings.screens.drive.sort[sortOptions.type]}
-            </Text>
-            {sortOptions.direction === SortDirection.Asc ? (
+            <Text style={tailwind('text-base text-neutral-100 mr-1')}>{strings.screens.drive.sort[sortMode.type]}</Text>
+            {sortMode.direction === SortDirection.Asc ? (
               <ArrowUp weight="bold" size={15} color={getColor('neutral-100')} />
             ) : (
               <ArrowDown weight="bold" size={15} color={getColor('neutral-100')} />
@@ -192,14 +199,9 @@ function DriveScreen(): JSX.Element {
       <DriveList items={driveSortedItems} type={DriveListType.Drive} viewMode={fileViewMode} />
       <SortModal
         isOpen={sortModalOpen}
-        sortMode={sortOptions}
-        onSortModeChange={(mode) => {
-          setSortOptions(mode);
-          setSortModalOpen(false);
-        }}
-        onClose={() => {
-          setSortModalOpen(false);
-        }}
+        sortMode={sortMode}
+        onSortModeChange={onSortModeChange}
+        onClose={onCloseSortModal}
       />
     </AppScreen>
   );
