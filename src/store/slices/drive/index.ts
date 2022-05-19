@@ -43,8 +43,6 @@ export interface DriveState {
   selectedItems: DriveItemData[];
   folderContent: DriveItemData[];
   focusedItem: DriveItemFocused;
-  sortType: SortType;
-  sortDirection: SortDirection;
   searchString: string;
   isUploading: boolean;
   isUploadingFileName: string | null;
@@ -67,8 +65,6 @@ const initialState: DriveState = {
   uploadingFiles: [],
   downloadingFile: undefined,
   selectedItems: [],
-  sortType: SortType.Name,
-  sortDirection: SortDirection.Asc,
   searchString: '',
   isUploading: false,
   isUploadingFileName: '',
@@ -399,12 +395,6 @@ export const driveSlice = createSlice({
     resetState(state) {
       Object.assign(state, initialState);
     },
-    setSortType(state, action: PayloadAction<SortType>) {
-      state.sortType = action.payload;
-    },
-    setSortDirection(state, action: PayloadAction<SortDirection>) {
-      state.sortDirection = action.payload;
-    },
     setUri(state, action: PayloadAction<string | undefined>) {
       if (action.payload) {
         asyncStorage.getUser().then((user) => {
@@ -636,36 +626,34 @@ export const driveSelectors = {
       ? state.drive.navigationStack[0]
       : { id: state.auth.user?.root_folder_id || -1, name: '', parentId: null, updatedAt: Date.now().toString() };
   },
-  driveItems(state: RootState): DriveListItem[] {
-    const { folderContent, uploadingFiles, searchString, sortType, sortDirection } = state.drive;
-    const sortFunction = fileService.getSortFunction({ type: sortType, direction: sortDirection });
+  driveItems(state: RootState): { uploading: DriveListItem[]; items: DriveListItem[] } {
+    const { folderContent, uploadingFiles, searchString } = state.drive;
+
     let items = folderContent;
 
     if (searchString) {
       items = items.filter((item) => item.name.toLowerCase().includes(searchString.toLowerCase()));
     }
 
-    items = items.slice().sort(sortFunction);
     items = items.slice().sort((a, b) => {
       const aValue = a.fileId ? 1 : 0;
       const bValue = b.fileId ? 1 : 0;
 
       return aValue - bValue;
     });
-
-    return [
-      ...uploadingFiles.map<DriveListItem>((f) => ({
+    return {
+      uploading: uploadingFiles.map<DriveListItem>((f) => ({
         status: DriveItemStatus.Uploading,
         progress: f.progress,
         data: {
           ...f,
         },
       })),
-      ...items.map<DriveListItem>((f) => ({
+      items: items.map<DriveListItem>((f) => ({
         status: DriveItemStatus.Idle,
         data: f,
       })),
-    ];
+    };
   },
 };
 

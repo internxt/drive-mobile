@@ -131,7 +131,6 @@ export default function App(): JSX.Element {
 
             <AppToast />
 
-            <SortModal />
             <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClosed={onLinkCopiedModalClosed} />
             <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClosed={onInviteFriendsModalClosed} />
             <NewsletterModal isOpen={isNewsletterModalOpen} onClosed={onNewsletterModalClosed} />
