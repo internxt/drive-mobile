@@ -84,9 +84,6 @@ export class NetworkFacade {
 
     const fileSize = parseInt((await RNFS.stat(plainFilePath)).size);
 
-    console.log('plainFilepath', plainFilePath);
-    console.log('encryptedFilePath', encryptedFilePath);
-
     const uploadFilePromise = uploadFile(
       this.network,
       this.cryptoLib,
