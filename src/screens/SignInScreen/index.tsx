@@ -16,7 +16,6 @@ import { useAppDispatch } from '../../store/hooks';
 import { authThunks } from '../../store/slices/auth';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
-import { driveActions } from '../../store/slices/drive';
 import AppButton from '../../components/AppButton';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
