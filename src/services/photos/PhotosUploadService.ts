@@ -7,6 +7,7 @@ import PhotosLogService from './PhotosLogService';
 import PhotosFileSystemService from './PhotosFileSystemService';
 import { pathToUri, uriToPath } from '../fileSystem';
 import PhotosPreviewService from './PhotosPreviewService';
+import { constants } from '../app';
 
 export default class PhotosUploadService {
   private readonly model: PhotosServiceModel;
@@ -47,6 +48,7 @@ export default class PhotosUploadService {
       tmpPreviewPath,
       this.model.user?.bucketId || '',
       this.model.networkCredentials.encryptionKey,
+      constants.REACT_NATIVE_PHOTOS_NETWORK_API_URL,
       {
         user: this.model.networkCredentials.user,
         pass: this.model.networkCredentials.password
@@ -59,6 +61,7 @@ export default class PhotosUploadService {
       uriToPath(uri),
       this.model.user?.bucketId || '',
       this.model.networkCredentials.encryptionKey,
+      constants.REACT_NATIVE_PHOTOS_NETWORK_API_URL,
       {
         user: this.model.networkCredentials.user,
         pass: this.model.networkCredentials.password

@@ -22,7 +22,7 @@ export interface FileMeta {
 
 type FileType = 'document' | 'image';
 
-export async function uploadFile(file: FileMeta, progressCallback: (progress: number) => void): Promise<string> {
+export async function uploadFile(file: FileMeta, apiUrl: string, progressCallback: (progress: number) => void): Promise<string> {
   const { bridgeUser, bridgePass, encryptionKey, bucketId } = await getEnvironmentConfig();
   const params = { fileUri: file.uri, filepath: file.path, progressCallback };
 
@@ -30,6 +30,7 @@ export async function uploadFile(file: FileMeta, progressCallback: (progress: nu
     params.filepath,
     bucketId,
     encryptionKey,
+    apiUrl,
     {
       pass: bridgePass,
       user: bridgeUser

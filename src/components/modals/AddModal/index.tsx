@@ -28,6 +28,7 @@ import notificationsService from '../../../services/notifications';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import BottomModal from '../BottomModal';
 import { UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
+import { constants } from '../../../services/app';
 
 function AddModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -99,6 +100,7 @@ function AddModal(): JSX.Element {
       filePath,
       bucket,
       mnemonic,
+      constants.REACT_NATIVE_BRIDGE_URL,
       {
         user: bridgeUser,
         pass: userId

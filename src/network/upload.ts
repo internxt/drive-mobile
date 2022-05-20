@@ -1,5 +1,4 @@
 import { getNetwork } from './NetworkFacade';
-import { constants } from '../services/app';
 import { Abortable } from '../types';
 import { NetworkCredentials } from './requests';
 
@@ -12,11 +11,12 @@ export async function uploadFile(
   filePath: string,
   bucketId: string,
   mnemonic: string,
+  apiUrl: string,
   creds: NetworkCredentials,
   params: UploadFileParams,
   onAbortableReady?: (abortable: Abortable) => void
 ): Promise<string> {
-  const network = getNetwork(constants.REACT_NATIVE_BRIDGE_URL, creds);
+  const network = getNetwork(apiUrl, creds);
 
   const [uploadPromise, abortable] = await network.upload(
     bucketId,
