@@ -184,7 +184,7 @@ export default class PhotosSyncService {
         status: PhotoStatus.Exists,
       },
       0,
-      0,
+      1,
     );
     this.eventEmitter.emit({ id: this.currentSyncId, event: PhotosEventKey.DownloadTasksCalculated }, downloadTasks);
     const newerUploadTasks = await this.cameraRollService.countByPages({
