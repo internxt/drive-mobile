@@ -2,7 +2,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { View, Text, TouchableWithoutFeedback, ImageBackground } from 'react-native';
 import { tailwind } from '../../helpers/designSystem';
-import imageService from '../../services/image';
 import { useAppDispatch } from '../../store/hooks';
 import { photosActions } from '../../store/slices/photos';
 import { GalleryViewMode } from '../../types/photos';

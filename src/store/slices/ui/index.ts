@@ -8,7 +8,6 @@ export interface UIState {
   createFolderActive: boolean;
   showItemModal: boolean;
   showAddItemModal: boolean;
-  showSortModal: boolean;
   showMoveModal: boolean;
   showDeleteModal: boolean;
   showShareModal: boolean;
@@ -35,7 +34,6 @@ const initialState: UIState = {
   createFolderActive: false,
   showItemModal: false,
   showAddItemModal: false,
-  showSortModal: false,
   showMoveModal: false,
   showDeleteModal: false,
   showShareModal: false,
@@ -64,9 +62,6 @@ export const uiSlice = createSlice({
     },
     setSearchActive: (state, action: PayloadAction<boolean>) => {
       state.searchActive = action.payload;
-    },
-    setShowSortModal: (state, action: PayloadAction<boolean>) => {
-      state.showSortModal = action.payload;
     },
     setShowItemModal: (state, action: PayloadAction<boolean>) => {
       state.showItemModal = action.payload;

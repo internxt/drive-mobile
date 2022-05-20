@@ -1,5 +1,6 @@
+import sentryPlugin from './sentry.plugin';
 import axiosPlugin from './axios.plugin';
 
-const plugins = [axiosPlugin];
+const plugins = [sentryPlugin, axiosPlugin];
 
 export default plugins;

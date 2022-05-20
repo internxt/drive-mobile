@@ -18,7 +18,6 @@ import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { uiActions } from './store/slices/ui';
-import { driveActions } from './store/slices/drive';
 import SortModal from './components/modals/SortModal';
 import AppToast from './components/AppToast';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
@@ -45,7 +44,6 @@ export default function App(): JSX.Element {
     const user = await asyncStorage.getUser();
 
     if (token && photosToken && user) {
-      dispatch(driveActions.setCurrentFolderId(user.root_folder_id));
       dispatch(authActions.signIn({ token, photosToken, user }));
 
       dispatch(appThunks.initializeThunk());
@@ -133,7 +131,6 @@ export default function App(): JSX.Element {
 
             <AppToast />
 
-            <SortModal />
             <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClosed={onLinkCopiedModalClosed} />
             <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClosed={onInviteFriendsModalClosed} />
             <NewsletterModal isOpen={isNewsletterModalOpen} onClosed={onNewsletterModalClosed} />

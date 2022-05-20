@@ -8,15 +8,16 @@ import Separator from '../../AppSeparator';
 import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
-import { driveThunks } from '../../../store/slices/drive';
+import { driveSelectors, driveThunks } from '../../../store/slices/drive';
 import DriveItem from '../../DriveItemTable';
-import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
+import { DriveItemData, DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
 
 function MoveFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { showMoveModal } = useAppSelector((state) => state.ui);
-  const { currentFolderId, selectedFile } = useAppSelector((state) => state.drive);
+  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
+  const selectedFile: any = null; // TODO: selectedFile from store
 
   const onMoveButtonPressed = async () => {
     const rootFolderId = user?.root_folder_id;
@@ -50,15 +51,14 @@ function MoveFilesModal(): JSX.Element {
 
       <View style={tailwind('flex-grow')}>
         <FlatList
-          data={[] as any[]}
-          renderItem={(folder: any) => {
+          data={[] as DriveItemData[]}
+          renderItem={({ item }) => {
             return (
               <DriveItem
-                key={folder.id}
                 type={DriveListType.Drive}
                 status={DriveItemStatus.Idle}
                 viewMode={DriveListViewMode.List}
-                data={folder.item}
+                data={item}
                 progress={-1}
               />
             );
@@ -73,7 +73,7 @@ function MoveFilesModal(): JSX.Element {
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, styles.blue]} onPress={onMoveButtonPressed}>
-          <Text style={[styles.text, styles.white]}>{strings.components.buttons.move}</Text>
+          <Text style={[styles.text, tailwind('text-white')]}>{strings.components.buttons.move}</Text>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -117,9 +117,6 @@ const styles = StyleSheet.create({
     fontSize: 21,
     letterSpacing: -0.2,
     margin: 20,
-  },
-  white: {
-    color: '#fff',
   },
 });
 

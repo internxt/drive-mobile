@@ -2,7 +2,26 @@ import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage
 
 export const UPLOAD_FILE_SIZE_LIMIT = 1024 * 1024 * 1024;
 
+export interface DriveNavigationStackItem {
+  id: number;
+  parentId: number;
+  name: string;
+  item: DriveItemDataProps;
+  updatedAt: string;
+}
+export type DriveNavigationStack = DriveNavigationStackItem[];
+
 export type DriveItemData = DriveFileData & DriveFolderData;
+
+export type DriveItemFocused = {
+  id: number;
+  name: string;
+  parentId?: number;
+  fileId?: string;
+  type?: string;
+  size?: number;
+  updatedAt: string;
+} | null;
 
 export interface DriveFolderMetadataPayload {
   itemName: string;
@@ -108,6 +127,14 @@ export interface SqliteDriveItemRow {
   type: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface SqliteDriveFolderRecord {
+  id: number;
+  parent_id: number;
+  name: string;
+  updated_at: string;
+  date: string;
 }
 
 export type InsertSqliteDriveItemRowData = Pick<

@@ -23,6 +23,11 @@ export interface AppEnv {
   REACT_NATIVE_MAGIC_IV: string;
   REACT_NATIVE_MAGIC_SALT: string;
   REACT_NATIVE_RECAPTCHA_V3: string;
+  SENTRY_DSN: string;
+  SENTRY_ORGANIZATION: string;
+  SENTRY_PROJECT: string;
+  SENTRY_URL: string;
+  SENTRY_AUTH_TOKEN: string;
 }
 
 const stage = AppStage.Production; // <- CHANGE STAGE
@@ -61,7 +66,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   },
   android: {
     googleServicesFile: './google-services.json',
-    versionCode: 53,
+    versionCode: 55,
     icon: './assets/icon-android.png',
     adaptiveIcon: {
       foregroundImage: './assets/icon-android.png',
@@ -95,6 +100,19 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   androidNavigationBar: {
     barStyle: 'dark-content',
     backgroundColor: '#091e42',
+  },
+  hooks: {
+    postPublish: [
+      {
+        file: 'sentry-expo/upload-sourcemaps',
+        config: {
+          organization: env[stage].SENTRY_ORGANIZATION,
+          project: env[stage].SENTRY_PROJECT,
+          authToken: env[stage].SENTRY_AUTH_TOKEN,
+          url: env[stage].SENTRY_URL,
+        },
+      },
+    ],
   },
   extra: { NODE_ENV: stage, ...env[stage] },
 };

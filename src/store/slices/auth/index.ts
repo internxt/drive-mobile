@@ -8,9 +8,8 @@ import analytics, { AnalyticsEventKey } from '../../../services/analytics';
 import { AsyncStorageKey, DevicePlatform, User } from '../../../types';
 import { photosActions, photosThunks } from '../photos';
 import { appThunks } from '../app';
-import { driveActions } from '../drive';
+import { driveActions, driveThunks } from '../drive';
 import { uiActions } from '../ui';
-import { Alert } from 'react-native';
 
 export interface AuthState {
   loggedIn: boolean;
@@ -55,9 +54,10 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
+    dispatch(driveThunks.clearLocalDatabaseThunk());
     dispatch(driveActions.resetState());
     dispatch(photosThunks.cancelSyncThunk());
-    dispatch(photosThunks.clearDataThunk());
+    dispatch(photosThunks.clearLocalDatabaseThunk());
     dispatch(photosActions.resetState());
   },
 );
@@ -76,7 +76,7 @@ export const authSlice = createSlice({
     resetState(state) {
       Object.assign(state, initialState);
     },
-    signIn: (state: AuthState, action: PayloadAction<{ token: string; photosToken: string; user: User }>) => {
+    signIn: (state, action: PayloadAction<{ token: string; photosToken: string; user: User }>) => {
       state.loggedIn = true;
       state.user = action.payload.user;
       state.token = action.payload.token;
@@ -96,9 +96,7 @@ export const authSlice = createSlice({
           .identify(user.uuid, {
             email: user.email,
             platform: DevicePlatform.Mobile,
-            // eslint-disable-next-line camelcase
             referrals_credit: user.credit,
-            // eslint-disable-next-line camelcase
             referrals_count: Math.floor(user.credit / 5),
             createdAt: user.createdAt,
           })

@@ -3,5 +3,5 @@
   "compilerOptions": {
     "strict": true
   },
-  "include": ["src", "app.config.ts"]
+  "include": ["app.config.ts", "src", "__tests__"]
 }
