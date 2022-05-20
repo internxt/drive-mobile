@@ -60,39 +60,6 @@ export class Network {
   }
 
   /**
-   * Uploads a file to the Internxt Network
-   * @param bucketId Bucket where file is going to be uploaded
-   * @param params Required params for uploading a file
-   * @returns Id of the created file
-   */
-  async uploadFile(bucketId: string, params: IUploadParams): Promise<string | null> {
-    if (!bucketId) {
-      throw new Error(Network.Errors.BucketIdNotProvided);
-    }
-
-    const fileUri = params.fileUri;
-
-    const fileSize = parseInt((await RNFetchBlob.fs.stat(fileUri)).size);
-    const filename = createHash('ripemd160').update(params.filepath).digest('hex');
-
-    return new Promise<string | null>((resolve, reject) => {
-      this.environment.uploadFile(bucketId, {
-        filename,
-        fileSize,
-        fileUri,
-        progressCallback: params.progressCallback,
-        finishedCallback: (err, fileId) => {
-          if (err) {
-            return reject(err);
-          }
-
-          resolve(fileId);
-        },
-      });
-    });
-  }
-
-  /**
    * Downloads a file from the Internxt Network
    * @param bucketId Bucket where file is uploaded
    * @param fileId Id of the file to be downloaded

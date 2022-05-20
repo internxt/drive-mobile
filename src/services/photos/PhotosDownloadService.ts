@@ -1,4 +1,4 @@
-import * as network from '../network';
+import network from '../../network';
 import { PhotosServiceModel } from '../../types/photos';
 
 export default class PhotosDownloadService {
@@ -16,16 +16,18 @@ export default class PhotosDownloadService {
       decryptionProgressCallback: (progress: number) => void;
     },
   ): Promise<string> {
-    const response = await network.downloadFile(
-      this.model.user?.bucketId || '',
+    await network.downloadFile(
       fileId,
-      this.model.networkCredentials,
-      this.model.networkUrl,
+      this.model.user?.bucketId || '',
+      this.model.networkCredentials.encryptionKey,
       {
-        ...options,
+        user: this.model.networkCredentials.user,
+        pass: this.model.networkCredentials.password
       },
+      options,
+      () => null
     );
 
-    return response.promise;
+    return options.toPath;
   }
 }

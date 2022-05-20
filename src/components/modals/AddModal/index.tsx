@@ -23,12 +23,12 @@ import { asyncStorage } from '../../../services/asyncStorage';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
-import { constants } from '../../../services/app';
-import { uploadFile } from '../../../services/network';
+import network from '../../../network';
 import notificationsService from '../../../services/notifications';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import BottomModal from '../BottomModal';
 import { UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
+import { constants } from '../../../services/app';
 
 function AddModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -96,18 +96,19 @@ function AddModal(): JSX.Element {
     const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
     const fileStat = await stat(filePath);
     const fileSize = fileStat.size;
-    const fileId = await uploadFile(
+    const fileId = await network.uploadFile(
       filePath,
       bucket,
+      mnemonic,
       constants.REACT_NATIVE_BRIDGE_URL,
       {
-        encryptionKey: mnemonic,
         user: bridgeUser,
-        password: userId,
+        pass: userId
       },
       {
-        progress: progressCallback,
+        notifyProgress: progressCallback,
       },
+      () => null
     );
 
     const folderId = currentFolderId;
