@@ -47,7 +47,14 @@ function DriveScreen(): JSX.Element {
   const isRootFolder = currentFolderId === user?.root_folder_id;
   const screenTitle = !isRootFolder ? currentFolderName : strings.screens.drive.title;
   const driveSortedItems = useMemo(
-    () => [...driveUploadingItems, ...driveItems.sort(fileService.getSortFunction(sortMode))],
+    () => [
+      ...driveUploadingItems,
+      ...driveItems.sort(fileService.getSortFunction(sortMode)).sort((a, b) => {
+        const aValue = a.data.fileId ? 1 : 0;
+        const bValue = b.data.fileId ? 1 : 0;
+        return aValue - bValue;
+      }),
+    ],
     [sortMode, driveUploadingItems, driveItems],
   );
   const onCurrentFolderActionsButtonPressed = () => {
