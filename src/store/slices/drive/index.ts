@@ -18,8 +18,6 @@ import {
   DriveItemData,
   DriveItemStatus,
   DriveListItem,
-  SortDirection,
-  SortType,
   UploadingFile,
   DownloadingFile,
   DriveEventKey,
@@ -29,7 +27,7 @@ import {
 } from '../../../types/drive';
 import { createEmptyFile, exists, getDocumentsDir, pathToUri, showFileViewer } from '../../../services/fileSystem';
 import { items } from '@internxt/lib';
-import { downloadFile } from '../../../network/download';
+import network from '../../../network';
 import _ from 'lodash';
 import DriveService from '../../../services/drive';
 
@@ -220,7 +218,7 @@ const downloadFileThunk = createAsyncThunk<
         return;
       }
 
-      return downloadFile(
+      return network.downloadFile(
         params.fileId,
         user?.bucket,
         user.mnemonic,

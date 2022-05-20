@@ -1,12 +1,13 @@
 import RNFS from 'react-native-fs';
 import { Photo, Photos, CreatePhotoData } from '@internxt/sdk/dist/photos';
 
-import * as network from '../network';
+import network from '../../network';
 import { PhotosServiceModel } from '../../types/photos';
 import PhotosLogService from './PhotosLogService';
 import PhotosFileSystemService from './PhotosFileSystemService';
 import { pathToUri, uriToPath } from '../fileSystem';
 import PhotosPreviewService from './PhotosPreviewService';
+import { constants } from '../app';
 
 export default class PhotosUploadService {
   private readonly model: PhotosServiceModel;
@@ -46,16 +47,26 @@ export default class PhotosUploadService {
     const previewId = await network.uploadFile(
       tmpPreviewPath,
       this.model.user?.bucketId || '',
-      this.model.networkUrl,
-      this.model.networkCredentials,
+      this.model.networkCredentials.encryptionKey,
+      constants.REACT_NATIVE_PHOTOS_NETWORK_API_URL,
+      {
+        user: this.model.networkCredentials.user,
+        pass: this.model.networkCredentials.password
+      },
+      {}
     );
 
     this.logService.info('Uploading original image for photo ' + data.name);
     const fileId = await network.uploadFile(
       uriToPath(uri),
       this.model.user?.bucketId || '',
-      this.model.networkUrl,
-      this.model.networkCredentials,
+      this.model.networkCredentials.encryptionKey,
+      constants.REACT_NATIVE_PHOTOS_NETWORK_API_URL,
+      {
+        user: this.model.networkCredentials.user,
+        pass: this.model.networkCredentials.password
+      },
+      {}
     );
 
     const hash = await RNFS.hash(uri, 'sha256');
