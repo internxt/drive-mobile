@@ -9,7 +9,7 @@ import PhotosFileSystemService from './PhotosFileSystemService';
 import { items } from '@internxt/lib';
 import PhotosDownloadService from './PhotosDownloadService';
 import { pathToUri } from '../fileSystem';
-import * as network from '../network';
+import network from '../../network';
 
 export default class PhotosPreviewService {
   private static readonly PREVIEW_WIDTH = 512;
@@ -53,8 +53,12 @@ export default class PhotosPreviewService {
     const fileId = await network.uploadFile(
       fullSizePath,
       this.model.user?.bucketId || '',
-      this.model.networkUrl,
-      this.model.networkCredentials,
+      this.model.networkCredentials.encryptionKey,
+      {
+        user: this.model.networkCredentials.user,
+        pass: this.model.networkCredentials.password
+      },
+      {}
     );
     const previews = [
       {

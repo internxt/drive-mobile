@@ -1,4 +1,6 @@
-import { getEnvironmentConfig, Network } from '../lib/network';
+import network from '../network';
+import { getEnvironmentConfig } from '../lib/network';
+
 import { asyncStorage } from './asyncStorage';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
@@ -20,11 +22,23 @@ export interface FileMeta {
 
 type FileType = 'document' | 'image';
 
-export async function uploadFile(file: FileMeta, progressCallback: (progress: number) => void): Promise<string | null> {
+export async function uploadFile(file: FileMeta, progressCallback: (progress: number) => void): Promise<string> {
   const { bridgeUser, bridgePass, encryptionKey, bucketId } = await getEnvironmentConfig();
   const params = { fileUri: file.uri, filepath: file.path, progressCallback };
 
-  return new Network(bridgeUser, bridgePass, encryptionKey).uploadFile(bucketId, params);
+  return network.uploadFile(
+    params.filepath,
+    bucketId,
+    encryptionKey,
+    {
+      pass: bridgePass,
+      user: bridgeUser
+    },
+    {
+      notifyProgress: progressCallback
+    },
+    () => null
+  );
 }
 
 export function getFinalUri(fileUri: string, fileType: FileType): string {

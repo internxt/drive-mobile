@@ -1,9 +1,7 @@
-import { upload } from './lib/upload';
 import { download } from './lib/download';
-import { EncryptFilename, GenerateFileKey } from './lib/crypto';
+import { GenerateFileKey } from './lib/crypto';
 import { logger } from './lib/utils/logger';
 
-import { FileMeta } from './api/FileObjectUpload';
 import { BUCKET_ID_NOT_PROVIDED, ENCRYPTION_KEY_NOT_PROVIDED } from './api/constants';
 import { ActionState, ActionTypes } from './api/actionState';
 import { FileManager } from '../services/fileSystem';
@@ -29,10 +27,6 @@ export type UploadProgressCallback = (
   totalBytes: number | null,
 ) => void;
 
-export interface UploadFileOptions {
-  progressCallback: UploadProgressCallback;
-  finishedCallback: UploadFinishCallback;
-}
 export interface ResolveFileOptions {
   progressCallback: DownloadProgressCallback;
   finishedCallback: OnlyErrorCallback;
@@ -44,14 +38,6 @@ export interface DownloadFileOptions {
   progressCallback: DownloadProgressCallback;
   decryptionProgressCallback?: DecryptionProgressCallback;
   finishedCallback: DownloadFinishedCallback;
-}
-
-interface UploadFileParams {
-  filename: string;
-  fileSize: number;
-  fileUri: string;
-  progressCallback: UploadProgressCallback;
-  finishedCallback: UploadFinishCallback;
 }
 
 const utils = {
@@ -96,59 +82,6 @@ export class Environment {
   }
 
   /**
-   * Uploads a file from a web browser
-   * @param bucketId Bucket id where file is going to be stored
-   * @param params Upload file params
-   */
-  uploadFile(bucketId: string, params: UploadFileParams): ActionState {
-    const actionState = new ActionState(ActionTypes.Upload);
-
-    if (!this.config.encryptionKey) {
-      params.finishedCallback(Error('Mnemonic was not provided, please, provide a mnemonic'), null);
-      return actionState;
-    }
-
-    if (!bucketId) {
-      params.finishedCallback(Error('Bucket id was not provided'), null);
-      return actionState;
-    }
-
-    if (!params.fileUri) {
-      params.finishedCallback(Error('File uri was not provided'), null);
-      return actionState;
-    }
-
-    if (!params.filename) {
-      params.finishedCallback(Error('Filename was not provided'), null);
-      return actionState;
-    }
-
-    if (params.fileSize === 0) {
-      params.finishedCallback(Error('Can not upload a file with size 0'), null);
-      return actionState;
-    }
-
-    const { filename, fileSize: size, fileUri } = params;
-
-    EncryptFilename(this.config.encryptionKey, bucketId, filename)
-      .then((name: string) => {
-        logger.debug(`Filename ${filename} encrypted is ${name}`);
-
-        const fileToUpload: FileMeta = { fileUri, name, size };
-
-        return upload(this.config, bucketId, fileToUpload, params, actionState);
-      })
-      .catch((err: Error) => {
-        logger.error(`Error encrypting filename due to ${err.message}`);
-        logger.error(err);
-
-        params.finishedCallback(err, null);
-      });
-
-    return actionState;
-  }
-
-  /**
    * Gets file info
    * @param bucketId Bucket id where file is stored
    * @param fileId
@@ -172,14 +105,6 @@ export class Environment {
       .then((res) => {
         return res.token;
       });
-  }
-
-  /**
-   * Cancels the upload
-   * @param state Upload file state at the moment
-   */
-  uploadFileCancel(state: ActionState): void {
-    state.stop();
   }
 }
 
