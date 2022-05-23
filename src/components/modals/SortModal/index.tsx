@@ -13,10 +13,9 @@ export type SortMode = {
   direction: SortDirection;
   type: SortType;
 };
-export interface SortModalProps {
+export interface SortModalProps extends BaseModalProps {
   onSortModeChange: (change: SortMode) => void;
-  onClose: () => void;
-  isOpen: boolean;
+
   sortMode: SortMode;
 }
 const SortModal: React.FC<SortModalProps> = (props) => {

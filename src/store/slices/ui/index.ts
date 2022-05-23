@@ -5,7 +5,6 @@ export interface UIState {
   searchActive: boolean;
   isReferralsBannerOpen: boolean;
   fileViewMode: DriveListViewMode;
-  createFolderActive: boolean;
   showItemModal: boolean;
   showAddItemModal: boolean;
   showMoveModal: boolean;
@@ -13,7 +12,6 @@ export interface UIState {
   showShareModal: boolean;
   showComingSoonModal: boolean;
   showUploadModal: boolean;
-  showCreateFolderModal: boolean;
   backButtonEnabled: boolean;
   showRenameModal: boolean;
   showRunOutOfSpaceModal: boolean;
@@ -31,7 +29,6 @@ const initialState: UIState = {
   searchActive: false,
   isReferralsBannerOpen: false,
   fileViewMode: DriveListViewMode.List,
-  createFolderActive: false,
   showItemModal: false,
   showAddItemModal: false,
   showMoveModal: false,
@@ -39,7 +36,6 @@ const initialState: UIState = {
   showShareModal: false,
   showComingSoonModal: false,
   showUploadModal: false,
-  showCreateFolderModal: false,
   backButtonEnabled: true,
   showRenameModal: false,
   showRunOutOfSpaceModal: false,
@@ -72,9 +68,7 @@ export const uiSlice = createSlice({
     setShowRunOutSpaceModal: (state, action: PayloadAction<boolean>) => {
       state.showRunOutOfSpaceModal = action.payload;
     },
-    setShowCreateFolderModal: (state, action: PayloadAction<boolean>) => {
-      state.showCreateFolderModal = action.payload;
-    },
+
     setShowComingSoonModal: (state, action: PayloadAction<boolean>) => {
       state.showComingSoonModal = action.payload;
     },
