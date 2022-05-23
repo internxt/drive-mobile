@@ -21,6 +21,7 @@ export type DriveItemFocused = {
   type?: string;
   size?: number;
   updatedAt: string;
+  folderId?: number;
 } | null;
 
 export interface DriveFolderMetadataPayload {
@@ -155,3 +156,16 @@ export type InsertSqliteDriveItemRowData = Pick<
   | 'created_at'
   | 'updated_at'
 >;
+
+export interface DriveNavigableItemProps extends DriveItemProps {
+  isLoading?: boolean;
+  disabled?: boolean;
+  onItemPressed?: (item: DriveItemDataProps) => void;
+  onNavigationButtonPressed: (item: DriveItemDataProps) => void;
+}
+
+export interface DriveCurrentFolderContent {
+  scope: string;
+  focusedItem: DriveItemFocused;
+  folderContent: DriveItemData[];
+}

@@ -12,7 +12,12 @@ class NotificationsService {
   private readonly showNextNotificationDelay = 500;
   private readonly notifications: NotificationData[] = [];
 
-  public show(options: { text1: string; text2?: string; type: NotificationType }) {
+  public show(options: {
+    text1: string;
+    text2?: string;
+    type: NotificationType;
+    action?: { text: string; onActionPress: () => void };
+  }) {
     if (this.notifications.length === 0) {
       Toast.show({
         ...this.defaultShowOptions,
@@ -20,6 +25,9 @@ class NotificationsService {
         text2: options.text2,
         type: options.type,
         onHide: () => this.onNotificationHide(),
+        props: {
+          action: options.action,
+        },
       });
     }
 

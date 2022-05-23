@@ -13,7 +13,7 @@ import AddModal from '../../components/modals/AddModal';
 import DriveRenameModal from '../../components/modals/DriveRenameModal';
 import ShareFilesModal from '../../components/modals/ShareFilesModal';
 import DeleteItemModal from '../../components/modals/DeleteItemModal';
-import MoveFilesModal from '../../components/modals/MoveFilesModal';
+import MoveItemModal from '../../components/modals/MoveItemModal';
 import RunOutOfStorageModal from '../../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../HomeScreen';
 import { AppScreenKey as AppScreenKey } from '../../types';
@@ -64,13 +64,12 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
       <AddModal />
       <DriveItemInfoModal />
       <DeleteItemModal />
-      <MoveFilesModal />
+      <MoveItemModal />
       <ShareFilesModal />
       <DriveDownloadModal />
       <DriveRenameModal />
       <RunOutOfStorageModal />
       <SignOutModal />
-
       <ReferralsBanner />
     </View>
   );

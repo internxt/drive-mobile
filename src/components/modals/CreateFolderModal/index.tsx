@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Keyboard, Platform } from 'react-native';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
@@ -11,6 +11,7 @@ import folderService from '../../../services/folder';
 import notificationsService from '../../../services/notifications';
 import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
+import { useAppSelector } from '../../../store/hooks';
 
 interface CreateFolderModalProps extends BaseModalProps {
   onFolderCreated: () => void;
@@ -20,8 +21,10 @@ interface CreateFolderModalProps extends BaseModalProps {
 const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
+  const { user, token } = useAppSelector((state) => state.auth);
+  useMemo(() => folderService.initialize(token, user?.mnemonic || ''), []);
   const onCancelButtonPressed = () => {
-    if (!isLoading) return;
+    if (isLoading) return;
     props.onCancel();
   };
   const onClosed = () => {
@@ -41,7 +44,6 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
       })
       .finally(() => {
         setIsLoading(false);
-        onClosed();
       });
   };
   const iconSize = 80;

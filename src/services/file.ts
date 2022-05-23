@@ -11,7 +11,7 @@ import {
 } from '../types/drive';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
-import { FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchFolderContentResponse, MoveFilePayload, MoveFileResponse } from '@internxt/sdk/dist/drive/storage/types';
 
 export function getNameFromUri(uri: string): string {
   const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
@@ -115,23 +115,17 @@ async function updateMetaData(
     .then(() => undefined);
 }
 
-async function moveFile(fileId: string, destination: number): Promise<number> {
+async function moveFile(moveFilePayload: { fileId: string; destination: number }): Promise<MoveFileResponse> {
   const headers = await getHeaders();
-  const data = JSON.stringify({ fileId, destination });
+  const data = JSON.stringify(moveFilePayload);
 
-  const res = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/moveFile`, {
+  const res = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/move/file`, {
     method: 'POST',
     headers,
     body: data,
   });
 
-  if (res.status === 200) {
-    return 1;
-  } else {
-    const data = await res.json();
-
-    return data.message;
-  }
+  return res.json();
 }
 
 async function deleteItems(items: DriveItemData[]): Promise<void> {

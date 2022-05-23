@@ -8,9 +8,10 @@ import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import globalStyle from '../../../styles';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
+import { driveActions } from '../../../store/slices/drive';
 import BottomModalOption from '../../BottomModalOption';
 import BottomModal from '../BottomModal';
-import { Link, PencilSimpleLine, Trash } from 'phosphor-react-native';
+import { Link, PencilSimpleLine, Trash, ArrowsOutCardinal } from 'phosphor-react-native';
 
 function DriveItemInfoModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -70,6 +71,20 @@ function DriveItemInfoModal(): JSX.Element {
             onPress={() => {
               dispatch(uiActions.setShowItemModal(false));
               dispatch(uiActions.setShowRenameModal(true));
+            }}
+          />
+
+          <BottomModalOption
+            leftSlot={
+              <View style={tailwind('flex-grow')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.generic.move}</Text>
+              </View>
+            }
+            rightSlot={<ArrowsOutCardinal size={20} color={getColor('neutral-500')} />}
+            onPress={() => {
+              dispatch(uiActions.setShowItemModal(false));
+              dispatch(uiActions.setShowMoveModal(true));
+              dispatch(driveActions.setItemToMove(item));
             }}
           />
 
