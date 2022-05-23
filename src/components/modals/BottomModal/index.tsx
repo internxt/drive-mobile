@@ -27,7 +27,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       isOpen={props.isOpen}
       onClosed={props.onClosed}
       position="bottom"
-      style={{ ...tailwind('bg-transparent'), paddingTop: safeAreaInsets.top, height: props.height }}
+      style={{ ...tailwind('bg-transparent'), paddingTop: safeAreaInsets.top }}
       backButtonClose={true}
       backdropPressToClose={false}
       animationDuration={250}

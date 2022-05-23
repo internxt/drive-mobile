@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Dimensions } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 import Separator from '../../AppSeparator';
 import { tailwind, getColor } from '../../../helpers/designSystem';
@@ -28,6 +28,8 @@ import SortModal, { SortMode } from '../SortModal';
 import BottomModal from '../BottomModal';
 import CreateFolderModal from '../CreateFolderModal';
 import DriveItemSkinSkeleton from '../../DriveItemSkinSkeleton';
+import notificationsService from '../../../services/notifications';
+import { NotificationType } from '../../../types';
 
 /**
  * Temporal to grab colors from
@@ -55,7 +57,15 @@ function MoveFilesModal(): JSX.Element {
   );
 
   const safeInsets = useSafeAreaInsets();
-  const modalHeight = useMemo(() => Dimensions.get('window').height - (40 + safeInsets.top), []);
+
+  const modalHeight = useMemo(
+    () =>
+      Platform.select<string | number>({
+        android: Dimensions.get('window').height - (40 + safeInsets.top),
+        ios: '100%',
+      }),
+    [],
+  );
   const { user } = useAppSelector((state) => state.auth);
 
   const { showMoveModal } = useAppSelector((state) => state.ui);
@@ -105,7 +115,10 @@ function MoveFilesModal(): JSX.Element {
   const confirmMoveItem = async () => {
     if (!originFolderId || !originFolderContentResponse?.name || !destinationFolderContentResponse?.id) {
       // Something not cool is happening, we are missing something,
-      return console.error(`Confirm move item payload is missing data`); // eslint-disable-line
+      return notificationsService.show({
+        text1: strings.errors.moveError,
+        type: NotificationType.Error,
+      });
     }
 
     setIsMovingItem(true);
@@ -234,7 +247,7 @@ function MoveFilesModal(): JSX.Element {
 
   const renderListHeader = () => {
     return (
-      <TouchableOpacity onPress={onSortButtonPressed} style={tailwind('px-4')}>
+      <TouchableOpacity onPress={onSortButtonPressed} style={tailwind('px-4 mt-3')}>
         <View style={tailwind('py-1 flex-row items-center')}>
           <AppText medium style={tailwind('text-sm text-gray-60 mr-1')}>
             {strings.screens.drive.sort[sortMode.type]}
@@ -267,11 +280,15 @@ function MoveFilesModal(): JSX.Element {
       <BottomModal
         isOpen={showMoveModal}
         onClosed={onCloseMoveModal}
-        style={tailwind('bg-white rounded-t-2xl overflow-hidden')}
-        height={modalHeight}
+        style={[
+          tailwind('bg-white rounded-t-2xl overflow-hidden'),
+          {
+            height: modalHeight,
+          },
+        ]}
       >
-        <View>
-          <View style={tailwind('h-full')}>
+        <View style={tailwind('h-full')}>
+          <View style={tailwind('h-full flex flex-col')}>
             <View style={tailwind('flex flex-row justify-between')}>
               {canGoBack ? (
                 <TouchableOpacity
@@ -294,9 +311,9 @@ function MoveFilesModal(): JSX.Element {
               </TouchableOpacity>
             </View>
 
-            <Separator style={tailwind('mb-3')} />
+            <Separator />
 
-            <View style={tailwind('flex-1')}>
+            <View style={tailwind('flex flex-1')}>
               <FlatList<DriveListItem>
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={renderListHeader()}
@@ -334,7 +351,7 @@ function MoveFilesModal(): JSX.Element {
             </View>
 
             <Separator style={tailwind('mb-3')} />
-            <View style={[tailwind('flex justify-between flex-row px-8')]}>
+            <View style={[tailwind('flex justify-between flex-row px-8'), { marginBottom: safeInsets.bottom }]}>
               <TouchableOpacity activeOpacity={0.7} onPress={onCreateNewFolder}>
                 <AppText medium style={[styles.text, tailwind('text-lg')]}>
                   {strings.components.buttons.newFolder}
