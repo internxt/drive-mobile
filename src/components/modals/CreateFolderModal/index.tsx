@@ -4,38 +4,37 @@ import { View, Keyboard, Platform } from 'react-native';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon } from '../../../helpers';
 import strings from '../../../../assets/lang/strings';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { uiActions } from '../../../store/slices/ui';
-import { driveSelectors, driveThunks } from '../../../store/slices/drive';
 import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
 import folderService from '../../../services/folder';
 import notificationsService from '../../../services/notifications';
 import { NotificationType } from '../../../types';
+import { BaseModalProps } from '../../../types/ui';
 
-function CreateFolderModal(): JSX.Element {
-  const dispatch = useAppDispatch();
-  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
-  const { showCreateFolderModal } = useAppSelector((state) => state.ui);
+interface CreateFolderModalProps extends BaseModalProps {
+  onFolderCreated: () => void;
+  onCancel: () => void;
+  currentFolderId: number;
+}
+const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
   const onCancelButtonPressed = () => {
-    !isLoading && dispatch(uiActions.setShowCreateFolderModal(false));
+    if (!isLoading) return;
+    props.onCancel();
   };
   const onClosed = () => {
     setFolderName(strings.screens.create_folder.defaultName);
-    dispatch(uiActions.setShowCreateFolderModal(false));
   };
   const onCreateFolderButtonPressed = () => {
     setIsLoading(true);
 
-    Keyboard.dismiss;
     folderService
-      .createFolder(currentFolderId, folderName)
+      .createFolder(props.currentFolderId, folderName)
       .then(() => {
-        dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
         notificationsService.show({ type: NotificationType.Success, text1: strings.messages.folderCreated });
+        props.onFolderCreated();
       })
       .catch((err) => {
         notificationsService.show({ type: NotificationType.Error, text1: err.message });
@@ -48,7 +47,7 @@ function CreateFolderModal(): JSX.Element {
   const iconSize = 80;
 
   return (
-    <CenterModal isOpen={showCreateFolderModal} onClosed={onClosed}>
+    <CenterModal isOpen={props.isOpen} onClosed={onClosed}>
       <View style={tailwind('w-full p-4')}>
         <View style={tailwind('w-full px-10 pt-4 pb-8 flex-grow justify-center')}>
           <View style={tailwind('items-center pb-3')}>
@@ -97,6 +96,6 @@ function CreateFolderModal(): JSX.Element {
       </View>
     </CenterModal>
   );
-}
+};
 
 export default CreateFolderModal;

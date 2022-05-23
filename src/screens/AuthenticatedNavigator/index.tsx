@@ -11,7 +11,6 @@ import EmptyScreen from '../EmptyScreen';
 import DriveItemInfoModal from '../../components/modals/DriveItemInfoModal';
 import AddModal from '../../components/modals/AddModal';
 import DriveRenameModal from '../../components/modals/DriveRenameModal';
-import CreateFolderModal from '../../components/modals/CreateFolderModal';
 import ShareFilesModal from '../../components/modals/ShareFilesModal';
 import DeleteItemModal from '../../components/modals/DeleteItemModal';
 import MoveFilesModal from '../../components/modals/MoveFilesModal';
@@ -68,7 +67,6 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
       <MoveFilesModal />
       <ShareFilesModal />
       <DriveDownloadModal />
-      <CreateFolderModal />
       <DriveRenameModal />
       <RunOutOfStorageModal />
       <SignOutModal />
