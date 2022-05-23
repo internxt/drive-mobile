@@ -59,9 +59,9 @@ function AddModal(): JSX.Element {
     setShowCreateFolderModal(false);
   };
 
-  const onFolderCreated = () => {
+  const onFolderCreated = async () => {
     setShowCreateFolderModal(false);
-    dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
+    await dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
   };
   async function uploadAndroid(
     fileToUpload: UploadingFile,

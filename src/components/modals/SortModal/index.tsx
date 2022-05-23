@@ -8,6 +8,7 @@ import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
 import AppText from '../../AppText';
 import { SortDirection, SortType } from '../../../types/drive';
+import { BaseModalProps } from '../../../types/ui';
 
 export type SortMode = {
   direction: SortDirection;

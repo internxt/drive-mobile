@@ -21,6 +21,9 @@ const strings = new LocalizedStrings({
       updated: 'Updated',
       monthly: 'Monthly',
       annually: 'Annually',
+      move: 'Move',
+      root_folder_name: 'Drive',
+      view_folder: 'View folder',
     },
     tabs: {
       home: 'Home',
@@ -250,6 +253,7 @@ const strings = new LocalizedStrings({
         cancel: 'Cancel',
         confirm: 'Confirm',
         move: 'Move',
+        moveHere: 'Move here',
         share: 'Share',
         upgrade: 'Upgrade',
         upgradeNow: 'Upgrade now',
@@ -393,6 +397,10 @@ const strings = new LocalizedStrings({
         title: 'Log out',
         message: 'Are you sure you want to log out?',
       },
+      ConfirmMoveItemModal: {
+        title: 'Move {0} item(s) from',
+        destination: 'Destination',
+      },
     },
     messages: {
       folderCreated: 'Folder created',
@@ -403,6 +411,7 @@ const strings = new LocalizedStrings({
       renamedSuccessfully: 'Renamed successfully',
       linkCopied: 'Link copied',
       passwordChanged: 'Password changed',
+      itemsMoved: '{0} item(s) moved',
     },
     errors: {
       generic: {
@@ -440,6 +449,9 @@ const strings = new LocalizedStrings({
       updated: 'Actualizado',
       monthly: 'Mensual',
       annually: 'Anual',
+      move: 'Mover',
+      view_folder: 'Ver carpeta',
+      root_folder_name: 'Drive',
     },
     tabs: {
       home: 'Inicio',
@@ -670,6 +682,7 @@ const strings = new LocalizedStrings({
         cancel: 'Cancelar',
         confirm: 'Confirmar',
         move: 'Mover',
+        moveHere: 'Mover aquí',
         share: 'Compartir',
         upgrade: 'Mejorar',
         upgradeNow: 'Comprar espacio',
@@ -815,6 +828,10 @@ const strings = new LocalizedStrings({
         title: 'Cerrar sesión',
         message: '¿Estás seguro de que quieres cerrar sesión?',
       },
+      ConfirmMoveItemModal: {
+        title: 'Mover {0} item(s) desde',
+        destination: 'Destino',
+      },
     },
     messages: {
       folderCreated: 'Carpeta creada',
@@ -825,6 +842,7 @@ const strings = new LocalizedStrings({
       renamedSuccessfully: 'Renombrado correctamente',
       linkCopied: 'Enlace copiado',
       passwordChanged: 'Contraseña cambiada',
+      itemsMoved: '{0} item(s) movidos',
     },
     errors: {
       generic: {
