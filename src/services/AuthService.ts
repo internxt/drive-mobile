@@ -1,0 +1,77 @@
+import { encryptText, encryptTextWithKey, passToHash } from '../helpers';
+import analytics, { AnalyticsEventKey } from './AnalyticsService';
+import { getHeaders } from '../helpers/headers';
+import { DevicePlatform } from '../types';
+import asyncStorageService from './AsyncStorageService';
+import { constants } from './AppService';
+
+interface LoginResponse {
+  tfa: string;
+  sKey: string;
+}
+
+class AuthService {
+  public async apiLogin(email: string): Promise<LoginResponse> {
+    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/login`, {
+      method: 'POST',
+      headers: await getHeaders(),
+      body: JSON.stringify({ email: email }),
+    }).then(async (res) => {
+      const data = await res.text();
+      const json = JSON.parse(data);
+
+      if (res.status === 200) {
+        return json;
+      } else {
+        if (json) {
+          throw Error(json.error);
+        } else {
+          throw Error(data);
+        }
+      }
+    });
+  }
+
+  public async signout(): Promise<void> {
+    const userData = await asyncStorageService.getUser();
+
+    analytics.track(AnalyticsEventKey.UserSignOut, {
+      userId: userData?.uuid,
+      email: userData?.email,
+      platform: DevicePlatform.Mobile,
+    });
+
+    await asyncStorageService.clearStorage();
+  }
+
+  public async doRecoverPassword(newPassword: string): Promise<Response> {
+    const xUser = await asyncStorageService.getUser();
+    const mnemonic = xUser.mnemonic;
+    const hashPass = passToHash({ password: newPassword });
+    const encryptedPassword = encryptText(hashPass.hash);
+    const encryptedSalt = encryptText(hashPass.salt);
+    const encryptedMnemonic = encryptTextWithKey(mnemonic, newPassword);
+
+    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/user/recover`, {
+      method: 'patch',
+      headers: await getHeaders(),
+      body: JSON.stringify({
+        password: encryptedPassword,
+        salt: encryptedSalt,
+        mnemonic: encryptedMnemonic,
+        privateKey: null,
+      }),
+    });
+  }
+
+  public sendDeactivationsEmail(email: string): Promise<void> {
+    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/reset/${email}`, {}).then(async (res) => {
+      if (res.status !== 200) {
+        throw Error();
+      }
+    });
+  }
+}
+
+const authService = new AuthService();
+export default authService;

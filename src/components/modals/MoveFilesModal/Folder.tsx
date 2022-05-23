@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 
-import analytics, { AnalyticsEventKey } from '../../../services/analytics';
+import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
 import { driveThunks } from '../../../store/slices/drive';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 

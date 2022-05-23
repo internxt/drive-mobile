@@ -11,11 +11,11 @@ import globalStyle from '../../styles';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/AppScreenTitle';
 import { AppScreenKey, NotificationType } from '../../types';
-import paymentService from '../../services/payment';
+import paymentService from '../../services/PaymentService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { constants } from '../../services/app';
+import { constants } from '../../services/AppService';
 import AppScreen from '../../components/AppScreen';
-import notificationsService from '../../services/notifications';
+import notificationsService from '../../services/NotificationsService';
 import { Check } from 'phosphor-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 

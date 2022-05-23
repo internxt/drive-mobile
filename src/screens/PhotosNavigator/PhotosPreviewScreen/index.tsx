@@ -15,7 +15,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import strings from '../../../../assets/lang/strings';
 import SharePhotoModal from '../../../components/modals/SharePhotoModal';
-import { pathToUri, showFileViewer } from '../../../services/fileSystem';
+import fileSystemService from '../../../services/FileSystemService';
 import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfoModal';
 import { photosActions, photosSelectors, photosThunks } from '../../../store/slices/photos';
 import LoadingSpinner from '../../../components/LoadingSpinner';
@@ -46,7 +46,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   );
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const isFullSizeDownloaded = useAppSelector(photosSelectors.isPhotoDownloaded)(photo.fileId);
-  const uri = isFullSizeDownloaded ? pathToUri(photoPath) : preview;
+  const uri = isFullSizeDownloaded ? fileSystemService.pathToUri(photoPath) : preview;
   const onScreenPressed = () => {
     setShowActions(!showActions);
   };
@@ -55,7 +55,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
     dispatch(uiActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
-    showFileViewer(uri, { displayName: items.getItemDisplayName(photo) });
+    fileSystemService.showFileViewer(uri, { displayName: items.getItemDisplayName(photo) });
   };
   const onMoveToTrashButtonPressed = () => {
     dispatch(uiActions.setIsDeletePhotosModalOpen(true));

@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Image, Platform, Share, Text, TextInput, TouchableHighlight, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 import { Photo } from '@internxt/sdk/dist/photos';
 import prettysize from 'prettysize';
 
 import globalStyle from '../../../styles';
-import { getColor, tailwind } from '../../../helpers/designSystem';
+import { tailwind } from '../../../helpers/designSystem';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../AppButton';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
-import imageService from '../../../services/image';
+import imageService from '../../../services/ImageService';
 import { items } from '@internxt/lib';
-import { exists, pathToUri } from '../../../services/fileSystem';
+import fileSystemService from '../../../services/FileSystemService';
 import { photosSelectors, photosThunks } from '../../../store/slices/photos';
 import LoadingSpinner from '../../LoadingSpinner';
 
@@ -27,7 +27,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
   }
 
   const [times, setTimes] = useState(10);
-  const [url, setUrl] = useState('LINK');
+  // const [url, setUrl] = useState('LINK');
   const dispatch = useAppDispatch();
   const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
   const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: data.id, type: data.type });
@@ -112,9 +112,9 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
 
   useEffect(() => {
     if (isOpen) {
-      exists(photoPath).then((value) => {
+      fileSystemService.exists(photoPath).then((value) => {
         if (value) {
-          setUri(pathToUri(photoPath));
+          setUri(fileSystemService.pathToUri(photoPath));
         } else {
           dispatch(
             photosThunks.downloadPhotoThunk({
@@ -126,7 +126,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
           )
             .unwrap()
             .then((path) => {
-              setUri(pathToUri(path));
+              setUri(fileSystemService.pathToUri(path));
             });
         }
       });

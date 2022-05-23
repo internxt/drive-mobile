@@ -6,14 +6,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
 
 import AppNavigator from './screens/AppNavigator';
-import analyticsService from './services/analytics';
+import analyticsService from './services/AnalyticsService';
 import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
 import { getColor, tailwind } from './helpers/designSystem';
-import { asyncStorage } from './services/asyncStorage';
+import { asyncStorage } from './services/AsyncStorageService';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
 import { AppScreenKey, AsyncStorageKey } from './types';
-import appService from './services/app';
+import appService from './services/AppService';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';

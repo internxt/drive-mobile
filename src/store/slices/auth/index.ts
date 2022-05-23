@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { asyncStorage } from '../../../services/asyncStorage';
+import asyncStorageService from '../../../services/AsyncStorageService';
 import { RootState } from '../..';
-import authService from '../../../services/auth';
-import userService from '../../../services/user';
-import analytics, { AnalyticsEventKey } from '../../../services/analytics';
+import authService from '../../../services/AuthService';
+import userService from '../../../services/UserService';
+import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
 import { AsyncStorageKey, DevicePlatform, User } from '../../../types';
 import { photosActions, photosThunks } from '../photos';
 import { appThunks } from '../app';
@@ -38,9 +38,9 @@ export const signInThunk = createAsyncThunk<
 >('auth/signIn', async (payload, { dispatch }) => {
   const result = await userService.signin(payload.email, payload.password, payload.sKey, payload.twoFactorCode);
 
-  await asyncStorage.saveItem(AsyncStorageKey.Token, result.token);
-  await asyncStorage.saveItem(AsyncStorageKey.PhotosToken, result.photosToken); // Photos access token
-  await asyncStorage.saveItem(AsyncStorageKey.User, JSON.stringify(result.user));
+  await asyncStorageService.saveItem(AsyncStorageKey.Token, result.token);
+  await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, result.photosToken); // Photos access token
+  await asyncStorageService.saveItem(AsyncStorageKey.User, JSON.stringify(result.user));
 
   dispatch(appThunks.initializeThunk());
 

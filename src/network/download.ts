@@ -1,13 +1,13 @@
 import RNFS from 'react-native-fs';
 
 import { getNetwork } from './NetworkFacade';
-import { downloadFile as downloadFileV1, LegacyDownloadRequiredError } from '../services/network/download';
-import { downloadFile as downloadFileV1Legacy } from '../services/download';
-import { constants } from '../services/app';
+import { downloadFile as downloadFileV1, LegacyDownloadRequiredError } from '../services/NetworkService/download';
+import { downloadFile as downloadFileV1Legacy } from '../services/NetworkService/downloadLegacy';
+import { constants } from '../services/AppService';
 import { NetworkCredentials } from './requests';
 import { FileVersionOneError } from '@internxt/sdk/dist/network/download';
-import { FileManager } from '../services/fileSystem';
 import { Abortable } from '../types';
+import FileManager from '../@inxt-js/api/FileManager';
 
 export interface DownloadFileParams {
   toPath: string;
@@ -22,7 +22,7 @@ export async function downloadFile(
   mnemonic: string,
   creds: NetworkCredentials,
   params: DownloadFileParams,
-  onAbortableReady: (abortable: Abortable) => void
+  onAbortableReady: (abortable: Abortable) => void,
 ): Promise<void> {
   const network = getNetwork(constants.REACT_NATIVE_BRIDGE_URL, creds);
 
@@ -49,7 +49,7 @@ async function downloadV1(
   mnemonic: string,
   creds: NetworkCredentials,
   params: DownloadFileParams,
-  onAbortableReady: (newAbortable: Abortable) => void
+  onAbortableReady: (newAbortable: Abortable) => void,
 ): Promise<void> {
   try {
     const res = await downloadFileV1(

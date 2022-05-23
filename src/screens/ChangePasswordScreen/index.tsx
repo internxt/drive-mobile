@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import validationService from '../../services/validation';
+import validationService from '../../services/ValidationService';
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import { doChangePassword } from './changePasswordUtils';
 import ScreenTitle from '../../components/AppScreenTitle';
 import { AppScreenKey, NotificationType } from '../../types';
 import AppScreen from '../../components/AppScreen';
-import notificationsService from '../../services/notifications';
+import notificationsService from '../../services/NotificationsService';
 import { Eye } from 'phosphor-react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 

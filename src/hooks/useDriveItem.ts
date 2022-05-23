@@ -4,7 +4,7 @@ import { useAppDispatch } from '../store/hooks';
 import { driveActions, driveThunks } from '../store/slices/drive';
 import { uiActions } from '../store/slices/ui';
 import { DriveItemDataProps, DriveItemStatus } from '../types/drive';
-import DriveService from '../services/drive';
+import DriveService from '../services/DriveService';
 
 interface UseDriveItemProps {
   data: DriveItemDataProps;

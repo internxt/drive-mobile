@@ -3,7 +3,7 @@ import { FlatList, StyleProp, View, ViewStyle } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import notificationsService from '../../services/notifications';
+import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
 import AppButton from '../AppButton';
 import AppText from '../AppText';

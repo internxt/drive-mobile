@@ -1,4 +1,4 @@
-import { constants } from '../../services/app';
+import { constants } from '../../services/AppService';
 
 interface GenerateShareLinkResponse {
   token: string;

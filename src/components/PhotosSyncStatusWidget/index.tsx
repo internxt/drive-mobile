@@ -9,7 +9,7 @@ import { photosThunks } from '../../store/slices/photos';
 import { PhotosSyncStatus } from '../../types/photos';
 import LoadingSpinner from '../LoadingSpinner';
 import AppText from '../AppText';
-import { PhotosService } from '../../services/photos';
+import { PhotosService } from '../../services/PhotosService';
 
 const PhotosSyncStatusWidget = (): JSX.Element => {
   const dispatch = useAppDispatch();

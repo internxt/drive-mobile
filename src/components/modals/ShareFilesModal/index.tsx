@@ -10,13 +10,13 @@ import { getFileTypeIcon } from '../../../helpers';
 import { generateFileKey, Network } from '../../../lib/network';
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
-import { asyncStorage } from '../../../services/asyncStorage';
+import { asyncStorage } from '../../../services/AsyncStorageService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
-import { constants } from '../../../services/app';
+import { constants } from '../../../services/AppService';
 import { NotificationType } from '../../../types';
-import notificationsService from '../../../services/notifications';
+import notificationsService from '../../../services/NotificationsService';
 import { Copy, Minus, Plus } from 'phosphor-react-native';
 import { DriveItemData } from '../../../types/drive';
 

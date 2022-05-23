@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
-import newsletterService from '../../../services/newsletter';
-import notificationsService from '../../../services/notifications';
+import newsletterService from '../../../services/NewsletterService';
+import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { referralsThunks } from '../referrals';
 import { driveThunks } from '../drive';

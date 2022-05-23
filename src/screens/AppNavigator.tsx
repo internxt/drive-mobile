@@ -23,7 +23,7 @@ import { driveActions } from '../store/slices/drive';
 import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DebugScreen from './DebugScreen';
-import analyticsService from '../services/analytics';
+import analyticsService from '../services/AnalyticsService';
 
 /*type RouteConfig = NavigationRouteConfigMap<
   StackNavigationOptions,

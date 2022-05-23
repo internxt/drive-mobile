@@ -10,7 +10,7 @@ import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
 import { uiActions } from '../../../store/slices/ui';
 import { useAppDispatch } from '../../../store/hooks';
-import { pathToUri, showFileViewer } from '../../../services/fileSystem';
+import fileSystemService from '../../../services/FileSystemService';
 import { items } from '@internxt/lib';
 import { DownloadSimple, Info, Link, Trash } from 'phosphor-react-native';
 
@@ -68,7 +68,9 @@ function PhotosPreviewOptionsModal({
     dispatch(uiActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
-    showFileViewer(pathToUri(photoPath), { displayName: items.getItemDisplayName(data) });
+    fileSystemService.showFileViewer(fileSystemService.pathToUri(photoPath), {
+      displayName: items.getItemDisplayName(data),
+    });
   };
   const onMoveToTrashButtonPressed = () => {
     dispatch(uiActions.setIsDeletePhotosModalOpen(true));

@@ -3,8 +3,8 @@ import { StyleProp, View, ViewStyle } from 'react-native';
 import { measureConnectionSpeed, NetworkBandwidthTestResults } from 'react-native-network-bandwith-speed';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
-import errorService from '../../services/error';
-import notificationsService from '../../services/notifications';
+import errorService from '../../services/ErrorService';
+import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
 import AppText from '../AppText';
 

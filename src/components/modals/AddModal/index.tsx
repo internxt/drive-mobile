@@ -10,25 +10,25 @@ import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-pi
 import { launchImageLibrary } from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
 
-import { createFileEntry, FileEntry, getFinalUri } from '../../../services/upload';
-import analytics, { AnalyticsEventKey } from '../../../services/analytics';
+import uploadService, { FileEntry } from '../../../services/UploadService';
+import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
 import { encryptFilename } from '../../../helpers';
-import { stat, getTemporaryDir, copyFile, unlink, clearTempDir } from '../../../services/fileSystem';
-import { getNameFromUri, getExtensionFromUri, removeExtension, renameIfAlreadyExists } from '../../../services/file';
+import fileSystemService from '../../../services/FileSystemService';
+import driveFileService from '../../../services/DriveFileService';
 import strings from '../../../../assets/lang/strings';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
 import { DevicePlatform, NotificationType, ProgressCallback } from '../../../types';
-import { asyncStorage } from '../../../services/asyncStorage';
+import asyncStorage from '../../../services/AsyncStorageService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
 import network from '../../../network';
-import notificationsService from '../../../services/notifications';
+import notificationsService from '../../../services/NotificationsService';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import BottomModal from '../BottomModal';
 import { UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
-import { constants } from '../../../services/app';
+import { constants } from '../../../services/AppService';
 
 function AddModal(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -42,7 +42,7 @@ function AddModal(): JSX.Element {
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
     const fileUri = file.uri.replace(regex, '$2');
     const extension = fileUri.split('.').pop() || '';
-    const finalUri = getFinalUri(fileUri, fileType);
+    const finalUri = uploadService.getFinalUri(fileUri, fileType);
     const fileURI = finalUri;
     const fileExtension = extension;
 
@@ -54,10 +54,10 @@ function AddModal(): JSX.Element {
     fileType: 'document' | 'image',
     progressCallback: ProgressCallback,
   ) {
-    const name = fileToUpload.name || getNameFromUri(fileToUpload.uri);
-    const destPath = `${getTemporaryDir()}/${name}`;
+    const name = fileToUpload.name || driveFileService.getNameFromUri(fileToUpload.uri);
+    const destPath = `${fileSystemService.getTemporaryDir()}/${name}`;
 
-    await copyFile(fileToUpload.uri, destPath);
+    await fileSystemService.copyFile(fileToUpload.uri, destPath);
 
     if (fileType === 'document') {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
@@ -81,7 +81,7 @@ function AddModal(): JSX.Element {
       progressCallback,
     );
 
-    unlink(destPath).catch(() => null);
+    fileSystemService.unlink(destPath).catch(() => null);
 
     return createdFileEntry;
   }
@@ -94,7 +94,7 @@ function AddModal(): JSX.Element {
     progressCallback: ProgressCallback,
   ) {
     const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
-    const fileStat = await stat(filePath);
+    const fileStat = await fileSystemService.stat(filePath);
     const fileSize = fileStat.size;
     const fileId = await network.uploadFile(
       filePath,
@@ -103,16 +103,16 @@ function AddModal(): JSX.Element {
       constants.REACT_NATIVE_BRIDGE_URL,
       {
         user: bridgeUser,
-        pass: userId
+        pass: userId,
       },
       {
         notifyProgress: progressCallback,
       },
-      () => null
+      () => null,
     );
 
     const folderId = currentFolderId;
-    const name = encryptFilename(removeExtension(fileName), folderId.toString());
+    const name = encryptFilename(driveFileService.removeExtension(fileName), folderId.toString());
     const fileEntry: FileEntry = {
       fileId,
       file_id: fileId,
@@ -124,7 +124,7 @@ function AddModal(): JSX.Element {
       encrypt_version: '03-aes',
     };
 
-    return createFileEntry(fileEntry);
+    return uploadService.createFileEntry(fileEntry);
   }
   const upload = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
     function progressCallback(progress: number) {
@@ -189,10 +189,10 @@ function AddModal(): JSX.Element {
     return {
       id: new Date().getTime(),
       uri: file.uri,
-      name: renameIfAlreadyExists(
+      name: driveFileService.renameIfAlreadyExists(
         filesAtSameLevel,
-        removeExtension(file.name),
-        getExtensionFromUri(file.name) || '',
+        driveFileService.removeExtension(file.name),
+        driveFileService.getExtensionFromUri(file.name) || '',
       )[2],
       type: nameSplittedByDots[nameSplittedByDots.length - 1] || '',
       parentId: currentFolderId,
@@ -225,7 +225,7 @@ function AddModal(): JSX.Element {
       folderContent
         ?.filter((item) => item.fileId)
         .map((file) => {
-          return { name: removeExtension(file.name), type: file.type };
+          return { name: driveFileService.removeExtension(file.name), type: file.type };
         }) || [];
 
     for (const fileToUpload of filesToUpload) {
@@ -237,12 +237,12 @@ function AddModal(): JSX.Element {
         file = {
           id: new Date().getTime(),
           uri: fileToUpload.uri,
-          name: renameIfAlreadyExists(
+          name: driveFileService.renameIfAlreadyExists(
             filesAtSameLevel,
-            removeExtension(fileToUpload.name),
-            getExtensionFromUri(fileToUpload.name) || '',
+            driveFileService.removeExtension(fileToUpload.name),
+            driveFileService.getExtensionFromUri(fileToUpload.name) || '',
           )[2],
-          type: getExtensionFromUri(fileToUpload.uri) || '',
+          type: driveFileService.getExtensionFromUri(fileToUpload.uri) || '',
           parentId: currentFolderId,
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
@@ -260,7 +260,7 @@ function AddModal(): JSX.Element {
     }
 
     if (Platform.OS === 'android') {
-      await clearTempDir();
+      await fileSystemService.clearTempDir();
     }
     for (const file of formattedFiles) {
       await upload(file, 'document')
@@ -429,7 +429,7 @@ function AddModal(): JSX.Element {
         }
 
         if (!result.cancelled) {
-          const name = removeExtension(result.uri.split('/').pop() as string);
+          const name = driveFileService.removeExtension(result.uri.split('/').pop() as string);
           const fileInfo = await FileSystem.getInfoAsync(result.uri);
           const size = fileInfo.size;
           const file: UploadingFile = {
@@ -438,7 +438,7 @@ function AddModal(): JSX.Element {
             parentId: currentFolderId,
             createdAt: new Date().toString(),
             updatedAt: new Date().toString(),
-            type: getExtensionFromUri(result.uri) as string,
+            type: driveFileService.getExtensionFromUri(result.uri) as string,
             size: size || 0,
             uri: result.uri,
             progress: 0,

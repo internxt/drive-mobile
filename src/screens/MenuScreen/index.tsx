@@ -23,7 +23,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
 import globalStyle from '../../styles';
 import AppScreen from '../../components/AppScreen';
-import appService from '../../services/app';
+import appService from '../../services/AppService';
 import AppText from '../../components/AppText';
 import { uiActions } from '../../store/slices/ui';
 

@@ -1,6 +1,6 @@
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
-import { constants } from '../../services/app';
+import { constants } from '../../services/AppService';
 
 interface RegisterParams {
   firstName: string;

@@ -1,17 +1,17 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 
-import analytics, { AnalyticsEventKey } from '../../../services/analytics';
-import fileService from '../../../services/file';
-import folderService from '../../../services/folder';
+import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
+import fileService from '../../../services/DriveFileService';
+import folderService from '../../../services/DriveFolderService';
 import { DevicePlatform, NotificationType } from '../../../types';
 import { RootState } from '../..';
 import { uiActions } from '../ui';
-import { loadValues } from '../../../services/storage';
-import { asyncStorage } from '../../../services/asyncStorage';
+import storageService from '../../../services/StorageService';
+import asyncStorage from '../../../services/AsyncStorageService';
 import strings from '../../../../assets/lang/strings';
 import { getEnvironmentConfig } from '../../../lib/network';
-import notificationsService from '../../../services/notifications';
+import notificationsService from '../../../services/NotificationsService';
 import {
   DriveFileMetadataPayload,
   DriveFolderMetadataPayload,
@@ -25,11 +25,11 @@ import {
   DriveNavigationStackItem,
   DriveItemFocused,
 } from '../../../types/drive';
-import { createEmptyFile, exists, getDocumentsDir, pathToUri, showFileViewer } from '../../../services/fileSystem';
+import fileSystemService from '../../../services/FileSystemService';
 import { items } from '@internxt/lib';
 import network from '../../../network';
 import _ from 'lodash';
-import DriveService from '../../../services/drive';
+import DriveService from '../../../services/DriveService';
 
 export interface DriveState {
   isInitialized: boolean;
@@ -166,7 +166,7 @@ const getFolderContentThunk = createAsyncThunk<
 const getUsageAndLimitThunk = createAsyncThunk<{ usage: number; limit: number }, void, { state: RootState }>(
   'drive/getUsageAndLimit',
   async () => {
-    return loadValues();
+    return storageService.loadValues();
   },
 );
 
@@ -266,15 +266,15 @@ const downloadFileThunk = createAsyncThunk<
       trackDownloadStart();
       downloadProgressCallback(0);
 
-      const destinationDir = await getDocumentsDir();
+      const destinationDir = await fileSystemService.getDocumentsDir();
       let destinationPath = destinationDir + '/' + name + (type ? '.' + type : '');
-      const fileAlreadyExists = await exists(destinationPath);
+      const fileAlreadyExists = await fileSystemService.exists(destinationPath);
 
       if (fileAlreadyExists) {
         destinationPath = destinationDir + '/' + name + '-' + Date.now().toString() + (type ? '.' + type : '');
       }
 
-      await createEmptyFile(destinationPath);
+      await fileSystemService.createEmptyFile(destinationPath);
 
       if (signal.aborted) {
         return rejectWithValue(null);
@@ -282,9 +282,9 @@ const downloadFileThunk = createAsyncThunk<
 
       await download({ fileId, to: destinationPath });
 
-      const uri = pathToUri(destinationPath);
+      const uri = fileSystemService.pathToUri(destinationPath);
 
-      await showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
+      await fileSystemService.showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
       trackDownloadSuccess();
     } catch (err) {
       if (!signal.aborted) {

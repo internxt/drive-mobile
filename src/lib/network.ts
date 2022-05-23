@@ -1,20 +1,13 @@
-import { createHash } from 'react-native-crypto';
-import RNFetchBlob from 'rn-fetch-blob';
 import { Environment } from '../@inxt-js';
 import { ActionState } from '../@inxt-js/api/actionState';
 import { FileInfo } from '../@inxt-js/api/fileinfo';
-import appService from '../services/app';
+import FileManager from '../@inxt-js/api/FileManager';
+import appService from '../services/AppService';
 
-import { asyncStorage } from '../services/asyncStorage';
-import { FileManager } from '../services/fileSystem';
+import asyncStorage from '../services/AsyncStorageService';
+import { User } from '../types';
 
 type ProgressCallback = (progress: number, uploadedBytes: number | null, totalBytes: number | null) => void;
-
-interface IUploadParams {
-  filepath: string;
-  fileUri: string;
-  progressCallback: ProgressCallback;
-}
 
 interface IDownloadParams {
   fileManager: FileManager;
@@ -112,7 +105,7 @@ export class Network {
  * @returns
  */
 export function getEnvironmentConfig(): Promise<EnvironmentConfig> {
-  return asyncStorage.getUser().then((user) => ({
+  return asyncStorage.getUser().then((user: User) => ({
     bridgeUser: user.bridgeUser,
     bridgePass: user.userId,
     encryptionKey: user.mnemonic,

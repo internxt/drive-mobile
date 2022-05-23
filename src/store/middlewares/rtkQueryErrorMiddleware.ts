@@ -1,6 +1,6 @@
 import { Middleware, isRejected } from '@reduxjs/toolkit';
 import { AnyAction } from 'redux';
-import sentryService from '../../services/sentry';
+import sentryService from '../../services/SentryService';
 
 export const rtkQueryErrorMiddleware: Middleware = () => (next) => (action: AnyAction) => {
   if (isRejected(action) && !action.meta.aborted) {

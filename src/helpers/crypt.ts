@@ -1,7 +1,7 @@
 import CryptoJS from 'crypto-js';
 import crypto from 'react-native-crypto';
-import { constants } from '../services/app';
-import errorService from '../services/error';
+import { constants } from '../services/AppService';
+import errorService from '../services/ErrorService';
 import AesUtils from './aesUtils';
 
 const password = constants.REACT_NATIVE_CRYPTO_SECRET || ''; // Force env var loading

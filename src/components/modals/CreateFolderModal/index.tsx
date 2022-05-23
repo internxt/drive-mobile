@@ -10,8 +10,8 @@ import { driveSelectors, driveThunks } from '../../../store/slices/drive';
 import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
-import folderService from '../../../services/folder';
-import notificationsService from '../../../services/notifications';
+import folderService from '../../../services/DriveFolderService';
+import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 
 function CreateFolderModal(): JSX.Element {

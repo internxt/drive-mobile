@@ -16,8 +16,8 @@ import { EventEmitter } from '../lib/utils/eventEmitter';
 import { Bridge, InxtApiI } from '../services/api';
 import { Logger } from '../lib/download';
 import { wrap } from '../lib/utils/error';
-import { FileManager } from '../../services/fileSystem';
-import errorService from '../../services/error';
+import errorService from '../../services/ErrorService';
+import FileManager from './FileManager';
 
 export class FileObject extends EventEmitter {
   shards: ShardObject[] = [];

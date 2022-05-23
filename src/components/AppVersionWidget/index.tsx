@@ -4,7 +4,7 @@ import * as Updates from 'expo-updates';
 
 import packageJson from '../../../package.json';
 import { tailwind } from '../../helpers/designSystem';
-import appService from '../../services/app';
+import appService from '../../services/AppService';
 
 interface AppVersionWidgetProps {
   style?: StyleProp<ViewStyle>;

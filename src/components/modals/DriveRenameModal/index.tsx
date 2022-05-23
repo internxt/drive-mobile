@@ -7,9 +7,9 @@ import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
-import errorService from '../../../services/error';
+import errorService from '../../../services/ErrorService';
 import AppButton from '../../AppButton';
-import notificationsService from '../../../services/notifications';
+import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import CenterModal from '../CenterModal';
 

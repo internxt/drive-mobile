@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Alert, ScrollView, RefreshControl, Text } from 'react-native';
 import _ from 'lodash';
+import { IShare } from '@internxt/sdk/dist/drive/share/types';
 
-import { getShareList, IShare } from '../../services/storageShare';
 import DriveItem from '../../components/DriveItemTable';
 import { tailwind } from '../../helpers/designSystem';
 import DriveItemSkinSkeleton from '../../components/DriveItemSkinSkeleton';
@@ -11,6 +11,7 @@ import EmptyList from '../../components/EmptyList';
 import EmptySharesImage from '../../../assets/images/screens/empty-shares.svg';
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
 import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
+import DriveService from '../../services/DriveService';
 
 interface SharedScreenProps {
   searchText?: string;
@@ -24,7 +25,8 @@ function SharedScreen(props: SharedScreenProps): JSX.Element {
     share.fileInfo.name.toLowerCase().includes((props.searchText || '').toLowerCase()),
   );
   const reloadShares = async () => {
-    return getShareList()
+    return DriveService.instance.share
+      .getShareList()
       .then((shareList) => {
         const shareListFiltered = shareList.filter((s) => !!s.fileInfo);
 
@@ -78,7 +80,11 @@ function SharedScreen(props: SharedScreenProps): JSX.Element {
                     type={DriveListType.Shared}
                     status={DriveItemStatus.Idle}
                     viewMode={DriveListViewMode.List}
-                    data={item.fileInfo}
+                    data={{
+                      ...item.fileInfo,
+                      updatedAt: item.fileInfo.updatedAt as unknown as string,
+                      createdAt: item.fileInfo.createdAt as unknown as string,
+                    }}
                     subtitle={
                       <View style={tailwind('flex flex-row items-center')}>
                         <Text style={tailwind('text-base text-sm text-blue-60')}>Left {item.views} times to share</Text>

@@ -14,12 +14,12 @@ import { items } from '@internxt/lib';
 import prettysize from 'prettysize';
 import moment from 'moment';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
-import DriveService from '../../../services/drive';
+import DriveService from '../../../services/DriveService';
 import { DriveEventKey } from '../../../types/drive';
-import analytics, { AnalyticsEventKey } from '../../../services/analytics';
-import { asyncStorage } from '../../../services/asyncStorage';
+import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
+import asyncStorage from '../../../services/AsyncStorageService';
 import { DevicePlatform, NotificationType } from '../../../types';
-import notificationsService from '../../../services/notifications';
+import notificationsService from '../../../services/NotificationsService';
 
 function DriveDownloadModal(): JSX.Element {
   const dispatch = useAppDispatch();

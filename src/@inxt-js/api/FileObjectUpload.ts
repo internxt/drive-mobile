@@ -22,8 +22,8 @@ import { INXTRequest } from '../lib';
 
 import { ShardObject } from './ShardObject';
 import { wrap } from '../lib/utils/error';
-
-import { FileManager } from '../../services/fileSystem';
+import FileManager from './FileManager';
+import errorService from '../../services/ErrorService';
 
 export interface FileMeta {
   size: number;
@@ -259,7 +259,8 @@ export class FileObjectUpload extends EventEmitter {
 
         retries = 0;
       } catch (err) {
-        logger.error(`Upload for shard ${shardMeta.hash} failed. Reason: ${err.message}. Retrying ...`);
+        const castedError = errorService.castError(err);
+        logger.error(`Upload for shard ${shardMeta.hash} failed. Reason: ${castedError.message}. Retrying ...`);
 
         retries--;
       }

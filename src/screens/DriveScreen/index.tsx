@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Text, View, BackHandler, TouchableOpacity } from 'react-native';
 
 import DriveList from '../../components/DriveList';
-import analytics from '../../services/analytics';
-import { loadValues } from '../../services/storage';
+import analytics from '../../services/AnalyticsService';
+import storageService from '../../services/StorageService';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import SearchInput from '../../components/SearchInput';
@@ -19,11 +19,11 @@ import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import AppScreen from '../../components/AppScreen';
 import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
-import { asyncStorage } from '../../services/asyncStorage';
+import asyncStorage from '../../services/AsyncStorageService';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DriveListType, SortDirection, SortType } from '../../types/drive';
 import SortModal, { SortMode } from '../../components/modals/SortModal';
-import fileService from '../../services/file';
+import fileService from '../../services/DriveFileService';
 
 function DriveScreen(): JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -94,7 +94,8 @@ function DriveScreen(): JSX.Element {
     asyncStorage
       .getUser()
       .then((userData) => {
-        loadValues()
+        storageService
+          .loadValues()
           .then((res) => {
             const currentPlan = {
               usage: parseInt(res.usage.toFixed(1)),

@@ -13,9 +13,9 @@ import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 
 import { RootState } from '../..';
 import { Platform } from 'react-native';
-import { PhotosService } from '../../../services/photos';
+import { PhotosService } from '../../../services/PhotosService';
 import strings from '../../../../assets/lang/strings';
-import { asyncStorage } from '../../../services/asyncStorage';
+import asyncStorage from '../../../services/AsyncStorageService';
 import {
   GalleryViewMode,
   PhotosSyncStatus,
@@ -26,8 +26,8 @@ import {
   PhotosEventKey,
 } from '../../../types/photos';
 import { uiActions } from '../ui';
-import { pathToUri } from '../../../services/fileSystem';
-import notificationsService from '../../../services/notifications';
+import fileSystemService from '../../../services/FileSystemService';
+import notificationsService from '../../../services/NotificationsService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 
 export interface PhotosState {
@@ -284,7 +284,9 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
         if (photo.status === PhotoStatus.Exists) {
           if (!info.isAlreadyOnTheDevice) {
-            dispatch(photosActions.addPhotos([{ data: photo, preview: pathToUri(info.previewPath) }]));
+            dispatch(
+              photosActions.addPhotos([{ data: photo, preview: fileSystemService.pathToUri(info.previewPath) }]),
+            );
           }
         } else {
           dispatch(photosActions.popPhoto(photo));

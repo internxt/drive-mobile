@@ -13,11 +13,10 @@ import { downloadFile } from '@internxt/sdk/dist/network/download';
 import { generateFileKey } from '../lib/network';
 import { ripemd160 } from '../@inxt-js/lib/crypto';
 import { Abortable } from '../types';
-import appService from '../services/app';
+import appService from '../services/AppService';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
 import { decryptFileFromFs } from './crypto';
-import { getDocumentsDir } from '../services/fileSystem';
-import { pathToUri } from '../services/fileSystem';
+import fileSystemService from '../services/FileSystemService';
 import { eachLimit } from 'async';
 
 export interface DownloadFileParams {
@@ -28,8 +27,8 @@ export interface DownloadFileParams {
 }
 
 type UploadOptions = {
-  progress?: (progress: number) => void
-}
+  progress?: (progress: number) => void;
+};
 
 export function getNetwork(apiUrl: string, creds: NetworkCredentials): NetworkFacade {
   const auth = getAuthFromCredentials(creds);
@@ -43,9 +42,9 @@ export function getNetwork(apiUrl: string, creds: NetworkCredentials): NetworkFa
       },
       {
         bridgeUser: auth.username,
-        userId: auth.password
-      }
-    )
+        userId: auth.password,
+      },
+    ),
   );
 }
 
@@ -57,13 +56,9 @@ export class NetworkFacade {
       algorithm: ALGORITHMS.AES256CTR,
       validateMnemonic,
       generateFileKey: (mnemonic, bucketId, index) => {
-        return generateFileKey(
-          mnemonic,
-          bucketId,
-          (index as Buffer)
-        );
+        return generateFileKey(mnemonic, bucketId, index as Buffer);
       },
-      randomBytes
+      randomBytes,
     };
   }
 
@@ -71,16 +66,14 @@ export class NetworkFacade {
     bucketId: string,
     mnemonic: string,
     filePath: string,
-    options: UploadOptions
+    options: UploadOptions,
   ): Promise<[Promise<string>, Abortable]> {
     let fileHash: string;
 
     const plainFilePath = filePath;
-    const encryptedFilePath = getDocumentsDir() + '/' + uuid.v4() + '.enc';
+    const encryptedFilePath = fileSystemService.getDocumentsDir() + '/' + uuid.v4() + '.enc';
 
-    const encryptFileFunction = Platform.OS === 'android' ?
-      androidEncryptFileFromFs :
-      iosEncryptFileFromFs;
+    const encryptFileFunction = Platform.OS === 'android' ? androidEncryptFileFromFs : iosEncryptFileFromFs;
 
     const fileSize = parseInt((await RNFS.stat(plainFilePath)).size);
 
@@ -91,12 +84,7 @@ export class NetworkFacade {
       mnemonic,
       fileSize,
       async (algorithm, key, iv) => {
-        await encryptFileFunction(
-          plainFilePath,
-          encryptedFilePath,
-          (key as Buffer),
-          (iv as Buffer)
-        );
+        await encryptFileFunction(plainFilePath, encryptedFilePath, key as Buffer, iv as Buffer);
 
         fileHash = ripemd160(Buffer.from(await RNFS.hash(encryptedFilePath, 'sha256'), 'hex')).toString('hex');
       },
@@ -105,26 +93,21 @@ export class NetworkFacade {
           'PUT',
           url,
           {
-            'Content-Type': 'application/octet-stream'
+            'Content-Type': 'application/octet-stream',
           },
-          RNFetchBlob.wrap(encryptedFilePath)
+          RNFetchBlob.wrap(encryptedFilePath),
         ).uploadProgress({ interval: 500 }, (bytesSent, totalBytes) => {
           options.progress && options.progress(bytesSent / totalBytes);
         });
 
         return fileHash;
-      }
+      },
     );
 
     return [uploadFilePromise, () => null];
   }
 
-  download(
-    fileId: string,
-    bucketId: string,
-    mnemonic: string,
-    params: DownloadFileParams
-  ): [Promise<void>, Abortable] {
+  download(fileId: string, bucketId: string, mnemonic: string, params: DownloadFileParams): [Promise<void>, Abortable] {
     if (!fileId) {
       throw new Error('Download error code 1');
     }
@@ -140,9 +123,8 @@ export class NetworkFacade {
     let downloadJob: { jobId: number; promise: Promise<RNFS.DownloadResult> };
     let expectedFileHash: string;
 
-    const decryptFileFromFs: DecryptFileFromFsFunction = Platform.OS === 'android' ?
-      androidDecryptFileFromFs :
-      iosDecryptFileFromFs;
+    const decryptFileFromFs: DecryptFileFromFsFunction =
+      Platform.OS === 'android' ? androidDecryptFileFromFs : iosDecryptFileFromFs;
 
     let encryptedFileURI: string;
 
@@ -154,7 +136,7 @@ export class NetworkFacade {
       this.cryptoLib,
       Buffer.from,
       async (downloadables) => {
-        encryptedFileURI = getDocumentsDir() + '/' + downloadables[0].hash + '.enc';
+        encryptedFileURI = fileSystemService.getDocumentsDir() + '/' + downloadables[0].hash + '.enc';
 
         downloadJob = RNFS.downloadFile({
           fromUrl: downloadables[0].url,
@@ -163,7 +145,7 @@ export class NetworkFacade {
           cacheable: false,
           progress: (res) => {
             params.downloadProgressCallback(res.bytesWritten / res.contentLength);
-          }
+          },
         });
 
         expectedFileHash = downloadables[0].hash;
@@ -185,13 +167,13 @@ export class NetworkFacade {
         await decryptFileFromFs(
           encryptedFileURI,
           params.toPath,
-          (key as Buffer),
-          (iv as Buffer),
-          params.decryptionProgressCallback
+          key as Buffer,
+          iv as Buffer,
+          params.decryptionProgressCallback,
         );
 
         params.decryptionProgressCallback(1);
-      }
+      },
     );
 
     return [downloadPromise, () => RNFS.stopDownload(downloadJob.jobId)];
@@ -203,25 +185,21 @@ type DecryptFileFromFsFunction = (
   destinationPath: string,
   key: Buffer,
   iv: Buffer,
-  progress?: (progress: number) => void
+  progress?: (progress: number) => void,
 ) => Promise<void>;
 
 const androidDecryptFileFromFs: DecryptFileFromFsFunction = (
   originPath: string,
   destinationPath: string,
   key: Buffer,
-  iv: Buffer
+  iv: Buffer,
 ) => {
   return new Promise((resolve, reject) => {
-    decryptFile(
-      originPath,
-      destinationPath,
-      key.toString('hex'),
-      iv.toString('hex'),
-      (err) => {
-        if (err) { reject(err); } else resolve();
-      }
-    );
+    decryptFile(originPath, destinationPath, key.toString('hex'), iv.toString('hex'), (err) => {
+      if (err) {
+        reject(err);
+      } else resolve();
+    });
   });
 };
 
@@ -230,15 +208,9 @@ const iosDecryptFileFromFs: DecryptFileFromFsFunction = (
   destinationPath: string,
   key: Buffer,
   iv: Buffer,
-  notifyProgress?: (progress: number) => void
+  notifyProgress?: (progress: number) => void,
 ) => {
-  return decryptFileFromFs(
-    originPath,
-    destinationPath,
-    key,
-    iv,
-    notifyProgress && { progress: notifyProgress }
-  ).then();
+  return decryptFileFromFs(originPath, destinationPath, key, iv, notifyProgress && { progress: notifyProgress }).then();
 };
 
 type EncryptFileFromFsFunction = (
@@ -246,29 +218,23 @@ type EncryptFileFromFsFunction = (
   encryptedFilePath: string,
   key: Buffer,
   iv: Buffer,
-  progress?: (progress: number) => void
+  progress?: (progress: number) => void,
 ) => Promise<void>;
 
 const androidEncryptFileFromFs: EncryptFileFromFsFunction = (
   plainFilePath: string,
   encryptedFilePath: string,
   key: Buffer,
-  iv: Buffer
+  iv: Buffer,
 ): Promise<void> => {
   return new Promise((resolve, reject) => {
-    encryptFile(
-      plainFilePath,
-      encryptedFilePath,
-      key.toString('hex'),
-      iv.toString('hex'),
-      (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
+    encryptFile(plainFilePath, encryptedFilePath, key.toString('hex'), iv.toString('hex'), (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
       }
-    );
+    });
   });
 };
 
@@ -276,7 +242,7 @@ const iosEncryptFileFromFs: EncryptFileFromFsFunction = async (
   plainFilePath: string,
   encryptedFilePath: string,
   key: Buffer,
-  iv: Buffer
+  iv: Buffer,
 ): Promise<void> => {
   const twoMb = 2 * 1024 * 1024;
   const chunksOf = twoMb;
@@ -287,7 +253,7 @@ const iosEncryptFileFromFs: EncryptFileFromFsFunction = async (
   let start = 0;
 
   return eachLimit(new Array(chunks), 1, (_, cb) => {
-    RNFS.read(pathToUri(plainFilePath), chunksOf, start, 'base64')
+    RNFS.read(fileSystemService.pathToUri(plainFilePath), chunksOf, start, 'base64')
       .then((res) => {
         cipher.write(Buffer.from(res, 'base64'));
         return writer.write(cipher.read().toString('base64'));
@@ -299,8 +265,7 @@ const iosEncryptFileFromFs: EncryptFileFromFsFunction = async (
       .catch((err) => {
         cb(err);
       });
-  })
-    .then(() => {
-      return writer.close();
-    });
+  }).then(() => {
+    return writer.close();
+  });
 };

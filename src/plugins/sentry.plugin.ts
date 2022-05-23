@@ -1,5 +1,5 @@
 import * as Sentry from 'sentry-expo';
-import appService from '../services/app';
+import appService from '../services/AppService';
 import { AppPlugin } from '../types';
 
 const sentryPlugin: AppPlugin = {

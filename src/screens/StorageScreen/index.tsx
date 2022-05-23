@@ -13,7 +13,7 @@ import ReferralsWidget from '../../components/ReferralsWidget';
 import globalStyle from '../../styles';
 import AppScreen from '../../components/AppScreen';
 import { CaretRight } from 'phosphor-react-native';
-import appService from '../../services/app';
+import appService from '../../services/AppService';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 interface StorageScreenProps {

@@ -1,10 +1,11 @@
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../helpers';
 import { getHeaders } from '../../helpers/headers';
 import AesUtils from '../../helpers/aesUtils';
-import { constants } from '../../services/app';
-import { asyncStorage } from '../../services/asyncStorage';
-import notificationsService from '../../services/notifications';
+import { constants } from '../../services/AppService';
+import { asyncStorage } from '../../services/AsyncStorageService';
+import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
+import errorService from '../../services/ErrorService';
 interface ChangePasswordParam {
   password: string;
   newPassword: string;
@@ -45,7 +46,11 @@ export async function doChangePassword(params: ChangePasswordParam): Promise<any
 
     privateKeyEncrypted = AesUtils.encrypt(privateKey, params.newPassword);
   } catch (err) {
-    notificationsService.show({ text1: 'Error encrypting private key: ' + err.message, type: NotificationType.Error });
+    const castedError = errorService.castError(err);
+    notificationsService.show({
+      text1: 'Error encrypting private key: ' + castedError.message,
+      type: NotificationType.Error,
+    });
   }
 
   return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/user/password`, {
