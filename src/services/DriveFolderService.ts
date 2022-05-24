@@ -1,31 +1,38 @@
 import axios from 'axios';
-import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, DriveFolderData, MoveFolderPayload } from '@internxt/sdk/dist/drive/storage/types';
+import { Storage } from '@internxt/sdk/dist/drive';
 import { getHeaders } from '../helpers/headers';
 import { DriveFolderMetadataPayload } from '../types/drive';
-import { constants } from './AppService';
+import appService, { constants } from './AppService';
 import fileService from './DriveFileService';
 
 class DriveFolderService {
-  public async createFolder(parentFolderId: number, folderName = 'Untitled folder'): Promise<void> {
-    const headers = await getHeaders();
-    const headersMap: Record<string, string> = {};
+  private sdk?: Storage;
 
-    headers.forEach((value: string, key: string) => {
-      headersMap[key] = value;
+  public initialize(accessToken: string, mnemonic: string) {
+    this.sdk = Storage.client(
+      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
+      {
+        clientName: appService.name,
+        clientVersion: appService.version,
+      },
+      {
+        token: accessToken,
+        mnemonic,
+      },
+    );
+  }
+
+  public async createFolder(parentFolderId: number, folderName: string) {
+    const sdkResult = this.sdk?.createFolder({
+      parentFolderId,
+      folderName,
     });
+    return sdkResult ? sdkResult[0] : Promise.reject('createFolder Sdk method did not return a valid result');
+  }
 
-    return axios
-      .post(
-        `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder`,
-        {
-          parentFolderId,
-          folderName,
-        },
-        {
-          headers: headersMap,
-        },
-      )
-      .then(() => undefined);
+  public async moveFolder(payload: MoveFolderPayload) {
+    return this.sdk?.moveFolder(payload);
   }
 
   public async updateMetaData(

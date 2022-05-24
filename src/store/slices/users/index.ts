@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
 
-import { asyncStorage } from '../../../services/AsyncStorageService';
+import asyncStorage from '../../../services/AsyncStorageService';
 import notificationsService from '../../../services/NotificationsService';
 import userService from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';

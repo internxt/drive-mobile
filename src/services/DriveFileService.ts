@@ -4,7 +4,7 @@ import axios from 'axios';
 import { DriveFileMetadataPayload, DriveItemData, DriveListItem, SortDirection, SortType } from '../types/drive';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './AppService';
-import { FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchFolderContentResponse, MoveFileResponse } from '@internxt/sdk/dist/drive/storage/types';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
 
@@ -111,23 +111,17 @@ class DriveFileService {
       .then(() => undefined);
   }
 
-  public async moveFile(fileId: string, destination: number): Promise<number> {
+  public async moveFile(moveFilePayload: { fileId: string; destination: number }): Promise<MoveFileResponse> {
     const headers = await getHeaders();
-    const data = JSON.stringify({ fileId, destination });
+    const data = JSON.stringify(moveFilePayload);
 
-    const res = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/moveFile`, {
+    const res = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/move/file`, {
       method: 'POST',
       headers,
       body: data,
     });
 
-    if (res.status === 200) {
-      return 1;
-    } else {
-      const data = await res.json();
-
-      return data.message;
-    }
+    return res.json();
   }
 
   public async deleteItems(items: DriveItemData[]): Promise<void> {

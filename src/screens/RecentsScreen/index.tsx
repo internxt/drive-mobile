@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Alert, ScrollView, RefreshControl } from 'react-native';
 import _ from 'lodash';
 
-import { getRecents } from '../../services/recents';
 import DriveItem from '../../components/DriveItemTable';
 import DriveItemSkinSkeleton from '../../components/DriveItemSkinSkeleton';
 import strings from '../../../assets/lang/strings';
@@ -12,6 +11,7 @@ import NoResultsImage from '../../../assets/images/screens/no-results.svg';
 import { tailwind } from '../../helpers/designSystem';
 import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
+import DriveService from '../../services/DriveService';
 
 interface RecentsScreenProps {
   searchText?: string;
@@ -25,7 +25,8 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
     file.name.toLowerCase().includes((props.searchText || '').toLowerCase()),
   );
   const loadRecents = async () => {
-    return getRecents()
+    return DriveService.instance.recents
+      .getRecents()
       .then((recentFiles) => {
         setRecents(recentFiles);
       })

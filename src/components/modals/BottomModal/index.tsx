@@ -15,6 +15,7 @@ export interface BottomModalProps {
   style?: StyleProp<ViewStyle>;
   containerStyle?: StyleProp<ViewStyle>;
   safeAreaColor?: string;
+  height?: number;
 }
 
 const BottomModal = (props: BottomModalProps): JSX.Element => {

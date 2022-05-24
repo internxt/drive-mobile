@@ -4,7 +4,7 @@ import analytics from './AnalyticsService';
 import { getHeaders } from '../helpers/headers';
 import { DevicePlatform } from '../types';
 import { constants } from './AppService';
-import { asyncStorage } from './AsyncStorageService';
+import asyncStorage from './AsyncStorageService';
 
 export interface IProduct {
   id: string;

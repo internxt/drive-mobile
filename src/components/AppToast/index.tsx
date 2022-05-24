@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import Toast, { BaseToast, BaseToastProps, ToastConfigParams } from 'react-native-toast-message';
 import { ArrowCircleDown, ArrowCircleUp, CheckCircle, Warning, WarningOctagon } from 'phosphor-react-native';
 
-import { NotificationType } from '../../types';
+import { AppToastExtraProps, NotificationType } from '../../types';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { Dimensions, Text, TouchableHighlight, View } from 'react-native';
 import strings from '../../../assets/lang/strings';
@@ -26,22 +26,29 @@ const AppToast = (): JSX.Element => {
     size: 20,
   };
   const renderIcon = (icon: ReactNode) => <View style={tailwind('justify-center mr-2.5')}>{icon}</View>;
-  const renderAction = (text: string, callback: () => void) => (
-    <TouchableHighlight onPress={callback} underlayColor={getColor('neutral-30')} style={tailwind('rounded-r-xl ')}>
-      <View style={tailwind('justify-center flex-1 px-3.5')}>
-        <Text style={tailwind('text-blue-60 text-base')}>{text}</Text>
-      </View>
-    </TouchableHighlight>
-  );
+  const renderAction = (toastProps: ToastConfigParams<AppToastExtraProps>) => {
+    const callback = () => {
+      if (toastProps.props.action) {
+        toastProps.props.action.onActionPress();
+      }
+      toastProps.hide();
+    };
+
+    const text = toastProps.props.action ? toastProps.props.action.text : strings.components.buttons.dismiss;
+    return (
+      <TouchableHighlight onPress={callback} underlayColor={getColor('neutral-30')} style={tailwind('rounded-r-xl ')}>
+        <View style={tailwind('justify-center flex-1 px-3.5')}>
+          <Text style={tailwind('text-blue-60 text-base')}>{text}</Text>
+        </View>
+      </TouchableHighlight>
+    );
+  };
+
   const config: {
-    [key in NotificationType]: (props: ToastConfigParams<Record<string, never>>) => ReactNode;
+    [key in NotificationType]: (props: ToastConfigParams<AppToastExtraProps>) => ReactNode;
   } = {
     [NotificationType.Info]: (props) => (
-      <BaseToast
-        {...defaultProps}
-        {...props}
-        renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
-      />
+      <BaseToast {...defaultProps} {...props} renderTrailingIcon={() => renderAction(props)} />
     ),
     [NotificationType.Success]: (props) => (
       <BaseToast
@@ -50,7 +57,7 @@ const AppToast = (): JSX.Element => {
         renderLeadingIcon={() =>
           renderIcon(<CheckCircle {...iconDefaultProps} weight="fill" color={getColor('green-40')} />)
         }
-        renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
+        renderTrailingIcon={() => renderAction(props)}
       />
     ),
     [NotificationType.Warning]: (props) => (
@@ -60,7 +67,7 @@ const AppToast = (): JSX.Element => {
         renderLeadingIcon={() =>
           renderIcon(<Warning {...iconDefaultProps} weight="fill" color={getColor('yellow-30')} />)
         }
-        renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
+        renderTrailingIcon={() => renderAction(props)}
       />
     ),
     [NotificationType.Error]: (props) => (
@@ -70,7 +77,7 @@ const AppToast = (): JSX.Element => {
         renderLeadingIcon={() =>
           renderIcon(<WarningOctagon {...iconDefaultProps} weight="fill" color={getColor('red-50')} />)
         }
-        renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
+        renderTrailingIcon={() => renderAction(props)}
       />
     ),
     [NotificationType.Upload]: (props) => (
@@ -80,7 +87,7 @@ const AppToast = (): JSX.Element => {
         renderLeadingIcon={() =>
           renderIcon(<ArrowCircleUp {...iconDefaultProps} weight="fill" color={getColor('blue-60')} />)
         }
-        renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
+        renderTrailingIcon={() => renderAction(props)}
       />
     ),
     [NotificationType.Download]: (props) => (
@@ -90,7 +97,7 @@ const AppToast = (): JSX.Element => {
         renderLeadingIcon={() =>
           renderIcon(<ArrowCircleDown {...iconDefaultProps} weight="fill" color={getColor('blue-60')} />)
         }
-        renderTrailingIcon={() => renderAction(strings.components.buttons.dismiss, () => props.hide())}
+        renderTrailingIcon={() => renderAction(props)}
       />
     ),
   };

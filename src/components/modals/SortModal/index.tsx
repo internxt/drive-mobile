@@ -8,15 +8,15 @@ import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
 import AppText from '../../AppText';
 import { SortDirection, SortType } from '../../../types/drive';
+import { BaseModalProps } from '../../../types/ui';
 
 export type SortMode = {
   direction: SortDirection;
   type: SortType;
 };
-export interface SortModalProps {
+export interface SortModalProps extends BaseModalProps {
   onSortModeChange: (change: SortMode) => void;
-  onClose: () => void;
-  isOpen: boolean;
+
   sortMode: SortMode;
 }
 const SortModal: React.FC<SortModalProps> = (props) => {

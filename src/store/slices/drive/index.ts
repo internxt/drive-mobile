@@ -41,6 +41,7 @@ export interface DriveState {
   selectedItems: DriveItemData[];
   folderContent: DriveItemData[];
   focusedItem: DriveItemFocused;
+  itemToMove: DriveItemFocused;
   searchString: string;
   isUploading: boolean;
   isUploadingFileName: string | null;
@@ -51,6 +52,7 @@ export interface DriveState {
   pendingDeleteItems: { [key: string]: boolean };
   usage: number;
   limit: number;
+  absolutePath: string;
 }
 
 const initialState: DriveState = {
@@ -60,6 +62,8 @@ const initialState: DriveState = {
   items: [],
   folderContent: [],
   focusedItem: null,
+  absolutePath: '/',
+  itemToMove: null,
   uploadingFiles: [],
   downloadingFile: undefined,
   selectedItems: [],
@@ -344,11 +348,70 @@ const createFolderThunk = createAsyncThunk<
   await dispatch(getFolderContentThunk({ folderId: parentFolderId }));
 });
 
-const moveFileThunk = createAsyncThunk<void, { fileId: string; destinationFolderId: number }, { state: RootState }>(
-  'drive/moveFile',
-  async ({ fileId, destinationFolderId }, { dispatch }) => {
-    await fileService.moveFile(fileId, destinationFolderId);
-    dispatch(getFolderContentThunk({ folderId: destinationFolderId }));
+export interface MoveItemThunkPayload {
+  isFolder: boolean;
+  origin: {
+    name: string;
+    itemId: number | string;
+    parentId: number;
+    id: number;
+    updatedAt: string;
+    createdAt: string;
+  };
+  destination: {
+    folderId: number;
+  };
+}
+
+const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: RootState }>(
+  'drive/moveItem',
+  async ({ isFolder, origin, destination }, { dispatch, getState }) => {
+    const { user, token } = getState().auth;
+
+    folderService.initialize(token, user?.mnemonic || '');
+
+    if (!isFolder) {
+      await fileService.moveFile({
+        fileId: origin?.itemId as string,
+        destination: destination.folderId,
+      });
+    } else {
+      await folderService.moveFolder({
+        folderId: origin.itemId as number,
+        destinationFolderId: destination.folderId,
+      });
+    }
+
+    await DriveService.instance.localDatabaseService.deleteItem({
+      id: origin.itemId as number,
+      isFolder: isFolder,
+    });
+
+    const totalMovedItems = 1;
+    notificationsService.show({
+      text1: strings.formatString(strings.messages.itemsMoved, totalMovedItems).toString(),
+      action: {
+        text: strings.generic.view_folder,
+        onActionPress: () => {
+          dispatch(
+            driveThunks.navigateToFolderThunk({
+              parentId: destination.folderId,
+              name: origin.name,
+              id: destination.folderId,
+              updatedAt: origin.updatedAt,
+              item: {
+                name: origin.name,
+                id: destination.folderId,
+                parentId: origin.parentId,
+                updatedAt: origin.updatedAt,
+                createdAt: origin.createdAt,
+              },
+            }),
+          );
+        },
+      },
+      type: NotificationType.Success,
+    });
   },
 );
 
@@ -467,6 +530,13 @@ export const driveSlice = createSlice({
     setFocusedItem(state, action: PayloadAction<DriveItemFocused | null>) {
       state.focusedItem = action.payload;
     },
+
+    blurItem(state) {
+      state.focusedItem = null;
+    },
+    setItemToMove(state, action: PayloadAction<DriveItemFocused | null>) {
+      state.itemToMove = action.payload;
+    },
     popItem(state, action: PayloadAction<{ id: number; isFolder: boolean }>) {
       state.folderContent = state.folderContent.filter(
         (item: DriveItemData) => item.id !== action.payload.id || !item.fileId !== action.payload.isFolder,
@@ -576,15 +646,19 @@ export const driveSlice = createSlice({
       });
 
     builder
-      .addCase(moveFileThunk.pending, (state) => {
+      .addCase(moveItemThunk.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(moveFileThunk.fulfilled, (state) => {
+      .addCase(moveItemThunk.fulfilled, (state) => {
         state.isLoading = false;
       })
-      .addCase(moveFileThunk.rejected, (state, action) => {
+      .addCase(moveItemThunk.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message;
+
+        notificationsService.show({
+          text1: action.error.message || strings.errors.unknown,
+          type: NotificationType.Error,
+        });
       });
 
     builder
@@ -668,7 +742,7 @@ export const driveThunks = {
   updateFileMetadataThunk,
   updateFolderMetadataThunk,
   createFolderThunk,
-  moveFileThunk,
+  moveItemThunk,
   deleteItemsThunk,
   clearLocalDatabaseThunk,
 };

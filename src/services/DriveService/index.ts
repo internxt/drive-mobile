@@ -3,6 +3,7 @@ import { constants } from '../AppService';
 import DriveEventEmitter from './DriveEventEmitter';
 import DriveLocalDatabaseService from './DriveLocalDatabaseService';
 import DriveLogService from './DriveLogService';
+import DriveRecentsService from './DriveRecentsService';
 import DriveShareService from './DriveShareService';
 
 class DriveService {
@@ -12,6 +13,7 @@ class DriveService {
   public readonly eventEmitter: DriveEventEmitter;
   public readonly localDatabaseService: DriveLocalDatabaseService;
   public readonly share: DriveShareService;
+  public readonly recents: DriveRecentsService;
 
   private constructor() {
     this.model = {
@@ -21,6 +23,7 @@ class DriveService {
     this.eventEmitter = new DriveEventEmitter(this.logService);
     this.localDatabaseService = new DriveLocalDatabaseService(this.model, this.logService);
     this.share = new DriveShareService(this.model, this.logService);
+    this.recents = new DriveRecentsService(this.model, this.logService);
   }
 
   public static async initialize() {

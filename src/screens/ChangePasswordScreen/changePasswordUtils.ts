@@ -2,7 +2,7 @@ import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../../
 import { getHeaders } from '../../helpers/headers';
 import AesUtils from '../../helpers/aesUtils';
 import { constants } from '../../services/AppService';
-import { asyncStorage } from '../../services/AsyncStorageService';
+import asyncStorage from '../../services/AsyncStorageService';
 import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
 import errorService from '../../services/ErrorService';

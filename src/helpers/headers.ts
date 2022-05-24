@@ -1,4 +1,4 @@
-import { asyncStorage } from '../services/AsyncStorageService';
+import asyncStorage from '../services/AsyncStorageService';
 import PackageJson from '../../package.json';
 import { AsyncStorageKey } from '../types';
 

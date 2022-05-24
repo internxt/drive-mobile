@@ -9,7 +9,7 @@ import AppNavigator from './screens/AppNavigator';
 import analyticsService from './services/AnalyticsService';
 import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
 import { getColor, tailwind } from './helpers/designSystem';
-import { asyncStorage } from './services/AsyncStorageService';
+import asyncStorage from './services/AsyncStorageService';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
 import { AppScreenKey, AsyncStorageKey } from './types';
@@ -18,7 +18,6 @@ import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { uiActions } from './store/slices/ui';
-import SortModal from './components/modals/SortModal';
 import AppToast from './components/AppToast';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
 

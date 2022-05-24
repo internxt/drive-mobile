@@ -1,14 +1,16 @@
 import React from 'react';
-import { StyleProp, Text, TouchableHighlight, ViewStyle } from 'react-native';
+import { StyleProp, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import globalStyle from '../../styles';
+import LoadingSpinner from '../LoadingSpinner';
 
 interface AppButtonProps {
   title: string | JSX.Element;
   type: 'accept' | 'cancel' | 'cancel-2' | 'delete';
   onPress: () => void;
   disabled?: boolean;
+  loading?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -33,20 +35,33 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     delete: getColor('red-70'),
   }[props.type];
 
-  return (
-    <TouchableHighlight
-      underlayColor={typeUnderlayColor}
-      style={[tailwind('rounded-lg py-2 px-4 items-center justify-center'), typeBgStyle, props.style]}
-      onPress={props.onPress}
-      disabled={!!props.disabled}
-    >
-      {isTitleString ? (
+  const renderContent = () => {
+    if (props.loading) {
+      return (
+        <View style={tailwind('h-7 flex items-center justify-center')}>
+          <LoadingSpinner color={getColor('white')} size={16} />
+        </View>
+      );
+    }
+
+    if (isTitleString) {
+      return (
         <Text numberOfLines={1} style={[tailwind('text-lg'), globalStyle.fontWeight.medium, typeTextStyle]}>
           {props.title}
         </Text>
-      ) : (
-        props.title
-      )}
+      );
+    }
+
+    return props.title;
+  };
+  return (
+    <TouchableHighlight
+      underlayColor={typeUnderlayColor}
+      style={[tailwind('rounded-lg px-4 py-2 items-center justify-center '), typeBgStyle, props.style]}
+      onPress={props.onPress}
+      disabled={!!props.disabled || !!props.loading}
+    >
+      {renderContent()}
     </TouchableHighlight>
   );
 };

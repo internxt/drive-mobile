@@ -1,7 +1,7 @@
 import network from '../network';
 import { getEnvironmentConfig } from '../lib/network';
 
-import { asyncStorage } from './AsyncStorageService';
+import asyncStorage from './AsyncStorageService';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './AppService';
 import { AsyncStorageKey } from '../types';

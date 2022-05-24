@@ -2,7 +2,7 @@ import { UserReferral } from '@internxt/sdk/dist/drive/referrals/types';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
-import { asyncStorage } from '../../../services/AsyncStorageService';
+import asyncStorage from '../../../services/AsyncStorageService';
 import notificationsService from '../../../services/NotificationsService';
 import usersReferralsService from '../../../services/UsersReferralsService';
 import { AsyncStorageKey, NotificationType } from '../../../types';

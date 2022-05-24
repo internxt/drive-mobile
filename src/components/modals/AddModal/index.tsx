@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Alert, Platform, PermissionsAndroid, TouchableHighlight } from 'react-native';
 import {
   launchCameraAsync,
@@ -29,9 +29,11 @@ import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-rea
 import BottomModal from '../BottomModal';
 import { UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
 import { constants } from '../../../services/AppService';
+import CreateFolderModal from '../CreateFolderModal';
 
 function AddModal(): JSX.Element {
   const dispatch = useAppDispatch();
+  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const { folderContent, usage: storageUsage, limit } = useAppSelector((state) => state.drive);
   const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const { showUploadModal } = useAppSelector((state) => state.ui);
@@ -49,6 +51,18 @@ function AddModal(): JSX.Element {
     return uploadAndCreateFileEntry(fileURI, name, fileExtension, file.parentId, progressCallback);
   }
 
+  const onCloseCreateFolderModal = () => {
+    setShowCreateFolderModal(false);
+  };
+
+  const onCancelCreateFolderModal = () => {
+    setShowCreateFolderModal(false);
+  };
+
+  const onFolderCreated = async () => {
+    setShowCreateFolderModal(false);
+    await dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
+  };
   async function uploadAndroid(
     fileToUpload: UploadingFile,
     fileType: 'document' | 'image',
@@ -477,103 +491,114 @@ function AddModal(): JSX.Element {
   }
 
   return (
-    <BottomModal
-      safeAreaColor="transparent"
-      style={tailwind('bg-transparent')}
-      isOpen={showUploadModal}
-      onClosed={() => {
-        dispatch(uiActions.setShowUploadFileModal(false));
-      }}
-    >
-      <View style={tailwind('p-4')}>
-        <View style={tailwind('rounded-xl overflow-hidden')}>
-          <TouchableHighlight
-            style={tailwind('flex-grow')}
-            underlayColor={getColor('neutral-80')}
-            onPress={() => {
-              handleUploadFiles();
-            }}
-          >
-            <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-              <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.uploadFiles}</Text>
-              <View style={tailwind('p-3.5 items-center justify-center')}>
-                <FileArrowUp color={getColor('neutral-500')} size={20} />
+    <>
+      <BottomModal
+        safeAreaColor="transparent"
+        style={tailwind('bg-transparent')}
+        isOpen={showUploadModal}
+        onClosed={() => {
+          dispatch(uiActions.setShowUploadFileModal(false));
+        }}
+      >
+        <View style={tailwind('p-4')}>
+          <View style={tailwind('rounded-xl overflow-hidden')}>
+            <TouchableHighlight
+              style={tailwind('flex-grow')}
+              underlayColor={getColor('neutral-80')}
+              onPress={() => {
+                handleUploadFiles();
+              }}
+            >
+              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.uploadFiles}</Text>
+                <View style={tailwind('p-3.5 items-center justify-center')}>
+                  <FileArrowUp color={getColor('neutral-500')} size={20} />
+                </View>
               </View>
-            </View>
-          </TouchableHighlight>
+            </TouchableHighlight>
 
-          <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
 
-          <TouchableHighlight
-            style={tailwind('flex-grow')}
-            underlayColor={getColor('neutral-80')}
-            onPress={() => {
-              handleUploadFromCameraRoll();
-            }}
-          >
-            <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-              <Text style={tailwind('text-lg text-neutral-500')}>
-                {strings.components.buttons.uploadFromCameraRoll}
-              </Text>
-              <View style={tailwind('p-3.5 items-center justify-center')}>
-                <ImageSquare color={getColor('neutral-500')} size={20} />
+            <TouchableHighlight
+              style={tailwind('flex-grow')}
+              underlayColor={getColor('neutral-80')}
+              onPress={() => {
+                handleUploadFromCameraRoll();
+              }}
+            >
+              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>
+                  {strings.components.buttons.uploadFromCameraRoll}
+                </Text>
+                <View style={tailwind('p-3.5 items-center justify-center')}>
+                  <ImageSquare color={getColor('neutral-500')} size={20} />
+                </View>
               </View>
-            </View>
-          </TouchableHighlight>
+            </TouchableHighlight>
 
-          <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
 
-          <TouchableHighlight
-            style={tailwind('flex-grow')}
-            underlayColor={getColor('neutral-80')}
-            onPress={() => {
-              handleTakePhotoAndUpload();
-            }}
-          >
-            <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-              <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.takeAPhotoAnUpload}</Text>
-              <View style={tailwind('p-3.5 items-center justify-center')}>
-                <Camera color={getColor('neutral-500')} size={20} />
+            <TouchableHighlight
+              style={tailwind('flex-grow')}
+              underlayColor={getColor('neutral-80')}
+              onPress={() => {
+                handleTakePhotoAndUpload();
+              }}
+            >
+              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>
+                  {strings.components.buttons.takeAPhotoAnUpload}
+                </Text>
+                <View style={tailwind('p-3.5 items-center justify-center')}>
+                  <Camera color={getColor('neutral-500')} size={20} />
+                </View>
               </View>
-            </View>
-          </TouchableHighlight>
+            </TouchableHighlight>
 
-          <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
 
-          <TouchableHighlight
-            style={tailwind('flex-grow')}
-            underlayColor={getColor('neutral-80')}
-            onPress={() => {
-              dispatch(uiActions.setShowCreateFolderModal(true));
-              dispatch(uiActions.setShowUploadFileModal(false));
-            }}
-          >
-            <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-              <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.newFolder}</Text>
-              <View style={tailwind('p-3.5 items-center justify-center')}>
-                <FolderSimplePlus color={getColor('neutral-500')} size={20} />
+            <TouchableHighlight
+              style={tailwind('flex-grow')}
+              underlayColor={getColor('neutral-80')}
+              onPress={() => {
+                setShowCreateFolderModal(true);
+                dispatch(uiActions.setShowUploadFileModal(false));
+              }}
+            >
+              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.newFolder}</Text>
+                <View style={tailwind('p-3.5 items-center justify-center')}>
+                  <FolderSimplePlus color={getColor('neutral-500')} size={20} />
+                </View>
               </View>
-            </View>
-          </TouchableHighlight>
+            </TouchableHighlight>
+          </View>
+
+          <View style={tailwind('mt-3.5 rounded-xl overflow-hidden')}>
+            <TouchableHighlight
+              style={tailwind('flex-grow')}
+              underlayColor={getColor('neutral-80')}
+              onPress={() => {
+                dispatch(uiActions.setShowUploadFileModal(false));
+              }}
+            >
+              <View style={tailwind('flex-row flex-grow bg-white h-12 items-center justify-center')}>
+                <Text style={[tailwind('text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
+                  {strings.components.buttons.cancel}
+                </Text>
+              </View>
+            </TouchableHighlight>
+          </View>
         </View>
-
-        <View style={tailwind('mt-3.5 rounded-xl overflow-hidden')}>
-          <TouchableHighlight
-            style={tailwind('flex-grow')}
-            underlayColor={getColor('neutral-80')}
-            onPress={() => {
-              dispatch(uiActions.setShowUploadFileModal(false));
-            }}
-          >
-            <View style={tailwind('flex-row flex-grow bg-white h-12 items-center justify-center')}>
-              <Text style={[tailwind('text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
-                {strings.components.buttons.cancel}
-              </Text>
-            </View>
-          </TouchableHighlight>
-        </View>
-      </View>
-    </BottomModal>
+      </BottomModal>
+      <CreateFolderModal
+        isOpen={showCreateFolderModal}
+        currentFolderId={currentFolderId}
+        onClose={onCloseCreateFolderModal}
+        onCancel={onCancelCreateFolderModal}
+        onFolderCreated={onFolderCreated}
+      />
+    </>
   );
 }
 
