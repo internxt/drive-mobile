@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 import validationService from '../../services/validation';
 import strings from '../../../assets/lang/strings';
 import { tailwind } from '../../helpers/designSystem';
 import { doChangePassword } from './changePasswordUtils';
 import ScreenTitle from '../../components/AppScreenTitle';
-import { AppScreenKey, NotificationType } from '../../types';
+import { NotificationType, RootStackScreenProps } from '../../types';
 import AppScreen from '../../components/AppScreen';
 import notificationsService from '../../services/notifications';
 import { Eye } from 'phosphor-react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-function ChangePasswordScreen(): JSX.Element {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePassword'>): JSX.Element {
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -62,7 +59,7 @@ function ChangePasswordScreen(): JSX.Element {
         </View>
         <TouchableWithoutFeedback
           onPress={() => {
-            navigation.push(AppScreenKey.RecoverPassword);
+            navigation.push('RecoverPassword');
           }}
         >
           <Text style={tailwind('text-base text-sm text-blue-70 text-center m-3')}>

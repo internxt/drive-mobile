@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Text, TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
 import _ from 'lodash';
-import { useNavigation } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
@@ -10,14 +9,13 @@ import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
 import globalStyle from '../../styles';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/AppScreenTitle';
-import { AppScreenKey, NotificationType } from '../../types';
+import { AppScreenKey, NotificationType, RootStackScreenProps } from '../../types';
 import paymentService from '../../services/payment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { constants } from '../../services/app';
 import AppScreen from '../../components/AppScreen';
 import notificationsService from '../../services/notifications';
 import { Check } from 'phosphor-react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -64,8 +62,7 @@ const PERIODS = [
   { index: 1, text: strings.generic.annually },
 ];
 
-function BillingScreen(): JSX.Element {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Element {
   const redirectUrl = `${constants.REACT_NATIVE_WEB_CLIENT_URL}/redirect-to-app?path=checkout`;
   const getLink = async (plan: any) => {
     const body = {
@@ -86,7 +83,7 @@ function BillingScreen(): JSX.Element {
           [
             {
               text: strings.components.buttons.back,
-              onPress: () => navigation.replace(AppScreenKey.Billing),
+              onPress: () => navigation.replace('Billing'),
             },
           ],
         );

@@ -9,18 +9,18 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { items } from '@internxt/lib';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import PhotosPreviewOptionsModal from '../../../components/modals/PhotosPreviewOptionsModal';
-import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { uiActions } from '../../../store/slices/ui';
-import strings from '../../../../assets/lang/strings';
-import SharePhotoModal from '../../../components/modals/SharePhotoModal';
-import { pathToUri, showFileViewer } from '../../../services/fileSystem';
-import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfoModal';
-import { photosActions, photosSelectors, photosThunks } from '../../../store/slices/photos';
-import LoadingSpinner from '../../../components/LoadingSpinner';
-import { getColor, tailwind } from '../../../helpers/designSystem';
-import AppScreen from '../../../components/AppScreen';
+import PhotosPreviewOptionsModal from '../../components/modals/PhotosPreviewOptionsModal';
+import DeletePhotosModal from '../../components/modals/DeletePhotosModal';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { uiActions } from '../../store/slices/ui';
+import strings from '../../../assets/lang/strings';
+import SharePhotoModal from '../../components/modals/SharePhotoModal';
+import { pathToUri, showFileViewer } from '../../services/fileSystem';
+import PhotosPreviewInfoModal from '../../components/modals/PhotosPreviewInfoModal';
+import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import { getColor, tailwind } from '../../helpers/designSystem';
+import AppScreen from '../../components/AppScreen';
 
 interface PreviewProps {
   route: {

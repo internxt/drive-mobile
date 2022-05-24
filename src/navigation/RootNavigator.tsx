@@ -1,58 +1,34 @@
 import React, { useEffect } from 'react';
-// import { NavigationParams, NavigationRoute, NavigationRouteConfigMap } from 'react-navigation';
-//import { StackNavigationOptions, StackNavigationProp } from 'react-navigation-stack/lib/typescript/src/vendor/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 
-import { AppScreenKey } from '../types';
-import SignInScreen from './SignInScreen';
-import SignUpScreen from './SignUpScreen';
-import HomeScreen from './HomeScreen';
-import StorageScreen from './StorageScreen';
+import { RootStackParamList } from '../types';
+import SignInScreen from '../screens/SignInScreen';
+import SignUpScreen from '../screens/SignUpScreen';
+import HomeScreen from '../screens/HomeScreen';
+import StorageScreen from '../screens/StorageScreen';
 import AuthenticatedNavigator from './AuthenticatedNavigator';
-import BillingScreen from './BillingScreen';
-import ChangePasswordScreen from './ChangePasswordScreen';
-import RecoverPasswordScreen from './RecoverPasswordScreen';
-import ForgotPasswordScreen from './ForgotPasswordScreen';
+import BillingScreen from '../screens/BillingScreen';
+import ChangePasswordScreen from '../screens/ChangePasswordScreen';
+import RecoverPasswordScreen from '../screens/RecoverPasswordScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import PhotosNavigator from './PhotosNavigator';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import PhotosPreviewScreen from './PhotosNavigator/PhotosPreviewScreen';
+import PhotosPreviewScreen from '../screens/PhotosPreviewScreen';
 import { appThunks } from '../store/slices/app';
 import { driveActions } from '../store/slices/drive';
 import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DebugScreen from './DebugScreen';
+import DebugScreen from '../screens/DebugScreen';
 import analyticsService from '../services/analytics';
 
-/*type RouteConfig = NavigationRouteConfigMap<
-  StackNavigationOptions,
-  StackNavigationProp<NavigationRoute<NavigationParams>, NavigationParams>,
-  any
->;*/
-type RouteConfig = any;
-
-const routeConfig: RouteConfig = {
-  [AppScreenKey.Debug]: { screen: DebugScreen },
-  [AppScreenKey.SignUp]: { screen: SignUpScreen },
-  [AppScreenKey.SignIn]: { screen: SignInScreen },
-  [AppScreenKey.Home]: { screen: HomeScreen },
-  [AppScreenKey.TabExplorer]: { screen: AuthenticatedNavigator },
-  [AppScreenKey.ForgotPassword]: { screen: ForgotPasswordScreen },
-  [AppScreenKey.Storage]: { screen: StorageScreen },
-  [AppScreenKey.Billing]: { screen: BillingScreen },
-  [AppScreenKey.ChangePassword]: { screen: ChangePasswordScreen },
-  [AppScreenKey.RecoverPassword]: { screen: RecoverPasswordScreen },
-  [AppScreenKey.Photos]: { screen: PhotosNavigator },
-  [AppScreenKey.PhotosPreview]: { screen: PhotosPreviewScreen },
-};
-
-const StackNav = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator(): JSX.Element {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
-  const initialRouteName = isLoggedIn ? AppScreenKey.TabExplorer : AppScreenKey.SignIn;
+  const initialRouteName: keyof RootStackParamList = isLoggedIn ? 'TabExplorer' : 'SignIn';
   const onAppLinkOpened = async (event: Linking.EventType) => {
     const sessionId = await AsyncStorage.getItem('tmpCheckoutSessionId');
 
@@ -115,16 +91,23 @@ function AppNavigator(): JSX.Element {
   }, []);
 
   return (
-    <StackNav.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false }}>
-      {Object.entries(routeConfig).map(([name, component]: [string, any]) => (
-        <StackNav.Screen
-          key={name}
-          name={name}
-          component={component.screen}
-          options={{ animation: 'slide_from_right' }}
-        />
-      ))}
-    </StackNav.Navigator>
+    <Stack.Navigator
+      initialRouteName={initialRouteName}
+      screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
+    >
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Debug" component={DebugScreen} />
+      <Stack.Screen name="SignUp" component={SignUpScreen} />
+      <Stack.Screen name="SignIn" component={SignInScreen} />
+      <Stack.Screen name="TabExplorer" component={AuthenticatedNavigator} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="Storage" component={StorageScreen} />
+      <Stack.Screen name="Billing" component={BillingScreen} />
+      <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+      <Stack.Screen name="RecoverPassword" component={RecoverPasswordScreen} />
+      <Stack.Screen name="Photos" component={PhotosNavigator} />
+      <Stack.Screen name="PhotosPreview" component={PhotosPreviewScreen} />
+    </Stack.Navigator>
   );
 }
 

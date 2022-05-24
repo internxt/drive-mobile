@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
+import { TouchableHighlight, View } from 'react-native';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import { items } from '@internxt/lib';

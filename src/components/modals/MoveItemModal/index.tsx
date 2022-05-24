@@ -24,16 +24,14 @@ import ConfirmMoveItemModal from '../ConfirmMoveItemModal';
 import AppText from '../../AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SortModal, { SortMode } from '../SortModal';
-
 import BottomModal from '../BottomModal';
 import CreateFolderModal from '../CreateFolderModal';
 import DriveItemSkinSkeleton from '../../DriveItemSkinSkeleton';
 import notificationsService from '../../../services/notifications';
-import { NotificationType } from '../../../types';
+import { AppScreenKey, NotificationType } from '../../../types';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-/**
- * Temporal to grab colors from
- */
 const colors = {
   primary: '#0066FF',
 };
@@ -43,6 +41,7 @@ const INITIAL_SORT_MODE: SortMode = {
   type: SortType.Name,
 };
 function MoveFilesModal(): JSX.Element {
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const dispatch = useAppDispatch();
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>(INITIAL_SORT_MODE);
@@ -119,13 +118,29 @@ function MoveFilesModal(): JSX.Element {
         origin: {
           itemId: itemToMove.fileId || itemToMove.id,
           parentId: itemToMove.parentId as number,
-          name: originFolderContentResponse?.name,
+          name: originFolderContentResponse.name,
           updatedAt: originFolderContentResponse.updatedAt,
           createdAt: originFolderContentResponse.createdAt,
           id: originFolderContentResponse.id,
         },
-        destination: {
-          folderId: destinationFolderContentResponse.id,
+        destination: destinationFolderContentResponse.id,
+        itemMovedAction: () => {
+          navigation.push(`${AppScreenKey.TabExplorer}/${AppScreenKey.Drive}`);
+          dispatch(
+            driveThunks.navigateToFolderThunk({
+              parentId: destinationFolderContentResponse.id,
+              name: originFolderContentResponse.name,
+              id: destinationFolderContentResponse.id,
+              updatedAt: originFolderContentResponse.updatedAt,
+              item: {
+                name: originFolderContentResponse.name,
+                id: destinationFolderContentResponse.id,
+                parentId: originFolderContentResponse.parentId,
+                updatedAt: originFolderContentResponse.updatedAt,
+                createdAt: originFolderContentResponse.createdAt,
+              },
+            }),
+          );
         },
       }),
     );

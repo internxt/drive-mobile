@@ -1,29 +1,22 @@
 import React from 'react';
 import prettysize from 'prettysize';
 import { View, Text, TouchableHighlight } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import AppProgressBar from '../../components/AppProgressBar';
 import ScreenTitle from '../../components/AppScreenTitle';
 import { useAppSelector } from '../../store/hooks';
-import { AppScreenKey, INFINITE_PLAN } from '../../types';
+import { INFINITE_PLAN, RootStackScreenProps } from '../../types';
 import ReferralsWidget from '../../components/ReferralsWidget';
 import globalStyle from '../../styles';
 import AppScreen from '../../components/AppScreen';
 import { CaretRight } from 'phosphor-react-native';
 import appService from '../../services/app';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-interface StorageScreenProps {
-  currentPlan: number;
-}
-
-function StorageScreen(props: StorageScreenProps): JSX.Element {
+function StorageScreen({ navigation }: RootStackScreenProps<'Storage'>): JSX.Element {
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const { usage: storageUsage, limit } = useAppSelector((state) => state.drive);
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const usageValues = { usage: storageUsage + photosUsage, limit };
   const getLimitString = () => {
     if (usageValues.limit === 0) {
@@ -62,7 +55,6 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
           </Text>
           <View style={tailwind('my-2')}>
             <AppProgressBar
-              {...props}
               progressStyle={tailwind('h-2')}
               totalValue={usageValues.limit}
               currentValue={usageValues.usage}
@@ -74,7 +66,7 @@ function StorageScreen(props: StorageScreenProps): JSX.Element {
           <TouchableHighlight
             underlayColor={getColor('neutral-30')}
             onPress={() => {
-              navigation.push(AppScreenKey.Billing);
+              navigation.push('Billing');
             }}
           >
             <View style={tailwind('px-5 py-3 flex-row items-center justify-between border-t border-neutral-20')}>

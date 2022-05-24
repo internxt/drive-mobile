@@ -1,5 +1,6 @@
 import { Photo, Device, PhotoStatus, User } from '@internxt/sdk/dist/photos';
 import CameraRoll from '@react-native-community/cameraroll';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { NetworkCredentials } from '.';
 
 export enum PhotosScreen {
@@ -134,3 +135,13 @@ export interface PhotosCameraRollGetPhotosResponse {
   edges: CameraRoll.PhotoIdentifier[];
   page_info: { has_next_page: boolean; start_cursor?: string | undefined; end_cursor?: string | undefined };
 }
+
+export type PhotosStackParamList = {
+  PhotosPermissions: undefined;
+  PhotosGallery: undefined;
+};
+
+export type PhotosStackScreenProps<Screen extends keyof PhotosStackParamList> = NativeStackScreenProps<
+  PhotosStackParamList,
+  Screen
+>;

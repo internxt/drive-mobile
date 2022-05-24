@@ -1,26 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
 import Portal from '@burstware/react-native-portal';
-import { LinkingOptions, NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
 
-import AppNavigator from './screens/AppNavigator';
 import analyticsService from './services/analytics';
 import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
 import { getColor, tailwind } from './helpers/designSystem';
 import { asyncStorage } from './services/asyncStorage';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
-import { AppScreenKey, AsyncStorageKey } from './types';
+import { AsyncStorageKey } from './types';
 import appService from './services/app';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { uiActions } from './store/slices/ui';
-import SortModal from './components/modals/SortModal';
 import AppToast from './components/AppToast';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
+import Navigation from './navigation';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -29,15 +27,6 @@ export default function App(): JSX.Element {
     (state) => state.ui,
   );
   const [loadError, setLoadError] = useState('');
-  const linking: LinkingOptions<ReactNavigation.RootParamList> = {
-    prefixes: ['inxt'],
-    config: {
-      screens: {
-        [AppScreenKey.TabExplorer]: AppScreenKey.TabExplorer,
-        checkout: AppScreenKey.Billing,
-      },
-    },
-  };
   const loadLocalUser = async () => {
     const token = await asyncStorage.getItem(AsyncStorageKey.Token);
     const photosToken = await asyncStorage.getItem(AsyncStorageKey.PhotosToken);
@@ -81,53 +70,18 @@ export default function App(): JSX.Element {
       .catch(() => undefined);
   }, []);
 
-  const navigationRef = useNavigationContainerRef();
-  const routeNameRef = useRef<string>();
-
   return (
     <SafeAreaProvider>
       <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
         <Portal.Host>
           <View style={tailwind('flex-1')}>
-            <NavigationContainer
-              ref={navigationRef}
-              onReady={() => {
-                const currentRoute = navigationRef.getCurrentRoute();
-
-                routeNameRef.current = currentRoute && currentRoute.name;
-              }}
-              onStateChange={(route) => {
-                const previousRouteName = routeNameRef.current;
-                const currentRouteName = navigationRef.getCurrentRoute()?.name;
-
-                if (previousRouteName !== currentRouteName) {
-                  route && analyticsService.trackStackScreen(route, navigationRef.getCurrentRoute()?.params);
-                }
-
-                routeNameRef.current = currentRouteName;
-              }}
-              linking={linking}
-              fallback={<View></View>}
-              theme={{
-                dark: false,
-                colors: {
-                  primary: getColor('neutral-900'),
-                  background: getColor('white'),
-                  card: getColor('white'),
-                  border: getColor('neutral-900'),
-                  notification: getColor('neutral-900'),
-                  text: getColor('neutral-900'),
-                },
-              }}
-            >
-              {isAppInitialized ? (
-                <AppNavigator />
-              ) : (
-                <View style={tailwind('items-center flex-1 justify-center')}>
-                  {loadError ? <Text>{loadError}</Text> : null}
-                </View>
-              )}
-            </NavigationContainer>
+            {isAppInitialized ? (
+              <Navigation />
+            ) : (
+              <View style={tailwind('items-center flex-1 justify-center')}>
+                {loadError ? <Text>{loadError}</Text> : null}
+              </View>
+            )}
 
             <AppToast />
 

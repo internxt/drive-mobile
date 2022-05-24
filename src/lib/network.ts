@@ -1,5 +1,3 @@
-import { createHash } from 'react-native-crypto';
-import RNFetchBlob from 'rn-fetch-blob';
 import { Environment } from '../@inxt-js';
 import { ActionState } from '../@inxt-js/api/actionState';
 import { FileInfo } from '../@inxt-js/api/fileinfo';
@@ -9,12 +7,6 @@ import { asyncStorage } from '../services/asyncStorage';
 import { FileManager } from '../services/fileSystem';
 
 type ProgressCallback = (progress: number, uploadedBytes: number | null, totalBytes: number | null) => void;
-
-interface IUploadParams {
-  filepath: string;
-  fileUri: string;
-  progressCallback: ProgressCallback;
-}
 
 interface IDownloadParams {
   fileManager: FileManager;

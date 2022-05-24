@@ -1,15 +1,15 @@
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { Linking, Platform, ScrollView, Text, View } from 'react-native';
-import SyncIcon from '../../../../assets/images/modals/sync.svg';
-import strings from '../../../../assets/lang/strings';
-import AppButton from '../../../components/AppButton';
+import SyncIcon from '../../../assets/images/modals/sync.svg';
+import strings from '../../../assets/lang/strings';
+import AppButton from '../../components/AppButton';
 
-import { tailwind } from '../../../helpers/designSystem';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { photosSelectors, photosThunks } from '../../../store/slices/photos';
-import globalStyle from '../../../styles';
-import { PhotosScreen } from '../../../types/photos';
+import { tailwind } from '../../helpers/designSystem';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { photosSelectors, photosThunks } from '../../store/slices/photos';
+import globalStyle from '../../styles';
+import { PhotosScreen } from '../../types/photos';
 
 function PhotosPermissionsScreen({ navigation }: { navigation: NativeStackNavigationProp<any> }): JSX.Element {
   const dispatch = useAppDispatch();

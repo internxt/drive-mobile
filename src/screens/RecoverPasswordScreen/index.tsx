@@ -6,16 +6,13 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
 import ScreenTitle from '../../components/AppScreenTitle';
-import { useNavigation } from '@react-navigation/native';
 import AppTextInput from '../../components/AppTextInput';
 import AppScreen from '../../components/AppScreen';
-import { NotificationType } from '../../types';
+import { NotificationType, RootStackScreenProps } from '../../types';
 import notificationsService from '../../services/notifications';
 import { Eye, EyeSlash } from 'phosphor-react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-function ChangePassword(): JSX.Element {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+function RecoverPasswordScreen({ navigation }: RootStackScreenProps<'RecoverPassword'>): JSX.Element {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -151,4 +148,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ChangePassword;
+export default RecoverPasswordScreen;

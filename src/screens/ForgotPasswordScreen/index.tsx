@@ -7,14 +7,10 @@ import InternxtLogo from '../../../assets/logo.svg';
 import { tailwind } from '../../helpers/designSystem';
 import validationService from '../../services/validation';
 import authService from '../../services/auth';
-import { AppScreenKey } from '../../types';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
+import { AppScreenKey, RootStackScreenProps } from '../../types';
 import AppScreen from '../../components/AppScreen';
 
-function ForgotPasswordScreen(): JSX.Element {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPassword'>): JSX.Element {
   const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   // Get email form field
@@ -87,10 +83,7 @@ function ForgotPasswordScreen(): JSX.Element {
                 </TouchableHighlight>
               </View>
               <View style={tailwind('py-5')}>
-                <TouchableWithoutFeedback
-                  style={tailwind('m-5')}
-                  onPress={() => navigation.navigate(AppScreenKey.SignIn)}
-                >
+                <TouchableWithoutFeedback style={tailwind('m-5')} onPress={() => navigation.navigate('SignIn')}>
                   <Text style={tailwind('text-blue-60 text-center')}> {strings.screens.SignInScreen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>
@@ -126,10 +119,7 @@ function ForgotPasswordScreen(): JSX.Element {
               </View>
 
               <View style={tailwind('py-5')}>
-                <TouchableWithoutFeedback
-                  style={tailwind('m-5')}
-                  onPress={() => navigation.replace(AppScreenKey.SignIn)}
-                >
+                <TouchableWithoutFeedback style={tailwind('m-5')} onPress={() => navigation.replace('SignIn')}>
                   <Text style={[]}> {strings.screens.SignInScreen.back}</Text>
                 </TouchableWithoutFeedback>
               </View>

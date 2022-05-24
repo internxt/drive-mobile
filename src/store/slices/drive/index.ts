@@ -358,14 +358,13 @@ export interface MoveItemThunkPayload {
     updatedAt: string;
     createdAt: string;
   };
-  destination: {
-    folderId: number;
-  };
+  destination: number;
+  itemMovedAction: () => void;
 }
 
 const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: RootState }>(
   'drive/moveItem',
-  async ({ isFolder, origin, destination }, { dispatch, getState }) => {
+  async ({ isFolder, origin, destination, itemMovedAction }, { getState }) => {
     const { user, token } = getState().auth;
 
     // 1- Initialize SDK
@@ -377,13 +376,13 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
         // Is a file move it
         await fileService.moveFile({
           fileId: origin?.itemId as string,
-          destination: destination.folderId,
+          destination: destination,
         });
       } else {
         // Is a folder move it
         await folderService.moveFolder({
           folderId: origin.itemId as number,
-          destinationFolderId: destination.folderId,
+          destinationFolderId: destination,
         });
       }
     } catch (e: unknown) {
@@ -408,23 +407,7 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
       text1: strings.formatString(strings.messages.itemsMoved, totalMovedItems).toString(),
       action: {
         text: strings.generic.view_folder,
-        onActionPress: () => {
-          dispatch(
-            driveThunks.navigateToFolderThunk({
-              parentId: destination.folderId,
-              name: origin.name,
-              id: destination.folderId,
-              updatedAt: origin.updatedAt,
-              item: {
-                name: origin.name,
-                id: destination.folderId,
-                parentId: origin.parentId,
-                updatedAt: origin.updatedAt,
-                createdAt: origin.createdAt,
-              },
-            }),
-          );
-        },
+        onActionPress: itemMovedAction,
       },
       type: NotificationType.Success,
     });

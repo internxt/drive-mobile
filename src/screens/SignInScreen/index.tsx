@@ -1,7 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
 import { View, Text, Alert, TextInput, TouchableWithoutFeedback } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { Eye, EyeSlash } from 'phosphor-react-native';
 
 import strings from '../../../assets/lang/strings';
@@ -11,16 +10,14 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import AppVersionWidget from '../../components/AppVersionWidget';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
-import { AppScreenKey } from '../../types';
+import { RootStackScreenProps } from '../../types';
 import { useAppDispatch } from '../../store/hooks';
 import { authThunks } from '../../store/slices/auth';
 import errorService from '../../services/error';
 import AppScreen from '../../components/AppScreen';
 import AppButton from '../../components/AppButton';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-function SignInScreen(): JSX.Element {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -43,7 +40,7 @@ function SignInScreen(): JSX.Element {
         await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode })).unwrap();
 
         setIsLoading(false);
-        navigation.replace(AppScreenKey.TabExplorer);
+        navigation.replace('TabExplorer');
       }
     } catch (err) {
       const castedError = errorService.castError(err);
@@ -147,13 +144,13 @@ function SignInScreen(): JSX.Element {
             title={isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}
           />
 
-          <TouchableWithoutFeedback onPress={() => navigation.navigate(AppScreenKey.ForgotPassword)}>
+          <TouchableWithoutFeedback onPress={() => navigation.navigate('ForgotPassword')}>
             <View style={tailwind('w-64 text-sm py-2')}>
               <Text style={tailwind('text-center text-blue-60')}>{strings.screens.SignInScreen.forgot}</Text>
             </View>
           </TouchableWithoutFeedback>
 
-          <Text style={tailwind('text-center mt-2')} onPress={() => navigation.navigate(AppScreenKey.SignUp)}>
+          <Text style={tailwind('text-center mt-2')} onPress={() => navigation.navigate('SignUp')}>
             <Text style={tailwind('text-sm')}>{strings.screens.SignInScreen.no_register} </Text>
             <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.SignInScreen.register}</Text>
           </Text>

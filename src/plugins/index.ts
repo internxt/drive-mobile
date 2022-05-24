@@ -1,5 +1,5 @@
-import sentryPlugin from './sentry.plugin';
-import axiosPlugin from './axios.plugin';
+import sentryPlugin from './SentryPlugin';
+import axiosPlugin from './AxiosPlugin';
 
 const plugins = [sentryPlugin, axiosPlugin];
 

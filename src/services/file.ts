@@ -1,17 +1,10 @@
 import { createHash } from 'crypto';
 import axios from 'axios';
 
-import {
-  DriveFileMetadataPayload,
-  DriveItemData,
-  DriveItemStatus,
-  DriveListItem,
-  SortDirection,
-  SortType,
-} from '../types/drive';
+import { DriveFileMetadataPayload, DriveItemData, DriveListItem, SortDirection, SortType } from '../types/drive';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './app';
-import { FetchFolderContentResponse, MoveFilePayload, MoveFileResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchFolderContentResponse, MoveFileResponse } from '@internxt/sdk/dist/drive/storage/types';
 
 export function getNameFromUri(uri: string): string {
   const regex = /^(.*:\/{0,2})\/?(.*)$/gm;

@@ -1,3 +1,4 @@
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { store as storeInstance } from '../store';
 
 type StoreType = typeof storeInstance;
@@ -130,3 +131,31 @@ export type Abortable = (reason?: string) => void;
 export interface AppToastExtraProps {
   action?: { text: string; onActionPress: () => void };
 }
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace ReactNavigation {
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    interface RootParamList extends RootStackParamList {}
+  }
+}
+
+export type RootStackParamList = {
+  Debug: undefined;
+  SignUp: undefined;
+  SignIn: undefined;
+  Home: undefined;
+  TabExplorer: { showReferralsBanner: boolean } | undefined;
+  ForgotPassword: undefined;
+  Storage: undefined;
+  Billing: undefined;
+  ChangePassword: undefined;
+  RecoverPassword: undefined;
+  Photos: undefined;
+  PhotosPreview: undefined;
+};
+
+export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<
+  RootStackParamList,
+  Screen
+>;

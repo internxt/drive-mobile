@@ -18,7 +18,6 @@ import { constants } from '../../../services/app';
 import { NotificationType } from '../../../types';
 import notificationsService from '../../../services/notifications';
 import { Copy, Minus, Plus } from 'phosphor-react-native';
-import { DriveItemData } from '../../../types/drive';
 
 function ShareFilesModal(): JSX.Element {
   const dispatch = useAppDispatch();
