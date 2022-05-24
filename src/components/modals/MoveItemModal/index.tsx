@@ -48,16 +48,13 @@ function MoveFilesModal(): JSX.Element {
   const [sortMode, setSortMode] = useState<SortMode>(INITIAL_SORT_MODE);
   const [sortModalOpen, setSortModalOpen] = useState(false);
   const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
-
   const [isMovingItem, setIsMovingItem] = useState(false);
   const [destinationFolderContentResponse, setDestinationFolderContentResponse] =
     useState<FetchFolderContentResponse | null>(null);
   const [originFolderContentResponse, setOriginFolderContentResponse] = useState<FetchFolderContentResponse | null>(
     null,
   );
-
   const safeInsets = useSafeAreaInsets();
-
   const modalHeight = useMemo(
     () =>
       Platform.select<string | number>({
@@ -67,10 +64,8 @@ function MoveFilesModal(): JSX.Element {
     [],
   );
   const { user } = useAppSelector((state) => state.auth);
-
   const { showMoveModal } = useAppSelector((state) => state.ui);
   const { itemToMove, folderContent } = useAppSelector((state) => state.drive);
-
   const currentFolderIsRootFolder = destinationFolderContentResponse?.id === user?.root_folder_id;
   const originFolderId = itemToMove?.parentId || itemToMove?.folderId || user?.root_folder_id;
   const folderItems = useMemo(
@@ -85,40 +80,36 @@ function MoveFilesModal(): JSX.Element {
             id: child.id,
             size: (child as DriveFileData).size,
             type: (child as DriveFileData).type,
+            fileId: (child as DriveFileData).fileId,
           },
         }))
-        .sort(fileService.getSortFunction(sortMode)),
+        .sort(fileService.getSortFunction(sortMode))
+        .sort((a, b) => {
+          const aValue = a.data.fileId ? 1 : 0;
+          const bValue = b.data.fileId ? 1 : 0;
+          return aValue - bValue;
+        }),
     [sortMode, destinationFolderContentResponse],
   );
 
-  useEffect(() => {
-    if (folderContent && originFolderId && showMoveModal) {
-      loadDestinationFolderContent(originFolderId);
-      loadOriginFolderContent();
-    }
-  }, [folderContent, showMoveModal]);
-
   const isFolder = !!(itemToMove && !itemToMove.fileId);
-
   const canGoBack = currentFolderIsRootFolder ? false : true;
-
   const onMoveButtonPressed = () => {
     setConfirmModalOpen(true);
   };
-
   const moveIsDisabled = () => {
     // Current folder is origin folder
     if (originFolderContentResponse?.id === destinationFolderContentResponse?.id) return true;
     return false;
   };
-
   const confirmMoveItem = async () => {
-    if (!originFolderId || !originFolderContentResponse?.name || !destinationFolderContentResponse?.id) {
-      // Something not cool is happening, we are missing something,
-      return notificationsService.show({
+    if (!itemToMove || !originFolderId || !originFolderContentResponse?.name || !destinationFolderContentResponse?.id) {
+      notificationsService.show({
         text1: strings.errors.moveError,
         type: NotificationType.Error,
       });
+
+      return;
     }
 
     setIsMovingItem(true);
@@ -126,8 +117,8 @@ function MoveFilesModal(): JSX.Element {
       driveThunks.moveItemThunk({
         isFolder,
         origin: {
-          itemId: (itemToMove?.fileId || itemToMove!.id)!,
-          parentId: itemToMove!.parentId!,
+          itemId: itemToMove.fileId || itemToMove.id,
+          parentId: itemToMove.parentId as number,
           name: originFolderContentResponse?.name,
           updatedAt: originFolderContentResponse.updatedAt,
           createdAt: originFolderContentResponse.createdAt,
@@ -145,18 +136,15 @@ function MoveFilesModal(): JSX.Element {
       await cleanUp({ shouldRefreshFolder: true });
     }
   };
-
   const onFolderCreated = async () => {
     if (destinationFolderContentResponse?.id) {
       await loadDestinationFolderContent(destinationFolderContentResponse.id);
     }
     setCreateFolderModalOpen(false);
   };
-
   const onCancelCreateFolder = () => {
     setCreateFolderModalOpen(false);
   };
-
   const onCloseCreateFolder = () => {
     setCreateFolderModalOpen(false);
   };
@@ -169,24 +157,20 @@ function MoveFilesModal(): JSX.Element {
     await dispatch(driveActions.setItemToMove(null));
     await dispatch(uiActions.setShowMoveModal(false));
   };
-
   const onCancelButtonPressed = async () => {
     await cleanUp();
   };
-
   const getOriginFolderName = () => {
     return (
       (originFolderContentResponse?.parentId ? originFolderContentResponse?.name : strings.generic.root_folder_name) ||
       ''
     );
   };
-
   const getDestinationFolderName = () => {
     return (
       (currentFolderIsRootFolder ? strings.generic.root_folder_name : destinationFolderContentResponse?.name) || ''
     );
   };
-
   const loadDestinationFolderContent = async (folderId: number) => {
     try {
       setSortMode(INITIAL_SORT_MODE);
@@ -197,7 +181,6 @@ function MoveFilesModal(): JSX.Element {
       console.error('Cannot get folder content', e);
     }
   };
-
   const loadOriginFolderContent = async () => {
     try {
       if (originFolderId) {
@@ -208,43 +191,34 @@ function MoveFilesModal(): JSX.Element {
       console.error('Cannot get origin folder content', e);
     }
   };
-
   const onNavigationButtonPressed = async (item: DriveItemDataProps) => {
     if (!item.id) return;
     await loadDestinationFolderContent(item.id);
   };
-
   const onNavigateBack = async () => {
     if (!destinationFolderContentResponse?.parentId) return;
     await loadDestinationFolderContent(destinationFolderContentResponse.parentId);
   };
-
   const getHeaderName = () => {
     if (currentFolderIsRootFolder) return strings.generic.root_folder_name;
     return destinationFolderContentResponse?.name;
   };
-
   const onCreateNewFolder = async () => {
     setCreateFolderModalOpen(true);
   };
-
   const onCloseMoveModal = () => {
     dispatch(uiActions.setShowMoveModal(false));
   };
-
   const onSortButtonPressed = () => {
     setSortModalOpen(true);
   };
-
   const onSortModeChange = (sortMode: SortMode) => {
     setSortMode(sortMode);
     setSortModalOpen(false);
   };
-
   const onCloseSortModal = () => {
     setSortModalOpen(false);
   };
-
   const renderListHeader = () => {
     return (
       <TouchableOpacity onPress={onSortButtonPressed} style={tailwind('px-4 mt-3')}>
@@ -261,7 +235,6 @@ function MoveFilesModal(): JSX.Element {
       </TouchableOpacity>
     );
   };
-
   const renderListEmpty = () => {
     if (destinationFolderContentResponse) {
       return <></>;
@@ -275,6 +248,13 @@ function MoveFilesModal(): JSX.Element {
     );
   };
 
+  useEffect(() => {
+    if (folderContent && originFolderId && showMoveModal) {
+      loadDestinationFolderContent(originFolderId);
+      loadOriginFolderContent();
+    }
+  }, [folderContent, showMoveModal]);
+
   return (
     <>
       <BottomModal
@@ -287,86 +267,69 @@ function MoveFilesModal(): JSX.Element {
           },
         ]}
       >
-        <View style={tailwind('h-full')}>
-          <View style={tailwind('h-full flex flex-col')}>
-            <View style={tailwind('flex flex-row justify-between')}>
-              {canGoBack ? (
-                <TouchableOpacity
-                  onPress={onNavigateBack}
-                  style={tailwind('py-4 px-5 flex items-center justify-center')}
-                >
-                  <CaretLeft size={28} />
-                </TouchableOpacity>
-              ) : null}
-              <View style={tailwind('px-5 flex items-center justify-center')}>
-                <AppText medium style={tailwind('text-xl text-gray-80')}>
-                  {getHeaderName()}
-                </AppText>
-              </View>
-              <TouchableOpacity
-                style={tailwind('py-4 px-5 flex items-center justify-center')}
-                onPress={onCancelButtonPressed}
-              >
-                <X size={28} />
+        <View style={tailwind('h-full flex flex-col')}>
+          <View style={tailwind('flex flex-row justify-between')}>
+            {canGoBack ? (
+              <TouchableOpacity onPress={onNavigateBack} style={tailwind('py-4 px-5 flex items-center justify-center')}>
+                <CaretLeft size={28} />
               </TouchableOpacity>
+            ) : null}
+            <View style={tailwind('px-5 flex items-center justify-center')}>
+              <AppText medium style={tailwind('text-xl text-gray-80')}>
+                {getHeaderName()}
+              </AppText>
             </View>
+            <TouchableOpacity
+              style={tailwind('py-4 px-5 flex items-center justify-center')}
+              onPress={onCancelButtonPressed}
+            >
+              <X size={28} />
+            </TouchableOpacity>
+          </View>
 
-            <Separator />
+          <Separator />
 
-            <View style={tailwind('flex flex-1')}>
-              <FlatList<DriveListItem>
-                showsVerticalScrollIndicator={false}
-                ListHeaderComponent={renderListHeader()}
-                data={folderItems || []}
-                ItemSeparatorComponent={() => {
-                  return <View style={{ height: 1, ...tailwind('bg-neutral-20') }}></View>;
-                }}
-                ListEmptyComponent={renderListEmpty()}
-                renderItem={({ item }) => {
-                  return (
-                    <View style={tailwind('px-4')}>
-                      <DriveNavigableItem
-                        key={item.data.id}
-                        disabled={!!item.data.type || item.data.id === itemToMove?.id}
-                        type={DriveListType.Drive}
-                        status={DriveItemStatus.Idle}
-                        viewMode={DriveListViewMode.List}
-                        onItemPressed={onNavigationButtonPressed}
-                        onNavigationButtonPressed={onNavigationButtonPressed}
-                        data={{
-                          type: item.data.type,
-                          size: item.data.size,
-                          id: item.data.id,
-                          createdAt: item.data.createdAt,
-                          updatedAt: item.data.updatedAt,
-                          name: item.data.name,
-                        }}
-                        progress={-1}
-                      />
-                    </View>
-                  );
-                }}
-                keyExtractor={(folder) => folder.data.id.toString()}
-              />
-            </View>
+          <FlatList
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={renderListHeader()}
+            data={folderItems}
+            ItemSeparatorComponent={() => {
+              return <View style={{ height: 1, ...tailwind('bg-neutral-20') }}></View>;
+            }}
+            ListEmptyComponent={renderListEmpty()}
+            renderItem={({ item }) => {
+              return (
+                <DriveNavigableItem
+                  key={item.data.id}
+                  disabled={!!item.data.fileId || item.data.id === itemToMove?.id}
+                  type={DriveListType.Drive}
+                  status={DriveItemStatus.Idle}
+                  viewMode={DriveListViewMode.List}
+                  onItemPressed={onNavigationButtonPressed}
+                  data={item.data}
+                />
+              );
+            }}
+            keyExtractor={(folder) => folder.data.id.toString()}
+          />
 
-            <Separator style={tailwind('mb-3')} />
-            <View style={[tailwind('flex justify-between flex-row px-8'), { marginBottom: safeInsets.bottom }]}>
-              <TouchableOpacity activeOpacity={0.7} onPress={onCreateNewFolder}>
-                <AppText medium style={[styles.text, tailwind('text-lg')]}>
-                  {strings.components.buttons.newFolder}
-                </AppText>
-              </TouchableOpacity>
+          <Separator style={tailwind('mb-3')} />
+          <View style={[tailwind('flex justify-between flex-row px-8'), { marginBottom: safeInsets.bottom }]}>
+            <TouchableOpacity activeOpacity={0.7} onPress={onCreateNewFolder}>
+              <AppText medium style={[styles.text, tailwind('text-lg')]}>
+                {strings.components.buttons.newFolder}
+              </AppText>
+            </TouchableOpacity>
 
-              <TouchableOpacity activeOpacity={0.7} onPress={onMoveButtonPressed} disabled={moveIsDisabled()}>
-                <AppText medium style={[styles.text, tailwind(`text-lg ${moveIsDisabled() ? 'text-gray-30' : ''} `)]}>
-                  {strings.components.buttons.moveHere}
-                </AppText>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity activeOpacity={0.7} onPress={onMoveButtonPressed} disabled={moveIsDisabled()}>
+              <AppText medium style={[styles.text, tailwind(`text-lg ${moveIsDisabled() ? 'text-gray-30' : ''} `)]}>
+                {strings.components.buttons.moveHere}
+              </AppText>
+            </TouchableOpacity>
           </View>
         </View>
       </BottomModal>
+
       <ConfirmMoveItemModal
         move={{
           origin: {

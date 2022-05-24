@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableHighlight, TouchableOpacity, View } from 'react-native';
+import { TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import { items } from '@internxt/lib';
@@ -10,34 +10,25 @@ import globalStyle from '../../styles';
 import { DriveNavigableItemProps } from '../../types/drive';
 
 const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disabled, ...props }) => {
-  const isFolder = !props.data.type ? true : false;
+  const isFolder = !props.data.fileId;
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
-
+  const onItemPressed = () => {
+    !disabled && props.onItemPressed && props.onItemPressed(props.data);
+  };
   const onItemLongPressed = () => {
     onItemPressed();
   };
+  const isDisabled = isLoading || disabled;
 
-  const onItemPressed = () => {
-    if (props.onItemPressed && !disabled) {
-      props.onItemPressed(props.data);
-    }
-  };
-
-  const onNavigationButtonPressed = () => {
-    if (!disabled) {
-      props.onNavigationButtonPressed(props.data);
-    }
-  };
   return (
     <TouchableHighlight
-      disabled={isLoading || disabled}
-      style={tailwind(`${disabled || isLoading ? 'opacity-50' : 'opacity-100'}`)}
-      underlayColor={getColor('neutral-20')}
+      style={tailwind(`${isDisabled ? 'opacity-50' : 'opacity-100'}`)}
+      underlayColor={isDisabled ? 'transparent' : getColor('neutral-20')}
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}
     >
-      <View style={[tailwind('flex-row justify-between')]}>
+      <View style={[tailwind('px-4 flex-row justify-between')]}>
         <View style={[tailwind('flex-row flex-1 py-3')]}>
           <View style={[tailwind('mb-1 mr-4 items-center justify-center')]}>
             {isFolder ? (
@@ -73,16 +64,11 @@ const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disa
           </View>
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.7}
-          disabled={isLoading}
-          onPress={onNavigationButtonPressed}
-          onLongPress={onNavigationButtonPressed}
-        >
-          <View style={[tailwind('flex-1 items-center justify-center')]}>
+        {isFolder && (
+          <View style={[tailwind('items-center justify-center')]}>
             <CaretRight weight="bold" size={22} color={getColor('neutral-60')} />
           </View>
-        </TouchableOpacity>
+        )}
       </View>
     </TouchableHighlight>
   );
