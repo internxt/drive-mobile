@@ -178,7 +178,7 @@ function MoveFilesModal(): JSX.Element {
 
       setDestinationFolderContentResponse(response);
     } catch (e) {
-      console.error('Cannot get folder content', e);
+      notificationsService.show({ type: NotificationType.Error, text1: 'Cannot load destination folder' });
     }
   };
   const loadOriginFolderContent = async () => {
@@ -188,16 +188,17 @@ function MoveFilesModal(): JSX.Element {
         setOriginFolderContentResponse(response);
       }
     } catch (e) {
-      console.error('Cannot get origin folder content', e);
+      notificationsService.show({ type: NotificationType.Error, text1: 'Cannot load origin folder' });
     }
   };
   const onNavigationButtonPressed = async (item: DriveItemDataProps) => {
     if (!item.id) return;
     await loadDestinationFolderContent(item.id);
   };
-  const onNavigateBack = async () => {
-    if (!destinationFolderContentResponse?.parentId) return;
-    await loadDestinationFolderContent(destinationFolderContentResponse.parentId);
+  const onNavigateBack = () => {
+    if (destinationFolderContentResponse?.parentId) {
+      loadDestinationFolderContent(destinationFolderContentResponse.parentId);
+    }
   };
   const getHeaderName = () => {
     if (currentFolderIsRootFolder) return strings.generic.root_folder_name;
