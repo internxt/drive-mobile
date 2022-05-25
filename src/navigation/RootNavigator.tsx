@@ -7,7 +7,7 @@ import { RootStackParamList } from '../types/navigation';
 import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import StorageScreen from '../screens/StorageScreen';
-import AuthenticatedNavigator from './AuthenticatedNavigator';
+import AuthenticatedNavigator from './TabExplorerNavigator';
 import BillingScreen from '../screens/BillingScreen';
 import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';

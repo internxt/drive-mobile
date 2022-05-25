@@ -27,7 +27,7 @@ import { RootStackScreenProps, TabExplorerStackParamList } from '../types/naviga
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
-export default function AuthenticatedNavigator(props: RootStackScreenProps<'TabExplorer'>): JSX.Element {
+export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExplorer'>): JSX.Element {
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
 

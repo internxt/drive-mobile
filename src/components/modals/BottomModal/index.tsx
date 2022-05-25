@@ -34,7 +34,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       easing={Easing.ease}
     >
       <View style={tailwind('h-full')}>
-        <StatusBar hidden translucent />
+        <StatusBar translucent />
 
         <TouchableWithoutFeedback onPress={props.onClosed}>
           <View style={tailwind('flex-grow')}>

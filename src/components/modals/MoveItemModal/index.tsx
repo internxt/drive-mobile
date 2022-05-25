@@ -30,7 +30,7 @@ import DriveItemSkinSkeleton from '../../DriveItemSkinSkeleton';
 import notificationsService from '../../../services/notifications';
 import { NotificationType } from '../../../types';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootScreenNavigationProp } from '../../../types/navigation';
 
 const colors = {
   primary: '#0066FF',
@@ -41,7 +41,7 @@ const INITIAL_SORT_MODE: SortMode = {
   type: SortType.Name,
 };
 function MoveItemsModal(): JSX.Element {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const dispatch = useAppDispatch();
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>(INITIAL_SORT_MODE);
@@ -125,7 +125,7 @@ function MoveItemsModal(): JSX.Element {
         },
         destination: destinationFolderContentResponse.id,
         itemMovedAction: () => {
-          navigation.push(`${AppScreenKey.TabExplorer}/${AppScreenKey.Drive}`);
+          navigation.push('TabExplorer', { screen: 'Drive' });
           dispatch(
             driveThunks.navigateToFolderThunk({
               parentId: destinationFolderContentResponse.id,

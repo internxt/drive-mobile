@@ -15,7 +15,6 @@ import { authActions } from '../../store/slices/auth';
 import { driveActions, driveSelectors, driveThunks } from '../../store/slices/drive';
 import { uiActions } from '../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import AppScreen from '../../components/AppScreen';
 import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
@@ -23,8 +22,9 @@ import { asyncStorage } from '../../services/asyncStorage';
 import { DriveListType, SortDirection, SortType } from '../../types/drive';
 import SortModal, { SortMode } from '../../components/modals/SortModal';
 import fileService from '../../services/file';
+import { TabExplorerScreenProps } from '../../types/navigation';
 
-function DriveScreen({ navigation }: any): JSX.Element {
+function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Element {
   const route = useRoute();
   const dispatch = useAppDispatch();
   const [sortModalOpen, setSortModalOpen] = useState(false);

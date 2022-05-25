@@ -87,7 +87,6 @@ function DriveDownloadModal(): JSX.Element {
     dispatch(driveActions.updateDownloadingFile({ status: 'cancelling' }));
   };
   const onCancelEnd = () => {
-    console.warn('Download aborted');
     dispatch(uiActions.setIsDriveDownloadModalOpen(false));
     dispatch(driveActions.updateDownloadingFile({ status: 'cancelled' }));
   };

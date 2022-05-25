@@ -9,13 +9,14 @@ import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
 import globalStyle from '../../styles';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/AppScreenTitle';
-import { AppScreenKey, NotificationType, RootStackScreenProps } from '../../types';
+import { NotificationType } from '../../types';
 import paymentService from '../../services/payment';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { constants } from '../../services/app';
 import AppScreen from '../../components/AppScreen';
 import notificationsService from '../../services/notifications';
 import { Check } from 'phosphor-react-native';
+import { RootStackScreenProps } from '../../types/navigation';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -64,7 +65,7 @@ const PERIODS = [
 
 function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Element {
   const redirectUrl = `${constants.REACT_NATIVE_WEB_CLIENT_URL}/redirect-to-app?path=checkout`;
-  const getLink = async (plan: any) => {
+  const getLink = async (plan: { id: string }) => {
     const body = {
       plan: plan.id,
       test: constants.NODE_ENV === 'development',

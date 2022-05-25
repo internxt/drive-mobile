@@ -1,6 +1,6 @@
 import { Photo } from '@internxt/sdk/dist/photos';
 import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { CompositeNavigationProp, CompositeScreenProps } from '@react-navigation/native';
+import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 declare global {
@@ -15,7 +15,7 @@ export type RootStackParamList = {
   Debug: undefined;
   SignUp: undefined;
   SignIn: undefined;
-  TabExplorer: { showReferralsBanner: boolean } | undefined;
+  TabExplorer: NavigatorScreenParams<TabExplorerStackParamList> & { showReferralsBanner?: boolean };
   ForgotPassword: undefined;
   Storage: undefined;
   Billing: undefined;

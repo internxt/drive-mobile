@@ -12,11 +12,11 @@ import { INFINITE_PLAN } from '../../../types';
 import { uiActions } from '../../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import paymentService from '../../../services/payment';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootScreenNavigationProp } from '../../../types/navigation';
 
 function RunOutOfStorageModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const { usage: storageUsage, limit } = useAppSelector((state) => state.drive);
   const { showRunOutOfSpaceModal } = useAppSelector((state) => state.ui);
@@ -34,6 +34,10 @@ function RunOutOfStorageModal(): JSX.Element {
   };
   const getUsageString = () => {
     return prettysize(usage);
+  };
+  const onUpgradeNowButtonPressed = () => {
+    dispatch(uiActions.setShowRunOutSpaceModal(false));
+    navigation.push('Billing');
   };
 
   useEffect(() => {
@@ -93,10 +97,7 @@ function RunOutOfStorageModal(): JSX.Element {
             <TouchableHighlight
               underlayColor={getColor('blue-70')}
               style={tailwind('bg-blue-60 rounded-lg py-2 mx-6 items-center justify-center')}
-              onPress={() => {
-                dispatch(uiActions.setShowRunOutSpaceModal(false));
-                navigation.push(AppScreenKey.Billing);
-              }}
+              onPress={onUpgradeNowButtonPressed}
             >
               <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>
                 {strings.components.buttons.upgradeNow}
