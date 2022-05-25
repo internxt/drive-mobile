@@ -10,7 +10,6 @@ import StorageScreen from '../screens/StorageScreen';
 import AuthenticatedNavigator from './AuthenticatedNavigator';
 import BillingScreen from '../screens/BillingScreen';
 import ChangePasswordScreen from '../screens/ChangePasswordScreen';
-import RecoverPasswordScreen from '../screens/RecoverPasswordScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import PhotosPreviewScreen from '../screens/PhotosPreviewScreen';
@@ -101,7 +100,6 @@ function AppNavigator(): JSX.Element {
       <Stack.Screen name="Storage" component={StorageScreen} />
       <Stack.Screen name="Billing" component={BillingScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
-      <Stack.Screen name="RecoverPassword" component={RecoverPasswordScreen} />
       <Stack.Screen name="PhotosPreview" component={PhotosPreviewScreen} />
     </Stack.Navigator>
   );

@@ -1,28 +1,31 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
+import { View, StyleSheet, Text, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 
-import validationService from '../../services/validation';
 import strings from '../../../assets/lang/strings';
-import { tailwind } from '../../helpers/designSystem';
-import { doChangePassword } from './changePasswordUtils';
+import { getColor, tailwind } from '../../helpers/designSystem';
+import authService from '../../services/auth';
+import validationService from '../../services/validation';
 import ScreenTitle from '../../components/AppScreenTitle';
-import { NotificationType, RootStackScreenProps } from '../../types';
+import AppTextInput from '../../components/AppTextInput';
 import AppScreen from '../../components/AppScreen';
+import { NotificationType } from '../../types';
 import notificationsService from '../../services/notifications';
-import { Eye } from 'phosphor-react-native';
+import { Eye, EyeSlash } from 'phosphor-react-native';
+import { RootStackScreenProps } from '../../types/navigation';
 
 function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePassword'>): JSX.Element {
-  const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleOnPress = () => {
     setIsLoading(true);
-    doChangePassword({ password, newPassword })
+    authService
+      .doRecoverPassword(newPassword)
       .then(() => {
         notificationsService.show({ text1: strings.messages.passwordChanged, type: NotificationType.Success });
-        setPassword('');
         setNewPassword('');
         setConfirmPassword('');
       })
@@ -34,104 +37,93 @@ function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePasswo
       });
   };
 
-  const isValidPassword = !validationService.isNullOrEmpty(password);
   const isValidNewPassword = validationService.isStrongPassword(newPassword);
   const passwordConfirmed = confirmPassword && newPassword === confirmPassword;
 
-  const activeButton = isValidPassword && isValidNewPassword && passwordConfirmed;
-  const [passwordFocus, setPasswordFocus] = useState(false);
+  const activeButton = isValidNewPassword && passwordConfirmed;
   const [newPasswordFocus, setNewPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
 
+  const isEmptyPassword = !newPassword;
+  const isEmptyConfirmPassword = !confirmPassword;
+
   return (
-    <AppScreen safeAreaTop style={tailwind('flex-1 bg-neutral-20')}>
+    <AppScreen safeAreaTop backgroundColor={getColor('neutral-20')} style={tailwind('h-full')}>
       <ScreenTitle
+        textStyle={tailwind('text-2xl')}
         text={strings.components.inputs.password}
         centerText
         onBackButtonPressed={() => navigation.goBack()}
       />
-      <View style={tailwind('px-8')}>
-        <View style={tailwind('items-center p-1')}>
-          <Text style={tailwind('text-base text-neutral-900')}>{strings.screens.change_password.title}</Text>
-        </View>
-        <View style={tailwind('items-center p-1')}>
-          <Text style={tailwind('text-center text-neutral-700')}>{strings.screens.change_password.warning}</Text>
-        </View>
-        <TouchableWithoutFeedback
-          onPress={() => {
-            navigation.push('RecoverPassword');
-          }}
-        >
-          <Text style={tailwind('text-base text-sm text-blue-70 text-center m-3')}>
-            {strings.screens.change_password.iDontRememberMyPassword}
+      <View style={tailwind('mx-5')}>
+        <View style={tailwind('items-center my-3')}>
+          <Text style={{ ...styles.titleText, ...tailwind('text-base') }}>
+            {strings.screens.recover_password.title}
           </Text>
-        </TouchableWithoutFeedback>
-        <View style={tailwind('p-2')}>
+        </View>
+        <View>
+          <Text style={{ ...styles.subtitleText, ...tailwind('text-center') }}>
+            {strings.screens.recover_password.warning}
+          </Text>
+        </View>
+        <View style={tailwind('my-3')}>
           <View
             style={[
-              tailwind('input-wrapper my-2'),
-              tailwind(password === '' ? '' : isValidPassword ? 'input-valid' : 'input-error'),
-            ]}
-          >
-            <TextInput
-              style={tailwind('input')}
-              value={password}
-              onChangeText={(value) => setPassword(value)}
-              placeholder={strings.components.inputs.password}
-              placeholderTextColor="#666"
-              secureTextEntry={true}
-              textContentType="password"
-              onFocus={() => setPasswordFocus(true)}
-              onBlur={() => setPasswordFocus(false)}
-            />
-            <Eye
-              style={tailwind('input-icon hidden')}
-              color={passwordFocus && isValidPassword ? '#42BE65' : '#7A869A'}
-            />
-          </View>
-          <View
-            style={[
-              tailwind('input-wrapper my-2'),
+              tailwind('input-wrapper my-2 items-stretch'),
               tailwind(newPassword === '' ? '' : isValidNewPassword ? 'input-valid' : 'input-error'),
             ]}
           >
-            <TextInput
-              style={tailwind('input')}
+            <AppTextInput
+              containerStyle={tailwind('bg-white w-full')}
+              style={tailwind('input pl-4')}
               value={newPassword}
               onChangeText={(value) => setNewPassword(value)}
               placeholder={strings.components.inputs.newPassword}
               placeholderTextColor="#666"
-              secureTextEntry={true}
+              secureTextEntry={!showPassword}
               textContentType="password"
               onFocus={() => setNewPasswordFocus(true)}
               onBlur={() => setNewPasswordFocus(false)}
             />
-            <Eye
-              style={tailwind('input-icon hidden')}
-              color={newPasswordFocus && isValidNewPassword ? '#42BE65' : '#7A869A'}
-            />
+
+            {(!isEmptyPassword || newPasswordFocus) && (
+              <TouchableWithoutFeedback onPress={() => setShowPassword(!showPassword)}>
+                <View style={tailwind('relative right-14 justify-center p-3')}>
+                  {showPassword ? <EyeSlash color={getColor('neutral-80')} /> : <Eye color={getColor('neutral-80')} />}
+                </View>
+              </TouchableWithoutFeedback>
+            )}
           </View>
           <View
             style={[
-              tailwind('input-wrapper my-2'),
+              tailwind('input-wrapper my-2 items-stretch'),
               tailwind(confirmPassword === '' ? '' : passwordConfirmed ? 'input-valid' : 'input-error'),
             ]}
           >
-            <TextInput
-              style={tailwind('input')}
+            <AppTextInput
+              containerStyle={tailwind('bg-white w-full')}
+              style={tailwind('input pl-4')}
               value={confirmPassword}
               onChangeText={(value) => setConfirmPassword(value)}
               placeholder={strings.components.inputs.confirm_password}
-              placeholderTextColor="#666"
-              secureTextEntry={true}
+              placeholderTextColor={getColor('neutral-100')}
+              secureTextEntry={!showConfirmPassword}
               textContentType="password"
               onFocus={() => setConfirmPasswordFocus(true)}
               onBlur={() => setConfirmPasswordFocus(false)}
             />
-            <Eye
-              style={tailwind('input-icon hidden')}
-              color={confirmPasswordFocus && passwordConfirmed ? '#42BE65' : '#7A869A'}
-            />
+
+            {(!isEmptyConfirmPassword || confirmPasswordFocus) && (
+              <TouchableWithoutFeedback onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <View style={tailwind('relative right-14 justify-center p-3')}>
+                  {showConfirmPassword ? (
+                    <EyeSlash color={getColor('neutral-80')} />
+                  ) : (
+                    <Eye color={getColor('neutral-80')} />
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
+            )}
           </View>
           <TouchableHighlight
             style={[tailwind('btn btn-primary my-5'), !(activeButton && !isLoading) && tailwind('opacity-50')]}
@@ -146,5 +138,15 @@ function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePasswo
     </AppScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  titleText: {
+    color: '#091E42',
+    fontWeight: 'bold',
+  },
+  subtitleText: {
+    color: '#253858',
+  },
+});
 
 export default ChangePasswordScreen;

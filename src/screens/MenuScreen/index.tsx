@@ -23,6 +23,7 @@ import AppScreen from '../../components/AppScreen';
 import appService from '../../services/app';
 import AppText from '../../components/AppText';
 import { uiActions } from '../../store/slices/ui';
+import { TabExplorerScreenProps } from '../../types/navigation';
 
 interface MenuItemProps {
   title: string;
@@ -54,16 +55,28 @@ function MenuItem(props: MenuItemProps) {
   );
 }
 
-function MenuScreen(): JSX.Element {
+function MenuScreen({ navigation }: TabExplorerScreenProps<'Menu'>): JSX.Element {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const userNameLetters = useAppSelector(authSelectors.nameLetters);
   const userFullName = useAppSelector(authSelectors.userFullName);
+  const renderMenuSeparator = () => {
+    return <View style={tailwind('h-6')} />;
+  };
   const onLogoutPressed = () => {
     dispatch(uiActions.setIsSignOutModalOpen(true));
   };
-  const renderMenuSeparator = () => {
-    return <View style={tailwind('h-6')} />;
+  const onStoragePressed = () => {
+    navigation.push('Storage');
+  };
+  const onBillingPressed = () => {
+    navigation.push('Billing');
+  };
+  const onChangePasswordPressed = () => {
+    navigation.push('ChangePassword');
+  };
+  const onMoreInfoPressed = () => {
+    Linking.openURL('https://internxt.com');
   };
 
   return (
@@ -106,31 +119,19 @@ function MenuScreen(): JSX.Element {
           <View style={tailwind('bg-white rounded-xl')}>
             <MenuItem
               title={strings.components.app_menu.settings.storage}
-              onPress={() => {
-                navigation.push(AppScreenKey.Storage);
-              }}
+              onPress={onStoragePressed}
               style={tailwind('border-b border-neutral-20')}
             />
 
             {appService.constants.REACT_NATIVE_SHOW_BILLING && (
-              <MenuItem
-                title={strings.screens.billing.title}
-                onPress={() => {
-                  navigation.push(AppScreenKey.Billing);
-                }}
-              />
+              <MenuItem title={strings.screens.billing.title} onPress={onBillingPressed} />
             )}
           </View>
 
           {renderMenuSeparator()}
 
           <View style={tailwind('bg-white rounded-xl')}>
-            <MenuItem
-              title={strings.screens.change_password.title}
-              onPress={() => {
-                navigation.push(AppScreenKey.RecoverPassword);
-              }}
-            />
+            <MenuItem title={strings.screens.change_password.title} onPress={onChangePasswordPressed} />
           </View>
 
           {renderMenuSeparator()}
@@ -145,9 +146,7 @@ function MenuScreen(): JSX.Element {
             />
             <MenuItem
               title={strings.components.app_menu.settings.more}
-              onPress={() => {
-                Linking.openURL('https://internxt.com');
-              }}
+              onPress={onMoreInfoPressed}
               style={tailwind('border-b border-neutral-20')}
             />
           </View>
@@ -159,7 +158,7 @@ function MenuScreen(): JSX.Element {
               <MenuItem
                 title={strings.screens.DebugScreen.title}
                 onPress={() => {
-                  navigation.push(AppScreenKey.Debug);
+                  navigation.push('Debug');
                 }}
               />
             </View>

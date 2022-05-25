@@ -20,7 +20,6 @@ export type RootStackParamList = {
   Storage: undefined;
   Billing: undefined;
   ChangePassword: undefined;
-  RecoverPassword: undefined;
   PhotosPreview: {
     data: Photo;
     preview: string;

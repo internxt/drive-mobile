@@ -23,19 +23,11 @@ import { uiActions } from '../store/slices/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DriveDownloadModal from '../components/modals/DriveDownloadModal';
 import SignOutModal from '../components/modals/SignOutModal';
-import { TabExplorerStackParamList } from '../types/navigation';
+import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
-interface AuthenticatedNavigatorProps {
-  route: {
-    params?: {
-      showReferralsBanner?: boolean;
-    };
-  };
-}
-
-export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProps): JSX.Element {
+export default function AuthenticatedNavigator(props: RootStackScreenProps<'TabExplorer'>): JSX.Element {
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
 
