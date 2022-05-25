@@ -28,7 +28,7 @@ import BottomModal from '../BottomModal';
 import CreateFolderModal from '../CreateFolderModal';
 import DriveItemSkinSkeleton from '../../DriveItemSkinSkeleton';
 import notificationsService from '../../../services/notifications';
-import { AppScreenKey, NotificationType } from '../../../types';
+import { NotificationType } from '../../../types';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -40,7 +40,7 @@ const INITIAL_SORT_MODE: SortMode = {
   direction: SortDirection.Asc,
   type: SortType.Name,
 };
-function MoveFilesModal(): JSX.Element {
+function MoveItemsModal(): JSX.Element {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const dispatch = useAppDispatch();
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
@@ -386,4 +386,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MoveFilesModal;
+export default MoveItemsModal;

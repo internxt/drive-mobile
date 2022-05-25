@@ -5,14 +5,22 @@
  */
 
 import { LinkingOptions } from '@react-navigation/native';
-import { RootStackParamList } from '../types';
+import { RootStackParamList } from '../types/navigation';
 
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: ['inxt'],
   config: {
     screens: {
-      Home: 'home',
-      NotFound: '*',
+      Debug: 'debug',
+      SignIn: 'sign-in',
+      SignUp: 'sign-up',
+      TabExplorer: 'tab-explorer',
+      ForgotPassword: 'forgot-password',
+      Storage: 'storage',
+      Billing: 'billing',
+      ChangePassword: 'change-password',
+      RecoverPassword: 'recover-password',
+      PhotosPreview: 'photos-preview',
     },
   },
 };

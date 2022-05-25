@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import prettysize from 'prettysize';
-import { Text, View, Platform, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
+import { Text, View, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { useNavigation } from '@react-navigation/native';
 
@@ -8,7 +8,7 @@ import RunOutImage from '../../../../assets/images/modals/runout.svg';
 import { tailwind, getColor } from '../../../helpers/designSystem';
 import globalStyle from '../../../styles';
 import strings from '../../../../assets/lang/strings';
-import { AppScreenKey, INFINITE_PLAN } from '../../../types';
+import { INFINITE_PLAN } from '../../../types';
 import { uiActions } from '../../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import paymentService from '../../../services/payment';

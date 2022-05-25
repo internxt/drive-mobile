@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 
 import { tailwind } from '../helpers/designSystem';
@@ -16,7 +16,6 @@ import DeleteItemModal from '../components/modals/DeleteItemModal';
 import MoveItemModal from '../components/modals/MoveItemModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../screens/HomeScreen';
-import { AppScreenKey as AppScreenKey } from '../types';
 import PhotosNavigator from './PhotosNavigator';
 import ReferralsBanner from '../components/ReferralsBanner';
 import { useAppDispatch } from '../store/hooks';
@@ -24,8 +23,9 @@ import { uiActions } from '../store/slices/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DriveDownloadModal from '../components/modals/DriveDownloadModal';
 import SignOutModal from '../components/modals/SignOutModal';
+import { TabExplorerStackParamList } from '../types/navigation';
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
 interface AuthenticatedNavigatorProps {
   route: {
@@ -47,18 +47,18 @@ export default function AuthenticatedNavigator(props: AuthenticatedNavigatorProp
     <View style={{ ...tailwind('h-full'), paddingBottom: safeAreaInsets.bottom }}>
       <Tab.Navigator
         tabBar={(tabBarProps: BottomTabBarProps) => <BottomTabNavigator {...{ ...tabBarProps }} />}
-        initialRouteName={AppScreenKey.Home}
+        initialRouteName="Home"
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: true,
           lazy: true,
         }}
       >
-        <Tab.Screen name={AppScreenKey.Home} component={HomeScreen} />
-        <Tab.Screen name={AppScreenKey.Drive} component={DriveScreen} />
-        <Tab.Screen name="add" component={EmptyScreen} />
-        <Tab.Screen name="photos" component={PhotosNavigator} />
-        <Tab.Screen name={AppScreenKey.Menu} component={MenuScreen} />
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Drive" component={DriveScreen} />
+        <Tab.Screen name="Add" component={EmptyScreen} />
+        <Tab.Screen name="Photos" component={PhotosNavigator} />
+        <Tab.Screen name="Menu" component={MenuScreen} />
       </Tab.Navigator>
 
       <AddModal />

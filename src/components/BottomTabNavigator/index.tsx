@@ -7,14 +7,15 @@ import globalStyle from '../../styles';
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
-import { FolderSimple, Gear, House, ImageSquare, PlusCircle } from 'phosphor-react-native';
+import { FolderSimple, Gear, House, IconProps, ImageSquare, PlusCircle } from 'phosphor-react-native';
+import { TabExplorerStackParamList } from '../../types/navigation';
 
-const tabIcons = {
-  home: House,
-  drive: FolderSimple,
-  add: PlusCircle,
-  photos: ImageSquare,
-  menu: Gear,
+const tabIcons: { [key in keyof TabExplorerStackParamList]: (props: IconProps) => JSX.Element } = {
+  Home: House,
+  Drive: FolderSimple,
+  Add: PlusCircle,
+  Photos: ImageSquare,
+  Menu: Gear,
 };
 
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
@@ -23,9 +24,9 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     const { options } = props.descriptors[route.key];
     const label = strings.tabs[route.name as keyof typeof tabIcons];
     const isFocused = props.state.index === index;
-    const isCreateRoute = route.name === 'add';
+    const isAddRoute = route.name === 'Add';
     const onPress = () => {
-      if (isCreateRoute) {
+      if (isAddRoute) {
         return dispatch(uiActions.setShowUploadFileModal(true));
       }
       const event = props.navigation.emit({
@@ -41,12 +42,12 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     const onLongPress = () => {
       props.navigation.emit({ type: 'tabLongPress', target: route.key });
     };
-    const iconColor = isCreateRoute ? getColor('white') : isFocused ? getColor('blue-60') : getColor('neutral-80');
+    const iconColor = isAddRoute ? getColor('white') : isFocused ? getColor('blue-60') : getColor('neutral-80');
     const Icon = tabIcons[route.name as keyof typeof tabIcons];
 
     return (
       <TouchableWithoutFeedback
-        key={`button-tab-${route.name}`}
+        key={route.key}
         accessibilityRole="button"
         accessibilityState={isFocused ? { selected: true } : {}}
         accessibilityLabel={options.tabBarAccessibilityLabel}
@@ -55,13 +56,13 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         onLongPress={onLongPress}
       >
         <View style={tailwind('h-14 items-center justify-center flex-1')}>
-          {isCreateRoute ? (
+          {isAddRoute ? (
             <Icon weight="fill" color={getColor('blue-60')} size={40} />
           ) : (
             <Icon weight={isFocused ? 'fill' : undefined} color={iconColor} size={26} />
           )}
 
-          {options.tabBarShowLabel && !isCreateRoute && (
+          {options.tabBarShowLabel && !isAddRoute && (
             <Text
               style={[
                 tailwind('text-supporting-2'),

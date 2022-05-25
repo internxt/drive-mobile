@@ -3,17 +3,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 
-import { RootStackParamList } from '../types';
+import { RootStackParamList } from '../types/navigation';
 import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
-import HomeScreen from '../screens/HomeScreen';
 import StorageScreen from '../screens/StorageScreen';
 import AuthenticatedNavigator from './AuthenticatedNavigator';
 import BillingScreen from '../screens/BillingScreen';
 import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 import RecoverPasswordScreen from '../screens/RecoverPasswordScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
-import PhotosNavigator from './PhotosNavigator';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import PhotosPreviewScreen from '../screens/PhotosPreviewScreen';
 import { appThunks } from '../store/slices/app';
@@ -95,7 +93,6 @@ function AppNavigator(): JSX.Element {
       initialRouteName={initialRouteName}
       screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
     >
-      <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Debug" component={DebugScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen name="SignIn" component={SignInScreen} />
@@ -105,7 +102,6 @@ function AppNavigator(): JSX.Element {
       <Stack.Screen name="Billing" component={BillingScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="RecoverPassword" component={RecoverPasswordScreen} />
-      <Stack.Screen name="Photos" component={PhotosNavigator} />
       <Stack.Screen name="PhotosPreview" component={PhotosPreviewScreen} />
     </Stack.Navigator>
   );

@@ -10,7 +10,7 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import AppVersionWidget from '../../components/AppVersionWidget';
 import authService from '../../services/auth';
 import validationService from '../../services/validation';
-import { RootStackScreenProps } from '../../types';
+import { RootStackScreenProps } from '../../types/navigation';
 import { useAppDispatch } from '../../store/hooks';
 import { authThunks } from '../../store/slices/auth';
 import errorService from '../../services/error';

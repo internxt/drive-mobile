@@ -11,14 +11,11 @@ import {
   ViewStyle,
 } from 'react-native';
 import { CaretRight } from 'phosphor-react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation } from '@react-navigation/native';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
 import ScreenTitle from '../../components/AppScreenTitle';
-import { AppScreenKey as AppScreenKey } from '../../types';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
 import globalStyle from '../../styles';
@@ -57,18 +54,16 @@ function MenuItem(props: MenuItemProps) {
   );
 }
 
-function MenuSeparator() {
-  return <View style={tailwind('h-6')} />;
-}
-
 function MenuScreen(): JSX.Element {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const userNameLetters = useAppSelector(authSelectors.nameLetters);
   const userFullName = useAppSelector(authSelectors.userFullName);
   const onLogoutPressed = () => {
     dispatch(uiActions.setIsSignOutModalOpen(true));
+  };
+  const renderMenuSeparator = () => {
+    return <View style={tailwind('h-6')} />;
   };
 
   return (
@@ -106,7 +101,7 @@ function MenuScreen(): JSX.Element {
             />
           </View>
 
-          <MenuSeparator />
+          {renderMenuSeparator()}
 
           <View style={tailwind('bg-white rounded-xl')}>
             <MenuItem
@@ -127,7 +122,7 @@ function MenuScreen(): JSX.Element {
             )}
           </View>
 
-          <MenuSeparator />
+          {renderMenuSeparator()}
 
           <View style={tailwind('bg-white rounded-xl')}>
             <MenuItem
@@ -138,7 +133,7 @@ function MenuScreen(): JSX.Element {
             />
           </View>
 
-          <MenuSeparator />
+          {renderMenuSeparator()}
 
           <View style={tailwind('bg-white rounded-xl')}>
             <MenuItem
@@ -157,7 +152,7 @@ function MenuScreen(): JSX.Element {
             />
           </View>
 
-          <MenuSeparator />
+          {renderMenuSeparator()}
 
           {appService.constants.REACT_NATIVE_DEBUG && (
             <View style={tailwind('bg-white rounded-xl')}>

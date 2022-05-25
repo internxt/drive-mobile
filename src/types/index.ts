@@ -1,4 +1,3 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { store as storeInstance } from '../store';
 
 type StoreType = typeof storeInstance;
@@ -10,26 +9,6 @@ export enum AppStage {
 
 export interface AppPlugin {
   install: (store: StoreType) => void;
-}
-
-export enum AppScreenKey {
-  Debug = 'debug',
-  SignUp = 'sign-up',
-  SignIn = 'sign-in',
-  TabExplorer = 'tab-explorer',
-  Home = 'home',
-  Menu = 'menu',
-  Drive = 'drive',
-  Recents = 'recents',
-  Shared = 'shared',
-  CreateFolder = 'create-folder',
-  ForgotPassword = 'forgot-password',
-  ChangePassword = 'change-password',
-  RecoverPassword = 'recover-password',
-  Storage = 'storage',
-  Billing = 'billing',
-  Photos = 'photos',
-  PhotosPreview = 'photos-preview',
 }
 
 export enum DevicePlatform {
@@ -131,31 +110,3 @@ export type Abortable = (reason?: string) => void;
 export interface AppToastExtraProps {
   action?: { text: string; onActionPress: () => void };
 }
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace ReactNavigation {
-    // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    interface RootParamList extends RootStackParamList {}
-  }
-}
-
-export type RootStackParamList = {
-  Debug: undefined;
-  SignUp: undefined;
-  SignIn: undefined;
-  Home: undefined;
-  TabExplorer: { showReferralsBanner: boolean } | undefined;
-  ForgotPassword: undefined;
-  Storage: undefined;
-  Billing: undefined;
-  ChangePassword: undefined;
-  RecoverPassword: undefined;
-  Photos: undefined;
-  PhotosPreview: undefined;
-};
-
-export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<
-  RootStackParamList,
-  Screen
->;

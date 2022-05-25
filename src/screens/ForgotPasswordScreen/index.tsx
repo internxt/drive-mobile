@@ -7,8 +7,8 @@ import InternxtLogo from '../../../assets/logo.svg';
 import { tailwind } from '../../helpers/designSystem';
 import validationService from '../../services/validation';
 import authService from '../../services/auth';
-import { AppScreenKey, RootStackScreenProps } from '../../types';
 import AppScreen from '../../components/AppScreen';
+import { RootStackScreenProps } from '../../types/navigation';
 
 function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPassword'>): JSX.Element {
   const [currentContainer, setCurrentCointainer] = useState(1);

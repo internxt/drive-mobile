@@ -6,19 +6,18 @@ import strings from '../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
 import { TouchableWithoutFeedback } from 'react-native';
-import { AppScreenKey } from '../../types';
 import { X } from 'phosphor-react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AppText from '../AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { RootScreenNavigationProp } from '../../types/navigation';
 
 const ReferralsBanner = (): JSX.Element => {
   const safeAreaInsets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const isOpen = useAppSelector((state) => state.ui.isReferralsBannerOpen);
   const onBannerPressed = () => {
-    navigation.navigate(AppScreenKey.Storage);
+    navigation.navigate('Storage');
     dispatch(uiActions.setIsReferralsBannerOpen(false));
   };
   const onCloseButtonPressed = () => {

@@ -9,7 +9,7 @@ import strings from '../../assets/lang/strings';
 import { Text, View } from 'react-native';
 import { tailwind } from '../helpers/designSystem';
 import AppButton from '../components/AppButton';
-import { PhotosStackParamList } from '../types/photos';
+import { PhotosStackParamList } from '../types/navigation';
 
 const StackNav = createNativeStackNavigator<PhotosStackParamList>();
 

@@ -8,7 +8,7 @@ import DebugNotificationsWidget from '../../components/DebugNotificationsWidget'
 import DebugInternetWidget from '../../components/DebugInternetWidget';
 import DebugUploadWidget from '../../components/DebugUploadWidget';
 import DebugDownloadWidget from '../../components/DebugDownloadWidget';
-import { RootStackScreenProps } from '../../types';
+import { RootStackScreenProps } from '../../types/navigation';
 
 function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element {
   const onBackButtonPressed = () => navigation.goBack();
