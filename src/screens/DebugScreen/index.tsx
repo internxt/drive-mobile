@@ -1,18 +1,16 @@
 import React from 'react';
-import { useNavigation } from '@react-navigation/native';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import ScreenTitle from '../../components/AppScreenTitle';
 import AppScreen from '../../components/AppScreen';
 import DebugNotificationsWidget from '../../components/DebugNotificationsWidget';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DebugInternetWidget from '../../components/DebugInternetWidget';
 import DebugUploadWidget from '../../components/DebugUploadWidget';
 import DebugDownloadWidget from '../../components/DebugDownloadWidget';
+import { RootStackScreenProps } from '../../types/navigation';
 
-function DebugScreen(): JSX.Element {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element {
   const onBackButtonPressed = () => navigation.goBack();
 
   return (

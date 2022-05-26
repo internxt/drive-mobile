@@ -26,11 +26,11 @@ const strings = new LocalizedStrings({
       view_folder: 'View folder',
     },
     tabs: {
-      home: 'Home',
-      drive: 'Drive',
-      add: 'Add',
-      photos: 'Photos',
-      menu: 'Settings',
+      Home: 'Home',
+      Drive: 'Drive',
+      Add: 'Add',
+      Photos: 'Photos',
+      Menu: 'Settings',
     },
     screens: {
       DebugScreen: {
@@ -455,11 +455,11 @@ const strings = new LocalizedStrings({
       root_folder_name: 'Drive',
     },
     tabs: {
-      home: 'Inicio',
-      drive: 'Drive',
-      add: 'Añadir',
-      photos: 'Photos',
-      menu: 'Ajustes',
+      Home: 'Inicio',
+      Drive: 'Drive',
+      Add: 'Añadir',
+      Photos: 'Photos',
+      Menu: 'Ajustes',
     },
     screens: {
       DebugScreen: {

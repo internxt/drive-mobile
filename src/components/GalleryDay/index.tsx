@@ -2,15 +2,14 @@ import React, { useState } from 'react';
 import { Dimensions, FlatList, ListRenderItemInfo, Text, TouchableWithoutFeedback, View } from 'react-native';
 import { Photo } from '@internxt/sdk/dist/photos';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import moment from 'moment';
 import { CheckCircle } from 'phosphor-react-native';
 
-import { AppScreenKey } from '../../types';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import GalleryItem from '../GalleryItem';
 import { photosActions, photosSelectors } from '../../store/slices/photos';
+import { PhotosScreenNavigationProp } from '../../types/navigation';
 
 interface GalleryDayProps {
   year: number;
@@ -21,7 +20,7 @@ interface GalleryDayProps {
 
 const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element => {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
   const arePhotosSelected = useAppSelector(photosSelectors.arePhotosSelected);
   const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
@@ -49,9 +48,7 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
     isPhotoSelected(photo) ? deselectItem(photo) : selectItem(photo);
   };
   const onItemPressed = (item: Photo, preview: string) => {
-    isSelectionModeActivated
-      ? onItemLongPressed(item)
-      : navigation.navigate(AppScreenKey.PhotosPreview, { data: item, preview });
+    isSelectionModeActivated ? onItemLongPressed(item) : navigation.navigate('PhotosPreview', { data: item, preview });
   };
 
   return (

@@ -161,7 +161,6 @@ export interface DriveNavigableItemProps extends DriveItemProps {
   isLoading?: boolean;
   disabled?: boolean;
   onItemPressed?: (item: DriveItemDataProps) => void;
-  onNavigationButtonPressed: (item: DriveItemDataProps) => void;
 }
 
 export interface DriveCurrentFolderContent {

@@ -10,23 +10,21 @@ import SearchInput from '../../components/SearchInput';
 import globalStyle from '../../styles';
 import ScreenTitle from '../../components/AppScreenTitle';
 import Separator from '../../components/AppSeparator';
-import { AppScreenKey as AppScreenKey, DevicePlatform } from '../../types';
+import { DevicePlatform } from '../../types';
 import { authActions } from '../../store/slices/auth';
 import { driveActions, driveSelectors, driveThunks } from '../../store/slices/drive';
 import { uiActions } from '../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import AppScreen from '../../components/AppScreen';
 import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
 import asyncStorage from '../../services/AsyncStorageService';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DriveListType, SortDirection, SortType } from '../../types/drive';
 import SortModal, { SortMode } from '../../components/modals/SortModal';
 import fileService from '../../services/DriveFileService';
+import { TabExplorerScreenProps } from '../../types/navigation';
 
-function DriveScreen(): JSX.Element {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Element {
   const route = useRoute();
   const dispatch = useAppDispatch();
   const [sortModalOpen, setSortModalOpen] = useState(false);
@@ -87,7 +85,7 @@ function DriveScreen(): JSX.Element {
   };
 
   if (!loggedIn) {
-    navigation.replace(AppScreenKey.SignIn);
+    navigation.replace('SignIn');
   }
 
   useEffect(() => {
@@ -123,7 +121,7 @@ function DriveScreen(): JSX.Element {
 
     // BackHandler
     const backAction = () => {
-      if (route.name === AppScreenKey.Drive) {
+      if (route.name === 'Drive') {
         if (~currentFolderId && currentFolderParentId) {
           dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderParentId }));
         } else {

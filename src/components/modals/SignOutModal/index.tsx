@@ -9,13 +9,12 @@ import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
 import AppText from '../../AppText';
 import { authThunks } from '../../../store/slices/auth';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import { AppScreenKey } from '../../../types';
+import { RootScreenNavigationProp } from '../../../types/navigation';
 
 function SignOutModal(): JSX.Element {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const { isSignOutModalOpen } = useAppSelector((state) => state.ui);
   const onClosed = () => {
     dispatch(uiActions.setIsSignOutModalOpen(false));
@@ -25,7 +24,7 @@ function SignOutModal(): JSX.Element {
   };
   const onSignOutButtonPressed = () => {
     dispatch(authThunks.signOutThunk());
-    navigation.replace(AppScreenKey.SignIn);
+    navigation.replace('SignIn');
     onClosed();
   };
 

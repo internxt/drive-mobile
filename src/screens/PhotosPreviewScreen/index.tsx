@@ -2,37 +2,26 @@ import React, { useEffect, useState } from 'react';
 import RNFS from 'react-native-fs';
 import { View, Text, Image, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
-import { Photo } from '@internxt/sdk/dist/photos';
 import { CaretLeft, DotsThree, DownloadSimple, Link, Trash } from 'phosphor-react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { items } from '@internxt/lib';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import PhotosPreviewOptionsModal from '../../../components/modals/PhotosPreviewOptionsModal';
-import DeletePhotosModal from '../../../components/modals/DeletePhotosModal';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { uiActions } from '../../../store/slices/ui';
-import strings from '../../../../assets/lang/strings';
-import SharePhotoModal from '../../../components/modals/SharePhotoModal';
-import fileSystemService from '../../../services/FileSystemService';
-import PhotosPreviewInfoModal from '../../../components/modals/PhotosPreviewInfoModal';
-import { photosActions, photosSelectors, photosThunks } from '../../../store/slices/photos';
-import LoadingSpinner from '../../../components/LoadingSpinner';
-import { getColor, tailwind } from '../../../helpers/designSystem';
-import AppScreen from '../../../components/AppScreen';
+import PhotosPreviewOptionsModal from '../../components/modals/PhotosPreviewOptionsModal';
+import DeletePhotosModal from '../../components/modals/DeletePhotosModal';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { uiActions } from '../../store/slices/ui';
+import strings from '../../../assets/lang/strings';
+import SharePhotoModal from '../../components/modals/SharePhotoModal';
+import PhotosPreviewInfoModal from '../../components/modals/PhotosPreviewInfoModal';
+import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import { getColor, tailwind } from '../../helpers/designSystem';
+import AppScreen from '../../components/AppScreen';
+import { RootStackScreenProps } from '../../types/navigation';
+import fileSystemService from '../../services/FileSystemService';
 
-interface PreviewProps {
-  route: {
-    params: {
-      data: Photo;
-      preview: string;
-    };
-  };
-}
-
-function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
-  const { data: photo, preview } = props.route.params;
+function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'PhotosPreview'>): JSX.Element {
+  const { data: photo, preview } = route.params;
   const safeAreaInsets = useSafeAreaInsets();
   const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
   const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: photo.id, type: photo.type });
@@ -44,7 +33,6 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
     (state) => state.ui,
   );
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const isFullSizeDownloaded = useAppSelector(photosSelectors.isPhotoDownloaded)(photo.fileId);
   const uri = isFullSizeDownloaded ? fileSystemService.pathToUri(photoPath) : preview;
   const onScreenPressed = () => {
@@ -75,7 +63,7 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
   const loadImage = () => {
     dispatch(
       photosThunks.downloadPhotoThunk({
-        fileId: props.route.params.data.fileId,
+        fileId: route.params.data.fileId,
         options: {
           toPath: photoPath,
         },
@@ -104,28 +92,28 @@ function PhotosPreviewScreen(props: PreviewProps): JSX.Element {
       <PhotosPreviewOptionsModal
         isOpen={isOptionsModalOpen}
         onClosed={onPhotosPreviewOptionsModalClosed}
-        data={props.route.params.data}
-        preview={props.route.params.preview}
+        data={route.params.data}
+        preview={route.params.preview}
         photoPath={photoPath}
         isFullSizeLoading={isFullSizeLoading}
       />
       <PhotosPreviewInfoModal
         isOpen={isPhotosPreviewInfoModalOpen}
         onClosed={onPhotosPreviewInfoModalClosed}
-        data={props.route.params.data}
-        preview={props.route.params.preview}
+        data={route.params.data}
+        preview={route.params.preview}
       />
       <DeletePhotosModal
         isOpen={isDeletePhotosModalOpen}
         onClosed={() => dispatch(uiActions.setIsDeletePhotosModalOpen(false))}
         onPhotosDeleted={onPhotoMovedToTrash}
-        data={[props.route.params.data]}
+        data={[route.params.data]}
       />
       <SharePhotoModal
         isOpen={isSharePhotoModalOpen}
-        data={props.route.params.data}
+        data={route.params.data}
         onClosed={onSharePhotoModalClosed}
-        preview={props.route.params.preview}
+        preview={route.params.preview}
       />
 
       <AppScreen

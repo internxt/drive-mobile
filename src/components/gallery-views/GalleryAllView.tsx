@@ -2,17 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Photo } from '@internxt/sdk/dist/photos';
 import { Dimensions, FlatList, ListRenderItemInfo, RefreshControl, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { tailwind } from '../../helpers/designSystem';
 import GalleryItem from '../GalleryItem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
-import { AppScreenKey } from '../../types';
+import { PhotosScreenNavigationProp } from '../../types/navigation';
 
 const GalleryAllView = (): JSX.Element => {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
   const { isSelectionModeActivated, photos } = useAppSelector((state) => state.photos);
   const [refreshing, setRefreshing] = useState(false);
@@ -32,7 +31,7 @@ const GalleryAllView = (): JSX.Element => {
   const onItemPressed = (photo: Photo, preview: string) => {
     isSelectionModeActivated
       ? onItemLongPressed(photo)
-      : navigation.navigate(AppScreenKey.PhotosPreview, { data: photo, preview });
+      : navigation.navigate('PhotosPreview', { data: photo, preview });
   };
   const loadPhotos = async () => {
     await dispatch(photosThunks.loadLocalPhotosThunk());

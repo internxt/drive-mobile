@@ -11,26 +11,6 @@ export interface AppPlugin {
   install: (store: StoreType) => void;
 }
 
-export enum AppScreenKey {
-  Debug = 'debug',
-  SignUp = 'sign-up',
-  SignIn = 'sign-in',
-  TabExplorer = 'tab-explorer',
-  Home = 'home',
-  Menu = 'menu',
-  Drive = 'drive',
-  Recents = 'recents',
-  Shared = 'shared',
-  CreateFolder = 'create-folder',
-  ForgotPassword = 'forgot-password',
-  ChangePassword = 'change-password',
-  RecoverPassword = 'recover-password',
-  Storage = 'storage',
-  Billing = 'billing',
-  Photos = 'photos',
-  PhotosPreview = 'photos-preview',
-}
-
 export enum DevicePlatform {
   Mobile = 'mobile',
 }

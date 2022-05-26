@@ -2,11 +2,6 @@ import { Photo, Device, PhotoStatus, User } from '@internxt/sdk/dist/photos';
 import CameraRoll from '@react-native-community/cameraroll';
 import { NetworkCredentials } from '.';
 
-export enum PhotosScreen {
-  Permissions = 'photos-permissions',
-  Gallery = 'photos-gallery',
-}
-
 export enum GalleryViewMode {
   Years = 'years',
   Months = 'months',

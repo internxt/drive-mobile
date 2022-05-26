@@ -1,17 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableHighlight, StyleSheet } from 'react-native';
-import prettysize from 'prettysize';
+import { View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
-import { getColor, tailwind } from '../../../helpers/designSystem';
-import { FolderIcon, getFileTypeIcon } from '../../../helpers';
-import globalStyle from '../../../styles';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { driveThunks } from '../../../store/slices/drive';
-import { uiActions } from '../../../store/slices/ui';
-import BottomModal from '../BottomModal';
+import { tailwind } from '../../../helpers/designSystem';
 import AppText from '../../AppText';
-import { items } from '@internxt/lib';
 import CenterModal from '../CenterModal';
 import { DriveItemData, DriveItemFocused } from '../../../types/drive';
 import { ArrowDown } from 'phosphor-react-native';

@@ -3,30 +3,24 @@ import { TextInput, TouchableHighlight, View, Text, Alert, ScrollView, Touchable
 
 import CheckBox from '../../components/AppCheckBox';
 import strings from '../../../assets/lang/strings';
-import { doRegister } from './registerUtils';
 import InternxtLogo from '../../../assets/logo.svg';
 import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import validationService from '../../services/ValidationService';
 import authService from '../../services/AuthService';
-import { AppScreenKey as AppScreenKey, DevicePlatform } from '../../types';
-import { authThunks } from '../../store/slices/auth';
 import { useAppDispatch } from '../../store/hooks';
-import { useNavigation } from '@react-navigation/native';
 import errorService from '../../services/ErrorService';
+import { DevicePlatform } from '../../types';
+import { authThunks } from '../../store/slices/auth';
 import AppScreen from '../../components/AppScreen';
-import { driveActions } from '../../store/slices/drive';
 import { Eye, EyeSlash } from 'phosphor-react-native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AppText from '../../components/AppText';
+import { RootStackScreenProps } from '../../types/navigation';
 
-function SignUpScreen(): JSX.Element {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Element {
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const twoFactorCode = '';
-
-  // Register form fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,9 +31,7 @@ function SignUpScreen(): JSX.Element {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordFocus, setPasswordFocus] = useState(false);
   const [confirmPasswordFocus, setConfirmPasswordFocus] = useState(false);
-
   const [recaptchaToken] = useState<string>('');
-
   const isEmptyEmail = validationService.isNullOrEmpty(email);
   const isValidEmail = validationService.validateEmail(email);
   const isValidFirstName = !validationService.isNullOrEmpty(firstName);
@@ -69,7 +61,7 @@ function SignUpScreen(): JSX.Element {
     setIsLoading(true);
 
     try {
-      const userData = await doRegister({
+      const userData = await authService.doRegister({
         firstName: firstName,
         lastName: lastName,
         email: email,
@@ -93,7 +85,7 @@ function SignUpScreen(): JSX.Element {
       await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode }))
         .unwrap()
         .then(() => {
-          navigation.replace(AppScreenKey.TabExplorer, { showReferralsBanner: true });
+          navigation.replace('TabExplorer', { screen: 'Home', showReferralsBanner: true });
         });
     } catch (err) {
       const castedError = errorService.castError(err);
@@ -108,7 +100,7 @@ function SignUpScreen(): JSX.Element {
       Alert.alert('Error while registering', castedError.message);
     }
   };
-  const onGoToSignInButtonPressed = () => navigation.replace(AppScreenKey.SignIn);
+  const onGoToSignInButtonPressed = () => navigation.replace('SignIn');
 
   return (
     <AppScreen safeAreaBottom safeAreaTop>
