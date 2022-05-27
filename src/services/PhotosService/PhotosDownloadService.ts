@@ -22,10 +22,10 @@ export default class PhotosDownloadService {
       this.model.networkCredentials.encryptionKey,
       {
         user: this.model.networkCredentials.user,
-        pass: this.model.networkCredentials.password
+        pass: this.model.networkCredentials.password,
       },
       options,
-      () => null
+      () => null,
     );
 
     return options.toPath;

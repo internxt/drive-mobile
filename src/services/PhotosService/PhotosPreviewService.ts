@@ -13,9 +13,9 @@ import network from '../../network';
 import { constants } from '../AppService';
 
 export default class PhotosPreviewService {
+  public static readonly PREVIEW_EXTENSION: ResizeFormat = 'JPEG';
   private static readonly PREVIEW_WIDTH = 512;
   private static readonly PREVIEW_HEIGHT = 512;
-  private static readonly PREVIEW_EXTENSION: ResizeFormat = 'JPEG';
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: Photos;
   private readonly fileSystemService: PhotosFileSystemService;

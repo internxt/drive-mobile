@@ -30,7 +30,7 @@ export interface AppEnv {
   SENTRY_AUTH_TOKEN: string;
 }
 
-const stage = AppStage.Production; // <- CHANGE STAGE
+const stage = AppStage.Development; // <- CHANGE STAGE
 
 const appConfig: ExpoConfig & { extra: AppEnv } = {
   name: 'Internxt',

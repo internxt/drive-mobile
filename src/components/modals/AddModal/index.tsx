@@ -362,11 +362,13 @@ function AddModal(): JSX.Element {
           if (response.errorMessage) {
             return Alert.alert(response.errorMessage);
           }
+
           if (response.assets) {
             const documents: DocumentPickerResponse[] = [];
 
             for (const asset of response.assets) {
-              const stat = await RNFS.stat(decodeURIComponent(asset.uri as string));
+              const decodedURI = decodeURIComponent(asset.uri as string);
+              const stat = await RNFS.stat(decodedURI);
 
               documents.push({
                 fileCopyUri: asset.uri || '',

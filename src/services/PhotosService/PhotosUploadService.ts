@@ -96,7 +96,7 @@ export default class PhotosUploadService {
       hash,
     };
     const createdPhoto = await this.photosSdk.photos.createPhoto(createPhotoData);
-    const finalPreviewPath = `${this.fileSystemService.previewsDirectory}/${createdPhoto.id}.${previewFormat}`;
+    const finalPreviewPath = `${this.fileSystemService.previewsDirectory}/${createdPhoto.id}`;
 
     await RNFS.copyFile(tmpPreviewPath, finalPreviewPath);
 

@@ -6,7 +6,7 @@ const sentryPlugin: AppPlugin = {
   install(): void {
     Sentry.init({
       dsn: appService.constants.SENTRY_DSN,
-      debug: appService.constants.REACT_NATIVE_DEBUG,
+      debug: false,
     });
   },
 };

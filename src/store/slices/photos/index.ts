@@ -26,7 +26,6 @@ import {
   PhotosEventKey,
 } from '../../../types/photos';
 import { uiActions } from '../ui';
-import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 
@@ -284,9 +283,7 @@ const syncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
         if (photo.status === PhotoStatus.Exists) {
           if (!info.isAlreadyOnTheDevice) {
-            dispatch(
-              photosActions.addPhotos([{ data: photo, preview: fileSystemService.pathToUri(info.previewPath) }]),
-            );
+            dispatch(photosActions.addPhotos([{ data: photo, preview: info.previewPath }]));
           }
         } else {
           dispatch(photosActions.popPhoto(photo));

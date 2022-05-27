@@ -156,8 +156,6 @@ export class NetworkFacade {
         const sha256Hash = await RNFS.hash(encryptedFileURI, 'sha256');
         const receivedFileHash = ripemd160(Buffer.from(sha256Hash, 'hex')).toString('hex');
 
-        console.log('EXPECTED', expectedFileHash);
-        console.log('RECEIVED', receivedFileHash);
         if (receivedFileHash !== expectedFileHash) {
           throw new Error('Hash mismatch');
         }

@@ -17,6 +17,7 @@ import fileSystemService from '../../FileSystemService';
 import tmp_camera_roll from './tables/tmp_camera_roll';
 import CameraRoll from '@react-native-community/cameraroll';
 import PhotosFileSystemService from '../PhotosFileSystemService';
+import PhotosPreviewService from '../PhotosPreviewService';
 
 export default class PhotosLocalDatabaseService {
   private readonly model: PhotosServiceModel;
@@ -74,7 +75,7 @@ export default class PhotosLocalDatabaseService {
         for (const row of rows.raw() as unknown as SqlitePhotoRow[]) {
           results.push({
             data: this.mapPhotoRowToModel(row),
-            preview: fileSystemService.pathToUri(`${this.fileSystemService.previewsDirectory}/${row.preview_id}`),
+            preview: fileSystemService.pathToUri(`${this.fileSystemService.previewsDirectory}/${row.id}`),
           });
         }
 
@@ -120,7 +121,7 @@ export default class PhotosLocalDatabaseService {
 
     return (
       lastPhotoOfTheYear &&
-      fileSystemService.pathToUri(`${this.fileSystemService.previewsDirectory}/${lastPhotoOfTheYear.preview_id}`)
+      fileSystemService.pathToUri(`${this.fileSystemService.previewsDirectory}/${lastPhotoOfTheYear.id}`)
     );
   }
 
@@ -194,9 +195,7 @@ export default class PhotosLocalDatabaseService {
     const [{ rows }] = await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getById, [photoId]);
     const photoRow: SqlitePhotoRow | null = rows.item(0) || null;
 
-    return (
-      photoRow && fileSystemService.pathToUri(`${this.fileSystemService.previewsDirectory}/${photoRow.preview_id}`)
-    );
+    return photoRow && fileSystemService.pathToUri(`${this.fileSystemService.previewsDirectory}/${photoRow.id}`);
   }
 
   public async updatePhotoStatusById(photoId: PhotoId, newStatus: PhotoStatus): Promise<void> {
@@ -271,7 +270,7 @@ export default class PhotosLocalDatabaseService {
         photo.statusChangedAt.getTime(),
         photo.createdAt.getTime(),
         photo.updatedAt.getTime(),
-        previewPath,
+        previewPath, // TODO: delete previewPath field, since it's generated dynamically
         photo.hash,
       ])
       .then(() => undefined);

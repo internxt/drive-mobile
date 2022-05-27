@@ -13,8 +13,12 @@ export default class PhotosFileSystemService {
     this.logService = logService;
   }
 
+  private get rootDirectory(): string {
+    return `${fileSystemService.getDocumentsDir()}/photos`;
+  }
+
   public get tmpDirectory(): string {
-    return `${fileSystemService.getDocumentsDir()}/tmp/photos`;
+    return `${this.rootDirectory}/tmp`;
   }
 
   public get photosDirectory(): string {
@@ -23,10 +27,6 @@ export default class PhotosFileSystemService {
 
   public get previewsDirectory(): string {
     return `${this.rootDirectory}/previews`;
-  }
-
-  private get rootDirectory(): string {
-    return `${fileSystemService.getDocumentsDir()}/photos`;
   }
 
   public async initialize(): Promise<void> {

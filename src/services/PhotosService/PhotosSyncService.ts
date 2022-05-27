@@ -23,6 +23,7 @@ import PhotosLogService from './PhotosLogService';
 import PhotosUploadService from './PhotosUploadService';
 import PhotosFileSystemService from './PhotosFileSystemService';
 import PhotosEventEmitter from './PhotosEventEmitter';
+import fileSystemService from '../FileSystemService';
 
 export default class PhotosSyncService {
   private readonly model: PhotosServiceModel;
@@ -253,21 +254,22 @@ export default class PhotosSyncService {
         this.logService.info('Photo ' + photo.name + ' is on the device? ' + isAlreadyOnTheDevice);
 
         if (isAlreadyOnTheDevice) {
-          previewPath = photoInDevice ? photoInDevice.preview_path : '';
+          previewPath = photoInDevice.preview_path;
           await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);
         } else {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
           const previewId = photo.previews && photo.previews.length > 0 ? photo.previews[0].fileId : photo.previewId;
           previewPath = await this.downloadService.pullPhoto(previewId, {
-            toPath: `${this.fileSystemService.previewsDirectory}/${previewId}`,
+            toPath: `${this.fileSystemService.previewsDirectory}/${photo.id}`,
             downloadProgressCallback: () => undefined,
             decryptionProgressCallback: () => undefined,
           });
           await this.localDatabaseService.insertPhoto({ ...photo, previewId }, previewPath);
         }
 
-        options.onPhotoDownloaded(photo, { isAlreadyOnTheDevice, previewPath });
+        options.onPhotoDownloaded(photo, {
+          isAlreadyOnTheDevice,
+          previewPath: fileSystemService.pathToUri(previewPath),
+        });
       }
 
       skip += limit;
