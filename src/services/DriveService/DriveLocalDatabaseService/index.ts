@@ -100,8 +100,6 @@ export default class DriveLocalDatabaseService {
   }
 
   public async resetDatabase(): Promise<void> {
-    await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.cleanTable);
-    await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.cleanTable);
     await sqliteService.close(DRIVE_DB_NAME);
     await sqliteService.delete(DRIVE_DB_NAME);
 
