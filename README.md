@@ -36,8 +36,7 @@ Take a look to **/env/.env.example.json** file to know the required environment 
 
 ## Android
 
-We can test the android application in any operating system, although for each one we will have to follow some different steps
-</br>
+We can run the android application in any operating system, although for each one we will have to follow some different steps
 
 ### Android installation
 
@@ -98,8 +97,7 @@ yarn android
 
 ## iOS
 
-You can only test the iOS application on a Mac OS computer.
-</br></br>
+You can only run the iOS application on a Mac OS computer.
 
 ### iOS installation
 
@@ -117,10 +115,23 @@ sudo arch -x86_64 gem install ffi
 arch -x86_64 pod install
 ```
 
-</br>
-
 ### Run
 
 ```bash
 yarn ios
 ```
+
+</br>
+<hr>
+</br>
+
+## Test
+
+This is what you should know about project testing.
+
+Take a look to this official article about [testing in React Native](https://reactnative.dev/docs/testing-overview).
+
+### E2E
+
+- [Getting Started | Detox](https://wix.github.io/Detox/docs/introduction/getting-started/)
+- [Jest Setup Guide | Detox](https://wix.github.io/Detox/docs/guide/jest)

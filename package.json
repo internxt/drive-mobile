@@ -15,7 +15,8 @@
     "check-ts": "tsc --noEmit",
     "lint": "eslint src --ext .tsx,.ts",
     "lint:fix": "yarn run check-ts && yarn lint --fix",
-    "test": "jest"
+    "test:unit": "jest --testPathPattern=__tests__/unit",
+    "test:e2e": "detox test"
   },
   "dependencies": {
     "@burstware/react-native-portal": "^1.0.2",
@@ -145,9 +146,10 @@
     "@types/react-redux": "^7.1.11",
     "@types/redux-thunk": "^2.1.0",
     "autoprefixer": "^10.2.5",
+    "detox": "^19.7.0",
     "eslint": "^8.8.0",
     "husky": "^7.0.2",
-    "jest": "^26.6.3",
+    "jest": "^28.1.0",
     "jest-expo": "^45.0.1",
     "jetifier": "^2.0.0",
     "metro-minify-terser": "^0.66.0",
@@ -159,8 +161,9 @@
     "rn-nodeify": "^10.3.0",
     "sentry-testkit": "^3.3.7",
     "tailwindcss": "^2.1.2",
+    "ts-jest": "^28.0.3",
     "ts-node": "^10.7.0",
-    "typescript": "~4.0.0"
+    "typescript": "~4.3.0"
   },
   "react-native": {
     "zlib": "browserify-zlib",

@@ -3,5 +3,12 @@
   "rules": {
     "max-len": "off"
   },
-  "ignorePatterns": ["env", "babel.config.js", "shim.js", "metro.config.js", "tailwind.config.js"]
+  "ignorePatterns": [
+    "env",
+    "babel.config.js",
+    "shim.js",
+    "metro.config.js",
+    "tailwind.config.js",
+    "__tests__/e2e/environment.js"
+  ]
 }
