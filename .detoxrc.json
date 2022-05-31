@@ -3,9 +3,11 @@
   "runnerConfig": "__tests__/e2e/config.json",
   "skipLegacyWorkersInjection": true,
   "apps": {
-    "ios": {
+    "ios.release": {
+      "name": "Internxt",
       "type": "ios.app",
-      "binaryPath": "SPECIFY_PATH_TO_YOUR_APP_BINARY"
+      "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/Internxt.app",
+      "build": "xcodebuild -project ios/YourProject.xcodeproj -scheme Internxt -sdk iphonesimulator -derivedDataPath ios/build"
     },
     "android.debug": {
       "type": "android.apk",
@@ -33,9 +35,9 @@
     }
   },
   "configurations": {
-    "ios": {
+    "ios.sim.release": {
       "device": "simulator",
-      "app": "ios"
+      "app": "ios.release"
     },
     "android.debug": {
       "device": "emulator",
