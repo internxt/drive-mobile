@@ -70,6 +70,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         <View style={showTwoFactor ? tailwind('hidden') : tailwind('flex')}>
           <View style={tailwind('input-wrapper my-2 items-stretch')}>
             <TextInput
+              testID="email-input"
               style={tailwind('input pl-4')}
               value={email}
               onChangeText={(value) => setEmail(value)}
@@ -87,6 +88,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
           <View style={tailwind('input-wrapper my-2 items-stretch')}>
             <TextInput
+              testID="password-input"
               style={tailwind('input pl-4')}
               value={password}
               onChangeText={setPassword}
@@ -137,6 +139,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
         <View style={tailwind('items-center')}>
           <AppButton
+            testID="login-button"
             style={tailwind('py-4 my-5 w-full')}
             type="accept"
             onPress={onSignInButtonPressed}

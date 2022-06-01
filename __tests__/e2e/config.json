@@ -2,6 +2,7 @@
   "maxWorkers": 1,
   "preset": "ts-jest",
   "testEnvironment": "./environment",
+  "testSequencer": "./sequencer.js",
   "testRunner": "jest-circus/runner",
   "testTimeout": 120000,
   "testRegex": "\\.e2e\\.ts$",

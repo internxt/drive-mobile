@@ -6,6 +6,7 @@ import globalStyle from '../../styles';
 import LoadingSpinner from '../LoadingSpinner';
 
 interface AppButtonProps {
+  testID?: string;
   title: string | JSX.Element;
   type: 'accept' | 'cancel' | 'cancel-2' | 'delete';
   onPress: () => void;
@@ -56,6 +57,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
   };
   return (
     <TouchableHighlight
+      testID={props.testID}
       underlayColor={typeUnderlayColor}
       style={[tailwind('rounded-lg px-4 py-2 items-center justify-center '), typeBgStyle, props.style]}
       onPress={props.onPress}

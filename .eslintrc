@@ -9,6 +9,7 @@
     "shim.js",
     "metro.config.js",
     "tailwind.config.js",
-    "__tests__/e2e/environment.js"
+    "__tests__/e2e/environment.js",
+    "__tests__/e2e/sequencer.js"
   ]
 }

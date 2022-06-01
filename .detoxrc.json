@@ -7,7 +7,7 @@
       "name": "Internxt",
       "type": "ios.app",
       "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/Internxt.app",
-      "build": "xcodebuild -project ios/YourProject.xcodeproj -scheme Internxt -sdk iphonesimulator -derivedDataPath ios/build"
+      "build": "xcodebuild -workspace ios/Internxt.xcworkspace -scheme Internxt -sdk iphonesimulator -derivedDataPath ios/build"
     },
     "android.debug": {
       "type": "android.apk",
@@ -35,7 +35,7 @@
     }
   },
   "configurations": {
-    "ios.sim.release": {
+    "ios.release": {
       "device": "simulator",
       "app": "ios.release"
     },

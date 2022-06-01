@@ -13,10 +13,17 @@
     "link": "react-native link",
     "eject": "expo eject",
     "check-ts": "tsc --noEmit",
-    "lint": "eslint src --ext .tsx,.ts",
-    "lint:fix": "yarn run check-ts && yarn lint --fix",
+    "lint": "yarn run check-ts && eslint src --ext .tsx,.ts",
+    "lint:fix": "yarn lint --fix",
     "test:unit": "jest --testPathPattern=__tests__/unit",
-    "test:e2e": "detox test"
+    "test:e2e:build:android.debug": "detox build -c android.debug",
+    "test:e2e:build:android.release": "detox build -c android.release",
+    "test:e2e:build:ios.debug": "detox build -c ios.debug",
+    "test:e2e:build:ios.release": "detox build -c ios.release",
+    "test:e2e:test:android.debug": "detox test -c android.debug",
+    "test:e2e:test:android.release": "detox test -c android.release",
+    "test:e2e:test:ios.debug": "detox test -c ios.debug",
+    "test:e2e:test:ios.release": "detox test -c ios.release"
   },
   "dependencies": {
     "@burstware/react-native-portal": "^1.0.2",

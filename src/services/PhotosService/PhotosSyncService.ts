@@ -248,12 +248,11 @@ export default class PhotosSyncService {
         }
 
         const photoInDevice = await this.localDatabaseService.getPhotoById(photo.id);
-        const isAlreadyOnTheDevice = !!photoInDevice;
         let previewPath;
 
-        this.logService.info('Photo ' + photo.name + ' is on the device? ' + isAlreadyOnTheDevice);
+        this.logService.info('Photo ' + photo.name + ' is on the device? ' + !!photoInDevice);
 
-        if (isAlreadyOnTheDevice) {
+        if (photoInDevice) {
           previewPath = photoInDevice.preview_path;
           await this.localDatabaseService.updatePhotoStatusById(photo.id, photo.status);
         } else {
@@ -267,7 +266,7 @@ export default class PhotosSyncService {
         }
 
         options.onPhotoDownloaded(photo, {
-          isAlreadyOnTheDevice,
+          isAlreadyOnTheDevice: !!photoInDevice,
           previewPath: fileSystemService.pathToUri(previewPath),
         });
       }
