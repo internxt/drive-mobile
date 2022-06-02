@@ -1,6 +1,7 @@
 import { expect } from 'detox';
+import user from '../../fixtures/signInUser.json';
 
-describe('Example', () => {
+describe('Sign in flow', () => {
   beforeAll(async () => {
     await device.launchApp();
   });
@@ -12,14 +13,14 @@ describe('Example', () => {
   it('Should login successfully', async () => {
     const emailInput = element(by.id('email-input'));
     const passwordInput = element(by.id('password-input'));
-    const loginButton = element(by.id('login-button'));
+    const signInButton = element(by.id('sign-in-button'));
 
     await expect(emailInput).toBeVisible();
     await expect(passwordInput).toBeVisible();
 
-    await emailInput.typeText('carlossala95@gmail.com');
-    await passwordInput.typeText('Znmfyf795');
+    await emailInput.typeText(user.email);
+    await passwordInput.typeText(user.password);
 
-    await loginButton.tap();
+    await signInButton.tap();
   });
 });

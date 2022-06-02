@@ -22,6 +22,7 @@ const untranspiledModulePatterns = [
 const config: Config.InitialOptions = {
   preset: 'jest-expo',
   verbose: true,
+  testRegex: '\\.spec\\.ts$',
   transformIgnorePatterns: [`node_modules/(?!${untranspiledModulePatterns.join('|')})`],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
 };

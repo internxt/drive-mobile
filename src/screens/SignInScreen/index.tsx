@@ -139,7 +139,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
         <View style={tailwind('items-center')}>
           <AppButton
-            testID="login-button"
+            testID="sign-in-button"
             style={tailwind('py-4 my-5 w-full')}
             type="accept"
             onPress={onSignInButtonPressed}

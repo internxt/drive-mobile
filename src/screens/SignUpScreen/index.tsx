@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput, TouchableHighlight, View, Text, Alert, ScrollView, TouchableWithoutFeedback } from 'react-native';
 
-import CheckBox from '../../components/AppCheckBox';
+import AppCheckBox from '../../components/AppCheckBox';
 import strings from '../../../assets/lang/strings';
 import InternxtLogo from '../../../assets/logo.svg';
 import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
@@ -120,6 +120,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
               style={[tailwind('input-wrapper my-2 items-stretch'), isValidFirstName ? tailwind('input-valid') : {}]}
             >
               <TextInput
+                testID="first-name-input"
                 style={tailwind('input pl-4')}
                 value={firstName}
                 onChangeText={(value) => setFirstName(value)}
@@ -137,6 +138,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
               style={[tailwind('input-wrapper my-2 items-stretch'), isValidLastName ? tailwind('input-valid') : {}]}
             >
               <TextInput
+                testID="last-name-input"
                 style={tailwind('input pl-4')}
                 value={lastName}
                 onChangeText={(value) => setLastName(value)}
@@ -157,6 +159,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
               ]}
             >
               <TextInput
+                testID="email-input"
                 style={tailwind('input pl-4')}
                 value={email}
                 onChangeText={(value) => setEmail(value)}
@@ -181,6 +184,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
               ]}
             >
               <TextInput
+                testID="password-input"
                 style={tailwind('input pl-4')}
                 value={password}
                 onChangeText={setPassword}
@@ -216,6 +220,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
               ]}
             >
               <TextInput
+                testID="confirm-password-input"
                 style={tailwind('input pl-4')}
                 value={confirmPassword}
                 onChangeText={(value) => setConfirmPassword(value)}
@@ -248,14 +253,16 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
         </View>
 
         <View style={tailwind('py-3')}>
-          <CheckBox
+          <AppCheckBox
+            testID="terms-and-conditions-checkbox"
             text={strings.screens.SignUpScreen.acceptTermsAndConditions}
             value={acceptPolicy}
             onChange={setAcceptPolicy}
-          ></CheckBox>
+          ></AppCheckBox>
         </View>
 
         <TouchableHighlight
+          testID="sign-up-button"
           disabled={!isValidForm || registerButtonClicked}
           style={[
             tailwind('btn btn-primary my-4'),
