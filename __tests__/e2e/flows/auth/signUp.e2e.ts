@@ -1,13 +1,18 @@
 import { expect } from 'detox';
-import user from '../../fixtures/signUpUser.json';
+import user from '../../fixtures/user.json';
 
 describe('Sign up flow', () => {
   beforeAll(async () => {
     await device.launchApp();
   });
 
-  beforeEach(async () => {
-    await device.reloadReactNative();
+  beforeEach(async () => undefined);
+
+  it('Should go to sign up screen pressing "Get started" button', async () => {
+    const goToSignUpButton = element(by.id('go-to-sign-up-button'));
+
+    await expect(goToSignUpButton).toBeVisible();
+    await goToSignUpButton.tap();
   });
 
   it('Should sign up successfully', async () => {

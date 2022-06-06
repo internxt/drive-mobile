@@ -1,5 +1,5 @@
 import { expect } from 'detox';
-import user from '../../fixtures/signInUser.json';
+import user from '../../fixtures/user.json';
 
 describe('Sign in flow', () => {
   beforeAll(async () => {

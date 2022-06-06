@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Keyboard, Platform } from 'react-native';
+import { View, Platform } from 'react-native';
 
 import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon } from '../../../helpers';

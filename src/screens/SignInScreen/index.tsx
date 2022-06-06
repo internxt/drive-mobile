@@ -55,6 +55,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
       Alert.alert('Could not log in', castedError.message);
     }
   };
+  const onGoToSignUpButtonPressed = () => navigation.navigate('SignUp');
 
   return (
     <AppScreen safeAreaTop safeAreaBottom style={tailwind('px-5 h-full justify-between')}>
@@ -153,10 +154,12 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
             </View>
           </TouchableWithoutFeedback>
 
-          <Text style={tailwind('text-center mt-2')} onPress={() => navigation.navigate('SignUp')}>
-            <Text style={tailwind('text-sm')}>{strings.screens.SignInScreen.no_register} </Text>
-            <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.SignInScreen.register}</Text>
-          </Text>
+          <TouchableWithoutFeedback testID="go-to-sign-up-button" onPress={onGoToSignUpButtonPressed}>
+            <View style={tailwind('px-4 py-2 flex-row')}>
+              <Text style={tailwind('text-sm bg-transparent')}>{strings.screens.SignInScreen.no_register} </Text>
+              <Text style={tailwind('text-sm text-blue-60')}>{strings.screens.SignInScreen.register}</Text>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
       </View>
 

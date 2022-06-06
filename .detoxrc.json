@@ -3,6 +3,12 @@
   "runnerConfig": "__tests__/e2e/config.json",
   "skipLegacyWorkersInjection": true,
   "apps": {
+    "ios.debug": {
+      "name": "Internxt",
+      "type": "ios.app",
+      "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/Internxt.app",
+      "build": "xcodebuild -workspace ios/Internxt.xcworkspace -scheme Internxt -sdk iphonesimulator -derivedDataPath ios/build"
+    },
     "ios.release": {
       "name": "Internxt",
       "type": "ios.app",
@@ -35,6 +41,10 @@
     }
   },
   "configurations": {
+    "ios.debug": {
+      "device": "simulator",
+      "app": "ios.debug"
+    },
     "ios.release": {
       "device": "simulator",
       "app": "ios.release"

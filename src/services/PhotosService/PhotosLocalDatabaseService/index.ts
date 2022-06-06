@@ -17,7 +17,6 @@ import fileSystemService from '../../FileSystemService';
 import tmp_camera_roll from './tables/tmp_camera_roll';
 import CameraRoll from '@react-native-community/cameraroll';
 import PhotosFileSystemService from '../PhotosFileSystemService';
-import PhotosPreviewService from '../PhotosPreviewService';
 
 export default class PhotosLocalDatabaseService {
   private readonly model: PhotosServiceModel;

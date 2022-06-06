@@ -85,7 +85,7 @@ function DriveList(props: DriveListProps): JSX.Element {
         )
       }
       data={props.items}
-      keyExtractor={(item) => `${props.viewMode}-${item.data.id}`}
+      keyExtractor={(item) => `${props.viewMode}-${item.data.id}-${item.data.fileId ? 'file' : 'folder'}`}
       renderItem={({ item }) => {
         return (
           <ItemComponent

@@ -36,13 +36,13 @@ function PhotosGalleryScreen(): JSX.Element {
     dispatch(photosActions.setIsSelectionModeActivated(false));
     dispatch(photosActions.deselectAll());
   };
-  const onSelectAllButtonPressed = () => {
+  /* const onSelectAllButtonPressed = () => {
     dispatch(photosThunks.selectAllThunk());
   };
   const onShareSelectionButtonPressed = () => {
     dispatch(uiActions.setIsSharePhotoModalOpen(true));
   };
-  const onDownloadSelectionButtonPressed = () => undefined;
+  const onDownloadSelectionButtonPressed = () => undefined; */
   const onDeleteSelectionButtonPressed = () => {
     dispatch(uiActions.setIsDeletePhotosModalOpen(true));
   };
@@ -52,7 +52,7 @@ function PhotosGalleryScreen(): JSX.Element {
     return false;
   };
   const GalleryView = galleryViews[viewMode];
-  const groupByMenu = (function () {
+  /*const groupByMenu = (function () {
     const groupByItems = Object.entries(GalleryViewMode).map(([, value]) => {
       const isActive = value === viewMode;
 
@@ -72,7 +72,7 @@ function PhotosGalleryScreen(): JSX.Element {
         <View style={tailwind('px-1 py-1 flex-row bg-neutral-20 rounded-2xl')}>{groupByItems}</View>
       </View>
     );
-  })();
+  })();*/
 
   useEffect(() => {
     //dispatch(photosActions.setViewMode(GalleryViewMode.All));
