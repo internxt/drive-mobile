@@ -2039,6 +2039,11 @@
   resolved "https://npm.pkg.github.com/download/@internxt/prettier-config/1.0.2/9a19de23e3330a81c0e2bace1a6a0325fc8633197cf677e44ea75e54df315b5e"
   integrity sha512-t4HiqvCbC7XgQepwWlIaFJe3iwW7HCf6xOSU9nKTV0tiGqOPz7xMtIgLEloQrDA34Cx4PkOYBXrvFPV6RxSFAA==
 
+"@internxt/rn-crypto@^0.1.4":
+  version "0.1.4"
+  resolved "https://npm.pkg.github.com/download/@internxt/rn-crypto/0.1.4/f250d9e178be8fcbf2b77b838dc21d35a0edd71abfc21a5230e3d57e40151b82#9959b498911e04648a1dfd86dec220aa5ab73065"
+  integrity sha512-6iFn6htJqw6INb+MS0fBip4071E1SYjEBsD+rOIb8dtfDKOlpEvxkxvHp8D0BOe3EHPSgBub9TohfQTv9qsP/w==
+
 "@internxt/sdk@^0.8.1":
   version "0.8.1"
   resolved "https://npm.pkg.github.com/download/@internxt/sdk/0.8.1/5b5e5c3def564d51b0636cca1a445ad6d1f6d08ea971ea96d71355b82c84c14f#701fa80d54de3eb191786b1ed2478c6ddfdbc33b"
@@ -10821,11 +10826,6 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
   dependencies:
     hash-base "^3.0.0"
     inherits "^2.0.1"
-
-rn-crypto@^0.1.3:
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/rn-crypto/-/rn-crypto-0.1.3.tgz#f8d783e34e56305551fa6802d88ffcab4a98a8fc"
-  integrity sha512-oBINRfNDg8BjPYafhl0OpzdxTFgGLcB48FBh2HC/O0UIo2BMSLB3ksXy9SFgQnz5i46EgCxQHp1DjPsxOkYbTw==
 
 rn-fetch-blob@=0.11.2:
   version "0.11.2"

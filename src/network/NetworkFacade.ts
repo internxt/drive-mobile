@@ -1,5 +1,5 @@
-import { decryptFile, encryptFile } from 'rn-crypto';
-import { randomBytes, createCipheriv } from 'react-native-crypto';
+import { decryptFile, encryptFile } from '@internxt/rn-crypto';
+import { randomBytes } from 'react-native-crypto';
 import { Platform } from 'react-native';
 import * as RNFS from 'react-native-fs';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -15,9 +15,6 @@ import { ripemd160 } from '../@inxt-js/lib/crypto';
 import { Abortable } from '../types';
 import appService from '../services/AppService';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
-import { decryptFileFromFs } from './crypto';
-import fileSystemService from '../services/FileSystemService';
-import { eachLimit } from 'async';
 
 export interface DownloadFileParams {
   toPath: string;
@@ -206,9 +203,14 @@ const iosDecryptFileFromFs: DecryptFileFromFsFunction = (
   destinationPath: string,
   key: Buffer,
   iv: Buffer,
-  notifyProgress?: (progress: number) => void,
 ) => {
-  return decryptFileFromFs(originPath, destinationPath, key, iv, notifyProgress && { progress: notifyProgress }).then();
+  return new Promise((resolve, reject) => {
+    decryptFile(originPath, destinationPath, key.toString('hex'), iv.toString('hex'), (err) => {
+      if (err) {
+        reject(err);
+      } else resolve();
+    });
+  });
 };
 
 type EncryptFileFromFsFunction = (
@@ -242,28 +244,13 @@ const iosEncryptFileFromFs: EncryptFileFromFsFunction = async (
   key: Buffer,
   iv: Buffer,
 ): Promise<void> => {
-  const twoMb = 2 * 1024 * 1024;
-  const chunksOf = twoMb;
-  const fileSize = parseInt((await RNFS.stat(plainFilePath)).size);
-  const chunks = Math.ceil(fileSize / chunksOf);
-  const writer = await RNFetchBlob.fs.writeStream(encryptedFilePath, 'base64');
-  const cipher = createCipheriv('aes-256-ctr', key, iv);
-  let start = 0;
-
-  return eachLimit(new Array(chunks), 1, (_, cb) => {
-    RNFS.read(fileSystemService.pathToUri(plainFilePath), chunksOf, start, 'base64')
-      .then((res) => {
-        cipher.write(Buffer.from(res, 'base64'));
-        return writer.write(cipher.read().toString('base64'));
-      })
-      .then(() => {
-        start += twoMb;
-        cb(null);
-      })
-      .catch((err) => {
-        cb(err);
-      });
-  }).then(() => {
-    return writer.close();
+  return new Promise((resolve, reject) => {
+    encryptFile(plainFilePath, encryptedFilePath, key.toString('hex'), iv.toString('hex'), (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
   });
 };
