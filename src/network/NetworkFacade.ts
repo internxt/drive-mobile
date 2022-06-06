@@ -15,6 +15,7 @@ import { ripemd160 } from '../@inxt-js/lib/crypto';
 import { Abortable } from '../types';
 import appService from '../services/AppService';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
+import fileSystemService from '../services/FileSystemService';
 
 export interface DownloadFileParams {
   toPath: string;
