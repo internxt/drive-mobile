@@ -11,7 +11,7 @@ import { FileId } from '@internxt/sdk/dist/photos';
 import fileSystemService from '../FileSystemService';
 import { NetworkCredentials } from '../../types';
 import { Platform } from 'react-native';
-import { decryptFile as nativeDecryptFile } from 'rn-crypto';
+import { decryptFile as nativeDecryptFile } from '@internxt/rn-crypto';
 
 type FileDecryptedURI = string;
 
