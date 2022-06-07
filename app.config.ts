@@ -31,7 +31,7 @@ export interface AppEnv {
   SENTRY_AUTH_TOKEN: string;
 }
 
-const stage = AppStage.Test; // <- CHANGE STAGE
+const stage = AppStage.Production; // <- CHANGE STAGE
 
 const appConfig: ExpoConfig & { extra: AppEnv } = {
   name: 'Internxt',
@@ -67,7 +67,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   },
   android: {
     googleServicesFile: './google-services.json',
-    versionCode: 55,
+    versionCode: 56,
     icon: './assets/icon-android.png',
     adaptiveIcon: {
       foregroundImage: './assets/icon-android.png',
