@@ -273,11 +273,11 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
           onPress={() => onSignUpButtonPressed()}
         >
           <View>
-            <Text style={tailwind('text-base btn-label')}>
+            <AppText style={tailwind('text-white')}>
               {registerButtonClicked
                 ? strings.components.buttons.creating_button
                 : strings.components.buttons.createAccount}
-            </Text>
+            </AppText>
           </View>
         </TouchableHighlight>
 

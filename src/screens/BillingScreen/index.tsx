@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Text, TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
+import { ActivityIndicator, Alert, TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
 import _ from 'lodash';
 import * as Linking from 'expo-linking';
 
 import Separator from '../../components/AppSeparator';
 import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
-import globalStyle from '../../styles/global';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/AppScreenTitle';
 import paymentService from '../../services/PaymentService';
@@ -17,6 +16,7 @@ import notificationsService from '../../services/NotificationsService';
 import { Check } from 'phosphor-react-native';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import AppText from '../../components/AppText';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -152,15 +152,12 @@ function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Ele
                   }}
                 >
                   <View style={[tailwind('p-2 items-center rounded-xl'), isTabSelected && tailwind('bg-white')]}>
-                    <Text
-                      style={[
-                        tailwind('text-sm px-1 text-neutral-80'),
-                        globalStyle.fontWeight.medium,
-                        isTabSelected && tailwind('text-neutral-700'),
-                      ]}
+                    <AppText
+                      medium
+                      style={[tailwind('text-sm px-1 text-neutral-80'), isTabSelected && tailwind('text-neutral-700')]}
                     >
                       {tab.text}
-                    </Text>
+                    </AppText>
                   </View>
                 </TouchableWithoutFeedback>
               </View>
@@ -174,12 +171,12 @@ function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Ele
               <View key={nPlan} style={tailwind('flex-row my-6 ml-3')}>
                 <View style={tailwind('flex-col flex-grow justify-end')}>
                   <View>
-                    <Text style={[tailwind('text-3xl text-header'), globalStyle.fontWeight.medium]}>
+                    <AppText style={tailwind('text-3xl')} medium>
                       {plan.productName}
-                    </Text>
+                    </AppText>
                   </View>
                   <View>
-                    <Text style={tailwind('text-base text-neutral-100')}>
+                    <AppText style={tailwind('text-neutral-100')}>
                       {selectedProductIndex === 2
                         ? 'One-time payment'
                         : strings.formatString(
@@ -187,7 +184,7 @@ function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Ele
                             plan.price.toFixed(2),
                             plan.name.toLowerCase(),
                           )}
-                    </Text>
+                    </AppText>
                   </View>
                 </View>
                 <View style={tailwind('justify-center')}>
@@ -198,10 +195,10 @@ function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Ele
                       getLink(plan);
                     }}
                   >
-                    <Text style={[tailwind('btn-label mx-4'), globalStyle.fontWeight.medium]}>
+                    <AppText style={tailwind('text-white mx-4')} medium>
                       €{plan.pricePerMonth.toFixed(selectedProductIndex !== 2 ? 2 : 0)}
                       {selectedProductIndex !== 2 && ' / ' + strings.screens.storage.plans.month}
-                    </Text>
+                    </AppText>
                   </TouchableHighlight>
                 </View>
               </View>
@@ -213,21 +210,17 @@ function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Ele
         <View>
           <View style={tailwind('flex-row items-center')}>
             <Check color="#42526E" />
-            <Text style={tailwind('ml-1 text-base btn-label text-neutral-500 font-bold flex-1')}>
+            <AppText style={tailwind('ml-1 text-neutral-500 font-bold flex-1')}>
               {strings.screens.billing.features.guarantee}
-            </Text>
+            </AppText>
           </View>
           <View style={tailwind('flex-row items-center')}>
             <Check color="#42526E" />
-            <Text style={tailwind('ml-1 text-base btn-label text-neutral-500')}>
-              {strings.screens.billing.features.share}
-            </Text>
+            <AppText style={tailwind('ml-1 text-neutral-500')}>{strings.screens.billing.features.share}</AppText>
           </View>
           <View style={tailwind('flex-row items-center')}>
             <Check color="#42526E" />
-            <Text style={tailwind('ml-1 text-base btn-label text-neutral-500')}>
-              {strings.screens.billing.features.anyDevice}
-            </Text>
+            <AppText style={tailwind('ml-1 text-neutral-500')}>{strings.screens.billing.features.anyDevice}</AppText>
           </View>
         </View>
       </View>

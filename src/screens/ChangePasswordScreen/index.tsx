@@ -12,6 +12,7 @@ import { NotificationType } from '../../types';
 import { Eye, EyeSlash } from 'phosphor-react-native';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import AppText from '../../components/AppText';
 
 function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePassword'>): JSX.Element {
   const tailwind = useTailwind();
@@ -136,7 +137,7 @@ function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePasswo
             onPress={handleOnPress}
             disabled={!activeButton || isLoading}
           >
-            <Text style={tailwind('text-base btn-label')}>{strings.screens.change_password.title}</Text>
+            <AppText style={tailwind('text-white')}>{strings.screens.change_password.title}</AppText>
           </TouchableHighlight>
         </View>
       </View>

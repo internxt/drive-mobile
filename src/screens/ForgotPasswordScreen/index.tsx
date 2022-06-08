@@ -9,6 +9,7 @@ import authService from '../../services/AuthService';
 import AppScreen from '../../components/AppScreen';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import AppText from '../../components/AppText';
 
 function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPassword'>): JSX.Element {
   const tailwind = useTailwind();
@@ -80,7 +81,7 @@ function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPasswo
                   style={tailwind('btn btn-primary bg-red-60 mt-3')}
                   onPress={() => sendDeactivationEmail()}
                 >
-                  <Text style={tailwind('text-base btn-label')}>{strings.screens.change_password.confirm}</Text>
+                  <AppText style={tailwind('text-white')}>{strings.screens.change_password.confirm}</AppText>
                 </TouchableHighlight>
               </View>
               <View style={tailwind('py-5')}>
