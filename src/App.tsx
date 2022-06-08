@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, ColorValue } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
 
 import analyticsService from './services/AnalyticsService';
 import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
-import { getColor, tailwind } from './helpers/designSystem';
 import asyncStorage from './services/AsyncStorageService';
 import { authActions, authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
@@ -19,9 +18,12 @@ import { uiActions } from './store/slices/ui';
 import AppToast from './components/AppToast';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
 import Navigation from './navigation';
+import { useTailwind } from 'tailwind-rn';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
+  const tailwind = useTailwind();
+  const { color: whiteColor } = tailwind('text-white');
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const { isLinkCopiedModalOpen, isInviteFriendsModalOpen, isNewsletterModalOpen } = useAppSelector(
     (state) => state.ui,
@@ -47,7 +49,7 @@ export default function App(): JSX.Element {
   // Initialize app
   useEffect(() => {
     if (Platform.OS === 'android') {
-      NavigationBar.setBackgroundColorAsync(getColor('white'));
+      NavigationBar.setBackgroundColorAsync(whiteColor as ColorValue);
       NavigationBar.setButtonStyleAsync('dark');
     }
 

@@ -6,7 +6,6 @@ import { Eye, EyeSlash } from 'phosphor-react-native';
 import strings from '../../../assets/lang/strings';
 import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
 import InternxtLogo from '../../../assets/logo.svg';
-import { getColor, tailwind } from '../../helpers/designSystem';
 import AppVersionWidget from '../../components/AppVersionWidget';
 import authService from '../../services/AuthService';
 import validationService from '../../services/ValidationService';
@@ -16,8 +15,10 @@ import { authThunks } from '../../store/slices/auth';
 import errorService from '../../services/ErrorService';
 import AppScreen from '../../components/AppScreen';
 import AppButton from '../../components/AppButton';
+import { useTailwind } from 'tailwind-rn';
 
 function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -76,7 +77,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
               value={email}
               onChangeText={(value) => setEmail(value)}
               placeholder={strings.components.inputs.email}
-              placeholderTextColor={getColor('neutral-100')}
+              placeholderTextColor={tailwind('text-neutral-100').color as string}
               maxLength={64}
               keyboardType="email-address"
               autoCapitalize={'none'}
@@ -96,7 +97,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
               onFocus={() => setPasswordFocus(true)}
               onBlur={() => setPasswordFocus(false)}
               placeholder={strings.components.inputs.password}
-              placeholderTextColor={getColor('neutral-100')}
+              placeholderTextColor={tailwind('text-neutral-100').color as string}
               secureTextEntry={!showPasswordText}
               autoCompleteType="password"
               autoCapitalize="none"
@@ -108,9 +109,9 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
               <TouchableWithoutFeedback onPress={() => setShowPasswordText(!showPasswordText)}>
                 <View style={tailwind('justify-center p-3')}>
                   {showPasswordText ? (
-                    <EyeSlash color={getColor('neutral-80')} />
+                    <EyeSlash color={tailwind('text-neutral-80').color as string} />
                   ) : (
-                    <Eye color={getColor('neutral-80')} />
+                    <Eye color={tailwind('neutral-80').color as string} />
                   )}
                 </View>
               </TouchableWithoutFeedback>
@@ -130,7 +131,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
               value={twoFactorCode}
               onChangeText={(value) => setTwoFactorCode(value)}
               placeholder="Two-factor code"
-              placeholderTextColor={getColor('neutral-100')}
+              placeholderTextColor={tailwind('text-neutral-100').color as string}
               maxLength={64}
               keyboardType="numeric"
               textContentType="none"

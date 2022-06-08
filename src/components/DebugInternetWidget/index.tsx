@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { measureConnectionSpeed, NetworkBandwidthTestResults } from 'react-native-network-bandwith-speed';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
-import { getColor, tailwind } from '../../helpers/designSystem';
 import errorService from '../../services/ErrorService';
 import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
@@ -13,11 +13,12 @@ interface DebugInternetWidgetProps {
 }
 
 const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
+  const tailwind = useTailwind();
   const [speed, setSpeed] = useState(0);
   const bySpeedFeatures = [
-    { min: 20, color: getColor('green-40') },
-    { min: 10, color: getColor('yellow-40') },
-    { min: 0, color: getColor('red-60') },
+    { min: 20, color: tailwind('text-green-40').color as string },
+    { min: 10, color: tailwind('text-yellow-40').color as string },
+    { min: 0, color: tailwind('text-red-60').color as string },
   ];
   const getSpeedColor = () => {
     let color = bySpeedFeatures[0].color;

@@ -3,22 +3,24 @@ import prettysize from 'prettysize';
 import { View, Text, TouchableHighlight } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
-import { getColor, tailwind } from '../../helpers/designSystem';
 import AppProgressBar from '../../components/AppProgressBar';
 import ScreenTitle from '../../components/AppScreenTitle';
 import { useAppSelector } from '../../store/hooks';
 import { INFINITE_PLAN } from '../../types';
 import ReferralsWidget from '../../components/ReferralsWidget';
-import globalStyle from '../../styles';
+import globalStyle from '../../styles/global';
 import AppScreen from '../../components/AppScreen';
 import { CaretRight } from 'phosphor-react-native';
 import { RootStackScreenProps } from '../../types/navigation';
 import appService from '../../services/AppService';
+import { useTailwind } from 'tailwind-rn';
+import AppText from '../../components/AppText';
 
 function StorageScreen({ navigation }: RootStackScreenProps<'Storage'>): JSX.Element {
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const { usage: storageUsage, limit } = useAppSelector((state) => state.drive);
   const usageValues = { usage: storageUsage + photosUsage, limit };
+  const tailwind = useTailwind();
   const getLimitString = () => {
     if (usageValues.limit === 0) {
       return '...';
@@ -34,7 +36,7 @@ function StorageScreen({ navigation }: RootStackScreenProps<'Storage'>): JSX.Ele
   const onBackButtonPressed = () => navigation.goBack();
 
   return (
-    <AppScreen safeAreaTop style={tailwind('h-full')} backgroundColor={getColor('neutral-20')}>
+    <AppScreen safeAreaTop style={tailwind('h-full')} backgroundColor={tailwind('text-neutral-20').color as string}>
       <ScreenTitle
         textStyle={tailwind('text-2xl')}
         text={strings.screens.storage.title}
@@ -65,16 +67,16 @@ function StorageScreen({ navigation }: RootStackScreenProps<'Storage'>): JSX.Ele
 
         {appService.constants.REACT_NATIVE_SHOW_BILLING && (
           <TouchableHighlight
-            underlayColor={getColor('neutral-30')}
+            underlayColor={tailwind('text-neutral-30').color as string}
             onPress={() => {
               navigation.push('Billing');
             }}
           >
             <View style={tailwind('px-5 py-3 flex-row items-center justify-between border-t border-neutral-20')}>
-              <Text style={{ ...tailwind('text-blue-60 text-lg'), ...globalStyle.fontWeight.semibold }}>
+              <AppText style={tailwind('text-blue-60 text-lg')} semibold>
                 {strings.components.buttons.upgradeNow}
-              </Text>
-              <CaretRight size={22} color={getColor('blue-60')} weight="bold" />
+              </AppText>
+              <CaretRight size={22} color={tailwind('text-blue-60').color as string} weight="bold" />
             </View>
           </TouchableHighlight>
         )}

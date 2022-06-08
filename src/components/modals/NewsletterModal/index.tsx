@@ -1,8 +1,8 @@
 import React from 'react';
 import { Text, View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
-import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { newsletterThunks } from '../../../store/slices/newsletter';
 import AppButton from '../../AppButton';
@@ -10,6 +10,7 @@ import AppTextInput from '../../AppTextInput';
 import CenterModal from '../CenterModal';
 
 const NewsletterModal = (props: { isOpen: boolean; onClosed: () => void }): JSX.Element => {
+  const tailwind = useTailwind();
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector((state) => state.newsletter.isSubscribing);

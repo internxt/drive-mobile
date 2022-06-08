@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Animated, Easing, StyleProp, ViewStyle } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 
 import SpinnerImage from '../../../assets/icons/spinner.svg';
-import { getColor, tailwind } from '../../helpers/designSystem';
 
 interface LoadingSpinnerProps {
   size?: number;
@@ -11,12 +11,9 @@ interface LoadingSpinnerProps {
   renderIcon?: (size?: number, color?: string) => JSX.Element;
 }
 
-const LoadingSpinner = ({
-  size = 16,
-  color = getColor('blue-60'),
-  style,
-  renderIcon,
-}: LoadingSpinnerProps): JSX.Element => {
+const LoadingSpinner = ({ size = 16, color, style, renderIcon }: LoadingSpinnerProps): JSX.Element => {
+  const tailwind = useTailwind();
+  const defaultColor = tailwind('text-blue-60').color as string;
   const [syncingSpinnerRotationAnimation] = useState(new Animated.Value(0));
   const syncingSpinnerRotationInterpolation = syncingSpinnerRotationAnimation.interpolate({
     inputRange: [0, 1],
@@ -51,7 +48,11 @@ const LoadingSpinner = ({
         style,
       ]}
     >
-      {renderIcon ? renderIcon(size, color) : <SpinnerImage width={size} height={size} color={color} />}
+      {renderIcon ? (
+        renderIcon(size, color || defaultColor)
+      ) : (
+        <SpinnerImage width={size} height={size} color={color || defaultColor} />
+      )}
     </Animated.View>
   );
 };

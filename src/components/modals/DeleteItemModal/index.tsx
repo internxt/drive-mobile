@@ -3,17 +3,18 @@ import { View, Text, TouchableHighlight } from 'react-native';
 import prettysize from 'prettysize';
 
 import strings from '../../../../assets/lang/strings';
-import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
-import globalStyle from '../../../styles';
+import globalStyle from '../../../styles/global';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
 import AppText from '../../AppText';
 import { items } from '@internxt/lib';
+import { useTailwind } from 'tailwind-rn';
 
 function DeleteItemModal(): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const { focusedItem: item } = useAppSelector((state) => state.drive);
   const { showDeleteModal } = useAppSelector((state) => state.ui);
@@ -70,7 +71,7 @@ function DeleteItemModal(): JSX.Element {
 
       <View style={tailwind('flex-row justify-between bg-white p-3')}>
         <TouchableHighlight
-          underlayColor={getColor('neutral-30')}
+          underlayColor={tailwind('text-neutral-30').color as string}
           style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
           onPress={() => {
             dispatch(uiActions.setShowDeleteModal(false));
@@ -84,7 +85,7 @@ function DeleteItemModal(): JSX.Element {
         <View style={tailwind('px-1')}></View>
 
         <TouchableHighlight
-          underlayColor={getColor('red-70')}
+          underlayColor={tailwind('text-red-70').color as string}
           style={tailwind('bg-red-60 rounded-lg py-2 flex-grow items-center justify-center')}
           onPress={onDeleteButtonPressed}
         >

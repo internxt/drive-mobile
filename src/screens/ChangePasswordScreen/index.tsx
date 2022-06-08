@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Text, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
-import { getColor, tailwind } from '../../helpers/designSystem';
 import authService from '../../services/AuthService';
 import validationService from '../../services/ValidationService';
 import ScreenTitle from '../../components/AppScreenTitle';
@@ -12,8 +11,10 @@ import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
 import { Eye, EyeSlash } from 'phosphor-react-native';
 import { RootStackScreenProps } from '../../types/navigation';
+import { useTailwind } from 'tailwind-rn';
 
 function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePassword'>): JSX.Element {
+  const tailwind = useTailwind();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -48,7 +49,7 @@ function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePasswo
   const isEmptyConfirmPassword = !confirmPassword;
 
   return (
-    <AppScreen safeAreaTop backgroundColor={getColor('neutral-20')} style={tailwind('h-full')}>
+    <AppScreen safeAreaTop backgroundColor={tailwind('text-neutral-20').color as string} style={tailwind('h-full')}>
       <ScreenTitle
         textStyle={tailwind('text-2xl')}
         text={strings.components.inputs.password}
@@ -89,7 +90,11 @@ function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePasswo
             {(!isEmptyPassword || newPasswordFocus) && (
               <TouchableWithoutFeedback onPress={() => setShowPassword(!showPassword)}>
                 <View style={tailwind('relative right-14 justify-center p-3')}>
-                  {showPassword ? <EyeSlash color={getColor('neutral-80')} /> : <Eye color={getColor('neutral-80')} />}
+                  {showPassword ? (
+                    <EyeSlash color={tailwind('text-neutral-80').color as string} />
+                  ) : (
+                    <Eye color={tailwind('text-neutral-80').color as string} />
+                  )}
                 </View>
               </TouchableWithoutFeedback>
             )}
@@ -106,7 +111,7 @@ function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePasswo
               value={confirmPassword}
               onChangeText={(value) => setConfirmPassword(value)}
               placeholder={strings.components.inputs.confirm_password}
-              placeholderTextColor={getColor('neutral-100')}
+              placeholderTextColor={tailwind('text-neutral-100').color as string}
               secureTextEntry={!showConfirmPassword}
               textContentType="password"
               onFocus={() => setConfirmPasswordFocus(true)}
@@ -117,9 +122,9 @@ function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePasswo
               <TouchableWithoutFeedback onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                 <View style={tailwind('relative right-14 justify-center p-3')}>
                   {showConfirmPassword ? (
-                    <EyeSlash color={getColor('neutral-80')} />
+                    <EyeSlash color={tailwind('text-neutral-80').color as string} />
                   ) : (
-                    <Eye color={getColor('neutral-80')} />
+                    <Eye color={tailwind('text-neutral-80').color as string} />
                   )}
                 </View>
               </TouchableWithoutFeedback>

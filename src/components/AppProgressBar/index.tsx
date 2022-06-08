@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Animated, Easing, StyleProp, View, ViewStyle } from 'react-native';
-import { tailwind } from '../../helpers/designSystem';
+import { useTailwind } from 'tailwind-rn';
 
 interface AppProgressBarProps {
   currentValue: number;
@@ -11,6 +11,7 @@ interface AppProgressBarProps {
 }
 
 export default function AppProgressBar(props: AppProgressBarProps): JSX.Element {
+  const tailwind = useTailwind();
   const { totalValue, progressStyle } = props;
   const currentValue = props.currentValue >= totalValue ? totalValue : props.currentValue;
   const rightRounded = currentValue >= totalValue;

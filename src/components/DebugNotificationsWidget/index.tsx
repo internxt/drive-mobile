@@ -1,8 +1,8 @@
 import { ArrowCircleDown, ArrowCircleUp, CheckCircle, Warning, WarningOctagon } from 'phosphor-react-native';
 import { FlatList, StyleProp, View, ViewStyle } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../assets/lang/strings';
-import { getColor, tailwind } from '../../helpers/designSystem';
 import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
 import AppButton from '../AppButton';
@@ -13,6 +13,7 @@ interface DebugNotificationsWidgetProps {
 }
 
 const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Element => {
+  const tailwind = useTailwind();
   const notifications = [
     {
       type: NotificationType.Info,
@@ -20,23 +21,23 @@ const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Ele
     },
     {
       type: NotificationType.Success,
-      icon: <CheckCircle weight="fill" color={getColor('green-40')} style={tailwind('mr-2')} />,
+      icon: <CheckCircle weight="fill" color={tailwind('text-green-40').color as string} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Warning,
-      icon: <Warning weight="fill" color={getColor('yellow-30')} style={tailwind('mr-2')} />,
+      icon: <Warning weight="fill" color={tailwind('text-yellow-30').color as string} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Error,
-      icon: <WarningOctagon weight="fill" color={getColor('red-50')} style={tailwind('mr-2')} />,
+      icon: <WarningOctagon weight="fill" color={tailwind('text-red-50').color as string} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Upload,
-      icon: <ArrowCircleUp weight="fill" color={getColor('blue-30')} style={tailwind('mr-2')} />,
+      icon: <ArrowCircleUp weight="fill" color={tailwind('text-blue-30').color as string} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Download,
-      icon: <ArrowCircleDown weight="fill" color={getColor('blue-30')} style={tailwind('mr-2')} />,
+      icon: <ArrowCircleDown weight="fill" color={tailwind('text-blue-30').color as string} style={tailwind('mr-2')} />,
     },
   ];
   const onNotificationButtonPressed = ({ type }: { type: NotificationType; icon: JSX.Element | null }) =>

@@ -1,8 +1,7 @@
 import React from 'react';
 import { StyleProp, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
-
-import { getColor, tailwind } from '../../helpers/designSystem';
-import globalStyle from '../../styles';
+import { useTailwind } from 'tailwind-rn';
+import globalStyle from '../../styles/global';
 import LoadingSpinner from '../LoadingSpinner';
 
 interface AppButtonProps {
@@ -16,6 +15,7 @@ interface AppButtonProps {
 }
 
 const AppButton = (props: AppButtonProps): JSX.Element => {
+  const tailwind = useTailwind();
   const isTitleString = typeof props.title === 'string';
   const typeBgStyle = {
     accept: props.disabled ? tailwind('bg-neutral-30') : tailwind('bg-blue-60'),
@@ -30,17 +30,17 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     delete: tailwind('text-white'),
   }[props.type];
   const typeUnderlayColor = {
-    accept: getColor('blue-70'),
-    cancel: getColor('neutral-30'),
-    'cancel-2': getColor('neutral-30'),
-    delete: getColor('red-70'),
+    accept: tailwind('text-blue-70').color as string,
+    cancel: tailwind('text-neutral-30').color as string,
+    'cancel-2': tailwind('text-neutral-30').color as string,
+    delete: tailwind('text-red-70').color as string,
   }[props.type];
 
   const renderContent = () => {
     if (props.loading) {
       return (
         <View style={tailwind('h-7 flex items-center justify-center')}>
-          <LoadingSpinner color={getColor('white')} size={16} />
+          <LoadingSpinner color={tailwind('white').color as string} size={16} />
         </View>
       );
     }

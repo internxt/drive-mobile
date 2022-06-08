@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 
-import { tailwind } from '../helpers/designSystem';
 import DriveScreen from '../screens/DriveScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import BottomTabNavigator from '../components/BottomTabNavigator';
@@ -24,10 +23,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DriveDownloadModal from '../components/modals/DriveDownloadModal';
 import SignOutModal from '../components/modals/SignOutModal';
 import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
+import { useTailwind } from 'tailwind-rn';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
 export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExplorer'>): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
 

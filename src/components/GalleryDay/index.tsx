@@ -5,11 +5,11 @@ import { useNavigation } from '@react-navigation/native';
 import moment from 'moment';
 import { CheckCircle } from 'phosphor-react-native';
 
-import { getColor, tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import GalleryItem from '../GalleryItem';
 import { photosActions, photosSelectors } from '../../store/slices/photos';
 import { PhotosScreenNavigationProp } from '../../types/navigation';
+import { useTailwind } from 'tailwind-rn';
 
 interface GalleryDayProps {
   year: number;
@@ -19,6 +19,7 @@ interface GalleryDayProps {
 }
 
 const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element => {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
@@ -59,13 +60,13 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
         {areAllPhotosSelected ? (
           <TouchableWithoutFeedback onPress={deselectAll}>
             <View style={[tailwind('w-6 h-6 bg-blue-60 flex justify-center items-center rounded-2xl')]}>
-              <CheckCircle color={getColor('white')} size={32} />
+              <CheckCircle color={tailwind('text-white').color as string} size={32} />
             </View>
           </TouchableWithoutFeedback>
         ) : (
           <TouchableWithoutFeedback onPress={selectAll}>
             <View style={[tailwind('bg-white w-6 h-6 flex justify-center items-center rounded-xl')]}>
-              <CheckCircle color={getColor('neutral-60')} size={32} />
+              <CheckCircle color={tailwind('text-neutral-60').color as string} size={32} />
             </View>
           </TouchableWithoutFeedback>
         )}

@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Platform } from 'react-native';
 
-import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon } from '../../../helpers';
 import strings from '../../../../assets/lang/strings';
 import CenterModal from '../CenterModal';
@@ -12,6 +11,7 @@ import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
 import { useAppSelector } from '../../../store/hooks';
+import { useTailwind } from 'tailwind-rn';
 
 interface CreateFolderModalProps extends BaseModalProps {
   onFolderCreated: () => void;
@@ -19,6 +19,7 @@ interface CreateFolderModalProps extends BaseModalProps {
   currentFolderId: number;
 }
 const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
+  const tailwind = useTailwind();
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
   const { user, token } = useAppSelector((state) => state.auth);
@@ -66,7 +67,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
             style={tailwind('text-lg text-center text-neutral-600')}
             value={folderName}
             onChangeText={(value) => setFolderName(value)}
-            placeholderTextColor={getColor('neutral-80')}
+            placeholderTextColor={tailwind('text-neutral-80').color as string}
             autoCompleteType="off"
             selectTextOnFocus={true}
             editable={!isLoading}

@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, TouchableHighlight } from 'react-native';
-
-import { getColor, tailwind } from '../../helpers/designSystem';
+import { useTailwind } from 'tailwind-rn';
 
 interface BottomModalOptionProps {
   disabled?: boolean;
@@ -11,11 +10,13 @@ interface BottomModalOptionProps {
 }
 
 const BottomModalOption = (props: BottomModalOptionProps): JSX.Element => {
+  const tailwind = useTailwind();
+
   return (
     <TouchableHighlight
       disabled={props.disabled}
       onPress={props.onPress}
-      underlayColor={props.onPress && getColor('neutral-20')}
+      underlayColor={props.onPress && (tailwind('text-neutral-20').color as string)}
     >
       <View
         style={[

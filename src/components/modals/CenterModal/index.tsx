@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { Easing, TouchableWithoutFeedback, View } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { tailwind } from '../../../helpers/designSystem';
+import { useTailwind } from 'tailwind-rn';
 
 export interface CenterModalProps {
   isOpen: boolean;
@@ -23,6 +23,7 @@ const CenterModal = ({
   children,
   backdropPressToClose = defaultProps.backdropPressToClose,
 }: CenterModalProps): JSX.Element => {
+  const tailwind = useTailwind();
   const onBackdropPressed = () => {
     backdropPressToClose && onClosed();
   };

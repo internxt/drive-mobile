@@ -5,7 +5,6 @@ import AppCheckBox from '../../components/AppCheckBox';
 import strings from '../../../assets/lang/strings';
 import InternxtLogo from '../../../assets/logo.svg';
 import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
-import { getColor, tailwind } from '../../helpers/designSystem';
 import validationService from '../../services/ValidationService';
 import authService from '../../services/AuthService';
 import { useAppDispatch } from '../../store/hooks';
@@ -16,8 +15,10 @@ import AppScreen from '../../components/AppScreen';
 import { Eye, EyeSlash } from 'phosphor-react-native';
 import AppText from '../../components/AppText';
 import { RootStackScreenProps } from '../../types/navigation';
+import { useTailwind } from 'tailwind-rn';
 
 function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const twoFactorCode = '';
@@ -204,9 +205,9 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
                 <TouchableWithoutFeedback onPress={() => setShowPassword(!showPassword)}>
                   <View style={tailwind('justify-center p-3')}>
                     {showPassword ? (
-                      <EyeSlash color={getColor('neutral-80')} />
+                      <EyeSlash color={tailwind('text-neutral-80').color as string} />
                     ) : (
-                      <Eye color={getColor('neutral-80')} />
+                      <Eye color={tailwind('text-neutral-80').color as string} />
                     )}
                   </View>
                 </TouchableWithoutFeedback>
@@ -237,9 +238,9 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
                 <TouchableWithoutFeedback onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                   <View style={tailwind('justify-center p-3')}>
                     {showConfirmPassword ? (
-                      <EyeSlash color={getColor('neutral-80')} />
+                      <EyeSlash color={tailwind('text-neutral-80').color as string} />
                     ) : (
-                      <Eye color={getColor('neutral-80')} />
+                      <Eye color={tailwind('text-neutral-80').color as string} />
                     )}
                   </View>
                 </TouchableWithoutFeedback>

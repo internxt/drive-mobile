@@ -4,13 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { normalize } from '../../helpers';
 import strings from '../../../assets/lang/strings';
 import InternxtLogo from '../../../assets/logo.svg';
-import { tailwind } from '../../helpers/designSystem';
 import validationService from '../../services/ValidationService';
 import authService from '../../services/AuthService';
 import AppScreen from '../../components/AppScreen';
 import { RootStackScreenProps } from '../../types/navigation';
+import { useTailwind } from 'tailwind-rn';
 
 function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPassword'>): JSX.Element {
+  const tailwind = useTailwind();
   const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   // Get email form field

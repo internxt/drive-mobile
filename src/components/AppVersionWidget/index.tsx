@@ -3,15 +3,16 @@ import { StyleProp, View, ViewStyle } from 'react-native';
 import * as Updates from 'expo-updates';
 
 import packageJson from '../../../package.json';
-import { tailwind } from '../../helpers/designSystem';
 import appService from '../../services/AppService';
 import AppText from '../AppText';
+import { useTailwind } from 'tailwind-rn';
 
 interface AppVersionWidgetProps {
   style?: StyleProp<ViewStyle>;
 }
 
 function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
+  const tailwind = useTailwind();
   const [, setDebugText] = useState('');
 
   useEffect(() => {

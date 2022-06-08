@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableWithoutFeedback } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
-import { tailwind } from '../../helpers/designSystem';
+import { useTailwind } from 'tailwind-rn';
 
 interface AppCheckBoxProps {
   testID?: string;
@@ -11,6 +11,7 @@ interface AppCheckBoxProps {
 }
 
 const AppCheckBox = (props: AppCheckBoxProps): JSX.Element => {
+  const tailwind = useTailwind();
   const [checked, setChecked] = useState(props.value || false);
 
   const handleOnPress = () => {

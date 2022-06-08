@@ -1,6 +1,6 @@
 import { Text, TextProps } from 'react-native';
-import { tailwind } from '../../helpers/designSystem';
-import styles from '../../styles';
+import { useTailwind } from 'tailwind-rn';
+import styles from '../../styles/global';
 
 interface AppTextProps extends TextProps {
   medium?: boolean;
@@ -9,6 +9,8 @@ interface AppTextProps extends TextProps {
 }
 
 const AppText = (props: AppTextProps): JSX.Element => {
+  const tailwind = useTailwind();
+
   return (
     <Text
       {...props}

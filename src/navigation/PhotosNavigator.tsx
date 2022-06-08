@@ -7,13 +7,14 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { photosSelectors, photosThunks } from '../store/slices/photos';
 import strings from '../../assets/lang/strings';
 import { Text, View } from 'react-native';
-import { tailwind } from '../helpers/designSystem';
 import AppButton from '../components/AppButton';
 import { PhotosStackParamList } from '../types/navigation';
+import { useTailwind } from 'tailwind-rn';
 
 const StackNav = createNativeStackNavigator<PhotosStackParamList>();
 
 function PhotosNavigator(): JSX.Element {
+  const tailwind = useTailwind();
   const { isInitialized, initializeError } = useAppSelector((state) => state.photos);
   const arePermissionsGranted = useAppSelector(photosSelectors.arePermissionsGranted);
   const initialRouteName: keyof PhotosStackParamList = arePermissionsGranted ? 'PhotosGallery' : 'PhotosPermissions';

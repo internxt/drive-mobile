@@ -3,8 +3,7 @@ import { Image, Text, View } from 'react-native';
 import { Photo } from '@internxt/sdk/dist/photos';
 import prettysize from 'prettysize';
 
-import globalStyle from '../../../styles';
-import { tailwind } from '../../../helpers/designSystem';
+import globalStyle from '../../../styles/global';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../AppButton';
@@ -15,6 +14,7 @@ import { items } from '@internxt/lib';
 import fileSystemService from '../../../services/FileSystemService';
 import { photosSelectors, photosThunks } from '../../../store/slices/photos';
 import LoadingSpinner from '../../LoadingSpinner';
+import { useTailwind } from 'tailwind-rn';
 
 interface SharePhotoModalProps extends BottomModalProps {
   data: Photo;
@@ -26,6 +26,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
     return <View></View>;
   }
 
+  const tailwind = useTailwind();
   const [times, setTimes] = useState(10);
   // const [url, setUrl] = useState('LINK');
   const dispatch = useAppDispatch();

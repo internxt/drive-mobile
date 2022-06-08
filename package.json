@@ -9,7 +9,6 @@
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "tw": "npx create-tailwind-rn",
     "link": "react-native link",
     "eject": "expo eject",
     "check-ts": "tsc --noEmit",
@@ -23,7 +22,9 @@
     "test:e2e:test:android.debug": "detox test -c android.debug",
     "test:e2e:test:android.release": "detox test -c android.release",
     "test:e2e:test:ios.debug": "detox test -c ios.debug",
-    "test:e2e:test:ios.release": "detox test -c ios.release"
+    "test:e2e:test:ios.release": "detox test -c ios.release",
+    "tailwind:dev": "concurrently \"tailwindcss --input ./src/styles/input.css --output ./src/styles/tailwind.css --no-autoprefixer --watch\" \"tailwind-rn --watch  -i ./src/styles/tailwind.css -o ./src/styles/tailwind.json\"",
+    "tailwind:build": "tailwindcss --input ./src/styles/input.css --output ./src/styles/tailwind.css --no-autoprefixer && tailwind-rn -i ./src/styles/tailwind.css -o ./src/styles/tailwind.json"
   },
   "dependencies": {
     "@burstware/react-native-portal": "^1.0.2",
@@ -127,7 +128,7 @@
     "sentry-expo": "^4.0.0",
     "stream-browserify": "^1.0.0",
     "string_decoder": "~0.10.25",
-    "tailwind-rn": "^3.0.1",
+    "tailwind-rn": "^4.2.0",
     "timers-browserify": "^1.4.2",
     "tty-browserify": "0.0.0",
     "url": "^0.10.3",
@@ -140,7 +141,7 @@
     "@internxt/eslint-config-internxt": "^1.0.8",
     "@internxt/prettier-config": "^1.0.2",
     "@types/async": "^3.2.6",
-    "@types/jest": "^27.5.1",
+    "@types/jest": "^28.1.1",
     "@types/lodash": "^4.14.165",
     "@types/node": "^14.14.41",
     "@types/node-forge": "^0.10.10",
@@ -153,6 +154,7 @@
     "@types/react-redux": "^7.1.11",
     "@types/redux-thunk": "^2.1.0",
     "autoprefixer": "^10.2.5",
+    "concurrently": "^7.2.1",
     "detox": "^19.7.0",
     "eslint": "^8.8.0",
     "husky": "^7.0.2",
@@ -167,7 +169,7 @@
     "redux-devtools-extension": "^2.13.8",
     "rn-nodeify": "^10.3.0",
     "sentry-testkit": "^3.3.7",
-    "tailwindcss": "^2.1.2",
+    "tailwindcss": "^3.0.0",
     "ts-jest": "^27.1.5",
     "ts-node": "^10.7.0",
     "typescript": "~4.3.0"

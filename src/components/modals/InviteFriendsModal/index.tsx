@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
-import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { usersThunks } from '../../../store/slices/users';
 import AppButton from '../../AppButton';
@@ -10,6 +10,7 @@ import AppTextInput from '../../AppTextInput';
 import CenterModal from '../CenterModal';
 
 const InviteFriendsModal = (props: { isOpen: boolean; onClosed: () => void }): JSX.Element => {
+  const tailwind = useTailwind();
   const [email, setEmail] = useState('');
   const dispatch = useAppDispatch();
   const isSendingInvitation = useAppSelector((state) => state.users.isSendingInvitation);

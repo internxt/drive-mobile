@@ -3,17 +3,18 @@ import React from 'react';
 import { Text, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
-import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
-import globalStyle from '../../../styles';
+import globalStyle from '../../../styles/global';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import { driveActions } from '../../../store/slices/drive';
 import BottomModalOption from '../../BottomModalOption';
 import BottomModal from '../BottomModal';
 import { Link, PencilSimpleLine, Trash, ArrowsOutCardinal } from 'phosphor-react-native';
+import { useTailwind } from 'tailwind-rn';
 
 function DriveItemInfoModal(): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const { focusedItem: item } = useAppSelector((state) => state.drive);
   const { showItemModal } = useAppSelector((state) => state.ui);
@@ -67,7 +68,7 @@ function DriveItemInfoModal(): JSX.Element {
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.generic.rename}</Text>
               </View>
             }
-            rightSlot={<PencilSimpleLine size={20} color={getColor('neutral-500')} />}
+            rightSlot={<PencilSimpleLine size={20} color={tailwind('text-neutral-500').color as string} />}
             onPress={() => {
               dispatch(uiActions.setShowItemModal(false));
               dispatch(uiActions.setShowRenameModal(true));
@@ -80,7 +81,7 @@ function DriveItemInfoModal(): JSX.Element {
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.generic.move}</Text>
               </View>
             }
-            rightSlot={<ArrowsOutCardinal size={20} color={getColor('neutral-500')} />}
+            rightSlot={<ArrowsOutCardinal size={20} color={tailwind('text-neutral-500').color as string} />}
             onPress={() => {
               dispatch(uiActions.setShowItemModal(false));
               dispatch(uiActions.setShowMoveModal(true));
@@ -97,7 +98,7 @@ function DriveItemInfoModal(): JSX.Element {
                   </Text>
                 </View>
               }
-              rightSlot={<Link size={20} color={getColor('neutral-500')} />}
+              rightSlot={<Link size={20} color={tailwind('text-neutral-500').color as string} />}
               onPress={() => {
                 dispatch(uiActions.setShowItemModal(false));
                 dispatch(uiActions.setShowShareModal(true));
@@ -113,7 +114,7 @@ function DriveItemInfoModal(): JSX.Element {
                 <Text style={tailwind('text-lg text-red-60')}>{strings.components.file_and_folder_options.delete}</Text>
               </View>
             }
-            rightSlot={<Trash size={20} color={getColor('red-60')} />}
+            rightSlot={<Trash size={20} color={tailwind('text-red-60').color as string} />}
             onPress={() => {
               dispatch(uiActions.setShowItemModal(false));
               dispatch(uiActions.setShowDeleteModal(true));

@@ -2,8 +2,7 @@ import { CaretDown } from 'phosphor-react-native';
 import React, { useState } from 'react';
 import { View, Text } from 'react-native';
 import Accordion from 'react-native-collapsible/Accordion';
-
-import { getColor, tailwind } from '../../helpers/designSystem';
+import { useTailwind } from 'tailwind-rn';
 
 interface Section {
   title: string;
@@ -74,60 +73,60 @@ const SECTIONS: Section[] = [
   },
 ];
 
-const _renderHeader = (section: Section) => {
-  return (
-    <View style={tailwind('bg-white flex-row items-center p-3 border-b border-neutral-500')}>
-      <View style={tailwind('flex-1')}>
-        <Text>{section.title}</Text>
-      </View>
-
-      <View>
-        <CaretDown color={getColor('neutral-500')} />
-      </View>
-    </View>
-  );
-};
-
-const _renderContent = (section: Section) => {
-  return (
-    <View style={tailwind('bg-white p-4')}>
-      <View>
-        <Text>{section.size}</Text>
-      </View>
-
-      {section.content.subscriptions.map((item, i) => (
-        <View key={i}>
-          <View style={tailwind('flex-grow')}>
-            <Text>{item.name}</Text>
-          </View>
-          <View style={tailwind('flex-row items-center')}>
-            <Text>{item.price}</Text>
-            <Text>/month</Text>
-          </View>
-        </View>
-      ))}
-
-      <View>
-        <Text>Everything in this plan</Text>
-      </View>
-
-      <View>
-        <Text>All available devices</Text>
-      </View>
-
-      <View>
-        <Text>Unlimited devices</Text>
-      </View>
-
-      <View>
-        <Text>Secure file storing</Text>
-      </View>
-    </View>
-  );
-};
-
 function IndividualsTab(): JSX.Element {
+  const tailwind = useTailwind();
   const [activeSections, setActiveSections] = useState<number[]>([]);
+  const _renderHeader = (section: Section) => {
+    return (
+      <View style={tailwind('bg-white flex-row items-center p-3 border-b border-neutral-500')}>
+        <View style={tailwind('flex-1')}>
+          <Text>{section.title}</Text>
+        </View>
+
+        <View>
+          <CaretDown color={tailwind('text-neutral-500').color as string} />
+        </View>
+      </View>
+    );
+  };
+
+  const _renderContent = (section: Section) => {
+    return (
+      <View style={tailwind('bg-white p-4')}>
+        <View>
+          <Text>{section.size}</Text>
+        </View>
+
+        {section.content.subscriptions.map((item, i) => (
+          <View key={i}>
+            <View style={tailwind('flex-grow')}>
+              <Text>{item.name}</Text>
+            </View>
+            <View style={tailwind('flex-row items-center')}>
+              <Text>{item.price}</Text>
+              <Text>/month</Text>
+            </View>
+          </View>
+        ))}
+
+        <View>
+          <Text>Everything in this plan</Text>
+        </View>
+
+        <View>
+          <Text>All available devices</Text>
+        </View>
+
+        <View>
+          <Text>Unlimited devices</Text>
+        </View>
+
+        <View>
+          <Text>Secure file storing</Text>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={tailwind('bg-white flex-1')}>

@@ -2,8 +2,7 @@ import React, { useEffect } from 'react';
 import { View, TouchableOpacity, TouchableHighlight, Animated, Easing } from 'react-native';
 
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
-import { getColor, tailwind } from '../../helpers/designSystem';
-import globalStyle from '../../styles';
+import globalStyle from '../../styles/global';
 import { useAppSelector } from '../../store/hooks';
 import { ArrowCircleUp, DotsThree } from 'phosphor-react-native';
 import { items } from '@internxt/lib';
@@ -11,8 +10,10 @@ import AppText from '../AppText';
 
 import { DriveItemProps } from '../../types/drive';
 import useDriveItem from '../../hooks/useDriveItem';
+import { useTailwind } from 'tailwind-rn';
 
 function DriveItemGrid(props: DriveItemProps): JSX.Element {
+  const tailwind = useTailwind();
   const { selectedItems } = useAppSelector((state) => state.drive);
   const isSelectionMode = selectedItems.length > 0;
   const spinValue = new Animated.Value(1);
@@ -35,12 +36,12 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
   return (
     <TouchableHighlight
       disabled={isUploading || isDownloading}
-      underlayColor={getColor('neutral-20')}
+      underlayColor={tailwind('text-neutral-20').color as string}
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}
       style={{ flex: 1 / 3 }}
     >
-      <View style={[tailwind('py-3.5')]}>
+      <View style={tailwind('py-3.5')}>
         <View style={[tailwind('flex-grow overflow-hidden'), tailwind('flex-col items-center justify-center')]}>
           {/* Icon */}
           <View style={tailwind('w-full mb-1 items-center justify-center')}>
@@ -53,7 +54,7 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
             {isUploading && (
               <View style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}>
                 <View style={tailwind('rounded px-1 py-0.5 bg-blue-60 flex-row')}>
-                  <ArrowCircleUp weight="fill" color={getColor('white')} size={16} />
+                  <ArrowCircleUp weight="fill" color={tailwind('text-white').color as string} size={16} />
                   <AppText style={tailwind('ml-1.5 text-xs text-white')}>
                     {((props.progress || 0) * 100).toFixed(0) + '%'}
                   </AppText>
@@ -84,7 +85,7 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
           onLongPress={onActionsButtonPressed}
         >
           <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 h-6 items-center justify-center')]}>
-            <DotsThree weight="bold" size={22} color={getColor('neutral-60')} />
+            <DotsThree weight="bold" size={22} color={tailwind('text-neutral-60').color as string} />
           </View>
         </TouchableOpacity>
       </View>

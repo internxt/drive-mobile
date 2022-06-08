@@ -1,16 +1,17 @@
 import React from 'react';
 import { Linking, Platform, ScrollView, Text, View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 import SyncIcon from '../../../assets/images/modals/sync.svg';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
 
-import { tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosSelectors, photosThunks } from '../../store/slices/photos';
-import globalStyle from '../../styles';
+import globalStyle from '../../styles/global';
 import { PhotosScreenProps } from '../../types/navigation';
 
 function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermissions'>): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const arePermissionsBlocked = useAppSelector(photosSelectors.arePermissionsBlocked);
   const features = [
@@ -47,7 +48,7 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
   };
 
   return (
-    <ScrollView contentContainerStyle={tailwind('app-screen items-center bg-white px-5')}>
+    <ScrollView contentContainerStyle={tailwind('p-4 items-center bg-white px-5')}>
       <SyncIcon style={tailwind('mt-14 mb-6')} width={100} height={100} />
 
       <Text style={[tailwind('mb-5 text-center text-3xl text-neutral-900'), globalStyle.fontWeight.semibold]}>

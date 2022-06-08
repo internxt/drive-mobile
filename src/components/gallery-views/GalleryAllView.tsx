@@ -3,13 +3,14 @@ import { Photo } from '@internxt/sdk/dist/photos';
 import { Dimensions, FlatList, ListRenderItemInfo, RefreshControl, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { tailwind } from '../../helpers/designSystem';
 import GalleryItem from '../GalleryItem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
 import { PhotosScreenNavigationProp } from '../../types/navigation';
+import { useTailwind } from 'tailwind-rn';
 
 const GalleryAllView = (): JSX.Element => {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);

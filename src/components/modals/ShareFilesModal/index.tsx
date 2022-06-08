@@ -8,8 +8,7 @@ import strings from '../../../../assets/lang/strings';
 import { generateShareLink } from '../../../@inxt-js/services/share';
 import { getFileTypeIcon } from '../../../helpers';
 import { generateFileKey, Network } from '../../../lib/network';
-import { getColor, tailwind } from '../../../helpers/designSystem';
-import globalStyle from '../../../styles';
+import globalStyle from '../../../styles/global';
 import asyncStorage from '../../../services/AsyncStorageService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
@@ -18,8 +17,10 @@ import { constants } from '../../../services/AppService';
 import { NotificationType } from '../../../types';
 import notificationsService from '../../../services/NotificationsService';
 import { Copy, Minus, Plus } from 'phosphor-react-native';
+import { useTailwind } from 'tailwind-rn';
 
 function ShareFilesModal(): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const { showShareModal } = useAppSelector((state) => state.ui);
   const { focusedItem } = useAppSelector((state) => state.drive);
@@ -129,7 +130,7 @@ function ShareFilesModal(): JSX.Element {
         </Text>
         <View style={tailwind('flex-row items-stretch justify-center mb-6 w-48')}>
           <TouchableHighlight
-            underlayColor={getColor('blue-70')}
+            underlayColor={tailwind('text-blue-70').color as string}
             disabled={inputValue === '1'}
             onPress={() => {
               const newValue = Math.max(parseInt(inputValue, 10) - 1, 1) || 1;
@@ -151,7 +152,7 @@ function ShareFilesModal(): JSX.Element {
             </View>
           </View>
           <TouchableHighlight
-            underlayColor={getColor('blue-70')}
+            underlayColor={tailwind('text-blue-70').color as string}
             disabled={inputValue === '100'}
             onPress={() => {
               const newValue = Math.min(parseInt(inputValue, 10) + 1, 100) || 1;
@@ -205,7 +206,7 @@ function ShareFilesModal(): JSX.Element {
               >
                 {isLoading ? 'Generating share link' : 'Copy share link'}
               </Text>
-              {isLoading ? <ActivityIndicator /> : <Copy color={getColor('blue-60')} />}
+              {isLoading ? <ActivityIndicator /> : <Copy color={tailwind('text-blue-60').color as string} />}
             </TouchableOpacity>
           </View>
         </View>
@@ -213,7 +214,7 @@ function ShareFilesModal(): JSX.Element {
 
       <View style={tailwind('flex-row justify-between bg-neutral-10 p-3')}>
         <TouchableHighlight
-          underlayColor={getColor('neutral-30')}
+          underlayColor={tailwind('text-neutral-30').color as string}
           style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
           onPress={() => {
             dispatch(uiActions.setShowShareModal(false));
@@ -228,7 +229,7 @@ function ShareFilesModal(): JSX.Element {
         <View style={tailwind('px-1')}></View>
 
         <TouchableHighlight
-          underlayColor={getColor('blue-70')}
+          underlayColor={tailwind('text-blue-70').color as string}
           style={[
             tailwind('bg-blue-60 rounded-lg py-2 flex-grow items-center justify-center'),
             isLoading && tailwind('bg-blue-30'),

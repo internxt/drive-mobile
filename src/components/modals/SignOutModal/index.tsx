@@ -1,7 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
 
-import { tailwind } from '../../../helpers/designSystem';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
@@ -11,8 +10,10 @@ import AppText from '../../AppText';
 import { authThunks } from '../../../store/slices/auth';
 import { useNavigation } from '@react-navigation/native';
 import { RootScreenNavigationProp } from '../../../types/navigation';
+import { useTailwind } from 'tailwind-rn';
 
 function SignOutModal(): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const { isSignOutModalOpen } = useAppSelector((state) => state.ui);

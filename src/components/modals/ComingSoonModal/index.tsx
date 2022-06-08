@@ -2,13 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { widthPercentageToDP } from 'react-native-responsive-screen';
+import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
-import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 
 const ComingSoonModal = (): JSX.Element => {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const { showComingSoonModal } = useAppSelector((state) => state.ui);
 

@@ -3,13 +3,13 @@ import { Image, Text, View } from 'react-native';
 import prettysize from 'prettysize';
 import { Photo } from '@internxt/sdk/dist/photos';
 
-import globalStyle from '../../../styles';
-import { tailwind } from '../../../helpers/designSystem';
+import globalStyle from '../../../styles/global';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
 import moment from 'moment';
 import { items } from '@internxt/lib';
+import { useTailwind } from 'tailwind-rn';
 
 interface PhotosPreviewInfoModalProps extends BottomModalProps {
   data: Photo;
@@ -17,6 +17,7 @@ interface PhotosPreviewInfoModalProps extends BottomModalProps {
 }
 
 function PhotosPreviewInfoModal({ isOpen, onClosed, data, preview }: PhotosPreviewInfoModalProps): JSX.Element {
+  const tailwind = useTailwind();
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>

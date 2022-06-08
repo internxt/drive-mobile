@@ -8,16 +8,17 @@ import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptyRecentsImage from '../../../assets/images/screens/empty-recents.svg';
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
-import { tailwind } from '../../helpers/designSystem';
 import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
 import DriveService from '../../services/DriveService';
+import { useTailwind } from 'tailwind-rn';
 
 interface RecentsScreenProps {
   searchText?: string;
 }
 
 function RecentsScreen(props: RecentsScreenProps): JSX.Element {
+  const tailwind = useTailwind();
   const [isLoading, setIsLoading] = useState(true);
   const [recents, setRecents] = useState<DriveFileData[]>([]);
   const [refreshing, setRefreshing] = useState(false);

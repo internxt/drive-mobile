@@ -3,10 +3,9 @@ import { ActivityIndicator, Alert, Text, TouchableHighlight, TouchableWithoutFee
 import _ from 'lodash';
 import * as Linking from 'expo-linking';
 
-import { getColor, tailwind } from '../../helpers/designSystem';
 import Separator from '../../components/AppSeparator';
 import { getDevelopmentPlans, getProductionPlans } from './plansinfo';
-import globalStyle from '../../styles';
+import globalStyle from '../../styles/global';
 import strings from '../../../assets/lang/strings';
 import ScreenTitle from '../../components/AppScreenTitle';
 import paymentService from '../../services/PaymentService';
@@ -17,6 +16,7 @@ import AppScreen from '../../components/AppScreen';
 import notificationsService from '../../services/NotificationsService';
 import { Check } from 'phosphor-react-native';
 import { RootStackScreenProps } from '../../types/navigation';
+import { useTailwind } from 'tailwind-rn';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -64,6 +64,7 @@ const PERIODS = [
 ];
 
 function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Element {
+  const tailwind = useTailwind();
   const redirectUrl = `${constants.REACT_NATIVE_WEB_CLIENT_URL}/redirect-to-app?path=checkout`;
   const getLink = async (plan: { id: string }) => {
     const body = {
@@ -191,7 +192,7 @@ function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Ele
                 </View>
                 <View style={tailwind('justify-center')}>
                   <TouchableHighlight
-                    underlayColor={getColor('blue-70')}
+                    underlayColor={tailwind('text-blue-70').color as string}
                     style={tailwind('bg-blue-60 rounded-xl h-10 justify-center')}
                     onPress={() => {
                       getLink(plan);

@@ -3,8 +3,7 @@ import { Image, Text, View } from 'react-native';
 import prettysize from 'prettysize';
 import { Photo } from '@internxt/sdk/dist/photos';
 
-import globalStyle from '../../../styles';
-import { getColor, tailwind } from '../../../helpers/designSystem';
+import globalStyle from '../../../styles/global';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
@@ -13,6 +12,7 @@ import { useAppDispatch } from '../../../store/hooks';
 import fileSystemService from '../../../services/FileSystemService';
 import { items } from '@internxt/lib';
 import { DownloadSimple, Info, Link, Trash } from 'phosphor-react-native';
+import { useTailwind } from 'tailwind-rn';
 
 interface PhotosPreviewOptionsModalProps extends BottomModalProps {
   data: Photo;
@@ -29,6 +29,7 @@ function PhotosPreviewOptionsModal({
   photoPath,
   isFullSizeLoading,
 }: PhotosPreviewOptionsModalProps): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const header = (
     <View style={tailwind('flex-row')}>
@@ -86,7 +87,7 @@ function PhotosPreviewOptionsModal({
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.info}</Text>
               </View>
             }
-            rightSlot={<Info size={20} color={getColor('neutral-500')} />}
+            rightSlot={<Info size={20} color={tailwind('text-neutral-500').color as string} />}
             onPress={onInfoButtonPressed}
           />
           <BottomModalOption
@@ -96,7 +97,7 @@ function PhotosPreviewOptionsModal({
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.share}</Text>
               </View>
             }
-            rightSlot={<Link size={20} color={getColor('neutral-500')} />}
+            rightSlot={<Link size={20} color={tailwind('text-neutral-500').color as string} />}
             onPress={onShareButtonPressed}
           />
           <BottomModalOption
@@ -106,7 +107,7 @@ function PhotosPreviewOptionsModal({
                 <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.download}</Text>
               </View>
             }
-            rightSlot={<DownloadSimple size={20} color={getColor('neutral-500')} />}
+            rightSlot={<DownloadSimple size={20} color={tailwind('text-neutral-500').color as string} />}
             onPress={onDownloadButtonPressed}
           />
         </View>
@@ -118,7 +119,7 @@ function PhotosPreviewOptionsModal({
                 <Text style={tailwind('text-lg text-red-60')}>{strings.components.buttons.moveToThrash}</Text>
               </View>
             }
-            rightSlot={<Trash size={20} color={getColor('red-60')} />}
+            rightSlot={<Trash size={20} color={tailwind('text-red-60').color as string} />}
             onPress={onMoveToTrashButtonPressed}
           />
         </View>

@@ -11,17 +11,17 @@ import {
 } from 'react-native';
 import { CaretRight } from 'phosphor-react-native';
 
-import { getColor, tailwind } from '../../helpers/designSystem';
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
 import { useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
-import globalStyle from '../../styles';
+import globalStyle from '../../styles/global';
 import AppScreen from '../../components/AppScreen';
 import appService from '../../services/AppService';
 import AppText from '../../components/AppText';
 import { TabExplorerScreenProps } from '../../types/navigation';
 import AppScreenTitle from '../../components/AppScreenTitle';
+import { useTailwind } from 'tailwind-rn';
 
 interface SettingsGroupItemProps {
   key: string;
@@ -31,10 +31,11 @@ interface SettingsGroupItemProps {
 }
 
 function SettingsGroup({ title, items }: { title: string; items: SettingsGroupItemProps[] }) {
+  const tailwind = useTailwind();
   const SettingsGroupItem = (props: SettingsGroupItemProps) => {
     return (
       <TouchableHighlight
-        underlayColor={getColor('neutral-30')}
+        underlayColor={tailwind('text-neutral-30').color as string}
         onPress={(event) => {
           if (props.onPress) {
             props.onPress(event);
@@ -58,6 +59,7 @@ function SettingsGroup({ title, items }: { title: string; items: SettingsGroupIt
 }
 
 function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX.Element {
+  const tailwind = useTailwind();
   const { user } = useAppSelector((state) => state.auth);
   const userNameLetters = useAppSelector(authSelectors.nameLetters);
   const userFullName = useAppSelector(authSelectors.userFullName);
@@ -82,7 +84,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
   };
 
   return (
-    <AppScreen safeAreaTop backgroundColor={getColor('white')} style={tailwind('min-h-full')}>
+    <AppScreen safeAreaTop backgroundColor={tailwind('text-white').color as string} style={tailwind('min-h-full')}>
       <ScrollView>
         <AppScreenTitle
           text={strings.screens.SettingsScreen.title}
@@ -141,7 +143,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={getColor('neutral-60')} />
+                      <CaretRight color={tailwind('text-neutral-60').color as string} />
                     </View>
                   </View>
                 ),
@@ -157,7 +159,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={getColor('neutral-60')} />
+                      <CaretRight color={tailwind('text-neutral-60').color as string} />
                     </View>
                   </View>
                 ),
@@ -189,7 +191,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={getColor('neutral-60')} />
+                      <CaretRight color={tailwind('text-neutral-60').color as string} />
                     </View>
                   </View>
                 ),
@@ -205,7 +207,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={getColor('neutral-60')} />
+                      <CaretRight color={tailwind('text-neutral-60').color as string} />
                     </View>
                   </View>
                 ),
@@ -227,7 +229,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={getColor('neutral-60')} />
+                      <CaretRight color={tailwind('text-neutral-60').color as string} />
                     </View>
                   </View>
                 ),
@@ -251,7 +253,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                         </AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('neutral-60')} />
+                        <CaretRight color={tailwind('text-neutral-60').color as string} />
                       </View>
                     </View>
                   ),

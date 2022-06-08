@@ -2,13 +2,13 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { Photo } from '@internxt/sdk/dist/photos';
 
-import globalStyle from '../../../styles';
-import { tailwind } from '../../../helpers/designSystem';
+import globalStyle from '../../../styles/global';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../AppButton';
 import { useAppDispatch } from '../../../store/hooks';
 import { photosThunks } from '../../../store/slices/photos';
+import { useTailwind } from 'tailwind-rn';
 
 interface DeletePhotosModalProps extends BottomModalProps {
   data: Photo[];
@@ -16,6 +16,7 @@ interface DeletePhotosModalProps extends BottomModalProps {
 }
 
 function DeletePhotosModal({ isOpen, onClosed, data, onPhotosDeleted }: DeletePhotosModalProps): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const onCancelButtonPressed = () => {
     onClosed();

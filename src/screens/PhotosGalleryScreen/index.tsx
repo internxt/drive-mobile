@@ -2,8 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback, BackHandler } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 
-import { getColor, tailwind } from '../../helpers/designSystem';
-import globalStyle from '../../styles';
+import globalStyle from '../../styles/global';
 import ScreenTitle from '../../components/AppScreenTitle';
 import strings from '../../../assets/lang/strings';
 import galleryViews from '../../components/gallery-views';
@@ -12,13 +11,14 @@ import { photosActions, photosSelectors, photosThunks } from '../../store/slices
 import { uiActions } from '../../store/slices/ui';
 import SharePhotoModal from '../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../components/modals/DeletePhotosModal';
-import { GalleryViewMode } from '../../types/photos';
 import PhotosSyncStatusWidget from '../../components/PhotosSyncStatusWidget';
 import AppScreen from '../../components/AppScreen';
 import { Trash } from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTailwind } from 'tailwind-rn';
 
 function PhotosGalleryScreen(): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
   const getPhotoPreview = useAppSelector(photosSelectors.getPhotoPreview);
@@ -230,7 +230,14 @@ function PhotosGalleryScreen(): JSX.Element {
                 disabled={hasNoPhotosSelected}
               >
                 <View style={tailwind('items-center flex-1')}>
-                  <Trash color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('red-60')} size={24} />
+                  <Trash
+                    color={
+                      hasNoPhotosSelected
+                        ? (tailwind('text-neutral-60').color as string)
+                        : (tailwind('text-red-60').color as string)
+                    }
+                    size={24}
+                  />
                   <Text
                     numberOfLines={1}
                     style={[

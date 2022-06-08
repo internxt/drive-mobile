@@ -2,17 +2,18 @@ import React from 'react';
 import { View, Text, TouchableWithoutFeedback, ImageBackground } from 'react-native';
 import moment from 'moment';
 
-import { tailwind } from '../../helpers/designSystem';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GalleryViewMode } from '../../types/photos';
 import { photosActions } from '../../store/slices/photos';
 import { useAppDispatch } from '../../store/hooks';
+import { useTailwind } from 'tailwind-rn';
 interface GalleryMonthProps {
   month: number;
   preview: string;
 }
 
 const GalleryMonth = ({ month, preview }: GalleryMonthProps): JSX.Element => {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const monthName = moment.months(month - 1);
   const onMonthPressed = () => {

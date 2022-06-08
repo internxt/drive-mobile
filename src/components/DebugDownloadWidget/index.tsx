@@ -1,7 +1,7 @@
 import { StyleProp, View, ViewStyle } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../assets/lang/strings';
-import { tailwind } from '../../helpers/designSystem';
 import AppButton from '../AppButton';
 import AppText from '../AppText';
 
@@ -10,6 +10,7 @@ interface DebugDownloadWidgetProps {
 }
 
 const DebugDownloadWidget = (props: DebugDownloadWidgetProps): JSX.Element => {
+  const tailwind = useTailwind();
   const onUploadButtonPressed = () => undefined;
 
   return (

@@ -5,16 +5,17 @@ import Modal from 'react-native-modalbox';
 import { useNavigation } from '@react-navigation/native';
 
 import RunOutImage from '../../../../assets/images/modals/runout.svg';
-import { tailwind, getColor } from '../../../helpers/designSystem';
-import globalStyle from '../../../styles';
+import globalStyle from '../../../styles/global';
 import strings from '../../../../assets/lang/strings';
 import { INFINITE_PLAN } from '../../../types';
 import { uiActions } from '../../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import paymentService from '../../../services/PaymentService';
 import { RootScreenNavigationProp } from '../../../types/navigation';
+import { useTailwind } from 'tailwind-rn';
 
 function RunOutOfStorageModal(): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
@@ -95,7 +96,7 @@ function RunOutOfStorageModal(): JSX.Element {
             </View>
 
             <TouchableHighlight
-              underlayColor={getColor('blue-70')}
+              underlayColor={tailwind('text-blue-70').color as string}
               style={tailwind('bg-blue-60 rounded-lg py-2 mx-6 items-center justify-center')}
               onPress={onUpgradeNowButtonPressed}
             >
