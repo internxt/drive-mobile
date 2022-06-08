@@ -5,7 +5,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/
 
 import { tailwind } from '../helpers/designSystem';
 import DriveScreen from '../screens/DriveScreen';
-import MenuScreen from '../screens/MenuScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import BottomTabNavigator from '../components/BottomTabNavigator';
 import EmptyScreen from '../screens/EmptyScreen';
 import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
@@ -50,7 +50,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Drive" component={DriveScreen} />
         <Tab.Screen name="Add" component={EmptyScreen} />
         <Tab.Screen name="Photos" component={PhotosNavigator} />
-        <Tab.Screen name="Menu" component={MenuScreen} />
+        <Tab.Screen name="Settings" component={SettingsScreen} />
       </Tab.Navigator>
 
       <AddModal />

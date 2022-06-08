@@ -1,10 +1,10 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, StyleProp, TextStyle } from 'react-native';
+import { View, TouchableOpacity, StyleProp, TextStyle } from 'react-native';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
-import globalStyle from '../../styles';
 import { useAppSelector } from '../../store/hooks';
 import { CaretLeft } from 'phosphor-react-native';
+import AppText from '../AppText';
 
 interface AppScreenTitleProps {
   text: string;
@@ -12,6 +12,7 @@ interface AppScreenTitleProps {
   containerStyle?: StyleProp<TextStyle>;
   centerText?: boolean;
   showBackButton?: boolean;
+  rightSlot?: JSX.Element;
   onBackButtonPressed?: () => void;
 }
 
@@ -26,6 +27,7 @@ const AppScreenTitle = ({
   containerStyle,
   centerText = defaultProps.centerText,
   showBackButton = defaultProps.showBackButton,
+  rightSlot,
   onBackButtonPressed,
 }: AppScreenTitleProps): JSX.Element => {
   const backButtonEnabled = useAppSelector((state) => state.ui.backButtonEnabled);
@@ -41,12 +43,11 @@ const AppScreenTitle = ({
       )}
 
       <View pointerEvents="none" style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
-        <Text
-          numberOfLines={1}
-          style={[tailwind('text-neutral-700 text-3xl'), globalStyle.fontWeight.medium, textStyle]}
-        >
+        <AppText numberOfLines={1} medium style={[tailwind('text-neutral-700 text-2xl'), textStyle]}>
           {text}
-        </Text>
+        </AppText>
+
+        {rightSlot}
       </View>
 
       {showBackButton && <View style={tailwind('flex-1')} />}

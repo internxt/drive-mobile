@@ -7,22 +7,21 @@ import globalStyle from '../../styles';
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
-import { FolderSimple, Gear, House, IconProps, ImageSquare, PlusCircle } from 'phosphor-react-native';
-import { TabExplorerStackParamList } from '../../types/navigation';
+import { FolderSimple, Gear, House, ImageSquare, PlusCircle } from 'phosphor-react-native';
 
-const tabIcons: { [key in keyof TabExplorerStackParamList]: (props: IconProps) => JSX.Element } = {
-  Home: House,
-  Drive: FolderSimple,
-  Add: PlusCircle,
-  Photos: ImageSquare,
-  Menu: Gear,
+const tabs = {
+  Home: { label: strings.tabs.Home, icon: House },
+  Drive: { label: strings.tabs.Drive, icon: FolderSimple },
+  Add: { label: strings.tabs.Add, icon: PlusCircle },
+  Photos: { label: strings.tabs.Photos, icon: ImageSquare },
+  Settings: { label: strings.tabs.Settings, icon: Gear },
 };
 
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   const dispatch = useAppDispatch();
   const items = props.state.routes.map((route, index) => {
     const { options } = props.descriptors[route.key];
-    const label = strings.tabs[route.name as keyof typeof tabIcons];
+    const label = tabs[route.name as keyof typeof tabs].label;
     const isFocused = props.state.index === index;
     const isAddRoute = route.name === 'Add';
     const onPress = () => {
@@ -43,7 +42,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
       props.navigation.emit({ type: 'tabLongPress', target: route.key });
     };
     const iconColor = isAddRoute ? getColor('white') : isFocused ? getColor('blue-60') : getColor('neutral-80');
-    const Icon = tabIcons[route.name as keyof typeof tabIcons];
+    const Icon = tabs[route.name as keyof typeof tabs].icon;
 
     return (
       <TouchableWithoutFeedback

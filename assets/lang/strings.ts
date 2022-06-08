@@ -17,7 +17,6 @@ const strings = new LocalizedStrings({
       close: 'Close',
       upload: 'Upload',
       delete: 'Delete',
-      settings: 'Settings',
       updated: 'Updated',
       monthly: 'Monthly',
       annually: 'Annually',
@@ -30,7 +29,7 @@ const strings = new LocalizedStrings({
       Drive: 'Drive',
       Add: 'Add',
       Photos: 'Photos',
-      Menu: 'Settings',
+      Settings: 'Settings',
     },
     screens: {
       DebugScreen: {
@@ -237,6 +236,16 @@ const strings = new LocalizedStrings({
           all: 'All',
         },
       },
+      SettingsScreen: {
+        title: 'Ajustes',
+        storage: 'Almacenamiento',
+        language: 'Idioma',
+        drive: 'Drive',
+        support: 'Soporte',
+        more: 'Más información',
+        termsAndConditions: 'Términos de servicio',
+        signOut: 'Cerrar sesión',
+      },
     },
     components: {
       buttons: {
@@ -307,13 +316,6 @@ const strings = new LocalizedStrings({
           size: 'Size',
           name: 'Name',
           type: 'File type',
-        },
-        settings: {
-          storage: 'Storage',
-          more: 'More info',
-          drive: 'Drive',
-          contact: 'Support',
-          signOut: 'Log out',
         },
       },
       file_and_folder_options: {
@@ -446,7 +448,6 @@ const strings = new LocalizedStrings({
       close: 'Cerrar',
       upload: 'Subir',
       delete: 'Eliminar',
-      settings: 'Ajustes',
       updated: 'Actualizado',
       monthly: 'Mensual',
       annually: 'Anual',
@@ -459,7 +460,7 @@ const strings = new LocalizedStrings({
       Drive: 'Drive',
       Add: 'Añadir',
       Photos: 'Photos',
-      Menu: 'Ajustes',
+      Settings: 'Ajustes',
     },
     screens: {
       DebugScreen: {
@@ -667,6 +668,16 @@ const strings = new LocalizedStrings({
           all: 'Todo',
         },
       },
+      SettingsScreen: {
+        title: 'Settings',
+        storage: 'Storage',
+        language: 'Language',
+        drive: 'Drive',
+        support: 'Support',
+        more: 'More info',
+        termsAndConditions: 'Terms of Service',
+        signOut: 'Log out',
+      },
     },
     components: {
       buttons: {
@@ -737,13 +748,6 @@ const strings = new LocalizedStrings({
           size: 'Tamaño',
           name: 'Nombre',
           type: 'Tipo de archivo',
-        },
-        settings: {
-          storage: 'Almacenamiento',
-          more: 'Más información',
-          drive: 'Drive',
-          contact: 'Soporte',
-          signOut: 'Cerrar sesión',
         },
       },
       file_and_folder_options: {

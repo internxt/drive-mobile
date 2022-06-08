@@ -28,7 +28,7 @@
   "dependencies": {
     "@burstware/react-native-portal": "^1.0.2",
     "@internxt/lib": "^1.1.5",
-    "@internxt/rn-crypto": "^0.1.4",
+    "@internxt/rn-crypto": "^0.1.6",
     "@internxt/sdk": "^0.8.1",
     "@react-native-async-storage/async-storage": "^1.17.0",
     "@react-native-community/cameraroll": "github:internxt/react-native-cameraroll",
@@ -156,7 +156,7 @@
     "detox": "^19.7.0",
     "eslint": "^8.8.0",
     "husky": "^7.0.2",
-    "jest": "^28.1.0",
+    "jest": "^27.0.0",
     "jest-expo": "^45.0.1",
     "jetifier": "^2.0.0",
     "metro-minify-terser": "^0.66.0",
@@ -168,7 +168,7 @@
     "rn-nodeify": "^10.3.0",
     "sentry-testkit": "^3.3.7",
     "tailwindcss": "^2.1.2",
-    "ts-jest": "^28.0.3",
+    "ts-jest": "^27.1.5",
     "ts-node": "^10.7.0",
     "typescript": "~4.3.0"
   },
