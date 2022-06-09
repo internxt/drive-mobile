@@ -110,3 +110,5 @@ export type Abortable = (reason?: string) => void;
 export interface AppToastExtraProps {
   action?: { text: string; onActionPress: () => void };
 }
+
+export type Base64String = string;

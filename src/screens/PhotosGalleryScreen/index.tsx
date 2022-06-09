@@ -12,7 +12,6 @@ import { photosActions, photosSelectors, photosThunks } from '../../store/slices
 import { uiActions } from '../../store/slices/ui';
 import SharePhotoModal from '../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../components/modals/DeletePhotosModal';
-import { GalleryViewMode } from '../../types/photos';
 import PhotosSyncStatusWidget from '../../components/PhotosSyncStatusWidget';
 import AppScreen from '../../components/AppScreen';
 import { Trash } from 'phosphor-react-native';
@@ -21,7 +20,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
-  const getPhotoPreview = useAppSelector(photosSelectors.getPhotoPreview);
   const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.ui);
   const isLoading = useAppSelector(photosSelectors.isLoading);
   const { isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
@@ -89,12 +87,12 @@ function PhotosGalleryScreen(): JSX.Element {
 
   return (
     <>
-      <SharePhotoModal
+      {/*   <SharePhotoModal
         isOpen={isSharePhotoModalOpen}
         data={selectedPhotos[0]}
         preview={hasNoPhotosSelected ? '' : getPhotoPreview(selectedPhotos[0])}
         onClosed={onSharePhotoModalClosed}
-      />
+      /> */}
       <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selectedPhotos} onClosed={onDeletePhotosModalClosed} />
 
       <AppScreen safeAreaTop style={tailwind('mb-14')}>

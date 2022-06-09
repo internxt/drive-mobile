@@ -9,6 +9,7 @@ import DebugInternetWidget from '../../components/DebugInternetWidget';
 import DebugUploadWidget from '../../components/DebugUploadWidget';
 import DebugDownloadWidget from '../../components/DebugDownloadWidget';
 import { RootStackScreenProps } from '../../types/navigation';
+import DebugPhotosWidget from '../../components/DebugPhotosWidget';
 
 function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element {
   const onBackButtonPressed = () => navigation.goBack();
@@ -25,7 +26,8 @@ function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element
       <DebugInternetWidget />
       <DebugUploadWidget style={tailwind('mb-5')} />
       <DebugDownloadWidget style={tailwind('mb-5')} />
-      <DebugNotificationsWidget />
+      <DebugNotificationsWidget style={tailwind('mb-5')} />
+      <DebugPhotosWidget />
     </AppScreen>
   );
 }

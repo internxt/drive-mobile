@@ -2,7 +2,6 @@ import _ from 'lodash';
 import { Photo, PhotoId, PhotoStatus } from '@internxt/sdk/dist/photos';
 import {
   CreateSqliteTmpCameraRollRowData,
-  PhotosServiceModel,
   PHOTOS_DB_NAME,
   SqlitePhotoRow,
   SqliteTmpCameraRollRow,
@@ -16,17 +15,13 @@ import PhotosLogService from '../PhotosLogService';
 import fileSystemService from '../../FileSystemService';
 import tmp_camera_roll from './tables/tmp_camera_roll';
 import CameraRoll from '@react-native-community/cameraroll';
-import PhotosFileSystemService from '../PhotosFileSystemService';
+import { PHOTOS_PREVIEWS_DIRECTORY } from '../constants';
 
 export default class PhotosLocalDatabaseService {
-  private readonly model: PhotosServiceModel;
   private readonly logService: PhotosLogService;
-  private readonly fileSystemService: PhotosFileSystemService;
 
-  constructor(model: PhotosServiceModel, logService: PhotosLogService, fileSystemService: PhotosFileSystemService) {
-    this.model = model;
+  constructor(logService: PhotosLogService) {
     this.logService = logService;
-    this.fileSystemService = fileSystemService;
   }
 
   public async initialize(): Promise<void> {
@@ -74,7 +69,7 @@ export default class PhotosLocalDatabaseService {
         for (const row of rows.raw() as unknown as SqlitePhotoRow[]) {
           results.push({
             data: this.mapPhotoRowToModel(row),
-            preview: fileSystemService.pathToUri(`${this.fileSystemService.previewsDirectory}/${row.id}`),
+            preview: fileSystemService.pathToUri(`${PHOTOS_PREVIEWS_DIRECTORY}/${row.id}`),
           });
         }
 
@@ -118,10 +113,7 @@ export default class PhotosLocalDatabaseService {
     ]);
     const lastPhotoOfTheYear = rows.item(0) as SqlitePhotoRow | null;
 
-    return (
-      lastPhotoOfTheYear &&
-      fileSystemService.pathToUri(`${this.fileSystemService.previewsDirectory}/${lastPhotoOfTheYear.id}`)
-    );
+    return lastPhotoOfTheYear && fileSystemService.pathToUri(`${PHOTOS_PREVIEWS_DIRECTORY}/${lastPhotoOfTheYear.id}`);
   }
 
   public async getMonthsList(): Promise<{ year: number; month: number; preview: string }[]> {
@@ -188,13 +180,6 @@ export default class PhotosLocalDatabaseService {
         return null;
       }
     });
-  }
-
-  public async getPhotoPreview(photoId: PhotoId): Promise<string | null> {
-    const [{ rows }] = await sqliteService.executeSql(PHOTOS_DB_NAME, photoTable.statements.getById, [photoId]);
-    const photoRow: SqlitePhotoRow | null = rows.item(0) || null;
-
-    return photoRow && fileSystemService.pathToUri(`${this.fileSystemService.previewsDirectory}/${photoRow.id}`);
   }
 
   public async updatePhotoStatusById(photoId: PhotoId, newStatus: PhotoStatus): Promise<void> {

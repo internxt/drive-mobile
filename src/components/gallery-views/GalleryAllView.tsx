@@ -74,7 +74,6 @@ const GalleryAllView = (): JSX.Element => {
             <GalleryItem
               size={itemSize}
               data={item.item.data}
-              preview={item.item.preview}
               isSelected={isPhotoSelected(item.item.data)}
               onPress={() => onItemPressed(item.item.data, item.item.preview)}
               onLongPress={() => onItemLongPressed(item.item.data)}

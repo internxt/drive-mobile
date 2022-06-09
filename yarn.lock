@@ -2168,10 +2168,10 @@
   resolved "https://npm.pkg.github.com/download/@internxt/prettier-config/1.0.2/9a19de23e3330a81c0e2bace1a6a0325fc8633197cf677e44ea75e54df315b5e"
   integrity sha512-t4HiqvCbC7XgQepwWlIaFJe3iwW7HCf6xOSU9nKTV0tiGqOPz7xMtIgLEloQrDA34Cx4PkOYBXrvFPV6RxSFAA==
 
-"@internxt/rn-crypto@^0.1.4":
-  version "0.1.4"
-  resolved "https://npm.pkg.github.com/download/@internxt/rn-crypto/0.1.4/f250d9e178be8fcbf2b77b838dc21d35a0edd71abfc21a5230e3d57e40151b82#9959b498911e04648a1dfd86dec220aa5ab73065"
-  integrity sha512-6iFn6htJqw6INb+MS0fBip4071E1SYjEBsD+rOIb8dtfDKOlpEvxkxvHp8D0BOe3EHPSgBub9TohfQTv9qsP/w==
+"@internxt/rn-crypto@^0.1.6":
+  version "0.1.6"
+  resolved "https://npm.pkg.github.com/download/@internxt/rn-crypto/0.1.6/1766446b2b66e7b32aff031039b986f6d3739aa065b1951ad88c57b5063a711e#a05015f26b1d62b50f9c4bf71e0607cfe7b4fb7d"
+  integrity sha512-HLfJQYEJQXFfeKmNCm2wVqCHMzz5GKSYrSb1RusxPPYHr1JAKoqtweF+OQosEa19yjzCvWnMCVz7nV7cWZbNkg==
 
 "@internxt/sdk@^0.8.1":
   version "0.8.1"

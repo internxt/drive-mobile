@@ -24,6 +24,7 @@ import PhotosUploadService from './PhotosUploadService';
 import PhotosFileSystemService from './PhotosFileSystemService';
 import PhotosEventEmitter from './PhotosEventEmitter';
 import fileSystemService from '../FileSystemService';
+import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_TMP_DIRECTORY } from './constants';
 
 export default class PhotosSyncService {
   private readonly model: PhotosServiceModel;
@@ -258,7 +259,7 @@ export default class PhotosSyncService {
         } else {
           const previewId = photo.previews && photo.previews.length > 0 ? photo.previews[0].fileId : photo.previewId;
           previewPath = await this.downloadService.pullPhoto(previewId, {
-            toPath: `${this.fileSystemService.previewsDirectory}/${photo.id}`,
+            toPath: `${PHOTOS_PREVIEWS_DIRECTORY}/${photo.id}`,
             downloadProgressCallback: () => undefined,
             decryptionProgressCallback: () => undefined,
           });
@@ -392,7 +393,7 @@ export default class PhotosSyncService {
     uri: string,
   ): Promise<string> {
     const filename = items.getItemDisplayName({ name, type });
-    const iosPath = `${this.fileSystemService.tmpDirectory}/${filename}`;
+    const iosPath = `${PHOTOS_TMP_DIRECTORY}/${filename}`;
     let path = uri;
 
     if (Platform.OS === 'ios') {

@@ -4,29 +4,26 @@ import { Photo, Photos, CreatePhotoData } from '@internxt/sdk/dist/photos';
 import network from '../../network';
 import { PhotosServiceModel } from '../../types/photos';
 import PhotosLogService from './PhotosLogService';
-import PhotosFileSystemService from './PhotosFileSystemService';
 import fileSystemService from '../FileSystemService';
 import PhotosPreviewService from './PhotosPreviewService';
 import { constants } from '../AppService';
+import { PHOTOS_PREVIEWS_DIRECTORY } from './constants';
 
 export default class PhotosUploadService {
   private readonly model: PhotosServiceModel;
   private readonly photosSdk: Photos;
   private readonly logService: PhotosLogService;
-  private readonly fileSystemService: PhotosFileSystemService;
   private readonly previewService: PhotosPreviewService;
 
   constructor(
     model: PhotosServiceModel,
     photosSdk: Photos,
     logService: PhotosLogService,
-    fileSystemService: PhotosFileSystemService,
     previewService: PhotosPreviewService,
   ) {
     this.model = model;
     this.photosSdk = photosSdk;
     this.logService = logService;
-    this.fileSystemService = fileSystemService;
     this.previewService = previewService;
   }
 
@@ -37,11 +34,7 @@ export default class PhotosUploadService {
       width: previewWidth,
       height: previewHeight,
       format: previewFormat,
-    } = await this.previewService.generate(
-      uri,
-      this.fileSystemService.tmpDirectory,
-      `${data.name}-${new Date().getTime()}`,
-    );
+    } = await this.previewService.generate(uri, `${data.name}-${new Date().getTime()}`);
 
     this.logService.info('Uploading preview image for photo ' + data.name);
     const previewId = await network.uploadFile(
@@ -96,7 +89,7 @@ export default class PhotosUploadService {
       hash,
     };
     const createdPhoto = await this.photosSdk.photos.createPhoto(createPhotoData);
-    const finalPreviewPath = `${this.fileSystemService.previewsDirectory}/${createdPhoto.id}`;
+    const finalPreviewPath = `${PHOTOS_PREVIEWS_DIRECTORY}/${createdPhoto.id}`;
 
     await RNFS.copyFile(tmpPreviewPath, finalPreviewPath);
 

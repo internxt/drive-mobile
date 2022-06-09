@@ -12,7 +12,6 @@ import {
 } from '../../types/photos';
 import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 import PhotosUploadService from './PhotosUploadService';
-import PhotosDeleteService from './PhotosDeleteService';
 import PhotosSyncService from './PhotosSyncService';
 import PhotosCameraRollService from './PhotosCameraRollService';
 import PhotosDownloadService from './PhotosDownloadService';
@@ -23,6 +22,7 @@ import PhotosFileSystemService from './PhotosFileSystemService';
 import PhotosUsageService from './PhotosUsageService';
 import PhotosPreviewService from './PhotosPreviewService';
 import PhotosEventEmitter from './PhotosEventEmitter';
+import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 
 export class PhotosService {
   public static instance: PhotosService;
@@ -31,7 +31,8 @@ export class PhotosService {
 
   private readonly logService: PhotosLogService;
   private readonly eventEmitter: PhotosEventEmitter;
-  private readonly fileSystemService: PhotosFileSystemService;
+  private readonly photosFileSystemService: PhotosFileSystemService;
+
   private readonly cameraRollService: PhotosCameraRollService;
   private readonly localDatabaseService: PhotosLocalDatabaseService;
   private readonly usageService: PhotosUsageService;
@@ -39,10 +40,8 @@ export class PhotosService {
   private readonly userService: PhotosUserService;
   private readonly uploadService: PhotosUploadService;
   private readonly downloadService: PhotosDownloadService;
-  private readonly deleteService: PhotosDeleteService;
   private readonly syncService: PhotosSyncService;
   private readonly previewService: PhotosPreviewService;
-
   private constructor(accessToken: string, networkCredentials: NetworkCredentials) {
     this.model = {
       debug: constants.REACT_NATIVE_DEBUG,
@@ -54,9 +53,9 @@ export class PhotosService {
     this.photosSdk = new photos.Photos(constants.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
 
     this.logService = new PhotosLogService(this.model);
-    this.eventEmitter = new PhotosEventEmitter(this.model);
-    this.fileSystemService = new PhotosFileSystemService(this.model, this.logService);
-    this.localDatabaseService = new PhotosLocalDatabaseService(this.model, this.logService, this.fileSystemService);
+    this.eventEmitter = new PhotosEventEmitter();
+    this.photosFileSystemService = new PhotosFileSystemService(this.model, this.logService);
+    this.localDatabaseService = new PhotosLocalDatabaseService(this.logService);
     this.cameraRollService = new PhotosCameraRollService(this.logService, this.localDatabaseService);
     this.usageService = new PhotosUsageService(this.model);
     this.deviceService = new PhotosDeviceService(
@@ -67,25 +66,9 @@ export class PhotosService {
     );
     this.downloadService = new PhotosDownloadService(this.model);
     this.userService = new PhotosUserService(this.model, this.photosSdk, this.deviceService, this.logService);
-    this.previewService = new PhotosPreviewService(
-      this.model,
-      this.photosSdk,
-      this.fileSystemService,
-      this.downloadService,
-    );
-    this.uploadService = new PhotosUploadService(
-      this.model,
-      this.photosSdk,
-      this.logService,
-      this.fileSystemService,
-      this.previewService,
-    );
-    this.deleteService = new PhotosDeleteService(
-      this.model,
-      this.photosSdk,
-      this.localDatabaseService,
-      this.logService,
-    );
+    this.previewService = new PhotosPreviewService(this.model, this.photosSdk, this.downloadService);
+    this.uploadService = new PhotosUploadService(this.model, this.photosSdk, this.logService, this.previewService);
+
     this.syncService = new PhotosSyncService(
       this.model,
       this.photosSdk,
@@ -96,7 +79,7 @@ export class PhotosService {
       this.downloadService,
       this.localDatabaseService,
       this.logService,
-      this.fileSystemService,
+      this.photosFileSystemService,
     );
 
     this.eventEmitter.addListener({
@@ -111,20 +94,12 @@ export class PhotosService {
     return this.model.isInitialized;
   }
 
-  public get photosDirectory(): string {
-    return this.fileSystemService.photosDirectory;
-  }
-
-  public get previewsDirectory(): string {
-    return this.fileSystemService.previewsDirectory;
-  }
-
   public static initialize(accessToken: string, networkCredentials: NetworkCredentials) {
     PhotosService.instance = new PhotosService(accessToken, networkCredentials);
   }
 
   public async startUsingPhotos(): Promise<void> {
-    await this.fileSystemService.initialize();
+    await this.photosFileSystemService.initialize();
     await this.localDatabaseService.initialize();
     await this.userService.initialize();
     await this.deviceService.initialize();
@@ -193,17 +168,16 @@ export class PhotosService {
     return this.localDatabaseService.countPhotos();
   }
 
-  public async getPhotos({
-    limit,
-    skip = 0,
-  }: {
-    limit: number;
-    skip?: number;
-  }): Promise<{ data: photos.Photo; preview: string }[]> {
+  public async getPhotos({ limit, skip = 0 }: { limit: number; skip?: number }): Promise<{ data: photos.Photo }[]> {
     this.checkModel();
 
-    const results = await this.localDatabaseService.getPhotos(skip, limit);
-    return results;
+    const { results } = await this.photosSdk.photos.getPhotos({}, skip, limit);
+
+    return results.map((photo) => {
+      return {
+        data: photo,
+      };
+    });
   }
 
   public getYearsList(): Promise<{ year: number; preview: string }[]> {
@@ -214,31 +188,14 @@ export class PhotosService {
     return this.localDatabaseService.getMonthsList();
   }
 
-  public getPhotoPreview(photoId: string): Promise<string | null> {
-    return this.localDatabaseService.getPhotoPreview(photoId);
-  }
-
-  public getAll(): Promise<photos.Photo[]> {
-    return this.localDatabaseService.getAll();
-  }
-
-  public deletePhoto(photo: photos.Photo): Promise<void> {
+  public async deletePhoto(photo: photos.Photo): Promise<void> {
     this.checkModel();
-
-    return this.deleteService.delete(photo);
+    await this.photosSdk.photos.deletePhotoById(photo.id);
+    await this.localDatabaseService.updatePhotoStatusById(photo.id, PhotoStatus.Trashed);
   }
 
   public getUsage(): Promise<number> {
     return this.usageService.getUsage();
-  }
-
-  /**
-   * @description Generates and updates a photo preview
-   * @param photo
-   * @returns
-   */
-  public async updatePhotoPreview(photo: photos.Photo): Promise<void> {
-    return this.previewService.update(photo);
   }
 
   /**
@@ -264,8 +221,12 @@ export class PhotosService {
    * @description Clears all photos data from device
    */
   public async clearData(): Promise<void> {
-    await this.fileSystemService.clear();
+    await this.photosFileSystemService.clear();
     await this.localDatabaseService.resetDatabase();
+  }
+
+  public async getPreview(photo: Photo): Promise<string | null> {
+    return this.previewService.getPreview(photo);
   }
 
   private onSyncCanceled() {

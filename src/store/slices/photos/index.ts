@@ -27,7 +27,7 @@ import {
 } from '../../../types/photos';
 import { uiActions } from '../ui';
 import notificationsService from '../../../services/NotificationsService';
-import { AsyncStorageKey, NotificationType } from '../../../types';
+import { AsyncStorageKey, Base64String, NotificationType } from '../../../types';
 
 export interface PhotosState {
   isInitialized: boolean;
@@ -376,6 +376,13 @@ const clearLocalDatabaseThunk = createAsyncThunk<void, void, { state: RootState 
   return PhotosService.instance.clearData();
 });
 
+const getPhotoPreviewThunk = createAsyncThunk<Base64String | null, { photo: Photo }, { state: RootState }>(
+  'photos/getPreview',
+  async ({ photo }) => {
+    return PhotosService.instance.getPreview(photo);
+  },
+);
+
 export const photosSlice = createSlice({
   name: 'photos',
   initialState,
@@ -682,10 +689,6 @@ export const photosSelectors = {
     (state: RootState) =>
     (photos: Photo[]): boolean =>
       photos.reduce<boolean>((t, x) => t && photosSelectors.isPhotoSelected(state)(x), true),
-  getPhotoPreview:
-    (state: RootState) =>
-    (photo: Photo): string =>
-      state.photos.photos.find((p) => p.data.id === photo.id)?.preview || '',
   arePermissionsGranted: (state: RootState): boolean => {
     const result = Object.values(state.photos.permissions[Platform.OS as 'ios' | 'android']).reduce(
       (t, x) => t && x === RESULTS.GRANTED,
@@ -702,8 +705,6 @@ export const photosSelectors = {
 
     return result;
   },
-  photosDirectory: (): string => PhotosService.instance.photosDirectory,
-  previewsDirectory: (): string => PhotosService.instance.previewsDirectory,
 };
 
 export const photosThunks = {
@@ -721,6 +722,7 @@ export const photosThunks = {
   syncThunk,
   cancelSyncThunk,
   clearLocalDatabaseThunk,
+  getPhotoPreviewThunk,
 };
 
 export default photosSlice.reducer;

@@ -2,7 +2,7 @@ import RNFS from 'react-native-fs';
 
 import { PhotosServiceModel } from '../../types/photos';
 import PhotosLogService from './PhotosLogService';
-import fileSystemService from '../FileSystemService';
+import { PHOTOS_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_ROOT_DIRECTORY, PHOTOS_TMP_DIRECTORY } from './constants';
 
 export default class PhotosFileSystemService {
   private readonly model: PhotosServiceModel;
@@ -13,38 +13,22 @@ export default class PhotosFileSystemService {
     this.logService = logService;
   }
 
-  private get rootDirectory(): string {
-    return `${fileSystemService.getDocumentsDir()}/photos`;
-  }
-
-  public get tmpDirectory(): string {
-    return `${this.rootDirectory}/tmp`;
-  }
-
-  public get photosDirectory(): string {
-    return `${this.rootDirectory}/photos`;
-  }
-
-  public get previewsDirectory(): string {
-    return `${this.rootDirectory}/previews`;
-  }
-
   public async initialize(): Promise<void> {
-    await RNFS.mkdir(this.tmpDirectory);
-    await RNFS.mkdir(this.photosDirectory);
-    await RNFS.mkdir(this.previewsDirectory);
+    await RNFS.mkdir(PHOTOS_TMP_DIRECTORY);
+    await RNFS.mkdir(PHOTOS_DIRECTORY);
+    await RNFS.mkdir(PHOTOS_PREVIEWS_DIRECTORY);
   }
 
   public async clear(): Promise<void> {
-    await RNFS.unlink(this.tmpDirectory);
-    await RNFS.unlink(this.rootDirectory);
+    await RNFS.unlink(PHOTOS_TMP_DIRECTORY);
+    await RNFS.unlink(PHOTOS_ROOT_DIRECTORY);
 
     this.logService.info('Cleared file system data');
   }
 
   public async clearTmp(): Promise<void> {
-    await RNFS.unlink(this.tmpDirectory);
-    await RNFS.mkdir(this.tmpDirectory);
+    await RNFS.unlink(PHOTOS_TMP_DIRECTORY);
+    await RNFS.mkdir(PHOTOS_TMP_DIRECTORY);
   }
 
   public async readDir(path: string): Promise<RNFS.ReadDirItem[]> {

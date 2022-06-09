@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Image, TouchableOpacity } from 'react-native';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { Photo } from '@internxt/sdk/dist/photos';
 import { GalleryItemType } from '../../types/photos';
 import { CheckCircle } from 'phosphor-react-native';
+import { useDispatch } from 'react-redux';
+import { photosThunks } from '../../store/slices/photos';
+import { unwrapResult } from '@reduxjs/toolkit';
+import { useAppDispatch } from '../../store/hooks';
 
 interface GalleryItemProps {
   type?: GalleryItemType;
   size: number;
   data: Photo;
-  preview: string;
   isSelected: boolean;
   onPress?: () => void;
   onLongPress?: () => void;
@@ -23,14 +26,29 @@ const defaultProps: Partial<GalleryItemProps> = {
 const GalleryItem = ({
   type = defaultProps.type as GalleryItemType,
   size,
-  preview,
   isSelected,
   onPress,
+  data,
   onLongPress,
 }: GalleryItemProps): JSX.Element => {
+  const dispatch = useAppDispatch();
+  const [photoPreview, setPhotoPreview] = useState<null | string>(null);
+
+  useEffect(() => {
+    loadPreview();
+  }, []);
+
+  const loadPreview = async () => {
+    const result = await dispatch(photosThunks.getPhotoPreviewThunk({ photo: data })).unwrap();
+
+    setPhotoPreview(result);
+  };
+
   const getItemContent = () =>
     ({
-      [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri: preview }} />,
+      [GalleryItemType.Image]: () => (
+        <Image style={tailwind('w-full h-full')} source={{ uri: photoPreview || undefined }} />
+      ),
     }[type]());
 
   return (
