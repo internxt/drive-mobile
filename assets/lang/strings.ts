@@ -260,6 +260,21 @@ const strings = new LocalizedStrings({
         termsAndConditions: 'Términos y condiciones',
         signOut: 'Cerrar sesión',
       },
+      AccountScreen: {
+        title: 'Cuenta',
+        accountDetails: {
+          name: 'Nombre',
+          email: 'Email',
+          resendEmail: 'Reenviar email de verificación',
+        },
+        security: {
+          title: 'Seguridad',
+          advice: 'Cambia tu contraseña, configura la autentificación en dos pasos o guarda tu clave de recuperación.',
+        },
+      },
+      SecurityScreen: {
+        title: 'Seguridad',
+      },
     },
     components: {
       buttons: {
@@ -410,8 +425,8 @@ const strings = new LocalizedStrings({
         message: 'Get the last news and updated right in your mail box',
       },
       SignOutModal: {
-        title: 'Log out',
-        message: 'Are you sure you want to log out?',
+        title: 'Log out from this account?',
+        message: 'If you log out, your photos will stop backing up in Internxt Photos',
       },
       ConfirmMoveItemModal: {
         title: 'Move {0} item(s) from',
@@ -706,6 +721,21 @@ const strings = new LocalizedStrings({
         termsAndConditions: 'Terms and conditions',
         signOut: 'Log out',
       },
+      AccountScreen: {
+        title: 'Account',
+        accountDetails: {
+          name: 'Name',
+          email: 'Email',
+          resendEmail: 'Resend verification email',
+        },
+        security: {
+          title: 'Security',
+          advice: 'Change your password, manage two factor authentication or save your backup key.',
+        },
+      },
+      SecurityScreen: {
+        title: 'Security',
+      },
     },
     components: {
       buttons: {
@@ -858,8 +888,7 @@ const strings = new LocalizedStrings({
         message: 'Recibe las últimas novedades y actualizaciones en tu bandeja de entrada',
       },
       SignOutModal: {
-        title: 'Cerrar sesión',
-        message: '¿Estás seguro de que quieres cerrar sesión?',
+        title: '¿Salir de esta cuenta?',
       },
       ConfirmMoveItemModal: {
         title: 'Mover {0} item(s) desde',

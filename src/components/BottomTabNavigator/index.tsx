@@ -20,67 +20,69 @@ const tabs = {
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
-  const items = props.state.routes.map((route, index) => {
-    const { options } = props.descriptors[route.key];
-    const label = tabs[route.name as keyof typeof tabs].label;
-    const isFocused = props.state.index === index;
-    const isAddRoute = route.name === 'Add';
-    const onPress = () => {
-      if (isAddRoute) {
-        return dispatch(uiActions.setShowUploadFileModal(true));
-      }
-      const event = props.navigation.emit({
-        type: 'tabPress',
-        target: route.key,
-        canPreventDefault: true,
-      });
+  const items = props.state.routes
+    .filter((route) => Object.keys(tabs).includes(route.name))
+    .map((route, index) => {
+      const { options } = props.descriptors[route.key];
+      const label = tabs[route.name as keyof typeof tabs].label;
+      const isFocused = props.state.index === index;
+      const isAddRoute = route.name === 'Add';
+      const onPress = () => {
+        if (isAddRoute) {
+          return dispatch(uiActions.setShowUploadFileModal(true));
+        }
+        const event = props.navigation.emit({
+          type: 'tabPress',
+          target: route.key,
+          canPreventDefault: true,
+        });
 
-      if (!isFocused && !event.defaultPrevented) {
-        props.navigation.navigate(route.name);
-      }
-    };
-    const onLongPress = () => {
-      props.navigation.emit({ type: 'tabLongPress', target: route.key });
-    };
-    const iconColor = isAddRoute
-      ? (tailwind('text-white').color as string)
-      : isFocused
-      ? (tailwind('text-blue-60').color as string)
-      : (tailwind('text-neutral-80').color as string);
-    const Icon = tabs[route.name as keyof typeof tabs].icon;
+        if (!isFocused && !event.defaultPrevented) {
+          props.navigation.navigate(route.name);
+        }
+      };
+      const onLongPress = () => {
+        props.navigation.emit({ type: 'tabLongPress', target: route.key });
+      };
+      const iconColor = isAddRoute
+        ? (tailwind('text-white').color as string)
+        : isFocused
+        ? (tailwind('text-blue-60').color as string)
+        : (tailwind('text-neutral-80').color as string);
+      const Icon = tabs[route.name as keyof typeof tabs].icon;
 
-    return (
-      <TouchableWithoutFeedback
-        key={route.key}
-        accessibilityRole="button"
-        accessibilityState={isFocused ? { selected: true } : {}}
-        accessibilityLabel={options.tabBarAccessibilityLabel}
-        testID={options.tabBarTestID}
-        onPress={onPress}
-        onLongPress={onLongPress}
-      >
-        <View style={tailwind('h-14 items-center justify-center flex-1')}>
-          {isAddRoute ? (
-            <Icon weight="fill" color={tailwind('text-blue-60').color as string} size={40} />
-          ) : (
-            <Icon weight={isFocused ? 'fill' : undefined} color={iconColor} size={26} />
-          )}
+      return (
+        <TouchableWithoutFeedback
+          key={route.key}
+          accessibilityRole="button"
+          accessibilityState={isFocused ? { selected: true } : {}}
+          accessibilityLabel={options.tabBarAccessibilityLabel}
+          testID={options.tabBarTestID}
+          onPress={onPress}
+          onLongPress={onLongPress}
+        >
+          <View style={tailwind('h-14 items-center justify-center flex-1')}>
+            {isAddRoute ? (
+              <Icon weight="fill" color={tailwind('text-blue-60').color as string} size={40} />
+            ) : (
+              <Icon weight={isFocused ? 'fill' : undefined} color={iconColor} size={26} />
+            )}
 
-          {options.tabBarShowLabel && !isAddRoute && (
-            <Text
-              style={[
-                tailwind('text-supporting-2'),
-                isFocused ? tailwind('text-blue-60') : tailwind('text-neutral-80'),
-                isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
-              ]}
-            >
-              {label}
-            </Text>
-          )}
-        </View>
-      </TouchableWithoutFeedback>
-    );
-  });
+            {options.tabBarShowLabel && !isAddRoute && (
+              <Text
+                style={[
+                  tailwind('text-supporting-2'),
+                  isFocused ? tailwind('text-blue-60') : tailwind('text-neutral-80'),
+                  isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
+                ]}
+              >
+                {label}
+              </Text>
+            )}
+          </View>
+        </TouchableWithoutFeedback>
+      );
+    });
 
   return (
     <View style={[tailwind('bg-white flex-row px-2 justify-around items-center border-t border-neutral-20')]}>

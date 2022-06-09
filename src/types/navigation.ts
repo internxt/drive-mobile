@@ -16,7 +16,6 @@ export type RootStackParamList = {
   SignUp: undefined;
   SignIn: undefined;
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList> & { showReferralsBanner?: boolean };
-  Account: undefined;
   ForgotPassword: undefined;
   Storage: undefined;
   Billing: undefined;
@@ -43,6 +42,8 @@ export type TabExplorerStackParamList = {
   Add: undefined;
   Photos: undefined;
   Settings: undefined;
+  Account: undefined;
+  Security: undefined;
 };
 
 export type TabExplorerScreenProps<Screen extends keyof TabExplorerStackParamList> = CompositeScreenProps<

@@ -16,6 +16,7 @@ import errorService from '../../services/ErrorService';
 import AppScreen from '../../components/AppScreen';
 import AppButton from '../../components/AppButton';
 import { useTailwind } from 'tailwind-rn';
+import AppTextInput from '../../components/AppTextInput';
 
 function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
   const tailwind = useTailwind();
@@ -57,6 +58,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
     }
   };
   const onGoToSignUpButtonPressed = () => navigation.navigate('SignUp');
+  const inputWrapperStyle = tailwind('flex-row border-gray-10 rounded-xl border h-14');
 
   return (
     <AppScreen safeAreaTop safeAreaBottom style={tailwind('px-5 h-full justify-between')}>
@@ -70,10 +72,10 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         </View>
 
         <View style={showTwoFactor ? tailwind('hidden') : tailwind('flex')}>
-          <View style={tailwind('input-wrapper my-2 items-stretch')}>
-            <TextInput
+          <View style={{ ...inputWrapperStyle, ...tailwind('my-2 items-stretch') }}>
+            <AppTextInput
               testID="email-input"
-              style={tailwind('input pl-4')}
+              style={tailwind('flex-grow pl-4')}
               value={email}
               onChangeText={(value) => setEmail(value)}
               placeholder={strings.components.inputs.email}
@@ -88,10 +90,10 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
             />
           </View>
 
-          <View style={tailwind('input-wrapper my-2 items-stretch')}>
+          <View style={{ ...inputWrapperStyle, ...tailwind('my-2 items-stretch') }}>
             <TextInput
               testID="password-input"
-              style={tailwind('input pl-4')}
+              style={tailwind('flex-grow pl-4')}
               value={password}
               onChangeText={setPassword}
               onFocus={() => setPasswordFocus(true)}
@@ -111,7 +113,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
                   {showPasswordText ? (
                     <EyeSlash color={tailwind('text-neutral-80').color as string} />
                   ) : (
-                    <Eye color={tailwind('neutral-80').color as string} />
+                    <Eye color={tailwind('text-neutral-80').color as string} />
                   )}
                 </View>
               </TouchableWithoutFeedback>
@@ -122,12 +124,13 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         <View style={showTwoFactor ? tailwind('') : tailwind('hidden')}>
           <View
             style={[
-              tailwind('input-wrapper my-2 items-stretch'),
+              inputWrapperStyle,
+              tailwind('my-2 items-stretch'),
               validationService.validate2FA(twoFactorCode) ? {} : tailwind('border-red-50'),
             ]}
           >
             <TextInput
-              style={tailwind('input pl-4')}
+              style={tailwind('flex-grow pl-4')}
               value={twoFactorCode}
               onChangeText={(value) => setTwoFactorCode(value)}
               placeholder="Two-factor code"

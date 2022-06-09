@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -7,7 +7,7 @@ import { uiActions } from '../../../store/slices/ui';
 import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
 import AppText from '../../AppText';
-import { authThunks } from '../../../store/slices/auth';
+import { authSelectors, authThunks } from '../../../store/slices/auth';
 import { useNavigation } from '@react-navigation/native';
 import { RootScreenNavigationProp } from '../../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
@@ -15,6 +15,8 @@ import { useTailwind } from 'tailwind-rn';
 function SignOutModal(): JSX.Element {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
+  const userFullName = useAppSelector(authSelectors.userFullName);
+  const user = useAppSelector((state) => state.auth.user);
   const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const { isSignOutModalOpen } = useAppSelector((state) => state.ui);
   const onClosed = () => {
@@ -32,11 +34,20 @@ function SignOutModal(): JSX.Element {
   return (
     <CenterModal isOpen={isSignOutModalOpen} onClosed={onClosed} backdropPressToClose={false}>
       <View style={tailwind('w-full px-3 pt-7 pb-3')}>
-        <AppText style={tailwind('mx-4 mb-4 text-center text-xl text-neutral-500')} numberOfLines={1} semibold>
+        <AppText style={tailwind('mx-4 text-center text-xl text-neutral-500')} numberOfLines={1} semibold>
           {strings.modals.SignOutModal.title}
         </AppText>
 
-        <AppText style={tailwind('mb-7 text-neutral-100 text-center')}>{strings.modals.SignOutModal.message}</AppText>
+        <View style={tailwind('items-center my-8')}>
+          <Image
+            source={require('../../../../assets/icon.png')}
+            style={tailwind('h-20 w-20 rounded-full border border-gray-5')}
+          />
+          <AppText style={tailwind('text-lg text-gray-80 mt-2')} medium>
+            {userFullName}
+          </AppText>
+          <AppText style={tailwind('text-gray-40')}>{user?.email}</AppText>
+        </View>
 
         <View style={tailwind('flex-row')}>
           <AppButton
@@ -48,7 +59,7 @@ function SignOutModal(): JSX.Element {
           <AppButton
             style={tailwind('flex-1')}
             title={strings.components.buttons.signOut}
-            type="accept"
+            type="delete"
             onPress={onSignOutButtonPressed}
           />
         </View>

@@ -72,7 +72,7 @@ function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePasswo
           <View
             style={[
               tailwind('input-wrapper my-2 items-stretch'),
-              tailwind(newPassword === '' ? '' : isValidNewPassword ? 'input-valid' : 'input-error'),
+              tailwind(newPassword === '' ? '' : isValidNewPassword ? 'input-valid' : 'border-red-'),
             ]}
           >
             <AppTextInput
@@ -103,7 +103,7 @@ function ChangePasswordScreen({ navigation }: RootStackScreenProps<'ChangePasswo
           <View
             style={[
               tailwind('input-wrapper my-2 items-stretch'),
-              tailwind(confirmPassword === '' ? '' : passwordConfirmed ? 'input-valid' : 'input-error'),
+              tailwind(confirmPassword === '' ? '' : passwordConfirmed ? 'input-valid' : 'border-red-'),
             ]}
           >
             <AppTextInput

@@ -24,6 +24,8 @@ import DriveDownloadModal from '../components/modals/DriveDownloadModal';
 import SignOutModal from '../components/modals/SignOutModal';
 import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import AccountScreen from '../screens/AccountScreen';
+import SecurityScreen from '../screens/SecurityScreen';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
@@ -52,6 +54,8 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Add" component={EmptyScreen} />
         <Tab.Screen name="Photos" component={PhotosNavigator} />
         <Tab.Screen name="Settings" component={SettingsScreen} />
+        <Tab.Screen name="Account" component={AccountScreen} />
+        <Tab.Screen name="Security" component={SecurityScreen} />
       </Tab.Navigator>
 
       <AddModal />

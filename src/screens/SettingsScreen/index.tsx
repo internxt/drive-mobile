@@ -1,22 +1,11 @@
 import React from 'react';
-import {
-  GestureResponderEvent,
-  Linking,
-  Text,
-  TouchableHighlight,
-  View,
-  ScrollView,
-  StyleProp,
-  ViewStyle,
-  Image,
-} from 'react-native';
+import { Linking, View, ScrollView, Image } from 'react-native';
 import { Bug, CaretRight, FolderSimple, Info, Question, Translate } from 'phosphor-react-native';
 
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
 import { useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
-import globalStyle from '../../styles/global';
 import AppScreen from '../../components/AppScreen';
 import appService from '../../services/AppService';
 import AppText from '../../components/AppText';
@@ -24,62 +13,14 @@ import { TabExplorerScreenProps } from '../../types/navigation';
 import AppScreenTitle from '../../components/AppScreenTitle';
 import { useTailwind } from 'tailwind-rn';
 import AppSwitch from '../../components/AppSwitch';
-
-interface SettingsGroupItemProps {
-  key: string;
-  template: JSX.Element;
-  style?: StyleProp<ViewStyle>;
-  onPress?: (event: GestureResponderEvent) => void;
-}
-
-function SettingsGroup({ title, items }: { title: string; items: SettingsGroupItemProps[] }) {
-  const tailwind = useTailwind();
-  const SettingsGroupItem = (props: SettingsGroupItemProps) => {
-    return (
-      <TouchableHighlight
-        disabled={!props.onPress}
-        underlayColor={tailwind('text-neutral-30').color as string}
-        onPress={(event) => {
-          props.onPress && props.onPress(event);
-        }}
-      >
-        {props.template}
-      </TouchableHighlight>
-    );
-  };
-  const renderItems = () =>
-    items.map((i, index) => {
-      const isTheLast = index === items.length - 1;
-      const separator = <View style={{ height: 1, ...tailwind('bg-gray-5') }}></View>;
-
-      return !isTheLast ? (
-        <SettingsGroupItem {...i} />
-      ) : (
-        <View key={i.key}>
-          {separator}
-          <SettingsGroupItem {...i} />
-        </View>
-      );
-    });
-
-  return (
-    <View style={tailwind('mb-8')}>
-      <AppText style={tailwind('text-xs ml-4 mb-2')} semibold>
-        {title.toUpperCase()}
-      </AppText>
-      <View style={tailwind('bg-white rounded-xl')}>{renderItems()}</View>
-    </View>
-  );
-}
+import SettingsGroup from '../../components/SettingsGroup';
 
 function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX.Element {
   const tailwind = useTailwind();
-  const { user } = useAppSelector((state) => state.auth);
   const useMobileDataToUploadPhotos = true;
-  const userNameLetters = useAppSelector(authSelectors.nameLetters);
   const userFullName = useAppSelector(authSelectors.userFullName);
   const onAccountPressed = () => {
-    navigation.push('Account');
+    navigation.push('TabExplorer', { screen: 'Account' });
   };
   const onStoragePressed = () => {
     navigation.push('Storage');
@@ -129,7 +70,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                       source={require('../../../assets/icon.png')}
                       height={56}
                       width={56}
-                      style={{ ...tailwind('h-14 w-14'), borderRadius: 28 }}
+                      style={tailwind('h-14 w-14 rounded-full border border-gray-5')}
                     />
 
                     <View style={tailwind('flex-grow flex-1 ml-3')}>

@@ -1,7 +1,7 @@
 import React from 'react';
-import { StyleProp, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
+import { StyleProp, TouchableHighlight, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
-import globalStyle from '../../styles/global';
+import AppText from '../AppText';
 import LoadingSpinner from '../LoadingSpinner';
 
 interface AppButtonProps {
@@ -21,7 +21,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     accept: props.disabled ? tailwind('bg-neutral-30') : tailwind('bg-blue-60'),
     cancel: tailwind('bg-neutral-20'),
     'cancel-2': tailwind('bg-blue-10'),
-    delete: tailwind('bg-red-60'),
+    delete: tailwind('bg-red-'),
   }[props.type];
   const typeTextStyle = {
     accept: props.disabled ? tailwind('text-neutral-60') : tailwind('text-white'),
@@ -33,7 +33,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     accept: tailwind('text-blue-70').color as string,
     cancel: tailwind('text-neutral-30').color as string,
     'cancel-2': tailwind('text-neutral-30').color as string,
-    delete: tailwind('text-red-70').color as string,
+    delete: tailwind('text-red-dark').color as string,
   }[props.type];
 
   const renderContent = () => {
@@ -47,9 +47,9 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
 
     if (isTitleString) {
       return (
-        <Text numberOfLines={1} style={[tailwind('text-lg'), globalStyle.fontWeight.medium, typeTextStyle]}>
+        <AppText medium numberOfLines={1} style={[tailwind('text-lg'), typeTextStyle]}>
           {props.title}
-        </Text>
+        </AppText>
       );
     }
 
@@ -59,7 +59,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     <TouchableHighlight
       testID={props.testID}
       underlayColor={typeUnderlayColor}
-      style={[tailwind('rounded-lg px-4 py-2 items-center justify-center '), typeBgStyle, props.style]}
+      style={[tailwind('rounded-lg px-4 py-2 items-center justify-center'), typeBgStyle, props.style]}
       onPress={props.onPress}
       disabled={!!props.disabled || !!props.loading}
     >

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextInput, TouchableHighlight, View, Text, Alert, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { TextInput, View, Text, Alert, ScrollView, TouchableWithoutFeedback } from 'react-native';
 
 import AppCheckBox from '../../components/AppCheckBox';
 import strings from '../../../assets/lang/strings';
@@ -16,6 +16,7 @@ import { Eye, EyeSlash } from 'phosphor-react-native';
 import AppText from '../../components/AppText';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import AppButton from '../../components/AppButton';
 
 function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Element {
   const tailwind = useTailwind();
@@ -102,6 +103,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
     }
   };
   const onGoToSignInButtonPressed = () => navigation.replace('SignIn');
+  const inputWrapperStyle = tailwind('flex-row border-gray-10 rounded-xl border h-14');
 
   return (
     <AppScreen safeAreaBottom safeAreaTop>
@@ -118,11 +120,15 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
 
           <View>
             <View
-              style={[tailwind('input-wrapper my-2 items-stretch'), isValidFirstName ? tailwind('input-valid') : {}]}
+              style={[
+                inputWrapperStyle,
+                tailwind('my-2 items-stretch'),
+                isValidFirstName ? tailwind('input-valid') : {},
+              ]}
             >
               <TextInput
                 testID="first-name-input"
-                style={tailwind('input pl-4')}
+                style={tailwind('flex-grow pl-4')}
                 value={firstName}
                 onChangeText={(value) => setFirstName(value)}
                 placeholder={strings.components.inputs.first_name}
@@ -136,11 +142,15 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
             </View>
 
             <View
-              style={[tailwind('input-wrapper my-2 items-stretch'), isValidLastName ? tailwind('input-valid') : {}]}
+              style={[
+                inputWrapperStyle,
+                tailwind('my-2 items-stretch'),
+                isValidLastName ? tailwind('input-valid') : {},
+              ]}
             >
               <TextInput
                 testID="last-name-input"
-                style={tailwind('input pl-4')}
+                style={tailwind('flex-grow pl-4')}
                 value={lastName}
                 onChangeText={(value) => setLastName(value)}
                 placeholder={strings.components.inputs.last_name}
@@ -155,13 +165,14 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
 
             <View
               style={[
-                tailwind('input-wrapper my-2 items-stretch'),
-                isEmptyEmail ? {} : tailwind(isValidEmail ? 'input-valid' : 'input-error'),
+                inputWrapperStyle,
+                tailwind('my-2 items-stretch'),
+                isEmptyEmail ? {} : tailwind(isValidEmail ? 'input-valid' : 'border-red-'),
               ]}
             >
               <TextInput
                 testID="email-input"
-                style={tailwind('input pl-4')}
+                style={tailwind('flex-grow pl-4')}
                 value={email}
                 onChangeText={(value) => setEmail(value)}
                 placeholder={strings.components.inputs.email}
@@ -180,13 +191,14 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
           <View>
             <View
               style={[
-                tailwind('input-wrapper my-2 items-stretch'),
-                isEmptyPassword ? {} : tailwind(isValidPassword ? 'input-valid' : 'input-error'),
+                inputWrapperStyle,
+                tailwind('my-2 items-stretch'),
+                isEmptyPassword ? {} : tailwind(isValidPassword ? 'input-valid' : 'border-red-'),
               ]}
             >
               <TextInput
                 testID="password-input"
-                style={tailwind('input pl-4')}
+                style={tailwind('flex-grow pl-4')}
                 value={password}
                 onChangeText={setPassword}
                 placeholder={strings.components.inputs.password}
@@ -216,13 +228,14 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
 
             <View
               style={[
-                tailwind('input-wrapper my-2 items-stretch'),
-                !isConfirmPasswordEmpty && tailwind(isValidConfirmedPassword ? 'input-valid' : 'input-error'),
+                inputWrapperStyle,
+                tailwind('my-2 items-stretch'),
+                !isConfirmPasswordEmpty && tailwind(isValidConfirmedPassword ? 'input-valid' : 'border-red-'),
               ]}
             >
               <TextInput
                 testID="confirm-password-input"
-                style={tailwind('input pl-4')}
+                style={tailwind('flex-grow pl-4')}
                 value={confirmPassword}
                 onChangeText={(value) => setConfirmPassword(value)}
                 placeholder={strings.components.inputs.confirm_password}
@@ -262,24 +275,18 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
           ></AppCheckBox>
         </View>
 
-        <TouchableHighlight
+        <AppButton
           testID="sign-up-button"
+          type="accept"
           disabled={!isValidForm || registerButtonClicked}
-          style={[
-            tailwind('btn btn-primary my-4'),
-            !isValidForm || registerButtonClicked ? tailwind('opacity-50') : {},
-          ]}
-          underlayColor="#4585f5"
-          onPress={() => onSignUpButtonPressed()}
-        >
-          <View>
-            <AppText style={tailwind('text-white')}>
-              {registerButtonClicked
-                ? strings.components.buttons.creating_button
-                : strings.components.buttons.createAccount}
-            </AppText>
-          </View>
-        </TouchableHighlight>
+          style={[tailwind('py-4 my-4')]}
+          title={
+            registerButtonClicked
+              ? strings.components.buttons.creating_button
+              : strings.components.buttons.createAccount
+          }
+          onPress={onSignUpButtonPressed}
+        />
 
         <AppText style={tailwind('text-center mb-10')} onPress={onGoToSignInButtonPressed}>
           <AppText style={tailwind('text-sm text-blue-60')}>{strings.screens.SignInScreen.title}</AppText>
