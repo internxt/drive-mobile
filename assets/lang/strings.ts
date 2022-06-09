@@ -6,7 +6,11 @@ import { NotificationType } from '../../src/types';
 import { SortType } from '../../src/types/drive';
 
 const strings = new LocalizedStrings({
-  en_US: {
+  en: {
+    languages: {
+      en: 'English',
+      es: 'Spanish',
+    },
     generic: {
       loading: 'Loading',
       security: 'Security',
@@ -241,9 +245,19 @@ const strings = new LocalizedStrings({
         storage: 'Almacenamiento',
         language: 'Idioma',
         drive: 'Drive',
+        account: {
+          advice: 'Perfil, facturación y seguridad',
+        },
+        photos: {
+          mobileData: {
+            title: 'Usar datos móviles para subir',
+            onlyWifi: 'Usar solo WiFi para subir fotos',
+            wifiAndMobileData: 'Usar WiFi y datos móviles para subir fotos',
+          },
+        },
         support: 'Soporte',
         more: 'Más información',
-        termsAndConditions: 'Términos de servicio',
+        termsAndConditions: 'Términos y condiciones',
         signOut: 'Cerrar sesión',
       },
     },
@@ -437,6 +451,10 @@ const strings = new LocalizedStrings({
     },
   },
   es: {
+    languages: {
+      en: 'Inglés',
+      es: 'Español',
+    },
     generic: {
       loading: 'Cargando',
       security: 'Seguridad',
@@ -675,7 +693,17 @@ const strings = new LocalizedStrings({
         drive: 'Drive',
         support: 'Support',
         more: 'More info',
-        termsAndConditions: 'Terms of Service',
+        account: {
+          advice: 'Profile, billing and security',
+        },
+        photos: {
+          mobileData: {
+            title: 'Use mobile data to upload',
+            onlyWifi: 'Use only WiFi to upload photos',
+            wifiAndMobileData: 'Use WiFi and mobile data to upload photos',
+          },
+        },
+        termsAndConditions: 'Terms and conditions',
         signOut: 'Log out',
       },
     },

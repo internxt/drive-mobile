@@ -8,8 +8,9 @@ import {
   ScrollView,
   StyleProp,
   ViewStyle,
+  Image,
 } from 'react-native';
-import { CaretRight } from 'phosphor-react-native';
+import { Bug, CaretRight, FolderSimple, Info, Question, Translate } from 'phosphor-react-native';
 
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
@@ -22,6 +23,7 @@ import AppText from '../../components/AppText';
 import { TabExplorerScreenProps } from '../../types/navigation';
 import AppScreenTitle from '../../components/AppScreenTitle';
 import { useTailwind } from 'tailwind-rn';
+import AppSwitch from '../../components/AppSwitch';
 
 interface SettingsGroupItemProps {
   key: string;
@@ -35,18 +37,30 @@ function SettingsGroup({ title, items }: { title: string; items: SettingsGroupIt
   const SettingsGroupItem = (props: SettingsGroupItemProps) => {
     return (
       <TouchableHighlight
+        disabled={!props.onPress}
         underlayColor={tailwind('text-neutral-30').color as string}
         onPress={(event) => {
-          if (props.onPress) {
-            props.onPress(event);
-          }
+          props.onPress && props.onPress(event);
         }}
       >
         {props.template}
       </TouchableHighlight>
     );
   };
-  const renderItems = () => items.map((i) => <SettingsGroupItem {...i} />);
+  const renderItems = () =>
+    items.map((i, index) => {
+      const isTheLast = index === items.length - 1;
+      const separator = <View style={{ height: 1, ...tailwind('bg-gray-5') }}></View>;
+
+      return !isTheLast ? (
+        <SettingsGroupItem {...i} />
+      ) : (
+        <View key={i.key}>
+          {separator}
+          <SettingsGroupItem {...i} />
+        </View>
+      );
+    });
 
   return (
     <View style={tailwind('mb-8')}>
@@ -61,6 +75,7 @@ function SettingsGroup({ title, items }: { title: string; items: SettingsGroupIt
 function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX.Element {
   const tailwind = useTailwind();
   const { user } = useAppSelector((state) => state.auth);
+  const useMobileDataToUploadPhotos = true;
   const userNameLetters = useAppSelector(authSelectors.nameLetters);
   const userFullName = useAppSelector(authSelectors.userFullName);
   const onAccountPressed = () => {
@@ -84,19 +99,24 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
   };
 
   return (
-    <AppScreen safeAreaTop backgroundColor={tailwind('text-white').color as string} style={tailwind('min-h-full')}>
+    <AppScreen
+      safeAreaTop
+      safeAreaColor={tailwind('text-white').color as string}
+      backgroundColor={tailwind('text-gray-5').color as string}
+      style={tailwind('min-h-full')}
+    >
       <ScrollView>
         <AppScreenTitle
           text={strings.screens.SettingsScreen.title}
+          containerStyle={tailwind('bg-white')}
           showBackButton={false}
           rightSlot={
             <View style={tailwind('flex-grow items-end justify-center')}>
               <AppVersionWidget />
             </View>
           }
-          containerStyle={tailwind('mb-4')}
         />
-        <View style={tailwind('px-4 pt-8 flex-grow bg-neutral-30')}>
+        <View style={tailwind('px-4 pt-8 flex-grow')}>
           {/* ACCOUNT */}
           <SettingsGroup
             title={'Account'}
@@ -104,23 +124,25 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
               {
                 key: 'account',
                 template: (
-                  <View style={tailwind('items-center flex-row p-4')}>
-                    <View style={tailwind('bg-blue-20 items-center justify-center rounded-3xl w-10 h-10')}>
-                      <AppText semibold style={tailwind('text-blue-80 font-bold text-xl')}>
-                        {userNameLetters}
+                  <View style={tailwind('flex-row items-center p-4')}>
+                    <Image
+                      source={require('../../../assets/icon.png')}
+                      height={56}
+                      width={56}
+                      style={{ ...tailwind('h-14 w-14'), borderRadius: 28 }}
+                    />
+
+                    <View style={tailwind('flex-grow flex-1 ml-3')}>
+                      <AppText numberOfLines={1} medium style={tailwind('text-xl text-gray-80')}>
+                        {userFullName}
+                      </AppText>
+                      <AppText numberOfLines={1} style={tailwind('text-gray-40')}>
+                        {strings.screens.SettingsScreen.account.advice}
                       </AppText>
                     </View>
 
-                    <View style={tailwind('ml-3')}>
-                      <Text
-                        style={{
-                          ...tailwind('text-xl text-neutral-500 font-semibold'),
-                          ...globalStyle.fontWeight.semibold,
-                        }}
-                      >
-                        {userFullName}
-                      </Text>
-                      <Text style={tailwind('text-neutral-100')}>{user?.email}</Text>
+                    <View style={tailwind('items-end')}>
+                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
                     </View>
                   </View>
                 ),
@@ -136,14 +158,16 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
               {
                 key: 'storage',
                 template: (
-                  <View style={[tailwind('flex-row px-4 py-3')]}>
+                  <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                    <FolderSimple size={24} color={tailwind('text-primary').color as string} style={tailwind('mr-3')} />
                     <View style={tailwind('flex-grow justify-center')}>
-                      <AppText style={[tailwind('text-lg text-neutral-500')]}>
+                      <AppText style={[tailwind('text-lg text-gray-80')]}>
                         {strings.screens.SettingsScreen.storage}
                       </AppText>
                     </View>
-                    <View style={tailwind('justify-center')}>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} />
+                    <View style={tailwind('flex-row items-center')}>
+                      <AppText style={tailwind('text-gray-40 mr-2.5')}>51% Used</AppText>
+                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
                     </View>
                   </View>
                 ),
@@ -152,14 +176,16 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
               {
                 key: 'language',
                 template: (
-                  <View style={[tailwind('flex-row px-4 py-3')]}>
+                  <View style={[tailwind('flex-row items-center  px-4 py-3')]}>
+                    <Translate size={24} color={tailwind('text-primary').color as string} style={tailwind('mr-3')} />
                     <View style={tailwind('flex-grow justify-center')}>
-                      <AppText style={[tailwind('text-lg text-neutral-500')]}>
+                      <AppText style={[tailwind('text-lg text-gray-80')]}>
                         {strings.screens.SettingsScreen.language}
                       </AppText>
                     </View>
-                    <View style={tailwind('justify-center')}>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} />
+                    <View style={tailwind('flex-row items-center')}>
+                      <AppText style={tailwind('text-gray-40 mr-2.5')}>{strings.languages.en}</AppText>
+                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
                     </View>
                   </View>
                 ),
@@ -173,7 +199,23 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
             items={[
               {
                 key: 'photos-mobile-data',
-                template: <View style={[tailwind('flex-row px-4 py-3')]}></View>,
+                template: (
+                  <View style={[tailwind('flex-row px-4 py-3')]}>
+                    <View>
+                      <AppText style={tailwind('text-lg text-gray-80')}>
+                        {strings.screens.SettingsScreen.photos.mobileData.title}
+                      </AppText>
+                      <AppText style={tailwind('text-xs text-gray-40')}>
+                        {useMobileDataToUploadPhotos
+                          ? strings.screens.SettingsScreen.photos.mobileData.wifiAndMobileData
+                          : strings.screens.SettingsScreen.photos.mobileData.onlyWifi}
+                      </AppText>
+                    </View>
+                    <View style={tailwind('flex-grow items-end justify-center')}>
+                      <AppSwitch value={useMobileDataToUploadPhotos} />
+                    </View>
+                  </View>
+                ),
               },
             ]}
           />
@@ -184,14 +226,15 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
               {
                 key: 'support',
                 template: (
-                  <View style={[tailwind('flex-row px-4 py-3')]}>
+                  <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                    <Question size={24} color={tailwind('text-primary').color as string} style={tailwind('mr-3')} />
                     <View style={tailwind('flex-grow justify-center')}>
-                      <AppText style={[tailwind('text-lg text-neutral-500')]}>
+                      <AppText style={[tailwind('text-lg text-gray-80')]}>
                         {strings.screens.SettingsScreen.support}
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} />
+                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
                     </View>
                   </View>
                 ),
@@ -200,14 +243,15 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
               {
                 key: 'more-information',
                 template: (
-                  <View style={[tailwind('flex-row px-4 py-3')]}>
+                  <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                    <Info size={24} color={tailwind('text-primary').color as string} style={tailwind('mr-3')} />
                     <View style={tailwind('flex-grow justify-center')}>
-                      <AppText style={[tailwind('text-lg text-neutral-500')]}>
+                      <AppText style={[tailwind('text-lg text-gray-80')]}>
                         {strings.screens.SettingsScreen.more}
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} />
+                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
                     </View>
                   </View>
                 ),
@@ -224,12 +268,12 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                 template: (
                   <View style={[tailwind('flex-row px-4 py-3')]}>
                     <View style={tailwind('flex-grow justify-center')}>
-                      <AppText style={[tailwind('text-lg text-neutral-500')]}>
+                      <AppText style={[tailwind('text-lg text-gray-80')]}>
                         {strings.screens.SettingsScreen.termsAndConditions}
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} />
+                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
                     </View>
                   </View>
                 ),
@@ -244,16 +288,17 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
               title={'Debug'}
               items={[
                 {
-                  key: 'terms-and-conditions',
+                  key: 'debug',
                   template: (
-                    <View style={[tailwind('flex-row px-4 py-3')]}>
+                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                      <Bug size={24} color={tailwind('text-primary').color as string} style={tailwind('mr-3')} />
                       <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg text-neutral-500')]}>
+                        <AppText style={[tailwind('text-lg text-gray-80')]}>
                           {strings.screens.DebugScreen.title}
                         </AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={tailwind('text-neutral-60').color as string} />
+                        <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
                       </View>
                     </View>
                   ),

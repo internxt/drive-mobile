@@ -34,7 +34,7 @@ const AppScreenTitle = ({
   const backButtonEnabled = useAppSelector((state) => state.ui.backButtonEnabled);
 
   return (
-    <View style={[tailwind('pt-4 flex-row justify-center items-center py-2 px-5'), containerStyle]}>
+    <View style={[tailwind('flex-row justify-center items-center pt-6 pb-4 px-5'), containerStyle]}>
       {showBackButton && (
         <TouchableOpacity style={tailwind('flex-1')} disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>

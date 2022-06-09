@@ -6,6 +6,7 @@ import { useTailwind } from 'tailwind-rn';
 
 interface AppScreenProps {
   backgroundColor?: string;
+  safeAreaColor?: string;
   statusBarHidden?: boolean;
   statusBarTranslucent?: boolean;
   statusBarStyle?: StatusBarStyle;
@@ -19,6 +20,7 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
   const tailwind = useTailwind();
   const safeAreaInsets = useSafeAreaInsets();
   const propsStyle = Object.assign({}, props.style || {}) as Record<string, string>;
+  const safeAreaColor = props.safeAreaColor || (tailwind('text-white').color as string);
   const backgroundColor = props.backgroundColor || (tailwind('text-white').color as string);
   const statusBarStyle = props.statusBarStyle || 'dark';
   const onBackgroundPressed = () => {
@@ -29,11 +31,16 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
     <View
       style={{
         backgroundColor,
-        paddingTop: props.safeAreaTop ? safeAreaInsets.top : 0,
-        paddingBottom: props.safeAreaBottom ? safeAreaInsets.bottom : 0,
         ...propsStyle,
       }}
     >
+      <View
+        style={{
+          backgroundColor: safeAreaColor,
+          paddingTop: props.safeAreaTop ? safeAreaInsets.top : 0,
+        }}
+      />
+
       <StatusBar
         hidden={props.statusBarHidden}
         style={statusBarStyle}
@@ -47,6 +54,13 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
       </TouchableWithoutFeedback>
 
       {props.children}
+
+      <View
+        style={{
+          backgroundColor: safeAreaColor,
+          paddingBottom: props.safeAreaBottom ? safeAreaInsets.bottom : 0,
+        }}
+      />
     </View>
   );
 };
