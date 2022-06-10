@@ -39,10 +39,7 @@ function SignOutModal(): JSX.Element {
         </AppText>
 
         <View style={tailwind('items-center my-8')}>
-          <Image
-            source={require('../../../../assets/icon.png')}
-            style={tailwind('h-20 w-20 rounded-full border border-gray-5')}
-          />
+          <Image source={require('../../../../assets/icon.png')} style={tailwind('h-20 w-20 rounded-full')} />
           <AppText style={tailwind('text-lg text-gray-80 mt-2')} medium>
             {userFullName}
           </AppText>

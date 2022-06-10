@@ -70,7 +70,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                       source={require('../../../assets/icon.png')}
                       height={56}
                       width={56}
-                      style={tailwind('h-14 w-14 rounded-full border border-gray-5')}
+                      style={tailwind('h-14 w-14 rounded-full')}
                     />
 
                     <View style={tailwind('flex-grow flex-1 ml-3')}>

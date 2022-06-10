@@ -15,7 +15,7 @@ const AppText = (props: AppTextProps): JSX.Element => {
     <Text
       {...props}
       style={[
-        tailwind('text-neutral-900 text-base'),
+        tailwind('text-gray-80 text-base'),
         props.medium && styles.fontWeight.medium,
         props.semibold && styles.fontWeight.semibold,
         props.bold && styles.fontWeight.bold,

@@ -93,10 +93,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
         <View style={tailwind('px-4')}>
           {/* PROFILE PICTURE */}
           <View style={tailwind('items-center my-8 px-4')}>
-            <Image
-              source={require('../../../assets/icon.png')}
-              style={tailwind('mb-2 h-28 w-28 rounded-full border border-gray-5')}
-            />
+            <Image source={require('../../../assets/icon.png')} style={tailwind('mb-2 h-28 w-28 rounded-full')} />
             <AppText style={tailwind('text-2xl text-gray-80')}>{userFullName}</AppText>
             <AppText style={tailwind('text-lg text-gray-40')}>{user?.email}</AppText>
           </View>

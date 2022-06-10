@@ -27,7 +27,7 @@ function SettingsGroup({ title, items, advice }: { title?: string; advice?: stri
   const renderItems = () =>
     items.map((i, index) => {
       const isTheLast = index === items.length - 1;
-      const separator = <View style={{ height: 1, ...tailwind('bg-gray-5') }}></View>;
+      const separator = <View style={{ height: 1, ...tailwind('bg-gray-5 mx-4') }}></View>;
 
       return isTheLast ? (
         <SettingsGroupItem {...i} />

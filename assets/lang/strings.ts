@@ -274,6 +274,20 @@ const strings = new LocalizedStrings({
       },
       SecurityScreen: {
         title: 'Seguridad',
+        changePassword: {
+          title: 'Cambiar contraseña',
+          text: 'Recuerda que si olvidas la contraseña, perderás el acceso a todos tus archivos. Te recomendamos que utilices un gestor de contraseñas',
+        },
+        twoFactor: {
+          title: 'Autenticación de dos factores (2FA)',
+          text: 'La autenticación de dos factores proporciona una capa extra de seguridad al requerir una verificación adicional cuando te conectas. Además de tu contraseña, necesitarás un código generado',
+          action: 'Habilitar 2FA',
+        },
+        backupKey: {
+          title: 'Clave de respaldo',
+          text: 'En caso de que olvides tu contraseña, puedes usar tu clave de respaldo para recuperar tu cuenta. Nunca compartas esta clave con nadie',
+          action: 'Exportar la clave de seguridad',
+        },
       },
     },
     components: {
@@ -735,6 +749,20 @@ const strings = new LocalizedStrings({
       },
       SecurityScreen: {
         title: 'Security',
+        changePassword: {
+          title: 'Change password',
+          text: 'Remember that if you forget the password, you will lose access to all your files. We recommend using a password manager.',
+        },
+        twoFactor: {
+          title: 'Two factor authentication (2FA)',
+          text: 'Two-factor authentication provides an extra layer of security by requiring an extra verification when you log in. In adittion to your password, you’ll also need a generated code.',
+          action: 'Enable 2FA',
+        },
+        backupKey: {
+          title: 'Backup key',
+          text: 'In case you forget your password you can use your backup key to recover your account. Never share this code with anyone.',
+          action: 'Export backup key',
+        },
       },
     },
     components: {
