@@ -17,6 +17,7 @@ import { Check } from 'phosphor-react-native';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../components/AppText';
+import useGetColor from '../../hooks/useColor';
 
 const intervalToMonth = (intervalName: string, intervalCount: number) => {
   let result = 0;
@@ -65,6 +66,7 @@ const PERIODS = [
 
 function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const redirectUrl = `${constants.REACT_NATIVE_WEB_CLIENT_URL}/redirect-to-app?path=checkout`;
   const getLink = async (plan: { id: string }) => {
     const body = {
@@ -84,7 +86,7 @@ function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Ele
           strings.formatString(strings.errors.generic.message, err.message) as string,
           [
             {
-              text: strings.components.buttons.back,
+              text: strings.buttons.back,
               onPress: () => navigation.replace('Billing'),
             },
           ],
@@ -189,7 +191,7 @@ function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Ele
                 </View>
                 <View style={tailwind('justify-center')}>
                   <TouchableHighlight
-                    underlayColor={tailwind('text-blue-70').color as string}
+                    underlayColor={getColor('text-blue-70')}
                     style={tailwind('bg-blue-60 rounded-xl h-10 justify-center')}
                     onPress={() => {
                       getLink(plan);

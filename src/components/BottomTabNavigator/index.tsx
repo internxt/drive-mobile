@@ -8,6 +8,7 @@ import { useAppDispatch } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
 import { FolderSimple, Gear, House, ImageSquare, PlusCircle } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 const tabs = {
   Home: { label: strings.tabs.Home, icon: House },
@@ -19,6 +20,7 @@ const tabs = {
 
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const items = props.state.routes
     .filter((route) => Object.keys(tabs).includes(route.name))
@@ -45,10 +47,10 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         props.navigation.emit({ type: 'tabLongPress', target: route.key });
       };
       const iconColor = isAddRoute
-        ? (tailwind('text-white').color as string)
+        ? getColor('text-white')
         : isFocused
-        ? (tailwind('text-blue-60').color as string)
-        : (tailwind('text-neutral-80').color as string);
+        ? getColor('text-blue-60')
+        : getColor('text-neutral-80');
       const Icon = tabs[route.name as keyof typeof tabs].icon;
 
       return (
@@ -63,7 +65,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         >
           <View style={tailwind('h-14 items-center justify-center flex-1')}>
             {isAddRoute ? (
-              <Icon weight="fill" color={tailwind('text-blue-60').color as string} size={40} />
+              <Icon weight="fill" color={getColor('text-blue-60')} size={40} />
             ) : (
               <Icon weight={isFocused ? 'fill' : undefined} color={iconColor} size={26} />
             )}

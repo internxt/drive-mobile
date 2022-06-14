@@ -17,9 +17,11 @@ import AppText from '../../components/AppText';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import AppButton from '../../components/AppButton';
+import useGetColor from '../../hooks/useColor';
 
 function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const twoFactorCode = '';
@@ -131,7 +133,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
                 style={tailwind('flex-grow pl-4')}
                 value={firstName}
                 onChangeText={(value) => setFirstName(value)}
-                placeholder={strings.components.inputs.first_name}
+                placeholder={strings.inputs.firstName}
                 placeholderTextColor="#666"
                 maxLength={64}
                 autoCapitalize="words"
@@ -153,7 +155,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
                 style={tailwind('flex-grow pl-4')}
                 value={lastName}
                 onChangeText={(value) => setLastName(value)}
-                placeholder={strings.components.inputs.last_name}
+                placeholder={strings.inputs.lastName}
                 placeholderTextColor="#666"
                 maxLength={64}
                 autoCapitalize="words"
@@ -175,7 +177,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
                 style={tailwind('flex-grow pl-4')}
                 value={email}
                 onChangeText={(value) => setEmail(value)}
-                placeholder={strings.components.inputs.email}
+                placeholder={strings.inputs.email}
                 placeholderTextColor="#666"
                 maxLength={64}
                 keyboardType="email-address"
@@ -201,7 +203,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
                 style={tailwind('flex-grow pl-4')}
                 value={password}
                 onChangeText={setPassword}
-                placeholder={strings.components.inputs.password}
+                placeholder={strings.inputs.password}
                 placeholderTextColor="#666"
                 textContentType="password"
                 autoCapitalize="none"
@@ -217,9 +219,9 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
                 <TouchableWithoutFeedback onPress={() => setShowPassword(!showPassword)}>
                   <View style={tailwind('justify-center p-3')}>
                     {showPassword ? (
-                      <EyeSlash color={tailwind('text-neutral-80').color as string} />
+                      <EyeSlash color={getColor('text-neutral-80')} />
                     ) : (
-                      <Eye color={tailwind('text-neutral-80').color as string} />
+                      <Eye color={getColor('text-neutral-80')} />
                     )}
                   </View>
                 </TouchableWithoutFeedback>
@@ -238,7 +240,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
                 style={tailwind('flex-grow pl-4')}
                 value={confirmPassword}
                 onChangeText={(value) => setConfirmPassword(value)}
-                placeholder={strings.components.inputs.confirm_password}
+                placeholder={strings.inputs.confirmPassword}
                 placeholderTextColor="#666"
                 secureTextEntry={!showConfirmPassword}
                 textContentType="password"
@@ -251,9 +253,9 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
                 <TouchableWithoutFeedback onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                   <View style={tailwind('justify-center p-3')}>
                     {showConfirmPassword ? (
-                      <EyeSlash color={tailwind('text-neutral-80').color as string} />
+                      <EyeSlash color={getColor('text-neutral-80')} />
                     ) : (
-                      <Eye color={tailwind('text-neutral-80').color as string} />
+                      <Eye color={getColor('text-neutral-80')} />
                     )}
                   </View>
                 </TouchableWithoutFeedback>
@@ -280,11 +282,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
           type="accept"
           disabled={!isValidForm || registerButtonClicked}
           style={[tailwind('py-4 my-4')]}
-          title={
-            registerButtonClicked
-              ? strings.components.buttons.creating_button
-              : strings.components.buttons.createAccount
-          }
+          title={registerButtonClicked ? strings.buttons.creating_button : strings.buttons.createAccount}
           onPress={onSignUpButtonPressed}
         />
 

@@ -10,9 +10,11 @@ import LoadingSpinner from '../LoadingSpinner';
 import AppText from '../AppText';
 import { PhotosService } from '../../services/PhotosService';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 const PhotosSyncStatusWidget = (): JSX.Element => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const { syncStatus } = useAppSelector((state) => state.photos);
   const onSyncNowPressed = () => {
@@ -36,7 +38,7 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
       <View style={tailwind('flex-row items-center')}>
         <Text style={tailwind('text-sm text-yellow-30')}>{strings.messages.photosSyncPending}</Text>
         <TouchableWithoutFeedback onPress={onSyncNowPressed}>
-          <Text style={tailwind('ml-2 text-sm text-blue-60')}>{strings.components.buttons.syncNow}</Text>
+          <Text style={tailwind('ml-2 text-sm text-blue-60')}>{strings.buttons.syncNow}</Text>
         </TouchableWithoutFeedback>
       </View>
     ),
@@ -66,12 +68,7 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
     ),
     [PhotosSyncStatus.Completed]: (
       <View style={tailwind('flex-row items-center')}>
-        <CheckCircle
-          weight="fill"
-          style={tailwind('mr-1')}
-          color={tailwind('text-green-40').color as string}
-          size={14}
-        />
+        <CheckCircle weight="fill" style={tailwind('mr-1')} color={getColor('text-green-40')} size={14} />
         <Text style={tailwind('text-neutral-100 text-sm')}>{strings.messages.photosSyncCompleted}</Text>
       </View>
     ),
@@ -95,15 +92,15 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
         !isPaused && !isPausing ? (
           <TouchableOpacity onPress={onPauseButtonPressed}>
             <View style={[tailwind('py-1 flex-row items-center')]}>
-              <Pause weight="fill" color={tailwind('text-blue-60').color as string} size={12} />
-              <AppText style={tailwind('ml-1 text-blue-60 text-sm')}>{strings.components.buttons.pause}</AppText>
+              <Pause weight="fill" color={getColor('text-blue-60')} size={12} />
+              <AppText style={tailwind('ml-1 text-blue-60 text-sm')}>{strings.buttons.pause}</AppText>
             </View>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity disabled={isPausing} onPress={onResumeButtonPressed}>
             <View style={[tailwind('py-1 flex-row items-center'), isPausing && tailwind('opacity-30')]}>
-              <Play weight="fill" color={tailwind('text-blue-60').color as string} size={12} />
-              <AppText style={tailwind('ml-1 text-blue-60 text-sm')}>{strings.components.buttons.resume}</AppText>
+              <Play weight="fill" color={getColor('text-blue-60')} size={12} />
+              <AppText style={tailwind('ml-1 text-blue-60 text-sm')}>{strings.buttons.resume}</AppText>
             </View>
           </TouchableOpacity>
         )

@@ -19,8 +19,8 @@ const HomeScreen = (): JSX.Element => {
   const [searchText, setSearchText] = useState('');
   const [currentTab, setCurrentTab] = useState<HomeTab>(HomeTab.Recents);
   const searchPlaceholder = {
-    [HomeTab.Recents]: strings.components.inputs.searchInRecents,
-    [HomeTab.Shared]: strings.components.inputs.searchInShared,
+    [HomeTab.Recents]: strings.inputs.searchInRecents,
+    [HomeTab.Shared]: strings.inputs.searchInShared,
   }[currentTab];
   const tabs = [
     {

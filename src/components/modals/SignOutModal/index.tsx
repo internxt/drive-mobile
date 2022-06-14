@@ -49,13 +49,13 @@ function SignOutModal(): JSX.Element {
         <View style={tailwind('flex-row')}>
           <AppButton
             style={tailwind('flex-1 mr-2')}
-            title={strings.components.buttons.cancel}
+            title={strings.buttons.cancel}
             type="cancel"
             onPress={onCancelButtonPressed}
           />
           <AppButton
             style={tailwind('flex-1')}
-            title={strings.components.buttons.signOut}
+            title={strings.buttons.signOut}
             type="delete"
             onPress={onSignOutButtonPressed}
           />

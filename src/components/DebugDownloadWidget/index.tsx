@@ -20,7 +20,7 @@ const DebugDownloadWidget = (props: DebugDownloadWidgetProps): JSX.Element => {
 
       <View style={tailwind('h-3')}></View>
 
-      <AppButton title={strings.components.buttons.download} type="accept" onPress={onUploadButtonPressed} />
+      <AppButton title={strings.buttons.download} type="accept" onPress={onUploadButtonPressed} />
     </View>
   );
 };

@@ -13,9 +13,11 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import paymentService from '../../../services/PaymentService';
 import { RootScreenNavigationProp } from '../../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../../hooks/useColor';
 
 function RunOutOfStorageModal(): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
@@ -96,12 +98,12 @@ function RunOutOfStorageModal(): JSX.Element {
             </View>
 
             <TouchableHighlight
-              underlayColor={tailwind('text-blue-70').color as string}
+              underlayColor={getColor('text-blue-70')}
               style={tailwind('bg-blue-60 rounded-lg py-2 mx-6 items-center justify-center')}
               onPress={onUpgradeNowButtonPressed}
             >
               <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>
-                {strings.components.buttons.upgradeNow}
+                {strings.buttons.upgradeNow}
               </Text>
             </TouchableHighlight>
           </View>

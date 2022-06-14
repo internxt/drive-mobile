@@ -3,6 +3,7 @@ import { Keyboard, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from '
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar, StatusBarStyle } from 'expo-status-bar';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 interface AppScreenProps {
   backgroundColor?: string;
@@ -18,10 +19,11 @@ interface AppScreenProps {
 
 const AppScreen = (props: AppScreenProps): JSX.Element => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
   const propsStyle = Object.assign({}, props.style || {}) as Record<string, string>;
-  const safeAreaColor = props.safeAreaColor || (tailwind('text-white').color as string);
-  const backgroundColor = props.backgroundColor || (tailwind('text-white').color as string);
+  const safeAreaColor = props.safeAreaColor || getColor('text-white');
+  const backgroundColor = props.backgroundColor || getColor('text-white');
   const statusBarStyle = props.statusBarStyle || 'dark';
   const onBackgroundPressed = () => {
     Keyboard.dismiss();

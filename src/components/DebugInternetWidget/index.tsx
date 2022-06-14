@@ -3,6 +3,7 @@ import { StyleProp, View, ViewStyle } from 'react-native';
 import { measureConnectionSpeed, NetworkBandwidthTestResults } from 'react-native-network-bandwith-speed';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
+import useGetColor from '../../hooks/useColor';
 import errorService from '../../services/ErrorService';
 import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
@@ -14,11 +15,12 @@ interface DebugInternetWidgetProps {
 
 const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const [speed, setSpeed] = useState(0);
   const bySpeedFeatures = [
-    { min: 20, color: tailwind('text-green-40').color as string },
-    { min: 10, color: tailwind('text-yellow-40').color as string },
-    { min: 0, color: tailwind('text-red-60').color as string },
+    { min: 20, color: getColor('text-green-40') },
+    { min: 10, color: getColor('text-yellow-40') },
+    { min: 0, color: getColor('text-red-60') },
   ];
   const getSpeedColor = () => {
     let color = bySpeedFeatures[0].color;

@@ -10,9 +10,11 @@ import AppText from '../AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootScreenNavigationProp } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 const ReferralsBanner = (): JSX.Element => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
@@ -37,7 +39,7 @@ const ReferralsBanner = (): JSX.Element => {
       </AppText>
       <TouchableWithoutFeedback onPress={onCloseButtonPressed}>
         <View style={tailwind('p-2')}>
-          <X color={tailwind('text-blue-40').color as string} size={26} />
+          <X color={getColor('text-blue-40')} size={26} />
         </View>
       </TouchableWithoutFeedback>
     </View>

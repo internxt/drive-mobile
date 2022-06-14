@@ -154,7 +154,7 @@ function DriveDownloadModal(): JSX.Element {
 
             <AppButton
               disabled={downloadingFile.status !== 'idle'}
-              title={isCancelling ? strings.generic.cancelling : strings.components.buttons.cancel}
+              title={isCancelling ? strings.generic.cancelling : strings.buttons.cancel}
               type="cancel-2"
               onPress={onCancelButtonPressed}
             />

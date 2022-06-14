@@ -14,9 +14,11 @@ import AppScreenTitle from '../../components/AppScreenTitle';
 import { useTailwind } from 'tailwind-rn';
 import AppSwitch from '../../components/AppSwitch';
 import SettingsGroup from '../../components/SettingsGroup';
+import useGetColor from '../../hooks/useColor';
 
 function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const useMobileDataToUploadPhotos = true;
   const userFullName = useAppSelector(authSelectors.userFullName);
   const onAccountPressed = () => {
@@ -42,8 +44,8 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
   return (
     <AppScreen
       safeAreaTop
-      safeAreaColor={tailwind('text-white').color as string}
-      backgroundColor={tailwind('text-gray-5').color as string}
+      safeAreaColor={getColor('text-white')}
+      backgroundColor={getColor('text-gray-5')}
       style={tailwind('min-h-full')}
     >
       <ScrollView>
@@ -83,7 +85,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                     </View>
 
                     <View style={tailwind('items-end')}>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
+                      <CaretRight color={getColor('text-neutral-60')} size={20} />
                     </View>
                   </View>
                 ),
@@ -100,7 +102,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                 key: 'storage',
                 template: (
                   <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-                    <FolderSimple size={24} color={tailwind('text-primary').color as string} style={tailwind('mr-3')} />
+                    <FolderSimple size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                     <View style={tailwind('flex-grow justify-center')}>
                       <AppText style={[tailwind('text-lg text-gray-80')]}>
                         {strings.screens.SettingsScreen.storage}
@@ -108,7 +110,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                     </View>
                     <View style={tailwind('flex-row items-center')}>
                       <AppText style={tailwind('text-gray-40 mr-2.5')}>51% Used</AppText>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
+                      <CaretRight color={getColor('text-neutral-60')} size={20} />
                     </View>
                   </View>
                 ),
@@ -118,7 +120,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                 key: 'language',
                 template: (
                   <View style={[tailwind('flex-row items-center  px-4 py-3')]}>
-                    <Translate size={24} color={tailwind('text-primary').color as string} style={tailwind('mr-3')} />
+                    <Translate size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                     <View style={tailwind('flex-grow justify-center')}>
                       <AppText style={[tailwind('text-lg text-gray-80')]}>
                         {strings.screens.SettingsScreen.language}
@@ -126,7 +128,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                     </View>
                     <View style={tailwind('flex-row items-center')}>
                       <AppText style={tailwind('text-gray-40 mr-2.5')}>{strings.languages.en}</AppText>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
+                      <CaretRight color={getColor('text-neutral-60')} size={20} />
                     </View>
                   </View>
                 ),
@@ -168,14 +170,14 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                 key: 'support',
                 template: (
                   <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-                    <Question size={24} color={tailwind('text-primary').color as string} style={tailwind('mr-3')} />
+                    <Question size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                     <View style={tailwind('flex-grow justify-center')}>
                       <AppText style={[tailwind('text-lg text-gray-80')]}>
                         {strings.screens.SettingsScreen.support}
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
+                      <CaretRight color={getColor('text-neutral-60')} size={20} />
                     </View>
                   </View>
                 ),
@@ -185,14 +187,14 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                 key: 'more-information',
                 template: (
                   <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-                    <Info size={24} color={tailwind('text-primary').color as string} style={tailwind('mr-3')} />
+                    <Info size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                     <View style={tailwind('flex-grow justify-center')}>
                       <AppText style={[tailwind('text-lg text-gray-80')]}>
                         {strings.screens.SettingsScreen.more}
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
+                      <CaretRight color={getColor('text-neutral-60')} size={20} />
                     </View>
                   </View>
                 ),
@@ -214,7 +216,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
+                      <CaretRight color={getColor('text-neutral-60')} size={20} />
                     </View>
                   </View>
                 ),
@@ -232,14 +234,14 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                   key: 'debug',
                   template: (
                     <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-                      <Bug size={24} color={tailwind('text-primary').color as string} style={tailwind('mr-3')} />
+                      <Bug size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                       <View style={tailwind('flex-grow justify-center')}>
                         <AppText style={[tailwind('text-lg text-gray-80')]}>
                           {strings.screens.DebugScreen.title}
                         </AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
+                        <CaretRight color={getColor('text-neutral-60')} size={20} />
                       </View>
                     </View>
                   ),

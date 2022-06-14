@@ -180,7 +180,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
           <AppButton
             title={
               <View style={tailwind('flex-row justify-center items-center')}>
-                <Text style={tailwind('text-white text-lg mr-2')}>{strings.components.buttons.copyLink}</Text>
+                <Text style={tailwind('text-white text-lg mr-2')}>{strings.buttons.copyLink}</Text>
                 <Unicons.UilLink color={getColor('white')} />
               </View>
             }
@@ -210,7 +210,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
         {/* ACTIONS */}
         <View style={tailwind('p-3 flex-row justify-center')}>
           <AppButton
-            title={strings.components.buttons.cancel}
+            title={strings.buttons.cancel}
             type="cancel"
             onPress={onCancelButtonPressed}
             style={tailwind('flex-1')}
@@ -219,7 +219,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
           <View style={tailwind('w-2')} />
 
           <AppButton
-            title={strings.components.buttons.share}
+            title={strings.buttons.share}
             type="accept"
             onPress={onShareButtonPressed}
             disabled={!uri || isLoading}

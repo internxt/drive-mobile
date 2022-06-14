@@ -19,9 +19,11 @@ import AppScreen from '../../components/AppScreen';
 import { RootStackScreenProps } from '../../types/navigation';
 import fileSystemService from '../../services/FileSystemService';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'PhotosPreview'>): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const { data: photo, preview } = route.params;
   const safeAreaInsets = useSafeAreaInsets();
   const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
@@ -120,7 +122,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
       <AppScreen
         statusBarHidden
         statusBarStyle="light"
-        backgroundColor={tailwind('text-black').color as string}
+        backgroundColor={getColor('text-black')}
         style={{ ...tailwind('h-full') }}
       >
         {/* PHOTO */}
@@ -129,7 +131,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
         {/* LOADING */}
         {isFullSizeLoading && (
           <View style={tailwind('absolute top-0 bottom-0 right-0 left-0 items-center justify-center')}>
-            <LoadingSpinner size={32} color={tailwind('text-white').color as string} />
+            <LoadingSpinner size={32} color={getColor('text-white')} />
             <Text style={tailwind('mt-2 text-white')}>{(progress * 100).toFixed(0) + '%'}</Text>
           </View>
         )}
@@ -148,14 +150,14 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
                   {/* BACK BUTTON */}
                   <TouchableOpacity style={tailwind('z-20')} onPress={onBackButtonPressed}>
                     <View style={tailwind('p-5')}>
-                      <CaretLeft color={tailwind('text-white').color as string} size={24} weight="bold" />
+                      <CaretLeft color={getColor('text-white')} size={24} weight="bold" />
                     </View>
                   </TouchableOpacity>
 
                   {/* OPTIONS BUTTON */}
                   <TouchableOpacity style={tailwind('z-10')} onPress={() => setIsOptionsModalOpen(true)}>
                     <View style={tailwind('p-5')}>
-                      <DotsThree weight="bold" color={tailwind('text-white').color as string} size={24} />
+                      <DotsThree weight="bold" color={getColor('text-white')} size={24} />
                     </View>
                   </TouchableOpacity>
                 </View>
@@ -173,17 +175,14 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
                   style={tailwind('items-center flex-1 pb-2')}
                   onPress={onShareButtonPressed}
                 >
-                  <Link
-                    color={!isFullSizeLoading ? 'white' : (tailwind('text-neutral-100').color as string)}
-                    size={26}
-                  />
+                  <Link color={!isFullSizeLoading ? 'white' : getColor('text-neutral-100')} size={26} />
                   <Text
                     style={[
                       tailwind('text-xs'),
                       !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
                     ]}
                   >
-                    {strings.components.buttons.share}
+                    {strings.buttons.share}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -191,22 +190,19 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
                   style={tailwind('items-center flex-1')}
                   onPress={onDownloadButtonPressed}
                 >
-                  <DownloadSimple
-                    color={!isFullSizeLoading ? 'white' : (tailwind('text-neutral-100').color as string)}
-                    size={26}
-                  />
+                  <DownloadSimple color={!isFullSizeLoading ? 'white' : getColor('text-neutral-100')} size={26} />
                   <Text
                     style={[
                       tailwind('text-xs'),
                       !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
                     ]}
                   >
-                    {strings.components.buttons.download}
+                    {strings.buttons.download}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={tailwind('items-center flex-1')} onPress={onMoveToTrashButtonPressed}>
-                  <Trash color={tailwind('text-white').color as string} size={26} />
-                  <Text style={tailwind('text-white text-xs')}>{strings.components.buttons.moveToThrash}</Text>
+                  <Trash color={getColor('text-white')} size={26} />
+                  <Text style={tailwind('text-white text-xs')}>{strings.buttons.moveToThrash}</Text>
                 </TouchableOpacity>
               </LinearGradient>
             </View>

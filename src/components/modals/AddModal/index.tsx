@@ -16,7 +16,6 @@ import { encryptFilename } from '../../../helpers';
 import fileSystemService from '../../../services/FileSystemService';
 import driveFileService from '../../../services/DriveFileService';
 import strings from '../../../../assets/lang/strings';
-import globalStyle from '../../../styles/global';
 import { DevicePlatform, NotificationType, ProgressCallback } from '../../../types';
 import asyncStorage from '../../../services/AsyncStorageService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -30,9 +29,12 @@ import { UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
 import { constants } from '../../../services/AppService';
 import CreateFolderModal from '../CreateFolderModal';
 import { useTailwind } from 'tailwind-rn';
+import AppText from '../../AppText';
+import useGetColor from '../../../hooks/useColor';
 
 function AddModal(): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const { folderContent, usage: storageUsage, limit } = useAppSelector((state) => state.drive);
@@ -78,8 +80,8 @@ function AddModal(): JSX.Element {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
         title: 'Files Permission',
         message: 'Internxt needs access to your files in order to upload documents',
-        buttonNegative: strings.components.buttons.cancel,
-        buttonPositive: strings.components.buttons.grant,
+        buttonNegative: strings.buttons.cancel,
+        buttonPositive: strings.buttons.grant,
       });
 
       if (!granted) {
@@ -507,15 +509,15 @@ function AddModal(): JSX.Element {
           <View style={tailwind('rounded-xl overflow-hidden')}>
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={tailwind('text-neutral-80').color as string}
+              underlayColor={getColor('text-neutral-80')}
               onPress={() => {
                 handleUploadFiles();
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.uploadFiles}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFiles}</Text>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <FileArrowUp color={tailwind('text-neutral-500').color as string} size={20} />
+                  <FileArrowUp color={getColor('text-neutral-500')} size={20} />
                 </View>
               </View>
             </TouchableHighlight>
@@ -524,17 +526,15 @@ function AddModal(): JSX.Element {
 
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={tailwind('text-neutral-80').color as string}
+              underlayColor={getColor('text-neutral-80')}
               onPress={() => {
                 handleUploadFromCameraRoll();
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>
-                  {strings.components.buttons.uploadFromCameraRoll}
-                </Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFromCameraRoll}</Text>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <ImageSquare color={tailwind('text-neutral-500').color as string} size={20} />
+                  <ImageSquare color={getColor('text-neutral-500')} size={20} />
                 </View>
               </View>
             </TouchableHighlight>
@@ -543,17 +543,15 @@ function AddModal(): JSX.Element {
 
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={tailwind('text-neutral-80').color as string}
+              underlayColor={getColor('text-neutral-80')}
               onPress={() => {
                 handleTakePhotoAndUpload();
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>
-                  {strings.components.buttons.takeAPhotoAnUpload}
-                </Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.takeAPhotoAnUpload}</Text>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <Camera color={tailwind('text-neutral-500').color as string} size={20} />
+                  <Camera color={getColor('text-neutral-500')} size={20} />
                 </View>
               </View>
             </TouchableHighlight>
@@ -562,16 +560,16 @@ function AddModal(): JSX.Element {
 
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={tailwind('text-neutral-80').color as string}
+              underlayColor={getColor('text-neutral-80')}
               onPress={() => {
                 setShowCreateFolderModal(true);
                 dispatch(uiActions.setShowUploadFileModal(false));
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.newFolder}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.newFolder}</Text>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <FolderSimplePlus color={tailwind('text-neutral-500').color as string} size={20} />
+                  <FolderSimplePlus color={getColor('text-neutral-500')} size={20} />
                 </View>
               </View>
             </TouchableHighlight>
@@ -580,15 +578,15 @@ function AddModal(): JSX.Element {
           <View style={tailwind('mt-3.5 rounded-xl overflow-hidden')}>
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={tailwind('text-neutral-80').color as string}
+              underlayColor={getColor('text-neutral-80')}
               onPress={() => {
                 dispatch(uiActions.setShowUploadFileModal(false));
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 items-center justify-center')}>
-                <Text style={[tailwind('text-lg text-neutral-500'), globalStyle.fontWeight.medium]}>
-                  {strings.components.buttons.cancel}
-                </Text>
+                <AppText medium style={tailwind('text-lg text-neutral-500')}>
+                  {strings.buttons.cancel}
+                </AppText>
               </View>
             </TouchableHighlight>
           </View>

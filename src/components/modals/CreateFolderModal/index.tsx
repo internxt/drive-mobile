@@ -12,6 +12,7 @@ import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
 import { useAppSelector } from '../../../store/hooks';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../../hooks/useColor';
 
 interface CreateFolderModalProps extends BaseModalProps {
   onFolderCreated: () => void;
@@ -20,6 +21,7 @@ interface CreateFolderModalProps extends BaseModalProps {
 }
 const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
   const { user, token } = useAppSelector((state) => state.auth);
@@ -67,7 +69,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
             style={tailwind('text-lg text-center text-neutral-600')}
             value={folderName}
             onChangeText={(value) => setFolderName(value)}
-            placeholderTextColor={tailwind('text-neutral-80').color as string}
+            placeholderTextColor={getColor('text-neutral-80')}
             autoCompleteType="off"
             selectTextOnFocus={true}
             editable={!isLoading}
@@ -79,7 +81,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
 
         <View style={tailwind('flex-row justify-between')}>
           <AppButton
-            title={strings.components.buttons.cancel}
+            title={strings.buttons.cancel}
             type="cancel"
             onPress={onCancelButtonPressed}
             disabled={isLoading}
@@ -89,7 +91,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
           <View style={tailwind('px-1')}></View>
 
           <AppButton
-            title={isLoading ? strings.generic.creating : strings.components.buttons.create}
+            title={isLoading ? strings.generic.creating : strings.buttons.create}
             type="accept"
             onPress={onCreateFolderButtonPressed}
             disabled={isLoading}

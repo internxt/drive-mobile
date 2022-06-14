@@ -69,7 +69,7 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
 
       <AppButton
         type="accept"
-        title={strings.components.buttons.startSyncingPhotos}
+        title={strings.buttons.startSyncingPhotos}
         onPress={onButtonPressed}
         style={tailwind('mb-2 w-full')}
       />

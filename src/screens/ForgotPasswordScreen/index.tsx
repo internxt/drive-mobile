@@ -68,7 +68,7 @@ function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPasswo
                   style={tailwind('input pl-4')}
                   value={email}
                   onChangeText={(value) => setIsEmail(value)}
-                  placeholder={strings.components.inputs.email}
+                  placeholder={strings.inputs.email}
                   placeholderTextColor="#666666"
                   maxLength={64}
                   keyboardType="email-address"
@@ -116,7 +116,7 @@ function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPasswo
                   underlayColor="#00aaff"
                   onPress={() => sendDeactivationEmail()}
                 >
-                  <Text style={styles.buttonOnLabel}>{strings.components.buttons.deactivation}</Text>
+                  <Text style={styles.buttonOnLabel}>{strings.buttons.deactivation}</Text>
                 </TouchableHighlight>
               </View>
 

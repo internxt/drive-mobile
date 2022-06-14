@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../../hooks/useColor';
 
 export interface BottomModalProps {
   isOpen: boolean;
@@ -20,8 +21,9 @@ export interface BottomModalProps {
 
 const BottomModal = (props: BottomModalProps): JSX.Element => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
-  const safeAreaColor = props.safeAreaColor || (tailwind('text-white').color as string);
+  const safeAreaColor = props.safeAreaColor || getColor('text-white');
 
   return (
     <Modal
@@ -47,7 +49,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
                     <View style={tailwind('flex-1')}>{props.header}</View>
                     <TouchableWithoutFeedback onPress={props.onClosed}>
                       <View style={tailwind('bg-neutral-20 rounded-full h-8 w-8 justify-center items-center ml-5')}>
-                        <X weight="bold" color={tailwind('text-neutral-60').color as string} size={20} />
+                        <X weight="bold" color={getColor('text-neutral-60')} size={20} />
                       </View>
                     </TouchableWithoutFeedback>
                   </View>

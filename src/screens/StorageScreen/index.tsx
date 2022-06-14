@@ -15,12 +15,14 @@ import { RootStackScreenProps } from '../../types/navigation';
 import appService from '../../services/AppService';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../components/AppText';
+import useGetColor from '../../hooks/useColor';
 
 function StorageScreen({ navigation }: RootStackScreenProps<'Storage'>): JSX.Element {
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const { usage: storageUsage, limit } = useAppSelector((state) => state.drive);
   const usageValues = { usage: storageUsage + photosUsage, limit };
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const getLimitString = () => {
     if (usageValues.limit === 0) {
       return '...';
@@ -36,7 +38,7 @@ function StorageScreen({ navigation }: RootStackScreenProps<'Storage'>): JSX.Ele
   const onBackButtonPressed = () => navigation.goBack();
 
   return (
-    <AppScreen safeAreaTop style={tailwind('h-full')} backgroundColor={tailwind('text-neutral-20').color as string}>
+    <AppScreen safeAreaTop style={tailwind('h-full')} backgroundColor={getColor('text-neutral-20')}>
       <ScreenTitle
         textStyle={tailwind('text-2xl')}
         text={strings.screens.storage.title}
@@ -67,16 +69,16 @@ function StorageScreen({ navigation }: RootStackScreenProps<'Storage'>): JSX.Ele
 
         {appService.constants.REACT_NATIVE_SHOW_BILLING && (
           <TouchableHighlight
-            underlayColor={tailwind('text-neutral-30').color as string}
+            underlayColor={getColor('text-neutral-30')}
             onPress={() => {
               navigation.push('Billing');
             }}
           >
             <View style={tailwind('px-5 py-3 flex-row items-center justify-between border-t border-neutral-20')}>
               <AppText style={tailwind('text-blue-60 text-lg')} semibold>
-                {strings.components.buttons.upgradeNow}
+                {strings.buttons.upgradeNow}
               </AppText>
-              <CaretRight size={22} color={tailwind('text-blue-60').color as string} weight="bold" />
+              <CaretRight size={22} color={getColor('text-blue-60')} weight="bold" />
             </View>
           </TouchableHighlight>
         )}

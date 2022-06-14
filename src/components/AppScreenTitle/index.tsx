@@ -5,6 +5,7 @@ import { useAppSelector } from '../../store/hooks';
 import { CaretLeft } from 'phosphor-react-native';
 import AppText from '../AppText';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 interface AppScreenTitleProps {
   text: string;
@@ -31,6 +32,7 @@ const AppScreenTitle = ({
   onBackButtonPressed,
 }: AppScreenTitleProps): JSX.Element => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const backButtonEnabled = useAppSelector((state) => state.ui.backButtonEnabled);
 
   return (
@@ -38,7 +40,7 @@ const AppScreenTitle = ({
       {showBackButton && (
         <TouchableOpacity style={tailwind('flex-1')} disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
-            <CaretLeft weight="bold" color={tailwind('text-blue-60').color as string} size={24} />
+            <CaretLeft weight="bold" color={getColor('text-blue-60')} size={24} />
           </View>
         </TouchableOpacity>
       )}

@@ -16,9 +16,11 @@ import AppScreen from '../../components/AppScreen';
 import { Trash } from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 function PhotosGalleryScreen(): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
   const getPhotoPreview = useAppSelector(photosSelectors.getPhotoPreview);
@@ -115,7 +117,7 @@ function PhotosGalleryScreen(): JSX.Element {
                       onPress={onSelectAllButtonPressed}
                     >
                       <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                        {strings.components.buttons.selectAll}
+                        {strings.buttons.selectAll}
                       </Text>
                     </TouchableOpacity>
             </View>*/}
@@ -125,7 +127,7 @@ function PhotosGalleryScreen(): JSX.Element {
                     onPress={onCancelSelectButtonPressed}
                   >
                     <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                      {strings.components.buttons.cancel}
+                      {strings.buttons.cancel}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -147,7 +149,7 @@ function PhotosGalleryScreen(): JSX.Element {
                     disabled={!hasPhotos}
                   >
                     <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                      {strings.components.buttons.select}
+                      {strings.buttons.select}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -199,7 +201,7 @@ function PhotosGalleryScreen(): JSX.Element {
                       tailwind('text-xs'),
                     ]}
                   >
-                    {strings.components.buttons.share}
+                    {strings.buttons.share}
                   </Text>
                 </View>
                   </TouchableWithoutFeedback>*/}
@@ -220,7 +222,7 @@ function PhotosGalleryScreen(): JSX.Element {
                       tailwind('text-xs'),
                     ]}
                   >
-                    {strings.components.buttons.download}
+                    {strings.buttons.download}
                   </Text>
                 </View>
                   </TouchableWithoutFeedback>*/}
@@ -231,11 +233,7 @@ function PhotosGalleryScreen(): JSX.Element {
               >
                 <View style={tailwind('items-center flex-1')}>
                   <Trash
-                    color={
-                      hasNoPhotosSelected
-                        ? (tailwind('text-neutral-60').color as string)
-                        : (tailwind('text-red-60').color as string)
-                    }
+                    color={hasNoPhotosSelected ? getColor('text-neutral-60') : getColor('text-red-60')}
                     size={24}
                   />
                   <Text
@@ -245,7 +243,7 @@ function PhotosGalleryScreen(): JSX.Element {
                       tailwind('text-xs'),
                     ]}
                   >
-                    {strings.components.buttons.moveToThrash}
+                    {strings.buttons.moveToThrash}
                   </Text>
                 </View>
               </TouchableWithoutFeedback>

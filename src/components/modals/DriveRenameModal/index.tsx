@@ -12,9 +12,11 @@ import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import CenterModal from '../CenterModal';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../../hooks/useColor';
 
 function RenameModal(): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const { showRenameModal } = useAppSelector((state) => state.ui);
   const { focusedItem } = useAppSelector((state) => state.drive);
@@ -96,7 +98,7 @@ function RenameModal(): JSX.Element {
                 style={tailwind('text-lg text-center text-neutral-600')}
                 value={newName}
                 onChangeText={setNewName}
-                placeholderTextColor={tailwind('text-neutral-500').color as string}
+                placeholderTextColor={getColor('text-neutral-500')}
                 autoCompleteType="off"
                 key="name"
                 autoCorrect={false}
@@ -107,7 +109,7 @@ function RenameModal(): JSX.Element {
 
         <View style={tailwind('flex-row justify-between')}>
           <AppButton
-            title={strings.components.buttons.cancel}
+            title={strings.buttons.cancel}
             type={'cancel'}
             onPress={onCancelButtonPressed}
             disabled={isLoading}

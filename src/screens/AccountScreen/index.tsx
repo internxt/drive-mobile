@@ -7,6 +7,7 @@ import AppScreen from '../../components/AppScreen';
 import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
 import SettingsGroup from '../../components/SettingsGroup';
+import useGetColor from '../../hooks/useColor';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
 import { uiActions } from '../../store/slices/ui';
@@ -14,6 +15,7 @@ import { TabExplorerScreenProps } from '../../types/navigation';
 
 function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const userFullName = useAppSelector(authSelectors.userFullName);
@@ -39,7 +41,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
           </View>
           <View style={tailwind('flex-row items-center')}>
             <AppText style={tailwind('text-gray-40 mr-2.5')}>{userFullName}</AppText>
-            <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
+            <CaretRight color={getColor('text-neutral-60')} size={20} />
           </View>
         </View>
       ),
@@ -56,9 +58,9 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
           <View style={tailwind('flex-row items-center')}>
             <AppText style={tailwind('text-gray-40 mr-2.5')}>{user?.email}</AppText>
             {isEmailVerified ? (
-              <CheckCircle weight="fill" color={tailwind('text-primary').color as string} size={20} />
+              <CheckCircle weight="fill" color={getColor('text-primary')} size={20} />
             ) : (
-              <Warning weight="fill" color={tailwind('text-yellow-').color as string} size={20} />
+              <Warning weight="fill" color={getColor('text-yellow-')} size={20} />
             )}
           </View>
         </View>
@@ -83,8 +85,8 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
   return (
     <AppScreen
       safeAreaTop
-      safeAreaColor={tailwind('text-white').color as string}
-      backgroundColor={tailwind('text-gray-5').color as string}
+      safeAreaColor={getColor('text-white')}
+      backgroundColor={getColor('text-gray-5')}
       style={tailwind('min-h-full')}
     >
       <ScrollView>
@@ -112,7 +114,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
                     </View>
                     <AppButton
                       type="accept"
-                      title={strings.components.buttons.upgrade}
+                      title={strings.buttons.upgrade}
                       onPress={onBillingPressed}
                       style={tailwind('rounded-3xl px-8')}
                     />
@@ -139,7 +141,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={tailwind('text-neutral-60').color as string} size={20} />
+                      <CaretRight color={getColor('text-neutral-60')} size={20} />
                     </View>
                   </View>
                 ),
@@ -156,9 +158,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
                 key: 'logout',
                 template: (
                   <View style={tailwind('px-4 py-3')}>
-                    <AppText style={tailwind('text-center text-lg text-red-')}>
-                      {strings.components.buttons.signOut}
-                    </AppText>
+                    <AppText style={tailwind('text-center text-lg text-red-')}>{strings.buttons.signOut}</AppText>
                   </View>
                 ),
                 onPress: onLogoutPressed,

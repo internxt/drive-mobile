@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text } from 'react-native';
 import Accordion from 'react-native-collapsible/Accordion';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 interface Section {
   title: string;
@@ -75,6 +76,7 @@ const SECTIONS: Section[] = [
 
 function IndividualsTab(): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const [activeSections, setActiveSections] = useState<number[]>([]);
   const _renderHeader = (section: Section) => {
     return (
@@ -84,7 +86,7 @@ function IndividualsTab(): JSX.Element {
         </View>
 
         <View>
-          <CaretDown color={tailwind('text-neutral-500').color as string} />
+          <CaretDown color={getColor('text-neutral-500')} />
         </View>
       </View>
     );

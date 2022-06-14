@@ -3,6 +3,7 @@ import { Animated, Easing, StyleProp, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
 import SpinnerImage from '../../../assets/icons/spinner.svg';
+import useGetColor from '../../hooks/useColor';
 
 interface LoadingSpinnerProps {
   size?: number;
@@ -13,7 +14,8 @@ interface LoadingSpinnerProps {
 
 const LoadingSpinner = ({ size = 16, color, style, renderIcon }: LoadingSpinnerProps): JSX.Element => {
   const tailwind = useTailwind();
-  const defaultColor = tailwind('text-blue-60').color as string;
+  const getColor = useGetColor();
+  const defaultColor = getColor('text-blue-60');
   const [syncingSpinnerRotationAnimation] = useState(new Animated.Value(0));
   const syncingSpinnerRotationInterpolation = syncingSpinnerRotationAnimation.interpolate({
     inputRange: [0, 1],

@@ -1,5 +1,6 @@
 import { GestureResponderEvent, StyleProp, TouchableHighlight, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 
 interface SettingsGroupItemProps {
@@ -11,11 +12,12 @@ interface SettingsGroupItemProps {
 
 function SettingsGroup({ title, items, advice }: { title?: string; advice?: string; items: SettingsGroupItemProps[] }) {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const SettingsGroupItem = (props: SettingsGroupItemProps) => {
     return (
       <TouchableHighlight
         disabled={!props.onPress}
-        underlayColor={tailwind('text-neutral-30').color as string}
+        underlayColor={getColor('text-neutral-30')}
         onPress={(event) => {
           props.onPress && props.onPress(event);
         }}

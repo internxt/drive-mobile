@@ -34,7 +34,7 @@ const NewsletterModal = (props: { isOpen: boolean; onClosed: () => void }): JSX.
         <View style={tailwind('px-3 w-full')}>
           <AppTextInput
             containerStyle={tailwind('px-3 mb-9 items-center justify-center')}
-            placeholder={strings.components.inputs.email}
+            placeholder={strings.inputs.email}
             editable={false}
             value={user?.email}
           />
@@ -43,14 +43,14 @@ const NewsletterModal = (props: { isOpen: boolean; onClosed: () => void }): JSX.
         <View style={tailwind('flex-row')}>
           <AppButton
             type="cancel"
-            title={strings.components.buttons.cancel}
+            title={strings.buttons.cancel}
             onPress={onCancelButtonPressed}
             style={tailwind('flex-1 mr-2')}
           ></AppButton>
           <AppButton
             disabled={isLoading}
             type="accept"
-            title={strings.components.buttons.subscribe}
+            title={strings.buttons.subscribe}
             onPress={onSubscribeButtonPressed}
             style={tailwind('flex-1')}
           ></AppButton>

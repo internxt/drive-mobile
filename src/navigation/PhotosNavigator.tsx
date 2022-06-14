@@ -48,7 +48,7 @@ function PhotosNavigator(): JSX.Element {
             <AppButton
               style={tailwind('mt-5')}
               type="accept"
-              title={strings.components.buttons.tryAgain}
+              title={strings.buttons.tryAgain}
               onPress={onTryAgainInitializeButtonPressed}
             />
           </View>

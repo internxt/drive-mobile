@@ -13,11 +13,6 @@ interface LoginResponse {
   sKey: string;
 }
 
-interface ChangePasswordParam {
-  password: string;
-  newPassword: string;
-}
-
 interface RegisterParams {
   firstName: string;
   lastName: string;
@@ -80,7 +75,7 @@ class AuthService {
     });
   }
 
-  public async doChangePassword(params: ChangePasswordParam): Promise<any> {
+  public async doChangePassword(params: { password: string; newPassword: string }): Promise<any> {
     const xUser = await asyncStorageService.getUser();
     const salt = await this.getSalt(xUser.email);
 

@@ -9,13 +9,15 @@ import DebugUploadWidget from '../../components/DebugUploadWidget';
 import DebugDownloadWidget from '../../components/DebugDownloadWidget';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const onBackButtonPressed = () => navigation.goBack();
 
   return (
-    <AppScreen safeAreaTop style={tailwind('h-full')} backgroundColor={tailwind('text-neutral-20').color as string}>
+    <AppScreen safeAreaTop style={tailwind('h-full')} backgroundColor={getColor('text-neutral-20')}>
       <ScreenTitle
         textStyle={tailwind('text-2xl')}
         text={strings.screens.DebugScreen.title}

@@ -5,6 +5,7 @@ import { Photo } from '@internxt/sdk/dist/photos';
 import { GalleryItemType } from '../../types/photos';
 import { CheckCircle } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 interface GalleryItemProps {
   type?: GalleryItemType;
@@ -29,6 +30,7 @@ const GalleryItem = ({
   onLongPress,
 }: GalleryItemProps): JSX.Element => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const getItemContent = () =>
     ({
       [GalleryItemType.Image]: () => <Image style={tailwind('w-full h-full')} source={{ uri: preview }} />,
@@ -47,7 +49,7 @@ const GalleryItem = ({
         <View
           style={[tailwind('absolute bg-blue-60 w-5 h-5 bottom-3 right-3 flex justify-center items-center rounded-xl')]}
         >
-          <CheckCircle color={tailwind('text-white').color as string} size={30} />
+          <CheckCircle color={getColor('text-white')} size={30} />
         </View>
       )}
     </TouchableOpacity>

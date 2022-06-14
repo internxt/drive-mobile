@@ -23,10 +23,12 @@ import SortModal, { SortMode } from '../../components/modals/SortModal';
 import fileService from '../../services/DriveFileService';
 import { TabExplorerScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Element {
   const route = useRoute();
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const [sortModalOpen, setSortModalOpen] = useState(false);
   const [sortMode, setSortMode] = useState({
@@ -145,14 +147,9 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
       <View style={[tailwind('flex-row items-center justify-between my-2 px-5'), isRootFolder && tailwind('hidden')]}>
         <TouchableOpacity disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex-row items-center pr-4'), !currentFolderParentId && tailwind('opacity-50')]}>
-            <CaretLeft
-              weight="bold"
-              color={tailwind('text-blue-60').color as string}
-              style={tailwind('-ml-2 mr-1')}
-              size={24}
-            />
+            <CaretLeft weight="bold" color={getColor('text-blue-60')} style={tailwind('-ml-2 mr-1')} size={24} />
             <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>
-              {strings.components.buttons.back}
+              {strings.buttons.back}
             </Text>
           </View>
         </TouchableOpacity>
@@ -162,12 +159,12 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
               style={tailwind('p-2')}
               onPress={() => dispatch(uiActions.setSearchActive(!searchActive))}
             >
-              <MagnifyingGlass weight="bold" color={tailwind('text-blue-60').color as string} size={24} />
+              <MagnifyingGlass weight="bold" color={getColor('text-blue-60')} size={24} />
             </TouchableOpacity>
           </View>
           <View style={tailwind('items-center justify-center')}>
             <TouchableOpacity style={tailwind('p-2')} onPress={onCurrentFolderActionsButtonPressed}>
-              <DotsThree weight="bold" color={tailwind('text-blue-60').color as string} size={24} />
+              <DotsThree weight="bold" color={getColor('text-blue-60')} size={24} />
             </TouchableOpacity>
           </View>
         </View>
@@ -189,18 +186,18 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
           <View style={tailwind('px-5 py-1 flex-row items-center')}>
             <Text style={tailwind('text-base text-neutral-100 mr-1')}>{strings.screens.drive.sort[sortMode.type]}</Text>
             {sortMode.direction === SortDirection.Asc ? (
-              <ArrowUp weight="bold" size={15} color={tailwind('text-neutral-100').color as string} />
+              <ArrowUp weight="bold" size={15} color={getColor('text-neutral-100')} />
             ) : (
-              <ArrowDown weight="bold" size={15} color={tailwind('text-neutral-100').color as string} />
+              <ArrowDown weight="bold" size={15} color={getColor('text-neutral-100')} />
             )}
           </View>
         </TouchableOpacity>
         <TouchableOpacity onPress={onViewModeButtonPressed}>
           <View style={tailwind('py-2 px-5')}>
             {fileViewMode === 'list' ? (
-              <SquaresFour size={22} color={tailwind('text-neutral-100').color as string} />
+              <SquaresFour size={22} color={getColor('text-neutral-100')} />
             ) : (
-              <Rows size={22} color={tailwind('text-neutral-100').color as string} />
+              <Rows size={22} color={getColor('text-neutral-100')} />
             )}
           </View>
         </TouchableOpacity>

@@ -39,7 +39,7 @@ const InviteFriendsModal = (props: { isOpen: boolean; onClosed: () => void }): J
         <View style={tailwind('px-3 w-full')}>
           <AppTextInput
             containerStyle={tailwind('px-3 mb-9')}
-            placeholder={strings.components.inputs.email}
+            placeholder={strings.inputs.email}
             autoCapitalize="none"
             value={email}
             onChangeText={onEmailInputChanged}
@@ -49,14 +49,14 @@ const InviteFriendsModal = (props: { isOpen: boolean; onClosed: () => void }): J
         <View style={tailwind('flex-row')}>
           <AppButton
             type="cancel"
-            title={strings.components.buttons.cancel}
+            title={strings.buttons.cancel}
             onPress={onCancelButtonPressed}
             style={tailwind('flex-1 mr-2')}
           ></AppButton>
           <AppButton
             disabled={!email || isSendingInvitation}
             type="accept"
-            title={strings.components.buttons.invite}
+            title={strings.buttons.invite}
             onPress={onInviteButtonPressed}
             style={tailwind('flex-1')}
           ></AppButton>

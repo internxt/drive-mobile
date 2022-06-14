@@ -18,7 +18,6 @@ const linking: LinkingOptions<RootStackParamList> = {
       ForgotPassword: 'forgot-password',
       Storage: 'storage',
       Billing: 'billing',
-      ChangePassword: 'change-password',
       PhotosPreview: 'photos-preview',
     },
   },

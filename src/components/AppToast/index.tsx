@@ -7,9 +7,11 @@ import { Dimensions, Text, TouchableHighlight, View } from 'react-native';
 import strings from '../../../assets/lang/strings';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 const AppToast = (): JSX.Element => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
   const screenDimensions = Dimensions.get('screen');
   const defaultProps: BaseToastProps = {
@@ -35,11 +37,11 @@ const AppToast = (): JSX.Element => {
       toastProps.hide();
     };
 
-    const text = toastProps.props.action ? toastProps.props.action.text : strings.components.buttons.dismiss;
+    const text = toastProps.props.action ? toastProps.props.action.text : strings.buttons.dismiss;
     return (
       <TouchableHighlight
         onPress={callback}
-        underlayColor={tailwind('text-neutral-30').color as string}
+        underlayColor={getColor('text-neutral-30')}
         style={tailwind('rounded-r-xl ')}
       >
         <View style={tailwind('justify-center flex-1 px-3.5')}>
@@ -60,9 +62,7 @@ const AppToast = (): JSX.Element => {
         {...defaultProps}
         {...props}
         renderLeadingIcon={() =>
-          renderIcon(
-            <CheckCircle {...iconDefaultProps} weight="fill" color={tailwind('text-green-40').color as string} />,
-          )
+          renderIcon(<CheckCircle {...iconDefaultProps} weight="fill" color={getColor('text-green-40')} />)
         }
         renderTrailingIcon={() => renderAction(props)}
       />
@@ -72,7 +72,7 @@ const AppToast = (): JSX.Element => {
         {...defaultProps}
         {...props}
         renderLeadingIcon={() =>
-          renderIcon(<Warning {...iconDefaultProps} weight="fill" color={tailwind('text-yellow-30').color as string} />)
+          renderIcon(<Warning {...iconDefaultProps} weight="fill" color={getColor('text-yellow-30')} />)
         }
         renderTrailingIcon={() => renderAction(props)}
       />
@@ -82,9 +82,7 @@ const AppToast = (): JSX.Element => {
         {...defaultProps}
         {...props}
         renderLeadingIcon={() =>
-          renderIcon(
-            <WarningOctagon {...iconDefaultProps} weight="fill" color={tailwind('text-red-50').color as string} />,
-          )
+          renderIcon(<WarningOctagon {...iconDefaultProps} weight="fill" color={getColor('text-red-50')} />)
         }
         renderTrailingIcon={() => renderAction(props)}
       />
@@ -94,9 +92,7 @@ const AppToast = (): JSX.Element => {
         {...defaultProps}
         {...props}
         renderLeadingIcon={() =>
-          renderIcon(
-            <ArrowCircleUp {...iconDefaultProps} weight="fill" color={tailwind('text-blue-60').color as string} />,
-          )
+          renderIcon(<ArrowCircleUp {...iconDefaultProps} weight="fill" color={getColor('text-blue-60')} />)
         }
         renderTrailingIcon={() => renderAction(props)}
       />
@@ -106,9 +102,7 @@ const AppToast = (): JSX.Element => {
         {...defaultProps}
         {...props}
         renderLeadingIcon={() =>
-          renderIcon(
-            <ArrowCircleDown {...iconDefaultProps} weight="fill" color={tailwind('text-blue-60').color as string} />,
-          )
+          renderIcon(<ArrowCircleDown {...iconDefaultProps} weight="fill" color={getColor('text-blue-60')} />)
         }
         renderTrailingIcon={() => renderAction(props)}
       />

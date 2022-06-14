@@ -14,9 +14,11 @@ import AppText from '../AppText';
 import { DriveItemProps } from '../../types/drive';
 import useDriveItem from '../../hooks/useDriveItem';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 function DriveItemTable(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const { selectedItems } = useAppSelector((state) => state.drive);
   const isSelectionMode = selectedItems.length > 0;
   const spinValue = new Animated.Value(1);
@@ -39,7 +41,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
   return (
     <TouchableHighlight
       disabled={isUploading || isDownloading}
-      underlayColor={tailwind('text-neutral-20').color as string}
+      underlayColor={getColor('text-neutral-20')}
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}
     >
@@ -55,13 +57,10 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
 
           <View style={[tailwind('flex-1 flex items-start justify-center')]}>
             <AppText
-              style={[
-                tailwind('text-left text-base text-neutral-500'),
-                isUploading && tailwind('opacity-40'),
-                globalStyle.fontWeight.medium,
-              ]}
+              style={[tailwind('text-left text-base text-neutral-500'), isUploading && tailwind('opacity-40')]}
               numberOfLines={1}
               ellipsizeMode={'middle'}
+              medium
             >
               {items.getItemDisplayName(props.data)}
             </AppText>
@@ -71,7 +70,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
                 <Text style={tailwind('text-xs text-blue-60')}>{strings.screens.drive.encrypting}</Text>
               ) : (
                 <View style={tailwind('flex-row items-center')}>
-                  <ArrowCircleUp weight="fill" color={tailwind('text-blue-60').color as string} size={16} />
+                  <ArrowCircleUp weight="fill" color={getColor('text-blue-60')} size={16} />
                   <AppText style={tailwind('ml-1.5 text-xs text-blue-60')}>
                     {((props.progress || 0) * 100).toFixed(0) + '%'}
                   </AppText>
@@ -113,7 +112,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
           onLongPress={onActionsButtonPressed}
         >
           <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
-            <DotsThree weight="bold" size={22} color={tailwind('text-neutral-60').color as string} />
+            <DotsThree weight="bold" size={22} color={getColor('text-neutral-60')} />
           </View>
         </TouchableOpacity>
       </View>

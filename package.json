@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@burstware/react-native-portal": "^1.0.2",
+    "@hookform/resolvers": "^2.9.1",
     "@internxt/lib": "^1.1.5",
     "@internxt/rn-crypto": "^0.1.6",
     "@internxt/sdk": "^0.8.1",
@@ -87,6 +88,7 @@
     "querystring-es3": "^0.2.1",
     "react": "17.0.1",
     "react-dom": "17.0.1",
+    "react-hook-form": "^7.32.0",
     "react-native": "0.64.3",
     "react-native-bip39": "^2.3.0",
     "react-native-collapsible": "^1.6.0",
@@ -133,7 +135,8 @@
     "tty-browserify": "0.0.0",
     "url": "^0.10.3",
     "util": "^0.10.4",
-    "vm-browserify": "0.0.4"
+    "vm-browserify": "0.0.4",
+    "yup": "^0.32.11"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
