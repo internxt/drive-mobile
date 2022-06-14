@@ -20,6 +20,9 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
   const user = useAppSelector((state) => state.auth.user);
   const userFullName = useAppSelector(authSelectors.userFullName);
   const isEmailVerified = true;
+  const onBackButtonPressed = () => {
+    navigation.goBack();
+  };
   const onLogoutPressed = () => {
     dispatch(uiActions.setIsSignOutModalOpen(true));
   };
@@ -90,7 +93,12 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
       style={tailwind('min-h-full')}
     >
       <ScrollView>
-        <AppScreenTitle text={strings.screens.AccountScreen.title} containerStyle={tailwind('bg-white')} centerText />
+        <AppScreenTitle
+          text={strings.screens.AccountScreen.title}
+          containerStyle={tailwind('bg-white')}
+          centerText
+          onBackButtonPressed={onBackButtonPressed}
+        />
 
         <View style={tailwind('px-4')}>
           {/* PROFILE PICTURE */}

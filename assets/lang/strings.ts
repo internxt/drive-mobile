@@ -325,6 +325,7 @@ const strings = new LocalizedStrings({
       change: 'Change',
     },
     inputs: {
+      name: 'Name',
       email: 'Email address',
       password: 'Password',
       confirmPassword: 'Confirm password',
@@ -334,6 +335,9 @@ const strings = new LocalizedStrings({
       lastName: 'Last name',
       searchInRecents: 'Search in recents',
       searchInShared: 'Search in shared',
+    },
+    placeholders: {
+      folderName: 'Folder name',
     },
     components: {
       DriveList: {
@@ -371,13 +375,16 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      CreateFolder: {
+        title: 'New folder',
+      },
       ChangePassword: {
         title: 'Change password',
       },
       DeleteAccountModal: {
         title: 'Delete account',
         apologies:
-          'Hey {userFullName}, we are sorry to hear that you want to leave Internxt, we would like to ask you one last favor...',
+          'Hey {0}, we are sorry to hear that you want to leave Internxt, we would like to ask you one last favor...',
         poll: {
           title: 'What made you want to leave Internxt?',
           options: ['I’ve found a better alternative', 'I want to save money', 'I’m having technical issues', 'Other'],
@@ -489,6 +496,8 @@ const strings = new LocalizedStrings({
       inviteAFriend: 'Error sending invitation: {0}',
       subscribeToNewsletter: 'Error subscribing to newsletter: {0}',
       loadProducts: 'Cannot load products: {0}',
+      passwordsDontMatch: "Passwords don't match",
+      requiredField: 'This is a required field',
     },
   },
   es: {
@@ -813,6 +822,7 @@ const strings = new LocalizedStrings({
       change: 'Cambiar',
     },
     inputs: {
+      name: 'Nombre',
       email: 'Correo electrónico',
       password: 'Contraseña',
       confirmPassword: 'Confirmar contraseña',
@@ -822,6 +832,9 @@ const strings = new LocalizedStrings({
       lastName: 'Primer apellido',
       searchInRecents: 'Buscar en recientes',
       searchInShared: 'Buscar en compartido',
+    },
+    placeholders: {
+      folderName: 'Nombre de carpeta',
     },
     components: {
       DriveList: {
@@ -859,6 +872,9 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      CreateFolder: {
+        title: 'Nueva carpeta',
+      },
       ChangePassword: {
         title: 'Cambiar contraseña',
       },
@@ -983,6 +999,8 @@ const strings = new LocalizedStrings({
       inviteAFriend: 'Error enviando invitación: {0}',
       subscribeToNewsletter: 'Error al suscribirse al newsletter: {0}',
       loadProducts: 'Error al cargar productos: {0}',
+      passwordsDontMatch: 'Las contraseñas no coinciden',
+      requiredField: 'Este campo es requerido',
     },
   },
 });

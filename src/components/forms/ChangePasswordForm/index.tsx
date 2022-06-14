@@ -1,6 +1,6 @@
 import { Eye, EyeSlash } from 'phosphor-react-native';
-import { Controller, useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { Controller, useForm, useFormState, useWatch } from 'react-hook-form';
+import { useMemo, useState } from 'react';
 import { TouchableWithoutFeedback, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -12,17 +12,19 @@ import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { BaseFormProps, ChangePasswordFormData } from '../../../types/ui';
 import AppTextInput from '../../AppTextInput';
+import StrengthMeter from '../../StrengthMeter';
+import AppText from '../../AppText';
 
-const schema = yup
+const schema: yup.SchemaOf<ChangePasswordFormData> = yup
   .object()
   .shape({
-    newPassword: yup.string().required(),
+    newPassword: yup.string().required(strings.errors.requiredField),
     confirmNewPassword: yup
       .string()
-      .required()
+      .required(strings.errors.requiredField)
       .test({
         name: 'passwordsDoNotMatch',
-        message: 'Passwords do not match',
+        message: strings.errors.passwordsDontMatch,
         test: function (value) {
           return value === this.parent.newPassword;
         },
@@ -31,15 +33,36 @@ const schema = yup
   .required();
 
 const ChangePasswordForm = (props: BaseFormProps) => {
-  const tailwind = useTailwind();
-  const getColor = useGetColor();
-  const { control, handleSubmit, setValue, formState } = useForm<ChangePasswordFormData>({
-    resolver: yupResolver(schema),
-    reValidateMode: 'onBlur',
-  });
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { isValid },
+    getFieldState,
+  } = useForm<ChangePasswordFormData>({
+    resolver: yupResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      newPassword: '',
+      confirmNewPassword: '',
+    },
+  });
+  const { newPassword } = useWatch({ control });
+  const newPasswordStatusMessage = useMemo(() => {
+    return (
+      <View style={tailwind('mt-2')}>
+        <StrengthMeter value={2} maxValue={3} />
+        <AppText style={tailwind('mt-2 text-sm text-red-')} medium>
+          {'Password strength error'}
+        </AppText>
+      </View>
+    );
+  }, [newPassword]);
   const toggleShowNewPassword = () => setShowNewPassword(!showNewPassword);
   const toggleShowConfirmNewPassword = () => {
     setShowConfirmNewPassword(!showConfirmNewPassword);
@@ -66,12 +89,15 @@ const ChangePasswordForm = (props: BaseFormProps) => {
       <Controller
         name="newPassword"
         control={control}
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <AppTextInput
-            {...field}
+            onBlur={field.onBlur}
+            onChangeText={field.onChange}
+            value={field.value}
             secureTextEntry={!showNewPassword}
             autoFocus
             containerStyle={tailwind('mb-3')}
+            status={[fieldState.error ? 'error' : 'idle', newPasswordStatusMessage]}
             label={strings.inputs.newPassword}
             renderAppend={() => (
               <TouchableWithoutFeedback onPress={toggleShowNewPassword}>
@@ -90,28 +116,36 @@ const ChangePasswordForm = (props: BaseFormProps) => {
       <Controller
         name="confirmNewPassword"
         control={control}
-        render={({ field }) => (
+        render={({ field, fieldState, formState }) => (
           <AppTextInput
-            {...field}
+            editable={!!newPassword && !formState.errors.newPassword}
+            onBlur={field.onBlur}
+            onChangeText={field.onChange}
+            value={field.value}
             secureTextEntry={!showConfirmNewPassword}
+            status={[fieldState.error ? 'error' : 'idle', fieldState.error?.message || '']}
             containerStyle={tailwind('mb-6')}
             label={strings.inputs.confirmNewPassword}
-            renderAppend={() => (
-              <TouchableWithoutFeedback onPress={toggleShowConfirmNewPassword}>
-                <View>
-                  {showConfirmNewPassword ? (
-                    <EyeSlash size={24} color={getColor('text-gray-80')} />
-                  ) : (
-                    <Eye size={24} color={getColor('text-gray-80')} />
-                  )}
-                </View>
-              </TouchableWithoutFeedback>
-            )}
+            renderAppend={({ isFocused }) =>
+              isFocused ? (
+                <TouchableWithoutFeedback onPress={toggleShowConfirmNewPassword}>
+                  <View>
+                    {showConfirmNewPassword ? (
+                      <EyeSlash size={24} color={getColor('text-gray-80')} />
+                    ) : (
+                      <Eye size={24} color={getColor('text-gray-80')} />
+                    )}
+                  </View>
+                </TouchableWithoutFeedback>
+              ) : (
+                <></>
+              )
+            }
           />
         )}
       />
 
-      {props.renderActionsContainer({ onSubmitButtonPressed, isLoading, isValid: formState.isValid })}
+      {props.renderActionsContainer({ onSubmitButtonPressed, isLoading, isValid })}
     </>
   );
 };

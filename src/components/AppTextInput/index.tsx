@@ -1,32 +1,75 @@
-import { forwardRef } from 'react';
+import { isString } from 'lodash';
+import { useRef } from 'react';
 import { StyleProp, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 
 interface AppTextInputProps extends TextInputProps {
+  status?: ['idle' | 'warning' | 'error' | 'success', string | JSX.Element];
   containerStyle?: StyleProp<ViewStyle>;
   label?: string;
-  renderAppend?: () => JSX.Element;
+  renderAppend?: ({ isFocused }: { isFocused: boolean }) => JSX.Element;
 }
 
-const AppTextInput = forwardRef<TextInput, AppTextInputProps>((props, ref): JSX.Element => {
+const AppTextInput = (props: AppTextInputProps): JSX.Element => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
+  const ref = useRef<TextInput>(null);
+  const isFocused = !!ref.current?.isFocused;
   const editable = props.editable !== false;
+  const [status, statusMessage] = props.status || ['idle', ''];
+  const renderStatusMessage = () => {
+    let template: JSX.Element | undefined = undefined;
+
+    if (statusMessage) {
+      if (isString(statusMessage)) {
+        template = (
+          <AppText
+            medium={status === 'error'}
+            style={[
+              tailwind('mt-1 text-sm'),
+              status === 'success' && tailwind('text-green-'),
+              status === 'warning' && tailwind('text-warning-'),
+              status === 'error' && tailwind('text-red-'),
+            ]}
+          >
+            {statusMessage}
+          </AppText>
+        );
+      } else {
+        template = statusMessage;
+      }
+    }
+
+    return template;
+  };
 
   return (
     <View style={props.containerStyle}>
       {props.label && <AppText style={tailwind('text-sm mb-1')}>{props.label}</AppText>}
       <View
         style={[
-          tailwind('flex-row items-center rounded-lg border border-gray-10 px-4 py-1.5'),
-          !editable && tailwind('bg-neutral-20'),
+          tailwind('flex-row items-center rounded-lg border border-gray-20 px-4 py-1.5'),
+          isFocused && tailwind('border-primary'),
+          status === 'error' && tailwind('border-red-'),
+          status === 'warning' && tailwind('border-orange-'),
+          status === 'success' && tailwind('border-green-'),
+          !editable && tailwind('border-gray-10'),
         ]}
       >
-        <TextInput style={tailwind('flex-1 text-gray-80 py-2')} {...props} ref={ref} />
-        {props.renderAppend && <View style={tailwind('pl-4')}>{props.renderAppend()}</View>}
+        <TextInput
+          style={tailwind('flex-1 text-gray-80 py-2')}
+          placeholderTextColor={getColor('text-gray-30')}
+          ref={ref}
+          {...props}
+        />
+        {props.renderAppend && <View style={tailwind('pl-4')}>{props.renderAppend({ isFocused })}</View>}
       </View>
+
+      {renderStatusMessage()}
     </View>
   );
-});
+};
 
 export default AppTextInput;

@@ -17,7 +17,7 @@ function SettingsGroup({ title, items, advice }: { title?: string; advice?: stri
     return (
       <TouchableHighlight
         disabled={!props.onPress}
-        underlayColor={getColor('text-neutral-30')}
+        underlayColor={getColor('text-gray-10')}
         onPress={(event) => {
           props.onPress && props.onPress(event);
         }}

@@ -33,12 +33,11 @@ const AppScreenTitle = ({
 }: AppScreenTitleProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const backButtonEnabled = useAppSelector((state) => state.ui.backButtonEnabled);
 
   return (
     <View style={[tailwind('flex-row justify-center items-center pt-6 pb-4 px-5'), containerStyle]}>
       {showBackButton && (
-        <TouchableOpacity style={tailwind('flex-1')} disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
+        <TouchableOpacity style={tailwind('flex-1')} disabled={!onBackButtonPressed} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
             <CaretLeft weight="bold" color={getColor('text-blue-60')} size={24} />
           </View>

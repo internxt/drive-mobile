@@ -10,11 +10,15 @@ import ChangePasswordModal from '../../components/modals/ChangePasswordModal';
 import SettingsGroup from '../../components/SettingsGroup';
 import Portal from '@burstware/react-native-portal';
 import useGetColor from '../../hooks/useColor';
+import { TabExplorerScreenProps } from '../../types/navigation';
 
-const SecurityScreen = () => {
+const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const onBackButtonPressed = () => {
+    navigation.goBack();
+  };
   const onChangePasswordPressed = () => {
     setIsChangePasswordModalOpen(true);
   };
@@ -41,6 +45,7 @@ const SecurityScreen = () => {
             text={strings.screens.SecurityScreen.title}
             containerStyle={tailwind('bg-white')}
             centerText
+            onBackButtonPressed={onBackButtonPressed}
           />
 
           <View style={tailwind('px-4 mt-8')}>

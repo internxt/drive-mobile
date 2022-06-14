@@ -21,7 +21,7 @@ const ChangePasswordModal = (props: BaseModalProps) => {
         </AppText>
 
         <ChangePasswordForm
-          renderActionsContainer={({ onSubmitButtonPressed, isValid }) => (
+          renderActionsContainer={({ onSubmitButtonPressed, isValid, isLoading }) => (
             <View style={tailwind('flex-row')}>
               <AppButton
                 style={tailwind('flex-1 mr-1.5')}
@@ -30,6 +30,7 @@ const ChangePasswordModal = (props: BaseModalProps) => {
                 onPress={onCancelButtonPressed}
               />
               <AppButton
+                loading={isLoading}
                 disabled={!isValid}
                 style={tailwind('flex-1')}
                 type="accept"
