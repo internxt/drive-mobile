@@ -54,14 +54,7 @@ const ChangePasswordForm = (props: BaseFormProps) => {
   });
   const { newPassword } = useWatch({ control });
   const newPasswordStatusMessage = useMemo(() => {
-    return (
-      <View style={tailwind('mt-2')}>
-        <StrengthMeter value={2} maxValue={3} />
-        <AppText style={tailwind('mt-2 text-sm text-red-')} medium>
-          {'Password strength error'}
-        </AppText>
-      </View>
-    );
+    return <StrengthMeter style={tailwind('mt-2')} value={2} maxValue={3} message={'Password strength error'} />;
   }, [newPassword]);
   const toggleShowNewPassword = () => setShowNewPassword(!showNewPassword);
   const toggleShowConfirmNewPassword = () => {

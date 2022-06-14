@@ -365,6 +365,11 @@
 			"marginTop": 10
 		}
 	},
+	"mt-1.5": {
+		"style": {
+			"marginTop": 6
+		}
+	},
 	"flex": {
 		"style": {
 			"display": "flex"
@@ -1554,6 +1559,12 @@
 		"style": {
 			"--tw-text-opacity": 1,
 			"color": "rgb(229 229 235 / var(--tw-text-opacity))"
+		}
+	},
+	"text-orange-": {
+		"style": {
+			"--tw-text-opacity": 1,
+			"color": "rgb(255 149 0 / var(--tw-text-opacity))"
 		}
 	},
 	"opacity-50": {
