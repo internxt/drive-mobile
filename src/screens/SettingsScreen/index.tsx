@@ -47,12 +47,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
   };
 
   return (
-    <AppScreen
-      safeAreaTop
-      safeAreaColor={getColor('text-white')}
-      backgroundColor={getColor('text-gray-5')}
-      style={tailwind('min-h-full')}
-    >
+    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('min-h-full')}>
       <ScrollView>
         <AppScreenTitle
           text={strings.screens.SettingsScreen.title}
@@ -64,7 +59,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
             </View>
           }
         />
-        <View style={tailwind('px-4 pt-8 flex-grow')}>
+        <View style={tailwind('px-4 pt-8 flex-grow bg-gray-5')}>
           {/* ACCOUNT */}
           <SettingsGroup
             style={tailwind('mb-2')}

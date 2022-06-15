@@ -326,6 +326,7 @@ const strings = new LocalizedStrings({
       signOut: 'Log out',
       change: 'Change',
       delete: 'Delete',
+      close: 'Close',
     },
     inputs: {
       name: 'Name',
@@ -831,6 +832,7 @@ const strings = new LocalizedStrings({
       signOut: 'Cerrar sesión',
       change: 'Cambiar',
       delete: 'Borrar',
+      close: 'Cerrar',
     },
     inputs: {
       name: 'Nombre',

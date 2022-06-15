@@ -1,4 +1,4 @@
-import { WarningCircle } from 'phosphor-react-native';
+import { ClockCounterClockwise, FolderSimple, ImageSquare, Tray, WarningCircle } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { Image, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -24,11 +24,14 @@ const DeleteAccountModal = (props: BaseModalProps) => {
   const onCancelButtonPressed = () => {
     props.onClose();
   };
-  const onContinueButtonPressed = () => {
+  const goToNextStep = () => {
     setCurrentStep(currentStep + 1);
   };
+  const onContinueButtonPressed = () => {
+    goToNextStep();
+  };
   const onDeleteButtonPressed = () => {
-    // TODO
+    goToNextStep();
   };
   const pollOptions = [
     {
@@ -85,38 +88,96 @@ const DeleteAccountModal = (props: BaseModalProps) => {
       </>
     );
   };
-  const renderImpactStep = () => (
+  const renderImpactStep = () => {
+    const items = [
+      {
+        key: 'files',
+        icon: <FolderSimple color={getColor('text-primary')} size={24} />,
+        label: 'Files',
+        redLabel: '76GB of Documents',
+      },
+      {
+        key: 'backups',
+        icon: <ClockCounterClockwise color={getColor('text-primary')} size={24} />,
+        label: 'Backups',
+        redLabel: '12GB of Backups',
+      },
+      {
+        key: 'photos',
+        icon: <ImageSquare color={getColor('text-primary')} size={24} />,
+        label: 'Photos',
+        redLabel: '2.468 Photos',
+      },
+    ];
+    const renderImpactItems = () =>
+      items.map((item, index) => {
+        const isTheLast = index === items.length - 1;
+
+        return (
+          <View key={item.key}>
+            <View style={tailwind('flex-row items-center justify-between py-4 px-4')}>
+              <View style={tailwind('flex-row items-center')}>
+                {item.icon}
+                <AppText style={tailwind('ml-3 text-lg')}>{item.label}</AppText>
+              </View>
+              <AppText style={tailwind('text-red-')} medium>
+                {item.redLabel}
+              </AppText>
+            </View>
+            {!isTheLast && <View style={{ ...tailwind('mx-4 bg-gray-10'), height: 1 }} />}
+          </View>
+        );
+      });
+
+    return (
+      <>
+        <View style={tailwind('items-center mb-4')}>
+          <WarningCircle size={48} color={getColor('text-red-')} />
+        </View>
+
+        <AppText medium style={tailwind('mb-10 px-4 text-center text-lg')}>
+          {strings.modals.DeleteAccountModal.impact}
+        </AppText>
+
+        <View>
+          <AppText style={tailwind('ml-4 mb-2')}>{strings.modals.DeleteAccountModal.youWillLose}</AppText>
+          <View style={tailwind('rounded-xl bg-gray-5')}>{renderImpactItems()}</View>
+        </View>
+
+        <View style={tailwind('flex-row mt-6')}>
+          <AppButton
+            style={tailwind('flex-1 mr-1')}
+            title={strings.buttons.cancel}
+            type="cancel"
+            onPress={onCancelButtonPressed}
+          />
+          <AppButton
+            style={tailwind('flex-1')}
+            title={strings.buttons.delete}
+            type="delete"
+            onPress={onDeleteButtonPressed}
+          />
+        </View>
+      </>
+    );
+  };
+  const renderConfirmationStep = () => (
     <>
       <View style={tailwind('items-center mb-4')}>
-        <WarningCircle size={48} color={getColor('text-red-')} />
+        <Tray size={48} color={getColor('text-primary')} />
       </View>
 
-      <AppText medium style={tailwind('mb-10 px-4 text-center text-lg')}>
-        {strings.modals.DeleteAccountModal.impact}
+      <AppText medium style={tailwind('mb-4 px-4 text-center text-lg')}>
+        {strings.modals.DeleteAccountModal.confirmationEmail}
       </AppText>
 
-      <View>
-        <AppText>{'You will lose'}</AppText>
-        <View style={tailwind('rounded-xl bg-gray-5')}></View>
-      </View>
+      <AppText style={tailwind('mb-10 text-center text-gray-60')}>
+        {strings.modals.DeleteAccountModal.confirmationEmailExpiration}
+      </AppText>
 
-      <View style={tailwind('flex-row mt-6')}>
-        <AppButton
-          style={tailwind('flex-1 mr-1')}
-          title={strings.buttons.cancel}
-          type="cancel"
-          onPress={onCancelButtonPressed}
-        />
-        <AppButton
-          style={tailwind('flex-1')}
-          title={strings.buttons.delete}
-          type="delete"
-          onPress={onDeleteButtonPressed}
-        />
-      </View>
+      <AppButton title={strings.buttons.close} type="accept" onPress={onCancelButtonPressed} />
     </>
   );
-  const renderConfirmationStep = () => <></>;
   const steps = [
     {
       key: 'poll',

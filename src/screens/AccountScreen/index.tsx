@@ -86,12 +86,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
     });
 
   return (
-    <AppScreen
-      safeAreaTop
-      safeAreaColor={getColor('text-white')}
-      backgroundColor={getColor('text-gray-5')}
-      style={tailwind('min-h-full')}
-    >
+    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('min-h-full')}>
       <ScrollView>
         <AppScreenTitle
           text={strings.screens.AccountScreen.title}
@@ -100,7 +95,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
           onBackButtonPressed={onBackButtonPressed}
         />
 
-        <View style={tailwind('px-4')}>
+        <View style={tailwind('px-4 bg-gray-5')}>
           {/* PROFILE PICTURE */}
           <View style={tailwind('items-center my-8 px-4')}>
             <Image source={require('../../../assets/icon.png')} style={tailwind('mb-2 h-28 w-28 rounded-full')} />
@@ -124,7 +119,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
                       type="accept"
                       title={strings.buttons.upgrade}
                       onPress={onBillingPressed}
-                      style={tailwind('rounded-3xl px-8')}
+                      style={tailwind('rounded-3xl px-8 py-2')}
                     />
                   </View>
                 ),

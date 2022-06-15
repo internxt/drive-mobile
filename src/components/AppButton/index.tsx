@@ -61,7 +61,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     <TouchableHighlight
       testID={props.testID}
       underlayColor={typeUnderlayColor}
-      style={[tailwind('rounded-lg px-4 py-2 items-center justify-center'), typeBgStyle, props.style]}
+      style={[tailwind('rounded-lg px-4 py-3 items-center justify-center'), typeBgStyle, props.style]}
       onPress={props.onPress}
       disabled={!!props.disabled || !!props.loading}
     >

@@ -23,23 +23,26 @@ const AppPoll = (props: AppPollProps) => {
       const isSelected = option.key === props.selectedOptionKey;
 
       return (
-        <TouchableWithoutFeedback key={option.key} onPress={() => props.onOptionSelected?.(option)}>
-          <View
-            style={[
-              tailwind('flex-row pl-4 py-3.5'),
-              isSelected && tailwind('bg-primary/10'),
-              isTheFirst && tailwind('rounded-t-xl'),
-              isTheLast && tailwind('rounded-b-xl'),
-            ]}
-          >
-            <AppText numberOfLines={1} style={tailwind('flex-1')}>
-              {option.message}
-            </AppText>
-            <View style={tailwind('items-center justify-center w-10')}>
-              {isSelected && <CheckCircle weight="fill" size={20} color={getColor('text-primary')} />}
+        <View key={option.key}>
+          <TouchableWithoutFeedback onPress={() => props.onOptionSelected?.(option)}>
+            <View
+              style={[
+                tailwind('flex-row pl-4 py-3.5'),
+                isSelected && tailwind('bg-primary/10'),
+                isTheFirst && tailwind('rounded-t-xl'),
+                isTheLast && tailwind('rounded-b-xl'),
+              ]}
+            >
+              <AppText numberOfLines={1} style={tailwind('flex-1')}>
+                {option.message}
+              </AppText>
+              <View style={tailwind('items-center justify-center w-10')}>
+                {isSelected && <CheckCircle weight="fill" size={20} color={getColor('text-primary')} />}
+              </View>
             </View>
-          </View>
-        </TouchableWithoutFeedback>
+          </TouchableWithoutFeedback>
+          {!isTheLast && <View style={{ ...tailwind('mx-4 bg-gray-10'), height: 1 }} />}
+        </View>
       );
     });
 
