@@ -5,25 +5,26 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { newsletterThunks } from '../../../store/slices/newsletter';
+import { BaseModalProps } from '../../../types/ui';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
 import CenterModal from '../CenterModal';
 
-const NewsletterModal = (props: { isOpen: boolean; onClosed: () => void }): JSX.Element => {
+const NewsletterModal = (props: BaseModalProps): JSX.Element => {
   const tailwind = useTailwind();
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector((state) => state.newsletter.isSubscribing);
   const onCancelButtonPressed = () => {
-    props.onClosed();
+    props.onClose();
   };
   const onSubscribeButtonPressed = async () => {
     user && (await dispatch(newsletterThunks.subscribeThunk(user?.email)));
-    props.onClosed();
+    props.onClose();
   };
 
   return (
-    <CenterModal isOpen={props.isOpen} onClosed={props.onClosed}>
+    <CenterModal isOpen={props.isOpen} onClosed={props.onClose}>
       <View style={tailwind('p-3 pt-6 justify-center items-center')}>
         <Text style={tailwind('mb-4 font-semibold text-xl text-center text-neutral-500')}>
           {strings.modals.NewsletterModal.title}

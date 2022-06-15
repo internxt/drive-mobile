@@ -26,6 +26,7 @@ const strings = new LocalizedStrings({
       move: 'Move',
       root_folder_name: 'Drive',
       view_folder: 'View folder',
+      iOfN: '{0} of {1}',
     },
     tabs: {
       Home: 'Home',
@@ -263,6 +264,7 @@ const strings = new LocalizedStrings({
           title: 'Security',
           advice: 'Change your password, manage two factor authentication or save your backup key.',
         },
+        deleteAccount: 'Delete account',
       },
       SecurityScreen: {
         title: 'Security',
@@ -323,6 +325,7 @@ const strings = new LocalizedStrings({
       resume: 'Resume',
       signOut: 'Log out',
       change: 'Change',
+      delete: 'Delete',
     },
     inputs: {
       name: 'Name',
@@ -387,7 +390,12 @@ const strings = new LocalizedStrings({
           'Hey {0}, we are sorry to hear that you want to leave Internxt, we would like to ask you one last favor...',
         poll: {
           title: 'What made you want to leave Internxt?',
-          options: ['I’ve found a better alternative', 'I want to save money', 'I’m having technical issues', 'Other'],
+          options: {
+            ['better-alternative']: 'I’ve found a better alternative',
+            ['save-money']: 'I want to save money',
+            ['technical-issues']: 'I’m having technical issues',
+            other: 'Other',
+          },
           advice: 'Your answers are anonnymous, we respect your privacy',
         },
         impact:
@@ -522,6 +530,7 @@ const strings = new LocalizedStrings({
       move: 'Mover',
       view_folder: 'Ver carpeta',
       root_folder_name: 'Drive',
+      iOfN: '{0} de {1}',
     },
     tabs: {
       Home: 'Inicio',
@@ -760,6 +769,7 @@ const strings = new LocalizedStrings({
           title: 'Seguridad',
           advice: 'Cambia tu contraseña, configura la autentificación en dos pasos o guarda tu clave de recuperación.',
         },
+        deleteAccount: 'Borrar cuenta',
       },
       SecurityScreen: {
         title: 'Seguridad',
@@ -820,6 +830,7 @@ const strings = new LocalizedStrings({
       resume: 'Reanudar',
       signOut: 'Cerrar sesión',
       change: 'Cambiar',
+      delete: 'Borrar',
     },
     inputs: {
       name: 'Nombre',
@@ -884,15 +895,15 @@ const strings = new LocalizedStrings({
           'Hola {userFullName}, lamentamos que quieras abandonar Internxt, nos gustaría pedirte un último favor...',
         poll: {
           title: '¿Qué te hizo querer dejar Internxt?',
-          options: [
-            'He encontrado una alternativa mejor',
-            'Quiero ahorrar dinero',
-            'Tengo problemas técnicos',
-            'Otros',
-          ],
+          options: {
+            ['better-alternative']: 'He encontrado una alternativa mejor',
+            ['save-money']: 'Quiero ahorrar dinero',
+            ['technical-issues']: 'Tengo problemas técnicos',
+            ['other']: 'Otros',
+          },
           advice: 'Sus respuestas son anónimas, respetamos su privacidad',
         },
-        impacto:
+        impact:
           'Al eliminar permanentemente tu cuenta, todas tus copias de seguridad, fotos, vídeos y documentos desaparecerán para siempre.',
         youWillLose: 'Perderás para siempre todos tus',
         confirmationEmail:

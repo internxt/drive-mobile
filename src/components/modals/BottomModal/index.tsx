@@ -17,6 +17,7 @@ export interface BottomModalProps {
   containerStyle?: StyleProp<ViewStyle>;
   safeAreaColor?: string;
   height?: number;
+  topDecoration?: boolean;
 }
 
 const BottomModal = (props: BottomModalProps): JSX.Element => {
@@ -44,6 +45,11 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
             <View style={tailwind('flex-grow')} />
             <TouchableWithoutFeedback>
               <View style={[tailwind('bg-white rounded-t-xl'), props.style]}>
+                {props.topDecoration && (
+                  <View style={tailwind('py-4 items-center')}>
+                    <View style={tailwind('rounded-full h-1 w-14 bg-gray-10')} />
+                  </View>
+                )}
                 {props.header && (
                   <View style={tailwind('flex-row px-5 py-4 items-center justify-between')}>
                     <View style={tailwind('flex-1')}>{props.header}</View>

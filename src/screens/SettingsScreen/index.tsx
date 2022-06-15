@@ -4,7 +4,7 @@ import { Bug, CaretRight, FolderSimple, Info, Question, Translate } from 'phosph
 
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
-import { useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
 import AppScreen from '../../components/AppScreen';
 import appService from '../../services/AppService';
@@ -15,14 +15,19 @@ import { useTailwind } from 'tailwind-rn';
 import AppSwitch from '../../components/AppSwitch';
 import SettingsGroup from '../../components/SettingsGroup';
 import useGetColor from '../../hooks/useColor';
+import { uiActions } from '../../store/slices/ui';
 
 function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const dispatch = useAppDispatch();
   const useMobileDataToUploadPhotos = true;
   const userFullName = useAppSelector(authSelectors.userFullName);
   const onAccountPressed = () => {
     navigation.push('TabExplorer', { screen: 'Account' });
+  };
+  const onSignOutPressed = () => {
+    dispatch(uiActions.setIsSignOutModalOpen(true));
   };
   const onStoragePressed = () => {
     navigation.push('Storage');
@@ -62,6 +67,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
         <View style={tailwind('px-4 pt-8 flex-grow')}>
           {/* ACCOUNT */}
           <SettingsGroup
+            style={tailwind('mb-2')}
             title={'Account'}
             items={[
               {
@@ -90,6 +96,20 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                   </View>
                 ),
                 onPress: onAccountPressed,
+              },
+            ]}
+          />
+          {/* SIGN OUT */}
+          <SettingsGroup
+            items={[
+              {
+                key: 'sign-out',
+                template: (
+                  <View style={tailwind('px-4 py-3')}>
+                    <AppText style={tailwind('text-center text-lg text-red-')}>{strings.buttons.signOut}</AppText>
+                  </View>
+                ),
+                onPress: onSignOutPressed,
               },
             ]}
           />

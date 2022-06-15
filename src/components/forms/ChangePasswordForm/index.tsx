@@ -1,5 +1,5 @@
 import { Eye, EyeSlash } from 'phosphor-react-native';
-import { Controller, useForm, useFormState, useWatch } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useMemo, useState } from 'react';
 import { TouchableWithoutFeedback, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -13,7 +13,6 @@ import { NotificationType } from '../../../types';
 import { BaseFormProps, ChangePasswordFormData } from '../../../types/ui';
 import AppTextInput from '../../AppTextInput';
 import StrengthMeter from '../../StrengthMeter';
-import AppText from '../../AppText';
 
 const schema: yup.SchemaOf<ChangePasswordFormData> = yup
   .object()

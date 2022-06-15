@@ -23,8 +23,8 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
   const onBackButtonPressed = () => {
     navigation.goBack();
   };
-  const onLogoutPressed = () => {
-    dispatch(uiActions.setIsSignOutModalOpen(true));
+  const onDeleteAccountPressed = () => {
+    dispatch(uiActions.setIsDeleteAccountModalOpen(true));
   };
   const onBillingPressed = () => {
     navigation.navigate('Billing');
@@ -159,17 +159,19 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
             advice={strings.screens.AccountScreen.security.advice}
           />
 
-          {/* LOGOUT */}
+          {/* DELETE ACCOUNT */}
           <SettingsGroup
             items={[
               {
-                key: 'logout',
+                key: 'delete-account',
                 template: (
                   <View style={tailwind('px-4 py-3')}>
-                    <AppText style={tailwind('text-center text-lg text-red-')}>{strings.buttons.signOut}</AppText>
+                    <AppText style={tailwind('text-center text-lg text-red-')}>
+                      {strings.screens.AccountScreen.deleteAccount}
+                    </AppText>
                   </View>
                 ),
-                onPress: onLogoutPressed,
+                onPress: onDeleteAccountPressed,
               },
             ]}
           />

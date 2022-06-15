@@ -19,15 +19,15 @@ import AppToast from './components/AppToast';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
 import Navigation from './navigation';
 import { useTailwind } from 'tailwind-rn';
+import DeleteAccountModal from './components/modals/DeleteAccountModal';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
   const { color: whiteColor } = tailwind('text-white');
   const [isAppInitialized, setIsAppInitialized] = useState(false);
-  const { isLinkCopiedModalOpen, isInviteFriendsModalOpen, isNewsletterModalOpen } = useAppSelector(
-    (state) => state.ui,
-  );
+  const { isLinkCopiedModalOpen, isInviteFriendsModalOpen, isNewsletterModalOpen, isDeleteAccountModalOpen } =
+    useAppSelector((state) => state.ui);
   const [loadError, setLoadError] = useState('');
   const loadLocalUser = async () => {
     const token = await asyncStorage.getItem(AsyncStorageKey.Token);
@@ -45,6 +45,7 @@ export default function App(): JSX.Element {
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
   const onInviteFriendsModalClosed = () => dispatch(uiActions.setIsInviteFriendsModalOpen(false));
   const onNewsletterModalClosed = () => dispatch(uiActions.setIsNewsletterModalOpen(false));
+  const onDeleteAccountModalClosed = () => dispatch(uiActions.setIsDeleteAccountModalOpen(false));
 
   // Initialize app
   useEffect(() => {
@@ -87,9 +88,10 @@ export default function App(): JSX.Element {
 
             <AppToast />
 
-            <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClosed={onLinkCopiedModalClosed} />
-            <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClosed={onInviteFriendsModalClosed} />
-            <NewsletterModal isOpen={isNewsletterModalOpen} onClosed={onNewsletterModalClosed} />
+            <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
+            <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
+            <NewsletterModal isOpen={isNewsletterModalOpen} onClose={onNewsletterModalClosed} />
+            <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
           </View>
         </Portal.Host>
       </KeyboardAvoidingView>

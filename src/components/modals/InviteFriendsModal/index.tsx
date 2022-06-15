@@ -5,11 +5,12 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { usersThunks } from '../../../store/slices/users';
+import { BaseModalProps } from '../../../types/ui';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
 import CenterModal from '../CenterModal';
 
-const InviteFriendsModal = (props: { isOpen: boolean; onClosed: () => void }): JSX.Element => {
+const InviteFriendsModal = (props: BaseModalProps): JSX.Element => {
   const tailwind = useTailwind();
   const [email, setEmail] = useState('');
   const dispatch = useAppDispatch();
@@ -18,15 +19,15 @@ const InviteFriendsModal = (props: { isOpen: boolean; onClosed: () => void }): J
     setEmail(value);
   };
   const onCancelButtonPressed = () => {
-    props.onClosed();
+    props.onClose();
   };
   const onInviteButtonPressed = async () => {
     await dispatch(usersThunks.inviteAFriendThunk(email));
-    props.onClosed();
+    props.onClose();
   };
 
   return (
-    <CenterModal isOpen={props.isOpen} onClosed={props.onClosed}>
+    <CenterModal isOpen={props.isOpen} onClosed={props.onClose}>
       <View style={tailwind('p-3 pt-6 justify-center items-center')}>
         <Text style={tailwind('mb-4 font-semibold text-xl text-center text-neutral-500')}>
           {strings.modals.InviteFriendsModal.title}

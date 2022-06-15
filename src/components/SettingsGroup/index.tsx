@@ -10,7 +10,14 @@ interface SettingsGroupItemProps {
   onPress?: (event: GestureResponderEvent) => void;
 }
 
-function SettingsGroup({ title, items, advice }: { title?: string; advice?: string; items: SettingsGroupItemProps[] }) {
+interface SettingsGroupProps {
+  style?: StyleProp<ViewStyle>;
+  title?: string;
+  advice?: string;
+  items: SettingsGroupItemProps[];
+}
+
+function SettingsGroup({ style, title, items, advice }: SettingsGroupProps) {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const SettingsGroupItem = (props: SettingsGroupItemProps) => {
@@ -42,7 +49,7 @@ function SettingsGroup({ title, items, advice }: { title?: string; advice?: stri
     });
 
   return (
-    <View style={tailwind('mb-8')}>
+    <View style={[tailwind('mb-8'), style]}>
       {title !== undefined && (
         <AppText style={tailwind('text-xs ml-4 mb-2')} semibold>
           {title.toUpperCase()}
