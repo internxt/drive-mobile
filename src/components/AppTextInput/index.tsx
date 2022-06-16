@@ -9,7 +9,7 @@ interface AppTextInputProps extends TextInputProps {
   status?: ['idle' | 'warning' | 'error' | 'success', string | JSX.Element];
   containerStyle?: StyleProp<ViewStyle>;
   label?: string;
-  renderAppend?: ({ isFocused }: { isFocused: boolean }) => JSX.Element;
+  renderAppend?: ({ isFocused }: { isFocused: boolean }) => JSX.Element | undefined;
 }
 
 const AppTextInput = (props: AppTextInputProps): JSX.Element => {
@@ -59,10 +59,10 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
         ]}
       >
         <TextInput
-          style={tailwind('flex-1 text-gray-80 py-2')}
           placeholderTextColor={getColor('text-gray-30')}
           ref={ref}
           {...props}
+          style={[tailwind('flex-1 text-gray-80 py-2'), props.style]}
         />
         {props.renderAppend && <View style={tailwind('pl-4')}>{props.renderAppend({ isFocused })}</View>}
       </View>

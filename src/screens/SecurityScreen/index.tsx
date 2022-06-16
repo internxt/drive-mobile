@@ -34,12 +34,7 @@ const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
         <ChangePasswordModal isOpen={isChangePasswordModalOpen} onClose={onChangePasswordModalClosed} />
       </Portal>
 
-      <AppScreen
-        safeAreaTop
-        safeAreaColor={getColor('text-white')}
-        backgroundColor={getColor('text-gray-5')}
-        style={tailwind('min-h-full')}
-      >
+      <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('min-h-full')}>
         <ScrollView>
           <AppScreenTitle
             text={strings.screens.SecurityScreen.title}
@@ -48,7 +43,7 @@ const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
             onBackButtonPressed={onBackButtonPressed}
           />
 
-          <View style={tailwind('px-4 mt-8')}>
+          <View style={tailwind('px-4 pt-8 bg-gray-5')}>
             {/* CHANGE PASSWORD */}
             <SettingsGroup
               title={strings.screens.SecurityScreen.changePassword.title}

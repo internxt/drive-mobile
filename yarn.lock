@@ -2178,10 +2178,10 @@
   resolved "https://npm.pkg.github.com/download/@internxt/rn-crypto/0.1.6/1766446b2b66e7b32aff031039b986f6d3739aa065b1951ad88c57b5063a711e#a05015f26b1d62b50f9c4bf71e0607cfe7b4fb7d"
   integrity sha512-HLfJQYEJQXFfeKmNCm2wVqCHMzz5GKSYrSb1RusxPPYHr1JAKoqtweF+OQosEa19yjzCvWnMCVz7nV7cWZbNkg==
 
-"@internxt/sdk@^0.8.1":
-  version "0.8.1"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/0.8.1/5b5e5c3def564d51b0636cca1a445ad6d1f6d08ea971ea96d71355b82c84c14f#701fa80d54de3eb191786b1ed2478c6ddfdbc33b"
-  integrity sha512-c2gFdh/3muhBzMO8z+/ADjSKSz+kw11l/MAArOfHOP4sc5NAAadsVPo/hZBQ+hgE7SLU9lqTAVTwprQABe9tBw==
+"@internxt/sdk@^0.15.1":
+  version "0.15.1"
+  resolved "https://npm.pkg.github.com/download/@internxt/sdk/0.15.1/c5de6b764892890faa649f8faaa2f4fb6084e07c9abcefe161201380aa1965aa#dc648316b1d76e342403a9a35d5e8156953c7552"
+  integrity sha512-K1gXTatyW0cZjwEFlFv2nCC/o7t5GAVYtktMsom+LPUQNDAyQg1bMEVZLaySCg4W9+Qcf9N8KbkpgAb12KhIWw==
   dependencies:
     axios "^0.24.0"
     query-string "^7.1.0"

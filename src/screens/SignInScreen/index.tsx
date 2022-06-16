@@ -74,53 +74,49 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         </View>
 
         <View style={showTwoFactor ? tailwind('hidden') : tailwind('flex')}>
-          <View style={{ ...inputWrapperStyle, ...tailwind('my-2 items-stretch') }}>
-            <AppTextInput
-              testID="email-input"
-              style={tailwind('flex-grow pl-4')}
-              value={email}
-              onChangeText={(value) => setEmail(value)}
-              placeholder={strings.inputs.email}
-              placeholderTextColor={getColor('text-neutral-100')}
-              maxLength={64}
-              keyboardType="email-address"
-              autoCapitalize={'none'}
-              autoCorrect={false}
-              autoCompleteType="username"
-              textContentType="emailAddress"
-              editable={!isLoading}
-            />
-          </View>
+          <AppTextInput
+            testID="email-input"
+            style={tailwind('h-11')}
+            value={email}
+            onChangeText={(value) => setEmail(value)}
+            placeholder={strings.inputs.email}
+            maxLength={64}
+            keyboardType="email-address"
+            autoCapitalize={'none'}
+            autoCorrect={false}
+            autoCompleteType="username"
+            textContentType="emailAddress"
+            editable={!isLoading}
+          />
 
-          <View style={{ ...inputWrapperStyle, ...tailwind('my-2 items-stretch') }}>
-            <TextInput
-              testID="password-input"
-              style={tailwind('flex-grow pl-4')}
-              value={password}
-              onChangeText={setPassword}
-              onFocus={() => setPasswordFocus(true)}
-              onBlur={() => setPasswordFocus(false)}
-              placeholder={strings.inputs.password}
-              placeholderTextColor={getColor('text-neutral-100')}
-              secureTextEntry={!showPasswordText}
-              autoCompleteType="password"
-              autoCapitalize="none"
-              textContentType="password"
-              editable={!isLoading}
-            />
-
-            {(!!password || passwordFocus) && (
-              <TouchableWithoutFeedback onPress={() => setShowPasswordText(!showPasswordText)}>
-                <View style={tailwind('justify-center p-3')}>
-                  {showPasswordText ? (
-                    <EyeSlash color={getColor('text-neutral-80')} />
-                  ) : (
-                    <Eye color={getColor('text-neutral-80')} />
-                  )}
-                </View>
-              </TouchableWithoutFeedback>
-            )}
-          </View>
+          <AppTextInput
+            testID="password-input"
+            containerStyle={tailwind('my-2')}
+            style={tailwind('h-11')}
+            value={password}
+            onChangeText={setPassword}
+            onFocus={() => setPasswordFocus(true)}
+            onBlur={() => setPasswordFocus(false)}
+            placeholder={strings.inputs.password}
+            secureTextEntry={!showPasswordText}
+            autoCompleteType="password"
+            autoCapitalize="none"
+            textContentType="password"
+            editable={!isLoading}
+            renderAppend={() =>
+              !!password || passwordFocus ? (
+                <TouchableWithoutFeedback onPress={() => setShowPasswordText(!showPasswordText)}>
+                  <View>
+                    {showPasswordText ? (
+                      <EyeSlash color={getColor('text-gray-80')} size={24} />
+                    ) : (
+                      <Eye color={getColor('text-gray-80')} size={24} />
+                    )}
+                  </View>
+                </TouchableWithoutFeedback>
+              ) : undefined
+            }
+          />
         </View>
 
         <View style={showTwoFactor ? tailwind('') : tailwind('hidden')}>

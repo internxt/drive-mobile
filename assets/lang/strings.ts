@@ -238,19 +238,25 @@ const strings = new LocalizedStrings({
         storage: 'Storage',
         language: 'Language',
         drive: 'Drive',
-        support: 'Support',
-        more: 'More info',
         account: {
+          title: 'Account',
           advice: 'Profile, billing and security',
         },
+        general: 'General',
         photos: {
+          title: 'Photos gallery',
           mobileData: {
             title: 'Use mobile data to upload',
             onlyWifi: 'Use only WiFi to upload photos',
             wifiAndMobileData: 'Use WiFi and mobile data to upload photos',
           },
         },
+        information: 'Information',
         termsAndConditions: 'Terms and conditions',
+        support: 'Support',
+        more: 'More info',
+        legal: 'Legal',
+        debug: 'Debug',
         signOut: 'Log out',
       },
       AccountScreen: {
@@ -507,6 +513,7 @@ const strings = new LocalizedStrings({
       loadProducts: 'Cannot load products: {0}',
       passwordsDontMatch: "Passwords don't match",
       requiredField: 'This is a required field',
+      deleteAccount: 'Error sending confirmation email',
     },
   },
   es: {
@@ -745,9 +752,12 @@ const strings = new LocalizedStrings({
         language: 'Idioma',
         drive: 'Drive',
         account: {
+          title: 'Cuenta',
           advice: 'Perfil, facturación y seguridad',
         },
+        general: 'General',
         photos: {
+          title: 'Galería de fotos',
           mobileData: {
             title: 'Usar datos móviles para subir',
             onlyWifi: 'Usar solo WiFi para subir fotos',
@@ -755,8 +765,11 @@ const strings = new LocalizedStrings({
           },
         },
         support: 'Soporte',
+        information: 'Información',
         more: 'Más información',
         termsAndConditions: 'Términos y condiciones',
+        legal: 'Legal',
+        debug: 'Debug',
         signOut: 'Cerrar sesión',
       },
       AccountScreen: {
@@ -1014,6 +1027,7 @@ const strings = new LocalizedStrings({
       loadProducts: 'Error al cargar productos: {0}',
       passwordsDontMatch: 'Las contraseñas no coinciden',
       requiredField: 'Este campo es requerido',
+      deleteAccount: 'Error enviando email de confirmación',
     },
   },
 });

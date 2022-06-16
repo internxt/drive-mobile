@@ -1,3 +1,5 @@
+import { Auth } from '@internxt/sdk';
+import packageJson from '../../package.json';
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { getHeaders } from '../helpers/headers';
@@ -7,6 +9,7 @@ import { constants } from './AppService';
 import AesUtils from '../helpers/aesUtils';
 import errorService from './ErrorService';
 import notificationsService from './NotificationsService';
+import EventEmitter from 'events';
 
 interface LoginResponse {
   tfa: string;
@@ -21,7 +24,30 @@ interface RegisterParams {
   captcha: string;
 }
 
+enum AuthEventKey {
+  Login = 'login',
+  Logout = 'logout',
+}
+
 class AuthService {
+  private readonly eventEmitter: EventEmitter;
+  private authSdk?: Auth;
+
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
+
+  public initialize(accessToken: string, mnemonic: string) {
+    this.authSdk = Auth.client(
+      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
+      {
+        clientName: packageJson.name,
+        clientVersion: packageJson.version,
+      },
+      { token: accessToken, mnemonic },
+    );
+  }
+
   public async apiLogin(email: string): Promise<LoginResponse> {
     return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/login`, {
       method: 'POST',
@@ -131,7 +157,7 @@ class AuthService {
     });
   }
 
-  public sendDeactivationsEmail(email: string): Promise<void> {
+  public reset(email: string): Promise<void> {
     return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/reset/${email}`, {}).then(async (res) => {
       if (res.status !== 200) {
         throw Error();
@@ -139,7 +165,13 @@ class AuthService {
     });
   }
 
-  async getNewBits(): Promise<string> {
+  public async deleteAccount(email: string): Promise<void> {
+    this.checkIsInitialized();
+
+    await this.authSdk?.sendDeactivationEmail(email);
+  }
+
+  public async getNewBits(): Promise<string> {
     return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/bits`)
       .then((res) => res.json())
       .then((res) => res.bits)
@@ -183,6 +215,30 @@ class AuthService {
     });
   }
 
+  public addLoginListener(listener: () => void) {
+    this.eventEmitter.on(AuthEventKey.Login, listener);
+  }
+
+  public removeLoginListener(listener: () => void) {
+    this.eventEmitter.removeListener(AuthEventKey.Login, listener);
+  }
+
+  public addLogoutListener(listener: () => void) {
+    this.eventEmitter.on(AuthEventKey.Logout, listener);
+  }
+
+  public removeLogoutListener(listener: () => void) {
+    this.eventEmitter.removeListener(AuthEventKey.Logout, listener);
+  }
+
+  public emitLoginEvent() {
+    this.eventEmitter.emit(AuthEventKey.Login);
+  }
+
+  public emitLogoutEvent() {
+    this.eventEmitter.emit(AuthEventKey.Logout);
+  }
+
   private async getSalt(email: string) {
     const response = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/login`, {
       method: 'post',
@@ -193,6 +249,12 @@ class AuthService {
     const salt = decryptText(data.sKey);
 
     return salt;
+  }
+
+  private checkIsInitialized() {
+    if (!this.authSdk) {
+      throw new Error('AuthService not initialized...');
+    }
   }
 }
 

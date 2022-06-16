@@ -5,11 +5,13 @@ import { RootState } from '../..';
 import authService from '../../../services/AuthService';
 import userService from '../../../services/UserService';
 import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
-import { AsyncStorageKey, DevicePlatform, User } from '../../../types';
+import { AsyncStorageKey, DevicePlatform, NotificationType, User } from '../../../types';
 import { photosActions, photosThunks } from '../photos';
 import { appThunks } from '../app';
 import { driveActions, driveThunks } from '../drive';
 import { uiActions } from '../ui';
+import notificationsService from '../../../services/NotificationsService';
+import strings from '../../../../assets/lang/strings';
 
 export interface AuthState {
   loggedIn: boolean;
@@ -31,6 +33,32 @@ const initialState: AuthState = {
   userStorage: { usage: 0, limit: 0, percentage: 0 },
 };
 
+export const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'auth/initialize',
+  async (payload, { getState }) => {
+    const { loggedIn, token, user } = getState().auth;
+
+    if (loggedIn && user) {
+      authService.initialize(token, user?.mnemonic);
+    }
+  },
+);
+
+export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'auth/silentSignIn',
+  async (payload, { dispatch }) => {
+    const token = await asyncStorageService.getItem(AsyncStorageKey.Token);
+    const photosToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
+    const user = await asyncStorageService.getUser();
+
+    if (token && photosToken && user) {
+      dispatch(authActions.setSignInData({ token, photosToken, user }));
+
+      authService.emitLoginEvent();
+    }
+  },
+);
+
 export const signInThunk = createAsyncThunk<
   { token: string; photosToken: string; user: User },
   { email: string; password: string; sKey: string; twoFactorCode: string },
@@ -44,12 +72,14 @@ export const signInThunk = createAsyncThunk<
 
   dispatch(appThunks.initializeThunk());
 
+  authService.emitLoginEvent();
+
   return result;
 });
 
 export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/signOut',
-  async (payload: void, { dispatch }) => {
+  async (payload, { dispatch }) => {
     await authService.signout();
 
     dispatch(uiActions.resetState());
@@ -59,13 +89,17 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
     dispatch(photosThunks.cancelSyncThunk());
     dispatch(photosThunks.clearLocalDatabaseThunk());
     dispatch(photosActions.resetState());
+
+    authService.emitLogoutEvent();
   },
 );
 
-export const paymentThunk = createAsyncThunk<void, { token: string; planId: string }, { state: RootState }>(
-  'auth/payment',
-  async (payload) => {
-    return userService.payment(payload.token, payload.planId);
+export const deleteAccountThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'auth/deleteAccount',
+  async (payload, { getState }) => {
+    const { user } = getState().auth;
+
+    user && (await authService.deleteAccount(user.email));
   },
 );
 
@@ -76,7 +110,7 @@ export const authSlice = createSlice({
     resetState(state) {
       Object.assign(state, initialState);
     },
-    signIn: (state, action: PayloadAction<{ token: string; photosToken: string; user: User }>) => {
+    setSignInData: (state, action: PayloadAction<{ token: string; photosToken: string; user: User }>) => {
       state.loggedIn = true;
       state.user = action.payload.user;
       state.token = action.payload.token;
@@ -87,6 +121,11 @@ export const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    builder
+      .addCase(initializeThunk.pending, () => undefined)
+      .addCase(initializeThunk.fulfilled, () => undefined)
+      .addCase(initializeThunk.rejected, () => undefined);
+
     builder
       .addCase(signInThunk.pending, () => undefined)
       .addCase(signInThunk.fulfilled, (state, action) => {
@@ -116,6 +155,11 @@ export const authSlice = createSlice({
       .addCase(signInThunk.rejected, () => undefined);
 
     builder
+      .addCase(silentSignInThunk.pending, () => undefined)
+      .addCase(silentSignInThunk.fulfilled, () => undefined)
+      .addCase(silentSignInThunk.rejected, () => undefined);
+
+    builder
       .addCase(signOutThunk.pending, () => undefined)
       .addCase(signOutThunk.fulfilled, (state) => {
         state.loggedIn = false;
@@ -126,9 +170,11 @@ export const authSlice = createSlice({
       .addCase(signOutThunk.rejected, () => undefined);
 
     builder
-      .addCase(paymentThunk.pending, () => undefined)
-      .addCase(paymentThunk.fulfilled, () => undefined)
-      .addCase(paymentThunk.rejected, () => undefined);
+      .addCase(deleteAccountThunk.pending, () => undefined)
+      .addCase(deleteAccountThunk.fulfilled, () => undefined)
+      .addCase(deleteAccountThunk.rejected, () => {
+        notificationsService.show({ type: NotificationType.Error, text1: strings.errors.deleteAccount });
+      });
   },
 });
 
@@ -149,9 +195,11 @@ export const authSelectors = {
 export const authActions = authSlice.actions;
 
 export const authThunks = {
+  initializeThunk,
   signInThunk,
+  silentSignInThunk,
   signOutThunk,
-  paymentThunk,
+  deleteAccountThunk,
 };
 
 export default authSlice.reducer;

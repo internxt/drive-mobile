@@ -4,8 +4,8 @@ import { Image, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
-import { useAppSelector } from '../../../store/hooks';
-import { authSelectors } from '../../../store/slices/auth';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { authSelectors, authThunks } from '../../../store/slices/auth';
 import { BaseModalProps } from '../../../types/ui';
 import AppButton from '../../AppButton';
 import AppPoll from '../../AppPoll';
@@ -15,9 +15,11 @@ import BottomModal from '../BottomModal';
 const DeleteAccountModal = (props: BaseModalProps) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const dispatch = useAppDispatch();
   const userFullName = useAppSelector(authSelectors.userFullName);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedPollOption, setSelectedPollOption] = useState<string>();
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const onPollOptionSelected = (option: { key: string; message: string }) => {
     setSelectedPollOption(option.key);
   };
@@ -31,7 +33,15 @@ const DeleteAccountModal = (props: BaseModalProps) => {
     goToNextStep();
   };
   const onDeleteButtonPressed = () => {
-    goToNextStep();
+    setIsDeletingAccount(true);
+
+    dispatch(authThunks.deleteAccountThunk())
+      .unwrap()
+      .then(() => goToNextStep())
+      .catch(() => undefined)
+      .finally(() => {
+        setIsDeletingAccount(false);
+      });
   };
   const pollOptions = [
     {
@@ -155,6 +165,7 @@ const DeleteAccountModal = (props: BaseModalProps) => {
             style={tailwind('flex-1')}
             title={strings.buttons.delete}
             type="delete"
+            disabled={isDeletingAccount}
             onPress={onDeleteButtonPressed}
           />
         </View>

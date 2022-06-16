@@ -33,7 +33,7 @@ function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPasswo
     if (!isLoading) {
       setIsLoading(true);
       authService
-        .sendDeactivationsEmail(email)
+        .reset(email)
         .then(() => {
           setIsLoading(false);
           setCurrentCointainer(2);

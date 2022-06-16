@@ -95,7 +95,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
           onBackButtonPressed={onBackButtonPressed}
         />
 
-        <View style={tailwind('px-4 bg-gray-5')}>
+        <View style={tailwind('pb-10 px-4 bg-gray-5')}>
           {/* PROFILE PICTURE */}
           <View style={tailwind('items-center my-8 px-4')}>
             <Image source={require('../../../assets/icon.png')} style={tailwind('mb-2 h-28 w-28 rounded-full')} />

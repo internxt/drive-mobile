@@ -20,6 +20,7 @@ import LinkCopiedModal from './components/modals/LinkCopiedModal';
 import Navigation from './navigation';
 import { useTailwind } from 'tailwind-rn';
 import DeleteAccountModal from './components/modals/DeleteAccountModal';
+import authService from './services/AuthService';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -29,23 +30,19 @@ export default function App(): JSX.Element {
   const { isLinkCopiedModalOpen, isInviteFriendsModalOpen, isNewsletterModalOpen, isDeleteAccountModalOpen } =
     useAppSelector((state) => state.ui);
   const [loadError, setLoadError] = useState('');
-  const loadLocalUser = async () => {
-    const token = await asyncStorage.getItem(AsyncStorageKey.Token);
-    const photosToken = await asyncStorage.getItem(AsyncStorageKey.PhotosToken);
-    const user = await asyncStorage.getUser();
-
-    if (token && photosToken && user) {
-      dispatch(authActions.signIn({ token, photosToken, user }));
-
-      dispatch(appThunks.initializeThunk());
-    } else {
-      dispatch(authThunks.signOutThunk());
-    }
+  const silentSignIn = async () => {
+    dispatch(authThunks.silentSignInThunk());
   };
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
   const onInviteFriendsModalClosed = () => dispatch(uiActions.setIsInviteFriendsModalOpen(false));
   const onNewsletterModalClosed = () => dispatch(uiActions.setIsNewsletterModalOpen(false));
   const onDeleteAccountModalClosed = () => dispatch(uiActions.setIsDeleteAccountModalOpen(false));
+  const onUserLoggedIn = () => {
+    dispatch(appThunks.initializeThunk());
+  };
+  const onUserLoggedOut = () => {
+    dispatch(appThunks.initializeThunk());
+  };
 
   // Initialize app
   useEffect(() => {
@@ -55,7 +52,7 @@ export default function App(): JSX.Element {
     }
 
     if (!isAppInitialized) {
-      Promise.all([loadFonts(), loadLocalUser(), analyticsService.setup()])
+      Promise.all([loadFonts(), silentSignIn(), analyticsService.setup()])
         .then(() => {
           setIsAppInitialized(true);
         })
@@ -64,6 +61,9 @@ export default function App(): JSX.Element {
         });
     }
 
+    authService.addLoginListener(onUserLoggedIn);
+    authService.addLogoutListener(onUserLoggedOut);
+
     shouldForceUpdate()
       .then((shouldForce) => {
         if (shouldForce && appService.constants.NODE_ENV === 'production') {
@@ -71,6 +71,11 @@ export default function App(): JSX.Element {
         }
       })
       .catch(() => undefined);
+
+    return () => {
+      authService.removeLoginListener(onUserLoggedIn);
+      authService.removeLogoutListener(onUserLoggedOut);
+    };
   }, []);
 
   return (

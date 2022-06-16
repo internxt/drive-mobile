@@ -11,7 +11,7 @@ export default class PhotosEventEmitter {
     this.eventEmitter = new EventEmitter();
   }
 
-  public emit({ id, event }: { id?: string; event: PhotosEventKey }, ...args: any[]) {
+  public emit({ id, event }: { id?: string; event: PhotosEventKey }, ...args: unknown[]) {
     return this.eventEmitter.emit(this.getEventKey({ id, event }), args);
   }
 

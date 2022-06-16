@@ -47,7 +47,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
   };
 
   return (
-    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('min-h-full')}>
+    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')}>
       <ScrollView>
         <AppScreenTitle
           text={strings.screens.SettingsScreen.title}
@@ -59,11 +59,11 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
             </View>
           }
         />
-        <View style={tailwind('px-4 pt-8 flex-grow bg-gray-5')}>
+        <View style={tailwind('px-4 pt-8 pb-10 flex-grow bg-gray-5')}>
           {/* ACCOUNT */}
           <SettingsGroup
             style={tailwind('mb-2')}
-            title={'Account'}
+            title={strings.screens.SettingsScreen.account.title}
             items={[
               {
                 key: 'account',
@@ -111,7 +111,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
 
           {/* GENERAL */}
           <SettingsGroup
-            title={'General'}
+            title={strings.screens.SettingsScreen.general}
             items={[
               {
                 key: 'storage',
@@ -153,7 +153,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
           />
           {/* PHOTOS GALLERY */}
           <SettingsGroup
-            title={'Photos Gallery'}
+            title={strings.screens.SettingsScreen.photos.title}
             items={[
               {
                 key: 'photos-mobile-data',
@@ -179,7 +179,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
           />
           {/* INFORMATION */}
           <SettingsGroup
-            title={'Information'}
+            title={strings.screens.SettingsScreen.information}
             items={[
               {
                 key: 'support',
@@ -219,7 +219,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
           />
           {/* LEGAL */}
           <SettingsGroup
-            title={'Legal'}
+            title={strings.screens.SettingsScreen.legal}
             items={[
               {
                 key: 'terms-and-conditions',
@@ -243,7 +243,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
           {/* DEBUG */}
           {appService.constants.REACT_NATIVE_DEBUG && (
             <SettingsGroup
-              title={'Debug'}
+              title={strings.screens.SettingsScreen.debug}
               items={[
                 {
                   key: 'debug',
