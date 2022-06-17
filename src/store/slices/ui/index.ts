@@ -24,6 +24,7 @@ export interface UIState {
   isDriveDownloadModalOpen: boolean;
   isSignOutModalOpen: boolean;
   isDeleteAccountModalOpen: boolean;
+  isEditNameModalOpen: boolean;
 }
 
 const initialState: UIState = {
@@ -49,6 +50,7 @@ const initialState: UIState = {
   isDriveDownloadModalOpen: false,
   isSignOutModalOpen: false,
   isDeleteAccountModalOpen: false,
+  isEditNameModalOpen: false,
 };
 
 export const uiSlice = createSlice({
@@ -122,6 +124,9 @@ export const uiSlice = createSlice({
     },
     setIsDeleteAccountModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isDeleteAccountModalOpen = action.payload;
+    },
+    setIsEditNameModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isEditNameModalOpen = action.payload;
     },
   },
 });

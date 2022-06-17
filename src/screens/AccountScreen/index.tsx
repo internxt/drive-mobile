@@ -32,6 +32,9 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
   const onSecurityPressed = () => {
     navigation.navigate('Security');
   };
+  const onNamePressed = () => {
+    dispatch(uiActions.setIsEditNameModalOpen(true));
+  };
   const accountDetailsItems = [
     {
       key: 'name',
@@ -48,6 +51,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
           </View>
         </View>
       ),
+      onPress: onNamePressed,
     },
     {
       key: 'email',

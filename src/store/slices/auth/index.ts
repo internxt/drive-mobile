@@ -12,6 +12,7 @@ import { driveActions, driveThunks } from '../drive';
 import { uiActions } from '../ui';
 import notificationsService from '../../../services/NotificationsService';
 import strings from '../../../../assets/lang/strings';
+import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
 
 export interface AuthState {
   loggedIn: boolean;
@@ -103,6 +104,15 @@ export const deleteAccountThunk = createAsyncThunk<void, void, { state: RootStat
   },
 );
 
+export const updateProfileThunk = createAsyncThunk<UpdateProfilePayload, UpdateProfilePayload, { state: RootState }>(
+  'auth/updateProfile',
+  async (payload) => {
+    await userService.updateProfile(payload);
+
+    return payload;
+  },
+);
+
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -175,6 +185,15 @@ export const authSlice = createSlice({
       .addCase(deleteAccountThunk.rejected, () => {
         notificationsService.show({ type: NotificationType.Error, text1: strings.errors.deleteAccount });
       });
+
+    builder
+      .addCase(updateProfileThunk.pending, () => undefined)
+      .addCase(updateProfileThunk.fulfilled, (state, action) => {
+        state.user && Object.assign(state.user, action.payload);
+      })
+      .addCase(updateProfileThunk.rejected, () => {
+        notificationsService.show({ type: NotificationType.Error, text1: strings.errors.updateProfile });
+      });
   },
 });
 
@@ -200,6 +219,7 @@ export const authThunks = {
   silentSignInThunk,
   signOutThunk,
   deleteAccountThunk,
+  updateProfileThunk,
 };
 
 export default authSlice.reducer;

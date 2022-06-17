@@ -41,8 +41,7 @@ const ChangePasswordForm = (props: BaseFormProps) => {
     control,
     handleSubmit,
     setValue,
-    formState: { isValid },
-    getFieldState,
+    formState: { isDirty, isValid },
   } = useForm<ChangePasswordFormData>({
     resolver: yupResolver(schema),
     mode: 'onChange',
@@ -137,7 +136,7 @@ const ChangePasswordForm = (props: BaseFormProps) => {
         )}
       />
 
-      {props.renderActionsContainer({ onSubmitButtonPressed, isLoading, isValid })}
+      {props.renderActionsContainer({ onSubmitButtonPressed, isLoading, isValid, isDirty })}
     </>
   );
 };

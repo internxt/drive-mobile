@@ -21,14 +21,20 @@ import Navigation from './navigation';
 import { useTailwind } from 'tailwind-rn';
 import DeleteAccountModal from './components/modals/DeleteAccountModal';
 import authService from './services/AuthService';
+import EditNameModal from './components/modals/EditNameModal';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
   const { color: whiteColor } = tailwind('text-white');
   const [isAppInitialized, setIsAppInitialized] = useState(false);
-  const { isLinkCopiedModalOpen, isInviteFriendsModalOpen, isNewsletterModalOpen, isDeleteAccountModalOpen } =
-    useAppSelector((state) => state.ui);
+  const {
+    isLinkCopiedModalOpen,
+    isInviteFriendsModalOpen,
+    isNewsletterModalOpen,
+    isDeleteAccountModalOpen,
+    isEditNameModalOpen,
+  } = useAppSelector((state) => state.ui);
   const [loadError, setLoadError] = useState('');
   const silentSignIn = async () => {
     dispatch(authThunks.silentSignInThunk());
@@ -37,6 +43,7 @@ export default function App(): JSX.Element {
   const onInviteFriendsModalClosed = () => dispatch(uiActions.setIsInviteFriendsModalOpen(false));
   const onNewsletterModalClosed = () => dispatch(uiActions.setIsNewsletterModalOpen(false));
   const onDeleteAccountModalClosed = () => dispatch(uiActions.setIsDeleteAccountModalOpen(false));
+  const onEditNameModalClosed = () => dispatch(uiActions.setIsEditNameModalOpen(false));
   const onUserLoggedIn = () => {
     dispatch(appThunks.initializeThunk());
   };
@@ -97,6 +104,7 @@ export default function App(): JSX.Element {
             <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
             <NewsletterModal isOpen={isNewsletterModalOpen} onClose={onNewsletterModalClosed} />
             <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
+            <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
           </View>
         </Portal.Host>
       </KeyboardAvoidingView>

@@ -6,7 +6,7 @@ import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 
 interface AppTextInputProps extends TextInputProps {
-  status?: ['idle' | 'warning' | 'error' | 'success', string | JSX.Element];
+  status?: ['idle' | 'warning' | 'error' | 'success', string | JSX.Element | undefined];
   containerStyle?: StyleProp<ViewStyle>;
   label?: string;
   renderAppend?: ({ isFocused }: { isFocused: boolean }) => JSX.Element | undefined;

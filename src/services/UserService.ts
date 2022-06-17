@@ -1,4 +1,5 @@
 import { Users } from '@internxt/sdk/dist/drive';
+import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
 import { decryptText, decryptTextWithKey, encryptText, passToHash } from '../helpers';
 import { getHeaders } from '../helpers/headers';
 import appService, { constants } from './AppService';
@@ -106,6 +107,10 @@ class UserService {
 
   public async inviteAFriend(email: string): Promise<void> {
     return this.sdk?.sendInvitation(email);
+  }
+
+  public updateProfile(payload: UpdateProfilePayload) {
+    return this.sdk?.updateProfile(payload);
   }
 }
 

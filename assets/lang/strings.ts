@@ -333,6 +333,8 @@ const strings = new LocalizedStrings({
       change: 'Change',
       delete: 'Delete',
       close: 'Close',
+      update: 'Update',
+      updating: 'Updating',
     },
     inputs: {
       name: 'Name',
@@ -385,6 +387,9 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      EditName: {
+        title: 'Edit name',
+      },
       CreateFolder: {
         title: 'New folder',
       },
@@ -405,9 +410,14 @@ const strings = new LocalizedStrings({
           },
           advice: 'Your answers are anonnymous, we respect your privacy',
         },
-        impact:
-          'By permanently deleting your account all your backups, photos, videos and documents will be gone forever.',
-        youWillLose: 'You will lose forever all your',
+        impact: {
+          advice:
+            'By permanently deleting your account all your backups, photos, videos and documents will be gone forever.',
+          youWillLose: 'You will lose forever all your',
+          files: 'Files',
+          backups: 'Backups',
+          photos: 'Photos',
+        },
         confirmationEmail:
           'We’ve sent you a email confirmation, click the link in the message to permanently delete your account.',
         confirmationEmailExpiration: 'Verification link will expire in 5 days',
@@ -514,6 +524,7 @@ const strings = new LocalizedStrings({
       passwordsDontMatch: "Passwords don't match",
       requiredField: 'This is a required field',
       deleteAccount: 'Error sending confirmation email',
+      updateProfile: 'Error updating profile',
     },
   },
   es: {
@@ -846,6 +857,8 @@ const strings = new LocalizedStrings({
       change: 'Cambiar',
       delete: 'Borrar',
       close: 'Cerrar',
+      update: 'Actualizar',
+      updating: 'Actualizando',
     },
     inputs: {
       name: 'Nombre',
@@ -898,6 +911,9 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      EditName: {
+        title: 'Editar nombre',
+      },
       CreateFolder: {
         title: 'Nueva carpeta',
       },
@@ -918,9 +934,14 @@ const strings = new LocalizedStrings({
           },
           advice: 'Sus respuestas son anónimas, respetamos su privacidad',
         },
-        impact:
-          'Al eliminar permanentemente tu cuenta, todas tus copias de seguridad, fotos, vídeos y documentos desaparecerán para siempre.',
-        youWillLose: 'Perderás para siempre todos tus',
+        impact: {
+          advice:
+            'Al eliminar permanentemente tu cuenta, todas tus copias de seguridad, fotos, vídeos y documentos desaparecerán para siempre.',
+          youWillLose: 'Perderás para siempre todos tus',
+          files: 'Archivos',
+          backups: 'Backups',
+          photos: 'Fotos',
+        },
         confirmationEmail:
           'Te hemos enviado un correo electrónico de confirmación, haz clic en el enlace del mensaje para eliminar definitivamente tu cuenta.',
         confirmationEmailExpiration: 'El enlace de verificación expirará en 5 días',
@@ -1028,6 +1049,7 @@ const strings = new LocalizedStrings({
       passwordsDontMatch: 'Las contraseñas no coinciden',
       requiredField: 'Este campo es requerido',
       deleteAccount: 'Error enviando email de confirmación',
+      updateProfile: 'Error actualizando tu perfil',
     },
   },
 });

@@ -21,13 +21,13 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
   const isTitleString = typeof props.title === 'string';
   const typeBgStyle = {
     accept: props.disabled ? tailwind('bg-gray-40') : tailwind('bg-blue-60'),
-    cancel: tailwind('bg-neutral-20'),
+    cancel: tailwind('bg-gray-5'),
     'cancel-2': tailwind('bg-blue-10'),
     delete: tailwind('bg-red-'),
   }[props.type];
   const typeTextStyle = {
     accept: tailwind('text-white'),
-    cancel: tailwind('text-neutral-300'),
+    cancel: props.disabled ? tailwind('text-gray-40') : tailwind('text-gray-80'),
     'cancel-2': tailwind('text-blue-60'),
     delete: tailwind('text-white'),
   }[props.type];
@@ -39,24 +39,26 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
   }[props.type];
 
   const renderContent = () => {
-    if (props.loading) {
-      return (
-        <View style={tailwind('h-7 flex items-center justify-center')}>
-          <LoadingSpinner color={getColor('text-white')} size={16} />
-        </View>
-      );
-    }
+    const title = isTitleString ? (
+      <AppText medium numberOfLines={1} style={[tailwind('text-lg'), typeTextStyle]}>
+        {props.title}
+      </AppText>
+    ) : (
+      props.title
+    );
 
-    if (isTitleString) {
-      return (
-        <AppText medium numberOfLines={1} style={[tailwind('text-lg'), typeTextStyle]}>
-          {props.title}
-        </AppText>
-      );
-    }
-
-    return props.title;
+    return (
+      <View style={tailwind('flex-row')}>
+        {title}
+        {props.loading && (
+          <View style={tailwind('ml-2 items-center justify-center')}>
+            <LoadingSpinner color={getColor('text-white')} size={16} />
+          </View>
+        )}
+      </View>
+    );
   };
+
   return (
     <TouchableHighlight
       testID={props.testID}

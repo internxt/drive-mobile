@@ -344,6 +344,10 @@
   height: 7rem
 }
 
+.h-11 {
+  height: 2.75rem
+}
+
 .h-px {
   height: 1px
 }
@@ -358,14 +362,6 @@
 
 .h-20 {
   height: 5rem
-}
-
-.h-24 {
-  height: 6rem
-}
-
-.h-11 {
-  height: 2.75rem
 }
 
 .min-h-full {
@@ -645,9 +641,9 @@
   background-color: rgb(15 98 254 / var(--tw-bg-opacity))
 }
 
-.bg-neutral-20 {
+.bg-gray-5 {
   --tw-bg-opacity: 1;
-  background-color: rgb(244 245 247 / var(--tw-bg-opacity))
+  background-color: rgb(243 243 248 / var(--tw-bg-opacity))
 }
 
 .bg-blue-10 {
@@ -669,11 +665,6 @@
   background-color: rgb(229 229 235 / var(--tw-bg-opacity))
 }
 
-.bg-gray-5 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(243 243 248 / var(--tw-bg-opacity))
-}
-
 .bg-neutral-30 {
   --tw-bg-opacity: 1;
   background-color: rgb(235 236 240 / var(--tw-bg-opacity))
@@ -687,6 +678,11 @@
 .bg-neutral-10 {
   --tw-bg-opacity: 1;
   background-color: rgb(250 251 252 / var(--tw-bg-opacity))
+}
+
+.bg-neutral-20 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(244 245 247 / var(--tw-bg-opacity))
 }
 
 .bg-green-10 {
@@ -900,12 +896,12 @@
   padding-top: 1.25rem
 }
 
-.pr-4 {
-  padding-right: 1rem
-}
-
 .pb-10 {
   padding-bottom: 2.5rem
+}
+
+.pr-4 {
+  padding-right: 1rem
 }
 
 .pt-1\.5 {
@@ -1027,9 +1023,14 @@
   color: rgb(218 30 40 / var(--tw-text-opacity))
 }
 
-.text-neutral-300 {
+.text-gray-40 {
   --tw-text-opacity: 1;
-  color: rgb(94 108 132 / var(--tw-text-opacity))
+  color: rgb(174 174 179 / var(--tw-text-opacity))
+}
+
+.text-gray-80 {
+  --tw-text-opacity: 1;
+  color: rgb(58 58 59 / var(--tw-text-opacity))
 }
 
 .text-blue-60 {
@@ -1057,19 +1058,9 @@
   color: rgb(0 102 255 / var(--tw-text-opacity))
 }
 
-.text-gray-40 {
-  --tw-text-opacity: 1;
-  color: rgb(174 174 179 / var(--tw-text-opacity))
-}
-
 .text-neutral-700 {
   --tw-text-opacity: 1;
   color: rgb(37 56 88 / var(--tw-text-opacity))
-}
-
-.text-gray-80 {
-  --tw-text-opacity: 1;
-  color: rgb(58 58 59 / var(--tw-text-opacity))
 }
 
 .text-green- {
@@ -1125,6 +1116,11 @@
 .text-yellow-40 {
   --tw-text-opacity: 1;
   color: rgb(210 161 6 / var(--tw-text-opacity))
+}
+
+.text-neutral-300 {
+  --tw-text-opacity: 1;
+  color: rgb(94 108 132 / var(--tw-text-opacity))
 }
 
 .text-blue-30 {
@@ -1221,8 +1217,4 @@
 
 .opacity-30 {
   opacity: 0.3
-}
-
-.opacity-10 {
-  opacity: 0.1
 }

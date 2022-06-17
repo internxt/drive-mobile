@@ -103,19 +103,19 @@ const DeleteAccountModal = (props: BaseModalProps) => {
       {
         key: 'files',
         icon: <FolderSimple color={getColor('text-primary')} size={24} />,
-        label: 'Files',
+        label: strings.modals.DeleteAccountModal.impact.files,
         redLabel: '76GB of Documents',
       },
       {
         key: 'backups',
         icon: <ClockCounterClockwise color={getColor('text-primary')} size={24} />,
-        label: 'Backups',
+        label: strings.modals.DeleteAccountModal.impact.backups,
         redLabel: '12GB of Backups',
       },
       {
         key: 'photos',
         icon: <ImageSquare color={getColor('text-primary')} size={24} />,
-        label: 'Photos',
+        label: strings.modals.DeleteAccountModal.impact.photos,
         redLabel: '2.468 Photos',
       },
     ];
@@ -146,11 +146,11 @@ const DeleteAccountModal = (props: BaseModalProps) => {
         </View>
 
         <AppText medium style={tailwind('mb-10 px-4 text-center text-lg')}>
-          {strings.modals.DeleteAccountModal.impact}
+          {strings.modals.DeleteAccountModal.impact.advice}
         </AppText>
 
         <View>
-          <AppText style={tailwind('ml-4 mb-2')}>{strings.modals.DeleteAccountModal.youWillLose}</AppText>
+          <AppText style={tailwind('ml-4 mb-2')}>{strings.modals.DeleteAccountModal.impact.youWillLose}</AppText>
           <View style={tailwind('rounded-xl bg-gray-5')}>{renderImpactItems()}</View>
         </View>
 
