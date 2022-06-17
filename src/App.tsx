@@ -6,11 +6,9 @@ import * as NavigationBar from 'expo-navigation-bar';
 
 import analyticsService from './services/AnalyticsService';
 import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
-import asyncStorage from './services/AsyncStorageService';
-import { authActions, authThunks } from './store/slices/auth';
+import { authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
 import appService from './services/AppService';
-import { AsyncStorageKey } from './types';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';
@@ -22,6 +20,7 @@ import { useTailwind } from 'tailwind-rn';
 import DeleteAccountModal from './components/modals/DeleteAccountModal';
 import authService from './services/AuthService';
 import EditNameModal from './components/modals/EditNameModal';
+import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -34,6 +33,7 @@ export default function App(): JSX.Element {
     isNewsletterModalOpen,
     isDeleteAccountModalOpen,
     isEditNameModalOpen,
+    isChangeProfilePictureModalOpen,
   } = useAppSelector((state) => state.ui);
   const [loadError, setLoadError] = useState('');
   const silentSignIn = async () => {
@@ -44,6 +44,7 @@ export default function App(): JSX.Element {
   const onNewsletterModalClosed = () => dispatch(uiActions.setIsNewsletterModalOpen(false));
   const onDeleteAccountModalClosed = () => dispatch(uiActions.setIsDeleteAccountModalOpen(false));
   const onEditNameModalClosed = () => dispatch(uiActions.setIsEditNameModalOpen(false));
+  const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
   const onUserLoggedIn = () => {
     dispatch(appThunks.initializeThunk());
   };
@@ -105,6 +106,10 @@ export default function App(): JSX.Element {
             <NewsletterModal isOpen={isNewsletterModalOpen} onClose={onNewsletterModalClosed} />
             <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
             <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
+            <ChangeProfilePictureModal
+              isOpen={isChangeProfilePictureModalOpen}
+              onClose={onChangeProfilePictureModalClosed}
+            />
           </View>
         </Portal.Host>
       </KeyboardAvoidingView>

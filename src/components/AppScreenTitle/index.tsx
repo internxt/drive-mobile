@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleProp, TextStyle } from 'react-native';
 
-import { useAppSelector } from '../../store/hooks';
 import { CaretLeft } from 'phosphor-react-native';
 import AppText from '../AppText';
 import { useTailwind } from 'tailwind-rn';

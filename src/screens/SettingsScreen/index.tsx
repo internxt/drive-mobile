@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, View, ScrollView, Image } from 'react-native';
+import { Linking, View, ScrollView } from 'react-native';
 import { Bug, CaretRight, FolderSimple, Info, Question, Translate } from 'phosphor-react-native';
 
 import strings from '../../../assets/lang/strings';
@@ -16,12 +16,14 @@ import AppSwitch from '../../components/AppSwitch';
 import SettingsGroup from '../../components/SettingsGroup';
 import useGetColor from '../../hooks/useColor';
 import { uiActions } from '../../store/slices/ui';
+import UserProfilePicture from '../../components/UserProfilePicture';
 
 function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const useMobileDataToUploadPhotos = true;
+  const { user } = useAppSelector((state) => state.auth);
   const userFullName = useAppSelector(authSelectors.userFullName);
   const onAccountPressed = () => {
     navigation.push('TabExplorer', { screen: 'Account' });
@@ -69,12 +71,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                 key: 'account',
                 template: (
                   <View style={tailwind('flex-row items-center p-4')}>
-                    <Image
-                      source={require('../../../assets/icon.png')}
-                      height={56}
-                      width={56}
-                      style={tailwind('h-14 w-14 rounded-full')}
-                    />
+                    <UserProfilePicture uri={user?.avatar} size={56} />
 
                     <View style={tailwind('flex-grow flex-1 ml-3')}>
                       <AppText numberOfLines={1} medium style={tailwind('text-xl text-gray-80')}>

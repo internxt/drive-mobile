@@ -5,7 +5,7 @@ import { RootState } from '../..';
 import authService from '../../../services/AuthService';
 import userService from '../../../services/UserService';
 import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
-import { AsyncStorageKey, DevicePlatform, NotificationType, User } from '../../../types';
+import { AsyncStorageKey, DevicePlatform, NotificationType } from '../../../types';
 import { photosActions, photosThunks } from '../photos';
 import { appThunks } from '../app';
 import { driveActions, driveThunks } from '../drive';
@@ -13,12 +13,13 @@ import { uiActions } from '../ui';
 import notificationsService from '../../../services/NotificationsService';
 import strings from '../../../../assets/lang/strings';
 import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 
 export interface AuthState {
   loggedIn: boolean;
   token: string;
   photosToken: string;
-  user?: User;
+  user?: UserSettings;
   userStorage: {
     usage: number;
     limit: number;
@@ -61,7 +62,7 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
 );
 
 export const signInThunk = createAsyncThunk<
-  { token: string; photosToken: string; user: User },
+  { token: string; photosToken: string; user: UserSettings },
   { email: string; password: string; sKey: string; twoFactorCode: string },
   { state: RootState }
 >('auth/signIn', async (payload, { dispatch }) => {
@@ -120,7 +121,7 @@ export const authSlice = createSlice({
     resetState(state) {
       Object.assign(state, initialState);
     },
-    setSignInData: (state, action: PayloadAction<{ token: string; photosToken: string; user: User }>) => {
+    setSignInData: (state, action: PayloadAction<{ token: string; photosToken: string; user: UserSettings }>) => {
       state.loggedIn = true;
       state.user = action.payload.user;
       state.token = action.payload.token;
@@ -147,7 +148,7 @@ export const authSlice = createSlice({
             platform: DevicePlatform.Mobile,
             referrals_credit: user.credit,
             referrals_count: Math.floor(user.credit / 5),
-            createdAt: user.createdAt,
+            createdAt: user.createdAt.toString(),
           })
           .then(() => {
             analytics.track(AnalyticsEventKey.UserSignIn, {
@@ -205,10 +206,11 @@ export const authSelectors = {
   },
   nameLetters: (state: RootState): string => {
     const { user } = state.auth;
-    const nameLetters: string = (user as User).name[0] + ((user as User).lastname[0] || '');
+    const nameLetters: string = (user as UserSettings).name[0] + ((user as UserSettings).lastname[0] || '');
 
     return nameLetters.toUpperCase();
   },
+  hasAvatar: (state: RootState): boolean => !!state.auth.user?.avatar,
 };
 
 export const authActions = authSlice.actions;

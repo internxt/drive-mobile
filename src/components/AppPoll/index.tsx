@@ -1,5 +1,4 @@
 import { CheckCircle } from 'phosphor-react-native';
-import { useState } from 'react';
 import { TouchableWithoutFeedback, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';

@@ -1,5 +1,6 @@
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AsyncStorageKey, User } from '../types';
+import { AsyncStorageKey } from '../types';
 
 class AsyncStorageService {
   saveItem(key: string, value: string): Promise<void> {
@@ -14,7 +15,7 @@ class AsyncStorageService {
     return AsyncStorage.removeItem(key).catch(() => undefined);
   }
 
-  getUser(): Promise<User> {
+  getUser(): Promise<UserSettings> {
     return AsyncStorage.getItem(AsyncStorageKey.User)
       .then((value) => {
         return value ? JSON.parse(value) : null;

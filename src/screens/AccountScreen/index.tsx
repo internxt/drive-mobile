@@ -1,5 +1,5 @@
 import { CaretRight, CheckCircle, Warning } from 'phosphor-react-native';
-import { Image, ScrollView, View } from 'react-native';
+import { ScrollView, TouchableWithoutFeedback, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
@@ -7,6 +7,7 @@ import AppScreen from '../../components/AppScreen';
 import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
 import SettingsGroup from '../../components/SettingsGroup';
+import UserProfilePicture from '../../components/UserProfilePicture';
 import useGetColor from '../../hooks/useColor';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
@@ -31,6 +32,9 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
   };
   const onSecurityPressed = () => {
     navigation.navigate('Security');
+  };
+  const onProfilePicturePressed = () => {
+    dispatch(uiActions.setIsChangeProfilePictureModalOpen(true));
   };
   const onNamePressed = () => {
     dispatch(uiActions.setIsEditNameModalOpen(true));
@@ -65,7 +69,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
           <View style={tailwind('flex-row items-center')}>
             <AppText style={tailwind('text-gray-40 mr-2.5')}>{user?.email}</AppText>
             {isEmailVerified ? (
-              <CheckCircle weight="fill" color={getColor('text-primary')} size={20} />
+              <CheckCircle weight="fill" color={getColor('text-green-')} size={20} />
             ) : (
               <Warning weight="fill" color={getColor('text-yellow-')} size={20} />
             )}
@@ -102,7 +106,23 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
         <View style={tailwind('pb-10 px-4 bg-gray-5')}>
           {/* PROFILE PICTURE */}
           <View style={tailwind('items-center my-8 px-4')}>
-            <Image source={require('../../../assets/icon.png')} style={tailwind('mb-2 h-28 w-28 rounded-full')} />
+            <TouchableWithoutFeedback onPress={onProfilePicturePressed}>
+              <View>
+                <UserProfilePicture uri={user?.avatar} size={112} />
+                <View
+                  style={{
+                    ...tailwind('rounded-b-full justify-end w-28 h-28 absolute'),
+                    overflow: 'hidden',
+                  }}
+                >
+                  <View style={tailwind('bg-black/60 pt-1 pb-1.5')}>
+                    <AppText style={tailwind('text-xs text-white text-center')}>
+                      {strings.buttons.edit.toUpperCase()}
+                    </AppText>
+                  </View>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
             <AppText style={tailwind('text-2xl text-gray-80')}>{userFullName}</AppText>
             <AppText style={tailwind('text-lg text-gray-40')}>{user?.email}</AppText>
           </View>

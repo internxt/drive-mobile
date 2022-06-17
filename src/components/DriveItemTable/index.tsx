@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, TouchableHighlight, Animated, Easing } fr
 
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import prettysize from 'prettysize';
-import globalStyle from '../../styles/global';
 import { useAppSelector } from '../../store/hooks';
 import { ArrowCircleUp, DotsThree } from 'phosphor-react-native';
 import strings from '../../../assets/lang/strings';

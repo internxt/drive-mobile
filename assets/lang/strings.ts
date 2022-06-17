@@ -335,6 +335,11 @@ const strings = new LocalizedStrings({
       close: 'Close',
       update: 'Update',
       updating: 'Updating',
+      saveChanges: 'Save changes',
+      saving: 'Saving',
+      edit: 'Edit',
+      uploadPhoto: 'Upload photo',
+      takePhoto: 'Take photo',
     },
     inputs: {
       name: 'Name',
@@ -387,6 +392,9 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      ChangeProfilePicture: {
+        title: 'Edit photo',
+      },
       EditName: {
         title: 'Edit name',
       },
@@ -396,7 +404,7 @@ const strings = new LocalizedStrings({
       ChangePassword: {
         title: 'Change password',
       },
-      DeleteAccountModal: {
+      DeleteAccount: {
         title: 'Delete account',
         apologies:
           'Hey {0}, we are sorry to hear that you want to leave Internxt, we would like to ask you one last favor...',
@@ -859,6 +867,11 @@ const strings = new LocalizedStrings({
       close: 'Cerrar',
       update: 'Actualizar',
       updating: 'Actualizando',
+      saveChanges: 'Guardar cambios',
+      saving: 'Guardando',
+      edit: 'Editar',
+      uploadPhoto: 'Subir foto',
+      takePhoto: 'Tomar foto',
     },
     inputs: {
       name: 'Nombre',
@@ -911,6 +924,9 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      ChangeProfilePicture: {
+        title: 'Editar foto',
+      },
       EditName: {
         title: 'Editar nombre',
       },
@@ -920,7 +936,7 @@ const strings = new LocalizedStrings({
       ChangePassword: {
         title: 'Cambiar contraseña',
       },
-      DeleteAccountModal: {
+      DeleteAccount: {
         title: 'Eliminar cuenta',
         apologies:
           'Hola {userFullName}, lamentamos que quieras abandonar Internxt, nos gustaría pedirte un último favor...',

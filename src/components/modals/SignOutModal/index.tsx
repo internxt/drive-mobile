@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -11,6 +11,7 @@ import { authSelectors, authThunks } from '../../../store/slices/auth';
 import { useNavigation } from '@react-navigation/native';
 import { RootScreenNavigationProp } from '../../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import UserProfilePicture from '../../UserProfilePicture';
 
 function SignOutModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -38,8 +39,8 @@ function SignOutModal(): JSX.Element {
           {strings.modals.SignOutModal.title}
         </AppText>
 
-        <View style={tailwind('items-center my-8')}>
-          <Image source={require('../../../../assets/icon.png')} style={tailwind('h-20 w-20 rounded-full')} />
+        <View style={tailwind('items-center my-6')}>
+          <UserProfilePicture uri={user?.avatar} size={80} />
           <AppText style={tailwind('text-lg text-gray-80 mt-2')} medium>
             {userFullName}
           </AppText>

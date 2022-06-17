@@ -1,5 +1,5 @@
 import { isString } from 'lodash';
-import { useRef } from 'react';
+import { createRef, useState } from 'react';
 import { StyleProp, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
@@ -15,8 +15,7 @@ interface AppTextInputProps extends TextInputProps {
 const AppTextInput = (props: AppTextInputProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const ref = useRef<TextInput>(null);
-  const isFocused = !!ref.current?.isFocused;
+  const [isFocused, setIsFocused] = useState(false);
   const editable = props.editable !== false;
   const [status, statusMessage] = props.status || ['idle', ''];
   const renderStatusMessage = () => {
@@ -60,9 +59,10 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
       >
         <TextInput
           placeholderTextColor={getColor('text-gray-30')}
-          ref={ref}
           {...props}
           style={[tailwind('flex-1 text-gray-80 py-2'), props.style]}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         />
         {props.renderAppend && <View style={tailwind('pl-4')}>{props.renderAppend({ isFocused })}</View>}
       </View>
