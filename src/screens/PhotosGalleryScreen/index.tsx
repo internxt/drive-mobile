@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback, BackHandler } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 
@@ -20,11 +20,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
-  const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.ui);
-  const isLoading = useAppSelector(photosSelectors.isLoading);
-  const { isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
+  const isLoading = true;
+  const { isSelectionModeActivated, viewMode } = useAppSelector((state) => state.photos);
   const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
-  const hasNoPhotosSelected = selectedPhotos.length === 0;
+  const hasNoPhotosSelected = true;
   const onSharePhotoModalClosed = () => dispatch(uiActions.setIsSharePhotoModalOpen(false));
   const onDeletePhotosModalClosed = () => dispatch(uiActions.setIsDeletePhotosModalOpen(false));
   const onSelectButtonPressed = () => {
@@ -49,7 +48,7 @@ function PhotosGalleryScreen(): JSX.Element {
 
     return false;
   };
-  const GalleryView = galleryViews[viewMode];
+  const GalleryView = useMemo(() => galleryViews[viewMode], []);
   /*const groupByMenu = (function () {
     const groupByItems = Object.entries(GalleryViewMode).map(([, value]) => {
       const isActive = value === viewMode;
@@ -75,8 +74,8 @@ function PhotosGalleryScreen(): JSX.Element {
   useEffect(() => {
     //dispatch(photosActions.setViewMode(GalleryViewMode.All));
     dispatch(photosActions.resetPhotos());
-    dispatch(photosThunks.loadLocalPhotosThunk());
-
+    dispatch(photosThunks.startUsingPhotosThunk());
+    dispatch(photosThunks.loadPhotosThunk({ page: 1 }));
     const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressed);
 
     return () => {
@@ -93,7 +92,7 @@ function PhotosGalleryScreen(): JSX.Element {
         preview={hasNoPhotosSelected ? '' : getPhotoPreview(selectedPhotos[0])}
         onClosed={onSharePhotoModalClosed}
       /> */}
-      <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selectedPhotos} onClosed={onDeletePhotosModalClosed} />
+      {/* <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={[]} onClosed={onDeletePhotosModalClosed} /> */}
 
       <AppScreen safeAreaTop style={tailwind('mb-14')}>
         {/* GALLERY TOP BAR */}
@@ -101,9 +100,7 @@ function PhotosGalleryScreen(): JSX.Element {
           {isSelectionModeActivated ? (
             <View style={tailwind('h-10 flex-row justify-between items-center')}>
               <View style={tailwind('flex-row items-center justify-between')}>
-                <Text style={tailwind('pl-5')}>
-                  {strings.formatString(strings.screens.gallery.nPhotosSelected, selectedPhotos.length)}
-                </Text>
+                <Text style={tailwind('pl-5')}>{strings.formatString(strings.screens.gallery.nPhotosSelected, 0)}</Text>
               </View>
 
               <View style={tailwind('flex-row pr-5')}>

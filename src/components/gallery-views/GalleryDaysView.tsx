@@ -1,11 +1,12 @@
 import moment from 'moment';
 import React, { useState } from 'react';
-import { FlatList, RefreshControl, Text, View } from 'react-native';
+import { FlatList, RefreshControl, SectionList, Text, View } from 'react-native';
 
 import { tailwind } from '../../helpers/designSystem';
 import useIsMounted from '../../hooks/useIsMounted';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosActions, photosThunks } from '../../store/slices/photos';
+import { PhotosCollection } from '../../types/photos';
 import GalleryDay from '../GalleryDay';
 
 const GalleryDaysView = (): JSX.Element => {
@@ -15,24 +16,22 @@ const GalleryDaysView = (): JSX.Element => {
   const photosByMonth = useAppSelector((state) => state.photos.photosByMonth);
 
   return (
-    <FlatList
+    <SectionList<PhotosCollection, { title: string }>
       data={photosByMonth}
+      renderSectionHeader={({ section }) => {
+        const monthName = moment.months(new Date(item.date).getMonth());
+        return (
+          <Text style={tailwind('px-5 py-2 font-bold text-neutral-700 text-2xl')}>{`${monthName} - ${item.year}`}</Text>
+        );
+      }}
       renderItem={({ item }) => {
-        const monthName = moment.months(item.month);
-        const monthDays = item.days.map((d) => {
+        const monthDays = item.photos.map((d) => {
           return (
             <GalleryDay key={d.day.toString()} year={item.year} month={item.month} day={d.day} photos={d.photos} />
           );
         });
 
-        return (
-          <View style={tailwind('w-full')}>
-            <Text
-              style={tailwind('px-5 py-2 font-bold text-neutral-700 text-2xl')}
-            >{`${monthName} - ${item.year}`}</Text>
-            {monthDays}
-          </View>
-        );
+        return <View style={tailwind('w-full')}>{monthDays}</View>;
       }}
       showsVerticalScrollIndicator={true}
       indicatorStyle={'black'}

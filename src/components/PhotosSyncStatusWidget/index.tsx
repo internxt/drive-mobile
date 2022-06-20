@@ -9,14 +9,12 @@ import { photosThunks } from '../../store/slices/photos';
 import { PhotosSyncStatus } from '../../types/photos';
 import LoadingSpinner from '../LoadingSpinner';
 import AppText from '../AppText';
-import { PhotosService } from '../../services/PhotosService';
 
 const PhotosSyncStatusWidget = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const { syncStatus } = useAppSelector((state) => state.photos);
-  const onSyncNowPressed = () => {
-    const syncThunk = dispatch(photosThunks.syncThunk());
-    PhotosService.instance.setSyncAbort(() => syncThunk.abort());
+  const onResumeSyncPressed = () => {
+    dispatch(photosThunks.resumeSyncThunk());
   };
   const contentByStatus = {
     [PhotosSyncStatus.Unknown]: (
@@ -34,7 +32,7 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
     [PhotosSyncStatus.Pending]: (
       <View style={tailwind('flex-row items-center')}>
         <Text style={tailwind('text-sm text-yellow-30')}>{strings.messages.photosSyncPending}</Text>
-        <TouchableWithoutFeedback onPress={onSyncNowPressed}>
+        <TouchableWithoutFeedback onPress={onResumeSyncPressed}>
           <Text style={tailwind('ml-2 text-sm text-blue-60')}>{strings.components.buttons.syncNow}</Text>
         </TouchableWithoutFeedback>
       </View>
@@ -56,7 +54,7 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
           {syncStatus.totalTasks > 0
             ? strings.formatString(
                 strings.screens.gallery.syncingTasks,
-                syncStatus.completedTasks,
+                syncStatus.completedTasks || 0,
                 syncStatus.totalTasks,
               )
             : strings.screens.gallery.syncing}
@@ -71,10 +69,10 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
     ),
   };
   const onPauseButtonPressed = () => {
-    dispatch(photosThunks.cancelSyncThunk());
+    dispatch(photosThunks.pauseSyncThunk());
   };
   const onResumeButtonPressed = () => {
-    onSyncNowPressed();
+    onResumeSyncPressed();
   };
   const isCompleted = syncStatus.status === PhotosSyncStatus.Completed;
   const isPaused = syncStatus.status === PhotosSyncStatus.Paused;

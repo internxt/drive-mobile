@@ -1,7 +1,6 @@
-import { Photo, Device, PhotoStatus, User } from '@internxt/sdk/dist/photos';
-import CameraRoll from '@react-native-community/cameraroll';
-import { NetworkCredentials } from '.';
-
+import { Photo, Device, User } from '@internxt/sdk/dist/photos';
+import { FileSystemRef, NetworkCredentials } from '.';
+import * as MediaLibrary from 'expo-media-library';
 export enum GalleryViewMode {
   Years = 'years',
   Months = 'months',
@@ -30,71 +29,29 @@ export enum PhotosSyncStatus {
 export const PHOTOS_DB_NAME = 'photos.db';
 
 export enum PhotosEventKey {
-  SyncStart = 'sync-start',
-  DownloadTasksCalculated = 'sync-download-tasks-calculated',
-  NewerUploadTasksPageCalculated = 'sync-newer-upload-tasks-page-calculated',
-  OlderUploadTasksPageCalculated = 'sync-older-upload-tasks-page-calculated',
-  SyncTasksCalculated = 'sync-tasks-calculated',
-  SyncTaskSkipped = 'sync-task-skipped',
-  CancelSync = 'sync-cancel',
-  CancelSyncEnd = 'sync-cancel-end',
+  ResumeSync = 'sync-resume',
+  RestartSync = 'sync-restart',
+  PauseSync = 'sync-pause',
+  ClearSync = 'sync-clear',
 }
 
 export interface PhotosServiceModel {
   debug: boolean;
   isInitialized: boolean;
-  accessToken: string;
-  networkCredentials: NetworkCredentials;
+  accessToken?: string;
+  networkCredentials?: NetworkCredentials;
   networkUrl: string;
   user?: User;
   device?: Device;
   syncAbort?: (reason?: string) => void;
 }
 
-export interface SqlitePhotoRow {
-  id: string;
-  status: PhotoStatus;
-  name: string;
-  width: number;
-  height: number;
-  size: number;
-  type: string;
-  user_id: string;
-  device_id: string;
-  file_id: string;
-  preview_id: string;
-  taken_at: number;
-  status_changed_at: number;
-  created_at: number;
-  updated_at: number;
-  preview_path: string;
-  hash: string;
+export enum PhotoSizeType {
+  Full = 'FULL_SIZE',
+  Preview = 'PREVIEW',
 }
+export type PhotoFileSystemRef = FileSystemRef;
 
-export interface SqliteSyncRow {
-  id: number;
-  remote_sync_at: Date;
-  newest_date: Date;
-  oldest_date: Date | null;
-}
-
-export interface SqliteTmpCameraRollRow {
-  id: number;
-  modified: number;
-  group_name: string;
-  timestamp: number;
-  type: string;
-  filename: string;
-  file_size: number;
-  height: number;
-  width: number;
-  uri: string;
-}
-
-export type CreateSqliteTmpCameraRollRowData = Pick<
-  SqliteTmpCameraRollRow,
-  'group_name' | 'timestamp' | 'type' | 'filename' | 'file_size' | 'width' | 'height' | 'uri'
->;
 export interface PhotosSyncStatusData {
   status: PhotosSyncStatus;
   completedTasks: number;
@@ -125,7 +82,79 @@ export type PhotosByMonthType = {
   }[];
 };
 
-export interface PhotosCameraRollGetPhotosResponse {
-  edges: CameraRoll.PhotoIdentifier[];
-  page_info: { has_next_page: boolean; start_cursor?: string | undefined; end_cursor?: string | undefined };
+export interface PhotosCollection {
+  id: string;
+  date: string;
+  viewMode: GalleryViewMode;
+  photos: Photo[];
+}
+
+export enum SyncDirection {
+  DOWNLOAD = 'DOWNLOAD',
+  UPLOAD = 'UPLOAD',
+}
+
+export enum SyncStage {
+  UNKNOWN = 'UNKNOWN',
+  NEEDS_REMOTE_CHECK = 'NEEDS_REMOTE_CHECK',
+  IN_SYNC = 'IN_SYNC',
+  FAILED_TO_CHECK = 'FAILED_TO_CHECK',
+}
+export interface PhotoSyncOperation {
+  type: SyncDirection;
+  photoId: string;
+  previewRef: PhotoFileSystemRef;
+  fullSizeRef: PhotoFileSystemRef;
+}
+
+export enum DevicePhotosSyncStatus {
+  RUNNING = 'RUNNING',
+  PAUSED = 'PAUSED',
+  IDLE = 'IDLE',
+  EMPTY = 'EMPTY',
+}
+
+export enum PhotosNetworkManagerStatus {
+  RUNNING = 'RUNNING',
+  PAUSED = 'PAUSED',
+  IDLE = 'IDLE',
+  EMPTY = 'EMPTY',
+}
+
+export enum PhotosNetworkOperationType {
+  DOWNLOAD = 'DOWNLOAD',
+  UPLOAD = 'UPLOAD',
+}
+
+export enum PhotosNetworkOperationResult {
+  UNKNOWN = 'UNKNOWN',
+  SUCCESS = 'SUCCESS',
+  FAILED = 'FAILED',
+}
+
+export interface PhotosNetworkOperation {
+  devicePhoto: DevicePhoto;
+  lastError?: Error;
+  uploadedPhoto?: Photo;
+  result: PhotosNetworkOperationResult;
+}
+export type DevicePhoto = MediaLibrary.Asset;
+
+export enum DevicePhotosOperationPriority {
+  HIGH = 'HIGH',
+  NORMAL = 'NORMAL',
+}
+
+export interface DevicePhotoSyncCheckOperation {
+  devicePhoto: DevicePhoto;
+  createdAt: Date;
+  lastTry?: Date;
+  lastError?: Error;
+  syncStage: SyncStage;
+  priority: DevicePhotosOperationPriority;
+}
+
+export interface DevicePhotosSyncServiceHandlers {
+  onOperationCompleted: (operation: DevicePhotoSyncCheckOperation) => void;
+  onSyncQueueStatusChange: (status: DevicePhotosSyncStatus) => void;
 }

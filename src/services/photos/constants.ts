@@ -4,3 +4,5 @@ export const PHOTOS_ROOT_DIRECTORY = `${fileSystemService.getDocumentsDir()}/pho
 export const PHOTOS_DIRECTORY = `${PHOTOS_ROOT_DIRECTORY}/photos`;
 export const PHOTOS_PREVIEWS_DIRECTORY = `${PHOTOS_ROOT_DIRECTORY}/previews`;
 export const PHOTOS_TMP_DIRECTORY = `${PHOTOS_ROOT_DIRECTORY}/tmp`;
+
+export const PHOTOS_PER_GROUP = 50;

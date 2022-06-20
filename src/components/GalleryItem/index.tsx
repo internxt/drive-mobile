@@ -39,8 +39,7 @@ const GalleryItem = ({
   }, []);
 
   const loadPreview = async () => {
-    const result = await dispatch(photosThunks.getPhotoPreviewThunk({ photo: data })).unwrap();
-
+    const result = await dispatch(photosThunks.getPreviewThunk({ photo: data })).unwrap();
     setPhotoPreview(result);
   };
 

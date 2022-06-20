@@ -80,9 +80,8 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
         data={photos}
         numColumns={columnsCount}
         keyExtractor={(item) => item.data.id}
+        ListFooterComponent={<View style={{ width: gutter }} />}
         renderItem={(item: ListRenderItemInfo<{ data: Photo; preview: string }>) => {
-          const isTheLast = item.index === photos.length - 1;
-
           return (
             <>
               <GalleryItem
@@ -92,7 +91,6 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
                 onPress={() => onItemPressed(item.item.data, item.item.preview)}
                 onLongPress={() => onItemLongPressed(item.item.data)}
               />
-              {!isTheLast && <View style={{ width: gutter }} />}
             </>
           );
         }}

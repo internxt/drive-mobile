@@ -23,8 +23,7 @@ import fileSystemService from '../../services/FileSystemService';
 function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'PhotosPreview'>): JSX.Element {
   const { data: photo, preview } = route.params;
   const safeAreaInsets = useSafeAreaInsets();
-  const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
-  const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: photo.id, type: photo.type });
+
   const dispatch = useAppDispatch();
   const [showActions, setShowActions] = useState(true);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);

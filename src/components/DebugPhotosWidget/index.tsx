@@ -5,8 +5,9 @@ import { useSelector } from 'react-redux';
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import notificationsService from '../../services/NotificationsService';
-import { PhotosService } from '../../services/PhotosService';
-import { useAppSelector } from '../../store/hooks';
+import { PhotosService } from '../../services/photos';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { photosThunks } from '../../store/slices/photos';
 import { NotificationType } from '../../types';
 import AppButton from '../AppButton';
 import AppText from '../AppText';
@@ -16,26 +17,10 @@ interface DebugPhotosWidgetProps {
 }
 
 const DebugPhotosWidget = (props: DebugPhotosWidgetProps): JSX.Element => {
+  const dispatch = useAppDispatch();
   const auth = useAppSelector((selector) => selector.auth);
   const onResetPhotosFilesystemData = async () => {
-    const user = auth.user;
-    try {
-      await PhotosService.initialize(auth.photosToken || '', {
-        encryptionKey: user?.mnemonic || '',
-        user: user?.bridgeUser || '',
-        password: user?.userId || '',
-      });
-      PhotosService.instance.clearData();
-      notificationsService.show({
-        text1: strings.screens.DebugScreen.photos.resetSuccess,
-        type: NotificationType.Success,
-      });
-    } catch (e) {
-      notificationsService.show({
-        text1: strings.screens.DebugScreen.photos.resetError,
-        type: NotificationType.Error,
-      });
-    }
+    dispatch(photosThunks.clearPhotosThunk())
   };
 
   return (

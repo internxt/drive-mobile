@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Photo } from '@internxt/sdk/dist/photos';
 import { Dimensions, FlatList, ListRenderItemInfo, RefreshControl, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -19,10 +19,10 @@ const GalleryAllView = (): JSX.Element => {
   const [gutter] = useState(3);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
   const selectItem = (photo: Photo) => {
-    dispatch(photosActions.selectPhotos(photo));
+    dispatch(photosActions.selectPhotos([photo]));
   };
   const deselectItem = (photo: Photo) => {
-    dispatch(photosActions.deselectPhotos(photo));
+    dispatch(photosActions.deselectPhotos([photo]));
   };
   const onItemLongPressed = (photo: Photo) => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
@@ -33,13 +33,6 @@ const GalleryAllView = (): JSX.Element => {
       ? onItemLongPressed(photo)
       : navigation.navigate('PhotosPreview', { data: photo, preview });
   };
-  const loadPhotos = async () => {
-    await dispatch(photosThunks.loadLocalPhotosThunk());
-  };
-
-  useEffect(() => {
-    loadPhotos();
-  }, []);
 
   return (
     <FlatList
@@ -51,7 +44,7 @@ const GalleryAllView = (): JSX.Element => {
           refreshing={refreshing}
           onRefresh={async () => {
             setRefreshing(true);
-            await loadPhotos();
+            //await loadPhotos();
             setRefreshing(false);
           }}
         />
@@ -60,23 +53,23 @@ const GalleryAllView = (): JSX.Element => {
       ItemSeparatorComponent={() => <View style={{ height: gutter }} />}
       data={photos}
       onScrollEndDrag={async () => {
-        await loadPhotos();
+        //await loadPhotos();
       }}
       numColumns={columnsCount}
       onEndReached={() => undefined}
       onEndReachedThreshold={3}
-      keyExtractor={(item) => item.data.id}
-      renderItem={(item: ListRenderItemInfo<{ data: Photo; preview: string }>) => {
-        const isTheLast = item.index === photos.length - 1;
+      keyExtractor={(item) => item.id}
+      renderItem={({ item, index }: ListRenderItemInfo<Photo>) => {
+        const isTheLast = index === photos.length - 1;
 
         return (
           <>
             <GalleryItem
               size={itemSize}
-              data={item.item.data}
-              isSelected={isPhotoSelected(item.item.data)}
-              onPress={() => onItemPressed(item.item.data, item.item.preview)}
-              onLongPress={() => onItemLongPressed(item.item.data)}
+              data={item}
+              isSelected={isPhotoSelected(item)}
+              //onPress={() => onItemPressed(item, item.preview)}
+              //onLongPress={() => onItemLongPressed(item.item.data)}
             />
             {!isTheLast && <View style={{ width: gutter }} />}
           </>

@@ -98,6 +98,9 @@ class FileSystemService {
     throw new Error('Not implemented yet');
   }
 
+  public statRNFS(uri: string) {
+    return RNFS.stat(uri);
+  }
   public stat(uri: string): Promise<RNFetchBlobStat> {
     return RNFetchBlob.fs.stat(uri);
   }
@@ -110,6 +113,10 @@ class FileSystemService {
     }
 
     return FileViewer.open(uri, options);
+  }
+
+  public async mkdir(uri: string) {
+    await RNFS.mkdir(uri);
   }
 }
 
