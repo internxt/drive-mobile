@@ -1,5 +1,5 @@
 import { isString } from 'lodash';
-import { createRef, useState } from 'react';
+import { useState } from 'react';
 import { StyleProp, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';

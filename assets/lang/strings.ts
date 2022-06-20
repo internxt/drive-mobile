@@ -533,6 +533,7 @@ const strings = new LocalizedStrings({
       requiredField: 'This is a required field',
       deleteAccount: 'Error sending confirmation email',
       updateProfile: 'Error updating profile',
+      validEmail: 'Enter a valid email',
     },
   },
   es: {
@@ -1066,6 +1067,7 @@ const strings = new LocalizedStrings({
       requiredField: 'Este campo es requerido',
       deleteAccount: 'Error enviando email de confirmación',
       updateProfile: 'Error actualizando tu perfil',
+      validEmail: 'Introduce un email válido',
     },
   },
 });

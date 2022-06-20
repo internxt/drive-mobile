@@ -89,7 +89,7 @@ function AppNavigator(): JSX.Element {
   return (
     <Stack.Navigator
       initialRouteName={initialRouteName}
-      screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
+      screenOptions={{ headerShown: false, animation: 'slide_from_right', gestureEnabled: false }}
     >
       <Stack.Screen name="Debug" component={DebugScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />

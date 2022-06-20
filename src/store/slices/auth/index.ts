@@ -206,7 +206,7 @@ export const authSelectors = {
   },
   nameLetters: (state: RootState): string => {
     const { user } = state.auth;
-    const nameLetters: string = (user as UserSettings).name[0] + ((user as UserSettings).lastname[0] || '');
+    const nameLetters: string = user ? user.name[0] + (user.lastname[0] || '') : '';
 
     return nameLetters.toUpperCase();
   },

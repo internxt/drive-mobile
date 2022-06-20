@@ -64,7 +64,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
   return (
     <AppScreen safeAreaTop safeAreaBottom style={tailwind('px-5 h-full justify-between')}>
-      <View></View>
+      <View />
 
       <View style={[isLoading ? tailwind('opacity-50') : tailwind('opacity-100')]}>
         <View>

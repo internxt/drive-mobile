@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableWithoutFeedback, StyleProp, ViewStyle } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { useTailwind } from 'tailwind-rn';
 
 interface AppCheckBoxProps {
+  style?: StyleProp<ViewStyle>;
   testID?: string;
   text: string;
   onChange?: (value: boolean) => void;
@@ -23,7 +24,7 @@ const AppCheckBox = (props: AppCheckBoxProps): JSX.Element => {
 
   return (
     <TouchableWithoutFeedback testID={props.testID} onPress={handleOnPress}>
-      <View style={tailwind('flex-row p-0')}>
+      <View style={[tailwind('flex-row p-0'), props.style]}>
         <View style={tailwind('my-1 mr-2')}>
           <Svg
             width="16"
