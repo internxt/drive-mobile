@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Alert, TextInput, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
 import React, { useEffect, useState } from 'react';
 
 import { normalize } from '../../helpers';
@@ -10,12 +10,13 @@ import AppScreen from '../../components/AppScreen';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../components/AppText';
+import AppButton from '../../components/AppButton';
+import AppTextInput from '../../components/AppTextInput';
 
 function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPassword'>): JSX.Element {
   const tailwind = useTailwind();
   const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  // Get email form field
   const [email, setIsEmail] = useState('');
   const isValidEmailField = validationService.validateEmail(email);
 
@@ -29,7 +30,7 @@ function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPasswo
     }
   }, [isLoading]);
 
-  const sendDeactivationEmail = () => {
+  const onDeleteAccountButtonPressed = () => {
     if (!isLoading) {
       setIsLoading(true);
       authService
@@ -63,30 +64,27 @@ function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPasswo
                 {strings.screens.forgot_password.subtitle_2}
               </Text>
 
-              <View style={tailwind('input-wrapper items-stretch')}>
-                <TextInput
-                  style={tailwind('input pl-4')}
-                  value={email}
-                  onChangeText={(value) => setIsEmail(value)}
-                  placeholder={strings.inputs.email}
-                  placeholderTextColor="#666666"
-                  maxLength={64}
-                  keyboardType="email-address"
-                  textContentType="emailAddress"
-                />
-              </View>
+              <AppTextInput
+                value={email}
+                onChangeText={(value) => setIsEmail(value)}
+                placeholder={strings.inputs.email}
+                maxLength={64}
+                keyboardType="email-address"
+                textContentType="emailAddress"
+              />
 
-              <View>
-                <TouchableHighlight
-                  style={tailwind('btn btn-primary bg-red-60 mt-3')}
-                  onPress={() => sendDeactivationEmail()}
-                >
-                  <AppText style={tailwind('text-white')}>{strings.screens.change_password.confirm}</AppText>
-                </TouchableHighlight>
-              </View>
+              <AppButton
+                type="delete"
+                style={tailwind('mt-3')}
+                onPress={onDeleteAccountButtonPressed}
+                title={strings.buttons.deleteAccount}
+                disabled={!isValidEmailField}
+              />
               <View style={tailwind('py-5')}>
                 <TouchableWithoutFeedback style={tailwind('m-5')} onPress={() => navigation.navigate('SignIn')}>
-                  <Text style={tailwind('text-blue-60 text-center')}> {strings.screens.SignInScreen.back}</Text>
+                  <AppText style={tailwind('text-sm text-primary text-center')}>
+                    {strings.screens.SignInScreen.back}
+                  </AppText>
                 </TouchableWithoutFeedback>
               </View>
             </View>
@@ -104,17 +102,17 @@ function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPasswo
             <View>
               <View style={tailwind('items-center pb-10')}>
                 <InternxtLogo />
-                <Text style={tailwind('text-base text-sm mt-3 text-gray-60')}>{strings.generic.security}</Text>
+                <AppText style={tailwind('text-sm mt-3 text-gray-60')}>{strings.generic.security}</AppText>
               </View>
-              <Text style={tailwind('text-sm text-center')}>
+              <AppText style={tailwind('text-sm text-center')}>
                 {strings.screens.deactivation_screen.subtitle_1} {strings.screens.deactivation_screen.subtitle_2}
-              </Text>
+              </AppText>
 
               <View style={styles.buttonWrapper}>
                 <TouchableHighlight
                   style={[styles.button, styles.buttonOn]}
                   underlayColor="#00aaff"
-                  onPress={() => sendDeactivationEmail()}
+                  onPress={onDeleteAccountButtonPressed}
                 >
                   <Text style={styles.buttonOnLabel}>{strings.buttons.deactivation}</Text>
                 </TouchableHighlight>

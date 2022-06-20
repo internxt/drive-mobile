@@ -2163,10 +2163,10 @@
     "@typescript-eslint/parser" "^5.4.0"
     eslint-config-prettier "^8.3.0"
 
-"@internxt/lib@^1.1.5":
-  version "1.1.5"
-  resolved "https://npm.pkg.github.com/download/@internxt/lib/1.1.5/c7b762b2df7f66f0aefb7bdd912d74b01b6596c28414a5dbcc9eca8d4abf3be5"
-  integrity sha512-DU6Y7n1kFtMgA7lpR7SCuzDKmJQ0NanB0Xx7AyhpivslWgp/UIdhrE0wYVLVj/hMXUufdNbschqoh7trMvpSCA==
+"@internxt/lib@^1.2.0":
+  version "1.2.0"
+  resolved "https://npm.pkg.github.com/download/@internxt/lib/1.2.0/283c36f4d8c443ca4d4bf41a856f43de94b290a3ea50d72cdaf1d6cb778ca838#172d7929abb3dc34fda044ad9977875791f7a471"
+  integrity sha512-14byNxSU0S0KSc3g+BWiJb7/fcHUfqxkHQRz9fwJhAHNmgOo+Bhx13xXk07KKUzeNX1JymSGEZkVCk0AOQiM+Q==
 
 "@internxt/prettier-config@^1.0.2":
   version "1.0.2"

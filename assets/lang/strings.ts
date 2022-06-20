@@ -93,10 +93,6 @@ const strings = new LocalizedStrings({
       home: {
         title: 'Home',
       },
-      change_password: {
-        confirm: 'Delete account',
-        title: 'Change password',
-      },
       forgot_password: {
         title: 'Internxt security',
         subtitle_1:
@@ -293,6 +289,7 @@ const strings = new LocalizedStrings({
     buttons: {
       sign_in: 'Sign in',
       createAccount: 'Create account',
+      deleteAccount: 'Delete account',
       create: 'Create',
       next: 'Next',
       continue: 'Continue',
@@ -331,6 +328,7 @@ const strings = new LocalizedStrings({
       resume: 'Resume',
       signOut: 'Log out',
       change: 'Change',
+      changing: 'Changing',
       delete: 'Delete',
       close: 'Close',
       update: 'Update',
@@ -403,6 +401,8 @@ const strings = new LocalizedStrings({
       },
       ChangePassword: {
         title: 'Change password',
+        passwordWeak: 'Password is weak',
+        passwordStrong: 'Password is strong',
       },
       DeleteAccount: {
         title: 'Delete account',
@@ -534,6 +534,8 @@ const strings = new LocalizedStrings({
       deleteAccount: 'Error sending confirmation email',
       updateProfile: 'Error updating profile',
       validEmail: 'Enter a valid email',
+      passwordLength: 'Password must be at least 8 characters',
+      passwordNumber: 'Password must have a number, uppercase letters and lowercase letters',
     },
   },
   es: {
@@ -624,10 +626,6 @@ const strings = new LocalizedStrings({
       },
       home: {
         title: 'Inicio',
-      },
-      change_password: {
-        title: 'Cambiar contraseña',
-        confirm: 'Borrar cuenta',
       },
       forgot_password: {
         title: 'Internxt security',
@@ -826,6 +824,7 @@ const strings = new LocalizedStrings({
     buttons: {
       sign_in: 'Iniciar sesión',
       createAccount: 'Crear cuenta',
+      deleteAccount: 'Borrar cuenta',
       create: 'Crear',
       next: 'Siguiente',
       continue: 'Continuar',
@@ -864,6 +863,7 @@ const strings = new LocalizedStrings({
       resume: 'Reanudar',
       signOut: 'Cerrar sesión',
       change: 'Cambiar',
+      changing: 'Cambiando',
       delete: 'Borrar',
       close: 'Cerrar',
       update: 'Actualizar',
@@ -936,6 +936,8 @@ const strings = new LocalizedStrings({
       },
       ChangePassword: {
         title: 'Cambiar contraseña',
+        passwordWeak: 'La contraseña es débil',
+        passwordStrong: 'La contraseña es fuerte',
       },
       DeleteAccount: {
         title: 'Eliminar cuenta',
@@ -1068,6 +1070,8 @@ const strings = new LocalizedStrings({
       deleteAccount: 'Error enviando email de confirmación',
       updateProfile: 'Error actualizando tu perfil',
       validEmail: 'Introduce un email válido',
+      passwordLength: 'La contraseña debe tener al menos 8 carácteres',
+      passwordComplex: 'La contraseña debe tener un número, mayúsculas y minúsculas',
     },
   },
 });

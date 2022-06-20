@@ -18,6 +18,7 @@ import { Eye, EyeSlash } from 'phosphor-react-native';
 import useGetColor from '../../../hooks/useColor';
 import validationService from '../../../services/ValidationService';
 import AppText from '../../AppText';
+import { auth } from '@internxt/lib';
 
 const schema: yup.SchemaOf<SignUpFormData> = yup
   .object()
@@ -39,9 +40,8 @@ const schema: yup.SchemaOf<SignUpFormData> = yup
       .required(strings.errors.requiredField)
       .test({
         name: 'strongPassword',
-        message: 'Strong password',
         test: function (value) {
-          return validationService.isStrongPassword(value || '');
+          return auth.testPasswordStrength(value || '', this.parent.email).valid;
         },
       }),
     confirmPassword: yup
@@ -138,7 +138,7 @@ const SignUpForm = (props: BaseFormProps) => {
       <Controller
         name="name"
         control={control}
-        render={({ field, fieldState }) => (
+        render={({ field }) => (
           <AppTextInput
             testID="first-name-input"
             onBlur={field.onBlur}
@@ -147,7 +147,6 @@ const SignUpForm = (props: BaseFormProps) => {
             autoFocus
             style={tailwind('h-11')}
             containerStyle={tailwind('mb-3')}
-            status={[fieldState.error ? 'error' : 'idle', fieldState.error?.message]}
             placeholder={strings.inputs.name}
             maxLength={64}
             autoCapitalize="words"
@@ -159,13 +158,12 @@ const SignUpForm = (props: BaseFormProps) => {
       <Controller
         name="lastName"
         control={control}
-        render={({ field, fieldState }) => (
+        render={({ field }) => (
           <AppTextInput
             testID="last-name-input"
             onBlur={field.onBlur}
             onChangeText={field.onChange}
             value={field.value}
-            status={[fieldState.error ? 'error' : 'idle', fieldState.error?.message || '']}
             style={tailwind('h-11')}
             containerStyle={tailwind('mb-3')}
             placeholder={strings.inputs.lastName}
@@ -180,13 +178,12 @@ const SignUpForm = (props: BaseFormProps) => {
       <Controller
         name="email"
         control={control}
-        render={({ field, fieldState }) => (
+        render={({ field }) => (
           <AppTextInput
             testID="email-input"
             onBlur={field.onBlur}
             onChangeText={field.onChange}
             value={field.value}
-            status={[fieldState.error ? 'error' : 'idle', fieldState.error?.message || '']}
             style={tailwind('h-11')}
             containerStyle={tailwind('mb-3')}
             placeholder={strings.inputs.email}
@@ -203,13 +200,12 @@ const SignUpForm = (props: BaseFormProps) => {
       <Controller
         name="password"
         control={control}
-        render={({ field, fieldState }) => (
+        render={({ field }) => (
           <AppTextInput
             testID="password-input"
             onBlur={field.onBlur}
             onChangeText={field.onChange}
             value={field.value}
-            status={[fieldState.error ? 'error' : 'idle', fieldState.error?.message || '']}
             style={tailwind('h-11')}
             containerStyle={tailwind('mb-3')}
             placeholder={strings.inputs.password}
@@ -238,13 +234,12 @@ const SignUpForm = (props: BaseFormProps) => {
       <Controller
         name="confirmPassword"
         control={control}
-        render={({ field, fieldState }) => (
+        render={({ field }) => (
           <AppTextInput
             testID="confirm-password-input"
             onBlur={field.onBlur}
             onChangeText={field.onChange}
             value={field.value}
-            status={[fieldState.error ? 'error' : 'idle', fieldState.error?.message || '']}
             style={tailwind('h-11')}
             containerStyle={tailwind('mb-3')}
             placeholder={strings.inputs.confirmPassword}

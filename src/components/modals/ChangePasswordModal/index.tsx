@@ -12,6 +12,9 @@ const ChangePasswordModal = (props: BaseModalProps) => {
   const onCancelButtonPressed = () => {
     props.onClose();
   };
+  const onFormSubmitSuccess = () => {
+    props.onClose();
+  };
 
   return (
     <CenterModal isOpen={props.isOpen} onClosed={props.onClose}>
@@ -21,6 +24,7 @@ const ChangePasswordModal = (props: BaseModalProps) => {
         </AppText>
 
         <ChangePasswordForm
+          onFormSubmitSuccess={onFormSubmitSuccess}
           renderActionsContainer={({ onSubmitButtonPressed, isValid, isLoading }) => (
             <View style={tailwind('flex-row')}>
               <AppButton
@@ -34,7 +38,7 @@ const ChangePasswordModal = (props: BaseModalProps) => {
                 disabled={!isValid}
                 style={tailwind('flex-1')}
                 type="accept"
-                title={strings.buttons.change}
+                title={isLoading ? strings.buttons.changing : strings.buttons.change}
                 onPress={onSubmitButtonPressed}
               />
             </View>
