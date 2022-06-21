@@ -81,6 +81,7 @@ export enum AsyncStorageKey {
   User = 'xUser',
   Token = 'xToken',
   PhotosToken = 'photosToken',
+  LastUpdateCheck = 'lastUpdateCheck',
 }
 
 export type ProgressCallback = (progress: number) => void;

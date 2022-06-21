@@ -111,6 +111,13 @@ class FileSystemService {
 
     return FileViewer.open(uri, options);
   }
+
+  public async uriToBlob(uri: string) {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+
+    return blob;
+  }
 }
 
 const fileSystemService = new FileSystemService();

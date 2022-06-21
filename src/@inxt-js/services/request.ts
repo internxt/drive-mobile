@@ -8,8 +8,7 @@ import { ShardMeta } from '../lib/shardMeta';
 import { ContractNegotiated } from '../lib/contracts';
 import { Shard } from '../api/shard';
 import { getProxy, ProxyManager } from './proxy';
-
-const INXT_API_URL = 'https://api.internxt.com';
+import { constants } from 'src/services/AppService';
 
 export async function request(
   config: EnvironmentConfig,
@@ -79,9 +78,11 @@ export async function plainRequest(
 }
 
 export async function get<K>(params: { responseType?: string; url: string }, config = { useProxy: false }): Promise<K> {
-  return plainRequest('GET', params.url, { responseType: params.responseType }, config.useProxy).then<K>((res) => {
-    return res.data as unknown as K;
-  });
+  return plainRequest('GET', params.url, { responseType: params.responseType as any }, config.useProxy).then<K>(
+    (res) => {
+      return res.data as unknown as K;
+    },
+  );
 }
 
 export async function getBuffer(url: string, config = { useProxy: false }): Promise<Buffer> {
@@ -116,7 +117,7 @@ export function getBucketById(
   bucketId: string,
   params?: AxiosRequestConfig,
 ): Promise<getBucketByIdResponse | void> {
-  const URL = config.bridgeUrl ? config.bridgeUrl : INXT_API_URL;
+  const URL = config.bridgeUrl ? config.bridgeUrl : constants.REACT_NATIVE_BRIDGE_URL;
   const targetUrl = `${URL}/buckets/${bucketId}`;
   const defParams: AxiosRequestConfig = {
     headers: {
@@ -150,7 +151,7 @@ export function getFileById(
   fileId: string,
   params?: AxiosRequestConfig,
 ): Promise<getFileByIdResponse | void> {
-  const URL = config.bridgeUrl ? config.bridgeUrl : INXT_API_URL;
+  const URL = config.bridgeUrl ? config.bridgeUrl : constants.REACT_NATIVE_BRIDGE_URL;
   const targetUrl = `${URL}/buckets/${bucketId}/file-ids/${fileId}`;
   const defParams: AxiosRequestConfig = {
     headers: {
@@ -185,7 +186,7 @@ export interface FrameStaging {
  * @param params
  */
 export function createFrame(config: EnvironmentConfig, params?: AxiosRequestConfig): Promise<FrameStaging> {
-  const URL = config.bridgeUrl ? config.bridgeUrl : INXT_API_URL;
+  const URL = config.bridgeUrl ? config.bridgeUrl : constants.REACT_NATIVE_BRIDGE_URL;
   const targetUrl = `${URL}/frames`;
   const defParams: AxiosRequestConfig = {
     headers: {
@@ -247,7 +248,7 @@ export function createEntryFromFrame(
   body: CreateEntryFromFrameBody,
   params?: AxiosRequestConfig,
 ): Promise<CreateEntryFromFrameResponse | void> {
-  const URL = config.bridgeUrl ? config.bridgeUrl : INXT_API_URL;
+  const URL = config.bridgeUrl ? config.bridgeUrl : constants.REACT_NATIVE_BRIDGE_URL;
   const targetUrl = `${URL}/buckets/${bucketId}/files/ensure`;
   const defParams: AxiosRequestConfig = {
     headers: {
@@ -275,22 +276,6 @@ export function handleAxiosError(err: any): string {
   return (err.response && err.response.data && err.response.data.error) || err.message;
 }
 
-interface AddShardToFrameBody {
-  /* shard hash */
-  hash: string;
-  /* shard size */
-  size: number;
-  /* shard index */
-  index: number;
-  /* if exists a shard parity for this shard */
-  parity: boolean;
-  /* shard challenges */
-  challenges: string[];
-  tree: string[];
-  /* nodes excluded from being the shard's node */
-  exclude: string[];
-}
-
 /**
  * Negotiates a storage contract and adds the shard to the frame
  * @param {EnvironmentConfig} config App config
@@ -305,7 +290,7 @@ export function addShardToFrame(
   body: ShardMeta,
   params?: AxiosRequestConfig,
 ): Promise<ContractNegotiated | void> {
-  const URL = config.bridgeUrl ? config.bridgeUrl : INXT_API_URL;
+  const URL = config.bridgeUrl ? config.bridgeUrl : constants.REACT_NATIVE_BRIDGE_URL;
   const targetUrl = `${URL}/frames/${frameId}`;
   const defParams: AxiosRequestConfig = {
     headers: {

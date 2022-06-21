@@ -2,52 +2,99 @@ import { Camera, ImageSquare, Trash } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
+import {
+  ImagePickerOptions,
+  ImagePickerResult,
+  launchImageLibraryAsync,
+  MediaTypeOptions,
+  requestMediaLibraryPermissionsAsync,
+} from 'expo-image-picker';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
-import { useAppSelector } from '../../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { BaseModalProps } from '../../../types/ui';
 import AppButton from '../../AppButton';
 import AppText from '../../AppText';
 import UserProfilePicture from '../../UserProfilePicture';
 import BottomModal from '../BottomModal';
+import imageService from '../../../services/ImageService';
+import { authThunks } from '../../../store/slices/auth';
 
 const ChangeProfilePictureModal = (props: BaseModalProps) => {
+  const dispatch = useAppDispatch();
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const { user } = useAppSelector((state) => state.auth);
+  const [isLoading, setIsLoading] = useState(false);
   const [avatar, setAvatar] = useState<string | undefined | null>(user?.avatar);
   const hasAvatar = !!avatar;
   const isDirty = avatar !== user?.avatar;
   const onCancelButtonPressed = () => {
     props.onClose();
   };
-  const onSaveButtonPressed = () => {
-    // TODO
-  };
   const onDeletePressed = () => {
     setAvatar(null);
   };
-  const onUploadPhotoPressed = () => undefined;
+  const onUploadPhotoPressed = async () => {
+    const response = await requestMediaLibraryPermissionsAsync();
+
+    if (response.granted) {
+      const size = 512;
+      const options: ImagePickerOptions = { allowsMultipleSelection: false, mediaTypes: MediaTypeOptions.Images };
+      const result: ImagePickerResult = await launchImageLibraryAsync(options);
+
+      if (!result.cancelled) {
+        const response = await imageService.resize({
+          uri: result.uri,
+          width: size,
+          height: size,
+          format: 'JPEG',
+          quality: 100,
+          rotation: 0,
+          options: { mode: 'cover' },
+        });
+
+        setAvatar(response.uri);
+      }
+    }
+  };
   const onTakePhotoPressed = () => undefined;
+  const onSaveButtonPressed = async () => {
+    setIsLoading(true);
+    try {
+      if (avatar) {
+        await dispatch(
+          authThunks.changeProfilePictureThunk({ uri: avatar, name: `${Date.now().toString()}.jpeg` }),
+        ).unwrap();
+      } else {
+        await dispatch(authThunks.deleteProfilePictureThunk()).unwrap();
+      }
+    } catch (err) {
+      // ignore error
+    } finally {
+      setIsLoading(false);
+      props.onClose();
+    }
+  };
   const actions = [
     {
       key: 'delete',
       label: strings.buttons.delete,
-      disabled: !hasAvatar,
+      disabled: !hasAvatar || isLoading,
       iconComponent: Trash,
       onPress: onDeletePressed,
     },
     {
       key: 'upload-photo',
       label: strings.buttons.uploadPhoto,
-      disabled: false,
+      disabled: isLoading,
       iconComponent: ImageSquare,
       onPress: onUploadPhotoPressed,
     },
     {
       key: 'take-photo',
       label: strings.buttons.takePhoto,
-      disabled: false,
+      disabled: isLoading,
       iconComponent: Camera,
       onPress: onTakePhotoPressed,
     },
@@ -80,7 +127,7 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
   }, [props.isOpen]);
 
   return (
-    <BottomModal isOpen={props.isOpen} onClosed={props.onClose} topDecoration>
+    <BottomModal isOpen={props.isOpen} onClosed={props.onClose} topDecoration backdropPressToClose={!isLoading}>
       <View style={tailwind('px-4 pb-4')}>
         <AppText style={tailwind('text-center')} semibold>
           {strings.modals.ChangeProfilePicture.title.toUpperCase()}
@@ -98,12 +145,14 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
             onPress={onCancelButtonPressed}
             title={strings.buttons.cancel}
             type="cancel"
+            disabled={isLoading}
           />
           <AppButton
             style={tailwind('flex-1')}
             onPress={onSaveButtonPressed}
             title={strings.buttons.saveChanges}
-            disabled={!isDirty}
+            disabled={!isDirty || isLoading}
+            loading={isLoading}
             type="accept"
           />
         </View>

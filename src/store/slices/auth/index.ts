@@ -7,7 +7,6 @@ import userService from '../../../services/UserService';
 import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
 import { AsyncStorageKey, DevicePlatform, NotificationType } from '../../../types';
 import { photosActions, photosThunks } from '../photos';
-import { appThunks } from '../app';
 import { driveActions, driveThunks } from '../drive';
 import { uiActions } from '../ui';
 import notificationsService from '../../../services/NotificationsService';
@@ -65,14 +64,12 @@ export const signInThunk = createAsyncThunk<
   { token: string; photosToken: string; user: UserSettings },
   { email: string; password: string; sKey: string; twoFactorCode: string },
   { state: RootState }
->('auth/signIn', async (payload, { dispatch }) => {
+>('auth/signIn', async (payload) => {
   const result = await userService.signin(payload.email, payload.password, payload.sKey, payload.twoFactorCode);
 
   await asyncStorageService.saveItem(AsyncStorageKey.Token, result.token);
   await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, result.photosToken); // Photos access token
   await asyncStorageService.saveItem(AsyncStorageKey.User, JSON.stringify(result.user));
-
-  dispatch(appThunks.initializeThunk());
 
   authService.emitLoginEvent();
 
@@ -111,6 +108,32 @@ export const updateProfileThunk = createAsyncThunk<UpdateProfilePayload, UpdateP
     await userService.updateProfile(payload);
 
     return payload;
+  },
+);
+
+export const changeProfilePictureThunk = createAsyncThunk<string, { name: string; uri: string }, { state: RootState }>(
+  'auth/changeProfilePicture',
+  async ({ name, uri }, { getState }) => {
+    const { avatar } = (await userService.updateUserAvatar({ name, uri })) as { avatar: string };
+
+    await asyncStorageService.saveItem(
+      AsyncStorageKey.User,
+      JSON.stringify(Object.assign({}, getState().auth.user as UserSettings, { avatar })),
+    );
+
+    return avatar;
+  },
+);
+
+export const deleteProfilePictureThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'auth/deleteProfilePicture',
+  async (payload, { getState }) => {
+    await userService.deleteUserAvatar();
+
+    await asyncStorageService.saveItem(
+      AsyncStorageKey.User,
+      JSON.stringify(Object.assign({}, getState().auth.user as UserSettings, { avatar: null })),
+    );
   },
 );
 
@@ -195,6 +218,29 @@ export const authSlice = createSlice({
       .addCase(updateProfileThunk.rejected, () => {
         notificationsService.show({ type: NotificationType.Error, text1: strings.errors.updateProfile });
       });
+
+    builder
+      .addCase(changeProfilePictureThunk.pending, () => undefined)
+      .addCase(changeProfilePictureThunk.fulfilled, (state, action) => {
+        if (state.user) {
+          state.user.avatar = action.payload;
+        }
+      })
+      .addCase(changeProfilePictureThunk.rejected, (state, action) => {
+        console.error(action.error);
+        notificationsService.show({ type: NotificationType.Error, text1: strings.errors.uploadAvatar });
+      });
+
+    builder
+      .addCase(deleteProfilePictureThunk.pending, () => undefined)
+      .addCase(deleteProfilePictureThunk.fulfilled, (state) => {
+        if (state.user) {
+          state.user.avatar = null;
+        }
+      })
+      .addCase(deleteProfilePictureThunk.rejected, () => {
+        notificationsService.show({ type: NotificationType.Error, text1: strings.errors.deleteAvatar });
+      });
   },
 });
 
@@ -222,6 +268,8 @@ export const authThunks = {
   signOutThunk,
   deleteAccountThunk,
   updateProfileThunk,
+  changeProfilePictureThunk,
+  deleteProfilePictureThunk,
 };
 
 export default authSlice.reducer;

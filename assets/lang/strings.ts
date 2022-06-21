@@ -535,7 +535,9 @@ const strings = new LocalizedStrings({
       updateProfile: 'Error updating profile',
       validEmail: 'Enter a valid email',
       passwordLength: 'Password must be at least 8 characters',
-      passwordNumber: 'Password must have a number, uppercase letters and lowercase letters',
+      passwordComplex: 'Password must have a number, uppercase letters and lowercase letters',
+      uploadAvatar: 'Error uploading avatar',
+      deleteAvatar: 'Error deleting avatar',
     },
   },
   es: {
@@ -1072,6 +1074,8 @@ const strings = new LocalizedStrings({
       validEmail: 'Introduce un email válido',
       passwordLength: 'La contraseña debe tener al menos 8 carácteres',
       passwordComplex: 'La contraseña debe tener un número, mayúsculas y minúsculas',
+      uploadAvatar: 'Error subiendo avatar',
+      deleteAvatar: 'Error borrando avatar',
     },
   },
 });

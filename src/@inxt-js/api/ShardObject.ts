@@ -106,7 +106,7 @@ export class ShardObject extends EventEmitter {
 
         return this.api.putShard(putUrl, content).start();
       })
-      .catch((err: AxiosError) => {
+      .catch((err: AxiosError<any>) => {
         logger.error(`Error uploading shard ${shard.index}: ${err.message}`);
 
         if (err.response && err.response.status < 400) {

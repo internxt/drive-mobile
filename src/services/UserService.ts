@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Users } from '@internxt/sdk/dist/drive';
 import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
-import { decryptText, decryptTextWithKey, encryptText, passToHash } from '../helpers';
-import { getHeaders } from '../helpers/headers';
+import Axios from 'axios';
+import { decryptText, decryptTextWithKey, encryptText, passToHash } from 'src/helpers';
+import { getHeaders } from 'src/helpers/headers';
 import appService, { constants } from './AppService';
+const FormData = global.FormData;
 
 class UserService {
   private sdk?: Users;
@@ -106,11 +109,54 @@ class UserService {
   }
 
   public async inviteAFriend(email: string): Promise<void> {
+    this.checkIsInitialized();
+
     return this.sdk?.sendInvitation(email);
   }
 
   public updateProfile(payload: UpdateProfilePayload) {
+    this.checkIsInitialized();
+
     return this.sdk?.updateProfile(payload);
+  }
+
+  public async deleteUserAvatar() {
+    this.checkIsInitialized();
+
+    await this.sdk?.deleteAvatar();
+  }
+
+  public async updateUserAvatar(payload: { name: string; uri: string }) {
+    this.checkIsInitialized();
+
+    const headers = await getHeaders();
+    const headersMap: Record<string, string> = {};
+    const formData = new FormData();
+
+    formData.append('avatar', {
+      //@ts-ignore
+      uri: payload.uri,
+      type: 'image/jpg',
+      name: payload.name,
+    });
+    headers.forEach((value: string, key: string) => {
+      headersMap[key] = value;
+    });
+    headersMap['Content-Type'] = 'multipart/form-data';
+
+    const response = await Axios.put<{ avatar: string }>(
+      constants.REACT_NATIVE_DRIVE_API_URL + '/api/user/avatar',
+      formData,
+      { headers: headersMap },
+    );
+
+    return response.data;
+  }
+
+  private checkIsInitialized() {
+    if (!this.sdk) {
+      throw new Error('UserService not initialized...');
+    }
   }
 }
 

@@ -67,7 +67,7 @@ const ChangePasswordForm = (props: BaseFormProps) => {
     const strength = passwordStrengthResult.valid ? (passwordStrengthResult.strength === 'medium' ? 2 : 3) : 1;
     const reasonMessages = {
       ['NOT_LONG_ENOUGH']: strings.errors.passwordLength,
-      ['NOT_COMPLEX_ENOUGH']: strings.errors.passwordNumber,
+      ['NOT_COMPLEX_ENOUGH']: strings.errors.passwordComplex,
     };
     const message = passwordStrengthResult.valid
       ? strength === 2

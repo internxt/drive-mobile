@@ -3,11 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AsyncStorageKey } from '../types';
 
 class AsyncStorageService {
-  saveItem(key: string, value: string): Promise<void> {
+  saveItem(key: AsyncStorageKey, value: string): Promise<void> {
     return AsyncStorage.setItem(key, value).catch(() => undefined);
   }
 
-  getItem(key: string): Promise<string | null> {
+  getItem(key: AsyncStorageKey): Promise<string | null> {
     return AsyncStorage.getItem(key).catch(() => null);
   }
 
@@ -16,13 +16,9 @@ class AsyncStorageService {
   }
 
   getUser(): Promise<UserSettings> {
-    return AsyncStorage.getItem(AsyncStorageKey.User)
-      .then((value) => {
-        return value ? JSON.parse(value) : null;
-      })
-      .catch(() => {
-        return null;
-      });
+    return AsyncStorage.getItem(AsyncStorageKey.User).then((value) => {
+      return value ? JSON.parse(value) : null;
+    });
   }
 
   listItems(): Promise<readonly string[]> {
