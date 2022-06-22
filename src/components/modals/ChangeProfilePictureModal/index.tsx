@@ -6,7 +6,9 @@ import {
   ImagePickerOptions,
   ImagePickerResult,
   launchImageLibraryAsync,
+  launchCameraAsync,
   MediaTypeOptions,
+  requestCameraPermissionsAsync,
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
 import strings from '../../../../assets/lang/strings';
@@ -29,6 +31,20 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
   const [avatar, setAvatar] = useState<string | undefined | null>(user?.avatar);
   const hasAvatar = !!avatar;
   const isDirty = avatar !== user?.avatar;
+  const resizeAndSetUri = async (uri: string) => {
+    const size = 512;
+    const response = await imageService.resize({
+      uri: uri,
+      width: size,
+      height: size,
+      format: 'JPEG',
+      quality: 100,
+      rotation: 0,
+      options: { mode: 'cover' },
+    });
+
+    setAvatar(response.uri);
+  };
   const onCancelButtonPressed = () => {
     props.onClose();
   };
@@ -39,26 +55,26 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
     const response = await requestMediaLibraryPermissionsAsync();
 
     if (response.granted) {
-      const size = 512;
       const options: ImagePickerOptions = { allowsMultipleSelection: false, mediaTypes: MediaTypeOptions.Images };
       const result: ImagePickerResult = await launchImageLibraryAsync(options);
 
       if (!result.cancelled) {
-        const response = await imageService.resize({
-          uri: result.uri,
-          width: size,
-          height: size,
-          format: 'JPEG',
-          quality: 100,
-          rotation: 0,
-          options: { mode: 'cover' },
-        });
-
-        setAvatar(response.uri);
+        resizeAndSetUri(result.uri);
       }
     }
   };
-  const onTakePhotoPressed = () => undefined;
+  const onTakePhotoPressed = async () => {
+    const response = await requestCameraPermissionsAsync();
+
+    if (response.granted) {
+      const options: ImagePickerOptions = { allowsMultipleSelection: false, mediaTypes: MediaTypeOptions.Images };
+      const result = await launchCameraAsync(options);
+
+      if (!result.cancelled) {
+        resizeAndSetUri(result.uri);
+      }
+    }
+  };
   const onSaveButtonPressed = async () => {
     setIsLoading(true);
     try {

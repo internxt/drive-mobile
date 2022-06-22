@@ -129,6 +129,7 @@ class UserService {
   public async updateUserAvatar(payload: { name: string; uri: string }) {
     this.checkIsInitialized();
 
+    const url = `${constants.REACT_NATIVE_DRIVE_API_URL}/api/user/avatar`;
     const headers = await getHeaders();
     const headersMap: Record<string, string> = {};
     const formData = new FormData();
@@ -142,13 +143,9 @@ class UserService {
     headers.forEach((value: string, key: string) => {
       headersMap[key] = value;
     });
-    headersMap['Content-Type'] = 'multipart/form-data';
+    headersMap['content-type'] = 'multipart/form-data';
 
-    const response = await Axios.put<{ avatar: string }>(
-      constants.REACT_NATIVE_DRIVE_API_URL + '/api/user/avatar',
-      formData,
-      { headers: headersMap },
-    );
+    const response = await Axios.put<{ avatar: string }>(url, formData, { headers: headersMap });
 
     return response.data;
   }

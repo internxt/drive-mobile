@@ -46,6 +46,7 @@ export default function App(): JSX.Element {
   const onEditNameModalClosed = () => dispatch(uiActions.setIsEditNameModalOpen(false));
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
   const onUserLoggedIn = () => {
+    console.warn('onUserLoggedIn');
     dispatch(appThunks.initializeThunk());
   };
   const onUserLoggedOut = () => {
