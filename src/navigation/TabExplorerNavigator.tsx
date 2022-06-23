@@ -17,7 +17,7 @@ import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../screens/HomeScreen';
 import PhotosNavigator from './PhotosNavigator';
 import ReferralsBanner from '../components/ReferralsBanner';
-import { useAppDispatch } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { uiActions } from '../store/slices/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DriveDownloadModal from '../components/modals/DriveDownloadModal';
@@ -26,6 +26,7 @@ import { RootStackScreenProps, TabExplorerStackParamList } from '../types/naviga
 import { useTailwind } from 'tailwind-rn';
 import AccountScreen from '../screens/AccountScreen';
 import SecurityScreen from '../screens/SecurityScreen';
+import SecurityModal from 'src/components/modals/SecurityModal';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
@@ -33,6 +34,8 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
+  const { isSecurityModalOpen } = useAppSelector((state) => state.ui);
+  const onSecurityModalClosed = () => dispatch(uiActions.setIsSecurityModalOpen(false));
 
   useEffect(() => {
     props.route.params?.showReferralsBanner && dispatch(uiActions.setIsReferralsBannerOpen(true));
@@ -58,6 +61,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Security" component={SecurityScreen} />
       </Tab.Navigator>
 
+      <ReferralsBanner />
       <AddModal />
       <DriveItemInfoModal />
       <DeleteItemModal />
@@ -67,7 +71,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <DriveRenameModal />
       <RunOutOfStorageModal />
       <SignOutModal />
-      <ReferralsBanner />
+      <SecurityModal isOpen={isSecurityModalOpen} onClose={onSecurityModalClosed} />
     </View>
   );
 }

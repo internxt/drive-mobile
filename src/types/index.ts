@@ -82,6 +82,7 @@ export enum AsyncStorageKey {
   Token = 'xToken',
   PhotosToken = 'photosToken',
   LastUpdateCheck = 'lastUpdateCheck',
+  Language = 'language',
 }
 
 export type ProgressCallback = (progress: number) => void;
@@ -90,4 +91,9 @@ export type Abortable = (reason?: string) => void;
 
 export interface AppToastExtraProps {
   action?: { text: string; onActionPress: () => void };
+}
+
+export enum Language {
+  English = 'en',
+  Spanish = 'es',
 }

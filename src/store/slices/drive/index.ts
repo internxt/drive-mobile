@@ -532,7 +532,7 @@ export const driveSlice = createSlice({
       state.navigationStack.shift();
     },
     updateDownloadingFile(state, action: PayloadAction<Partial<DownloadingFile>>) {
-      Object.assign(state.downloadingFile, action.payload);
+      state.downloadingFile && Object.assign(state.downloadingFile, action.payload);
     },
   },
   extraReducers: (builder) => {

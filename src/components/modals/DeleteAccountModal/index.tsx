@@ -1,6 +1,6 @@
 import { ClockCounterClockwise, FolderSimple, ImageSquare, Tray, WarningCircle } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';

@@ -288,6 +288,10 @@
   margin-bottom: 2.25rem
 }
 
+.ml-12 {
+  margin-left: 3rem
+}
+
 .flex {
   display: flex
 }
@@ -860,6 +864,11 @@
   padding-right: 2.25rem
 }
 
+.px-2\.5 {
+  padding-left: 0.625rem;
+  padding-right: 0.625rem
+}
+
 .py-8 {
   padding-top: 2rem;
   padding-bottom: 2rem
@@ -964,6 +973,14 @@
 
 .pb-8 {
   padding-bottom: 2rem
+}
+
+.pl-2\.5 {
+  padding-left: 0.625rem
+}
+
+.pl-2 {
+  padding-left: 0.5rem
 }
 
 .text-left {
@@ -1219,6 +1236,11 @@
 .text-neutral-600 {
   --tw-text-opacity: 1;
   color: rgb(52 69 99 / var(--tw-text-opacity))
+}
+
+.text-gray-20 {
+  --tw-text-opacity: 1;
+  color: rgb(209 209 215 / var(--tw-text-opacity))
 }
 
 .text-green-60 {

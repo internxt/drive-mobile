@@ -81,7 +81,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
           <View style={tailwind('px-1')}></View>
 
           <AppButton
-            title={isLoading ? strings.generic.creating : strings.buttons.create}
+            title={isLoading ? strings.buttons.creating : strings.buttons.create}
             type="accept"
             onPress={onCreateFolderButtonPressed}
             loading={isLoading}

@@ -21,6 +21,8 @@ import DeleteAccountModal from './components/modals/DeleteAccountModal';
 import authService from './services/AuthService';
 import EditNameModal from './components/modals/EditNameModal';
 import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
+import LanguageModal from './components/modals/LanguageModal';
+import languageService from './services/LanguageService';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -34,6 +36,7 @@ export default function App(): JSX.Element {
     isDeleteAccountModalOpen,
     isEditNameModalOpen,
     isChangeProfilePictureModalOpen,
+    isLanguageModalOpen,
   } = useAppSelector((state) => state.ui);
   const [loadError, setLoadError] = useState('');
   const silentSignIn = async () => {
@@ -45,8 +48,8 @@ export default function App(): JSX.Element {
   const onDeleteAccountModalClosed = () => dispatch(uiActions.setIsDeleteAccountModalOpen(false));
   const onEditNameModalClosed = () => dispatch(uiActions.setIsEditNameModalOpen(false));
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
+  const onLanguageModalClosed = () => dispatch(uiActions.setIsLanguageModalOpen(false));
   const onUserLoggedIn = () => {
-    console.warn('onUserLoggedIn');
     dispatch(appThunks.initializeThunk());
   };
   const onUserLoggedOut = () => {
@@ -61,7 +64,7 @@ export default function App(): JSX.Element {
     }
 
     if (!isAppInitialized) {
-      Promise.all([loadFonts(), silentSignIn(), analyticsService.setup()])
+      Promise.all([loadFonts(), languageService.initialize(), silentSignIn(), analyticsService.setup()])
         .then(() => {
           setIsAppInitialized(true);
         })
@@ -111,6 +114,7 @@ export default function App(): JSX.Element {
               isOpen={isChangeProfilePictureModalOpen}
               onClose={onChangeProfilePictureModalClosed}
             />
+            <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
           </View>
         </Portal.Host>
       </KeyboardAvoidingView>

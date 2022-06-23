@@ -166,7 +166,7 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
           <AppButton
             style={tailwind('flex-1')}
             onPress={onSaveButtonPressed}
-            title={strings.buttons.saveChanges}
+            title={isLoading ? strings.buttons.saving : strings.buttons.saveChanges}
             disabled={!isDirty || isLoading}
             loading={isLoading}
             type="accept"

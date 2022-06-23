@@ -62,7 +62,7 @@ const ChangePasswordForm = (props: BaseFormProps) => {
     },
   });
   const { newPassword } = useWatch({ control });
-  const newPasswordStatusMessage = useMemo(() => {
+  const { newPasswordStatusMessage, strength } = useMemo(() => {
     const passwordStrengthResult = auth.testPasswordStrength(newPassword || '', user?.email || '');
     const strength = passwordStrengthResult.valid ? (passwordStrengthResult.strength === 'medium' ? 2 : 3) : 1;
     const reasonMessages = {
@@ -75,11 +75,14 @@ const ChangePasswordForm = (props: BaseFormProps) => {
         : strings.modals.ChangePassword.passwordStrong
       : reasonMessages[passwordStrengthResult.reason];
 
-    return isDirty ? (
-      <StrengthMeter style={tailwind('mt-2')} value={strength} maxValue={3} message={message as string} />
-    ) : (
-      ''
-    );
+    return {
+      strength: passwordStrengthResult.valid ? passwordStrengthResult.strength : '',
+      newPasswordStatusMessage: isDirty ? (
+        <StrengthMeter style={tailwind('mt-2')} value={strength} maxValue={3} message={message as string} />
+      ) : (
+        ''
+      ),
+    };
   }, [newPassword, isDirty]);
   const toggleShowNewPassword = () => setShowNewPassword(!showNewPassword);
   const toggleShowConfirmNewPassword = () => {
@@ -116,7 +119,16 @@ const ChangePasswordForm = (props: BaseFormProps) => {
             secureTextEntry={!showNewPassword}
             autoFocus
             containerStyle={tailwind('mb-3')}
-            status={[isDirty && fieldState.error ? 'error' : 'idle', newPasswordStatusMessage]}
+            status={[
+              isDirty && fieldState.error
+                ? 'error'
+                : strength === 'medium'
+                ? 'warning'
+                : strength === 'hard'
+                ? 'success'
+                : 'idle',
+              newPasswordStatusMessage,
+            ]}
             label={strings.inputs.newPassword}
             renderAppend={({ isFocused }) =>
               isFocused ? (

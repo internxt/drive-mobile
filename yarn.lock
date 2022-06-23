@@ -10562,10 +10562,10 @@ react-native-level-fs@^3.0.1:
     level-filesystem "^1.0.1"
     levelup "^0.18.2"
 
-react-native-localization@^2.1.6:
-  version "2.1.7"
-  resolved "https://registry.npmjs.org/react-native-localization/-/react-native-localization-2.1.7.tgz"
-  integrity sha512-F7oALsAyQuF4C/8kAJnA5eT0+F9ACnscKC1ahd+vjv8bs3UdhHo09u89JKfhdX4sZA2CWEi3E3mCKTqpqy3Otw==
+react-native-localization@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/react-native-localization/-/react-native-localization-2.3.1.tgz#b6752f16d2035bd4671fa5660c82941164e68b94"
+  integrity sha512-jmD6GEAGmstCIZOsxZcxWJbbx364c9qtKy8kefLcHYfAc73+g+e8CB7TZEwpK4IZNXxCBAeQMBsXfFrTyJmpWQ==
   dependencies:
     react-localization "^1.0.17"
 

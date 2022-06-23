@@ -80,7 +80,7 @@ function DriveItemInfoModal(): JSX.Element {
           <BottomModalOption
             leftSlot={
               <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.generic.move}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.move}</Text>
               </View>
             }
             rightSlot={<ArrowsOutCardinal size={20} color={getColor('text-neutral-500')} />}

@@ -17,6 +17,7 @@ import SettingsGroup from '../../components/SettingsGroup';
 import useGetColor from '../../hooks/useColor';
 import { uiActions } from '../../store/slices/ui';
 import UserProfilePicture from '../../components/UserProfilePicture';
+import { Language } from 'src/types';
 
 function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX.Element {
   const tailwind = useTailwind();
@@ -34,7 +35,9 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
   const onStoragePressed = () => {
     navigation.push('Storage');
   };
-  const onLanguagePressed = () => undefined;
+  const onLanguagePressed = () => {
+    dispatch(uiActions.setIsLanguageModalOpen(true));
+  };
   const onSupportPressed = () => {
     Linking.openURL('mailto:hello@internxt.com');
   };
@@ -139,7 +142,9 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                       </AppText>
                     </View>
                     <View style={tailwind('flex-row items-center')}>
-                      <AppText style={tailwind('text-gray-40 mr-2.5')}>{strings.languages.en}</AppText>
+                      <AppText style={tailwind('text-gray-40 mr-2.5')}>
+                        {strings.languages[strings.getLanguage() as Language]}
+                      </AppText>
                       <CaretRight color={getColor('text-neutral-60')} size={20} />
                     </View>
                   </View>

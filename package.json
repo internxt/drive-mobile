@@ -101,7 +101,7 @@
     "react-native-image-resizer": "^1.4.5",
     "react-native-image-zoom-viewer": "^3.0.1",
     "react-native-level-fs": "^3.0.1",
-    "react-native-localization": "^2.1.6",
+    "react-native-localization": "^2.3.1",
     "react-native-modalbox": "^2.0.2",
     "react-native-network-bandwith-speed": "^3.0.0",
     "react-native-os": "^1.2.6",

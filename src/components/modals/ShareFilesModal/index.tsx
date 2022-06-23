@@ -39,7 +39,7 @@ function ShareFilesModal(): JSX.Element {
   const shareFile = async () => {
     await Share.share({
       title: strings.modals.ShareModal.title,
-      message: strings.formatString<string>(strings.modals.ShareModal.message, link) as string,
+      message: strings.formatString(strings.modals.ShareModal.message, link) as string,
     });
   };
   const getFileToken = async (fileId: string, views: number) => {

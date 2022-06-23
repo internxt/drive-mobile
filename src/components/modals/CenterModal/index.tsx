@@ -7,6 +7,7 @@ import { useTailwind } from 'tailwind-rn';
 export interface CenterModalProps {
   isOpen: boolean;
   backdropPressToClose?: boolean;
+  backButtonClose?: boolean;
   onClosed: () => void;
   onOpened?: () => void;
   children?: JSX.Element;
@@ -14,6 +15,7 @@ export interface CenterModalProps {
 
 const defaultProps: Partial<CenterModalProps> = {
   backdropPressToClose: true,
+  backButtonClose: true,
 };
 
 const CenterModal = ({
@@ -22,6 +24,7 @@ const CenterModal = ({
   onOpened,
   children,
   backdropPressToClose = defaultProps.backdropPressToClose,
+  backButtonClose = defaultProps.backButtonClose,
 }: CenterModalProps): JSX.Element => {
   const tailwind = useTailwind();
   const onBackdropPressed = () => {
@@ -35,7 +38,7 @@ const CenterModal = ({
       onOpened={onOpened}
       position="center"
       style={tailwind('bg-transparent')}
-      backButtonClose={true}
+      backButtonClose={backButtonClose}
       backdropPressToClose={false}
       animationDuration={250}
       easing={Easing.ease}

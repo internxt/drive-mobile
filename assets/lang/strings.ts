@@ -13,19 +13,15 @@ const strings = new LocalizedStrings({
     generic: {
       loading: 'Loading',
       security: 'Security',
-      creating: 'Creating...',
       preparing: 'Preparing...',
       cancelling: 'Cancelling...',
       rename: 'Rename',
-      close: 'Close',
-      upload: 'Upload',
       delete: 'Delete',
       updated: 'Updated',
       monthly: 'Monthly',
       annually: 'Annually',
-      move: 'Move',
-      root_folder_name: 'Drive',
       view_folder: 'View folder',
+      root_folder_name: 'Drive',
       iOfN: '{0} of {1}',
     },
     tabs: {
@@ -118,9 +114,9 @@ const strings = new LocalizedStrings({
         olderFirst: 'Older first',
         sortBy: 'Sort by',
         sort: {
-          name: 'Name',
-          updatedAt: 'Updated at',
-          size: 'Size',
+          [SortType.Name]: 'Name',
+          [SortType.UpdatedAt]: 'Updated at',
+          [SortType.Size]: 'Size',
         },
         emptyRoot: {
           title: 'Your drive is empty',
@@ -294,7 +290,7 @@ const strings = new LocalizedStrings({
       next: 'Next',
       continue: 'Continue',
       back: 'Back',
-      creating_button: 'Creating...',
+      creating: 'Creating',
       deactivation: 'Re-send deactivation email',
       sing_up: 'Sign up',
       descrypting: 'Decrypting...',
@@ -338,6 +334,10 @@ const strings = new LocalizedStrings({
       edit: 'Edit',
       uploadPhoto: 'Upload photo',
       takePhoto: 'Take photo',
+      apply: 'Apply',
+      applying: 'Applying',
+      access: 'Access',
+      accessing: 'Accessing',
     },
     inputs: {
       name: 'Name',
@@ -390,6 +390,13 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      Security: {
+        title: 'Security',
+        advice: 'Authentication is needed to access',
+      },
+      Language: {
+        title: 'Select language',
+      },
       ChangeProfilePicture: {
         title: 'Edit photo',
       },
@@ -471,14 +478,14 @@ const strings = new LocalizedStrings({
           format: 'Format',
         },
       },
-      share_photo_modal: {
+      SharePhoto: {
         nativeMesage: 'Take a look to this photo!',
         linkOpenLimit: 'Link open limit',
         decrypting: 'Decrypting image {0}%',
         photoReady: 'Your photo is ready!',
         shareWithYourContacts: 'Share the photo with your contacts',
       },
-      link_copied_modal: {
+      LinkCopied: {
         message: 'Link copied to clipboard',
       },
       InviteFriendsModal: {
@@ -492,7 +499,6 @@ const strings = new LocalizedStrings({
       },
       SignOutModal: {
         title: 'Log out from this account?',
-        message: 'If you log out, your photos will stop backing up in Internxt Photos',
       },
       ConfirmMoveItemModal: {
         title: 'Move {0} item(s) from',
@@ -538,6 +544,8 @@ const strings = new LocalizedStrings({
       passwordComplex: 'Password must have a number, uppercase letters and lowercase letters',
       uploadAvatar: 'Error uploading avatar',
       deleteAvatar: 'Error deleting avatar',
+      changeLanguage: 'Error changing language',
+      wrongPassword: 'Wrong password, please try again',
     },
   },
   es: {
@@ -548,18 +556,13 @@ const strings = new LocalizedStrings({
     generic: {
       loading: 'Cargando',
       security: 'Seguridad',
-      create: 'Crear',
-      creating: 'Creando...',
       preparing: 'Preparando...',
       cancelling: 'Cancelando...',
       rename: 'Renombrar',
-      close: 'Cerrar',
-      upload: 'Subir',
       delete: 'Eliminar',
       updated: 'Actualizado',
       monthly: 'Mensual',
       annually: 'Anual',
-      move: 'Mover',
       view_folder: 'Ver carpeta',
       root_folder_name: 'Drive',
       iOfN: '{0} de {1}',
@@ -831,7 +834,7 @@ const strings = new LocalizedStrings({
       next: 'Siguiente',
       continue: 'Continuar',
       back: 'Atrás',
-      creating_button: 'Creando...',
+      creating: 'Creando',
       deactivation: 'Reenviar correo de desactivación',
       sing_up: 'Registarse',
       descrypting: 'Desencriptando...',
@@ -875,6 +878,10 @@ const strings = new LocalizedStrings({
       edit: 'Editar',
       uploadPhoto: 'Subir foto',
       takePhoto: 'Tomar foto',
+      apply: 'Aplicar',
+      applying: 'Aplicando',
+      access: 'Acceder',
+      accessing: 'Accediendo',
     },
     inputs: {
       name: 'Nombre',
@@ -927,6 +934,13 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      Security: {
+        title: 'Seguridad',
+        advice: 'Es necesario autenticarse para acceder',
+      },
+      Language: {
+        title: 'Selecciona idioma',
+      },
       ChangeProfilePicture: {
         title: 'Editar foto',
       },
@@ -1010,14 +1024,14 @@ const strings = new LocalizedStrings({
           format: 'Formato',
         },
       },
-      share_photo_modal: {
+      SharePhoto: {
         nativeMesage: '¡Echa un vistazo a esta foto!',
         linkOpenLimit: 'Límite de veces abierto',
         decrypting: 'Desencriptando imagen {0}%',
         photoReady: '¡Tu foto está lista!',
         shareWithYourContacts: 'Comparte la foto con tus contactos',
       },
-      link_copied_modal: {
+      LinkCopied: {
         message: 'Enlace copiado al portapapeles',
       },
       InviteFriendsModal: {
@@ -1076,6 +1090,8 @@ const strings = new LocalizedStrings({
       passwordComplex: 'La contraseña debe tener un número, mayúsculas y minúsculas',
       uploadAvatar: 'Error subiendo avatar',
       deleteAvatar: 'Error borrando avatar',
+      changeLanguage: 'Error cambiando idioma',
+      wrongPassword: 'Contraseña incorrecta, por favor inténtelo de nuevo',
     },
   },
 });

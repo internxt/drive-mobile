@@ -39,7 +39,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
               type="accept"
               disabled={!isValid || isLoading}
               style={[tailwind('py-4 my-4')]}
-              title={isLoading ? strings.buttons.creating_button : strings.buttons.createAccount}
+              title={isLoading ? strings.buttons.creating : strings.buttons.createAccount}
               onPress={onSubmitButtonPressed}
             />
           )}

@@ -26,6 +26,8 @@ export interface UIState {
   isDeleteAccountModalOpen: boolean;
   isEditNameModalOpen: boolean;
   isChangeProfilePictureModalOpen: boolean;
+  isLanguageModalOpen: boolean;
+  isSecurityModalOpen: boolean;
 }
 
 const initialState: UIState = {
@@ -53,6 +55,8 @@ const initialState: UIState = {
   isDeleteAccountModalOpen: false,
   isEditNameModalOpen: false,
   isChangeProfilePictureModalOpen: false,
+  isLanguageModalOpen: false,
+  isSecurityModalOpen: false,
 };
 
 export const uiSlice = createSlice({
@@ -132,6 +136,12 @@ export const uiSlice = createSlice({
     },
     setIsChangeProfilePictureModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isChangeProfilePictureModalOpen = action.payload;
+    },
+    setIsLanguageModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isLanguageModalOpen = action.payload;
+    },
+    setIsSecurityModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isSecurityModalOpen = action.payload;
     },
   },
 });

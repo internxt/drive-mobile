@@ -32,3 +32,7 @@ export interface EditNameFormData {
   name: string;
   lastName: string;
 }
+
+export interface AuthenticationFormData {
+  password: string;
+}

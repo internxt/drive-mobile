@@ -43,12 +43,12 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
       const result = await Share.share(
         Platform.OS === 'android'
           ? {
-              title: strings.modals.share_photo_modal.nativeMesage,
+              title: strings.modals.SharePhoto.nativeMesage,
               message: url,
             }
           : {
               url,
-              message: strings.modals.share_photo_modal.nativeMesage,
+              message: strings.modals.SharePhoto.nativeMesage,
             },
       );
 
@@ -145,7 +145,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
               globalStyle.fontWeight.medium,
             ]}
           >
-            {strings.modals.share_photo_modal.linkOpenLimit}
+            {strings.modals.SharePhoto.linkOpenLimit}
           </Text>
 
           <View style={tailwind('flex-row justify-center')}>
@@ -196,13 +196,13 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
             <>
               <LoadingSpinner size={20} style={tailwind('mr-2')} />
               <Text style={tailwind('text-base')}>
-                {strings.formatString(strings.modals.share_photo_modal.decrypting, progress.toFixed(0))}
+                {strings.formatString(strings.modals.SharePhoto.decrypting, progress.toFixed(0))}
               </Text>
             </>
           ) : (
             <View style={tailwind('items-center')}>
-              <Text style={tailwind('text-sm text-green-60 mb-2')}>{strings.modals.share_photo_modal.photoReady}</Text>
-              <Text style={tailwind('text-base')}>{strings.modals.share_photo_modal.shareWithYourContacts}</Text>
+              <Text style={tailwind('text-sm text-green-60 mb-2')}>{strings.modals.SharePhoto.photoReady}</Text>
+              <Text style={tailwind('text-base')}>{strings.modals.SharePhoto.shareWithYourContacts}</Text>
             </View>
           )}
         </View>

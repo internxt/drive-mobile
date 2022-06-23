@@ -31,14 +31,14 @@ enum AuthEventKey {
 
 class AuthService {
   private readonly eventEmitter: EventEmitter;
-  private authSdk?: Auth;
+  private sdk?: Auth;
 
   constructor() {
     this.eventEmitter = new EventEmitter();
   }
 
   public initialize(accessToken: string, mnemonic: string) {
-    this.authSdk = Auth.client(
+    this.sdk = Auth.client(
       `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
       {
         clientName: packageJson.name,
@@ -168,7 +168,7 @@ class AuthService {
   public async deleteAccount(email: string): Promise<void> {
     this.checkIsInitialized();
 
-    await this.authSdk?.sendDeactivationEmail(email);
+    await this.sdk?.sendDeactivationEmail(email);
   }
 
   public async getNewBits(): Promise<string> {
@@ -176,6 +176,13 @@ class AuthService {
       .then((res) => res.json())
       .then((res) => res.bits)
       .then((bits) => decryptText(bits));
+  }
+
+  public async areCredentialsCorrect({ email, password }: { email: string; password: string }) {
+    const salt = await this.getSalt(email);
+    const { hash: hashedPassword } = passToHash({ password, salt });
+
+    return this.sdk?.areCredentialsCorrect(email, hashedPassword) || false;
   }
 
   public async doRegister(params: RegisterParams): Promise<any> {
@@ -252,7 +259,7 @@ class AuthService {
   }
 
   private checkIsInitialized() {
-    if (!this.authSdk) {
+    if (!this.sdk) {
       throw new Error('AuthService not initialized...');
     }
   }

@@ -31,7 +31,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
     navigation.navigate('Billing');
   };
   const onSecurityPressed = () => {
-    navigation.navigate('Security');
+    dispatch(uiActions.setIsSecurityModalOpen(true));
   };
   const onProfilePicturePressed = () => {
     dispatch(uiActions.setIsChangeProfilePictureModalOpen(true));

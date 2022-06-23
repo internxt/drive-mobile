@@ -226,8 +226,7 @@ export const authSlice = createSlice({
           state.user.avatar = action.payload;
         }
       })
-      .addCase(changeProfilePictureThunk.rejected, (state, action) => {
-        console.error('changeProfilePictureThunk.rejected: ', JSON.stringify(action));
+      .addCase(changeProfilePictureThunk.rejected, () => {
         notificationsService.show({ type: NotificationType.Error, text1: strings.errors.uploadAvatar });
       });
 
