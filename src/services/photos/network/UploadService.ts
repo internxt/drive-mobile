@@ -1,9 +1,9 @@
 import { Photo, CreatePhotoData } from '@internxt/sdk/dist/photos';
-import network from '../../network';
-import fileSystemService from '../FileSystemService';
-import { constants } from '../AppService';
-import { PhotosCommonServices } from './PhotosCommonService';
-import { PhotoFileSystemRef } from '../../types/photos';
+import network from '../../../network';
+import fileSystemService from '../../FileSystemService';
+import { constants } from '../../AppService';
+import { PhotosCommonServices } from '../PhotosCommonService';
+import { PhotoFileSystemRef } from '../../../types/photos';
 
 export default class PhotosUploadService {
   public async uploadPreview(previewRef: PhotoFileSystemRef) {
@@ -14,6 +14,7 @@ export default class PhotosUploadService {
     if (!PhotosCommonServices.model.networkCredentials) {
       throw new Error('Network credentials not found');
     }
+
     return network.uploadFile(
       previewRef,
       PhotosCommonServices.model.user?.bucketId || '',

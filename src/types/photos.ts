@@ -107,7 +107,14 @@ export interface PhotoSyncOperation {
   fullSizeRef: PhotoFileSystemRef;
 }
 
-export enum DevicePhotosSyncStatus {
+export enum DevicePhotosSyncCheckerStatus {
+  RUNNING = 'RUNNING',
+  PAUSED = 'PAUSED',
+  IDLE = 'IDLE',
+  EMPTY = 'EMPTY',
+}
+
+export enum PhotosSyncManagerStatus {
   RUNNING = 'RUNNING',
   PAUSED = 'PAUSED',
   IDLE = 'IDLE',
@@ -134,6 +141,8 @@ export enum PhotosNetworkOperationResult {
 
 export interface PhotosNetworkOperation {
   devicePhoto: DevicePhoto;
+  hash: string;
+  photoRef: PhotoFileSystemRef;
   lastError?: Error;
   uploadedPhoto?: Photo;
   result: PhotosNetworkOperationResult;
@@ -146,7 +155,9 @@ export enum DevicePhotosOperationPriority {
 }
 
 export interface DevicePhotoSyncCheckOperation {
+  id: string;
   devicePhoto: DevicePhoto;
+  uploadedPhoto?: Photo;
   createdAt: Date;
   lastTry?: Date;
   lastError?: Error;
@@ -156,5 +167,5 @@ export interface DevicePhotoSyncCheckOperation {
 
 export interface DevicePhotosSyncServiceHandlers {
   onOperationCompleted: (operation: DevicePhotoSyncCheckOperation) => void;
-  onSyncQueueStatusChange: (status: DevicePhotosSyncStatus) => void;
+  onSyncQueueStatusChange: (status: DevicePhotosSyncCheckerStatus) => void;
 }

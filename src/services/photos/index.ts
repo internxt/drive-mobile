@@ -1,8 +1,8 @@
 import { photos } from '@internxt/sdk';
 
 import { PhotoFileSystemRef, PhotosEventKey, PhotoSizeType } from '../../types/photos';
-import PhotosUploadService from './UploadService';
-import PhotosDownloadService from './DownloadService';
+import PhotosUploadService from './network/UploadService';
+import PhotosDownloadService from './network/DownloadService';
 import PhotosUserService from './PhotosUserService';
 import PhotosUsageService from './UsageService';
 import PhotosPreviewService from './PreviewService';
@@ -14,17 +14,12 @@ export class PhotosService {
   public static instance: PhotosService;
 
   private readonly usageService: PhotosUsageService;
-  private readonly userService: PhotosUserService;
   private readonly downloadService: PhotosDownloadService;
-  private readonly uploadService: PhotosUploadService;
   private readonly previewService: PhotosPreviewService;
-
   private constructor() {
     this.usageService = new PhotosUsageService();
     this.downloadService = new PhotosDownloadService();
-    this.userService = new PhotosUserService();
     this.previewService = new PhotosPreviewService();
-    this.uploadService = new PhotosUploadService();
   }
 
   public get isInitialized(): boolean {
@@ -43,7 +38,6 @@ export class PhotosService {
 
   public async startPhotos(): Promise<void> {
     await this.initializeFileSystem();
-    await this.userService.initialize();
 
     if (PhotosCommonServices?.model) {
       PhotosCommonServices.model.isInitialized = true;
@@ -104,7 +98,7 @@ export class PhotosService {
     return this.downloadService.download(downloadParams.photoId, options);
   }
 
-  public async clearData(): Promise<void> {
+  public static async clearData(): Promise<void> {
     await fileSystemService.unlink(PHOTOS_TMP_DIRECTORY);
     await fileSystemService.unlink(PHOTOS_ROOT_DIRECTORY);
   }

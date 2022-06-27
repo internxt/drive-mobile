@@ -58,7 +58,9 @@ const GalleryAllView = (): JSX.Element => {
       numColumns={columnsCount}
       onEndReached={() => undefined}
       onEndReachedThreshold={3}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(_, index) => {
+        return index.toString();
+      }}
       renderItem={({ item, index }: ListRenderItemInfo<Photo>) => {
         const isTheLast = index === photos.length - 1;
 

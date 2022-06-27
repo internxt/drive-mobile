@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
-import { PHOTOS_PER_GROUP } from './constants';
+import { PHOTOS_PER_GROUP } from '../constants';
 import * as MediaLibrary from 'expo-media-library';
-import { RunnableService } from '../../helpers/services';
+import { RunnableService } from '../../../helpers/services';
 
 export enum DevicePhotosScannerStatus {
   PAUSED = 'PAUSED',
@@ -9,12 +9,12 @@ export enum DevicePhotosScannerStatus {
   RUNNING = 'RUNNING',
   IDLE = 'IDLE',
 }
-export type OnGroupReadyCallback = (items: MediaLibrary.Asset[], checkpoint?: string) => void;
+export type OnGroupReadyCallback = (items: MediaLibrary.Asset[]) => void;
 export type OnStatusChangeCallback = (status: DevicePhotosScannerStatus) => void;
 export type OnTotalPhotosCalculatedCallback = (totalPhotos: number) => void;
 
 export class DevicePhotosScannerService extends RunnableService<DevicePhotosScannerStatus> {
-  private status = DevicePhotosScannerStatus.IDLE;
+  public status = DevicePhotosScannerStatus.IDLE;
   private onGroupReadyCallback: OnGroupReadyCallback = () => undefined;
   private onStatusChangeCallback: OnStatusChangeCallback = () => undefined;
   private onTotalPhotosCalculatedCallback: OnTotalPhotosCalculatedCallback = () => undefined;
@@ -34,6 +34,10 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
   public onTotalPhotosCalculated = (callback: OnTotalPhotosCalculatedCallback) => {
     this.onTotalPhotosCalculatedCallback = callback;
   };
+
+  public resume() {
+    this.run();
+  }
 
   /**
    * Starts or resume the device photos scanning
@@ -76,7 +80,9 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
 
   private async getGroup() {
     if (this.status !== DevicePhotosScannerStatus.RUNNING) return;
+
     const photos = await MediaLibrary.getAssetsAsync({ first: PHOTOS_PER_GROUP, after: this.nextCursor });
+
     this.handleGroupReady(photos.assets);
     if (photos.hasNextPage && photos.endCursor && this.status === DevicePhotosScannerStatus.RUNNING) {
       this.nextCursor = photos.endCursor;
@@ -88,7 +94,7 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
 
     return photos;
   }
-  private handleGroupReady = async (items: MediaLibrary.Asset[], checkpoint?: string) => {
+  private handleGroupReady = async (items: MediaLibrary.Asset[]) => {
     for (const edge of items) {
       if (Platform.OS === 'ios') {
         edge.uri = this.convertLocalIdentifierToAssetLibrary(
@@ -98,7 +104,7 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
       }
     }
 
-    this.onGroupReadyCallback && this.onGroupReadyCallback(items, checkpoint);
+    this.onGroupReadyCallback && this.onGroupReadyCallback(items);
   };
 
   private convertLocalIdentifierToAssetLibrary(localIdentifier: string, ext: string): string {

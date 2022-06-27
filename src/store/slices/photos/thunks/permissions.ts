@@ -1,56 +1,33 @@
 import { ActionReducerMapBuilder, createAsyncThunk } from '@reduxjs/toolkit';
-import { Platform } from 'react-native';
-import {
-  checkMultiple,
-  Permission,
-  requestMultiple,
-  PermissionStatus,
-  AndroidPermission,
-  IOSPermission,
-} from 'react-native-permissions';
-import { PhotosState } from '..';
+
+import * as MediaLibrary from 'expo-media-library';
+import { photosSlice, PhotosState } from '..';
 import { RootState } from '../../..';
 
-const checkPermissionsThunk = createAsyncThunk<Record<Permission, PermissionStatus>, void, { state: RootState }>(
+const checkPermissionsThunk = createAsyncThunk<{ hasPermissions: boolean }, void, { state: RootState }>(
   'photos/checkPermissions',
-  async (payload: void, { getState }) => {
-    const { permissions } = getState().photos;
-    const results = await checkMultiple([
-      ...Object.keys(permissions[Platform.OS as 'ios' | 'android']),
-    ] as Permission[]);
+  async (payload: void, { dispatch }) => {
+    const permissions = await MediaLibrary.getPermissionsAsync();
 
-    return results;
+    const permissionsGranted = permissions.status === MediaLibrary.PermissionStatus.GRANTED;
+
+    dispatch(photosSlice.actions.setPermissionsStatus(permissions.status));
+    return {
+      hasPermissions: permissionsGranted,
+    };
   },
 );
 
 const askForPermissionsThunk = createAsyncThunk<boolean, void, { state: RootState }>(
   'photos/askForPermissions',
-  async (payload: void, { dispatch, getState }) => {
-    const { permissions } = getState().photos;
-    const results = await requestMultiple([
-      ...Object.keys(permissions[Platform.OS as 'ios' | 'android']),
-    ] as Permission[]);
-    const areGranted = Object.values(results).reduce((t, x) => t || x === 'granted', false);
-
-    await dispatch(checkPermissionsThunk()).unwrap();
-
-    return areGranted;
+  async () => {
+    const response = await MediaLibrary.requestPermissionsAsync();
+    return response.granted;
   },
 );
 
 export const permissionsExtraReducers = (builder: ActionReducerMapBuilder<PhotosState>) => {
-  builder
-    .addCase(checkPermissionsThunk.pending, () => undefined)
-    .addCase(checkPermissionsThunk.fulfilled, (state, action) => {
-      Object.entries(action.payload).forEach(([key, value]) => {
-        if (Platform.OS === 'android') {
-          state.permissions.android[key as AndroidPermission] = value;
-        } else {
-          state.permissions.ios[key as IOSPermission] = value;
-        }
-      });
-    })
-    .addCase(checkPermissionsThunk.rejected, () => undefined);
+  return;
 };
 
 export const permissionsThunks = {

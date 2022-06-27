@@ -7,10 +7,13 @@ import fileSystemService from '../FileSystemService';
 
 import { PHOTOS_PREVIEWS_DIRECTORY } from './constants';
 import { DevicePhoto, PhotoFileSystemRef } from '../../types/photos';
+import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
 
 export default class PhotosPreviewService {
   private static readonly PREVIEW_WIDTH = 512;
   private static readonly PREVIEW_HEIGHT = 512;
+
+  private photosDb = new PhotosLocalDatabaseService();
 
   public async generate(
     photo: DevicePhoto,
@@ -32,7 +35,7 @@ export default class PhotosPreviewService {
       outputPath: path,
     });
 
-    return { ...response, path, format: resizerFormat };
+    return { ...response, format: resizerFormat };
   }
 
   private getResizerFormat(format: string) {
@@ -53,6 +56,11 @@ export default class PhotosPreviewService {
   public async getLocalPreview(photo: Photo): Promise<PhotoFileSystemRef | null> {
     //const BASE_64_PREFIX = 'data:image/jpeg;base64,';
     try {
+      /*  const dbPreview = await this.photosDb.getByPhotoId(photo.id);
+
+      if (dbPreview.photo_ref) {
+        return dbPreview.photo_ref;
+      } */
       const localPreviewPath = `${PHOTOS_PREVIEWS_DIRECTORY}/${photo.previewId}.${photo.type}`;
 
       const previewExistsLocally = await fileSystemService.statRNFS(localPreviewPath);

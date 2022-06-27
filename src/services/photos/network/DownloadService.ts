@@ -1,10 +1,9 @@
-import network from '../../network';
-import { FileSystemRef } from '../../types';
-import { PhotoFileSystemRef } from '../../types/photos';
-import { PhotosCommonServices } from './PhotosCommonService';
+import network from '../../../network';
+import { FileSystemRef } from '../../../types';
+import { PhotoFileSystemRef } from '../../../types/photos';
+import { PhotosCommonServices } from '../PhotosCommonService';
 
 export default class PhotosDownloadService {
-  private readonly container: PhotosCommonServices = PhotosCommonServices.instance as PhotosCommonServices;
 
   public async download(
     fileId: string,

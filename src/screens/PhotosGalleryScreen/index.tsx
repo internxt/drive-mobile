@@ -73,8 +73,8 @@ function PhotosGalleryScreen(): JSX.Element {
 
   useEffect(() => {
     //dispatch(photosActions.setViewMode(GalleryViewMode.All));
-    dispatch(photosActions.resetPhotos());
-    dispatch(photosThunks.startUsingPhotosThunk());
+    /* dispatch(photosActions.resetPhotos());
+    dispatch(photosThunks.startUsingPhotosThunk()); */
     dispatch(photosThunks.loadPhotosThunk({ page: 1 }));
     const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressed);
 

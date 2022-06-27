@@ -20,7 +20,7 @@ const DebugPhotosWidget = (props: DebugPhotosWidgetProps): JSX.Element => {
   const dispatch = useAppDispatch();
   const auth = useAppSelector((selector) => selector.auth);
   const onResetPhotosFilesystemData = async () => {
-    dispatch(photosThunks.clearPhotosThunk())
+    dispatch(photosThunks.clearPhotosThunk());
   };
 
   return (

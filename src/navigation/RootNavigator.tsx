@@ -81,7 +81,7 @@ function AppNavigator(): JSX.Element {
       );
     }
 
-    dispatch(appThunks.initializeThunk());
+    //dispatch(appThunks.initializeThunk());
 
     return () => {
       Linking.removeEventListener('url', onAppLinkOpened);

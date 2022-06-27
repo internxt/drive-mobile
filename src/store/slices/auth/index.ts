@@ -56,8 +56,8 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
     dispatch(authActions.resetState());
     dispatch(driveThunks.clearLocalDatabaseThunk());
     dispatch(driveActions.resetState());
-    dispatch(photosThunks.pauseSyncThunk());
-    //dispatch(photosThunks.clearLocalDatabaseThunk());
+
+    dispatch(photosThunks.clearPhotosThunk());
     dispatch(photosActions.resetState());
   },
 );

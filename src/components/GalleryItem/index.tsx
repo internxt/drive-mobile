@@ -9,6 +9,7 @@ import { useDispatch } from 'react-redux';
 import { photosThunks } from '../../store/slices/photos';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { useAppDispatch } from '../../store/hooks';
+import { PhotosService } from '../../services/photos';
 
 interface GalleryItemProps {
   type?: GalleryItemType;
@@ -31,7 +32,6 @@ const GalleryItem = ({
   data,
   onLongPress,
 }: GalleryItemProps): JSX.Element => {
-  const dispatch = useAppDispatch();
   const [photoPreview, setPhotoPreview] = useState<null | string>(null);
 
   useEffect(() => {
@@ -39,8 +39,7 @@ const GalleryItem = ({
   }, []);
 
   const loadPreview = async () => {
-    const result = await dispatch(photosThunks.getPreviewThunk({ photo: data })).unwrap();
-    setPhotoPreview(result);
+    setPhotoPreview(await PhotosService.instance.getPreview(data));
   };
 
   const getItemContent = () =>

@@ -9,8 +9,8 @@ export default class PhotosUserService {
    * @description Stop using the replace endpoint when all the devices were fixed
    */
   public async initialize(): Promise<photos.User> {
-    if (!PhotosCommonServices.sdk) throw new Error('Photos sdk not initialized');
-    if (!PhotosCommonServices.model.networkCredentials) throw new Error('User network credentials not found');
+    if (!PhotosCommonServices?.sdk) throw new Error('Photos sdk not initialized');
+    if (!PhotosCommonServices?.model.networkCredentials) throw new Error('User network credentials not found');
     const uniqueId = getUniqueId();
     const mac = await getMacAddress();
     const name = await getDeviceName();
@@ -21,7 +21,7 @@ export default class PhotosUserService {
       { uniqueId, mac },
       {
         headers: {
-          Authorization: `Bearer ${PhotosCommonServices.sdk.accessToken}`,
+          Authorization: `Bearer ${PhotosCommonServices.getAccessToken()}`,
         },
       },
     );

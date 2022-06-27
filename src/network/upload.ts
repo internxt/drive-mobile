@@ -14,18 +14,13 @@ export async function uploadFile(
   apiUrl: string,
   creds: NetworkCredentials,
   params: UploadFileParams,
-  onAbortableReady?: (abortable: Abortable) => void
+  onAbortableReady?: (abortable: Abortable) => void,
 ): Promise<string> {
   const network = getNetwork(apiUrl, creds);
 
-  const [uploadPromise, abortable] = await network.upload(
-    bucketId,
-    mnemonic,
-    filePath,
-    {
-      progress: params.notifyProgress
-    }
-  );
+  const [uploadPromise, abortable] = await network.upload(bucketId, mnemonic, filePath, {
+    progress: params.notifyProgress,
+  });
 
   onAbortableReady && onAbortableReady(abortable);
 

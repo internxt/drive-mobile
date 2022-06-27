@@ -9,6 +9,7 @@ import { createHash } from 'react-native-crypto';
 import { PHOTOS_TMP_DIRECTORY } from './constants';
 import { Platform } from 'react-native';
 import { items } from '@internxt/lib';
+import PhotosUserService from './PhotosUserService';
 
 export class PhotosCommonServices {
   public static model: PhotosServiceModel = {
@@ -22,12 +23,14 @@ export class PhotosCommonServices {
   public static instance?: PhotosCommonServices;
 
   public static initialize(accessToken: string, networkCredentials: NetworkCredentials) {
-    if (PhotosCommonServices.instance) return PhotosCommonServices.instance;
-
     PhotosCommonServices.instance = new PhotosCommonServices();
     PhotosCommonServices.model.networkCredentials = networkCredentials;
     PhotosCommonServices.model.accessToken = accessToken;
     PhotosCommonServices.sdk = new photos.Photos(constants.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
+  }
+
+  public static getAccessToken() {
+    return PhotosCommonServices.sdk?.accessToken;
   }
 
   /**
