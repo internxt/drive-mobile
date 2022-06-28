@@ -20,7 +20,6 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const userFullName = useAppSelector(authSelectors.userFullName);
-  const isEmailVerified = true;
   const onBackButtonPressed = () => {
     navigation.goBack();
   };
@@ -68,7 +67,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
           </View>
           <View style={tailwind('flex-row items-center')}>
             <AppText style={tailwind('text-gray-40 mr-2.5')}>{user?.email}</AppText>
-            {isEmailVerified ? (
+            {user?.emailVerified ? (
               <CheckCircle weight="fill" color={getColor('text-green-')} size={20} />
             ) : (
               <Warning weight="fill" color={getColor('text-yellow-')} size={20} />
@@ -79,7 +78,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
     },
   ];
 
-  !isEmailVerified &&
+  !user?.emailVerified &&
     accountDetailsItems.push({
       key: 'resend-email',
       template: (

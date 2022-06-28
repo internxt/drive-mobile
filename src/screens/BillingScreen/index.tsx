@@ -112,7 +112,7 @@ function BillingScreen({ navigation }: RootStackScreenProps<'Billing'>): JSX.Ele
 
   useEffect(() => {
     getProducts()
-      .then((products: any) => {
+      .then((products) => {
         setStripeProducts(products);
       })
       .catch((err) => {

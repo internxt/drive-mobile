@@ -26,7 +26,12 @@ const EditNameModal = (props: BaseModalProps) => {
   };
 
   return (
-    <CenterModal isOpen={props.isOpen} onClosed={onClosed} backdropPressToClose={!isLoading}>
+    <CenterModal
+      isOpen={props.isOpen}
+      onClosed={onClosed}
+      backdropPressToClose={!isLoading}
+      backButtonClose={!isLoading}
+    >
       <View style={tailwind('p-4')}>
         <AppText style={tailwind('text-xl mb-6')} medium>
           {strings.modals.EditName.title}

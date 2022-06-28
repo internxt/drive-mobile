@@ -1,4 +1,4 @@
-import { Auth } from '@internxt/sdk';
+import { Auth, SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
 import packageJson from '../../package.json';
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
@@ -220,6 +220,34 @@ class AuthService {
         }
       }
     });
+  }
+
+  public generateNew2FA(): Promise<TwoFactorAuthQR> {
+    this.checkIsInitialized();
+
+    return <Promise<TwoFactorAuthQR>>this.sdk?.generateTwoFactorAuthQR();
+  }
+
+  public async enable2FA(backupKey: string, code: string) {
+    this.checkIsInitialized();
+
+    return (<Auth>this.sdk).storeTwoFactorAuthKey(backupKey, code);
+  }
+
+  public async is2FAEnabled(email: string): Promise<SecurityDetails> {
+    this.checkIsInitialized();
+
+    return (<Auth>this.sdk).securityDetails(email);
+  }
+
+  public async disable2FA(passwordSalt: string, deactivationPassword: string, deactivationCode: string) {
+    this.checkIsInitialized();
+
+    const salt = decryptText(passwordSalt);
+    const hashObj = passToHash({ password: deactivationPassword, salt });
+    const encPass = encryptText(hashObj.hash);
+
+    return (<Auth>this.sdk).disableTwoFactorAuth(encPass, deactivationCode);
   }
 
   public addLoginListener(listener: () => void) {

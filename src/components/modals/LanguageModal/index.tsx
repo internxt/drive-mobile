@@ -6,7 +6,7 @@ import { appThunks } from 'src/store/slices/app';
 import { Language } from 'src/types';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { useAppDispatch } from '../../../store/hooks';
 import { BaseModalProps } from '../../../types/ui';
 import AppButton from '../../AppButton';
 import AppText from '../../AppText';
@@ -75,7 +75,13 @@ const LanguageModal = (props: BaseModalProps) => {
   }, [props.isOpen]);
 
   return (
-    <BottomModal isOpen={props.isOpen} onClosed={props.onClose} topDecoration backdropPressToClose={!isLoading}>
+    <BottomModal
+      isOpen={props.isOpen}
+      onClosed={props.onClose}
+      topDecoration
+      backdropPressToClose={!isLoading}
+      backButtonClose={!isLoading}
+    >
       <View style={tailwind('px-4 pb-4')}>
         <AppText style={tailwind('text-center')} semibold>
           {strings.modals.Language.title.toUpperCase()}

@@ -28,6 +28,8 @@ export interface UIState {
   isChangeProfilePictureModalOpen: boolean;
   isLanguageModalOpen: boolean;
   isSecurityModalOpen: boolean;
+  isEnableTwoFactorModalOpen: boolean;
+  isDisableTwoFactorModalOpen: boolean;
 }
 
 const initialState: UIState = {
@@ -57,6 +59,8 @@ const initialState: UIState = {
   isChangeProfilePictureModalOpen: false,
   isLanguageModalOpen: false,
   isSecurityModalOpen: false,
+  isEnableTwoFactorModalOpen: false,
+  isDisableTwoFactorModalOpen: false,
 };
 
 export const uiSlice = createSlice({
@@ -142,6 +146,12 @@ export const uiSlice = createSlice({
     },
     setIsSecurityModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isSecurityModalOpen = action.payload;
+    },
+    setIsEnableTwoFactorModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isEnableTwoFactorModalOpen = action.payload;
+    },
+    setIsDisableTwoFactorModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isDisableTwoFactorModalOpen = action.payload;
     },
   },
 });

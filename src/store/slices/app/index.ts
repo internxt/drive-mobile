@@ -1,9 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
-import asyncStorageService from 'src/services/AsyncStorageService';
 import languageService from 'src/services/LanguageService';
 import notificationsService from 'src/services/NotificationsService';
-import { AsyncStorageKey, Language, NotificationType } from 'src/types';
+import { Language, NotificationType } from 'src/types';
 import { RootState } from '../..';
 import { authThunks } from '../auth';
 import { driveThunks } from '../drive';

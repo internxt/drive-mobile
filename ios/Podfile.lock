@@ -437,7 +437,7 @@ PODS:
     - React-cxxreact (= 0.64.3)
     - React-jsi (= 0.64.3)
     - React-perflogger (= 0.64.3)
-  - ReactNativeLocalization (2.1.7):
+  - ReactNativeLocalization (2.3.1):
     - React-Core
   - rn-crypto (0.1.6):
     - IDZSwiftCommonCrypto (~> 0.13)
@@ -841,7 +841,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: c7f845861e79eae13dc1e8217a3cf47a3945b504
   React-runtimeexecutor: 493d9abb8b23c3f84e19ae221eeba92cadcb70dc
   ReactCommon: 8fea6422328e2fc093e25c9fac67adbcf0f04fb4
-  ReactNativeLocalization: 90a1181b7672309701dd7e5364fbf587319d41c6
+  ReactNativeLocalization: 076497d7ca70341c751cd3b3e7c86187332a182d
   rn-crypto: 7304bdcc3bbf91a41290dae10b62597579d6d4c5
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
   RNAnalytics: a6dc48511d5d99b1ecaaf7157d8b5c618d15337e

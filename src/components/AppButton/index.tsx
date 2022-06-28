@@ -1,3 +1,4 @@
+import { isLoading } from 'expo-font';
 import React from 'react';
 import { StyleProp, TouchableHighlight, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -20,7 +21,11 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
   const getColor = useGetColor();
   const isTitleString = typeof props.title === 'string';
   const typeBgStyle = {
-    accept: props.disabled ? tailwind('bg-gray-40') : tailwind('bg-blue-60'),
+    accept: props.disabled
+      ? props.loading
+        ? tailwind('bg-primary-dark')
+        : tailwind('bg-gray-40')
+      : tailwind('bg-blue-60'),
     cancel: tailwind('bg-gray-5'),
     'cancel-2': tailwind('bg-blue-10'),
     delete: props.disabled ? tailwind('bg-gray-40') : tailwind('bg-red-'),

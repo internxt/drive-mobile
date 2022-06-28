@@ -143,7 +143,13 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
   }, [props.isOpen]);
 
   return (
-    <BottomModal isOpen={props.isOpen} onClosed={props.onClose} topDecoration backdropPressToClose={!isLoading}>
+    <BottomModal
+      isOpen={props.isOpen}
+      onClosed={props.onClose}
+      topDecoration
+      backdropPressToClose={!isLoading}
+      backButtonClose={!isLoading}
+    >
       <View style={tailwind('px-4 pb-4')}>
         <AppText style={tailwind('text-center')} semibold>
           {strings.modals.ChangeProfilePicture.title.toUpperCase()}

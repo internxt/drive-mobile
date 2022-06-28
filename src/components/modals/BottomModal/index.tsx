@@ -19,6 +19,7 @@ export interface BottomModalProps {
   height?: number;
   topDecoration?: boolean;
   backdropPressToClose?: boolean;
+  backButtonClose?: boolean;
 }
 
 const BottomModal = (props: BottomModalProps): JSX.Element => {
@@ -33,7 +34,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       onClosed={props.onClosed}
       position="bottom"
       style={{ ...tailwind('bg-transparent'), paddingTop: safeAreaInsets.top }}
-      backButtonClose={true}
+      backButtonClose={props.backButtonClose !== undefined ? props.backButtonClose : true}
       backdropPressToClose={props.backdropPressToClose}
       animationDuration={250}
       easing={Easing.ease}

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Users } from '@internxt/sdk/dist/drive';
 import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import Axios from 'axios';
 import { decryptText, decryptTextWithKey, encryptText, passToHash } from 'src/helpers';
 import { getHeaders } from 'src/helpers/headers';
@@ -148,6 +149,21 @@ class UserService {
     const response = await Axios.put<{ avatar: string }>(url, formData, { headers: headersMap });
 
     return response.data;
+  }
+
+  /**
+   * ! This endpoint accepts a body but is using GET method
+   */
+  public refreshUser(): Promise<{ user: UserSettings; token: string }> {
+    this.checkIsInitialized();
+
+    return (<Users>this.sdk).refreshUser();
+  }
+
+  public sendVerificationEmail() {
+    this.checkIsInitialized();
+
+    return (<Users>this.sdk).sendVerificationEmail();
   }
 
   private checkIsInitialized() {

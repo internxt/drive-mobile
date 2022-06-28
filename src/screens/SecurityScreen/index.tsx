@@ -11,10 +11,18 @@ import SettingsGroup from '../../components/SettingsGroup';
 import Portal from '@burstware/react-native-portal';
 import useGetColor from '../../hooks/useColor';
 import { TabExplorerScreenProps } from '../../types/navigation';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { uiActions } from 'src/store/slices/ui';
+import EnableTwoFactorModal from 'src/components/modals/EnableTwoFactorModal';
+import DisableTwoFactorModal from 'src/components/modals/DisableTwoFactorModal';
+import { authSelectors } from 'src/store/slices/auth';
 
 const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+  const { isEnableTwoFactorModalOpen, isDisableTwoFactorModalOpen } = useAppSelector((state) => state.ui);
+  const is2FAEnabled = useAppSelector(authSelectors.is2FAEnabled);
   const tailwind = useTailwind();
+  const dispatch = useAppDispatch();
   const getColor = useGetColor();
   const onBackButtonPressed = () => {
     navigation.goBack();
@@ -25,13 +33,22 @@ const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
   const onChangePasswordModalClosed = () => {
     setIsChangePasswordModalOpen(false);
   };
-  const onTwoFactorPressed = () => undefined;
+  const onEnableTwoFactorModalClosed = () => dispatch(uiActions.setIsEnableTwoFactorModalOpen(false));
+  const onDisableTwoFactorModalClosed = () => dispatch(uiActions.setIsDisableTwoFactorModalOpen(false));
+  const onEnableTwoFactorPressed = () => {
+    dispatch(uiActions.setIsEnableTwoFactorModalOpen(true));
+  };
+  const onDisableTwoFactorPressed = () => {
+    dispatch(uiActions.setIsDisableTwoFactorModalOpen(true));
+  };
   const onBackupKeyPressed = () => undefined;
 
   return (
     <>
       <Portal>
         <ChangePasswordModal isOpen={isChangePasswordModalOpen} onClose={onChangePasswordModalClosed} />
+        <EnableTwoFactorModal isOpen={isEnableTwoFactorModalOpen} onClose={onEnableTwoFactorModalClosed} />
+        <DisableTwoFactorModal isOpen={isDisableTwoFactorModalOpen} onClose={onDisableTwoFactorModalClosed} />
       </Portal>
 
       <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('min-h-full')}>
@@ -87,13 +104,24 @@ const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
                   key: 'two-factor-action',
                   template: (
                     <View style={tailwind('flex-row items-center justify-between px-4 py-3')}>
-                      <AppText style={tailwind('text-lg text-primary')}>
-                        {strings.screens.SecurityScreen.twoFactor.action}
-                      </AppText>
-                      <CaretRight size={20} color={getColor('text-primary')} />
+                      {is2FAEnabled ? (
+                        <>
+                          <AppText style={tailwind('text-red- text-lg')}>
+                            {strings.screens.SecurityScreen.twoFactor.disable}
+                          </AppText>
+                          <CaretRight size={20} color={getColor('text-red-')} />
+                        </>
+                      ) : (
+                        <>
+                          <AppText style={tailwind('text-lg text-primary')}>
+                            {strings.screens.SecurityScreen.twoFactor.enable}
+                          </AppText>
+                          <CaretRight size={20} color={getColor('text-primary')} />
+                        </>
+                      )}
                     </View>
                   ),
-                  onPress: onTwoFactorPressed,
+                  onPress: is2FAEnabled ? onDisableTwoFactorPressed : onEnableTwoFactorPressed,
                 },
               ]}
             />

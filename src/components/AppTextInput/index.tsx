@@ -49,7 +49,7 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
       {props.label && <AppText style={tailwind('text-sm mb-1')}>{props.label}</AppText>}
       <View
         style={[
-          tailwind('flex-row items-center rounded-lg border border-gray-20 px-4 py-1.5'),
+          tailwind('flex-row items-center rounded-lg border border-gray-20 py-1.5'),
           isFocused && tailwind('border-primary'),
           status === 'error' && tailwind('border-red-'),
           status === 'warning' && tailwind('border-orange-'),
@@ -60,11 +60,11 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
         <TextInput
           placeholderTextColor={getColor('text-gray-30')}
           {...props}
-          style={[tailwind('flex-1 text-gray-80 py-2'), props.style]}
+          style={[tailwind('flex-1 text-gray-80 py-2 px-4'), props.style]}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
-        {props.renderAppend && <View style={tailwind('pl-4')}>{props.renderAppend({ isFocused })}</View>}
+        {props.renderAppend && <View style={tailwind('px-4')}>{props.renderAppend({ isFocused })}</View>}
       </View>
 
       {renderStatusMessage()}
