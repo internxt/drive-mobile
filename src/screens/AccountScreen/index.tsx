@@ -1,5 +1,4 @@
 import { CaretRight, CheckCircle, Warning } from 'phosphor-react-native';
-import { useState } from 'react';
 import { ScrollView, TouchableWithoutFeedback, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
@@ -14,9 +13,23 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors, authThunks } from '../../store/slices/auth';
 import { uiActions } from '../../store/slices/ui';
 import { TabExplorerScreenProps } from '../../types/navigation';
+import { useCountdown } from 'usehooks-ts';
+import { useEffect, useMemo, useState } from 'react';
 
 function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.Element {
-  const [sendVerificationEmailTime, setSendVerificationEmailTime] = useState(0);
+  const [verificationEmailTime, { startCountdown, resetCountdown }] = useCountdown({
+    countStart: 90,
+    intervalMs: 1000,
+  });
+  const formattedVerificationEmailTime = useMemo(() => {
+    const minutes = Math.floor(verificationEmailTime / 60);
+    const seconds = verificationEmailTime % 60;
+    const minutesText = minutes.toString().padStart(2, '0');
+    const secondsText = seconds.toString().padStart(2, '0');
+
+    return `${minutesText}:${secondsText}`;
+  }, [verificationEmailTime]);
+  const [isVerificationEmailEnabled, setIsVerificationEmailEnabled] = useState(true);
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
@@ -41,7 +54,9 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
     dispatch(uiActions.setIsEditNameModalOpen(true));
   };
   const onSendVerificationEmailPressed = () => {
-    setSendVerificationEmailTime(90000);
+    setIsVerificationEmailEnabled(false);
+    resetCountdown();
+    startCountdown();
     dispatch(authThunks.sendVerificationEmailThunk());
   };
   const accountDetailsItems = [
@@ -90,7 +105,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
       template: (
         <View style={[tailwind('flex-row items-center px-4 py-3')]}>
           <View style={tailwind('flex-row flex-grow items-center justify-between')}>
-            {sendVerificationEmailTime === 0 ? (
+            {isVerificationEmailEnabled ? (
               <AppText style={[tailwind('text-lg text-primary')]}>
                 {strings.screens.AccountScreen.accountDetails.resendEmail}
               </AppText>
@@ -99,14 +114,20 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
                 <AppText style={[tailwind('text-lg text-gray-50')]}>
                   {strings.screens.AccountScreen.accountDetails.resendEmail}
                 </AppText>
-                <AppText style={[tailwind('text-lg text-gray-20')]}>{sendVerificationEmailTime}</AppText>
+                <AppText style={[tailwind('text-lg text-gray-20')]}>{formattedVerificationEmailTime}</AppText>
               </>
             )}
           </View>
         </View>
       ),
-      onPress: sendVerificationEmailTime === 0 ? onSendVerificationEmailPressed : undefined,
+      onPress: isVerificationEmailEnabled ? onSendVerificationEmailPressed : undefined,
     });
+
+  useEffect(() => {
+    if (verificationEmailTime === 0) {
+      setIsVerificationEmailEnabled(true);
+    }
+  }, [verificationEmailTime]);
 
   return (
     <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('min-h-full')}>
