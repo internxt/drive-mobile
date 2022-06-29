@@ -52,7 +52,7 @@ const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
       </Portal>
 
       <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('min-h-full')}>
-        <ScrollView>
+        <ScrollView contentContainerStyle={tailwind('pb-10')}>
           <AppScreenTitle
             text={strings.screens.SecurityScreen.title}
             containerStyle={tailwind('bg-white')}

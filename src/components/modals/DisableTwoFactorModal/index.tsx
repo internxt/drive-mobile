@@ -9,20 +9,28 @@ import AppText from '../../AppText';
 import { BaseModalProps } from '../../../types/ui';
 import { useAppDispatch } from 'src/store/hooks';
 import { authThunks } from 'src/store/slices/auth';
+import CodeInput from 'src/components/CodeInput';
 
 const DisableTwoFactorModal = (props: BaseModalProps) => {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
+  const [authCode, setAuthCode] = useState('');
+  const [isAuthCodeValid, setIsAuthCodeValid] = useState(false);
+  const authCodeLength = 6;
   const onClosed = () => {
     props.onClose();
   };
   const onCancelButtonPressed = () => {
     props.onClose();
   };
+  const onCodeInputChanged = (value: string) => {
+    setAuthCode(value);
+    setIsAuthCodeValid(value.length === authCodeLength);
+  };
   const onDisableButtonPressed = () => {
     setIsLoading(true);
-    dispatch(authThunks.disableTwoFactorThunk())
+    dispatch(authThunks.disableTwoFactorThunk({ code: authCode }))
       .unwrap()
       .then(() => props.onClose())
       .catch(() => undefined)
@@ -37,9 +45,20 @@ const DisableTwoFactorModal = (props: BaseModalProps) => {
       backButtonClose={!isLoading}
     >
       <View style={tailwind('p-4')}>
-        <AppText style={tailwind('text-xl mb-6')} medium>
+        <AppText style={tailwind('text-xl mb-1.5')} medium>
           {strings.modals.DisableTwoFactor.title}
         </AppText>
+
+        <AppText style={tailwind('text-gray-60 text-sm mb-6')} medium>
+          {strings.modals.EnableTwoFactor.enterCode}
+        </AppText>
+
+        <CodeInput
+          value={authCode}
+          onChange={onCodeInputChanged}
+          label={strings.inputs.twoFactorAuth}
+          length={authCodeLength}
+        />
 
         <View style={tailwind('mt-6 flex-row justify-between')}>
           <AppButton
@@ -47,17 +66,15 @@ const DisableTwoFactorModal = (props: BaseModalProps) => {
             type="cancel"
             onPress={onCancelButtonPressed}
             disabled={isLoading}
-            style={tailwind('flex-1')}
+            style={tailwind('flex-1 mr-2')}
           />
-
-          <View style={tailwind('px-1')}></View>
 
           <AppButton
             title={isLoading ? strings.buttons.disabling : strings.buttons.disable}
             type="accept"
             onPress={onDisableButtonPressed}
             loading={isLoading}
-            disabled={isLoading}
+            disabled={isLoading || !isAuthCodeValid}
             style={tailwind('flex-1')}
           />
         </View>

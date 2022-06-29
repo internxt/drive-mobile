@@ -21,6 +21,7 @@ export interface AuthState {
   photosToken: string;
   user: UserSettings | undefined;
   securityDetails: SecurityDetails | undefined;
+  sessionPassword: string | undefined;
   userStorage: {
     usage: number;
     limit: number;
@@ -34,6 +35,7 @@ const initialState: AuthState = {
   photosToken: '',
   user: undefined,
   securityDetails: undefined,
+  sessionPassword: undefined,
   userStorage: { usage: 0, limit: 0, percentage: 0 },
 };
 
@@ -109,6 +111,13 @@ export const refreshUserThunk = createAsyncThunk<void, void, { state: RootState 
   },
 );
 
+export const sendVerificationEmailThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'auth/sendVerificationEmail',
+  async () => {
+    await userService.sendVerificationEmail();
+  },
+);
+
 export const loadSecurityDetailsThunk = createAsyncThunk<SecurityDetails, void, { state: RootState }>(
   'auth/loadSecurityDetails',
   async (payload: void, { getState }) => {
@@ -170,17 +179,35 @@ export const generateNewTwoFactorThunk = createAsyncThunk<TwoFactorAuthQR, void,
   },
 );
 
-export const enableTwoFactorThunk = createAsyncThunk<void, { backupKey: string; code: string }, { state: RootState }>(
-  'auth/enableTwoFactor',
-  async ({ backupKey, code }) => {
-    return authService.enable2FA(backupKey, code);
+export const enableTwoFactorThunk = createAsyncThunk<
+  SecurityDetails,
+  { backupKey: string; code: string },
+  { state: RootState }
+>('auth/enableTwoFactor', async ({ backupKey, code }, { getState }) => {
+  const { user } = getState().auth;
+  await authService.enable2FA(backupKey, code);
+
+  const securityDetails = await authService.is2FAEnabled(user?.email as string);
+
+  return securityDetails;
+});
+
+export const disableTwoFactorThunk = createAsyncThunk<void, { code: string }, { state: RootState }>(
+  'auth/disableTwoFactor',
+  async ({ code }, { getState }) => {
+    const { user, sessionPassword } = getState().auth;
+    const { encryptedSalt } = await authService.is2FAEnabled(user?.email as string);
+
+    return authService.disable2FA(encryptedSalt, sessionPassword as string, code);
   },
 );
 
-export const disableTwoFactorThunk = createAsyncThunk<void, void, { state: RootState }>(
-  'auth/disableTwoFactor',
-  async () => {
-    // TODO
+export const changePasswordThunk = createAsyncThunk<void, { newPassword: string }, { state: RootState }>(
+  'auth/changePassword',
+  async ({ newPassword }, { dispatch }) => {
+    await authService.doRecoverPassword(newPassword);
+
+    dispatch(authActions.setSessionPassword(newPassword));
   },
 );
 
@@ -205,6 +232,9 @@ export const authSlice = createSlice({
     },
     setToken(state, action: PayloadAction<string>) {
       state.token = action.payload;
+    },
+    setSessionPassword(state, action: PayloadAction<string | undefined>) {
+      state.sessionPassword = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -302,11 +332,37 @@ export const authSlice = createSlice({
       notificationsService.show({ type: NotificationType.Error, text1: strings.errors.generateNew2FA });
     });
 
-    builder.addCase(enableTwoFactorThunk.rejected, () => {
-      notificationsService.show({ type: NotificationType.Error, text1: strings.errors.enable2FA });
-    });
+    builder
+      .addCase(enableTwoFactorThunk.fulfilled, (state, action) => {
+        state.securityDetails = action.payload;
+      })
+      .addCase(enableTwoFactorThunk.rejected, () => {
+        notificationsService.show({ type: NotificationType.Error, text1: strings.errors.enable2FA });
+      });
 
-    builder.addCase(disableTwoFactorThunk.rejected, () => undefined);
+    builder
+      .addCase(disableTwoFactorThunk.fulfilled, (state) => {
+        state.securityDetails = undefined;
+      })
+      .addCase(disableTwoFactorThunk.rejected, () => {
+        notificationsService.show({ type: NotificationType.Error, text1: strings.errors.disable2FA });
+      });
+
+    builder
+      .addCase(sendVerificationEmailThunk.fulfilled, () => {
+        notificationsService.show({ type: NotificationType.Success, text1: strings.messages.sendVerificationEmail });
+      })
+      .addCase(sendVerificationEmailThunk.rejected, () => {
+        notificationsService.show({ type: NotificationType.Error, text1: strings.errors.sendVerificationEmail });
+      });
+
+    builder
+      .addCase(changePasswordThunk.fulfilled, () => {
+        notificationsService.show({ text1: strings.messages.passwordChanged, type: NotificationType.Success });
+      })
+      .addCase(changePasswordThunk.rejected, () => {
+        notificationsService.show({ type: NotificationType.Error, text1: strings.errors.changePassword });
+      });
   },
 });
 
@@ -341,6 +397,8 @@ export const authThunks = {
   generateNewTwoFactorThunk,
   enableTwoFactorThunk,
   disableTwoFactorThunk,
+  sendVerificationEmailThunk,
+  changePasswordThunk,
 };
 
 export default authSlice.reducer;

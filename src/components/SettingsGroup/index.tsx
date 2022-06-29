@@ -56,7 +56,7 @@ function SettingsGroup({ style, title, items, advice }: SettingsGroupProps) {
         </AppText>
       )}
       <View style={tailwind('bg-white rounded-xl')}>{renderItems()}</View>
-      {advice && <AppText style={tailwind('mt-2 ml-4 text-xs text-gray-40')}>{advice}</AppText>}
+      {advice && <AppText style={tailwind('mt-2 mx-4 text-xs text-gray-40')}>{advice}</AppText>}
     </View>
   );
 }

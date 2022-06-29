@@ -7,18 +7,17 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
-import authService from '../../../services/AuthService';
-import notificationsService from '../../../services/NotificationsService';
-import { NotificationType } from '../../../types';
 import { BaseFormProps, ChangePasswordFormData } from '../../../types/ui';
 import AppTextInput from '../../AppTextInput';
 import StrengthMeter from '../../StrengthMeter';
 import { auth } from '@internxt/lib';
-import { useAppSelector } from '../../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { authThunks } from 'src/store/slices/auth';
 
 const ChangePasswordForm = (props: BaseFormProps) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
@@ -90,17 +89,14 @@ const ChangePasswordForm = (props: BaseFormProps) => {
   };
   const onSubmitButtonPressed = handleSubmit((data) => {
     setIsLoading(true);
-    authService
-      .doRecoverPassword(data.newPassword)
+    dispatch(authThunks.changePasswordThunk({ newPassword: data.newPassword }))
+      .unwrap()
       .then(() => {
         setValue('newPassword', '');
         setValue('confirmNewPassword', '');
-        notificationsService.show({ text1: strings.messages.passwordChanged, type: NotificationType.Success });
         props.onFormSubmitSuccess?.();
       })
-      .catch((err: Error) => {
-        notificationsService.show({ type: NotificationType.Error, text1: err.message });
-      })
+      .catch(() => undefined)
       .finally(() => {
         setIsLoading(false);
       });

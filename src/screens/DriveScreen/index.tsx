@@ -24,6 +24,7 @@ import fileService from '../../services/DriveFileService';
 import { TabExplorerScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
+import Portal from '@burstware/react-native-portal';
 
 function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Element {
   const route = useRoute();
@@ -142,77 +143,84 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
   }, []);
 
   return (
-    <AppScreen safeAreaTop style={tailwind('flex-1')}>
-      {/* DRIVE NAV */}
-      <View style={[tailwind('flex-row items-center justify-between my-2 px-5'), isRootFolder && tailwind('hidden')]}>
-        <TouchableOpacity disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
-          <View style={[tailwind('flex-row items-center pr-4'), !currentFolderParentId && tailwind('opacity-50')]}>
-            <CaretLeft weight="bold" color={getColor('text-blue-60')} style={tailwind('-ml-2 mr-1')} size={24} />
-            <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>
-              {strings.buttons.back}
-            </Text>
-          </View>
-        </TouchableOpacity>
-        <View style={tailwind('flex-row -m-2')}>
-          <View style={tailwind('items-center justify-center')}>
-            <TouchableOpacity
-              style={tailwind('p-2')}
-              onPress={() => dispatch(uiActions.setSearchActive(!searchActive))}
-            >
-              <MagnifyingGlass weight="bold" color={getColor('text-blue-60')} size={24} />
-            </TouchableOpacity>
-          </View>
-          <View style={tailwind('items-center justify-center')}>
-            <TouchableOpacity style={tailwind('p-2')} onPress={onCurrentFolderActionsButtonPressed}>
-              <DotsThree weight="bold" color={getColor('text-blue-60')} size={24} />
-            </TouchableOpacity>
+    <>
+      <Portal>
+        <SortModal
+          isOpen={sortModalOpen}
+          sortMode={sortMode}
+          onSortModeChange={onSortModeChange}
+          onClose={onCloseSortModal}
+        />
+      </Portal>
+
+      <AppScreen safeAreaTop style={tailwind('flex-1')}>
+        {/* DRIVE NAV */}
+        <View style={[tailwind('flex-row items-center justify-between my-2 px-5'), isRootFolder && tailwind('hidden')]}>
+          <TouchableOpacity disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
+            <View style={[tailwind('flex-row items-center pr-4'), !currentFolderParentId && tailwind('opacity-50')]}>
+              <CaretLeft weight="bold" color={getColor('text-blue-60')} style={tailwind('-ml-2 mr-1')} size={24} />
+              <Text style={[tailwind('text-blue-60 text-lg'), globalStyle.fontWeight.medium]}>
+                {strings.buttons.back}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <View style={tailwind('flex-row -m-2')}>
+            <View style={tailwind('items-center justify-center')}>
+              <TouchableOpacity
+                style={tailwind('p-2')}
+                onPress={() => dispatch(uiActions.setSearchActive(!searchActive))}
+              >
+                <MagnifyingGlass weight="bold" color={getColor('text-blue-60')} size={24} />
+              </TouchableOpacity>
+            </View>
+            <View style={tailwind('items-center justify-center')}>
+              <TouchableOpacity style={tailwind('p-2')} onPress={onCurrentFolderActionsButtonPressed}>
+                <DotsThree weight="bold" color={getColor('text-blue-60')} size={24} />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
 
-      <ScreenTitle text={screenTitle} showBackButton={false} />
+        <ScreenTitle text={screenTitle} showBackButton={false} />
 
-      {(isRootFolder || searchActive) && (
-        <SearchInput
-          value={searchString}
-          onChangeText={onSearchTextChanged}
-          placeholder={strings.screens.drive.searchInThisFolder}
-        />
-      )}
+        {(isRootFolder || searchActive) && (
+          <SearchInput
+            value={searchString}
+            onChangeText={onSearchTextChanged}
+            placeholder={strings.screens.drive.searchInThisFolder}
+          />
+        )}
 
-      {/* FILE LIST ACTIONS */}
-      <View style={[tailwind('flex-row justify-between items-center')]}>
-        <TouchableOpacity onPress={onSortButtonPressed}>
-          <View style={tailwind('px-5 py-1 flex-row items-center')}>
-            <Text style={tailwind('text-base text-neutral-100 mr-1')}>{strings.screens.drive.sort[sortMode.type]}</Text>
-            {sortMode.direction === SortDirection.Asc ? (
-              <ArrowUp weight="bold" size={15} color={getColor('text-neutral-100')} />
-            ) : (
-              <ArrowDown weight="bold" size={15} color={getColor('text-neutral-100')} />
-            )}
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onViewModeButtonPressed}>
-          <View style={tailwind('py-2 px-5')}>
-            {fileViewMode === 'list' ? (
-              <SquaresFour size={22} color={getColor('text-neutral-100')} />
-            ) : (
-              <Rows size={22} color={getColor('text-neutral-100')} />
-            )}
-          </View>
-        </TouchableOpacity>
-      </View>
+        {/* FILE LIST ACTIONS */}
+        <View style={[tailwind('flex-row justify-between items-center')]}>
+          <TouchableOpacity onPress={onSortButtonPressed}>
+            <View style={tailwind('px-5 py-1 flex-row items-center')}>
+              <Text style={tailwind('text-base text-neutral-100 mr-1')}>
+                {strings.screens.drive.sort[sortMode.type]}
+              </Text>
+              {sortMode.direction === SortDirection.Asc ? (
+                <ArrowUp weight="bold" size={15} color={getColor('text-neutral-100')} />
+              ) : (
+                <ArrowDown weight="bold" size={15} color={getColor('text-neutral-100')} />
+              )}
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onViewModeButtonPressed}>
+            <View style={tailwind('py-2 px-5')}>
+              {fileViewMode === 'list' ? (
+                <SquaresFour size={22} color={getColor('text-neutral-100')} />
+              ) : (
+                <Rows size={22} color={getColor('text-neutral-100')} />
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
 
-      <Separator />
+        <Separator />
 
-      <DriveList items={driveSortedItems} type={DriveListType.Drive} viewMode={fileViewMode} />
-      <SortModal
-        isOpen={sortModalOpen}
-        sortMode={sortMode}
-        onSortModeChange={onSortModeChange}
-        onClose={onCloseSortModal}
-      />
-    </AppScreen>
+        <DriveList items={driveSortedItems} type={DriveListType.Drive} viewMode={fileViewMode} />
+      </AppScreen>
+    </>
   );
 }
 

@@ -240,14 +240,14 @@ class AuthService {
     return (<Auth>this.sdk).securityDetails(email);
   }
 
-  public async disable2FA(passwordSalt: string, deactivationPassword: string, deactivationCode: string) {
+  public async disable2FA(encryptedSalt: string, password: string, code: string) {
     this.checkIsInitialized();
 
-    const salt = decryptText(passwordSalt);
-    const hashObj = passToHash({ password: deactivationPassword, salt });
-    const encPass = encryptText(hashObj.hash);
+    const salt = decryptText(encryptedSalt);
+    const { hash } = passToHash({ password: password, salt });
+    const encryptedPassword = encryptText(hash);
 
-    return (<Auth>this.sdk).disableTwoFactorAuth(encPass, deactivationCode);
+    return (<Auth>this.sdk).disableTwoFactorAuth(encryptedPassword, code);
   }
 
   public addLoginListener(listener: () => void) {

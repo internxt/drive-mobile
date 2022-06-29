@@ -43,7 +43,7 @@ const EnableTwoFactorModal = (props: BaseModalProps) => {
     dispatch(authThunks.enableTwoFactorThunk({ backupKey: qrData?.backupKey as string, code: authCode }))
       .unwrap()
       .then(() => {
-        onClosed;
+        onClosed();
       })
       .catch(() => undefined)
       .finally(() => {

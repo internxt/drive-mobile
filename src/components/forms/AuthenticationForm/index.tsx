@@ -6,11 +6,12 @@ import * as yup from 'yup';
 import strings from '../../../../assets/lang/strings';
 import { BaseFormProps, AuthenticationFormData } from '../../../types/ui';
 import AppTextInput from '../../AppTextInput';
-import { useAppSelector } from '../../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import authService from 'src/services/AuthService';
 import { TouchableWithoutFeedback, View } from 'react-native';
 import { Eye, EyeSlash } from 'phosphor-react-native';
 import useGetColor from 'src/hooks/useColor';
+import { authActions } from 'src/store/slices/auth';
 
 const schema: yup.SchemaOf<AuthenticationFormData> = yup
   .object()
@@ -24,6 +25,7 @@ const AuthenticationForm = (props: BaseFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const {
     control,
@@ -46,6 +48,7 @@ const AuthenticationForm = (props: BaseFormProps) => {
       });
 
       if (areCredentialsCorrect) {
+        dispatch(authActions.setSessionPassword(data.password));
         props.onFormSubmitSuccess?.();
       } else {
         setError('password', { message: strings.errors.wrongPassword });

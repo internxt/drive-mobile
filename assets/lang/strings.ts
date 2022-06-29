@@ -254,6 +254,7 @@ const strings = new LocalizedStrings({
       AccountScreen: {
         title: 'Account',
         accountDetails: {
+          title: 'Account details',
           name: 'Name',
           email: 'Email',
           resendEmail: 'Resend verification email',
@@ -530,6 +531,7 @@ const strings = new LocalizedStrings({
       linkCopied: 'Link copied',
       passwordChanged: 'Password changed',
       itemsMoved: '{0} item(s) moved',
+      sendVerificationEmail: 'Verification email sent',
     },
     errors: {
       generic: {
@@ -564,6 +566,9 @@ const strings = new LocalizedStrings({
       wrongAuthCode: 'Wrong auth code, please try again',
       generateNew2FA: 'Error generating 2FA',
       enable2FA: 'Error enabling 2FA',
+      disable2FA: 'Error disabling 2FA',
+      sendVerificationEmail: 'Error sending verification email',
+      changePassword: 'Error changing password',
     },
   },
   es: {
@@ -816,6 +821,7 @@ const strings = new LocalizedStrings({
       AccountScreen: {
         title: 'Cuenta',
         accountDetails: {
+          title: 'Detalles de la cuenta',
           name: 'Nombre',
           email: 'Email',
           resendEmail: 'Reenviar email de verificación',
@@ -1094,6 +1100,7 @@ const strings = new LocalizedStrings({
       linkCopied: 'Enlace copiado',
       passwordChanged: 'Contraseña cambiada',
       itemsMoved: '{0} item(s) movidos',
+      sendVerificationEmail: 'Email de verificación enviado',
     },
     errors: {
       generic: {
@@ -1128,6 +1135,9 @@ const strings = new LocalizedStrings({
       wrongAuthCode: 'Código de autenticación incorrecto, por favor inténtelo de nuevo',
       generateNew2FA: 'Error generando 2FA',
       enable2FA: 'Error habilitando 2FA',
+      disable2FA: 'Error deshabilitando 2FA',
+      sendVerificationEmail: 'Error enviando email de verificación',
+      changePassword: 'Error cambiando contraseña',
     },
   },
 });
