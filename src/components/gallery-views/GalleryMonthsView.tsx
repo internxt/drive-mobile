@@ -6,7 +6,8 @@ import { photosThunks } from '../../store/slices/photos';
 import GalleryMonth from '../GalleryMonth';
 
 const GalleryMonthsView = (): JSX.Element => {
-  const dispatch = useAppDispatch();
+  return <View></View>;
+  /* const dispatch = useAppDispatch();
   const { months } = useAppSelector((state) => state.photos);
   const byYearMonths = months.reduce<Record<number, { month: number; preview: string }[]>>((t, x) => {
     const monthItem = {
@@ -39,7 +40,7 @@ const GalleryMonthsView = (): JSX.Element => {
     dispatch(photosThunks.loadMonthsThunk());
   }, []);
 
-  return <ScrollView>{yearsList}</ScrollView>;
+  return <ScrollView>{yearsList}</ScrollView>; */
 };
 
 export default GalleryMonthsView;

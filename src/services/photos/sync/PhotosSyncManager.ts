@@ -13,6 +13,7 @@ import { PhotosNetworkManager } from '../network/PhotosNetworkManager';
 import { DevicePhotosScannerService } from './DevicePhotosScannerService';
 import { DevicePhotosSyncCheckerService } from './DevicePhotosSyncChecker';
 import { Photo } from '@internxt/sdk/dist/photos';
+import sentryService from '../../SentryService';
 
 export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photo: Photo | null) => void;
 export type OnStatusChangeCallback = (status: PhotosSyncManagerStatus) => void;
@@ -49,18 +50,19 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   }
 
   public run(): void {
-    this.devicePhotosSyncChecker.run();
     this.devicePhotosScanner.run();
+
     this.updateStatus(PhotosSyncManagerStatus.RUNNING);
   }
   public pause(): void {
     this.devicePhotosSyncChecker.pause();
     this.devicePhotosScanner.pause();
+    this.photosNetworkManager.pause();
     this.updateStatus(PhotosSyncManagerStatus.PAUSED);
   }
 
   public resume() {
-    return undefined;
+    this.photosNetworkManager.resume();
   }
 
   public updateStatus(status: PhotosSyncManagerStatus) {
@@ -69,7 +71,6 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   }
 
   public restart(): void {
-    this.devicePhotosSyncChecker.restart();
     this.devicePhotosScanner.restart();
   }
 
@@ -101,21 +102,46 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     this.photosNetworkManager.onStatusChange((status) => {
       if (status === PhotosNetworkManagerStatus.EMPTY) {
         this.updateStatus(PhotosSyncManagerStatus.EMPTY);
-      }
-      /*  if (status === PhotosNetworkManagerStatus.EMPTY && !this.gettingRemotelyPhotos) {
-        const nextGroup = this.groupsOfPhotosToNetworkCheck[0];
-        console.log('status', nextGroup);
-        if (nextGroup) {
-          this.getAlreadyUploadedPhotos(nextGroup);
+        if (this.shouldCheckPhotosRemotely()) {
+          this.checkPhotosRemotely();
         }
-      } */
+      }
+
+      if (status === PhotosNetworkManagerStatus.RUNNING) {
+        this.updateStatus(PhotosSyncManagerStatus.RUNNING);
+      }
     });
   }
 
+  /**
+   * Called every time we receive a group of photos from the DevicePhotosScanner
+   *
+   * @param devicePhotos A list of photos retrieved from the device that needs to be checked
+   */
   private onGroupOfPhotosReceived = (devicePhotos: DevicePhoto[]) => {
-    this.addGroupOfPhotosToSync(devicePhotos);
+    this.addGroupOfPhotosToSyncChecker(devicePhotos);
   };
 
+  private shouldCheckPhotosRemotely() {
+    return (
+      this.groupsOfPhotosToNetworkCheck.length >= this.config.checkIfExistsPhotosAmount && !this.gettingRemotelyPhotos
+    );
+  }
+
+  /**
+   * Called when a operation sync check is finished via the DevicePhotosSyncChecker,
+   * each operation contains a syncStage with the current stage of the photo
+   *
+   * if the operation sync stage is NEEDS_REMOTE_CHECK photo is added to a group
+   * so it can be checked remotely agains the server
+   *
+   * NEEDS_REMOTE_CHECK -> Means we need to ask the server if the photo exists
+   * IN_SYNC -> Means the photo was found in a sync stage locally
+   *
+   *
+   * @param operation The operation with the result
+   * @returns
+   */
   private onDevicePhotoSyncCheckResolved = async (operation: DevicePhotoSyncCheckOperation) => {
     // The sync checker found that the photo is already in sync,
     // we just notify via callback
@@ -129,30 +155,22 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
 
     if (operation.syncStage === SyncStage.NEEDS_REMOTE_CHECK) {
       this.groupsOfPhotosToNetworkCheck.push(operation.devicePhoto);
-
-      if (
-        this.groupsOfPhotosToNetworkCheck.length === this.config.checkIfExistsPhotosAmount &&
-        !this.gettingRemotelyPhotos
-      ) {
-        this.getAlreadyUploadedPhotos();
+      if (this.shouldCheckPhotosRemotely()) {
+        await this.checkPhotosRemotely();
       }
     }
   };
 
-  private async getAlreadyUploadedPhotos() {
+  private async checkPhotosRemotely() {
     this.gettingRemotelyPhotos = true;
     const devicePhotos = this.groupsOfPhotosToNetworkCheck.splice(0, this.config.checkIfExistsPhotosAmount);
     const photosToUpload = await this.photosNetworkManager.getMissingRemotely(devicePhotos);
 
+    if (!devicePhotos.length) return null;
     for (const photoToUpload of photosToUpload) {
       try {
         if (photoToUpload.exists && photoToUpload.photo) {
-          console.log('To upload', photoToUpload.photo);
-          await this.photosLocalDb.persistPhotoSync(
-            photoToUpload.devicePhoto,
-            photoToUpload.photoRef,
-            photoToUpload.photo,
-          );
+          await this.photosLocalDb.persistPhotoSync(photoToUpload.photo, photoToUpload.devicePhoto);
           this.onDevicePhotoSyncCompletedCallback(null, photoToUpload.photo);
         }
 
@@ -162,48 +180,45 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
             devicePhoto: photoToUpload.devicePhoto,
             hash: photoToUpload.hash,
             photoRef: photoToUpload.photoRef,
-            onOperationCompleted: (err, photo) => {
+            onOperationCompleted: async (err, photo) => {
               if (err) {
                 this.onDevicePhotoSyncCompletedCallback(err, null);
               }
               if (photo) {
-                this.photosLocalDb
-                  .persistPhotoSync(photoToUpload.devicePhoto, photoToUpload.photoRef, photo)
-                  .then(() => {
-                    this.onDevicePhotoSyncCompletedCallback(null, photo);
-                  })
-                  .catch((err) => {
-                    this.onDevicePhotoSyncCompletedCallback(err, null);
-                  });
+                this.persistPhotoInSync(photo);
               }
             },
           });
         }
       } catch (e) {
-        /*  this.devicePhotosSyncChecker.addOperation({
-          id: `failed-upload-${photoToUpload.devicePhoto.id}`,
-          devicePhoto: photoToUpload.devicePhoto,
-        }); */
-        console.error('Error uploading photo', e);
+        /**
+         * Send the error to Sentry, not much we can do here
+         */
+        sentryService.native.captureException(e as Error);
       }
+    }
 
-      this.gettingRemotelyPhotos = false;
+    this.gettingRemotelyPhotos = false;
+  }
+
+  private async persistPhotoInSync(photo: Photo) {
+    try {
+      await this.photosLocalDb.persistPhotoSync(photo);
+      this.onDevicePhotoSyncCompletedCallback(null, photo);
+    } catch (err) {
+      this.onDevicePhotoSyncCompletedCallback(err as Error, null);
     }
   }
 
-  private addGroupOfPhotosToSync(devicePhotos: DevicePhoto[]) {
+  private addGroupOfPhotosToSyncChecker(devicePhotos: DevicePhoto[]) {
     devicePhotos.forEach((devicePhoto) =>
       this.devicePhotosSyncChecker.addOperation({
         id: devicePhoto.id,
         devicePhoto,
         priority: DevicePhotosOperationPriority.NORMAL,
-        onOperationCompleted: (err, resolvedOperation) => {
-          if (err) {
-            console.log('Error checking photo sync stage', err);
-          }
-
+        onOperationCompleted: async (_, resolvedOperation) => {
           if (resolvedOperation) {
-            this.onDevicePhotoSyncCheckResolved(resolvedOperation);
+            await this.onDevicePhotoSyncCheckResolved(resolvedOperation);
           }
         },
       }),

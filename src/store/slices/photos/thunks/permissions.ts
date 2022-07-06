@@ -1,7 +1,7 @@
-import { ActionReducerMapBuilder, createAsyncThunk } from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import * as MediaLibrary from 'expo-media-library';
-import { photosSlice, PhotosState } from '..';
+import { photosSlice } from '..';
 import { RootState } from '../../..';
 
 const checkPermissionsThunk = createAsyncThunk<{ hasPermissions: boolean }, void, { state: RootState }>(
@@ -25,10 +25,6 @@ const askForPermissionsThunk = createAsyncThunk<boolean, void, { state: RootStat
     return response.granted;
   },
 );
-
-export const permissionsExtraReducers = (builder: ActionReducerMapBuilder<PhotosState>) => {
-  return;
-};
 
 export const permissionsThunks = {
   askForPermissionsThunk,

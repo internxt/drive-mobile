@@ -19,6 +19,7 @@ describe('Photos Sync Manager', () => {
     getByPhotoId: jest.fn(),
     getByDevicePhoto: jest.fn(),
     getByPhoto: jest.fn(),
+    getByPreviewUri: jest.fn(),
   };
   const db = initialDbMock;
 
@@ -54,14 +55,15 @@ describe('Photos Sync Manager', () => {
         (db as any)[key] = jest.fn();
       });
       db.initialize();
-      PhotosCommonServices.initialize('xxx', {
-        encryptionKey: 'x123',
-        user: 'user_xxx',
-        password: 'xxx',
-      });
+      PhotosCommonServices.initialize('xxx');
 
       PhotosCommonServices.model = {
         ...PhotosCommonServices.model,
+        networkCredentials: {
+          encryptionKey: 'x123',
+          user: 'user_xxx',
+          password: 'xxx',
+        },
         user: {
           id: 'xxx',
           updatedAt: new Date(),
@@ -85,6 +87,7 @@ describe('Photos Sync Manager', () => {
       subject = new PhotosSyncManager({ checkIfExistsPhotosAmount: 1 }, db, photosNetworkManager);
     });
     it('Should resolve a photo found locally without checking remotely', (done) => {
+      jest.setTimeout(10000);
       const devicePhotoFixture = createDevicePhotoFixture();
 
       mockedGetAssetsAsync.mockImplementationOnce(async () => {
@@ -138,10 +141,11 @@ describe('Photos Sync Manager', () => {
       });
 
       const onPhotoSyncCompletedMock = jest.fn<void, [Error | null, Photo | null]>((err, photo) => {
-        expect(photo).toBe(null);
+        expect(photo).toMatchObject(photoFixture);
         expect(err).toBe(null);
         done();
       });
+
       subject.onPhotoSyncCompleted(onPhotoSyncCompletedMock);
 
       subject.run();

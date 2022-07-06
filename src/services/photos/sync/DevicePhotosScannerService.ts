@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import { PHOTOS_PER_GROUP } from '../constants';
 import * as MediaLibrary from 'expo-media-library';
 import { RunnableService } from '../../../helpers/services';
@@ -13,6 +12,12 @@ export type OnGroupReadyCallback = (items: MediaLibrary.Asset[]) => void;
 export type OnStatusChangeCallback = (status: DevicePhotosScannerStatus) => void;
 export type OnTotalPhotosCalculatedCallback = (totalPhotos: number) => void;
 
+/**
+ * Scans the device camera roll looking for all the photos
+ * the data is obtained in batches using an instance callback
+ *
+ * Use the status callback to get notified when the scan is finished
+ */
 export class DevicePhotosScannerService extends RunnableService<DevicePhotosScannerStatus> {
   public status = DevicePhotosScannerStatus.IDLE;
   private onGroupReadyCallback: OnGroupReadyCallback = () => undefined;
@@ -81,7 +86,11 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
   private async getGroup() {
     if (this.status !== DevicePhotosScannerStatus.RUNNING) return;
 
-    const photos = await MediaLibrary.getAssetsAsync({ first: PHOTOS_PER_GROUP, after: this.nextCursor });
+    const photos = await MediaLibrary.getAssetsAsync({
+      first: PHOTOS_PER_GROUP,
+      after: this.nextCursor,
+      mediaType: MediaLibrary.MediaType.photo,
+    });
 
     this.handleGroupReady(photos.assets);
     if (photos.hasNextPage && photos.endCursor && this.status === DevicePhotosScannerStatus.RUNNING) {
@@ -95,21 +104,6 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     return photos;
   }
   private handleGroupReady = async (items: MediaLibrary.Asset[]) => {
-    for (const edge of items) {
-      if (Platform.OS === 'ios') {
-        edge.uri = this.convertLocalIdentifierToAssetLibrary(
-          edge.uri.replace('ph://', ''),
-          edge.mediaType === MediaLibrary.MediaType.photo ? 'jpg' : 'mov',
-        );
-      }
-    }
-
     this.onGroupReadyCallback && this.onGroupReadyCallback(items);
   };
-
-  private convertLocalIdentifierToAssetLibrary(localIdentifier: string, ext: string): string {
-    const hash = localIdentifier.split('/')[0];
-
-    return `assets-library://asset/asset.${ext}?id=${hash}&ext=${ext}`;
-  }
 }

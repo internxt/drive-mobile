@@ -1,12 +1,11 @@
 import { photos } from '@internxt/sdk';
 
 import { PhotoFileSystemRef, PhotosEventKey, PhotoSizeType } from '../../types/photos';
-import PhotosUploadService from './network/UploadService';
+
 import PhotosDownloadService from './network/DownloadService';
-import PhotosUserService from './PhotosUserService';
 import PhotosUsageService from './UsageService';
 import PhotosPreviewService from './PreviewService';
-import { Photo, PhotoId } from '@internxt/sdk/dist/photos';
+import { Photo } from '@internxt/sdk/dist/photos';
 import { PhotosCommonServices } from './PhotosCommonService';
 import fileSystemService from '../FileSystemService';
 import { PHOTOS_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_ROOT_DIRECTORY, PHOTOS_TMP_DIRECTORY } from './constants';
@@ -54,23 +53,24 @@ export class PhotosService {
     });
   }
 
-  public async getPhotos({ limit = 50, skip = 0 }: { limit: number; skip?: number }): Promise<photos.Photo[]> {
+  public async getPhotos({
+    limit = 50,
+    skip = 0,
+  }: {
+    limit: number;
+    skip?: number;
+  }): Promise<{ results: photos.Photo[]; count: number }> {
     this.checkModel();
 
-    if (!PhotosCommonServices.sdk) {
-      throw new Error('Sdk not initialized');
-    }
-    const { results } = await PhotosCommonServices.sdk.photos.getPhotos({}, skip, limit);
+    const { results, count } = await PhotosCommonServices.sdk.photos.getPhotos({}, skip, limit);
 
-    return results;
+    return { results, count };
   }
 
-  public async deletePhoto(photo: photos.Photo): Promise<void> {
+  public async deletePhotos(photos: photos.Photo[]): Promise<void> {
     this.checkModel();
-    if (!PhotosCommonServices.sdk) {
-      throw new Error('Sdk not initialized');
-    }
-    await PhotosCommonServices.sdk.photos.deletePhotoById(photo.id);
+
+    Promise.all(photos.map(async (photo) => PhotosCommonServices.sdk.photos.deletePhotoById(photo.id)));
   }
 
   public getUsage(): Promise<number> {
@@ -85,7 +85,7 @@ export class PhotosService {
    */
   public async downloadPhoto(
     downloadParams: {
-      photoId: PhotoId;
+      photoFileId: string;
     },
     options: {
       destination: string;
@@ -95,7 +95,7 @@ export class PhotosService {
   ): Promise<PhotoFileSystemRef> {
     this.checkModel();
 
-    return this.downloadService.download(downloadParams.photoId, options);
+    return this.downloadService.download(downloadParams.photoFileId, options);
   }
 
   public static async clearData(): Promise<void> {
@@ -113,16 +113,22 @@ export class PhotosService {
     const photoRemotePreviewData = this.getPhotoRemotePreviewData(photo);
 
     if (photoRemotePreviewData) {
-      const params = {
-        photoId: photoRemotePreviewData.fileId,
-        format: photo.type,
-        type: PhotoSizeType.Preview,
-      };
-      const photoPreviewRef = await this.downloadPhoto(params, {
-        destination: this.getFileSystemRef(params),
-        decryptionProgressCallback: () => undefined,
-        downloadProgressCallback: () => undefined,
+      const destinationPath = PhotosCommonServices.getPhotoPath({
+        name: photo.name,
+        size: PhotoSizeType.Preview,
+        type: photo.type,
       });
+
+      const photoPreviewRef = await this.downloadPhoto(
+        {
+          photoFileId: photoRemotePreviewData.fileId,
+        },
+        {
+          destination: destinationPath,
+          decryptionProgressCallback: () => undefined,
+          downloadProgressCallback: () => undefined,
+        },
+      );
 
       return photoPreviewRef;
     }
@@ -139,20 +145,9 @@ export class PhotosService {
     return photoRemotePreview;
   }
 
-  private getFileSystemRef({
-    photoId,
-    format,
-    type,
-  }: {
-    photoId: PhotoFileSystemRef;
-    format: string;
-    type: 'PREVIEW' | 'FULL_SIZE';
-  }) {
-    return `${type === 'PREVIEW' ? PHOTOS_PREVIEWS_DIRECTORY : PHOTOS_DIRECTORY}/${photoId}.${format}`;
-  }
-
   private get bucketId() {
-    return PhotosCommonServices.model.user?.bucketId || '';
+    if (!PhotosCommonServices.model.user) throw new Error('Photos user not initialized');
+    return PhotosCommonServices.model.user.bucketId || '';
   }
 
   private checkModel() {

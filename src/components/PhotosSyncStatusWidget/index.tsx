@@ -1,18 +1,28 @@
 import { CheckCircle, Pause, Play } from 'phosphor-react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosThunks } from '../../store/slices/photos';
-import { PhotosSyncStatus } from '../../types/photos';
+import { PhotosEventKey, PhotosSyncStatus } from '../../types/photos';
 import LoadingSpinner from '../LoadingSpinner';
 import AppText from '../AppText';
+import { PhotosCommonServices } from '../../services/photos/PhotosCommonService';
 
 const PhotosSyncStatusWidget = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const { syncStatus } = useAppSelector((state) => state.photos);
+  const [completedTasks, setCompletedTasks] = useState(0);
+  useEffect(() => {
+    PhotosCommonServices.events.addListener({
+      event: PhotosEventKey.PhotoSyncDone,
+      listener() {
+        setCompletedTasks(completedTasks + 1);
+      },
+    });
+  }, []);
   const onResumeSyncPressed = () => {
     dispatch(photosThunks.resumeSyncThunk());
   };

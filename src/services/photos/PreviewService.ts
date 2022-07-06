@@ -5,25 +5,23 @@ import { Photo } from '@internxt/sdk/dist/photos';
 
 import fileSystemService from '../FileSystemService';
 
-import { PHOTOS_PREVIEWS_DIRECTORY } from './constants';
-import { DevicePhoto, PhotoFileSystemRef } from '../../types/photos';
-import PhotosLocalDatabaseService from './PhotosLocalDatabaseService';
+import { DevicePhoto, PhotoFileSystemRef, PhotoSizeType } from '../../types/photos';
+
+import { PhotosCommonServices } from './PhotosCommonService';
 
 export default class PhotosPreviewService {
   private static readonly PREVIEW_WIDTH = 512;
   private static readonly PREVIEW_HEIGHT = 512;
 
-  private photosDb = new PhotosLocalDatabaseService();
-
   public async generate(
     photo: DevicePhoto,
-  ): Promise<{ width: number; height: number; path: string; size: number; format: string }> {
-    const [photoName, extension] = photo.filename.split('.');
+  ): Promise<{ width: number; height: number; path: string; size: number; format: string; uri: string; type: string }> {
+    const [, extension] = photo.filename.split('.');
 
     const width = PhotosPreviewService.PREVIEW_WIDTH;
     const height = PhotosPreviewService.PREVIEW_HEIGHT;
     const resizerFormat = this.getResizerFormat(extension);
-    const path = `${PHOTOS_PREVIEWS_DIRECTORY}/${photoName}_preview.${resizerFormat}`;
+
     const response = await imageService.resize({
       uri: photo.uri,
       width,
@@ -32,10 +30,18 @@ export default class PhotosPreviewService {
       quality: 100,
       rotation: 0,
       options: { mode: 'cover' },
-      outputPath: path,
     });
 
-    return { ...response, format: resizerFormat };
+    const destination = PhotosCommonServices.getPhotoPath({
+      name: photo.filename,
+      size: PhotoSizeType.Preview,
+      type: resizerFormat,
+    });
+    if (!(await fileSystemService.exists(destination))) {
+      await fileSystemService.copyFile(response.path, destination);
+    }
+
+    return { ...response, uri: response.uri, format: resizerFormat, type: resizerFormat, path: destination };
   }
 
   private getResizerFormat(format: string) {
@@ -50,29 +56,22 @@ export default class PhotosPreviewService {
   /**
    * Gets a local preview for a given photo
    *
-   * @param photoId The photo id we will retrieve the preview for
+   * @param photo The photo to get preview from
    * @returns a FileSystemRef pointing to the image file
    */
   public async getLocalPreview(photo: Photo): Promise<PhotoFileSystemRef | null> {
-    //const BASE_64_PREFIX = 'data:image/jpeg;base64,';
     try {
-      /*  const dbPreview = await this.photosDb.getByPhotoId(photo.id);
+      const localPreviewPath = PhotosCommonServices.getPhotoPath({
+        name: photo.name,
+        size: PhotoSizeType.Preview,
+        type: photo.type,
+      });
 
-      if (dbPreview.photo_ref) {
-        return dbPreview.photo_ref;
-      } */
-      const localPreviewPath = `${PHOTOS_PREVIEWS_DIRECTORY}/${photo.previewId}.${photo.type}`;
+      const exists = await fileSystemService.exists(localPreviewPath);
 
-      const previewExistsLocally = await fileSystemService.statRNFS(localPreviewPath);
-
-      if (!previewExistsLocally || !previewExistsLocally.size) throw new Error();
-      else return localPreviewPath;
+      return exists ? localPreviewPath : null;
     } catch (e) {
       return null;
     }
-
-    /* const result = await fileSystemService.readFile(localPreviewPath);
-
-    return `${BASE_64_PREFIX}${result.toString('base64')}`; */
   }
 }

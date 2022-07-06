@@ -29,6 +29,7 @@ export enum PhotosSyncStatus {
 export const PHOTOS_DB_NAME = 'photos.db';
 
 export enum PhotosEventKey {
+  PhotoSyncDone = 'photo-sync-done',
   ResumeSync = 'sync-resume',
   RestartSync = 'sync-restart',
   PauseSync = 'sync-pause',
@@ -38,8 +39,8 @@ export enum PhotosEventKey {
 export interface PhotosServiceModel {
   debug: boolean;
   isInitialized: boolean;
-  accessToken?: string;
-  networkCredentials?: NetworkCredentials;
+  accessToken: string;
+  networkCredentials: NetworkCredentials;
   networkUrl: string;
   user?: User;
   device?: Device;
@@ -146,6 +147,7 @@ export interface PhotosNetworkOperation {
   lastError?: Error;
   uploadedPhoto?: Photo;
   result: PhotosNetworkOperationResult;
+  onOperationCompleted: (err: Error | null, photo: Photo | null) => void;
 }
 export type DevicePhoto = MediaLibrary.Asset;
 

@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { Photo } from '@internxt/sdk/dist/photos';
-import { Dimensions, FlatList, ListRenderItemInfo, RefreshControl, View } from 'react-native';
+import { Dimensions, FlatList, RefreshControl, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { tailwind } from '../../helpers/designSystem';
 import GalleryItem from '../GalleryItem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
+import { photosActions, photosSelectors } from '../../store/slices/photos';
 import { PhotosScreenNavigationProp } from '../../types/navigation';
 
-const GalleryAllView = (): JSX.Element => {
+const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onLoadNextPage }) => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
-  const { isSelectionModeActivated, photos } = useAppSelector((state) => state.photos);
+  const photos = useAppSelector(photosSelectors.getPhotosSorted);
+
+  const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
   const [refreshing, setRefreshing] = useState(false);
   const [columnsCount] = useState(3);
   const [gutter] = useState(3);
@@ -21,6 +23,7 @@ const GalleryAllView = (): JSX.Element => {
   const selectItem = (photo: Photo) => {
     dispatch(photosActions.selectPhotos([photo]));
   };
+
   const deselectItem = (photo: Photo) => {
     dispatch(photosActions.deselectPhotos([photo]));
   };
@@ -28,12 +31,48 @@ const GalleryAllView = (): JSX.Element => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
     isPhotoSelected(photo) ? deselectItem(photo) : selectItem(photo);
   };
-  const onItemPressed = (photo: Photo, preview: string) => {
+  const onItemPressed = (photo: Photo, preview: string | null) => {
     isSelectionModeActivated
       ? onItemLongPressed(photo)
-      : navigation.navigate('PhotosPreview', { data: photo, preview });
+      : preview &&
+        navigation.navigate('PhotosPreview', {
+          data: {
+            ...photo,
+            takenAt: photo.takenAt.toISOString(),
+            statusChangedAt: photo.statusChangedAt.toISOString(),
+            createdAt: photo.createdAt.toISOString(),
+            updatedAt: photo.updatedAt.toISOString(),
+          },
+          preview,
+        });
   };
 
+  function renderListItem({ item }: { item: Photo & { resolvedPreview?: string } }) {
+    return (
+      <View style={{ marginRight: gutter }}>
+        <GalleryItem
+          size={itemSize}
+          data={item}
+          resolvedPreview={item.resolvedPreview}
+          isSelected={isPhotoSelected(item)}
+          onPress={onItemPressed}
+          onLongPress={(photo) => onItemLongPressed(photo)}
+        />
+      </View>
+    );
+  }
+
+  function renderItemSeparator() {
+    return <View style={{ height: gutter }} />;
+  }
+
+  function extractKey(item: Photo) {
+    return item.id;
+  }
+
+  async function onScrollEnd() {
+    await onLoadNextPage();
+  }
   return (
     <FlatList
       style={tailwind('bg-white')}
@@ -44,39 +83,20 @@ const GalleryAllView = (): JSX.Element => {
           refreshing={refreshing}
           onRefresh={async () => {
             setRefreshing(true);
-            //await loadPhotos();
+
             setRefreshing(false);
           }}
         />
       }
       decelerationRate={0.5}
-      ItemSeparatorComponent={() => <View style={{ height: gutter }} />}
+      ItemSeparatorComponent={renderItemSeparator}
       data={photos}
-      onScrollEndDrag={async () => {
-        //await loadPhotos();
-      }}
+      onScrollEndDrag={onScrollEnd}
       numColumns={columnsCount}
       onEndReached={() => undefined}
       onEndReachedThreshold={3}
-      keyExtractor={(_, index) => {
-        return index.toString();
-      }}
-      renderItem={({ item, index }: ListRenderItemInfo<Photo>) => {
-        const isTheLast = index === photos.length - 1;
-
-        return (
-          <>
-            <GalleryItem
-              size={itemSize}
-              data={item}
-              isSelected={isPhotoSelected(item)}
-              //onPress={() => onItemPressed(item, item.preview)}
-              //onLongPress={() => onItemLongPressed(item.item.data)}
-            />
-            {!isTheLast && <View style={{ width: gutter }} />}
-          </>
-        );
-      }}
+      keyExtractor={extractKey}
+      renderItem={renderListItem}
     />
   );
 };

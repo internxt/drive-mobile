@@ -35,6 +35,10 @@ class FileSystemService {
     return Platform.OS === 'ios' ? RNFS.MainBundlePath : RNFS.DownloadDirectoryPath;
   }
 
+  public toBase64(path: string) {
+    return RNFS.read(path);
+  }
+
   public moveFile(source: string, target: string): Promise<void> {
     return RNFS.moveFile(source, target);
   }
@@ -112,7 +116,7 @@ class FileSystemService {
       throw new Error('File not found');
     }
 
-    return FileViewer.open(uri, options);
+    return FileViewer.open(fileInfo.uri, options);
   }
 
   public async mkdir(uri: string) {

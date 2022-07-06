@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import RNFS from 'react-native-fs';
 import { View, Text, Image, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,26 +13,46 @@ import { uiActions } from '../../store/slices/ui';
 import strings from '../../../assets/lang/strings';
 import SharePhotoModal from '../../components/modals/SharePhotoModal';
 import PhotosPreviewInfoModal from '../../components/modals/PhotosPreviewInfoModal';
-import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
+import { photosThunks } from '../../store/slices/photos';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { getColor, tailwind } from '../../helpers/designSystem';
 import AppScreen from '../../components/AppScreen';
 import { RootStackScreenProps } from '../../types/navigation';
 import fileSystemService from '../../services/FileSystemService';
+import { PhotosCommonServices } from '../../services/photos/PhotosCommonService';
+import { PhotoSizeType } from '../../types/photos';
+import { Photo } from '@internxt/sdk/dist/photos';
+import sentryService from '../../services/SentryService';
 
 function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'PhotosPreview'>): JSX.Element {
-  const { data: photo, preview } = route.params;
+  const { data, preview } = route.params;
+  const photo = useMemo<Photo>(
+    () => ({
+      ...route.params.data,
+      statusChangedAt: new Date(data.statusChangedAt),
+      takenAt: new Date(data.takenAt),
+      createdAt: new Date(data.createdAt),
+      updatedAt: new Date(data.updatedAt),
+    }),
+    [data],
+  );
   const safeAreaInsets = useSafeAreaInsets();
-
+  const [isFullSizeDownloaded, setIsFullSizeDownloaded] = useState(false);
+  const photoPath = PhotosCommonServices.getPhotoPath({
+    name: photo.name,
+    size: PhotoSizeType.Full,
+    type: photo.type,
+  });
   const dispatch = useAppDispatch();
   const [showActions, setShowActions] = useState(true);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const isFullSizeLoading = useAppSelector(photosSelectors.isPhotoDownloading)(photo.fileId);
-  const progress = useAppSelector(photosSelectors.getDownloadingPhotoProgress)(photo.fileId);
+  const [isFullSizeLoading, setIsFullSizeLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+
   const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
     (state) => state.ui,
   );
-  const isFullSizeDownloaded = useAppSelector(photosSelectors.isPhotoDownloaded)(photo.fileId);
+
   const uri = isFullSizeDownloaded ? fileSystemService.pathToUri(photoPath) : preview;
   const onScreenPressed = () => {
     setShowActions(!showActions);
@@ -61,24 +81,30 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
   const isPhotoAlreadyDownloaded = () => RNFS.exists(photoPath);
   const loadImage = () => {
     dispatch(
-      photosThunks.downloadPhotoThunk({
-        fileId: route.params.data.fileId,
-        options: {
-          toPath: photoPath,
+      photosThunks.downloadFullSizePhotoThunk({
+        photo,
+        onProgressUpdate: (progress) => {
+          setProgress(progress);
         },
       }),
     )
       .unwrap()
-      .then((photoPath: string) => {
-        dispatch(photosActions.pushDownloadedPhoto({ fileId: photo.fileId, path: photoPath }));
+      .then(() => {
+        setIsFullSizeDownloaded(true);
       })
-      .catch(() => undefined);
+      .catch((err) => {
+        sentryService.native.captureException(err);
+      })
+      .finally(() => {
+        setIsFullSizeLoading(false);
+      });
   };
 
   useEffect(() => {
     isPhotoAlreadyDownloaded().then((isDownloaded) => {
       if (isDownloaded) {
-        dispatch(photosActions.pushDownloadedPhoto({ fileId: photo.fileId, path: photoPath }));
+        setIsFullSizeDownloaded(true);
+        setIsFullSizeLoading(false);
       } else {
         loadImage();
       }
@@ -91,26 +117,26 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
       <PhotosPreviewOptionsModal
         isOpen={isOptionsModalOpen}
         onClosed={onPhotosPreviewOptionsModalClosed}
-        data={route.params.data}
+        data={photo}
         preview={route.params.preview}
         photoPath={photoPath}
-        isFullSizeLoading={isFullSizeLoading}
+        isFullSizeLoading={false}
       />
       <PhotosPreviewInfoModal
         isOpen={isPhotosPreviewInfoModalOpen}
         onClosed={onPhotosPreviewInfoModalClosed}
-        data={route.params.data}
+        data={photo}
         preview={route.params.preview}
       />
       <DeletePhotosModal
         isOpen={isDeletePhotosModalOpen}
         onClosed={() => dispatch(uiActions.setIsDeletePhotosModalOpen(false))}
         onPhotosDeleted={onPhotoMovedToTrash}
-        data={[route.params.data]}
+        data={[photo]}
       />
       <SharePhotoModal
         isOpen={isSharePhotoModalOpen}
-        data={route.params.data}
+        data={photo}
         onClosed={onSharePhotoModalClosed}
         preview={route.params.preview}
       />

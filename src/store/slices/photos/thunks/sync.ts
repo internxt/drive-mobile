@@ -1,15 +1,13 @@
-import { ActionReducerMapBuilder, createAsyncThunk } from '@reduxjs/toolkit';
-import { photosSlice, PhotosState } from '..';
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import { photosSlice } from '..';
 import { RootState } from '../../..';
 import { PhotosService } from '../../../../services/photos';
-
 import { PhotosEventKey, PhotosSyncManagerStatus, PhotosSyncStatus } from '../../../../types/photos';
-
 import { PhotosCommonServices } from '../../../../services/photos/PhotosCommonService';
 import { PhotosSyncManager } from '../../../../services/photos/sync/PhotosSyncManager';
 import PhotosLocalDatabaseService from '../../../../services/photos/PhotosLocalDatabaseService';
 import { PhotosNetworkManager } from '../../../../services/photos/network/PhotosNetworkManager';
-import { PHOTOS_PER_GROUP } from '../../../../services/photos/constants';
+import { PHOTOS_PER_NETWORK_GROUP } from '../../../../services/photos/constants';
 
 const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/startSync',
@@ -18,8 +16,11 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
     if (syncStatus.status !== PhotosSyncStatus.Unknown) return;
     const photosDb = new PhotosLocalDatabaseService();
     const photosNetwork = new PhotosNetworkManager();
-    await photosDb.initialize();
-    const syncManager = new PhotosSyncManager({ checkIfExistsPhotosAmount: PHOTOS_PER_GROUP }, photosDb, photosNetwork);
+    const syncManager = new PhotosSyncManager(
+      { checkIfExistsPhotosAmount: PHOTOS_PER_NETWORK_GROUP },
+      photosDb,
+      photosNetwork,
+    );
 
     syncManager.onTotalPhotosInDeviceCalculated((photosInDevice) => {
       dispatch(
@@ -30,6 +31,9 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
     });
 
     syncManager.onPhotoSyncCompleted((err, photo) => {
+      if (err) {
+        console.error('Error during sync operation', err);
+      }
       if (photo) {
         dispatch(photosSlice.actions.insertUploadedPhoto(photo));
       }
@@ -72,7 +76,7 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
     PhotosCommonServices.events.addListener({
       event: PhotosEventKey.ResumeSync,
       listener: () => {
-        syncManager.run();
+        syncManager.resume();
       },
     });
 
@@ -103,32 +107,6 @@ const resumeSyncThunk = createAsyncThunk<void, void, { state: RootState }>('phot
     event: PhotosEventKey.ResumeSync,
   });
 });
-export const syncExtraReducers = (builder: ActionReducerMapBuilder<PhotosState>) => {
-  /*  builder
-    .addCase(syncThunk.pending, (state, action) => {
-      state.syncRequests.push(action.meta.requestId);
-    })
-    .addCase(syncThunk.fulfilled, (state, action) => {
-      const index = state.syncRequests.indexOf(action.meta.requestId);
-      state.syncRequests.splice(index, 1);
-      Object.assign(state.syncStatus, { status: PhotosSyncStatus.Completed });
-    })
-    .addCase(syncThunk.rejected, (state, action) => {
-      const index = state.syncRequests.indexOf(action.meta.requestId);
-      state.syncRequests.splice(index, 1);
-
-      if (!action.meta.aborted) {
-        Object.assign(state.syncStatus, { status: PhotosSyncStatus.Pending });
-        notificationsService.show({
-          type: NotificationType.Error,
-          text1: strings.formatString(
-            strings.errors.photosSync,
-            action.error.message || strings.errors.unknown,
-          ) as string,
-        });
-      }
-    }); */
-};
 
 export const syncThunks = {
   startSyncThunk,

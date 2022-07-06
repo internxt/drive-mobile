@@ -17,6 +17,7 @@ const untranspiledModulePatterns = [
   'native-base',
   'react-native-svg',
   'rn-fetch-blob',
+  '@internxt/rn-crypto',
 ];
 
 const config: Config.InitialOptions = {

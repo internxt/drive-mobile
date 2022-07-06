@@ -15,6 +15,8 @@ import { items } from '@internxt/lib';
 import fileSystemService from '../../../services/FileSystemService';
 import { photosSelectors, photosThunks } from '../../../store/slices/photos';
 import LoadingSpinner from '../../LoadingSpinner';
+import { PhotosCommonServices } from '../../../services/photos/PhotosCommonService';
+import { PhotoSizeType } from '../../../types/photos';
 
 interface SharePhotoModalProps extends BottomModalProps {
   data: Photo;
@@ -29,10 +31,9 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
   const [times, setTimes] = useState(10);
   // const [url, setUrl] = useState('LINK');
   const dispatch = useAppDispatch();
-  const photosDirectory = useAppSelector(photosSelectors.photosDirectory);
-  const photoPath = photosDirectory + '/' + items.getItemDisplayName({ name: data.id, type: data.type });
-  const isLoading = useAppSelector(photosSelectors.isPhotoDownloading)(data.fileId);
-  const progress = useAppSelector(photosSelectors.getDownloadingPhotoProgress)(data.fileId);
+
+  const photoPath = PhotosCommonServices.getPhotoPath({ name: data.name, size: PhotoSizeType.Full, type: data.type });
+
   const [uri, setUri] = useState('');
   const onCancelButtonPressed = () => {
     onClosed();
@@ -115,19 +116,6 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
       fileSystemService.exists(photoPath).then((value) => {
         if (value) {
           setUri(fileSystemService.pathToUri(photoPath));
-        } else {
-          dispatch(
-            photosThunks.downloadPhotoThunk({
-              fileId: data.fileId,
-              options: {
-                toPath: photoPath,
-              },
-            }),
-          )
-            .unwrap()
-            .then((path) => {
-              setUri(fileSystemService.pathToUri(path));
-            });
         }
       });
     }
@@ -191,19 +179,10 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
 
         {/* !!! TMP CONTENT */}
         <View style={tailwind('flex-row items-center justify-center px-5 py-10')}>
-          {isLoading ? (
-            <>
-              <LoadingSpinner size={20} style={tailwind('mr-2')} />
-              <Text style={tailwind('text-base')}>
-                {strings.formatString(strings.modals.share_photo_modal.decrypting, progress.toFixed(0))}
-              </Text>
-            </>
-          ) : (
-            <View style={tailwind('items-center')}>
-              <Text style={tailwind('text-sm text-green-60 mb-2')}>{strings.modals.share_photo_modal.photoReady}</Text>
-              <Text style={tailwind('text-base')}>{strings.modals.share_photo_modal.shareWithYourContacts}</Text>
-            </View>
-          )}
+          <View style={tailwind('items-center')}>
+            <Text style={tailwind('text-sm text-green-60 mb-2')}>{strings.modals.share_photo_modal.photoReady}</Text>
+            <Text style={tailwind('text-base')}>{strings.modals.share_photo_modal.shareWithYourContacts}</Text>
+          </View>
         </View>
 
         {/* ACTIONS */}
@@ -221,7 +200,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
             title={strings.components.buttons.share}
             type="accept"
             onPress={onShareButtonPressed}
-            disabled={!uri || isLoading}
+            disabled={!uri}
             style={tailwind('flex-1')}
           />
         </View>

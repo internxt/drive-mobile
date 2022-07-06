@@ -1,5 +1,4 @@
 import { Photo } from '@internxt/sdk/dist/photos';
-import { RunnableService } from '../../../helpers/services';
 import {
   DevicePhoto,
   DevicePhotosOperationPriority,
@@ -8,10 +7,9 @@ import {
   DevicePhotoSyncCheckOperation,
   SyncStage,
 } from '../../../types/photos';
-import { PhotosCommonServices } from '../PhotosCommonService';
 import PhotosLocalDatabaseService from '../PhotosLocalDatabaseService';
 import async from 'async';
-const QUEUE_CONCURRENCY = 1;
+import { PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY } from '../constants';
 /**
  *
  */
@@ -23,7 +21,7 @@ export class DevicePhotosSyncCheckerService {
         .then((result) => next(null, result))
         .catch((err) => next(err, null));
     },
-    QUEUE_CONCURRENCY,
+    PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY,
   );
   private onStatusChangeCallback: DevicePhotosSyncServiceHandlers['onSyncQueueStatusChange'] = () => undefined;
   private db: PhotosLocalDatabaseService;
@@ -36,20 +34,26 @@ export class DevicePhotosSyncCheckerService {
     });
   }
 
-  public restart() {
-    return;
-  }
-
   public pause() {
-    return;
+    this.queue.pause();
+    this.updateStatus(DevicePhotosSyncCheckerStatus.PAUSED);
   }
 
-  public run() {
-    return;
+  public resume() {
+    this.queue.resume();
+    if (!this.totalOperations) {
+      this.updateStatus(DevicePhotosSyncCheckerStatus.EMPTY);
+    } else {
+      this.updateStatus(DevicePhotosSyncCheckerStatus.RUNNING);
+    }
   }
 
   public destroy() {
-    return;
+    this.queue.kill();
+  }
+
+  public get totalOperations() {
+    return this.queue.length();
   }
   /**
    * Given a photo location, check if the photo is synced based on the SQlite data
@@ -101,22 +105,19 @@ export class DevicePhotosSyncCheckerService {
     if (operation.lastError) {
       return SyncStage.FAILED_TO_CHECK;
     }
+
     const dbPhoto = await this.db.getByDevicePhoto(operation.devicePhoto);
 
     if (!dbPhoto) {
       return SyncStage.NEEDS_REMOTE_CHECK;
     }
 
-    if (dbPhoto && dbPhoto.photo_ref && dbPhoto.stage === SyncStage.IN_SYNC) {
+    if (dbPhoto && dbPhoto.stage === SyncStage.IN_SYNC) {
       return SyncStage.IN_SYNC;
     }
 
     // The fuck happened to the photo????
     return SyncStage.UNKNOWN;
-  }
-
-  private get isPaused() {
-    return DevicePhotosSyncCheckerStatus.PAUSED === this.status;
   }
 
   private async resolveSyncQueueOperation(operation: DevicePhotoSyncCheckOperation) {

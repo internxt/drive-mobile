@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AndroidPermission, IOSPermission, PERMISSIONS, PermissionStatus, RESULTS } from 'react-native-permissions';
-import { Photo } from '@internxt/sdk/dist/photos';
+import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 import * as MediaLibrary from 'expo-media-library';
 import { RootState } from '../..';
 import { PhotosService } from '../../../services/photos';
@@ -8,19 +8,20 @@ import asyncStorage from '../../../services/AsyncStorageService';
 import { GalleryViewMode, PhotosEventKey, PhotosSyncStatus, PhotosSyncStatusData } from '../../../types/photos';
 
 import { AsyncStorageKey } from '../../../types';
-import { permissionsExtraReducers, permissionsThunks } from './thunks/permissions';
+import { permissionsThunks } from './thunks/permissions';
 import { usageExtraReducers } from './thunks/usage';
-import { syncExtraReducers, syncThunks } from './thunks/sync';
+import { syncThunks } from './thunks/sync';
 import { PhotosCommonServices } from '../../../services/photos/PhotosCommonService';
-import { viewThunks } from './thunks/view';
 import PhotosLocalDatabaseService from '../../../services/photos/PhotosLocalDatabaseService';
 import PhotosUserService from '../../../services/photos/PhotosUserService';
+import { networkThunks } from './thunks/network';
 
 export interface PhotosState {
   isInitialized: boolean;
   isDeviceSynchronized: boolean;
   initializeError: string | null;
-  photos: Photo[];
+  photos: (Photo & { resolvedPreview?: string })[];
+  totalPhotos?: number;
   permissions: {
     android: { [key in AndroidPermission]?: PermissionStatus };
     ios: { [key in IOSPermission]?: PermissionStatus };
@@ -62,16 +63,22 @@ const initialState: PhotosState = {
 };
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>('photos/initialize', async () => {
+  const photosDb = new PhotosLocalDatabaseService();
+  await photosDb.initialize();
+
   const photosUserService = new PhotosUserService();
   const photosToken = await asyncStorage.getItem(AsyncStorageKey.PhotosToken);
   const user = await asyncStorage.getUser();
-
-  PhotosCommonServices.initialize(photosToken || '', {
+  PhotosCommonServices.initialize(photosToken || '');
+  PhotosCommonServices.initializeModel(photosToken || '', {
     encryptionKey: user?.mnemonic || '',
     user: user?.bridgeUser || '',
     password: user?.userId || '',
   });
-  await photosUserService.initialize();
+  const { user: photosUser, device: photosDevice } = await photosUserService.initialize();
+  PhotosCommonServices.model.user = photosUser;
+  PhotosCommonServices.model.device = photosDevice;
+
   PhotosService.initialize();
 });
 
@@ -85,7 +92,7 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
   },
 );
 
-const sortPhotos = (photos: Photo[]) => {
+export const sortPhotos = (photos: Photo[]) => {
   return photos.sort((p1, p2) => {
     const p1TakenAt = new Date(p1.takenAt);
     const p2TakenAt = new Date(p2.takenAt);
@@ -99,8 +106,14 @@ type LoadPhotosParams = {
 const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootState }>(
   'photos/loadPhotos',
   async (payload: LoadPhotosParams, { dispatch }) => {
-    const photos = await PhotosService.instance.getPhotos({ limit: 50, skip: (payload.page - 1) * 50 });
-    dispatch(photosSlice.actions.savePhotos(photos));
+    const LIMIT = 50;
+    const { results, count } = await PhotosService.instance.getPhotos({
+      limit: LIMIT,
+      skip: (payload.page - 1) * LIMIT,
+    });
+
+    dispatch(photosSlice.actions.setTotalPhotos(count));
+    dispatch(photosSlice.actions.savePhotos(results));
   },
 );
 
@@ -142,11 +155,28 @@ export const photosSlice = createSlice({
     },
 
     insertUploadedPhoto(state, action: PayloadAction<Photo>) {
-      state.photos = sortPhotos([...state.photos, action.payload]);
+      if (!state.photos.find((statePhoto) => statePhoto.id === action.payload.id)) {
+        state.photos.push(action.payload);
+        //state.photos = sortPhotos([...state.photos, action.payload]);
+      }
+    },
+
+    setTotalPhotos(state, action: PayloadAction<number>) {
+      state.totalPhotos = action.payload;
+    },
+
+    removePhotos(state, action: PayloadAction<Photo[]>) {
+      const toRemove = action.payload.map((photo) => photo.id);
+
+      state.photos = state.photos.filter((photo) => {
+        return !toRemove.includes(photo.id);
+      });
     },
 
     savePhotos(state, action: PayloadAction<Photo[]>) {
-      state.photos = sortPhotos(action.payload);
+      state.photos = sortPhotos(
+        state.photos.concat(action.payload.filter((photo) => photo.status === PhotoStatus.Exists)),
+      );
     },
 
     selectPhotos(state, action: PayloadAction<Photo[]>) {
@@ -164,27 +194,12 @@ export const photosSlice = createSlice({
     deselectAll(state) {
       state.selection = [];
     },
+    setViewMode(state, action: PayloadAction<GalleryViewMode>) {
+      state.viewMode = action.payload;
+    },
   },
   extraReducers: (builder) => {
-    permissionsExtraReducers(builder);
     usageExtraReducers(builder);
-    syncExtraReducers(builder);
-    /* builder
-      .addCase(startUsingPhotosThunk.pending, (state) => {
-        state.isInitialized = false;
-        state.initializeError = null;
-      })
-      .addCase(startUsingPhotosThunk.fulfilled, (state) => {
-        state.isInitialized = true;
-      })
-      .addCase(startUsingPhotosThunk.rejected, (state, action) => {
-        state.initializeError = action.error.message || strings.errors.unknown;
-
-        notificationsService.show({
-          type: NotificationType.Error,
-          text1: strings.formatString(strings.errors.photosInitialize, state.initializeError) as string,
-        });
-      }); */
   },
 });
 
@@ -196,12 +211,18 @@ export const photosSelectors = {
   hasPhotos: (state: RootState): boolean => Object.keys(state.photos.photos).length > 0,
   getSyncStatus: (state: RootState): PhotosSyncStatusData => state.photos.syncStatus,
   permissionsStatus: (state: RootState): MediaLibrary.PermissionStatus => state.photos.permissionsStatus,
+  hasPhotosSelected: (state: RootState): boolean => (state.photos.selection.length ? true : false),
+  hasMorePhotos: (state: RootState): boolean =>
+    state.photos.totalPhotos ? state.photos.photos.length !== state.photos.totalPhotos : true,
   arePhotosSelected:
     (state: RootState) =>
     (photos: Photo[]): boolean =>
       photos.reduce<boolean>((t, x) => t && photosSelectors.isPhotoSelected(state)(x), true),
   isPhotoSelected: (state: RootState) => (photo: Photo) =>
     !!state.photos.selection.find((selectedPhoto) => selectedPhoto.id === photo.id),
+  getPhotosSorted: (state: RootState) => {
+    return state.photos.photos;
+  },
 };
 
 export const photosThunks = {
@@ -210,8 +231,8 @@ export const photosThunks = {
   loadPhotosThunk,
   clearPhotosThunk,
   ...permissionsThunks,
-  ...viewThunks,
   ...syncThunks,
+  ...networkThunks,
 };
 
 export default photosSlice.reducer;

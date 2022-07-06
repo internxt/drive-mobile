@@ -13,9 +13,10 @@ const GalleryDaysView = (): JSX.Element => {
   const isMounted = useIsMounted();
   const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
-  const photosByMonth = useAppSelector((state) => state.photos.photosByMonth);
+  //const photosByMonth = useAppSelector((state) => state.photos.photosByMonth);
 
-  return (
+  return <View></View>;
+  /* return (
     <SectionList<PhotosCollection, { title: string }>
       data={photosByMonth}
       renderSectionHeader={({ section }) => {
@@ -53,7 +54,7 @@ const GalleryDaysView = (): JSX.Element => {
       }}
       onEndReachedThreshold={3}
     />
-  );
+  ); */
 };
 
 export default GalleryDaysView;
