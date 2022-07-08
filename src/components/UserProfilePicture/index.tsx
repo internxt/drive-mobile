@@ -17,7 +17,11 @@ const UserProfilePicture = (props: UserProfilePictureProps) => {
 
   return (
     <View
-      style={[tailwind('border border-black/5 rounded-full'), { height: props.size, width: props.size }, props.style]}
+      style={[
+        tailwind('bg-gray-10 border border-black/5 rounded-full'),
+        { height: props.size, width: props.size },
+        props.style,
+      ]}
     >
       {hasAvatar ? (
         <Image

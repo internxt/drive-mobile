@@ -5,30 +5,34 @@ import DriveLocalDatabaseService from './DriveLocalDatabaseService';
 import DriveLogService from './DriveLogService';
 import DriveRecentsService from './DriveRecentsService';
 import DriveShareService from './DriveShareService';
+import DriveUsageService from './DriveUsageService';
 
 class DriveService {
   public static instance: DriveService;
   public readonly model: DriveServiceModel;
-  public readonly logService: DriveLogService;
+  public readonly log: DriveLogService;
   public readonly eventEmitter: DriveEventEmitter;
-  public readonly localDatabaseService: DriveLocalDatabaseService;
+  public readonly localDatabase: DriveLocalDatabaseService;
   public readonly share: DriveShareService;
   public readonly recents: DriveRecentsService;
+  public readonly usage: DriveUsageService;
 
-  private constructor() {
+  private constructor(accessToken: string) {
     this.model = {
       debug: constants.REACT_NATIVE_DEBUG,
+      accessToken,
     };
-    this.logService = new DriveLogService(this.model);
-    this.eventEmitter = new DriveEventEmitter(this.logService);
-    this.localDatabaseService = new DriveLocalDatabaseService(this.model, this.logService);
-    this.share = new DriveShareService(this.model, this.logService);
-    this.recents = new DriveRecentsService(this.model, this.logService);
+    this.log = new DriveLogService(this.model);
+    this.eventEmitter = new DriveEventEmitter(this.log);
+    this.localDatabase = new DriveLocalDatabaseService(this.model, this.log);
+    this.share = new DriveShareService(this.model, this.log);
+    this.recents = new DriveRecentsService(this.model, this.log);
+    this.usage = new DriveUsageService(this.model);
   }
 
-  public static async initialize() {
-    DriveService.instance = new DriveService();
-    await DriveService.instance.localDatabaseService.initialize();
+  public static async initialize(accessToken: string) {
+    DriveService.instance = new DriveService(accessToken);
+    await DriveService.instance.localDatabase.initialize();
   }
 }
 

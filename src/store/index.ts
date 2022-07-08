@@ -9,6 +9,7 @@ import paymentsReducer from './slices/payments';
 import referralsReducer from './slices/referrals';
 import usersReducer from './slices/users';
 import newsletterReducer from './slices/newsletter';
+import storageReducer from './slices/storage';
 import { rtkQueryErrorMiddleware } from './middlewares/rtkQueryErrorMiddleware';
 
 export const store = configureStore({
@@ -22,6 +23,7 @@ export const store = configureStore({
     referrals: referralsReducer,
     users: usersReducer,
     newsletter: newsletterReducer,
+    storage: storageReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }).concat(rtkQueryErrorMiddleware),

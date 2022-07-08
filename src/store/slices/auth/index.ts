@@ -22,11 +22,6 @@ export interface AuthState {
   user: UserSettings | undefined;
   securityDetails: SecurityDetails | undefined;
   sessionPassword: string | undefined;
-  userStorage: {
-    usage: number;
-    limit: number;
-    percentage: number;
-  };
 }
 
 const initialState: AuthState = {
@@ -36,7 +31,6 @@ const initialState: AuthState = {
   user: undefined,
   securityDetails: undefined,
   sessionPassword: undefined,
-  userStorage: { usage: 0, limit: 0, percentage: 0 },
 };
 
 export const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
@@ -223,9 +217,6 @@ export const authSlice = createSlice({
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.photosToken = action.payload.photosToken;
-    },
-    setUserStorage(state, action: PayloadAction<{ usage: number; limit: number; percentage: number }>) {
-      state.userStorage = action.payload;
     },
     updateUser(state, action: PayloadAction<Partial<UserSettings>>) {
       state.user && Object.assign(state.user, action.payload);

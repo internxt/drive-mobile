@@ -12,19 +12,19 @@ import AppText from '../../components/AppText';
 import { TabExplorerScreenProps } from '../../types/navigation';
 import AppScreenTitle from '../../components/AppScreenTitle';
 import { useTailwind } from 'tailwind-rn';
-import AppSwitch from '../../components/AppSwitch';
 import SettingsGroup from '../../components/SettingsGroup';
 import useGetColor from '../../hooks/useColor';
 import { uiActions } from '../../store/slices/ui';
 import UserProfilePicture from '../../components/UserProfilePicture';
 import { Language } from 'src/types';
+import { storageSelectors } from 'src/store/slices/storage';
 
 function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
-  const useMobileDataToUploadPhotos = true;
   const { user } = useAppSelector((state) => state.auth);
+  const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const userFullName = useAppSelector(authSelectors.userFullName);
   const onAccountPressed = () => {
     navigation.push('TabExplorer', { screen: 'Account' });
@@ -124,7 +124,9 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                       </AppText>
                     </View>
                     <View style={tailwind('flex-row items-center')}>
-                      <AppText style={tailwind('text-gray-40 mr-2.5')}>51% Used</AppText>
+                      <AppText style={tailwind('text-gray-40 mr-2.5')}>
+                        {strings.formatString(strings.generic.usagePercent, usagePercent)}
+                      </AppText>
                       <CaretRight color={getColor('text-neutral-60')} size={20} />
                     </View>
                   </View>
@@ -154,7 +156,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
             ]}
           />
           {/* PHOTOS GALLERY */}
-          <SettingsGroup
+          {/*<SettingsGroup
             title={strings.screens.SettingsScreen.photos.title}
             items={[
               {
@@ -178,7 +180,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                 ),
               },
             ]}
-          />
+          /> */}
           {/* INFORMATION */}
           <SettingsGroup
             title={strings.screens.SettingsScreen.information}

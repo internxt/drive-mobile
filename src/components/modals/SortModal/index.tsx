@@ -1,10 +1,9 @@
 import React from 'react';
-import { Text, TouchableHighlight, View } from 'react-native';
+import { TouchableHighlight, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 
 import BottomModal from '../BottomModal';
-import globalStyle from '../../../styles/global';
 import AppText from '../../AppText';
 import { SortDirection, SortType } from '../../../types/drive';
 import { BaseModalProps } from '../../../types/ui';
@@ -27,13 +26,9 @@ const SortModal: React.FC<SortModalProps> = (props) => {
   };
   const header = (
     <View>
-      <Text
-        numberOfLines={1}
-        ellipsizeMode="middle"
-        style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
-      >
+      <AppText numberOfLines={1} ellipsizeMode="middle" semibold style={tailwind('text-base text-neutral-500')}>
         {strings.screens.drive.sortBy}
-      </Text>
+      </AppText>
     </View>
   );
 
@@ -111,11 +106,8 @@ function SortModalItem(props: {
         style={[tailwind('items-center flex-row rounded-lg px-4 py-2.5'), props.isSelected && tailwind('bg-blue-10')]}
       >
         <AppText
-          style={[
-            tailwind('text-lg text-neutral-500 mr-2'),
-            globalStyle.fontWeight.semibold,
-            props.isSelected && tailwind('text-blue-60'),
-          ]}
+          style={[tailwind('text-lg text-neutral-500 mr-2'), props.isSelected && tailwind('text-blue-60')]}
+          semibold
         >
           {props.text}
         </AppText>

@@ -17,7 +17,6 @@ const linking: LinkingOptions<RootStackParamList> = {
       TabExplorer: 'tab-explorer',
       ForgotPassword: 'forgot-password',
       Storage: 'storage',
-      Billing: 'billing',
       PhotosPreview: 'photos-preview',
     },
   },

@@ -31,17 +31,18 @@ import CreateFolderModal from '../CreateFolderModal';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../AppText';
 import useGetColor from '../../../hooks/useColor';
+import { storageSelectors } from 'src/store/slices/storage';
 
 function AddModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
-  const { folderContent, usage: storageUsage, limit } = useAppSelector((state) => state.drive);
-  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const { showUploadModal } = useAppSelector((state) => state.ui);
-  const { usage: photosUsage } = useAppSelector((state) => state.photos);
-  const usage = photosUsage + storageUsage;
+  const { folderContent } = useAppSelector((state) => state.drive);
+  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
+  const { limit } = useAppSelector((state) => state.storage);
+  const usage = useAppSelector(storageSelectors.usage);
   async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
     const name = decodeURI(file.uri).split('/').pop() || '';
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
@@ -310,7 +311,7 @@ function AddModal(): JSX.Element {
           return uploadDocuments(documents);
         })
         .then(() => {
-          dispatch(driveThunks.getUsageAndLimitThunk());
+          dispatch(driveThunks.loadUsageThunk());
 
           if (currentFolderId) {
             dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
@@ -335,7 +336,7 @@ function AddModal(): JSX.Element {
       })
         .then(processFilesFromPicker)
         .then(() => {
-          dispatch(driveThunks.getUsageAndLimitThunk());
+          dispatch(driveThunks.loadUsageThunk());
 
           if (currentFolderId) {
             dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
@@ -387,7 +388,7 @@ function AddModal(): JSX.Element {
             dispatch(uiActions.setShowUploadFileModal(false));
             uploadDocuments(documents)
               .then(() => {
-                dispatch(driveThunks.getUsageAndLimitThunk());
+                dispatch(driveThunks.loadUsageThunk());
 
                 if (currentFolderId) {
                   dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
@@ -415,7 +416,7 @@ function AddModal(): JSX.Element {
       })
         .then(processFilesFromPicker)
         .then(() => {
-          dispatch(driveThunks.getUsageAndLimitThunk());
+          dispatch(driveThunks.loadUsageThunk());
 
           if (currentFolderId) {
             dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
@@ -479,7 +480,7 @@ function AddModal(): JSX.Element {
             })
             .finally(() => {
               dispatch(driveActions.uploadFileFinished());
-              dispatch(driveThunks.getUsageAndLimitThunk());
+              dispatch(driveThunks.loadUsageThunk());
 
               if (currentFolderId) {
                 dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));

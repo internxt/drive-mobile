@@ -15,6 +15,7 @@ import { uiActions } from '../../store/slices/ui';
 import { TabExplorerScreenProps } from '../../types/navigation';
 import { useCountdown } from 'usehooks-ts';
 import { useEffect, useMemo, useState } from 'react';
+import storageService from 'src/services/StorageService';
 
 function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.Element {
   const [verificationEmailTime, { startCountdown, resetCountdown }] = useCountdown({
@@ -33,6 +34,8 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+  const { subscription } = useAppSelector((state) => state.payments);
+  const { limit } = useAppSelector((state) => state.storage);
   const user = useAppSelector((state) => state.auth.user);
   const userFullName = useAppSelector(authSelectors.userFullName);
   const onBackButtonPressed = () => {
@@ -42,7 +45,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
     dispatch(uiActions.setIsDeleteAccountModalOpen(true));
   };
   const onBillingPressed = () => {
-    navigation.navigate('Billing');
+    dispatch(uiActions.setIsPlansModalOpen(true));
   };
   const onSecurityPressed = () => {
     dispatch(uiActions.setIsSecurityModalOpen(true));
@@ -172,8 +175,10 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
                 template: (
                   <View style={tailwind('flex-row items-center justify-between px-4 py-4')}>
                     <View>
-                      <AppText style={tailwind('text-primary text-2xl')}>{'4GB'}</AppText>
-                      <AppText style={tailwind('text-sm text-gray-80')}>{'Free plan'}</AppText>
+                      <AppText style={tailwind('text-primary text-2xl')}>{storageService.toString(limit)}</AppText>
+                      <AppText style={tailwind('text-sm text-gray-80')}>
+                        {strings.subscriptions[subscription.type]}
+                      </AppText>
                     </View>
                     <AppButton
                       type="accept"

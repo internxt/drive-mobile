@@ -91,7 +91,7 @@ function DeleteItemModal(): JSX.Element {
           style={tailwind('bg-red-60 rounded-lg py-2 flex-grow items-center justify-center')}
           onPress={onDeleteButtonPressed}
         >
-          <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.generic.delete}</Text>
+          <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.buttons.delete}</Text>
         </TouchableHighlight>
       </View>
     </BottomModal>

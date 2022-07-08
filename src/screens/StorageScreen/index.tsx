@@ -5,7 +5,7 @@ import { View, Text, TouchableHighlight } from 'react-native';
 import strings from '../../../assets/lang/strings';
 import AppProgressBar from '../../components/AppProgressBar';
 import ScreenTitle from '../../components/AppScreenTitle';
-import { useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { INFINITE_PLAN } from '../../types';
 import ReferralsWidget from '../../components/ReferralsWidget';
 import globalStyle from '../../styles/global';
@@ -16,13 +16,16 @@ import appService from '../../services/AppService';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../components/AppText';
 import useGetColor from '../../hooks/useColor';
+import { uiActions } from 'src/store/slices/ui';
 
 function StorageScreen({ navigation }: RootStackScreenProps<'Storage'>): JSX.Element {
+  const { limit } = useAppSelector((state) => state.storage);
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
-  const { usage: storageUsage, limit } = useAppSelector((state) => state.drive);
-  const usageValues = { usage: storageUsage + photosUsage, limit };
+  const { usage: driveUsage } = useAppSelector((state) => state.drive);
+  const usageValues = { usage: driveUsage + photosUsage, limit };
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const dispatch = useAppDispatch();
   const getLimitString = () => {
     if (usageValues.limit === 0) {
       return '...';
@@ -36,6 +39,9 @@ function StorageScreen({ navigation }: RootStackScreenProps<'Storage'>): JSX.Ele
   };
   const getUsageString = () => prettysize(usageValues.usage);
   const onBackButtonPressed = () => navigation.goBack();
+  const onUpgradePressed = () => {
+    dispatch(uiActions.setIsPlansModalOpen(true));
+  };
 
   return (
     <AppScreen safeAreaTop style={tailwind('h-full')} backgroundColor={getColor('text-neutral-20')}>
@@ -68,12 +74,7 @@ function StorageScreen({ navigation }: RootStackScreenProps<'Storage'>): JSX.Ele
         </View>
 
         {appService.constants.REACT_NATIVE_SHOW_BILLING && (
-          <TouchableHighlight
-            underlayColor={getColor('text-neutral-30')}
-            onPress={() => {
-              navigation.push('Billing');
-            }}
-          >
+          <TouchableHighlight underlayColor={getColor('text-neutral-30')} onPress={onUpgradePressed}>
             <View style={tailwind('px-5 py-3 flex-row items-center justify-between border-t border-neutral-20')}>
               <AppText style={tailwind('text-blue-60 text-lg')} semibold>
                 {strings.buttons.upgradeNow}

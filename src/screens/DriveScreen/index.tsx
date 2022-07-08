@@ -25,6 +25,7 @@ import { TabExplorerScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import Portal from '@burstware/react-native-portal';
+import DriveService from 'src/services/DriveService';
 
 function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Element {
   const route = useRoute();
@@ -93,35 +94,23 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
   }
 
   useEffect(() => {
-    asyncStorage
-      .getUser()
-      .then((userData) => {
-        storageService
-          .loadValues()
-          .then((res) => {
-            const currentPlan = {
-              usage: parseInt(res.usage.toFixed(1)),
-              limit: parseInt(res.limit.toFixed(1)),
-              percentage: parseInt((res.usage / res.limit).toFixed(1)),
-            };
+    asyncStorage.getUser().then(async (user) => {
+      if (user) {
+        const limit = await storageService.loadLimit();
+        const driveUsage = await DriveService.instance.usage.getUsage();
 
-            dispatch(authActions.setUserStorage(currentPlan));
-            if (res) {
-              analytics
-                .identify(userData.uuid, {
-                  userId: userData.uuid,
-                  email: userData.email,
-                  platform: DevicePlatform.Mobile,
-                  storage_used: currentPlan.usage,
-                  storage_limit: currentPlan.limit,
-                  storage_usage: currentPlan.percentage,
-                })
-                .catch(() => undefined);
-            }
+        analytics
+          .identify(user.uuid, {
+            userId: user.uuid,
+            email: user.email,
+            platform: DevicePlatform.Mobile,
+            storage_used: driveUsage,
+            storage_limit: limit,
+            storage_usage: Math.floor(driveUsage / limit),
           })
           .catch(() => undefined);
-      })
-      .catch(() => undefined);
+      }
+    });
 
     // BackHandler
     const backAction = () => {

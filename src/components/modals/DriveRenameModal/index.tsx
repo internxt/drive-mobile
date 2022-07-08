@@ -119,7 +119,7 @@ function RenameModal(): JSX.Element {
           <View style={tailwind('px-1')}></View>
 
           <AppButton
-            title={strings.generic.rename}
+            title={strings.buttons.rename}
             type={'accept'}
             onPress={onRenameButtonPressed}
             disabled={isLoading}

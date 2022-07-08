@@ -15,14 +15,15 @@ const strings = new LocalizedStrings({
       security: 'Security',
       preparing: 'Preparing...',
       cancelling: 'Cancelling...',
-      rename: 'Rename',
-      delete: 'Delete',
       updated: 'Updated',
       monthly: 'Monthly',
-      annually: 'Annually',
+      pricePerMonth: '{0} € per month',
+      yearly: 'Yearly',
+      pricePerYear: '{0} € per year',
       view_folder: 'View folder',
       root_folder_name: 'Drive',
       iOfN: '{0} of {1}',
+      usagePercent: '{0}% used',
     },
     tabs: {
       Home: 'Home',
@@ -30,6 +31,11 @@ const strings = new LocalizedStrings({
       Add: 'Add',
       Photos: 'Photos',
       Settings: 'Settings',
+    },
+    subscriptions: {
+      free: 'Free plan',
+      lifetime: 'Lifetime plan',
+      subscription: 'Subscription',
     },
     screens: {
       DebugScreen: {
@@ -188,15 +194,6 @@ const strings = new LocalizedStrings({
         defaultName: 'New folder',
         confirm: 'Create',
       },
-      billing: {
-        title: 'Plans',
-        billedEachPeriod: '€{0} billed {1}',
-        features: {
-          guarantee: '30 days guarantee',
-          share: 'Private and secure file sharing',
-          anyDevice: 'Access your files from any device',
-        },
-      },
       photosPermissions: {
         title: 'Sync all your photos with all your devices',
         features: {
@@ -344,6 +341,7 @@ const strings = new LocalizedStrings({
       enabling: 'Enabling',
       disable: 'Disable',
       disabling: 'Disabling',
+      rename: 'Rename',
     },
     inputs: {
       name: 'Name',
@@ -397,6 +395,16 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      Plans: {
+        title: 'Unlimited privacy',
+        advice: 'Upgrade now to get more storage for all your memories and work documents',
+        howMuchStorage: 'How much storage you want?',
+        moneyBack: '30 Days money-back guarantee',
+        cancelAtAnyMoment: 'Cancel at any moment',
+        subscriptionRenew:
+          'Subscriptions automatically renew unless you cancel your subscription at least 24 hours before the current period ends. To manage your subscription please go to “Account” > “Subscription”. Thank you for reading the fine print and considering subscribing to Internxt.',
+        freeUpSpace: 'You have {0} in use, free up space to be able to downgrade to the {1} plan.',
+      },
       EnableTwoFactor: {
         title: 'Enable 2FA',
         advice: 'Scan or copy the key in your auth app, keep it in a safe place in case you lose your device',
@@ -569,6 +577,7 @@ const strings = new LocalizedStrings({
       disable2FA: 'Error disabling 2FA',
       sendVerificationEmail: 'Error sending verification email',
       changePassword: 'Error changing password',
+      loadPrices: 'Error loading prices',
     },
   },
   es: {
@@ -581,14 +590,15 @@ const strings = new LocalizedStrings({
       security: 'Seguridad',
       preparing: 'Preparando...',
       cancelling: 'Cancelando...',
-      rename: 'Renombrar',
-      delete: 'Eliminar',
       updated: 'Actualizado',
       monthly: 'Mensual',
-      annually: 'Anual',
+      pricePerMonth: '{0} € por mes',
+      yearly: 'Anual',
+      pricePerYear: '{0} € por año',
       view_folder: 'Ver carpeta',
       root_folder_name: 'Drive',
       iOfN: '{0} de {1}',
+      usagePercent: '{0}% usado',
     },
     tabs: {
       Home: 'Inicio',
@@ -596,6 +606,11 @@ const strings = new LocalizedStrings({
       Add: 'Añadir',
       Photos: 'Photos',
       Settings: 'Ajustes',
+    },
+    subscriptions: {
+      free: 'Plan gratuito',
+      lifetime: 'Plan vitalicio',
+      subscription: 'Subscripción',
     },
     screens: {
       DebugScreen: {
@@ -754,15 +769,6 @@ const strings = new LocalizedStrings({
         defaultName: 'Nueva carpeta',
         confirm: 'Crear',
       },
-      billing: {
-        title: 'Planes',
-        billedEachPeriod: '{0}€ facturados {1}',
-        features: {
-          guarantee: '30 días de garantía',
-          share: 'Comparte tus archivos de forma privada y segura',
-          anyDevice: 'Accede a tus archivos desde cualquier dispositivo',
-        },
-      },
       photosPermissions: {
         title: 'Sincroniza tus fotos con todos tus dispositivos',
         features: {
@@ -911,6 +917,7 @@ const strings = new LocalizedStrings({
       enabling: 'Habilitando',
       disable: 'Deshabilitar',
       disabling: 'Deshabilitando',
+      rename: 'Renombrar',
     },
     inputs: {
       name: 'Nombre',
@@ -964,6 +971,16 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      Plans: {
+        title: 'Privacidad sin límites',
+        advice: 'Mejora tu plan ahora para obtener más almacenamiento para todos tus recuerdos y documentos de trabajo',
+        howMuchStorage: '¿Cuánto almacenamiento quieres?',
+        moneyBack: 'Garantía de devolución de dinero de 30 días',
+        cancelAtAnyMoment: 'Cancela en cualquier momento',
+        subscriptionRenew:
+          'Las suscripciones se renuevan automáticamente a menos que cancele su suscripción al menos 24 horas antes de que finalice el período actual. Para administrar su suscripción, vaya a "Cuenta" > "Suscripción". Gracias por leer la letra pequeña y considerar suscribirte a Internxt.',
+        freeUpSpace: 'Estás usando {0}, libera espacio para bajar al plan de {1}.',
+      },
       EnableTwoFactor: {
         title: 'Habilitar 2FA',
         advice:
@@ -1138,6 +1155,7 @@ const strings = new LocalizedStrings({
       disable2FA: 'Error deshabilitando 2FA',
       sendVerificationEmail: 'Error enviando email de verificación',
       changePassword: 'Error cambiando contraseña',
+      loadPrices: 'Error cargando precios',
     },
   },
 });

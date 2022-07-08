@@ -67,7 +67,7 @@ function DriveItemInfoModal(): JSX.Element {
           <BottomModalOption
             leftSlot={
               <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.generic.rename}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.rename}</Text>
               </View>
             }
             rightSlot={<PencilSimpleLine size={20} color={getColor('text-neutral-500')} />}

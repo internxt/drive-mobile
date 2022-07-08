@@ -8,7 +8,6 @@ import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import StorageScreen from '../screens/StorageScreen';
 import AuthenticatedNavigator from './TabExplorerNavigator';
-import BillingScreen from '../screens/BillingScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import PhotosPreviewScreen from '../screens/PhotosPreviewScreen';
@@ -97,7 +96,6 @@ function AppNavigator(): JSX.Element {
       <Stack.Screen name="TabExplorer" component={AuthenticatedNavigator} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="Storage" component={StorageScreen} />
-      <Stack.Screen name="Billing" component={BillingScreen} />
       <Stack.Screen name="PhotosPreview" component={PhotosPreviewScreen} />
     </Stack.Navigator>
   );

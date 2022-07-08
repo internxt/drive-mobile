@@ -6,8 +6,10 @@ import { Language, NotificationType } from 'src/types';
 import { RootState } from '../..';
 import { authThunks } from '../auth';
 import { driveThunks } from '../drive';
+import { paymentsThunks } from '../payments';
 import { photosThunks } from '../photos';
 import { referralsThunks } from '../referrals';
+import { storageThunks } from '../storage';
 import { usersThunks } from '../users';
 
 export interface AppState {
@@ -26,6 +28,8 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     dispatch(photosThunks.initializeThunk());
     dispatch(referralsThunks.initializeThunk());
     dispatch(usersThunks.initializeThunk());
+    dispatch(paymentsThunks.initializeThunk());
+    dispatch(storageThunks.initializeThunk());
   },
 );
 
