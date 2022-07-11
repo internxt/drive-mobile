@@ -1,6 +1,6 @@
 {
   "name": "drive-mobile",
-  "version": "1.5.13",
+  "version": "1.5.14",
   "private": true,
   "license": "GNU",
   "scripts": {
@@ -29,8 +29,8 @@
   "dependencies": {
     "@burstware/react-native-portal": "^1.0.2",
     "@internxt/lib": "^1.2.0",
-    "@internxt/rn-crypto": "^0.1.9",
-    "@internxt/sdk": "^0.16.0",
+    "@internxt/rn-crypto": "^0.1.10",
+    "@internxt/sdk": "^0.16.1",
     "@react-native-async-storage/async-storage": "^1.17.0",
     "@react-native-community/cameraroll": "github:internxt/react-native-cameraroll",
     "@react-navigation/bottom-tabs": "^6.2.0",

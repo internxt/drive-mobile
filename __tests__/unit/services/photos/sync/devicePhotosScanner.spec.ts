@@ -36,7 +36,7 @@ describe('Device Photos Scanner', () => {
       subject.run();
     });
 
-    it('Should finish with sequence RUNNING -> DONE -> IDLE', (done) => {
+    it('Should finish with sequence RUNNING -> COMPLETED', (done) => {
       mockedGetAssetsAsync.mockImplementationOnce(async () => {
         return {
           assets: [],
@@ -47,11 +47,11 @@ describe('Device Photos Scanner', () => {
       });
 
       const statusChangeMock = jest.fn<void, [DevicePhotosScannerStatus]>((status) => {
-        if (status === DevicePhotosScannerStatus.IDLE) {
+        if (status === DevicePhotosScannerStatus.COMPLETED) {
           expect(statusChangeMock).toHaveBeenNthCalledWith(1, DevicePhotosScannerStatus.RUNNING);
-          expect(statusChangeMock).toHaveBeenNthCalledWith(2, DevicePhotosScannerStatus.DONE);
-          expect(statusChangeMock).toHaveBeenNthCalledWith(3, DevicePhotosScannerStatus.IDLE);
-          expect(statusChangeMock).toBeCalledTimes(3);
+          expect(statusChangeMock).toHaveBeenNthCalledWith(2, DevicePhotosScannerStatus.COMPLETED);
+
+          expect(statusChangeMock).toBeCalledTimes(2);
 
           done();
         }
@@ -87,7 +87,7 @@ describe('Device Photos Scanner', () => {
       const onGroupReadyMock = jest.fn<void, [DevicePhoto[]]>();
 
       const statusChangeMock = jest.fn<void, [DevicePhotosScannerStatus]>((status) => {
-        if (status === DevicePhotosScannerStatus.IDLE) {
+        if (status === DevicePhotosScannerStatus.COMPLETED) {
           expect(onGroupReadyMock).toHaveBeenCalledTimes(2);
           done();
         }

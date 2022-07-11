@@ -20,6 +20,7 @@ describe('Photos Sync Manager', () => {
     getByDevicePhoto: jest.fn(),
     getByPhoto: jest.fn(),
     getByPreviewUri: jest.fn(),
+    getAll: jest.fn(),
   };
   const db = initialDbMock;
 

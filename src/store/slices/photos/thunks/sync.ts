@@ -48,6 +48,13 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
     });
 
     syncManager.onStatusChange((status) => {
+      if (status === PhotosSyncManagerStatus.COMPLETED) {
+        dispatch(
+          photosSlice.actions.updateSyncStatus({
+            status: PhotosSyncStatus.Completed,
+          }),
+        );
+      }
       if (status === PhotosSyncManagerStatus.PAUSED) {
         dispatch(
           photosSlice.actions.updateSyncStatus({
@@ -77,13 +84,6 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
       event: PhotosEventKey.ResumeSync,
       listener: () => {
         syncManager.resume();
-      },
-    });
-
-    PhotosCommonServices.events.addListener({
-      event: PhotosEventKey.RestartSync,
-      listener: () => {
-        syncManager.restart();
       },
     });
 

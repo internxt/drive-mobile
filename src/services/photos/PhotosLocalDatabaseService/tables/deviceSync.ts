@@ -2,10 +2,11 @@ export const TABLE_NAME = 'device_sync';
 const statements = {
   createTable: `CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (\
       id INTEGER PRIMARY KEY AUTOINCREMENT, \
-      photo_id TEXT, \
       device_photo_id TEXT,
+      photo_id TEXT, \
       stage TEXT
     );`,
+  getAll: `SELECT * FROM ${TABLE_NAME}`,
   dropTable: `DROP TABLE ${TABLE_NAME};`,
   cleanTable: `DELETE FROM ${TABLE_NAME};`,
   selectCount: `SELECT COUNT(*) as count FROM ${TABLE_NAME}`,

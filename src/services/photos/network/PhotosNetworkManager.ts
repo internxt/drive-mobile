@@ -1,5 +1,6 @@
 import {
   DevicePhoto,
+  DevicePhotoRemoteCheck,
   PhotoFileSystemRef,
   PhotosNetworkManagerStatus,
   PhotosNetworkOperation,
@@ -10,7 +11,6 @@ import PhotosUploadService from './UploadService';
 import async from 'async';
 import { Photo, PhotoExistsData } from '@internxt/sdk/dist/photos';
 import { RunnableService } from '../../../helpers/services';
-import { InteractionManager } from 'react-native';
 import fileSystemService from '../../FileSystemService';
 import { PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
@@ -66,6 +66,9 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     this.queue.kill();
   }
 
+  public isDone() {
+    return this.status === PhotosNetworkManagerStatus.EMPTY || this.status === PhotosNetworkManagerStatus.IDLE;
+  }
   public resume() {
     this.queue.resume();
     if (!this.totalOperations) {
@@ -90,11 +93,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
    * @param devicePhotos A list of device photos to check if exists remotely
    * @returns The same list of photos containing an exists property and a remote photo if it exists
    */
-  public async getMissingRemotely(
-    devicePhotos: DevicePhoto[],
-  ): Promise<
-    { devicePhoto: DevicePhoto; hash: string; photoRef: PhotoFileSystemRef; exists: boolean; photo?: Photo }[]
-  > {
+  public async getMissingRemotely(devicePhotos: DevicePhoto[]): Promise<DevicePhotoRemoteCheck[]> {
     const convertedPhotos = await Promise.all(
       devicePhotos.map(async (devicePhoto) => {
         if (!PhotosCommonServices.model.user) throw new Error('Photos user not initialized');

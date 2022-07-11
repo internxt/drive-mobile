@@ -17,6 +17,7 @@ describe('DevicePhotosSyncChecker system', () => {
     getByDevicePhoto: jest.fn(),
     getByPhoto: jest.fn(),
     getByPreviewUri: jest.fn(),
+    getAll: jest.fn(),
   };
 
   describe('Resolve an operation with a sync stage', () => {
@@ -69,12 +70,12 @@ describe('DevicePhotosSyncChecker system', () => {
 
   describe('Notify the sync checker queue status correctly', () => {
     beforeEach(() => (subject = new DevicePhotosSyncCheckerService(db)));
-    it('Should end with status sequence RUNNING > EMPTY > IDLE', (done) => {
+    it('Should end with status sequence RUNNING > EMPTY > COMPLETED', (done) => {
       const statusChangeMock = jest.fn<void, [DevicePhotosSyncCheckerStatus]>((status) => {
-        if (status === DevicePhotosSyncCheckerStatus.IDLE) {
+        if (status === DevicePhotosSyncCheckerStatus.COMPLETED) {
           expect(statusChangeMock).toHaveBeenNthCalledWith(1, DevicePhotosSyncCheckerStatus.RUNNING);
           expect(statusChangeMock).toHaveBeenNthCalledWith(2, DevicePhotosSyncCheckerStatus.EMPTY);
-          expect(statusChangeMock).toHaveBeenNthCalledWith(3, DevicePhotosSyncCheckerStatus.IDLE);
+          expect(statusChangeMock).toHaveBeenNthCalledWith(3, DevicePhotosSyncCheckerStatus.COMPLETED);
           expect(statusChangeMock).toBeCalledTimes(3);
           done();
         }

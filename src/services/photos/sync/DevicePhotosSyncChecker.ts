@@ -30,7 +30,7 @@ export class DevicePhotosSyncCheckerService {
     this.db.initialize();
     this.queue.drain(() => {
       this.updateStatus(DevicePhotosSyncCheckerStatus.EMPTY);
-      this.updateStatus(DevicePhotosSyncCheckerStatus.IDLE);
+      this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);
     });
   }
 
@@ -50,6 +50,10 @@ export class DevicePhotosSyncCheckerService {
 
   public destroy() {
     this.queue.kill();
+  }
+
+  public isDone() {
+    return this.status === DevicePhotosSyncCheckerStatus.COMPLETED;
   }
 
   public get totalOperations() {
@@ -101,6 +105,9 @@ export class DevicePhotosSyncCheckerService {
     return this.queue.length();
   }
 
+  private restart() {
+    this.queue.kill();
+  }
   private async getSyncStage(operation: DevicePhotoSyncCheckOperation) {
     if (operation.lastError) {
       return SyncStage.FAILED_TO_CHECK;

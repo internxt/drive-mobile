@@ -113,6 +113,7 @@ export enum DevicePhotosSyncCheckerStatus {
   PAUSED = 'PAUSED',
   IDLE = 'IDLE',
   EMPTY = 'EMPTY',
+  COMPLETED = 'COMPLETED',
 }
 
 export enum PhotosSyncManagerStatus {
@@ -120,6 +121,7 @@ export enum PhotosSyncManagerStatus {
   PAUSED = 'PAUSED',
   IDLE = 'IDLE',
   EMPTY = 'EMPTY',
+  COMPLETED = 'COMPLETED',
 }
 
 export enum PhotosNetworkManagerStatus {
@@ -170,4 +172,12 @@ export interface DevicePhotoSyncCheckOperation {
 export interface DevicePhotosSyncServiceHandlers {
   onOperationCompleted: (operation: DevicePhotoSyncCheckOperation) => void;
   onSyncQueueStatusChange: (status: DevicePhotosSyncCheckerStatus) => void;
+}
+
+export interface DevicePhotoRemoteCheck {
+  devicePhoto: DevicePhoto;
+  hash: string;
+  photoRef: PhotoFileSystemRef;
+  exists: boolean;
+  photo?: Photo;
 }

@@ -4,9 +4,9 @@ import { RunnableService } from '../../../helpers/services';
 
 export enum DevicePhotosScannerStatus {
   PAUSED = 'PAUSED',
-  DONE = 'DONE',
   RUNNING = 'RUNNING',
   IDLE = 'IDLE',
+  COMPLETED = 'COMPLETED',
 }
 export type OnGroupReadyCallback = (items: MediaLibrary.Asset[]) => void;
 export type OnStatusChangeCallback = (status: DevicePhotosScannerStatus) => void;
@@ -63,6 +63,10 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     this.updateStatus(DevicePhotosScannerStatus.PAUSED);
   }
 
+  public isDone() {
+    return this.status === DevicePhotosScannerStatus.COMPLETED;
+  }
+
   public destroy() {
     this.pause();
     this.nextCursor = undefined;
@@ -97,8 +101,7 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
       this.nextCursor = photos.endCursor;
       this.getGroup();
     } else {
-      this.updateStatus(DevicePhotosScannerStatus.DONE);
-      this.updateStatus(DevicePhotosScannerStatus.IDLE);
+      this.updateStatus(DevicePhotosScannerStatus.COMPLETED);
     }
 
     return photos;

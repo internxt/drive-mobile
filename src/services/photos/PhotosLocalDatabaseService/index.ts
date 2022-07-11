@@ -27,6 +27,12 @@ export default class PhotosLocalDatabaseService {
     return rows.raw().length ? rows.raw()[0] : null;
   }
 
+  public async getAll() {
+    const [{ rows }] = await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.getAll, []);
+
+    return rows.raw();
+  }
+
   public async getByDevicePhoto(devicePhoto: DevicePhoto) {
     const [{ rows }] = await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.getByDevicePhotoId, [
       devicePhoto.id,

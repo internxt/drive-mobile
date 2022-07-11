@@ -107,7 +107,7 @@ export class PhotosService {
     const localPreview = await this.previewService.getLocalPreview(photo);
 
     if (localPreview) {
-      return localPreview;
+      return fileSystemService.pathToUri(localPreview);
     }
 
     const photoRemotePreviewData = this.getPhotoRemotePreviewData(photo);
@@ -130,7 +130,7 @@ export class PhotosService {
         },
       );
 
-      return photoPreviewRef;
+      return fileSystemService.pathToUri(photoPreviewRef);
     }
 
     return null;
