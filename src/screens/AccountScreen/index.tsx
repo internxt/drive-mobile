@@ -16,6 +16,7 @@ import { TabExplorerScreenProps } from '../../types/navigation';
 import { useCountdown } from 'usehooks-ts';
 import { useEffect, useMemo, useState } from 'react';
 import storageService from 'src/services/StorageService';
+import { paymentsSelectors } from 'src/store/slices/payments';
 
 function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.Element {
   const [verificationEmailTime, { startCountdown, resetCountdown }] = useCountdown({
@@ -38,6 +39,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
   const { limit } = useAppSelector((state) => state.storage);
   const user = useAppSelector((state) => state.auth.user);
   const userFullName = useAppSelector(authSelectors.userFullName);
+  const hasPaidPlan = useAppSelector(paymentsSelectors.hasPaidPlan);
   const onBackButtonPressed = () => {
     navigation.goBack();
   };
@@ -46,6 +48,9 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
   };
   const onBillingPressed = () => {
     dispatch(uiActions.setIsPlansModalOpen(true));
+  };
+  const onManageSubscriptionPressed = () => {
+    navigation.push('TabExplorer', { screen: 'Plan' });
   };
   const onSecurityPressed = () => {
     dispatch(uiActions.setIsSecurityModalOpen(true));
@@ -173,21 +178,29 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
               {
                 key: 'plan',
                 template: (
-                  <View style={tailwind('flex-row items-center justify-between px-4 py-4')}>
+                  <View style={tailwind('flex-row items-center justify-between px-4 py-3')}>
                     <View>
                       <AppText style={tailwind('text-primary text-2xl')}>{storageService.toString(limit)}</AppText>
                       <AppText style={tailwind('text-sm text-gray-80')}>
                         {strings.subscriptions[subscription.type]}
                       </AppText>
                     </View>
-                    <AppButton
-                      type="accept"
-                      title={strings.buttons.upgrade}
-                      onPress={onBillingPressed}
-                      style={tailwind('rounded-3xl px-8 py-2')}
-                    />
+                    {!hasPaidPlan ? (
+                      <View style={tailwind('flex-row items-center')}>
+                        <AppText style={tailwind('text-gray-40 mr-2.5')}>{strings.buttons.manage}</AppText>
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
+                      </View>
+                    ) : (
+                      <AppButton
+                        type="accept"
+                        title={strings.buttons.upgrade}
+                        onPress={onBillingPressed}
+                        style={tailwind('rounded-3xl px-8 py-2')}
+                      />
+                    )}
                   </View>
                 ),
+                onPress: !hasPaidPlan ? onManageSubscriptionPressed : undefined,
               },
             ]}
           />
@@ -209,7 +222,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
                       </AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
-                      <CaretRight color={getColor('text-neutral-60')} size={20} />
+                      <CaretRight color={getColor('text-gray-40')} size={20} />
                     </View>
                   </View>
                 ),

@@ -33,7 +33,7 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
     dispatch(uiActions.setIsSignOutModalOpen(true));
   };
   const onStoragePressed = () => {
-    navigation.push('Storage');
+    navigation.push('TabExplorer', { screen: 'Storage' });
   };
   const onLanguagePressed = () => {
     dispatch(uiActions.setIsLanguageModalOpen(true));

@@ -20,7 +20,7 @@ const ReferralsBanner = (): JSX.Element => {
   const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const isOpen = useAppSelector((state) => state.ui.isReferralsBannerOpen);
   const onBannerPressed = () => {
-    navigation.navigate('Storage');
+    navigation.navigate('TabExplorer', { screen: 'Storage' });
     dispatch(uiActions.setIsReferralsBannerOpen(false));
   };
   const onCloseButtonPressed = () => {

@@ -17,7 +17,6 @@ export type RootStackParamList = {
   SignIn: undefined;
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList> & { showReferralsBanner?: boolean };
   ForgotPassword: undefined;
-  Storage: undefined;
   PhotosPreview: {
     data: Photo;
     preview: string;
@@ -41,6 +40,8 @@ export type TabExplorerStackParamList = {
   Photos: undefined;
   Settings: undefined;
   Account: undefined;
+  Storage: undefined;
+  Plan: undefined;
   Security: undefined;
 };
 

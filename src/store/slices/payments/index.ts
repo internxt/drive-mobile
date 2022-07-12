@@ -1,4 +1,10 @@
-import { CreateCheckoutSessionPayload, DisplayPrice, UserSubscription } from '@internxt/sdk/dist/drive/payments/types';
+import {
+  CreateCheckoutSessionPayload,
+  DisplayPrice,
+  Invoice,
+  PaymentMethod,
+  UserSubscription,
+} from '@internxt/sdk/dist/drive/payments/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
 import _ from 'lodash';
@@ -13,6 +19,8 @@ export interface PaymentsState {
   prices: DisplayPrice[];
   subscription: UserSubscription;
   sessionId: string;
+  invoices: Invoice[];
+  defaultPaymentMethod: PaymentMethod | null;
 }
 
 const initialState: PaymentsState = {
@@ -22,6 +30,21 @@ const initialState: PaymentsState = {
     type: 'free',
   },
   sessionId: '',
+  invoices: [
+    {
+      id: '1',
+      bytesInPlan: 100000,
+      created: Date.now(),
+      pdf: 'http://cprmerida.juntaextremadura.net/manual.pdf',
+    },
+    {
+      id: '2',
+      bytesInPlan: 20000000,
+      created: Date.now(),
+      pdf: 'http://cprmerida.juntaextremadura.net/manual.pdf',
+    },
+  ],
+  defaultPaymentMethod: null,
 };
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
@@ -33,6 +56,8 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
       paymentService.initialize(photosToken, user.mnemonic);
       dispatch(loadPricesThunk());
       dispatch(loadUserSubscriptionThunk());
+      dispatch(loadInvoicesThunk());
+      dispatch(loadDefaultPaymentMethodThunk());
     }
   },
 );
@@ -50,6 +75,17 @@ const loadUserSubscriptionThunk = createAsyncThunk<UserSubscription, void, { sta
   'payments/loadUserSubscription',
   async () => {
     return paymentService.getUserSubscription();
+  },
+);
+
+const loadInvoicesThunk = createAsyncThunk<Invoice[], void, { state: RootState }>('payments/loadInvoices', async () => {
+  return paymentService.getInvoices();
+});
+
+const loadDefaultPaymentMethodThunk = createAsyncThunk<PaymentMethod, void, { state: RootState }>(
+  'payments/loadDefaultPaymentMethod',
+  async () => {
+    return paymentService.getDefaultPaymentMethod();
   },
 );
 
@@ -95,6 +131,14 @@ export const paymentsSlice = createSlice({
     builder.addCase(loadUserSubscriptionThunk.fulfilled, (state, action) => {
       state.subscription = action.payload;
     });
+
+    builder.addCase(loadInvoicesThunk.fulfilled, (state, action) => {
+      state.invoices = action.payload;
+    });
+
+    builder.addCase(loadDefaultPaymentMethodThunk.fulfilled, (state, action) => {
+      state.defaultPaymentMethod = action.payload;
+    });
   },
 });
 
@@ -102,12 +146,16 @@ export const paymentsActions = paymentsSlice.actions;
 
 export const paymentsSelectors = {
   pricesBySize: (state: RootState) => _.groupBy(state.payments.prices, 'bytes'),
+  hasPaidPlan: (state: RootState) => state.payments.subscription.type !== 'free',
+  hasSubscription: (state: RootState) => state.payments.subscription.type === 'subscription',
+  hasLifetime: (state: RootState) => state.payments.subscription.type === 'lifetime',
 };
 
 export const paymentsThunks = {
   initializeThunk,
   loadPricesThunk,
   loadUserSubscriptionThunk,
+  loadInvoicesThunk,
   createSessionThunk,
 };
 

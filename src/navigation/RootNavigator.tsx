@@ -6,7 +6,6 @@ import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import { RootStackParamList } from '../types/navigation';
 import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
-import StorageScreen from '../screens/StorageScreen';
 import AuthenticatedNavigator from './TabExplorerNavigator';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -95,7 +94,6 @@ function AppNavigator(): JSX.Element {
       <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="TabExplorer" component={AuthenticatedNavigator} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="Storage" component={StorageScreen} />
       <Stack.Screen name="PhotosPreview" component={PhotosPreviewScreen} />
     </Stack.Navigator>
   );

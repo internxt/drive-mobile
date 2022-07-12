@@ -74,22 +74,63 @@ class PaymentService {
     return (<Payments>this.sdk).getPrices();
   }
 
-  public async updateSubscriptionPrice(priceId: string): Promise<void> {
+  public async updateSubscriptionPrice(priceId: string): Promise<UserSubscription> {
     this.checkIsInitialized();
 
     return (<Payments>this.sdk).updateSubscriptionPrice(priceId);
   }
 
-  async cancelSubscription(): Promise<void> {
+  public async cancelSubscription(): Promise<void> {
     this.checkIsInitialized();
 
     return (<Payments>this.sdk).cancelSubscription();
   }
 
-  async createCheckoutSession(payload: CreateCheckoutSessionPayload): Promise<{ sessionId: string }> {
+  public async createCheckoutSession(payload: CreateCheckoutSessionPayload): Promise<{ sessionId: string }> {
     this.checkIsInitialized();
 
     return (<Payments>this.sdk).createCheckoutSession(payload);
+  }
+
+  public getCardImage(brand: PaymentMethod['card']['brand']) {
+    let image;
+
+    switch (brand) {
+      case 'amex': {
+        image = require('../../assets/images/credit-cards/amex.png');
+        break;
+      }
+      case 'diners': {
+        image = require('image!../../assets/images/credit-cards/diners.png');
+        break;
+      }
+      case 'discover': {
+        image = require('../../assets/images/credit-cards/discover.png');
+        break;
+      }
+      case 'jcb': {
+        image = require('../../assets/images/credit-cards/jcb.png');
+        break;
+      }
+      case 'mastercard': {
+        image = require('../../assets/images/credit-cards/mastercard.png');
+        break;
+      }
+      case 'unionpay': {
+        image = require('../../assets/images/credit-cards/unionpay.png');
+        break;
+      }
+      case 'visa': {
+        image = require('../../assets/images/credit-cards/visa.png');
+        break;
+      }
+      case 'unknown': {
+        image = require('../../assets/images/credit-cards/unknown.png');
+        break;
+      }
+    }
+
+    return image;
   }
 
   private checkIsInitialized() {

@@ -26,6 +26,8 @@ import { RootStackScreenProps, TabExplorerStackParamList } from '../types/naviga
 import { useTailwind } from 'tailwind-rn';
 import AccountScreen from '../screens/AccountScreen';
 import SecurityScreen from '../screens/SecurityScreen';
+import StorageScreen from '../screens/StorageScreen';
+import PlanScreen from '../screens/PlanScreen';
 import SecurityModal from 'src/components/modals/SecurityModal';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
@@ -59,6 +61,8 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Settings" component={SettingsScreen} />
         <Tab.Screen name="Account" component={AccountScreen} />
         <Tab.Screen name="Security" component={SecurityScreen} />
+        <Tab.Screen name="Storage" component={StorageScreen} />
+        <Tab.Screen name="Plan" component={PlanScreen} />
       </Tab.Navigator>
 
       <ReferralsBanner />

@@ -49,6 +49,11 @@
 			"left": 0
 		}
 	},
+	"top-4": {
+		"style": {
+			"top": 16
+		}
+	},
 	"z-20": {
 		"style": {
 			"zIndex": 20
@@ -133,18 +138,6 @@
 			"marginBottom": 32
 		}
 	},
-	"my-6": {
-		"style": {
-			"marginTop": 24,
-			"marginBottom": 24
-		}
-	},
-	"my-10": {
-		"style": {
-			"marginTop": 40,
-			"marginBottom": 40
-		}
-	},
 	"my-2": {
 		"style": {
 			"marginTop": 8,
@@ -161,6 +154,12 @@
 		"style": {
 			"marginTop": 16,
 			"marginBottom": 16
+		}
+	},
+	"my-6": {
+		"style": {
+			"marginTop": 24,
+			"marginBottom": 24
 		}
 	},
 	"mx-8": {
@@ -275,16 +274,6 @@
 			"marginTop": 6
 		}
 	},
-	"mt-8": {
-		"style": {
-			"marginTop": 32
-		}
-	},
-	"ml-3": {
-		"style": {
-			"marginLeft": 12
-		}
-	},
 	"-ml-2": {
 		"style": {
 			"marginLeft": -8
@@ -303,6 +292,11 @@
 	"mt-14": {
 		"style": {
 			"marginTop": 56
+		}
+	},
+	"ml-3": {
+		"style": {
+			"marginLeft": 12
 		}
 	},
 	"mr-3": {
@@ -393,6 +387,16 @@
 	"mb-0": {
 		"style": {
 			"marginBottom": 0
+		}
+	},
+	"-ml-4": {
+		"style": {
+			"marginLeft": -16
+		}
+	},
+	"-mr-4": {
+		"style": {
+			"marginRight": -16
 		}
 	},
 	"flex": {
@@ -625,11 +629,6 @@
 	"items-stretch": {
 		"style": {
 			"alignItems": "stretch"
-		}
-	},
-	"justify-start": {
-		"style": {
-			"justifyContent": "flex-start"
 		}
 	},
 	"justify-end": {
@@ -1028,12 +1027,6 @@
 			"backgroundColor": "rgb(166 200 255 / var(--tw-bg-opacity))"
 		}
 	},
-	"bg-primary": {
-		"style": {
-			"--tw-bg-opacity": 1,
-			"backgroundColor": "rgb(0 102 255 / var(--tw-bg-opacity))"
-		}
-	},
 	"p-0": {
 		"style": {
 			"paddingTop": 0,
@@ -1066,28 +1059,20 @@
 			"paddingLeft": 16
 		}
 	},
-	"p-3": {
-		"style": {
-			"paddingTop": 12,
-			"paddingRight": 12,
-			"paddingBottom": 12,
-			"paddingLeft": 12
-		}
-	},
-	"p-1": {
-		"style": {
-			"paddingTop": 4,
-			"paddingRight": 4,
-			"paddingBottom": 4,
-			"paddingLeft": 4
-		}
-	},
 	"p-6": {
 		"style": {
 			"paddingTop": 24,
 			"paddingRight": 24,
 			"paddingBottom": 24,
 			"paddingLeft": 24
+		}
+	},
+	"p-3": {
+		"style": {
+			"paddingTop": 12,
+			"paddingRight": 12,
+			"paddingBottom": 12,
+			"paddingLeft": 12
 		}
 	},
 	"p-3.5": {
@@ -1240,6 +1225,12 @@
 		"style": {
 			"paddingTop": 40,
 			"paddingBottom": 40
+		}
+	},
+	"py-6": {
+		"style": {
+			"paddingTop": 24,
+			"paddingBottom": 24
 		}
 	},
 	"pl-4": {

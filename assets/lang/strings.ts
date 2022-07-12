@@ -16,6 +16,8 @@ const strings = new LocalizedStrings({
       preparing: 'Preparing...',
       cancelling: 'Cancelling...',
       updated: 'Updated',
+      year: 'Year',
+      month: 'Mes',
       monthly: 'Monthly',
       pricePerMonth: '{0} € per month',
       yearly: 'Yearly',
@@ -38,6 +40,20 @@ const strings = new LocalizedStrings({
       subscription: 'Subscription',
     },
     screens: {
+      PlanScreen: {
+        subscriptionTitle: 'Subscription',
+        lifetimeTitle: 'Lifetime',
+        paymentMethod: {
+          title: 'Payment method',
+        },
+        invoices: {
+          title: 'Invoices',
+          empty: 'Issued invoices will appear here when you have a paid subscription plan.',
+          billingDate: 'Billing date',
+          plan: 'Plan',
+        },
+        newChargeOn: 'Nuevo cargo el {0}',
+      },
       DebugScreen: {
         title: 'Debug',
         internet: {
@@ -166,15 +182,6 @@ const strings = new LocalizedStrings({
             used: 'Used space',
             unused: 'Unused space',
           },
-        },
-        plans: {
-          title: 'Storage plans',
-          title_2: 'Payment length',
-          current_plan: 'You are subscribed to the',
-          pay: 'Pay per',
-          pre_pay: 'Prepay',
-          month: 'month',
-          months: 'months',
         },
         referrals: {
           title: 'Unlock storage for free',
@@ -342,6 +349,8 @@ const strings = new LocalizedStrings({
       disable: 'Disable',
       disabling: 'Disabling',
       rename: 'Rename',
+      cancelSubscription: 'Cancel subscription',
+      manage: 'Manage',
     },
     inputs: {
       name: 'Name',
@@ -591,6 +600,8 @@ const strings = new LocalizedStrings({
       preparing: 'Preparando...',
       cancelling: 'Cancelando...',
       updated: 'Actualizado',
+      year: 'Year',
+      month: 'Mes',
       monthly: 'Mensual',
       pricePerMonth: '{0} € por mes',
       yearly: 'Anual',
@@ -609,10 +620,24 @@ const strings = new LocalizedStrings({
     },
     subscriptions: {
       free: 'Plan gratuito',
-      lifetime: 'Plan vitalicio',
+      lifetime: 'Plan lifetime',
       subscription: 'Subscripción',
     },
     screens: {
+      PlanScreen: {
+        subscriptionTitle: 'Suscripción',
+        lifetimeTitle: 'Lifetime',
+        paymentMethod: {
+          title: 'Método de pago',
+        },
+        invoices: {
+          title: 'Facturas',
+          empty: 'Las facturas emitidas aparecerán aquí cuando tengas un plan de suscripción de pago.',
+          billingDate: 'Fecha de facturación',
+          plan: 'Plan',
+        },
+        newChargeOn: 'New charge on {0}',
+      },
       DebugScreen: {
         title: 'Depuración',
         internet: {
@@ -741,15 +766,6 @@ const strings = new LocalizedStrings({
             used: 'Espacio usado',
             unused: 'Espacio sin usar',
           },
-        },
-        plans: {
-          title: 'Planes de almacenamiento',
-          title_2: 'Duración del pago',
-          current_plan: 'Actualmente estás suscrito al plan de',
-          pay: 'Paga',
-          pre_pay: 'Prepaga',
-          month: 'al mes',
-          months: 'meses',
         },
         referrals: {
           title: 'Desbloquea almacenamiento gratis',
@@ -918,6 +934,8 @@ const strings = new LocalizedStrings({
       disable: 'Deshabilitar',
       disabling: 'Deshabilitando',
       rename: 'Renombrar',
+      cancelSubscription: 'Cancelar suscripción',
+      manage: 'Gestionar',
     },
     inputs: {
       name: 'Nombre',

@@ -11,14 +11,14 @@ import ReferralsWidget from '../../components/ReferralsWidget';
 import globalStyle from '../../styles/global';
 import AppScreen from '../../components/AppScreen';
 import { CaretRight } from 'phosphor-react-native';
-import { RootStackScreenProps } from '../../types/navigation';
+import { TabExplorerScreenProps } from '../../types/navigation';
 import appService from '../../services/AppService';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../components/AppText';
 import useGetColor from '../../hooks/useColor';
 import { uiActions } from 'src/store/slices/ui';
 
-function StorageScreen({ navigation }: RootStackScreenProps<'Storage'>): JSX.Element {
+function StorageScreen({ navigation }: TabExplorerScreenProps<'Storage'>): JSX.Element {
   const { limit } = useAppSelector((state) => state.storage);
   const { usage: photosUsage } = useAppSelector((state) => state.photos);
   const { usage: driveUsage } = useAppSelector((state) => state.drive);

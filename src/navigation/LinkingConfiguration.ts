@@ -16,7 +16,6 @@ const linking: LinkingOptions<RootStackParamList> = {
       SignUp: 'sign-up',
       TabExplorer: 'tab-explorer',
       ForgotPassword: 'forgot-password',
-      Storage: 'storage',
       PhotosPreview: 'photos-preview',
     },
   },
