@@ -1,0 +1,158 @@
+import { photos } from '@internxt/sdk';
+
+import { PhotoFileSystemRef, PhotosEventKey, PhotoSizeType } from '../../types/photos';
+
+import PhotosDownloadService from './network/DownloadService';
+import PhotosUsageService from './UsageService';
+import PhotosPreviewService from './PreviewService';
+import { Photo } from '@internxt/sdk/dist/photos';
+import { PhotosCommonServices } from './PhotosCommonService';
+import fileSystemService from '../FileSystemService';
+import { PHOTOS_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_ROOT_DIRECTORY, PHOTOS_TMP_DIRECTORY } from './constants';
+export class PhotosService {
+  public static instance: PhotosService;
+
+  private readonly usageService: PhotosUsageService;
+  private readonly downloadService: PhotosDownloadService;
+  private readonly previewService: PhotosPreviewService;
+  private constructor() {
+    this.usageService = new PhotosUsageService();
+    this.downloadService = new PhotosDownloadService();
+    this.previewService = new PhotosPreviewService();
+  }
+
+  public get isInitialized(): boolean {
+    return !!PhotosCommonServices?.model?.isInitialized;
+  }
+
+  public static initialize() {
+    PhotosService.instance = new PhotosService();
+  }
+
+  private async initializeFileSystem() {
+    await fileSystemService.mkdir(PHOTOS_TMP_DIRECTORY);
+    await fileSystemService.mkdir(PHOTOS_DIRECTORY);
+    await fileSystemService.mkdir(PHOTOS_PREVIEWS_DIRECTORY);
+  }
+
+  public async startPhotos(): Promise<void> {
+    await this.initializeFileSystem();
+
+    if (PhotosCommonServices?.model) {
+      PhotosCommonServices.model.isInitialized = true;
+    }
+  }
+
+  public setSyncAbort(syncAbort: (reason?: string) => void) {
+    PhotosCommonServices.model.syncAbort = syncAbort;
+  }
+
+  public pauseSync() {
+    PhotosCommonServices.events.emit({
+      event: PhotosEventKey.PauseSync,
+    });
+  }
+
+  public async getPhotos({
+    limit = 50,
+    skip = 0,
+  }: {
+    limit: number;
+    skip?: number;
+  }): Promise<{ results: photos.Photo[]; count: number }> {
+    this.checkModel();
+
+    const { results, count } = await PhotosCommonServices.sdk.photos.getPhotos({}, skip, limit);
+
+    return { results, count };
+  }
+
+  public async deletePhotos(photos: photos.Photo[]): Promise<void> {
+    this.checkModel();
+
+    Promise.all(photos.map(async (photo) => PhotosCommonServices.sdk.photos.deletePhotoById(photo.id)));
+  }
+
+  public getUsage(): Promise<number> {
+    return this.usageService.getUsage();
+  }
+
+  /**
+   * @description Downloads the photo from the network
+   * @param fileId
+   * @param options
+   * @returns The photo path in the file system
+   */
+  public async downloadPhoto(
+    downloadParams: {
+      photoFileId: string;
+    },
+    options: {
+      destination: string;
+      downloadProgressCallback: (progress: number) => void;
+      decryptionProgressCallback: (progress: number) => void;
+    },
+  ): Promise<PhotoFileSystemRef> {
+    this.checkModel();
+
+    return this.downloadService.download(downloadParams.photoFileId, options);
+  }
+
+  public static async clearData(): Promise<void> {
+    await fileSystemService.unlink(PHOTOS_TMP_DIRECTORY);
+    await fileSystemService.unlink(PHOTOS_ROOT_DIRECTORY);
+  }
+
+  public async getPreview(photo: Photo): Promise<PhotoFileSystemRef | null> {
+    const localPreview = await this.previewService.getLocalPreview(photo);
+
+    if (localPreview) {
+      return fileSystemService.pathToUri(localPreview);
+    }
+
+    const photoRemotePreviewData = this.getPhotoRemotePreviewData(photo);
+
+    if (photoRemotePreviewData) {
+      const destinationPath = PhotosCommonServices.getPhotoPath({
+        name: photo.name,
+        size: PhotoSizeType.Preview,
+        type: photo.type,
+      });
+
+      const photoPreviewRef = await this.downloadPhoto(
+        {
+          photoFileId: photoRemotePreviewData.fileId,
+        },
+        {
+          destination: destinationPath,
+          decryptionProgressCallback: () => undefined,
+          downloadProgressCallback: () => undefined,
+        },
+      );
+
+      return fileSystemService.pathToUri(photoPreviewRef);
+    }
+
+    return null;
+  }
+
+  private getPhotoRemotePreviewData(photo: Photo) {
+    const photoRemotePreview =
+      photo.previewId && photo.previews
+        ? photo.previews.find((preview) => preview.fileId === photo.previewId)
+        : undefined;
+
+    return photoRemotePreview;
+  }
+
+  private get bucketId() {
+    if (!PhotosCommonServices.model.user) throw new Error('Photos user not initialized');
+    return PhotosCommonServices.model.user.bucketId || '';
+  }
+
+  private checkModel() {
+    if (!this.bucketId) {
+      throw new Error('(PhotosService) bucketId not found');
+    }
+  }
+}

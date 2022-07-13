@@ -46,6 +46,13 @@ const strings = new LocalizedStrings({
           title: 'File download',
           advice: 'Test the performance of file download.',
         },
+        photos: {
+          title: 'Photos',
+          advice: 'Manage Internxt Photos internal state',
+          resetPhotosData: 'Reset Photos device data',
+          resetSuccess: 'Photos data reseted',
+          resetError: 'Error during photos data reset',
+        },
         notifications: {
           title: 'Notifications',
           advice: 'Test all notification types.',
@@ -407,7 +414,7 @@ const strings = new LocalizedStrings({
       itemsDeleted: 'Item/s deleted',
       photoShared: 'You have shared a photo!',
       photosSyncPending: 'Pending synchronization',
-      photosSyncCompleted: 'Your device is up to date',
+      photosSyncCompleted: 'Your gallery is up to date',
       renamedSuccessfully: 'Renamed successfully',
       linkCopied: 'Link copied',
       passwordChanged: 'Password changed',
@@ -474,6 +481,13 @@ const strings = new LocalizedStrings({
         download: {
           title: 'Descarga de archivos',
           advice: 'Prueba el rendimiento de la descarga de archivos.',
+        },
+        photos: {
+          title: 'Photos',
+          advice: 'Gestiona el estado interno de Internxt Photos',
+          resetPhotosData: 'Resetea los datos de Photos',
+          resetSuccess: 'Datos de Photos reseteados',
+          resetError: 'Ha ocurrido un error reseteando los datos de Photos',
         },
         notifications: {
           title: 'Notificaciones',
@@ -839,7 +853,7 @@ const strings = new LocalizedStrings({
       itemsDeleted: 'Elementos borrados',
       photoShared: '¡Has compartido una foto!',
       photosSyncPending: 'Sincronización pendiente',
-      photosSyncCompleted: 'Tu dispositivo está sincronizado',
+      photosSyncCompleted: 'Tu galería está sincronizada',
       renamedSuccessfully: 'Renombrado correctamente',
       linkCopied: 'Enlace copiado',
       passwordChanged: 'Contraseña cambiada',

@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosThunks } from '../../store/slices/photos';
 import GalleryYear from '../GalleryYear';
 
 const GalleryYearsView = (): JSX.Element => {
-  const dispatch = useAppDispatch();
+  return <View></View>;
+  /*  const dispatch = useAppDispatch();
   const { years } = useAppSelector((state) => state.photos);
   const yearsList = years.map((data) => <GalleryYear key={data.year.toString()} {...data} />);
 
@@ -14,7 +15,7 @@ const GalleryYearsView = (): JSX.Element => {
     dispatch(photosThunks.loadYearsThunk());
   }, []);
 
-  return <ScrollView style={tailwind('px-5')}>{yearsList}</ScrollView>;
+  return <ScrollView style={tailwind('px-5')}>{yearsList}</ScrollView>; */
 };
 
 export default GalleryYearsView;

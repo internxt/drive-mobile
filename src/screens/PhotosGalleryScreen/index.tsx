@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback, BackHandler } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 
@@ -8,11 +8,10 @@ import ScreenTitle from '../../components/AppScreenTitle';
 import strings from '../../../assets/lang/strings';
 import galleryViews from '../../components/gallery-views';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
+import { photosActions, photosSelectors, photosSlice, photosThunks } from '../../store/slices/photos';
 import { uiActions } from '../../store/slices/ui';
 import SharePhotoModal from '../../components/modals/SharePhotoModal';
 import DeletePhotosModal from '../../components/modals/DeletePhotosModal';
-import { GalleryViewMode } from '../../types/photos';
 import PhotosSyncStatusWidget from '../../components/PhotosSyncStatusWidget';
 import AppScreen from '../../components/AppScreen';
 import { Trash } from 'phosphor-react-native';
@@ -21,14 +20,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 function PhotosGalleryScreen(): JSX.Element {
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
-  const getPhotoPreview = useAppSelector(photosSelectors.getPhotoPreview);
-  const { isSharePhotoModalOpen, isDeletePhotosModalOpen } = useAppSelector((state) => state.ui);
-  const isLoading = useAppSelector(photosSelectors.isLoading);
-  const { isSelectionModeActivated, viewMode, selectedPhotos } = useAppSelector((state) => state.photos);
+  const isLoading = true;
+  const [currentPage, setCurrentPage] = useState(1);
+  const { isSelectionModeActivated, viewMode } = useAppSelector((state) => state.photos);
   const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
-  const hasNoPhotosSelected = selectedPhotos.length === 0;
+  const hasPhotosSelected = useAppSelector(photosSelectors.hasPhotosSelected);
+  const hasMorePhotos = useAppSelector(photosSelectors.hasMorePhotos);
+
+  const { selection } = useAppSelector((state) => state.photos);
+  const [loading, setLoading] = useState(false);
+  const [isDeletePhotosModalOpen, setIsDeletePhotosModalOpen] = useState(false);
   const onSharePhotoModalClosed = () => dispatch(uiActions.setIsSharePhotoModalOpen(false));
-  const onDeletePhotosModalClosed = () => dispatch(uiActions.setIsDeletePhotosModalOpen(false));
+  const onDeletePhotosModalClosed = () => {
+    setIsDeletePhotosModalOpen(false);
+    dispatch(photosActions.setIsSelectionModeActivated(false));
+  };
   const onSelectButtonPressed = () => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
   };
@@ -43,15 +49,16 @@ function PhotosGalleryScreen(): JSX.Element {
     dispatch(uiActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadSelectionButtonPressed = () => undefined; */
-  const onDeleteSelectionButtonPressed = () => {
-    dispatch(uiActions.setIsDeletePhotosModalOpen(true));
+  const onDeleteSelectionButtonPressed = async () => {
+    //await dispatch(photosThunks.deletePhotosThunk({ photos: selection }));
+    setIsDeletePhotosModalOpen(true);
   };
   const onBackButtonPressed = () => {
     onCancelSelectButtonPressed();
 
     return false;
   };
-  const GalleryView = galleryViews[viewMode];
+  const GalleryView = useMemo(() => galleryViews[viewMode], []);
   /*const groupByMenu = (function () {
     const groupByItems = Object.entries(GalleryViewMode).map(([, value]) => {
       const isActive = value === viewMode;
@@ -76,9 +83,9 @@ function PhotosGalleryScreen(): JSX.Element {
 
   useEffect(() => {
     //dispatch(photosActions.setViewMode(GalleryViewMode.All));
-    dispatch(photosActions.resetPhotos());
-    dispatch(photosThunks.loadLocalPhotosThunk());
-
+    /* dispatch(photosActions.resetPhotos());
+    dispatch(photosThunks.startUsingPhotosThunk()); */
+    dispatch(photosThunks.loadPhotosThunk({ page: currentPage }));
     const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressed);
 
     return () => {
@@ -87,15 +94,27 @@ function PhotosGalleryScreen(): JSX.Element {
     };
   }, []);
 
+  const loadNextPage = async () => {
+    if (!loading && hasMorePhotos) {
+      setLoading(true);
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+
+      dispatch(photosThunks.loadPhotosThunk({ page: nextPage })).unwrap();
+
+      setLoading(false);
+    }
+  };
+
   return (
     <>
-      <SharePhotoModal
+      {/*   <SharePhotoModal
         isOpen={isSharePhotoModalOpen}
         data={selectedPhotos[0]}
         preview={hasNoPhotosSelected ? '' : getPhotoPreview(selectedPhotos[0])}
         onClosed={onSharePhotoModalClosed}
-      />
-      <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selectedPhotos} onClosed={onDeletePhotosModalClosed} />
+      /> */}
+      <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selection} onClosed={onDeletePhotosModalClosed} />
 
       <AppScreen safeAreaTop style={tailwind('mb-14')}>
         {/* GALLERY TOP BAR */}
@@ -103,9 +122,7 @@ function PhotosGalleryScreen(): JSX.Element {
           {isSelectionModeActivated ? (
             <View style={tailwind('h-10 flex-row justify-between items-center')}>
               <View style={tailwind('flex-row items-center justify-between')}>
-                <Text style={tailwind('pl-5')}>
-                  {strings.formatString(strings.screens.gallery.nPhotosSelected, selectedPhotos.length)}
-                </Text>
+                <Text style={tailwind('pl-5')}>{strings.formatString(strings.screens.gallery.nPhotosSelected, 0)}</Text>
               </View>
 
               <View style={tailwind('flex-row pr-5')}>
@@ -160,7 +177,7 @@ function PhotosGalleryScreen(): JSX.Element {
 
         {/* GALLERY VIEW */}
         {hasPhotos ? (
-          <GalleryView />
+          <GalleryView onLoadNextPage={loadNextPage} />
         ) : (
           <View style={tailwind('flex-1 items-center justify-center')}>
             <Text style={tailwind('text-lg text-neutral-60')}>
@@ -227,14 +244,14 @@ function PhotosGalleryScreen(): JSX.Element {
               <TouchableWithoutFeedback
                 style={tailwind('flex-1')}
                 onPress={onDeleteSelectionButtonPressed}
-                disabled={hasNoPhotosSelected}
+                disabled={!hasPhotosSelected}
               >
                 <View style={tailwind('items-center flex-1')}>
-                  <Trash color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('red-60')} size={24} />
+                  <Trash color={!hasPhotosSelected ? getColor('neutral-60') : getColor('red-60')} size={24} />
                   <Text
                     numberOfLines={1}
                     style={[
-                      hasNoPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-red-60'),
+                      !hasPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-red-60'),
                       tailwind('text-xs'),
                     ]}
                   >

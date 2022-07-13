@@ -1,22 +1,26 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import PhotosPermissionsScreen from '../screens/PhotosPermissionsScreen';
 import PhotosGalleryScreen from '../screens/PhotosGalleryScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { photosSelectors, photosThunks } from '../store/slices/photos';
+import { photosActions, photosSelectors, photosThunks } from '../store/slices/photos';
 import strings from '../../assets/lang/strings';
 import { Text, View } from 'react-native';
 import { tailwind } from '../helpers/designSystem';
 import AppButton from '../components/AppButton';
 import { PhotosStackParamList } from '../types/navigation';
-
+import { PermissionStatus } from 'expo-media-library';
 const StackNav = createNativeStackNavigator<PhotosStackParamList>();
 
 function PhotosNavigator(): JSX.Element {
-  const { isInitialized, initializeError } = useAppSelector((state) => state.photos);
-  const arePermissionsGranted = useAppSelector(photosSelectors.arePermissionsGranted);
-  const initialRouteName: keyof PhotosStackParamList = arePermissionsGranted ? 'PhotosGallery' : 'PhotosPermissions';
+  const [isInitialized, setIsInitialized] = useState(false);
+  const { initializeError } = useAppSelector((state) => state.photos);
+
+  const permissionsStatus = useAppSelector(photosSelectors.permissionsStatus);
+
+  const initialRouteName: keyof PhotosStackParamList =
+    permissionsStatus === PermissionStatus.GRANTED ? 'PhotosGallery' : 'PhotosPermissions';
   const dispatch = useAppDispatch();
   const startUsingPhotos = async () => {
     await dispatch(photosThunks.startUsingPhotosThunk());
@@ -26,7 +30,14 @@ function PhotosNavigator(): JSX.Element {
   };
 
   useEffect(() => {
-    startUsingPhotos();
+    dispatch(photosThunks.checkPermissionsThunk())
+      .unwrap()
+      .then((result) => {
+        if (result.hasPermissions) {
+          return startUsingPhotos();
+        }
+      })
+      .finally(() => setIsInitialized(true));
   }, []);
 
   return (

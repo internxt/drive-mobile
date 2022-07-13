@@ -110,3 +110,16 @@ export type Abortable = (reason?: string) => void;
 export interface AppToastExtraProps {
   action?: { text: string; onActionPress: () => void };
 }
+
+export type Base64String = string;
+/**
+ * A file system ref is an string
+ * pointing to the location of a file
+ * in the device file system
+ *
+ * Examples:
+ *
+ * - file://tmp/x
+ * - /var/tmp
+ */
+export type FileSystemRef = string;

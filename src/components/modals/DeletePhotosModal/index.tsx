@@ -8,7 +8,7 @@ import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../AppButton';
 import { useAppDispatch } from '../../../store/hooks';
-import { photosThunks } from '../../../store/slices/photos';
+import { photosActions, photosThunks } from '../../../store/slices/photos';
 
 interface DeletePhotosModalProps extends BottomModalProps {
   data: Photo[];
@@ -22,6 +22,7 @@ function DeletePhotosModal({ isOpen, onClosed, data, onPhotosDeleted }: DeletePh
   };
   const onMoveToTrashButtonPressed = async () => {
     await dispatch(photosThunks.deletePhotosThunk({ photos: data }));
+    dispatch(photosActions.deselectAll());
     onPhotosDeleted?.();
     onClosed();
   };

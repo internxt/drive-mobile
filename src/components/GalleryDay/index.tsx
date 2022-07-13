@@ -20,10 +20,10 @@ interface GalleryDayProps {
 
 const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element => {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
+  //const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
   const arePhotosSelected = useAppSelector(photosSelectors.arePhotosSelected);
-  const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
+  //const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
   const [columnsCount] = useState(3);
   const [gutter] = useState(3);
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
@@ -38,18 +38,18 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
     dispatch(photosActions.deselectPhotos(photos.map((p) => p.data)));
   };
   const selectItem = (photo: Photo) => {
-    dispatch(photosActions.selectPhotos(photo));
+    dispatch(photosActions.selectPhotos([photo]));
   };
   const deselectItem = (photo: Photo) => {
-    dispatch(photosActions.deselectPhotos(photo));
+    dispatch(photosActions.deselectPhotos([photo]));
   };
   const onItemLongPressed = (photo: Photo) => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
     isPhotoSelected(photo) ? deselectItem(photo) : selectItem(photo);
   };
-  const onItemPressed = (item: Photo, preview: string) => {
+  /*  const onItemPressed = (item: Photo, preview: string) => {
     isSelectionModeActivated ? onItemLongPressed(item) : navigation.navigate('PhotosPreview', { data: item, preview });
-  };
+  }; */
 
   return (
     <View style={tailwind('mb-6')}>
@@ -80,20 +80,19 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
         data={photos}
         numColumns={columnsCount}
         keyExtractor={(item) => item.data.id}
+        ListFooterComponent={<View style={{ width: gutter }} />}
         renderItem={(item: ListRenderItemInfo<{ data: Photo; preview: string }>) => {
-          const isTheLast = item.index === photos.length - 1;
-
           return (
             <>
               <GalleryItem
                 size={itemSize}
                 data={item.item.data}
-                preview={item.item.preview}
                 isSelected={isPhotoSelected(item.item.data)}
-                onPress={() => onItemPressed(item.item.data, item.item.preview)}
+                onPress={() => {
+                  /* onItemPressed(item.item.data, item.item.preview); */
+                }}
                 onLongPress={() => onItemLongPressed(item.item.data)}
               />
-              {!isTheLast && <View style={{ width: gutter }} />}
             </>
           );
         }}
