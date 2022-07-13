@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
+import AppText from 'src/components/AppText';
 import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
@@ -25,21 +26,20 @@ const NewsletterModal = (props: BaseModalProps): JSX.Element => {
 
   return (
     <CenterModal isOpen={props.isOpen} onClosed={props.onClose}>
-      <View style={tailwind('p-3 pt-6 justify-center items-center')}>
-        <Text style={tailwind('mb-4 font-semibold text-xl text-center text-neutral-500')}>
+      <View style={tailwind('p-4')}>
+        <AppText style={tailwind('text-xl mb-1.5')} medium>
           {strings.modals.NewsletterModal.title}
-        </Text>
+        </AppText>
 
-        <Text style={tailwind('mb-5 px-6 text-center text-neutral-100')}>{strings.modals.NewsletterModal.message}</Text>
+        <AppText style={tailwind('mb-6 text-sm text-gray-60')}>{strings.modals.NewsletterModal.message}</AppText>
 
-        <View style={tailwind('px-3 w-full')}>
-          <AppTextInput
-            containerStyle={tailwind('px-3 mb-9 items-center justify-center')}
-            placeholder={strings.inputs.email}
-            editable={false}
-            value={user?.email}
-          />
-        </View>
+        <AppTextInput
+          label={`${strings.inputs.email} (${strings.generic.notEditable.toLowerCase()})`}
+          containerStyle={tailwind('mb-6')}
+          placeholder={strings.inputs.email}
+          editable={false}
+          value={user?.email}
+        />
 
         <View style={tailwind('flex-row')}>
           <AppButton
@@ -50,8 +50,9 @@ const NewsletterModal = (props: BaseModalProps): JSX.Element => {
           ></AppButton>
           <AppButton
             disabled={isLoading}
+            loading={isLoading}
             type="accept"
-            title={strings.buttons.subscribe}
+            title={isLoading ? strings.buttons.subscribing : strings.buttons.subscribe}
             onPress={onSubscribeButtonPressed}
             style={tailwind('flex-1')}
           ></AppButton>

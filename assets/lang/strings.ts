@@ -29,6 +29,7 @@ const strings = new LocalizedStrings({
       ofN: 'of {0}',
       used: 'Used',
       avaiblable: 'Available',
+      notEditable: 'Not editable',
     },
     tabs: {
       Home: 'Home',
@@ -188,7 +189,7 @@ const strings = new LocalizedStrings({
         },
         referrals: {
           title: 'Unlock storage for free',
-          youHaveUnlocked: "You've unlocked",
+          youHaveUnlocked: 'You have unlocked',
           items: {
             [ReferralTypes.ReferralKey.CreateAccount]: 'Create an account',
             [ReferralTypes.ReferralKey.InstallMobileApp]: 'Upload a file',
@@ -327,6 +328,7 @@ const strings = new LocalizedStrings({
       syncNow: 'Sync now',
       tryAgain: 'Try again',
       subscribe: 'Subscribe',
+      subscribing: 'Subscribing',
       invite: 'Invite',
       grant: 'Grant',
       dismiss: 'Dismiss',
@@ -358,7 +360,7 @@ const strings = new LocalizedStrings({
     },
     inputs: {
       name: 'Name',
-      email: 'Email address',
+      email: 'Email',
       password: 'Password',
       confirmPassword: 'Confirm password',
       newPassword: 'New password',
@@ -531,8 +533,8 @@ const strings = new LocalizedStrings({
           'Get up to 4GB extra free storage by inviting your friends (1GB per user registered via your invitation)',
       },
       NewsletterModal: {
-        title: 'Subscribe to our newsletter',
-        message: 'Get the last news and updated right in your mail box',
+        title: 'Subscribe to newsletter',
+        message: "Get a summary of what we've recently working on, releases, and much more.",
       },
       SignOutModal: {
         title: 'Log out from this account?',
@@ -617,6 +619,7 @@ const strings = new LocalizedStrings({
       used: 'Usado',
       avaiblable: 'Disponible',
       usagePercent: '{0}% usado',
+      notEditable: 'No editable',
     },
     tabs: {
       Home: 'Inicio',
@@ -916,6 +919,7 @@ const strings = new LocalizedStrings({
       syncNow: 'Sincronizar ahora',
       tryAgain: 'Intentar de nuevo',
       subscribe: 'Suscribirse',
+      subscribing: 'Suscribiendo',
       invite: 'Invitar',
       grant: 'Autorizar',
       dismiss: 'Cerrar',
@@ -1122,8 +1126,8 @@ const strings = new LocalizedStrings({
           'Obtén hasta 4GB de almacenamiento extra gratis invitando a tus amigos (1GB por usuario registrado a través de tu invitación)',
       },
       NewsletterModal: {
-        title: 'Suscríbete a nuestra newsletter',
-        message: 'Recibe las últimas novedades y actualizaciones en tu bandeja de entrada',
+        title: 'Suscríbete al newsletter',
+        message: 'Recibe un resumen de lo que hemos estado trabajando recientemente, lanzamientos y mucho más.',
       },
       SignOutModal: {
         title: '¿Salir de esta cuenta?',
