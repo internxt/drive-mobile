@@ -30,20 +30,7 @@ const initialState: PaymentsState = {
     type: 'free',
   },
   sessionId: '',
-  invoices: [
-    {
-      id: '1',
-      bytesInPlan: 100000,
-      created: Date.now(),
-      pdf: 'http://cprmerida.juntaextremadura.net/manual.pdf',
-    },
-    {
-      id: '2',
-      bytesInPlan: 20000000,
-      created: Date.now(),
-      pdf: 'http://cprmerida.juntaextremadura.net/manual.pdf',
-    },
-  ],
+  invoices: [],
   defaultPaymentMethod: null,
 };
 

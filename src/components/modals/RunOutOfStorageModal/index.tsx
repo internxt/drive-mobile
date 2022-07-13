@@ -82,8 +82,8 @@ function RunOutOfStorageModal(): JSX.Element {
               </View>
 
               <AppText style={tailwind('text-sm text-neutral-100 mt-3')} medium>
-                {strings.screens.storage.space.used.used} {getUsageString()} {strings.screens.storage.space.used.of}{' '}
-                {getLimitString()}
+                {strings.screens.StorageScreen.space.used.used} {getUsageString()}{' '}
+                {strings.screens.StorageScreen.space.used.of} {getLimitString()}
               </AppText>
             </View>
 

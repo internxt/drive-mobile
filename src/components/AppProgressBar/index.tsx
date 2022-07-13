@@ -13,8 +13,6 @@ interface AppProgressBarProps {
 export default function AppProgressBar(props: AppProgressBarProps): JSX.Element {
   const tailwind = useTailwind();
   const { totalValue, progressStyle } = props;
-  const currentValue = props.currentValue >= totalValue ? totalValue : props.currentValue;
-  const rightRounded = currentValue >= totalValue;
   const [width] = useState(new Animated.Value(0));
 
   useEffect(() => {
@@ -27,12 +25,11 @@ export default function AppProgressBar(props: AppProgressBarProps): JSX.Element 
   }, [props.currentValue]);
 
   return (
-    <View style={[tailwind('rounded h-2 bg-neutral-30'), props.style]}>
+    <View style={[tailwind('rounded-2xl h-2 bg-neutral-30 overflow-hidden'), props.style]}>
       <Animated.View
         style={[
-          tailwind('rounded-tl rounded-bl bg-blue-60 h-full'),
+          tailwind('bg-blue-60 h-full'),
           progressStyle,
-          rightRounded && tailwind('rounded-tr rounded-br'),
           {
             width: props.animateWidth
               ? width.interpolate({

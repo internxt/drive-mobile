@@ -26,6 +26,9 @@ const strings = new LocalizedStrings({
       root_folder_name: 'Drive',
       iOfN: '{0} of {1}',
       usagePercent: '{0}% used',
+      ofN: 'of {0}',
+      used: 'Used',
+      avaiblable: 'Available',
     },
     tabs: {
       Home: 'Home',
@@ -168,7 +171,7 @@ const strings = new LocalizedStrings({
           message: 'Your shared items will show up here',
         },
       },
-      storage: {
+      StorageScreen: {
         title: 'Storage',
         currentPlan: 'Current plan',
         usage: 'Usage',
@@ -185,12 +188,13 @@ const strings = new LocalizedStrings({
         },
         referrals: {
           title: 'Unlock storage for free',
+          youHaveUnlocked: "You've unlocked",
           items: {
             [ReferralTypes.ReferralKey.CreateAccount]: 'Create an account',
             [ReferralTypes.ReferralKey.InstallMobileApp]: 'Upload a file',
             [ReferralTypes.ReferralKey.ShareFile]: 'Share a file via link',
             [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Subscribe to newsletter',
-            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Upload a file using the desktop app',
+            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Install desktop app',
             [ReferralTypes.ReferralKey.InviteFriends]: 'Invite {0}/{1} friends',
           },
         },
@@ -609,6 +613,9 @@ const strings = new LocalizedStrings({
       view_folder: 'Ver carpeta',
       root_folder_name: 'Drive',
       iOfN: '{0} de {1}',
+      ofN: 'de {0}',
+      used: 'Usado',
+      avaiblable: 'Disponible',
       usagePercent: '{0}% usado',
     },
     tabs: {
@@ -752,7 +759,7 @@ const strings = new LocalizedStrings({
           message: 'Tus archivos compartidos se mostrarán aquí',
         },
       },
-      storage: {
+      StorageScreen: {
         title: 'Almacenamiento',
         currentPlan: 'Plan actual',
         usage: 'Uso',
@@ -769,12 +776,13 @@ const strings = new LocalizedStrings({
         },
         referrals: {
           title: 'Desbloquea almacenamiento gratis',
+          youHaveUnlocked: 'Has desbloqueado',
           items: {
             [ReferralTypes.ReferralKey.CreateAccount]: 'Crear cuenta',
             [ReferralTypes.ReferralKey.InstallMobileApp]: 'Subir archivo',
             [ReferralTypes.ReferralKey.ShareFile]: 'Compartir link archivo',
             [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Suscribirse a newletter',
-            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Sube un archivo con la app de escritorio',
+            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Instala la app de escritorio',
             [ReferralTypes.ReferralKey.InviteFriends]: 'Invitar {0}/{1} amigos',
           },
         },

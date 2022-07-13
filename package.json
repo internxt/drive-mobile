@@ -114,6 +114,7 @@
     "react-native-share": "^7.3.3",
     "react-native-sqlite-storage": "^6.0.1",
     "react-native-svg": "12.1.1",
+    "react-native-swipe-gestures": "^1.0.5",
     "react-native-tcp": "^3.2.1",
     "react-native-toast-message": "^2.1.1",
     "react-native-udp": "2.1.0",

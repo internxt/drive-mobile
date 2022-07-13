@@ -1,4 +1,3 @@
-import { isLoading } from 'expo-font';
 import React from 'react';
 import { StyleProp, TouchableHighlight, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -9,7 +8,7 @@ import LoadingSpinner from '../LoadingSpinner';
 interface AppButtonProps {
   testID?: string;
   title: string | JSX.Element;
-  type: 'accept' | 'cancel' | 'cancel-2' | 'delete';
+  type: 'accept' | 'accept-2' | 'cancel' | 'cancel-2' | 'delete';
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
@@ -26,18 +25,21 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
         ? tailwind('bg-primary-dark')
         : tailwind('bg-gray-40')
       : tailwind('bg-blue-60'),
+    'accept-2': tailwind('bg-primary/10'),
     cancel: tailwind('bg-gray-5'),
     'cancel-2': tailwind('bg-blue-10'),
     delete: props.disabled ? tailwind('bg-gray-40') : tailwind('bg-red-'),
   }[props.type];
   const typeTextStyle = {
     accept: tailwind('text-white'),
+    'accept-2': tailwind('text-primary'),
     cancel: props.disabled ? tailwind('text-gray-40') : tailwind('text-gray-80'),
     'cancel-2': tailwind('text-blue-60'),
     delete: tailwind('text-white'),
   }[props.type];
   const typeUnderlayColor = {
     accept: getColor('text-blue-70'),
+    'accept-2': getColor('text-blue-70'),
     cancel: getColor('text-neutral-30'),
     'cancel-2': getColor('text-neutral-30'),
     delete: getColor('text-red-dark'),

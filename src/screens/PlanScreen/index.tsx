@@ -37,9 +37,6 @@ function PlanScreen({ navigation }: TabExplorerScreenProps<'Plan'>): JSX.Element
   const downloadInvoice = (url: string) => {
     const date = new Date();
     const file_ext = '.pdf';
-
-    // config: To get response by passing the downloading related options
-    // fs: Root directory path to download
     const { config, fs } = RNFetchBlob;
     const RootDir = fs.dirs.DownloadDir;
     const options: RNFetchBlobConfig = {
