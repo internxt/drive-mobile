@@ -99,8 +99,11 @@ export class PhotosService {
   }
 
   public static async clearData(): Promise<void> {
-    await fileSystemService.unlink(PHOTOS_TMP_DIRECTORY);
-    await fileSystemService.unlink(PHOTOS_ROOT_DIRECTORY);
+    const existsRoot = await fileSystemService.exists(PHOTOS_TMP_DIRECTORY);
+    if (existsRoot) {
+      await fileSystemService.unlink(PHOTOS_TMP_DIRECTORY);
+      await fileSystemService.unlink(PHOTOS_ROOT_DIRECTORY);
+    }
   }
 
   public async getPreview(photo: Photo): Promise<PhotoFileSystemRef | null> {

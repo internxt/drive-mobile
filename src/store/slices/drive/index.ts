@@ -428,7 +428,7 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[] }, { state: RootS
 const clearLocalDatabaseThunk = createAsyncThunk<void, void, { state: RootState }>(
   'drive/clearLocalDatabase',
   async () => {
-    DriveService.instance.localDatabaseService.resetDatabase();
+    DriveService.instance?.localDatabaseService.resetDatabase();
   },
 );
 

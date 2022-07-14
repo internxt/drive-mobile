@@ -84,8 +84,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>('phot
 
 const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/startUsingPhotos',
-  async (payload: void, { dispatch }) => {
-    await dispatch(initializeThunk()).unwrap();
+  async (_: void, { dispatch }) => {
     await PhotosService.instance.startPhotos();
     await dispatch(syncThunks.startSyncThunk());
     dispatch(photosActions.setIsInitialized());
@@ -156,8 +155,7 @@ export const photosSlice = createSlice({
 
     insertUploadedPhoto(state, action: PayloadAction<Photo>) {
       if (!state.photos.find((statePhoto) => statePhoto.id === action.payload.id)) {
-        state.photos.push(action.payload);
-        //state.photos = sortPhotos([...state.photos, action.payload]);
+        state.photos = sortPhotos([...state.photos, action.payload]);
       }
     },
 

@@ -13,7 +13,6 @@ import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import PhotosPreviewScreen from '../screens/PhotosPreviewScreen';
-import { appThunks } from '../store/slices/app';
 import { driveActions } from '../store/slices/drive';
 import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -80,8 +79,6 @@ function AppNavigator(): JSX.Element {
         'inxt',
       );
     }
-
-    //dispatch(appThunks.initializeThunk());
 
     return () => {
       Linking.removeEventListener('url', onAppLinkOpened);

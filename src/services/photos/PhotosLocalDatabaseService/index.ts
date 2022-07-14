@@ -5,10 +5,11 @@ import deviceSyncTable from './tables/deviceSync';
 import { Photo } from '@internxt/sdk/dist/photos';
 
 export default class PhotosLocalDatabaseService {
+  public isInitialized = false;
   public async initialize(): Promise<void> {
     await sqliteService.open(PHOTOS_DB_NAME);
     await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.createTable);
-
+    this.isInitialized = true;
     PhotosCommonServices.log.info('Local database initialized');
   }
 
@@ -49,6 +50,7 @@ export default class PhotosLocalDatabaseService {
   }
 
   public async clear() {
+    if (!this.isInitialized) return;
     await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.dropTable);
   }
 
