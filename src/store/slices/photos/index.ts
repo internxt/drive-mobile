@@ -169,11 +169,9 @@ export const photosSlice = createSlice({
     },
 
     insertUploadedPhoto(state, action: PayloadAction<PhotoWithPreview>) {
-      console.time('ORDER & FIND');
       if (!state.photos.find((statePhoto) => statePhoto.id === action.payload.id)) {
         state.photos = sortPhotos([...state.photos, action.payload]);
       }
-      console.timeEnd('ORDER & FIND');
     },
 
     setTotalPhotos(state, action: PayloadAction<number>) {
