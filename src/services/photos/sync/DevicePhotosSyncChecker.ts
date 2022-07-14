@@ -27,7 +27,6 @@ export class DevicePhotosSyncCheckerService {
   private db: PhotosLocalDatabaseService;
   constructor(db: PhotosLocalDatabaseService) {
     this.db = db;
-    this.db.initialize();
     this.queue.drain(() => {
       this.updateStatus(DevicePhotosSyncCheckerStatus.EMPTY);
       this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);

@@ -18,6 +18,7 @@ describe('DevicePhotosSyncChecker system', () => {
     getByPhoto: jest.fn(),
     getByPreviewUri: jest.fn(),
     getAll: jest.fn(),
+    isInitialized: true,
   };
 
   describe('Resolve an operation with a sync stage', () => {
