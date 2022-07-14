@@ -3,58 +3,42 @@ import { View, TouchableOpacity } from 'react-native';
 
 import { getColor, tailwind } from '../../helpers/designSystem';
 import { Photo } from '@internxt/sdk/dist/photos';
-import { GalleryItemType } from '../../types/photos';
+import { GalleryItemType, PhotoWithPreview } from '../../types/photos';
 import { CheckCircle } from 'phosphor-react-native';
 import FastImage from 'react-native-fast-image';
-import { PhotosService } from '../../services/photos';
 
 interface GalleryItemProps {
   type?: GalleryItemType;
   size: number;
-  data: Photo;
+  data: PhotoWithPreview;
   isSelected: boolean;
-  resolvedPreview?: string;
   onPress?: (photo: Photo, preview: string | null) => void;
   onLongPress?: (photo: Photo, preview: string | null) => void;
 }
 
-type GalleryItemState = { photoPreview: string | null };
-class GalleryItem extends React.PureComponent<GalleryItemProps, GalleryItemState> {
-  public state: GalleryItemState = {
-    photoPreview: null,
-  };
+class GalleryItem extends React.PureComponent<GalleryItemProps> {
   constructor(props: GalleryItemProps) {
     super(props);
   }
 
-  async componentDidMount() {
-    await this.loadPreview();
-  }
-  loadPreview = async () => {
-    const preview = await PhotosService.instance.getPreview(this.props.data);
-
-    this.setState({
-      photoPreview: preview,
-    });
-  };
   render(): React.ReactNode {
     const { onPress, data, size, onLongPress, isSelected } = this.props;
-    const { photoPreview } = this.state;
+    const { resolvedPreview } = data;
     return (
       <TouchableOpacity
         activeOpacity={0.7}
         style={[tailwind('bg-white'), { width: size, height: size }]}
-        onPress={() => onPress && onPress(data, photoPreview)}
-        onLongPress={() => onLongPress && onLongPress(data, photoPreview)}
+        onPress={() => onPress && resolvedPreview && onPress(data, resolvedPreview)}
+        onLongPress={() => onLongPress && resolvedPreview && onLongPress(data, resolvedPreview)}
       >
-        {photoPreview ? (
+        {resolvedPreview && (
           <FastImage
             style={tailwind('w-full h-full')}
             source={{
-              uri: photoPreview,
+              uri: resolvedPreview,
             }}
           />
-        ) : null}
+        )}
 
         {isSelected && (
           <View

@@ -35,7 +35,14 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
         console.error('Error during sync operation', err);
       }
       if (photo) {
-        dispatch(photosSlice.actions.insertUploadedPhoto(photo));
+        PhotosService.instance.getPreview(photo).then((preview) => {
+          dispatch(
+            photosSlice.actions.insertUploadedPhoto({
+              ...photo,
+              resolvedPreview: preview,
+            }),
+          );
+        });
       }
       if (!err) {
         const { syncStatus } = getState().photos;

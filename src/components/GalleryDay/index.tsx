@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Dimensions, FlatList, ListRenderItemInfo, Text, TouchableWithoutFeedback, View } from 'react-native';
 import { Photo } from '@internxt/sdk/dist/photos';
-import { useNavigation } from '@react-navigation/native';
 import moment from 'moment';
 import { CheckCircle } from 'phosphor-react-native';
 
@@ -9,13 +8,13 @@ import { getColor, tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import GalleryItem from '../GalleryItem';
 import { photosActions, photosSelectors } from '../../store/slices/photos';
-import { PhotosScreenNavigationProp } from '../../types/navigation';
+import { PhotoWithPreview } from '../../types/photos';
 
 interface GalleryDayProps {
   year: number;
   month: number;
   day: number;
-  photos: { data: Photo; preview: string }[];
+  photos: PhotoWithPreview[];
 }
 
 const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element => {
@@ -29,13 +28,13 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
   const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
   const date = moment().year(year).month(month).date(day);
   const dateLabel = date.format('dddd, DD MMMM');
-  const areAllPhotosSelected = arePhotosSelected(photos.map((p) => p.data));
+  const areAllPhotosSelected = arePhotosSelected(photos.map((p) => p));
   const selectAll = () => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
-    dispatch(photosActions.selectPhotos(photos.map((p) => p.data)));
+    dispatch(photosActions.selectPhotos(photos.map((p) => p)));
   };
   const deselectAll = () => {
-    dispatch(photosActions.deselectPhotos(photos.map((p) => p.data)));
+    dispatch(photosActions.deselectPhotos(photos.map((p) => p)));
   };
   const selectItem = (photo: Photo) => {
     dispatch(photosActions.selectPhotos([photo]));
@@ -72,26 +71,26 @@ const GalleryDay = ({ year, month, day, photos }: GalleryDayProps): JSX.Element 
       </View>
 
       {/* PHOTOS LIST */}
-      <FlatList
+      <FlatList<PhotoWithPreview>
         listKey={`${year}-${month}-${day}`}
         scrollEnabled={false}
         style={tailwind('bg-white')}
         ItemSeparatorComponent={() => <View style={{ height: gutter }} />}
         data={photos}
         numColumns={columnsCount}
-        keyExtractor={(item) => item.data.id}
+        keyExtractor={(item) => item.id}
         ListFooterComponent={<View style={{ width: gutter }} />}
-        renderItem={(item: ListRenderItemInfo<{ data: Photo; preview: string }>) => {
+        renderItem={({ item }: ListRenderItemInfo<PhotoWithPreview>) => {
           return (
             <>
               <GalleryItem
                 size={itemSize}
-                data={item.item.data}
-                isSelected={isPhotoSelected(item.item.data)}
+                data={item}
+                isSelected={isPhotoSelected(item)}
                 onPress={() => {
                   /* onItemPressed(item.item.data, item.item.preview); */
                 }}
-                onLongPress={() => onItemLongPressed(item.item.data)}
+                onLongPress={() => onItemLongPressed(item)}
               />
             </>
           );
