@@ -25,7 +25,12 @@ const NewsletterModal = (props: BaseModalProps): JSX.Element => {
   };
 
   return (
-    <CenterModal isOpen={props.isOpen} onClosed={props.onClose}>
+    <CenterModal
+      isOpen={props.isOpen}
+      onClosed={props.onClose}
+      backButtonClose={!isLoading}
+      backdropPressToClose={!isLoading}
+    >
       <View style={tailwind('p-4')}>
         <AppText style={tailwind('text-xl mb-1.5')} medium>
           {strings.modals.NewsletterModal.title}
@@ -47,6 +52,7 @@ const NewsletterModal = (props: BaseModalProps): JSX.Element => {
             title={strings.buttons.cancel}
             onPress={onCancelButtonPressed}
             style={tailwind('flex-1 mr-2')}
+            disabled={isLoading}
           ></AppButton>
           <AppButton
             disabled={isLoading}

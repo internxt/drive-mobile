@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
+import AppText from 'src/components/AppText';
 import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
@@ -26,26 +27,32 @@ const InviteFriendsModal = (props: BaseModalProps): JSX.Element => {
     props.onClose();
   };
 
+  useEffect(() => {
+    if (props.isOpen) {
+      setEmail('');
+    }
+  }, [props.isOpen]);
+
   return (
-    <CenterModal isOpen={props.isOpen} onClosed={props.onClose}>
-      <View style={tailwind('p-3 pt-6 justify-center items-center')}>
-        <Text style={tailwind('mb-4 font-semibold text-xl text-center text-neutral-500')}>
+    <CenterModal
+      isOpen={props.isOpen}
+      onClosed={props.onClose}
+      backButtonClose={!isSendingInvitation}
+      backdropPressToClose={!isSendingInvitation}
+    >
+      <View style={tailwind('p-4')}>
+        <AppText style={tailwind('text-xl')} medium>
           {strings.modals.InviteFriendsModal.title}
-        </Text>
+        </AppText>
 
-        <Text style={tailwind('mb-5 px-6 text-center text-neutral-100')}>
-          {strings.modals.InviteFriendsModal.message}
-        </Text>
-
-        <View style={tailwind('px-3 w-full')}>
-          <AppTextInput
-            containerStyle={tailwind('px-3 mb-9')}
-            placeholder={strings.inputs.email}
-            autoCapitalize="none"
-            value={email}
-            onChangeText={onEmailInputChanged}
-          />
-        </View>
+        <AppTextInput
+          containerStyle={tailwind('my-6')}
+          label={strings.inputs.email}
+          autoCapitalize="none"
+          autoFocus
+          value={email}
+          onChangeText={onEmailInputChanged}
+        />
 
         <View style={tailwind('flex-row')}>
           <AppButton
@@ -53,11 +60,13 @@ const InviteFriendsModal = (props: BaseModalProps): JSX.Element => {
             title={strings.buttons.cancel}
             onPress={onCancelButtonPressed}
             style={tailwind('flex-1 mr-2')}
+            disabled={isSendingInvitation}
           ></AppButton>
           <AppButton
             disabled={!email || isSendingInvitation}
+            loading={isSendingInvitation}
             type="accept"
-            title={strings.buttons.invite}
+            title={isSendingInvitation ? strings.buttons.sending : strings.buttons.invite}
             onPress={onInviteButtonPressed}
             style={tailwind('flex-1')}
           ></AppButton>

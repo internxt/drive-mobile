@@ -357,6 +357,7 @@ const strings = new LocalizedStrings({
       rename: 'Rename',
       cancelSubscription: 'Cancel subscription',
       manage: 'Manage',
+      sending: 'Sending',
     },
     inputs: {
       name: 'Name',
@@ -529,8 +530,6 @@ const strings = new LocalizedStrings({
       },
       InviteFriendsModal: {
         title: 'Invite a friend',
-        message:
-          'Get up to 4GB extra free storage by inviting your friends (1GB per user registered via your invitation)',
       },
       NewsletterModal: {
         title: 'Subscribe to newsletter',
@@ -948,6 +947,7 @@ const strings = new LocalizedStrings({
       rename: 'Renombrar',
       cancelSubscription: 'Cancelar suscripción',
       manage: 'Gestionar',
+      sending: 'Enviando',
     },
     inputs: {
       name: 'Nombre',
@@ -1122,8 +1122,6 @@ const strings = new LocalizedStrings({
       },
       InviteFriendsModal: {
         title: 'Invite a un amigo',
-        message:
-          'Obtén hasta 4GB de almacenamiento extra gratis invitando a tus amigos (1GB por usuario registrado a través de tu invitación)',
       },
       NewsletterModal: {
         title: 'Suscríbete al newsletter',
