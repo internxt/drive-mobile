@@ -10,7 +10,6 @@ import globalStyle from '../../styles/global';
 import ScreenTitle from '../../components/AppScreenTitle';
 import Separator from '../../components/AppSeparator';
 import { DevicePlatform } from '../../types';
-import { authActions } from '../../store/slices/auth';
 import { driveActions, driveSelectors, driveThunks } from '../../store/slices/drive';
 import { uiActions } from '../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';

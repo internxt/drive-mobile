@@ -2,14 +2,12 @@ import React from 'react';
 import prettysize from 'prettysize';
 import { View, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { useNavigation } from '@react-navigation/native';
 
 import RunOutImage from '../../../../assets/images/modals/runout.svg';
 import strings from '../../../../assets/lang/strings';
 import { INFINITE_PLAN } from '../../../types';
 import { uiActions } from '../../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { RootScreenNavigationProp } from '../../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
 import AppText from 'src/components/AppText';
@@ -18,7 +16,6 @@ function RunOutOfStorageModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const { limit } = useAppSelector((state) => state.storage);
   const { usage: driveUsage } = useAppSelector((state) => state.drive);
   const { usage: photosUsage } = useAppSelector((state) => state.photos);

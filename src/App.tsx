@@ -24,6 +24,7 @@ import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureM
 import LanguageModal from './components/modals/LanguageModal';
 import languageService from './services/LanguageService';
 import PlansModal from './components/modals/PlansModal';
+import CancelSubscriptionModal from './components/modals/CancelSubscriptionModal';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -39,6 +40,7 @@ export default function App(): JSX.Element {
     isChangeProfilePictureModalOpen,
     isLanguageModalOpen,
     isPlansModalOpen,
+    isCancelSubscriptionModalOpen,
   } = useAppSelector((state) => state.ui);
   const [loadError, setLoadError] = useState('');
   const silentSignIn = async () => {
@@ -52,6 +54,7 @@ export default function App(): JSX.Element {
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
   const onLanguageModalClosed = () => dispatch(uiActions.setIsLanguageModalOpen(false));
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
+  const onCancelSubscriptionModalClosed = () => dispatch(uiActions.setIsCancelSubscriptionModalOpen(false));
   const onUserLoggedIn = () => {
     dispatch(appThunks.initializeThunk());
   };
@@ -119,6 +122,7 @@ export default function App(): JSX.Element {
             />
             <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
             <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
+            <CancelSubscriptionModal isOpen={isCancelSubscriptionModalOpen} onClose={onCancelSubscriptionModalClosed} />
           </View>
         </Portal.Host>
       </KeyboardAvoidingView>

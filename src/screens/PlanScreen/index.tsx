@@ -200,24 +200,28 @@ function PlanScreen({ navigation }: TabExplorerScreenProps<'Plan'>): JSX.Element
           />
 
           {/* CANCEL SUBSCRIPTION */}
-          <SettingsGroup
-            items={[
-              {
-                key: 'debug',
-                template: (
-                  <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-                    <View style={tailwind('flex-grow justify-center')}>
-                      <AppText style={[tailwind('text-lg text-gray-80')]}>{strings.buttons.cancelSubscription}</AppText>
+          {hasSubscription && (
+            <SettingsGroup
+              items={[
+                {
+                  key: 'debug',
+                  template: (
+                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                      <View style={tailwind('flex-grow justify-center')}>
+                        <AppText style={[tailwind('text-lg text-gray-80')]}>
+                          {strings.buttons.cancelSubscription}
+                        </AppText>
+                      </View>
+                      <View style={tailwind('justify-center')}>
+                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                      </View>
                     </View>
-                    <View style={tailwind('justify-center')}>
-                      <CaretRight color={getColor('text-neutral-60')} size={20} />
-                    </View>
-                  </View>
-                ),
-                onPress: onCancelSubscriptionPressed,
-              },
-            ]}
-          />
+                  ),
+                  onPress: onCancelSubscriptionPressed,
+                },
+              ]}
+            />
+          )}
         </View>
       </ScrollView>
     </AppScreen>

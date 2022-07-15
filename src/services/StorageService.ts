@@ -2,24 +2,7 @@ import prettysize from 'prettysize';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './AppService';
 
-export interface IProduct {
-  id: string;
-  name: string;
-  metadata: {
-    price_eur: string;
-    simple_name: string;
-    size_bytes: string;
-    is_teams?: '1';
-  };
-  plans: IPlan[];
-}
-export interface IPlan {
-  id: string;
-  interval: string;
-  interval_count: number;
-  name: string;
-  price: number;
-}
+export const FREE_STORAGE = 2147483648;
 
 class StorageService {
   public toString(bytes: number) {

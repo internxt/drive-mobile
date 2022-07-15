@@ -31,6 +31,7 @@ export interface UIState {
   isEnableTwoFactorModalOpen: boolean;
   isDisableTwoFactorModalOpen: boolean;
   isPlansModalOpen: boolean;
+  isCancelSubscriptionModalOpen: boolean;
 }
 
 const initialState: UIState = {
@@ -63,6 +64,7 @@ const initialState: UIState = {
   isEnableTwoFactorModalOpen: false,
   isDisableTwoFactorModalOpen: false,
   isPlansModalOpen: false,
+  isCancelSubscriptionModalOpen: false,
 };
 
 export const uiSlice = createSlice({
@@ -157,6 +159,9 @@ export const uiSlice = createSlice({
     },
     setIsPlansModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isPlansModalOpen = action.payload;
+    },
+    setIsCancelSubscriptionModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isCancelSubscriptionModalOpen = action.payload;
     },
   },
 });

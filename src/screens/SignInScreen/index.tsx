@@ -43,8 +43,10 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
       } else {
         await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode })).unwrap();
 
-        setIsLoading(false);
-        navigation.replace('TabExplorer', { screen: 'Home' });
+        setTimeout(() => {
+          setIsLoading(false);
+          navigation.replace('TabExplorer', { screen: 'Home' });
+        }, 1000);
       }
     } catch (err) {
       const castedError = errorService.castError(err);

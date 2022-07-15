@@ -1,13 +1,13 @@
 import prettysize from 'prettysize';
 import { useEffect, useMemo } from 'react';
-import { Text, TouchableHighlight, View } from 'react-native';
+import { TouchableHighlight, View } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { referralsThunks } from '../../store/slices/referrals';
 import { ReferralTypes } from '@internxt/sdk/dist/drive';
 import { uiActions } from '../../store/slices/ui';
-import { CaretRight, Check, CheckCircle } from 'phosphor-react-native';
+import { CaretRight, CheckCircle } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';

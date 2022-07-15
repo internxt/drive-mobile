@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import AppText from 'src/components/AppText';
 import { useTailwind } from 'tailwind-rn';
 

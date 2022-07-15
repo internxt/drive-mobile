@@ -14,7 +14,6 @@ const strings = new LocalizedStrings({
       loading: 'Loading',
       security: 'Security',
       preparing: 'Preparing...',
-      cancelling: 'Cancelling...',
       updated: 'Updated',
       year: 'Year',
       month: 'Mes',
@@ -306,6 +305,7 @@ const strings = new LocalizedStrings({
       sing_up: 'Sign up',
       descrypting: 'Decrypting...',
       cancel: 'Cancel',
+      cancelling: 'Cancelling',
       confirm: 'Confirm',
       move: 'Move',
       moveHere: 'Move here',
@@ -411,6 +411,21 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      CancelSubscription: {
+        title: 'Cancel subscription',
+        steps: {
+          'cancel-subscription': {
+            advice: '{0} are you sure you want to cancel your subscription?',
+            storageDowngradeWarning:
+              'You have {0} in use, if you downgrade you won’t be able to sync, share or upload anything until usage is below {1}.',
+            storageDowngrade: 'You will go from {0} to just {1}',
+          },
+          confirmation: {
+            advice: 'We’ve sent you a email confirmation, click the link in the message to cancel your subscription.',
+            spam: 'Didn’t recieved the confirmation email?\nCheck in your spam inbox',
+          },
+        },
+      },
       Plans: {
         title: 'Unlimited privacy',
         advice: 'Upgrade now to get more storage for all your memories and work documents',
@@ -592,6 +607,7 @@ const strings = new LocalizedStrings({
       sendVerificationEmail: 'Error sending verification email',
       changePassword: 'Error changing password',
       loadPrices: 'Error loading prices',
+      cancelSubscription: 'Error cancelling subscription',
     },
   },
   es: {
@@ -603,7 +619,6 @@ const strings = new LocalizedStrings({
       loading: 'Cargando',
       security: 'Seguridad',
       preparing: 'Preparando...',
-      cancelling: 'Cancelando...',
       updated: 'Actualizado',
       year: 'Year',
       month: 'Mes',
@@ -896,6 +911,7 @@ const strings = new LocalizedStrings({
       sing_up: 'Registarse',
       descrypting: 'Desencriptando...',
       cancel: 'Cancelar',
+      cancelling: 'Cancelando',
       confirm: 'Confirmar',
       move: 'Mover',
       moveHere: 'Mover aquí',
@@ -1001,6 +1017,22 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      CancelSubscription: {
+        title: 'Cancelar suscripción',
+        steps: {
+          'cancel-subscription': {
+            advice: '{0}, ¿estás seguro de que quieres cancelar tu suscripción?',
+            storageDowngradeWarning:
+              'Tienes {0} en uso. Si cancelas tu plan no podrás sincronizar, compartir o subir nada hasta que tu espacio ocupado esté por debajo de {1}.',
+            storageDowngrade: 'Pasarás de {0} a solo {1}',
+          },
+          confirmation: {
+            advice:
+              'Te hemos enviado un email de confirmación. Haz click en el enlace dentro del email para cancelar tu suscripción.',
+            spam: '¿No has recibido el email de confirmación?\nComprueba tu bandeja de correo no deseado.',
+          },
+        },
+      },
       Plans: {
         title: 'Privacidad sin límites',
         advice: 'Mejora tu plan ahora para obtener más almacenamiento para todos tus recuerdos y documentos de trabajo',
@@ -1184,6 +1216,7 @@ const strings = new LocalizedStrings({
       sendVerificationEmail: 'Error enviando email de verificación',
       changePassword: 'Error cambiando contraseña',
       loadPrices: 'Error cargando precios',
+      cancelSubscription: 'Error cancelando suscripción',
     },
   },
 });

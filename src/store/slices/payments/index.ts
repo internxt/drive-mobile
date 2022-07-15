@@ -93,6 +93,13 @@ const createSessionThunk = createAsyncThunk<void, string, { state: RootState }>(
   },
 );
 
+const cancelSubscriptionThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'payments/cancelSubscription',
+  async () => {
+    return paymentService.cancelSubscription();
+  },
+);
+
 export const paymentsSlice = createSlice({
   name: 'payments',
   initialState,
@@ -126,6 +133,10 @@ export const paymentsSlice = createSlice({
     builder.addCase(loadDefaultPaymentMethodThunk.fulfilled, (state, action) => {
       state.defaultPaymentMethod = action.payload;
     });
+
+    builder.addCase(cancelSubscriptionThunk.rejected, () => {
+      notificationsService.show({ type: NotificationType.Error, text1: strings.errors.cancelSubscription });
+    });
   },
 });
 
@@ -144,6 +155,7 @@ export const paymentsThunks = {
   loadUserSubscriptionThunk,
   loadInvoicesThunk,
   createSessionThunk,
+  cancelSubscriptionThunk,
 };
 
 export default paymentsSlice.reducer;

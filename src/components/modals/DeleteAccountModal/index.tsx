@@ -39,7 +39,7 @@ const DeleteAccountModal = (props: BaseModalProps) => {
 
     dispatch(authThunks.deleteAccountThunk())
       .unwrap()
-      .then(() => goToNextStep())
+      .then(() => undefined)
       .catch(() => undefined)
       .finally(() => {
         setIsDeletingAccount(false);
@@ -191,19 +191,13 @@ const DeleteAccountModal = (props: BaseModalProps) => {
       <AppButton title={strings.buttons.close} type="accept" onPress={onCancelButtonPressed} />
     </>
   );
-  const steps = [
-    {
-      key: 'poll',
-      render: renderPollStep,
-    },
-    { key: 'impact', render: renderImpactStep },
-    { key: 'confirmation', render: renderConfirmationStep },
-  ];
+  const steps = [{ key: 'confirmation', render: renderConfirmationStep }];
 
   useEffect(() => {
     if (props.isOpen) {
       setCurrentStep(0);
       setSelectedPollOption(undefined);
+      onDeleteButtonPressed();
     }
   }, [props.isOpen]);
 
