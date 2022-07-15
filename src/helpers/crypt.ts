@@ -3,7 +3,7 @@ import crypto from 'react-native-crypto';
 import { constants } from '../services/AppService';
 import errorService from '../services/ErrorService';
 import AesUtils from './aesUtils';
-
+import RNFS from 'react-native-fs';
 const password = constants.REACT_NATIVE_CRYPTO_SECRET || ''; // Force env var loading
 
 interface PassObjectInterface {

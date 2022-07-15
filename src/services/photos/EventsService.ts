@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import EventEmitter from 'events';
-import { PhotosEventKey, PhotosServiceModel } from '../../types/photos';
+import { PhotosEventKey } from '../../types/photos';
 
 export default class PhotosEventEmitter {
-  private readonly model: PhotosServiceModel;
   private readonly eventEmitter: EventEmitter;
 
-  constructor(model: PhotosServiceModel) {
-    this.model = model;
+  constructor() {
     this.eventEmitter = new EventEmitter();
   }
 

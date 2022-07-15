@@ -1,3 +1,4 @@
+import { PermissionStatus } from 'expo-media-library';
 import React from 'react';
 import { Linking, Platform, ScrollView, Text, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -13,7 +14,7 @@ import { PhotosScreenProps } from '../../types/navigation';
 function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermissions'>): JSX.Element {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
-  const arePermissionsBlocked = useAppSelector(photosSelectors.arePermissionsBlocked);
+  const permissionsStatus = useAppSelector(photosSelectors.permissionsStatus);
   const features = [
     strings.screens.photosPermissions.features[0],
     strings.screens.photosPermissions.features[1],
@@ -27,24 +28,25 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
       </View>
     );
   });
-  const onPermissionsGranted = async () => {
-    dispatch(photosThunks.startUsingPhotosThunk());
+  const onPermissionsGranted = () => {
     navigation.replace('PhotosGallery');
   };
   const onButtonPressed = async () => {
-    if (arePermissionsBlocked) {
+    const permissions = await dispatch(photosThunks.checkPermissionsThunk()).unwrap();
+    /* 
+    if (permissionsStatus === PermissionStatus.DENIED) {
       if (Platform.OS === 'ios') {
         await Linking.openSettings();
       }
-    }
+    } */
 
-    await dispatch(photosThunks.askForPermissionsThunk())
-      .unwrap()
-      .then((areGranted) => {
-        if (areGranted) {
-          onPermissionsGranted();
-        }
-      });
+    if (!permissions.hasPermissions) {
+      const granted = await dispatch(photosThunks.askForPermissionsThunk()).unwrap();
+      if (granted) {
+        await dispatch(photosThunks.startUsingPhotosThunk()).unwrap();
+        await onPermissionsGranted();
+      }
+    }
   };
 
   return (
@@ -57,7 +59,7 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
 
       <View style={tailwind('mb-5')}>{featuresList}</View>
 
-      {arePermissionsBlocked && (
+      {permissionsStatus === PermissionStatus.DENIED && (
         <View style={tailwind('mb-2 rounded-lg w-full p-3 bg-blue-10')}>
           <Text style={tailwind('text-blue-90 text-center')}>
             {Platform.OS === 'android'

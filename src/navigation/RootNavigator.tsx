@@ -10,7 +10,6 @@ import AuthenticatedNavigator from './TabExplorerNavigator';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import PhotosPreviewScreen from '../screens/PhotosPreviewScreen';
-import { appThunks } from '../store/slices/app';
 import { driveActions } from '../store/slices/drive';
 import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,6 +21,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function AppNavigator(): JSX.Element {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
+
   const initialRouteName: keyof RootStackParamList = isLoggedIn ? 'TabExplorer' : 'SignIn';
   const onAppLinkOpened = async (event: Linking.EventType) => {
     const sessionId = await AsyncStorage.getItem('tmpCheckoutSessionId');
@@ -76,8 +76,6 @@ function AppNavigator(): JSX.Element {
         'inxt',
       );
     }
-
-    dispatch(appThunks.initializeThunk());
 
     return () => {
       Linking.removeEventListener('url', onAppLinkOpened);

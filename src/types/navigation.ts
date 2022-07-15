@@ -18,7 +18,12 @@ export type RootStackParamList = {
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList> & { showReferralsBanner?: boolean };
   ForgotPassword: undefined;
   PhotosPreview: {
-    data: Photo;
+    data: Omit<Photo, 'takenAt' | 'statusChangedAt' | 'createdAt' | 'updatedAt'> & {
+      takenAt: string;
+      statusChangedAt: string;
+      createdAt: string;
+      updatedAt: string;
+    };
     preview: string;
   };
 };

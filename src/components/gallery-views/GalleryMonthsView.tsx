@@ -1,13 +1,9 @@
-import React, { useEffect } from 'react';
-import { ScrollView, Text, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosThunks } from '../../store/slices/photos';
-import GalleryMonth from '../GalleryMonth';
+import React from 'react';
+import { View } from 'react-native';
 
 const GalleryMonthsView = (): JSX.Element => {
-  const tailwind = useTailwind();
-  const dispatch = useAppDispatch();
+  return <View></View>;
+  /* const dispatch = useAppDispatch();
   const { months } = useAppSelector((state) => state.photos);
   const byYearMonths = months.reduce<Record<number, { month: number; preview: string }[]>>((t, x) => {
     const monthItem = {
@@ -40,7 +36,7 @@ const GalleryMonthsView = (): JSX.Element => {
     dispatch(photosThunks.loadMonthsThunk());
   }, []);
 
-  return <ScrollView>{yearsList}</ScrollView>;
+  return <ScrollView>{yearsList}</ScrollView>; */
 };
 
 export default GalleryMonthsView;

@@ -1,18 +1,12 @@
 import Axios from 'axios';
-import { PhotosServiceModel } from '../../types/photos';
 import { constants } from '../AppService';
+import { PhotosCommonServices } from './PhotosCommonService';
 
 export default class PhotosUsageService {
-  private readonly model: PhotosServiceModel;
-
-  constructor(model: PhotosServiceModel) {
-    this.model = model;
-  }
-
   public async getUsage(): Promise<number> {
     const response = await Axios.get<{ usage: number }>(`${constants.REACT_NATIVE_PHOTOS_API_URL}/photos/usage`, {
       headers: {
-        Authorization: `Bearer ${this.model.accessToken}`,
+        Authorization: `Bearer ${PhotosCommonServices.model.accessToken}`,
       },
     });
 

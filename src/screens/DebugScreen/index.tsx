@@ -10,6 +10,7 @@ import DebugDownloadWidget from '../../components/DebugDownloadWidget';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
+import DebugPhotosWidget from '../../components/DebugPhotosWidget';
 
 function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element {
   const tailwind = useTailwind();
@@ -28,7 +29,8 @@ function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element
       <DebugInternetWidget />
       <DebugUploadWidget style={tailwind('mb-5')} />
       <DebugDownloadWidget style={tailwind('mb-5')} />
-      <DebugNotificationsWidget />
+      <DebugNotificationsWidget style={tailwind('mb-5')} />
+      <DebugPhotosWidget />
     </AppScreen>
   );
 }

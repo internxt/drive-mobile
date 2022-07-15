@@ -14,6 +14,8 @@ import { items } from '@internxt/lib';
 import { DownloadSimple, Info, Link, Trash } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
+import { PhotosCommonServices } from '../../../services/photos/PhotosCommonService';
+import { PhotoSizeType } from '../../../types/photos';
 
 interface PhotosPreviewOptionsModalProps extends BottomModalProps {
   data: Photo;
@@ -27,7 +29,6 @@ function PhotosPreviewOptionsModal({
   onClosed,
   data,
   preview,
-  photoPath,
   isFullSizeLoading,
 }: PhotosPreviewOptionsModalProps): JSX.Element {
   const tailwind = useTailwind();
@@ -71,9 +72,18 @@ function PhotosPreviewOptionsModal({
     dispatch(uiActions.setIsSharePhotoModalOpen(true));
   };
   const onDownloadButtonPressed = () => {
-    fileSystemService.showFileViewer(fileSystemService.pathToUri(photoPath), {
-      displayName: items.getItemDisplayName(data),
-    });
+    fileSystemService.showFileViewer(
+      fileSystemService.pathToUri(
+        PhotosCommonServices.getPhotoPath({
+          name: data.name,
+          size: PhotoSizeType.Full,
+          type: data.type,
+        }),
+      ),
+      {
+        displayName: data.name,
+      },
+    );
   };
   const onMoveToTrashButtonPressed = () => {
     dispatch(uiActions.setIsDeletePhotosModalOpen(true));
