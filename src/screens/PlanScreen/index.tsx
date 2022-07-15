@@ -33,7 +33,9 @@ function PlanScreen({ navigation }: TabExplorerScreenProps<'Plan'>): JSX.Element
   const onChangePlanPressed = () => {
     dispatch(uiActions.setIsPlansModalOpen(true));
   };
-  const onCancelSubscriptionPressed = () => undefined;
+  const onCancelSubscriptionPressed = () => {
+    dispatch(uiActions.setIsCancelSubscriptionModalOpen(true));
+  };
   const downloadInvoice = (url: string) => {
     const date = new Date();
     const file_ext = '.pdf';

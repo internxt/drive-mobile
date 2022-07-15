@@ -135,7 +135,7 @@ function StorageScreen({ navigation }: TabExplorerScreenProps<'Storage'>): JSX.E
                     </View>
 
                     {appService.constants.REACT_NATIVE_SHOW_BILLING &&
-                      (!hasPaidPlan ? (
+                      (hasPaidPlan ? (
                         <AppButton
                           style={tailwind('mt-3')}
                           type="accept-2"
