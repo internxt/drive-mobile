@@ -181,3 +181,5 @@ export interface DevicePhotoRemoteCheck {
   exists: boolean;
   photo?: Photo;
 }
+
+export type PhotoWithPreview = Photo & { resolvedPreview: string | null };

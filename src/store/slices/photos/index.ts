@@ -5,7 +5,13 @@ import * as MediaLibrary from 'expo-media-library';
 import { RootState } from '../..';
 import { PhotosService } from '../../../services/photos';
 import asyncStorage from '../../../services/AsyncStorageService';
-import { GalleryViewMode, PhotosEventKey, PhotosSyncStatus, PhotosSyncStatusData } from '../../../types/photos';
+import {
+  GalleryViewMode,
+  PhotosEventKey,
+  PhotosSyncStatus,
+  PhotosSyncStatusData,
+  PhotoWithPreview,
+} from '../../../types/photos';
 
 import { AsyncStorageKey } from '../../../types';
 import { permissionsThunks } from './thunks/permissions';
@@ -20,7 +26,7 @@ export interface PhotosState {
   isInitialized: boolean;
   isDeviceSynchronized: boolean;
   initializeError: string | null;
-  photos: (Photo & { resolvedPreview?: string })[];
+  photos: PhotoWithPreview[];
   totalPhotos?: number;
   permissions: {
     android: { [key in AndroidPermission]?: PermissionStatus };
@@ -91,7 +97,7 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
   },
 );
 
-export const sortPhotos = (photos: Photo[]) => {
+export const sortPhotos = (photos: PhotoWithPreview[]) => {
   return photos.sort((p1, p2) => {
     const p1TakenAt = new Date(p1.takenAt);
     const p2TakenAt = new Date(p2.takenAt);
@@ -112,7 +118,16 @@ const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootSt
     });
 
     dispatch(photosSlice.actions.setTotalPhotos(count));
-    dispatch(photosSlice.actions.savePhotos(results));
+    // Get the previews
+    const photosWithPreviews = await Promise.all(
+      results.map<Promise<PhotoWithPreview>>(async (photo) => {
+        return {
+          ...photo,
+          resolvedPreview: await PhotosService.instance.getPreview(photo),
+        };
+      }),
+    );
+    dispatch(photosSlice.actions.savePhotos(photosWithPreviews));
   },
 );
 
@@ -153,7 +168,7 @@ export const photosSlice = createSlice({
       state.isSelectionModeActivated = false;
     },
 
-    insertUploadedPhoto(state, action: PayloadAction<Photo>) {
+    insertUploadedPhoto(state, action: PayloadAction<PhotoWithPreview>) {
       if (!state.photos.find((statePhoto) => statePhoto.id === action.payload.id)) {
         state.photos = sortPhotos([...state.photos, action.payload]);
       }
@@ -171,7 +186,7 @@ export const photosSlice = createSlice({
       });
     },
 
-    savePhotos(state, action: PayloadAction<Photo[]>) {
+    savePhotos(state, action: PayloadAction<PhotoWithPreview[]>) {
       state.photos = sortPhotos(
         state.photos.concat(action.payload.filter((photo) => photo.status === PhotoStatus.Exists)),
       );
