@@ -12,7 +12,7 @@ import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import { PhotosCommonServices } from '../../services/photos/PhotosCommonService';
 
-const PhotosSyncStatusWidget = (): JSX.Element => {
+const PhotosSyncStatusWidget = () => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
@@ -33,20 +33,20 @@ const PhotosSyncStatusWidget = (): JSX.Element => {
     [PhotosSyncStatus.Unknown]: (
       <View style={tailwind('flex-row items-center')}>
         <LoadingSpinner style={tailwind('mr-2')} size={14} />
-        <Text style={tailwind('text-sm text-neutral-100')}>{strings.generic.preparing}</Text>
+        <AppText style={tailwind('text-sm text-neutral-100')}>{strings.generic.preparing}</AppText>
       </View>
     ),
     [PhotosSyncStatus.Calculating]: (
       <View style={tailwind('flex-row items-center')}>
         <LoadingSpinner style={tailwind('mr-2')} size={14} />
-        <Text style={tailwind('text-sm text-neutral-100')}>{strings.generic.preparing}</Text>
+        <AppText style={tailwind('text-sm text-neutral-100')}>{strings.generic.preparing}</AppText>
       </View>
     ),
     [PhotosSyncStatus.Pending]: (
       <View style={tailwind('flex-row items-center')}>
         <Text style={tailwind('text-sm text-yellow-30')}>{strings.messages.photosSyncPending}</Text>
         <TouchableWithoutFeedback onPress={onResumeSyncPressed}>
-          <Text style={tailwind('ml-2 text-sm text-blue-60')}>{strings.buttons.syncNow}</Text>
+          <AppText style={tailwind('ml-2 text-sm text-blue-60')}>{strings.buttons.syncNow}</AppText>
         </TouchableWithoutFeedback>
       </View>
     ),

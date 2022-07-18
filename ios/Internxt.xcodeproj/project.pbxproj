@@ -15,15 +15,13 @@
 		9439E20AFD5A4D67AD6AB52D /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 821BA930248741708194A7D2 /* GoogleService-Info.plist */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		D0C45FA0DA05FB96C58A2941 /* libPods-Internxt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 04A9E88266936A1B5F824F61 /* libPods-Internxt.a */; };
-		E7EB29659C52496E2F459F9C /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		E7EB29659C52496E2F459F9C /* libPods-Internxt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B826E83AA53FAA4B269F583C /* libPods-Internxt.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		0277008671441D461B4AD66C /* Pods-Internxt.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.release.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.release.xcconfig"; sourceTree = "<group>"; };
 		03362DABC9FA4C02928C30A5 /* Internxt-Bridging-Header.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "Internxt-Bridging-Header.h"; path = "Internxt/Internxt-Bridging-Header.h"; sourceTree = "<group>"; };
-		04A9E88266936A1B5F824F61 /* libPods-Internxt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Internxt.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* Internxt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Internxt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Internxt/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Internxt/AppDelegate.m; sourceTree = "<group>"; };
@@ -34,6 +32,7 @@
 		821BA930248741708194A7D2 /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Internxt/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		978BA5A427DB8D7100384409 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Internxt/SplashScreen.storyboard; sourceTree = "<group>"; };
+		B826E83AA53FAA4B269F583C /* libPods-Internxt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Internxt.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Internxt/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
@@ -45,8 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E7EB29659C52496E2F459F9C /* BuildFile in Frameworks */,
-				D0C45FA0DA05FB96C58A2941 /* libPods-Internxt.a in Frameworks */,
+				E7EB29659C52496E2F459F9C /* libPods-Internxt.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,7 +73,7 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				04A9E88266936A1B5F824F61 /* libPods-Internxt.a */,
+				B826E83AA53FAA4B269F583C /* libPods-Internxt.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

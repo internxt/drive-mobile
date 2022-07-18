@@ -7,13 +7,10 @@ import globalStyle from '../../../styles/global';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../AppButton';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { useAppDispatch } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import imageService from '../../../services/ImageService';
-import { items } from '@internxt/lib';
 import fileSystemService from '../../../services/FileSystemService';
-import { photosSelectors, photosThunks } from '../../../store/slices/photos';
-import LoadingSpinner from '../../LoadingSpinner';
 import { useTailwind } from 'tailwind-rn';
 import { PhotosCommonServices } from '../../../services/photos/PhotosCommonService';
 import { PhotoSizeType } from '../../../types/photos';
@@ -138,11 +135,11 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
 
           <View style={tailwind('flex-row justify-center')}>
             <TouchableHighlight
-              underlayColor={getColor('neutral-20')}
+              underlayColor={getColor('text-neutral-20')}
               style={[tailwind('mr-1 rounded-lg p-2 w-10 h-10 items-center justify-center bg-neutral-30')]}
               onPress={onLessTimesButtonPressed}
             >
-              <Unicons.UilMinus color={getColor('neutral-500')} size={24} />
+              <Unicons.UilMinus color={getColor('text-neutral-500')} size={24} />
             </TouchableHighlight>
 
             <TextInput
@@ -153,11 +150,11 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
             />
 
             <TouchableHighlight
-              underlayColor={getColor('neutral-20')}
+              underlayColor={getColor('text-neutral-20')}
               style={[tailwind('ml-1 rounded-lg p-2 w-10 h-10 items-center justify-center bg-neutral-30')]}
               onPress={onMoreTimesButtonPressed}
             >
-              <Unicons.UilPlus color={getColor('neutral-500')} size={24} />
+              <Unicons.UilPlus color={getColor('text-neutral-500')} size={24} />
             </TouchableHighlight>
           </View>
         </View>

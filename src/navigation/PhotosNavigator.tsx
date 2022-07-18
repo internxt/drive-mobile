@@ -11,7 +11,6 @@ import AppButton from '../components/AppButton';
 import { PhotosStackParamList } from '../types/navigation';
 import { PermissionStatus } from 'expo-media-library';
 import { useTailwind } from 'tailwind-rn';
-
 const StackNav = createNativeStackNavigator<PhotosStackParamList>();
 
 function PhotosNavigator(): JSX.Element {

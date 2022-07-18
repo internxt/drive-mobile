@@ -7,8 +7,11 @@ import GalleryItem from '../GalleryItem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosActions, photosSelectors } from '../../store/slices/photos';
 import { PhotosScreenNavigationProp } from '../../types/navigation';
+import { PhotoWithPreview } from '../../types/photos';
 import { useTailwind } from 'tailwind-rn';
 
+const COLUMNS = 3;
+const GUTTER = 3;
 const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onLoadNextPage }) => {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
@@ -18,9 +21,8 @@ const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onL
 
   const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
   const [refreshing, setRefreshing] = useState(false);
-  const [columnsCount] = useState(3);
-  const [gutter] = useState(3);
-  const itemSize = (Dimensions.get('window').width - gutter * (columnsCount - 1)) / columnsCount;
+
+  const itemSize = (Dimensions.get('window').width - GUTTER * (COLUMNS - 1)) / COLUMNS;
   const selectItem = (photo: Photo) => {
     dispatch(photosActions.selectPhotos([photo]));
   };
@@ -48,13 +50,13 @@ const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onL
         });
   };
 
-  function renderListItem({ item }: { item: Photo & { resolvedPreview?: string } }) {
+  function renderListItem({ item }: { item: PhotoWithPreview }) {
     return (
-      <View style={{ marginRight: gutter }}>
+      <View style={{ marginRight: GUTTER }}>
         <GalleryItem
+          key={item.id}
           size={itemSize}
           data={item}
-          resolvedPreview={item.resolvedPreview}
           isSelected={isPhotoSelected(item)}
           onPress={onItemPressed}
           onLongPress={(photo) => onItemLongPressed(photo)}
@@ -64,7 +66,7 @@ const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onL
   }
 
   function renderItemSeparator() {
-    return <View style={{ height: gutter }} />;
+    return <View style={{ height: GUTTER }} />;
   }
 
   function extractKey(item: Photo) {
@@ -75,9 +77,10 @@ const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onL
     await onLoadNextPage();
   }
   return (
-    <FlatList
+    <FlatList<PhotoWithPreview>
+      contentContainerStyle={{ paddingBottom: itemSize }}
       style={tailwind('bg-white')}
-      showsVerticalScrollIndicator={true}
+      showsVerticalScrollIndicator
       indicatorStyle={'black'}
       refreshControl={
         <RefreshControl
@@ -89,11 +92,10 @@ const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onL
           }}
         />
       }
-      decelerationRate={0.5}
       ItemSeparatorComponent={renderItemSeparator}
       data={photos}
       onScrollEndDrag={onScrollEnd}
-      numColumns={columnsCount}
+      numColumns={COLUMNS}
       onEndReached={() => undefined}
       onEndReachedThreshold={3}
       keyExtractor={extractKey}

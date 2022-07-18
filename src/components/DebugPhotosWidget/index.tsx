@@ -1,14 +1,9 @@
-import { ArrowCircleDown, ArrowCircleUp, CheckCircle, Warning, WarningOctagon } from 'phosphor-react-native';
-import { FlatList, StyleProp, View, ViewStyle } from 'react-native';
-import { useSelector } from 'react-redux';
+import { StyleProp, View, ViewStyle } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../assets/lang/strings';
-import { getColor, tailwind } from '../../helpers/designSystem';
-import notificationsService from '../../services/NotificationsService';
-import { PhotosService } from '../../services/photos';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppDispatch } from '../../store/hooks';
 import { photosThunks } from '../../store/slices/photos';
-import { NotificationType } from '../../types';
 import AppButton from '../AppButton';
 import AppText from '../AppText';
 
@@ -17,8 +12,8 @@ interface DebugPhotosWidgetProps {
 }
 
 const DebugPhotosWidget = (props: DebugPhotosWidgetProps): JSX.Element => {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
-  const auth = useAppSelector((selector) => selector.auth);
   const onResetPhotosFilesystemData = async () => {
     dispatch(photosThunks.clearPhotosThunk());
   };

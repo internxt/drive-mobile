@@ -1,20 +1,11 @@
-import moment from 'moment';
-import React, { useState } from 'react';
-import { useTailwind } from 'tailwind-rn';
-import { FlatList, RefreshControl, SectionList, Text, View } from 'react-native';
-
-import useIsMounted from '../../hooks/useIsMounted';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosActions, photosThunks } from '../../store/slices/photos';
-import { PhotosCollection } from '../../types/photos';
-import GalleryDay from '../GalleryDay';
+import { View } from 'react-native';
 
 const GalleryDaysView = (): JSX.Element => {
-  const tailwind = useTailwind();
+  /*const tailwind = useTailwind();
   const isMounted = useIsMounted();
   const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
-  //const photosByMonth = useAppSelector((state) => state.photos.photosByMonth);
+  const photosByMonth = useAppSelector((state) => state.photos.photosByMonth);*/
 
   return <View></View>;
   /* return (

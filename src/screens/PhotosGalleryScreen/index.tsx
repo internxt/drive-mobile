@@ -204,7 +204,7 @@ function PhotosGalleryScreen(): JSX.Element {
               >
                 <View style={tailwind('items-center flex-1')}>
                   <Unicons.UilLink
-                    color={hasNoPhotosSelected || hasManyPhotosSelected ? getColor('neutral-60') : getColor('blue-60')}
+                    color={hasNoPhotosSelected || hasManyPhotosSelected ? getColor('text-neutral-60') : getColor('text-blue-60')}
                     size={24}
                   />
                   <Text
@@ -227,7 +227,7 @@ function PhotosGalleryScreen(): JSX.Element {
               >
                 <View style={tailwind('items-center flex-1')}>
                   <Unicons.UilDownloadAlt
-                    color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('blue-60')}
+                    color={hasNoPhotosSelected ? getColor('text-neutral-60') : getColor('text-blue-60')}
                     size={24}
                   />
                   <Text
@@ -247,7 +247,7 @@ function PhotosGalleryScreen(): JSX.Element {
                 disabled={!hasPhotosSelected}
               >
                 <View style={tailwind('items-center flex-1')}>
-                  <Trash color={!hasPhotosSelected ? getColor('neutral-60') : getColor('red-60')} size={24} />
+                  <Trash color={!hasPhotosSelected ? getColor('text-neutral-60') : getColor('text-red-60')} size={24} />
                   <Text
                     numberOfLines={1}
                     style={[

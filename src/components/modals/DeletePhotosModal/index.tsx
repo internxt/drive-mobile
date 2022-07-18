@@ -7,8 +7,8 @@ import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../AppButton';
 import { useAppDispatch } from '../../../store/hooks';
-import { useTailwind } from 'tailwind-rn';
 import { photosActions, photosThunks } from '../../../store/slices/photos';
+import { useTailwind } from 'tailwind-rn';
 
 interface DeletePhotosModalProps extends BottomModalProps {
   data: Photo[];

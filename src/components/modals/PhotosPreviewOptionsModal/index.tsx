@@ -12,10 +12,10 @@ import { useAppDispatch } from '../../../store/hooks';
 import fileSystemService from '../../../services/FileSystemService';
 import { items } from '@internxt/lib';
 import { DownloadSimple, Info, Link, Trash } from 'phosphor-react-native';
-import { useTailwind } from 'tailwind-rn';
-import useGetColor from '../../../hooks/useColor';
 import { PhotosCommonServices } from '../../../services/photos/PhotosCommonService';
 import { PhotoSizeType } from '../../../types/photos';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from 'src/hooks/useColor';
 
 interface PhotosPreviewOptionsModalProps extends BottomModalProps {
   data: Photo;

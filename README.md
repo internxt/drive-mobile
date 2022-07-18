@@ -34,6 +34,18 @@ Take a look to **/env/.env.example.json** file to know the required environment 
 <hr>
 </br>
 
+## Development
+
+Remember to run the tailwind command during development to dynamically add and remove styles from src/styles/tailwind.json depending on the used classes:
+
+```bash
+yarn tailwind:dev
+```
+
+</br>
+<hr>
+</br>
+
 ## Android
 
 We can run the android application in any operating system, although for each one we will have to follow some different steps

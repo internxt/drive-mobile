@@ -1,6 +1,7 @@
 import strings from 'assets/lang/strings';
 import { AsyncStorageKey, Language } from 'src/types';
 import asyncStorageService from './AsyncStorageService';
+import RNRestart from 'react-native-restart';
 
 class LanguageService {
   public async initialize() {
@@ -11,6 +12,8 @@ class LanguageService {
   public async setLanguage(language: Language) {
     await asyncStorageService.saveItem(AsyncStorageKey.Language, language);
     strings.setLanguage(language);
+
+    RNRestart.Restart();
   }
 }
 
