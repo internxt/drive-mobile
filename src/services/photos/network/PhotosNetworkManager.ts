@@ -188,7 +188,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       ],
       type: type,
       userId: PhotosCommonServices.model.user.id,
-      size: stat.size,
+      size: parseInt(stat.size, 10),
     });
 
     // 5. Finish the upload operation
