@@ -185,7 +185,7 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
                         {strings.subscriptions[subscription.type]}
                       </AppText>
                     </View>
-                    {!hasPaidPlan ? (
+                    {hasPaidPlan ? (
                       <View style={tailwind('flex-row items-center')}>
                         <AppText style={tailwind('text-gray-40 mr-2.5')}>{strings.buttons.manage}</AppText>
                         <CaretRight color={getColor('text-gray-40')} size={20} />

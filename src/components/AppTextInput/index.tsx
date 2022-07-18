@@ -10,6 +10,7 @@ interface AppTextInputProps extends TextInputProps {
   containerStyle?: StyleProp<ViewStyle>;
   label?: string;
   renderAppend?: ({ isFocused }: { isFocused: boolean }) => JSX.Element | undefined;
+  inputRef?: React.LegacyRef<TextInput>;
 }
 
 const AppTextInput = (props: AppTextInputProps): JSX.Element => {
@@ -63,6 +64,7 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
           style={[tailwind('flex-1 text-gray-80 py-2 px-4'), props.style]}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          ref={props.inputRef}
         />
         {props.renderAppend && <View style={tailwind('px-4')}>{props.renderAppend({ isFocused })}</View>}
       </View>

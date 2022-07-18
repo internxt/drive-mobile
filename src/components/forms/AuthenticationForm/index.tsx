@@ -47,6 +47,8 @@ const AuthenticationForm = (props: BaseFormProps) => {
         password: data.password,
       });
 
+      console.log('areCredentialsCorrect: ', areCredentialsCorrect);
+
       if (areCredentialsCorrect) {
         dispatch(authActions.setSessionPassword(data.password));
         props.onFormSubmitSuccess?.();

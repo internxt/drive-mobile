@@ -114,7 +114,7 @@ function StorageScreen({ navigation }: TabExplorerScreenProps<'Storage'>): JSX.E
 
           {/* USAGE */}
           <SettingsGroup
-            title="Usage"
+            title={strings.screens.StorageScreen.usage}
             items={[
               {
                 key: 'usage',
