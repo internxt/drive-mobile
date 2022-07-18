@@ -37,7 +37,7 @@ const CancelSubscriptionModal = (props: BaseModalProps) => {
     dispatch(paymentsThunks.cancelSubscriptionThunk())
       .unwrap()
       .then(() => {
-        goToNextStep();
+        props.onClose();
       })
       .catch(() => undefined)
       .finally(() => {
