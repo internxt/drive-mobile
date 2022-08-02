@@ -15,13 +15,13 @@ import { PhotosNetworkManager } from '../network/PhotosNetworkManager';
 import { DevicePhotosScannerService, DevicePhotosScannerStatus } from './DevicePhotosScannerService';
 import { DevicePhotosSyncCheckerService } from './DevicePhotosSyncChecker';
 import { Photo } from '@internxt/sdk/dist/photos';
-import sentryService from '../../SentryService';
 import async from 'async';
 import errorService from 'src/services/ErrorService';
 
 export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photo: Photo | null) => void;
 export type OnStatusChangeCallback = (status: PhotosSyncManagerStatus) => void;
 export type OnTotalPhotosCalculatedCallback = (totalPhotos: number) => void;
+export type OnPhotosCheckedRemotelyCallback = (photos: DevicePhotoRemoteCheck[]) => void;
 
 export type PhotosSyncManagerConfig = {
   checkIfExistsPhotosAmount: number;
@@ -39,11 +39,13 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   public totalPhotosSynced = 0;
 
   private onDevicePhotoSyncCompletedCallback: OnDevicePhotoSyncCompletedCallback = () => undefined;
+  private onPhotosCheckedRemotelyCallback: OnPhotosCheckedRemotelyCallback = () => undefined;
   private onStatusChangeCallback: OnStatusChangeCallback = () => undefined;
   private onTotalPhotosInDeviceCalculatedCallback: OnTotalPhotosCalculatedCallback = () => undefined;
   private networkPhotosCheckQueue = async.queue<{ group: DevicePhoto[] }, null, Error>(async (task, next) => {
     try {
       const devicePhotosToUpload = await this.checkPhotosRemotely(task.group);
+      this.onPhotosCheckedRemotelyCallback(devicePhotosToUpload);
       // Upload the missing photos
       await this.uploadMissingDevicePhotos(devicePhotosToUpload);
       next(null);
@@ -124,6 +126,10 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
 
   public onPhotoSyncCompleted(callback: OnDevicePhotoSyncCompletedCallback) {
     this.onDevicePhotoSyncCompletedCallback = callback;
+  }
+
+  public onPhotosCheckedRemotely(callback: OnPhotosCheckedRemotelyCallback) {
+    this.onPhotosCheckedRemotelyCallback = callback;
   }
 
   public onStatusChange(callback: OnStatusChangeCallback) {

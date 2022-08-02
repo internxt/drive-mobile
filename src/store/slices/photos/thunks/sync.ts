@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { photosSlice } from '..';
+import { photosSlice, photosThunks } from '..';
 import { RootState } from '../../..';
 import { PhotosService } from '../../../../services/photos';
 import { PhotosEventKey, PhotosSyncManagerStatus, PhotosSyncStatus } from '../../../../types/photos';
@@ -30,6 +30,10 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
         },
         photosInDevice,
       );
+    });
+
+    syncManager.onPhotosCheckedRemotely(() => {
+      dispatch(photosThunks.loadPhotosUsageThunk());
     });
 
     syncManager.onStatusChange((status) => {
