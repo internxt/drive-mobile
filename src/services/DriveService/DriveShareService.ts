@@ -1,4 +1,3 @@
-import { IShare } from '@internxt/sdk/dist/drive/share/types';
 import Axios from 'axios';
 import AesUtils from '../../helpers/aesUtils';
 import { getHeaders } from '../../helpers/headers';
@@ -12,7 +11,7 @@ import DriveLogService from './DriveLogService';
 class DriveShareService {
   constructor(private readonly model: DriveServiceModel, private readonly logService: DriveLogService) {}
 
-  public async getShareList(): Promise<IShare[]> {
+  public async getShareList(): Promise<any[]> {
     const headers = await getHeaders();
     const headersMap: Record<string, string> = {};
 
@@ -27,7 +26,7 @@ class DriveShareService {
     return this.decryptFileNames(response.data);
   }
 
-  private async decryptFileNames(shares: IShare[]) {
+  private async decryptFileNames(shares: any[]) {
     shares.map((share) => {
       try {
         const decryptedName = AesUtils.decrypt(

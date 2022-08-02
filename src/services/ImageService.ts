@@ -50,7 +50,7 @@ class ImageService {
 
   public async share(uri: string) {
     try {
-      const result = await Share.open({ title: strings.modals.share_photo_modal.nativeMesage, url: uri });
+      const result = await Share.open({ title: strings.modals.SharePhoto.nativeMesage, url: uri });
 
       if (result.success) {
         notificationsService.show({ type: NotificationType.Success, text1: strings.messages.photoShared });

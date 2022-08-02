@@ -1,15 +1,18 @@
 import React from 'react';
 import { TouchableHighlight, View } from 'react-native';
-import { getColor, tailwind } from '../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import { items } from '@internxt/lib';
 import AppText from '../AppText';
 import prettysize from 'prettysize';
 import { CaretRight } from 'phosphor-react-native';
-import globalStyle from '../../styles';
+import globalStyle from '../../styles/global';
 import { DriveNavigableItemProps } from '../../types/drive';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disabled, ...props }) => {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const isFolder = !props.data.fileId;
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
@@ -24,7 +27,7 @@ const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disa
   return (
     <TouchableHighlight
       style={tailwind(`${isDisabled ? 'opacity-50' : 'opacity-100'}`)}
-      underlayColor={isDisabled ? 'transparent' : getColor('neutral-20')}
+      underlayColor={isDisabled ? 'transparent' : getColor('text-neutral-20')}
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}
     >
@@ -66,7 +69,7 @@ const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disa
 
         {isFolder && (
           <View style={[tailwind('items-center justify-center')]}>
-            <CaretRight weight="bold" size={22} color={getColor('neutral-60')} />
+            <CaretRight weight="bold" size={22} color={getColor('text-neutral-60')} />
           </View>
         )}
       </View>

@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
 import RNFetchBlob, { RNFetchBlobStat } from 'rn-fetch-blob';
-import FileViewer, { RNFileViewerOptions } from 'react-native-file-viewer';
+import FileViewer from 'react-native-file-viewer';
 import * as FileSystem from 'expo-file-system';
 
 enum AcceptedEncodings {
@@ -109,7 +109,7 @@ class FileSystemService {
     return RNFetchBlob.fs.stat(uri);
   }
 
-  public async showFileViewer(uri: string, options?: RNFileViewerOptions): Promise<void> {
+  public async showFileViewer(uri: string, options?: string | Record<string, unknown>): Promise<void> {
     const fileInfo = await FileSystem.getInfoAsync(uri);
 
     if (!fileInfo.exists) {
@@ -121,6 +121,13 @@ class FileSystemService {
 
   public async mkdir(uri: string) {
     await RNFS.mkdir(uri);
+  }
+
+  public async uriToBlob(uri: string) {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+
+    return blob;
   }
 }
 

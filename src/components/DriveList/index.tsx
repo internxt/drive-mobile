@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { RefreshControl, View, FlatList } from 'react-native';
 import _ from 'lodash';
 
-import { tailwind } from '../../helpers/designSystem';
 import DriveItemTable from '../DriveItemTable';
 import DriveItemGrid from '../DriveItemGrid';
 import DriveItemSkinSkeleton from '../DriveItemSkinSkeleton';
@@ -14,6 +13,7 @@ import strings from '../../../assets/lang/strings';
 import { driveSelectors, driveThunks } from '../../store/slices/drive';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { DriveListType, DriveListViewMode, DriveListItem } from '../../types/drive';
+import { useTailwind } from 'tailwind-rn';
 
 interface DriveListProps {
   type: DriveListType;
@@ -22,6 +22,7 @@ interface DriveListProps {
 }
 
 function DriveList(props: DriveListProps): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
   const { searchString, isLoading: filesLoading } = useAppSelector((state) => state.drive);

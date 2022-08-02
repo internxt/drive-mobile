@@ -29,9 +29,10 @@ import CreateFolderModal from '../CreateFolderModal';
 import DriveItemSkinSkeleton from '../../DriveItemSkinSkeleton';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
-import { getColor, tailwind } from '../../../helpers/designSystem';
 import { useNavigation } from '@react-navigation/native';
 import { RootScreenNavigationProp } from '../../../types/navigation';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../../hooks/useColor';
 
 const colors = {
   primary: '#0066FF',
@@ -43,6 +44,8 @@ const INITIAL_SORT_MODE: SortMode = {
 };
 
 function MoveItemsModal(): JSX.Element {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const dispatch = useAppDispatch();
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
@@ -245,9 +248,9 @@ function MoveItemsModal(): JSX.Element {
             {strings.screens.drive.sort[sortMode.type]}
           </AppText>
           {sortMode.direction === SortDirection.Asc ? (
-            <ArrowUp weight="bold" size={18} color={getColor('gray-60')} />
+            <ArrowUp weight="bold" size={18} color={getColor('text-gray-60')} />
           ) : (
-            <ArrowDown weight="bold" size={18} color={getColor('gray-60')} />
+            <ArrowDown weight="bold" size={18} color={getColor('text-gray-60')} />
           )}
         </View>
       </TouchableOpacity>
@@ -336,13 +339,13 @@ function MoveItemsModal(): JSX.Element {
           <View style={[tailwind('flex justify-between flex-row px-8'), { marginBottom: safeInsets.bottom }]}>
             <TouchableOpacity activeOpacity={0.7} onPress={onCreateNewFolder}>
               <AppText medium style={[styles.text, tailwind('text-lg')]}>
-                {strings.components.buttons.newFolder}
+                {strings.buttons.newFolder}
               </AppText>
             </TouchableOpacity>
 
             <TouchableOpacity activeOpacity={0.7} onPress={onMoveButtonPressed} disabled={moveIsDisabled()}>
               <AppText medium style={[styles.text, tailwind(`text-lg ${moveIsDisabled() ? 'text-gray-30' : ''} `)]}>
-                {strings.components.buttons.moveHere}
+                {strings.buttons.moveHere}
               </AppText>
             </TouchableOpacity>
           </View>

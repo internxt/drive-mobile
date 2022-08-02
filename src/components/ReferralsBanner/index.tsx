@@ -1,7 +1,6 @@
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { getColor, tailwind } from '../../helpers/designSystem';
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
@@ -9,12 +8,16 @@ import { TouchableWithoutFeedback } from 'react-native';
 import { X } from 'phosphor-react-native';
 import AppText from '../AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { RootScreenNavigationProp } from '../../types/navigation';
+import { SettingsScreenNavigationProp } from '../../types/navigation';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 const ReferralsBanner = (): JSX.Element => {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
+  const navigation = useNavigation<SettingsScreenNavigationProp<'Account'>>();
   const isOpen = useAppSelector((state) => state.ui.isReferralsBannerOpen);
   const onBannerPressed = () => {
     navigation.navigate('Storage');
@@ -36,7 +39,7 @@ const ReferralsBanner = (): JSX.Element => {
       </AppText>
       <TouchableWithoutFeedback onPress={onCloseButtonPressed}>
         <View style={tailwind('p-2')}>
-          <X color={getColor('blue-40')} size={26} />
+          <X color={getColor('text-blue-40')} size={26} />
         </View>
       </TouchableWithoutFeedback>
     </View>

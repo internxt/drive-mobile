@@ -2,12 +2,12 @@ import React from 'react';
 import { View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
-import { tailwind } from '../../../helpers/designSystem';
 import AppText from '../../AppText';
 import CenterModal from '../CenterModal';
 import { DriveItemData, DriveItemFocused } from '../../../types/drive';
 import { ArrowDown } from 'phosphor-react-native';
 import AppButton from '../../AppButton';
+import { useTailwind } from 'tailwind-rn';
 
 interface ConfirmMoveItemModalProps {
   isOpen: boolean;
@@ -21,6 +21,8 @@ interface ConfirmMoveItemModalProps {
   onConfirm: () => void;
 }
 const ConfirmMoveItemModal: React.FC<ConfirmMoveItemModalProps> = (props) => {
+  const tailwind = useTailwind();
+
   return (
     <CenterModal
       isOpen={props.isOpen}
@@ -54,7 +56,7 @@ const ConfirmMoveItemModal: React.FC<ConfirmMoveItemModalProps> = (props) => {
           <View style={tailwind('flex-1 mr-2')}>
             <AppButton
               type="cancel"
-              title={strings.components.buttons.cancel}
+              title={strings.buttons.cancel}
               onPress={props.onClose}
               disabled={props.isMovingItem}
             />
@@ -62,7 +64,7 @@ const ConfirmMoveItemModal: React.FC<ConfirmMoveItemModalProps> = (props) => {
           <View style={tailwind('flex-1 ml-2')}>
             <AppButton
               type="accept"
-              title={strings.components.buttons.move}
+              title={strings.buttons.move}
               onPress={props.onConfirm}
               loading={props.isMovingItem}
             />

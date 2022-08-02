@@ -3,9 +3,7 @@ import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 
-import { tailwind } from '../helpers/designSystem';
 import DriveScreen from '../screens/DriveScreen';
-import MenuScreen from '../screens/MenuScreen';
 import BottomTabNavigator from '../components/BottomTabNavigator';
 import EmptyScreen from '../screens/EmptyScreen';
 import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
@@ -18,18 +16,24 @@ import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../screens/HomeScreen';
 import PhotosNavigator from './PhotosNavigator';
 import ReferralsBanner from '../components/ReferralsBanner';
-import { useAppDispatch } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { uiActions } from '../store/slices/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DriveDownloadModal from '../components/modals/DriveDownloadModal';
 import SignOutModal from '../components/modals/SignOutModal';
 import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
+import { useTailwind } from 'tailwind-rn';
+import SecurityModal from 'src/components/modals/SecurityModal';
+import { SettingsNavigator } from './SettingsNavigator';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
 export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExplorer'>): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
+  const { isSecurityModalOpen } = useAppSelector((state) => state.ui);
+  const onSecurityModalClosed = () => dispatch(uiActions.setIsSecurityModalOpen(false));
 
   useEffect(() => {
     props.route.params?.showReferralsBanner && dispatch(uiActions.setIsReferralsBannerOpen(true));
@@ -50,9 +54,10 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Drive" component={DriveScreen} />
         <Tab.Screen name="Add" component={EmptyScreen} />
         <Tab.Screen name="Photos" component={PhotosNavigator} />
-        <Tab.Screen name="Menu" component={MenuScreen} />
+        <Tab.Screen name="Settings" component={SettingsNavigator} />
       </Tab.Navigator>
 
+      <ReferralsBanner />
       <AddModal />
       <DriveItemInfoModal />
       <DeleteItemModal />
@@ -62,7 +67,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <DriveRenameModal />
       <RunOutOfStorageModal />
       <SignOutModal />
-      <ReferralsBanner />
+      <SecurityModal isOpen={isSecurityModalOpen} onClose={onSecurityModalClosed} />
     </View>
   );
 }

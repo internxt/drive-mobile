@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { View, Text, TouchableWithoutFeedback, ImageBackground } from 'react-native';
-import { tailwind } from '../../helpers/designSystem';
+import { useTailwind } from 'tailwind-rn';
 import { useAppDispatch } from '../../store/hooks';
 import { photosActions } from '../../store/slices/photos';
 import { GalleryViewMode } from '../../types/photos';
@@ -12,6 +12,7 @@ interface GalleryYearProps {
 }
 
 const GalleryYear = (props: GalleryYearProps): JSX.Element => {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const onYearPressed = () => {
     dispatch(photosActions.setViewMode(GalleryViewMode.Months));

@@ -1,9 +1,10 @@
 import { MagnifyingGlass, XCircle } from 'phosphor-react-native';
 import React, { createRef, useState } from 'react';
 import { View, TextInput, StyleProp, ViewStyle, TouchableOpacity } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
+import useGetColor from '../../hooks/useColor';
 
-import { getColor, tailwind } from '../../helpers/designSystem';
 import AppText from '../AppText';
 
 interface SearchInputProps {
@@ -14,6 +15,8 @@ interface SearchInputProps {
 }
 
 function SearchInput(props: SearchInputProps): JSX.Element {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const [inputRef] = useState(createRef<TextInput>());
   const [isFocused, setIsFocused] = useState(false);
   const onBlur = () => {
@@ -37,7 +40,7 @@ function SearchInput(props: SearchInputProps): JSX.Element {
           <View style={tailwind('flex-row items-center')}>
             {!isFocused && (
               <View style={tailwind('pl-3')}>
-                <MagnifyingGlass color={getColor('neutral-60')} size={18} />
+                <MagnifyingGlass color={getColor('text-neutral-60')} size={18} />
               </View>
             )}
 
@@ -49,13 +52,13 @@ function SearchInput(props: SearchInputProps): JSX.Element {
               value={props.value}
               style={tailwind('text-base flex-grow flex-shrink pl-3 py-1.5')}
               placeholder={props.placeholder || ''}
-              placeholderTextColor={getColor('neutral-60')}
+              placeholderTextColor={getColor('text-neutral-60')}
             />
 
             {!!props.value && (
               <TouchableOpacity onPress={onClearButtonPressed}>
                 <View style={tailwind('py-1.5 px-3 items-center justify-center')}>
-                  <XCircle weight="fill" color={getColor('neutral-60')} size={24} />
+                  <XCircle weight="fill" color={getColor('text-neutral-60')} size={24} />
                 </View>
               </TouchableOpacity>
             )}
@@ -66,7 +69,7 @@ function SearchInput(props: SearchInputProps): JSX.Element {
       {isFocused && (
         <TouchableOpacity onPress={onCancelButtonPressed}>
           <View style={tailwind('flex-grow px-3 justify-center')}>
-            <AppText style={tailwind('text-sm text-blue-60')}>{strings.components.buttons.cancel}</AppText>
+            <AppText style={tailwind('text-sm text-blue-60')}>{strings.buttons.cancel}</AppText>
           </View>
         </TouchableOpacity>
       )}

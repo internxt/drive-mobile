@@ -8,3 +8,12 @@ export abstract class RunnableService<T = unknown> {
   // Should update the RunnableService current status
   abstract updateStatus(status: T): void;
 }
+
+export class NotInitializedServiceError extends Error {
+  private service: string;
+  constructor(serviceName: string, where: string) {
+    super();
+    this.service = serviceName;
+    this.message = `${this.service} not initialized in ${where}, check the stacktrace for more info`;
+  }
+}

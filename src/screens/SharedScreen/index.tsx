@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Alert, ScrollView, RefreshControl, Text } from 'react-native';
 import _ from 'lodash';
-import { IShare } from '@internxt/sdk/dist/drive/share/types';
 
 import DriveItem from '../../components/DriveItemTable';
-import { tailwind } from '../../helpers/designSystem';
 import DriveItemSkinSkeleton from '../../components/DriveItemSkinSkeleton';
 import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
@@ -12,16 +10,18 @@ import EmptySharesImage from '../../../assets/images/screens/empty-shares.svg';
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
 import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
 import DriveService from '../../services/DriveService';
+import { useTailwind } from 'tailwind-rn';
 
 interface SharedScreenProps {
   searchText?: string;
 }
 
 function SharedScreen(props: SharedScreenProps): JSX.Element {
+  const tailwind = useTailwind();
   const [loading, setLoading] = useState(true);
-  const [sharedList, setSharedList] = useState<IShare[]>([]);
+  const [sharedList, setSharedList] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const filteredSharedList = sharedList.filter((share: IShare) =>
+  const filteredSharedList = sharedList.filter((share: any) =>
     share.fileInfo.name.toLowerCase().includes((props.searchText || '').toLowerCase()),
   );
   const reloadShares = async () => {

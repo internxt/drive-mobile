@@ -1,14 +1,14 @@
 import React from 'react';
-import { StyleProp, Text, TouchableHighlight, View, ViewStyle } from 'react-native';
-
-import { getColor, tailwind } from '../../helpers/designSystem';
-import globalStyle from '../../styles';
+import { StyleProp, TouchableHighlight, View, ViewStyle } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
+import AppText from '../AppText';
 import LoadingSpinner from '../LoadingSpinner';
 
 interface AppButtonProps {
   testID?: string;
   title: string | JSX.Element;
-  type: 'accept' | 'cancel' | 'cancel-2' | 'delete';
+  type: 'accept' | 'accept-2' | 'cancel' | 'cancel-2' | 'delete';
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
@@ -16,50 +16,61 @@ interface AppButtonProps {
 }
 
 const AppButton = (props: AppButtonProps): JSX.Element => {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const isTitleString = typeof props.title === 'string';
   const typeBgStyle = {
-    accept: props.disabled ? tailwind('bg-neutral-30') : tailwind('bg-blue-60'),
-    cancel: tailwind('bg-neutral-20'),
+    accept: props.disabled
+      ? props.loading
+        ? tailwind('bg-primary-dark')
+        : tailwind('bg-gray-40')
+      : tailwind('bg-blue-60'),
+    'accept-2': props.disabled ? tailwind('bg-gray-40') : tailwind('bg-primary/10'),
+    cancel: tailwind('bg-gray-5'),
     'cancel-2': tailwind('bg-blue-10'),
-    delete: tailwind('bg-red-60'),
+    delete: props.disabled ? tailwind('bg-gray-40') : tailwind('bg-red-'),
   }[props.type];
   const typeTextStyle = {
-    accept: props.disabled ? tailwind('text-neutral-60') : tailwind('text-white'),
-    cancel: tailwind('text-neutral-300'),
+    accept: tailwind('text-white'),
+    'accept-2': props.disabled ? tailwind('text-white') : tailwind('text-primary'),
+    cancel: props.disabled ? tailwind('text-gray-40') : tailwind('text-gray-80'),
     'cancel-2': tailwind('text-blue-60'),
     delete: tailwind('text-white'),
   }[props.type];
   const typeUnderlayColor = {
-    accept: getColor('blue-70'),
-    cancel: getColor('neutral-30'),
-    'cancel-2': getColor('neutral-30'),
-    delete: getColor('red-70'),
+    accept: getColor('text-blue-70'),
+    'accept-2': getColor('text-primary/20'),
+    cancel: getColor('text-neutral-30'),
+    'cancel-2': getColor('text-neutral-30'),
+    delete: getColor('text-red-dark'),
   }[props.type];
 
   const renderContent = () => {
-    if (props.loading) {
-      return (
-        <View style={tailwind('h-7 flex items-center justify-center')}>
-          <LoadingSpinner color={getColor('white')} size={16} />
-        </View>
-      );
-    }
+    const title = isTitleString ? (
+      <AppText medium numberOfLines={1} style={[tailwind('text-lg'), typeTextStyle]}>
+        {props.title}
+      </AppText>
+    ) : (
+      props.title
+    );
 
-    if (isTitleString) {
-      return (
-        <Text numberOfLines={1} style={[tailwind('text-lg'), globalStyle.fontWeight.medium, typeTextStyle]}>
-          {props.title}
-        </Text>
-      );
-    }
-
-    return props.title;
+    return (
+      <View style={tailwind('flex-row')}>
+        {title}
+        {props.loading && (
+          <View style={tailwind('ml-2 items-center justify-center')}>
+            <LoadingSpinner color={getColor('text-white')} size={16} />
+          </View>
+        )}
+      </View>
+    );
   };
+
   return (
     <TouchableHighlight
       testID={props.testID}
       underlayColor={typeUnderlayColor}
-      style={[tailwind('rounded-lg px-4 py-2 items-center justify-center '), typeBgStyle, props.style]}
+      style={[tailwind('rounded-lg px-4 py-3 items-center justify-center'), typeBgStyle, props.style]}
       onPress={props.onPress}
       disabled={!!props.disabled || !!props.loading}
     >

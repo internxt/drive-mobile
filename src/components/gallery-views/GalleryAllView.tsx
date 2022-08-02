@@ -3,16 +3,17 @@ import { Photo } from '@internxt/sdk/dist/photos';
 import { Dimensions, FlatList, RefreshControl, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { tailwind } from '../../helpers/designSystem';
 import GalleryItem from '../GalleryItem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosActions, photosSelectors } from '../../store/slices/photos';
 import { PhotosScreenNavigationProp } from '../../types/navigation';
 import { PhotoWithPreview } from '../../types/photos';
+import { useTailwind } from 'tailwind-rn';
 
 const COLUMNS = 3;
 const GUTTER = 3;
 const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onLoadNextPage }) => {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
@@ -93,9 +94,8 @@ const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onL
       }
       ItemSeparatorComponent={renderItemSeparator}
       data={photos}
-      onScrollEndDrag={onScrollEnd}
       numColumns={COLUMNS}
-      onEndReached={() => undefined}
+      onEndReached={onScrollEnd}
       onEndReachedThreshold={3}
       keyExtractor={extractKey}
       renderItem={renderListItem}

@@ -25,7 +25,7 @@ export async function getHeaders(authToken?: string, mnemonic?: string): Promise
 
   headers.append('content-type', 'application/json; charset=utf-8');
   headers.append('internxt-version', PackageJson.version);
-  headers.append('internxt-client', 'drive-mobile');
+  headers.append('internxt-client', PackageJson.name);
 
   headers.append('Authorization', `Bearer ${storedAuthToken}`);
   headers.append('internxt-mnemonic', storedMnemonic);

@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 
-import { tailwind } from '../../../helpers/designSystem';
 import { getFileTypeIcon } from '../../../helpers';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -20,8 +19,10 @@ import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService
 import asyncStorage from '../../../services/AsyncStorageService';
 import { DevicePlatform, NotificationType } from '../../../types';
 import notificationsService from '../../../services/NotificationsService';
+import { useTailwind } from 'tailwind-rn';
 
 function DriveDownloadModal(): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const iconSize = 80;
   const { isInitialized, downloadingFile } = useAppSelector((state) => state.drive);
@@ -153,7 +154,7 @@ function DriveDownloadModal(): JSX.Element {
 
             <AppButton
               disabled={downloadingFile.status !== 'idle'}
-              title={isCancelling ? strings.generic.cancelling : strings.components.buttons.cancel}
+              title={isCancelling ? strings.buttons.cancelling : strings.buttons.cancel}
               type="cancel-2"
               onPress={onCancelButtonPressed}
             />

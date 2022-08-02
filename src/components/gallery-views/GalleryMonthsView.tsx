@@ -1,9 +1,5 @@
-import React, { useEffect } from 'react';
-import { ScrollView, Text, View } from 'react-native';
-import { tailwind } from '../../helpers/designSystem';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosThunks } from '../../store/slices/photos';
-import GalleryMonth from '../GalleryMonth';
+import React from 'react';
+import { View } from 'react-native';
 
 const GalleryMonthsView = (): JSX.Element => {
   return <View></View>;

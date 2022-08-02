@@ -6,10 +6,7 @@ import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 import { RootStackParamList } from '../types/navigation';
 import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
-import StorageScreen from '../screens/StorageScreen';
 import AuthenticatedNavigator from './TabExplorerNavigator';
-import BillingScreen from '../screens/BillingScreen';
-import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import PhotosPreviewScreen from '../screens/PhotosPreviewScreen';
@@ -18,6 +15,9 @@ import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import analyticsService from '../services/AnalyticsService';
 import DebugScreen from '../screens/DebugScreen';
+import { uiActions } from 'src/store/slices/ui';
+import { paymentsThunks } from 'src/store/slices/payments';
+import { storageThunks } from 'src/store/slices/storage';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -35,6 +35,16 @@ function AppNavigator(): JSX.Element {
       if (comesFromCheckout) {
         await analyticsService.trackPayment(sessionId as string);
         await AsyncStorage.removeItem('tmpCheckoutSessionId');
+        /**
+         * We will update the UI in 5s since we don't have
+         * realtime updates, good luck
+         */
+        setTimeout(() => {
+          dispatch(paymentsThunks.loadUserSubscriptionThunk());
+          dispatch(storageThunks.loadLimitThunk());
+        }, 5000);
+
+        dispatch(uiActions.setIsPlansModalOpen(false));
       }
     }
 
@@ -88,16 +98,13 @@ function AppNavigator(): JSX.Element {
   return (
     <Stack.Navigator
       initialRouteName={initialRouteName}
-      screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
+      screenOptions={{ headerShown: false, animation: 'slide_from_right', gestureEnabled: false }}
     >
       <Stack.Screen name="Debug" component={DebugScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="TabExplorer" component={AuthenticatedNavigator} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="Storage" component={StorageScreen} />
-      <Stack.Screen name="Billing" component={BillingScreen} />
-      <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="PhotosPreview" component={PhotosPreviewScreen} />
     </Stack.Navigator>
   );

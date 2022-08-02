@@ -3,17 +3,20 @@ import { View, Text, TouchableHighlight } from 'react-native';
 import prettysize from 'prettysize';
 
 import strings from '../../../../assets/lang/strings';
-import { getColor, tailwind } from '../../../helpers/designSystem';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
-import globalStyle from '../../../styles';
+import globalStyle from '../../../styles/global';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
 import AppText from '../../AppText';
 import { items } from '@internxt/lib';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../../hooks/useColor';
 
 function DeleteItemModal(): JSX.Element {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const { focusedItem: item } = useAppSelector((state) => state.drive);
   const { showDeleteModal } = useAppSelector((state) => state.ui);
@@ -70,25 +73,25 @@ function DeleteItemModal(): JSX.Element {
 
       <View style={tailwind('flex-row justify-between bg-white p-3')}>
         <TouchableHighlight
-          underlayColor={getColor('neutral-30')}
+          underlayColor={getColor('text-neutral-30')}
           style={tailwind('bg-neutral-20 rounded-lg py-2 flex-grow items-center justify-center')}
           onPress={() => {
             dispatch(uiActions.setShowDeleteModal(false));
           }}
         >
           <Text style={[tailwind('text-lg text-neutral-300'), globalStyle.fontWeight.medium]}>
-            {strings.components.buttons.cancel}
+            {strings.buttons.cancel}
           </Text>
         </TouchableHighlight>
 
         <View style={tailwind('px-1')}></View>
 
         <TouchableHighlight
-          underlayColor={getColor('red-70')}
+          underlayColor={getColor('text-red-70')}
           style={tailwind('bg-red-60 rounded-lg py-2 flex-grow items-center justify-center')}
           onPress={onDeleteButtonPressed}
         >
-          <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.generic.delete}</Text>
+          <Text style={[tailwind('text-lg text-white'), globalStyle.fontWeight.medium]}>{strings.buttons.delete}</Text>
         </TouchableHighlight>
       </View>
     </BottomModal>

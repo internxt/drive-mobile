@@ -2,11 +2,12 @@ import React from 'react';
 import { Keyboard, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar, StatusBarStyle } from 'expo-status-bar';
-
-import { tailwind, getColor } from '../../helpers/designSystem';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 interface AppScreenProps {
   backgroundColor?: string;
+  safeAreaColor?: string;
   statusBarHidden?: boolean;
   statusBarTranslucent?: boolean;
   statusBarStyle?: StatusBarStyle;
@@ -14,12 +15,16 @@ interface AppScreenProps {
   safeAreaBottom?: boolean;
   children?: React.ReactNode | React.ReactNode[];
   style?: StyleProp<ViewStyle>;
+  hasBottomTabs?: boolean;
 }
 
 const AppScreen = (props: AppScreenProps): JSX.Element => {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
   const propsStyle = Object.assign({}, props.style || {}) as Record<string, string>;
-  const backgroundColor = props.backgroundColor || getColor('white');
+  const safeAreaColor = props.safeAreaColor || getColor('text-white');
+  const backgroundColor = props.backgroundColor || getColor('text-white');
   const statusBarStyle = props.statusBarStyle || 'dark';
   const onBackgroundPressed = () => {
     Keyboard.dismiss();
@@ -28,12 +33,18 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
   return (
     <View
       style={{
+        paddingBottom: props.hasBottomTabs ? 0 : 0,
         backgroundColor,
-        paddingTop: props.safeAreaTop ? safeAreaInsets.top : 0,
-        paddingBottom: props.safeAreaBottom ? safeAreaInsets.bottom : 0,
         ...propsStyle,
       }}
     >
+      <View
+        style={{
+          backgroundColor: safeAreaColor,
+          paddingTop: props.safeAreaTop ? safeAreaInsets.top : 0,
+        }}
+      />
+
       <StatusBar
         hidden={props.statusBarHidden}
         style={statusBarStyle}
@@ -47,6 +58,13 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
       </TouchableWithoutFeedback>
 
       {props.children}
+
+      <View
+        style={{
+          backgroundColor: safeAreaColor,
+          paddingBottom: props.safeAreaBottom ? safeAreaInsets.bottom : 0,
+        }}
+      />
     </View>
   );
 };

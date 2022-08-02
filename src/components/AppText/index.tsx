@@ -1,6 +1,6 @@
 import { Text, TextProps } from 'react-native';
-import { tailwind } from '../../helpers/designSystem';
-import styles from '../../styles';
+import { useTailwind } from 'tailwind-rn';
+import styles from '../../styles/global';
 
 interface AppTextProps extends TextProps {
   medium?: boolean;
@@ -9,11 +9,13 @@ interface AppTextProps extends TextProps {
 }
 
 const AppText = (props: AppTextProps): JSX.Element => {
+  const tailwind = useTailwind();
+
   return (
     <Text
       {...props}
       style={[
-        tailwind('text-neutral-900 text-base'),
+        tailwind('text-gray-80 text-base'),
         props.medium && styles.fontWeight.medium,
         props.semibold && styles.fontWeight.semibold,
         props.bold && styles.fontWeight.bold,

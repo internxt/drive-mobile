@@ -5,6 +5,7 @@ import packageJson from './package.json';
 export enum AppStage {
   Development = 'development',
   Test = 'test',
+  Staging = 'staging',
   Production = 'production',
 }
 
@@ -16,6 +17,7 @@ export interface AppEnv {
   REACT_NATIVE_CRYPTO_SECRET: string;
   REACT_NATIVE_WEB_CLIENT_URL: string;
   REACT_NATIVE_DRIVE_API_URL: string;
+  REACT_NATIVE_PAYMENTS_API_URL: string;
   REACT_NATIVE_BRIDGE_URL: string;
   REACT_NATIVE_PHOTOS_API_URL: string;
   REACT_NATIVE_PHOTOS_NETWORK_API_URL: string;

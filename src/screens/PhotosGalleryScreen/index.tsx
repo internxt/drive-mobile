@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback, BackHandler } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 
-import { getColor, tailwind } from '../../helpers/designSystem';
-import globalStyle from '../../styles';
+import globalStyle from '../../styles/global';
 import ScreenTitle from '../../components/AppScreenTitle';
 import strings from '../../../assets/lang/strings';
 import galleryViews from '../../components/gallery-views';
@@ -16,8 +15,12 @@ import PhotosSyncStatusWidget from '../../components/PhotosSyncStatusWidget';
 import AppScreen from '../../components/AppScreen';
 import { Trash } from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 function PhotosGalleryScreen(): JSX.Element {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
   const isLoading = true;
@@ -30,7 +33,6 @@ function PhotosGalleryScreen(): JSX.Element {
   const { selection } = useAppSelector((state) => state.photos);
   const [loading, setLoading] = useState(false);
   const [isDeletePhotosModalOpen, setIsDeletePhotosModalOpen] = useState(false);
-  const onSharePhotoModalClosed = () => dispatch(uiActions.setIsSharePhotoModalOpen(false));
   const onDeletePhotosModalClosed = () => {
     setIsDeletePhotosModalOpen(false);
     dispatch(photosActions.setIsSelectionModeActivated(false));
@@ -82,7 +84,12 @@ function PhotosGalleryScreen(): JSX.Element {
   })();*/
 
   useEffect(() => {
-    dispatch(photosThunks.loadPhotosThunk({ page: currentPage }));
+    dispatch(photosThunks.startUsingPhotosThunk())
+      .unwrap()
+      .then(() => {
+        dispatch(photosThunks.loadPhotosThunk({ page: currentPage }));
+      });
+
     const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressed);
 
     return () => {
@@ -91,7 +98,7 @@ function PhotosGalleryScreen(): JSX.Element {
     };
   }, []);
 
-  const loadNextPage = async () => {
+  async function loadNextPage() {
     if (!loading && hasMorePhotos) {
       setLoading(true);
       const nextPage = currentPage + 1;
@@ -101,7 +108,7 @@ function PhotosGalleryScreen(): JSX.Element {
 
       setLoading(false);
     }
-  };
+  }
 
   return (
     <>
@@ -129,7 +136,7 @@ function PhotosGalleryScreen(): JSX.Element {
                       onPress={onSelectAllButtonPressed}
                     >
                       <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                        {strings.components.buttons.selectAll}
+                        {strings.buttons.selectAll}
                       </Text>
                     </TouchableOpacity>
             </View>*/}
@@ -139,7 +146,7 @@ function PhotosGalleryScreen(): JSX.Element {
                     onPress={onCancelSelectButtonPressed}
                   >
                     <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                      {strings.components.buttons.cancel}
+                      {strings.buttons.cancel}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -161,7 +168,7 @@ function PhotosGalleryScreen(): JSX.Element {
                     disabled={!hasPhotos}
                   >
                     <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                      {strings.components.buttons.select}
+                      {strings.buttons.select}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -201,7 +208,7 @@ function PhotosGalleryScreen(): JSX.Element {
               >
                 <View style={tailwind('items-center flex-1')}>
                   <Unicons.UilLink
-                    color={hasNoPhotosSelected || hasManyPhotosSelected ? getColor('neutral-60') : getColor('blue-60')}
+                    color={hasNoPhotosSelected || hasManyPhotosSelected ? getColor('text-neutral-60') : getColor('text-blue-60')}
                     size={24}
                   />
                   <Text
@@ -213,7 +220,7 @@ function PhotosGalleryScreen(): JSX.Element {
                       tailwind('text-xs'),
                     ]}
                   >
-                    {strings.components.buttons.share}
+                    {strings.buttons.share}
                   </Text>
                 </View>
                   </TouchableWithoutFeedback>*/}
@@ -224,7 +231,7 @@ function PhotosGalleryScreen(): JSX.Element {
               >
                 <View style={tailwind('items-center flex-1')}>
                   <Unicons.UilDownloadAlt
-                    color={hasNoPhotosSelected ? getColor('neutral-60') : getColor('blue-60')}
+                    color={hasNoPhotosSelected ? getColor('text-neutral-60') : getColor('text-blue-60')}
                     size={24}
                   />
                   <Text
@@ -234,7 +241,7 @@ function PhotosGalleryScreen(): JSX.Element {
                       tailwind('text-xs'),
                     ]}
                   >
-                    {strings.components.buttons.download}
+                    {strings.buttons.download}
                   </Text>
                 </View>
                   </TouchableWithoutFeedback>*/}
@@ -244,7 +251,7 @@ function PhotosGalleryScreen(): JSX.Element {
                 disabled={!hasPhotosSelected}
               >
                 <View style={tailwind('items-center flex-1')}>
-                  <Trash color={!hasPhotosSelected ? getColor('neutral-60') : getColor('red-60')} size={24} />
+                  <Trash color={!hasPhotosSelected ? getColor('text-neutral-60') : getColor('text-red-60')} size={24} />
                   <Text
                     numberOfLines={1}
                     style={[
@@ -252,7 +259,7 @@ function PhotosGalleryScreen(): JSX.Element {
                       tailwind('text-xs'),
                     ]}
                   >
-                    {strings.components.buttons.moveToThrash}
+                    {strings.buttons.moveToThrash}
                   </Text>
                 </View>
               </TouchableWithoutFeedback>

@@ -3,18 +3,15 @@ import { Image, Text, View } from 'react-native';
 import { Photo } from '@internxt/sdk/dist/photos';
 import prettysize from 'prettysize';
 
-import globalStyle from '../../../styles';
-import { tailwind } from '../../../helpers/designSystem';
+import globalStyle from '../../../styles/global';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../AppButton';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { useAppDispatch } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import imageService from '../../../services/ImageService';
-import { items } from '@internxt/lib';
 import fileSystemService from '../../../services/FileSystemService';
-import { photosSelectors, photosThunks } from '../../../store/slices/photos';
-import LoadingSpinner from '../../LoadingSpinner';
+import { useTailwind } from 'tailwind-rn';
 import { PhotosCommonServices } from '../../../services/photos/PhotosCommonService';
 import { PhotoSizeType } from '../../../types/photos';
 
@@ -28,6 +25,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
     return <View></View>;
   }
 
+  const tailwind = useTailwind();
   const [times, setTimes] = useState(10);
   // const [url, setUrl] = useState('LINK');
   const dispatch = useAppDispatch();
@@ -43,12 +41,12 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
       const result = await Share.share(
         Platform.OS === 'android'
           ? {
-              title: strings.modals.share_photo_modal.nativeMesage,
+              title: strings.modals.SharePhoto.nativeMesage,
               message: url,
             }
           : {
               url,
-              message: strings.modals.share_photo_modal.nativeMesage,
+              message: strings.modals.SharePhoto.nativeMesage,
             },
       );
 
@@ -132,16 +130,16 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
               globalStyle.fontWeight.medium,
             ]}
           >
-            {strings.modals.share_photo_modal.linkOpenLimit}
+            {strings.modals.SharePhoto.linkOpenLimit}
           </Text>
 
           <View style={tailwind('flex-row justify-center')}>
             <TouchableHighlight
-              underlayColor={getColor('neutral-20')}
+              underlayColor={getColor('text-neutral-20')}
               style={[tailwind('mr-1 rounded-lg p-2 w-10 h-10 items-center justify-center bg-neutral-30')]}
               onPress={onLessTimesButtonPressed}
             >
-              <Unicons.UilMinus color={getColor('neutral-500')} size={24} />
+              <Unicons.UilMinus color={getColor('text-neutral-500')} size={24} />
             </TouchableHighlight>
 
             <TextInput
@@ -152,11 +150,11 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
             />
 
             <TouchableHighlight
-              underlayColor={getColor('neutral-20')}
+              underlayColor={getColor('text-neutral-20')}
               style={[tailwind('ml-1 rounded-lg p-2 w-10 h-10 items-center justify-center bg-neutral-30')]}
               onPress={onMoreTimesButtonPressed}
             >
-              <Unicons.UilPlus color={getColor('neutral-500')} size={24} />
+              <Unicons.UilPlus color={getColor('text-neutral-500')} size={24} />
             </TouchableHighlight>
           </View>
         </View>
@@ -167,7 +165,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
           <AppButton
             title={
               <View style={tailwind('flex-row justify-center items-center')}>
-                <Text style={tailwind('text-white text-lg mr-2')}>{strings.components.buttons.copyLink}</Text>
+                <Text style={tailwind('text-white text-lg mr-2')}>{strings.buttons.copyLink}</Text>
                 <Unicons.UilLink color={getColor('white')} />
               </View>
             }
@@ -180,15 +178,15 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
         {/* !!! TMP CONTENT */}
         <View style={tailwind('flex-row items-center justify-center px-5 py-10')}>
           <View style={tailwind('items-center')}>
-            <Text style={tailwind('text-sm text-green-60 mb-2')}>{strings.modals.share_photo_modal.photoReady}</Text>
-            <Text style={tailwind('text-base')}>{strings.modals.share_photo_modal.shareWithYourContacts}</Text>
+            <Text style={tailwind('text-sm text-green-60 mb-2')}>{strings.modals.SharePhoto.photoReady}</Text>
+            <Text style={tailwind('text-base')}>{strings.modals.SharePhoto.shareWithYourContacts}</Text>
           </View>
         </View>
 
         {/* ACTIONS */}
         <View style={tailwind('p-3 flex-row justify-center')}>
           <AppButton
-            title={strings.components.buttons.cancel}
+            title={strings.buttons.cancel}
             type="cancel"
             onPress={onCancelButtonPressed}
             style={tailwind('flex-1')}
@@ -197,7 +195,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
           <View style={tailwind('w-2')} />
 
           <AppButton
-            title={strings.components.buttons.share}
+            title={strings.buttons.share}
             type="accept"
             onPress={onShareButtonPressed}
             disabled={!uri}

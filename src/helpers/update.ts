@@ -1,17 +1,21 @@
 /* eslint-disable no-console */
 import * as Updates from 'expo-updates';
+import { AsyncStorageKey } from 'src/types';
 import asyncStorage from '../services/AsyncStorageService';
 import errorService from '../services/ErrorService';
 
 export async function shouldForceUpdate(): Promise<boolean> {
-  return asyncStorage
-    .getItem('lastUpdateCheck')
-    .then((result) => result === null)
-    .catch(() => true);
+  return (
+    !__DEV__ &&
+    (await asyncStorage
+      .getItem(AsyncStorageKey.LastUpdateCheck)
+      .then((result) => result === null)
+      .catch(() => true))
+  );
 }
 
 export function setUpdatesChecked(): Promise<void> {
-  return asyncStorage.saveItem('lastUpdateCheck', new Date().getTime().toString());
+  return asyncStorage.saveItem(AsyncStorageKey.LastUpdateCheck, new Date().getTime().toString());
 }
 
 export async function forceCheckUpdates(): Promise<void> {

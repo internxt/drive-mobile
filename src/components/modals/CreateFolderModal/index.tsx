@@ -1,8 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { View, Platform } from 'react-native';
+import { View } from 'react-native';
 
-import { getColor, tailwind } from '../../../helpers/designSystem';
-import { FolderIcon } from '../../../helpers';
 import strings from '../../../../assets/lang/strings';
 import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
@@ -12,6 +10,8 @@ import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
 import { useAppSelector } from '../../../store/hooks';
+import { useTailwind } from 'tailwind-rn';
+import AppText from '../../AppText';
 
 interface CreateFolderModalProps extends BaseModalProps {
   onFolderCreated: () => void;
@@ -19,6 +19,7 @@ interface CreateFolderModalProps extends BaseModalProps {
   currentFolderId: number;
 }
 const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
+  const tailwind = useTailwind();
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
   const { user, token } = useAppSelector((state) => state.auth);
@@ -46,39 +47,31 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
         setIsLoading(false);
       });
   };
-  const iconSize = 80;
 
   return (
     <CenterModal isOpen={props.isOpen} onClosed={onClosed}>
-      <View style={tailwind('w-full p-4')}>
-        <View style={tailwind('w-full px-10 pt-4 pb-8 flex-grow justify-center')}>
-          <View style={tailwind('items-center pb-3')}>
-            <FolderIcon width={iconSize} height={iconSize} />
-          </View>
+      <View style={tailwind('p-4')}>
+        <AppText style={tailwind('text-xl mb-6')} medium>
+          {strings.modals.CreateFolder.title}
+        </AppText>
 
-          <AppTextInput
-            containerStyle={[
-              tailwind(
-                'border border-neutral-30 rounded-lg items-center justify-center flex-shrink flex-grow bg-neutral-10',
-              ),
-              Platform.OS !== 'android' && tailwind('pb-3'),
-            ]}
-            style={tailwind('text-lg text-center text-neutral-600')}
-            value={folderName}
-            onChangeText={(value) => setFolderName(value)}
-            placeholderTextColor={getColor('neutral-80')}
-            autoCompleteType="off"
-            selectTextOnFocus={true}
-            editable={!isLoading}
-            key="name"
-            autoFocus={true}
-            autoCorrect={false}
-          />
-        </View>
+        <AppTextInput
+          containerStyle={tailwind('mb-8')}
+          label={strings.inputs.name}
+          value={folderName}
+          onChangeText={(value) => setFolderName(value)}
+          placeholder={strings.placeholders.folderName}
+          autoCompleteType="off"
+          selectTextOnFocus={true}
+          editable={!isLoading}
+          key="name"
+          autoFocus={true}
+          autoCorrect={false}
+        />
 
         <View style={tailwind('flex-row justify-between')}>
           <AppButton
-            title={strings.components.buttons.cancel}
+            title={strings.buttons.cancel}
             type="cancel"
             onPress={onCancelButtonPressed}
             disabled={isLoading}
@@ -88,9 +81,10 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
           <View style={tailwind('px-1')}></View>
 
           <AppButton
-            title={isLoading ? strings.generic.creating : strings.components.buttons.create}
+            title={isLoading ? strings.buttons.creating : strings.buttons.create}
             type="accept"
             onPress={onCreateFolderButtonPressed}
+            loading={isLoading}
             disabled={isLoading}
             style={tailwind('flex-1')}
           />

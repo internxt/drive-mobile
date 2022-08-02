@@ -12,8 +12,8 @@ function getAes256CtrDecipher(key: Buffer, iv: Buffer): Decipher {
  * @param toPath Path where file decrypted will be stored
  * @param fileDecryptionKey File decryption key
  * @param iv Initialization vector for decryption
- * @param options 
- * @returns 
+ * @param options
+ * @returns
  */
 export async function decryptFileFromFs(
   fromPath: string,

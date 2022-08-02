@@ -1,7 +1,6 @@
 import {
   DevicePhoto,
   DevicePhotoRemoteCheck,
-  PhotoFileSystemRef,
   PhotosNetworkManagerStatus,
   PhotosNetworkOperation,
 } from '../../../types/photos';
@@ -94,34 +93,34 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
    * @returns The same list of photos containing an exists property and a remote photo if it exists
    */
   public async getMissingRemotely(devicePhotos: DevicePhoto[]): Promise<DevicePhotoRemoteCheck[]> {
-    const convertedPhotos = await Promise.all(
-      devicePhotos.map(async (devicePhoto) => {
-        if (!PhotosCommonServices.model.user) throw new Error('Photos user not initialized');
-        const name = PhotosCommonServices.getPhotoName(devicePhoto.filename);
-        const type = PhotosCommonServices.getPhotoType(devicePhoto.filename);
-        const createdAt = new Date(devicePhoto.creationTime);
+    const convertedPhotos = [];
+    for (const devicePhoto of devicePhotos) {
+      if (!PhotosCommonServices.model.user) throw new Error('Photos user not initialized');
+      const name = PhotosCommonServices.getPhotoName(devicePhoto.filename);
+      const type = PhotosCommonServices.getPhotoType(devicePhoto.filename);
+      const createdAt = new Date(devicePhoto.creationTime);
 
-        const photoRef = await PhotosCommonServices.cameraRollUriToFileSystemUri(
-          {
-            name,
-            type,
-          },
-          devicePhoto.uri,
-        );
-        return {
-          devicePhoto,
+      const photoRef = await PhotosCommonServices.cameraRollUriToFileSystemUri(
+        {
           name,
-          takenAt: createdAt.toISOString(),
+          type,
+        },
+        devicePhoto.uri,
+      );
+
+      convertedPhotos.push({
+        devicePhoto,
+        name,
+        takenAt: createdAt.toISOString(),
+        photoRef,
+        hash: await PhotosCommonServices.getPhotoHash(
+          PhotosCommonServices.model.user.id,
+          name,
+          createdAt.getTime(),
           photoRef,
-          hash: await PhotosCommonServices.getPhotoHash(
-            PhotosCommonServices.model.user.id,
-            name,
-            createdAt.getTime(),
-            photoRef,
-          ),
-        };
-      }),
-    );
+        ),
+      });
+    }
 
     const result = await PhotosCommonServices.sdk.photos.photosExists(
       convertedPhotos.map((converted) => {
@@ -192,14 +191,13 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       size: parseInt(stat.size, 10),
     });
 
-    // 5. Finish the upload operation
-    await operation.onOperationCompleted(null, photo);
-
     return photo;
   }
 
   addOperation(operation: PhotosNetworkOperation) {
-    this.queue.push<OperationResult>(operation);
+    this.queue.push<OperationResult>(operation, (err, photo) => {
+      operation.onOperationCompleted(err || null, photo || null);
+    });
 
     this.updateStatus(PhotosNetworkManagerStatus.RUNNING);
   }

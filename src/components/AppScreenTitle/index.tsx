@@ -1,10 +1,10 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, StyleProp, TextStyle } from 'react-native';
+import { View, TouchableOpacity, StyleProp, TextStyle } from 'react-native';
 
-import { getColor, tailwind } from '../../helpers/designSystem';
-import globalStyle from '../../styles';
-import { useAppSelector } from '../../store/hooks';
 import { CaretLeft } from 'phosphor-react-native';
+import AppText from '../AppText';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 
 interface AppScreenTitleProps {
   text: string;
@@ -12,6 +12,7 @@ interface AppScreenTitleProps {
   containerStyle?: StyleProp<TextStyle>;
   centerText?: boolean;
   showBackButton?: boolean;
+  rightSlot?: JSX.Element;
   onBackButtonPressed?: () => void;
 }
 
@@ -26,27 +27,34 @@ const AppScreenTitle = ({
   containerStyle,
   centerText = defaultProps.centerText,
   showBackButton = defaultProps.showBackButton,
+  rightSlot,
   onBackButtonPressed,
 }: AppScreenTitleProps): JSX.Element => {
-  const backButtonEnabled = useAppSelector((state) => state.ui.backButtonEnabled);
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
 
   return (
-    <View style={[tailwind('pt-4 flex-row justify-center items-center py-2 px-5'), containerStyle]}>
+    <View
+      style={[
+        tailwind('flex-row justify-center items-center px-5'),
+        { paddingTop: 22, paddingBottom: 14 },
+        containerStyle,
+      ]}
+    >
       {showBackButton && (
-        <TouchableOpacity style={tailwind('flex-1')} disabled={!backButtonEnabled} onPress={onBackButtonPressed}>
+        <TouchableOpacity style={tailwind('flex-1')} disabled={!onBackButtonPressed} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
-            <CaretLeft weight="bold" color={getColor('blue-60')} size={24} />
+            <CaretLeft weight="bold" color={getColor('text-blue-60')} size={24} />
           </View>
         </TouchableOpacity>
       )}
 
       <View pointerEvents="none" style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
-        <Text
-          numberOfLines={1}
-          style={[tailwind('text-neutral-700 text-3xl'), globalStyle.fontWeight.medium, textStyle]}
-        >
+        <AppText numberOfLines={1} medium style={[tailwind('text-neutral-700 text-2xl'), textStyle]}>
           {text}
-        </Text>
+        </AppText>
+
+        {rightSlot}
       </View>
 
       {showBackButton && <View style={tailwind('flex-1')} />}

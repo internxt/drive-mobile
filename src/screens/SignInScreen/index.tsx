@@ -6,7 +6,6 @@ import { Eye, EyeSlash } from 'phosphor-react-native';
 import strings from '../../../assets/lang/strings';
 import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
 import InternxtLogo from '../../../assets/logo.svg';
-import { getColor, tailwind } from '../../helpers/designSystem';
 import AppVersionWidget from '../../components/AppVersionWidget';
 import authService from '../../services/AuthService';
 import validationService from '../../services/ValidationService';
@@ -16,8 +15,13 @@ import { authThunks } from '../../store/slices/auth';
 import errorService from '../../services/ErrorService';
 import AppScreen from '../../components/AppScreen';
 import AppButton from '../../components/AppButton';
+import { useTailwind } from 'tailwind-rn';
+import AppTextInput from '../../components/AppTextInput';
+import useGetColor from '../../hooks/useColor';
 
 function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -25,7 +29,6 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [showPasswordText, setShowPasswordText] = useState(false);
-  const [passwordFocus, setPasswordFocus] = useState(false);
   const isSubmitButtonDisabled = !email || !password;
   const onSignInButtonPressed = async () => {
     setIsLoading(true);
@@ -39,8 +42,10 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
       } else {
         await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode })).unwrap();
 
-        setIsLoading(false);
-        navigation.replace('TabExplorer', { screen: 'Home' });
+        setTimeout(() => {
+          setIsLoading(false);
+          navigation.replace('TabExplorer', { screen: 'Home' });
+        }, 1000);
       }
     } catch (err) {
       const castedError = errorService.castError(err);
@@ -56,10 +61,11 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
     }
   };
   const onGoToSignUpButtonPressed = () => navigation.navigate('SignUp');
+  const inputWrapperStyle = tailwind('flex-row border-gray-10 rounded-xl border h-14');
 
   return (
     <AppScreen safeAreaTop safeAreaBottom style={tailwind('px-5 h-full justify-between')}>
-      <View></View>
+      <View />
 
       <View style={[isLoading ? tailwind('opacity-50') : tailwind('opacity-100')]}>
         <View>
@@ -69,68 +75,61 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         </View>
 
         <View style={showTwoFactor ? tailwind('hidden') : tailwind('flex')}>
-          <View style={tailwind('input-wrapper my-2 items-stretch')}>
-            <TextInput
-              testID="email-input"
-              style={tailwind('input pl-4')}
-              value={email}
-              onChangeText={(value) => setEmail(value)}
-              placeholder={strings.components.inputs.email}
-              placeholderTextColor={getColor('neutral-100')}
-              maxLength={64}
-              keyboardType="email-address"
-              autoCapitalize={'none'}
-              autoCorrect={false}
-              autoCompleteType="username"
-              textContentType="emailAddress"
-              editable={!isLoading}
-            />
-          </View>
+          <AppTextInput
+            testID="email-input"
+            style={tailwind('h-11')}
+            value={email}
+            onChangeText={(value) => setEmail(value)}
+            placeholder={strings.inputs.email}
+            maxLength={64}
+            keyboardType="email-address"
+            autoCapitalize={'none'}
+            autoCorrect={false}
+            autoCompleteType="username"
+            textContentType="emailAddress"
+            editable={!isLoading}
+          />
 
-          <View style={tailwind('input-wrapper my-2 items-stretch')}>
-            <TextInput
-              testID="password-input"
-              style={tailwind('input pl-4')}
-              value={password}
-              onChangeText={setPassword}
-              onFocus={() => setPasswordFocus(true)}
-              onBlur={() => setPasswordFocus(false)}
-              placeholder={strings.components.inputs.password}
-              placeholderTextColor={getColor('neutral-100')}
-              secureTextEntry={!showPasswordText}
-              autoCompleteType="password"
-              autoCapitalize="none"
-              textContentType="password"
-              editable={!isLoading}
-            />
-
-            {(!!password || passwordFocus) && (
+          <AppTextInput
+            testID="password-input"
+            containerStyle={tailwind('my-2')}
+            style={tailwind('h-11')}
+            value={password}
+            onChangeText={setPassword}
+            placeholder={strings.inputs.password}
+            secureTextEntry={!showPasswordText}
+            autoCompleteType="password"
+            autoCapitalize="none"
+            textContentType="password"
+            editable={!isLoading}
+            renderAppend={() => (
               <TouchableWithoutFeedback onPress={() => setShowPasswordText(!showPasswordText)}>
-                <View style={tailwind('justify-center p-3')}>
+                <View>
                   {showPasswordText ? (
-                    <EyeSlash color={getColor('neutral-80')} />
+                    <EyeSlash color={getColor('text-gray-80')} size={24} />
                   ) : (
-                    <Eye color={getColor('neutral-80')} />
+                    <Eye color={getColor('text-gray-80')} size={24} />
                   )}
                 </View>
               </TouchableWithoutFeedback>
             )}
-          </View>
+          />
         </View>
 
         <View style={showTwoFactor ? tailwind('') : tailwind('hidden')}>
           <View
             style={[
-              tailwind('input-wrapper my-2 items-stretch'),
+              inputWrapperStyle,
+              tailwind('my-2 items-stretch'),
               validationService.validate2FA(twoFactorCode) ? {} : tailwind('border-red-50'),
             ]}
           >
             <TextInput
-              style={tailwind('input pl-4')}
+              style={tailwind('flex-grow pl-4')}
               value={twoFactorCode}
               onChangeText={(value) => setTwoFactorCode(value)}
               placeholder="Two-factor code"
-              placeholderTextColor={getColor('neutral-100')}
+              placeholderTextColor={getColor('text-neutral-100')}
               maxLength={64}
               keyboardType="numeric"
               textContentType="none"
@@ -145,7 +144,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
             type="accept"
             onPress={onSignInButtonPressed}
             disabled={isSubmitButtonDisabled}
-            title={isLoading ? strings.components.buttons.descrypting : strings.components.buttons.sign_in}
+            title={isLoading ? strings.buttons.descrypting : strings.buttons.sign_in}
           />
 
           <TouchableWithoutFeedback onPress={() => navigation.navigate('ForgotPassword')}>

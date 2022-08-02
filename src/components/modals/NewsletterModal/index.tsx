@@ -1,55 +1,64 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import AppText from 'src/components/AppText';
+import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
-import { tailwind } from '../../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { newsletterThunks } from '../../../store/slices/newsletter';
+import { BaseModalProps } from '../../../types/ui';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
 import CenterModal from '../CenterModal';
 
-const NewsletterModal = (props: { isOpen: boolean; onClosed: () => void }): JSX.Element => {
+const NewsletterModal = (props: BaseModalProps): JSX.Element => {
+  const tailwind = useTailwind();
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector((state) => state.newsletter.isSubscribing);
   const onCancelButtonPressed = () => {
-    props.onClosed();
+    props.onClose();
   };
   const onSubscribeButtonPressed = async () => {
     user && (await dispatch(newsletterThunks.subscribeThunk(user?.email)));
-    props.onClosed();
+    props.onClose();
   };
 
   return (
-    <CenterModal isOpen={props.isOpen} onClosed={props.onClosed}>
-      <View style={tailwind('p-3 pt-6 justify-center items-center')}>
-        <Text style={tailwind('mb-4 font-semibold text-xl text-center text-neutral-500')}>
+    <CenterModal
+      isOpen={props.isOpen}
+      onClosed={props.onClose}
+      backButtonClose={!isLoading}
+      backdropPressToClose={!isLoading}
+    >
+      <View style={tailwind('p-4')}>
+        <AppText style={tailwind('text-xl mb-1.5')} medium>
           {strings.modals.NewsletterModal.title}
-        </Text>
+        </AppText>
 
-        <Text style={tailwind('mb-5 px-6 text-center text-neutral-100')}>{strings.modals.NewsletterModal.message}</Text>
+        <AppText style={tailwind('mb-6 text-sm text-gray-60')}>{strings.modals.NewsletterModal.message}</AppText>
 
-        <View style={tailwind('px-3 w-full')}>
-          <AppTextInput
-            containerStyle={tailwind('px-3 mb-9 items-center justify-center')}
-            placeholder={strings.components.inputs.email}
-            editable={false}
-            value={user?.email}
-          />
-        </View>
+        <AppTextInput
+          label={`${strings.inputs.email} (${strings.generic.notEditable.toLowerCase()})`}
+          containerStyle={tailwind('mb-6')}
+          placeholder={strings.inputs.email}
+          editable={false}
+          value={user?.email}
+        />
 
         <View style={tailwind('flex-row')}>
           <AppButton
             type="cancel"
-            title={strings.components.buttons.cancel}
+            title={strings.buttons.cancel}
             onPress={onCancelButtonPressed}
             style={tailwind('flex-1 mr-2')}
+            disabled={isLoading}
           ></AppButton>
           <AppButton
             disabled={isLoading}
+            loading={isLoading}
             type="accept"
-            title={strings.components.buttons.subscribe}
+            title={isLoading ? strings.buttons.subscribing : strings.buttons.subscribe}
             onPress={onSubscribeButtonPressed}
             style={tailwind('flex-1')}
           ></AppButton>

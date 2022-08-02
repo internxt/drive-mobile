@@ -23,6 +23,15 @@ export interface UIState {
   isInviteFriendsModalOpen: boolean;
   isDriveDownloadModalOpen: boolean;
   isSignOutModalOpen: boolean;
+  isDeleteAccountModalOpen: boolean;
+  isEditNameModalOpen: boolean;
+  isChangeProfilePictureModalOpen: boolean;
+  isLanguageModalOpen: boolean;
+  isSecurityModalOpen: boolean;
+  isEnableTwoFactorModalOpen: boolean;
+  isDisableTwoFactorModalOpen: boolean;
+  isPlansModalOpen: boolean;
+  isCancelSubscriptionModalOpen: boolean;
 }
 
 const initialState: UIState = {
@@ -47,6 +56,15 @@ const initialState: UIState = {
   isInviteFriendsModalOpen: false,
   isDriveDownloadModalOpen: false,
   isSignOutModalOpen: false,
+  isDeleteAccountModalOpen: false,
+  isEditNameModalOpen: false,
+  isChangeProfilePictureModalOpen: false,
+  isLanguageModalOpen: false,
+  isSecurityModalOpen: false,
+  isEnableTwoFactorModalOpen: false,
+  isDisableTwoFactorModalOpen: false,
+  isPlansModalOpen: false,
+  isCancelSubscriptionModalOpen: false,
 };
 
 export const uiSlice = createSlice({
@@ -117,6 +135,33 @@ export const uiSlice = createSlice({
     },
     setIsSignOutModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isSignOutModalOpen = action.payload;
+    },
+    setIsDeleteAccountModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isDeleteAccountModalOpen = action.payload;
+    },
+    setIsEditNameModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isEditNameModalOpen = action.payload;
+    },
+    setIsChangeProfilePictureModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isChangeProfilePictureModalOpen = action.payload;
+    },
+    setIsLanguageModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isLanguageModalOpen = action.payload;
+    },
+    setIsSecurityModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isSecurityModalOpen = action.payload;
+    },
+    setIsEnableTwoFactorModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isEnableTwoFactorModalOpen = action.payload;
+    },
+    setIsDisableTwoFactorModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isDisableTwoFactorModalOpen = action.payload;
+    },
+    setIsPlansModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isPlansModalOpen = action.payload;
+    },
+    setIsCancelSubscriptionModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isCancelSubscriptionModalOpen = action.payload;
     },
   },
 });

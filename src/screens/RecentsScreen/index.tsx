@@ -8,47 +8,35 @@ import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptyRecentsImage from '../../../assets/images/screens/empty-recents.svg';
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
-import { tailwind } from '../../helpers/designSystem';
 import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
 import DriveService from '../../services/DriveService';
+import { useTailwind } from 'tailwind-rn';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { driveThunks, ThunkOperationStatus } from 'src/store/slices/drive';
 
 interface RecentsScreenProps {
   searchText?: string;
 }
 
 function RecentsScreen(props: RecentsScreenProps): JSX.Element {
-  const [isLoading, setIsLoading] = useState(true);
-  const [recents, setRecents] = useState<DriveFileData[]>([]);
+  const tailwind = useTailwind();
+  const dispatch = useAppDispatch();
+  const { recents, recentsStatus } = useAppSelector((state) => state.drive);
   const [refreshing, setRefreshing] = useState(false);
   const filteredRecents = recents.filter((file) =>
     file.name.toLowerCase().includes((props.searchText || '').toLowerCase()),
   );
   const loadRecents = async () => {
-    return DriveService.instance.recents
-      .getRecents()
-      .then((recentFiles) => {
-        setRecents(recentFiles);
-      })
-      .catch((err) => {
-        Alert.alert('Cannot load recents', err.message);
-      })
-      .finally(() => {
-        setIsLoading(false);
-        setRefreshing(false);
-      });
+    dispatch(driveThunks.getRecentsThunk());
   };
   const renderNoResults = () => (
     <EmptyList {...strings.components.DriveList.noResults} image={<NoResultsImage width={100} height={100} />} />
   );
 
-  useEffect(() => {
-    loadRecents();
-  }, []);
-
   return (
     <View style={tailwind('flex-1')}>
-      {isLoading && (
+      {recentsStatus === ThunkOperationStatus.LOADING && (
         <View>
           {_.times(20, (n) => (
             <DriveItemSkinSkeleton key={n} />
@@ -56,7 +44,7 @@ function RecentsScreen(props: RecentsScreenProps): JSX.Element {
         </View>
       )}
 
-      {!isLoading && (
+      {recentsStatus === ThunkOperationStatus.SUCCESS && (
         <ScrollView
           refreshControl={
             <RefreshControl

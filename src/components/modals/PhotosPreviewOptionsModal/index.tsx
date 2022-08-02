@@ -3,8 +3,7 @@ import { Image, Text, View } from 'react-native';
 import prettysize from 'prettysize';
 import { Photo } from '@internxt/sdk/dist/photos';
 
-import globalStyle from '../../../styles';
-import { getColor, tailwind } from '../../../helpers/designSystem';
+import globalStyle from '../../../styles/global';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
@@ -15,6 +14,8 @@ import { items } from '@internxt/lib';
 import { DownloadSimple, Info, Link, Trash } from 'phosphor-react-native';
 import { PhotosCommonServices } from '../../../services/photos/PhotosCommonService';
 import { PhotoSizeType } from '../../../types/photos';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from 'src/hooks/useColor';
 
 interface PhotosPreviewOptionsModalProps extends BottomModalProps {
   data: Photo;
@@ -30,6 +31,8 @@ function PhotosPreviewOptionsModal({
   preview,
   isFullSizeLoading,
 }: PhotosPreviewOptionsModalProps): JSX.Element {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const header = (
     <View style={tailwind('flex-row')}>
@@ -93,30 +96,30 @@ function PhotosPreviewOptionsModal({
           <BottomModalOption
             leftSlot={
               <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.info}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.info}</Text>
               </View>
             }
-            rightSlot={<Info size={20} color={getColor('neutral-500')} />}
+            rightSlot={<Info size={20} color={getColor('text-neutral-500')} />}
             onPress={onInfoButtonPressed}
           />
           <BottomModalOption
             disabled={isFullSizeLoading}
             leftSlot={
               <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.share}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.share}</Text>
               </View>
             }
-            rightSlot={<Link size={20} color={getColor('neutral-500')} />}
+            rightSlot={<Link size={20} color={getColor('text-neutral-500')} />}
             onPress={onShareButtonPressed}
           />
           <BottomModalOption
             disabled={isFullSizeLoading}
             leftSlot={
               <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.components.buttons.download}</Text>
+                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.download}</Text>
               </View>
             }
-            rightSlot={<DownloadSimple size={20} color={getColor('neutral-500')} />}
+            rightSlot={<DownloadSimple size={20} color={getColor('text-neutral-500')} />}
             onPress={onDownloadButtonPressed}
           />
         </View>
@@ -125,10 +128,10 @@ function PhotosPreviewOptionsModal({
           <BottomModalOption
             leftSlot={
               <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-red-60')}>{strings.components.buttons.moveToThrash}</Text>
+                <Text style={tailwind('text-lg text-red-60')}>{strings.buttons.moveToThrash}</Text>
               </View>
             }
-            rightSlot={<Trash size={20} color={getColor('red-60')} />}
+            rightSlot={<Trash size={20} color={getColor('text-red-60')} />}
             onPress={onMoveToTrashButtonPressed}
           />
         </View>

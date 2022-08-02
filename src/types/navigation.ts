@@ -17,9 +17,6 @@ export type RootStackParamList = {
   SignIn: undefined;
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList> & { showReferralsBanner?: boolean };
   ForgotPassword: undefined;
-  Storage: undefined;
-  Billing: undefined;
-  ChangePassword: undefined;
   PhotosPreview: {
     data: Omit<Photo, 'takenAt' | 'statusChangedAt' | 'createdAt' | 'updatedAt'> & {
       takenAt: string;
@@ -46,7 +43,7 @@ export type TabExplorerStackParamList = {
   Drive: undefined;
   Add: undefined;
   Photos: undefined;
-  Menu: undefined;
+  Settings: undefined;
 };
 
 export type TabExplorerScreenProps<Screen extends keyof TabExplorerStackParamList> = CompositeScreenProps<
@@ -71,5 +68,23 @@ export type PhotosScreenProps<Screen extends keyof PhotosStackParamList> = Compo
 
 export type PhotosScreenNavigationProp<Screen extends keyof PhotosStackParamList> = CompositeNavigationProp<
   NativeStackNavigationProp<PhotosStackParamList, Screen>,
+  TabExplorerScreenNavigationProp<keyof TabExplorerStackParamList>
+>;
+
+export type SettingsStackParamList = {
+  SettingsHome: undefined;
+  Account: undefined;
+  Storage: undefined;
+  Plan: undefined;
+  Security: undefined;
+};
+
+export type SettingsScreenProps<Screen extends keyof SettingsStackParamList> = CompositeScreenProps<
+  NativeStackScreenProps<SettingsStackParamList, Screen>,
+  TabExplorerScreenProps<keyof TabExplorerStackParamList>
+>;
+
+export type SettingsScreenNavigationProp<Screen extends keyof SettingsStackParamList> = CompositeNavigationProp<
+  NativeStackNavigationProp<SettingsStackParamList, Screen>,
   TabExplorerScreenNavigationProp<keyof TabExplorerStackParamList>
 >;

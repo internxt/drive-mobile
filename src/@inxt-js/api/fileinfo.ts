@@ -25,7 +25,7 @@ export interface FileInfo {
 export function GetFileInfo(config: EnvironmentConfig, bucketId: string, fileId: string): Promise<FileInfo> {
   return request(config, 'get', `${config.bridgeUrl}/buckets/${bucketId}/files/${fileId}/info`, {}, false)
     .then<FileInfo>((res: AxiosResponse) => res.data)
-    .catch((err: AxiosError) => {
+    .catch((err: AxiosError<any>) => {
       switch (err.response?.status) {
         case 404:
           throw Error(err.response.data.error);

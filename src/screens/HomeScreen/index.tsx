@@ -3,11 +3,11 @@ import strings from '../../../assets/lang/strings';
 
 import SearchInput from '../../components/SearchInput';
 import ScreenTitle from '../../components/AppScreenTitle';
-import { tailwind } from '../../helpers/designSystem';
 import Tabs from '../../components/Tabs';
 import RecentsScreen from '../RecentsScreen';
 import SharedScreen from '../SharedScreen';
 import AppScreen from '../../components/AppScreen';
+import { useTailwind } from 'tailwind-rn';
 
 enum HomeTab {
   Recents = 'recents',
@@ -15,11 +15,12 @@ enum HomeTab {
 }
 
 const HomeScreen = (): JSX.Element => {
+  const tailwind = useTailwind();
   const [searchText, setSearchText] = useState('');
   const [currentTab, setCurrentTab] = useState<HomeTab>(HomeTab.Recents);
   const searchPlaceholder = {
-    [HomeTab.Recents]: strings.components.inputs.searchInRecents,
-    [HomeTab.Shared]: strings.components.inputs.searchInShared,
+    [HomeTab.Recents]: strings.inputs.searchInRecents,
+    [HomeTab.Shared]: strings.inputs.searchInShared,
   }[currentTab];
   const tabs = [
     {

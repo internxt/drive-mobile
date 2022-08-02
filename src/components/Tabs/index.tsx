@@ -1,7 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-
-import { tailwind } from '../../helpers/designSystem';
+import { useTailwind } from 'tailwind-rn';
 
 interface TabsProps {
   value: string;
@@ -10,6 +9,7 @@ interface TabsProps {
 }
 
 const Tabs = (props: TabsProps): JSX.Element => {
+  const tailwind = useTailwind();
   const headers = props.tabs.map((tab) => {
     const isActive = tab.id === props.value;
 

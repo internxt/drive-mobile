@@ -1,6 +1,7 @@
 import React from 'react';
-import { Text, View } from 'react-native';
-import { tailwind } from '../../helpers/designSystem';
+import { View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
+import AppText from '../AppText';
 
 interface EmptyListProps {
   title: string;
@@ -9,11 +10,15 @@ interface EmptyListProps {
 }
 
 const EmptyList = (props: EmptyListProps): JSX.Element => {
+  const tailwind = useTailwind();
+
   return (
     <View pointerEvents="none" style={tailwind('flex items-center opacity-50 h-full justify-center')}>
       {props.image}
-      <Text style={tailwind('text-center text-base text-base-color font-bold m-5 mb-1')}>{props.title}</Text>
-      <Text style={tailwind('text-center text-base text-base-color my-1 mx-3')}>{props.message}</Text>
+      <AppText semibold style={tailwind('text-center m-5 mb-1')}>
+        {props.title}
+      </AppText>
+      <AppText style={tailwind('text-center my-1 mx-3')}>{props.message}</AppText>
     </View>
   );
 };

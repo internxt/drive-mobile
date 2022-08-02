@@ -17,6 +17,7 @@ import { DevicePhotosSyncCheckerService } from './DevicePhotosSyncChecker';
 import { Photo } from '@internxt/sdk/dist/photos';
 import sentryService from '../../SentryService';
 import async from 'async';
+import errorService from 'src/services/ErrorService';
 
 export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photo: Photo | null) => void;
 export type OnStatusChangeCallback = (status: PhotosSyncManagerStatus) => void;
@@ -35,19 +36,18 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   private groupsOfPhotosToRemoteCheck: DevicePhoto[][] = [];
   private config: PhotosSyncManagerConfig;
   private doingRemotePhotosCheck = false;
+  public totalPhotosSynced = 0;
+
   private onDevicePhotoSyncCompletedCallback: OnDevicePhotoSyncCompletedCallback = () => undefined;
   private onStatusChangeCallback: OnStatusChangeCallback = () => undefined;
   private onTotalPhotosInDeviceCalculatedCallback: OnTotalPhotosCalculatedCallback = () => undefined;
   private networkPhotosCheckQueue = async.queue<{ group: DevicePhoto[] }, null, Error>(async (task, next) => {
     try {
       const devicePhotosToUpload = await this.checkPhotosRemotely(task.group);
-
       // Upload the missing photos
       await this.uploadMissingDevicePhotos(devicePhotosToUpload);
-
       next(null);
     } catch (err) {
-      console.error('Error checking photos remotely', err);
       next(err as Error, null);
     }
   }, 1);
@@ -117,9 +117,9 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
    * via callback the new status
    * @param status New status
    */
-  public updateStatus(status: PhotosSyncManagerStatus) {
-    this.status = status;
-    this.onStatusChangeCallback(status);
+  public updateStatus(newStatus: PhotosSyncManagerStatus) {
+    this.status = newStatus;
+    this.onStatusChangeCallback(newStatus);
   }
 
   public onPhotoSyncCompleted(callback: OnDevicePhotoSyncCompletedCallback) {
@@ -243,6 +243,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     // The sync checker found that the photo is already in sync,
     // we just notify via callback
     if (operation.syncStage === SyncStage.IN_SYNC) {
+      this.totalPhotosSynced++;
       return this.onDevicePhotoSyncCompletedCallback(null, operation.uploadedPhoto || null);
     }
 
@@ -290,9 +291,12 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
       if (group) {
         try {
           this.networkPhotosCheckQueue.push({ group });
-          //await this.processNextGroupOfPhotosToRemoteCheck();
         } catch (err) {
-          console.error('Error checking remotely');
+          errorService.reportError(err as Error, {
+            tags: {
+              photos_step: 'CHECKING_REMOTE_PHOTOS',
+            },
+          });
         }
       } else {
         this.checkIfFinishSync();
@@ -323,6 +327,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     for (const photoToUpload of devicePhotosRemotelyChecked) {
       try {
         if (photoToUpload.exists && photoToUpload.photo) {
+          this.totalPhotosSynced++;
           await this.photosLocalDb.persistPhotoSync(photoToUpload.photo, photoToUpload.devicePhoto);
           this.onDevicePhotoSyncCompletedCallback(null, photoToUpload.photo);
         }
@@ -344,10 +349,11 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
           });
         }
       } catch (e) {
-        /**
-         * Send the error to Sentry, not much we can do here
-         */
-        sentryService.native.captureException(e as Error);
+        errorService.reportError(e as Error, {
+          tags: {
+            photos_step: 'UPLOAD_MISSING_PHOTOS',
+          },
+        });
       }
     }
 
@@ -359,6 +365,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   private async persistPhotoInSync(photo: Photo) {
     try {
       await this.photosLocalDb.persistPhotoSync(photo);
+      this.totalPhotosSynced++;
       this.onDevicePhotoSyncCompletedCallback(null, photo);
     } catch (err) {
       this.onDevicePhotoSyncCompletedCallback(err as Error, null);
@@ -371,7 +378,14 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
         id: devicePhoto.id,
         devicePhoto,
         priority: DevicePhotosOperationPriority.NORMAL,
-        onOperationCompleted: async (_, resolvedOperation) => {
+        onOperationCompleted: async (err, resolvedOperation) => {
+          if (err) {
+            errorService.reportError(err as Error, {
+              tags: {
+                photos_step: 'ADD_PHOTO_TO_SYNC_CHECKER',
+              },
+            });
+          }
           if (resolvedOperation) {
             await this.onDevicePhotoSyncCheckResolved(resolvedOperation);
           }

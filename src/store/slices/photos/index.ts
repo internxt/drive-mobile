@@ -21,6 +21,7 @@ import { PhotosCommonServices } from '../../../services/photos/PhotosCommonServi
 import PhotosLocalDatabaseService from '../../../services/photos/PhotosLocalDatabaseService';
 import PhotosUserService from '../../../services/photos/PhotosUserService';
 import { networkThunks } from './thunks/network';
+import authService from 'src/services/AuthService';
 
 export interface PhotosState {
   isInitialized: boolean;
@@ -69,23 +70,27 @@ const initialState: PhotosState = {
 };
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>('photos/initialize', async () => {
-  const photosDb = new PhotosLocalDatabaseService();
-  await photosDb.initialize();
+  const { credentials } = await authService.getAuthCredentials();
 
-  const photosUserService = new PhotosUserService();
-  const photosToken = await asyncStorage.getItem(AsyncStorageKey.PhotosToken);
-  const user = await asyncStorage.getUser();
-  PhotosCommonServices.initialize(photosToken || '');
-  PhotosCommonServices.initializeModel(photosToken || '', {
-    encryptionKey: user?.mnemonic || '',
-    user: user?.bridgeUser || '',
-    password: user?.userId || '',
-  });
-  const { user: photosUser, device: photosDevice } = await photosUserService.initialize();
-  PhotosCommonServices.model.user = photosUser;
-  PhotosCommonServices.model.device = photosDevice;
+  if (credentials) {
+    const { photosToken, user } = credentials;
+    const photosDb = new PhotosLocalDatabaseService();
+    await photosDb.initialize();
 
-  PhotosService.initialize();
+    const photosUserService = new PhotosUserService();
+
+    PhotosCommonServices.initialize(photosToken);
+    PhotosCommonServices.initializeModel(photosToken, {
+      encryptionKey: user.mnemonic,
+      user: user.bridgeUser,
+      password: user.userId,
+    });
+    const { user: photosUser, device: photosDevice } = await photosUserService.initialize();
+    PhotosCommonServices.model.user = photosUser;
+    PhotosCommonServices.model.device = photosDevice;
+
+    PhotosService.initialize();
+  }
 });
 
 const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
@@ -156,7 +161,9 @@ export const photosSlice = createSlice({
     },
 
     updateSyncStatus(state, action: PayloadAction<Partial<PhotosSyncStatusData>>) {
-      Object.assign(state.syncStatus, action.payload);
+      if (state.syncStatus !== action.payload) {
+        state.syncStatus = { ...state.syncStatus, ...action.payload };
+      }
     },
 
     setIsSelectionModeActivated(state, action: PayloadAction<boolean>) {

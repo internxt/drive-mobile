@@ -34,6 +34,9 @@ export enum PhotosEventKey {
   RestartSync = 'sync-restart',
   PauseSync = 'sync-pause',
   ClearSync = 'sync-clear',
+  RunningSync = 'sync-run',
+  SyncTasksCalculated = 'sync-tasks-calculated',
+  SyncCompleted = 'sync-completed',
 }
 
 export interface PhotosServiceModel {

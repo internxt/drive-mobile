@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, Platform } from 'react-native';
 
-import { getColor, tailwind } from '../../../helpers/designSystem';
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -12,8 +11,12 @@ import AppButton from '../../AppButton';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import CenterModal from '../CenterModal';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../../hooks/useColor';
 
 function RenameModal(): JSX.Element {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const { showRenameModal } = useAppSelector((state) => state.ui);
   const { focusedItem } = useAppSelector((state) => state.drive);
@@ -95,7 +98,7 @@ function RenameModal(): JSX.Element {
                 style={tailwind('text-lg text-center text-neutral-600')}
                 value={newName}
                 onChangeText={setNewName}
-                placeholderTextColor={getColor('neutral-500')}
+                placeholderTextColor={getColor('text-neutral-500')}
                 autoCompleteType="off"
                 key="name"
                 autoCorrect={false}
@@ -106,7 +109,7 @@ function RenameModal(): JSX.Element {
 
         <View style={tailwind('flex-row justify-between')}>
           <AppButton
-            title={strings.components.buttons.cancel}
+            title={strings.buttons.cancel}
             type={'cancel'}
             onPress={onCancelButtonPressed}
             disabled={isLoading}
@@ -116,7 +119,7 @@ function RenameModal(): JSX.Element {
           <View style={tailwind('px-1')}></View>
 
           <AppButton
-            title={strings.generic.rename}
+            title={strings.buttons.rename}
             type={'accept'}
             onPress={onRenameButtonPressed}
             disabled={isLoading}

@@ -1,12 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { Easing, TouchableWithoutFeedback, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Dimensions, Easing, Keyboard, Platform, TouchableWithoutFeedback, View } from 'react-native';
 import Modal from 'react-native-modalbox';
-import { tailwind } from '../../../helpers/designSystem';
+import { useKeyboard } from 'src/hooks/useKeyboard';
+import { useTailwind } from 'tailwind-rn';
 
 export interface CenterModalProps {
   isOpen: boolean;
   backdropPressToClose?: boolean;
+  backButtonClose?: boolean;
   onClosed: () => void;
   onOpened?: () => void;
   children?: JSX.Element;
@@ -14,6 +16,7 @@ export interface CenterModalProps {
 
 const defaultProps: Partial<CenterModalProps> = {
   backdropPressToClose: true,
+  backButtonClose: true,
 };
 
 const CenterModal = ({
@@ -22,19 +25,37 @@ const CenterModal = ({
   onOpened,
   children,
   backdropPressToClose = defaultProps.backdropPressToClose,
+  backButtonClose = defaultProps.backButtonClose,
 }: CenterModalProps): JSX.Element => {
+  const { keyboardShown, coordinates } = useKeyboard();
+
+  const getModalTop = () => {
+    if (!keyboardShown || Platform.OS === 'android') return 0;
+
+    const screenHeight = Dimensions.get('window').height;
+    return -(screenHeight - coordinates.end.height) / 4;
+  };
+
+  const tailwind = useTailwind();
   const onBackdropPressed = () => {
     backdropPressToClose && onClosed();
+  };
+
+  const handleOnClose = () => {
+    // Dismiss the keyboard in case the modal has
+    // a focused form inside
+    Keyboard.dismiss();
+    onClosed();
   };
 
   return (
     <Modal
       isOpen={isOpen}
-      onClosed={onClosed}
+      onClosed={handleOnClose}
       onOpened={onOpened}
-      position="center"
-      style={tailwind('bg-transparent')}
-      backButtonClose={true}
+      position={'center'}
+      style={[tailwind('bg-transparent'), { top: getModalTop() }]}
+      backButtonClose={backButtonClose}
       backdropPressToClose={false}
       animationDuration={250}
       easing={Easing.ease}

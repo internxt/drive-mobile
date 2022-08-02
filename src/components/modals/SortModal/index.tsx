@@ -1,14 +1,14 @@
 import React from 'react';
-import { Text, TouchableHighlight, View } from 'react-native';
+import { TouchableHighlight, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 
 import BottomModal from '../BottomModal';
-import { tailwind, getColor } from '../../../helpers/designSystem';
-import globalStyle from '../../../styles';
 import AppText from '../../AppText';
 import { SortDirection, SortType } from '../../../types/drive';
 import { BaseModalProps } from '../../../types/ui';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../../hooks/useColor';
 
 export type SortMode = {
   direction: SortDirection;
@@ -20,18 +20,15 @@ export interface SortModalProps extends BaseModalProps {
   sortMode: SortMode;
 }
 const SortModal: React.FC<SortModalProps> = (props) => {
+  const tailwind = useTailwind();
   const onClosed = () => {
     props.onClose();
   };
   const header = (
     <View>
-      <Text
-        numberOfLines={1}
-        ellipsizeMode="middle"
-        style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
-      >
+      <AppText numberOfLines={1} ellipsizeMode="middle" semibold style={tailwind('text-base text-neutral-500')}>
         {strings.screens.drive.sortBy}
-      </Text>
+      </AppText>
     </View>
   );
 
@@ -97,21 +94,20 @@ function SortModalItem(props: {
   isSelected: boolean;
   onSortModeChange: (change: SortMode) => void;
 }) {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const onPress = () => {
     props.onSortModeChange({ type: props.type, direction: props.direction });
   };
 
   return (
-    <TouchableHighlight underlayColor={getColor('neutral-30')} style={tailwind('rounded-lg')} onPress={onPress}>
+    <TouchableHighlight underlayColor={getColor('text-neutral-30')} style={tailwind('rounded-lg')} onPress={onPress}>
       <View
         style={[tailwind('items-center flex-row rounded-lg px-4 py-2.5'), props.isSelected && tailwind('bg-blue-10')]}
       >
         <AppText
-          style={[
-            tailwind('text-lg text-neutral-500 mr-2'),
-            globalStyle.fontWeight.semibold,
-            props.isSelected && tailwind('text-blue-60'),
-          ]}
+          style={[tailwind('text-lg text-neutral-500 mr-2'), props.isSelected && tailwind('text-blue-60')]}
+          semibold
         >
           {props.text}
         </AppText>

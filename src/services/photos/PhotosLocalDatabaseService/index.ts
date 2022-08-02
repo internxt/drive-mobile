@@ -50,7 +50,6 @@ export default class PhotosLocalDatabaseService {
   }
 
   public async clear() {
-    if (!this.isInitialized) return;
     await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.dropTable);
   }
 

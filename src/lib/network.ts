@@ -5,7 +5,6 @@ import FileManager from '../@inxt-js/api/FileManager';
 import appService from '../services/AppService';
 
 import asyncStorage from '../services/AsyncStorageService';
-import { User } from '../types';
 
 type ProgressCallback = (progress: number, uploadedBytes: number | null, totalBytes: number | null) => void;
 
@@ -105,7 +104,7 @@ export class Network {
  * @returns
  */
 export function getEnvironmentConfig(): Promise<EnvironmentConfig> {
-  return asyncStorage.getUser().then((user: User) => ({
+  return asyncStorage.getUser().then((user) => ({
     bridgeUser: user.bridgeUser,
     bridgePass: user.userId,
     encryptionKey: user.mnemonic,

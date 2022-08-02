@@ -1,17 +1,18 @@
 import { PermissionStatus } from 'expo-media-library';
 import React from 'react';
 import { Linking, Platform, ScrollView, Text, View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 import SyncIcon from '../../../assets/images/modals/sync.svg';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
 
-import { tailwind } from '../../helpers/designSystem';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { photosSelectors, photosThunks } from '../../store/slices/photos';
-import globalStyle from '../../styles';
+import globalStyle from '../../styles/global';
 import { PhotosScreenProps } from '../../types/navigation';
 
 function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermissions'>): JSX.Element {
+  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const permissionsStatus = useAppSelector(photosSelectors.permissionsStatus);
   const features = [
@@ -42,14 +43,13 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
     if (!permissions.hasPermissions) {
       const granted = await dispatch(photosThunks.askForPermissionsThunk()).unwrap();
       if (granted) {
-        await dispatch(photosThunks.startUsingPhotosThunk()).unwrap();
         await onPermissionsGranted();
       }
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={tailwind('app-screen items-center bg-white px-5')}>
+    <View style={tailwind('flex justify-center items-center bg-white px-6 flex-1')}>
       <SyncIcon style={tailwind('mt-14 mb-6')} width={100} height={100} />
 
       <Text style={[tailwind('mb-5 text-center text-3xl text-neutral-900'), globalStyle.fontWeight.semibold]}>
@@ -70,12 +70,12 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
 
       <AppButton
         type="accept"
-        title={strings.components.buttons.startSyncingPhotos}
+        title={strings.buttons.startSyncingPhotos}
         onPress={onButtonPressed}
         style={tailwind('mb-2 w-full')}
       />
       <Text style={tailwind('text-center text-xs text-neutral-100')}>{strings.screens.photosPermissions.access}</Text>
-    </ScrollView>
+    </View>
   );
 }
 

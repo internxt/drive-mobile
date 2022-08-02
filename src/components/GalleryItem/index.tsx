@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
-import { getColor, tailwind } from '../../helpers/designSystem';
 import { Photo } from '@internxt/sdk/dist/photos';
 import { GalleryItemType, PhotoWithPreview } from '../../types/photos';
 import { CheckCircle } from 'phosphor-react-native';
 import FastImage from 'react-native-fast-image';
+import { useTailwind } from 'tailwind-rn';
+import useGetColor from 'src/hooks/useColor';
 
 interface GalleryItemProps {
   type?: GalleryItemType;
@@ -17,6 +18,8 @@ interface GalleryItemProps {
 }
 
 const GalleryItem: React.FC<GalleryItemProps> = (props) => {
+  const getColor = useGetColor();
+  const tailwind = useTailwind();
   const { onPress, data, size, onLongPress, isSelected } = props;
   const { resolvedPreview } = data;
   return (
@@ -39,7 +42,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
         <View
           style={[tailwind('absolute bg-blue-60 w-5 h-5 bottom-3 right-3 flex justify-center items-center rounded-xl')]}
         >
-          <CheckCircle color={getColor('white')} size={30} />
+          <CheckCircle color={getColor('text-white')} size={30} />
         </View>
       )}
     </TouchableOpacity>

@@ -8,6 +8,7 @@ import { PhotosSyncManager } from '../../../../services/photos/sync/PhotosSyncMa
 import PhotosLocalDatabaseService from '../../../../services/photos/PhotosLocalDatabaseService';
 import { PhotosNetworkManager } from '../../../../services/photos/network/PhotosNetworkManager';
 import { PHOTOS_PER_NETWORK_GROUP } from '../../../../services/photos/constants';
+import errorService from 'src/services/ErrorService';
 
 const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/startSync',
@@ -23,16 +24,35 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
     );
 
     syncManager.onTotalPhotosInDeviceCalculated((photosInDevice) => {
-      dispatch(
-        photosSlice.actions.updateSyncStatus({
-          totalTasks: photosInDevice,
-        }),
+      PhotosCommonServices.events.emit(
+        {
+          event: PhotosEventKey.SyncTasksCalculated,
+        },
+        photosInDevice,
       );
+    });
+
+    syncManager.onStatusChange((status) => {
+      if (status === PhotosSyncManagerStatus.RUNNING) {
+        PhotosCommonServices.events.emit({
+          event: PhotosEventKey.RunningSync,
+        });
+      }
+      if (status === PhotosSyncManagerStatus.COMPLETED) {
+        PhotosCommonServices.events.emit({
+          event: PhotosEventKey.SyncCompleted,
+        });
+      }
     });
 
     syncManager.onPhotoSyncCompleted((err, photo) => {
       if (err) {
-        console.error('Error during sync operation', err);
+        // Something bad happened to the photo, report it to the error tracker
+        errorService.reportError(err, {
+          tags: {
+            photos_step: 'PHOTO_SYNC_COMPLETED',
+          },
+        });
       }
       if (photo) {
         PhotosService.instance.getPreview(photo).then((preview) => {
@@ -44,37 +64,12 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
           );
         });
       }
-      if (!err) {
-        const { syncStatus } = getState().photos;
-        dispatch(
-          photosSlice.actions.updateSyncStatus({
-            completedTasks: syncStatus.completedTasks + 1,
-          }),
-        );
-      }
-    });
-
-    syncManager.onStatusChange((status) => {
-      if (status === PhotosSyncManagerStatus.COMPLETED) {
-        dispatch(
-          photosSlice.actions.updateSyncStatus({
-            status: PhotosSyncStatus.Completed,
-          }),
-        );
-      }
-      if (status === PhotosSyncManagerStatus.PAUSED) {
-        dispatch(
-          photosSlice.actions.updateSyncStatus({
-            status: PhotosSyncStatus.Paused,
-          }),
-        );
-      }
-
-      if (status === PhotosSyncManagerStatus.RUNNING) {
-        dispatch(
-          photosSlice.actions.updateSyncStatus({
-            status: PhotosSyncStatus.InProgress,
-          }),
+      if (!err && photo) {
+        PhotosCommonServices.events.emit(
+          {
+            event: PhotosEventKey.PhotoSyncDone,
+          },
+          syncManager.totalPhotosSynced,
         );
       }
     });

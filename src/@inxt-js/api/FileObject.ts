@@ -136,7 +136,7 @@ export class FileObject extends EventEmitter {
 
           nextShard(null);
         })
-        .catch((err) => {
+        .catch((err: any) => {
           nextShard(wrap('Bridge request pointer error', err));
         });
     });

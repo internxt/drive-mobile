@@ -1,21 +1,19 @@
+import { Auth, SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
+import packageJson from '../../package.json';
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { getHeaders } from '../helpers/headers';
-import { DevicePlatform, NotificationType } from '../types';
+import { AsyncStorageKey, DevicePlatform } from '../types';
 import asyncStorageService from './AsyncStorageService';
 import { constants } from './AppService';
 import AesUtils from '../helpers/aesUtils';
-import errorService from './ErrorService';
-import notificationsService from './NotificationsService';
+import EventEmitter from 'events';
+import { Users } from '@internxt/sdk/dist/drive';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 
 interface LoginResponse {
   tfa: string;
   sKey: string;
-}
-
-interface ChangePasswordParam {
-  password: string;
-  newPassword: string;
 }
 
 interface RegisterParams {
@@ -26,7 +24,46 @@ interface RegisterParams {
   captcha: string;
 }
 
+enum AuthEventKey {
+  Login = 'login',
+  Logout = 'logout',
+}
+
+export interface AuthCredentials {
+  photosToken: string;
+  accessToken: string;
+  user: UserSettings;
+}
+
 class AuthService {
+  private readonly eventEmitter: EventEmitter;
+  private authSdk?: Auth;
+  private usersSdk?: Users;
+
+  constructor() {
+    this.eventEmitter = new EventEmitter();
+  }
+
+  public initialize(accessToken: string, mnemonic: string) {
+    this.authSdk = Auth.client(
+      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
+      {
+        clientName: packageJson.name,
+        clientVersion: packageJson.version,
+      },
+      { token: accessToken, mnemonic },
+    );
+
+    this.usersSdk = Users.client(
+      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
+      {
+        clientName: packageJson.name,
+        clientVersion: packageJson.version,
+      },
+      { token: accessToken, mnemonic },
+    );
+  }
+
   public async apiLogin(email: string): Promise<LoginResponse> {
     return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/login`, {
       method: 'POST',
@@ -67,7 +104,6 @@ class AuthService {
     const encryptedPassword = encryptText(hashPass.hash);
     const encryptedSalt = encryptText(hashPass.salt);
     const encryptedMnemonic = encryptTextWithKey(mnemonic, newPassword);
-
     return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/user/recover`, {
       method: 'patch',
       headers: await getHeaders(),
@@ -80,9 +116,10 @@ class AuthService {
     });
   }
 
-  public async doChangePassword(params: ChangePasswordParam): Promise<any> {
-    const xUser = await asyncStorageService.getUser();
-    const salt = await this.getSalt(xUser.email);
+  public async doChangePassword(params: { password: string; newPassword: string }): Promise<void> {
+    const { credentials } = await authService.getAuthCredentials();
+    if (!credentials) throw new Error('User credentials not found');
+    const salt = await this.getSalt(credentials.user.email);
 
     if (!salt) {
       throw new Error('Internal server error. Please try later.');
@@ -94,49 +131,31 @@ class AuthService {
     const encNewPass = encryptText(hashedNewPassword.hash);
     const encryptedNewSalt = encryptText(hashedNewPassword.salt);
 
-    const encryptedMnemonic = encryptTextWithKey(xUser.mnemonic, params.newPassword);
-
-    let privateKeyEncrypted;
-
-    try {
-      const privateKey = Buffer.from(xUser.privateKey, 'base64').toString();
-
-      privateKeyEncrypted = AesUtils.encrypt(privateKey, params.newPassword);
-    } catch (err) {
-      const castedError = errorService.castError(err);
-      notificationsService.show({
-        text1: 'Error encrypting private key: ' + castedError.message,
-        type: NotificationType.Error,
-      });
+    const encryptedMnemonic = encryptTextWithKey(credentials.user.mnemonic, params.newPassword);
+    let privateKeyFinalValue;
+    if (credentials.user.privateKey) {
+      const privateKey = Buffer.from(credentials.user.privateKey, 'base64').toString();
+      const privateKeyEncrypted = AesUtils.encrypt(privateKey, params.newPassword);
+      privateKeyFinalValue = Buffer.from(privateKeyEncrypted, 'base64').toString('hex');
+    } else {
+      /**
+       * We are not generating the public/private key in mobile
+       * so could be possible that the user doesn't has one associated
+       * in that case, we send this value
+       */
+      privateKeyFinalValue = 'MISSING_PRIVATE_KEY';
     }
 
-    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/user/password`, {
-      method: 'PATCH',
-      headers: await getHeaders(),
-      body: JSON.stringify({
-        currentPassword: encCurrentPass,
-        newPassword: encNewPass,
-        newSalt: encryptedNewSalt,
-        mnemonic: encryptedMnemonic,
-        privateKey: privateKeyEncrypted,
-      }),
-    }).then(async (res) => {
-      if (res.status === 200) {
-        return res.json();
-      } else {
-        const body = await res.text();
-        const json = JSON.parse(body);
-
-        if (json) {
-          throw Error(json.error);
-        } else {
-          throw Error(body);
-        }
-      }
+    await this.usersSdk?.changePassword({
+      currentEncryptedPassword: encCurrentPass,
+      newEncryptedSalt: encryptedNewSalt,
+      encryptedMnemonic,
+      newEncryptedPassword: encNewPass,
+      encryptedPrivateKey: privateKeyFinalValue,
     });
   }
 
-  public sendDeactivationsEmail(email: string): Promise<void> {
+  public reset(email: string): Promise<void> {
     return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/reset/${email}`, {}).then(async (res) => {
       if (res.status !== 200) {
         throw Error();
@@ -144,11 +163,25 @@ class AuthService {
     });
   }
 
-  async getNewBits(): Promise<string> {
+  public async deleteAccount(email: string): Promise<void> {
+    this.checkIsInitialized();
+
+    await this.authSdk?.sendDeactivationEmail(email);
+  }
+
+  public async getNewBits(): Promise<string> {
     return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/bits`)
       .then((res) => res.json())
       .then((res) => res.bits)
       .then((bits) => decryptText(bits));
+  }
+
+  public async areCredentialsCorrect({ email, password }: { email: string; password: string }) {
+    const plainSalt = await this.getSalt(email);
+
+    const { hash: hashedPassword } = passToHash({ password, salt: plainSalt });
+
+    return this.authSdk?.areCredentialsCorrect(email, hashedPassword) || false;
   }
 
   public async doRegister(params: RegisterParams): Promise<any> {
@@ -188,16 +221,93 @@ class AuthService {
     });
   }
 
-  private async getSalt(email: string) {
-    const response = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/login`, {
-      method: 'post',
-      headers: await getHeaders(),
-      body: JSON.stringify({ email }),
-    });
-    const data = await response.json();
-    const salt = decryptText(data.sKey);
+  public generateNew2FA(): Promise<TwoFactorAuthQR> {
+    this.checkIsInitialized();
 
-    return salt;
+    return <Promise<TwoFactorAuthQR>>this.authSdk?.generateTwoFactorAuthQR();
+  }
+
+  public async enable2FA(backupKey: string, code: string) {
+    this.checkIsInitialized();
+
+    return (<Auth>this.authSdk).storeTwoFactorAuthKey(backupKey, code);
+  }
+
+  public async is2FAEnabled(email: string): Promise<SecurityDetails> {
+    this.checkIsInitialized();
+
+    return (<Auth>this.authSdk).securityDetails(email);
+  }
+
+  public async disable2FA(encryptedSalt: string, password: string, code: string) {
+    this.checkIsInitialized();
+
+    const salt = decryptText(encryptedSalt);
+    const { hash } = passToHash({ password: password, salt });
+    const encryptedPassword = encryptText(hash);
+
+    return (<Auth>this.authSdk).disableTwoFactorAuth(encryptedPassword, code);
+  }
+
+  public addLoginListener(listener: () => void) {
+    this.eventEmitter.on(AuthEventKey.Login, listener);
+  }
+
+  public removeLoginListener(listener: () => void) {
+    this.eventEmitter.removeListener(AuthEventKey.Login, listener);
+  }
+
+  public addLogoutListener(listener: () => void) {
+    this.eventEmitter.on(AuthEventKey.Logout, listener);
+  }
+
+  public removeLogoutListener(listener: () => void) {
+    this.eventEmitter.removeListener(AuthEventKey.Logout, listener);
+  }
+
+  public emitLoginEvent() {
+    this.eventEmitter.emit(AuthEventKey.Login);
+  }
+
+  public emitLogoutEvent() {
+    this.eventEmitter.emit(AuthEventKey.Logout);
+  }
+
+  /**
+   * Obtains the logged in user and associated tokens
+   *
+   * @returns {Promise<AuthCredentials>} The user, photosToken and token for the session user
+   */
+  public async getAuthCredentials(): Promise<{ credentials?: AuthCredentials }> {
+    const token = await asyncStorageService.getItem(AsyncStorageKey.Token);
+    const photosToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
+    const user = await asyncStorageService.getUser();
+
+    return {
+      credentials: token && photosToken && user ? { accessToken: token, photosToken, user } : undefined,
+    };
+  }
+
+  /**
+   * Gets the salt from a given email
+   *
+   * @param email The email to obtain the salt from
+   * @returns The salt obtained and decrypted
+   */
+  private async getSalt(email: string) {
+    const securityDetails = await this.authSdk?.securityDetails(email);
+
+    if (!securityDetails) throw new Error('Security details not found');
+
+    const plainSalt = decryptText(securityDetails.encryptedSalt);
+
+    return plainSalt;
+  }
+
+  private checkIsInitialized() {
+    if (!this.authSdk) {
+      throw new Error('AuthService not initialized...');
+    }
   }
 }
 
