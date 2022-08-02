@@ -19,9 +19,9 @@ interface SharedScreenProps {
 function SharedScreen(props: SharedScreenProps): JSX.Element {
   const tailwind = useTailwind();
   const [loading, setLoading] = useState(true);
-  const [sharedList, setSharedList] = useState<IShare[]>([]);
+  const [sharedList, setSharedList] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const filteredSharedList = sharedList.filter((share: IShare) =>
+  const filteredSharedList = sharedList.filter((share: any) =>
     share.fileInfo.name.toLowerCase().includes((props.searchText || '').toLowerCase()),
   );
   const reloadShares = async () => {
