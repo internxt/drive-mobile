@@ -1,30 +1,21 @@
 import axios from 'axios';
 import { DriveFileData, DriveFolderData, MoveFolderPayload } from '@internxt/sdk/dist/drive/storage/types';
-import { Storage } from '@internxt/sdk/dist/drive';
+
 import { getHeaders } from '../helpers/headers';
 import { DriveFolderMetadataPayload } from '../types/drive';
-import appService, { constants } from './AppService';
+import { constants } from './AppService';
 import fileService from './DriveFileService';
+import { SdkManager } from './common/SdkManager';
 
 class DriveFolderService {
-  private sdk?: Storage;
+  private sdk: SdkManager;
 
-  public initialize(accessToken: string, mnemonic: string) {
-    this.sdk = Storage.client(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
-      {
-        clientName: appService.name,
-        clientVersion: appService.version,
-      },
-      {
-        token: accessToken,
-        mnemonic,
-      },
-    );
+  constructor(sdk: SdkManager) {
+    this.sdk = sdk;
   }
 
   public async createFolder(parentFolderId: number, folderName: string) {
-    const sdkResult = this.sdk?.createFolder({
+    const sdkResult = this.sdk.storage.createFolder({
       parentFolderId,
       folderName,
     });
@@ -32,7 +23,7 @@ class DriveFolderService {
   }
 
   public async moveFolder(payload: MoveFolderPayload) {
-    return this.sdk?.moveFolder(payload);
+    return this.sdk.storage.moveFolder(payload);
   }
 
   public async updateMetaData(
@@ -91,5 +82,4 @@ class DriveFolderService {
   }
 }
 
-const driveFolderService = new DriveFolderService();
-export default driveFolderService;
+export default new DriveFolderService(SdkManager.getInstance());

@@ -22,7 +22,6 @@ import authService from './services/AuthService';
 import EditNameModal from './components/modals/EditNameModal';
 import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
 import LanguageModal from './components/modals/LanguageModal';
-import languageService from './services/LanguageService';
 import PlansModal from './components/modals/PlansModal';
 import * as Linking from 'expo-linking';
 
@@ -86,7 +85,7 @@ export default function App(): JSX.Element {
     authService.addLogoutListener(onUserLoggedOut);
 
     if (!isAppInitialized) {
-      Promise.all([loadFonts(), languageService.initialize(), silentSignIn(), analyticsService.setup()])
+      Promise.all([loadFonts(), silentSignIn(), analyticsService.setup()])
         .then(() => {
           setIsAppInitialized(true);
         })

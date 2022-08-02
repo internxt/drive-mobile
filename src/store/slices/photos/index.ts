@@ -3,7 +3,7 @@ import { AndroidPermission, IOSPermission, PERMISSIONS, PermissionStatus, RESULT
 import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 import * as MediaLibrary from 'expo-media-library';
 import { RootState } from '../..';
-import { PhotosService } from '../../../services/photos';
+import photosService from '../../../services/photos';
 import {
   GalleryViewMode,
   PhotosEventKey,
@@ -16,8 +16,7 @@ import { permissionsThunks } from './thunks/permissions';
 import { usageExtraReducers } from './thunks/usage';
 import { syncThunks } from './thunks/sync';
 import { PhotosCommonServices } from '../../../services/photos/PhotosCommonService';
-import PhotosLocalDatabaseService from '../../../services/photos/PhotosLocalDatabaseService';
-import PhotosUserService from '../../../services/photos/PhotosUserService';
+import photosUserService from '../../../services/photos/PhotosUserService';
 import { networkThunks } from './thunks/network';
 import authService from 'src/services/AuthService';
 import PhotosUsageService from 'src/services/photos/UsageService';
@@ -68,38 +67,28 @@ const initialState: PhotosState = {
   usage: 0,
 };
 
-const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
-  'photos/initialize',
-  async (_, { dispatch }) => {
-    const { credentials } = await authService.getAuthCredentials();
+const initializeThunk = createAsyncThunk<void, void, { state: RootState }>('photos/initialize', async () => {
+  const { credentials } = await authService.getAuthCredentials();
 
-    if (credentials) {
-      const { photosToken, user } = credentials;
-      const photosDb = new PhotosLocalDatabaseService();
-      await photosDb.initialize();
+  if (credentials) {
+    const { photosToken, user } = credentials;
 
-      const photosUserService = new PhotosUserService();
+    PhotosCommonServices.initializeModel(photosToken, {
+      encryptionKey: user.mnemonic,
+      user: user.bridgeUser,
+      password: user.userId,
+    });
+    const { user: photosUser, device: photosDevice } = await photosUserService.init();
 
-      PhotosCommonServices.initialize(photosToken);
-      PhotosCommonServices.initializeModel(photosToken, {
-        encryptionKey: user.mnemonic,
-        user: user.bridgeUser,
-        password: user.userId,
-      });
-      const { user: photosUser, device: photosDevice } = await photosUserService.initialize();
-      PhotosCommonServices.model.user = photosUser;
-      PhotosCommonServices.model.device = photosDevice;
-
-      dispatch(loadPhotosUsageThunk());
-      PhotosService.initialize();
-    }
-  },
-);
+    PhotosCommonServices.model.user = photosUser;
+    PhotosCommonServices.model.device = photosDevice;
+  }
+});
 
 const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/startUsingPhotos',
   async (_: void, { dispatch }) => {
-    await PhotosService.instance.startPhotos();
+    await photosService.startPhotos();
     await dispatch(syncThunks.startSyncThunk());
     dispatch(photosActions.setIsInitialized());
   },
@@ -128,7 +117,7 @@ const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootSt
   'photos/loadPhotos',
   async (payload: LoadPhotosParams, { dispatch }) => {
     const LIMIT = 50;
-    const { results, count } = await PhotosService.instance.getPhotos({
+    const { results, count } = await photosService.getPhotos({
       limit: LIMIT,
       skip: (payload.page - 1) * LIMIT,
     });
@@ -139,7 +128,7 @@ const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootSt
       results.map<Promise<PhotoWithPreview>>(async (photo) => {
         return {
           ...photo,
-          resolvedPreview: await PhotosService.instance.getPreview(photo),
+          resolvedPreview: await photosService.getPreview(photo),
         };
       }),
     );
@@ -148,9 +137,8 @@ const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootSt
 );
 
 const clearPhotosThunk = createAsyncThunk<void, void, { state: RootState }>('photos/clearPhotos', async () => {
-  const photosDbService = new PhotosLocalDatabaseService();
-  await PhotosService.clearData();
-  await photosDbService.clear();
+  await photosService.clear();
+
   PhotosCommonServices.events.emit({
     event: PhotosEventKey.ClearSync,
   });

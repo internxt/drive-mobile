@@ -2,15 +2,11 @@ import Axios from 'axios';
 import AesUtils from '../../helpers/aesUtils';
 import { getHeaders } from '../../helpers/headers';
 import { NotificationType } from '../../types';
-import { DriveServiceModel } from '../../types/drive';
 import { constants } from '../AppService';
 import errorService from '../ErrorService';
 import notificationsService from '../NotificationsService';
-import DriveLogService from './DriveLogService';
 
 class DriveShareService {
-  constructor(private readonly model: DriveServiceModel, private readonly logService: DriveLogService) {}
-
   public async getShareList(): Promise<any[]> {
     const headers = await getHeaders();
     const headersMap: Record<string, string> = {};

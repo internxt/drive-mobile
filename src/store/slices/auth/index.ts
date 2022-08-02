@@ -43,9 +43,9 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
     if (credentials) {
       SdkManager.init({
         token: credentials.accessToken,
+        photosToken: credentials.photosToken,
         mnemonic: credentials.user.mnemonic,
       });
-      authService.initialize(credentials.accessToken, credentials.user.mnemonic);
       errorService.setGlobalErrorContext({
         email: credentials.user.email,
         userId: credentials.user.userId,

@@ -9,7 +9,6 @@ import folderService from '../../../services/DriveFolderService';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
-import { useAppSelector } from '../../../store/hooks';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../AppText';
 
@@ -22,8 +21,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
   const tailwind = useTailwind();
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
-  const { user, token } = useAppSelector((state) => state.auth);
-  useMemo(() => folderService.initialize(token, user?.mnemonic || ''), []);
+
   const onCancelButtonPressed = () => {
     if (isLoading) return;
     props.onCancel();

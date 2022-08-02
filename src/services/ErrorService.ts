@@ -47,7 +47,7 @@ class ErrorService {
        * On dev mode we log the error, and display it with [TRACKED] flag
        * so we know that error will be reported on production
        */
-      this.log(context.level || Severity.Error, error);
+      this.log(context.level || Severity.Error, error, context.extra);
     }
   }
 

@@ -1,10 +1,10 @@
 import { ActionReducerMapBuilder, createAsyncThunk } from '@reduxjs/toolkit';
 import { PhotosState } from '..';
 import { RootState } from '../../..';
-import { PhotosService } from '../../../../services/photos';
+import photosService from '../../../../services/photos';
 
 export const getUsageThunk = createAsyncThunk<number, void, { state: RootState }>('photos/getUsage', async () => {
-  return PhotosService.instance.getUsage();
+  return photosService.getUsage();
 });
 
 export const usageExtraReducers = (builder: ActionReducerMapBuilder<PhotosState>) => {

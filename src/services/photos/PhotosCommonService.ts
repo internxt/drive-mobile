@@ -1,4 +1,3 @@
-import { photos } from '@internxt/sdk';
 import { NetworkCredentials } from '../../types';
 import { PhotoFileSystemRef, PhotoSizeType, PhotosServiceModel } from '../../types/photos';
 import { constants } from '../AppService';
@@ -9,18 +8,19 @@ import { PHOTOS_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_TMP_DIRECTORY } fro
 import { Platform } from 'react-native';
 import { items } from '@internxt/lib';
 import { createHash } from '@internxt/rn-crypto';
+import { SdkManager } from '../common/SdkManager';
 enum HMAC {
   sha256 = 'sha256',
   sha512 = 'sha512',
 }
 export class PhotosCommonServices {
   public static model: PhotosServiceModel;
-  public static sdk: photos.Photos;
+  public sdk: SdkManager;
   public static log: PhotosLogService = new PhotosLogService(__DEV__);
   public static events: PhotosEventEmitter = new PhotosEventEmitter();
 
-  public static initialize(accessToken: string) {
-    PhotosCommonServices.sdk = new photos.Photos(constants.REACT_NATIVE_PHOTOS_API_URL || '', accessToken);
+  constructor(sdk: SdkManager) {
+    this.sdk = sdk;
   }
 
   public static initializeModel(accessToken: string, networkCredentials: NetworkCredentials) {
@@ -31,10 +31,6 @@ export class PhotosCommonServices {
       networkCredentials: networkCredentials,
       accessToken: accessToken,
     };
-  }
-
-  public static getAccessToken() {
-    return PhotosCommonServices.sdk?.accessToken;
   }
 
   public static getPhotoPath({ name, size, type }: { name: string; size: PhotoSizeType; type: string }) {
@@ -82,6 +78,7 @@ export class PhotosCommonServices {
   }
 
   /**
+   * Gets the real uri pointing to the photo file
    *
    * @param data name and type of the photo
    * @param uri camera roll provided uri, usually something like asset://... or ph://...
@@ -130,4 +127,4 @@ export class PhotosCommonServices {
   }
 }
 
-export const photosCommonServices = new PhotosCommonServices();
+export const photosCommonServices = new PhotosCommonServices(SdkManager.getInstance());

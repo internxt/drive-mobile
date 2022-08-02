@@ -1,4 +1,3 @@
-import { Payments } from '@internxt/sdk/dist/drive';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { constants } from './AppService';
 import {
@@ -31,12 +30,22 @@ class PaymentService {
     return this.sdk.payments.getSetupIntent();
   }
 
-  async getDefaultPaymentMethod(): Promise<PaymentMethod> {
-    return this.sdk.payments.getDefaultPaymentMethod();
+  async getDefaultPaymentMethod(): Promise<PaymentMethod | null> {
+    try {
+      return await this.sdk.payments.getDefaultPaymentMethod();
+    } catch (error) {
+      this.catchUserNotFoundError(error as Error);
+      return null;
+    }
   }
 
-  async getInvoices(): Promise<Invoice[]> {
-    return this.sdk.payments.getInvoices({});
+  async getInvoices(): Promise<Invoice[] | null> {
+    try {
+      return await this.sdk.payments.getInvoices({});
+    } catch (error) {
+      this.catchUserNotFoundError(error as Error);
+      return null;
+    }
   }
 
   async redirectToCheckout(sessionId: string) {
@@ -48,7 +57,12 @@ class PaymentService {
   }
 
   async getUserSubscription(): Promise<UserSubscription> {
-    return this.sdk.payments.getUserSubscription();
+    try {
+      return this.sdk.payments.getUserSubscription();
+    } catch (error) {
+      this.catchUserNotFoundError(error as Error);
+    }
+    return { type: 'free' };
   }
 
   public async getPrices(): Promise<DisplayPrice[]> {
@@ -106,6 +120,13 @@ class PaymentService {
     }
 
     return image;
+  }
+
+  private catchUserNotFoundError(error: Error) {
+    // The SDK throws this as an error when server sends a 404
+    if (error && error.message !== '{"message":"User not found"}') {
+      throw error;
+    }
   }
 }
 

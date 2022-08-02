@@ -4,9 +4,13 @@ import { DevicePhoto, PhotoFileSystemRef, PHOTOS_DB_NAME, SyncStage } from '../.
 import deviceSyncTable from './tables/deviceSync';
 import { Photo } from '@internxt/sdk/dist/photos';
 
-export default class PhotosLocalDatabaseService {
+export class PhotosLocalDatabaseService {
   public isInitialized = false;
-  public async initialize(): Promise<void> {
+  constructor() {
+    this.init();
+  }
+
+  private async init(): Promise<void> {
     await sqliteService.open(PHOTOS_DB_NAME);
     await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.createTable);
     this.isInitialized = true;

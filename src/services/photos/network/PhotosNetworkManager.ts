@@ -12,6 +12,7 @@ import { Photo, PhotoExistsData } from '@internxt/sdk/dist/photos';
 import { RunnableService } from '../../../helpers/services';
 import fileSystemService from '../../FileSystemService';
 import { PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
+import { SdkManager } from 'src/services/common/SdkManager';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;
 
@@ -24,11 +25,11 @@ export type OperationResult = Photo;
  */
 export class PhotosNetworkManager implements RunnableService<PhotosNetworkManagerStatus> {
   public status = PhotosNetworkManagerStatus.IDLE;
-  private uploadService = new PhotosUploadService();
+  private uploadService: PhotosUploadService;
   private previewService = new PhotosPreviewService();
   // eslint-disable-next-line
   private onStatusChangeCallback: OnStatusChangeCallback = () => {};
-
+  private sdk: SdkManager;
   private queue = async.queue<PhotosNetworkOperation, Photo | null, Error>((task, next) => {
     this.processUploadOperation(task)
       .then((result) => {
@@ -39,7 +40,9 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       });
   }, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY);
 
-  constructor() {
+  constructor(sdk: SdkManager) {
+    this.sdk = sdk;
+    this.uploadService = new PhotosUploadService(sdk);
     this.queue.drain(() => {
       this.updateStatus(PhotosNetworkManagerStatus.EMPTY);
     });
@@ -122,7 +125,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       });
     }
 
-    const result = await PhotosCommonServices.sdk.photos.photosExists(
+    const result = await this.sdk.photos.photos.photosExists(
       convertedPhotos.map((converted) => {
         return {
           hash: converted.hash.toString('hex'),

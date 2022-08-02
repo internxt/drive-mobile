@@ -9,7 +9,7 @@ import { createDevicePhotoFixture } from '../../../fixtures/photos.fixture';
 describe('DevicePhotosSyncChecker system', () => {
   let subject: DevicePhotosSyncCheckerService;
   const db = {
-    initialize: jest.fn(),
+    init: jest.fn(),
     persistPhotoSync: jest.fn(),
     getByPhotoRef: jest.fn(),
     clear: jest.fn(),
@@ -19,7 +19,7 @@ describe('DevicePhotosSyncChecker system', () => {
     getByPreviewUri: jest.fn(),
     getAll: jest.fn(),
     isInitialized: true,
-  };
+  } as any;
 
   describe('Resolve an operation with a sync stage', () => {
     beforeEach(() => (subject = new DevicePhotosSyncCheckerService(db)));

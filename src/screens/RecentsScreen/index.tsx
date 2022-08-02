@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Alert, ScrollView, RefreshControl } from 'react-native';
+import React, { useState } from 'react';
+import { View, ScrollView, RefreshControl } from 'react-native';
 import _ from 'lodash';
 
 import DriveItem from '../../components/DriveItemTable';
@@ -8,9 +8,8 @@ import strings from '../../../assets/lang/strings';
 import EmptyList from '../../components/EmptyList';
 import EmptyRecentsImage from '../../../assets/images/screens/empty-recents.svg';
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
-import DriveService from '../../services/DriveService';
+
 import { useTailwind } from 'tailwind-rn';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { driveThunks, ThunkOperationStatus } from 'src/store/slices/drive';

@@ -1,12 +1,17 @@
 import { Device, User } from '@internxt/sdk/dist/photos';
 import Axios from 'axios';
 import { getUniqueId, getDeviceName, getMacAddress } from 'react-native-device-info';
+import { SdkManager } from '../common/SdkManager';
 
 import { PhotosCommonServices } from './PhotosCommonService';
 
-export default class PhotosUserService {
+class PhotosUserService {
   private device: Device | null = null;
   private user: User | null = null;
+  private sdk: SdkManager;
+  constructor(sdk: SdkManager) {
+    this.sdk = sdk;
+  }
   public getDevice() {
     return this.device;
   }
@@ -17,7 +22,7 @@ export default class PhotosUserService {
   /**
    * @description Stop using the replace endpoint when all the devices were fixed
    */
-  public async initialize(): Promise<{
+  public async init(): Promise<{
     user: User;
     device: Device;
   }> {
@@ -27,22 +32,22 @@ export default class PhotosUserService {
 
     // * FIX: Mac address to unique ID
     await Axios.post(
-      `${PhotosCommonServices.sdk.baseUrl}/devices/fix-mac-address`,
+      `${this.sdk.photos.baseUrl}/devices/fix-mac-address`,
       { uniqueId, mac },
       {
         headers: {
-          Authorization: `Bearer ${PhotosCommonServices.getAccessToken()}`,
+          Authorization: `Bearer ${this.sdk.getApiSecurity().photosToken}`,
         },
       },
     );
 
-    const user = await PhotosCommonServices.sdk.users.initialize({
+    const user = await this.sdk.photos.users.initialize({
       mac: uniqueId,
       name,
       bridgeUser: PhotosCommonServices.model.networkCredentials.user,
       bridgePassword: PhotosCommonServices.model.networkCredentials.password,
     });
-    this.device = await PhotosCommonServices.sdk.devices.createDevice({ mac, name, userId: user.id });
+    this.device = await this.sdk.photos.devices.createDevice({ mac, name, userId: user.id });
     this.user = user;
     PhotosCommonServices.log.info('User and device initialized');
 
@@ -52,3 +57,5 @@ export default class PhotosUserService {
     };
   }
 }
+
+export default new PhotosUserService(SdkManager.getInstance());

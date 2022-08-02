@@ -1,24 +1,25 @@
-import { Auth, Drive } from '@internxt/sdk';
+import { Auth, Drive, photos } from '@internxt/sdk';
 import { constants } from '../AppService';
 import packageJson from '../../../package.json';
 import { ApiSecurity } from '@internxt/sdk/dist/shared';
 
+export type SdkManagerApiSecurity = ApiSecurity & { photosToken: string };
 /**
  * Manages all the sdk submodules initialization
  * based on the current apiSecurity details
  */
 export class SdkManager {
-  private static apiSecurity?: ApiSecurity = undefined;
+  private static apiSecurity?: SdkManagerApiSecurity = undefined;
   private static instance: SdkManager = new SdkManager();
   /**
    *  Sets the security details needed to create SDK clients
    * @param apiSecurity Security properties to be setted
    */
-  static init(apiSecurity: ApiSecurity) {
+  static init(apiSecurity: SdkManagerApiSecurity) {
     SdkManager.setApiSecurity(apiSecurity);
   }
 
-  static setApiSecurity(apiSecurity: ApiSecurity) {
+  static setApiSecurity(apiSecurity: SdkManagerApiSecurity) {
     SdkManager.apiSecurity = apiSecurity;
   }
 
@@ -33,7 +34,7 @@ export class SdkManager {
     return SdkManager.instance;
   }
 
-  private getApiSecurity(): ApiSecurity {
+  public getApiSecurity(): SdkManagerApiSecurity {
     if (!SdkManager.apiSecurity) throw new Error('Api security properties not found in SdkManager');
 
     return SdkManager.apiSecurity;
@@ -58,7 +59,11 @@ export class SdkManager {
         clientName: packageJson.name,
         clientVersion: packageJson.version,
       },
-      this.getApiSecurity(),
+      {
+        // Weird, normal accessToken doesn't work here
+        token: this.getApiSecurity().photosToken,
+        mnemonic: this.getApiSecurity().mnemonic,
+      },
     );
   }
 
@@ -74,6 +79,7 @@ export class SdkManager {
     );
   }
 
+  /** Referrals SDK */
   get referrals() {
     return Drive.Referrals.client(
       `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
@@ -83,5 +89,22 @@ export class SdkManager {
       },
       this.getApiSecurity(),
     );
+  }
+
+  /** Storage SDK */
+  get storage() {
+    return Drive.Storage.client(
+      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
+      {
+        clientName: packageJson.name,
+        clientVersion: packageJson.version,
+      },
+      this.getApiSecurity(),
+    );
+  }
+
+  /** Photos SDK */
+  get photos() {
+    return new photos.Photos(constants.REACT_NATIVE_PHOTOS_API_URL, this.getApiSecurity().photosToken);
   }
 }

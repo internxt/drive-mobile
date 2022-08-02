@@ -5,6 +5,7 @@ import { getAssetsAsync } from 'expo-media-library';
 import { createDevicePhotoFixture, createPhotoFixture } from '../../../fixtures/photos.fixture';
 import { PhotosNetworkManager } from '../../../../../src/services/photos/network/PhotosNetworkManager';
 import { PhotosCommonServices } from '../../../../../src/services/photos/PhotosCommonService';
+import { SdkManagerMock } from '__tests__/unit/mocks/sdkManager';
 
 jest.mock('expo-media-library');
 
@@ -12,17 +13,16 @@ const mockedGetAssetsAsync = jest.mocked(getAssetsAsync, true);
 
 describe('Photos Sync Manager', () => {
   const initialDbMock = {
-    initialize: jest.fn(),
+    init: jest.fn(),
     persistPhotoSync: jest.fn(),
     getByPhotoRef: jest.fn(),
     clear: jest.fn(),
-    getByPhotoId: jest.fn(),
     getByDevicePhoto: jest.fn(),
     getByPhoto: jest.fn(),
     getByPreviewUri: jest.fn(),
     getAll: jest.fn(),
     isInitialized: true,
-  };
+  } as any;
   const db = initialDbMock;
 
   let photosNetworkManager: PhotosNetworkManager;
@@ -33,8 +33,8 @@ describe('Photos Sync Manager', () => {
       Object.keys(db).forEach((key) => {
         (db as any)[key] = jest.fn();
       });
-      db.initialize();
-      photosNetworkManager = new PhotosNetworkManager();
+
+      photosNetworkManager = new PhotosNetworkManager(SdkManagerMock);
       subject = new PhotosSyncManager({ checkIfExistsPhotosAmount: 1 }, db, photosNetworkManager);
     });
     it('Should on pause stop processing operations', (done) => {
@@ -56,8 +56,6 @@ describe('Photos Sync Manager', () => {
       Object.keys(db).forEach((key) => {
         (db as any)[key] = jest.fn();
       });
-      db.initialize();
-      PhotosCommonServices.initialize('xxx');
 
       PhotosCommonServices.model = {
         ...PhotosCommonServices.model,
@@ -85,7 +83,7 @@ describe('Photos Sync Manager', () => {
         },
       };
 
-      photosNetworkManager = new PhotosNetworkManager();
+      photosNetworkManager = new PhotosNetworkManager(SdkManagerMock);
       subject = new PhotosSyncManager({ checkIfExistsPhotosAmount: 1 }, db, photosNetworkManager);
     });
     it('Should resolve a photo found locally without checking remotely', (done) => {
@@ -154,7 +152,7 @@ describe('Photos Sync Manager', () => {
     });
 
     it('Should resolve a photo found locally and check the others remotely', (done) => {
-      photosNetworkManager = new PhotosNetworkManager();
+      photosNetworkManager = new PhotosNetworkManager(SdkManagerMock);
       subject = new PhotosSyncManager({ checkIfExistsPhotosAmount: 2 }, db, photosNetworkManager);
 
       const devicePhoto1Fixture = createDevicePhotoFixture({ id: 'fixture1' });

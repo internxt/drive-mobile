@@ -1,5 +1,4 @@
-import { Auth, SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
-import packageJson from '../../package.json';
+import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { getHeaders } from '../helpers/headers';
@@ -8,8 +7,8 @@ import asyncStorageService from './AsyncStorageService';
 import { constants } from './AppService';
 import AesUtils from '../helpers/aesUtils';
 import EventEmitter from 'events';
-import { Users } from '@internxt/sdk/dist/drive';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+import { SdkManager } from './common/SdkManager';
 
 interface LoginResponse {
   tfa: string;
@@ -37,31 +36,11 @@ export interface AuthCredentials {
 
 class AuthService {
   private readonly eventEmitter: EventEmitter;
-  private authSdk?: Auth;
-  private usersSdk?: Users;
+  private sdk: SdkManager;
 
-  constructor() {
+  constructor(sdk: SdkManager) {
     this.eventEmitter = new EventEmitter();
-  }
-
-  public initialize(accessToken: string, mnemonic: string) {
-    this.authSdk = Auth.client(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
-      {
-        clientName: packageJson.name,
-        clientVersion: packageJson.version,
-      },
-      { token: accessToken, mnemonic },
-    );
-
-    this.usersSdk = Users.client(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
-      {
-        clientName: packageJson.name,
-        clientVersion: packageJson.version,
-      },
-      { token: accessToken, mnemonic },
-    );
+    this.sdk = sdk;
   }
 
   public async apiLogin(email: string): Promise<LoginResponse> {
@@ -117,7 +96,7 @@ class AuthService {
   }
 
   public async doChangePassword(params: { password: string; newPassword: string }): Promise<void> {
-    const { credentials } = await authService.getAuthCredentials();
+    const { credentials } = await this.getAuthCredentials();
     if (!credentials) throw new Error('User credentials not found');
     const salt = await this.getSalt(credentials.user.email);
 
@@ -146,7 +125,7 @@ class AuthService {
       privateKeyFinalValue = 'MISSING_PRIVATE_KEY';
     }
 
-    await this.usersSdk?.changePassword({
+    await this.sdk.users.changePassword({
       currentEncryptedPassword: encCurrentPass,
       newEncryptedSalt: encryptedNewSalt,
       encryptedMnemonic,
@@ -164,9 +143,7 @@ class AuthService {
   }
 
   public async deleteAccount(email: string): Promise<void> {
-    this.checkIsInitialized();
-
-    await this.authSdk?.sendDeactivationEmail(email);
+    await this.sdk.auth.sendDeactivationEmail(email);
   }
 
   public async getNewBits(): Promise<string> {
@@ -181,7 +158,7 @@ class AuthService {
 
     const { hash: hashedPassword } = passToHash({ password, salt: plainSalt });
 
-    return this.authSdk?.areCredentialsCorrect(email, hashedPassword) || false;
+    return this.sdk.auth.areCredentialsCorrect(email, hashedPassword) || false;
   }
 
   public async doRegister(params: RegisterParams): Promise<any> {
@@ -222,31 +199,23 @@ class AuthService {
   }
 
   public generateNew2FA(): Promise<TwoFactorAuthQR> {
-    this.checkIsInitialized();
-
-    return <Promise<TwoFactorAuthQR>>this.authSdk?.generateTwoFactorAuthQR();
+    return this.sdk.auth.generateTwoFactorAuthQR();
   }
 
   public async enable2FA(backupKey: string, code: string) {
-    this.checkIsInitialized();
-
-    return (<Auth>this.authSdk).storeTwoFactorAuthKey(backupKey, code);
+    return this.sdk.auth.storeTwoFactorAuthKey(backupKey, code);
   }
 
   public async is2FAEnabled(email: string): Promise<SecurityDetails> {
-    this.checkIsInitialized();
-
-    return (<Auth>this.authSdk).securityDetails(email);
+    return this.sdk.auth.securityDetails(email);
   }
 
   public async disable2FA(encryptedSalt: string, password: string, code: string) {
-    this.checkIsInitialized();
-
     const salt = decryptText(encryptedSalt);
     const { hash } = passToHash({ password: password, salt });
     const encryptedPassword = encryptText(hash);
 
-    return (<Auth>this.authSdk).disableTwoFactorAuth(encryptedPassword, code);
+    return this.sdk.auth.disableTwoFactorAuth(encryptedPassword, code);
   }
 
   public addLoginListener(listener: () => void) {
@@ -295,7 +264,7 @@ class AuthService {
    * @returns The salt obtained and decrypted
    */
   private async getSalt(email: string) {
-    const securityDetails = await this.authSdk?.securityDetails(email);
+    const securityDetails = await this.sdk.auth.securityDetails(email);
 
     if (!securityDetails) throw new Error('Security details not found');
 
@@ -303,13 +272,6 @@ class AuthService {
 
     return plainSalt;
   }
-
-  private checkIsInitialized() {
-    if (!this.authSdk) {
-      throw new Error('AuthService not initialized...');
-    }
-  }
 }
 
-const authService = new AuthService();
-export default authService;
+export default new AuthService(SdkManager.getInstance());
