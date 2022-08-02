@@ -34,7 +34,13 @@ const AppScreenTitle = ({
   const getColor = useGetColor();
 
   return (
-    <View style={[tailwind('flex-row justify-center items-center pt-6 pb-4 px-5'), containerStyle]}>
+    <View
+      style={[
+        tailwind('flex-row justify-center items-center px-5'),
+        { paddingTop: 22, paddingBottom: 14 },
+        containerStyle,
+      ]}
+    >
       {showBackButton && (
         <TouchableOpacity style={tailwind('flex-1')} disabled={!onBackButtonPressed} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>

@@ -43,14 +43,13 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
     if (!permissions.hasPermissions) {
       const granted = await dispatch(photosThunks.askForPermissionsThunk()).unwrap();
       if (granted) {
-        await dispatch(photosThunks.startUsingPhotosThunk()).unwrap();
         await onPermissionsGranted();
       }
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={tailwind('p-4 items-center bg-white px-5')}>
+    <View style={tailwind('flex justify-center items-center bg-white px-6 flex-1')}>
       <SyncIcon style={tailwind('mt-14 mb-6')} width={100} height={100} />
 
       <Text style={[tailwind('mb-5 text-center text-3xl text-neutral-900'), globalStyle.fontWeight.semibold]}>
@@ -76,7 +75,7 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
         style={tailwind('mb-2 w-full')}
       />
       <Text style={tailwind('text-center text-xs text-neutral-100')}>{strings.screens.photosPermissions.access}</Text>
-    </ScrollView>
+    </View>
   );
 }
 

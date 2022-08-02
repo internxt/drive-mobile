@@ -24,7 +24,7 @@ import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureM
 import LanguageModal from './components/modals/LanguageModal';
 import languageService from './services/LanguageService';
 import PlansModal from './components/modals/PlansModal';
-import CancelSubscriptionModal from './components/modals/CancelSubscriptionModal';
+import * as Linking from 'expo-linking';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -40,12 +40,12 @@ export default function App(): JSX.Element {
     isChangeProfilePictureModalOpen,
     isLanguageModalOpen,
     isPlansModalOpen,
-    isCancelSubscriptionModalOpen,
   } = useAppSelector((state) => state.ui);
   const [loadError, setLoadError] = useState('');
   const silentSignIn = async () => {
     dispatch(authThunks.silentSignInThunk());
   };
+
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
   const onInviteFriendsModalClosed = () => dispatch(uiActions.setIsInviteFriendsModalOpen(false));
   const onNewsletterModalClosed = () => dispatch(uiActions.setIsNewsletterModalOpen(false));
@@ -54,12 +54,25 @@ export default function App(): JSX.Element {
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
   const onLanguageModalClosed = () => dispatch(uiActions.setIsLanguageModalOpen(false));
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
-  const onCancelSubscriptionModalClosed = () => dispatch(uiActions.setIsCancelSubscriptionModalOpen(false));
   const onUserLoggedIn = () => {
     dispatch(appThunks.initializeThunk());
   };
   const onUserLoggedOut = () => {
     dispatch(appThunks.initializeThunk());
+  };
+
+  useEffect(() => {
+    Linking.addEventListener('url', onDeeplinkChange);
+
+    return () => {
+      Linking.removeEventListener('url', onDeeplinkChange);
+    };
+  }, []);
+
+  const onDeeplinkChange: Linking.URLListener = (change) => {
+    if (change.url.includes('checkout')) {
+      dispatch(uiActions.setIsPlansModalOpen(false));
+    }
   };
 
   // Initialize app
@@ -68,6 +81,9 @@ export default function App(): JSX.Element {
       NavigationBar.setBackgroundColorAsync(whiteColor as ColorValue);
       NavigationBar.setButtonStyleAsync('dark');
     }
+
+    authService.addLoginListener(onUserLoggedIn);
+    authService.addLogoutListener(onUserLoggedOut);
 
     if (!isAppInitialized) {
       Promise.all([loadFonts(), languageService.initialize(), silentSignIn(), analyticsService.setup()])
@@ -78,9 +94,6 @@ export default function App(): JSX.Element {
           setLoadError(err.message);
         });
     }
-
-    authService.addLoginListener(onUserLoggedIn);
-    authService.addLogoutListener(onUserLoggedOut);
 
     shouldForceUpdate()
       .then((shouldForce) => {
@@ -122,7 +135,6 @@ export default function App(): JSX.Element {
             />
             <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
             <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
-            <CancelSubscriptionModal isOpen={isCancelSubscriptionModalOpen} onClose={onCancelSubscriptionModalClosed} />
           </View>
         </Portal.Host>
       </KeyboardAvoidingView>

@@ -44,10 +44,6 @@ export type TabExplorerStackParamList = {
   Add: undefined;
   Photos: undefined;
   Settings: undefined;
-  Account: undefined;
-  Storage: undefined;
-  Plan: undefined;
-  Security: undefined;
 };
 
 export type TabExplorerScreenProps<Screen extends keyof TabExplorerStackParamList> = CompositeScreenProps<
@@ -72,5 +68,23 @@ export type PhotosScreenProps<Screen extends keyof PhotosStackParamList> = Compo
 
 export type PhotosScreenNavigationProp<Screen extends keyof PhotosStackParamList> = CompositeNavigationProp<
   NativeStackNavigationProp<PhotosStackParamList, Screen>,
+  TabExplorerScreenNavigationProp<keyof TabExplorerStackParamList>
+>;
+
+export type SettingsStackParamList = {
+  SettingsHome: undefined;
+  Account: undefined;
+  Storage: undefined;
+  Plan: undefined;
+  Security: undefined;
+};
+
+export type SettingsScreenProps<Screen extends keyof SettingsStackParamList> = CompositeScreenProps<
+  NativeStackScreenProps<SettingsStackParamList, Screen>,
+  TabExplorerScreenProps<keyof TabExplorerStackParamList>
+>;
+
+export type SettingsScreenNavigationProp<Screen extends keyof SettingsStackParamList> = CompositeNavigationProp<
+  NativeStackNavigationProp<SettingsStackParamList, Screen>,
   TabExplorerScreenNavigationProp<keyof TabExplorerStackParamList>
 >;

@@ -15,6 +15,9 @@ import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import analyticsService from '../services/AnalyticsService';
 import DebugScreen from '../screens/DebugScreen';
+import { uiActions } from 'src/store/slices/ui';
+import { paymentsThunks } from 'src/store/slices/payments';
+import { storageThunks } from 'src/store/slices/storage';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -32,6 +35,16 @@ function AppNavigator(): JSX.Element {
       if (comesFromCheckout) {
         await analyticsService.trackPayment(sessionId as string);
         await AsyncStorage.removeItem('tmpCheckoutSessionId');
+        /**
+         * We will update the UI in 5s since we don't have
+         * realtime updates, good luck
+         */
+        setTimeout(() => {
+          dispatch(paymentsThunks.loadUserSubscriptionThunk());
+          dispatch(storageThunks.loadLimitThunk());
+        }, 5000);
+
+        dispatch(uiActions.setIsPlansModalOpen(false));
       }
     }
 

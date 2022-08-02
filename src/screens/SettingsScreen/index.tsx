@@ -7,9 +7,9 @@ import AppVersionWidget from '../../components/AppVersionWidget';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
 import AppScreen from '../../components/AppScreen';
-import appService from '../../services/AppService';
+import appService, { constants } from '../../services/AppService';
 import AppText from '../../components/AppText';
-import { TabExplorerScreenProps } from '../../types/navigation';
+import { SettingsScreenProps } from '../../types/navigation';
 import AppScreenTitle from '../../components/AppScreenTitle';
 import { useTailwind } from 'tailwind-rn';
 import SettingsGroup from '../../components/SettingsGroup';
@@ -19,7 +19,7 @@ import UserProfilePicture from '../../components/UserProfilePicture';
 import { Language } from 'src/types';
 import { storageSelectors } from 'src/store/slices/storage';
 
-function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX.Element {
+function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
@@ -27,13 +27,13 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const userFullName = useAppSelector(authSelectors.userFullName);
   const onAccountPressed = () => {
-    navigation.push('TabExplorer', { screen: 'Account' });
+    navigation.navigate('Account');
   };
   const onSignOutPressed = () => {
     dispatch(uiActions.setIsSignOutModalOpen(true));
   };
   const onStoragePressed = () => {
-    navigation.push('TabExplorer', { screen: 'Storage' });
+    navigation.navigate('Storage');
   };
   const onLanguagePressed = () => {
     dispatch(uiActions.setIsLanguageModalOpen(true));
@@ -52,19 +52,19 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
   };
 
   return (
-    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')}>
+    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('bg-gray-5')}>
+      <AppScreenTitle
+        text={strings.screens.SettingsScreen.title}
+        containerStyle={tailwind('bg-white')}
+        showBackButton={false}
+        rightSlot={
+          <View style={tailwind('flex-grow items-end justify-center')}>
+            <AppVersionWidget />
+          </View>
+        }
+      />
       <ScrollView>
-        <AppScreenTitle
-          text={strings.screens.SettingsScreen.title}
-          containerStyle={tailwind('bg-white')}
-          showBackButton={false}
-          rightSlot={
-            <View style={tailwind('flex-grow items-end justify-center')}>
-              <AppVersionWidget />
-            </View>
-          }
-        />
-        <View style={tailwind('px-4 pt-8 pb-10 flex-grow bg-gray-5')}>
+        <View style={tailwind('px-4 pt-8 pb-10 flex-grow ')}>
           {/* ACCOUNT */}
           <SettingsGroup
             style={tailwind('mb-2')}
@@ -81,7 +81,9 @@ function SettingsScreen({ navigation }: TabExplorerScreenProps<'Settings'>): JSX
                         {userFullName}
                       </AppText>
                       <AppText numberOfLines={1} style={tailwind('text-gray-40')}>
-                        {strings.screens.SettingsScreen.account.advice}
+                        {constants.REACT_NATIVE_SHOW_BILLING
+                          ? strings.screens.SettingsScreen.account.advice
+                          : strings.screens.SettingsScreen.account.adviceNoBilling}
                       </AppText>
                     </View>
 

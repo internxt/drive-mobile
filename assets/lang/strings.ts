@@ -55,7 +55,7 @@ const strings = new LocalizedStrings({
           billingDate: 'Billing date',
           plan: 'Plan',
         },
-        newChargeOn: 'Nuevo cargo el {0}',
+        newChargeOn: 'New charge {0}',
       },
       DebugScreen: {
         title: 'Debug',
@@ -248,6 +248,7 @@ const strings = new LocalizedStrings({
         account: {
           title: 'Account',
           advice: 'Profile, billing and security',
+          adviceNoBilling: 'Profile and security',
         },
         general: 'General',
         photos: {
@@ -279,6 +280,8 @@ const strings = new LocalizedStrings({
           advice: 'Change your password, manage two factor authentication or save your backup key.',
         },
         deleteAccount: 'Delete account',
+        warningUnableToDeleteAccount:
+          'You cannot delete your account since you have an active subscription, cancel it first.',
       },
       SecurityScreen: {
         title: 'Security',
@@ -667,7 +670,7 @@ const strings = new LocalizedStrings({
           billingDate: 'Fecha de facturación',
           plan: 'Plan',
         },
-        newChargeOn: 'New charge on {0}',
+        newChargeOn: 'Nuevo cargo el {0}',
       },
       DebugScreen: {
         title: 'Depuración',
@@ -861,6 +864,7 @@ const strings = new LocalizedStrings({
         account: {
           title: 'Cuenta',
           advice: 'Perfil, facturación y seguridad',
+          adviceNoBilling: 'Perfil y seguridad',
         },
         general: 'General',
         photos: {
@@ -892,6 +896,7 @@ const strings = new LocalizedStrings({
           advice: 'Cambia tu contraseña, configura la autenticación en dos pasos o guarda tu clave de recuperación.',
         },
         deleteAccount: 'Borrar cuenta',
+        warningUnableToDeleteAccount: 'No puedes borrar tu cuenta con una suscripción activa, debes cancelarla antes.',
       },
       SecurityScreen: {
         title: 'Seguridad',

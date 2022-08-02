@@ -1,5 +1,5 @@
 import { CaretRight, CheckCircle, Warning } from 'phosphor-react-native';
-import { ScrollView, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, ScrollView, TouchableWithoutFeedback, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
@@ -12,13 +12,14 @@ import useGetColor from '../../hooks/useColor';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors, authThunks } from '../../store/slices/auth';
 import { uiActions } from '../../store/slices/ui';
-import { TabExplorerScreenProps } from '../../types/navigation';
+import { SettingsScreenProps } from '../../types/navigation';
 import { useCountdown } from 'usehooks-ts';
 import { useEffect, useMemo, useState } from 'react';
 import storageService from 'src/services/StorageService';
 import { paymentsSelectors } from 'src/store/slices/payments';
+import { constants } from 'src/services/AppService';
 
-function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.Element {
+function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Element {
   const [verificationEmailTime, { startCountdown, resetCountdown }] = useCountdown({
     countStart: 90,
     intervalMs: 1000,
@@ -44,13 +45,17 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
     navigation.goBack();
   };
   const onDeleteAccountPressed = () => {
-    dispatch(uiActions.setIsDeleteAccountModalOpen(true));
+    if (subscription.type === 'free') {
+      dispatch(uiActions.setIsDeleteAccountModalOpen(true));
+    } else {
+      Alert.alert(strings.screens.AccountScreen.warningUnableToDeleteAccount);
+    }
   };
   const onBillingPressed = () => {
     dispatch(uiActions.setIsPlansModalOpen(true));
   };
   const onManageSubscriptionPressed = () => {
-    navigation.push('TabExplorer', { screen: 'Plan' });
+    navigation.navigate('Plan');
   };
   const onSecurityPressed = () => {
     dispatch(uiActions.setIsSecurityModalOpen(true));
@@ -138,16 +143,15 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
   }, [verificationEmailTime]);
 
   return (
-    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('min-h-full')}>
-      <ScrollView>
-        <AppScreenTitle
-          text={strings.screens.AccountScreen.title}
-          containerStyle={tailwind('bg-white')}
-          centerText
-          onBackButtonPressed={onBackButtonPressed}
-        />
-
-        <View style={tailwind('pb-10 px-4 bg-gray-5')}>
+    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('flex-1 bg-gray-5')}>
+      <AppScreenTitle
+        text={strings.screens.AccountScreen.title}
+        containerStyle={tailwind('bg-white')}
+        centerText
+        onBackButtonPressed={onBackButtonPressed}
+      />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={tailwind('pb-10 px-4')}>
           {/* PROFILE PICTURE */}
           <View style={tailwind('items-center my-8 px-4')}>
             <TouchableWithoutFeedback onPress={onProfilePicturePressed}>
@@ -185,22 +189,24 @@ function AccountScreen({ navigation }: TabExplorerScreenProps<'Account'>): JSX.E
                         {strings.subscriptions[subscription.type]}
                       </AppText>
                     </View>
-                    {hasPaidPlan ? (
-                      <View style={tailwind('flex-row items-center')}>
-                        <AppText style={tailwind('text-gray-40 mr-2.5')}>{strings.buttons.manage}</AppText>
-                        <CaretRight color={getColor('text-gray-40')} size={20} />
-                      </View>
-                    ) : (
-                      <AppButton
-                        type="accept"
-                        title={strings.buttons.upgrade}
-                        onPress={onBillingPressed}
-                        style={tailwind('rounded-3xl px-8 py-2')}
-                      />
-                    )}
+                    {constants.REACT_NATIVE_SHOW_BILLING ? (
+                      hasPaidPlan ? (
+                        <View style={tailwind('flex-row items-center')}>
+                          <AppText style={tailwind('text-gray-40 mr-2.5')}>{strings.buttons.manage}</AppText>
+                          <CaretRight color={getColor('text-gray-40')} size={20} />
+                        </View>
+                      ) : (
+                        <AppButton
+                          type="accept"
+                          title={strings.buttons.upgrade}
+                          onPress={onBillingPressed}
+                          style={tailwind('rounded-3xl px-8 py-2')}
+                        />
+                      )
+                    ) : null}
                   </View>
                 ),
-                onPress: !hasPaidPlan ? onManageSubscriptionPressed : undefined,
+                onPress: hasPaidPlan && constants.REACT_NATIVE_SHOW_BILLING ? onManageSubscriptionPressed : undefined,
               },
             ]}
           />

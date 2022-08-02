@@ -29,7 +29,6 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [showPasswordText, setShowPasswordText] = useState(false);
-  const [passwordFocus, setPasswordFocus] = useState(false);
   const isSubmitButtonDisabled = !email || !password;
   const onSignInButtonPressed = async () => {
     setIsLoading(true);
@@ -97,27 +96,23 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
             style={tailwind('h-11')}
             value={password}
             onChangeText={setPassword}
-            onFocus={() => setPasswordFocus(true)}
-            onBlur={() => setPasswordFocus(false)}
             placeholder={strings.inputs.password}
             secureTextEntry={!showPasswordText}
             autoCompleteType="password"
             autoCapitalize="none"
             textContentType="password"
             editable={!isLoading}
-            renderAppend={() =>
-              !!password || passwordFocus ? (
-                <TouchableWithoutFeedback onPress={() => setShowPasswordText(!showPasswordText)}>
-                  <View>
-                    {showPasswordText ? (
-                      <EyeSlash color={getColor('text-gray-80')} size={24} />
-                    ) : (
-                      <Eye color={getColor('text-gray-80')} size={24} />
-                    )}
-                  </View>
-                </TouchableWithoutFeedback>
-              ) : undefined
-            }
+            renderAppend={() => (
+              <TouchableWithoutFeedback onPress={() => setShowPasswordText(!showPasswordText)}>
+                <View>
+                  {showPasswordText ? (
+                    <EyeSlash color={getColor('text-gray-80')} size={24} />
+                  ) : (
+                    <Eye color={getColor('text-gray-80')} size={24} />
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
+            )}
           />
         </View>
 

@@ -10,14 +10,14 @@ import ChangePasswordModal from '../../components/modals/ChangePasswordModal';
 import SettingsGroup from '../../components/SettingsGroup';
 import Portal from '@burstware/react-native-portal';
 import useGetColor from '../../hooks/useColor';
-import { TabExplorerScreenProps } from '../../types/navigation';
+import { SettingsScreenProps } from '../../types/navigation';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { uiActions } from 'src/store/slices/ui';
 import EnableTwoFactorModal from 'src/components/modals/EnableTwoFactorModal';
 import DisableTwoFactorModal from 'src/components/modals/DisableTwoFactorModal';
 import { authSelectors } from 'src/store/slices/auth';
 
-const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
+const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const { isEnableTwoFactorModalOpen, isDisableTwoFactorModalOpen } = useAppSelector((state) => state.ui);
   const is2FAEnabled = useAppSelector(authSelectors.is2FAEnabled);
@@ -41,6 +41,15 @@ const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
   const onDisableTwoFactorPressed = () => {
     dispatch(uiActions.setIsDisableTwoFactorModalOpen(true));
   };
+
+  /*
+   * READ - BACKUP KEY FEATURE
+   * Planned to be released during the account feature
+   * due to timings, this feature is expected to be implemented
+   * in future iterations
+   *
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onBackupKeyPressed = () => undefined;
 
   return (
@@ -51,16 +60,15 @@ const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
         <DisableTwoFactorModal isOpen={isDisableTwoFactorModalOpen} onClose={onDisableTwoFactorModalClosed} />
       </Portal>
 
-      <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('min-h-full')}>
+      <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('flex-1 bg-gray-5')}>
+        <AppScreenTitle
+          text={strings.screens.SecurityScreen.title}
+          containerStyle={tailwind('bg-white')}
+          centerText
+          onBackButtonPressed={onBackButtonPressed}
+        />
         <ScrollView contentContainerStyle={tailwind('pb-10')}>
-          <AppScreenTitle
-            text={strings.screens.SecurityScreen.title}
-            containerStyle={tailwind('bg-white')}
-            centerText
-            onBackButtonPressed={onBackButtonPressed}
-          />
-
-          <View style={tailwind('px-4 pt-8 bg-gray-5')}>
+          <View style={tailwind('px-4 pt-8')}>
             {/* CHANGE PASSWORD */}
             <SettingsGroup
               title={strings.screens.SecurityScreen.changePassword.title}
@@ -126,8 +134,14 @@ const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
               ]}
             />
 
-            {/* BACKUP KEY */}
-            <SettingsGroup
+            {/*
+             * READ - BACKUP KEY FEATURE
+             * Planned to be released during the account feature
+             * due to timings, this feature is expected to be implemented
+             * in future iterations
+             */}
+
+            {/* <SettingsGroup
               title={strings.screens.SecurityScreen.backupKey.title}
               items={[
                 {
@@ -151,7 +165,7 @@ const SecurityScreen = ({ navigation }: TabExplorerScreenProps<'Security'>) => {
                   onPress: onBackupKeyPressed,
                 },
               ]}
-            />
+            /> */}
           </View>
         </ScrollView>
       </AppScreen>

@@ -26,7 +26,6 @@ const AuthenticationForm = (props: BaseFormProps) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
   const {
     control,
     handleSubmit,
@@ -41,13 +40,13 @@ const AuthenticationForm = (props: BaseFormProps) => {
   });
   const onSubmitButtonPressed = handleSubmit(async (data) => {
     try {
+      const { credentials } = await authService.getAuthCredentials();
       setIsLoading(true);
+      if (!credentials) return;
       const areCredentialsCorrect = await authService.areCredentialsCorrect({
-        email: user?.email || '',
+        email: credentials.user.email || '',
         password: data.password,
       });
-
-      console.log('areCredentialsCorrect: ', areCredentialsCorrect);
 
       if (areCredentialsCorrect) {
         dispatch(authActions.setSessionPassword(data.password));

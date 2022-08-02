@@ -1,3 +1,4 @@
+import { NotInitializedServiceError } from 'src/helpers/services';
 import { DriveServiceModel } from '../../types/drive';
 import { constants } from '../AppService';
 import DriveEventEmitter from './DriveEventEmitter';
@@ -8,7 +9,14 @@ import DriveShareService from './DriveShareService';
 import DriveUsageService from './DriveUsageService';
 
 class DriveService {
-  public static instance: DriveService;
+  private static internalInstance: DriveService;
+
+  public static get instance() {
+    if (!this.internalInstance) {
+      throw new NotInitializedServiceError('DriveService', 'class static method');
+    }
+    return this.internalInstance;
+  }
   public readonly model: DriveServiceModel;
   public readonly log: DriveLogService;
   public readonly eventEmitter: DriveEventEmitter;
@@ -31,7 +39,7 @@ class DriveService {
   }
 
   public static async initialize(accessToken: string) {
-    DriveService.instance = new DriveService(accessToken);
+    DriveService.internalInstance = new DriveService(accessToken);
     await DriveService.instance.localDatabase.initialize();
   }
 }

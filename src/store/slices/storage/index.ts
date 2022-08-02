@@ -41,7 +41,7 @@ export const storageSelectors = {
   usage: (state: RootState) => state.drive.usage + state.photos.usage,
   availableStorage: (state: RootState) => state.storage.limit - state.photos.usage - state.drive.usage,
   usagePercent: (state: RootState) =>
-    Math.floor(((state.drive.usage + state.photos.usage) / state.storage.limit) * 100),
+    Math.round(((state.drive.usage + state.photos.usage) / state.storage.limit) * 100),
 };
 
 export const storageActions = storageSlice.actions;

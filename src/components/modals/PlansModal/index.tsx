@@ -15,7 +15,7 @@ import useGetColor from 'src/hooks/useColor';
 import StorageUsageBar from 'src/components/StorageUsageBar';
 import { storageSelectors } from 'src/store/slices/storage';
 import storageService from 'src/services/StorageService';
-
+import * as Linking from 'expo-linking';
 const PlansModal = (props: BaseModalProps) => {
   const [selectedStorage, setSelectedStorage] = useState<string | undefined>(undefined);
   const tailwind = useTailwind();
@@ -23,6 +23,7 @@ const PlansModal = (props: BaseModalProps) => {
   const dispatch = useAppDispatch();
   const pricesBySize = useAppSelector(paymentsSelectors.pricesBySize);
   const { subscription } = useAppSelector((state) => state.payments);
+
   const suscriptionStorageKey = useMemo(() => {
     let key = undefined;
 

@@ -8,7 +8,7 @@ import { TouchableWithoutFeedback } from 'react-native';
 import { X } from 'phosphor-react-native';
 import AppText from '../AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { RootScreenNavigationProp } from '../../types/navigation';
+import { SettingsScreenNavigationProp } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 
@@ -17,10 +17,10 @@ const ReferralsBanner = (): JSX.Element => {
   const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
-  const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
+  const navigation = useNavigation<SettingsScreenNavigationProp<'Account'>>();
   const isOpen = useAppSelector((state) => state.ui.isReferralsBannerOpen);
   const onBannerPressed = () => {
-    navigation.navigate('TabExplorer', { screen: 'Storage' });
+    navigation.navigate('Storage');
     dispatch(uiActions.setIsReferralsBannerOpen(false));
   };
   const onCloseButtonPressed = () => {

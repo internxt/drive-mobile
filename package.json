@@ -1,6 +1,6 @@
 {
   "name": "drive-mobile",
-  "version": "1.5.14",
+  "version": "1.5.15",
   "private": true,
   "license": "GNU",
   "scripts": {
@@ -32,7 +32,7 @@
     "@hookform/resolvers": "^2.9.1",
     "@internxt/lib": "^1.2.0",
     "@internxt/rn-crypto": "^0.1.10",
-    "@internxt/sdk": "^0.16.1",
+    "@internxt/sdk": "^1.1.1",
     "@react-native-async-storage/async-storage": "^1.17.0",
     "@react-native-community/cameraroll": "github:internxt/react-native-cameraroll",
     "@react-navigation/bottom-tabs": "^6.2.0",
@@ -48,6 +48,7 @@
     "async": "^3.2.0",
     "asyncstorage-down": "^4.2.0",
     "axios": "^0.27.2",
+    "base-64": "^1.0.0",
     "browserify-zlib": "^0.1.4",
     "console-browserify": "^1.2.0",
     "constants-browserify": "^1.0.0",
@@ -133,6 +134,7 @@
     "reflect-metadata": "^0.1.13",
     "rn-fetch-blob": "=0.11.2",
     "sentry-expo": "^4.0.0",
+    "socket.io-client": "^4.5.1",
     "stream-browserify": "^1.0.0",
     "string_decoder": "~0.10.25",
     "tailwind-rn": "^4.2.0",

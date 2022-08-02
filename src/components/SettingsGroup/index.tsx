@@ -55,7 +55,7 @@ function SettingsGroup({ style, title, items, advice }: SettingsGroupProps) {
           {title.toUpperCase()}
         </AppText>
       )}
-      <View style={tailwind('bg-white rounded-xl')}>{renderItems()}</View>
+      <View style={tailwind('bg-white rounded-xl overflow-hidden')}>{renderItems()}</View>
       {advice && <AppText style={tailwind('mt-2 mx-4 text-xs text-gray-40')}>{advice}</AppText>}
     </View>
   );

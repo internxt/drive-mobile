@@ -44,7 +44,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
       thunk.abort();
     };
 
-    DriveService.instance.eventEmitter.setDownloadAbort(downloadAbort);
+    DriveService.instance?.eventEmitter.setDownloadAbort(downloadAbort);
 
     thunk.then(() => {
       setIsDisabled(false);

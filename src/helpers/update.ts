@@ -5,10 +5,13 @@ import asyncStorage from '../services/AsyncStorageService';
 import errorService from '../services/ErrorService';
 
 export async function shouldForceUpdate(): Promise<boolean> {
-  return asyncStorage
-    .getItem(AsyncStorageKey.LastUpdateCheck)
-    .then((result) => result === null)
-    .catch(() => true);
+  return (
+    !__DEV__ &&
+    (await asyncStorage
+      .getItem(AsyncStorageKey.LastUpdateCheck)
+      .then((result) => result === null)
+      .catch(() => true))
+  );
 }
 
 export function setUpdatesChecked(): Promise<void> {

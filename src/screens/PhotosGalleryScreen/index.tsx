@@ -33,7 +33,6 @@ function PhotosGalleryScreen(): JSX.Element {
   const { selection } = useAppSelector((state) => state.photos);
   const [loading, setLoading] = useState(false);
   const [isDeletePhotosModalOpen, setIsDeletePhotosModalOpen] = useState(false);
-  const onSharePhotoModalClosed = () => dispatch(uiActions.setIsSharePhotoModalOpen(false));
   const onDeletePhotosModalClosed = () => {
     setIsDeletePhotosModalOpen(false);
     dispatch(photosActions.setIsSelectionModeActivated(false));
@@ -85,7 +84,12 @@ function PhotosGalleryScreen(): JSX.Element {
   })();*/
 
   useEffect(() => {
-    dispatch(photosThunks.loadPhotosThunk({ page: currentPage }));
+    dispatch(photosThunks.startUsingPhotosThunk())
+      .unwrap()
+      .then(() => {
+        dispatch(photosThunks.loadPhotosThunk({ page: currentPage }));
+      });
+
     const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressed);
 
     return () => {
@@ -94,7 +98,7 @@ function PhotosGalleryScreen(): JSX.Element {
     };
   }, []);
 
-  const loadNextPage = async () => {
+  async function loadNextPage() {
     if (!loading && hasMorePhotos) {
       setLoading(true);
       const nextPage = currentPage + 1;
@@ -104,7 +108,7 @@ function PhotosGalleryScreen(): JSX.Element {
 
       setLoading(false);
     }
-  };
+  }
 
   return (
     <>

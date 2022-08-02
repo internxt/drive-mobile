@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { INFINITE_PLAN } from '../../types';
 import ReferralsWidget from '../../components/ReferralsWidget';
 import AppScreen from '../../components/AppScreen';
-import { TabExplorerScreenProps } from '../../types/navigation';
+import { SettingsScreenProps } from '../../types/navigation';
 import appService from '../../services/AppService';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../components/AppText';
@@ -21,7 +21,7 @@ import { storageSelectors } from 'src/store/slices/storage';
 import AppButton from 'src/components/AppButton';
 import { paymentsSelectors } from 'src/store/slices/payments';
 
-function StorageScreen({ navigation }: TabExplorerScreenProps<'Storage'>): JSX.Element {
+function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Element {
   const [currentStatusStep, setCurrentStatusStep] = useState(0);
   const { limit } = useAppSelector((state) => state.storage);
   const hasPaidPlan = useAppSelector(paymentsSelectors.hasPaidPlan);
@@ -76,15 +76,15 @@ function StorageScreen({ navigation }: TabExplorerScreenProps<'Storage'>): JSX.E
   };
 
   return (
-    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('min-h-full')}>
-      <ScrollView>
-        <AppScreenTitle
-          text={strings.screens.StorageScreen.title}
-          containerStyle={tailwind('bg-white')}
-          centerText
-          onBackButtonPressed={onBackButtonPressed}
-        />
+    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('flex-1 bg-gray-5')}>
+      <AppScreenTitle
+        text={strings.screens.StorageScreen.title}
+        containerStyle={tailwind('bg-white')}
+        centerText
+        onBackButtonPressed={onBackButtonPressed}
+      />
 
+      <ScrollView style={tailwind('flex-1')}>
         <View style={tailwind('pb-10 px-4 bg-gray-5')}>
           {/* STATUS */}
           <GestureRecognizer

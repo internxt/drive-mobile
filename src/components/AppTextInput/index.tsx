@@ -5,7 +5,7 @@ import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 
-interface AppTextInputProps extends TextInputProps {
+export interface AppTextInputProps extends TextInputProps {
   status?: ['idle' | 'warning' | 'error' | 'success', string | JSX.Element | undefined];
   containerStyle?: StyleProp<ViewStyle>;
   label?: string;

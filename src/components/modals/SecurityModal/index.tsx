@@ -8,18 +8,18 @@ import { useTailwind } from 'tailwind-rn';
 import AppText from '../../AppText';
 import { BaseModalProps } from '../../../types/ui';
 import { useNavigation } from '@react-navigation/native';
-import { RootScreenNavigationProp } from 'src/types/navigation';
+import { SettingsScreenNavigationProp } from 'src/types/navigation';
 import AuthenticationForm from 'src/components/forms/AuthenticationForm';
 
 const SecurityModal = (props: BaseModalProps) => {
   const tailwind = useTailwind();
-  const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
+  const navigation = useNavigation<SettingsScreenNavigationProp<'Security'>>();
   const [isLoading, setIsLoading] = useState(false);
   const onFormLoadingChanged = (isLoading: boolean) => {
     setIsLoading(isLoading);
   };
   const onFormSubmitSuccess = () => {
-    navigation.navigate('TabExplorer', { screen: 'Security' });
+    navigation.navigate('Security');
     props.onClose();
   };
   const onClosed = () => {

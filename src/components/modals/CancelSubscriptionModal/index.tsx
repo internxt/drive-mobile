@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import StorageUsageBar from 'src/components/StorageUsageBar';
 import storageService, { FREE_STORAGE } from 'src/services/StorageService';
-import { paymentsThunks } from 'src/store/slices/payments';
-import { storageSelectors } from 'src/store/slices/storage';
+import { paymentsActions, paymentsSelectors, paymentsThunks } from 'src/store/slices/payments';
+import { storageSelectors, storageThunks } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
@@ -15,7 +15,7 @@ import AppButton from '../../AppButton';
 import AppText from '../../AppText';
 import BottomModal from '../BottomModal';
 
-const CancelSubscriptionModal = (props: BaseModalProps) => {
+const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancelled: () => void }) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
@@ -38,6 +38,8 @@ const CancelSubscriptionModal = (props: BaseModalProps) => {
       .unwrap()
       .then(() => {
         props.onClose();
+        dispatch(paymentsActions.setSubscriptionAsFree());
+        props.onSubscriptionCancelled();
       })
       .catch(() => undefined)
       .finally(() => {

@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import strings from '../../../../assets/lang/strings';
 import { BaseFormProps, SignUpFormData } from '../../../types/ui';
-import AppTextInput from '../../AppTextInput';
+import AppTextInput, { AppTextInputProps } from '../../AppTextInput';
 import { useAppDispatch } from '../../../store/hooks';
 import { authThunks } from '../../../store/slices/auth';
 import analyticsService, { AnalyticsEventKey } from '../../../services/AnalyticsService';
@@ -40,6 +40,7 @@ const schema: yup.SchemaOf<SignUpFormData> = yup
       .required(strings.errors.requiredField)
       .test({
         name: 'strongPassword',
+        message: strings.errors.passwordComplex,
         test: function (value) {
           return auth.testPasswordStrength(value || '', this.parent.email).valid;
         },
@@ -83,6 +84,7 @@ const SignUpForm = (props: BaseFormProps) => {
       termsAndConditions: false,
     },
   });
+
   const toggleShowNewPassword = () => setShowPassword(!showPassword);
   const toggleShowConfirmPassword = () => setShowConfirmPassword(!showConfirmPassword);
 
@@ -181,8 +183,9 @@ const SignUpForm = (props: BaseFormProps) => {
         render={({ field }) => (
           <AppTextInput
             testID="email-input"
-            onBlur={field.onBlur}
-            onChangeText={field.onChange}
+            onChangeText={(text) => {
+              field.onChange(text);
+            }}
             value={field.value}
             style={tailwind('h-11')}
             containerStyle={tailwind('mb-3')}
@@ -200,33 +203,37 @@ const SignUpForm = (props: BaseFormProps) => {
       <Controller
         name="password"
         control={control}
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <AppTextInput
             testID="password-input"
-            onBlur={field.onBlur}
             onChangeText={field.onChange}
             value={field.value}
             style={tailwind('h-11')}
             containerStyle={tailwind('mb-3')}
             placeholder={strings.inputs.password}
+            status={
+              fieldState.error
+                ? ['error', fieldState.error?.message]
+                : fieldState.isDirty
+                ? ['success', undefined]
+                : undefined
+            }
             textContentType="password"
             autoCapitalize="none"
             autoCompleteType="password"
             autoCorrect={false}
             secureTextEntry={!showPassword}
-            renderAppend={({ isFocused }) =>
-              isFocused ? (
-                <TouchableWithoutFeedback onPress={toggleShowNewPassword}>
-                  <View>
-                    {showPassword ? (
-                      <EyeSlash size={24} color={getColor('text-gray-80')} />
-                    ) : (
-                      <Eye size={24} color={getColor('text-gray-80')} />
-                    )}
-                  </View>
-                </TouchableWithoutFeedback>
-              ) : undefined
-            }
+            renderAppend={() => (
+              <TouchableWithoutFeedback onPress={toggleShowNewPassword}>
+                <View>
+                  {showPassword ? (
+                    <EyeSlash size={24} color={getColor('text-gray-80')} />
+                  ) : (
+                    <Eye size={24} color={getColor('text-gray-80')} />
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
+            )}
           />
         )}
       />
@@ -234,7 +241,7 @@ const SignUpForm = (props: BaseFormProps) => {
       <Controller
         name="confirmPassword"
         control={control}
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <AppTextInput
             testID="confirm-password-input"
             onBlur={field.onBlur}
@@ -247,20 +254,25 @@ const SignUpForm = (props: BaseFormProps) => {
             autoCapitalize="none"
             autoCompleteType="password"
             autoCorrect={false}
-            secureTextEntry={!showConfirmPassword}
-            renderAppend={({ isFocused }) =>
-              isFocused ? (
-                <TouchableWithoutFeedback onPress={toggleShowConfirmPassword}>
-                  <View>
-                    {showConfirmPassword ? (
-                      <EyeSlash size={24} color={getColor('text-gray-80')} />
-                    ) : (
-                      <Eye size={24} color={getColor('text-gray-80')} />
-                    )}
-                  </View>
-                </TouchableWithoutFeedback>
-              ) : undefined
+            status={
+              fieldState.error
+                ? ['error', fieldState.error.message]
+                : fieldState.isDirty
+                ? ['success', undefined]
+                : undefined
             }
+            secureTextEntry={!showConfirmPassword}
+            renderAppend={() => (
+              <TouchableWithoutFeedback onPress={toggleShowConfirmPassword}>
+                <View>
+                  {showConfirmPassword ? (
+                    <EyeSlash size={24} color={getColor('text-gray-80')} />
+                  ) : (
+                    <Eye size={24} color={getColor('text-gray-80')} />
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
+            )}
           />
         )}
       />

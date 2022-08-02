@@ -9,6 +9,8 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
 import _ from 'lodash';
 import { constants } from 'src/services/AppService';
+import asyncStorageService from 'src/services/AsyncStorageService';
+import authService from 'src/services/AuthService';
 import notificationsService from 'src/services/NotificationsService';
 import paymentService from 'src/services/PaymentService';
 import { RootState } from 'src/store';
@@ -36,15 +38,15 @@ const initialState: PaymentsState = {
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'payments/initialize',
-  async (payload, { getState, dispatch }) => {
-    const { loggedIn, photosToken, user } = getState().auth;
+  async (payload, { dispatch }) => {
+    const { credentials } = await authService.getAuthCredentials();
 
-    if (loggedIn && user) {
-      paymentService.initialize(photosToken, user.mnemonic);
+    if (credentials) {
+      paymentService.initialize(credentials.photosToken, credentials.user.mnemonic);
       dispatch(loadPricesThunk());
       dispatch(loadUserSubscriptionThunk());
       dispatch(loadInvoicesThunk());
-      dispatch(loadDefaultPaymentMethodThunk());
+      /* dispatch(loadDefaultPaymentMethodThunk()); */
     }
   },
 );
@@ -106,6 +108,9 @@ export const paymentsSlice = createSlice({
   reducers: {
     setSessionId: (state, action: PayloadAction<string>) => {
       state.sessionId = action.payload;
+    },
+    setSubscriptionAsFree: (state) => {
+      state.subscription = { type: 'free' };
     },
   },
   extraReducers(builder) {

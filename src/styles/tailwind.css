@@ -251,20 +251,24 @@
   margin-top: 0.875rem
 }
 
-.mt-0 {
-  margin-top: 0px
+.mb-9 {
+  margin-bottom: 2.25rem
 }
 
-.mt-6 {
-  margin-top: 1.5rem
+.mt-0\.5 {
+  margin-top: 0.125rem
+}
+
+.mt-0 {
+  margin-top: 0px
 }
 
 .mb-4 {
   margin-bottom: 1rem
 }
 
-.mt-0\.5 {
-  margin-top: 0.125rem
+.mt-6 {
+  margin-top: 1.5rem
 }
 
 .mt-10 {
@@ -297,10 +301,6 @@
 
 .mb-0 {
   margin-bottom: 0px
-}
-
-.mb-9 {
-  margin-bottom: 2.25rem
 }
 
 .flex {
@@ -735,6 +735,10 @@
   background-color: rgb(199 199 205 / var(--tw-bg-opacity))
 }
 
+.bg-red-\/5 {
+  background-color: rgb(255 13 0 / 0.05)
+}
+
 .bg-gray-5\/50 {
   background-color: rgb(243 243 248 / 0.5)
 }
@@ -742,10 +746,6 @@
 .bg-red-60 {
   --tw-bg-opacity: 1;
   background-color: rgb(218 30 40 / var(--tw-bg-opacity))
-}
-
-.bg-red-\/5 {
-  background-color: rgb(255 13 0 / 0.05)
 }
 
 .bg-blue-30 {
@@ -910,6 +910,10 @@
   padding-left: 1rem
 }
 
+.pb-14 {
+  padding-bottom: 3.5rem
+}
+
 .pt-6 {
   padding-top: 1.5rem
 }
@@ -1008,6 +1012,10 @@
 
 .pt-3 {
   padding-top: 0.75rem
+}
+
+.pb-16 {
+  padding-bottom: 4rem
 }
 
 .text-left {
@@ -1115,8 +1123,8 @@
   color: rgb(0 67 206 / var(--tw-text-opacity))
 }
 
-.text-primary\/30 {
-  color: rgb(0 102 255 / 0.3)
+.text-primary\/20 {
+  color: rgb(0 102 255 / 0.2)
 }
 
 .text-neutral-30 {
@@ -1282,14 +1290,6 @@
 .text-green-60 {
   --tw-text-opacity: 1;
   color: rgb(25 128 56 / var(--tw-text-opacity))
-}
-
-.text-primary\/10 {
-  color: rgb(0 102 255 / 0.1)
-}
-
-.text-primary\/20 {
-  color: rgb(0 102 255 / 0.2)
 }
 
 .line-through {

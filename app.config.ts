@@ -5,6 +5,7 @@ import packageJson from './package.json';
 export enum AppStage {
   Development = 'development',
   Test = 'test',
+  Staging = 'staging',
   Production = 'production',
 }
 
@@ -32,7 +33,7 @@ export interface AppEnv {
   SENTRY_AUTH_TOKEN: string;
 }
 
-const stage = AppStage.Development; // <- CHANGE STAGE
+const stage = AppStage.Production; // <- CHANGE STAGE
 
 const appConfig: ExpoConfig & { extra: AppEnv } = {
   name: 'Internxt',

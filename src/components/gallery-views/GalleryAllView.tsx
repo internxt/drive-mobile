@@ -94,9 +94,8 @@ const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onL
       }
       ItemSeparatorComponent={renderItemSeparator}
       data={photos}
-      onScrollEndDrag={onScrollEnd}
       numColumns={COLUMNS}
-      onEndReached={() => undefined}
+      onEndReached={onScrollEnd}
       onEndReachedThreshold={3}
       keyExtractor={extractKey}
       renderItem={renderListItem}

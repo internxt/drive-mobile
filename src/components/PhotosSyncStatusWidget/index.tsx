@@ -16,13 +16,49 @@ const PhotosSyncStatusWidget = () => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
-  const { syncStatus } = useAppSelector((state) => state.photos);
   const [completedTasks, setCompletedTasks] = useState(0);
+  const [totalTasks, setTotalTasks] = useState(0);
+  const [photosSyncStatus, setPhotosSyncStatus] = useState(PhotosSyncStatus.Unknown);
   useEffect(() => {
     PhotosCommonServices.events.addListener({
       event: PhotosEventKey.PhotoSyncDone,
-      listener() {
-        setCompletedTasks(completedTasks + 1);
+      listener([photosSynced]) {
+        setCompletedTasks(photosSynced);
+      },
+    });
+
+    PhotosCommonServices.events.addListener({
+      event: PhotosEventKey.SyncTasksCalculated,
+      listener([photosToSync]) {
+        setTotalTasks(photosToSync);
+      },
+    });
+
+    PhotosCommonServices.events.addListener({
+      event: PhotosEventKey.PauseSync,
+      listener: () => {
+        setPhotosSyncStatus(PhotosSyncStatus.Paused);
+      },
+    });
+
+    PhotosCommonServices.events.addListener({
+      event: PhotosEventKey.ResumeSync,
+      listener: () => {
+        setPhotosSyncStatus(PhotosSyncStatus.InProgress);
+      },
+    });
+
+    PhotosCommonServices.events.addListener({
+      event: PhotosEventKey.SyncCompleted,
+      listener: () => {
+        setPhotosSyncStatus(PhotosSyncStatus.Completed);
+      },
+    });
+
+    PhotosCommonServices.events.addListener({
+      event: PhotosEventKey.RunningSync,
+      listener: () => {
+        setPhotosSyncStatus(PhotosSyncStatus.InProgress);
       },
     });
   }, []);
@@ -64,12 +100,8 @@ const PhotosSyncStatusWidget = () => {
       <View style={tailwind('flex-row items-center')}>
         <LoadingSpinner style={tailwind('mr-2')} size={14} />
         <Text style={tailwind('text-sm text-neutral-100')}>
-          {syncStatus.totalTasks > 0
-            ? strings.formatString(
-                strings.screens.gallery.syncingTasks,
-                syncStatus.completedTasks || 0,
-                syncStatus.totalTasks,
-              )
+          {completedTasks > 0
+            ? strings.formatString(strings.screens.gallery.syncingTasks, completedTasks, totalTasks)
             : strings.screens.gallery.syncing}
         </Text>
       </View>
@@ -87,15 +119,15 @@ const PhotosSyncStatusWidget = () => {
   const onResumeButtonPressed = () => {
     onResumeSyncPressed();
   };
-  const isCompleted = syncStatus.status === PhotosSyncStatus.Completed;
-  const isPaused = syncStatus.status === PhotosSyncStatus.Paused;
-  const isPausing = syncStatus.status === PhotosSyncStatus.Pausing;
-  const isPending = syncStatus.status === PhotosSyncStatus.Pending;
+  const isCompleted = photosSyncStatus === PhotosSyncStatus.Completed;
+  const isPaused = photosSyncStatus === PhotosSyncStatus.Paused;
+  const isPausing = photosSyncStatus === PhotosSyncStatus.Pausing;
+  const isPending = photosSyncStatus === PhotosSyncStatus.Pending;
   const showPauseResumeButton = !isCompleted && !isPending;
 
   return (
     <View style={tailwind('px-5 flex-row items-center justify-between')}>
-      {contentByStatus[syncStatus.status]}
+      {contentByStatus[photosSyncStatus]}
       {showPauseResumeButton ? (
         !isPaused && !isPausing ? (
           <TouchableOpacity onPress={onPauseButtonPressed}>

@@ -92,9 +92,9 @@ const ChangePasswordForm = (props: BaseFormProps) => {
     dispatch(authThunks.changePasswordThunk({ newPassword: data.newPassword }))
       .unwrap()
       .then(() => {
+        props.onFormSubmitSuccess?.();
         setValue('newPassword', '');
         setValue('confirmNewPassword', '');
-        props.onFormSubmitSuccess?.();
       })
       .catch(() => undefined)
       .finally(() => {
@@ -126,28 +126,25 @@ const ChangePasswordForm = (props: BaseFormProps) => {
               newPasswordStatusMessage,
             ]}
             label={strings.inputs.newPassword}
-            renderAppend={({ isFocused }) =>
-              isFocused ? (
-                <TouchableWithoutFeedback onPress={toggleShowNewPassword}>
-                  <View>
-                    {showNewPassword ? (
-                      <EyeSlash size={24} color={getColor('text-gray-80')} />
-                    ) : (
-                      <Eye size={24} color={getColor('text-gray-80')} />
-                    )}
-                  </View>
-                </TouchableWithoutFeedback>
-              ) : undefined
-            }
+            renderAppend={() => (
+              <TouchableWithoutFeedback onPress={toggleShowNewPassword}>
+                <View>
+                  {showNewPassword ? (
+                    <EyeSlash size={24} color={getColor('text-gray-80')} />
+                  ) : (
+                    <Eye size={24} color={getColor('text-gray-80')} />
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
+            )}
           />
         )}
       />
       <Controller
         name="confirmNewPassword"
         control={control}
-        render={({ field, fieldState, formState }) => (
+        render={({ field, fieldState }) => (
           <AppTextInput
-            editable={!!newPassword && !formState.errors.newPassword}
             onBlur={field.onBlur}
             onChangeText={field.onChange}
             value={field.value}
@@ -155,19 +152,17 @@ const ChangePasswordForm = (props: BaseFormProps) => {
             status={[fieldState.error ? 'error' : 'idle', fieldState.error?.message || '']}
             containerStyle={tailwind('mb-6')}
             label={strings.inputs.confirmNewPassword}
-            renderAppend={({ isFocused }) =>
-              isFocused ? (
-                <TouchableWithoutFeedback onPress={toggleShowConfirmNewPassword}>
-                  <View>
-                    {showConfirmNewPassword ? (
-                      <EyeSlash size={24} color={getColor('text-gray-80')} />
-                    ) : (
-                      <Eye size={24} color={getColor('text-gray-80')} />
-                    )}
-                  </View>
-                </TouchableWithoutFeedback>
-              ) : undefined
-            }
+            renderAppend={() => (
+              <TouchableWithoutFeedback onPress={toggleShowConfirmNewPassword}>
+                <View>
+                  {showConfirmNewPassword ? (
+                    <EyeSlash size={24} color={getColor('text-gray-80')} />
+                  ) : (
+                    <Eye size={24} color={getColor('text-gray-80')} />
+                  )}
+                </View>
+              </TouchableWithoutFeedback>
+            )}
           />
         )}
       />

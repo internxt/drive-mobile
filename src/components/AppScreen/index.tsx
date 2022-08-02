@@ -15,6 +15,7 @@ interface AppScreenProps {
   safeAreaBottom?: boolean;
   children?: React.ReactNode | React.ReactNode[];
   style?: StyleProp<ViewStyle>;
+  hasBottomTabs?: boolean;
 }
 
 const AppScreen = (props: AppScreenProps): JSX.Element => {
@@ -32,6 +33,7 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
   return (
     <View
       style={{
+        paddingBottom: props.hasBottomTabs ? 0 : 0,
         backgroundColor,
         ...propsStyle,
       }}

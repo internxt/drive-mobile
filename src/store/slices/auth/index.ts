@@ -14,6 +14,7 @@ import strings from '../../../../assets/lang/strings';
 import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
+import errorService from 'src/services/ErrorService';
 
 export interface AuthState {
   loggedIn: boolean;
@@ -35,11 +36,15 @@ const initialState: AuthState = {
 
 export const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/initialize',
-  async (payload, { getState, dispatch }) => {
-    const { loggedIn, token, user } = getState().auth;
+  async (_, { dispatch }) => {
+    const { credentials } = await authService.getAuthCredentials();
 
-    if (loggedIn && user) {
-      authService.initialize(token, user?.mnemonic);
+    if (credentials) {
+      authService.initialize(credentials.accessToken, credentials.user.mnemonic);
+      errorService.setGlobalErrorContext({
+        email: credentials.user.email,
+        userId: credentials.user.userId,
+      });
       dispatch(refreshUserThunk());
       dispatch(loadSecurityDetailsThunk());
     }
@@ -49,13 +54,16 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
 export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/silentSignIn',
   async (payload, { dispatch }) => {
-    const token = await asyncStorageService.getItem(AsyncStorageKey.Token);
-    const photosToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
-    const user = await asyncStorageService.getUser();
+    const { credentials } = await authService.getAuthCredentials();
 
-    if (token && photosToken && user) {
-      dispatch(authActions.setSignInData({ token, photosToken, user }));
-
+    if (credentials) {
+      dispatch(
+        authActions.setSignInData({
+          token: credentials.accessToken,
+          photosToken: credentials.photosToken,
+          user: credentials.user,
+        }),
+      );
       authService.emitLoginEvent();
     }
   },
@@ -65,13 +73,13 @@ export const signInThunk = createAsyncThunk<
   { token: string; photosToken: string; user: UserSettings },
   { email: string; password: string; sKey: string; twoFactorCode: string },
   { state: RootState }
->('auth/signIn', async (payload) => {
+>('auth/signIn', async (payload, { dispatch }) => {
   const result = await userService.signin(payload.email, payload.password, payload.sKey, payload.twoFactorCode);
 
   await asyncStorageService.saveItem(AsyncStorageKey.Token, result.token);
   await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, result.photosToken); // Photos access token
   await asyncStorageService.saveItem(AsyncStorageKey.User, JSON.stringify(result.user));
-
+  dispatch(authActions.setSignInData({ token: result.token, photosToken: result.photosToken, user: result.user }));
   authService.emitLoginEvent();
 
   return result;
@@ -198,8 +206,13 @@ export const disableTwoFactorThunk = createAsyncThunk<void, { code: string }, { 
 
 export const changePasswordThunk = createAsyncThunk<void, { newPassword: string }, { state: RootState }>(
   'auth/changePassword',
-  async ({ newPassword }, { dispatch }) => {
-    await authService.doRecoverPassword(newPassword);
+  async ({ newPassword }, { dispatch, getState }) => {
+    const { sessionPassword } = getState().auth;
+    if (!sessionPassword) throw new Error('No session password found');
+    await authService.doChangePassword({
+      password: sessionPassword,
+      newPassword: newPassword,
+    });
 
     dispatch(authActions.setSessionPassword(newPassword));
   },
@@ -349,10 +362,17 @@ export const authSlice = createSlice({
 
     builder
       .addCase(changePasswordThunk.fulfilled, () => {
-        notificationsService.show({ text1: strings.messages.passwordChanged, type: NotificationType.Success });
+        setTimeout(() => {
+          notificationsService.show({
+            text1: strings.messages.passwordChanged,
+            type: NotificationType.Success,
+          });
+        }, 750);
       })
       .addCase(changePasswordThunk.rejected, () => {
-        notificationsService.show({ type: NotificationType.Error, text1: strings.errors.changePassword });
+        setTimeout(() => {
+          notificationsService.show({ type: NotificationType.Error, text1: strings.errors.changePassword });
+        }, 750);
       });
   },
 });

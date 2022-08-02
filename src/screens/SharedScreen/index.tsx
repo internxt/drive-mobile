@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Alert, ScrollView, RefreshControl, Text } from 'react-native';
 import _ from 'lodash';
-import { IShare } from '@internxt/sdk/dist/drive/share/types';
 
 import DriveItem from '../../components/DriveItemTable';
 import DriveItemSkinSkeleton from '../../components/DriveItemSkinSkeleton';

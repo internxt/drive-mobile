@@ -1,7 +1,11 @@
 import moment from 'moment';
+
 import { CaretRight, DownloadSimple } from 'phosphor-react-native';
+import React, { useState } from 'react';
 import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import RNFetchBlob, { RNFetchBlobConfig } from 'rn-fetch-blob';
+import CancelSubscriptionModal from 'src/components/modals/CancelSubscriptionModal';
+import { titlerize } from 'src/helpers/strings';
 import fileSystemService from 'src/services/FileSystemService';
 
 import paymentService from 'src/services/PaymentService';
@@ -16,25 +20,35 @@ import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
 import SettingsGroup from '../../components/SettingsGroup';
 import useGetColor from '../../hooks/useColor';
-import { TabExplorerScreenProps } from '../../types/navigation';
-
-function PlanScreen({ navigation }: TabExplorerScreenProps<'Plan'>): JSX.Element {
+import { SettingsScreenProps } from '../../types/navigation';
+function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+  const [isCancelSubscriptionModalOpen, setIsCancelSubscriptionModalOpen] = useState(false);
   const { limit } = useAppSelector((state) => state.storage);
   const { subscription, defaultPaymentMethod, invoices } = useAppSelector((state) => state.payments);
+
   const hasLifetime = useAppSelector(paymentsSelectors.hasLifetime);
   const hasSubscription = useAppSelector(paymentsSelectors.hasSubscription);
   const title = hasLifetime ? strings.screens.PlanScreen.lifetimeTitle : strings.screens.PlanScreen.subscriptionTitle;
+
   const onBackButtonPressed = () => {
     navigation.goBack();
   };
   const onChangePlanPressed = () => {
     dispatch(uiActions.setIsPlansModalOpen(true));
   };
+
+  const onCancelSubscriptionModalClosed = () => {
+    setIsCancelSubscriptionModalOpen(false);
+  };
+
+  const onSubscriptionCancelled = () => {
+    navigation.goBack();
+  };
   const onCancelSubscriptionPressed = () => {
-    dispatch(uiActions.setIsCancelSubscriptionModalOpen(true));
+    setIsCancelSubscriptionModalOpen(true);
   };
   const downloadInvoice = (url: string) => {
     const date = new Date();
@@ -58,17 +72,19 @@ function PlanScreen({ navigation }: TabExplorerScreenProps<'Plan'>): JSX.Element
       });
   };
 
-  return (
-    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('min-h-full')}>
-      <ScrollView>
-        <AppScreenTitle
-          text={title}
-          containerStyle={tailwind('bg-white')}
-          centerText
-          onBackButtonPressed={onBackButtonPressed}
-        />
+  const newChargeDate =
+    'nextPayment' in subscription && moment(subscription.nextPayment * 1000).locale(strings.getLanguage());
 
-        <View style={tailwind('pt-8 pb-10 px-4 bg-gray-5 min-h-full')}>
+  return (
+    <AppScreen hasBottomTabs safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('flex-1 bg-gray-5')}>
+      <AppScreenTitle
+        text={title}
+        containerStyle={tailwind('bg-white')}
+        centerText
+        onBackButtonPressed={onBackButtonPressed}
+      />
+      <ScrollView>
+        <View style={tailwind('pt-8 pb-10 px-4 min-h-full')}>
           {/* PLAN */}
           <SettingsGroup
             items={[
@@ -87,12 +103,9 @@ function PlanScreen({ navigation }: TabExplorerScreenProps<'Plan'>): JSX.Element
                       ) : (
                         <AppText style={tailwind('text-center')}>{strings.screens.PlanScreen.lifetimeTitle}</AppText>
                       )}
-                      {subscription.type === 'subscription' && (
+                      {subscription.type === 'subscription' && newChargeDate && (
                         <AppText style={tailwind('mt-4 text-center text-sm text-gray-40')}>
-                          {strings.formatString(
-                            strings.screens.PlanScreen.newChargeOn,
-                            moment(subscription.nextPayment).format('LL'),
-                          )}
+                          {strings.formatString(strings.screens.PlanScreen.newChargeOn, newChargeDate.format('LL'))}
                         </AppText>
                       )}
                     </View>
@@ -170,12 +183,12 @@ function PlanScreen({ navigation }: TabExplorerScreenProps<'Plan'>): JSX.Element
                           const onDownloadPdfPressed = () => {
                             downloadInvoice(invoice.pdf);
                           };
-
+                          const time = moment(invoice.created * 1000).locale(strings.getLanguage());
                           return (
                             <View key={invoice.id} style={tailwind('px-4')}>
                               <View style={tailwind('flex-row items-center')}>
                                 <AppText style={{ ...tailwind('border'), flex: 2 }}>
-                                  {moment(invoice.created).format('dddd DD, MMM yyyy')}
+                                  {titlerize(time.format('dddd DD, MMM yyyy'))}
                                 </AppText>
                                 <View style={{ flex: 1, ...tailwind('flex-row items-center') }}>
                                   <AppText style={tailwind('text-gray-40 flex-grow')}>
@@ -226,6 +239,11 @@ function PlanScreen({ navigation }: TabExplorerScreenProps<'Plan'>): JSX.Element
           )}
         </View>
       </ScrollView>
+      <CancelSubscriptionModal
+        isOpen={isCancelSubscriptionModalOpen}
+        onClose={onCancelSubscriptionModalClosed}
+        onSubscriptionCancelled={onSubscriptionCancelled}
+      />
     </AppScreen>
   );
 }

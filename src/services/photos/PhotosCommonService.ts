@@ -8,9 +8,11 @@ import RNFS from 'react-native-fs';
 import { PHOTOS_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_TMP_DIRECTORY } from './constants';
 import { Platform } from 'react-native';
 import { items } from '@internxt/lib';
-
-import { createHash } from 'react-native-crypto';
-
+import { createHash } from '@internxt/rn-crypto';
+enum HMAC {
+  sha256 = 'sha256',
+  sha512 = 'sha512',
+}
 export class PhotosCommonServices {
   public static model: PhotosServiceModel;
   public static sdk: photos.Photos;
@@ -49,7 +51,7 @@ export class PhotosCommonServices {
 
   /**
    * Creates a unique hash for the photo
-   *
+   * @param userId User who owns the photo
    * @param name Name of the photo
    * @param timestamp timestamp of the photo creation
    * @param photoRef Photo ref pointing to a location in the file system
@@ -61,13 +63,22 @@ export class PhotosCommonServices {
     timestamp: number,
     photoRef: PhotoFileSystemRef,
   ): Promise<Buffer> {
-    const hash = createHash('sha256');
-    hash.update(userId);
-    hash.update(name);
-    hash.update(timestamp);
-    hash.update(await RNFS.hash(photoRef, 'sha256'));
+    const hash = createHash(HMAC.sha256);
 
-    return await hash.digest();
+    // Add the userID to the hash
+    hash.update(userId);
+
+    // Add the photo name
+    hash.update(name);
+
+    // Add the photo takenAt date
+    hash.update(new Date(timestamp).toISOString());
+
+    // Add the content of the photo
+    const contentHash = await RNFS.hash(photoRef, 'sha256');
+    hash.update(contentHash);
+
+    return hash.digest();
   }
 
   /**
