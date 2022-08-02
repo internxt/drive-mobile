@@ -4,7 +4,6 @@ import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 import * as MediaLibrary from 'expo-media-library';
 import { RootState } from '../..';
 import { PhotosService } from '../../../services/photos';
-import asyncStorage from '../../../services/AsyncStorageService';
 import {
   GalleryViewMode,
   PhotosEventKey,
@@ -13,7 +12,6 @@ import {
   PhotoWithPreview,
 } from '../../../types/photos';
 
-import { AsyncStorageKey } from '../../../types';
 import { permissionsThunks } from './thunks/permissions';
 import { usageExtraReducers } from './thunks/usage';
 import { syncThunks } from './thunks/sync';
@@ -22,6 +20,7 @@ import PhotosLocalDatabaseService from '../../../services/photos/PhotosLocalData
 import PhotosUserService from '../../../services/photos/PhotosUserService';
 import { networkThunks } from './thunks/network';
 import authService from 'src/services/AuthService';
+import PhotosUsageService from 'src/services/photos/UsageService';
 
 export interface PhotosState {
   isInitialized: boolean;
@@ -69,29 +68,33 @@ const initialState: PhotosState = {
   usage: 0,
 };
 
-const initializeThunk = createAsyncThunk<void, void, { state: RootState }>('photos/initialize', async () => {
-  const { credentials } = await authService.getAuthCredentials();
+const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/initialize',
+  async (_, { dispatch }) => {
+    const { credentials } = await authService.getAuthCredentials();
 
-  if (credentials) {
-    const { photosToken, user } = credentials;
-    const photosDb = new PhotosLocalDatabaseService();
-    await photosDb.initialize();
+    if (credentials) {
+      const { photosToken, user } = credentials;
+      const photosDb = new PhotosLocalDatabaseService();
+      await photosDb.initialize();
 
-    const photosUserService = new PhotosUserService();
+      const photosUserService = new PhotosUserService();
 
-    PhotosCommonServices.initialize(photosToken);
-    PhotosCommonServices.initializeModel(photosToken, {
-      encryptionKey: user.mnemonic,
-      user: user.bridgeUser,
-      password: user.userId,
-    });
-    const { user: photosUser, device: photosDevice } = await photosUserService.initialize();
-    PhotosCommonServices.model.user = photosUser;
-    PhotosCommonServices.model.device = photosDevice;
+      PhotosCommonServices.initialize(photosToken);
+      PhotosCommonServices.initializeModel(photosToken, {
+        encryptionKey: user.mnemonic,
+        user: user.bridgeUser,
+        password: user.userId,
+      });
+      const { user: photosUser, device: photosDevice } = await photosUserService.initialize();
+      PhotosCommonServices.model.user = photosUser;
+      PhotosCommonServices.model.device = photosDevice;
 
-    PhotosService.initialize();
-  }
-});
+      dispatch(loadPhotosUsageThunk());
+      PhotosService.initialize();
+    }
+  },
+);
 
 const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/startUsingPhotos',
@@ -99,6 +102,14 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
     await PhotosService.instance.startPhotos();
     await dispatch(syncThunks.startSyncThunk());
     dispatch(photosActions.setIsInitialized());
+  },
+);
+
+const loadPhotosUsageThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/loadPhotosUsage',
+  async (_, { dispatch }) => {
+    const photosUsage = new PhotosUsageService();
+    dispatch(photosActions.setUsage(await photosUsage.getUsage()));
   },
 );
 
@@ -217,6 +228,9 @@ export const photosSlice = createSlice({
     setViewMode(state, action: PayloadAction<GalleryViewMode>) {
       state.viewMode = action.payload;
     },
+    setUsage(state, action: PayloadAction<number>) {
+      state.usage = action.payload;
+    },
   },
   extraReducers: (builder) => {
     usageExtraReducers(builder);
@@ -250,6 +264,7 @@ export const photosThunks = {
   startUsingPhotosThunk,
   loadPhotosThunk,
   clearPhotosThunk,
+  loadPhotosUsageThunk,
   ...permissionsThunks,
   ...syncThunks,
   ...networkThunks,
