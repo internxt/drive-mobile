@@ -15,6 +15,7 @@ import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
 import errorService from 'src/services/ErrorService';
+import { SdkManager } from 'src/services/common/SdkManager';
 
 export interface AuthState {
   loggedIn: boolean;
@@ -40,6 +41,10 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
     const { credentials } = await authService.getAuthCredentials();
 
     if (credentials) {
+      SdkManager.init({
+        token: credentials.accessToken,
+        mnemonic: credentials.user.mnemonic,
+      });
       authService.initialize(credentials.accessToken, credentials.user.mnemonic);
       errorService.setGlobalErrorContext({
         email: credentials.user.email,

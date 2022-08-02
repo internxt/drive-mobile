@@ -17,14 +17,7 @@ const initialState: ReferralsState = {
   list: [],
 };
 
-const initializeThunk = createAsyncThunk<void, void, { state: RootState }>('referrals/initialize', async () => {
-  const accessToken = await asyncStorage.getItem(AsyncStorageKey.Token);
-  const user = await asyncStorage.getUser();
-
-  if (user) {
-    usersReferralsService.initialize(accessToken || '', user.mnemonic);
-  }
-});
+const initializeThunk = createAsyncThunk<void, void, { state: RootState }>('referrals/initialize', async () => {});
 
 const fetchReferralsThunk = createAsyncThunk<UserReferral[], void, { state: RootState }>(
   'referrals/fetchReferrals',
