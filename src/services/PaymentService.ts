@@ -1,7 +1,6 @@
 import { Payments } from '@internxt/sdk/dist/drive';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { constants } from './AppService';
-import packageJson from '../../package.json';
 import {
   CreateCheckoutSessionPayload,
   CreatePaymentSessionPayload,
@@ -12,25 +11,16 @@ import {
 } from '@internxt/sdk/dist/drive/payments/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
+import { SdkManager } from './common/SdkManager';
 
 class PaymentService {
-  private sdk: Payments | undefined;
-
-  public initialize(accessToken: string, mnemonic: string) {
-    this.sdk = Payments.client(
-      `${constants.REACT_NATIVE_PAYMENTS_API_URL}`,
-      {
-        clientName: packageJson.name,
-        clientVersion: packageJson.version,
-      },
-      { token: accessToken, mnemonic },
-    );
+  private sdk: SdkManager;
+  constructor(sdkManager: SdkManager) {
+    this.sdk = sdkManager;
   }
 
   public async createSession(payload: CreatePaymentSessionPayload): Promise<{ id: string }> {
-    this.checkIsInitialized();
-
-    const response = await (<Payments>this.sdk).createSession(payload);
+    const response = await this.sdk.payments.createSession(payload);
 
     analytics.track(AnalyticsEventKey.CheckoutOpened, { price_id: response.id });
 
@@ -38,20 +28,15 @@ class PaymentService {
   }
 
   async createSetupIntent(): Promise<{ clientSecret: string }> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).getSetupIntent();
+    return this.sdk.payments.getSetupIntent();
   }
 
   async getDefaultPaymentMethod(): Promise<PaymentMethod> {
-    this.checkIsInitialized();
-    return (<Payments>this.sdk).getDefaultPaymentMethod();
+    return this.sdk.payments.getDefaultPaymentMethod();
   }
 
   async getInvoices(): Promise<Invoice[]> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).getInvoices({});
+    return this.sdk.payments.getInvoices({});
   }
 
   async redirectToCheckout(sessionId: string) {
@@ -63,33 +48,23 @@ class PaymentService {
   }
 
   async getUserSubscription(): Promise<UserSubscription> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).getUserSubscription();
+    return this.sdk.payments.getUserSubscription();
   }
 
   public async getPrices(): Promise<DisplayPrice[]> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).getPrices();
+    return this.sdk.payments.getPrices();
   }
 
   public async updateSubscriptionPrice(priceId: string): Promise<UserSubscription> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).updateSubscriptionPrice(priceId);
+    return this.sdk.payments.updateSubscriptionPrice(priceId);
   }
 
   public async cancelSubscription(): Promise<void> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).cancelSubscription();
+    return this.sdk.payments.cancelSubscription();
   }
 
   public async createCheckoutSession(payload: CreateCheckoutSessionPayload): Promise<{ sessionId: string }> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).createCheckoutSession(payload);
+    return this.sdk.payments.createCheckoutSession(payload);
   }
 
   public getCardImage(brand: PaymentMethod['card']['brand']) {
@@ -132,13 +107,6 @@ class PaymentService {
 
     return image;
   }
-
-  private checkIsInitialized() {
-    if (!this.sdk) {
-      throw new Error('PaymentService not initialized...');
-    }
-  }
 }
 
-const paymentService = new PaymentService();
-export default paymentService;
+export default new PaymentService(SdkManager.getInstance());

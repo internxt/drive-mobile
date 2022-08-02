@@ -42,7 +42,6 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     const { credentials } = await authService.getAuthCredentials();
 
     if (credentials) {
-      paymentService.initialize(credentials.photosToken, credentials.user.mnemonic);
       dispatch(loadPricesThunk());
       dispatch(loadUserSubscriptionThunk());
       dispatch(loadInvoicesThunk());
