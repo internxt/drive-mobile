@@ -9,7 +9,6 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
 import _ from 'lodash';
 import { constants } from 'src/services/AppService';
-import asyncStorageService from 'src/services/AsyncStorageService';
 import authService from 'src/services/AuthService';
 import notificationsService from 'src/services/NotificationsService';
 import paymentService from 'src/services/PaymentService';
@@ -21,7 +20,7 @@ export interface PaymentsState {
   prices: DisplayPrice[];
   subscription: UserSubscription;
   sessionId: string;
-  invoices: Invoice[];
+  invoices: Invoice[] | null;
   defaultPaymentMethod: PaymentMethod | null;
 }
 
@@ -38,15 +37,14 @@ const initialState: PaymentsState = {
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'payments/initialize',
-  async (payload, { dispatch }) => {
+  async (_, { dispatch }) => {
     const { credentials } = await authService.getAuthCredentials();
 
     if (credentials) {
-      paymentService.initialize(credentials.photosToken, credentials.user.mnemonic);
       dispatch(loadPricesThunk());
       dispatch(loadUserSubscriptionThunk());
       dispatch(loadInvoicesThunk());
-      /* dispatch(loadDefaultPaymentMethodThunk()); */
+      dispatch(loadDefaultPaymentMethodThunk());
     }
   },
 );
@@ -67,11 +65,14 @@ const loadUserSubscriptionThunk = createAsyncThunk<UserSubscription, void, { sta
   },
 );
 
-const loadInvoicesThunk = createAsyncThunk<Invoice[], void, { state: RootState }>('payments/loadInvoices', async () => {
-  return paymentService.getInvoices();
-});
+const loadInvoicesThunk = createAsyncThunk<Invoice[] | null, void, { state: RootState }>(
+  'payments/loadInvoices',
+  async () => {
+    return paymentService.getInvoices();
+  },
+);
 
-const loadDefaultPaymentMethodThunk = createAsyncThunk<PaymentMethod, void, { state: RootState }>(
+const loadDefaultPaymentMethodThunk = createAsyncThunk<PaymentMethod | null, void, { state: RootState }>(
   'payments/loadDefaultPaymentMethod',
   async () => {
     return paymentService.getDefaultPaymentMethod();

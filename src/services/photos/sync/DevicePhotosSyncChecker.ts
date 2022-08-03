@@ -7,12 +7,10 @@ import {
   DevicePhotoSyncCheckOperation,
   SyncStage,
 } from '../../../types/photos';
-import PhotosLocalDatabaseService from '../PhotosLocalDatabaseService';
 import async from 'async';
 import { PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY } from '../constants';
-/**
- *
- */
+import { PhotosLocalDatabaseService } from '../PhotosLocalDatabaseService';
+
 export class DevicePhotosSyncCheckerService {
   public status = DevicePhotosSyncCheckerStatus.IDLE;
   private queue = async.queue<DevicePhotoSyncCheckOperation, DevicePhotoSyncCheckOperation | null, Error>(

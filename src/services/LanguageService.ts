@@ -4,7 +4,10 @@ import asyncStorageService from './AsyncStorageService';
 import RNRestart from 'react-native-restart';
 
 class LanguageService {
-  public async initialize() {
+  constructor() {
+    this.initialize();
+  }
+  private async initialize() {
     const language = await asyncStorageService.getItem(AsyncStorageKey.Language);
     language && strings.setLanguage(language);
   }
@@ -17,5 +20,4 @@ class LanguageService {
   }
 }
 
-const languageService = new LanguageService();
-export default languageService;
+export default new LanguageService();

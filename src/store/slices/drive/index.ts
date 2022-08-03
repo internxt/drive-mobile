@@ -28,9 +28,8 @@ import fileSystemService from '../../../services/FileSystemService';
 import { items } from '@internxt/lib';
 import network from '../../../network';
 import _ from 'lodash';
-import DriveService from '../../../services/DriveService';
+import driveService from '../../../services/DriveService';
 import authService from 'src/services/AuthService';
-import { NotInitializedServiceError } from 'src/helpers/services';
 
 export enum ThunkOperationStatus {
   SUCCESS = 'SUCCESS',
@@ -94,8 +93,6 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     const { credentials } = await authService.getAuthCredentials();
 
     if (credentials) {
-      await DriveService.initialize(credentials.accessToken);
-
       dispatch(loadUsageThunk());
       dispatch(getRecentsThunk());
     }
@@ -119,7 +116,7 @@ const navigateToFolderThunk = createAsyncThunk<void, DriveNavigationStackItem, {
 
 const getRecentsThunk = createAsyncThunk<void, void>('drive/getRecents', async (_, { dispatch }) => {
   dispatch(driveActions.setRecentsStatus(ThunkOperationStatus.LOADING));
-  const recents = await DriveService.instance.recents.getRecents();
+  const recents = await driveService.recents.getRecents();
 
   dispatch(driveActions.setRecents(recents));
 });
@@ -132,8 +129,7 @@ const getFolderContentThunk = createAsyncThunk<
   { folderId: number },
   { state: RootState }
 >('drive/getFolderContent', async ({ folderId }, { dispatch }) => {
-  if (!DriveService.instance) throw new NotInitializedServiceError('DriveService', 'drive/getFolderContent');
-  const folderRecord = await DriveService.instance.localDatabase.getFolderRecord(folderId);
+  const folderRecord = await driveService.localDatabase.getFolderRecord(folderId);
   const folderContentPromise = fileService.getFolderContent(folderId);
   const getFolderContent = async () => {
     const response = await folderContentPromise;
@@ -145,7 +141,7 @@ const getFolderContentThunk = createAsyncThunk<
 
   if (folderRecord) {
     getFolderContent().then(({ response, folderContent }) => {
-      DriveService.instance.localDatabase.saveFolderContent(response, folderContent);
+      driveService.localDatabase.saveFolderContent(response, folderContent);
 
       dispatch(
         driveActions.setFocusedItem({
@@ -158,7 +154,7 @@ const getFolderContentThunk = createAsyncThunk<
       dispatch(driveActions.setFolderContent(folderContent));
     });
 
-    const folderContent = await DriveService.instance.localDatabase.getDriveItems(folderId);
+    const folderContent = await driveService.localDatabase.getDriveItems(folderId);
 
     return {
       focusedItem: {
@@ -172,7 +168,7 @@ const getFolderContentThunk = createAsyncThunk<
   } else {
     const { response, folderContent } = await getFolderContent();
 
-    DriveService.instance.localDatabase.saveFolderContent(response, folderContent);
+    driveService.localDatabase.saveFolderContent(response, folderContent);
 
     return {
       focusedItem: {
@@ -199,7 +195,7 @@ const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootSt
 );
 
 const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('drive/cancelDownload', () => {
-  DriveService.instance.eventEmitter.emit({ event: DriveEventKey.CancelDownload });
+  driveService.eventEmitter.emit({ event: DriveEventKey.CancelDownload });
 });
 
 const downloadFileThunk = createAsyncThunk<
@@ -249,7 +245,7 @@ const downloadFileThunk = createAsyncThunk<
           signal,
         },
         (abortable) => {
-          DriveService.instance.eventEmitter.setLegacyAbortable(abortable);
+          driveService.eventEmitter.setLegacyAbortable(abortable);
         },
       );
     };
@@ -304,13 +300,13 @@ const downloadFileThunk = createAsyncThunk<
       trackDownloadSuccess();
     } catch (err) {
       if (!signal.aborted) {
-        DriveService.instance.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
+        driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
       }
     } finally {
       if (signal.aborted) {
-        DriveService.instance.eventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
+        driveService.eventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
       }
-      DriveService.instance.eventEmitter.emit({ event: DriveEventKey.DownloadFinally });
+      driveService.eventEmitter.emit({ event: DriveEventKey.DownloadFinally });
     }
   },
 );
@@ -376,11 +372,7 @@ export interface MoveItemThunkPayload {
 
 const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: RootState }>(
   'drive/moveItem',
-  async ({ isFolder, origin, destination, itemMovedAction }, { getState }) => {
-    const { user, token } = getState().auth;
-
-    folderService.initialize(token, user?.mnemonic || '');
-
+  async ({ isFolder, origin, destination, itemMovedAction }) => {
     if (!isFolder) {
       await fileService.moveFile({
         fileId: origin?.itemId as string,
@@ -393,7 +385,7 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
       });
     }
 
-    await DriveService.instance.localDatabase.deleteItem({
+    await driveService.localDatabase.deleteItem({
       id: origin.itemId as number,
       isFolder: isFolder,
     });
@@ -424,7 +416,7 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[] }, { state: RootS
         dispatch(loadUsageThunk());
         for (const item of items) {
           dispatch(driveActions.popItem({ id: item.id, isFolder: !item.fileId }));
-          DriveService.instance.localDatabase.deleteItem({ id: item.id, isFolder: !item.fileId });
+          driveService.localDatabase.deleteItem({ id: item.id, isFolder: !item.fileId });
         }
       })
       .catch((err) => {
@@ -440,13 +432,12 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[] }, { state: RootS
 const clearLocalDatabaseThunk = createAsyncThunk<void, void, { state: RootState }>(
   'drive/clearLocalDatabase',
   async () => {
-    // Cool stuff over here, instance could be undefined, but we don't know it
-    DriveService.instance?.localDatabase.resetDatabase();
+    driveService.localDatabase.resetDatabase();
   },
 );
 
 const loadUsageThunk = createAsyncThunk<number, void, { state: RootState }>('drive/loadUsage', async () => {
-  return DriveService.instance.usage.getUsage();
+  return driveService.usage.getUsage();
 });
 
 export const driveSlice = createSlice({

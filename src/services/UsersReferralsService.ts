@@ -1,26 +1,14 @@
 import { UserReferral, ReferralKey } from '@internxt/sdk/dist/drive/referrals/types';
-import { Referrals } from '@internxt/sdk/dist/drive';
-import appService, { constants } from './AppService';
+import { SdkManager } from './common/SdkManager';
 
 class UsersReferralsService {
-  private sdk?: Referrals;
-
-  public initialize(accessToken: string, mnemonic: string) {
-    this.sdk = Referrals.client(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
-      {
-        clientName: appService.name,
-        clientVersion: appService.version,
-      },
-      {
-        token: accessToken,
-        mnemonic,
-      },
-    );
+  private sdk: SdkManager;
+  constructor(sdkManager: SdkManager) {
+    this.sdk = sdkManager;
   }
 
   public async fetch(): Promise<UserReferral[]> {
-    return this.sdk?.getReferrals() || [];
+    return this.sdk.referrals.getReferrals();
   }
 
   public hasClickAction(referralKey: ReferralKey): boolean {
@@ -28,5 +16,4 @@ class UsersReferralsService {
   }
 }
 
-const usersReferralsService = new UsersReferralsService();
-export default usersReferralsService;
+export default new UsersReferralsService(SdkManager.getInstance());

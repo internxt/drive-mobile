@@ -2,10 +2,9 @@ import { UserReferral } from '@internxt/sdk/dist/drive/referrals/types';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
-import asyncStorage from '../../../services/AsyncStorageService';
 import notificationsService from '../../../services/NotificationsService';
 import usersReferralsService from '../../../services/UsersReferralsService';
-import { AsyncStorageKey, NotificationType } from '../../../types';
+import { NotificationType } from '../../../types';
 
 export interface ReferralsState {
   isReading: boolean;
@@ -16,15 +15,6 @@ const initialState: ReferralsState = {
   isReading: false,
   list: [],
 };
-
-const initializeThunk = createAsyncThunk<void, void, { state: RootState }>('referrals/initialize', async () => {
-  const accessToken = await asyncStorage.getItem(AsyncStorageKey.Token);
-  const user = await asyncStorage.getUser();
-
-  if (user) {
-    usersReferralsService.initialize(accessToken || '', user.mnemonic);
-  }
-});
 
 const fetchReferralsThunk = createAsyncThunk<UserReferral[], void, { state: RootState }>(
   'referrals/fetchReferrals',
@@ -38,11 +28,6 @@ export const referralsSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder
-      .addCase(initializeThunk.pending, () => undefined)
-      .addCase(initializeThunk.fulfilled, () => undefined)
-      .addCase(initializeThunk.rejected, () => undefined);
-
     builder
       .addCase(fetchReferralsThunk.pending, (state) => {
         state.isReading = true;
@@ -68,7 +53,6 @@ export const referralsSlice = createSlice({
 export const referralsActions = referralsSlice.actions;
 
 export const referralsThunks = {
-  initializeThunk,
   fetchReferralsThunk,
 };
 

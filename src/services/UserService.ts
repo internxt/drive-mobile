@@ -1,28 +1,18 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Users } from '@internxt/sdk/dist/drive';
 import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import Axios from 'axios';
 import { decryptText, decryptTextWithKey, encryptText, passToHash } from 'src/helpers';
 import { getHeaders } from 'src/helpers/headers';
-import appService, { constants } from './AppService';
+import { constants } from './AppService';
+import { SdkManager } from './common/SdkManager';
 const FormData = global.FormData;
 
 class UserService {
-  private sdk?: Users;
+  private sdk: SdkManager;
 
-  public initialize(accessToken: string, mnemonic: string) {
-    this.sdk = Users.client(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
-      {
-        clientName: appService.name,
-        clientVersion: appService.version,
-      },
-      {
-        token: accessToken,
-        mnemonic,
-      },
-    );
+  constructor(sdk: SdkManager) {
+    this.sdk = sdk;
   }
 
   public signin(
@@ -110,26 +100,18 @@ class UserService {
   }
 
   public async inviteAFriend(email: string): Promise<void> {
-    this.checkIsInitialized();
-
-    return this.sdk?.sendInvitation(email);
+    return this.sdk.users.sendInvitation(email);
   }
 
   public updateProfile(payload: UpdateProfilePayload) {
-    this.checkIsInitialized();
-
-    return this.sdk?.updateProfile(payload);
+    return this.sdk.users.updateProfile(payload);
   }
 
   public async deleteUserAvatar() {
-    this.checkIsInitialized();
-
-    await this.sdk?.deleteAvatar();
+    await this.sdk.users.deleteAvatar();
   }
 
   public async updateUserAvatar(payload: { name: string; uri: string }) {
-    this.checkIsInitialized();
-
     const url = `${constants.REACT_NATIVE_DRIVE_API_URL}/api/user/avatar`;
     const headers = await getHeaders();
     const headersMap: Record<string, string> = {};
@@ -155,23 +137,12 @@ class UserService {
    * ! This endpoint accepts a body but is using GET method
    */
   public refreshUser(): Promise<{ user: UserSettings; token: string }> {
-    this.checkIsInitialized();
-
-    return (<Users>this.sdk).refreshUser();
+    return this.sdk.users.refreshUser();
   }
 
   public sendVerificationEmail() {
-    this.checkIsInitialized();
-
-    return (<Users>this.sdk).sendVerificationEmail();
-  }
-
-  private checkIsInitialized() {
-    if (!this.sdk) {
-      throw new Error('UserService not initialized...');
-    }
+    return this.sdk.users.sendVerificationEmail();
   }
 }
 
-const userService = new UserService();
-export default userService;
+export default new UserService(SdkManager.getInstance());

@@ -9,24 +9,26 @@ import { Photo } from '@internxt/sdk/dist/photos';
 import { PhotosCommonServices } from './PhotosCommonService';
 import fileSystemService from '../FileSystemService';
 import { PHOTOS_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_ROOT_DIRECTORY, PHOTOS_TMP_DIRECTORY } from './constants';
-export class PhotosService {
+import { SdkManager } from '../common/SdkManager';
+import { PhotosLocalDatabaseService } from './PhotosLocalDatabaseService';
+class PhotosService {
   public static instance: PhotosService;
 
-  private readonly usageService: PhotosUsageService;
-  private readonly downloadService: PhotosDownloadService;
-  private readonly previewService: PhotosPreviewService;
-  private constructor() {
+  private sdk: SdkManager;
+  readonly usageService: PhotosUsageService;
+  readonly downloadService: PhotosDownloadService;
+  readonly previewService: PhotosPreviewService;
+  readonly photosLocalDatabase: PhotosLocalDatabaseService;
+  constructor(sdk: SdkManager) {
     this.usageService = new PhotosUsageService();
     this.downloadService = new PhotosDownloadService();
     this.previewService = new PhotosPreviewService();
+    this.photosLocalDatabase = new PhotosLocalDatabaseService();
+    this.sdk = sdk;
   }
 
   public get isInitialized(): boolean {
     return !!PhotosCommonServices?.model?.isInitialized;
-  }
-
-  public static initialize() {
-    PhotosService.instance = new PhotosService();
   }
 
   private async initializeFileSystem() {
@@ -60,17 +62,13 @@ export class PhotosService {
     limit: number;
     skip?: number;
   }): Promise<{ results: photos.Photo[]; count: number }> {
-    this.checkModel();
-
-    const { results, count } = await PhotosCommonServices.sdk.photos.getPhotos({}, skip, limit);
+    const { results, count } = await this.sdk.photos.photos.getPhotos({}, skip, limit);
 
     return { results, count };
   }
 
   public async deletePhotos(photos: photos.Photo[]): Promise<void> {
-    this.checkModel();
-
-    Promise.all(photos.map(async (photo) => PhotosCommonServices.sdk.photos.deletePhotoById(photo.id)));
+    await Promise.all(photos.map((photo) => this.sdk.photos.photos.deletePhotoById(photo.id)));
   }
 
   public getUsage(): Promise<number> {
@@ -93,12 +91,11 @@ export class PhotosService {
       decryptionProgressCallback: (progress: number) => void;
     },
   ): Promise<PhotoFileSystemRef> {
-    this.checkModel();
-
     return this.downloadService.download(downloadParams.photoFileId, options);
   }
 
-  public static async clearData(): Promise<void> {
+  public async clear(): Promise<void> {
+    await this.photosLocalDatabase.clear();
     const existsRoot = await fileSystemService.exists(PHOTOS_TMP_DIRECTORY);
     if (existsRoot) {
       await fileSystemService.unlink(PHOTOS_TMP_DIRECTORY);
@@ -147,15 +144,6 @@ export class PhotosService {
 
     return photoRemotePreview;
   }
-
-  private get bucketId() {
-    if (!PhotosCommonServices.model.user) throw new Error('Photos user not initialized');
-    return PhotosCommonServices.model.user.bucketId || '';
-  }
-
-  private checkModel() {
-    if (!this.bucketId) {
-      throw new Error('(PhotosService) bucketId not found');
-    }
-  }
 }
+
+export default new PhotosService(SdkManager.getInstance());

@@ -164,7 +164,7 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                 key: 'invoices',
                 template: (
                   <View>
-                    {invoices.length === 0 ? (
+                    {invoices && invoices.length === 0 ? (
                       <AppText style={tailwind('px-4 py-6 text-center text-sm text-gray-40')}>
                         {strings.screens.PlanScreen.invoices.empty}
                       </AppText>
@@ -178,34 +178,35 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                             {strings.screens.PlanScreen.invoices.plan.toUpperCase()}
                           </AppText>
                         </View>
-                        {invoices.map((invoice, index) => {
-                          const isTheLast = index === invoices.length - 1;
-                          const onDownloadPdfPressed = () => {
-                            downloadInvoice(invoice.pdf);
-                          };
-                          const time = moment(invoice.created * 1000).locale(strings.getLanguage());
-                          return (
-                            <View key={invoice.id} style={tailwind('px-4')}>
-                              <View style={tailwind('flex-row items-center')}>
-                                <AppText style={{ ...tailwind('border'), flex: 2 }}>
-                                  {titlerize(time.format('dddd DD, MMM yyyy'))}
-                                </AppText>
-                                <View style={{ flex: 1, ...tailwind('flex-row items-center') }}>
-                                  <AppText style={tailwind('text-gray-40 flex-grow')}>
-                                    {storageService.toString(invoice.bytesInPlan)}
+                        {invoices &&
+                          invoices.map((invoice, index) => {
+                            const isTheLast = index === invoices.length - 1;
+                            const onDownloadPdfPressed = () => {
+                              downloadInvoice(invoice.pdf);
+                            };
+                            const time = moment(invoice.created * 1000).locale(strings.getLanguage());
+                            return (
+                              <View key={invoice.id} style={tailwind('px-4')}>
+                                <View style={tailwind('flex-row items-center')}>
+                                  <AppText style={{ ...tailwind('border'), flex: 2 }}>
+                                    {titlerize(time.format('dddd DD, MMM yyyy'))}
                                   </AppText>
-                                  <TouchableOpacity onPress={onDownloadPdfPressed}>
-                                    <View style={tailwind('-mr-4 px-4 py-4')}>
-                                      <DownloadSimple size={20} color={getColor('text-primary')} />
-                                    </View>
-                                  </TouchableOpacity>
+                                  <View style={{ flex: 1, ...tailwind('flex-row items-center') }}>
+                                    <AppText style={tailwind('text-gray-40 flex-grow')}>
+                                      {storageService.toString(invoice.bytesInPlan)}
+                                    </AppText>
+                                    <TouchableOpacity onPress={onDownloadPdfPressed}>
+                                      <View style={tailwind('-mr-4 px-4 py-4')}>
+                                        <DownloadSimple size={20} color={getColor('text-primary')} />
+                                      </View>
+                                    </TouchableOpacity>
+                                  </View>
                                 </View>
-                              </View>
 
-                              {!isTheLast && <View style={{ height: 1, ...tailwind('bg-gray-5') }} />}
-                            </View>
-                          );
-                        })}
+                                {!isTheLast && <View style={{ height: 1, ...tailwind('bg-gray-5') }} />}
+                              </View>
+                            );
+                          })}
                       </>
                     )}
                   </View>

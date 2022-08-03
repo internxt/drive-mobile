@@ -1,6 +1,6 @@
 import { PermissionStatus } from 'expo-media-library';
 import React from 'react';
-import { Linking, Platform, ScrollView, Text, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import SyncIcon from '../../../assets/images/modals/sync.svg';
 import strings from '../../../assets/lang/strings';

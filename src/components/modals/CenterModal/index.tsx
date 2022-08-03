@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useRef } from 'react';
-import { Animated, Dimensions, Easing, Keyboard, Platform, TouchableWithoutFeedback, View } from 'react-native';
+import React from 'react';
+import { Dimensions, Easing, Keyboard, Platform, TouchableWithoutFeedback, View } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { useKeyboard } from 'src/hooks/useKeyboard';
 import { useTailwind } from 'tailwind-rn';

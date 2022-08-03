@@ -1,25 +1,24 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { photosSlice, photosThunks } from '..';
 import { RootState } from '../../..';
-import { PhotosService } from '../../../../services/photos';
+import photosService from '../../../../services/photos';
 import { PhotosEventKey, PhotosSyncManagerStatus, PhotosSyncStatus } from '../../../../types/photos';
 import { PhotosCommonServices } from '../../../../services/photos/PhotosCommonService';
 import { PhotosSyncManager } from '../../../../services/photos/sync/PhotosSyncManager';
-import PhotosLocalDatabaseService from '../../../../services/photos/PhotosLocalDatabaseService';
 import { PhotosNetworkManager } from '../../../../services/photos/network/PhotosNetworkManager';
 import { PHOTOS_PER_NETWORK_GROUP } from '../../../../services/photos/constants';
 import errorService from 'src/services/ErrorService';
+import { SdkManager } from 'src/services/common/SdkManager';
 
 const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/startSync',
   async (_, { dispatch, getState }) => {
     const { syncStatus } = getState().photos;
     if (syncStatus.status !== PhotosSyncStatus.Unknown) return;
-    const photosDb = new PhotosLocalDatabaseService();
-    const photosNetwork = new PhotosNetworkManager();
+    const photosNetwork = new PhotosNetworkManager(SdkManager.getInstance());
     const syncManager = new PhotosSyncManager(
       { checkIfExistsPhotosAmount: PHOTOS_PER_NETWORK_GROUP },
-      photosDb,
+      photosService.photosLocalDatabase,
       photosNetwork,
     );
 
@@ -59,7 +58,7 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
         });
       }
       if (photo) {
-        PhotosService.instance.getPreview(photo).then((preview) => {
+        photosService.getPreview(photo).then((preview) => {
           dispatch(
             photosSlice.actions.insertUploadedPhoto({
               ...photo,
@@ -105,7 +104,7 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
 );
 
 const pauseSyncThunk = createAsyncThunk<void, void, { state: RootState }>('photos/pauseSync', () => {
-  PhotosService.instance.pauseSync();
+  photosService.pauseSync();
 });
 
 const resumeSyncThunk = createAsyncThunk<void, void, { state: RootState }>('photos/resumeSync', () => {

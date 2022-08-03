@@ -1,7 +1,5 @@
-import { Payments } from '@internxt/sdk/dist/drive';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { constants } from './AppService';
-import packageJson from '../../package.json';
 import {
   CreateCheckoutSessionPayload,
   CreatePaymentSessionPayload,
@@ -12,25 +10,16 @@ import {
 } from '@internxt/sdk/dist/drive/payments/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
+import { SdkManager } from './common/SdkManager';
 
 class PaymentService {
-  private sdk: Payments | undefined;
-
-  public initialize(accessToken: string, mnemonic: string) {
-    this.sdk = Payments.client(
-      `${constants.REACT_NATIVE_PAYMENTS_API_URL}`,
-      {
-        clientName: packageJson.name,
-        clientVersion: packageJson.version,
-      },
-      { token: accessToken, mnemonic },
-    );
+  private sdk: SdkManager;
+  constructor(sdkManager: SdkManager) {
+    this.sdk = sdkManager;
   }
 
   public async createSession(payload: CreatePaymentSessionPayload): Promise<{ id: string }> {
-    this.checkIsInitialized();
-
-    const response = await (<Payments>this.sdk).createSession(payload);
+    const response = await this.sdk.payments.createSession(payload);
 
     analytics.track(AnalyticsEventKey.CheckoutOpened, { price_id: response.id });
 
@@ -38,20 +27,25 @@ class PaymentService {
   }
 
   async createSetupIntent(): Promise<{ clientSecret: string }> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).getSetupIntent();
+    return this.sdk.payments.getSetupIntent();
   }
 
-  async getDefaultPaymentMethod(): Promise<PaymentMethod> {
-    this.checkIsInitialized();
-    return (<Payments>this.sdk).getDefaultPaymentMethod();
+  async getDefaultPaymentMethod(): Promise<PaymentMethod | null> {
+    try {
+      return await this.sdk.payments.getDefaultPaymentMethod();
+    } catch (error) {
+      this.catchUserNotFoundError(error as Error);
+      return null;
+    }
   }
 
-  async getInvoices(): Promise<Invoice[]> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).getInvoices({});
+  async getInvoices(): Promise<Invoice[] | null> {
+    try {
+      return await this.sdk.payments.getInvoices({});
+    } catch (error) {
+      this.catchUserNotFoundError(error as Error);
+      return null;
+    }
   }
 
   async redirectToCheckout(sessionId: string) {
@@ -63,33 +57,28 @@ class PaymentService {
   }
 
   async getUserSubscription(): Promise<UserSubscription> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).getUserSubscription();
+    try {
+      return this.sdk.payments.getUserSubscription();
+    } catch (error) {
+      this.catchUserNotFoundError(error as Error);
+    }
+    return { type: 'free' };
   }
 
   public async getPrices(): Promise<DisplayPrice[]> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).getPrices();
+    return this.sdk.payments.getPrices();
   }
 
   public async updateSubscriptionPrice(priceId: string): Promise<UserSubscription> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).updateSubscriptionPrice(priceId);
+    return this.sdk.payments.updateSubscriptionPrice(priceId);
   }
 
   public async cancelSubscription(): Promise<void> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).cancelSubscription();
+    return this.sdk.payments.cancelSubscription();
   }
 
   public async createCheckoutSession(payload: CreateCheckoutSessionPayload): Promise<{ sessionId: string }> {
-    this.checkIsInitialized();
-
-    return (<Payments>this.sdk).createCheckoutSession(payload);
+    return this.sdk.payments.createCheckoutSession(payload);
   }
 
   public getCardImage(brand: PaymentMethod['card']['brand']) {
@@ -133,12 +122,12 @@ class PaymentService {
     return image;
   }
 
-  private checkIsInitialized() {
-    if (!this.sdk) {
-      throw new Error('PaymentService not initialized...');
+  private catchUserNotFoundError(error: Error) {
+    // The SDK throws this as an error when server sends a 404
+    if (error && error.message !== '{"message":"User not found"}') {
+      throw error;
     }
   }
 }
 
-const paymentService = new PaymentService();
-export default paymentService;
+export default new PaymentService(SdkManager.getInstance());

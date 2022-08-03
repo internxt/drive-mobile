@@ -1,6 +1,5 @@
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 import {
-  DriveServiceModel,
   DRIVE_DB_NAME,
   SqliteDriveItemRow,
   DriveItemData,
@@ -13,15 +12,14 @@ import driveItemTable from './tables/drive_item';
 import folderRecordTable from './tables/folder_record';
 
 export default class DriveLocalDatabaseService {
-  private readonly model: DriveServiceModel;
   private readonly logService: PhotosLogService;
 
-  constructor(model: DriveServiceModel, logService: PhotosLogService) {
-    this.model = model;
+  constructor(logService: PhotosLogService) {
     this.logService = logService;
+    this.init();
   }
 
-  public async initialize(): Promise<void> {
+  public async init(): Promise<void> {
     await sqliteService.open(DRIVE_DB_NAME);
     await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.createTable);
     await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.createTable);

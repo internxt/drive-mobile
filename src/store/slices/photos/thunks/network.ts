@@ -2,7 +2,7 @@ import { Photo } from '@internxt/sdk/dist/photos';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { photosSlice } from '..';
 import { RootState } from '../../..';
-import { PhotosService } from '../../../../services/photos';
+import photosService from '../../../../services/photos';
 import { PhotosCommonServices } from '../../../../services/photos/PhotosCommonService';
 import { PhotoFileSystemRef, PhotoSizeType } from '../../../../types/photos';
 
@@ -11,7 +11,7 @@ const downloadFullSizePhotoThunk = createAsyncThunk<
   { photo: Photo; onProgressUpdate: (progress: number) => void },
   { state: RootState }
 >('photos/downloadFullSize', async ({ photo, onProgressUpdate }) => {
-  return PhotosService.instance.downloadPhoto(
+  return photosService.downloadPhoto(
     { photoFileId: photo.fileId },
     {
       destination: PhotosCommonServices.getPhotoPath({
@@ -28,7 +28,7 @@ const downloadFullSizePhotoThunk = createAsyncThunk<
 const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: RootState }>(
   'photos/deletePhotos',
   async ({ photos }, { dispatch }) => {
-    await PhotosService.instance.deletePhotos(photos);
+    await photosService.deletePhotos(photos);
     dispatch(photosSlice.actions.removePhotos(photos));
   },
 );

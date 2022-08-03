@@ -108,7 +108,6 @@ export enum DriveEventKey {
 
 export interface DriveServiceModel {
   debug: boolean;
-  accessToken: string;
 }
 
 export const DRIVE_DB_NAME = 'drive.db';

@@ -4,8 +4,13 @@ import fileSystemService from '../../FileSystemService';
 import { constants } from '../../AppService';
 import { PhotosCommonServices } from '../PhotosCommonService';
 import { PhotoFileSystemRef } from '../../../types/photos';
+import { SdkManager } from 'src/services/common/SdkManager';
 
 export default class PhotosUploadService {
+  private sdk: SdkManager;
+  constructor(sdk: SdkManager) {
+    this.sdk = sdk;
+  }
   public async uploadPreview(previewRef: PhotoFileSystemRef) {
     return network.uploadFile(
       previewRef,
@@ -49,7 +54,7 @@ export default class PhotosUploadService {
       hash: data.hash,
     };
 
-    const createdPhoto = await PhotosCommonServices.sdk?.photos.createPhoto(createPhotoData);
+    const createdPhoto = await this.sdk.photos.photos.createPhoto(createPhotoData);
 
     return createdPhoto;
   }

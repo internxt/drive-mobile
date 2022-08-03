@@ -10,13 +10,14 @@ import {
   PhotosSyncManagerStatus,
   SyncStage,
 } from '../../../types/photos';
-import PhotosLocalDatabaseService from '../PhotosLocalDatabaseService';
+
 import { PhotosNetworkManager } from '../network/PhotosNetworkManager';
 import { DevicePhotosScannerService, DevicePhotosScannerStatus } from './DevicePhotosScannerService';
 import { DevicePhotosSyncCheckerService } from './DevicePhotosSyncChecker';
 import { Photo } from '@internxt/sdk/dist/photos';
 import async from 'async';
 import errorService from 'src/services/ErrorService';
+import { PhotosLocalDatabaseService } from '../PhotosLocalDatabaseService';
 
 export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photo: Photo | null) => void;
 export type OnStatusChangeCallback = (status: PhotosSyncManagerStatus) => void;
