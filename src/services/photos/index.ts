@@ -68,7 +68,7 @@ class PhotosService {
   }
 
   public async deletePhotos(photos: photos.Photo[]): Promise<void> {
-    Promise.all(photos.map(async (photo) => this.sdk.photos.photos.deletePhotoById(photo.id)));
+    Promise.all(photos.map(async (photo) => await this.sdk.photos.photos.deletePhotoById(photo.id)));
   }
 
   public getUsage(): Promise<number> {
@@ -143,11 +143,6 @@ class PhotosService {
         : undefined;
 
     return photoRemotePreview;
-  }
-
-  private get bucketId() {
-    if (!PhotosCommonServices.model.user) throw new Error('Photos user not initialized');
-    return PhotosCommonServices.model.user.bucketId || '';
   }
 }
 
