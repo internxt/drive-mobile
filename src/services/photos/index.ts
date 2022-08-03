@@ -68,7 +68,7 @@ class PhotosService {
   }
 
   public async deletePhotos(photos: photos.Photo[]): Promise<void> {
-    Promise.all(photos.map(async (photo) => await this.sdk.photos.photos.deletePhotoById(photo.id)));
+    await Promise.all(photos.map((photo) => this.sdk.photos.photos.deletePhotoById(photo.id)));
   }
 
   public getUsage(): Promise<number> {
