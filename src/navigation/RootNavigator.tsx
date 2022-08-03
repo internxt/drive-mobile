@@ -11,7 +11,7 @@ import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import PhotosPreviewScreen from '../screens/PhotosPreviewScreen';
 import { driveActions } from '../store/slices/drive';
-import { Alert, Platform } from 'react-native';
+import { Alert, Platform, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import analyticsService from '../services/AnalyticsService';
 import DebugScreen from '../screens/DebugScreen';
@@ -95,6 +95,9 @@ function AppNavigator(): JSX.Element {
     };
   }, []);
 
+  // We send null here when we don't know the isLoggedIn status yet, so we avoid
+  // redirects to the login screen even with the user logged
+  if (isLoggedIn == null) return <View></View>;
   return (
     <Stack.Navigator
       initialRouteName={initialRouteName}

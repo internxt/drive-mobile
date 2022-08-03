@@ -9,6 +9,7 @@ import { Platform } from 'react-native';
 import { items } from '@internxt/lib';
 import { createHash } from '@internxt/rn-crypto';
 import { SdkManager } from '../common/SdkManager';
+import * as crypto from 'react-native-crypto';
 enum HMAC {
   sha256 = 'sha256',
   sha512 = 'sha512',
@@ -59,7 +60,8 @@ export class PhotosCommonServices {
     timestamp: number,
     photoRef: PhotoFileSystemRef,
   ): Promise<Buffer> {
-    const hash = createHash(HMAC.sha256);
+    // Implementation for sha256 is failing on Android, fallback to JS hash until we fix that
+    const hash = Platform.OS === 'ios' ? createHash(HMAC.sha256) : crypto.createHash('sha256');
 
     // Add the userID to the hash
     hash.update(userId);
