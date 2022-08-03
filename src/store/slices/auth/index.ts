@@ -18,7 +18,7 @@ import errorService from 'src/services/ErrorService';
 import { SdkManager } from 'src/services/common/SdkManager';
 
 export interface AuthState {
-  loggedIn: boolean;
+  loggedIn: boolean | null;
   token: string;
   photosToken: string;
   user: UserSettings | undefined;
@@ -27,7 +27,7 @@ export interface AuthState {
 }
 
 const initialState: AuthState = {
-  loggedIn: false,
+  loggedIn: null,
   token: '',
   photosToken: '',
   user: undefined,
@@ -52,6 +52,8 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
       });
       dispatch(refreshUserThunk());
       dispatch(loadSecurityDetailsThunk());
+    } else {
+      dispatch(authActions.setLoggedIn(false));
     }
   },
 );
@@ -70,6 +72,8 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
         }),
       );
       authService.emitLoginEvent();
+    } else {
+      dispatch(authActions.setLoggedIn(false));
     }
   },
 );
@@ -102,7 +106,7 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     dispatch(photosThunks.clearPhotosThunk());
     dispatch(photosActions.resetState());
-
+    dispatch(authActions.setLoggedIn(false));
     authService.emitLogoutEvent();
   },
 );
@@ -235,6 +239,10 @@ export const authSlice = createSlice({
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.photosToken = action.payload.photosToken;
+    },
+
+    setLoggedIn: (state, action: PayloadAction<boolean>) => {
+      state.loggedIn = action.payload;
     },
     updateUser(state, action: PayloadAction<Partial<UserSettings>>) {
       state.user && Object.assign(state.user, action.payload);
