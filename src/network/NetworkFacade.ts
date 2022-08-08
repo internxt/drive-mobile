@@ -69,6 +69,7 @@ export class NetworkFacade {
     let fileHash: string;
 
     const plainFilePath = filePath;
+
     const encryptedFilePath = fileSystemService.getDocumentsDir() + '/' + uuid.v4() + '.enc';
 
     const encryptFileFunction = Platform.OS === 'android' ? androidEncryptFileFromFs : iosEncryptFileFromFs;
@@ -102,7 +103,23 @@ export class NetworkFacade {
       },
     );
 
-    return [uploadFilePromise, () => null];
+    const cleanup = async () => {
+      const exists = await fileSystemService.exists(encryptedFilePath);
+      // Remove the encrypted version
+      exists && (await fileSystemService.unlink(encryptedFilePath));
+    };
+
+    const wrapUploadWithCleanup = async () => {
+      try {
+        const fileId = await uploadFilePromise;
+        return fileId;
+      } finally {
+        // Cleanup always even if the upload fails
+        await cleanup();
+      }
+    };
+
+    return [wrapUploadWithCleanup(), () => null];
   }
 
   download(fileId: string, bucketId: string, mnemonic: string, params: DownloadFileParams): [Promise<void>, Abortable] {
@@ -172,7 +189,23 @@ export class NetworkFacade {
       },
     );
 
-    return [downloadPromise, () => RNFS.stopDownload(downloadJob.jobId)];
+    const cleanup = async () => {
+      const exists = await fileSystemService.exists(encryptedFileURI);
+      // Remove the encrypted version
+      exists && (await fileSystemService.unlink(encryptedFileURI));
+    };
+
+    const wrapDownloadWithCleanup = async () => {
+      try {
+        const fileId = await downloadPromise;
+        return fileId;
+      } finally {
+        // Cleanup always even if the download fails
+        await cleanup();
+      }
+    };
+
+    return [wrapDownloadWithCleanup(), () => RNFS.stopDownload(downloadJob.jobId)];
   }
 }
 

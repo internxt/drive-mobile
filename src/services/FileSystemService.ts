@@ -129,6 +129,16 @@ class FileSystemService {
 
     return blob;
   }
+
+  public async getUsageStats() {
+    const tmpDir = await RNFS.stat(this.getTemporaryDir());
+    const documentsDir = await RNFS.stat(this.getDocumentsDir());
+
+    return {
+      tmp: { ...tmpDir, items: await RNFS.readDir(this.getTemporaryDir()) },
+      documents: { ...documentsDir, items: await RNFS.readDir(this.getDocumentsDir()) },
+    };
+  }
 }
 
 const fileSystemService = new FileSystemService();
