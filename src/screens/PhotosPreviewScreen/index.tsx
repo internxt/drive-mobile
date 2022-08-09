@@ -1,20 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import RNFS from 'react-native-fs';
-import { View, Text, Image, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, Image, TouchableOpacity, TouchableWithoutFeedback, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CaretLeft, DotsThree, DownloadSimple, Link, Trash } from 'phosphor-react-native';
+import { CaretLeft, DotsThreeVertical, DownloadSimple, Link, Trash } from 'phosphor-react-native';
 import { items } from '@internxt/lib';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import PhotosPreviewOptionsModal from '../../components/modals/PhotosPreviewOptionsModal';
-import DeletePhotosModal from '../../components/modals/DeletePhotosModal';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { uiActions } from '../../store/slices/ui';
-import strings from '../../../assets/lang/strings';
-import SharePhotoModal from '../../components/modals/SharePhotoModal';
-import PhotosPreviewInfoModal from '../../components/modals/PhotosPreviewInfoModal';
+import { useAppDispatch } from '../../store/hooks';
 import { photosThunks } from '../../store/slices/photos';
-import LoadingSpinner from '../../components/LoadingSpinner';
 import AppScreen from '../../components/AppScreen';
 import { RootStackScreenProps } from '../../types/navigation';
 import fileSystemService from '../../services/FileSystemService';
@@ -24,11 +16,39 @@ import { Photo } from '@internxt/sdk/dist/photos';
 import sentryService from '../../services/SentryService';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
+import { PhotoPreviewModal, PhotosPreviewScreenModals } from './modals';
+import AppProgressBar from 'src/components/AppProgressBar';
+import AppText from 'src/components/AppText';
+import strings from 'assets/lang/strings';
+import errorService from 'src/services/ErrorService';
 
 function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'PhotosPreview'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const [showActions, setShowActions] = useState(true);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnimProgress = useRef(new Animated.Value(1)).current;
+  const [progressVisible, setProgressVisible] = useState(false);
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: showActions ? 1 : 0,
+      duration: 150,
+      useNativeDriver: true,
+      easing: Easing.out(Easing.ease),
+    }).start();
+  }, [showActions]);
+
+  useEffect(() => {
+    Animated.timing(fadeAnimProgress, {
+      toValue: progressVisible ? 1 : 0,
+      duration: 250,
+      useNativeDriver: true,
+      easing: Easing.out(Easing.ease),
+    }).start();
+  }, [progressVisible]);
+
   const { data, preview } = route.params;
+  const [openedModals, setOpenedModals] = useState<PhotoPreviewModal[]>([]);
   const photo = useMemo<Photo>(
     () => ({
       ...route.params.data,
@@ -47,40 +67,36 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
     type: photo.type,
   });
   const dispatch = useAppDispatch();
-  const [showActions, setShowActions] = useState(true);
-  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [isFullSizeLoading, setIsFullSizeLoading] = useState(true);
   const [progress, setProgress] = useState(0);
 
-  const { isDeletePhotosModalOpen, isSharePhotoModalOpen, isPhotosPreviewInfoModalOpen } = useAppSelector(
-    (state) => state.ui,
-  );
-
-  const uri = isFullSizeDownloaded ? fileSystemService.pathToUri(photoPath) : preview;
-  const onScreenPressed = () => {
-    setShowActions(!showActions);
+  const openModal = (modal: PhotoPreviewModal) => {
+    if (!openedModals.includes(modal)) {
+      setOpenedModals(openedModals.concat(modal));
+    }
   };
+
+  const closeModal = (modal: PhotoPreviewModal) => {
+    const newModals = openedModals.filter((openModal) => openModal !== modal);
+
+    setOpenedModals(newModals);
+  };
+  const uri = isFullSizeDownloaded ? fileSystemService.pathToUri(photoPath) : preview;
+
   const onBackButtonPressed = () => navigation.goBack();
   const onShareButtonPressed = () => {
-    dispatch(uiActions.setIsSharePhotoModalOpen(true));
+    openModal('share');
   };
   const onDownloadButtonPressed = () => {
     fileSystemService.showFileViewer(uri, { displayName: items.getItemDisplayName(photo) });
   };
   const onMoveToTrashButtonPressed = () => {
-    dispatch(uiActions.setIsDeletePhotosModalOpen(true));
+    openModal('trash');
   };
   const onPhotoMovedToTrash = () => {
     navigation.goBack();
   };
-  const onSharePhotoModalClosed = () => dispatch(uiActions.setIsSharePhotoModalOpen(false));
-  const onPhotosPreviewOptionsModalClosed = () => {
-    setIsOptionsModalOpen(false);
-  };
-  const onPhotosPreviewInfoModalClosed = () => {
-    dispatch(uiActions.setIsPhotosPreviewInfoModalOpen(false));
-    setIsOptionsModalOpen(true);
-  };
+
   const isPhotoAlreadyDownloaded = () => RNFS.exists(photoPath);
   const loadImage = () => {
     dispatch(
@@ -88,6 +104,9 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
         photo,
         onProgressUpdate: (progress) => {
           setProgress(progress);
+          if (progress === 1) {
+            setProgressVisible(false);
+          }
         },
       }),
     )
@@ -96,7 +115,11 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
         setIsFullSizeDownloaded(true);
       })
       .catch((err) => {
-        sentryService.native.captureException(err);
+        errorService.reportError(err, {
+          tags: {
+            photos_step: 'DOWNLOAD_FULL_SIZE',
+          },
+        });
       })
       .finally(() => {
         setIsFullSizeLoading(false);
@@ -109,133 +132,123 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
         setIsFullSizeDownloaded(true);
         setIsFullSizeLoading(false);
       } else {
+        setProgressVisible(true);
         loadImage();
       }
     });
   }, []);
 
+  function PhotoPreviewHeader() {
+    return (
+      <View
+        style={[
+          tailwind('absolute top-0 w-full'),
+          { height: (tailwind('h-24').height as number) + safeAreaInsets.top },
+        ]}
+      >
+        <LinearGradient
+          colors={['rgba(0,0,0,0.5)', 'rgba(0,0,0,0)']}
+          locations={[0, 1]}
+          style={{
+            ...tailwind('flex-row h-full w-full items-center'),
+            paddingTop: safeAreaInsets.top,
+          }}
+        >
+          <View style={[tailwind('flex-row justify-between w-full'), { marginBottom: safeAreaInsets.top }]}>
+            <TouchableOpacity style={tailwind('z-20')} onPress={onBackButtonPressed}>
+              <View style={tailwind('p-5')}>
+                <CaretLeft color={getColor('text-white')} size={28} weight="bold" />
+              </View>
+            </TouchableOpacity>
+
+            <Animated.View
+              style={[tailwind('flex-1 px-10 justify-center items-center'), { opacity: fadeAnimProgress }]}
+            >
+              <AppText style={tailwind('text-white text-sm mb-1.5')}>{strings.generic.downloading}</AppText>
+              <AppProgressBar
+                currentValue={progress}
+                totalValue={1}
+                style={{ backgroundColor: 'rgba(255,255,255,0.2)', height: 3, width: '100%' }}
+                progressStyle={tailwind('bg-white')}
+              />
+            </Animated.View>
+            <TouchableOpacity style={tailwind('z-10')} onPress={() => openModal('preview-options')}>
+              <View style={tailwind('p-5')}>
+                <DotsThreeVertical weight="bold" color={getColor('text-white')} size={28} />
+              </View>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </View>
+    );
+  }
+
+  function PhotoPreviewFooter() {
+    return (
+      <View
+        style={[
+          tailwind('absolute bottom-0 w-full'),
+          { height: (tailwind('h-24').height as number) + safeAreaInsets.bottom },
+        ]}
+      >
+        <LinearGradient
+          colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.5)']}
+          locations={[0, 1]}
+          style={{
+            ...tailwind('flex-row justify-around h-full items-end'),
+            paddingBottom: safeAreaInsets.bottom,
+          }}
+        >
+          <TouchableOpacity
+            disabled={isFullSizeLoading}
+            style={tailwind('items-center flex-1 pb-5')}
+            onPress={onShareButtonPressed}
+          >
+            <Link color={!isFullSizeLoading ? 'white' : getColor('text-neutral-100')} size={28} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={isFullSizeLoading}
+            style={tailwind('items-center flex-1 pb-5')}
+            onPress={onDownloadButtonPressed}
+          >
+            <DownloadSimple color={!isFullSizeLoading ? 'white' : getColor('text-neutral-100')} size={28} />
+          </TouchableOpacity>
+          <TouchableOpacity style={tailwind('items-center flex-1 pb-5')} onPress={onMoveToTrashButtonPressed}>
+            <Trash color={getColor('text-white')} size={28} />
+          </TouchableOpacity>
+        </LinearGradient>
+      </View>
+    );
+  }
   return (
     <>
-      {/* MODALS */}
-      <PhotosPreviewOptionsModal
-        isOpen={isOptionsModalOpen}
-        onClosed={onPhotosPreviewOptionsModalClosed}
-        data={photo}
-        preview={route.params.preview}
-        photoPath={photoPath}
-        isFullSizeLoading={false}
-      />
-      <PhotosPreviewInfoModal
-        isOpen={isPhotosPreviewInfoModalOpen}
-        onClosed={onPhotosPreviewInfoModalClosed}
-        data={photo}
-        preview={route.params.preview}
-      />
-      <DeletePhotosModal
-        isOpen={isDeletePhotosModalOpen}
-        onClosed={() => dispatch(uiActions.setIsDeletePhotosModalOpen(false))}
-        onPhotosDeleted={onPhotoMovedToTrash}
-        data={[photo]}
-      />
-      <SharePhotoModal
-        isOpen={isSharePhotoModalOpen}
-        data={photo}
-        onClosed={onSharePhotoModalClosed}
-        preview={route.params.preview}
-      />
-
       <AppScreen
         statusBarHidden
         statusBarStyle="light"
         backgroundColor={getColor('text-black')}
         style={{ ...tailwind('h-full') }}
       >
-        {/* PHOTO */}
-        <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full absolute')} source={{ uri }} />
-
-        {/* LOADING */}
-        {isFullSizeLoading && (
-          <View style={tailwind('absolute top-0 bottom-0 right-0 left-0 items-center justify-center')}>
-            <LoadingSpinner size={32} color={getColor('text-white')} />
-            <Text style={tailwind('mt-2 text-white')}>{(progress * 100).toFixed(0) + '%'}</Text>
-          </View>
-        )}
-
-        <TouchableWithoutFeedback onPress={onScreenPressed}>
-          {showActions ? (
-            <View style={tailwind('flex-col justify-between h-full')}>
-              <LinearGradient
-                colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.24)', 'transparent']}
-                style={{
-                  ...tailwind('absolute w-full'),
-                  paddingTop: safeAreaInsets.top,
-                }}
-              >
-                <View style={tailwind('flex-row justify-between')}>
-                  {/* BACK BUTTON */}
-                  <TouchableOpacity style={tailwind('z-20')} onPress={onBackButtonPressed}>
-                    <View style={tailwind('p-5')}>
-                      <CaretLeft color={getColor('text-white')} size={24} weight="bold" />
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* OPTIONS BUTTON */}
-                  <TouchableOpacity style={tailwind('z-10')} onPress={() => setIsOptionsModalOpen(true)}>
-                    <View style={tailwind('p-5')}>
-                      <DotsThree weight="bold" color={getColor('text-white')} size={24} />
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              </LinearGradient>
-
-              <LinearGradient
-                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.24)', 'rgba(0,0,0,0.6)']}
-                style={{
-                  ...tailwind('flex-row justify-around p-3 absolute bottom-0 w-full'),
-                  paddingBottom: safeAreaInsets.bottom,
-                }}
-              >
-                <TouchableOpacity
-                  disabled={isFullSizeLoading}
-                  style={tailwind('items-center flex-1 pb-2')}
-                  onPress={onShareButtonPressed}
-                >
-                  <Link color={!isFullSizeLoading ? 'white' : getColor('text-neutral-100')} size={26} />
-                  <Text
-                    style={[
-                      tailwind('text-xs'),
-                      !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
-                    ]}
-                  >
-                    {strings.buttons.share}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  disabled={isFullSizeLoading}
-                  style={tailwind('items-center flex-1')}
-                  onPress={onDownloadButtonPressed}
-                >
-                  <DownloadSimple color={!isFullSizeLoading ? 'white' : getColor('text-neutral-100')} size={26} />
-                  <Text
-                    style={[
-                      tailwind('text-xs'),
-                      !isFullSizeLoading ? tailwind('text-white') : tailwind('text-neutral-100'),
-                    ]}
-                  >
-                    {strings.buttons.download}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={tailwind('items-center flex-1')} onPress={onMoveToTrashButtonPressed}>
-                  <Trash color={getColor('text-white')} size={26} />
-                  <Text style={tailwind('text-white text-xs')}>{strings.buttons.moveToThrash}</Text>
-                </TouchableOpacity>
-              </LinearGradient>
-            </View>
-          ) : (
-            <View style={tailwind('w-full h-full')}></View>
-          )}
+        <TouchableWithoutFeedback
+          onPress={() => {
+            setShowActions(!showActions);
+          }}
+        >
+          <Animated.View style={[tailwind('absolute z-10 w-full h-full'), { opacity: fadeAnim }]}>
+            <PhotoPreviewHeader />
+            <PhotoPreviewFooter />
+          </Animated.View>
         </TouchableWithoutFeedback>
+        <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full')} source={{ uri }} />
       </AppScreen>
+      <PhotosPreviewScreenModals
+        onPhotoMovedToTrash={onPhotoMovedToTrash}
+        openedModals={openedModals}
+        onClose={closeModal}
+        onOpen={openModal}
+        preview={preview}
+        photo={photo}
+        photoPath={photoPath}
+      />
     </>
   );
 }
