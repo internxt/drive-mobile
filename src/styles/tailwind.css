@@ -30,14 +30,6 @@
   top: 0.25rem
 }
 
-.right-0 {
-  right: 0px
-}
-
-.left-0 {
-  left: 0px
-}
-
 .z-20 {
   z-index: 20
 }
@@ -125,10 +117,6 @@
 .mx-6 {
   margin-left: 1.5rem;
   margin-right: 1.5rem
-}
-
-.mt-5 {
-  margin-top: 1.25rem
 }
 
 .ml-2 {
@@ -263,6 +251,10 @@
   margin-top: 0px
 }
 
+.mt-5 {
+  margin-top: 1.25rem
+}
+
 .mb-4 {
   margin-bottom: 1rem
 }
@@ -377,6 +369,10 @@
 
 .h-16 {
   height: 4rem
+}
+
+.h-24 {
+  height: 6rem
 }
 
 .min-h-full {
@@ -769,21 +765,16 @@
   padding: 1.5rem
 }
 
-.p-4 {
-  padding: 1rem
-}
-
 .p-3 {
   padding: 0.75rem
 }
 
-.p-3\.5 {
-  padding: 0.875rem
+.p-4 {
+  padding: 1rem
 }
 
-.px-5 {
-  padding-left: 1.25rem;
-  padding-right: 1.25rem
+.p-3\.5 {
+  padding: 0.875rem
 }
 
 .px-4 {
@@ -799,6 +790,11 @@
 .py-3\.5 {
   padding-top: 0.875rem;
   padding-bottom: 0.875rem
+}
+
+.px-5 {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem
 }
 
 .py-1\.5 {
@@ -871,6 +867,11 @@
   padding-right: 2.5rem
 }
 
+.px-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem
+}
+
 .py-6 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem
@@ -879,11 +880,6 @@
 .py-4 {
   padding-top: 1rem;
   padding-bottom: 1rem
-}
-
-.px-6 {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem
 }
 
 .px-9 {
@@ -908,18 +904,6 @@
 
 .pl-4 {
   padding-left: 1rem
-}
-
-.pb-14 {
-  padding-bottom: 3.5rem
-}
-
-.pt-6 {
-  padding-top: 1.5rem
-}
-
-.pb-4 {
-  padding-bottom: 1rem
 }
 
 .pl-3\.5 {
@@ -950,6 +934,10 @@
   padding-top: 1.25rem
 }
 
+.pb-4 {
+  padding-bottom: 1rem
+}
+
 .pb-10 {
   padding-bottom: 2.5rem
 }
@@ -976,6 +964,10 @@
 
 .pr-5 {
   padding-right: 1.25rem
+}
+
+.pt-10 {
+  padding-top: 2.5rem
 }
 
 .pt-8 {
@@ -1014,8 +1006,8 @@
   padding-top: 0.75rem
 }
 
-.pb-16 {
-  padding-bottom: 4rem
+.pb-5 {
+  padding-bottom: 1.25rem
 }
 
 .text-left {
@@ -1091,11 +1083,6 @@
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity))
-}
-
-.text-red-60 {
-  --tw-text-opacity: 1;
-  color: rgb(218 30 40 / var(--tw-text-opacity))
 }
 
 .text-primary {
@@ -1200,6 +1187,11 @@
 .text-yellow-40 {
   --tw-text-opacity: 1;
   color: rgb(210 161 6 / var(--tw-text-opacity))
+}
+
+.text-red-60 {
+  --tw-text-opacity: 1;
+  color: rgb(218 30 40 / var(--tw-text-opacity))
 }
 
 .text-neutral-300 {

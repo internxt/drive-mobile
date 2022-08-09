@@ -12,6 +12,7 @@ const strings = new LocalizedStrings({
     },
     generic: {
       loading: 'Loading',
+      downloading: 'Downloading...',
       security: 'Security',
       preparing: 'Preparing...',
       updated: 'Updated',
@@ -629,6 +630,7 @@ const strings = new LocalizedStrings({
       loading: 'Cargando',
       security: 'Seguridad',
       preparing: 'Preparando...',
+      downloading: 'Descargando...',
       updated: 'Actualizado',
       year: 'Year',
       month: 'Mes',

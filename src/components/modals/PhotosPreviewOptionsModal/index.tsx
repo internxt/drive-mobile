@@ -7,8 +7,6 @@ import globalStyle from '../../../styles/global';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
-import { uiActions } from '../../../store/slices/ui';
-import { useAppDispatch } from '../../../store/hooks';
 import fileSystemService from '../../../services/FileSystemService';
 import { items } from '@internxt/lib';
 import { DownloadSimple, Info, Link, Trash } from 'phosphor-react-native';
@@ -22,6 +20,7 @@ interface PhotosPreviewOptionsModalProps extends BottomModalProps {
   preview: string;
   photoPath: string;
   isFullSizeLoading: boolean;
+  onOptionPressed: (option: 'preview-info' | 'share' | 'trash') => void;
 }
 
 function PhotosPreviewOptionsModal({
@@ -30,10 +29,10 @@ function PhotosPreviewOptionsModal({
   data,
   preview,
   isFullSizeLoading,
+  onOptionPressed,
 }: PhotosPreviewOptionsModalProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const dispatch = useAppDispatch();
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
@@ -65,11 +64,10 @@ function PhotosPreviewOptionsModal({
     </View>
   );
   const onInfoButtonPressed = () => {
-    dispatch(uiActions.setIsPhotosPreviewInfoModalOpen(true));
-    onClosed();
+    onOptionPressed('preview-info');
   };
   const onShareButtonPressed = () => {
-    dispatch(uiActions.setIsSharePhotoModalOpen(true));
+    onOptionPressed('share');
   };
   const onDownloadButtonPressed = () => {
     fileSystemService.showFileViewer(
@@ -86,7 +84,7 @@ function PhotosPreviewOptionsModal({
     );
   };
   const onMoveToTrashButtonPressed = () => {
-    dispatch(uiActions.setIsDeletePhotosModalOpen(true));
+    onOptionPressed('trash');
   };
 
   return (
