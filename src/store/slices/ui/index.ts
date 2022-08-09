@@ -15,10 +15,7 @@ export interface UIState {
   backButtonEnabled: boolean;
   showRenameModal: boolean;
   showRunOutOfSpaceModal: boolean;
-  isDeletePhotosModalOpen: boolean;
-  isSharePhotoModalOpen: boolean;
   isLinkCopiedModalOpen: boolean;
-  isPhotosPreviewInfoModalOpen: boolean;
   isNewsletterModalOpen: boolean;
   isInviteFriendsModalOpen: boolean;
   isDriveDownloadModalOpen: boolean;
@@ -48,10 +45,7 @@ const initialState: UIState = {
   backButtonEnabled: true,
   showRenameModal: false,
   showRunOutOfSpaceModal: false,
-  isDeletePhotosModalOpen: false,
-  isSharePhotoModalOpen: false,
   isLinkCopiedModalOpen: false,
-  isPhotosPreviewInfoModalOpen: false,
   isNewsletterModalOpen: false,
   isInviteFriendsModalOpen: false,
   isDriveDownloadModalOpen: false,
@@ -109,17 +103,8 @@ export const uiSlice = createSlice({
     setBackButtonEnabled: (state, action: PayloadAction<boolean>) => {
       state.backButtonEnabled = action.payload;
     },
-    setIsDeletePhotosModalOpen: (state, action: PayloadAction<boolean>) => {
-      state.isDeletePhotosModalOpen = action.payload;
-    },
-    setIsSharePhotoModalOpen: (state, action: PayloadAction<boolean>) => {
-      state.isSharePhotoModalOpen = action.payload;
-    },
     setIsLinkCopiedModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isLinkCopiedModalOpen = action.payload;
-    },
-    setIsPhotosPreviewInfoModalOpen: (state, action: PayloadAction<boolean>) => {
-      state.isPhotosPreviewInfoModalOpen = action.payload;
     },
     setIsNewsletterModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isNewsletterModalOpen = action.payload;
