@@ -1,25 +1,26 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import RNFS from 'react-native-fs';
-import { View, Image, TouchableOpacity, TouchableWithoutFeedback, Animated, Easing } from 'react-native';
+import { View, TouchableOpacity, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CaretLeft, DotsThreeVertical, DownloadSimple, Link, Trash } from 'phosphor-react-native';
 import { items } from '@internxt/lib';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppDispatch } from '../../store/hooks';
 import { photosThunks } from '../../store/slices/photos';
-import AppScreen from '../../components/AppScreen';
 import { RootStackScreenProps } from '../../types/navigation';
+import AppScreen from '../../components/AppScreen';
+
 import fileSystemService from '../../services/FileSystemService';
 import { PhotosCommonServices } from '../../services/photos/PhotosCommonService';
 import { PhotoSizeType } from '../../types/photos';
 import { Photo } from '@internxt/sdk/dist/photos';
-import sentryService from '../../services/SentryService';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
 import { PhotoPreviewModal, PhotosPreviewScreenModals } from './modals';
 import AppProgressBar from 'src/components/AppProgressBar';
 import AppText from 'src/components/AppText';
 import strings from 'assets/lang/strings';
+import { ImageViewer } from '@internxt-mobile/ui-kit';
 import errorService from 'src/services/ErrorService';
 
 function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'PhotosPreview'>): JSX.Element {
@@ -140,10 +141,10 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
 
   function PhotoPreviewHeader() {
     return (
-      <View
+      <Animated.View
         style={[
-          tailwind('absolute top-0 w-full'),
-          { height: (tailwind('h-24').height as number) + safeAreaInsets.top },
+          tailwind('absolute top-0 w-full z-10'),
+          { height: (tailwind('h-24').height as number) + safeAreaInsets.top, opacity: fadeAnim },
         ]}
       >
         <LinearGradient
@@ -179,16 +180,16 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
             </TouchableOpacity>
           </View>
         </LinearGradient>
-      </View>
+      </Animated.View>
     );
   }
 
   function PhotoPreviewFooter() {
     return (
-      <View
+      <Animated.View
         style={[
           tailwind('absolute bottom-0 w-full'),
-          { height: (tailwind('h-24').height as number) + safeAreaInsets.bottom },
+          { height: (tailwind('h-24').height as number) + safeAreaInsets.bottom, opacity: fadeAnim },
         ]}
       >
         <LinearGradient
@@ -217,7 +218,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
             <Trash color={getColor('text-white')} size={28} />
           </TouchableOpacity>
         </LinearGradient>
-      </View>
+      </Animated.View>
     );
   }
   return (
@@ -228,17 +229,9 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
         backgroundColor={getColor('text-black')}
         style={{ ...tailwind('h-full') }}
       >
-        <TouchableWithoutFeedback
-          onPress={() => {
-            setShowActions(!showActions);
-          }}
-        >
-          <Animated.View style={[tailwind('absolute z-10 w-full h-full'), { opacity: fadeAnim }]}>
-            <PhotoPreviewHeader />
-            <PhotoPreviewFooter />
-          </Animated.View>
-        </TouchableWithoutFeedback>
-        <Image resizeMode={'contain'} style={tailwind('bg-black w-full h-full')} source={{ uri }} />
+        <PhotoPreviewHeader />
+        <ImageViewer source={{ uri }} onTapImage={() => setShowActions(!showActions)} />
+        <PhotoPreviewFooter />
       </AppScreen>
       <PhotosPreviewScreenModals
         onPhotoMovedToTrash={onPhotoMovedToTrash}
