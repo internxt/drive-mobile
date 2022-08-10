@@ -211,6 +211,10 @@
   margin-top: 3.5rem
 }
 
+.mb-1\.5 {
+  margin-bottom: 0.375rem
+}
+
 .mt-4 {
   margin-top: 1rem
 }
@@ -265,10 +269,6 @@
 
 .mt-10 {
   margin-top: 2.5rem
-}
-
-.mb-1\.5 {
-  margin-bottom: 0.375rem
 }
 
 .mb-7 {
@@ -347,6 +347,10 @@
   height: 7rem
 }
 
+.h-24 {
+  height: 6rem
+}
+
 .h-8 {
   height: 2rem
 }
@@ -369,10 +373,6 @@
 
 .h-16 {
   height: 4rem
-}
-
-.h-24 {
-  height: 6rem
 }
 
 .min-h-full {
@@ -966,8 +966,8 @@
   padding-right: 1.25rem
 }
 
-.pt-10 {
-  padding-top: 2.5rem
+.pb-5 {
+  padding-bottom: 1.25rem
 }
 
 .pt-8 {
@@ -1004,10 +1004,6 @@
 
 .pt-3 {
   padding-top: 0.75rem
-}
-
-.pb-5 {
-  padding-bottom: 1.25rem
 }
 
 .text-left {

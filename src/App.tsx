@@ -24,6 +24,7 @@ import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureM
 import LanguageModal from './components/modals/LanguageModal';
 import PlansModal from './components/modals/PlansModal';
 import * as Linking from 'expo-linking';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -110,33 +111,35 @@ export default function App(): JSX.Element {
 
   return (
     <SafeAreaProvider>
-      <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
-        <Portal.Host>
-          <View style={tailwind('flex-1')}>
-            {isAppInitialized ? (
-              <Navigation />
-            ) : (
-              <View style={tailwind('items-center flex-1 justify-center')}>
-                {loadError ? <Text>{loadError}</Text> : null}
-              </View>
-            )}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
+          <Portal.Host>
+            <View style={tailwind('flex-1')}>
+              {isAppInitialized ? (
+                <Navigation />
+              ) : (
+                <View style={tailwind('items-center flex-1 justify-center')}>
+                  {loadError ? <Text>{loadError}</Text> : null}
+                </View>
+              )}
 
-            <AppToast />
+              <AppToast />
 
-            <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
-            <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
-            <NewsletterModal isOpen={isNewsletterModalOpen} onClose={onNewsletterModalClosed} />
-            <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
-            <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
-            <ChangeProfilePictureModal
-              isOpen={isChangeProfilePictureModalOpen}
-              onClose={onChangeProfilePictureModalClosed}
-            />
-            <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
-            <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
-          </View>
-        </Portal.Host>
-      </KeyboardAvoidingView>
+              <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
+              <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
+              <NewsletterModal isOpen={isNewsletterModalOpen} onClose={onNewsletterModalClosed} />
+              <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
+              <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
+              <ChangeProfilePictureModal
+                isOpen={isChangeProfilePictureModalOpen}
+                onClose={onChangeProfilePictureModalClosed}
+              />
+              <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
+              <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
+            </View>
+          </Portal.Host>
+        </KeyboardAvoidingView>
+      </GestureHandlerRootView>
     </SafeAreaProvider>
   );
 }

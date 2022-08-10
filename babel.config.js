@@ -8,8 +8,12 @@ module.exports = function (api) {
         {
           extensions: ['.js', '.jsx', '.ts', '.tsx'],
           root: ['.'],
+          alias: {
+            '@internxt-mobile/ui-kit': './src/components/ui-kit/index.ts',
+          },
         },
       ],
+      'react-native-reanimated/plugin',
     ],
   };
 };
