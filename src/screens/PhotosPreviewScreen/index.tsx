@@ -139,9 +139,21 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
     });
   }, []);
 
+  function handleTapImage() {
+    setShowActions(!showActions);
+  }
+
+  function handleZoomImage() {
+    setShowActions(false);
+  }
+
+  function handleImageViewReset() {
+    setShowActions(true);
+  }
   function PhotoPreviewHeader() {
     return (
       <Animated.View
+        pointerEvents={showActions ? 'auto' : 'none'}
         style={[
           tailwind('absolute top-0 w-full z-10'),
           { height: (tailwind('h-24').height as number) + safeAreaInsets.top, opacity: fadeAnim },
@@ -187,6 +199,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
   function PhotoPreviewFooter() {
     return (
       <Animated.View
+        pointerEvents={showActions ? 'auto' : 'none'}
         style={[
           tailwind('absolute bottom-0 w-full'),
           { height: (tailwind('h-24').height as number) + safeAreaInsets.bottom, opacity: fadeAnim },
@@ -230,7 +243,12 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
         style={{ ...tailwind('h-full') }}
       >
         <PhotoPreviewHeader />
-        <ImageViewer source={{ uri }} onTapImage={() => setShowActions(!showActions)} />
+        <ImageViewer
+          source={uri}
+          onTapImage={handleTapImage}
+          onZoomImage={handleZoomImage}
+          onImageViewReset={handleImageViewReset}
+        />
         <PhotoPreviewFooter />
       </AppScreen>
       <PhotosPreviewScreenModals
