@@ -141,7 +141,7 @@ export class NetworkFacade {
     const decryptFileFromFs: DecryptFileFromFsFunction =
       Platform.OS === 'android' ? androidDecryptFileFromFs : iosDecryptFileFromFs;
 
-    let encryptedFileURI: string;
+    let encryptedFileURI: string | undefined;
 
     const downloadPromise = downloadFile(
       fileId,
@@ -166,6 +166,7 @@ export class NetworkFacade {
         expectedFileHash = downloadables[0].hash;
       },
       async (_, key, iv) => {
+        if (!encryptedFileURI) throw new Error('No encrypted file URI found');
         await downloadJob.promise;
 
         const sha256Hash = await RNFS.hash(encryptedFileURI, 'sha256');
@@ -190,6 +191,7 @@ export class NetworkFacade {
     );
 
     const cleanup = async () => {
+      if (!encryptedFileURI) return;
       const exists = await fileSystemService.exists(encryptedFileURI);
       // Remove the encrypted version
       exists && (await fileSystemService.unlink(encryptedFileURI));
