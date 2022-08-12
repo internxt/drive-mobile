@@ -7,5 +7,8 @@
       "@internxt-mobile/ui-kit": ["src/components/ui-kit/index.ts"]
     }
   },
-  "include": ["app.config.ts", "src", "__tests__"]
+  "include": ["app.config.ts", "src", "__tests__"],
+  "ts-node": {
+    "esm": true
+  }
 }

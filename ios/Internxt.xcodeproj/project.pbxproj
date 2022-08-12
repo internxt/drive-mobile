@@ -350,7 +350,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks;
-				PRODUCT_NAME = Internxt;
+				PRODUCT_NAME = "Internxt";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Internxt/Internxt-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -381,7 +381,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks;
-				PRODUCT_NAME = Internxt;
+				PRODUCT_NAME = "Internxt";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Internxt/Internxt-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

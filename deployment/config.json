@@ -1,0 +1,9 @@
+{
+  "production": {
+    "releaseChannel": "production"
+  },
+  "staging": {
+    "distribution": "internal",
+    "releaseChannel": "staging"
+  }
+}

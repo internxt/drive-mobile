@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import { AppState, AppStateStatus } from 'react-native';
-import { AppEnv } from '../../app.config';
+import { AppConfig } from '../../app.config';
 
 import packageJson from '../../package.json';
 
@@ -17,7 +17,7 @@ class AppService {
   }
 
   public get constants() {
-    return Constants.manifest?.extra as AppEnv;
+    return Constants.manifest?.extra as AppConfig;
   }
 
   public onAppStateChange(listener: AppStateListener) {

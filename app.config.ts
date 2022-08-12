@@ -1,7 +1,6 @@
 import { ExpoConfig } from '@expo/config-types';
-import env from './env';
 import packageJson from './package.json';
-
+import dotenv from 'dotenv';
 export enum AppStage {
   Development = 'development',
   Test = 'test',
@@ -9,8 +8,12 @@ export enum AppStage {
   Production = 'production',
 }
 
+const stage = AppStage.Production; // <- CHANGE STAGE
+if (!process.env.CI) {
+  dotenv.config({ path: `${process.cwd()}/.env.${stage}` });
+}
+
 export interface AppEnv {
-  NODE_ENV: AppStage;
   REACT_NATIVE_DEBUG: boolean;
   REACT_NATIVE_APP_BUILD_NUMBER: number;
   REACT_NATIVE_SHOW_BILLING: boolean;
@@ -31,25 +34,26 @@ export interface AppEnv {
   SENTRY_PROJECT: string;
   SENTRY_URL: string;
   SENTRY_AUTH_TOKEN: string;
-  RELEASE_ID: string;
 }
 
-const stage = AppStage.Production; // <- CHANGE STAGE
+const env: AppEnv = process.env as unknown as AppEnv;
 
-const RELEASE_ID = `${packageJson.version} (${env[stage].REACT_NATIVE_APP_BUILD_NUMBER})`;
+const RELEASE_ID = `${packageJson.version} (${env.REACT_NATIVE_APP_BUILD_NUMBER})`;
 
+export type AppConfig = AppEnv & { RELEASE_ID: string; NODE_ENV: string };
+// Version of the app, extended to iOS and Android
+const APP_VERSION = packageJson.version;
 const appConfig: ExpoConfig & { extra: AppEnv } = {
   name: 'Internxt',
   scheme: 'inxt',
-  entryPoint: './index.js',
   slug: 'drive-mobile',
-  version: packageJson.version,
+  version: APP_VERSION,
   // Runtime version defines for which native version
   // the updates will be comptaible, which means
   // an update with runtimeVersion 1.1 won't be compatible
   // with app version 1.0. We use here the package version,
   // apps should be updated matching that.
-  runtimeVersion: packageJson.version,
+  runtimeVersion: APP_VERSION,
   orientation: 'portrait',
   splash: {
     image: './assets/images/splash.png',
@@ -78,7 +82,6 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   },
   android: {
     googleServicesFile: './google-services.json',
-    versionCode: 56,
     icon: './assets/icon-android.png',
     adaptiveIcon: {
       foregroundImage: './assets/icon-android.png',
@@ -118,17 +121,17 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
       {
         file: 'sentry-expo/upload-sourcemaps',
         config: {
-          organization: env[stage].SENTRY_ORGANIZATION,
-          project: env[stage].SENTRY_PROJECT,
-          authToken: env[stage].SENTRY_AUTH_TOKEN,
-          url: env[stage].SENTRY_URL,
+          organization: env.SENTRY_ORGANIZATION,
+          project: env.SENTRY_PROJECT,
+          authToken: env.SENTRY_AUTH_TOKEN,
+          url: env.SENTRY_URL,
           setCommits: true,
           release: RELEASE_ID,
         },
       },
     ],
   },
-  extra: { NODE_ENV: stage, RELEASE_ID, ...env[stage] },
+  extra: { NODE_ENV: stage, RELEASE_ID: RELEASE_ID, ...env },
 };
 
 export default appConfig;
