@@ -153,15 +153,6 @@ export class NetworkFacade {
       this.cryptoLib,
       Buffer.from,
       async (downloadables) => {
-        if (!downloadables.length) {
-          errorService.reportError(new Error('MISSING_SHARDS_ERROR: File  is missing shards'), {
-            extra: {
-              fileId,
-              bucketId,
-            },
-          });
-          throw new Error(strings.errors.downloadError);
-        }
         encryptedFileURI = fileSystemService.getDocumentsDir() + '/' + downloadables[0].hash + '.enc';
 
         downloadJob = RNFS.downloadFile({
