@@ -31,6 +31,7 @@ import _ from 'lodash';
 import driveService from '../../../services/DriveService';
 import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
+import { ErrorCodes } from 'src/types/errors';
 
 export enum ThunkOperationStatus {
   SUCCESS = 'SUCCESS',
@@ -302,12 +303,14 @@ const downloadFileThunk = createAsyncThunk<
     } catch (err) {
       if (!signal.aborted) {
         driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, new Error(strings.errors.downloadError));
-        errorService.reportError(new Error('MISSING_SHARDS_ERROR: File  is missing shards'), {
-          extra: {
-            fileId,
-            bucketId: user?.bucket,
-          },
-        });
+        if ((err as Error).message === ErrorCodes.MISSING_SHARDS_ERROR) {
+          errorService.reportError(new Error('MISSING_SHARDS_ERROR: File  is missing shards'), {
+            extra: {
+              fileId,
+              bucketId: user?.bucket,
+            },
+          });
+        }
       }
     } finally {
       if (signal.aborted) {
