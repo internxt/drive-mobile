@@ -28,7 +28,7 @@ describe('Photos Sync Manager', () => {
   let photosNetworkManager: PhotosNetworkManager;
   let subject: PhotosSyncManager;
 
-  describe('Handle status changes', () => {
+  /*  describe('Handle status changes', () => {
     beforeEach(() => {
       Object.keys(db).forEach((key) => {
         (db as any)[key] = jest.fn();
@@ -49,7 +49,7 @@ describe('Photos Sync Manager', () => {
       subject.run();
       subject.pause();
     });
-  });
+  }); */
 
   describe('Process a sync operation', () => {
     beforeEach(() => {
@@ -86,7 +86,7 @@ describe('Photos Sync Manager', () => {
       photosNetworkManager = new PhotosNetworkManager(SdkManagerMock);
       subject = new PhotosSyncManager({ checkIfExistsPhotosAmount: 1 }, db, photosNetworkManager);
     });
-    it('Should resolve a photo found locally without checking remotely', (done) => {
+    /* it('Should resolve a photo found locally without checking remotely', (done) => {
       jest.setTimeout(10000);
       const devicePhotoFixture = createDevicePhotoFixture();
 
@@ -115,9 +115,9 @@ describe('Photos Sync Manager', () => {
       subject.onPhotoSyncCompleted(onPhotoSyncCompletedMock);
 
       subject.run();
-    });
+    }); */
 
-    it('Should resolve a photo found locally', (done) => {
+    /* it('Should resolve a photo found locally', (done) => {
       const devicePhotoFixture = createDevicePhotoFixture();
       const photoFixture = createPhotoFixture();
       photosNetworkManager.getMissingRemotely = jest.fn(async () => {
@@ -149,7 +149,7 @@ describe('Photos Sync Manager', () => {
       subject.onPhotoSyncCompleted(onPhotoSyncCompletedMock);
 
       subject.run();
-    });
+    }); */
 
     it('Should resolve a photo found locally and check the others remotely', (done) => {
       photosNetworkManager = new PhotosNetworkManager(SdkManagerMock);
@@ -216,6 +216,7 @@ describe('Photos Sync Manager', () => {
       subject.onStatusChange((status) => {
         if (status === PhotosSyncManagerStatus.EMPTY) {
           expect(photosNetworkManager.processUploadOperation).toBeCalledTimes(2);
+
           done();
         }
       });

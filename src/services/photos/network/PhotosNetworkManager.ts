@@ -13,6 +13,7 @@ import { RunnableService } from '../../../helpers/services';
 import fileSystemService from '../../FileSystemService';
 import { PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
 import { SdkManager } from 'src/services/common/SdkManager';
+import { AbortedOperationError } from 'src/types';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;
 
@@ -31,6 +32,10 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   private onStatusChangeCallback: OnStatusChangeCallback = () => {};
   private sdk: SdkManager;
   private queue = async.queue<PhotosNetworkOperation, Photo | null, Error>((task, next) => {
+    if (this.isAborted) {
+      throw new AbortedOperationError();
+    }
+
     this.processUploadOperation(task)
       .then((result) => {
         next(null, result);
@@ -66,6 +71,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
 
   public destroy() {
     this.queue.kill();
+    this.updateStatus(PhotosNetworkManagerStatus.ABORTED);
   }
 
   public isDone() {
@@ -203,5 +209,9 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     });
 
     this.updateStatus(PhotosNetworkManagerStatus.RUNNING);
+  }
+
+  private get isAborted() {
+    return this.status === PhotosNetworkManagerStatus.ABORTED;
   }
 }

@@ -1,6 +1,6 @@
 import { PermissionStatus } from 'expo-media-library';
 import React from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Linking, Platform, Text, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import SyncIcon from '../../../assets/images/modals/sync.svg';
 import strings from '../../../assets/lang/strings';
@@ -29,16 +29,17 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
     );
   });
   const onPermissionsGranted = () => {
+    dispatch(photosThunks.startUsingPhotosThunk());
     navigation.replace('PhotosGallery');
   };
   const onButtonPressed = async () => {
     const permissions = await dispatch(photosThunks.checkPermissionsThunk()).unwrap();
-    /* 
+
     if (permissionsStatus === PermissionStatus.DENIED) {
       if (Platform.OS === 'ios') {
         await Linking.openSettings();
       }
-    } */
+    }
 
     if (!permissions.hasPermissions) {
       const granted = await dispatch(photosThunks.askForPermissionsThunk()).unwrap();

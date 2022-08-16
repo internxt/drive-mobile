@@ -25,7 +25,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
-      style={[tailwind('bg-white'), { width: size, height: size }]}
+      style={[tailwind('bg-gray-5'), { width: size, height: size }]}
       onPress={() => onPress && resolvedPreview && onPress(data, resolvedPreview)}
       onLongPress={() => onLongPress && resolvedPreview && onLongPress(data, resolvedPreview)}
     >

@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { photosSlice, photosThunks } from '..';
+import { photosActions, photosSlice, photosThunks } from '..';
 import { RootState } from '../../..';
 import photosService from '../../../../services/photos';
 import { PhotosEventKey, PhotosSyncManagerStatus, PhotosSyncStatus } from '../../../../types/photos';
@@ -15,6 +15,13 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
   async (_, { dispatch, getState }) => {
     const { syncStatus } = getState().photos;
     if (syncStatus.status !== PhotosSyncStatus.Unknown) return;
+    const updateStatus = (newStatus: PhotosSyncStatus) => {
+      dispatch(
+        photosActions.updateSyncStatus({
+          status: newStatus,
+        }),
+      );
+    };
     const photosNetwork = new PhotosNetworkManager(SdkManager.getInstance());
     const syncManager = new PhotosSyncManager(
       { checkIfExistsPhotosAmount: PHOTOS_PER_NETWORK_GROUP },
@@ -23,11 +30,10 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
     );
 
     syncManager.onTotalPhotosInDeviceCalculated((photosInDevice) => {
-      PhotosCommonServices.events.emit(
-        {
-          event: PhotosEventKey.SyncTasksCalculated,
-        },
-        photosInDevice,
+      dispatch(
+        photosActions.updateSyncStatus({
+          totalTasks: photosInDevice,
+        }),
       );
     });
 
@@ -37,14 +43,10 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
 
     syncManager.onStatusChange((status) => {
       if (status === PhotosSyncManagerStatus.RUNNING) {
-        PhotosCommonServices.events.emit({
-          event: PhotosEventKey.RunningSync,
-        });
+        updateStatus(PhotosSyncStatus.InProgress);
       }
       if (status === PhotosSyncManagerStatus.COMPLETED) {
-        PhotosCommonServices.events.emit({
-          event: PhotosEventKey.SyncCompleted,
-        });
+        updateStatus(PhotosSyncStatus.Completed);
       }
     });
 
@@ -81,14 +83,15 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
       event: PhotosEventKey.PauseSync,
       listener: () => {
         syncManager.pause();
+        updateStatus(PhotosSyncStatus.Paused);
       },
     });
 
-    // We want to resume the sync, it must be paused first
     PhotosCommonServices.events.addListener({
       event: PhotosEventKey.ResumeSync,
       listener: () => {
         syncManager.resume();
+        updateStatus(PhotosSyncStatus.InProgress);
       },
     });
 
@@ -96,10 +99,11 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
       event: PhotosEventKey.ClearSync,
       listener: () => {
         syncManager.destroy();
+        updateStatus(PhotosSyncStatus.Unknown);
       },
     });
-
     syncManager.run();
+    updateStatus(PhotosSyncStatus.InProgress);
   },
 );
 

@@ -25,6 +25,12 @@ export default class AppError extends Error {
   }
 }
 
+export class AbortedOperationError extends Error {
+  constructor(message = 'Operation was aborted') {
+    super(message);
+  }
+}
+
 export type Mnemonic = string;
 export type NetworkUser = string;
 export type NetworkPass = string;

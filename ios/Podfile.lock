@@ -450,7 +450,7 @@ PODS:
     - React-perflogger (= 0.64.3)
   - ReactNativeLocalization (2.3.1):
     - React-Core
-  - rn-crypto (0.1.10):
+  - rn-crypto (0.1.11):
     - IDZSwiftCommonCrypto (~> 0.13)
     - React-Core
   - rn-fetch-blob (0.11.2):
@@ -481,7 +481,7 @@ PODS:
     - React
   - RNPermissions (3.2.0):
     - React-Core
-  - RNReanimated (2.9.1):
+  - RNReanimated (2.3.3):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -489,6 +489,7 @@ PODS:
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
+    - React
     - React-callinvoker
     - React-Core
     - React-Core/DevSupport
@@ -909,7 +910,7 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 493d9abb8b23c3f84e19ae221eeba92cadcb70dc
   ReactCommon: 8fea6422328e2fc093e25c9fac67adbcf0f04fb4
   ReactNativeLocalization: 076497d7ca70341c751cd3b3e7c86187332a182d
-  rn-crypto: 45891d099410c0e6aef67eb9d8a3550ced9b84b7
+  rn-crypto: e0218d27daee689e219eb3f513bc1fe00c1f2388
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
   RNAnalytics: a6dc48511d5d99b1ecaaf7157d8b5c618d15337e
   RNAnalyticsIntegration-Firebase: 3d3d80be74a53031fc9524d5c5adef2907c28d8f
@@ -921,7 +922,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: e1099204721a17a89c81fcd1cc2e92143dc040fb
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNPermissions: f7ebe52db07c00901127966ca080b4ec6a6ceb0a
-  RNReanimated: ae29a663c40a983e7fa42bff49073d329f0cffb4
+  RNReanimated: 0e5ef4a7e4e79f84efbe5b40771c31044c51e7d0
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
   RNSentry: 2cd1daa124b0d9fd0dfc2cb6094fdd168cb579bc
   RNShare: 3185c074441b7e8897014d95ba982434a0a024a1

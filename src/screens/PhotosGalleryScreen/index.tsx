@@ -21,7 +21,6 @@ function PhotosGalleryScreen(): JSX.Element {
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
-  const isLoading = true;
   const [currentPage, setCurrentPage] = useState(1);
   const { isSelectionModeActivated, viewMode } = useAppSelector((state) => state.photos);
   const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
@@ -29,7 +28,7 @@ function PhotosGalleryScreen(): JSX.Element {
   const hasMorePhotos = useAppSelector(photosSelectors.hasMorePhotos);
 
   const { selection } = useAppSelector((state) => state.photos);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isDeletePhotosModalOpen, setIsDeletePhotosModalOpen] = useState(false);
   const onDeletePhotosModalClosed = () => {
     setIsDeletePhotosModalOpen(false);
@@ -97,14 +96,15 @@ function PhotosGalleryScreen(): JSX.Element {
   }, []);
 
   async function loadNextPage() {
-    if (!loading && hasMorePhotos) {
-      setLoading(true);
+    if (!isLoading && hasMorePhotos) {
+      setIsLoading(true);
+
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
 
-      dispatch(photosThunks.loadPhotosThunk({ page: nextPage })).unwrap();
+      await dispatch(photosThunks.loadPhotosThunk({ page: nextPage })).unwrap();
 
-      setLoading(false);
+      setIsLoading(false);
     }
   }
 

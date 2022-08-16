@@ -73,11 +73,22 @@ const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onL
     return item.id;
   }
 
-  async function onScrollEnd() {
-    await onLoadNextPage();
+  async function onScrollEnd(info: { distanceFromEnd: number }) {
+    if (photos.length && info.distanceFromEnd > 0) {
+      await onLoadNextPage();
+    }
   }
+
   return (
     <FlatList<PhotoWithPreview>
+      initialNumToRender={25}
+      getItemLayout={function (_, index) {
+        return {
+          index,
+          length: itemSize + GUTTER,
+          offset: (itemSize + GUTTER) * index,
+        };
+      }}
       contentContainerStyle={{ paddingBottom: itemSize }}
       style={tailwind('bg-white')}
       showsVerticalScrollIndicator
@@ -96,7 +107,6 @@ const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onL
       data={photos}
       numColumns={COLUMNS}
       onEndReached={onScrollEnd}
-      onEndReachedThreshold={3}
       keyExtractor={extractKey}
       renderItem={renderListItem}
     />

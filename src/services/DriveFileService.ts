@@ -20,7 +20,11 @@ class DriveFileService {
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
     const fileUri = uri.replace(regex, '$2');
 
-    return fileUri.split('.').pop();
+    /**
+     * Some file extensions on iOS are uppercase
+     * https://apple.stackexchange.com/questions/415183/why-is-the-heic-suffix-sometimes-uppercase-and-sometimes-lowercase
+     */
+    return fileUri.split('.').pop()?.toLowerCase();
   }
 
   public removeExtension(filename: string): string {

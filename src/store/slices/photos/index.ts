@@ -20,6 +20,7 @@ import photosUserService from '../../../services/photos/PhotosUserService';
 import { networkThunks } from './thunks/network';
 import authService from 'src/services/AuthService';
 import PhotosUsageService from 'src/services/photos/UsageService';
+import _ from 'lodash';
 
 export interface PhotosState {
   isInitialized: boolean;
@@ -67,30 +68,41 @@ const initialState: PhotosState = {
   usage: 0,
 };
 
-const initializeThunk = createAsyncThunk<void, void, { state: RootState }>('photos/initialize', async () => {
-  const { credentials } = await authService.getAuthCredentials();
+const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/initialize',
+  async (_, { dispatch }) => {
+    const { credentials } = await authService.getAuthCredentials();
 
-  if (credentials) {
-    const { photosToken, user } = credentials;
+    if (credentials) {
+      const { photosToken, user } = credentials;
 
-    PhotosCommonServices.initializeModel(photosToken, {
-      encryptionKey: user.mnemonic,
-      user: user.bridgeUser,
-      password: user.userId,
-    });
-    const { user: photosUser, device: photosDevice } = await photosUserService.init();
+      PhotosCommonServices.initializeModel(photosToken, {
+        encryptionKey: user.mnemonic,
+        user: user.bridgeUser,
+        password: user.userId,
+      });
+      const { user: photosUser, device: photosDevice } = await photosUserService.init();
 
-    PhotosCommonServices.model.user = photosUser;
-    PhotosCommonServices.model.device = photosDevice;
-  }
-});
+      PhotosCommonServices.model.user = photosUser;
+      PhotosCommonServices.model.device = photosDevice;
+
+      const { hasPermissions } = await dispatch(permissionsThunks.checkPermissionsThunk()).unwrap();
+
+      if (hasPermissions) {
+        dispatch(startUsingPhotosThunk());
+      }
+    }
+  },
+);
 
 const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/startUsingPhotos',
-  async (_: void, { dispatch }) => {
-    await photosService.startPhotos();
-    await dispatch(syncThunks.startSyncThunk());
-    dispatch(photosActions.setIsInitialized());
+  async (_: void, { dispatch, getState }) => {
+    if (!getState().photos.isInitialized) {
+      dispatch(photosActions.setIsInitialized(true));
+      await photosService.startPhotos();
+      await dispatch(syncThunks.startSyncThunk());
+    }
   },
 );
 
@@ -136,13 +148,16 @@ const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootSt
   },
 );
 
-const clearPhotosThunk = createAsyncThunk<void, void, { state: RootState }>('photos/clearPhotos', async () => {
-  await photosService.clear();
-
-  PhotosCommonServices.events.emit({
-    event: PhotosEventKey.ClearSync,
-  });
-});
+const clearPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/clearPhotos',
+  async (_, { dispatch }) => {
+    PhotosCommonServices.events.emit({
+      event: PhotosEventKey.ClearSync,
+    });
+    await photosService.clear();
+    dispatch(photosActions.setIsInitialized(false));
+  },
+);
 
 export const photosSlice = createSlice({
   name: 'photos',
@@ -151,8 +166,8 @@ export const photosSlice = createSlice({
     resetState(state) {
       Object.assign(state, initialState);
     },
-    setIsInitialized(state) {
-      state.isInitialized = true;
+    setIsInitialized(state, action: PayloadAction<boolean>) {
+      state.isInitialized = action.payload;
     },
 
     setPermissionsStatus: (state, action: PayloadAction<MediaLibrary.PermissionStatus>) => {
@@ -175,9 +190,7 @@ export const photosSlice = createSlice({
     },
 
     insertUploadedPhoto(state, action: PayloadAction<PhotoWithPreview>) {
-      if (!state.photos.find((statePhoto) => statePhoto.id === action.payload.id)) {
-        state.photos = sortPhotos([...state.photos, action.payload]);
-      }
+      state.photos = _.uniqBy(sortPhotos([...state.photos, action.payload]), 'name');
     },
 
     setTotalPhotos(state, action: PayloadAction<number>) {
@@ -193,8 +206,9 @@ export const photosSlice = createSlice({
     },
 
     savePhotos(state, action: PayloadAction<PhotoWithPreview[]>) {
-      state.photos = sortPhotos(
-        state.photos.concat(action.payload.filter((photo) => photo.status === PhotoStatus.Exists)),
+      state.photos = _.uniqBy(
+        sortPhotos(state.photos.concat(action.payload.filter((photo) => photo.status === PhotoStatus.Exists))),
+        'name',
       );
     },
 

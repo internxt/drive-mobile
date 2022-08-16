@@ -1,6 +1,6 @@
 {
   "name": "drive-mobile",
-  "version": "1.5.15",
+  "version": "1.5.16",
   "private": true,
   "license": "GNU",
   "scripts": {
@@ -31,7 +31,7 @@
     "@burstware/react-native-portal": "^1.0.2",
     "@hookform/resolvers": "^2.9.1",
     "@internxt/lib": "^1.2.0",
-    "@internxt/rn-crypto": "^0.1.10",
+    "@internxt/rn-crypto": "^0.1.11",
     "@internxt/sdk": "^1.1.1",
     "@react-native-async-storage/async-storage": "^1.17.0",
     "@react-native-community/cameraroll": "github:internxt/react-native-cameraroll",
@@ -112,7 +112,7 @@
     "react-native-os": "^1.2.6",
     "react-native-permissions": "^3.2.0",
     "react-native-randombytes": "^3.6.1",
-    "react-native-reanimated": "^2.9.1",
+    "react-native-reanimated": "~2.3.1",
     "react-native-receive-sharing-intent": "^1.1.0",
     "react-native-responsive-screen": "^1.4.1",
     "react-native-restart": "^0.0.24",

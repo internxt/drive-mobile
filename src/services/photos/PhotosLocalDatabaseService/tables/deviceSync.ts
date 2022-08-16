@@ -7,7 +7,7 @@ const statements = {
       stage TEXT
     );`,
   getAll: `SELECT * FROM ${TABLE_NAME}`,
-  dropTable: `DROP TABLE ${TABLE_NAME};`,
+  deleteTableRows: `DELETE FROM ${TABLE_NAME};`,
   cleanTable: `DELETE FROM ${TABLE_NAME};`,
   selectCount: `SELECT COUNT(*) as count FROM ${TABLE_NAME}`,
   insert: `INSERT INTO ${TABLE_NAME} (device_photo_id, photo_id, stage) \

@@ -4,7 +4,7 @@ import errorService from 'src/services/ErrorService';
 
 export const rtkQueryErrorMiddleware: Middleware = () => (next) => (action: AnyAction) => {
   if (isRejected(action) && !action.meta.aborted) {
-    errorService.reportError(new Error(action.error.message?.toString()), { extra: action });
+    errorService.reportError(new Error((action.error.message || 'UNKNOWN_ERROR').toString()), { extra: action });
   }
 
   return next(action);
