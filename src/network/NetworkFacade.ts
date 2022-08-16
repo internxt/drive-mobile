@@ -16,6 +16,8 @@ import { Abortable } from '../types';
 import appService from '../services/AppService';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
 import fileSystemService from '../services/FileSystemService';
+import strings from 'assets/lang/strings';
+import errorService from 'src/services/ErrorService';
 
 export interface DownloadFileParams {
   toPath: string;
@@ -151,6 +153,15 @@ export class NetworkFacade {
       this.cryptoLib,
       Buffer.from,
       async (downloadables) => {
+        if (!downloadables.length) {
+          errorService.reportError(new Error('MISSING_SHARDS_ERROR: File  is missing shards'), {
+            extra: {
+              fileId,
+              bucketId,
+            },
+          });
+          throw new Error(strings.errors.downloadError);
+        }
         encryptedFileURI = fileSystemService.getDocumentsDir() + '/' + downloadables[0].hash + '.enc';
 
         downloadJob = RNFS.downloadFile({
