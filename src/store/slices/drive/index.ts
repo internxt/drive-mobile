@@ -310,6 +310,9 @@ const downloadFileThunk = createAsyncThunk<
               bucketId: user?.bucket,
             },
           });
+        } else {
+          // Re throw the error so Sentry middleware catchs it
+          throw err;
         }
       }
     } finally {
