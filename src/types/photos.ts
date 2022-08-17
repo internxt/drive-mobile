@@ -125,6 +125,7 @@ export enum PhotosSyncManagerStatus {
   IDLE = 'IDLE',
   EMPTY = 'EMPTY',
   COMPLETED = 'COMPLETED',
+  ABORTED = 'ABORTED',
 }
 
 export enum PhotosNetworkManagerStatus {
@@ -132,6 +133,7 @@ export enum PhotosNetworkManagerStatus {
   PAUSED = 'PAUSED',
   IDLE = 'IDLE',
   EMPTY = 'EMPTY',
+  ABORTED = 'ABORTED',
 }
 
 export enum PhotosNetworkOperationType {

@@ -54,7 +54,7 @@ export class PhotosLocalDatabaseService {
   }
 
   public async clear() {
-    await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.dropTable);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.deleteTableRows);
   }
 
   public async persistPhotoSync(photo: Photo, devicePhoto?: DevicePhoto) {

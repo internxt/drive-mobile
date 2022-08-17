@@ -30,6 +30,8 @@ import network from '../../../network';
 import _ from 'lodash';
 import driveService from '../../../services/DriveService';
 import authService from 'src/services/AuthService';
+import errorService from 'src/services/ErrorService';
+import { ErrorCodes } from 'src/types/errors';
 
 export enum ThunkOperationStatus {
   SUCCESS = 'SUCCESS',
@@ -300,7 +302,18 @@ const downloadFileThunk = createAsyncThunk<
       trackDownloadSuccess();
     } catch (err) {
       if (!signal.aborted) {
-        driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, err);
+        driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, new Error(strings.errors.downloadError));
+        if ((err as Error).message === ErrorCodes.MISSING_SHARDS_ERROR) {
+          errorService.reportError(new Error('MISSING_SHARDS_ERROR: File  is missing shards'), {
+            extra: {
+              fileId,
+              bucketId: user?.bucket,
+            },
+          });
+        } else {
+          // Re throw the error so Sentry middleware catchs it
+          throw err;
+        }
       }
     } finally {
       if (signal.aborted) {

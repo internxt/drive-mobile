@@ -16,49 +16,16 @@ const PhotosSyncStatusWidget = () => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+  const { syncStatus } = useAppSelector((state) => state.photos);
   const [completedTasks, setCompletedTasks] = useState(0);
-  const [totalTasks, setTotalTasks] = useState(0);
-  const [photosSyncStatus, setPhotosSyncStatus] = useState(PhotosSyncStatus.Unknown);
+
+  const photosSyncStatus = syncStatus.status;
+  const totalTasks = syncStatus.totalTasks;
   useEffect(() => {
     PhotosCommonServices.events.addListener({
       event: PhotosEventKey.PhotoSyncDone,
       listener([photosSynced]) {
         setCompletedTasks(photosSynced);
-      },
-    });
-
-    PhotosCommonServices.events.addListener({
-      event: PhotosEventKey.SyncTasksCalculated,
-      listener([photosToSync]) {
-        setTotalTasks(photosToSync);
-      },
-    });
-
-    PhotosCommonServices.events.addListener({
-      event: PhotosEventKey.PauseSync,
-      listener: () => {
-        setPhotosSyncStatus(PhotosSyncStatus.Paused);
-      },
-    });
-
-    PhotosCommonServices.events.addListener({
-      event: PhotosEventKey.ResumeSync,
-      listener: () => {
-        setPhotosSyncStatus(PhotosSyncStatus.InProgress);
-      },
-    });
-
-    PhotosCommonServices.events.addListener({
-      event: PhotosEventKey.SyncCompleted,
-      listener: () => {
-        setPhotosSyncStatus(PhotosSyncStatus.Completed);
-      },
-    });
-
-    PhotosCommonServices.events.addListener({
-      event: PhotosEventKey.RunningSync,
-      listener: () => {
-        setPhotosSyncStatus(PhotosSyncStatus.InProgress);
       },
     });
   }, []);

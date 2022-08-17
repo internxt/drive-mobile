@@ -17,7 +17,7 @@ enum HMAC {
 export class PhotosCommonServices {
   public static model: PhotosServiceModel;
   public sdk: SdkManager;
-  public static log: PhotosLogService = new PhotosLogService(__DEV__);
+  public static log: PhotosLogService = new PhotosLogService(__DEV__ && process.env.NODE_ENV !== 'test');
   public static events: PhotosEventEmitter = new PhotosEventEmitter();
 
   constructor(sdk: SdkManager) {

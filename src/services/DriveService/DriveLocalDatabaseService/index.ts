@@ -17,14 +17,13 @@ export default class DriveLocalDatabaseService {
   constructor(logService: PhotosLogService) {
     this.logService = logService;
     this.init();
+    this.logService.info('Local database initialized');
   }
 
   public async init(): Promise<void> {
     await sqliteService.open(DRIVE_DB_NAME);
     await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.createTable);
     await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.createTable);
-
-    this.logService.info('Local database initialized');
   }
 
   public async getDriveItems(parentId: number): Promise<DriveItemData[]> {
@@ -100,7 +99,7 @@ export default class DriveLocalDatabaseService {
   public async resetDatabase(): Promise<void> {
     await sqliteService.close(DRIVE_DB_NAME);
     await sqliteService.delete(DRIVE_DB_NAME);
-
+    await this.init();
     this.logService.info('Local database reset');
   }
 

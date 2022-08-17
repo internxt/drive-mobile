@@ -216,6 +216,7 @@ describe('Photos Sync Manager', () => {
       subject.onStatusChange((status) => {
         if (status === PhotosSyncManagerStatus.EMPTY) {
           expect(photosNetworkManager.processUploadOperation).toBeCalledTimes(2);
+
           done();
         }
       });

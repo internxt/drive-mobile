@@ -16,6 +16,8 @@ import { Abortable } from '../types';
 import appService from '../services/AppService';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
 import fileSystemService from '../services/FileSystemService';
+import strings from 'assets/lang/strings';
+import errorService from 'src/services/ErrorService';
 
 export interface DownloadFileParams {
   toPath: string;

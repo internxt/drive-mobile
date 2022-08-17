@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { View, Image, Dimensions } from 'react-native';
 import {
   GestureEvent,
@@ -14,12 +14,13 @@ import {
 import { useTailwind } from 'tailwind-rn/dist';
 import Animated, {
   useSharedValue,
-  withSpring,
   useAnimatedStyle,
   useAnimatedGestureHandler,
   interpolate,
   useAnimatedRef,
   runOnJS,
+  withTiming,
+  Easing,
 } from 'react-native-reanimated';
 interface ImageViewerProps {
   source: string;
@@ -42,14 +43,19 @@ type PinchGestureContext = {
 type RotationGestureContext = {
   rotation: number;
 };
+
+const SCALE_LIMIT = 25;
+const DEFAULT_EASING = Easing.bezier(0, 0, 0.58, 1);
 export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, onZoomImage, onImageViewReset }) => {
   const tailwind = useTailwind();
+  const [panEnabled, setPanEnabled] = useState(false);
   const imageRef = useAnimatedRef<Animated.Image>();
   const doubleTapRef = useRef();
   const rotate = useSharedValue(0);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
+
   const animatedStyles = useAnimatedStyle(() => {
     const rotationFinal = interpolate(rotate.value, [0, 1], [0, 45]);
     return {
@@ -83,50 +89,65 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, on
   const fitImageToBorders = () => {
     isImageOutOfBounds().then(({ outOf, limits }) => {
       if (outOf.top) {
-        translateY.value = withSpring(limits.top, {
-          stiffness: 60,
+        translateY.value = withTiming(limits.top, {
+          duration: 150,
+          easing: DEFAULT_EASING,
         });
       }
       if (outOf.bottom) {
-        translateY.value = withSpring(limits.bottom, {
-          stiffness: 60,
+        translateY.value = withTiming(limits.bottom, {
+          duration: 150,
+          easing: DEFAULT_EASING,
         });
       }
       if (outOf.left) {
-        translateX.value = withSpring(limits.left, {
-          stiffness: 60,
+        translateX.value = withTiming(limits.left, {
+          duration: 150,
+          easing: DEFAULT_EASING,
         });
       }
       if (outOf.right) {
-        translateX.value = withSpring(limits.right, {
-          stiffness: 60,
+        translateX.value = withTiming(limits.right, {
+          duration: 150,
+          easing: DEFAULT_EASING,
         });
       }
     });
   };
   // Zoom event
-  const onPinchEvent = useAnimatedGestureHandler<GestureEvent<PinchGestureHandlerEventPayload>, PinchGestureContext>({
-    onStart(event, context) {
-      context.scale = scale.value;
-      runOnJS(onZoomImage)();
+  const onPinchEvent = useAnimatedGestureHandler<GestureEvent<PinchGestureHandlerEventPayload>, PinchGestureContext>(
+    {
+      onStart(event, context) {
+        context.scale = scale.value;
+        runOnJS(onZoomImage)();
+      },
+      onActive(event, context) {
+        const newScale = event.scale * context.scale;
+        if (newScale <= SCALE_LIMIT && newScale > 1) {
+          scale.value = newScale;
+        }
+      },
+      onEnd() {
+        const currentScale = parseFloat(scale.value.toFixed(2));
+        if (currentScale <= 1) {
+          scale.value = withTiming(1, {
+            duration: 150,
+            easing: DEFAULT_EASING,
+          });
+          rotate.value = 0;
+          translateX.value = 0;
+          translateY.value = 0;
+          runOnJS(onImageViewReset)();
+          runOnJS(setPanEnabled)(false);
+        }
+
+        if (currentScale > 1) {
+          runOnJS(setPanEnabled)(true);
+        }
+      },
     },
-    onActive(event, context) {
-      scale.value = event.scale * context.scale;
-    },
-    onEnd(event) {
-      if (event.scale < 1) {
-        scale.value = withSpring(1, {
-          stiffness: 80,
-          mass: 0.1,
-          overshootClamping: true,
-        });
-        rotate.value = 0;
-        translateX.value = 0;
-        translateY.value = 0;
-        runOnJS(onImageViewReset)();
-      }
-    },
-  });
+    [panEnabled],
+  );
 
   // Move around event
   const onPanEvent = useAnimatedGestureHandler<GestureEvent<PanGestureHandlerEventPayload>, PanGestureContext>({
@@ -135,8 +156,16 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, on
       context.translationY = translateY.value;
     },
     onActive(event, context) {
-      translateX.value = event.translationX + context.translationX;
-      translateY.value = event.translationY + context.translationY;
+      const normalizedX = event.translationX / scale.value;
+      const normalizedY = event.translationY / scale.value;
+      translateX.value = withTiming(normalizedX + context.translationX, {
+        duration: 50,
+        easing: DEFAULT_EASING,
+      });
+      translateY.value = withTiming(normalizedY + context.translationY, {
+        duration: 50,
+        easing: DEFAULT_EASING,
+      });
     },
     onEnd: () => {
       runOnJS(fitImageToBorders)();
@@ -155,9 +184,9 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, on
       rotate.value = event.rotation + context.rotation;
     },
     onEnd() {
-      rotate.value = withSpring(0, {
-        stiffness: 60,
-        overshootClamping: true,
+      rotate.value = withTiming(0, {
+        duration: 150,
+        easing: DEFAULT_EASING,
       });
     },
   });
@@ -173,9 +202,27 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, on
   const onDoubleTapEvent = useAnimatedGestureHandler<GestureEvent<TapGestureHandlerEventPayload>>(
     {
       onActive() {
-        scale.value = withSpring(scale.value * 1.5, {
-          stiffness: 60,
-        });
+        if (scale.value === 1) {
+          runOnJS(setPanEnabled)(true);
+          scale.value = withTiming(scale.value * 2, {
+            duration: 150,
+            easing: DEFAULT_EASING,
+          });
+        } else {
+          runOnJS(setPanEnabled)(false);
+          scale.value = withTiming(1, {
+            duration: 150,
+            easing: DEFAULT_EASING,
+          });
+          translateX.value = withTiming(0, {
+            duration: 150,
+            easing: DEFAULT_EASING,
+          });
+          translateY.value = withTiming(0, {
+            duration: 150,
+            easing: DEFAULT_EASING,
+          });
+        }
       },
     },
     [onTapImage],
@@ -220,6 +267,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, on
             <Animated.View style={tailwind('flex-1')}>
               <PanGestureHandler
                 minDist={5}
+                enabled={panEnabled}
                 minPointers={1}
                 maxPointers={1}
                 avgTouches

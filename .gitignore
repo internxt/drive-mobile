@@ -8,7 +8,8 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
-
+styles/tailwind.css
+styles/tailwind.json
 # macOS
 .DS_Store
 
