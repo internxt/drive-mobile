@@ -3,7 +3,7 @@ import { getEnvironmentConfig } from '../lib/network';
 
 import asyncStorage from './AsyncStorageService';
 import { getHeaders } from '../helpers/headers';
-import { constants } from './AppService';
+import { constants } from './common/app/AppService';
 import { AsyncStorageKey } from '../types';
 
 export interface FileMeta {

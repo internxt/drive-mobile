@@ -4,7 +4,7 @@ import { useAppDispatch } from '../store/hooks';
 import { driveActions, driveThunks } from '../store/slices/drive';
 import { uiActions } from '../store/slices/ui';
 import { DriveItemDataProps, DriveItemStatus } from '../types/drive';
-import driveService from '../services/DriveService';
+import drive from '@internxt-mobile/services/drive';
 
 interface UseDriveItemProps {
   data: DriveItemDataProps;
@@ -44,7 +44,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
       thunk.abort();
     };
 
-    driveService.eventEmitter.setDownloadAbort(downloadAbort);
+    drive.events.setDownloadAbort(downloadAbort);
 
     thunk.then(() => {
       setIsDisabled(false);

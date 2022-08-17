@@ -16,7 +16,7 @@ import { DevicePhotosScannerService, DevicePhotosScannerStatus } from './DeviceP
 import { DevicePhotosSyncCheckerService } from './DevicePhotosSyncChecker';
 import { Photo } from '@internxt/sdk/dist/photos';
 import async from 'async';
-import errorService from 'src/services/ErrorService';
+import { errorService } from '@internxt-mobile/services/common';
 import { PhotosLocalDatabaseService } from '../PhotosLocalDatabaseService';
 import { AbortedOperationError } from 'src/types';
 import { PhotosCommonServices } from '../PhotosCommonService';

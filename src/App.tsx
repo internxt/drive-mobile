@@ -8,7 +8,7 @@ import analyticsService from './services/AnalyticsService';
 import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
 import { authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
-import appService from './services/AppService';
+import { appService } from '@internxt-mobile/services/common';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';

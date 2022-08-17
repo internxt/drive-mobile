@@ -1,5 +1,5 @@
 import Axios from 'axios';
-import { constants } from '../AppService';
+import { constants } from '../common/app/AppService';
 import { PhotosCommonServices } from './PhotosCommonService';
 
 export default class PhotosUsageService {

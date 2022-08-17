@@ -24,7 +24,7 @@ import { TabExplorerScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import Portal from '@burstware/react-native-portal';
-import driveService from 'src/services/DriveService';
+import { driveUsageService } from '@internxt-mobile/services/drive/usage';
 
 function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Element {
   const route = useRoute();
@@ -96,7 +96,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
     asyncStorage.getUser().then(async (user) => {
       if (user) {
         const limit = await storageService.loadLimit();
-        const driveUsage = await driveService.usage.getUsage();
+        const driveUsage = await driveUsageService.getUsage();
 
         analytics
           .identify(user.uuid, {

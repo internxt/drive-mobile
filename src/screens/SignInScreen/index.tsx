@@ -12,7 +12,7 @@ import validationService from '../../services/ValidationService';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useAppDispatch } from '../../store/hooks';
 import { authThunks } from '../../store/slices/auth';
-import errorService from '../../services/ErrorService';
+import { errorService } from '@internxt-mobile/services/common';
 import AppScreen from '../../components/AppScreen';
 import AppButton from '../../components/AppButton';
 import { useTailwind } from 'tailwind-rn';

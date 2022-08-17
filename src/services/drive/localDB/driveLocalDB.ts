@@ -7,17 +7,17 @@ import {
   SqliteDriveFolderRecord,
 } from '../../../types/drive';
 import sqliteService from '../../SqliteService';
-import PhotosLogService from '../DriveLogService';
+import { driveLogger, DriveLogger } from '../logger';
 import driveItemTable from './tables/drive_item';
 import folderRecordTable from './tables/folder_record';
 
-export default class DriveLocalDatabaseService {
-  private readonly logService: PhotosLogService;
+class DriveLocalDB {
+  private readonly logger: DriveLogger;
 
-  constructor(logService: PhotosLogService) {
-    this.logService = logService;
+  constructor(logger: DriveLogger) {
+    this.logger = logger;
     this.init();
-    this.logService.info('Local database initialized');
+    this.logger.info('Local database initialized');
   }
 
   public async init(): Promise<void> {
@@ -100,7 +100,7 @@ export default class DriveLocalDatabaseService {
     await sqliteService.close(DRIVE_DB_NAME);
     await sqliteService.delete(DRIVE_DB_NAME);
     await this.init();
-    this.logService.info('Local database reset');
+    this.logger.info('Local database reset');
   }
 
   private mapDriveItemRowToModel(row: SqliteDriveItemRow): DriveItemData {
@@ -147,3 +147,5 @@ export default class DriveLocalDatabaseService {
     return result as DriveItemData;
   }
 }
+
+export const driveLocalDB = new DriveLocalDB(driveLogger);

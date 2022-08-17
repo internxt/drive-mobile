@@ -2,19 +2,19 @@
 import EventEmitter from 'events';
 import RNFS from 'react-native-fs';
 
-import { Abortable } from '../../types';
-import { DriveEventKey } from '../../types/drive';
-import DriveLogService from './DriveLogService';
+import { Abortable } from '../../../types';
+import { DriveEventKey } from '../../../types/drive';
+import { driveLogger, DriveLogger } from '../logger';
 
 class DriveEventEmitter {
-  private readonly logService: DriveLogService;
+  private readonly logger: DriveLogger;
   private readonly eventEmitter: EventEmitter;
   private downloadAbort?: Abortable;
   private _jobId?: number;
   private legacyAbortable?: Abortable;
 
-  constructor(logService: DriveLogService) {
-    this.logService = logService;
+  constructor(logService: DriveLogger) {
+    this.logger = logService;
     this.eventEmitter = new EventEmitter();
     this.eventEmitter.addListener(DriveEventKey.CancelDownload, () => this.onDownloadCanceled());
   }
@@ -72,9 +72,9 @@ class DriveEventEmitter {
   }
 
   private onDownloadCanceled() {
-    this.logService.info('onDownloadCanceled - downloadAbort: ' + this.downloadAbort);
-    this.logService.info('onDownloadCanceled - legacyAbortable: ' + this.legacyAbortable);
-    this.logService.info('onDownloadCanceled - jobId: ' + this.jobId);
+    this.logger.info('onDownloadCanceled - downloadAbort: ' + this.downloadAbort);
+    this.logger.info('onDownloadCanceled - legacyAbortable: ' + this.legacyAbortable);
+    this.logger.info('onDownloadCanceled - jobId: ' + this.jobId);
 
     this.downloadAbort?.();
     this.legacyAbortable?.();
@@ -91,4 +91,4 @@ class DriveEventEmitter {
   }
 }
 
-export default DriveEventEmitter;
+export const driveEvents = new DriveEventEmitter(driveLogger);

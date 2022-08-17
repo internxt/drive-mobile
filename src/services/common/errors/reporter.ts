@@ -1,5 +1,5 @@
-import AppError from '../types';
-import sentryService from './SentryService';
+import AppError from '../../../types';
+import sentryService from '../../SentryService';
 import { Severity } from '@sentry/react-native';
 
 export interface GlobalErrorContext {
@@ -67,5 +67,4 @@ class ErrorService {
   }
 }
 
-const errorService = new ErrorService();
-export default errorService;
+export const errorService = new ErrorService();

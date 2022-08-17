@@ -3,7 +3,7 @@ import RNFS from 'react-native-fs';
 import { getNetwork } from './NetworkFacade';
 import { downloadFile as downloadFileV1, LegacyDownloadRequiredError } from '../services/NetworkService/download';
 import { downloadFile as downloadFileV1Legacy } from '../services/NetworkService/downloadLegacy';
-import { constants } from '../services/AppService';
+import { constants } from '@internxt-mobile/services/common';
 import { NetworkCredentials } from './requests';
 import { FileVersionOneError } from '@internxt/sdk/dist/network/download';
 import { Abortable } from '../types';

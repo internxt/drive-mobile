@@ -17,7 +17,7 @@ import { useCountdown } from 'usehooks-ts';
 import { useEffect, useMemo, useState } from 'react';
 import storageService from 'src/services/StorageService';
 import { paymentsSelectors } from 'src/store/slices/payments';
-import { constants } from 'src/services/AppService';
+import { constants } from '@internxt-mobile/services/common/app/AppService';
 
 function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Element {
   const [verificationEmailTime, { startCountdown, resetCountdown }] = useCountdown({

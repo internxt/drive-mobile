@@ -4,11 +4,11 @@ import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { getHeaders } from '../helpers/headers';
 import { AsyncStorageKey, DevicePlatform } from '../types';
 import asyncStorageService from './AsyncStorageService';
-import { constants } from './AppService';
+import { constants } from './common/app/AppService';
 import AesUtils from '../helpers/aesUtils';
 import EventEmitter from 'events';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import { SdkManager } from './common/SdkManager';
+import { SdkManager } from './common/sdk/SdkManager';
 
 interface LoginResponse {
   tfa: string;

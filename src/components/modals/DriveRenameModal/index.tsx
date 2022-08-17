@@ -6,7 +6,7 @@ import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
-import errorService from '../../../services/ErrorService';
+import { errorService } from '@internxt-mobile/services/common';
 import AppButton from '../../AppButton';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';

@@ -16,7 +16,7 @@ import { EventEmitter } from '../lib/utils/eventEmitter';
 import { Bridge, InxtApiI } from '../services/api';
 import { Logger } from '../lib/download';
 import { wrap } from '../lib/utils/error';
-import errorService from '../../services/ErrorService';
+import { errorService } from '@internxt-mobile/services/common';
 import FileManager from './FileManager';
 
 export class FileObject extends EventEmitter {

@@ -2,8 +2,7 @@
 import * as Updates from 'expo-updates';
 import { AsyncStorageKey } from 'src/types';
 import asyncStorage from '../services/AsyncStorageService';
-import errorService from '../services/ErrorService';
-
+import { errorService } from '@internxt-mobile/services/common';
 export async function shouldForceUpdate(): Promise<boolean> {
   return (
     !__DEV__ &&

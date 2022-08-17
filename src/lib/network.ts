@@ -2,7 +2,7 @@ import { Environment } from '../@inxt-js';
 import { ActionState } from '../@inxt-js/api/actionState';
 import { FileInfo } from '../@inxt-js/api/fileinfo';
 import FileManager from '../@inxt-js/api/FileManager';
-import appService from '../services/AppService';
+import { appService } from '@internxt-mobile/services/common';
 
 import asyncStorage from '../services/AsyncStorageService';
 

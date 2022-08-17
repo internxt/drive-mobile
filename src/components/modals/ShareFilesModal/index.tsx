@@ -13,7 +13,7 @@ import asyncStorage from '../../../services/AsyncStorageService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import BottomModal from '../BottomModal';
-import { constants } from '../../../services/AppService';
+import { constants } from '@internxt-mobile/services/common';
 import { NotificationType } from '../../../types';
 import notificationsService from '../../../services/NotificationsService';
 import { Copy, Minus, Plus } from 'phosphor-react-native';

@@ -7,7 +7,7 @@ import AppVersionWidget from '../../components/AppVersionWidget';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
 import AppScreen from '../../components/AppScreen';
-import appService, { constants } from '../../services/AppService';
+import { appService } from '@internxt-mobile/services/common';
 import AppText from '../../components/AppText';
 import { SettingsScreenProps } from '../../types/navigation';
 import AppScreenTitle from '../../components/AppScreenTitle';
@@ -81,7 +81,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                         {userFullName}
                       </AppText>
                       <AppText numberOfLines={1} style={tailwind('text-gray-40')}>
-                        {constants.REACT_NATIVE_SHOW_BILLING
+                        {appService.constants.REACT_NATIVE_SHOW_BILLING
                           ? strings.screens.SettingsScreen.account.advice
                           : strings.screens.SettingsScreen.account.adviceNoBilling}
                       </AppText>

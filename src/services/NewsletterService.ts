@@ -1,7 +1,6 @@
 import Axios from 'axios';
 import { getHeaders } from '../helpers/headers';
-import appService from './AppService';
-import errorService from './ErrorService';
+import { appService, errorService } from '@internxt-mobile/services/common';
 
 class NewsletterService {
   public readonly groupId = '103406410';

@@ -13,7 +13,7 @@ import { items } from '@internxt/lib';
 import prettysize from 'prettysize';
 import moment from 'moment';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
-import driveService from '../../../services/DriveService';
+import drive from '@internxt-mobile/services/drive';
 import { DriveEventKey } from '../../../types/drive';
 import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
 import asyncStorage from '../../../services/AsyncStorageService';
@@ -94,37 +94,37 @@ function DriveDownloadModal(): JSX.Element {
 
   useEffect(() => {
     if (isInitialized) {
-      driveService.eventEmitter.addListener({
+      drive.events.addListener({
         event: DriveEventKey.DownloadCompleted,
         listener: onDownloadCompleted,
       });
-      driveService.eventEmitter.addListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
-      driveService.eventEmitter.addListener({
+      drive.events.addListener({ event: DriveEventKey.DownloadError, listener: onDownloadError });
+      drive.events.addListener({
         event: DriveEventKey.DownloadFinally,
         listener: onDownloadFinally,
       });
-      driveService.eventEmitter.addListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
-      driveService.eventEmitter.addListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
+      drive.events.addListener({ event: DriveEventKey.CancelDownload, listener: onCancelStart });
+      drive.events.addListener({ event: DriveEventKey.CancelDownloadEnd, listener: onCancelEnd });
     }
 
     return () => {
-      driveService.eventEmitter.removeListener({
+      drive.events.removeListener({
         event: DriveEventKey.DownloadCompleted,
         listener: onDownloadCompleted,
       });
-      driveService.eventEmitter.removeListener({
+      drive.events.removeListener({
         event: DriveEventKey.DownloadError,
         listener: onDownloadError,
       });
-      driveService.eventEmitter.removeListener({
+      drive.events.removeListener({
         event: DriveEventKey.DownloadFinally,
         listener: onDownloadFinally,
       });
-      driveService.eventEmitter.removeListener({
+      drive.events.removeListener({
         event: DriveEventKey.CancelDownload,
         listener: onCancelStart,
       });
-      driveService.eventEmitter.removeListener({
+      drive.events.removeListener({
         event: DriveEventKey.CancelDownloadEnd,
         listener: onCancelEnd,
       });

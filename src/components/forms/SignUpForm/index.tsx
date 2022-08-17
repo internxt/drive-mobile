@@ -9,7 +9,7 @@ import AppTextInput from '../../AppTextInput';
 import { useAppDispatch } from '../../../store/hooks';
 import { authThunks } from '../../../store/slices/auth';
 import analyticsService, { AnalyticsEventKey } from '../../../services/AnalyticsService';
-import errorService from '../../../services/ErrorService';
+import { errorService } from '@internxt-mobile/services/common';
 import { Alert, TouchableWithoutFeedback, View } from 'react-native';
 import authService from '../../../services/AuthService';
 import { DevicePlatform } from '../../../types';

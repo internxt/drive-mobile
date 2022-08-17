@@ -1,6 +1,6 @@
 import { NetworkCredentials } from '../../types';
 import { PhotoFileSystemRef, PhotoSizeType, PhotosServiceModel } from '../../types/photos';
-import { constants } from '../AppService';
+import { constants } from '../common/app/AppService';
 import PhotosEventEmitter from './EventsService';
 import PhotosLogService from './LogService';
 import RNFS from 'react-native-fs';
@@ -8,7 +8,7 @@ import { PHOTOS_FULL_SIZE_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY } from './constan
 import { Platform } from 'react-native';
 import { items } from '@internxt/lib';
 import { createHash } from '@internxt/rn-crypto';
-import { SdkManager } from '../common/SdkManager';
+import { SdkManager } from '../common/sdk/SdkManager';
 import * as crypto from 'react-native-crypto';
 import fileSystemService from '../FileSystemService';
 enum HMAC {

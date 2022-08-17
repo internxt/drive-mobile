@@ -26,7 +26,7 @@ import notificationsService from '../../../services/NotificationsService';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import BottomModal from '../BottomModal';
 import { UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
-import { constants } from '../../../services/AppService';
+import { constants } from '@internxt-mobile/services/common';
 import CreateFolderModal from '../CreateFolderModal';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../AppText';
