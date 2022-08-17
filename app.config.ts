@@ -44,12 +44,6 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   entryPoint: './index.js',
   slug: 'drive-mobile',
   version: packageJson.version,
-  // Runtime version defines for which native version
-  // the updates will be comptaible, which means
-  // an update with runtimeVersion 1.1 won't be compatible
-  // with app version 1.0. We use here the package version,
-  // apps should be updated matching that.
-  runtimeVersion: packageJson.version,
   orientation: 'portrait',
   splash: {
     image: './assets/images/splash.png',
@@ -122,7 +116,6 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
           project: env[stage].SENTRY_PROJECT,
           authToken: env[stage].SENTRY_AUTH_TOKEN,
           url: env[stage].SENTRY_URL,
-          setCommits: true,
           release: RELEASE_ID,
         },
       },
