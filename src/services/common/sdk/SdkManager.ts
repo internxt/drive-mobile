@@ -1,6 +1,6 @@
 import { Auth, Drive, photos } from '@internxt/sdk';
-import { constants } from '../AppService';
-import packageJson from '../../../package.json';
+import { constants } from '../app/AppService';
+import packageJson from '../../../../package.json';
 import { ApiSecurity } from '@internxt/sdk/dist/shared';
 
 export type SdkManagerApiSecurity = ApiSecurity & { photosToken: string };

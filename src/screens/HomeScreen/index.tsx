@@ -4,7 +4,7 @@ import strings from '../../../assets/lang/strings';
 import SearchInput from '../../components/SearchInput';
 import ScreenTitle from '../../components/AppScreenTitle';
 import Tabs from '../../components/Tabs';
-import RecentsScreen from '../RecentsScreen';
+import RecentsScreen from '../drive/RecentsScreen';
 import SharedScreen from '../SharedScreen';
 import AppScreen from '../../components/AppScreen';
 import { useTailwind } from 'tailwind-rn';

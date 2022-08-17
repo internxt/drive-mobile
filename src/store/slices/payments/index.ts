@@ -8,7 +8,7 @@ import {
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
 import _ from 'lodash';
-import { constants } from 'src/services/AppService';
+import { constants } from '@internxt-mobile/services/common/app/AppService';
 import authService from 'src/services/AuthService';
 import notificationsService from 'src/services/NotificationsService';
 import paymentService from 'src/services/PaymentService';

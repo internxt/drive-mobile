@@ -1,6 +1,6 @@
 import prettysize from 'prettysize';
 import { getHeaders } from '../helpers/headers';
-import { constants } from './AppService';
+import { constants } from './common/app/AppService';
 
 export const FREE_STORAGE = 2147483648;
 

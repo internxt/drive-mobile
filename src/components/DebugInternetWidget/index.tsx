@@ -4,7 +4,7 @@ import { measureConnectionSpeed, NetworkBandwidthTestResults } from 'react-nativ
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
-import errorService from '../../services/ErrorService';
+import { errorService } from '@internxt-mobile/services/common';
 import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
 import AppText from '../AppText';

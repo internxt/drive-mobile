@@ -1,4 +1,4 @@
-import { constants } from '../AppService';
+import { constants } from '@internxt-mobile/services/common';
 import { io, Socket } from 'socket.io-client';
 
 export class RealtimeUpdates {

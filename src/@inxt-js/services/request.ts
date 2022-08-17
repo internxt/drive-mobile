@@ -8,7 +8,7 @@ import { ShardMeta } from '../lib/shardMeta';
 import { ContractNegotiated } from '../lib/contracts';
 import { Shard } from '../api/shard';
 import { getProxy, ProxyManager } from './proxy';
-import { constants } from 'src/services/AppService';
+import { constants } from '@internxt-mobile/services/common/app/AppService';
 
 export async function request(
   config: EnvironmentConfig,

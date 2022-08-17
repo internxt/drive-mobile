@@ -7,8 +7,8 @@ import { PhotosCommonServices } from '../../../../services/photos/PhotosCommonSe
 import { PhotosSyncManager } from '../../../../services/photos/sync/PhotosSyncManager';
 import { PhotosNetworkManager } from '../../../../services/photos/network/PhotosNetworkManager';
 import { PHOTOS_PER_NETWORK_GROUP } from '../../../../services/photos/constants';
-import errorService from 'src/services/ErrorService';
-import { SdkManager } from 'src/services/common/SdkManager';
+import { errorService } from '@internxt-mobile/services/common';
+import { SdkManager } from '@internxt-mobile/services/common/sdk/SdkManager';
 
 const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/startSync',

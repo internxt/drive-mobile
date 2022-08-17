@@ -21,8 +21,7 @@ import AppProgressBar from 'src/components/AppProgressBar';
 import AppText from 'src/components/AppText';
 import strings from 'assets/lang/strings';
 import { ImageViewer } from '@internxt-mobile/ui-kit';
-import errorService from 'src/services/ErrorService';
-
+import { errorService } from '@internxt-mobile/services/common';
 function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'PhotosPreview'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();

@@ -1,4 +1,4 @@
-import { SdkManager } from 'src/services/common/SdkManager';
+import { SdkManager } from '@internxt-mobile/services/common/sdk/SdkManager';
 
 export const SdkManagerMock: SdkManager = {
   getApiSecurity: jest.fn(),

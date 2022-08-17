@@ -3,7 +3,7 @@ import axios from 'axios';
 
 import { DriveFileMetadataPayload, DriveItemData, DriveListItem, SortDirection, SortType } from '../types/drive';
 import { getHeaders } from '../helpers/headers';
-import { constants } from './AppService';
+import { constants } from './common/app/AppService';
 import { FetchFolderContentResponse, MoveFileResponse } from '@internxt/sdk/dist/drive/storage/types';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;

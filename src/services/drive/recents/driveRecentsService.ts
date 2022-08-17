@@ -1,5 +1,5 @@
 import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
-import { SdkManager } from '../common/SdkManager';
+import { SdkManager } from '@internxt-mobile/services/common';
 
 class DriveRecentsService {
   private sdk: SdkManager;
@@ -12,4 +12,4 @@ class DriveRecentsService {
   }
 }
 
-export default DriveRecentsService;
+export const driveRecentsService = new DriveRecentsService(SdkManager.getInstance());

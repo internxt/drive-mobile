@@ -1,5 +1,5 @@
 import * as Sentry from 'sentry-expo';
-import appService from '../services/AppService';
+import { appService } from '@internxt-mobile/services/common';
 import { AppPlugin } from '../types';
 
 const sentryPlugin: AppPlugin = {

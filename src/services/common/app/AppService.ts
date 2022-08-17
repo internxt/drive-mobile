@@ -1,8 +1,8 @@
 import Constants from 'expo-constants';
 import { AppState, AppStateStatus } from 'react-native';
-import { AppEnv } from '../../app.config';
+import { AppEnv } from '../../../../app.config';
 
-import packageJson from '../../package.json';
+import packageJson from '../../../../package.json';
 
 export type AppStatus = AppStateStatus;
 export type AppStateListener = (status: AppStatus) => void;
@@ -30,8 +30,11 @@ class AppService {
   public removeListener(id: number) {
     AppState.removeEventListener('change', this.listeners[id]);
   }
+
+  public isDev() {
+    return __DEV__;
+  }
 }
 
-const appService = new AppService();
+export const appService = new AppService();
 export const constants = appService.constants;
-export default appService;

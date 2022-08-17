@@ -5,7 +5,7 @@ import { NavigationState } from '@react-navigation/native';
 import _ from 'lodash';
 
 import { getHeaders } from '../helpers/headers';
-import { constants } from './AppService';
+import { constants } from './common/app/AppService';
 import { Options } from '@segment/analytics-react-native/build/esm/bridge';
 import asyncStorage from './AsyncStorageService';
 

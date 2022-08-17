@@ -14,8 +14,8 @@ import strings from '../../../../assets/lang/strings';
 import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
-import errorService from 'src/services/ErrorService';
-import { SdkManager } from 'src/services/common/SdkManager';
+
+import { SdkManager, errorService } from '@internxt-mobile/services/common';
 
 export interface AuthState {
   loggedIn: boolean | null;

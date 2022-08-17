@@ -12,7 +12,7 @@ import { Photo, PhotoExistsData } from '@internxt/sdk/dist/photos';
 import { RunnableService } from '../../../helpers/services';
 import fileSystemService from '../../FileSystemService';
 import { PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
-import { SdkManager } from 'src/services/common/SdkManager';
+import { SdkManager } from '@internxt-mobile/services/common/sdk/SdkManager';
 import { AbortedOperationError } from 'src/types';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;

@@ -19,7 +19,7 @@
 // TEXT:      data (utf8 string) which should be encoded. modify the code to use Buffer for binary data!
 // ENCDATA:   encrypted data as base64 string (format mentioned on top)
 import crypto from 'react-native-crypto';
-import { constants } from '../services/AppService';
+import { constants } from '@internxt-mobile/services/common';
 
 const AesUtils = {
   /**

@@ -23,8 +23,7 @@ import { INXTRequest } from '../lib';
 import { ShardObject } from './ShardObject';
 import { wrap } from '../lib/utils/error';
 import FileManager from './FileManager';
-import errorService from '../../services/ErrorService';
-
+import { errorService } from '@internxt-mobile/services/common';
 export interface FileMeta {
   size: number;
   name: string;

@@ -1,5 +1,5 @@
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
-import { constants } from './AppService';
+import { constants } from './common/app/AppService';
 import {
   CreateCheckoutSessionPayload,
   CreatePaymentSessionPayload,
@@ -10,7 +10,7 @@ import {
 } from '@internxt/sdk/dist/drive/payments/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
-import { SdkManager } from './common/SdkManager';
+import { SdkManager } from './common/sdk/SdkManager';
 
 class PaymentService {
   private sdk: SdkManager;

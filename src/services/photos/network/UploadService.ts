@@ -1,10 +1,10 @@
 import { Photo, CreatePhotoData } from '@internxt/sdk/dist/photos';
 import network from '../../../network';
 import fileSystemService from '../../FileSystemService';
-import { constants } from '../../AppService';
+import { constants } from '../../common/app/AppService';
 import { PhotosCommonServices } from '../PhotosCommonService';
 import { PhotoFileSystemRef } from '../../../types/photos';
-import { SdkManager } from 'src/services/common/SdkManager';
+import { SdkManager } from '@internxt-mobile/services/common/sdk/SdkManager';
 
 export default class PhotosUploadService {
   private sdk: SdkManager;

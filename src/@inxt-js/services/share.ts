@@ -1,4 +1,4 @@
-import { constants } from '../../services/AppService';
+import { constants } from '@internxt-mobile/services/common';
 
 interface GenerateShareLinkResponse {
   token: string;

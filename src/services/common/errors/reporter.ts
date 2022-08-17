@@ -1,5 +1,5 @@
-import AppError from '../types';
-import sentryService from './SentryService';
+import AppError from '../../../types';
+import sentryService from '../../SentryService';
 import { Severity } from '@sentry/react-native';
 
 interface GlobalErrorContext {
@@ -7,7 +7,7 @@ interface GlobalErrorContext {
   userId: string;
 }
 
-interface ErrorContext extends GlobalErrorContext {
+export interface ErrorContext extends GlobalErrorContext {
   level: Severity;
   // Tagname and value of the tag such environment: dev or things like that
   tags: { [tagName: string]: string };
@@ -67,5 +67,4 @@ class ErrorService {
   }
 }
 
-const errorService = new ErrorService();
-export default errorService;
+export const errorService = new ErrorService();

@@ -3,7 +3,7 @@ import { StyleProp, View, ViewStyle } from 'react-native';
 import * as Updates from 'expo-updates';
 
 import packageJson from '../../../package.json';
-import appService from '../../services/AppService';
+import { appService } from '@internxt-mobile/services/common';
 import AppText from '../AppText';
 import { useTailwind } from 'tailwind-rn';
 

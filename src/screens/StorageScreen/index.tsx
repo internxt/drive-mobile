@@ -10,7 +10,6 @@ import { INFINITE_PLAN } from '../../types';
 import ReferralsWidget from '../../components/ReferralsWidget';
 import AppScreen from '../../components/AppScreen';
 import { SettingsScreenProps } from '../../types/navigation';
-import appService from '../../services/AppService';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../components/AppText';
 import useGetColor from '../../hooks/useColor';
@@ -20,6 +19,7 @@ import storageService from 'src/services/StorageService';
 import { storageSelectors } from 'src/store/slices/storage';
 import AppButton from 'src/components/AppButton';
 import { paymentsSelectors } from 'src/store/slices/payments';
+import { appService } from '@internxt-mobile/services/common';
 
 function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Element {
   const [currentStatusStep, setCurrentStatusStep] = useState(0);

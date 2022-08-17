@@ -3,9 +3,9 @@ import { DriveFileData, DriveFolderData, MoveFolderPayload } from '@internxt/sdk
 
 import { getHeaders } from '../helpers/headers';
 import { DriveFolderMetadataPayload } from '../types/drive';
-import { constants } from './AppService';
+import { constants } from './common/app/AppService';
 import fileService from './DriveFileService';
-import { SdkManager } from './common/SdkManager';
+import { SdkManager } from './common/sdk/SdkManager';
 
 class DriveFolderService {
   private sdk: SdkManager;
