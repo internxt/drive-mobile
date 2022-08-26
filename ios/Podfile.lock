@@ -143,7 +143,9 @@ PODS:
     - GoogleUtilities/Logger
   - GoogleUtilities/UserDefaults (7.7.0):
     - GoogleUtilities/Logger
+  - hermes-engine (0.7.2)
   - IDZSwiftCommonCrypto (0.13.0)
+  - libevent (2.1.12)
   - libwebp (1.2.1):
     - libwebp/demux (= 1.2.1)
     - libwebp/mux (= 1.2.1)
@@ -180,6 +182,11 @@ PODS:
     - boost-for-react-native
     - DoubleConversion
     - glog
+  - RCT-Folly/Futures (2020.01.13.00):
+    - boost-for-react-native
+    - DoubleConversion
+    - glog
+    - libevent
   - RCTRequired (0.64.3)
   - RCTTypeSafety (0.64.3):
     - FBLazyVector (= 0.64.3)
@@ -235,6 +242,16 @@ PODS:
     - React-jsi (= 0.64.3)
     - React-jsiexecutor (= 0.64.3)
     - React-jsinspector (= 0.64.3)
+    - React-perflogger (= 0.64.3)
+    - Yoga
+  - React-Core/Hermes (0.64.3):
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2020.01.13.00)
+    - RCT-Folly/Futures
+    - React-cxxreact (= 0.64.3)
+    - React-jsi (= 0.64.3)
+    - React-jsiexecutor (= 0.64.3)
     - React-perflogger (= 0.64.3)
     - Yoga
   - React-Core/RCTActionSheetHeaders (0.64.3):
@@ -481,7 +498,7 @@ PODS:
     - React
   - RNPermissions (3.2.0):
     - React-Core
-  - RNReanimated (2.3.3):
+  - RNReanimated (2.10.0):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -489,7 +506,6 @@ PODS:
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
-    - React
     - React-callinvoker
     - React-Core
     - React-Core/DevSupport
@@ -571,6 +587,8 @@ DEPENDENCIES:
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - hermes-engine (~> 0.7.2)
+  - libevent (~> 2.1.12)
   - Permission-AppTrackingTransparency (from `../node_modules/react-native-permissions/ios/AppTrackingTransparency`)
   - Permission-Camera (from `../node_modules/react-native-permissions/ios/Camera`)
   - Permission-FaceID (from `../node_modules/react-native-permissions/ios/FaceID`)
@@ -584,6 +602,7 @@ DEPENDENCIES:
   - React-callinvoker (from `../node_modules/react-native/ReactCommon/callinvoker`)
   - React-Core (from `../node_modules/react-native/`)
   - React-Core/DevSupport (from `../node_modules/react-native/`)
+  - React-Core/Hermes (from `../node_modules/react-native/`)
   - React-Core/RCTWebSocket (from `../node_modules/react-native/`)
   - React-CoreModules (from `../node_modules/react-native/React/CoreModules`)
   - React-cxxreact (from `../node_modules/react-native/ReactCommon/cxxreact`)
@@ -645,7 +664,9 @@ SPEC REPOS:
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
+    - hermes-engine
     - IDZSwiftCommonCrypto
+    - libevent
     - libwebp
     - nanopb
     - PromisesObjC
@@ -866,7 +887,9 @@ SPEC CHECKSUMS:
   GoogleAppMeasurement: 4c19f031220c72464d460c9daa1fb5d1acce958e
   GoogleDataTransport: 5fffe35792f8b96ec8d6775f5eccd83c998d5a3b
   GoogleUtilities: e0913149f6b0625b553d70dae12b49fc62914fd1
+  hermes-engine: 7d97ba46a1e29bacf3e3c61ecb2804a5ddd02d4f
   IDZSwiftCommonCrypto: 00dd37cdfbd149312a7e5a582cf9909f8b129f44
+  libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libwebp: 98a37e597e40bfdb4c911fc98f2c53d0b12d05fc
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   Permission-AppTrackingTransparency: 95c9308dd40819fa9f6830751d0ef3ea11498723
@@ -922,7 +945,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: e1099204721a17a89c81fcd1cc2e92143dc040fb
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNPermissions: f7ebe52db07c00901127966ca080b4ec6a6ceb0a
-  RNReanimated: 0e5ef4a7e4e79f84efbe5b40771c31044c51e7d0
+  RNReanimated: cce4727fde9f4da9b800d999fa9975ea7a021dcf
   RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
   RNSentry: 2cd1daa124b0d9fd0dfc2cb6094fdd168cb579bc
   RNShare: 3185c074441b7e8897014d95ba982434a0a024a1
