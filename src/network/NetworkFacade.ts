@@ -159,6 +159,8 @@ export class NetworkFacade {
           toFile: encryptedFileURI,
           discretionary: true,
           cacheable: false,
+          progressDivider: 5,
+          progressInterval: 350,
           begin: () => {
             params.downloadProgressCallback(0);
           },

@@ -45,6 +45,7 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
   slug: 'drive-mobile',
   version: packageJson.version,
   orientation: 'portrait',
+  jsEngine: 'hermes',
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'cover',

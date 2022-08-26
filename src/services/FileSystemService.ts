@@ -22,6 +22,9 @@ const ANDROID_URI_PREFIX = 'file://';
 export type UsageStatsResult = Record<string, { items: RNFS.ReadDirItem[]; prettySize: string }>;
 class FileSystemService {
   public async prepareTmpDir() {
+    if (Platform.OS === 'android' && !(await this.exists(this.getTemporaryDir()))) {
+      await this.mkdir(this.getTemporaryDir());
+    }
     await this.unlinkIfExists(RNFetchBlob.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
     await this.clearTempDir();
   }
@@ -59,6 +62,9 @@ class FileSystemService {
   }
 
   public getTemporaryDir(): string {
+    if (Platform.OS === 'android') {
+      return RNFS.DocumentDirectoryPath + '/tmp/';
+    }
     return RNFS.TemporaryDirectoryPath;
   }
 
