@@ -137,6 +137,11 @@ yarn ios
 <hr>
 </br>
 
+## Known issues
+
+Current react-native-reanimated fails with Android using RN 0.64, until we upgrade RN version, a patch needs to be added manually:
+https://github.com/software-mansion/react-native-reanimated/issues/3161#issuecomment-1112285417
+
 ## Test
 
 This is what you should know about project testing.
