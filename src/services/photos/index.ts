@@ -5,10 +5,10 @@ import { PhotoFileSystemRef, PhotosEventKey, PhotoSizeType } from '../../types/p
 import PhotosDownloadService from './network/DownloadService';
 import PhotosUsageService from './UsageService';
 import PhotosPreviewService from './PreviewService';
-import { Photo } from '@internxt/sdk/dist/photos';
+import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 import { PhotosCommonServices } from './PhotosCommonService';
 import fileSystemService from '../FileSystemService';
-import { PHOTOS_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_ROOT_DIRECTORY, PHOTOS_TMP_DIRECTORY } from './constants';
+import { PHOTOS_FULL_SIZE_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_ROOT_DIRECTORY } from './constants';
 import { SdkManager } from '../common/SdkManager';
 import { PhotosLocalDatabaseService } from './PhotosLocalDatabaseService';
 class PhotosService {
@@ -32,8 +32,7 @@ class PhotosService {
   }
 
   private async initializeFileSystem() {
-    await fileSystemService.mkdir(PHOTOS_TMP_DIRECTORY);
-    await fileSystemService.mkdir(PHOTOS_DIRECTORY);
+    await fileSystemService.mkdir(PHOTOS_FULL_SIZE_DIRECTORY);
     await fileSystemService.mkdir(PHOTOS_PREVIEWS_DIRECTORY);
   }
 
@@ -62,13 +61,18 @@ class PhotosService {
     limit: number;
     skip?: number;
   }): Promise<{ results: photos.Photo[]; count: number }> {
-    const { results, count } = await this.sdk.photos.photos.getPhotos({}, skip, limit);
+    const { results, count } = await this.sdk.photos.photos.getPhotos({ status: PhotoStatus.Exists }, skip, limit);
 
     return { results, count };
   }
 
   public async deletePhotos(photos: photos.Photo[]): Promise<void> {
-    await Promise.all(photos.map((photo) => this.sdk.photos.photos.deletePhotoById(photo.id)));
+    await Promise.all(
+      photos.map(async (photo) => {
+        await this.sdk.photos.photos.deletePhotoById(photo.id);
+        await this.photosLocalDatabase.deletePhotoById(photo.id);
+      }),
+    );
   }
 
   public getUsage(): Promise<number> {
@@ -96,11 +100,7 @@ class PhotosService {
 
   public async clear(): Promise<void> {
     await this.photosLocalDatabase.clear();
-    const existsRoot = await fileSystemService.exists(PHOTOS_TMP_DIRECTORY);
-    if (existsRoot) {
-      await fileSystemService.unlink(PHOTOS_TMP_DIRECTORY);
-      await fileSystemService.unlink(PHOTOS_ROOT_DIRECTORY);
-    }
+    await fileSystemService.unlinkIfExists(PHOTOS_ROOT_DIRECTORY);
   }
 
   public async getPreview(photo: Photo): Promise<PhotoFileSystemRef | null> {

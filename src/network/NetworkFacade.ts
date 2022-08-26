@@ -16,8 +16,7 @@ import { Abortable } from '../types';
 import appService from '../services/AppService';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
 import fileSystemService from '../services/FileSystemService';
-import strings from 'assets/lang/strings';
-import errorService from 'src/services/ErrorService';
+import driveService from 'src/services/DriveService';
 
 export interface DownloadFileParams {
   toPath: string;
@@ -72,7 +71,7 @@ export class NetworkFacade {
 
     const plainFilePath = filePath;
 
-    const encryptedFilePath = fileSystemService.getDocumentsDir() + '/' + uuid.v4() + '.enc';
+    const encryptedFilePath = fileSystemService.tmpFilePath(`${uuid.v4()}.enc`);
 
     const encryptFileFunction = Platform.OS === 'android' ? androidEncryptFileFromFs : iosEncryptFileFromFs;
 
@@ -153,18 +152,22 @@ export class NetworkFacade {
       this.cryptoLib,
       Buffer.from,
       async (downloadables) => {
-        encryptedFileURI = fileSystemService.getDocumentsDir() + '/' + downloadables[0].hash + '.enc';
+        encryptedFileURI = fileSystemService.tmpFilePath(`${fileId}.enc`);
 
         downloadJob = RNFS.downloadFile({
           fromUrl: downloadables[0].url,
           toFile: encryptedFileURI,
           discretionary: true,
           cacheable: false,
+          begin: () => {
+            params.downloadProgressCallback(0);
+          },
           progress: (res) => {
             params.downloadProgressCallback(res.bytesWritten / res.contentLength);
           },
         });
 
+        driveService.eventEmitter.setJobId(downloadJob.jobId);
         expectedFileHash = downloadables[0].hash;
       },
       async (_, key, iv) => {

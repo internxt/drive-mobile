@@ -73,7 +73,7 @@ function AddModal(): JSX.Element {
     progressCallback: ProgressCallback,
   ) {
     const name = fileToUpload.name || driveFileService.getNameFromUri(fileToUpload.uri);
-    const destPath = `${fileSystemService.getTemporaryDir()}/${name}`;
+    const destPath = fileSystemService.tmpFilePath(name);
 
     await fileSystemService.copyFile(fileToUpload.uri, destPath);
 

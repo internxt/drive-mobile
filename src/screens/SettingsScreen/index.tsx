@@ -52,7 +52,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   };
 
   return (
-    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('bg-gray-5')}>
+    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('bg-gray-5 flex-1')}>
       <AppScreenTitle
         text={strings.screens.SettingsScreen.title}
         containerStyle={tailwind('bg-white')}
@@ -64,7 +64,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
         }
       />
       <ScrollView>
-        <View style={tailwind('px-4 pt-8 pb-10 flex-grow ')}>
+        <View style={tailwind('px-4 pt-8 pb-10 flex-1')}>
           {/* ACCOUNT */}
           <SettingsGroup
             style={tailwind('mb-2')}

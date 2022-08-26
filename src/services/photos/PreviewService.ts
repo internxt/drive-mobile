@@ -27,21 +27,28 @@ export default class PhotosPreviewService {
       width,
       height,
       format: resizerFormat,
-      quality: 100,
+      quality: 70,
       rotation: 0,
       options: { mode: 'cover' },
     });
 
     const destination = PhotosCommonServices.getPhotoPath({
-      name: photo.filename,
+      name: PhotosCommonServices.getPhotoName(photo.filename),
       size: PhotoSizeType.Preview,
-      type: resizerFormat,
+      type: resizerFormat.toLowerCase(),
     });
+
     if (!(await fileSystemService.exists(destination))) {
-      await fileSystemService.copyFile(response.path, destination);
+      await fileSystemService.moveFile(response.path, destination);
     }
 
-    return { ...response, uri: response.uri, format: resizerFormat, type: resizerFormat, path: destination };
+    return {
+      ...response,
+      uri: response.uri,
+      format: resizerFormat,
+      type: resizerFormat,
+      path: destination,
+    };
   }
 
   private getResizerFormat(format: string) {
@@ -61,10 +68,14 @@ export default class PhotosPreviewService {
    */
   public async getLocalPreview(photo: Photo): Promise<PhotoFileSystemRef | null> {
     try {
+      if (!photo.previews) throw new Error('Photo does not has a preview');
       const localPreviewPath = PhotosCommonServices.getPhotoPath({
         name: photo.name,
         size: PhotoSizeType.Preview,
-        type: photo.type,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        // Should fix this in the SDK, types are wrong
+        type: photo.previews[0].type,
       });
 
       const exists = await fileSystemService.exists(localPreviewPath);

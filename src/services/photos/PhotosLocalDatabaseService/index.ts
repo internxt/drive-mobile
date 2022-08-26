@@ -2,7 +2,7 @@ import { PhotosCommonServices } from '../PhotosCommonService';
 import sqliteService from '../../SqliteService';
 import { DevicePhoto, PhotoFileSystemRef, PHOTOS_DB_NAME, SyncStage } from '../../../types/photos';
 import deviceSyncTable from './tables/deviceSync';
-import { Photo } from '@internxt/sdk/dist/photos';
+import { Photo, PhotoId } from '@internxt/sdk/dist/photos';
 
 export class PhotosLocalDatabaseService {
   public isInitialized = false;
@@ -55,6 +55,10 @@ export class PhotosLocalDatabaseService {
 
   public async clear() {
     await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.deleteTableRows);
+  }
+
+  public async deletePhotoById(photoId: PhotoId) {
+    await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.deletePhotoById, [photoId]);
   }
 
   public async persistPhotoSync(photo: Photo, devicePhoto?: DevicePhoto) {

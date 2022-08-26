@@ -274,33 +274,34 @@ const downloadFileThunk = createAsyncThunk<
         userId: user?.uuid || null,
       });
     };
-
+    const destinationPath = fileSystemService.tmpFilePath(`${name}.${type}`);
+    const fileAlreadyExists = await fileSystemService.exists(destinationPath);
     try {
-      dispatch(uiActions.setIsDriveDownloadModalOpen(true));
-      trackDownloadStart();
-      downloadProgressCallback(0);
-
-      const destinationDir = await fileSystemService.getDocumentsDir();
-      let destinationPath = destinationDir + '/' + name + (type ? '.' + type : '');
-      const fileAlreadyExists = await fileSystemService.exists(destinationPath);
-
-      if (fileAlreadyExists) {
-        destinationPath = destinationDir + '/' + name + '-' + Date.now().toString() + (type ? '.' + type : '');
-      }
-
-      await fileSystemService.createEmptyFile(destinationPath);
-
       if (signal.aborted) {
         return rejectWithValue(null);
       }
 
-      await download({ fileId, to: destinationPath });
+      if (!fileAlreadyExists) {
+        dispatch(uiActions.setIsDriveDownloadModalOpen(true));
+        trackDownloadStart();
+        downloadProgressCallback(0);
+        await download({ fileId, to: destinationPath });
+      }
 
       const uri = fileSystemService.pathToUri(destinationPath);
 
       await fileSystemService.showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
       trackDownloadSuccess();
     } catch (err) {
+      /**
+       * In case something fails, we remove the file in case it exists, that way
+       * we don't use wrong encrypted cached files
+       */
+
+      if (fileAlreadyExists) {
+        await fileSystemService.unlink(destinationPath);
+      }
+
       if (!signal.aborted) {
         driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, new Error(strings.errors.downloadError));
         if ((err as Error).message === ErrorCodes.MISSING_SHARDS_ERROR) {

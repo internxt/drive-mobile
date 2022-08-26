@@ -369,6 +369,7 @@ const strings = new LocalizedStrings({
       cancelSubscription: 'Cancel subscription',
       manage: 'Manage',
       sending: 'Sending',
+      showStorageSpace: 'View device storage',
     },
     inputs: {
       name: 'Name',
@@ -986,6 +987,7 @@ const strings = new LocalizedStrings({
       cancelSubscription: 'Cancelar suscripción',
       manage: 'Gestionar',
       sending: 'Enviando',
+      showStorageSpace: 'Ver espacio usado',
     },
     inputs: {
       name: 'Nombre',

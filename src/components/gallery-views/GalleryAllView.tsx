@@ -12,8 +12,10 @@ import { useTailwind } from 'tailwind-rn';
 
 const COLUMNS = 3;
 const GUTTER = 3;
-const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onLoadNextPage }) => {
-  const tailwind = useTailwind();
+const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void>; onRefresh: () => Promise<void> }> = ({
+  onLoadNextPage,
+  onRefresh,
+}) => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
   const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
@@ -79,37 +81,34 @@ const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void> }> = ({ onL
     }
   }
 
-  return (
-    <FlatList<PhotoWithPreview>
-      initialNumToRender={25}
-      getItemLayout={function (_, index) {
-        return {
-          index,
-          length: itemSize + GUTTER,
-          offset: (itemSize + GUTTER) * index,
-        };
-      }}
-      contentContainerStyle={{ paddingBottom: itemSize }}
-      style={tailwind('bg-white')}
-      showsVerticalScrollIndicator
-      indicatorStyle={'black'}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={async () => {
-            setRefreshing(true);
+  async function handleRefresh() {
+    setRefreshing(true);
+    await onRefresh();
+    setRefreshing(false);
+  }
 
-            setRefreshing(false);
-          }}
-        />
-      }
-      ItemSeparatorComponent={renderItemSeparator}
-      data={photos}
-      numColumns={COLUMNS}
-      onEndReached={onScrollEnd}
-      keyExtractor={extractKey}
-      renderItem={renderListItem}
-    />
+  return (
+    <View style={{ flex: 1 }}>
+      <FlatList<PhotoWithPreview>
+        initialNumToRender={25}
+        getItemLayout={function (_, index) {
+          return {
+            index,
+            length: itemSize + GUTTER,
+            offset: (itemSize + GUTTER) * index,
+          };
+        }}
+        showsVerticalScrollIndicator
+        indicatorStyle={'black'}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        ItemSeparatorComponent={renderItemSeparator}
+        data={photos}
+        numColumns={COLUMNS}
+        onEndReached={onScrollEnd}
+        keyExtractor={extractKey}
+        renderItem={renderListItem}
+      />
+    </View>
   );
 };
 

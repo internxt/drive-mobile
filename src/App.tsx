@@ -25,6 +25,7 @@ import LanguageModal from './components/modals/LanguageModal';
 import PlansModal from './components/modals/PlansModal';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import fileSystemService from './services/FileSystemService';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -86,13 +87,15 @@ export default function App(): JSX.Element {
     authService.addLogoutListener(onUserLoggedOut);
 
     if (!isAppInitialized) {
-      Promise.all([loadFonts(), silentSignIn(), analyticsService.setup()])
-        .then(() => {
-          setIsAppInitialized(true);
-        })
-        .catch((err: Error) => {
-          setLoadError(err.message);
-        });
+      fileSystemService.prepareTmpDir().finally(() => {
+        return Promise.all([loadFonts(), silentSignIn(), analyticsService.setup()])
+          .then(() => {
+            setIsAppInitialized(true);
+          })
+          .catch((err: Error) => {
+            setLoadError(err.message);
+          });
+      });
     }
 
     shouldForceUpdate()

@@ -4,12 +4,13 @@ import { constants } from '../AppService';
 import PhotosEventEmitter from './EventsService';
 import PhotosLogService from './LogService';
 import RNFS from 'react-native-fs';
-import { PHOTOS_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_TMP_DIRECTORY } from './constants';
+import { PHOTOS_FULL_SIZE_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY } from './constants';
 import { Platform } from 'react-native';
 import { items } from '@internxt/lib';
 import { createHash } from '@internxt/rn-crypto';
 import { SdkManager } from '../common/SdkManager';
 import * as crypto from 'react-native-crypto';
+import fileSystemService from '../FileSystemService';
 enum HMAC {
   sha256 = 'sha256',
   sha512 = 'sha512',
@@ -36,11 +37,11 @@ export class PhotosCommonServices {
 
   public static getPhotoPath({ name, size, type }: { name: string; size: PhotoSizeType; type: string }) {
     if (size === PhotoSizeType.Full) {
-      return `${PHOTOS_DIRECTORY}/${name}.${type}`;
+      return `${PHOTOS_FULL_SIZE_DIRECTORY}/${name}.${type.toLowerCase()}`;
     }
 
     if (size === PhotoSizeType.Preview) {
-      return `${PHOTOS_PREVIEWS_DIRECTORY}/${name}.${type}`;
+      return `${PHOTOS_PREVIEWS_DIRECTORY}/${name}.${type.toLowerCase()}`;
     }
 
     throw new Error('Photo size is not recognized');
@@ -91,7 +92,7 @@ export class PhotosCommonServices {
     uri: string,
   ): Promise<string> {
     const filename = items.getItemDisplayName({ name, type });
-    const iosPath = `${PHOTOS_TMP_DIRECTORY}/${filename}`;
+    const iosPath = fileSystemService.tmpFilePath(filename);
     let path = uri;
 
     if (Platform.OS === 'ios') {

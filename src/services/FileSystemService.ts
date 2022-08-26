@@ -3,6 +3,8 @@ import RNFS from 'react-native-fs';
 import RNFetchBlob, { RNFetchBlobStat } from 'rn-fetch-blob';
 import FileViewer from 'react-native-file-viewer';
 import * as FileSystem from 'expo-file-system';
+import prettysize from 'prettysize';
+import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_FULL_SIZE_DIRECTORY } from './photos/constants';
 
 enum AcceptedEncodings {
   Utf8 = 'utf8',
@@ -17,7 +19,12 @@ export interface FileWriter {
 
 const ANDROID_URI_PREFIX = 'file://';
 
+export type UsageStatsResult = Record<string, { items: RNFS.ReadDirItem[]; prettySize: string }>;
 class FileSystemService {
+  public async prepareTmpDir() {
+    await this.unlinkIfExists(RNFetchBlob.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
+    await this.clearTempDir();
+  }
   public pathToUri(path: string): string {
     return Platform.OS === 'android' ? ANDROID_URI_PREFIX + path : path;
   }
@@ -33,6 +40,10 @@ class FileSystemService {
   public getDownloadsDir(): string {
     // MainBundlePath is only available on iOS
     return Platform.OS === 'ios' ? RNFS.MainBundlePath : RNFS.DownloadDirectoryPath;
+  }
+
+  public getDatabasesDir(): string {
+    return RNFS.LibraryDirectoryPath + '/LocalDatabase';
   }
 
   public toBase64(path: string) {
@@ -51,6 +62,9 @@ class FileSystemService {
     return RNFS.TemporaryDirectoryPath;
   }
 
+  public tmpFilePath(filename: string) {
+    return this.getTemporaryDir() + filename;
+  }
   public async clearTempDir(): Promise<void> {
     const items = await RNFS.readDir(this.getTemporaryDir());
 
@@ -87,6 +101,15 @@ class FileSystemService {
 
   public unlink(uri: string): Promise<void> {
     return RNFS.unlink(uri);
+  }
+
+  public async unlinkIfExists(uri: string): Promise<boolean> {
+    try {
+      await this.unlink(uri);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   public writeFileStream(uri: string): Promise<FileWriter> {
@@ -130,14 +153,67 @@ class FileSystemService {
     return blob;
   }
 
-  public async getUsageStats() {
-    const tmpDir = await RNFS.stat(this.getTemporaryDir());
-    const documentsDir = await RNFS.stat(this.getDocumentsDir());
+  public async getUsageStats(): Promise<UsageStatsResult> {
+    const readDirOrNot = async (directory: string) => {
+      try {
+        const dir = await RNFS.readDir(directory);
 
-    return {
-      tmp: { ...tmpDir, items: await RNFS.readDir(this.getTemporaryDir()) },
-      documents: { ...documentsDir, items: await RNFS.readDir(this.getDocumentsDir()) },
+        return dir;
+      } catch (e) {
+        return [];
+      }
     };
+    const cacheDir = await readDirOrNot(this.getCacheDir());
+    const tmpDir = await readDirOrNot(this.getTemporaryDir());
+    const documentsDir = await readDirOrNot(this.getDocumentsDir());
+    const photosPreviewsDir = await readDirOrNot(PHOTOS_PREVIEWS_DIRECTORY);
+    const photosFullSizeDir = await readDirOrNot(PHOTOS_FULL_SIZE_DIRECTORY);
+    const cacheSize = cacheDir.reduce<number>((prev, current) => {
+      return parseInt(current.size + prev);
+    }, 0);
+    const tmpSize = tmpDir.reduce<number>((prev, current) => {
+      return parseInt(current.size + prev);
+    }, 0);
+
+    const documentsSize = documentsDir.reduce<number>((prev, current) => {
+      return parseInt(current.size + prev);
+    }, 0);
+
+    const photosPreviewsSize = photosPreviewsDir.reduce<number>((prev, current) => {
+      return parseInt(current.size + prev);
+    }, 0);
+
+    const photosFullSizeSize = photosFullSizeDir.reduce<number>((prev, current) => {
+      return parseInt(current.size + prev);
+    }, 0);
+    const dirs: UsageStatsResult = {
+      cache: {
+        items: cacheDir,
+        prettySize: prettysize(cacheSize),
+      },
+      tmp: {
+        items: tmpDir,
+        prettySize: prettysize(tmpSize),
+      },
+      documents: {
+        items: documentsDir,
+        prettySize: prettysize(documentsSize),
+      },
+      photos_previews: {
+        items: photosPreviewsDir,
+        prettySize: prettysize(photosPreviewsSize),
+      },
+      photos_full_size: {
+        items: photosFullSizeDir,
+        prettySize: prettysize(photosFullSizeSize),
+      },
+      total: {
+        items: documentsDir.concat(cacheDir).concat(tmpDir).concat(photosPreviewsDir).concat(photosFullSizeDir),
+        prettySize: prettysize(cacheSize + tmpSize + documentsSize + photosPreviewsSize + photosFullSizeSize),
+      },
+    };
+
+    return dirs;
   }
 }
 

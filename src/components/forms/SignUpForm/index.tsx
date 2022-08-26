@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import strings from '../../../../assets/lang/strings';
 import { BaseFormProps, SignUpFormData } from '../../../types/ui';
-import AppTextInput, { AppTextInputProps } from '../../AppTextInput';
+import AppTextInput from '../../AppTextInput';
 import { useAppDispatch } from '../../../store/hooks';
 import { authThunks } from '../../../store/slices/auth';
 import analyticsService, { AnalyticsEventKey } from '../../../services/AnalyticsService';

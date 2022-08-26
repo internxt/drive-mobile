@@ -16,19 +16,21 @@ const PhotosSyncStatusWidget = () => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+
   const { syncStatus } = useAppSelector((state) => state.photos);
-  const [completedTasks, setCompletedTasks] = useState(0);
+  const [completedTasks, setCompletedTasks] = useState(syncStatus.completedTasks);
 
   const photosSyncStatus = syncStatus.status;
   const totalTasks = syncStatus.totalTasks;
   useEffect(() => {
     PhotosCommonServices.events.addListener({
       event: PhotosEventKey.PhotoSyncDone,
-      listener([photosSynced]) {
+      listener: ([photosSynced]) => {
         setCompletedTasks(photosSynced);
       },
     });
   }, []);
+
   const onResumeSyncPressed = () => {
     dispatch(photosThunks.resumeSyncThunk());
   };
@@ -93,25 +95,39 @@ const PhotosSyncStatusWidget = () => {
   const showPauseResumeButton = !isCompleted && !isPending;
 
   return (
-    <View style={tailwind('px-5 flex-row items-center justify-between')}>
-      {contentByStatus[photosSyncStatus]}
-      {showPauseResumeButton ? (
-        !isPaused && !isPausing ? (
-          <TouchableOpacity onPress={onPauseButtonPressed}>
-            <View style={[tailwind('py-1 flex-row items-center')]}>
-              <Pause weight="fill" color={getColor('text-blue-60')} size={12} />
-              <AppText style={tailwind('ml-1 text-blue-60 text-sm')}>{strings.buttons.pause}</AppText>
-            </View>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity disabled={isPausing} onPress={onResumeButtonPressed}>
-            <View style={[tailwind('py-1 flex-row items-center'), isPausing && tailwind('opacity-30')]}>
-              <Play weight="fill" color={getColor('text-blue-60')} size={12} />
-              <AppText style={tailwind('ml-1 text-blue-60 text-sm')}>{strings.buttons.resume}</AppText>
-            </View>
-          </TouchableOpacity>
-        )
-      ) : null}
+    <View>
+      <View style={tailwind('h-10 flex-row items-center justify-between')}>
+        <View style={tailwind('pl-5')}>{contentByStatus[photosSyncStatus]}</View>
+        {showPauseResumeButton ? (
+          !isPaused && !isPausing ? (
+            <TouchableOpacity
+              onPress={onPauseButtonPressed}
+              activeOpacity={0.7}
+              style={tailwind('h-full flex items-end justify-center px-5')}
+            >
+              <View style={tailwind('h-5 w-5 rounded-full flex-row items-center justify-center bg-primary')}>
+                <Pause weight="fill" color={getColor('text-white')} size={10} />
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              disabled={isPausing}
+              onPress={onResumeButtonPressed}
+              activeOpacity={0.7}
+              style={tailwind('h-full flex items-end justify-center px-5')}
+            >
+              <View style={tailwind('h-5 w-5 rounded-full flex-row items-center justify-center bg-primary')}>
+                <Play
+                  weight="fill"
+                  color={getColor('text-white')}
+                  style={tailwind('h-5 w-5 rounded-full flex-row items-center justify-center bg-primary')}
+                  size={10}
+                />
+              </View>
+            </TouchableOpacity>
+          )
+        ) : null}
+      </View>
     </View>
   );
 };
