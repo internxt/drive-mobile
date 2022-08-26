@@ -14,6 +14,8 @@ import fileSystemService from '../../FileSystemService';
 import { PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
 import { SdkManager } from 'src/services/common/SdkManager';
 import { AbortedOperationError } from 'src/types';
+import { Platform } from 'react-native';
+import PhotosLogService from '../LogService';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;
 
@@ -28,9 +30,11 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   public status = PhotosNetworkManagerStatus.IDLE;
   private uploadService: PhotosUploadService;
   private previewService = new PhotosPreviewService();
+  private logger: PhotosLogService;
   // eslint-disable-next-line
   private onStatusChangeCallback: OnStatusChangeCallback = () => {};
   private sdk: SdkManager;
+  private options: { enableLog: boolean };
   private queue = async.queue<PhotosNetworkOperation, Photo | null, Error>((task, next) => {
     if (this.isAborted) {
       throw new AbortedOperationError();
@@ -45,8 +49,10 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       });
   }, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY);
 
-  constructor(sdk: SdkManager) {
+  constructor(sdk: SdkManager, logger: PhotosLogService, options = { enableLog: false }) {
+    this.logger = logger;
     this.sdk = sdk;
+    this.options = options;
     this.uploadService = new PhotosUploadService(sdk);
     this.queue.drain(() => {
       this.updateStatus(PhotosNetworkManagerStatus.EMPTY);
@@ -57,11 +63,14 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   }
 
   public updateStatus(status: PhotosNetworkManagerStatus): void {
+    if (this.status === status) return;
+    this.log(`Network manager status change ${this.status} -> ${status}`);
     this.status = status;
     this.onStatusChangeCallback(status);
   }
 
   public run() {
+    this.log('Network manager starting');
     this.queue.resume();
   }
 
@@ -161,18 +170,26 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
    * @returns The result of the operation
    */
   public async processUploadOperation(operation: PhotosNetworkOperation): Promise<OperationResult> {
+    const startAt = Date.now();
     if (!PhotosCommonServices.model.device) throw new Error('Photos device not initialized');
     if (!PhotosCommonServices.model.user) throw new Error('Photos user not initialized');
-
     const photoData = operation.devicePhoto;
     // 1. Get photo data
     const name = PhotosCommonServices.getPhotoName(photoData.filename);
+    this.log(`--- UPLOADING ${name} ---`);
+
     const type = PhotosCommonServices.getPhotoType(photoData.filename);
     const stat = await fileSystemService.statRNFS(operation.photoRef);
 
     // 2. Upload the preview
     const preview = await this.previewService.generate(photoData);
+    const previewGeneratedElapsed = Date.now() - startAt;
+    this.log(`Preview generated in ${previewGeneratedElapsed / 1000}s`);
+
     const previewId = await this.uploadService.uploadPreview(preview.path);
+
+    const uploadGeneratedElapsed = Date.now() - (previewGeneratedElapsed + startAt);
+    this.log(`Preview uploaded in ${uploadGeneratedElapsed / 1000}s`);
 
     // 3. Upload the photo
     const photo = await this.uploadService.upload(operation.photoRef, {
@@ -199,6 +216,18 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       userId: PhotosCommonServices.model.user.id,
       size: parseInt(stat.size, 10),
     });
+    const photoUploadedElapsed = Date.now() - (uploadGeneratedElapsed + previewGeneratedElapsed + startAt);
+    this.log(`Photo uploaded successfully in ${photoUploadedElapsed / 1000}s`);
+    /**
+     * On iOS, the camera roll assets needs to be copied
+     * from another location so here we remove the copy
+     */
+    if (Platform.OS === 'ios') {
+      await fileSystemService.unlink(operation.photoRef);
+    }
+
+    const totalElapsed = Date.now() - startAt;
+    this.log(`--- TOTAL  ${totalElapsed / 1000}s ---\n`);
 
     return photo;
   }
@@ -213,5 +242,11 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
 
   private get isAborted() {
     return this.status === PhotosNetworkManagerStatus.ABORTED;
+  }
+
+  private log(message: string) {
+    if (this.options.enableLog) {
+      this.logger.info(message);
+    }
   }
 }

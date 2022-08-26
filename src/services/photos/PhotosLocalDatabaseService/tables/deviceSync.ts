@@ -17,6 +17,7 @@ const statements = {
   getByPhotoId: `SELECT * FROM ${TABLE_NAME} WHERE photo_id = ?`,
   getByDevicePhotoId: `SELECT * FROM ${TABLE_NAME} WHERE device_photo_id = ?`,
   updateByPhotoId: `UPDATE ${TABLE_NAME} SET device_photo_id = ? WHERE photo_id = ? `,
+  deletePhotoById: `DELETE FROM ${TABLE_NAME} WHERE photo_id = ? `,
 };
 
 export default {

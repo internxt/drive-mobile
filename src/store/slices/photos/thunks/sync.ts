@@ -9,6 +9,7 @@ import { PhotosNetworkManager } from '../../../../services/photos/network/Photos
 import { PHOTOS_PER_NETWORK_GROUP } from '../../../../services/photos/constants';
 import errorService from 'src/services/ErrorService';
 import { SdkManager } from 'src/services/common/SdkManager';
+import { PhotoStatus } from '@internxt/sdk/dist/photos';
 
 const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/startSync',
@@ -22,7 +23,9 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
         }),
       );
     };
-    const photosNetwork = new PhotosNetworkManager(SdkManager.getInstance());
+    const photosNetwork = new PhotosNetworkManager(SdkManager.getInstance(), PhotosCommonServices.log, {
+      enableLog: false,
+    });
     const syncManager = new PhotosSyncManager(
       { checkIfExistsPhotosAmount: PHOTOS_PER_NETWORK_GROUP },
       photosService.photosLocalDatabase,
@@ -59,7 +62,7 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
           },
         });
       }
-      if (photo) {
+      if (photo && photo.status === PhotoStatus.Exists) {
         photosService.getPreview(photo).then((preview) => {
           dispatch(
             photosSlice.actions.insertUploadedPhoto({
@@ -102,6 +105,21 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
         updateStatus(PhotosSyncStatus.Unknown);
       },
     });
+
+    PhotosCommonServices.events.addListener({
+      event: PhotosEventKey.RestartSync,
+      listener: () => {
+        PhotosCommonServices.events.emit(
+          {
+            event: PhotosEventKey.PhotoSyncDone,
+          },
+          0,
+        );
+        syncManager.destroy();
+        updateStatus(PhotosSyncStatus.Unknown);
+        syncManager.run();
+      },
+    });
     syncManager.run();
     updateStatus(PhotosSyncStatus.InProgress);
   },
@@ -117,8 +135,15 @@ const resumeSyncThunk = createAsyncThunk<void, void, { state: RootState }>('phot
   });
 });
 
+const restartSyncThunk = createAsyncThunk<void, void, { state: RootState }>('photos/restartSync', () => {
+  PhotosCommonServices.events.emit({
+    event: PhotosEventKey.RestartSync,
+  });
+});
+
 export const syncThunks = {
   startSyncThunk,
   pauseSyncThunk,
   resumeSyncThunk,
+  restartSyncThunk,
 };

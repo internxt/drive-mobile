@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AndroidPermission, IOSPermission, PERMISSIONS, PermissionStatus, RESULTS } from 'react-native-permissions';
-import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
+import { Photo } from '@internxt/sdk/dist/photos';
 import * as MediaLibrary from 'expo-media-library';
 import { RootState } from '../..';
 import photosService from '../../../services/photos';
@@ -101,7 +101,8 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
     if (!getState().photos.isInitialized) {
       dispatch(photosActions.setIsInitialized(true));
       await photosService.startPhotos();
-      await dispatch(syncThunks.startSyncThunk());
+      await dispatch(syncThunks.startSyncThunk()).unwrap();
+      await dispatch(loadPhotosThunk({ page: 1 })).unwrap();
     }
   },
 );
@@ -124,6 +125,7 @@ export const sortPhotos = (photos: PhotoWithPreview[]) => {
 };
 type LoadPhotosParams = {
   page: number;
+  isRefreshing?: boolean;
 };
 const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootState }>(
   'photos/loadPhotos',
@@ -134,7 +136,7 @@ const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootSt
       skip: (payload.page - 1) * LIMIT,
     });
 
-    dispatch(photosSlice.actions.setTotalPhotos(count));
+    dispatch(photosActions.setTotalPhotos(count));
     // Get the previews
     const photosWithPreviews = await Promise.all(
       results.map<Promise<PhotoWithPreview>>(async (photo) => {
@@ -144,7 +146,22 @@ const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootSt
         };
       }),
     );
-    dispatch(photosSlice.actions.savePhotos(photosWithPreviews));
+    dispatch(
+      photosSlice.actions.savePhotos({
+        photos: photosWithPreviews,
+        options: {
+          refresh: payload.isRefreshing || false,
+        },
+      }),
+    );
+  },
+);
+
+const refreshPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/refresh',
+  async (_, { dispatch }) => {
+    dispatch(loadPhotosThunk({ page: 1, isRefreshing: true }));
+    dispatch(syncThunks.restartSyncThunk());
   },
 );
 
@@ -170,6 +187,10 @@ export const photosSlice = createSlice({
       state.isInitialized = action.payload;
     },
 
+    setTotalPhotos(state, action: PayloadAction<number>) {
+      state.totalPhotos = action.payload;
+    },
+
     setPermissionsStatus: (state, action: PayloadAction<MediaLibrary.PermissionStatus>) => {
       state.permissionsStatus = action.payload;
     },
@@ -183,7 +204,9 @@ export const photosSlice = createSlice({
     setIsSelectionModeActivated(state, action: PayloadAction<boolean>) {
       state.isSelectionModeActivated = action.payload;
     },
-
+    resetLoadedPhotos(state) {
+      state.photos = [];
+    },
     resetPhotos(state) {
       state.selection = [];
       state.isSelectionModeActivated = false;
@@ -191,10 +214,6 @@ export const photosSlice = createSlice({
 
     insertUploadedPhoto(state, action: PayloadAction<PhotoWithPreview>) {
       state.photos = _.uniqBy(sortPhotos([...state.photos, action.payload]), 'name');
-    },
-
-    setTotalPhotos(state, action: PayloadAction<number>) {
-      state.totalPhotos = action.payload;
     },
 
     removePhotos(state, action: PayloadAction<Photo[]>) {
@@ -205,11 +224,18 @@ export const photosSlice = createSlice({
       });
     },
 
-    savePhotos(state, action: PayloadAction<PhotoWithPreview[]>) {
-      state.photos = _.uniqBy(
-        sortPhotos(state.photos.concat(action.payload.filter((photo) => photo.status === PhotoStatus.Exists))),
-        'name',
-      );
+    savePhotos(
+      state,
+      action: PayloadAction<{
+        photos: PhotoWithPreview[];
+        options?: { refresh: boolean };
+      }>,
+    ) {
+      if (action.payload.options && action.payload.options.refresh) {
+        state.photos = _.uniqBy(sortPhotos(action.payload.photos), 'name');
+      } else {
+        state.photos = _.uniqBy(sortPhotos([...state.photos, ...action.payload.photos]), 'name');
+      }
     },
 
     selectPhotos(state, action: PayloadAction<Photo[]>) {
@@ -267,6 +293,7 @@ export const photosThunks = {
   loadPhotosThunk,
   clearPhotosThunk,
   loadPhotosUsageThunk,
+  refreshPhotosThunk,
   ...permissionsThunks,
   ...syncThunks,
   ...networkThunks,

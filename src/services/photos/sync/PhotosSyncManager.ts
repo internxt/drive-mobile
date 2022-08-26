@@ -87,6 +87,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   public run(): void {
     this.log('Sync manager starting');
     this.devicePhotosScanner.run();
+    this.photosNetworkManager.run();
     this.updateStatus(PhotosSyncManagerStatus.RUNNING);
   }
 
@@ -130,6 +131,8 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     this.log('Killing pending photos upload operations');
     this.networkPhotosCheckQueue.kill();
     this.updateStatus(PhotosSyncManagerStatus.ABORTED);
+    this.totalPhotosSynced = 0;
+    this.totalPhotosInDevice = 0;
   }
 
   public get isAborted() {
@@ -193,6 +196,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
           this.processNextGroupOfPhotosIfNeeded();
           break;
       }
+
       this.checkIfFinishSync();
     });
 
@@ -210,9 +214,13 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
           break;
 
         case PhotosNetworkManagerStatus.RUNNING:
-          this.updateStatus(PhotosSyncManagerStatus.RUNNING);
+          if (this.status !== PhotosSyncManagerStatus.PAUSED) {
+            this.updateStatus(PhotosSyncManagerStatus.RUNNING);
+          }
+
           break;
       }
+      this.processNextGroupOfPhotosIfNeeded();
       this.checkIfFinishSync();
     });
 

@@ -11,6 +11,8 @@ import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import DebugPhotosWidget from '../../components/DebugPhotosWidget';
+import { DebugDeviceStorageWidget } from 'src/components/DebugDeviceStorageWidget';
+import { ScrollView } from 'react-native';
 
 function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element {
   const tailwind = useTailwind();
@@ -26,11 +28,14 @@ function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element
         onBackButtonPressed={onBackButtonPressed}
       />
 
-      <DebugInternetWidget />
-      <DebugUploadWidget style={tailwind('mb-5')} />
-      <DebugDownloadWidget style={tailwind('mb-5')} />
-      <DebugNotificationsWidget style={tailwind('mb-5')} />
-      <DebugPhotosWidget />
+      <ScrollView style={tailwind('flex-1')}>
+        <DebugInternetWidget />
+        <DebugUploadWidget style={tailwind('mb-5')} />
+        <DebugDownloadWidget style={tailwind('mb-5')} />
+        <DebugNotificationsWidget style={tailwind('mb-5')} />
+        <DebugPhotosWidget style={tailwind('mb-5')} />
+        <DebugDeviceStorageWidget style={tailwind('mb-16')} />
+      </ScrollView>
     </AppScreen>
   );
 }

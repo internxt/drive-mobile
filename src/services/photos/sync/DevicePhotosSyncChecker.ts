@@ -13,14 +13,7 @@ import { PhotosLocalDatabaseService } from '../PhotosLocalDatabaseService';
 
 export class DevicePhotosSyncCheckerService {
   public status = DevicePhotosSyncCheckerStatus.IDLE;
-  private queue = async.queue<DevicePhotoSyncCheckOperation, DevicePhotoSyncCheckOperation | null, Error>(
-    (task, next) => {
-      this.resolveSyncQueueOperation(task)
-        .then((result) => next(null, result))
-        .catch((err) => next(err, null));
-    },
-    PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY,
-  );
+  private queue = this.createQueue();
   private onStatusChangeCallback: DevicePhotosSyncServiceHandlers['onSyncQueueStatusChange'] = () => undefined;
   private db: PhotosLocalDatabaseService;
   constructor(db: PhotosLocalDatabaseService) {
@@ -29,6 +22,23 @@ export class DevicePhotosSyncCheckerService {
       this.updateStatus(DevicePhotosSyncCheckerStatus.EMPTY);
       this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);
     });
+  }
+
+  public createQueue() {
+    const queue = async.queue<DevicePhotoSyncCheckOperation, DevicePhotoSyncCheckOperation | null, Error>(
+      (task, next) => {
+        this.resolveSyncQueueOperation(task)
+          .then((result) => next(null, result))
+          .catch((err) => next(err, null));
+      },
+      PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY,
+    );
+    queue.drain(() => {
+      this.updateStatus(DevicePhotosSyncCheckerStatus.EMPTY);
+      this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);
+    });
+
+    return queue;
   }
 
   public pause() {
@@ -47,6 +57,7 @@ export class DevicePhotosSyncCheckerService {
 
   public destroy() {
     this.queue.kill();
+    this.queue = this.createQueue();
   }
 
   public isDone() {
@@ -102,9 +113,6 @@ export class DevicePhotosSyncCheckerService {
     return this.queue.length();
   }
 
-  private restart() {
-    this.queue.kill();
-  }
   private async getSyncStage(operation: DevicePhotoSyncCheckOperation) {
     if (operation.lastError) {
       return SyncStage.FAILED_TO_CHECK;

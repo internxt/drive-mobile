@@ -6,7 +6,7 @@ import * as yup from 'yup';
 import strings from '../../../../assets/lang/strings';
 import { BaseFormProps, AuthenticationFormData } from '../../../types/ui';
 import AppTextInput from '../../AppTextInput';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { useAppDispatch } from '../../../store/hooks';
 import authService from 'src/services/AuthService';
 import { TouchableWithoutFeedback, View } from 'react-native';
 import { Eye, EyeSlash } from 'phosphor-react-native';

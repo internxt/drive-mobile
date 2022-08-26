@@ -7,8 +7,6 @@ import globalStyle from '../../../styles/global';
 import BottomModal, { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../AppButton';
-import { useAppDispatch } from '../../../store/hooks';
-import { uiActions } from '../../../store/slices/ui';
 import imageService from '../../../services/ImageService';
 import fileSystemService from '../../../services/FileSystemService';
 import { useTailwind } from 'tailwind-rn';
@@ -26,9 +24,6 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
   }
 
   const tailwind = useTailwind();
-  const [times, setTimes] = useState(10);
-  // const [url, setUrl] = useState('LINK');
-  const dispatch = useAppDispatch();
 
   const photoPath = PhotosCommonServices.getPhotoPath({ name: data.name, size: PhotoSizeType.Full, type: data.type });
 
@@ -63,21 +58,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
 
     await imageService.share(uri);
   };
-  const onLessTimesButtonPressed = () => {
-    if (times > 0) {
-      setTimes(times - 1);
-    }
-  };
-  const onMoreTimesButtonPressed = () => {
-    setTimes(times + 1);
-  };
-  const onTimesTextChanged = (text: string) => {
-    console.log('onTimesTextChanged e: ', text.replace(/[^0-9]/g, ''));
-  };
-  const onCopyLinkButtonPressed = () => {
-    onClosed();
-    dispatch(uiActions.setIsLinkCopiedModalOpen(true));
-  };
+
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>

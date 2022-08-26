@@ -15,6 +15,7 @@ import { Trash } from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
+import AppText from 'src/components/AppText';
 
 function PhotosGalleryScreen(): JSX.Element {
   const tailwind = useTailwind();
@@ -28,8 +29,15 @@ function PhotosGalleryScreen(): JSX.Element {
   const hasMorePhotos = useAppSelector(photosSelectors.hasMorePhotos);
 
   const { selection } = useAppSelector((state) => state.photos);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isDeletePhotosModalOpen, setIsDeletePhotosModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (hasPhotos) {
+      setIsLoading(false);
+    }
+  }, [hasPhotos]);
+
   const onDeletePhotosModalClosed = () => {
     setIsDeletePhotosModalOpen(false);
     dispatch(photosActions.setIsSelectionModeActivated(false));
@@ -81,11 +89,7 @@ function PhotosGalleryScreen(): JSX.Element {
   })();*/
 
   useEffect(() => {
-    dispatch(photosThunks.startUsingPhotosThunk())
-      .unwrap()
-      .then(() => {
-        dispatch(photosThunks.loadPhotosThunk({ page: currentPage }));
-      });
+    dispatch(photosThunks.startUsingPhotosThunk()).unwrap();
 
     const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressed);
 
@@ -108,6 +112,10 @@ function PhotosGalleryScreen(): JSX.Element {
     }
   }
 
+  async function handleRefresh() {
+    await dispatch(photosThunks.refreshPhotosThunk()).unwrap();
+  }
+
   return (
     <>
       {/*   <SharePhotoModal
@@ -118,9 +126,9 @@ function PhotosGalleryScreen(): JSX.Element {
       /> */}
       <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selection} onClosed={onDeletePhotosModalClosed} />
 
-      <AppScreen safeAreaTop style={tailwind('mb-14')}>
+      <AppScreen safeAreaTop style={tailwind('flex-1')}>
         {/* GALLERY TOP BAR */}
-        <View style={tailwind('pt-1.5 pb-2')}>
+        <View style={tailwind('')}>
           {isSelectionModeActivated ? (
             <View style={tailwind('h-10 flex-row justify-between items-center')}>
               <View style={tailwind('flex-row items-center justify-between')}>
@@ -176,20 +184,15 @@ function PhotosGalleryScreen(): JSX.Element {
 
           <PhotosSyncStatusWidget />
         </View>
-
-        {/* GALLERY VIEW */}
-        {hasPhotos ? (
-          <GalleryView onLoadNextPage={loadNextPage} />
-        ) : (
-          <View style={tailwind('flex-1 items-center justify-center')}>
-            <Text style={tailwind('text-lg text-neutral-60')}>
-              {isLoading ? strings.screens.gallery.loading : strings.screens.gallery.empty}
-            </Text>
-          </View>
-        )}
-
-        {/*  VIEW MODE MENU */}
-        {/* groupByMenu */}
+        <View style={{ flex: 1 }}>
+          {hasPhotos ? (
+            <GalleryView onLoadNextPage={loadNextPage} onRefresh={handleRefresh} />
+          ) : (
+            <View style={tailwind('flex-1 items-center justify-center')}>
+              <Text style={tailwind('text-lg text-neutral-60')}>{strings.screens.gallery.loading}</Text>
+            </View>
+          )}
+        </View>
 
         {/* SELECTION MODE ACTIONS */}
         {isSelectionModeActivated && (

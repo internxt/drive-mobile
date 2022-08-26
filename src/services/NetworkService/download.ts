@@ -210,7 +210,7 @@ export async function downloadFile(
   }
 
   const [mirror] = mirrors;
-  const encryptedFileURI = fileSystemService.getDocumentsDir() + '/' + mirror.hash + '.enc';
+  const encryptedFileURI = fileSystemService.tmpFilePath(`${mirror.hash}.enc`);
 
   if (options.signal?.aborted) {
     throw new Error('Download process aborted after get the farmer url');

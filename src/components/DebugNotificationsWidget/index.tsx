@@ -1,5 +1,5 @@
 import { ArrowCircleDown, ArrowCircleUp, CheckCircle, Warning, WarningOctagon } from 'phosphor-react-native';
-import { FlatList, StyleProp, View, ViewStyle } from 'react-native';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../assets/lang/strings';
@@ -53,29 +53,27 @@ const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Ele
       </AppText>
 
       <View style={tailwind('h-3')}></View>
-
-      <FlatList
-        data={notifications}
-        numColumns={2}
-        keyExtractor={({ type }) => type}
-        renderItem={(info) => {
+      <View style={tailwind('flex flex-row flex-wrap')}>
+        {notifications.map((info, index) => {
           return (
-            <AppButton
-              onPress={() => onNotificationButtonPressed(info.item)}
-              title={
-                <View style={tailwind('flex-row')}>
-                  {info.item.icon && info.item.icon}
-                  <AppText style={tailwind('text-white')}>
-                    {strings.screens.DebugScreen.notifications.type[info.item.type]}
-                  </AppText>
-                </View>
-              }
-              type="accept"
-              style={tailwind('mx-1 flex-1 my-1')}
-            />
+            <View style={tailwind('w-1/2')} key={index}>
+              <AppButton
+                onPress={() => onNotificationButtonPressed(info)}
+                title={
+                  <View style={tailwind('flex-row')}>
+                    {info.icon && info.icon}
+                    <AppText style={tailwind('text-white')}>
+                      {strings.screens.DebugScreen.notifications.type[info.type]}
+                    </AppText>
+                  </View>
+                }
+                type="accept"
+                style={tailwind('mx-1 flex-1 my-1')}
+              />
+            </View>
           );
-        }}
-      ></FlatList>
+        })}
+      </View>
     </View>
   );
 };
