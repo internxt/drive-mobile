@@ -21,7 +21,6 @@ export interface AppEnv {
   REACT_NATIVE_BRIDGE_URL: string;
   REACT_NATIVE_PHOTOS_API_URL: string;
   REACT_NATIVE_PHOTOS_NETWORK_API_URL: string;
-  REACT_NATIVE_SEGMENT_API: string;
   REACT_NATIVE_CRYPTO_SECRET2: string;
   REACT_NATIVE_MAGIC_IV: string;
   REACT_NATIVE_MAGIC_SALT: string;
@@ -32,6 +31,8 @@ export interface AppEnv {
   SENTRY_URL: string;
   SENTRY_AUTH_TOKEN: string;
   RELEASE_ID: string;
+  DATAPLANE_URL: string;
+  ANALYTICS_WRITE_KEY: string;
 }
 
 const stage = AppStage.Production; // <- CHANGE STAGE
@@ -69,10 +70,8 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
       NSPhotoLibraryUsageDescription:
         'Allow $(PRODUCT_NAME) to access your photos to sync your device camera roll with our Photos cloud service',
     },
-    googleServicesFile: './GoogleService-Info.plist',
   },
   android: {
-    googleServicesFile: './google-services.json',
     versionCode: 56,
     icon: './assets/icon-android.png',
     adaptiveIcon: {
