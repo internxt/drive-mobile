@@ -18,13 +18,7 @@ Follow these steps before running the project.
 - Replace `TOKEN` with your own [Github Personal Access Token](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token) with `read:packages` permission **ONLY**
 - Use `yarn` to install project dependencies.
 
-### 2. Firebase (Optional)
-
-Copy **/GoogleService-Info.plist** and **/google-services.json** from your Firebase application.
-
-This is required to eject the app from expo properly using the **expo eject** command of expo-cli.
-
-### 3. Environment
+### 2. Environment
 
 In order to configure the environment, you have to create **/env/.env.development.json** and **/env/.env.production.json** files.
 

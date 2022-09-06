@@ -1,13 +1,14 @@
-import analytics, { JsonMap } from '@segment/analytics-react-native';
 import axios from 'axios';
-import Firebase from '@segment/analytics-react-native-firebase';
 import { NavigationState } from '@react-navigation/native';
 import _ from 'lodash';
+import analytics from '@rudderstack/rudder-sdk-react-native';
 
 import { getHeaders } from '../helpers/headers';
 import { constants } from './AppService';
-import { Options } from '@segment/analytics-react-native/build/esm/bridge';
 import asyncStorage from './AsyncStorageService';
+
+type JsonMap = Record<string, unknown>;
+type Options = Record<string, string | number>;
 
 export enum AnalyticsEventKey {
   UserSignUp = 'User Signup',
@@ -29,38 +30,47 @@ export enum AnalyticsEventKey {
 }
 
 class AnalyticsService {
+  private config = {
+    trackEnabled: false,
+    screenTrackEnabled: false,
+    identifyEnabled: false,
+  };
   public async setup() {
-    const WRITEKEY = constants.REACT_NATIVE_SEGMENT_API as string;
+    const WRITEKEY = constants.ANALYTICS_WRITE_KEY as string;
 
     if (!WRITEKEY) {
       // eslint-disable-next-line no-console
       console.warn('No WRITEKEY Key provided');
     }
 
-    if (!analytics.ready) {
-      await analytics
-        .setup(WRITEKEY, {
-          recordScreenViews: true,
-          trackAppLifecycleEvents: true,
-          using: [Firebase],
-        })
-        .catch(() => undefined); // ! hotfix - Ignore analytics initialization errors (segment analytics allocated multiple times)
-    }
+    await analytics.setup(WRITEKEY, {
+      dataPlaneUrl: constants.DATAPLANE_URL,
+      recordScreenViews: this.config.screenTrackEnabled,
+      trackAppLifecycleEvents: this.config.trackEnabled,
+    });
   }
 
-  public identify(user: string | null, traits?: JsonMap, options?: Options) {
+  public identify(
+    user: string,
+    traits: Record<string, string | number> = {},
+    options: Record<string, string | number> = {},
+  ) {
+    if (!this.config.identifyEnabled) return this.asNoop();
     return analytics.identify(user, traits, options);
   }
 
   public track(event: AnalyticsEventKey, properties?: JsonMap, options?: Options) {
+    if (!this.config.trackEnabled) return this.asNoop();
     analytics.track(event, properties, options);
   }
 
   public screen(name: string, properties?: JsonMap, options?: Options) {
+    if (!this.config.screenTrackEnabled) return this.asNoop();
     analytics.screen(name, properties, options);
   }
 
   public async trackStackScreen(state: NavigationState, params?: any): Promise<void> {
+    if (!this.config.screenTrackEnabled) return this.asNoop();
     analytics.screen(state.routes[0].name, params);
   }
 
@@ -139,13 +149,24 @@ class AnalyticsService {
     const conversionData = await this.getConversionData(sessionId);
 
     if (!_.isEmpty(conversionData.properties)) {
-      await analytics.identify(user.uuid, conversionData.traits);
+      await this.identify(user.uuid, conversionData.traits);
 
-      analytics.track(AnalyticsEventKey.PaymentConversionEvent, conversionData.properties);
+      await this.track(AnalyticsEventKey.PaymentConversionEvent, conversionData.properties);
 
       if (!_.isEmpty(conversionData.coupon)) {
-        analytics.track(AnalyticsEventKey.CouponRedeemedEvent, conversionData.coupon);
+        this.track(AnalyticsEventKey.CouponRedeemedEvent, conversionData.coupon);
       }
+    }
+  }
+
+  public async testEvent() {
+    await analytics.track('Test Event');
+  }
+
+  private async asNoop() {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.info('This operation is marked as a NOOP, so it will not produce any effect');
     }
   }
 }
