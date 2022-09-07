@@ -4,7 +4,7 @@ import appService from './AppService';
 import errorService from './ErrorService';
 
 class NewsletterService {
-  public readonly groupId = '103406410';
+  public readonly groupId = '51650193869768251';
 
   public async subscribe(email: string): Promise<void> {
     const headers = await getHeaders();
