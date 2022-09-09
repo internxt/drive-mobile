@@ -8,6 +8,16 @@
 </p>
 <p align="center" style="margin-top: 10px;">Internxt</p>
 
+## Requirements
+
+- JDK version: 11
+- SDK version: 29 or 30
+
+In case that you open the project in Android Studio:
+
+- NDK version: 21.1.6
+- CMake version: 3.10.2
+
 ## Setup
 
 Follow these steps before running the project.
