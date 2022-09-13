@@ -32,6 +32,7 @@ import driveService from '../../../services/DriveService';
 import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
 import { ErrorCodes } from 'src/types/errors';
+import { isValidFilename } from 'src/helpers';
 
 export enum ThunkOperationStatus {
   SUCCESS = 'SUCCESS',
@@ -277,6 +278,9 @@ const downloadFileThunk = createAsyncThunk<
     const destinationPath = fileSystemService.tmpFilePath(`${name}.${type}`);
     const fileAlreadyExists = await fileSystemService.exists(destinationPath);
     try {
+      if (!isValidFilename(name)) {
+        throw new Error('This file name is not valid');
+      }
       if (signal.aborted) {
         return rejectWithValue(null);
       }

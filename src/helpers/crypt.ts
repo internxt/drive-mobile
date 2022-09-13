@@ -81,8 +81,15 @@ export function probabilisticDecryption(cipherText: string): string | null {
   }
 }
 
+export function isValidFilename(filename: string) {
+  return !filename.includes('/') && !filename.includes('\\') && !filename.includes(':');
+}
 export function encryptFilename(filename: string, folderId: string): string {
   const { REACT_NATIVE_CRYPTO_SECRET2: CRYPTO_KEY } = constants;
+
+  if (!isValidFilename(filename)) {
+    throw new Error('This filename is not valid');
+  }
 
   if (!CRYPTO_KEY) {
     throw new Error('Cannot encrypt filename due to missing encryption key');

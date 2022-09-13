@@ -4,6 +4,7 @@ import { BUCKET_META_MAGIC, GCM_DIGEST_SIZE, SHA256_DIGEST_SIZE } from './consta
 import { pbkdf2, createHash } from '@internxt/rn-crypto';
 import unorm from 'unorm';
 import { HMAC } from '@internxt/rn-crypto/src/types/crypto';
+import { isValidFilename } from 'src/helpers';
 export function sha256(input: Buffer): Buffer {
   return crypto.createHash('sha256').update(input).digest();
 }
@@ -51,8 +52,11 @@ export async function GenerateFileKey(mnemonic: string, bucketId: string, index:
 }
 
 export async function EncryptFilename(mnemonic: string, bucketId: string, filename: string): Promise<string> {
-  const bucketKey = await GenerateBucketKey(mnemonic, bucketId);
+  if (!isValidFilename(filename)) {
+    throw new Error('This filename is not valid');
+  }
 
+  const bucketKey = await GenerateBucketKey(mnemonic, bucketId);
   const GenerateEncryptionKey = () => {
     const hasher = sha512HmacBuffer(bucketKey);
 
@@ -91,7 +95,12 @@ export async function DecryptFileName(
     .update(Buffer.from(BUCKET_META_MAGIC))
     .digest('hex');
 
-  return decryptMeta(encryptedName, key);
+  const decryptedFilename = decryptMeta(encryptedName, key);
+
+  if (decryptedFilename && !isValidFilename(decryptedFilename)) {
+    throw new Error('This filename is not valid');
+  }
+  return decryptedFilename;
 }
 
 function decryptMeta(bufferBase64: string, decryptKey: string) {

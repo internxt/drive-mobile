@@ -12,7 +12,7 @@ import RNFS from 'react-native-fs';
 
 import uploadService, { FileEntry } from '../../../services/UploadService';
 import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
-import { encryptFilename } from '../../../helpers';
+import { encryptFilename, isValidFilename } from '../../../helpers';
 import fileSystemService from '../../../services/FileSystemService';
 import driveFileService from '../../../services/DriveFileService';
 import strings from '../../../../assets/lang/strings';
@@ -149,6 +149,9 @@ function AddModal(): JSX.Element {
       dispatch(driveActions.uploadFileSetProgress({ progress, id: uploadingFile.id }));
     }
 
+    if (!isValidFilename(uploadingFile.name)) {
+      throw new Error('This file name is not valid');
+    }
     if (uploadingFile.size + usage > limit) {
       dispatch(uiActions.setShowRunOutSpaceModal(true));
       throw new Error(strings.errors.storageLimitReached);
@@ -202,6 +205,9 @@ function AddModal(): JSX.Element {
     filesAtSameLevel: { name: string; type: string }[],
     file: DocumentPickerResponse,
   ): UploadingFile {
+    if (!isValidFilename(file.name)) {
+      throw new Error('This file name is not valid');
+    }
     const nameSplittedByDots = file.name.split('.');
 
     return {
@@ -226,6 +232,9 @@ function AddModal(): JSX.Element {
     const filesExcluded: DocumentPickerResponse[] = [];
     const formattedFiles: UploadingFile[] = [];
 
+    if (!documents.every((file) => isValidFilename(file.name))) {
+      throw new Error('Some file names are not valid');
+    }
     for (const file of documents) {
       if (file.size <= UPLOAD_FILE_SIZE_LIMIT) {
         filesToUpload.push(file);
@@ -321,6 +330,7 @@ function AddModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
+
           notificationsService.show({
             type: NotificationType.Error,
             text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
