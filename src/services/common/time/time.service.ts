@@ -1,5 +1,6 @@
 import { DateTime, Settings } from 'luxon';
 
+export type TimeInput = Date | number | string;
 /**
  * Provides an easy layer library and platform independent to work consistently
  * with time utilities such dates
@@ -26,9 +27,19 @@ export class TimeService {
    * HH   ->  Hours of the date
    * mm   ->  Minutes of the date
    */
-  getFormattedDate(input: Date, format: string) {
-    const date = DateTime.fromJSDate(input);
-    return date.toFormat(format);
+  getFormattedDate(input: TimeInput, format: string) {
+    const dateTime = this.getDateTime(input);
+    return dateTime.toFormat(format);
+  }
+
+  /**
+   * Creates a DateTime object
+   *
+   * @param input Input to create a datetime from
+   * @returns A valid DateTime object
+   */
+  getDateTime(input: TimeInput) {
+    return DateTime.fromJSDate(new Date(input));
   }
 }
 
