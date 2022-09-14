@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { TouchableHighlight, View } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppDispatch } from '../../store/hooks';
 import { referralsThunks } from '../../store/slices/referrals';
 import { ReferralTypes } from '@internxt/sdk/dist/drive';
 import { uiActions } from '../../store/slices/ui';
@@ -13,12 +13,16 @@ import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 import SettingsGroup from '../SettingsGroup';
 import storageService from 'src/services/StorageService';
+import { UserReferral } from '@internxt/sdk/dist/drive/referrals/types';
 
-const ReferralsWidget = (): JSX.Element => {
+interface Props {
+  referrals: UserReferral[];
+}
+
+const ReferralsWidget = ({ referrals }: Props): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
-  const { list: referrals } = useAppSelector((state) => state.referrals);
   const totalReferralsStorage = useMemo(() => referrals.reduce((t, x) => t + x.credit * x.steps, 0), [referrals]);
   const unlockedReferralsStorage = useMemo(
     () => referrals.reduce((t, x) => (x.isCompleted ? t + x.credit * x.completedSteps : t), 0),
