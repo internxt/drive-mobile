@@ -9,7 +9,8 @@ const checkPermissionsThunk = createAsyncThunk<{ hasPermissions: boolean }, void
   async (payload: void, { dispatch }) => {
     const permissions = await MediaLibrary.getPermissionsAsync();
 
-    const permissionsGranted = permissions.status === MediaLibrary.PermissionStatus.GRANTED;
+    const permissionsGranted = permissions.accessPrivileges != 'none' && permissions.granted;
+    // const permissionsGranted = permissions.accessPrivileges != 'none' || permissions.granted;
 
     dispatch(photosSlice.actions.setPermissionsStatus(permissions.status));
     return {
