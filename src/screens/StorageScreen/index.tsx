@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import GestureRecognizer from 'react-native-swipe-gestures';
 
@@ -25,11 +25,6 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
   const [currentStatusStep, setCurrentStatusStep] = useState(0);
   const { limit } = useAppSelector((state) => state.storage);
   const hasPaidPlan = useAppSelector(paymentsSelectors.hasPaidPlan);
-  const { list: referrals } = useAppSelector((state) => state.referrals);
-  const unlockedReferralsStorage = useMemo(
-    () => referrals.reduce((t, x) => (x.isCompleted ? t + x.credit * x.completedSteps : t), 0),
-    [referrals],
-  );
   const usage = useAppSelector(storageSelectors.usage);
   const availableStorage = useAppSelector(storageSelectors.availableStorage);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
@@ -57,7 +52,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
         <AppText style={tailwind('text-lg text-center')}>{strings.generic.used}</AppText>
         <AppText style={tailwind('text-5xl text-center')}>{storageService.toString(usage)}</AppText>
         <AppText style={tailwind('text-lg text-center')}>
-          {strings.formatString(strings.generic.ofN, storageService.toString(unlockedReferralsStorage))}
+          {strings.formatString(strings.generic.ofN, storageService.toString(limit))}
         </AppText>
       </>
     ),
@@ -66,7 +61,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
         <AppText style={tailwind('text-lg text-center')}>{strings.generic.avaiblable}</AppText>
         <AppText style={tailwind('text-5xl text-center')}>{storageService.toString(availableStorage)}</AppText>
         <AppText style={tailwind('text-lg text-center')}>
-          {strings.formatString(strings.generic.ofN, storageService.toString(unlockedReferralsStorage))}
+          {strings.formatString(strings.generic.ofN, storageService.toString(limit))}
         </AppText>
       </>
     ),
@@ -161,7 +156,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
             ]}
           />
 
-          <ReferralsWidget referrals={referrals} />
+          <ReferralsWidget />
         </View>
       </ScrollView>
     </AppScreen>
