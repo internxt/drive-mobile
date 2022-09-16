@@ -17,7 +17,7 @@ import useGetColor from '../../hooks/useColor';
 import { uiActions } from '../../store/slices/ui';
 import UserProfilePicture from '../../components/UserProfilePicture';
 import { Language } from 'src/types';
-import { storageSelectors } from 'src/store/slices/storage';
+import { storageSelectors, storageThunks } from 'src/store/slices/storage';
 
 function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const tailwind = useTailwind();
@@ -33,6 +33,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
     dispatch(uiActions.setIsSignOutModalOpen(true));
   };
   const onStoragePressed = () => {
+    dispatch(storageThunks.loadLimitThunk());
     navigation.navigate('Storage');
   };
   const onLanguagePressed = () => {
