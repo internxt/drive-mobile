@@ -4,7 +4,7 @@ import _ from 'lodash';
 import analytics from '@rudderstack/rudder-sdk-react-native';
 
 import { getHeaders } from '../helpers/headers';
-import { constants } from './AppService';
+import { constants } from '../services/common/app';
 import asyncStorage from './AsyncStorageService';
 
 type JsonMap = Record<string, unknown>;

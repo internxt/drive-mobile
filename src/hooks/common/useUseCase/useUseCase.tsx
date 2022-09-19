@@ -1,7 +1,7 @@
 import { NotificationType } from '../../../types';
 import { useEffect, useState } from 'react';
 import notificationsService from 'src/services/NotificationsService';
-import { DisplayableError } from 'src/services/common/errors/base';
+import { DisplayableError } from 'src/services/common/errors';
 
 export type UseCaseResult<T, E = unknown> = {
   data: T | null;

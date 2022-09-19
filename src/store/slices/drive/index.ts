@@ -120,7 +120,7 @@ const getFolderContentThunk = createAsyncThunk<
   { folderId: number },
   { state: RootState }
 >('drive/getFolderContent', async ({ folderId }, { dispatch }) => {
-  const folderRecord = await drive.localDB.getFolderRecord(folderId);
+  const folderRecord = await drive.database.getFolderRecord(folderId);
   const folderContentPromise = fileService.getFolderContent(folderId);
   const getFolderContent = async () => {
     const response = await folderContentPromise;
@@ -132,7 +132,7 @@ const getFolderContentThunk = createAsyncThunk<
 
   if (folderRecord) {
     getFolderContent().then(({ response, folderContent }) => {
-      drive.localDB.saveFolderContent(response, folderContent);
+      drive.database.saveFolderContent(response, folderContent);
 
       dispatch(
         driveActions.setFocusedItem({
@@ -145,7 +145,7 @@ const getFolderContentThunk = createAsyncThunk<
       dispatch(driveActions.setFolderContent(folderContent));
     });
 
-    const folderContent = await drive.localDB.getDriveItems(folderId);
+    const folderContent = await drive.database.getDriveItems(folderId);
 
     return {
       focusedItem: {
@@ -159,7 +159,7 @@ const getFolderContentThunk = createAsyncThunk<
   } else {
     const { response, folderContent } = await getFolderContent();
 
-    drive.localDB.saveFolderContent(response, folderContent);
+    drive.database.saveFolderContent(response, folderContent);
 
     return {
       focusedItem: {
@@ -391,7 +391,7 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
       });
     }
 
-    await drive.localDB.deleteItem({
+    await drive.database.deleteItem({
       id: origin.itemId as number,
       isFolder: isFolder,
     });
@@ -422,7 +422,7 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[] }, { state: RootS
         dispatch(loadUsageThunk());
         for (const item of items) {
           dispatch(driveActions.popItem({ id: item.id, isFolder: !item.fileId }));
-          drive.localDB.deleteItem({ id: item.id, isFolder: !item.fileId });
+          drive.database.deleteItem({ id: item.id, isFolder: !item.fileId });
         }
       })
       .catch((err) => {
@@ -438,7 +438,7 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[] }, { state: RootS
 const clearLocalDatabaseThunk = createAsyncThunk<void, void, { state: RootState }>(
   'drive/clearLocalDatabase',
   async () => {
-    drive.localDB.resetDatabase();
+    drive.database.resetDatabase();
   },
 );
 
