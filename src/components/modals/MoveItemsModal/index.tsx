@@ -15,7 +15,7 @@ import {
   SortType,
 } from '../../../types/drive';
 import DriveNavigableItem from '../../DriveNavigableItem';
-import fileService from '../../../services/DriveFileService';
+import drive from '@internxt-mobile/services/drive';
 import _ from 'lodash';
 import { DriveFileData, FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
 import { ArrowDown, ArrowUp, CaretLeft, X } from 'phosphor-react-native';
@@ -87,7 +87,7 @@ function MoveItemsModal(): JSX.Element {
             fileId: (child as DriveFileData).fileId,
           },
         }))
-        .sort(fileService.getSortFunction(sortMode))
+        .sort(drive.file.getSortFunction(sortMode))
         .sort((a, b) => {
           const aValue = a.data.fileId ? 1 : 0;
           const bValue = b.data.fileId ? 1 : 0;
@@ -194,7 +194,7 @@ function MoveItemsModal(): JSX.Element {
   const loadDestinationFolderContent = async (folderId: number) => {
     try {
       setSortMode(INITIAL_SORT_MODE);
-      const response = await fileService.getFolderContent(folderId);
+      const response = await drive.file.getFolderContent(folderId);
 
       setDestinationFolderContentResponse(response);
     } catch (e) {
@@ -204,7 +204,7 @@ function MoveItemsModal(): JSX.Element {
   const loadOriginFolderContent = async () => {
     try {
       if (originFolderId) {
-        const response = await fileService.getFolderContent(originFolderId);
+        const response = await drive.file.getFolderContent(originFolderId);
         setOriginFolderContentResponse(response);
       }
     } catch (e) {

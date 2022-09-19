@@ -1,10 +1,10 @@
+import { constants } from '@internxt-mobile/services/AppService';
+import errorService from '@internxt-mobile/services/ErrorService';
+import notificationsService from '@internxt-mobile/services/NotificationsService';
+import { NotificationType } from '@internxt-mobile/types/index';
 import Axios from 'axios';
-import AesUtils from '../../helpers/aesUtils';
-import { getHeaders } from '../../helpers/headers';
-import { NotificationType } from '../../types';
-import { constants } from '../AppService';
-import errorService from '../ErrorService';
-import notificationsService from '../NotificationsService';
+import AesUtils from 'src/helpers/aesUtils';
+import { getHeaders } from 'src/helpers/headers';
 
 class DriveShareService {
   public async getShareList(): Promise<any[]> {
@@ -44,4 +44,4 @@ class DriveShareService {
   }
 }
 
-export default DriveShareService;
+export const driveShareService = new DriveShareService();

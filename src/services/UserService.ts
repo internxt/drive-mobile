@@ -5,7 +5,7 @@ import Axios from 'axios';
 import { decryptText, decryptTextWithKey, encryptText, passToHash } from 'src/helpers';
 import { getHeaders } from 'src/helpers/headers';
 import { constants } from './AppService';
-import { SdkManager } from './common/SdkManager';
+import { SdkManager } from './common/sdk/SdkManager';
 const FormData = global.FormData;
 
 class UserService {

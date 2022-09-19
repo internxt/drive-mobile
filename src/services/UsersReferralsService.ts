@@ -1,5 +1,5 @@
 import { UserReferral, ReferralKey } from '@internxt/sdk/dist/drive/referrals/types';
-import { SdkManager } from './common/SdkManager';
+import { SdkManager } from '@internxt-mobile/services/common';
 
 class UsersReferralsService {
   private sdk: SdkManager;

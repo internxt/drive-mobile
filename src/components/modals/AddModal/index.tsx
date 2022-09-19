@@ -14,7 +14,6 @@ import uploadService, { FileEntry } from '../../../services/UploadService';
 import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
 import { encryptFilename, isValidFilename } from '../../../helpers';
 import fileSystemService from '../../../services/FileSystemService';
-import driveFileService from '../../../services/DriveFileService';
 import strings from '../../../../assets/lang/strings';
 import { DevicePlatform, NotificationType, ProgressCallback } from '../../../types';
 import asyncStorage from '../../../services/AsyncStorageService';
@@ -32,7 +31,7 @@ import { useTailwind } from 'tailwind-rn';
 import AppText from '../../AppText';
 import useGetColor from '../../../hooks/useColor';
 import { storageSelectors } from 'src/store/slices/storage';
-
+import drive from '@internxt-mobile/services/drive';
 function AddModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -72,7 +71,7 @@ function AddModal(): JSX.Element {
     fileType: 'document' | 'image',
     progressCallback: ProgressCallback,
   ) {
-    const name = fileToUpload.name || driveFileService.getNameFromUri(fileToUpload.uri);
+    const name = fileToUpload.name || drive.file.getNameFromUri(fileToUpload.uri);
     const destPath = fileSystemService.tmpFilePath(name);
 
     await fileSystemService.copyFile(fileToUpload.uri, destPath);
@@ -130,7 +129,7 @@ function AddModal(): JSX.Element {
     );
 
     const folderId = currentFolderId;
-    const name = encryptFilename(driveFileService.removeExtension(fileName), folderId.toString());
+    const name = encryptFilename(drive.file.removeExtension(fileName), folderId.toString());
     const fileEntry: FileEntry = {
       fileId,
       file_id: fileId,
@@ -213,10 +212,10 @@ function AddModal(): JSX.Element {
     return {
       id: new Date().getTime(),
       uri: file.uri,
-      name: driveFileService.renameIfAlreadyExists(
+      name: drive.file.renameIfAlreadyExists(
         filesAtSameLevel,
-        driveFileService.removeExtension(file.name),
-        driveFileService.getExtensionFromUri(file.name) || '',
+        drive.file.removeExtension(file.name),
+        drive.file.getExtensionFromUri(file.name) || '',
       )[2],
       type: nameSplittedByDots[nameSplittedByDots.length - 1] || '',
       parentId: currentFolderId,
@@ -252,7 +251,7 @@ function AddModal(): JSX.Element {
       folderContent
         ?.filter((item) => item.fileId)
         .map((file) => {
-          return { name: driveFileService.removeExtension(file.name), type: file.type };
+          return { name: drive.file.removeExtension(file.name), type: file.type };
         }) || [];
 
     for (const fileToUpload of filesToUpload) {
@@ -264,12 +263,12 @@ function AddModal(): JSX.Element {
         file = {
           id: new Date().getTime(),
           uri: fileToUpload.uri,
-          name: driveFileService.renameIfAlreadyExists(
+          name: drive.file.renameIfAlreadyExists(
             filesAtSameLevel,
-            driveFileService.removeExtension(fileToUpload.name),
-            driveFileService.getExtensionFromUri(fileToUpload.name) || '',
+            drive.file.removeExtension(fileToUpload.name),
+            drive.file.getExtensionFromUri(fileToUpload.name) || '',
           )[2],
-          type: driveFileService.getExtensionFromUri(fileToUpload.uri) || '',
+          type: drive.file.getExtensionFromUri(fileToUpload.uri) || '',
           parentId: currentFolderId,
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
@@ -459,7 +458,7 @@ function AddModal(): JSX.Element {
         }
 
         if (!result.cancelled) {
-          const name = driveFileService.removeExtension(result.uri.split('/').pop() as string);
+          const name = drive.file.removeExtension(result.uri.split('/').pop() as string);
           const fileInfo = await FileSystem.getInfoAsync(result.uri);
           const size = fileInfo.size;
           const file: UploadingFile = {
@@ -468,7 +467,7 @@ function AddModal(): JSX.Element {
             parentId: currentFolderId,
             createdAt: new Date().toString(),
             updatedAt: new Date().toString(),
-            type: driveFileService.getExtensionFromUri(result.uri) as string,
+            type: drive.file.getExtensionFromUri(result.uri) as string,
             size: size || 0,
             uri: result.uri,
             progress: 0,

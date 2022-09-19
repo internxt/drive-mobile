@@ -1,7 +1,7 @@
 import { Device, User } from '@internxt/sdk/dist/photos';
 import Axios from 'axios';
 import { getUniqueId, getDeviceName, getMacAddress } from 'react-native-device-info';
-import { SdkManager } from '../common/SdkManager';
+import { SdkManager } from '@internxt-mobile/services/common';
 
 import { PhotosCommonServices } from './PhotosCommonService';
 

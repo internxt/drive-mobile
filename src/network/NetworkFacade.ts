@@ -16,7 +16,7 @@ import { Abortable } from '../types';
 import appService from '../services/AppService';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
 import fileSystemService from '../services/FileSystemService';
-import driveService from 'src/services/DriveService';
+import drive from '@internxt-mobile/services/drive';
 
 export interface DownloadFileParams {
   toPath: string;
@@ -169,7 +169,7 @@ export class NetworkFacade {
           },
         });
 
-        driveService.eventEmitter.setJobId(downloadJob.jobId);
+        drive.events.setJobId(downloadJob.jobId);
         expectedFileHash = downloadables[0].hash;
       },
       async (_, key, iv) => {

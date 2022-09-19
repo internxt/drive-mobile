@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { DriveFileData, DriveFolderData, MoveFolderPayload } from '@internxt/sdk/dist/drive/storage/types';
 
-import { getHeaders } from '../helpers/headers';
-import { DriveFolderMetadataPayload } from '../types/drive';
-import { constants } from './AppService';
-import fileService from './DriveFileService';
-import { SdkManager } from './common/SdkManager';
+import { getHeaders } from '../../../helpers/headers';
+import { DriveFolderMetadataPayload } from '../../../types/drive';
+import { constants } from '../../AppService';
+import { driveFileService } from '../file';
+import { SdkManager } from '@internxt-mobile/services/common';
 
 class DriveFolderService {
   private sdk: SdkManager;
@@ -50,7 +50,7 @@ class DriveFolderService {
 
     while (pendingFolders.length > 0) {
       const currentFolder = pendingFolders[0];
-      const folderContentResponse = await fileService.getFolderContent(currentFolder.folderId);
+      const folderContentResponse = await driveFileService.getFolderContent(currentFolder.folderId);
       const folderContent: { folders: DriveFolderData[]; files: DriveFileData[] } = {
         folders: [],
         files: [],
@@ -68,7 +68,7 @@ class DriveFolderService {
         const fileFullName = `${file.name}${file.type ? '.' + file.type : ''}`;
         const relativePath = `${currentFolder.relativePath}/${fileFullName}`;
 
-        fileService.renameFileInNetwork(file.fileId, bucketId, relativePath);
+        driveFileService.renameFileInNetwork(file.fileId, bucketId, relativePath);
       }
 
       // * Adds current folder folders to pending
@@ -82,4 +82,4 @@ class DriveFolderService {
   }
 }
 
-export default new DriveFolderService(SdkManager.getInstance());
+export const driveFolderService = new DriveFolderService(SdkManager.getInstance());

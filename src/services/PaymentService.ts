@@ -10,7 +10,7 @@ import {
 } from '@internxt/sdk/dist/drive/payments/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
-import { SdkManager } from './common/SdkManager';
+import { SdkManager } from '@internxt-mobile/services/common';
 
 class PaymentService {
   private sdk: SdkManager;
