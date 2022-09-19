@@ -44,23 +44,21 @@ export function useUseCase<T, E = unknown>(
     if (state.data || state.error) {
       resetState();
     }
-
-    useCase()
-      .then((result) => {
-        setState({
-          ...state,
-          data: result,
-          loading: false,
-        });
-      })
-      .catch((error) => {
-        processError(error);
-        setState({
-          ...state,
-          error,
-          loading: false,
-        });
+    try {
+      const result = await useCase();
+      setState({
+        ...state,
+        data: result,
+        loading: false,
       });
+    } catch (error) {
+      processError(error);
+      setState({
+        ...state,
+        error: error as E,
+        loading: false,
+      });
+    }
   };
   return [state.data, state.loading, state.error, executeUseCase];
 }
