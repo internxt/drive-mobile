@@ -2,12 +2,12 @@ import AppError from '../types';
 import sentryService from './SentryService';
 import { Severity } from '@sentry/react-native';
 
-interface GlobalErrorContext {
+export interface GlobalErrorContext {
   email: string;
   userId: string;
 }
 
-interface ErrorContext extends GlobalErrorContext {
+export interface ErrorContext extends GlobalErrorContext {
   level: Severity;
   // Tagname and value of the tag such environment: dev or things like that
   tags: { [tagName: string]: string };
