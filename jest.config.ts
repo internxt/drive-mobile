@@ -18,12 +18,14 @@ const untranspiledModulePatterns = [
   'react-native-svg',
   'rn-fetch-blob',
   '@internxt/rn-crypto',
+  '@rudderstack',
 ];
 
 const config: Config.InitialOptions = {
   preset: 'jest-expo',
   verbose: true,
-  testRegex: '\\.spec\\.ts$',
+  testRegex: ['\\.spec\\.ts$', '\\.spec\\.tsx$'],
+  setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
   transformIgnorePatterns: [`node_modules/(?!${untranspiledModulePatterns.join('|')})`],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
 };
