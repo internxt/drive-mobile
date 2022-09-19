@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking, View, ScrollView } from 'react-native';
-import { Bug, CaretRight, FolderSimple, Info, Question, Translate } from 'phosphor-react-native';
+import { Bug, CaretRight, FolderSimple, Info, Question, Translate, Trash } from 'phosphor-react-native';
 
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
@@ -34,6 +34,9 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   };
   const onStoragePressed = () => {
     navigation.navigate('Storage');
+  };
+  const onTrashPressed = () => {
+    navigation.navigate('Trash');
   };
   const onLanguagePressed = () => {
     dispatch(uiActions.setIsLanguageModalOpen(true));
@@ -134,6 +137,23 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                   </View>
                 ),
                 onPress: onStoragePressed,
+              },
+              {
+                key: 'trash',
+                template: (
+                  <View style={[tailwind('flex-row items-center  px-4 py-3')]}>
+                    <Trash size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
+                    <View style={tailwind('flex-grow justify-center')}>
+                      <AppText style={[tailwind('text-lg text-gray-80')]}>
+                        {strings.screens.SettingsScreen.trash}
+                      </AppText>
+                    </View>
+                    <View style={tailwind('flex-row items-center')}>
+                      <CaretRight color={getColor('text-neutral-60')} size={20} />
+                    </View>
+                  </View>
+                ),
+                onPress: onTrashPressed,
               },
               {
                 key: 'language',

@@ -7,7 +7,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace ReactNavigation {
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends RootStackParamList { }
   }
 }
 
@@ -75,6 +75,7 @@ export type SettingsStackParamList = {
   SettingsHome: undefined;
   Account: undefined;
   Storage: undefined;
+  Trash: undefined;
   Plan: undefined;
   Security: undefined;
 };

@@ -207,6 +207,9 @@ const strings = new LocalizedStrings({
           },
         },
       },
+      TrashScreen: {
+        title: 'Trash',
+      },
       create_folder: {
         input: 'Enter folder name',
         title: 'New folder',
@@ -244,6 +247,7 @@ const strings = new LocalizedStrings({
       SettingsScreen: {
         title: 'Settings',
         storage: 'Storage',
+        trash: 'Trash',
         language: 'Language',
         drive: 'Drive',
         account: {
@@ -824,6 +828,9 @@ const strings = new LocalizedStrings({
             [ReferralTypes.ReferralKey.InviteFriends]: 'Invitar {0}/{1} amigos',
           },
         },
+      },
+      TrashScreen: {
+        title: 'Papelera',
       },
       create_folder: {
         input: 'Nombre de la carpeta',
