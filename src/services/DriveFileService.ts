@@ -1,14 +1,21 @@
 import { createHash } from 'crypto';
 import axios from 'axios';
 
-import { DriveFileMetadataPayload, DriveItemData, DriveListItem, SortDirection, SortType } from '../types/drive';
+import { DriveItemData, DriveListItem, SortDirection, SortType } from '../types/drive';
 import { getHeaders } from '../helpers/headers';
 import { constants } from './AppService';
-import { FetchFolderContentResponse, MoveFileResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchFolderContentResponse, MoveFilePayload, MoveFileResponse, UpdateFilePayload } from '@internxt/sdk/dist/drive/storage/types';
+import { SdkManager } from './common/SdkManager';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
 
 class DriveFileService {
+  private sdk: SdkManager;
+
+  constructor(sdk: SdkManager) {
+    this.sdk = sdk;
+  }
+
   public getNameFromUri(uri: string): string {
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
     const fileUri = uri.replace(regex, '$2');
@@ -71,82 +78,41 @@ class DriveFileService {
   }
 
   public async getFolderContent(folderId: number): Promise<FetchFolderContentResponse> {
-    const headers = await getHeaders();
-    const headersMap: Record<string, string> = {};
-
-    headers.forEach((value: string, key: string) => {
-      headersMap[key] = value;
-    });
-
-    const response = await axios.get<FetchFolderContentResponse>(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/v2/folder/${folderId}`,
-      {
-        headers: headersMap,
-      },
-    );
-
-    return response.data;
+    const sdkResult = this.sdk.storage.getFolderContent(folderId);
+    return sdkResult[0];
   }
 
-  public async updateMetaData(
-    fileId: string,
-    metadata: DriveFileMetadataPayload,
-    bucketId: string,
-    relativePath: string,
-  ): Promise<void> {
-    const hashedRelativePath = createHash('ripemd160').update(relativePath).digest('hex');
-    const headers = await getHeaders();
-    const headersMap: Record<string, string> = {};
+  public async updateMetaData(UpdateFilePayload: UpdateFilePayload): Promise<void> {
+    const hashedRelativePath = createHash('ripemd160').update(UpdateFilePayload.destinationPath).digest('hex');
 
-    headers.forEach((value: string, key: string) => {
-      headersMap[key] = value;
-    });
+    const params = {
+      fileId: UpdateFilePayload.fileId,
+      metadata: UpdateFilePayload.metadata,
+      bucketId: UpdateFilePayload.bucketId,
+      destinationPath: hashedRelativePath,
+    };
 
-    return axios
-      .post(
-        `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/file/${fileId}/meta`,
-        {
-          metadata,
-          bucketId,
-          relativePath: hashedRelativePath,
-        },
-        { headers: headersMap },
-      )
-      .then(() => undefined);
+    return this.sdk.storage.updateFile(params);
   }
 
-  public async moveFile(moveFilePayload: { fileId: string; destination: number }): Promise<MoveFileResponse> {
-    const headers = await getHeaders();
-    const data = JSON.stringify(moveFilePayload);
-
-    const res = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/move/file`, {
-      method: 'POST',
-      headers,
-      body: data,
-    });
-
-    return res.json();
+  public async moveFile(moveFilePayload: MoveFilePayload): Promise<MoveFileResponse> {
+    return this.sdk.storage.moveFile(moveFilePayload);
   }
 
-  public async deleteItems(items: DriveItemData[]): Promise<void> {
-    const fetchArray: Promise<Response>[] = [];
-
+  public async deleteItems(items: DriveItemData[]): Promise<unknown> {
     for (const item of items) {
+      const deleteFiles = {
+        fileId: item.id,
+        folderId: item.folderId,
+      };
       const isFolder = !item.fileId;
-      const headers = await getHeaders();
-      const url = isFolder
-        ? `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${item.id}`
-        : `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/bucket/${item.bucket}/file/${item.fileId}`;
 
-      const fetchObj = fetch(url, {
-        method: 'DELETE',
-        headers,
-      });
+      const itemsDeleted: unknown = isFolder
+        ? this.sdk.storage.deleteFolder(item.id)
+        : this.sdk.storage.deleteFile(deleteFiles);
 
-      fetchArray.push(fetchObj);
+      return itemsDeleted;
     }
-
-    return Promise.all(fetchArray).then(() => undefined);
   }
 
   public getSortFunction({
@@ -163,43 +129,43 @@ class DriveFileService {
         sortFunction =
           direction === SortDirection.Asc
             ? (a: DriveListItem, b: DriveListItem) => {
-                const aName = a.data.name.toLowerCase();
-                const bName = b.data.name.toLowerCase();
+              const aName = a.data.name.toLowerCase();
+              const bName = b.data.name.toLowerCase();
 
-                return aName < bName ? -1 : aName > bName ? 1 : 0;
-              }
+              return aName < bName ? -1 : aName > bName ? 1 : 0;
+            }
             : (a: DriveListItem, b: DriveListItem) => {
-                const aName = a.data.name.toLowerCase();
-                const bName = b.data.name.toLowerCase();
+              const aName = a.data.name.toLowerCase();
+              const bName = b.data.name.toLowerCase();
 
-                return aName < bName ? 1 : aName > bName ? -1 : 0;
-              };
+              return aName < bName ? 1 : aName > bName ? -1 : 0;
+            };
         break;
       case SortType.Size:
         sortFunction =
           direction === SortDirection.Asc
             ? (a: DriveListItem, b: DriveListItem) => {
-                return a.data?.size || 0 > (b.data?.size || 0) ? 1 : -1;
-              }
+              return a.data?.size || 0 > (b.data?.size || 0) ? 1 : -1;
+            }
             : (a: DriveListItem, b: DriveListItem) => {
-                return (a.data?.size || 0) < (b.data?.size || 0) ? 1 : -1;
-              };
+              return (a.data?.size || 0) < (b.data?.size || 0) ? 1 : -1;
+            };
         break;
       case SortType.UpdatedAt:
         sortFunction =
           direction === SortDirection.Asc
             ? (a: DriveListItem, b: DriveListItem) => {
-                const aTime = new Date(a.data.updatedAt).getTime();
-                const bTime = new Date(b.data.updatedAt).getTime();
+              const aTime = new Date(a.data.updatedAt).getTime();
+              const bTime = new Date(b.data.updatedAt).getTime();
 
-                return aTime < bTime ? 1 : -1;
-              }
+              return aTime < bTime ? 1 : -1;
+            }
             : (a: DriveListItem, b: DriveListItem) => {
-                const aTime = new Date(a.data.updatedAt).getTime();
-                const bTime = new Date(b.data.updatedAt).getTime();
+              const aTime = new Date(a.data.updatedAt).getTime();
+              const bTime = new Date(b.data.updatedAt).getTime();
 
-                return aTime > bTime ? 1 : -1;
-              };
+              return aTime > bTime ? 1 : -1;
+            };
         break;
     }
 
@@ -227,5 +193,5 @@ class DriveFileService {
   }
 }
 
-const driveFileService = new DriveFileService();
+const driveFileService = new DriveFileService(SdkManager.getInstance());
 export default driveFileService;

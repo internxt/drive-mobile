@@ -339,8 +339,14 @@ const updateFileMetadataThunk = createAsyncThunk<
   const absolutePath = driveSelectors.absolutePath(getState());
   const itemFullName = `${metadata.itemName}${focusedItem?.type ? '.' + focusedItem.type : ''}`;
   const itemPath = `${absolutePath}${itemFullName}`;
+  const params = {
+    fileId: fileId,
+    metadata: metadata,
+    bucketId: bucketId,
+    destinationPath: itemPath,
+  };
 
-  return fileService.updateMetaData(fileId, metadata, bucketId, itemPath);
+  return fileService.updateMetaData(params);
 });
 
 const updateFolderMetadataThunk = createAsyncThunk<
@@ -395,6 +401,8 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
       await fileService.moveFile({
         fileId: origin?.itemId as string,
         destination: destination,
+        destinationPath: `${destination}/${origin.name}`,
+        bucketId: origin?.parentId as unknown as string,
       });
     } else {
       await folderService.moveFolder({
@@ -420,7 +428,7 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
   },
 );
 
-const deleteItemsThunk = createAsyncThunk<void, { items: any[] }, { state: RootState }>(
+const deleteItemsThunk = createAsyncThunk<void, { items: DriveItemData[] }, { state: RootState }>(
   'drive/deleteItems',
   async ({ items }, { dispatch }) => {
     notificationsService.show({

@@ -13,6 +13,7 @@ import AppText from '../../AppText';
 import { items } from '@internxt/lib';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
+import { DriveItemData } from 'src/types/drive';
 
 function DeleteItemModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -23,7 +24,7 @@ function DeleteItemModal(): JSX.Element {
   const isFolder = item && !item.fileId;
   const FileIcon = getFileTypeIcon(item?.type || '');
   const onDeleteButtonPressed = () => {
-    dispatch(driveThunks.deleteItemsThunk({ items: [item] }));
+    dispatch(driveThunks.deleteItemsThunk({ items: [item as DriveItemData] }));
     dispatch(uiActions.setShowDeleteModal(false));
   };
 
