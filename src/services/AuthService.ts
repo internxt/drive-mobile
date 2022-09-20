@@ -8,7 +8,7 @@ import { constants } from './AppService';
 import AesUtils from '../helpers/aesUtils';
 import EventEmitter from 'events';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import { SdkManager } from './common/SdkManager';
+import { SdkManager } from './common/sdk/SdkManager';
 
 interface LoginResponse {
   tfa: string;

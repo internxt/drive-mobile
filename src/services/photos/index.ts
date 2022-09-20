@@ -9,7 +9,7 @@ import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 import { PhotosCommonServices } from './PhotosCommonService';
 import fileSystemService from '../FileSystemService';
 import { PHOTOS_FULL_SIZE_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_ROOT_DIRECTORY } from './constants';
-import { SdkManager } from '../common/SdkManager';
+import { SdkManager } from '@internxt-mobile/services/common';
 import { PhotosLocalDatabaseService } from './PhotosLocalDatabaseService';
 class PhotosService {
   public static instance: PhotosService;

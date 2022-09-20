@@ -8,7 +8,7 @@ import { PHOTOS_FULL_SIZE_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY } from './constan
 import { Platform } from 'react-native';
 import { items } from '@internxt/lib';
 import { createHash } from '@internxt/rn-crypto';
-import { SdkManager } from '../common/SdkManager';
+import { SdkManager } from '@internxt-mobile/services/common';
 import * as crypto from 'react-native-crypto';
 import fileSystemService from '../FileSystemService';
 enum HMAC {

@@ -4,7 +4,10 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@internxt-mobile/ui-kit": ["src/components/ui-kit/index.ts"]
+      "@internxt-mobile/ui-kit": ["src/components/ui-kit/index.ts"],
+      "@internxt-mobile/hooks/*": ["src/hooks/*"],
+      "@internxt-mobile/services/*": ["src/services/*"],
+      "@internxt-mobile/types/*": ["src/types/*"]
     }
   },
   "include": ["app.config.ts", "src", "__tests__"]

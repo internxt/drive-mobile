@@ -19,12 +19,12 @@ import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, Square
 import asyncStorage from '../../services/AsyncStorageService';
 import { DriveListType, SortDirection, SortType } from '../../types/drive';
 import SortModal, { SortMode } from '../../components/modals/SortModal';
-import fileService from '../../services/DriveFileService';
+
 import { TabExplorerScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import Portal from '@burstware/react-native-portal';
-import driveService from 'src/services/DriveService';
+import drive from '@internxt-mobile/services/drive';
 
 function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Element {
   const route = useRoute();
@@ -51,7 +51,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
   const driveSortedItems = useMemo(
     () => [
       ...driveUploadingItems,
-      ...driveItems.sort(fileService.getSortFunction(sortMode)).sort((a, b) => {
+      ...driveItems.sort(drive.file.getSortFunction(sortMode)).sort((a, b) => {
         const aValue = a.data.fileId ? 1 : 0;
         const bValue = b.data.fileId ? 1 : 0;
         return aValue - bValue;
@@ -96,7 +96,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
     asyncStorage.getUser().then(async (user) => {
       if (user) {
         const limit = await storageService.loadLimit();
-        const driveUsage = await driveService.usage.getUsage();
+        const driveUsage = await drive.usage.getUsage();
 
         analytics
           .identify(user.uuid, {

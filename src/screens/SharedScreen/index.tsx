@@ -9,7 +9,7 @@ import EmptyList from '../../components/EmptyList';
 import EmptySharesImage from '../../../assets/images/screens/empty-shares.svg';
 import NoResultsImage from '../../../assets/images/screens/no-results.svg';
 import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../types/drive';
-import driveService from '../../services/DriveService';
+import drive from '@internxt-mobile/services/drive';
 import { useTailwind } from 'tailwind-rn';
 
 interface SharedScreenProps {
@@ -25,7 +25,7 @@ function SharedScreen(props: SharedScreenProps): JSX.Element {
     share.fileInfo.name.toLowerCase().includes((props.searchText || '').toLowerCase()),
   );
   const reloadShares = async () => {
-    return driveService.share
+    return drive.share
       .getShareList()
       .then((shareList) => {
         const shareListFiltered = shareList.filter((s) => !!s.fileInfo);

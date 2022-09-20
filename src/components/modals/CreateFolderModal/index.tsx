@@ -5,7 +5,7 @@ import strings from '../../../../assets/lang/strings';
 import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
 import AppTextInput from '../../AppTextInput';
-import folderService from '../../../services/DriveFolderService';
+import drive from '@internxt-mobile/services/drive';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
@@ -32,7 +32,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
   const onCreateFolderButtonPressed = () => {
     setIsLoading(true);
 
-    folderService
+    drive.folder
       .createFolder(props.currentFolderId, folderName)
       .then(() => {
         notificationsService.show({ type: NotificationType.Success, text1: strings.messages.folderCreated });

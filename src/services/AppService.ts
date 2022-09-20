@@ -30,6 +30,10 @@ class AppService {
   public removeListener(id: number) {
     AppState.removeEventListener('change', this.listeners[id]);
   }
+
+  public get isDevMode() {
+    return __DEV__;
+  }
 }
 
 const appService = new AppService();

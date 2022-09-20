@@ -4,7 +4,7 @@ import fileSystemService from '../../FileSystemService';
 import { constants } from '../../AppService';
 import { PhotosCommonServices } from '../PhotosCommonService';
 import { PhotoFileSystemRef } from '../../../types/photos';
-import { SdkManager } from 'src/services/common/SdkManager';
+import { SdkManager } from '@internxt-mobile/services/common';
 
 export default class PhotosUploadService {
   private sdk: SdkManager;

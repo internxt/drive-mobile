@@ -10,6 +10,9 @@ module.exports = function (api) {
           root: ['.'],
           alias: {
             '@internxt-mobile/ui-kit': './src/components/ui-kit/index.ts',
+            '@internxt-mobile/hooks': './src/hooks',
+            '@internxt-mobile/services': './src/services',
+            '@internxt-mobile/types': './src/types',
           },
         },
       ],

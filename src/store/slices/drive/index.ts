@@ -2,8 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 
 import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
-import fileService from '../../../services/DriveFileService';
-import folderService from '../../../services/DriveFolderService';
+
 import { DevicePlatform, NotificationType } from '../../../types';
 import { RootState } from '../..';
 import { uiActions } from '../ui';
@@ -28,7 +27,7 @@ import fileSystemService from '../../../services/FileSystemService';
 import { items } from '@internxt/lib';
 import network from '../../../network';
 import _ from 'lodash';
-import driveService from '../../../services/DriveService';
+import drive from '@internxt-mobile/services/drive';
 import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
 import { ErrorCodes } from 'src/types/errors';
@@ -119,7 +118,7 @@ const navigateToFolderThunk = createAsyncThunk<void, DriveNavigationStackItem, {
 
 const getRecentsThunk = createAsyncThunk<void, void>('drive/getRecents', async (_, { dispatch }) => {
   dispatch(driveActions.setRecentsStatus(ThunkOperationStatus.LOADING));
-  const recents = await driveService.recents.getRecents();
+  const recents = await drive.recents.getRecents();
 
   dispatch(driveActions.setRecents(recents));
 });
@@ -132,8 +131,8 @@ const getFolderContentThunk = createAsyncThunk<
   { folderId: number },
   { state: RootState }
 >('drive/getFolderContent', async ({ folderId }, { dispatch }) => {
-  const folderRecord = await driveService.localDatabase.getFolderRecord(folderId);
-  const folderContentPromise = fileService.getFolderContent(folderId);
+  const folderRecord = await drive.database.getFolderRecord(folderId);
+  const folderContentPromise = drive.file.getFolderContent(folderId);
   const getFolderContent = async () => {
     const response = await folderContentPromise;
     const folders = response.children.map((folder) => ({ ...folder }));
@@ -144,7 +143,7 @@ const getFolderContentThunk = createAsyncThunk<
 
   if (folderRecord) {
     getFolderContent().then(({ response, folderContent }) => {
-      driveService.localDatabase.saveFolderContent(response, folderContent);
+      drive.database.saveFolderContent(response, folderContent);
 
       dispatch(
         driveActions.setFocusedItem({
@@ -157,7 +156,7 @@ const getFolderContentThunk = createAsyncThunk<
       dispatch(driveActions.setFolderContent(folderContent));
     });
 
-    const folderContent = await driveService.localDatabase.getDriveItems(folderId);
+    const folderContent = await drive.database.getDriveItems(folderId);
 
     return {
       focusedItem: {
@@ -171,7 +170,7 @@ const getFolderContentThunk = createAsyncThunk<
   } else {
     const { response, folderContent } = await getFolderContent();
 
-    driveService.localDatabase.saveFolderContent(response, folderContent);
+    drive.database.saveFolderContent(response, folderContent);
 
     return {
       focusedItem: {
@@ -198,7 +197,7 @@ const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootSt
 );
 
 const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('drive/cancelDownload', () => {
-  driveService.eventEmitter.emit({ event: DriveEventKey.CancelDownload });
+  drive.events.emit({ event: DriveEventKey.CancelDownload });
 });
 
 const downloadFileThunk = createAsyncThunk<
@@ -248,7 +247,7 @@ const downloadFileThunk = createAsyncThunk<
           signal,
         },
         (abortable) => {
-          driveService.eventEmitter.setLegacyAbortable(abortable);
+          drive.events.setLegacyAbortable(abortable);
         },
       );
     };
@@ -307,7 +306,7 @@ const downloadFileThunk = createAsyncThunk<
       }
 
       if (!signal.aborted) {
-        driveService.eventEmitter.emit({ event: DriveEventKey.DownloadError }, new Error(strings.errors.downloadError));
+        drive.events.emit({ event: DriveEventKey.DownloadError }, new Error(strings.errors.downloadError));
         if ((err as Error).message === ErrorCodes.MISSING_SHARDS_ERROR) {
           errorService.reportError(new Error('MISSING_SHARDS_ERROR: File  is missing shards'), {
             extra: {
@@ -322,9 +321,9 @@ const downloadFileThunk = createAsyncThunk<
       }
     } finally {
       if (signal.aborted) {
-        driveService.eventEmitter.emit({ event: DriveEventKey.CancelDownloadEnd });
+        drive.events.emit({ event: DriveEventKey.CancelDownloadEnd });
       }
-      driveService.eventEmitter.emit({ event: DriveEventKey.DownloadFinally });
+      drive.events.emit({ event: DriveEventKey.DownloadFinally });
     }
   },
 );
@@ -340,7 +339,7 @@ const updateFileMetadataThunk = createAsyncThunk<
   const itemFullName = `${metadata.itemName}${focusedItem?.type ? '.' + focusedItem.type : ''}`;
   const itemPath = `${absolutePath}${itemFullName}`;
 
-  return fileService.updateMetaData(fileId, metadata, bucketId, itemPath);
+  return drive.file.updateMetaData(fileId, metadata, bucketId, itemPath);
 });
 
 const updateFolderMetadataThunk = createAsyncThunk<
@@ -354,7 +353,7 @@ const updateFolderMetadataThunk = createAsyncThunk<
   const itemFullName = `${metadata.itemName}${focusedItem?.type ? '.' + focusedItem.type : ''}`;
   const itemPath = `${absolutePath}${itemFullName}`;
 
-  folderService.updateMetaData(folderId, metadata, bucketId, itemPath);
+  drive.folder.updateMetaData(folderId, metadata, bucketId, itemPath);
 });
 
 const createFolderThunk = createAsyncThunk<
@@ -362,7 +361,7 @@ const createFolderThunk = createAsyncThunk<
   { parentFolderId: number; newFolderName: string },
   { state: RootState }
 >('drive/createFolder', async ({ parentFolderId, newFolderName }, { dispatch }) => {
-  await folderService.createFolder(parentFolderId, newFolderName);
+  await drive.folder.createFolder(parentFolderId, newFolderName);
   const userData = await asyncStorage.getUser();
 
   await analytics.track(AnalyticsEventKey.FolderCreated, {
@@ -392,18 +391,18 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
   'drive/moveItem',
   async ({ isFolder, origin, destination, itemMovedAction }) => {
     if (!isFolder) {
-      await fileService.moveFile({
+      await drive.file.moveFile({
         fileId: origin?.itemId as string,
         destination: destination,
       });
     } else {
-      await folderService.moveFolder({
+      await drive.folder.moveFolder({
         folderId: origin.itemId as number,
         destinationFolderId: destination,
       });
     }
 
-    await driveService.localDatabase.deleteItem({
+    await drive.database.deleteItem({
       id: origin.itemId as number,
       isFolder: isFolder,
     });
@@ -428,13 +427,13 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[] }, { state: RootS
       type: NotificationType.Success,
     });
 
-    await fileService
+    await drive.file
       .deleteItems(items)
       .then(() => {
         dispatch(loadUsageThunk());
         for (const item of items) {
           dispatch(driveActions.popItem({ id: item.id, isFolder: !item.fileId }));
-          driveService.localDatabase.deleteItem({ id: item.id, isFolder: !item.fileId });
+          drive.database.deleteItem({ id: item.id, isFolder: !item.fileId });
         }
       })
       .catch((err) => {
@@ -450,12 +449,12 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[] }, { state: RootS
 const clearLocalDatabaseThunk = createAsyncThunk<void, void, { state: RootState }>(
   'drive/clearLocalDatabase',
   async () => {
-    driveService.localDatabase.resetDatabase();
+    drive.database.resetDatabase();
   },
 );
 
 const loadUsageThunk = createAsyncThunk<number, void, { state: RootState }>('drive/loadUsage', async () => {
-  return driveService.usage.getUsage();
+  return drive.usage.getUsage();
 });
 
 export const driveSlice = createSlice({
