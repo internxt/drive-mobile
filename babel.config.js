@@ -13,6 +13,7 @@ module.exports = function (api) {
             '@internxt-mobile/hooks': './src/hooks',
             '@internxt-mobile/services': './src/services',
             '@internxt-mobile/types': './src/types',
+            '@internxt-mobile/useCases': './src/useCases',
           },
         },
       ],

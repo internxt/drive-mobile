@@ -22,6 +22,9 @@ export type DriveItemFocused = {
   size?: number;
   updatedAt: string;
   folderId?: number;
+  code?: string;
+  token?: string;
+  shareId?: string;
 } | null;
 
 export interface DriveFolderMetadataPayload {
@@ -80,8 +83,12 @@ export enum SortType {
 export type DriveItemDataProps = Pick<DriveItemData, 'id' | 'name' | 'updatedAt' | 'createdAt'> & {
   fileId?: string;
   parentId?: number | null;
+  code?: string;
+
+  token?: string;
   size?: number;
   type?: string;
+  shareId?: string;
 };
 
 export type DriveListItem = { status: DriveItemStatus; progress?: number; data: DriveItemDataProps };
@@ -104,6 +111,9 @@ export enum DriveEventKey {
   DownloadFinally = 'download-finally',
   CancelDownload = 'cancel-download',
   CancelDownloadEnd = 'cancel-download-end',
+  UploadCompleted = 'upload-completed',
+  SharedLinksUpdated = 'shared-links-updated',
+  DriveItemDeleted = 'drive-item-deleted',
 }
 
 export interface DriveServiceModel {

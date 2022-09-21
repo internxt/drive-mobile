@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { Dimensions, Easing, Keyboard, Platform, TouchableWithoutFeedback, View } from 'react-native';
+import { Dimensions, Easing, Keyboard, Platform, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import Modal from 'react-native-modalbox';
 import { useKeyboard } from 'src/hooks/useKeyboard';
 import { useTailwind } from 'tailwind-rn';
@@ -12,6 +12,7 @@ export interface CenterModalProps {
   onClosed: () => void;
   onOpened?: () => void;
   children?: JSX.Element;
+  style?: ViewStyle;
 }
 
 const defaultProps: Partial<CenterModalProps> = {
@@ -26,6 +27,7 @@ const CenterModal = ({
   children,
   backdropPressToClose = defaultProps.backdropPressToClose,
   backButtonClose = defaultProps.backButtonClose,
+  style,
 }: CenterModalProps): JSX.Element => {
   const { keyboardShown, coordinates } = useKeyboard();
 
@@ -66,7 +68,7 @@ const CenterModal = ({
         <TouchableWithoutFeedback onPress={onBackdropPressed}>
           <View style={tailwind('px-8 flex-grow justify-center items-center')}>
             <TouchableWithoutFeedback>
-              <View style={tailwind(' w-full bg-white rounded-xl')}>{children}</View>
+              <View style={[tailwind('w-full bg-white rounded-xl'), style]}>{children}</View>
             </TouchableWithoutFeedback>
           </View>
         </TouchableWithoutFeedback>

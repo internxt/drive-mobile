@@ -9,7 +9,7 @@ describe('useUseCase hook', () => {
     const { result } = renderHook(() => useUseCase<boolean>(mockedUseCase));
 
     await waitFor(() => expect(mockedUseCase).toHaveBeenCalledTimes(1));
-    const [data] = result.current;
+    const { data } = result.current;
     expect(data).toBe(true);
   });
 });

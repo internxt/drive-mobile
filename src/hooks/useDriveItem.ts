@@ -5,24 +5,41 @@ import { driveActions, driveThunks } from '../store/slices/drive';
 import { uiActions } from '../store/slices/ui';
 import { DriveItemDataProps, DriveItemStatus } from '../types/drive';
 import drive from '@internxt-mobile/services/drive';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 interface UseDriveItemProps {
   data: DriveItemDataProps;
   status: DriveItemStatus;
+  isSharedLinkItem?: boolean;
 }
 
+/**
+ * Consider refactor/remove this hook.
+ * It does an insane amount of things, that are not
+ * related together, since each DriveItem works with this,
+ * we end storing a lot of weird code here, I think a different
+ * approach should be used instead, that is not item type independent
+ * since files and folders are different
+ *
+ */
 const useDriveItem = (props: UseDriveItemProps) => {
   const dispatch = useAppDispatch();
+  const route = useRoute();
+  const navigation = useNavigation();
   const [isDisabled, setIsDisabled] = useState(false);
-  const isFolder = !props.data.type;
+  const isFolder = !props.data.type || props.data.type === 'folder';
   const isIdle = props.status === DriveItemStatus.Idle;
   const isUploading = props.status === DriveItemStatus.Uploading;
   const isDownloading = props.status === DriveItemStatus.Downloading;
   const onFolderPressed = () => {
+    if (route.name === 'Home') {
+      navigation.navigate('Drive' as any, { sharedFolderId: props.data.parentId as number });
+    }
     dispatch(
       driveThunks.navigateToFolderThunk({ ...props.data, parentId: props.data.parentId as number, item: props.data }),
     );
   };
+
   const onFilePressed = () => {
     if (!isIdle) {
       return;
@@ -61,12 +78,18 @@ const useDriveItem = (props: UseDriveItemProps) => {
     dispatch(
       driveActions.setFocusedItem({
         ...props.data,
+        shareId: props.data.shareId,
         parentId: props.data.parentId as number,
         size: props.data.size,
         updatedAt: props.data.updatedAt,
       }),
     );
-    dispatch(uiActions.setShowItemModal(true));
+
+    if (props.isSharedLinkItem) {
+      dispatch(uiActions.setIsSharedLinkOptionsModalOpen(true));
+    } else {
+      dispatch(uiActions.setShowItemModal(true));
+    }
   };
   const onItemLongPressed = () => {
     onActionsButtonPressed();

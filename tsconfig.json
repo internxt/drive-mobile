@@ -7,7 +7,8 @@
       "@internxt-mobile/ui-kit": ["src/components/ui-kit/index.ts"],
       "@internxt-mobile/hooks/*": ["src/hooks/*"],
       "@internxt-mobile/services/*": ["src/services/*"],
-      "@internxt-mobile/types/*": ["src/types/*"]
+      "@internxt-mobile/types/*": ["src/types/*"],
+      "@internxt-mobile/useCases/*": ["src/useCases/*"]
     }
   },
   "include": ["app.config.ts", "src", "__tests__"]

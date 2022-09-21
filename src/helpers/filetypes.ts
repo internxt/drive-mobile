@@ -13,6 +13,7 @@ import word from '../../assets/icons/file-types/word.svg';
 import xls from '../../assets/icons/file-types/xls.svg';
 import zip from '../../assets/icons/file-types/zip.svg';
 import folder from '../../assets/icons/file-types/folder.svg';
+import figma from '../../assets/icons/file-types/figma.svg';
 
 export const extensions: Record<string, React.FC<SvgProps>> = {
   txt: txt,
@@ -42,6 +43,7 @@ export const extensions: Record<string, React.FC<SvgProps>> = {
   cpp: code,
   wav: audio,
   mp3: audio,
+  fig: figma,
 };
 
 export function getFileTypeIcon(ext: string): React.FC<SvgProps> {

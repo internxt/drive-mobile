@@ -173,10 +173,10 @@ const strings = new LocalizedStrings({
         },
       },
       shared: {
-        title: 'Shared',
+        title: 'Shared links',
         empty: {
-          title: 'No shared items',
-          message: 'Your shared items will show up here',
+          title: 'No shared links',
+          message: 'Your shared links will show up here',
         },
       },
       StorageScreen: {
@@ -204,6 +204,7 @@ const strings = new LocalizedStrings({
             [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Subscribe to newsletter',
             [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Install desktop app',
             [ReferralTypes.ReferralKey.InviteFriends]: 'Invite {0}/{1} friends',
+            [ReferralTypes.ReferralKey.CompleteSurvey]: 'Complete survey',
           },
         },
       },
@@ -381,7 +382,7 @@ const strings = new LocalizedStrings({
       firstName: 'First name',
       lastName: 'Last name',
       searchInRecents: 'Search in recents',
-      searchInShared: 'Search in shared',
+      searchInShared: 'Search in shared links',
       twoFactorAuth: 'Two Factor Authentication',
     },
     placeholders: {
@@ -409,20 +410,30 @@ const strings = new LocalizedStrings({
       },
       file_and_folder_options: {
         styling: 'Style color',
+        open: 'Open',
         icons: 'Cover icon',
         type: 'Type: ',
         added: 'Added: ',
         size: 'Size: ',
         move: 'Move',
         share: 'Share with link',
-        delete: 'Delete',
+        getLink: 'Get link',
+        delete: 'Move to trash',
+        linkReady: 'Link created',
+        exportFile: 'Export file',
+        shareLink: 'Compartir link',
+        downloadFile: 'Download file',
         view: 'View',
+        deleteLink: 'Delete link',
       },
       ReferralsBanner: {
         message: 'Get up to 10GB for free',
       },
     },
     modals: {
+      deleteShareLink: {
+        title: 'Delete link',
+      },
       CancelSubscription: {
         title: 'Cancel subscription',
         steps: {
@@ -571,6 +582,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      generatingLink: 'Generating link',
       folderCreated: 'Folder created',
       itemsDeleted: 'Item/s deleted',
       photoShared: 'You have shared a photo!',
@@ -581,12 +593,18 @@ const strings = new LocalizedStrings({
       passwordChanged: 'Password changed',
       itemsMoved: '{0} item(s) moved',
       sendVerificationEmail: 'Verification email sent',
+      confirmDeleteSharedLink: 'Users with the link will lose access to “{0}”.',
+      linkDeleted: 'Link deleted successfully',
     },
     errors: {
       generic: {
         title: 'There has been an error',
         message: '{0}. Please contact us.',
       },
+      generateShareLinkError: 'Error generating share link',
+      deleteShareLinkError: 'Error deleting share link',
+      recentsLoadError: 'Error loading recent files',
+      sharedLoadError: 'Error loading shared files',
       downloadError: 'Error downloading item',
       moveError: 'Cannot move folder',
       unknown: 'Unknown error',
@@ -791,10 +809,10 @@ const strings = new LocalizedStrings({
         },
       },
       shared: {
-        title: 'Compartido',
+        title: 'Links compartidos',
         empty: {
-          title: 'No hay archivos compartidos',
-          message: 'Tus archivos compartidos se mostrarán aquí',
+          title: 'No hay links compartidos',
+          message: 'Tus links compartidos se mostrarán aquí',
         },
       },
       StorageScreen: {
@@ -822,6 +840,7 @@ const strings = new LocalizedStrings({
             [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Suscribirse a newletter',
             [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Instala la app de escritorio',
             [ReferralTypes.ReferralKey.InviteFriends]: 'Invitar {0}/{1} amigos',
+            [ReferralTypes.ReferralKey.CompleteSurvey]: 'Completar encuesta',
           },
         },
       },
@@ -952,7 +971,7 @@ const strings = new LocalizedStrings({
       shareWithLink: 'Compartir enlace',
       download: 'Descargar',
       moveToThrash: 'Mover a la papelera',
-      copyLink: 'Copiar enlace',
+      copyLink: 'Copiar link compartido',
       startSyncingPhotos: 'Sincronizar mis fotos',
       syncNow: 'Sincronizar ahora',
       tryAgain: 'Intentar de nuevo',
@@ -999,7 +1018,7 @@ const strings = new LocalizedStrings({
       firstName: 'Nombre',
       lastName: 'Primer apellido',
       searchInRecents: 'Buscar en recientes',
-      searchInShared: 'Buscar en compartido',
+      searchInShared: 'Buscar en links compartidos',
       twoFactorAuth: 'Autenticación de dos factores',
     },
     placeholders: {
@@ -1026,6 +1045,7 @@ const strings = new LocalizedStrings({
         },
       },
       file_and_folder_options: {
+        open: 'Abrir',
         styling: 'Color de la carpeta',
         icons: 'Icono',
         type: 'Tipo: ',
@@ -1033,14 +1053,23 @@ const strings = new LocalizedStrings({
         size: 'Tamaño: ',
         move: 'Mover',
         share: 'Compartir',
-        delete: 'Borrar',
+        delete: 'Mover a la papelera',
+        getLink: 'Obtener link compartido',
+        linkReady: 'Link creado',
+        exportFile: 'Exportar archivo',
+        shareLink: 'Compartir link',
+        downloadFile: 'Descargar archivo',
         view: 'Ver',
+        deleteLink: 'Borrar link compartido',
       },
       ReferralsBanner: {
         message: 'Obtén hasta 10GB gratis',
       },
     },
     modals: {
+      deleteShareLink: {
+        title: 'Borrar link',
+      },
       CancelSubscription: {
         title: 'Cancelar suscripción',
         steps: {
@@ -1192,6 +1221,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      generatingLink: 'Generando link',
       folderCreated: 'Carpeta creada',
       itemsDeleted: 'Elementos borrados',
       photoShared: '¡Has compartido una foto!',
@@ -1202,12 +1232,18 @@ const strings = new LocalizedStrings({
       passwordChanged: 'Contraseña cambiada',
       itemsMoved: '{0} item(s) movidos',
       sendVerificationEmail: 'Email de verificación enviado',
+      confirmDeleteSharedLink: 'Los usuarios con el link compartido perderán el acceso a “{0}”.',
+      linkDeleted: 'Link eliminado correctamente',
     },
     errors: {
       generic: {
         title: 'Ha habido un error',
         message: '{0}. Por favor, contacta con nosotros.',
       },
+      generateShareLinkError: 'Error generando link compartido',
+      deleteShareLinkError: 'Error borrando link compartido',
+      recentsLoadError: 'Error cargando archivos recientes',
+      sharedLoadError: 'Error cargando links compartidos',
       downloadError: 'Ha ocurrido un error durante la descarga',
       moveError: 'No se ha podido mover el archivo',
       unknown: 'Error desconocido',

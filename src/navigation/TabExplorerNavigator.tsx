@@ -7,9 +7,10 @@ import DriveScreen from '../screens/DriveScreen';
 import BottomTabNavigator from '../components/BottomTabNavigator';
 import EmptyScreen from '../screens/EmptyScreen';
 import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
+import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
+
 import AddModal from '../components/modals/AddModal';
 import DriveRenameModal from '../components/modals/DriveRenameModal';
-import ShareFilesModal from '../components/modals/ShareFilesModal';
 import DeleteItemModal from '../components/modals/DeleteItemModal';
 import MoveItemsModal from '../components/modals/MoveItemsModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
@@ -60,9 +61,9 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <ReferralsBanner />
       <AddModal />
       <DriveItemInfoModal />
+      <SharedLinkInfoModal />
       <DeleteItemModal />
       <MoveItemsModal />
-      <ShareFilesModal />
       <DriveDownloadModal />
       <DriveRenameModal />
       <RunOutOfStorageModal />

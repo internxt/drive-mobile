@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import strings from '../../../assets/lang/strings';
 
-import SearchInput from '../../components/SearchInput';
 import ScreenTitle from '../../components/AppScreenTitle';
 import Tabs from '../../components/Tabs';
-import RecentsScreen from '../RecentsScreen';
-import SharedScreen from '../SharedScreen';
+import { RecentsScreen } from '../drive/RecentsScreen';
+import { SharedScreen } from '../drive/SharedScreen';
 import AppScreen from '../../components/AppScreen';
 import { useTailwind } from 'tailwind-rn';
-
+import { useUseCase } from '@internxt-mobile/hooks/common';
+import * as useCases from '@internxt-mobile/useCases/drive';
+import { SearchInput } from 'src/components/SearchInput';
 enum HomeTab {
   Recents = 'recents',
   Shared = 'shared',
@@ -17,6 +18,37 @@ enum HomeTab {
 const HomeScreen = (): JSX.Element => {
   const tailwind = useTailwind();
   const [searchText, setSearchText] = useState('');
+  const {
+    data: recentItems,
+    loading: recentsLoading,
+    executeUseCase: refreshRecentItems,
+  } = useUseCase(useCases.loadRecentItems);
+  const {
+    data: sharedLinks,
+    loading: sharedLoading,
+    executeUseCase: refreshSharedLinks,
+  } = useUseCase(useCases.loadSharedLinks);
+
+  useEffect(() => {
+    const unsubscribe = useCases.onDriveItemUploaded(refreshRecentItems);
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = useCases.onDriveItemDeleted(async () => {
+      refreshRecentItems();
+      refreshSharedLinks();
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = useCases.onSharedLinksUpdated(refreshSharedLinks);
+
+    return unsubscribe;
+  }, []);
   const [currentTab, setCurrentTab] = useState<HomeTab>(HomeTab.Recents);
   const searchPlaceholder = {
     [HomeTab.Recents]: strings.inputs.searchInRecents,
@@ -26,12 +58,30 @@ const HomeScreen = (): JSX.Element => {
     {
       id: HomeTab.Recents,
       title: strings.screens.recents.title,
-      screen: <RecentsScreen searchText={searchText}></RecentsScreen>,
+      screen: (
+        <RecentsScreen
+          searchText={searchText}
+          isLoading={recentsLoading}
+          recentItems={recentItems}
+          refreshRecentItems={async () => {
+            await refreshRecentItems();
+          }}
+        ></RecentsScreen>
+      ),
     },
     {
       id: HomeTab.Shared,
       title: strings.screens.shared.title,
-      screen: <SharedScreen searchText={searchText}></SharedScreen>,
+      screen: (
+        <SharedScreen
+          searchText={searchText}
+          isLoading={sharedLoading}
+          sharedLinks={sharedLinks}
+          refreshSharedLinks={async () => {
+            await refreshSharedLinks();
+          }}
+        ></SharedScreen>
+      ),
     },
   ];
   const onTabChanged = (tabId: string) => {

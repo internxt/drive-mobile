@@ -1,4 +1,6 @@
 import 'expo-asset';
+import 'intl';
+import 'intl/locale-data/jsonp/en';
 import './shim';
 import { registerRootComponent } from 'expo';
 import { createElement } from 'react';

@@ -8,6 +8,7 @@ interface BottomModalOptionProps {
   leftSlot: string | JSX.Element;
   rightSlot: JSX.Element;
   onPress?: () => void;
+  hideBorderBottom?: boolean;
 }
 
 const BottomModalOption = (props: BottomModalOptionProps): JSX.Element => {
@@ -15,21 +16,22 @@ const BottomModalOption = (props: BottomModalOptionProps): JSX.Element => {
   const getColor = useGetColor();
 
   return (
-    <TouchableHighlight
-      disabled={props.disabled}
-      onPress={props.onPress}
-      underlayColor={props.onPress && getColor('text-neutral-20')}
-    >
-      <View
-        style={[
-          props.disabled && tailwind('bg-neutral-30'),
-          tailwind('flex-row items-center px-4 h-12 border-neutral-20 border-t border-b'),
-        ]}
+    <>
+      <TouchableHighlight
+        disabled={props.disabled}
+        onPress={props.onPress}
+        style={tailwind(`${props.disabled ? 'opacity-50' : ''} h-14 px-4`)}
+        underlayColor={props.onPress && getColor('text-neutral-20')}
       >
-        {props.leftSlot}
-        <View style={tailwind('ml-5')}>{props.rightSlot}</View>
-      </View>
-    </TouchableHighlight>
+        <View style={tailwind('flex flex-row justify-center h-full flex-col w-full')}>
+          <View style={[tailwind('flex-row items-center h-full ml-3')]}>
+            {props.leftSlot}
+            <View style={tailwind('ml-6 ')}>{props.rightSlot}</View>
+          </View>
+          {!props.hideBorderBottom && <View style={[tailwind('border-b border-gray-5 w-full'), { height: 1 }]} />}
+        </View>
+      </TouchableHighlight>
+    </>
   );
 };
 
