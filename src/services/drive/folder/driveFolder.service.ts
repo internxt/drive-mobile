@@ -40,7 +40,7 @@ class DriveFolderService {
     });
 
     await axios.post(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${folderId}/meta`,
+      `${constants.DRIVE_API_URL}/storage/folder/${folderId}/meta`,
       { metadata },
       { headers: headersMap },
     );

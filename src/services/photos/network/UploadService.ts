@@ -16,7 +16,7 @@ export default class PhotosUploadService {
       previewRef,
       PhotosCommonServices.model.user?.bucketId || '',
       PhotosCommonServices.model.networkCredentials?.encryptionKey || '',
-      constants.REACT_NATIVE_PHOTOS_NETWORK_API_URL,
+      constants.PHOTOS_NETWORK_API_URL,
       {
         user: PhotosCommonServices.model.networkCredentials.user,
         pass: PhotosCommonServices.model.networkCredentials.password,
@@ -31,7 +31,7 @@ export default class PhotosUploadService {
       fileSystemService.uriToPath(photoRef),
       PhotosCommonServices.model.user.bucketId,
       PhotosCommonServices.model.networkCredentials.encryptionKey,
-      constants.REACT_NATIVE_PHOTOS_NETWORK_API_URL,
+      constants.PHOTOS_NETWORK_API_URL,
       {
         user: PhotosCommonServices.model.networkCredentials.user,
         pass: PhotosCommonServices.model.networkCredentials.password,

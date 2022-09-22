@@ -59,13 +59,12 @@ class UploadService {
   }
 
   public async createFileEntry(entry: FileEntry): Promise<any> {
-    const { mnemonic } = await asyncStorage.getUser();
     const token = (await asyncStorage.getItem(AsyncStorageKey.Token)) as string;
-    const headers = await getHeaders(token, mnemonic);
+    const headers = await getHeaders(token);
     const body = JSON.stringify({ file: entry });
     const params = { method: 'post', headers, body };
 
-    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/file`, params);
+    return fetch(`${constants.DRIVE_API_URL}/storage/file`, params);
   }
 
   public getFinalUri(fileUri: string, fileType: FileType): string {

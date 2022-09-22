@@ -15,14 +15,11 @@ class DriveUsageService {
    * @returns
    */
   public async getUsage(): Promise<number> {
-    const response = await Axios.get<{ total: number }>(
-      `${appService.constants.REACT_NATIVE_DRIVE_API_URL}/api/usage`,
-      {
-        headers: {
-          Authorization: `Bearer ${this.sdk.getApiSecurity().token}`,
-        },
+    const response = await Axios.get<{ total: number }>(`${appService.constants.DRIVE_API_URL}/usage`, {
+      headers: {
+        Authorization: `Bearer ${this.sdk.getApiSecurity().token}`,
       },
-    );
+    });
 
     return response.data.total;
   }

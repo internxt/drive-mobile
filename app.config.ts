@@ -11,20 +11,21 @@ export enum AppStage {
 
 export interface AppEnv {
   NODE_ENV: AppStage;
-  REACT_NATIVE_DEBUG: boolean;
-  REACT_NATIVE_APP_BUILD_NUMBER: number;
-  REACT_NATIVE_SHOW_BILLING: boolean;
-  REACT_NATIVE_CRYPTO_SECRET: string;
-  REACT_NATIVE_WEB_CLIENT_URL: string;
-  REACT_NATIVE_DRIVE_API_URL: string;
-  REACT_NATIVE_PAYMENTS_API_URL: string;
-  REACT_NATIVE_BRIDGE_URL: string;
-  REACT_NATIVE_PHOTOS_API_URL: string;
-  REACT_NATIVE_PHOTOS_NETWORK_API_URL: string;
-  REACT_NATIVE_CRYPTO_SECRET2: string;
-  REACT_NATIVE_MAGIC_IV: string;
-  REACT_NATIVE_MAGIC_SALT: string;
-  REACT_NATIVE_RECAPTCHA_V3: string;
+  DEBUG: boolean;
+  APP_BUILD_NUMBER: number;
+  SHOW_BILLING: boolean;
+  CRYPTO_SECRET: string;
+  WEB_CLIENT_URL: string;
+  DRIVE_API_URL: string;
+  DRIVE_NEW_API_URL: string;
+  PAYMENTS_API_URL: string;
+  BRIDGE_URL: string;
+  PHOTOS_API_URL: string;
+  PHOTOS_NETWORK_API_URL: string;
+  CRYPTO_SECRET2: string;
+  MAGIC_IV: string;
+  MAGIC_SALT: string;
+  RECAPTCHA_V3: string;
   SENTRY_DSN: string;
   SENTRY_ORGANIZATION: string;
   SENTRY_PROJECT: string;
@@ -37,7 +38,7 @@ export interface AppEnv {
 
 const stage = AppStage.Production; // <- CHANGE STAGE
 
-const RELEASE_ID = `${packageJson.version} (${env[stage].REACT_NATIVE_APP_BUILD_NUMBER})`;
+const RELEASE_ID = `${packageJson.version} (${env[stage].APP_BUILD_NUMBER})`;
 
 const appConfig: ExpoConfig & { extra: AppEnv } = {
   name: 'Internxt',

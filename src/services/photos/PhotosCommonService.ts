@@ -27,9 +27,9 @@ export class PhotosCommonServices {
 
   public static initializeModel(accessToken: string, networkCredentials: NetworkCredentials) {
     PhotosCommonServices.model = {
-      debug: constants.REACT_NATIVE_DEBUG,
+      debug: constants.DEBUG,
       isInitialized: true,
-      networkUrl: constants.REACT_NATIVE_PHOTOS_NETWORK_API_URL || '',
+      networkUrl: constants.PHOTOS_NETWORK_API_URL || '',
       networkCredentials: networkCredentials,
       accessToken: accessToken,
     };

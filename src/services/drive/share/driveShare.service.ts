@@ -59,9 +59,9 @@ class DriveShareService {
     mnemonic: string;
   }) {
     if (created) {
-      return `${appService.constants.REACT_NATIVE_WEB_CLIENT_URL}/sh/${type}/${token}/${code}`;
+      return `${appService.constants.WEB_CLIENT_URL}/sh/${type}/${token}/${code}`;
     } else {
-      return `${appService.constants.REACT_NATIVE_WEB_CLIENT_URL}/sh/${type}/${token}/${aes.decrypt(code, mnemonic)}`;
+      return `${appService.constants.WEB_CLIENT_URL}/sh/${type}/${token}/${aes.decrypt(code, mnemonic)}`;
     }
   }
 }

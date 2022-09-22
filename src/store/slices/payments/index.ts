@@ -83,7 +83,7 @@ const createSessionThunk = createAsyncThunk<void, string, { state: RootState }>(
   'payments/createSession',
   async (priceId, { getState }) => {
     const { user } = getState().auth;
-    const redirectUrl = `${constants.REACT_NATIVE_WEB_CLIENT_URL}/redirect-to-app?path=checkout`;
+    const redirectUrl = `${constants.WEB_CLIENT_URL}/redirect-to-app?path=checkout`;
     const payload: CreateCheckoutSessionPayload = {
       price_id: priceId,
       customer_email: user?.email as string,

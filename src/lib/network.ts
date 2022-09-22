@@ -47,7 +47,7 @@ export class Network {
       bridgePass,
       bridgeUser,
       encryptionKey,
-      bridgeUrl: appService.constants.REACT_NATIVE_BRIDGE_URL,
+      bridgeUrl: appService.constants.BRIDGE_URL,
     });
   }
 

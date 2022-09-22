@@ -117,7 +117,7 @@ export function getBucketById(
   bucketId: string,
   params?: AxiosRequestConfig,
 ): Promise<getBucketByIdResponse | void> {
-  const URL = config.bridgeUrl ? config.bridgeUrl : constants.REACT_NATIVE_BRIDGE_URL;
+  const URL = config.bridgeUrl ? config.bridgeUrl : constants.BRIDGE_URL;
   const targetUrl = `${URL}/buckets/${bucketId}`;
   const defParams: AxiosRequestConfig = {
     headers: {
@@ -151,7 +151,7 @@ export function getFileById(
   fileId: string,
   params?: AxiosRequestConfig,
 ): Promise<getFileByIdResponse | void> {
-  const URL = config.bridgeUrl ? config.bridgeUrl : constants.REACT_NATIVE_BRIDGE_URL;
+  const URL = config.bridgeUrl ? config.bridgeUrl : constants.BRIDGE_URL;
   const targetUrl = `${URL}/buckets/${bucketId}/file-ids/${fileId}`;
   const defParams: AxiosRequestConfig = {
     headers: {
@@ -186,7 +186,7 @@ export interface FrameStaging {
  * @param params
  */
 export function createFrame(config: EnvironmentConfig, params?: AxiosRequestConfig): Promise<FrameStaging> {
-  const URL = config.bridgeUrl ? config.bridgeUrl : constants.REACT_NATIVE_BRIDGE_URL;
+  const URL = config.bridgeUrl ? config.bridgeUrl : constants.BRIDGE_URL;
   const targetUrl = `${URL}/frames`;
   const defParams: AxiosRequestConfig = {
     headers: {
@@ -248,7 +248,7 @@ export function createEntryFromFrame(
   body: CreateEntryFromFrameBody,
   params?: AxiosRequestConfig,
 ): Promise<CreateEntryFromFrameResponse | void> {
-  const URL = config.bridgeUrl ? config.bridgeUrl : constants.REACT_NATIVE_BRIDGE_URL;
+  const URL = config.bridgeUrl ? config.bridgeUrl : constants.BRIDGE_URL;
   const targetUrl = `${URL}/buckets/${bucketId}/files/ensure`;
   const defParams: AxiosRequestConfig = {
     headers: {
@@ -290,7 +290,7 @@ export function addShardToFrame(
   body: ShardMeta,
   params?: AxiosRequestConfig,
 ): Promise<ContractNegotiated | void> {
-  const URL = config.bridgeUrl ? config.bridgeUrl : constants.REACT_NATIVE_BRIDGE_URL;
+  const URL = config.bridgeUrl ? config.bridgeUrl : constants.BRIDGE_URL;
   const targetUrl = `${URL}/frames/${frameId}`;
   const defParams: AxiosRequestConfig = {
     headers: {

@@ -24,7 +24,7 @@ export async function downloadFile(
   params: DownloadFileParams,
   onAbortableReady: (abortable: Abortable) => void,
 ): Promise<void> {
-  const network = getNetwork(constants.REACT_NATIVE_BRIDGE_URL, creds);
+  const network = getNetwork(constants.BRIDGE_URL, creds);
 
   const [downloadPromise, abortable] = network.download(fileId, bucketId, mnemonic, params);
 
@@ -60,7 +60,7 @@ async function downloadV1(
         user: creds.user,
         password: creds.pass,
       },
-      constants.REACT_NATIVE_BRIDGE_URL,
+      constants.BRIDGE_URL,
       params,
     );
 

@@ -3,7 +3,7 @@ import crypto from 'react-native-crypto';
 import { constants } from '../services/AppService';
 import errorService from '../services/ErrorService';
 import AesUtils from './aesUtils';
-const password = constants.REACT_NATIVE_CRYPTO_SECRET || ''; // Force env var loading
+const password = constants.CRYPTO_SECRET || ''; // Force env var loading
 
 interface PassObjectInterface {
   password: string;
@@ -57,7 +57,7 @@ export function decryptTextWithKey(encryptedText: string, keyToDecrypt: string):
 
 export function probabilisticEncryption(content: string): string | null {
   try {
-    const b64 = crypto.createCipher('aes-256-gcm', constants.REACT_NATIVE_CRYPTO_SECRET);
+    const b64 = crypto.createCipher('aes-256-gcm', constants.CRYPTO_SECRET);
 
     b64.write(content);
 
@@ -72,7 +72,7 @@ export function probabilisticEncryption(content: string): string | null {
 
 export function probabilisticDecryption(cipherText: string): string | null {
   try {
-    const decrypt = crypto.createDecipher('aes-256-gcm', constants.REACT_NATIVE_CRYPTO_SECRET);
+    const decrypt = crypto.createDecipher('aes-256-gcm', constants.CRYPTO_SECRET);
     const plain = Buffer.concat([decrypt.update(cipherText), decrypt.final()]).toString('utf8');
 
     return plain;
@@ -85,7 +85,7 @@ export function isValidFilename(filename: string) {
   return !filename.includes('/') && !filename.includes('\\') && !filename.includes(':');
 }
 export function encryptFilename(filename: string, folderId: string): string {
-  const { REACT_NATIVE_CRYPTO_SECRET2: CRYPTO_KEY } = constants;
+  const { CRYPTO_SECRET2: CRYPTO_KEY } = constants;
 
   if (!isValidFilename(filename)) {
     throw new Error('This filename is not valid');
@@ -100,7 +100,7 @@ export function encryptFilename(filename: string, folderId: string): string {
 
 export function deterministicEncryption(content: string, salt?: string | number): string | null {
   try {
-    const key = Buffer.from(constants.REACT_NATIVE_CRYPTO_SECRET as string).toString('hex');
+    const key = Buffer.from(constants.CRYPTO_SECRET as string).toString('hex');
     const iv = salt ? Buffer.from(salt.toString()).toString('hex') : key;
     const encrypt = crypto.createCipheriv('aes-256-gcm', key, iv);
     const b64 = Buffer.concat([encrypt.update(content), encrypt.final()]).toString('base64');
@@ -114,7 +114,7 @@ export function deterministicEncryption(content: string, salt?: string | number)
 
 export function deterministicDecryption(cipherText: string, salt?: string | number): string | null {
   try {
-    const key = Buffer.from(constants.REACT_NATIVE_CRYPTO_SECRET as string).toString('hex');
+    const key = Buffer.from(constants.CRYPTO_SECRET as string).toString('hex');
     const iv = salt ? Buffer.from(salt.toString()).toString('hex') : key;
     const reb64 = Buffer.from(cipherText).toString('hex');
     const bytes = Buffer.from(reb64).toString('base64');

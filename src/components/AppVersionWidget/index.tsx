@@ -29,7 +29,7 @@ function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
   return (
     <View style={props.style}>
       <AppText style={tailwind('text-center text-sm text-gray-40')}>
-        v{packageJson.version} ({appService.constants.REACT_NATIVE_APP_BUILD_NUMBER})
+        v{packageJson.version} ({appService.constants.APP_BUILD_NUMBER})
       </AppText>
     </View>
   );

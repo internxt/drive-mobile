@@ -49,7 +49,7 @@ class PaymentService {
   }
 
   async redirectToCheckout(sessionId: string) {
-    const link = `${constants.REACT_NATIVE_WEB_CLIENT_URL}/checkout/${sessionId}`;
+    const link = `${constants.WEB_CLIENT_URL}/checkout/${sessionId}`;
 
     await AsyncStorage.setItem('tmpCheckoutSessionId', sessionId);
 
