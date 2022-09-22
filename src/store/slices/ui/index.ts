@@ -29,6 +29,7 @@ export interface UIState {
   isDisableTwoFactorModalOpen: boolean;
   isPlansModalOpen: boolean;
   isCancelSubscriptionModalOpen: boolean;
+  isSharedLinkOptionsModalOpen: boolean;
 }
 
 const initialState: UIState = {
@@ -59,6 +60,7 @@ const initialState: UIState = {
   isDisableTwoFactorModalOpen: false,
   isPlansModalOpen: false,
   isCancelSubscriptionModalOpen: false,
+  isSharedLinkOptionsModalOpen: false,
 };
 
 export const uiSlice = createSlice({
@@ -147,6 +149,9 @@ export const uiSlice = createSlice({
     },
     setIsCancelSubscriptionModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isCancelSubscriptionModalOpen = action.payload;
+    },
+    setIsSharedLinkOptionsModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.isSharedLinkOptionsModalOpen = action.payload;
     },
   },
 });

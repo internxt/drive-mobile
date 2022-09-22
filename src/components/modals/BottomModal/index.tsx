@@ -53,7 +53,11 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
                   </View>
                 )}
                 {props.header && (
-                  <View style={tailwind('flex-row px-5 py-4 items-center justify-between')}>
+                  <View
+                    style={tailwind(
+                      'flex-row bg-gray-5  px-5 py-4 items-center justify-between overflow-hidden rounded-t-xl',
+                    )}
+                  >
                     <View style={tailwind('flex-1')}>{props.header}</View>
                     <TouchableWithoutFeedback onPress={props.onClosed}>
                       <View style={tailwind('bg-neutral-20 rounded-full h-8 w-8 justify-center items-center ml-5')}>

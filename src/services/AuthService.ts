@@ -43,6 +43,17 @@ class AuthService {
     this.sdk = sdk;
   }
 
+  async init() {
+    const { credentials } = await this.getAuthCredentials();
+    if (credentials) {
+      SdkManager.init({
+        token: credentials.accessToken,
+        photosToken: credentials.photosToken,
+        mnemonic: credentials.user.mnemonic,
+      });
+    }
+  }
+
   public async apiLogin(email: string): Promise<LoginResponse> {
     return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/login`, {
       method: 'POST',

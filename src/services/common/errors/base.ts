@@ -21,9 +21,9 @@ export class ReportableError extends Error {
 
 export class DisplayableError extends ReportableError {
   public userFriendlyMessage: string;
-  constructor({ userFriendlyMessage, errorToReport }: { userFriendlyMessage: string; errorToReport?: Error }) {
+  constructor({ userFriendlyMessage, report }: { userFriendlyMessage: string; report?: { error: unknown } }) {
     super({
-      error: errorToReport,
+      error: report?.error,
     });
 
     this.userFriendlyMessage = userFriendlyMessage;

@@ -107,4 +107,20 @@ export class SdkManager {
   get photos() {
     return new photos.Photos(constants.REACT_NATIVE_PHOTOS_API_URL, this.getApiSecurity().photosToken);
   }
+
+  /** Share SDK */
+  get share() {
+    // Uses V2 API
+    return Drive.Share.client(
+      `${constants.REACT_NATIVE_BRIDGE_URL}/drive`,
+      {
+        clientName: packageJson.name,
+        clientVersion: packageJson.version,
+      },
+      {
+        token: this.getApiSecurity().photosToken,
+        mnemonic: this.getApiSecurity().mnemonic,
+      },
+    );
+  }
 }

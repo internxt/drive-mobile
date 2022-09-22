@@ -5,7 +5,6 @@ import DriveList from '../../components/DriveList';
 import analytics from '../../services/AnalyticsService';
 import storageService from '../../services/StorageService';
 import strings from '../../../assets/lang/strings';
-import SearchInput from '../../components/SearchInput';
 import globalStyle from '../../styles/global';
 import ScreenTitle from '../../components/AppScreenTitle';
 import Separator from '../../components/AppSeparator';
@@ -25,6 +24,7 @@ import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import Portal from '@burstware/react-native-portal';
 import drive from '@internxt-mobile/services/drive';
+import { SearchInput } from 'src/components/SearchInput';
 
 function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Element {
   const route = useRoute();
@@ -43,6 +43,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
   const { id: currentFolderId, name: currentFolderName, parentId: currentFolderParentId } = currentFolder;
   const { uploading: driveUploadingItems, items: driveItems } = useAppSelector(driveSelectors.driveItems);
   const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.ui);
+  const { isLoading: contentLoading } = useAppSelector((state) => state.drive);
   const onSearchTextChanged = (value: string) => {
     dispatch(driveActions.setSearchString(value));
   };
@@ -76,6 +77,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
     dispatch(uiActions.switchFileViewMode());
   };
   const onBackButtonPressed = () => {
+    goBackToSharedIfNeeded();
     dispatch(driveThunks.goBackThunk({ folderId: currentFolderParentId as number }));
   };
 
@@ -92,6 +94,12 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
     navigation.replace('SignIn');
   }
 
+  const goBackToSharedIfNeeded = () => {
+    const params = route.params as { sharedFolderId: number };
+    if (params && params.sharedFolderId === currentFolder.parentId) {
+      navigation.navigate('Home');
+    }
+  };
   useEffect(() => {
     asyncStorage.getUser().then(async (user) => {
       if (user) {
@@ -114,7 +122,8 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
     // BackHandler
     const backAction = () => {
       if (route.name === 'Drive') {
-        if (~currentFolderId && currentFolderParentId) {
+        if (~currentFolderId && currentFolderParentId && !contentLoading) {
+          goBackToSharedIfNeeded();
           dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderParentId }));
         } else {
           return false;

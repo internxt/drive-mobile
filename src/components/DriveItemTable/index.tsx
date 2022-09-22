@@ -4,13 +4,13 @@ import { View, Text, TouchableOpacity, TouchableHighlight, Animated, Easing } fr
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import prettysize from 'prettysize';
 import { useAppSelector } from '../../store/hooks';
-import { ArrowCircleUp, DotsThree } from 'phosphor-react-native';
+import { ArrowCircleUp, DotsThree, Link } from 'phosphor-react-native';
 import strings from '../../../assets/lang/strings';
 import ProgressBar from '../AppProgressBar';
 import { items } from '@internxt/lib';
 import AppText from '../AppText';
 
-import { DriveItemProps } from '../../types/drive';
+import { DriveItemProps, DriveListType } from '../../types/drive';
 import useDriveItem from '../../hooks/useDriveItem';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
@@ -24,7 +24,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
   const { isFolder, isIdle, isUploading, isDownloading, onItemPressed, onItemLongPressed, onActionsButtonPressed } =
-    useDriveItem(props);
+    useDriveItem({ ...props, isSharedLinkItem: props.type === DriveListType.Shared });
 
   useEffect(() => {
     Animated.loop(
@@ -51,6 +51,23 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
               <FolderIcon width={iconSize} height={iconSize} />
             ) : (
               <IconFile width={iconSize} height={iconSize} />
+            )}
+            {props.type === DriveListType.Shared && (
+              <View
+                style={[
+                  tailwind('absolute -bottom-1 -right-2 flex bg-white items-center justify-center rounded-full'),
+                  { width: 20, height: 20 },
+                ]}
+              >
+                <View
+                  style={[
+                    tailwind('bg-primary rounded-full flex items-center justify-center'),
+                    { width: 16, height: 16 },
+                  ]}
+                >
+                  <Link weight="bold" size={10} color={getColor('text-white')} />
+                </View>
+              </View>
             )}
           </View>
 
@@ -83,6 +100,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
               ))}
 
             {isIdle &&
+              props.type !== DriveListType.Shared &&
               (props.subtitle ? (
                 props.subtitle
               ) : (

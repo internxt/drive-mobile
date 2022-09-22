@@ -435,6 +435,10 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[] }, { state: RootS
           dispatch(driveActions.popItem({ id: item.id, isFolder: !item.fileId }));
           drive.database.deleteItem({ id: item.id, isFolder: !item.fileId });
         }
+
+        drive.events.emit({
+          event: DriveEventKey.DriveItemDeleted,
+        });
       })
       .catch((err) => {
         notificationsService.show({

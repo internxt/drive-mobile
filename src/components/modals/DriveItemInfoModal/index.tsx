@@ -10,11 +10,35 @@ import { uiActions } from '../../../store/slices/ui';
 import { driveActions } from '../../../store/slices/drive';
 import BottomModalOption from '../../BottomModalOption';
 import BottomModal from '../BottomModal';
-import { Link, PencilSimpleLine, Trash, ArrowsOutCardinal } from 'phosphor-react-native';
+import {
+  Link,
+  Trash,
+  ArrowsOutCardinal,
+  Eye,
+  ArrowSquareOut,
+  DownloadSimple,
+  PencilSimple,
+} from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
+import { useUseCase } from '@internxt-mobile/hooks/common';
+import * as driveUseCases from '@internxt-mobile/useCases/drive';
+import * as commonUseCases from '@internxt-mobile/useCases/common';
 
+import { time } from '@internxt-mobile/services/common/time';
+import AppText from 'src/components/AppText';
+import CenterModal from '../CenterModal';
 function DriveItemInfoModal(): JSX.Element {
+  const { executeUseCase: generateAndShowShareLink, loading: generatingShareLink } = useUseCase(
+    driveUseCases.generateShareLink,
+    {
+      lazy: true,
+    },
+  );
+  const { executeUseCase: shareFile } = useUseCase(commonUseCases.shareFile, {
+    lazy: true,
+  });
+
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
@@ -26,7 +50,93 @@ function DriveItemInfoModal(): JSX.Element {
   }
 
   const isFolder = !item.fileId;
+
+  const handleRenameItem = () => {
+    dispatch(uiActions.setShowItemModal(false));
+    dispatch(uiActions.setShowRenameModal(true));
+  };
+
+  const handleMoveItem = () => {
+    dispatch(uiActions.setShowItemModal(false));
+    dispatch(uiActions.setShowMoveModal(true));
+    dispatch(driveActions.setItemToMove(item));
+  };
+
+  const handleTrashItem = () => {
+    dispatch(uiActions.setShowItemModal(false));
+    dispatch(uiActions.setShowDeleteModal(true));
+  };
+
+  const handleGenerateShareLink = async () => {
+    await generateAndShowShareLink({
+      itemId: item.id.toString(),
+      fileId: item.fileId,
+      displayCopyNotification: true,
+      type: isFolder ? 'folder' : 'file',
+    });
+
+    dispatch(uiActions.setShowItemModal(false));
+  };
+
+  const handleOpenItem = () => {
+    return;
+  };
+
+  const handleExportFile = async () => {
+    throw new Error('Should implement');
+  };
+
+  const handleDownloadFile = () => {
+    throw new Error('Should implement');
+  };
+  const options = [
+    {
+      visible: false,
+      icon: <Eye size={20} color={getColor('text-gray-100')} />,
+      label: strings.components.file_and_folder_options.open,
+      onPress: handleOpenItem,
+    },
+    {
+      icon: <PencilSimple size={20} color={getColor('text-gray-100')} />,
+      label: strings.buttons.rename,
+      onPress: handleRenameItem,
+    },
+    {
+      icon: <ArrowsOutCardinal size={20} color={getColor('text-gray-100')} />,
+      label: strings.buttons.move,
+      onPress: handleMoveItem,
+    },
+    {
+      visible: false,
+      icon: <ArrowSquareOut size={20} color={getColor('text-gray-100')} />,
+      label: strings.components.file_and_folder_options.exportFile,
+      onPress: handleExportFile,
+    },
+    {
+      visible: false,
+      icon: <DownloadSimple size={20} color={getColor('text-gray-100')} />,
+      label: strings.components.file_and_folder_options.downloadFile,
+      onPress: handleDownloadFile,
+    },
+    {
+      icon: <Link size={20} color={getColor('text-gray-100')} />,
+      label: strings.components.file_and_folder_options.getLink,
+      onPress: handleGenerateShareLink,
+    },
+    {
+      icon: <Trash size={20} color={getColor('text-red-60')} />,
+      textStyle: tailwind('text-red-60'),
+      label: strings.components.file_and_folder_options.delete,
+      onPress: handleTrashItem,
+    },
+  ];
+
   const FileIcon = getFileTypeIcon(item?.type || '');
+
+  const getUpdatedAt = () => {
+    // eslint-disable-next-line quotes
+    return time.getFormattedDate(item.updatedAt, "dd LLL yyyy 'at' HH:mm");
+  };
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
@@ -37,94 +147,76 @@ function DriveItemInfoModal(): JSX.Element {
         <Text
           numberOfLines={1}
           ellipsizeMode="middle"
-          style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
+          style={[tailwind('text-base text-gray-100'), globalStyle.fontWeight.medium]}
         >
           {item?.name}
           {item?.type ? '.' + item.type : ''}
         </Text>
-        <Text style={tailwind('text-xs text-neutral-100')}>
+        <AppText style={tailwind('text-xs text-gray-60')}>
           {!isFolder && (
             <>
-              {prettysize(item?.size || 0)}
-              <Text style={globalStyle.fontWeight.bold}> · </Text>
+              {prettysize(item?.size || 0)}{' '}
+              <AppText bold style={tailwind('text-gray-60')}>
+                ·
+              </AppText>{' '}
             </>
           )}
-          Updated{' '}
-          {new Date(item?.updatedAt).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
-        </Text>
+          {getUpdatedAt()}
+        </AppText>
       </View>
     </View>
   );
 
   return (
-    <BottomModal isOpen={showItemModal} onClosed={() => dispatch(uiActions.setShowItemModal(false))} header={header}>
-      <View style={tailwind('bg-neutral-10 p-4 flex-grow')}>
-        <View style={tailwind('rounded-xl bg-white')}>
-          <BottomModalOption
-            leftSlot={
-              <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.rename}</Text>
-              </View>
-            }
-            rightSlot={<PencilSimpleLine size={20} color={getColor('text-neutral-500')} />}
-            onPress={() => {
-              dispatch(uiActions.setShowItemModal(false));
-              dispatch(uiActions.setShowRenameModal(true));
-            }}
-          />
-
-          <BottomModalOption
-            leftSlot={
-              <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.move}</Text>
-              </View>
-            }
-            rightSlot={<ArrowsOutCardinal size={20} color={getColor('text-neutral-500')} />}
-            onPress={() => {
-              dispatch(uiActions.setShowItemModal(false));
-              dispatch(uiActions.setShowMoveModal(true));
-              dispatch(driveActions.setItemToMove(item));
-            }}
-          />
-
-          {!isFolder && (
-            <BottomModalOption
-              leftSlot={
-                <View style={tailwind('flex-grow')}>
-                  <Text style={tailwind('text-lg text-neutral-500')}>
-                    {strings.components.file_and_folder_options.share}
-                  </Text>
-                </View>
-              }
-              rightSlot={<Link size={20} color={getColor('text-neutral-500')} />}
-              onPress={() => {
-                dispatch(uiActions.setShowItemModal(false));
-                dispatch(uiActions.setShowShareModal(true));
-              }}
-            />
-          )}
+    <>
+      <BottomModal isOpen={showItemModal} onClosed={() => dispatch(uiActions.setShowItemModal(false))} header={header}>
+        <View style={tailwind('flex-grow')}>
+          <View style={tailwind('border-t border-gray-5 overflow-hidden')}>
+            {options
+              .filter((opt) => opt.visible !== false)
+              .map((opt, index) => {
+                return (
+                  <BottomModalOption
+                    key={index}
+                    leftSlot={opt.icon}
+                    rightSlot={
+                      <View style={tailwind('flex-grow items-center justify-center flex-row')}>
+                        <Text style={[tailwind('text-lg text-neutral-500'), opt.textStyle]}>{opt.label}</Text>
+                      </View>
+                    }
+                    hideBorderBottom={index === options.length - 1}
+                    onPress={opt.onPress}
+                  />
+                );
+              })}
+          </View>
         </View>
+      </BottomModal>
+      <CenterModal
+        style={tailwind('w-auto')}
+        isOpen={generatingShareLink}
+        onClosed={() => {
+          return;
+        }}
+      >
+        <View style={tailwind('flex items-center justify-center')}>
+          <View style={tailwind('flex items-center justify-center')}>
+            <View
+              style={[
+                tailwind('h-16 w-16 mt-8 mb-4 flex items-center justify-center rounded-full'),
+                { backgroundColor: 'rgba(0, 102, 255, 0.05)', zIndex: 10 },
+              ]}
+            >
+              <Link color={getColor('text-primary')} size={40} />
+            </View>
+          </View>
 
-        <View style={tailwind('bg-white rounded-xl mt-4')}>
-          <BottomModalOption
-            leftSlot={
-              <View style={tailwind('flex-grow')}>
-                <Text style={tailwind('text-lg text-red-60')}>{strings.components.file_and_folder_options.delete}</Text>
-              </View>
-            }
-            rightSlot={<Trash size={20} color={getColor('text-red-60')} />}
-            onPress={() => {
-              dispatch(uiActions.setShowItemModal(false));
-              dispatch(uiActions.setShowDeleteModal(true));
-            }}
-          />
+          <AppText medium style={tailwind('mb-8 text-lg mx-8')}>
+            {strings.messages.generatingLink}
+          </AppText>
         </View>
-      </View>
-    </BottomModal>
+      </CenterModal>
+    </>
   );
 }
 

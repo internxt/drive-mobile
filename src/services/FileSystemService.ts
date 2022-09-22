@@ -5,7 +5,7 @@ import FileViewer from 'react-native-file-viewer';
 import * as FileSystem from 'expo-file-system';
 import prettysize from 'prettysize';
 import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_FULL_SIZE_DIRECTORY } from './photos/constants';
-
+import Share from 'react-native-share';
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
@@ -157,6 +157,10 @@ class FileSystemService {
     const blob = await response.blob();
 
     return blob;
+  }
+
+  public async shareFile({ title, fileUri }: { title: string; fileUri: string }) {
+    return Share.open({ title, url: fileUri, failOnCancel: false });
   }
 
   public async getUsageStats(): Promise<UsageStatsResult> {

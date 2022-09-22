@@ -88,7 +88,7 @@ export default function App(): JSX.Element {
 
     if (!isAppInitialized) {
       fileSystemService.prepareTmpDir().finally(() => {
-        return Promise.all([loadFonts(), silentSignIn(), analyticsService.setup()])
+        return Promise.all([authService.init(), loadFonts(), silentSignIn(), analyticsService.setup()])
           .then(() => {
             setIsAppInitialized(true);
           })

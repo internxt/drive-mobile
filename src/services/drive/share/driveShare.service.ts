@@ -1,47 +1,69 @@
-import { constants } from '@internxt-mobile/services/AppService';
-import errorService from '@internxt-mobile/services/ErrorService';
-import notificationsService from '@internxt-mobile/services/NotificationsService';
-import { NotificationType } from '@internxt-mobile/types/index';
-import Axios from 'axios';
-import AesUtils from 'src/helpers/aesUtils';
-import { getHeaders } from 'src/helpers/headers';
-
+import appService from '@internxt-mobile/services/AppService';
+import AuthService from '@internxt-mobile/services/AuthService';
+import { SdkManager } from '@internxt-mobile/services/common';
+import { aes } from '@internxt/lib';
+import { GenerateShareLinkPayload } from '@internxt/sdk/dist/drive/share/types';
+import Share from 'react-native-share';
 class DriveShareService {
-  public async getShareList(): Promise<any[]> {
-    const headers = await getHeaders();
-    const headersMap: Record<string, string> = {};
-
-    headers.forEach((value: string, key: string) => {
-      headersMap[key] = value;
-    });
-
-    const response = await Axios.get(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/share/list`, {
-      headers: headersMap,
-    });
-
-    return this.decryptFileNames(response.data);
+  constructor(private sdk: SdkManager) {}
+  async getShareLinks(page = 0) {
+    return this.sdk.share.getShareLinks(page, 50);
   }
 
-  private async decryptFileNames(shares: any[]) {
-    shares.map((share) => {
-      try {
-        const decryptedName = AesUtils.decrypt(
-          share.fileInfo.name,
-          constants.REACT_NATIVE_CRYPTO_SECRET2 + '-' + share.fileInfo.folderId,
-        );
+  async generateShareLink(plainCode: string, mnemonic: string, payload: GenerateShareLinkPayload) {
+    const result = await this.sdk.share.createShareLink(payload);
 
-        share.fileInfo.name = decryptedName;
-      } catch (err) {
-        const castedError = errorService.castError(err);
-        notificationsService.show({
-          text1: 'Error decrypting files: ' + castedError.message,
-          type: NotificationType.Error,
-        });
-      }
+    return this.getUsableLink({
+      created: result.created,
+      type: payload.type,
+      token: result.token,
+      /** Seems like the SDK TS signatures are wrong */
+      code: (result as unknown as { encryptedCode: string }).encryptedCode || plainCode,
+      mnemonic,
     });
+  }
 
-    return shares;
+  async getShareLinkFromCodeAndToken({ type, token, code }: { type: 'file' | 'folder'; token: string; code: string }) {
+    const { credentials } = await AuthService.getAuthCredentials();
+    if (!credentials?.user) throw new Error('User not found');
+    return this.getUsableLink({
+      created: false,
+      type,
+      mnemonic: credentials?.user.mnemonic,
+      token,
+      code,
+    });
+  }
+
+  shareGeneratedSharedLink(link: string) {
+    return Share.open({
+      message: link,
+    });
+  }
+
+  deleteShareLink({ shareId }: { shareId: string }) {
+    return this.sdk.share.deleteShareLink(shareId);
+  }
+
+  private getUsableLink({
+    created,
+    type,
+    token,
+    code,
+    mnemonic,
+  }: {
+    created: boolean;
+    type: string;
+    token: string;
+    code: string;
+    mnemonic: string;
+  }) {
+    if (created) {
+      return `${appService.constants.REACT_NATIVE_WEB_CLIENT_URL}/sh/${type}/${token}/${code}`;
+    } else {
+      return `${appService.constants.REACT_NATIVE_WEB_CLIENT_URL}/sh/${type}/${token}/${aes.decrypt(code, mnemonic)}`;
+    }
   }
 }
 
-export const driveShareService = new DriveShareService();
+export const driveShareService = new DriveShareService(SdkManager.getInstance());

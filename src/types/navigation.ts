@@ -40,7 +40,7 @@ export type RootScreenNavigationProp<Screen extends keyof RootStackParamList> = 
 
 export type TabExplorerStackParamList = {
   Home: undefined;
-  Drive: undefined;
+  Drive: { sharedFolderId: number } | undefined;
   Add: undefined;
   Photos: undefined;
   Settings: undefined;
