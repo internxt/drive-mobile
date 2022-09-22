@@ -2,16 +2,14 @@ import { Device, User } from '@internxt/sdk/dist/photos';
 import Axios from 'axios';
 import { getUniqueId, getDeviceName, getMacAddress } from 'react-native-device-info';
 import { SdkManager } from '@internxt-mobile/services/common';
-
-import { PhotosCommonServices } from './PhotosCommonService';
+import AuthService from '@internxt-mobile/services/AuthService';
+import { photosLogger, PhotosLogger } from '../logger';
 
 class PhotosUserService {
   private device: Device | null = null;
   private user: User | null = null;
-  private sdk: SdkManager;
-  constructor(sdk: SdkManager) {
-    this.sdk = sdk;
-  }
+
+  constructor(private sdk: SdkManager, private logger: PhotosLogger) {}
   public getDevice() {
     return this.device;
   }
@@ -26,6 +24,11 @@ class PhotosUserService {
     user: User;
     device: Device;
   }> {
+    const { credentials } = await AuthService.getAuthCredentials();
+
+    if (!credentials) {
+      throw new Error('Credentials not found');
+    }
     const uniqueId = getUniqueId();
     const mac = await getMacAddress();
     const name = await getDeviceName();
@@ -44,12 +47,12 @@ class PhotosUserService {
     const user = await this.sdk.photos.users.initialize({
       mac: uniqueId,
       name,
-      bridgeUser: PhotosCommonServices.model.networkCredentials.user,
-      bridgePassword: PhotosCommonServices.model.networkCredentials.password,
+      bridgeUser: credentials.user.bridgeUser,
+      bridgePassword: credentials.user.userId,
     });
     this.device = await this.sdk.photos.devices.createDevice({ mac, name, userId: user.id });
     this.user = user;
-    PhotosCommonServices.log.info('User and device initialized');
+    this.logger.info('Photos user initialized');
 
     return {
       user: this.user,
@@ -58,4 +61,4 @@ class PhotosUserService {
   }
 }
 
-export default new PhotosUserService(SdkManager.getInstance());
+export const photosUser = new PhotosUserService(SdkManager.getInstance(), photosLogger);

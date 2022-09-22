@@ -260,13 +260,16 @@ class AuthService {
    *
    * @returns {Promise<AuthCredentials>} The user, photosToken and token for the session user
    */
-  public async getAuthCredentials(): Promise<{ credentials?: AuthCredentials }> {
+  public async getAuthCredentials(): Promise<{ credentials: AuthCredentials }> {
     const token = await asyncStorageService.getItem(AsyncStorageKey.Token);
     const photosToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
     const user = await asyncStorageService.getUser();
 
+    if (!user || !token || !photosToken) {
+      throw new Error('Some credentials are missing, unable to retrieve auth credentials');
+    }
     return {
-      credentials: token && photosToken && user ? { accessToken: token, photosToken, user } : undefined,
+      credentials: { accessToken: token, photosToken, user },
     };
   }
 

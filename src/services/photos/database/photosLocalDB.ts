@@ -1,12 +1,12 @@
-import { PhotosCommonServices } from '../PhotosCommonService';
 import sqliteService from '../../SqliteService';
 import { DevicePhoto, PhotoFileSystemRef, PHOTOS_DB_NAME, SyncStage } from '../../../types/photos';
 import deviceSyncTable from './tables/deviceSync';
 import { Photo, PhotoId } from '@internxt/sdk/dist/photos';
+import { photosLogger, PhotosLogger } from '../logger';
 
-export class PhotosLocalDatabaseService {
+export class PhotosLocalDB {
   public isInitialized = false;
-  constructor() {
+  constructor(private logger: PhotosLogger) {
     this.init();
   }
 
@@ -14,7 +14,7 @@ export class PhotosLocalDatabaseService {
     await sqliteService.open(PHOTOS_DB_NAME);
     await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.createTable);
     this.isInitialized = true;
-    PhotosCommonServices.log.info('Local database initialized');
+    this.logger.info('Local database initialized');
   }
 
   public async getByPreviewUri(previewUri: string) {
@@ -69,3 +69,4 @@ export class PhotosLocalDatabaseService {
     ]);
   }
 }
+export const photosLocalDB = new PhotosLocalDB(photosLogger);

@@ -1,15 +1,14 @@
 import { ResizeFormat } from 'react-native-image-resizer';
 
-import imageService from '../ImageService';
 import { Photo } from '@internxt/sdk/dist/photos';
 
-import fileSystemService from '../FileSystemService';
+import imageService from '@internxt-mobile/services/ImageService';
+import { photosUtils } from '../utils';
+import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import { DevicePhoto, PhotoFileSystemRef, PhotoSizeType } from '@internxt-mobile/types/photos';
+import { photosNetwork } from '../network/photosNetwork.service';
 
-import { DevicePhoto, PhotoFileSystemRef, PhotoSizeType } from '../../types/photos';
-
-import { PhotosCommonServices } from './PhotosCommonService';
-
-export default class PhotosPreviewService {
+export class PhotosPreviewService {
   private static readonly PREVIEW_WIDTH = 512;
   private static readonly PREVIEW_HEIGHT = 512;
 
@@ -32,8 +31,8 @@ export default class PhotosPreviewService {
       options: { mode: 'cover' },
     });
 
-    const destination = PhotosCommonServices.getPhotoPath({
-      name: PhotosCommonServices.getPhotoName(photo.filename),
+    const destination = photosUtils.getPhotoPath({
+      name: photosUtils.getPhotoName(photo.filename),
       size: PhotoSizeType.Preview,
       type: resizerFormat.toLowerCase(),
     });
@@ -69,7 +68,7 @@ export default class PhotosPreviewService {
   public async getLocalPreview(photo: Photo): Promise<PhotoFileSystemRef | null> {
     try {
       if (!photo.previews) throw new Error('Photo does not has a preview');
-      const localPreviewPath = PhotosCommonServices.getPhotoPath({
+      const localPreviewPath = photosUtils.getPhotoPath({
         name: photo.name,
         size: PhotoSizeType.Preview,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -85,4 +84,43 @@ export default class PhotosPreviewService {
       return null;
     }
   }
+
+  public async getPreview(photo: Photo): Promise<PhotoFileSystemRef | null> {
+    const localPreview = await this.getLocalPreview(photo);
+
+    if (localPreview) {
+      return fileSystemService.pathToUri(localPreview);
+    }
+
+    const photoRemotePreviewData = this.getPhotoRemotePreviewData(photo);
+
+    if (photoRemotePreviewData) {
+      const destinationPath = photosUtils.getPhotoPath({
+        name: photo.name,
+        size: PhotoSizeType.Preview,
+        type: photo.type,
+      });
+
+      const photoPreviewRef = await photosNetwork.download(photoRemotePreviewData.fileId, {
+        destination: destinationPath,
+        decryptionProgressCallback: () => undefined,
+        downloadProgressCallback: () => undefined,
+      });
+
+      return fileSystemService.pathToUri(photoPreviewRef);
+    }
+
+    return null;
+  }
+
+  private getPhotoRemotePreviewData(photo: Photo) {
+    const photoRemotePreview =
+      photo.previewId && photo.previews
+        ? photo.previews.find((preview) => preview.fileId === photo.previewId)
+        : undefined;
+
+    return photoRemotePreview;
+  }
 }
+
+export const photosPreview = new PhotosPreviewService();

@@ -9,15 +9,13 @@ import {
 } from '../../../types/photos';
 import async from 'async';
 import { PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY } from '../constants';
-import { PhotosLocalDatabaseService } from '../PhotosLocalDatabaseService';
-
+import { PhotosLocalDB } from '../database';
 export class DevicePhotosSyncCheckerService {
   public status = DevicePhotosSyncCheckerStatus.IDLE;
   private queue = this.createQueue();
   private onStatusChangeCallback: DevicePhotosSyncServiceHandlers['onSyncQueueStatusChange'] = () => undefined;
-  private db: PhotosLocalDatabaseService;
-  constructor(db: PhotosLocalDatabaseService) {
-    this.db = db;
+
+  constructor(private database: PhotosLocalDB) {
     this.queue.drain(() => {
       this.updateStatus(DevicePhotosSyncCheckerStatus.EMPTY);
       this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);
@@ -118,7 +116,7 @@ export class DevicePhotosSyncCheckerService {
       return SyncStage.FAILED_TO_CHECK;
     }
 
-    const dbPhoto = await this.db.getByDevicePhoto(operation.devicePhoto);
+    const dbPhoto = await this.database.getByDevicePhoto(operation.devicePhoto);
 
     if (!dbPhoto) {
       return SyncStage.NEEDS_REMOTE_CHECK;

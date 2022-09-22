@@ -17,10 +17,10 @@ import { DevicePhotosSyncCheckerService } from './DevicePhotosSyncChecker';
 import { Photo } from '@internxt/sdk/dist/photos';
 import async from 'async';
 import errorService from 'src/services/ErrorService';
-import { PhotosLocalDatabaseService } from '../PhotosLocalDatabaseService';
 import { AbortedOperationError } from 'src/types';
-import { PhotosCommonServices } from '../PhotosCommonService';
-
+import { SdkManager } from '@internxt-mobile/services/common';
+import { PHOTOS_PER_NETWORK_GROUP } from '../constants';
+import photos from '@internxt-mobile/services/photos';
 export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photo: Photo | null) => void;
 export type OnStatusChangeCallback = (status: PhotosSyncManagerStatus) => void;
 export type OnTotalPhotosCalculatedCallback = (totalPhotos: number) => void;
@@ -35,7 +35,6 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   private devicePhotosScanner: DevicePhotosScannerService;
   private devicePhotosSyncChecker: DevicePhotosSyncCheckerService;
   private photosNetworkManager: PhotosNetworkManager;
-  private photosLocalDb: PhotosLocalDatabaseService;
   private groupsOfPhotosToRemoteCheck: DevicePhoto[][] = [];
   private config: PhotosSyncManagerConfig;
   private doingRemotePhotosCheck = false;
@@ -64,15 +63,10 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
       next(err as Error, null);
     }
   }, 1);
-  constructor(
-    config: PhotosSyncManagerConfig,
-    db: PhotosLocalDatabaseService,
-    photosNetworkManager: PhotosNetworkManager,
-  ) {
-    this.config = config;
+  constructor(photosNetworkManager: PhotosNetworkManager) {
+    this.config = { checkIfExistsPhotosAmount: PHOTOS_PER_NETWORK_GROUP };
     this.devicePhotosScanner = new DevicePhotosScannerService();
-    this.photosLocalDb = db;
-    this.devicePhotosSyncChecker = new DevicePhotosSyncCheckerService(this.photosLocalDb);
+    this.devicePhotosSyncChecker = new DevicePhotosSyncCheckerService(photos.database);
     this.photosNetworkManager = photosNetworkManager;
     this.setupCallbacks();
   }
@@ -371,7 +365,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
       }
       try {
         if (photoToUpload.exists && photoToUpload.photo) {
-          await this.photosLocalDb.persistPhotoSync(photoToUpload.photo, photoToUpload.devicePhoto);
+          await photos.database.persistPhotoSync(photoToUpload.photo, photoToUpload.devicePhoto);
           this.devicePhotoSyncSuccess(photoToUpload.photo);
         }
 
@@ -410,7 +404,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
       if (this.isAborted) {
         throw new AbortedOperationError();
       }
-      await this.photosLocalDb.persistPhotoSync(photo);
+      await photos.database.persistPhotoSync(photo);
 
       this.devicePhotoSyncSuccess(photo);
     } catch (err) {
@@ -457,6 +451,8 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   }
 
   private log(message: string) {
-    PhotosCommonServices.log.info(message);
+    photos.logger.info(message);
   }
 }
+
+export const photosSync = new PhotosSyncManager(new PhotosNetworkManager(SdkManager.getInstance()));

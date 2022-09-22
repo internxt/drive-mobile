@@ -10,11 +10,10 @@ import strings from '../../../../assets/lang/strings';
 import fileSystemService from '../../../services/FileSystemService';
 import { items } from '@internxt/lib';
 import { DownloadSimple, Info, Link, Trash } from 'phosphor-react-native';
-import { PhotosCommonServices } from '../../../services/photos/PhotosCommonService';
 import { PhotoSizeType } from '../../../types/photos';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
-
+import photos from '@internxt-mobile/services/photos';
 interface PhotosPreviewOptionsModalProps extends BottomModalProps {
   data: Photo;
   preview: string;
@@ -72,7 +71,7 @@ function PhotosPreviewOptionsModal({
   const onDownloadButtonPressed = () => {
     fileSystemService.showFileViewer(
       fileSystemService.pathToUri(
-        PhotosCommonServices.getPhotoPath({
+        photos.utils.getPhotoPath({
           name: data.name,
           size: PhotoSizeType.Full,
           type: data.type,

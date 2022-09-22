@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { PhotosEventKey } from '@internxt-mobile/types/photos';
 import EventEmitter from 'events';
-import { PhotosEventKey } from '../../types/photos';
 
-export default class PhotosEventEmitter {
+class PhotosEventEmitter {
   private readonly eventEmitter: EventEmitter;
 
   constructor() {
@@ -45,3 +45,5 @@ export default class PhotosEventEmitter {
     return id ? `${event}-${id}` : event;
   }
 }
+
+export const photosEvents = new PhotosEventEmitter();
