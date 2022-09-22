@@ -16,7 +16,7 @@ class NewsletterService {
 
     try {
       await Axios.post(
-        appService.constants.DRIVE_API_URL + '/api/newsletter/subscribe',
+        appService.constants.DRIVE_API_URL + '/newsletter/subscribe',
         {
           email,
           groupId: this.groupId,

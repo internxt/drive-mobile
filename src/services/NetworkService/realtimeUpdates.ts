@@ -8,7 +8,7 @@ export class RealtimeUpdates {
     const URL = `${constants.DRIVE_API_URL}`;
     this.socket = io(URL, {
       transports: ['websocket'],
-      path: '/api/sockets',
+      path: '/sockets',
     });
   }
 
