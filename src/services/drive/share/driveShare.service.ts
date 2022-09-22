@@ -6,11 +6,11 @@ import { GenerateShareLinkPayload } from '@internxt/sdk/dist/drive/share/types';
 import Share from 'react-native-share';
 class DriveShareService {
   constructor(private sdk: SdkManager) {}
-  public async getShareLinks(page = 0) {
+  async getShareLinks(page = 0) {
     return this.sdk.share.getShareLinks(page, 50);
   }
 
-  public async generateShareLink(plainCode: string, mnemonic: string, payload: GenerateShareLinkPayload) {
+  async generateShareLink(plainCode: string, mnemonic: string, payload: GenerateShareLinkPayload) {
     const result = await this.sdk.share.createShareLink(payload);
 
     return this.getUsableLink({
@@ -23,15 +23,7 @@ class DriveShareService {
     });
   }
 
-  public async getShareLinkFromCodeAndToken({
-    type,
-    token,
-    code,
-  }: {
-    type: 'file' | 'folder';
-    token: string;
-    code: string;
-  }) {
+  async getShareLinkFromCodeAndToken({ type, token, code }: { type: 'file' | 'folder'; token: string; code: string }) {
     const { credentials } = await AuthService.getAuthCredentials();
     if (!credentials?.user) throw new Error('User not found');
     return this.getUsableLink({
@@ -43,13 +35,13 @@ class DriveShareService {
     });
   }
 
-  public async shareGeneratedSharedLink(link: string) {
+  shareGeneratedSharedLink(link: string) {
     return Share.open({
       message: link,
     });
   }
 
-  public async deleteShareLink({ shareId }: { shareId: string }) {
+  deleteShareLink({ shareId }: { shareId: string }) {
     return this.sdk.share.deleteShareLink(shareId);
   }
 

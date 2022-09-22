@@ -17,7 +17,7 @@ import { SharedLinkResult } from '@internxt-mobile/useCases/drive';
 interface SharedScreenProps {
   searchText?: string;
   isLoading: boolean;
-  refreshSharedLinks: () => Promise<void>;
+  refreshSharedLinks: () => void;
   sharedLinks: SharedLinkResult[] | null;
 }
 export const SharedScreen: React.FC<SharedScreenProps> = ({

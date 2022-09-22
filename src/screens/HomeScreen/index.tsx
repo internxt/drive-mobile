@@ -63,9 +63,7 @@ const HomeScreen = (): JSX.Element => {
           searchText={searchText}
           isLoading={recentsLoading}
           recentItems={recentItems}
-          refreshRecentItems={async () => {
-            await refreshRecentItems();
-          }}
+          refreshRecentItems={() => refreshRecentItems()}
         ></RecentsScreen>
       ),
     },
@@ -77,9 +75,7 @@ const HomeScreen = (): JSX.Element => {
           searchText={searchText}
           isLoading={sharedLoading}
           sharedLinks={sharedLinks}
-          refreshSharedLinks={async () => {
-            await refreshSharedLinks();
-          }}
+          refreshSharedLinks={() => refreshSharedLinks()}
         ></SharedScreen>
       ),
     },

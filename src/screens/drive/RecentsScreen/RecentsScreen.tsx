@@ -17,7 +17,7 @@ import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 interface RecentsScreenProps {
   searchText?: string;
   isLoading: boolean;
-  refreshRecentItems: () => Promise<void>;
+  refreshRecentItems: () => void;
   recentItems: DriveFileData[] | null;
 }
 
