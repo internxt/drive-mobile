@@ -10,7 +10,7 @@ class StorageService {
   }
 
   public async loadLimit(): Promise<number> {
-    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/limit`, {
+    return fetch(`${constants.DRIVE_API_URL}/limit`, {
       method: 'get',
       headers: await getHeaders(),
     })

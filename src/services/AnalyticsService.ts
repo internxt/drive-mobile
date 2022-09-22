@@ -83,7 +83,7 @@ class AnalyticsService {
     });
 
     return axios
-      .get(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/stripe/session/?sessionId=${sessionId}`, {
+      .get(`${constants.DRIVE_API_URL}/stripe/session/?sessionId=${sessionId}`, {
         headers: headersMap,
       })
       .then((res) => {

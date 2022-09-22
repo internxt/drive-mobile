@@ -79,7 +79,7 @@ class DriveFileService {
     });
 
     const response = await axios.get<FetchFolderContentResponse>(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/v2/folder/${folderId}`,
+      `${constants.DRIVE_API_URL}/storage/v2/folder/${folderId}`,
       {
         headers: headersMap,
       },
@@ -104,7 +104,7 @@ class DriveFileService {
 
     return axios
       .post(
-        `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/file/${fileId}/meta`,
+        `${constants.DRIVE_API_URL}/storage/file/${fileId}/meta`,
         {
           metadata,
           bucketId,
@@ -119,7 +119,7 @@ class DriveFileService {
     const headers = await getHeaders();
     const data = JSON.stringify(moveFilePayload);
 
-    const res = await fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/move/file`, {
+    const res = await fetch(`${constants.DRIVE_API_URL}/storage/move/file`, {
       method: 'POST',
       headers,
       body: data,
@@ -135,8 +135,8 @@ class DriveFileService {
       const isFolder = !item.fileId;
       const headers = await getHeaders();
       const url = isFolder
-        ? `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/folder/${item.id}`
-        : `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/bucket/${item.bucket}/file/${item.fileId}`;
+        ? `${constants.DRIVE_API_URL}/storage/folder/${item.id}`
+        : `${constants.DRIVE_API_URL}/storage/bucket/${item.bucket}/file/${item.fileId}`;
 
       const fetchObj = fetch(url, {
         method: 'DELETE',
@@ -216,7 +216,7 @@ class DriveFileService {
     });
 
     await axios.post<{ message: string }>(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api/storage/rename-file-in-network`,
+      `${constants.DRIVE_API_URL}/storage/rename-file-in-network`,
       {
         fileId,
         bucketId,

@@ -81,7 +81,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                         {userFullName}
                       </AppText>
                       <AppText numberOfLines={1} style={tailwind('text-gray-40')}>
-                        {constants.REACT_NATIVE_SHOW_BILLING
+                        {constants.SHOW_BILLING
                           ? strings.screens.SettingsScreen.account.advice
                           : strings.screens.SettingsScreen.account.adviceNoBilling}
                       </AppText>
@@ -247,7 +247,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
           />
 
           {/* DEBUG */}
-          {appService.constants.REACT_NATIVE_DEBUG && (
+          {appService.constants.DEBUG && (
             <SettingsGroup
               title={strings.screens.SettingsScreen.debug}
               items={[

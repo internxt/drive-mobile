@@ -29,8 +29,8 @@ const AesUtils = {
    * @returns String encrypted text, base64 encoded
    */
   encrypt(text: string, password: string, randomIv = false): string {
-    const MAGIC_IV = constants.REACT_NATIVE_MAGIC_IV;
-    const MAGIC_SALT = constants.REACT_NATIVE_MAGIC_SALT;
+    const MAGIC_IV = constants.MAGIC_IV;
+    const MAGIC_SALT = constants.MAGIC_SALT;
 
     if (!MAGIC_IV || !MAGIC_SALT) {
       throw new Error('Missing secrets on ENV file');

@@ -26,7 +26,7 @@ class UserService {
       const hashObj = passToHash({ password, salt });
       const encPass = encryptText(hashObj.hash);
 
-      fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/access`, {
+      fetch(`${constants.DRIVE_API_URL}/access`, {
         method: 'POST',
         headers: { 'content-type': 'application/json; charset=utf-8' },
         body: JSON.stringify({
@@ -63,9 +63,9 @@ class UserService {
   }
 
   public async initializeUser(email: string, mnemonic: string, token: string) {
-    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/initialize`, {
+    return fetch(`${constants.DRIVE_API_URL}/initialize`, {
       method: 'POST',
-      headers: await getHeaders(token, mnemonic),
+      headers: await getHeaders(token),
       body: JSON.stringify({
         email: email,
         mnemonic: mnemonic,
@@ -80,7 +80,7 @@ class UserService {
 
   public payment(token: string, stripePlan: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/buy`, {
+      fetch(`${constants.DRIVE_API_URL}/buy`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -112,7 +112,7 @@ class UserService {
   }
 
   public async updateUserAvatar(payload: { name: string; uri: string }) {
-    const url = `${constants.REACT_NATIVE_DRIVE_API_URL}/api/user/avatar`;
+    const url = `${constants.DRIVE_API_URL}/user/avatar`;
     const headers = await getHeaders();
     const headersMap: Record<string, string> = {};
     const formData = new FormData();

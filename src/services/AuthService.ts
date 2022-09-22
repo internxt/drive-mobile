@@ -55,7 +55,7 @@ class AuthService {
   }
 
   public async apiLogin(email: string): Promise<LoginResponse> {
-    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/login`, {
+    return fetch(`${constants.DRIVE_API_URL}/login`, {
       method: 'POST',
       headers: await getHeaders(),
       body: JSON.stringify({ email: email }),
@@ -94,7 +94,7 @@ class AuthService {
     const encryptedPassword = encryptText(hashPass.hash);
     const encryptedSalt = encryptText(hashPass.salt);
     const encryptedMnemonic = encryptTextWithKey(mnemonic, newPassword);
-    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/user/recover`, {
+    return fetch(`${constants.DRIVE_API_URL}/user/recover`, {
       method: 'patch',
       headers: await getHeaders(),
       body: JSON.stringify({
@@ -146,7 +146,7 @@ class AuthService {
   }
 
   public reset(email: string): Promise<void> {
-    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/reset/${email}`, {}).then(async (res) => {
+    return fetch(`${constants.DRIVE_API_URL}/reset/${email}`, {}).then(async (res) => {
       if (res.status !== 200) {
         throw Error();
       }
@@ -158,7 +158,7 @@ class AuthService {
   }
 
   public async getNewBits(): Promise<string> {
-    return fetch(`${constants.REACT_NATIVE_DRIVE_API_URL}/api/bits`)
+    return fetch(`${constants.DRIVE_API_URL}/bits`)
       .then((res) => res.json())
       .then((res) => res.bits)
       .then((bits) => decryptText(bits));
@@ -178,21 +178,23 @@ class AuthService {
     const encSalt = encryptText(hashObj.salt);
     const mnemonic = await this.getNewBits();
     const encMnemonic = encryptTextWithKey(mnemonic, params.password);
-    const url = `${constants.REACT_NATIVE_DRIVE_API_URL}/api/register`;
+    const url = `${constants.DRIVE_API_URL}/register`;
+    const body = JSON.stringify({
+      name: params.firstName,
+      lastname: params.lastName,
+      email: params.email.toLowerCase(),
+      password: encPass,
+      mnemonic: encMnemonic,
+      salt: encSalt,
+      referral: null,
+      captcha: params.captcha,
+    });
 
+    const headers = await getHeaders();
     return fetch(url, {
       method: 'post',
-      headers: await getHeaders(),
-      body: JSON.stringify({
-        name: params.firstName,
-        lastname: params.lastName,
-        email: params.email.toLowerCase(),
-        password: encPass,
-        mnemonic: encMnemonic,
-        salt: encSalt,
-        referral: null,
-        captcha: params.captcha,
-      }),
+      headers,
+      body,
     }).then(async (res) => {
       if (res.status === 200) {
         return res.json();

@@ -2,7 +2,7 @@ import asyncStorage from '../services/AsyncStorageService';
 import PackageJson from '../../package.json';
 import { AsyncStorageKey } from '../types';
 
-export async function getHeaders(authToken?: string, mnemonic?: string): Promise<Headers> {
+export async function getHeaders(authToken?: string): Promise<Headers> {
   let storedAuthToken;
 
   if (!authToken) {
@@ -11,24 +11,15 @@ export async function getHeaders(authToken?: string, mnemonic?: string): Promise
     storedAuthToken = authToken;
   }
 
-  let storedMnemonic;
-
-  if (!mnemonic) {
-    const xUser = await asyncStorage.getUser();
-
-    storedMnemonic = xUser && xUser.mnemonic;
-  } else {
-    storedMnemonic = mnemonic;
-  }
-
   const headers = new Headers();
 
-  headers.append('content-type', 'application/json; charset=utf-8');
+  headers.append('Content-Type', 'application/json');
   headers.append('internxt-version', PackageJson.version);
   headers.append('internxt-client', PackageJson.name);
 
-  headers.append('Authorization', `Bearer ${storedAuthToken}`);
-  headers.append('internxt-mnemonic', storedMnemonic);
+  if (storedAuthToken) {
+    headers.append('Authorization', `Bearer ${storedAuthToken}`);
+  }
 
   return headers;
 }

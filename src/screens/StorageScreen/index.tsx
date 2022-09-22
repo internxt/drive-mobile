@@ -134,7 +134,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
                       </View>
                     </View>
 
-                    {appService.constants.REACT_NATIVE_SHOW_BILLING &&
+                    {appService.constants.SHOW_BILLING &&
                       (hasPaidPlan ? (
                         <AppButton
                           style={tailwind('mt-3')}

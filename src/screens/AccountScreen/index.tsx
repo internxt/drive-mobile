@@ -189,7 +189,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                         {strings.subscriptions[subscription.type]}
                       </AppText>
                     </View>
-                    {constants.REACT_NATIVE_SHOW_BILLING ? (
+                    {constants.SHOW_BILLING ? (
                       hasPaidPlan ? (
                         <View style={tailwind('flex-row items-center')}>
                           <AppText style={tailwind('text-gray-40 mr-2.5')}>{strings.buttons.manage}</AppText>
@@ -206,7 +206,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                     ) : null}
                   </View>
                 ),
-                onPress: hasPaidPlan && constants.REACT_NATIVE_SHOW_BILLING ? onManageSubscriptionPressed : undefined,
+                onPress: hasPaidPlan && constants.SHOW_BILLING ? onManageSubscriptionPressed : undefined,
               },
             ]}
           />

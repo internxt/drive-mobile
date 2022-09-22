@@ -5,7 +5,7 @@ export class RealtimeUpdates {
   private socket: Socket;
 
   constructor() {
-    const URL = `${constants.REACT_NATIVE_DRIVE_API_URL}`;
+    const URL = `${constants.DRIVE_API_URL}`;
     this.socket = io(URL, {
       transports: ['websocket'],
       path: '/api/sockets',

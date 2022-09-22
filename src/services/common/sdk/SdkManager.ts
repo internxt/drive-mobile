@@ -43,7 +43,7 @@ export class SdkManager {
   /** Auth SDK */
   get auth() {
     return Auth.client(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
+      constants.DRIVE_API_URL,
       {
         clientName: packageJson.name,
         clientVersion: packageJson.version,
@@ -54,7 +54,7 @@ export class SdkManager {
   /** Payments SDK */
   get payments() {
     return Drive.Payments.client(
-      `${constants.REACT_NATIVE_PAYMENTS_API_URL}`,
+      constants.PAYMENTS_API_URL,
       {
         clientName: packageJson.name,
         clientVersion: packageJson.version,
@@ -70,7 +70,7 @@ export class SdkManager {
   /** Users SDK */
   get users() {
     return Drive.Users.client(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
+      constants.DRIVE_API_URL,
       {
         clientName: packageJson.name,
         clientVersion: packageJson.version,
@@ -82,7 +82,7 @@ export class SdkManager {
   /** Referrals SDK */
   get referrals() {
     return Drive.Referrals.client(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
+      constants.DRIVE_API_URL,
       {
         clientName: packageJson.name,
         clientVersion: packageJson.version,
@@ -94,7 +94,7 @@ export class SdkManager {
   /** Storage SDK */
   get storage() {
     return Drive.Storage.client(
-      `${constants.REACT_NATIVE_DRIVE_API_URL}/api`,
+      constants.DRIVE_API_URL,
       {
         clientName: packageJson.name,
         clientVersion: packageJson.version,
@@ -105,14 +105,14 @@ export class SdkManager {
 
   /** Photos SDK */
   get photos() {
-    return new photos.Photos(constants.REACT_NATIVE_PHOTOS_API_URL, this.getApiSecurity().photosToken);
+    return new photos.Photos(constants.PHOTOS_API_URL, this.getApiSecurity().photosToken);
   }
 
   /** Share SDK */
   get share() {
     // Uses V2 API
     return Drive.Share.client(
-      `${constants.REACT_NATIVE_BRIDGE_URL}/drive`,
+      constants.DRIVE_NEW_API_URL,
       {
         clientName: packageJson.name,
         clientVersion: packageJson.version,

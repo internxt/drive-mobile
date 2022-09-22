@@ -117,7 +117,7 @@ function AddModal(): JSX.Element {
       filePath,
       bucket,
       mnemonic,
-      constants.REACT_NATIVE_BRIDGE_URL,
+      constants.BRIDGE_URL,
       {
         user: bridgeUser,
         pass: userId,
