@@ -111,10 +111,14 @@ const SignUpForm = (props: BaseFormProps) => {
         }),
       ]);
 
-      const userLoginData = await authService.apiLogin(data.email);
+      const userLoginData = await authService.doLogin(data.email, data.password, twoFactorCode);
 
       await dispatch(
-        authThunks.signInThunk({ email: data.email, password: data.password, sKey: userLoginData.sKey, twoFactorCode }),
+        authThunks.signInThunk({
+          user: userLoginData.user,
+          newToken: userLoginData.newToken,
+          token: userLoginData.token,
+        }),
       )
         .unwrap()
         .then(() => props.onFormSubmitSuccess?.());

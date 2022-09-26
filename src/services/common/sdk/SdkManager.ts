@@ -34,10 +34,11 @@ export class SdkManager {
     return SdkManager.instance;
   }
 
-  public getApiSecurity(): SdkManagerApiSecurity {
-    if (!SdkManager.apiSecurity) throw new Error('Api security properties not found in SdkManager');
+  public getApiSecurity(config = { throwErrorOnMissingCredentials: true }): SdkManagerApiSecurity {
+    if (!SdkManager.apiSecurity && config.throwErrorOnMissingCredentials)
+      throw new Error('Api security properties not found in SdkManager');
 
-    return SdkManager.apiSecurity;
+    return SdkManager.apiSecurity as SdkManagerApiSecurity;
   }
 
   /** Auth SDK */
@@ -48,7 +49,7 @@ export class SdkManager {
         clientName: packageJson.name,
         clientVersion: packageJson.version,
       },
-      this.getApiSecurity(),
+      this.getApiSecurity({ throwErrorOnMissingCredentials: false }),
     );
   }
   /** Payments SDK */
@@ -75,7 +76,7 @@ export class SdkManager {
         clientName: packageJson.name,
         clientVersion: packageJson.version,
       },
-      this.getApiSecurity(),
+      this.getApiSecurity({ throwErrorOnMissingCredentials: false }),
     );
   }
 

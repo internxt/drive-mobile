@@ -1,5 +1,5 @@
-import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
-import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../helpers';
+import { Keys, Password, RegisterDetails, SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
+import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { getHeaders } from '../helpers/headers';
 import { AsyncStorageKey, DevicePlatform } from '../types';
@@ -9,11 +9,7 @@ import AesUtils from '../helpers/aesUtils';
 import EventEmitter from 'events';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SdkManager } from './common/sdk/SdkManager';
-
-interface LoginResponse {
-  tfa: string;
-  sKey: string;
-}
+import UserService from './UserService';
 
 interface RegisterParams {
   firstName: string;
@@ -54,25 +50,33 @@ class AuthService {
     }
   }
 
-  public async apiLogin(email: string): Promise<LoginResponse> {
-    return fetch(`${constants.DRIVE_API_URL}/login`, {
-      method: 'POST',
-      headers: await getHeaders(),
-      body: JSON.stringify({ email: email }),
-    }).then(async (res) => {
-      const data = await res.text();
-      const json = JSON.parse(data);
+  public async doLogin(email: string, password: string, tfaCode?: string) {
+    const loginResult = await this.sdk.auth.login(
+      {
+        email,
+        password,
+        tfaCode,
+      },
+      {
+        encryptPasswordHash(password: Password, encryptedSalt: string): string {
+          const salt = decryptText(encryptedSalt);
+          const hashObj = passToHash({ password, salt });
+          return encryptText(hashObj.hash);
+        },
+        async generateKeys(): Promise<Keys> {
+          const keys: Keys = {
+            privateKeyEncrypted: '',
+            publicKey: '',
+            revocationCertificate: '',
+          };
+          return keys;
+        },
+      },
+    );
 
-      if (res.status === 200) {
-        return json;
-      } else {
-        if (json) {
-          throw Error(json.error);
-        } else {
-          throw Error(data);
-        }
-      }
-    });
+    loginResult.user.mnemonic = decryptTextWithKey(loginResult.user.mnemonic, password);
+
+    return loginResult;
   }
 
   public async signout(): Promise<void> {
@@ -172,43 +176,29 @@ class AuthService {
     return this.sdk.auth.areCredentialsCorrect(email, hashedPassword) || false;
   }
 
-  public async doRegister(params: RegisterParams): Promise<any> {
+  public async doRegister(params: RegisterParams) {
     const hashObj = passToHash({ password: params.password });
     const encPass = encryptText(hashObj.hash);
     const encSalt = encryptText(hashObj.salt);
     const mnemonic = await this.getNewBits();
     const encMnemonic = encryptTextWithKey(mnemonic, params.password);
-    const url = `${constants.DRIVE_API_URL}/register`;
-    const body = JSON.stringify({
+
+    const payload: RegisterDetails = {
+      email: params.email.toLowerCase(),
       name: params.firstName,
       lastname: params.lastName,
-      email: params.email.toLowerCase(),
       password: encPass,
       mnemonic: encMnemonic,
       salt: encSalt,
-      referral: null,
+      keys: {
+        privateKeyEncrypted: '',
+        publicKey: '',
+        revocationCertificate: '',
+      },
       captcha: params.captcha,
-    });
+    };
 
-    const headers = await getHeaders();
-    return fetch(url, {
-      method: 'post',
-      headers,
-      body,
-    }).then(async (res) => {
-      if (res.status === 200) {
-        return res.json();
-      } else {
-        const body = await res.text();
-        const json = JSON.parse(body);
-
-        if (json) {
-          throw Error(json.message);
-        } else {
-          throw Error(body);
-        }
-      }
-    });
+    return this.sdk.auth.register(payload);
   }
 
   public generateNew2FA(): Promise<TwoFactorAuthQR> {
@@ -219,8 +209,13 @@ class AuthService {
     return this.sdk.auth.storeTwoFactorAuthKey(backupKey, code);
   }
 
-  public async is2FAEnabled(email: string): Promise<SecurityDetails> {
+  public getSecurityDetails(email: string) {
     return this.sdk.auth.securityDetails(email);
+  }
+  public async is2FAEnabled(email: string): Promise<boolean> {
+    const securityDetails = await this.getSecurityDetails(email);
+
+    return securityDetails.tfaEnabled;
   }
 
   public async disable2FA(encryptedSalt: string, password: string, code: string) {
