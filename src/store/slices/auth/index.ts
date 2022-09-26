@@ -16,6 +16,7 @@ import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
 import errorService from 'src/services/ErrorService';
 import { SdkManager } from '@internxt-mobile/services/common';
+import UserService from '../../../services/UserService';
 
 export interface AuthState {
   loggedIn: boolean | null;
@@ -50,6 +51,7 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
         email: credentials.user.email,
         userId: credentials.user.userId,
       });
+
       dispatch(refreshUserThunk());
       dispatch(loadSecurityDetailsThunk());
     } else {
@@ -58,12 +60,22 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
   },
 );
 
+/**
+ * TO DO review the auth flow since this event driven stuff + Redux
+ * is getting ouf of hands, this thunk and the signIn thunk looks the
+ * same but are not the same WTF
+ */
 export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/silentSignIn',
   async (payload, { dispatch }) => {
     const { credentials } = await authService.getAuthCredentials();
 
     if (credentials) {
+      SdkManager.init({
+        token: credentials.accessToken,
+        photosToken: credentials.photosToken,
+        mnemonic: credentials.user.mnemonic,
+      });
       dispatch(
         authActions.setSignInData({
           token: credentials.accessToken,
@@ -80,18 +92,35 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
 
 export const signInThunk = createAsyncThunk<
   { token: string; photosToken: string; user: UserSettings },
-  { email: string; password: string; sKey: string; twoFactorCode: string },
+  { user: UserSettings; token: string; newToken: string },
   { state: RootState }
 >('auth/signIn', async (payload, { dispatch }) => {
-  const result = await userService.signin(payload.email, payload.password, payload.sKey, payload.twoFactorCode);
+  let userToSave = payload.user;
+  SdkManager.init({
+    token: payload.token,
+    photosToken: payload.newToken,
+    mnemonic: payload.user.mnemonic,
+  });
+  if (!payload.user.root_folder_id) {
+    const initializedUser = await UserService.initializeUser(payload.user.email, payload.user.mnemonic);
 
-  await asyncStorageService.saveItem(AsyncStorageKey.Token, result.token);
-  await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, result.photosToken); // Photos access token
-  await asyncStorageService.saveItem(AsyncStorageKey.User, JSON.stringify(result.user));
-  dispatch(authActions.setSignInData({ token: result.token, photosToken: result.photosToken, user: result.user }));
+    userToSave = {
+      ...userToSave,
+      ...initializedUser,
+    };
+  }
+  await asyncStorageService.saveItem(AsyncStorageKey.Token, payload.token);
+  await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, payload.newToken); // Photos access token
+  await asyncStorageService.saveItem(AsyncStorageKey.User, JSON.stringify(userToSave));
+  dispatch(authActions.setSignInData({ token: payload.token, photosToken: payload.newToken, user: userToSave }));
+
   authService.emitLoginEvent();
 
-  return result;
+  return {
+    user: userToSave,
+    token: payload.token,
+    photosToken: payload.newToken,
+  };
 });
 
 export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
@@ -133,7 +162,7 @@ export const loadSecurityDetailsThunk = createAsyncThunk<SecurityDetails, void, 
   'auth/loadSecurityDetails',
   async (payload: void, { getState }) => {
     const { user } = getState().auth;
-    const securityDetails = await authService.is2FAEnabled(user?.email as string);
+    const securityDetails = await authService.getSecurityDetails(user?.email as string);
 
     return securityDetails;
   },
@@ -198,7 +227,7 @@ export const enableTwoFactorThunk = createAsyncThunk<
   const { user } = getState().auth;
   await authService.enable2FA(backupKey, code);
 
-  const securityDetails = await authService.is2FAEnabled(user?.email as string);
+  const securityDetails = await authService.getSecurityDetails(user?.email as string);
 
   return securityDetails;
 });
@@ -207,7 +236,7 @@ export const disableTwoFactorThunk = createAsyncThunk<void, { code: string }, { 
   'auth/disableTwoFactor',
   async ({ code }, { getState }) => {
     const { user, sessionPassword } = getState().auth;
-    const { encryptedSalt } = await authService.is2FAEnabled(user?.email as string);
+    const { encryptedSalt } = await authService.getSecurityDetails(user?.email as string);
 
     return authService.disable2FA(encryptedSalt, sessionPassword as string, code);
   },

@@ -34,13 +34,16 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
     setIsLoading(true);
 
     try {
-      const userLoginData = await authService.apiLogin(email);
+      const requires2FA = await authService.is2FAEnabled(email);
 
-      if (userLoginData.tfa && !twoFactorCode) {
+      if (requires2FA && !twoFactorCode) {
         setShowTwoFactor(true);
         setIsLoading(false);
       } else {
-        await dispatch(authThunks.signInThunk({ email, password, sKey: userLoginData.sKey, twoFactorCode })).unwrap();
+        const result = await authService.doLogin(email, password, twoFactorCode);
+        await dispatch(
+          authThunks.signInThunk({ user: result.user, token: result.token, newToken: result.newToken }),
+        ).unwrap();
 
         setTimeout(() => {
           setIsLoading(false);

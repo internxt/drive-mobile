@@ -32,7 +32,7 @@
     "@hookform/resolvers": "^2.9.1",
     "@internxt/lib": "^1.2.0",
     "@internxt/rn-crypto": "^0.1.11",
-    "@internxt/sdk": "^1.4.3",
+    "@internxt/sdk": "^1.4.4",
     "@react-native-async-storage/async-storage": "^1.17.0",
     "@react-native-community/cameraroll": "github:internxt/react-native-cameraroll",
     "@react-navigation/bottom-tabs": "^6.2.0",
