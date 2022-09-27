@@ -1,6 +1,6 @@
 import prettysize from 'prettysize';
 import { useEffect, useMemo } from 'react';
-import { TouchableHighlight, View } from 'react-native';
+import { Linking, TouchableHighlight, View } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -13,6 +13,9 @@ import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 import SettingsGroup from '../SettingsGroup';
 import storageService from 'src/services/StorageService';
+import UsersReferralsService from '@internxt-mobile/services/UsersReferralsService';
+import { realtime } from '@internxt-mobile/services/NetworkService/realtimeUpdates';
+import AuthService from '@internxt-mobile/services/AuthService';
 
 const ReferralsWidget = (): JSX.Element => {
   const tailwind = useTailwind();
@@ -30,6 +33,11 @@ const ReferralsWidget = (): JSX.Element => {
         [ReferralTypes.ReferralKey.SubscribeToNewsletter]: () => {
           dispatch(uiActions.setIsNewsletterModalOpen(true));
         },
+        [ReferralTypes.ReferralKey.CompleteSurvey]: async () => {
+          const { credentials } = await AuthService.getAuthCredentials();
+          if (!credentials?.user) return;
+          Linking.openURL(UsersReferralsService.getSurveyLink(realtime.getSocketId(), credentials.user.uuid));
+        },
         [ReferralTypes.ReferralKey.InviteFriends]: () => {
           dispatch(uiActions.setIsInviteFriendsModalOpen(true));
         },
@@ -42,6 +50,7 @@ const ReferralsWidget = (): JSX.Element => {
         r.completedSteps,
         r.steps,
       );
+
       const onPress = () => fn[r.key]?.();
       return (
         <TouchableHighlight

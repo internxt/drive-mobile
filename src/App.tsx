@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, ColorValue } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, ColorValue, AppState } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
@@ -26,6 +26,9 @@ import PlansModal from './components/modals/PlansModal';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import fileSystemService from './services/FileSystemService';
+import { realtime } from './services/NetworkService/realtimeUpdates';
+import { referralsThunks } from './store/slices/referrals';
+import { storageThunks } from './store/slices/storage';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -83,6 +86,12 @@ export default function App(): JSX.Element {
       NavigationBar.setButtonStyleAsync('dark');
     }
 
+    AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        dispatch(referralsThunks.fetchReferralsThunk());
+        dispatch(storageThunks.loadUsedStorageThunk());
+      }
+    });
     authService.addLoginListener(onUserLoggedIn);
     authService.addLogoutListener(onUserLoggedOut);
 
