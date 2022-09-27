@@ -4,7 +4,6 @@ import {
   PhotosNetworkManagerStatus,
   PhotosNetworkOperation,
 } from '../../../types/photos';
-
 import async from 'async';
 import { Photo, PhotoExistsData } from '@internxt/sdk/dist/photos';
 import { RunnableService } from '../../../helpers/services';
@@ -13,9 +12,12 @@ import { PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
 import { SdkManager } from '@internxt-mobile/services/common';
 import { AbortedOperationError } from 'src/types';
 import { Platform } from 'react-native';
-import photos from '..';
+import { photosLogger } from '../logger';
 import { photosNetwork } from './photosNetwork.service';
 import AuthService from '@internxt-mobile/services/AuthService';
+import { photosUtils } from '../utils';
+import { photosUser } from '../user';
+import { photosPreview } from '../preview';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;
 
@@ -29,7 +31,7 @@ export type OperationResult = Photo;
 export class PhotosNetworkManager implements RunnableService<PhotosNetworkManagerStatus> {
   public status = PhotosNetworkManagerStatus.IDLE;
 
-  private logger = photos.logger;
+  private logger = photosLogger;
   // eslint-disable-next-line
   private onStatusChangeCallback: OnStatusChangeCallback = () => {};
   private sdk: SdkManager;
@@ -111,11 +113,11 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     const { credentials } = await AuthService.getAuthCredentials();
     const convertedPhotos = [];
     for (const devicePhoto of devicePhotos) {
-      const name = photos.utils.getPhotoName(devicePhoto.filename);
-      const type = photos.utils.getPhotoType(devicePhoto.filename);
+      const name = photosUtils.getPhotoName(devicePhoto.filename);
+      const type = photosUtils.getPhotoType(devicePhoto.filename);
       const createdAt = new Date(devicePhoto.creationTime);
 
-      const photoRef = await photos.utils.cameraRollUriToFileSystemUri(
+      const photoRef = await photosUtils.cameraRollUriToFileSystemUri(
         {
           name,
           type,
@@ -128,7 +130,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
         name,
         takenAt: createdAt.toISOString(),
         photoRef,
-        hash: await photos.utils.getPhotoHash(credentials.user.userId, name, createdAt.getTime(), photoRef),
+        hash: await photosUtils.getPhotoHash(credentials.user.userId, name, createdAt.getTime(), photoRef),
       });
     }
 
@@ -162,21 +164,22 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
    * @returns The result of the operation
    */
   public async processUploadOperation(operation: PhotosNetworkOperation): Promise<OperationResult> {
-    const { credentials } = await AuthService.getAuthCredentials();
-    const photosDevice = photos.user.getDevice();
+    const photosDevice = photosUser.getDevice();
+    const user = photosUser.getUser();
     if (!photosDevice) throw new Error('Photos device not found');
+    if (!user) throw new Error('Photos device not found');
     const startAt = Date.now();
 
     const photoData = operation.devicePhoto;
     // 1. Get photo data
-    const name = photos.utils.getPhotoName(photoData.filename);
+    const name = photosUtils.getPhotoName(photoData.filename);
     this.log(`--- UPLOADING ${name} ---`);
 
-    const type = photos.utils.getPhotoType(photoData.filename);
+    const type = photosUtils.getPhotoType(photoData.filename);
     const stat = await fileSystemService.statRNFS(operation.photoRef);
 
     // 2. Upload the preview
-    const preview = await photos.preview.generate(photoData);
+    const preview = await photosPreview.generate(photoData);
     const previewGeneratedElapsed = Date.now() - startAt;
     this.log(`Preview generated in ${previewGeneratedElapsed / 1000}s`);
 
@@ -207,7 +210,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
         },
       ],
       type: type,
-      userId: credentials.user.userId,
+      userId: user.id,
       size: parseInt(stat.size, 10),
     });
     const photoUploadedElapsed = Date.now() - (uploadGeneratedElapsed + previewGeneratedElapsed + startAt);

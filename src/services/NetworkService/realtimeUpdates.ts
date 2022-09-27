@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { SdkManager } from '../common';
 
 export class RealtimeUpdates {
-  private socket!: Socket;
+  private socket?: Socket;
 
   constructor(private sdk: SdkManager) {}
 
@@ -38,11 +38,11 @@ export class RealtimeUpdates {
   }
 
   getSocketId() {
-    return this.socket.id;
+    return this.socket?.id;
   }
 
   onEvent(callback: (data: any) => void) {
-    this.socket.on('event', (data) => {
+    this.socket?.on('event', (data) => {
       this.log('Received data: ', JSON.stringify(data, null, 2));
 
       callback(data);

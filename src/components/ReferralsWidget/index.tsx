@@ -36,7 +36,7 @@ const ReferralsWidget = (): JSX.Element => {
         [ReferralTypes.ReferralKey.CompleteSurvey]: async () => {
           const { credentials } = await AuthService.getAuthCredentials();
           if (!credentials?.user) return;
-          Linking.openURL(UsersReferralsService.getSurveyLink(realtime.getSocketId(), credentials.user.uuid));
+          Linking.openURL(UsersReferralsService.getSurveyLink(credentials.user.uuid, realtime.getSocketId()));
         },
         [ReferralTypes.ReferralKey.InviteFriends]: () => {
           dispatch(uiActions.setIsInviteFriendsModalOpen(true));

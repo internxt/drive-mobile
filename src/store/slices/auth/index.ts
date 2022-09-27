@@ -68,9 +68,9 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
 export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/silentSignIn',
   async (payload, { dispatch }) => {
-    const { credentials } = await authService.getAuthCredentials();
+    try {
+      const { credentials } = await authService.getAuthCredentials();
 
-    if (credentials) {
       SdkManager.init({
         token: credentials.accessToken,
         photosToken: credentials.photosToken,
@@ -84,7 +84,7 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
         }),
       );
       authService.emitLoginEvent();
-    } else {
+    } catch {
       dispatch(authActions.setLoggedIn(false));
     }
   },

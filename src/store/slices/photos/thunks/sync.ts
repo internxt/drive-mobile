@@ -40,6 +40,10 @@ const startSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
       if (status === PhotosSyncManagerStatus.COMPLETED) {
         updateStatus(PhotosSyncStatus.Completed);
       }
+
+      if (status === PhotosSyncManagerStatus.PAUSED) {
+        updateStatus(PhotosSyncStatus.Paused);
+      }
     });
 
     syncManager.onPhotoSyncCompleted((err, photo) => {

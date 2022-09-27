@@ -40,13 +40,16 @@ class AuthService {
   }
 
   async init() {
-    const { credentials } = await this.getAuthCredentials();
-    if (credentials) {
+    try {
+      const { credentials } = await this.getAuthCredentials();
+
       SdkManager.init({
         token: credentials.accessToken,
         photosToken: credentials.photosToken,
         mnemonic: credentials.user.mnemonic,
       });
+    } catch {
+      // Pass
     }
   }
 

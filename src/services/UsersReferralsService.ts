@@ -15,8 +15,8 @@ class UsersReferralsService {
     return [ReferralKey.SubscribeToNewsletter, ReferralKey.InviteFriends].includes(referralKey);
   }
 
-  public getSurveyLink(clientId: string, uuid: string) {
-    return `https://p7dv2nbzmf4.typeform.com/to/yM3EyqJE#uuid=${uuid}&clientid=${clientId}`;
+  public getSurveyLink(uuid: string, clientId?: string) {
+    return `https://p7dv2nbzmf4.typeform.com/to/yM3EyqJE#uuid=${uuid}${clientId ? `&clientid=${clientId}` : ''}`;
   }
 }
 

@@ -87,7 +87,7 @@ export default function App(): JSX.Element {
     }
 
     AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
+      if (state === 'active' && isAppInitialized) {
         dispatch(referralsThunks.fetchReferralsThunk());
         dispatch(storageThunks.loadUsedStorageThunk());
       }

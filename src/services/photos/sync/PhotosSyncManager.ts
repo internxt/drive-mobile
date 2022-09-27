@@ -20,7 +20,8 @@ import errorService from 'src/services/ErrorService';
 import { AbortedOperationError } from 'src/types';
 import { SdkManager } from '@internxt-mobile/services/common';
 import { PHOTOS_PER_NETWORK_GROUP } from '../constants';
-import photos from '@internxt-mobile/services/photos';
+import { photosLocalDB } from '../database';
+import { photosLogger } from '../logger';
 export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photo: Photo | null) => void;
 export type OnStatusChangeCallback = (status: PhotosSyncManagerStatus) => void;
 export type OnTotalPhotosCalculatedCallback = (totalPhotos: number) => void;
@@ -66,7 +67,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   constructor(photosNetworkManager: PhotosNetworkManager) {
     this.config = { checkIfExistsPhotosAmount: PHOTOS_PER_NETWORK_GROUP };
     this.devicePhotosScanner = new DevicePhotosScannerService();
-    this.devicePhotosSyncChecker = new DevicePhotosSyncCheckerService(photos.database);
+    this.devicePhotosSyncChecker = new DevicePhotosSyncCheckerService(photosLocalDB);
     this.photosNetworkManager = photosNetworkManager;
     this.setupCallbacks();
   }
@@ -365,7 +366,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
       }
       try {
         if (photoToUpload.exists && photoToUpload.photo) {
-          await photos.database.persistPhotoSync(photoToUpload.photo, photoToUpload.devicePhoto);
+          await photosLocalDB.persistPhotoSync(photoToUpload.photo, photoToUpload.devicePhoto);
           this.devicePhotoSyncSuccess(photoToUpload.photo);
         }
 
@@ -404,7 +405,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
       if (this.isAborted) {
         throw new AbortedOperationError();
       }
-      await photos.database.persistPhotoSync(photo);
+      await photosLocalDB.persistPhotoSync(photo);
 
       this.devicePhotoSyncSuccess(photo);
     } catch (err) {
@@ -451,7 +452,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   }
 
   private log(message: string) {
-    photos.logger.info(message);
+    photosLogger.info(message);
   }
 }
 

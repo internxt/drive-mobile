@@ -24,7 +24,7 @@ import network from '../../../network';
 import notificationsService from '../../../services/NotificationsService';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import BottomModal from '../BottomModal';
-import { UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
+import { DriveEventKey, UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
 import { constants } from '../../../services/AppService';
 import CreateFolderModal from '../CreateFolderModal';
 import { useTailwind } from 'tailwind-rn';
@@ -141,6 +141,7 @@ function AddModal(): JSX.Element {
       encrypt_version: '03-aes',
     };
 
+    drive.events.emit({ event: DriveEventKey.UploadCompleted });
     return uploadService.createFileEntry(fileEntry);
   }
   const upload = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
@@ -163,6 +164,8 @@ function AddModal(): JSX.Element {
     } else {
       throw new Error('Unsuported platform');
     }
+
+    drive.events.emit({ event: DriveEventKey.UploadCompleted });
   };
 
   async function trackUploadStart() {
