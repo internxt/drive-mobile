@@ -34,6 +34,7 @@ export interface AppEnv {
   RELEASE_ID: string;
   DATAPLANE_URL: string;
   ANALYTICS_WRITE_KEY: string;
+  NOTIFICATIONS_URL: string;
 }
 
 const stage = AppStage.Production; // <- CHANGE STAGE

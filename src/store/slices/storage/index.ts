@@ -2,6 +2,8 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import storageService from 'src/services/StorageService';
 import { RootState } from '../..';
 import asyncStorage from '../../../services/AsyncStorageService';
+import { driveThunks } from '../drive';
+import { photosThunks } from '../photos';
 
 export interface ReferralsState {
   limit: number;
@@ -19,6 +21,14 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     if (user) {
       dispatch(loadLimitThunk());
     }
+  },
+);
+
+const loadUsedStorageThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'storage/loadUsedStorage',
+  async (payload, { dispatch }) => {
+    dispatch(photosThunks.loadPhotosUsageThunk());
+    dispatch(driveThunks.loadUsageThunk());
   },
 );
 
@@ -49,6 +59,7 @@ export const storageActions = storageSlice.actions;
 export const storageThunks = {
   initializeThunk,
   loadLimitThunk,
+  loadUsedStorageThunk,
 };
 
 export default storageSlice.reducer;

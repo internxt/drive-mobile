@@ -14,6 +14,10 @@ class UsersReferralsService {
   public hasClickAction(referralKey: ReferralKey): boolean {
     return [ReferralKey.SubscribeToNewsletter, ReferralKey.InviteFriends].includes(referralKey);
   }
+
+  public getSurveyLink(clientId: string, uuid: string) {
+    return `https://p7dv2nbzmf4.typeform.com/to/yM3EyqJE#uuid=${uuid}&clientid=${clientId}`;
+  }
 }
 
 export default new UsersReferralsService(SdkManager.getInstance());
