@@ -10,7 +10,7 @@ import LoadingSpinner from '../LoadingSpinner';
 import AppText from '../AppText';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
-import { PhotosCommonServices } from '../../services/photos/PhotosCommonService';
+import photos from '@internxt-mobile/services/photos';
 
 const PhotosSyncStatusWidget = () => {
   const tailwind = useTailwind();
@@ -23,7 +23,7 @@ const PhotosSyncStatusWidget = () => {
   const photosSyncStatus = syncStatus.status;
   const totalTasks = syncStatus.totalTasks;
   useEffect(() => {
-    PhotosCommonServices.events.addListener({
+    photos.events.addListener({
       event: PhotosEventKey.PhotoSyncDone,
       listener: ([photosSynced]) => {
         setCompletedTasks(photosSynced);

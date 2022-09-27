@@ -10,7 +10,7 @@ import AppButton from '../../AppButton';
 import imageService from '../../../services/ImageService';
 import fileSystemService from '../../../services/FileSystemService';
 import { useTailwind } from 'tailwind-rn';
-import { PhotosCommonServices } from '../../../services/photos/PhotosCommonService';
+import photos from '@internxt-mobile/services/photos';
 import { PhotoSizeType } from '../../../types/photos';
 
 interface SharePhotoModalProps extends BottomModalProps {
@@ -25,7 +25,7 @@ function SharePhotoModal({ isOpen, onClosed, data, preview }: SharePhotoModalPro
 
   const tailwind = useTailwind();
 
-  const photoPath = PhotosCommonServices.getPhotoPath({ name: data.name, size: PhotoSizeType.Full, type: data.type });
+  const photoPath = photos.utils.getPhotoPath({ name: data.name, size: PhotoSizeType.Full, type: data.type });
 
   const [uri, setUri] = useState('');
   const onCancelButtonPressed = () => {

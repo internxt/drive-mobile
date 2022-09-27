@@ -1,149 +1,32 @@
-import { photos } from '@internxt/sdk';
-
-import { PhotoFileSystemRef, PhotosEventKey, PhotoSizeType } from '../../types/photos';
-
-import PhotosDownloadService from './network/DownloadService';
-import PhotosUsageService from './UsageService';
-import PhotosPreviewService from './PreviewService';
-import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
-import { PhotosCommonServices } from './PhotosCommonService';
 import fileSystemService from '../FileSystemService';
 import { PHOTOS_FULL_SIZE_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_ROOT_DIRECTORY } from './constants';
-import { SdkManager } from '@internxt-mobile/services/common';
-import { PhotosLocalDatabaseService } from './PhotosLocalDatabaseService';
-class PhotosService {
-  public static instance: PhotosService;
+import { photosEvents } from './events';
+import { photosLocalDB } from './database';
+import { photosLogger } from './logger';
+import { photosUsage } from './usage';
+import { photosUser } from './user';
+import { photosUtils } from './utils';
+import { photosPreview } from './preview';
+import { photosSync } from './sync/PhotosSyncManager';
+import { photosNetwork } from './network/photosNetwork.service';
 
-  private sdk: SdkManager;
-  readonly usageService: PhotosUsageService;
-  readonly downloadService: PhotosDownloadService;
-  readonly previewService: PhotosPreviewService;
-  readonly photosLocalDatabase: PhotosLocalDatabaseService;
-  constructor(sdk: SdkManager) {
-    this.usageService = new PhotosUsageService();
-    this.downloadService = new PhotosDownloadService();
-    this.previewService = new PhotosPreviewService();
-    this.photosLocalDatabase = new PhotosLocalDatabaseService();
-    this.sdk = sdk;
-  }
-
-  public get isInitialized(): boolean {
-    return !!PhotosCommonServices?.model?.isInitialized;
-  }
-
-  private async initializeFileSystem() {
+const photos = {
+  clear: async () => {
+    await photosLocalDB.clear();
+    await fileSystemService.unlinkIfExists(PHOTOS_ROOT_DIRECTORY);
+  },
+  start: async () => {
     await fileSystemService.mkdir(PHOTOS_FULL_SIZE_DIRECTORY);
     await fileSystemService.mkdir(PHOTOS_PREVIEWS_DIRECTORY);
-  }
-
-  public async startPhotos(): Promise<void> {
-    await this.initializeFileSystem();
-
-    if (PhotosCommonServices?.model) {
-      PhotosCommonServices.model.isInitialized = true;
-    }
-  }
-
-  public setSyncAbort(syncAbort: (reason?: string) => void) {
-    PhotosCommonServices.model.syncAbort = syncAbort;
-  }
-
-  public pauseSync() {
-    PhotosCommonServices.events.emit({
-      event: PhotosEventKey.PauseSync,
-    });
-  }
-
-  public async getPhotos({
-    limit = 50,
-    skip = 0,
-  }: {
-    limit: number;
-    skip?: number;
-  }): Promise<{ results: photos.Photo[]; count: number }> {
-    const { results, count } = await this.sdk.photos.photos.getPhotos({ status: PhotoStatus.Exists }, skip, limit);
-
-    return { results, count };
-  }
-
-  public async deletePhotos(photos: photos.Photo[]): Promise<void> {
-    await Promise.all(
-      photos.map(async (photo) => {
-        await this.sdk.photos.photos.deletePhotoById(photo.id);
-        await this.photosLocalDatabase.deletePhotoById(photo.id);
-      }),
-    );
-  }
-
-  public getUsage(): Promise<number> {
-    return this.usageService.getUsage();
-  }
-
-  /**
-   * @description Downloads the photo from the network
-   * @param fileId
-   * @param options
-   * @returns The photo path in the file system
-   */
-  public async downloadPhoto(
-    downloadParams: {
-      photoFileId: string;
-    },
-    options: {
-      destination: string;
-      downloadProgressCallback: (progress: number) => void;
-      decryptionProgressCallback: (progress: number) => void;
-    },
-  ): Promise<PhotoFileSystemRef> {
-    return this.downloadService.download(downloadParams.photoFileId, options);
-  }
-
-  public async clear(): Promise<void> {
-    await this.photosLocalDatabase.clear();
-    await fileSystemService.unlinkIfExists(PHOTOS_ROOT_DIRECTORY);
-  }
-
-  public async getPreview(photo: Photo): Promise<PhotoFileSystemRef | null> {
-    const localPreview = await this.previewService.getLocalPreview(photo);
-
-    if (localPreview) {
-      return fileSystemService.pathToUri(localPreview);
-    }
-
-    const photoRemotePreviewData = this.getPhotoRemotePreviewData(photo);
-
-    if (photoRemotePreviewData) {
-      const destinationPath = PhotosCommonServices.getPhotoPath({
-        name: photo.name,
-        size: PhotoSizeType.Preview,
-        type: photo.type,
-      });
-
-      const photoPreviewRef = await this.downloadPhoto(
-        {
-          photoFileId: photoRemotePreviewData.fileId,
-        },
-        {
-          destination: destinationPath,
-          decryptionProgressCallback: () => undefined,
-          downloadProgressCallback: () => undefined,
-        },
-      );
-
-      return fileSystemService.pathToUri(photoPreviewRef);
-    }
-
-    return null;
-  }
-
-  private getPhotoRemotePreviewData(photo: Photo) {
-    const photoRemotePreview =
-      photo.previewId && photo.previews
-        ? photo.previews.find((preview) => preview.fileId === photo.previewId)
-        : undefined;
-
-    return photoRemotePreview;
-  }
-}
-
-export default new PhotosService(SdkManager.getInstance());
+  },
+  events: photosEvents,
+  preview: photosPreview,
+  database: photosLocalDB,
+  logger: photosLogger,
+  usage: photosUsage,
+  user: photosUser,
+  utils: photosUtils,
+  sync: photosSync,
+  network: photosNetwork,
+};
+export default photos;

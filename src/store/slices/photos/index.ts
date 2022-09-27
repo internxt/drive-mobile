@@ -15,13 +15,10 @@ import {
 import { permissionsThunks } from './thunks/permissions';
 import { usageExtraReducers } from './thunks/usage';
 import { syncThunks } from './thunks/sync';
-import { PhotosCommonServices } from '../../../services/photos/PhotosCommonService';
-import photosUserService from '../../../services/photos/PhotosUserService';
 import { networkThunks } from './thunks/network';
 import authService from 'src/services/AuthService';
-import PhotosUsageService from 'src/services/photos/UsageService';
 import _ from 'lodash';
-
+import photos from '@internxt-mobile/services/photos';
 export interface PhotosState {
   isInitialized: boolean;
   isDeviceSynchronized: boolean;
@@ -74,17 +71,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     const { credentials } = await authService.getAuthCredentials();
 
     if (credentials) {
-      const { photosToken, user } = credentials;
-
-      PhotosCommonServices.initializeModel(photosToken, {
-        encryptionKey: user.mnemonic,
-        user: user.bridgeUser,
-        password: user.userId,
-      });
-      const { user: photosUser, device: photosDevice } = await photosUserService.init();
-
-      PhotosCommonServices.model.user = photosUser;
-      PhotosCommonServices.model.device = photosDevice;
+      await photos.user.init();
 
       const { hasPermissions } = await dispatch(permissionsThunks.checkPermissionsThunk()).unwrap();
 
@@ -100,7 +87,7 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
   async (_: void, { dispatch, getState }) => {
     if (!getState().photos.isInitialized) {
       dispatch(photosActions.setIsInitialized(true));
-      await photosService.startPhotos();
+      await photos.start();
       await dispatch(syncThunks.startSyncThunk()).unwrap();
       await dispatch(loadPhotosThunk({ page: 1 })).unwrap();
     }
@@ -110,8 +97,7 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
 const loadPhotosUsageThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/loadPhotosUsage',
   async (_, { dispatch }) => {
-    const photosUsage = new PhotosUsageService();
-    dispatch(photosActions.setUsage(await photosUsage.getUsage()));
+    dispatch(photosActions.setUsage(await photos.usage.getUsage()));
   },
 );
 
@@ -131,7 +117,7 @@ const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootSt
   'photos/loadPhotos',
   async (payload: LoadPhotosParams, { dispatch }) => {
     const LIMIT = 50;
-    const { results, count } = await photosService.getPhotos({
+    const { results, count } = await photos.network.getPhotos({
       limit: LIMIT,
       skip: (payload.page - 1) * LIMIT,
     });
@@ -142,7 +128,7 @@ const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootSt
       results.map<Promise<PhotoWithPreview>>(async (photo) => {
         return {
           ...photo,
-          resolvedPreview: await photosService.getPreview(photo),
+          resolvedPreview: await photos.preview.getPreview(photo),
         };
       }),
     );
@@ -168,7 +154,7 @@ const refreshPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
 const clearPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/clearPhotos',
   async (_, { dispatch }) => {
-    PhotosCommonServices.events.emit({
+    photos.events.emit({
       event: PhotosEventKey.ClearSync,
     });
     await photosService.clear();

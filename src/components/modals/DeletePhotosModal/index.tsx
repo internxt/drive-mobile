@@ -22,7 +22,7 @@ function DeletePhotosModal({ isOpen, onClosed, data, onPhotosDeleted }: DeletePh
     onClosed();
   };
   const onMoveToTrashButtonPressed = async () => {
-    await dispatch(photosThunks.deletePhotosThunk({ photos: data }));
+    await dispatch(photosThunks.deletePhotosThunk({ photosToDelete: data }));
     dispatch(photosActions.deselectAll());
     onPhotosDeleted?.();
     onClosed();

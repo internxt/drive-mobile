@@ -11,7 +11,6 @@ import { RootStackScreenProps } from '../../types/navigation';
 import AppScreen from '../../components/AppScreen';
 
 import fileSystemService from '../../services/FileSystemService';
-import { PhotosCommonServices } from '../../services/photos/PhotosCommonService';
 import { PhotoSizeType } from '../../types/photos';
 import { Photo } from '@internxt/sdk/dist/photos';
 import { useTailwind } from 'tailwind-rn';
@@ -22,7 +21,7 @@ import AppText from 'src/components/AppText';
 import strings from 'assets/lang/strings';
 import { ImageViewer } from '@internxt-mobile/ui-kit';
 import errorService from 'src/services/ErrorService';
-
+import photos from '@internxt-mobile/services/photos';
 function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'PhotosPreview'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -62,7 +61,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
   );
   const safeAreaInsets = useSafeAreaInsets();
   const [isFullSizeDownloaded, setIsFullSizeDownloaded] = useState(false);
-  const photoPath = PhotosCommonServices.getPhotoPath({
+  const photoPath = photos.utils.getPhotoPath({
     name: photo.name,
     size: PhotoSizeType.Full,
     type: photo.type,

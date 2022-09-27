@@ -4,9 +4,7 @@ import { PhotosSyncManagerStatus, SyncStage } from '../../../../../src/types/pho
 import { getAssetsAsync } from 'expo-media-library';
 import { createDevicePhotoFixture, createPhotoFixture } from '../../../fixtures/photos.fixture';
 import { PhotosNetworkManager } from '../../../../../src/services/photos/network/PhotosNetworkManager';
-import { PhotosCommonServices } from '../../../../../src/services/photos/PhotosCommonService';
 import { SdkManagerMock } from '__tests__/unit/mocks/sdkManager';
-import PhotosLogService from 'src/services/photos/LogService';
 
 jest.mock('expo-media-library');
 
@@ -35,8 +33,8 @@ describe('Photos Sync Manager', () => {
         (db as any)[key] = jest.fn();
       });
 
-      photosNetworkManager = new PhotosNetworkManager(SdkManagerMock, new PhotosLogService(false));
-      subject = new PhotosSyncManager({ checkIfExistsPhotosAmount: 1 }, db, photosNetworkManager);
+      photosNetworkManager = new PhotosNetworkManager(SdkManagerMock, { enableLog: false });
+      subject = new PhotosSyncManager(photosNetworkManager);
     });
     it('Should on pause stop processing operations', (done) => {
       const onStatusChangeMock = jest.fn<void, [PhotosSyncManagerStatus]>((status) => {
@@ -84,8 +82,8 @@ describe('Photos Sync Manager', () => {
         },
       };
 
-      photosNetworkManager = new PhotosNetworkManager(SdkManagerMock, new PhotosLogService(false));
-      subject = new PhotosSyncManager({ checkIfExistsPhotosAmount: 1 }, db, photosNetworkManager);
+      photosNetworkManager = new PhotosNetworkManager(SdkManagerMock, { enableLog: false });
+      subject = new PhotosSyncManager(photosNetworkManager);
     });
     it('Should resolve a photo found locally without checking remotely', (done) => {
       jest.setTimeout(10000);
@@ -153,8 +151,8 @@ describe('Photos Sync Manager', () => {
     });
 
     it('Should resolve a photo found locally and check the others remotely', (done) => {
-      photosNetworkManager = new PhotosNetworkManager(SdkManagerMock, new PhotosLogService(false));
-      subject = new PhotosSyncManager({ checkIfExistsPhotosAmount: 2 }, db, photosNetworkManager);
+      photosNetworkManager = new PhotosNetworkManager(SdkManagerMock, { enableLog: false });
+      subject = new PhotosSyncManager(photosNetworkManager);
 
       const devicePhoto1Fixture = createDevicePhotoFixture({ id: 'fixture1' });
       const devicePhoto2Fixture = createDevicePhotoFixture({ id: 'fixture2' });

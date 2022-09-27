@@ -2,34 +2,29 @@ import { Photo } from '@internxt/sdk/dist/photos';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { photosSlice } from '..';
 import { RootState } from '../../..';
-import photosService from '../../../../services/photos';
-import { PhotosCommonServices } from '../../../../services/photos/PhotosCommonService';
 import { PhotoFileSystemRef, PhotoSizeType } from '../../../../types/photos';
-
+import photos from '@internxt-mobile/services/photos';
 const downloadFullSizePhotoThunk = createAsyncThunk<
   PhotoFileSystemRef,
   { photo: Photo; onProgressUpdate: (progress: number) => void },
   { state: RootState }
 >('photos/downloadFullSize', async ({ photo, onProgressUpdate }) => {
-  return photosService.downloadPhoto(
-    { photoFileId: photo.fileId },
-    {
-      destination: PhotosCommonServices.getPhotoPath({
-        name: photo.name,
-        size: PhotoSizeType.Full,
-        type: photo.type,
-      }),
-      decryptionProgressCallback: () => undefined,
-      downloadProgressCallback: onProgressUpdate,
-    },
-  );
+  return photos.network.download(photo.fileId, {
+    destination: photos.utils.getPhotoPath({
+      name: photo.name,
+      size: PhotoSizeType.Full,
+      type: photo.type,
+    }),
+    decryptionProgressCallback: () => undefined,
+    downloadProgressCallback: onProgressUpdate,
+  });
 });
 
-const deletePhotosThunk = createAsyncThunk<void, { photos: Photo[] }, { state: RootState }>(
+const deletePhotosThunk = createAsyncThunk<void, { photosToDelete: Photo[] }, { state: RootState }>(
   'photos/deletePhotos',
-  async ({ photos }, { dispatch }) => {
-    await photosService.deletePhotos(photos);
-    dispatch(photosSlice.actions.removePhotos(photos));
+  async ({ photosToDelete }, { dispatch }) => {
+    await photos.network.deletePhotos(photosToDelete);
+    dispatch(photosSlice.actions.removePhotos(photosToDelete));
   },
 );
 export const networkThunks = {

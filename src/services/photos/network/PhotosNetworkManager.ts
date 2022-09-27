@@ -4,9 +4,7 @@ import {
   PhotosNetworkManagerStatus,
   PhotosNetworkOperation,
 } from '../../../types/photos';
-import { PhotosCommonServices } from '../PhotosCommonService';
-import PhotosPreviewService from '../PreviewService';
-import PhotosUploadService from './UploadService';
+
 import async from 'async';
 import { Photo, PhotoExistsData } from '@internxt/sdk/dist/photos';
 import { RunnableService } from '../../../helpers/services';
@@ -15,7 +13,9 @@ import { PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
 import { SdkManager } from '@internxt-mobile/services/common';
 import { AbortedOperationError } from 'src/types';
 import { Platform } from 'react-native';
-import PhotosLogService from '../LogService';
+import photos from '..';
+import { photosNetwork } from './photosNetwork.service';
+import AuthService from '@internxt-mobile/services/AuthService';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;
 
@@ -28,9 +28,8 @@ export type OperationResult = Photo;
  */
 export class PhotosNetworkManager implements RunnableService<PhotosNetworkManagerStatus> {
   public status = PhotosNetworkManagerStatus.IDLE;
-  private uploadService: PhotosUploadService;
-  private previewService = new PhotosPreviewService();
-  private logger: PhotosLogService;
+
+  private logger = photos.logger;
   // eslint-disable-next-line
   private onStatusChangeCallback: OnStatusChangeCallback = () => {};
   private sdk: SdkManager;
@@ -49,11 +48,9 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       });
   }, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY);
 
-  constructor(sdk: SdkManager, logger: PhotosLogService, options = { enableLog: false }) {
-    this.logger = logger;
+  constructor(sdk: SdkManager, options = { enableLog: false }) {
     this.sdk = sdk;
     this.options = options;
-    this.uploadService = new PhotosUploadService(sdk);
     this.queue.drain(() => {
       this.updateStatus(PhotosNetworkManagerStatus.EMPTY);
     });
@@ -111,14 +108,14 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
    * @returns The same list of photos containing an exists property and a remote photo if it exists
    */
   public async getMissingRemotely(devicePhotos: DevicePhoto[]): Promise<DevicePhotoRemoteCheck[]> {
+    const { credentials } = await AuthService.getAuthCredentials();
     const convertedPhotos = [];
     for (const devicePhoto of devicePhotos) {
-      if (!PhotosCommonServices.model.user) throw new Error('Photos user not initialized');
-      const name = PhotosCommonServices.getPhotoName(devicePhoto.filename);
-      const type = PhotosCommonServices.getPhotoType(devicePhoto.filename);
+      const name = photos.utils.getPhotoName(devicePhoto.filename);
+      const type = photos.utils.getPhotoType(devicePhoto.filename);
       const createdAt = new Date(devicePhoto.creationTime);
 
-      const photoRef = await PhotosCommonServices.cameraRollUriToFileSystemUri(
+      const photoRef = await photos.utils.cameraRollUriToFileSystemUri(
         {
           name,
           type,
@@ -131,12 +128,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
         name,
         takenAt: createdAt.toISOString(),
         photoRef,
-        hash: await PhotosCommonServices.getPhotoHash(
-          PhotosCommonServices.model.user.id,
-          name,
-          createdAt.getTime(),
-          photoRef,
-        ),
+        hash: await photos.utils.getPhotoHash(credentials.user.userId, name, createdAt.getTime(), photoRef),
       });
     }
 
@@ -170,33 +162,35 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
    * @returns The result of the operation
    */
   public async processUploadOperation(operation: PhotosNetworkOperation): Promise<OperationResult> {
+    const { credentials } = await AuthService.getAuthCredentials();
+    const photosDevice = photos.user.getDevice();
+    if (!photosDevice) throw new Error('Photos device not found');
     const startAt = Date.now();
-    if (!PhotosCommonServices.model.device) throw new Error('Photos device not initialized');
-    if (!PhotosCommonServices.model.user) throw new Error('Photos user not initialized');
+
     const photoData = operation.devicePhoto;
     // 1. Get photo data
-    const name = PhotosCommonServices.getPhotoName(photoData.filename);
+    const name = photos.utils.getPhotoName(photoData.filename);
     this.log(`--- UPLOADING ${name} ---`);
 
-    const type = PhotosCommonServices.getPhotoType(photoData.filename);
+    const type = photos.utils.getPhotoType(photoData.filename);
     const stat = await fileSystemService.statRNFS(operation.photoRef);
 
     // 2. Upload the preview
-    const preview = await this.previewService.generate(photoData);
+    const preview = await photos.preview.generate(photoData);
     const previewGeneratedElapsed = Date.now() - startAt;
     this.log(`Preview generated in ${previewGeneratedElapsed / 1000}s`);
 
-    const previewId = await this.uploadService.uploadPreview(preview.path);
+    const previewId = await photosNetwork.uploadPreview(preview.path);
 
     const uploadGeneratedElapsed = Date.now() - (previewGeneratedElapsed + startAt);
     this.log(`Preview uploaded in ${uploadGeneratedElapsed / 1000}s`);
 
     // 3. Upload the photo
-    const photo = await this.uploadService.upload(operation.photoRef, {
+    const photo = await photosNetwork.upload(operation.photoRef, {
       name,
       width: photoData.width,
       height: photoData.height,
-      deviceId: PhotosCommonServices.model.device?.id,
+      deviceId: photosDevice.id,
       hash: operation.hash,
       takenAt: new Date(photoData.creationTime),
       previewId,
@@ -213,7 +207,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
         },
       ],
       type: type,
-      userId: PhotosCommonServices.model.user.id,
+      userId: credentials.user.userId,
       size: parseInt(stat.size, 10),
     });
     const photoUploadedElapsed = Date.now() - (uploadGeneratedElapsed + previewGeneratedElapsed + startAt);
