@@ -24,14 +24,6 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   },
 );
 
-const loadUsedStorageThunk = createAsyncThunk<void, void, { state: RootState }>(
-  'storage/loadUsedStorage',
-  async (payload, { dispatch }) => {
-    dispatch(photosThunks.loadPhotosUsageThunk());
-    dispatch(driveThunks.loadUsageThunk());
-  },
-);
-
 const loadLimitThunk = createAsyncThunk<number, void, { state: RootState }>('storage/loadLimit', async () => {
   return storageService.loadLimit();
 });
@@ -59,7 +51,6 @@ export const storageActions = storageSlice.actions;
 export const storageThunks = {
   initializeThunk,
   loadLimitThunk,
-  loadUsedStorageThunk,
 };
 
 export default storageSlice.reducer;

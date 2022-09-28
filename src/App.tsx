@@ -26,7 +26,6 @@ import PlansModal from './components/modals/PlansModal';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import fileSystemService from './services/FileSystemService';
-import { realtime } from './services/NetworkService/realtimeUpdates';
 import { referralsThunks } from './store/slices/referrals';
 import { storageThunks } from './store/slices/storage';
 
@@ -60,6 +59,12 @@ export default function App(): JSX.Element {
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
   const onUserLoggedIn = () => {
     dispatch(appThunks.initializeThunk());
+    AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        dispatch(referralsThunks.fetchReferralsThunk());
+        dispatch(storageThunks.loadLimitThunk());
+      }
+    });
   };
   const onUserLoggedOut = () => {
     dispatch(appThunks.initializeThunk());
@@ -86,12 +91,6 @@ export default function App(): JSX.Element {
       NavigationBar.setButtonStyleAsync('dark');
     }
 
-    AppState.addEventListener('change', (state) => {
-      if (state === 'active' && isAppInitialized) {
-        dispatch(referralsThunks.fetchReferralsThunk());
-        dispatch(storageThunks.loadUsedStorageThunk());
-      }
-    });
     authService.addLoginListener(onUserLoggedIn);
     authService.addLogoutListener(onUserLoggedOut);
 
