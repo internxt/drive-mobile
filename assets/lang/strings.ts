@@ -11,6 +11,7 @@ const strings = new LocalizedStrings({
       es: 'Spanish',
     },
     generic: {
+      atTime: 'at',
       loading: 'Loading',
       downloading: 'Downloading...',
       security: 'Security',
@@ -204,6 +205,7 @@ const strings = new LocalizedStrings({
             [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Subscribe to newsletter',
             [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Install desktop app',
             [ReferralTypes.ReferralKey.InviteFriends]: 'Invite {0}/{1} friends',
+            [ReferralTypes.ReferralKey.Invite2Friends]: 'Invite 2 friends',
             [ReferralTypes.ReferralKey.CompleteSurvey]: 'Complete survey',
           },
         },
@@ -227,6 +229,7 @@ const strings = new LocalizedStrings({
         access: 'The Photos app needs access to your photos to let you view, sync and share photos from this device.',
       },
       gallery: {
+        items_left: 'items left',
         title: 'Gallery',
         nPhotosSelected: '{0} selected',
         empty: 'No photos to show',
@@ -305,6 +308,9 @@ const strings = new LocalizedStrings({
       },
     },
     buttons: {
+      export_file: 'Export file',
+      duplicate: 'Duplicate',
+      save_to_gallery: 'Save to gallery',
       sign_in: 'Sign in',
       createAccount: 'Create account',
       deleteAccount: 'Delete account',
@@ -421,7 +427,7 @@ const strings = new LocalizedStrings({
         delete: 'Move to trash',
         linkReady: 'Link created',
         exportFile: 'Export file',
-        shareLink: 'Compartir link',
+        shareLink: 'Share link',
         downloadFile: 'Download file',
         view: 'View',
         deleteLink: 'Delete link',
@@ -433,6 +439,10 @@ const strings = new LocalizedStrings({
     modals: {
       deleteShareLink: {
         title: 'Delete link',
+      },
+      confirmSavePhoto: {
+        title: 'Photo is already in your gallery',
+        message: 'Do you want to duplicate it on your gallery anyway?',
       },
       CancelSubscription: {
         title: 'Cancel subscription',
@@ -543,8 +553,8 @@ const strings = new LocalizedStrings({
         got_it: 'Got it!',
       },
       deletePhotosModal: {
-        title: 'Move photo/s to trash',
-        message: 'Photos won’t be deleted from your phone, they will remain in the trash until you empty the trash.',
+        title: 'Delete photo',
+        message: 'This action cannot be undone.',
       },
       photos_preview_info_modal: {
         options: {
@@ -582,6 +592,13 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      image_not_uploaded_yet: 'This photo is not synced yet',
+      photo_deleted: 'Photo deleted',
+      image_shared: 'Image shared',
+      video_shared: 'Vídeo shared',
+      image_saved_to_gallery: 'Photo saved to gallery',
+      video_saved_to_gallery: 'Vídeo saved to gallery',
+      fileSaved: 'File saved',
       generatingLink: 'Generating link',
       folderCreated: 'Folder created',
       itemsDeleted: 'Item/s deleted',
@@ -593,7 +610,7 @@ const strings = new LocalizedStrings({
       passwordChanged: 'Password changed',
       itemsMoved: '{0} item(s) moved',
       sendVerificationEmail: 'Verification email sent',
-      confirmDeleteSharedLink: 'Users with the link will lose access to “{0}”.',
+      confirmDeleteSharedLink: 'Users with the link will lose access to the shared content.',
       linkDeleted: 'Link deleted successfully',
     },
     errors: {
@@ -601,7 +618,8 @@ const strings = new LocalizedStrings({
         title: 'There has been an error',
         message: '{0}. Please contact us.',
       },
-      generateShareLinkError: 'Error generating share link',
+      photoNotUploadedYet: 'The photo is not in sync',
+      generateShareLinkError: "Can't generate share link",
       deleteShareLinkError: 'Error deleting share link',
       recentsLoadError: 'Error loading recent files',
       sharedLoadError: 'Error loading shared files',
@@ -647,6 +665,7 @@ const strings = new LocalizedStrings({
       es: 'Español',
     },
     generic: {
+      atTime: 'a las',
       loading: 'Cargando',
       security: 'Seguridad',
       preparing: 'Preparando...',
@@ -840,6 +859,7 @@ const strings = new LocalizedStrings({
             [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Suscribirse a newletter',
             [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Instala la app de escritorio',
             [ReferralTypes.ReferralKey.InviteFriends]: 'Invitar {0}/{1} amigos',
+            [ReferralTypes.ReferralKey.Invite2Friends]: 'Invitar a 2 amigos',
             [ReferralTypes.ReferralKey.CompleteSurvey]: 'Completar encuesta',
           },
         },
@@ -864,6 +884,7 @@ const strings = new LocalizedStrings({
           'Se necesita acceder a tus fotos para que puedas ver, sincronizar y compartir fotos desde este dispositivo.',
       },
       gallery: {
+        items_left: 'items pendientes',
         title: 'Galería',
         nPhotosSelected: '{0} seleccionadas',
         empty: 'No hay fotos para mostrar',
@@ -941,6 +962,9 @@ const strings = new LocalizedStrings({
       },
     },
     buttons: {
+      duplicate: 'Duplicar',
+      export_file: 'Exportar archivo',
+      save_to_gallery: 'Guardar en galería',
       sign_in: 'Iniciar sesión',
       createAccount: 'Crear cuenta',
       deleteAccount: 'Borrar cuenta',
@@ -971,7 +995,7 @@ const strings = new LocalizedStrings({
       shareWithLink: 'Compartir enlace',
       download: 'Descargar',
       moveToThrash: 'Mover a la papelera',
-      copyLink: 'Copiar link compartido',
+      copyLink: 'Copiar link',
       startSyncingPhotos: 'Sincronizar mis fotos',
       syncNow: 'Sincronizar ahora',
       tryAgain: 'Intentar de nuevo',
@@ -1069,6 +1093,10 @@ const strings = new LocalizedStrings({
     modals: {
       deleteShareLink: {
         title: 'Borrar link',
+      },
+      confirmSavePhoto: {
+        title: 'Esta foto ya existe en tu galería',
+        message: '¿Quieres duplicarla en tu galería  de todas formas?',
       },
       CancelSubscription: {
         title: 'Cancelar suscripción',
@@ -1181,15 +1209,14 @@ const strings = new LocalizedStrings({
         got_it: 'Entendido!',
       },
       deletePhotosModal: {
-        title: 'Mover foto/s a la papelera',
-        message:
-          'Las fotos no se borrarán de tu dispositivo. Además, las fotos se mantendrán en la papelera hasta que la vacíes.',
+        title: 'Borrar foto',
+        message: 'Esta acción no puede deshacerse.',
       },
       photos_preview_info_modal: {
         options: {
           name: 'Nombre',
-          uploaded: 'Fecha de subida',
-          modified: 'Fecha de modificación',
+          uploaded: 'Subida',
+          modified: 'Modificado',
           size: 'Tamaño',
           dimensions: 'Dimensiones',
           format: 'Formato',
@@ -1221,6 +1248,13 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      image_not_uploaded_yet: 'Imagen no sincronizada aún',
+      photo_deleted: 'Imagen borrada',
+      image_shared: 'Imagen compartida',
+      video_shared: 'Video compartido',
+      image_saved_to_gallery: 'Imagen guardada en la galería',
+      video_saved_to_gallery: 'Video guardado en la galería',
+      file_saved: 'Archivo guardado',
       generatingLink: 'Generando link',
       folderCreated: 'Carpeta creada',
       itemsDeleted: 'Elementos borrados',
@@ -1228,11 +1262,11 @@ const strings = new LocalizedStrings({
       photosSyncPending: 'Sincronización pendiente',
       photosSyncCompleted: 'Tu galería está sincronizada',
       renamedSuccessfully: 'Renombrado correctamente',
-      linkCopied: 'Enlace copiado',
+      linkCopied: 'Link copiado',
       passwordChanged: 'Contraseña cambiada',
       itemsMoved: '{0} item(s) movidos',
       sendVerificationEmail: 'Email de verificación enviado',
-      confirmDeleteSharedLink: 'Los usuarios con el link compartido perderán el acceso a “{0}”.',
+      confirmDeleteSharedLink: 'Los usuarios con el link compartido perderán el acceso a este contenido compartido.',
       linkDeleted: 'Link eliminado correctamente',
     },
     errors: {
@@ -1240,6 +1274,7 @@ const strings = new LocalizedStrings({
         title: 'Ha habido un error',
         message: '{0}. Por favor, contacta con nosotros.',
       },
+      photoNotUploadedYet: 'La foto no esta sincronizada',
       generateShareLinkError: 'Error generando link compartido',
       deleteShareLinkError: 'Error borrando link compartido',
       recentsLoadError: 'Error cargando archivos recientes',

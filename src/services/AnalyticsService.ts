@@ -7,8 +7,8 @@ import { getHeaders } from '../helpers/headers';
 import { constants } from './AppService';
 import asyncStorage from './AsyncStorageService';
 
-type JsonMap = Record<string, unknown>;
-type Options = Record<string, string | number>;
+export type JsonMap = Record<string, unknown>;
+export type Options = Record<string, string | number>;
 
 export enum AnalyticsEventKey {
   UserSignUp = 'User Signup',
@@ -29,12 +29,17 @@ export enum AnalyticsEventKey {
   ShareTo = 'share-to',
 }
 
-class AnalyticsService {
+export class AnalyticsService {
   private config = {
     trackEnabled: false,
-    screenTrackEnabled: false,
+    trackAppLifeCycleEvents: true,
+    screenTrackEnabled: true,
     identifyEnabled: false,
   };
+
+  public getClient() {
+    return analytics;
+  }
   public async setup() {
     const WRITEKEY = constants.ANALYTICS_WRITE_KEY as string;
 
@@ -46,7 +51,7 @@ class AnalyticsService {
     await analytics.setup(WRITEKEY, {
       dataPlaneUrl: constants.DATAPLANE_URL,
       recordScreenViews: this.config.screenTrackEnabled,
-      trackAppLifecycleEvents: this.config.trackEnabled,
+      trackAppLifecycleEvents: this.config.trackAppLifeCycleEvents,
     });
   }
 
@@ -164,10 +169,7 @@ class AnalyticsService {
   }
 
   private async asNoop() {
-    if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.info('This operation is marked as a NOOP, so it will not produce any effect');
-    }
+    return;
   }
 }
 

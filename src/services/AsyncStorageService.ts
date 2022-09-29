@@ -26,7 +26,12 @@ class AsyncStorageService {
   }
 
   clearStorage(): Promise<void> {
-    return AsyncStorage.multiRemove([AsyncStorageKey.User, AsyncStorageKey.Token, AsyncStorageKey.PhotosToken]);
+    return AsyncStorage.multiRemove([
+      AsyncStorageKey.User,
+      AsyncStorageKey.Token,
+      AsyncStorageKey.PhotosToken,
+      AsyncStorageKey.LastPhotosPagePulled,
+    ]);
   }
 }
 

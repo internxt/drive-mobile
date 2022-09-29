@@ -1,12 +1,12 @@
-import { DevicePhotosSyncCheckerService } from '../../../../../src/services/photos/sync/DevicePhotosSyncChecker';
+import { createPhotoFixture, createPhotosItemFixture } from '__tests__/unit/fixtures/photos.fixture';
+import { DevicePhotosSyncCheckerService } from '../../../../../src/services/photos/sync/devicePhotosSyncChecker/devicePhotosSyncChecker';
 import {
   DevicePhotosSyncCheckerStatus,
   DevicePhotoSyncCheckOperation,
   SyncStage,
 } from '../../../../../src/types/photos';
-import { createDevicePhotoFixture } from '../../../fixtures/photos.fixture';
 
-describe('DevicePhotosSyncChecker system', () => {
+describe('DevicePhotosSyncChecker', () => {
   let subject: DevicePhotosSyncCheckerService;
   const db = {
     init: jest.fn(),
@@ -24,21 +24,19 @@ describe('DevicePhotosSyncChecker system', () => {
   describe('Resolve an operation with a sync stage', () => {
     beforeEach(() => (subject = new DevicePhotosSyncCheckerService(db)));
     it('Should remove the operation from the sync queue', (done) => {
-      const devicePhoto = createDevicePhotoFixture();
       const operationCallback = jest.fn(() => {
         expect(subject.pendingOperations).toBe(0);
         done();
       });
       subject.addOperation({
-        id: 'operation-1',
-        devicePhoto,
+        photosItem: createPhotosItemFixture(),
         onOperationCompleted: operationCallback,
       });
       expect(subject.pendingOperations).toBe(1);
     });
 
     it('Should mark the operation with NEEDS_REMOTE_CHECK SyncStage if not found locally', (done) => {
-      const devicePhoto = createDevicePhotoFixture();
+      db.getSyncedPhotoByName = jest.fn(async () => null);
       const operation1Callback = jest.fn<void, [Error | null, DevicePhotoSyncCheckOperation | null]>(
         (err, resolvedOperation) => {
           expect(resolvedOperation).toMatchObject({ syncStage: SyncStage.NEEDS_REMOTE_CHECK });
@@ -46,15 +44,13 @@ describe('DevicePhotosSyncChecker system', () => {
         },
       );
       subject.addOperation({
-        id: 'operation-1',
-        devicePhoto,
+        photosItem: createPhotosItemFixture(),
         onOperationCompleted: operation1Callback,
       });
     });
 
     it('Should mark the operation with IN_SYNC stage if found locally', (done) => {
-      const devicePhoto = createDevicePhotoFixture();
-      db.getByDevicePhoto = jest.fn(async () => ({ photo_id: 'x', photo_ref: 'root/x', stage: SyncStage.IN_SYNC }));
+      db.getSyncedPhotoByName = jest.fn(async () => ({ photo: createPhotoFixture() }));
       subject = new DevicePhotosSyncCheckerService(db);
 
       const operationCallback = jest.fn((err, resolvedOperation) => {
@@ -62,8 +58,7 @@ describe('DevicePhotosSyncChecker system', () => {
         done();
       });
       subject.addOperation({
-        id: 'operation-1',
-        devicePhoto,
+        photosItem: createPhotosItemFixture(),
         onOperationCompleted: operationCallback,
       });
     });
@@ -75,9 +70,8 @@ describe('DevicePhotosSyncChecker system', () => {
       const statusChangeMock = jest.fn<void, [DevicePhotosSyncCheckerStatus]>((status) => {
         if (status === DevicePhotosSyncCheckerStatus.COMPLETED) {
           expect(statusChangeMock).toHaveBeenNthCalledWith(1, DevicePhotosSyncCheckerStatus.RUNNING);
-          expect(statusChangeMock).toHaveBeenNthCalledWith(2, DevicePhotosSyncCheckerStatus.EMPTY);
-          expect(statusChangeMock).toHaveBeenNthCalledWith(3, DevicePhotosSyncCheckerStatus.COMPLETED);
-          expect(statusChangeMock).toBeCalledTimes(3);
+          expect(statusChangeMock).toHaveBeenNthCalledWith(2, DevicePhotosSyncCheckerStatus.COMPLETED);
+          expect(statusChangeMock).toBeCalledTimes(2);
           done();
         }
       });
@@ -85,8 +79,7 @@ describe('DevicePhotosSyncChecker system', () => {
       subject.onStatusChange(statusChangeMock);
 
       subject.addOperation({
-        id: 'operation-1',
-        devicePhoto: createDevicePhotoFixture(),
+        photosItem: createPhotosItemFixture(),
         onOperationCompleted: jest.fn(),
       });
     });

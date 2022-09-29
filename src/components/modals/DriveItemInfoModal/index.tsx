@@ -23,11 +23,10 @@ import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
 import { useUseCase } from '@internxt-mobile/hooks/common';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
-import * as commonUseCases from '@internxt-mobile/useCases/common';
 
 import { time } from '@internxt-mobile/services/common/time';
 import AppText from 'src/components/AppText';
-import CenterModal from '../CenterModal';
+import { GeneratingLinkModal } from '../common/GeneratingLinkModal';
 function DriveItemInfoModal(): JSX.Element {
   const { executeUseCase: generateAndShowShareLink, loading: generatingShareLink } = useUseCase(
     driveUseCases.generateShareLink,
@@ -35,9 +34,6 @@ function DriveItemInfoModal(): JSX.Element {
       lazy: true,
     },
   );
-  const { executeUseCase: shareFile } = useUseCase(commonUseCases.shareFile, {
-    lazy: true,
-  });
 
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -152,17 +148,11 @@ function DriveItemInfoModal(): JSX.Element {
           {item?.name}
           {item?.type ? '.' + item.type : ''}
         </Text>
-        <AppText style={tailwind('text-xs text-gray-60')}>
-          {!isFolder && (
-            <>
-              {prettysize(item?.size || 0)}{' '}
-              <AppText bold style={tailwind('text-gray-60')}>
-                ·
-              </AppText>{' '}
-            </>
-          )}
-          {getUpdatedAt()}
-        </AppText>
+        <View style={tailwind('flex flex-row items-center')}>
+          <AppText style={tailwind('text-xs text-gray-60')}>{!isFolder && <>{prettysize(item?.size || 0)}</>}</AppText>
+          {!isFolder && <View style={[tailwind('bg-gray-60 rounded-full mx-1.5'), { width: 3, height: 3 }]} />}
+          <AppText style={tailwind('text-xs text-gray-60')}>{getUpdatedAt()}</AppText>
+        </View>
       </View>
     </View>
   );
@@ -192,30 +182,7 @@ function DriveItemInfoModal(): JSX.Element {
           </View>
         </View>
       </BottomModal>
-      <CenterModal
-        style={tailwind('w-auto')}
-        isOpen={generatingShareLink}
-        onClosed={() => {
-          return;
-        }}
-      >
-        <View style={tailwind('flex items-center justify-center')}>
-          <View style={tailwind('flex items-center justify-center')}>
-            <View
-              style={[
-                tailwind('h-16 w-16 mt-8 mb-4 flex items-center justify-center rounded-full'),
-                { backgroundColor: 'rgba(0, 102, 255, 0.05)', zIndex: 10 },
-              ]}
-            >
-              <Link color={getColor('text-primary')} size={40} />
-            </View>
-          </View>
-
-          <AppText medium style={tailwind('mb-8 text-lg mx-8')}>
-            {strings.messages.generatingLink}
-          </AppText>
-        </View>
-      </CenterModal>
+      <GeneratingLinkModal isGenerating={generatingShareLink} />
     </>
   );
 }

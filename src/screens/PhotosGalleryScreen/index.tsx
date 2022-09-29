@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback, BackHandler } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 
@@ -15,50 +15,70 @@ import { Trash } from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
-import AppText from 'src/components/AppText';
-
+import { DataProvider } from 'recyclerlistview';
+import { PhotosItemBacked } from '@internxt-mobile/types/photos';
+import photos from '@internxt-mobile/services/photos';
+import { PhotosAnalyticsEventKey, PhotosAnalyticsScreenKey } from '@internxt-mobile/services/photos/analytics';
+const dataProvider = new DataProvider((r1, r2) => {
+  return r1 !== r2;
+});
 function PhotosGalleryScreen(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const isLoading = useRef(false);
+
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
-  const [currentPage, setCurrentPage] = useState(1);
   const { isSelectionModeActivated, viewMode } = useAppSelector((state) => state.photos);
   const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
+  const photosItems = useAppSelector(photosSelectors.getPhotosSorted);
   const hasPhotosSelected = useAppSelector(photosSelectors.hasPhotosSelected);
-  const hasMorePhotos = useAppSelector(photosSelectors.hasMorePhotos);
 
   const { selection } = useAppSelector((state) => state.photos);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDeletePhotosModalOpen, setIsDeletePhotosModalOpen] = useState(false);
+  const [galleryDataSource, setGalleryDataSource] = useState(dataProvider.cloneWithRows([]));
 
   useEffect(() => {
-    if (hasPhotos) {
-      setIsLoading(false);
-    }
-  }, [hasPhotos]);
+    photos.analytics.screen(PhotosAnalyticsScreenKey.PhotosGallery, { permissions: true });
+  }, []);
+  useEffect(() => {
+    setGalleryDataSource(galleryDataSource.cloneWithRows(photosItems));
+  }, [photosItems]);
 
-  const onDeletePhotosModalClosed = () => {
-    setIsDeletePhotosModalOpen(false);
-    dispatch(photosActions.setIsSelectionModeActivated(false));
-  };
   const onSelectButtonPressed = () => {
     dispatch(photosActions.setIsSelectionModeActivated(true));
+    photos.analytics.track(PhotosAnalyticsEventKey.MultipleSelectionActivated);
   };
   const onCancelSelectButtonPressed = () => {
     dispatch(photosActions.setIsSelectionModeActivated(false));
     dispatch(photosActions.deselectAll());
   };
-  /* const onSelectAllButtonPressed = () => {
-    dispatch(photosThunks.selectAllThunk());
-  };
-  const onShareSelectionButtonPressed = () => {
-    dispatch(uiActions.setIsSharePhotoModalOpen(true));
-  };
-  const onDownloadSelectionButtonPressed = () => undefined; */
+
   const onDeleteSelectionButtonPressed = async () => {
-    //await dispatch(photosThunks.deletePhotosThunk({ photos: selection }));
+    photos.analytics.track(PhotosAnalyticsEventKey.MoveToTrashConfirmed, {
+      individual_action: false,
+      number_of_items: selection.length,
+    });
+    dispatch(photosThunks.deletePhotosThunk({ photosToDelete: selection as PhotosItemBacked[] }));
+    setIsDeletePhotosModalOpen(false);
+    dispatch(photosActions.setIsSelectionModeActivated(false));
+  };
+
+  const onDeleteOptionButtonPressed = () => {
+    photos.analytics.track(PhotosAnalyticsEventKey.MoveToTrashSelected, {
+      individual_action: false,
+      number_of_items: selection.length,
+    });
+
     setIsDeletePhotosModalOpen(true);
+  };
+
+  const onCancelDeleteButtonPressed = () => {
+    setIsDeletePhotosModalOpen(false);
+    photos.analytics.track(PhotosAnalyticsEventKey.MoveToTrashCanceled, {
+      individual_action: false,
+      number_of_items: selection.length,
+    });
   };
   const onBackButtonPressed = () => {
     onCancelSelectButtonPressed();
@@ -66,27 +86,6 @@ function PhotosGalleryScreen(): JSX.Element {
     return false;
   };
   const GalleryView = useMemo(() => galleryViews[viewMode], []);
-  /*const groupByMenu = (function () {
-    const groupByItems = Object.entries(GalleryViewMode).map(([, value]) => {
-      const isActive = value === viewMode;
-
-      return (
-        <TouchableWithoutFeedback key={value} onPress={() => dispatch(photosActions.setViewMode(value))}>
-          <View style={[tailwind('flex-1 rounded-2xl'), isActive && tailwind('bg-neutral-70')]}>
-            <Text style={[tailwind('text-neutral-500 text-center text-base'), isActive && tailwind('text-white')]}>
-              {strings.screens.gallery.groupBy[value]}
-            </Text>
-          </View>
-        </TouchableWithoutFeedback>
-      );
-    });
-
-    return (
-      <View style={tailwind('absolute bottom-3 px-5 w-full')}>
-        <View style={tailwind('px-1 py-1 flex-row bg-neutral-20 rounded-2xl')}>{groupByItems}</View>
-      </View>
-    );
-  })();*/
 
   useEffect(() => {
     dispatch(photosThunks.startUsingPhotosThunk()).unwrap();
@@ -99,16 +98,14 @@ function PhotosGalleryScreen(): JSX.Element {
     };
   }, []);
 
+  const loadPhotos = async () => {
+    dispatch(photosActions.getNextPage());
+  };
   async function loadNextPage() {
-    if (!isLoading && hasMorePhotos) {
-      setIsLoading(true);
-
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
-
-      await dispatch(photosThunks.loadPhotosThunk({ page: nextPage })).unwrap();
-
-      setIsLoading(false);
+    if (!isLoading.current) {
+      isLoading.current = true;
+      await loadPhotos();
+      isLoading.current = false;
     }
   }
 
@@ -118,21 +115,23 @@ function PhotosGalleryScreen(): JSX.Element {
 
   return (
     <>
-      {/*   <SharePhotoModal
-        isOpen={isSharePhotoModalOpen}
-        data={selectedPhotos[0]}
-        preview={hasNoPhotosSelected ? '' : getPhotoPreview(selectedPhotos[0])}
-        onClosed={onSharePhotoModalClosed}
-      /> */}
-      <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selection} onClosed={onDeletePhotosModalClosed} />
-
+      <DeletePhotosModal
+        isOpen={isDeletePhotosModalOpen}
+        data={selection}
+        actions={{
+          onClose: onCancelDeleteButtonPressed,
+          onConfirm: onDeleteSelectionButtonPressed,
+        }}
+      />
       <AppScreen safeAreaTop style={tailwind('flex-1')}>
         {/* GALLERY TOP BAR */}
         <View style={tailwind('')}>
           {isSelectionModeActivated ? (
             <View style={tailwind('h-10 flex-row justify-between items-center')}>
               <View style={tailwind('flex-row items-center justify-between')}>
-                <Text style={tailwind('pl-5')}>{strings.formatString(strings.screens.gallery.nPhotosSelected, 0)}</Text>
+                <Text style={tailwind('pl-5')}>
+                  {strings.formatString(strings.screens.gallery.nPhotosSelected, selection.length)}
+                </Text>
               </View>
 
               <View style={tailwind('flex-row pr-5')}>
@@ -186,7 +185,7 @@ function PhotosGalleryScreen(): JSX.Element {
         </View>
         <View style={{ flex: 1 }}>
           {hasPhotos ? (
-            <GalleryView onLoadNextPage={loadNextPage} onRefresh={handleRefresh} />
+            <GalleryView photos={galleryDataSource} onLoadNextPage={loadNextPage} onRefresh={handleRefresh} />
           ) : (
             <View style={tailwind('flex-1 items-center justify-center')}>
               <Text style={tailwind('text-lg text-neutral-60')}>{strings.screens.gallery.loading}</Text>
@@ -203,52 +202,9 @@ function PhotosGalleryScreen(): JSX.Element {
                 { marginBottom: safeAreaInsets.bottom },
               ]}
             >
-              {/*<TouchableWithoutFeedback
-                onPress={onShareSelectionButtonPressed}
-                disabled={hasNoPhotosSelected || hasManyPhotosSelected}
-              >
-                <View style={tailwind('items-center flex-1')}>
-                  <Unicons.UilLink
-                    color={hasNoPhotosSelected || hasManyPhotosSelected ? getColor('text-neutral-60') : getColor('text-blue-60')}
-                    size={24}
-                  />
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      hasNoPhotosSelected || hasManyPhotosSelected
-                        ? tailwind('text-neutral-60')
-                        : tailwind('text-blue-60'),
-                      tailwind('text-xs'),
-                    ]}
-                  >
-                    {strings.buttons.share}
-                  </Text>
-                </View>
-                  </TouchableWithoutFeedback>*/}
-              {/*<TouchableWithoutFeedback
-                style={tailwind('flex-1')}
-                onPress={onDownloadSelectionButtonPressed}
-                disabled={hasNoPhotosSelected}
-              >
-                <View style={tailwind('items-center flex-1')}>
-                  <Unicons.UilDownloadAlt
-                    color={hasNoPhotosSelected ? getColor('text-neutral-60') : getColor('text-blue-60')}
-                    size={24}
-                  />
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      hasNoPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-blue-60'),
-                      tailwind('text-xs'),
-                    ]}
-                  >
-                    {strings.buttons.download}
-                  </Text>
-                </View>
-                  </TouchableWithoutFeedback>*/}
               <TouchableWithoutFeedback
                 style={tailwind('flex-1')}
-                onPress={onDeleteSelectionButtonPressed}
+                onPress={onDeleteOptionButtonPressed}
                 disabled={!hasPhotosSelected}
               >
                 <View style={tailwind('items-center flex-1')}>

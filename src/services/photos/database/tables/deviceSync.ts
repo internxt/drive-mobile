@@ -1,23 +1,26 @@
-export const TABLE_NAME = 'device_sync';
+import { Photo } from '@internxt/sdk/dist/photos';
+
+export const TABLE_NAME = 'synced_photos';
+
+export type SynchedPhotoRow = {
+  photo_id: string;
+  photo_name: string;
+  photo: Photo;
+};
 const statements = {
   createTable: `CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (\
-      id INTEGER PRIMARY KEY AUTOINCREMENT, \
-      device_photo_id TEXT,
-      photo_id TEXT, \
-      stage TEXT
+      photo_id TEXT UNIQUE,  \
+      photo_name TEXT UNIQUE, \
+      photo TEXT
     );`,
-  getAll: `SELECT * FROM ${TABLE_NAME}`,
-  deleteTableRows: `DELETE FROM ${TABLE_NAME};`,
+
   cleanTable: `DELETE FROM ${TABLE_NAME};`,
-  selectCount: `SELECT COUNT(*) as count FROM ${TABLE_NAME}`,
-  insert: `INSERT INTO ${TABLE_NAME} (device_photo_id, photo_id, stage) \
-    VALUES ( ?,?,? );`,
-  getByPhotoRef: `SELECT * FROM ${TABLE_NAME} WHERE photo_ref = ?`,
-  getByPreviewUri: `SELECT * FROM ${TABLE_NAME} WHERE photo_preview_uri = ?`,
-  getByPhotoId: `SELECT * FROM ${TABLE_NAME} WHERE photo_id = ?`,
-  getByDevicePhotoId: `SELECT * FROM ${TABLE_NAME} WHERE device_photo_id = ?`,
-  updateByPhotoId: `UPDATE ${TABLE_NAME} SET device_photo_id = ? WHERE photo_id = ? `,
-  deletePhotoById: `DELETE FROM ${TABLE_NAME} WHERE photo_id = ? `,
+  insert: `INSERT INTO ${TABLE_NAME} (photo_id, photo_name, photo) VALUES (?,?,?);`,
+  deleteSyncedPhotoByPhotoId: `DELETE FROM ${TABLE_NAME} WHERE photo_id = ? `,
+  getSyncedPhotos: `SELECT * FROM ${TABLE_NAME}`,
+  getSyncedPhotoByName: `SELECT * FROM ${TABLE_NAME} WHERE photo_name = ?  `,
+  getSyncedPhotoByPhotoId: `SELECT * FROM ${TABLE_NAME} WHERE photo_id = ?  `,
+  updatePhotoById: `UPDATE ${TABLE_NAME} SET photo = ? WHERE photo_id = ? `,
 };
 
 export default {

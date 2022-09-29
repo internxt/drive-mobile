@@ -1,5 +1,12 @@
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
-import { PhotoFileSystemRef, PhotoSizeType } from '@internxt-mobile/types/photos';
+import {
+  DevicePhoto,
+  PhotoFileSystemRef,
+  PhotosItem,
+  PhotosItemType,
+  PhotoSizeType,
+  PhotoSyncStatus,
+} from '@internxt-mobile/types/photos';
 import { items } from '@internxt/lib';
 import { createHash } from '@internxt/rn-crypto';
 import { HMAC } from '@internxt/rn-crypto/src/types/crypto';
@@ -7,6 +14,8 @@ import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
 import * as crypto from 'react-native-crypto';
 import { PHOTOS_FULL_SIZE_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY } from '../constants';
+import { MediaType } from 'expo-media-library';
+import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 export class PhotosUtils {
   /**
    * Gets the type of the photo
@@ -54,7 +63,7 @@ export class PhotosUtils {
       path = iosPath;
     }
 
-    return path;
+    return fileSystemService.uriToPath(path);
   }
 
   /**
@@ -100,6 +109,132 @@ export class PhotosUtils {
     }
 
     throw new Error('Photo size is not recognized');
+  }
+
+  public getPhotosItem(from: Photo | DevicePhoto): PhotosItem {
+    // This is a remote photo, build a syncrhonizable photo from it
+    if ('fileId' in from) {
+      const fullSizePath = this.getPhotoPath({
+        name: from.name,
+        type: from.type,
+        size: PhotoSizeType.Full,
+      });
+
+      return {
+        photoId: from.id,
+        photoFileId: from.fileId,
+        previewFileId: from.previewId,
+        updatedAt: new Date(from.updatedAt).getTime(),
+        name: from.name,
+        takenAt: new Date(from.takenAt).getTime(),
+        localPreviewPath: this.getPhotoPath({
+          name: from.name,
+          type: from.type,
+          size: PhotoSizeType.Preview,
+        }),
+        localFullSizePath: fullSizePath,
+        width: from.width,
+        height: from.height,
+        format: from.type,
+        localUri: null,
+        type: PhotosItemType.PHOTO,
+        status: from.status !== PhotoStatus.Exists ? PhotoSyncStatus.DELETED : PhotoSyncStatus.IN_SYNC_ONLY,
+        getDisplayName() {
+          return `${from.name}.${from.type.toLowerCase()}`;
+        },
+
+        getSize: async () => from.size,
+      };
+    } else {
+      const photo = from as DevicePhoto;
+
+      const name = this.getPhotoName(photo.filename);
+      const format = this.getPhotoFormat(photo.filename);
+      return {
+        photoFileId: null,
+        photoId: null,
+        previewFileId: null,
+        name,
+        format,
+        type: photo.mediaType === MediaType.photo ? PhotosItemType.PHOTO : PhotosItemType.VIDEO,
+        takenAt: photo.creationTime,
+        width: photo.width,
+        height: photo.height,
+        status: PhotoSyncStatus.IN_DEVICE_ONLY,
+        localPreviewPath: photo.uri,
+        localFullSizePath: photo.uri,
+        updatedAt: photo.modificationTime,
+        localUri: photo.uri,
+        getSize: async () => {
+          const path = await this.cameraRollUriToFileSystemUri(
+            {
+              name,
+              type: format,
+            },
+            from.uri,
+          );
+          const stat = await fileSystemService.statRNFS(path);
+
+          await fileSystemService.unlinkIfExists(path);
+          return parseInt(stat.size);
+        },
+        getDisplayName() {
+          return `${name}.${format.toLowerCase()}`;
+        },
+      };
+    }
+  }
+
+  public getPhotoFormat(filename: string) {
+    const parts = filename.split('.');
+    const extension = parts[parts.length - 1];
+
+    return extension.toLowerCase();
+  }
+
+  public mergePhotosItems(photosItems: PhotosItem[]) {
+    const mapByName: { [name: string]: PhotosItem } = {};
+
+    photosItems.forEach((photosItem) => {
+      if (!mapByName[photosItem.name]) {
+        mapByName[photosItem.name] = photosItem;
+      }
+
+      if (photosItem.status === PhotoSyncStatus.DELETED) {
+        if (mapByName[photosItem.name]) {
+          mapByName[photosItem.name].status = PhotoSyncStatus.DELETED;
+        }
+      }
+
+      if (photosItem.status === PhotoSyncStatus.IN_SYNC_ONLY) {
+        if (mapByName[photosItem.name] && mapByName[photosItem.name].status === PhotoSyncStatus.IN_DEVICE_ONLY) {
+          mapByName[photosItem.name].photoFileId = photosItem.photoFileId;
+          mapByName[photosItem.name].previewFileId = photosItem.previewFileId;
+          mapByName[photosItem.name].photoId = photosItem.photoId;
+
+          mapByName[photosItem.name].status = PhotoSyncStatus.DEVICE_AND_IN_SYNC;
+        }
+      }
+
+      if (photosItem.status === PhotoSyncStatus.IN_DEVICE_ONLY) {
+        if (mapByName[photosItem.name] && mapByName[photosItem.name].status === PhotoSyncStatus.IN_SYNC_ONLY) {
+          mapByName[photosItem.name].localFullSizePath = photosItem.localUri as string;
+          mapByName[photosItem.name].localPreviewPath = photosItem.localUri as string;
+          mapByName[photosItem.name].localUri = photosItem.localUri;
+          mapByName[photosItem.name].status = PhotoSyncStatus.DEVICE_AND_IN_SYNC;
+        }
+      }
+    });
+
+    const asArray = Object.values(mapByName);
+
+    return asArray
+      .filter((del) => del.status !== PhotoSyncStatus.DELETED)
+      .sort((p1, p2) => {
+        if (p1.takenAt > p2.takenAt) return -1;
+        if (p1.takenAt < p2.takenAt) return 1;
+        return 0;
+      });
   }
 }
 

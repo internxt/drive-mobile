@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, RefreshControl } from 'react-native';
 import lodash from 'lodash';
 

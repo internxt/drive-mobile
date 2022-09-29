@@ -1,3 +1,4 @@
+import { setString } from 'expo-clipboard';
 import Toast, { ToastShowParams } from 'react-native-toast-message';
 
 import { NotificationData, NotificationType } from '../types';
@@ -11,6 +12,22 @@ class NotificationsService {
   };
   private readonly showNextNotificationDelay = 500;
   private readonly notifications: NotificationData[] = [];
+
+  public success(text: string) {
+    this.show({ text1: text, type: NotificationType.Success });
+  }
+
+  public info(text: string) {
+    this.show({ text1: text, type: NotificationType.Info });
+  }
+
+  public warning(text: string) {
+    this.show({ text1: text, type: NotificationType.Warning });
+  }
+
+  public error(text: string) {
+    this.show({ text1: text, type: NotificationType.Error });
+  }
 
   public show(options: {
     text1: string;
@@ -34,6 +51,19 @@ class NotificationsService {
     this.notifications.push(options);
   }
 
+  public copyText({ title, actionText, textToCopy }: { title: string; actionText: string; textToCopy: string }) {
+    this.show({
+      text1: title,
+      type: NotificationType.Success,
+      action: {
+        text: actionText,
+        onActionPress: () => {
+          setString(textToCopy);
+        },
+      },
+    });
+  }
+
   private onNotificationHide() {
     this.notifications.shift();
 
@@ -50,4 +80,5 @@ class NotificationsService {
 }
 
 const notificationsService = new NotificationsService();
+export const notifications = notificationsService;
 export default notificationsService;

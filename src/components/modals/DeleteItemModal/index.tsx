@@ -13,6 +13,7 @@ import AppText from '../../AppText';
 import { items } from '@internxt/lib';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
+import { time } from '@internxt-mobile/services/common/time';
 
 function DeleteItemModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -27,6 +28,11 @@ function DeleteItemModal(): JSX.Element {
     dispatch(uiActions.setShowDeleteModal(false));
   };
 
+  const getUpdatedAt = () => {
+    if (item) {
+      return time.getFormattedDate(item.updatedAt, time.formats.dateAtTime);
+    }
+  };
   return (
     <BottomModal
       isOpen={showDeleteModal}
@@ -54,20 +60,13 @@ function DeleteItemModal(): JSX.Element {
             {item && items.getItemDisplayName(item)}
           </AppText>
 
-          <Text style={tailwind('text-neutral-100')}>
-            {!isFolder && (
-              <>
-                {prettysize(item?.size || 0)}
-                <Text style={globalStyle.fontWeight.bold}> · </Text>
-              </>
-            )}
-            Updated{' '}
-            {new Date(item?.updatedAt || '').toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}
-          </Text>
+          <View style={tailwind('flex flex-row items-center')}>
+            <AppText style={tailwind('text-xs text-gray-60')}>
+              {!isFolder && <>{prettysize(item?.size || 0)}</>}
+            </AppText>
+            {!isFolder && <View style={[tailwind('bg-gray-60 rounded-full mx-1.5'), { width: 3, height: 3 }]} />}
+            <AppText style={tailwind('text-xs text-gray-60')}>{getUpdatedAt()}</AppText>
+          </View>
         </View>
       </View>
 

@@ -1,44 +1,51 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AndroidPermission, IOSPermission, PERMISSIONS, PermissionStatus, RESULTS } from 'react-native-permissions';
-import { Photo } from '@internxt/sdk/dist/photos';
 import * as MediaLibrary from 'expo-media-library';
 import { RootState } from '../..';
 import photosService from '../../../services/photos';
 import {
   GalleryViewMode,
   PhotosEventKey,
+  PhotosItem,
   PhotosSyncStatus,
   PhotosSyncStatusData,
-  PhotoWithPreview,
+  PhotoSyncStatus,
 } from '../../../types/photos';
 
-import { permissionsThunks } from './thunks/permissions';
 import { usageExtraReducers } from './thunks/usage';
 import { syncThunks } from './thunks/sync';
 import { networkThunks } from './thunks/network';
 import authService from 'src/services/AuthService';
-import _ from 'lodash';
 import photos from '@internxt-mobile/services/photos';
+import { PHOTOS_ITEMS_PER_PAGE } from '@internxt-mobile/services/photos/constants';
+
 export interface PhotosState {
   isInitialized: boolean;
   isDeviceSynchronized: boolean;
   initializeError: string | null;
-  photos: PhotoWithPreview[];
+  photos: PhotosItem[];
+  syncedPhotos: PhotosItem[];
   totalPhotos?: number;
   permissions: {
     android: { [key in AndroidPermission]?: PermissionStatus };
     ios: { [key in IOSPermission]?: PermissionStatus };
   };
+  nextPhotosCursor?: string;
   syncStatus: PhotosSyncStatusData;
   isSelectionModeActivated: boolean;
   viewMode: GalleryViewMode;
   usage: number;
-  selection: Photo[];
+  selection: PhotosItem[];
   permissionsStatus: MediaLibrary.PermissionStatus;
+  currentPage: number;
+  isPullingPhotos: boolean;
 }
 
 const initialState: PhotosState = {
   isInitialized: false,
+  isPullingPhotos: false,
+  syncedPhotos: [],
+  currentPage: 1,
   isDeviceSynchronized: false,
   initializeError: null,
   selection: [],
@@ -73,7 +80,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     if (credentials) {
       await photos.user.init();
 
-      const { hasPermissions } = await dispatch(permissionsThunks.checkPermissionsThunk()).unwrap();
+      const { hasPermissions } = await dispatch(checkPermissionsThunk()).unwrap();
 
       if (hasPermissions) {
         dispatch(startUsingPhotosThunk());
@@ -88,9 +95,32 @@ const startUsingPhotosThunk = createAsyncThunk<void, void, { state: RootState }>
     if (!getState().photos.isInitialized) {
       dispatch(photosActions.setIsInitialized(true));
       await photos.start();
+
       await dispatch(syncThunks.startSyncThunk()).unwrap();
-      await dispatch(loadPhotosThunk({ page: 1 })).unwrap();
+      await dispatch(loadPhotosThunk({})).unwrap();
     }
+  },
+);
+
+const checkPermissionsThunk = createAsyncThunk<{ hasPermissions: boolean }, void, { state: RootState }>(
+  'photos/checkPermissions',
+  async (payload: void, { dispatch }) => {
+    const permissions = await MediaLibrary.getPermissionsAsync();
+
+    const permissionsGranted = permissions.status === MediaLibrary.PermissionStatus.GRANTED;
+
+    dispatch(photosSlice.actions.setPermissionsStatus(permissions.status));
+    return {
+      hasPermissions: permissionsGranted,
+    };
+  },
+);
+
+const askForPermissionsThunk = createAsyncThunk<boolean, void, { state: RootState }>(
+  'photos/askForPermissions',
+  async () => {
+    const response = await MediaLibrary.requestPermissionsAsync();
+    return response.granted;
   },
 );
 
@@ -101,53 +131,77 @@ const loadPhotosUsageThunk = createAsyncThunk<void, void, { state: RootState }>(
   },
 );
 
-export const sortPhotos = (photos: PhotoWithPreview[]) => {
-  return photos.sort((p1, p2) => {
-    const p1TakenAt = new Date(p1.takenAt);
-    const p2TakenAt = new Date(p2.takenAt);
-
-    return p1TakenAt.getTime() > p2TakenAt.getTime() ? -1 : 1;
-  });
-};
 type LoadPhotosParams = {
-  page: number;
+  nextCursor?: string;
   isRefreshing?: boolean;
 };
 const loadPhotosThunk = createAsyncThunk<void, LoadPhotosParams, { state: RootState }>(
   'photos/loadPhotos',
-  async (payload: LoadPhotosParams, { dispatch }) => {
-    const LIMIT = 50;
-    const { results, count } = await photos.network.getPhotos({
-      limit: LIMIT,
-      skip: (payload.page - 1) * LIMIT,
-    });
+  async (payload: LoadPhotosParams = {}, { dispatch, getState }) => {
+    const getPhotos = async (cursor?: string) => {
+      const { endCursor, assets, hasNextPage } = await photos.sync.getDevicePhotos(cursor, 10000);
 
-    dispatch(photosActions.setTotalPhotos(count));
-    // Get the previews
-    const photosWithPreviews = await Promise.all(
-      results.map<Promise<PhotoWithPreview>>(async (photo) => {
+      dispatch(
+        photosSlice.actions.savePhotos({
+          photos: assets,
+          options: {
+            refresh: payload?.isRefreshing || false,
+          },
+        }),
+      );
+      if (hasNextPage) {
+        await getPhotos(endCursor);
+      } else {
+        dispatch(photosActions.setIsPullingPhotos(false));
+      }
+    };
+    if (!getState().photos.syncedPhotos.length || payload.isRefreshing) {
+      const syncedPhotosItems = await photos.database.getSyncedPhotos();
+
+      const photosWithPreviews = syncedPhotosItems.map(async ({ photo }) => {
+        const item = photos.utils.getPhotosItem(photo);
+        const preview = await photos.preview.getPreview(item);
         return {
-          ...photo,
-          resolvedPreview: await photos.preview.getPreview(photo),
+          ...item,
+          localUri: preview as string,
+          localPreviewPath: preview as string,
         };
-      }),
-    );
-    dispatch(
-      photosSlice.actions.savePhotos({
-        photos: photosWithPreviews,
-        options: {
-          refresh: payload.isRefreshing || false,
-        },
-      }),
-    );
+      });
+
+      dispatch(photosSlice.actions.saveSyncedPhotos(await Promise.all(photosWithPreviews)));
+    }
+
+    if (!getState().photos.isPullingPhotos) {
+      dispatch(photosActions.setIsPullingPhotos(true));
+      await getPhotos();
+    }
   },
 );
 
 const refreshPhotosThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/refresh',
-  async (_, { dispatch }) => {
-    dispatch(loadPhotosThunk({ page: 1, isRefreshing: true }));
-    dispatch(syncThunks.restartSyncThunk());
+  async (_, { dispatch, getState }) => {
+    if (!getState().photos.isPullingPhotos) {
+      await dispatch(loadPhotosThunk({ isRefreshing: true }));
+    }
+
+    await dispatch(syncThunks.restartSyncThunk());
+  },
+);
+
+const removePhotosThunk = createAsyncThunk<void, { photosToRemove: PhotosItem[] }, { state: RootState }>(
+  'photos/remove',
+  async (payload, { dispatch }) => {
+    const newPhotos = payload.photosToRemove.map((photo) => ({
+      ...photo,
+      status: PhotoSyncStatus.DELETED,
+    }));
+
+    dispatch(
+      photosActions.savePhotos({
+        photos: newPhotos,
+      }),
+    );
   },
 );
 
@@ -198,40 +252,38 @@ export const photosSlice = createSlice({
       state.isSelectionModeActivated = false;
     },
 
-    insertUploadedPhoto(state, action: PayloadAction<PhotoWithPreview>) {
-      state.photos = _.uniqBy(sortPhotos([...state.photos, action.payload]), 'name');
+    setNextPhotosCursor(state, action: PayloadAction<string>) {
+      state.nextPhotosCursor = action.payload;
     },
-
-    removePhotos(state, action: PayloadAction<Photo[]>) {
-      const toRemove = action.payload.map((photo) => photo.id);
-
-      state.photos = state.photos.filter((photo) => {
-        return !toRemove.includes(photo.id);
-      });
+    insertUploadedPhoto(state, action: PayloadAction<PhotosItem>) {
+      state.photos = photos.utils.mergePhotosItems([...state.syncedPhotos, ...state.photos, action.payload]);
+    },
+    setIsPullingPhotos(state, action: PayloadAction<boolean>) {
+      state.isPullingPhotos = action.payload;
     },
 
     savePhotos(
       state,
       action: PayloadAction<{
-        photos: PhotoWithPreview[];
+        photos: PhotosItem[];
         options?: { refresh: boolean };
       }>,
     ) {
-      if (action.payload.options && action.payload.options.refresh) {
-        state.photos = _.uniqBy(sortPhotos(action.payload.photos), 'name');
-      } else {
-        state.photos = _.uniqBy(sortPhotos([...state.photos, ...action.payload.photos]), 'name');
-      }
+      state.photos = photos.utils.mergePhotosItems([...state.syncedPhotos, ...state.photos, ...action.payload.photos]);
     },
 
-    selectPhotos(state, action: PayloadAction<Photo[]>) {
+    saveSyncedPhotos(state, action: PayloadAction<PhotosItem[]>) {
+      state.syncedPhotos = action.payload;
+    },
+
+    selectPhotos(state, action: PayloadAction<PhotosItem[]>) {
       state.selection = [...state.selection, ...action.payload];
     },
-    deselectPhotos(state, action: PayloadAction<Photo[]>) {
+    deselectPhotos(state, action: PayloadAction<PhotosItem[]>) {
       const photosToDeselect = action.payload;
 
       for (const photoToDeselect of photosToDeselect) {
-        const itemIndex = state.selection.findIndex((photo) => photo.id === photoToDeselect.id);
+        const itemIndex = state.selection.findIndex((photo) => photo.name === photoToDeselect.name);
         state.selection.splice(itemIndex, 1);
         state.selection = [...state.selection];
       }
@@ -241,6 +293,9 @@ export const photosSlice = createSlice({
     },
     setViewMode(state, action: PayloadAction<GalleryViewMode>) {
       state.viewMode = action.payload;
+    },
+    getNextPage(state) {
+      state.currentPage = state.currentPage + 1;
     },
     setUsage(state, action: PayloadAction<number>) {
       state.usage = action.payload;
@@ -264,12 +319,16 @@ export const photosSelectors = {
     state.photos.totalPhotos ? state.photos.photos.length !== state.photos.totalPhotos : true,
   arePhotosSelected:
     (state: RootState) =>
-    (photos: Photo[]): boolean =>
+    (photos: PhotosItem[]): boolean =>
       photos.reduce<boolean>((t, x) => t && photosSelectors.isPhotoSelected(state)(x), true),
-  isPhotoSelected: (state: RootState) => (photo: Photo) =>
-    !!state.photos.selection.find((selectedPhoto) => selectedPhoto.id === photo.id),
+  isPhotoSelected: (state: RootState) => (photo: PhotosItem) =>
+    !!state.photos.selection.find((selectedPhoto) => selectedPhoto.name === photo.name),
+  getPhotosItemByName: (state: RootState) => (name: string) => {
+    return state.photos.photos.find((photo) => photo.name === name);
+  },
   getPhotosSorted: (state: RootState) => {
-    return state.photos.photos;
+    const newItems = PHOTOS_ITEMS_PER_PAGE * state.photos.currentPage;
+    return state.photos.photos.slice(0, newItems);
   },
 };
 
@@ -280,7 +339,9 @@ export const photosThunks = {
   clearPhotosThunk,
   loadPhotosUsageThunk,
   refreshPhotosThunk,
-  ...permissionsThunks,
+  checkPermissionsThunk,
+  askForPermissionsThunk,
+  removePhotosThunk,
   ...syncThunks,
   ...networkThunks,
 };

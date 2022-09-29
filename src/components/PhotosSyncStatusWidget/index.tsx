@@ -19,9 +19,9 @@ const PhotosSyncStatusWidget = () => {
 
   const { syncStatus } = useAppSelector((state) => state.photos);
   const [completedTasks, setCompletedTasks] = useState(syncStatus.completedTasks);
-
-  const photosSyncStatus = syncStatus.status;
   const totalTasks = syncStatus.totalTasks;
+  const photosSyncStatus = syncStatus.status;
+
   useEffect(() => {
     photos.events.addListener({
       event: PhotosEventKey.PhotoSyncDone,
@@ -34,11 +34,13 @@ const PhotosSyncStatusWidget = () => {
   const onResumeSyncPressed = () => {
     dispatch(photosThunks.resumeSyncThunk());
   };
+
   const contentByStatus = {
     [PhotosSyncStatus.Unknown]: (
-      <View style={tailwind('flex-row items-center')}>
-        <LoadingSpinner style={tailwind('mr-2')} size={14} />
-        <AppText style={tailwind('text-sm text-neutral-100')}>{strings.generic.preparing}</AppText>
+      <View style={tailwind('flex-row items-center justify-center')}>
+        <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
+          Backing up
+        </AppText>
       </View>
     ),
     [PhotosSyncStatus.Calculating]: (
@@ -62,17 +64,22 @@ const PhotosSyncStatusWidget = () => {
     ),
     [PhotosSyncStatus.Paused]: (
       <View style={tailwind('flex-row items-center')}>
-        <Text style={tailwind('text-sm text-neutral-100')}>{strings.screens.gallery.paused}</Text>
+        <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
+          Backup paused
+        </AppText>
+        <AppText style={tailwind('text-sm text-neutral-100')}>
+          {completedTasks > 0 ? totalTasks - completedTasks + ' ' + strings.screens.gallery.items_left : ''}
+        </AppText>
       </View>
     ),
     [PhotosSyncStatus.InProgress]: (
-      <View style={tailwind('flex-row items-center')}>
-        <LoadingSpinner style={tailwind('mr-2')} size={14} />
-        <Text style={tailwind('text-sm text-neutral-100')}>
-          {completedTasks > 0
-            ? strings.formatString(strings.screens.gallery.syncingTasks, completedTasks, totalTasks)
-            : strings.screens.gallery.syncing}
-        </Text>
+      <View style={tailwind('flex-row items-center justify-center')}>
+        <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
+          Backing up
+        </AppText>
+        <AppText style={tailwind('text-sm text-neutral-100')}>
+          {completedTasks > 0 ? totalTasks - completedTasks + ' ' + strings.screens.gallery.items_left : ''}
+        </AppText>
       </View>
     ),
     [PhotosSyncStatus.Completed]: (
@@ -92,7 +99,7 @@ const PhotosSyncStatusWidget = () => {
   const isPaused = photosSyncStatus === PhotosSyncStatus.Paused;
   const isPausing = photosSyncStatus === PhotosSyncStatus.Pausing;
   const isPending = photosSyncStatus === PhotosSyncStatus.Pending;
-  const showPauseResumeButton = !isCompleted && !isPending;
+  const showPauseResumeButton = !isCompleted && !isPending && photosSyncStatus !== PhotosSyncStatus.Unknown;
 
   return (
     <View>

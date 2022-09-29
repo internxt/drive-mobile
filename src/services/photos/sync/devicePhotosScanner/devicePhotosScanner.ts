@@ -1,6 +1,8 @@
-import { PHOTOS_PER_GROUP } from '../constants';
+import { PHOTOS_PER_GROUP } from '../../constants';
 import * as MediaLibrary from 'expo-media-library';
-import { RunnableService } from '../../../helpers/services';
+import { RunnableService } from '../../../../helpers/services';
+import { PhotosItem } from '@internxt-mobile/types/photos';
+import { photosUtils } from '../../utils';
 
 export enum DevicePhotosScannerStatus {
   PAUSED = 'PAUSED',
@@ -8,9 +10,9 @@ export enum DevicePhotosScannerStatus {
   IDLE = 'IDLE',
   COMPLETED = 'COMPLETED',
 }
-export type OnGroupReadyCallback = (items: MediaLibrary.Asset[]) => void;
-export type OnStatusChangeCallback = (status: DevicePhotosScannerStatus) => void;
-export type OnTotalPhotosCalculatedCallback = (totalPhotos: number) => void;
+export type OnGroupReadyCallback = (items: PhotosItem[]) => void;
+type OnStatusChangeCallback = (status: DevicePhotosScannerStatus) => void;
+type OnTotalPhotosCalculatedCallback = (totalPhotos: number) => void;
 
 /**
  * Scans the device camera roll looking for all the photos
@@ -87,14 +89,24 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     this.onStatusChangeCallback(status);
   }
 
+  public async getDevicePhotosItems(nextCursor?: string, photosPerPage = PHOTOS_PER_GROUP) {
+    const result = await MediaLibrary.getAssetsAsync({
+      first: photosPerPage,
+      after: nextCursor,
+      mediaType: MediaLibrary.MediaType.photo,
+      sortBy: MediaLibrary.SortBy.creationTime,
+    });
+
+    return {
+      ...result,
+      assets: result.assets.map((item) => photosUtils.getPhotosItem(item)),
+    };
+  }
+
   private async getGroup() {
     if (this.status !== DevicePhotosScannerStatus.RUNNING) return;
 
-    const photos = await MediaLibrary.getAssetsAsync({
-      first: PHOTOS_PER_GROUP,
-      after: this.nextCursor,
-      mediaType: MediaLibrary.MediaType.photo,
-    });
+    const photos = await this.getDevicePhotosItems(this.nextCursor);
 
     this.handleGroupReady(photos.assets);
     if (photos.hasNextPage && photos.endCursor && this.status === DevicePhotosScannerStatus.RUNNING) {
@@ -106,7 +118,7 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
 
     return photos;
   }
-  private handleGroupReady = async (items: MediaLibrary.Asset[]) => {
+  private handleGroupReady = async (items: PhotosItem[]) => {
     this.onGroupReadyCallback && this.onGroupReadyCallback(items);
   };
 }

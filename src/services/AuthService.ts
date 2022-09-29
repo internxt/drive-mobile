@@ -1,4 +1,4 @@
-import { Keys, Password, RegisterDetails, SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
+import { Keys, Password, RegisterDetails, TwoFactorAuthQR } from '@internxt/sdk';
 import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { getHeaders } from '../helpers/headers';
@@ -9,7 +9,6 @@ import AesUtils from '../helpers/aesUtils';
 import EventEmitter from 'events';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SdkManager } from './common/sdk/SdkManager';
-import UserService from './UserService';
 
 interface RegisterParams {
   firstName: string;

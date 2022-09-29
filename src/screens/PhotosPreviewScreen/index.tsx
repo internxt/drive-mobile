@@ -1,18 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import RNFS from 'react-native-fs';
+
 import { View, TouchableOpacity, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CaretLeft, DotsThreeVertical, DownloadSimple, Link, Trash } from 'phosphor-react-native';
-import { items } from '@internxt/lib';
+import { ArrowSquareOut, CaretLeft, DotsThreeVertical, DownloadSimple, Link, Trash } from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAppDispatch } from '../../store/hooks';
-import { photosThunks } from '../../store/slices/photos';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
 import { RootStackScreenProps } from '../../types/navigation';
 import AppScreen from '../../components/AppScreen';
 
-import fileSystemService from '../../services/FileSystemService';
-import { PhotoSizeType } from '../../types/photos';
-import { Photo } from '@internxt/sdk/dist/photos';
+import { PhotosItem, PhotosItemBacked, PhotoSyncStatus } from '../../types/photos';
+
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
 import { PhotoPreviewModal, PhotosPreviewScreenModals } from './modals';
@@ -20,15 +18,30 @@ import AppProgressBar from 'src/components/AppProgressBar';
 import AppText from 'src/components/AppText';
 import strings from 'assets/lang/strings';
 import { ImageViewer } from '@internxt-mobile/ui-kit';
-import errorService from 'src/services/ErrorService';
+import * as photosUseCases from '@internxt-mobile/useCases/photos';
+import { GeneratingLinkModal } from 'src/components/modals/common/GeneratingLinkModal';
 import photos from '@internxt-mobile/services/photos';
+import { PhotosAnalyticsEventKey, PhotosAnalyticsScreenKey } from '@internxt-mobile/services/photos/analytics';
+export interface PhotosItemActions {
+  exportPhoto: () => void;
+  saveToGallery: () => void;
+  confirmSaveToGallery: () => void;
+  copyLink: () => Promise<void>;
+  shareLink: () => Promise<void>;
+  moveToTrash: () => Promise<void>;
+  closeModal: (modal: PhotoPreviewModal) => void;
+  openModal: (modal: PhotoPreviewModal) => void;
+}
 function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'PhotosPreview'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const getPhotosItemByName = useAppSelector(photosSelectors.getPhotosItemByName);
   const [showActions, setShowActions] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnimProgress = useRef(new Animated.Value(1)).current;
+  const [generatingShareLink, setGeneratingShareLink] = useState(false);
+  const fadeAnimProgress = useRef(new Animated.Value(0)).current;
   const [progressVisible, setProgressVisible] = useState(false);
+  const [fullSizeUri, setFullSizeUri] = useState<string | undefined>(undefined);
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: showActions ? 1 : 0,
@@ -47,97 +60,108 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
     }).start();
   }, [progressVisible]);
 
-  const { data, preview } = route.params;
+  const { photoName } = route.params;
+  const photosItem: PhotosItem = useMemo(() => getPhotosItemByName(photoName) as PhotosItem, [photoName]);
+
   const [openedModals, setOpenedModals] = useState<PhotoPreviewModal[]>([]);
-  const photo = useMemo<Photo>(
-    () => ({
-      ...route.params.data,
-      statusChangedAt: new Date(data.statusChangedAt),
-      takenAt: new Date(data.takenAt),
-      createdAt: new Date(data.createdAt),
-      updatedAt: new Date(data.updatedAt),
-    }),
-    [data],
-  );
+
   const safeAreaInsets = useSafeAreaInsets();
-  const [isFullSizeDownloaded, setIsFullSizeDownloaded] = useState(false);
-  const photoPath = photos.utils.getPhotoPath({
-    name: photo.name,
-    size: PhotoSizeType.Full,
-    type: photo.type,
-  });
+
   const dispatch = useAppDispatch();
-  const [isFullSizeLoading, setIsFullSizeLoading] = useState(true);
   const [progress, setProgress] = useState(0);
 
-  const openModal = (modal: PhotoPreviewModal) => {
-    if (!openedModals.includes(modal)) {
-      setOpenedModals(openedModals.concat(modal));
-    }
-  };
-
-  const closeModal = (modal: PhotoPreviewModal) => {
-    const newModals = openedModals.filter((openModal) => openModal !== modal);
-
-    setOpenedModals(newModals);
-  };
-  const uri = isFullSizeDownloaded ? fileSystemService.pathToUri(photoPath) : preview;
-
-  const onBackButtonPressed = () => navigation.goBack();
-  const onShareButtonPressed = () => {
-    openModal('share');
-  };
-  const onDownloadButtonPressed = () => {
-    fileSystemService.showFileViewer(uri, { displayName: items.getItemDisplayName(photo) });
-  };
-  const onMoveToTrashButtonPressed = () => {
-    openModal('trash');
-  };
-  const onPhotoMovedToTrash = () => {
-    navigation.goBack();
-  };
-
-  const isPhotoAlreadyDownloaded = () => RNFS.exists(photoPath);
-  const loadImage = () => {
-    dispatch(
-      photosThunks.downloadFullSizePhotoThunk({
-        photo,
-        onProgressUpdate: (progress) => {
-          setProgress(progress);
-          if (progress === 1) {
-            setProgressVisible(false);
-          }
-        },
-      }),
-    )
-      .unwrap()
-      .then(() => {
-        setIsFullSizeDownloaded(true);
-      })
-      .catch((err) => {
-        errorService.reportError(err, {
-          tags: {
-            photos_step: 'DOWNLOAD_FULL_SIZE',
-          },
-        });
-      })
-      .finally(() => {
-        setIsFullSizeLoading(false);
-      });
-  };
-
   useEffect(() => {
-    isPhotoAlreadyDownloaded().then((isDownloaded) => {
-      if (isDownloaded) {
-        setIsFullSizeDownloaded(true);
-        setIsFullSizeLoading(false);
-      } else {
-        setProgressVisible(true);
-        loadImage();
-      }
-    });
-  }, []);
+    loadFullSizePhoto();
+  }, [photosItem]);
 
+  const loadFullSizePhoto = async () => {
+    if (
+      !photosItem ||
+      photosItem.status === PhotoSyncStatus.DEVICE_AND_IN_SYNC ||
+      photosItem.status === PhotoSyncStatus.IN_DEVICE_ONLY
+    )
+      return;
+    setProgressVisible(true);
+
+    const destination = await photosUseCases.downloadFullSizePhotosItem({
+      photosItem: photosItem as PhotosItemBacked,
+      onProgressUpdate: setProgress,
+    });
+
+    if (destination) setFullSizeUri(destination);
+
+    setProgressVisible(false);
+  };
+
+  const actions: PhotosItemActions = {
+    openModal(modal) {
+      if (!openedModals.includes(modal)) {
+        setOpenedModals(openedModals.concat(modal));
+      }
+    },
+    exportPhoto: async () => photosUseCases.exportPhotosItem({ photosItemToShare: photosItem }),
+    confirmSaveToGallery: async () => {
+      await photosUseCases.saveToGallery({ photosItem: photosItem });
+      actions.closeModal('confirm-save');
+      actions.closeModal('preview-options');
+    },
+    saveToGallery: async () => {
+      if (photosItem.status === PhotoSyncStatus.IN_SYNC_ONLY) {
+        photosUseCases.saveToGallery({ photosItem: photosItem });
+        actions.closeModal('preview-options');
+      } else {
+        actions.openModal('confirm-save');
+      }
+    },
+    copyLink: async () => {
+      if (generatingShareLink) return;
+      if (photosItem.photoFileId) {
+        setGeneratingShareLink(true);
+      }
+      await photosUseCases.copyPhotosItemSharedLink({
+        photosItemFileId: photosItem.photoFileId as string,
+        photoId: photosItem.photoId as string,
+      });
+
+      actions.closeModal('preview-options');
+      setGeneratingShareLink(false);
+    },
+    shareLink: async () => {
+      if (generatingShareLink) return;
+      photos.analytics.track(PhotosAnalyticsEventKey.ShareLinkSelected);
+      if (photosItem.photoFileId) {
+        setGeneratingShareLink(true);
+      }
+      await photosUseCases.sharePhotosItemSharedLink({
+        photosItemFileId: photosItem.photoFileId as string,
+        photoId: photosItem.photoId as string,
+        onLinkGenerated: () => {
+          setGeneratingShareLink(false);
+        },
+      });
+      actions.closeModal('preview-options');
+      setGeneratingShareLink(false);
+    },
+    moveToTrash: async () => {
+      dispatch(photosThunks.deletePhotosThunk({ photosToDelete: [photosItem as PhotosItemBacked] }));
+      dispatch(photosActions.deselectAll());
+      actions.closeModal('trash');
+      actions.closeModal('preview-options');
+      navigation.goBack();
+    },
+
+    closeModal(modal) {
+      const newModals = openedModals.filter((openModal) => openModal !== modal);
+      setOpenedModals(newModals);
+    },
+  };
+  const onBackButtonPressed = () => navigation.goBack();
+
+  const handleThreeDotsPress = () => {
+    actions.openModal('preview-options');
+    photos.analytics.track(PhotosAnalyticsEventKey.ThreeDotsMenuSelected);
+    photos.analytics.screen(PhotosAnalyticsScreenKey.PhotosThreeDotsMenu);
+  };
   function handleTapImage() {
     setShowActions(!showActions);
   }
@@ -184,7 +208,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
                 progressStyle={tailwind('bg-white')}
               />
             </Animated.View>
-            <TouchableOpacity style={tailwind('z-10')} onPress={() => openModal('preview-options')}>
+            <TouchableOpacity style={tailwind('z-10')} onPress={handleThreeDotsPress}>
               <View style={tailwind('p-5')}>
                 <DotsThreeVertical weight="bold" color={getColor('text-white')} size={28} />
               </View>
@@ -212,21 +236,16 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
             paddingBottom: safeAreaInsets.bottom,
           }}
         >
-          <TouchableOpacity
-            disabled={isFullSizeLoading}
-            style={tailwind('items-center flex-1 pb-5')}
-            onPress={onShareButtonPressed}
-          >
-            <Link color={!isFullSizeLoading ? 'white' : getColor('text-neutral-100')} size={28} />
+          <TouchableOpacity style={tailwind('items-center flex-1 pb-5')} onPress={actions.shareLink}>
+            <Link color={getColor('text-white')} size={28} />
           </TouchableOpacity>
-          <TouchableOpacity
-            disabled={isFullSizeLoading}
-            style={tailwind('items-center flex-1 pb-5')}
-            onPress={onDownloadButtonPressed}
-          >
-            <DownloadSimple color={!isFullSizeLoading ? 'white' : getColor('text-neutral-100')} size={28} />
+          <TouchableOpacity style={tailwind('items-center flex-1 pb-5')} onPress={actions.exportPhoto}>
+            <ArrowSquareOut color={getColor('text-white')} size={28} />
           </TouchableOpacity>
-          <TouchableOpacity style={tailwind('items-center flex-1 pb-5')} onPress={onMoveToTrashButtonPressed}>
+          <TouchableOpacity style={tailwind('items-center flex-1 pb-5')} onPress={actions.saveToGallery}>
+            <DownloadSimple color={getColor('text-white')} size={28} />
+          </TouchableOpacity>
+          <TouchableOpacity style={tailwind('items-center flex-1 pb-5')} onPress={() => actions.openModal('trash')}>
             <Trash color={getColor('text-white')} size={28} />
           </TouchableOpacity>
         </LinearGradient>
@@ -243,22 +262,15 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
       >
         <PhotoPreviewHeader />
         <ImageViewer
-          source={uri}
+          source={fullSizeUri || photosItem.localUri || photosItem.localPreviewPath}
           onTapImage={handleTapImage}
           onZoomImage={handleZoomImage}
           onImageViewReset={handleImageViewReset}
         />
         <PhotoPreviewFooter />
       </AppScreen>
-      <PhotosPreviewScreenModals
-        onPhotoMovedToTrash={onPhotoMovedToTrash}
-        openedModals={openedModals}
-        onClose={closeModal}
-        onOpen={openModal}
-        preview={preview}
-        photo={photo}
-        photoPath={photoPath}
-      />
+      <GeneratingLinkModal isGenerating={generatingShareLink} />
+      <PhotosPreviewScreenModals openedModals={openedModals} photo={photosItem} actions={actions} />
     </>
   );
 }

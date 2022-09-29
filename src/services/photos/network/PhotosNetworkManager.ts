@@ -4,20 +4,21 @@ import {
   PhotosNetworkManagerStatus,
   PhotosNetworkOperation,
 } from '../../../types/photos';
+
 import async from 'async';
 import { Photo, PhotoExistsData } from '@internxt/sdk/dist/photos';
 import { RunnableService } from '../../../helpers/services';
 import fileSystemService from '../../FileSystemService';
-import { PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
+import { ENABLE_PHOTOS_NETWORK_MANAGER_LOGS, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
 import { SdkManager } from '@internxt-mobile/services/common';
 import { AbortedOperationError } from 'src/types';
 import { Platform } from 'react-native';
-import { photosLogger } from '../logger';
 import { photosNetwork } from './photosNetwork.service';
 import AuthService from '@internxt-mobile/services/AuthService';
 import { photosUtils } from '../utils';
-import { photosUser } from '../user';
+import { photosLogger } from '../logger';
 import { photosPreview } from '../preview';
+import { photosUser } from '../user';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;
 
@@ -50,11 +51,11 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       });
   }, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY);
 
-  constructor(sdk: SdkManager, options = { enableLog: false }) {
+  constructor(sdk: SdkManager, options = { enableLog: ENABLE_PHOTOS_NETWORK_MANAGER_LOGS }) {
     this.sdk = sdk;
     this.options = options;
     this.queue.drain(() => {
-      this.updateStatus(PhotosNetworkManagerStatus.EMPTY);
+      this.updateStatus(PhotosNetworkManagerStatus.COMPLETED);
     });
   }
   public onStatusChange(callback: OnStatusChangeCallback) {
@@ -82,13 +83,10 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     this.updateStatus(PhotosNetworkManagerStatus.ABORTED);
   }
 
-  public isDone() {
-    return this.status === PhotosNetworkManagerStatus.EMPTY || this.status === PhotosNetworkManagerStatus.IDLE;
-  }
   public resume() {
     this.queue.resume();
     if (!this.totalOperations) {
-      this.updateStatus(PhotosNetworkManagerStatus.EMPTY);
+      this.updateStatus(PhotosNetworkManagerStatus.COMPLETED);
     } else {
       this.updateStatus(PhotosNetworkManagerStatus.RUNNING);
     }
@@ -163,21 +161,25 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
    * @param operation Operation to create the upload from
    * @returns The result of the operation
    */
-  public async processUploadOperation(operation: PhotosNetworkOperation): Promise<OperationResult> {
-    const photosDevice = photosUser.getDevice();
+  public async processUploadOperation(operation: PhotosNetworkOperation): Promise<OperationResult | null> {
+    const { credentials } = await AuthService.getAuthCredentials();
+    const device = photosUser.getDevice();
     const user = photosUser.getUser();
-    if (!photosDevice) throw new Error('Photos device not found');
-    if (!user) throw new Error('Photos device not found');
+    if (!device) throw new Error('Photos device not found');
+    if (!user) throw new Error('Photos user not found');
+    if (!operation.photosItem.localUri) throw new Error('Local uri not found');
     const startAt = Date.now();
-
-    const photoData = operation.devicePhoto;
+    operation.photosItem.localUri = await photosUtils.cameraRollUriToFileSystemUri(
+      {
+        name: operation.photosItem.name,
+        type: operation.photosItem.format,
+      },
+      operation.photosItem.localUri,
+    );
+    const photoData = operation.photosItem;
     // 1. Get photo data
-    const name = photosUtils.getPhotoName(photoData.filename);
+    const name = photoData.name;
     this.log(`--- UPLOADING ${name} ---`);
-
-    const type = photosUtils.getPhotoType(photoData.filename);
-    const stat = await fileSystemService.statRNFS(operation.photoRef);
-
     // 2. Upload the preview
     const preview = await photosPreview.generate(photoData);
     const previewGeneratedElapsed = Date.now() - startAt;
@@ -188,14 +190,24 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     const uploadGeneratedElapsed = Date.now() - (previewGeneratedElapsed + startAt);
     this.log(`Preview uploaded in ${uploadGeneratedElapsed / 1000}s`);
 
+    const photoPath = await photosUtils.cameraRollUriToFileSystemUri(
+      { name: photoData.name, type: photoData.format },
+      photoData.localFullSizePath,
+    );
+
+    const hash = (
+      await photosUtils.getPhotoHash(credentials.user.userId, name, photoData.takenAt, operation.photosItem.localUri)
+    ).toString('hex');
+
+    this.log('Hash for photo generated');
     // 3. Upload the photo
-    const photo = await photosNetwork.upload(operation.photoRef, {
+    const photo = await photosNetwork.upload(operation.photosItem.localUri, {
       name,
       width: photoData.width,
       height: photoData.height,
-      deviceId: photosDevice.id,
-      hash: operation.hash,
-      takenAt: new Date(photoData.creationTime),
+      deviceId: device.id,
+      hash,
+      takenAt: new Date(photoData.takenAt),
       previewId,
       previews: [
         {
@@ -209,9 +221,9 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
           type: preview.type,
         },
       ],
-      type: type,
+      type: photoData.format,
       userId: user.id,
-      size: parseInt(stat.size, 10),
+      size: parseInt((await fileSystemService.statRNFS(operation.photosItem.localUri)).size),
     });
     const photoUploadedElapsed = Date.now() - (uploadGeneratedElapsed + previewGeneratedElapsed + startAt);
     this.log(`Photo uploaded successfully in ${photoUploadedElapsed / 1000}s`);
@@ -220,7 +232,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
      * from another location so here we remove the copy
      */
     if (Platform.OS === 'ios') {
-      await fileSystemService.unlink(operation.photoRef);
+      await fileSystemService.unlinkIfExists(photoPath);
     }
 
     const totalElapsed = Date.now() - startAt;

@@ -1,5 +1,7 @@
+import photos from '@internxt-mobile/services/photos';
+import { PhotosAnalyticsScreenKey } from '@internxt-mobile/services/photos/analytics';
 import { PermissionStatus } from 'expo-media-library';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Linking, Platform, Text, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import SyncIcon from '../../../assets/images/modals/sync.svg';
@@ -20,6 +22,11 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
     strings.screens.photosPermissions.features[1],
     strings.screens.photosPermissions.features[2],
   ];
+
+  useEffect(() => {
+    photos.analytics.screen(PhotosAnalyticsScreenKey.PhotosGallery, { permissions: false });
+  }, []);
+
   const featuresList = features.map((feature, index) => {
     return (
       <View style={tailwind('px-10 flex-row')} key={index.toString()}>

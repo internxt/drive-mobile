@@ -1,6 +1,6 @@
 import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 import { MediaType } from 'expo-media-library';
-import { DevicePhoto } from '../../../src/types/photos';
+import { DevicePhoto, PhotosItem, PhotosItemType, PhotoSyncStatus } from '../../../src/types/photos';
 
 export const createDevicePhotoFixture = (data?: Partial<DevicePhoto>): DevicePhoto => {
   const timestamp = Date.now().toString();
@@ -38,6 +38,30 @@ export const createPhotoFixture = (data?: Partial<Photo>): Photo => {
     takenAt: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
+    ...data,
+  };
+};
+
+export const createPhotosItemFixture = (data?: Partial<PhotosItem>): PhotosItem => {
+  const name = `photo_${Date.now()}`;
+  const format = 'jpg';
+  return {
+    name,
+    format,
+    takenAt: Date.now() - 1000,
+    updatedAt: Date.now() - 100,
+    width: 2000,
+    height: 1000,
+    type: PhotosItemType.PHOTO,
+    localPreviewPath: `/documents/photos/previews/${name}.${format}`,
+    localFullSizePath: `/documents/photos/full/${name}.${format}`,
+    status: PhotoSyncStatus.IN_SYNC_ONLY,
+    localUri: `/documents/photos/previews/${name}.${format}`,
+    getSize: async () => 1024,
+    photoId: Date.now().toString(),
+    photoFileId: (Date.now() - 500).toString(),
+    previewFileId: (Date.now() - 300).toString(),
+    getDisplayName: () => `${name}.${format}`,
     ...data,
   };
 };

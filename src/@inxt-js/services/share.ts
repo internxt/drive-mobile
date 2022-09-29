@@ -30,7 +30,17 @@ interface GetShareInfoResponse {
   };
 }
 
-export function generateShareLink(
+/**
+ * @deprecated use drive.share instead
+ *
+ * Creates a share link token
+ *
+ * @param headers headers to be included in the request
+ * @param fileId File id to create the token for
+ * @param params
+ * @returns The generated share link token
+ */
+export function generateShareLinkToken(
   headers: Headers,
   fileId: string,
   params: GenerateShareLinkRequestBody,
@@ -43,7 +53,12 @@ export function generateShareLink(
     .then((res) => {
       return res.json();
     })
-    .then((res: GenerateShareLinkResponse) => res.token);
+    .then((res: GenerateShareLinkResponse) => {
+      if ((res as unknown as { error: string }).error === 'Internal Server Error') {
+        throw new Error('Server error');
+      }
+      return res.token;
+    });
 }
 
 export function getShareInfo(token: string): Promise<GetShareInfoResponse> {
@@ -51,7 +66,7 @@ export function getShareInfo(token: string): Promise<GetShareInfoResponse> {
 }
 
 const shareService = {
-  generateShareLink,
+  generateShareLinkToken,
   getShareInfo,
 };
 

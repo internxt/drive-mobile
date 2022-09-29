@@ -1,16 +1,15 @@
 import { getAssetsAsync } from 'expo-media-library';
-import {
-  DevicePhotosScannerService,
-  DevicePhotosScannerStatus,
-} from '../../../../../src/services/photos/sync/DevicePhotosScannerService';
-import { DevicePhoto } from '../../../../../src/types/photos';
-import { createDevicePhotoFixture } from '../../../fixtures/photos.fixture';
-import { arrayOfFixtures } from '../../../fixtures/utils';
+import { DevicePhotosScannerService, DevicePhotosScannerStatus } from './devicePhotosScanner';
+import { arrayOfFixtures } from '__tests__/unit/fixtures/utils';
+import { createDevicePhotoFixture } from '__tests__/unit/fixtures/photos.fixture';
+import { PHOTOS_PER_GROUP } from '../../constants';
+import { PhotosItem } from '@internxt-mobile/types/photos';
+
 jest.mock('expo-media-library');
 
 const mockedGetAssetsAsync = jest.mocked(getAssetsAsync, true);
 
-describe('Device Photos Scanner', () => {
+describe('DevicePhotosScanner', () => {
   let subject = new DevicePhotosScannerService();
 
   describe('When no photos found in the camera roll', () => {
@@ -65,8 +64,8 @@ describe('Device Photos Scanner', () => {
 
   describe('When multiple photos are found in the camera roll', () => {
     it('Should provide multiple groups of photos if needed', (done) => {
-      const group1 = arrayOfFixtures(createDevicePhotoFixture, 50);
-      const group2 = arrayOfFixtures(createDevicePhotoFixture, 50);
+      const group1 = arrayOfFixtures(createDevicePhotoFixture, PHOTOS_PER_GROUP);
+      const group2 = arrayOfFixtures(createDevicePhotoFixture, PHOTOS_PER_GROUP);
       mockedGetAssetsAsync.mockImplementationOnce(async () => {
         return {
           assets: group1,
@@ -84,7 +83,9 @@ describe('Device Photos Scanner', () => {
         };
       });
 
-      const onGroupReadyMock = jest.fn<void, [DevicePhoto[]]>();
+      const onGroupReadyMock = jest.fn((items: PhotosItem[]) => {
+        expect(items.length).toBe(PHOTOS_PER_GROUP);
+      });
 
       const statusChangeMock = jest.fn<void, [DevicePhotosScannerStatus]>((status) => {
         if (status === DevicePhotosScannerStatus.COMPLETED) {

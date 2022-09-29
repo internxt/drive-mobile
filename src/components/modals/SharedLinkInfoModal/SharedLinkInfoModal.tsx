@@ -136,7 +136,7 @@ export function SharedLinkInfoModal(): JSX.Element {
         </Text>
         <View style={tailwind('flex flex-row items-center')}>
           <AppText style={tailwind('text-xs text-gray-60')}>{!isFolder && <>{prettysize(item?.size || 0)}</>}</AppText>
-          <View style={[tailwind('bg-gray-60 rounded-full mx-1.5'), { width: 3, height: 3 }]} />
+          {!isFolder && <View style={[tailwind('bg-gray-60 rounded-full mx-1.5'), { width: 3, height: 3 }]} />}
           <AppText style={tailwind('text-xs text-gray-60')}>{getUpdatedAt()}</AppText>
         </View>
       </View>

@@ -1,15 +1,15 @@
-import { Photo } from '@internxt/sdk/dist/photos';
 import {
-  DevicePhoto,
   DevicePhotosOperationPriority,
   DevicePhotosSyncServiceHandlers,
   DevicePhotosSyncCheckerStatus,
   DevicePhotoSyncCheckOperation,
   SyncStage,
-} from '../../../types/photos';
+  PhotosItem,
+} from '../../../../types/photos';
 import async from 'async';
-import { PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY } from '../constants';
-import { PhotosLocalDB } from '../database';
+import { PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY } from '../../constants';
+import { PhotosLocalDB } from '../../database';
+
 export class DevicePhotosSyncCheckerService {
   public status = DevicePhotosSyncCheckerStatus.IDLE;
   private queue = this.createQueue();
@@ -17,7 +17,6 @@ export class DevicePhotosSyncCheckerService {
 
   constructor(private database: PhotosLocalDB) {
     this.queue.drain(() => {
-      this.updateStatus(DevicePhotosSyncCheckerStatus.EMPTY);
       this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);
     });
   }
@@ -32,7 +31,6 @@ export class DevicePhotosSyncCheckerService {
       PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY,
     );
     queue.drain(() => {
-      this.updateStatus(DevicePhotosSyncCheckerStatus.EMPTY);
       this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);
     });
 
@@ -47,7 +45,7 @@ export class DevicePhotosSyncCheckerService {
   public resume() {
     this.queue.resume();
     if (!this.totalOperations) {
-      this.updateStatus(DevicePhotosSyncCheckerStatus.EMPTY);
+      this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);
     } else {
       this.updateStatus(DevicePhotosSyncCheckerStatus.RUNNING);
     }
@@ -71,23 +69,18 @@ export class DevicePhotosSyncCheckerService {
    * @param photoRef a PhotoFileSystemRef pointing to the file system photo location
    */
   public addOperation({
-    id,
-    devicePhoto,
+    photosItem,
     priority,
-    uploadedPhoto,
     onOperationCompleted,
   }: {
-    id: string;
-    devicePhoto: DevicePhoto;
-    uploadedPhoto?: Photo;
+    photosItem: PhotosItem;
+
     priority?: DevicePhotosOperationPriority;
     onOperationCompleted: (err: Error | null, operation: DevicePhotoSyncCheckOperation | null) => void;
   }) {
     this.updateStatus(DevicePhotosSyncCheckerStatus.RUNNING);
     const newOperation = {
-      id,
-      devicePhoto,
-      uploadedPhoto,
+      photosItem,
       createdAt: new Date(),
       syncStage: SyncStage.UNKNOWN,
       priority: priority || DevicePhotosOperationPriority.NORMAL,
@@ -111,32 +104,24 @@ export class DevicePhotosSyncCheckerService {
     return this.queue.length();
   }
 
-  private async getSyncStage(operation: DevicePhotoSyncCheckOperation) {
-    if (operation.lastError) {
-      return SyncStage.FAILED_TO_CHECK;
-    }
-
-    const dbPhoto = await this.database.getByDevicePhoto(operation.devicePhoto);
-
-    if (!dbPhoto) {
-      return SyncStage.NEEDS_REMOTE_CHECK;
-    }
-
-    if (dbPhoto && dbPhoto.stage === SyncStage.IN_SYNC) {
-      return SyncStage.IN_SYNC;
-    }
-
-    // The fuck happened to the photo????
-    return SyncStage.UNKNOWN;
+  private async getSyncedPhoto(operation: DevicePhotoSyncCheckOperation) {
+    return this.database.getSyncedPhotoByName(operation.photosItem.name);
   }
 
   private async resolveSyncQueueOperation(operation: DevicePhotoSyncCheckOperation) {
     try {
       operation.lastTry = new Date();
-      operation.syncStage = await this.getSyncStage(operation);
+      const syncedPhoto = await this.getSyncedPhoto(operation);
+      if (syncedPhoto) {
+        operation.syncedPhoto = syncedPhoto.photo;
+        operation.syncStage = SyncStage.IN_SYNC;
+      } else {
+        operation.syncStage = SyncStage.NEEDS_REMOTE_CHECK;
+      }
 
       return operation;
     } catch (e) {
+      operation.syncStage = SyncStage.FAILED_TO_CHECK;
       operation.lastError = e as Error;
       return operation;
     }

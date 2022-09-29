@@ -1,41 +1,51 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
-
-import { Photo } from '@internxt/sdk/dist/photos';
-import { GalleryItemType, PhotoWithPreview } from '../../types/photos';
-import { CheckCircle } from 'phosphor-react-native';
-import FastImage from 'react-native-fast-image';
+import { View, TouchableOpacity, Image } from 'react-native';
+import { GalleryItemType, PhotosItem, PhotoSyncStatus } from '../../types/photos';
+import { CheckCircle, CloudSlash } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
-
+import { LinearGradient } from 'expo-linear-gradient';
 interface GalleryItemProps {
   type?: GalleryItemType;
   size: number;
-  data: PhotoWithPreview;
+  data: PhotosItem;
   isSelected: boolean;
-  onPress?: (photo: Photo, preview: string | null) => void;
-  onLongPress?: (photo: Photo, preview: string | null) => void;
+  onPress: (photosItem: PhotosItem) => void;
+  onLongPress: (photosItem: PhotosItem) => void;
 }
 
 const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   const getColor = useGetColor();
   const tailwind = useTailwind();
   const { onPress, data, size, onLongPress, isSelected } = props;
-  const { resolvedPreview } = data;
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
-      style={[tailwind('bg-gray-5'), { width: size, height: size }]}
-      onPress={() => onPress && resolvedPreview && onPress(data, resolvedPreview)}
-      onLongPress={() => onLongPress && resolvedPreview && onLongPress(data, resolvedPreview)}
+      style={[{ width: size, height: size }]}
+      onPress={() => onPress(data)}
+      onLongPress={() => onLongPress(data)}
     >
-      {resolvedPreview && (
-        <FastImage
+      {!data.localUri && (
+        <LinearGradient
+          style={tailwind('w-full h-full')}
+          colors={['#F9F9FC', '#FFFFFF', '#F9F9FC']}
+          start={{ x: 0.7, y: 0 }}
+        />
+      )}
+      {data.localUri && (
+        <Image
           style={tailwind('w-full h-full')}
           source={{
-            uri: resolvedPreview,
+            uri: data.localUri,
           }}
         />
+      )}
+
+      {props.data.status === PhotoSyncStatus.IN_DEVICE_ONLY && (
+        <View style={[tailwind('absolute w-5 h-5 bottom-3 left-3 flex justify-center items-center rounded-xl')]}>
+          <CloudSlash color={getColor('text-white')} size={20} />
+        </View>
       )}
 
       {isSelected && (
@@ -49,4 +59,4 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   );
 };
 
-export default GalleryItem;
+export default React.memo(GalleryItem, (prev, next) => prev.data.localUri === next.data.localUri);
