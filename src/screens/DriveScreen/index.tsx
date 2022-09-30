@@ -52,11 +52,8 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
   const driveSortedItems = useMemo(
     () => [
       ...driveUploadingItems,
-      ...driveItems.sort(drive.file.getSortFunction(sortMode)).sort((a, b) => {
-        const aValue = a.data.fileId ? 1 : 0;
-        const bValue = b.data.fileId ? 1 : 0;
-        return aValue - bValue;
-      }),
+      ...driveItems.filter((item) => !item.data.fileId).sort(drive.file.getSortFunction(sortMode)),
+      ...driveItems.filter((item) => item.data.fileId).sort(drive.file.getSortFunction(sortMode)),
     ],
     [sortMode, driveUploadingItems, driveItems],
   );
@@ -83,7 +80,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
 
   const onSortModeChange = (mode: SortMode) => {
     setSortMode(mode);
-    setSortModalOpen(false);
+    setTimeout(() => setSortModalOpen(false), 1);
   };
 
   const onCloseSortModal = () => {

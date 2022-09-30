@@ -19,7 +19,7 @@ export type DriveItemFocused = {
   parentId?: number;
   fileId?: string;
   type?: string;
-  size?: number;
+  size?: string | number;
   updatedAt: string;
   folderId?: number;
   code?: string;
@@ -86,7 +86,7 @@ export type DriveItemDataProps = Pick<DriveItemData, 'id' | 'name' | 'updatedAt'
   code?: string;
 
   token?: string;
-  size?: number;
+  size?: string | number;
   type?: string;
   shareId?: string;
 };

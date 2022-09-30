@@ -9,6 +9,7 @@ import { SortDirection, SortType } from '../../../types/drive';
 import { BaseModalProps } from '../../../types/ui';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 export type SortMode = {
   direction: SortDirection;
@@ -26,14 +27,14 @@ const SortModal: React.FC<SortModalProps> = (props) => {
   };
   const header = (
     <View>
-      <AppText numberOfLines={1} ellipsizeMode="middle" semibold style={tailwind('text-base text-neutral-500')}>
+      <AppText numberOfLines={1} ellipsizeMode="middle" semibold style={tailwind('text-lg text-neutral-500')}>
         {strings.screens.drive.sortBy}
       </AppText>
     </View>
   );
 
   return (
-    <BottomModal isOpen={props.isOpen} onClosed={onClosed} header={header} containerStyle={tailwind('pb-3 px-5')}>
+    <BottomModal isOpen={props.isOpen} onClosed={onClosed} header={header} containerStyle={tailwind('p-4')}>
       <SortModalItem
         isSelected={props.sortMode.direction === SortDirection.Asc && props.sortMode.type === SortType.Name}
         direction={SortDirection.Asc}
@@ -95,13 +96,12 @@ function SortModalItem(props: {
   onSortModeChange: (change: SortMode) => void;
 }) {
   const tailwind = useTailwind();
-  const getColor = useGetColor();
   const onPress = () => {
     props.onSortModeChange({ type: props.type, direction: props.direction });
   };
 
   return (
-    <TouchableHighlight underlayColor={getColor('text-neutral-30')} style={tailwind('rounded-lg')} onPress={onPress}>
+    <TouchableOpacity activeOpacity={0.65} style={tailwind('rounded-lg')} onPress={onPress}>
       <View
         style={[tailwind('items-center flex-row rounded-lg px-4 py-2.5'), props.isSelected && tailwind('bg-blue-10')]}
       >
@@ -121,7 +121,7 @@ function SortModalItem(props: {
           {props.advice}
         </AppText>
       </View>
-    </TouchableHighlight>
+    </TouchableOpacity>
   );
 }
 

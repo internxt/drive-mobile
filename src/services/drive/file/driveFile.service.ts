@@ -163,14 +163,14 @@ class DriveFileService {
         sortFunction =
           direction === SortDirection.Asc
             ? (a: DriveListItem, b: DriveListItem) => {
-                const aName = a.data.name.toLowerCase();
-                const bName = b.data.name.toLowerCase();
+                const aName = Buffer.from(a.data.name.trim().toLowerCase()).toString('hex');
+                const bName = Buffer.from(b.data.name.trim().toLowerCase()).toString('hex');
 
                 return aName < bName ? -1 : aName > bName ? 1 : 0;
               }
             : (a: DriveListItem, b: DriveListItem) => {
-                const aName = a.data.name.toLowerCase();
-                const bName = b.data.name.toLowerCase();
+                const aName = Buffer.from(a.data.name.trim().toLowerCase()).toString('hex');
+                const bName = Buffer.from(b.data.name.trim().toLowerCase()).toString('hex');
 
                 return aName < bName ? 1 : aName > bName ? -1 : 0;
               };
@@ -179,10 +179,21 @@ class DriveFileService {
         sortFunction =
           direction === SortDirection.Asc
             ? (a: DriveListItem, b: DriveListItem) => {
-                return a.data?.size || 0 > (b.data?.size || 0) ? 1 : -1;
+                if (!a.data.size) return 0;
+                if (!b.data.size) return 0;
+
+                const sizeA = parseInt(a.data.size as string);
+                const sizeB = parseInt(b.data.size as string);
+
+                return sizeA > sizeB ? 1 : -1;
               }
             : (a: DriveListItem, b: DriveListItem) => {
-                return (a.data?.size || 0) < (b.data?.size || 0) ? 1 : -1;
+                if (!a.data.size) return 0;
+                if (!b.data.size) return 0;
+
+                const sizeA = parseInt(a.data.size as string);
+                const sizeB = parseInt(b.data.size as string);
+                return sizeA < sizeB ? 1 : -1;
               };
         break;
       case SortType.UpdatedAt:
