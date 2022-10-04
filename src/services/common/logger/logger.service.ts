@@ -9,7 +9,7 @@ export class BaseLogger {
   constructor(options: BaseLoggerOptions) {
     this.options = {
       ...options,
-      enabled: appService.isDevMode ? false : options.enabled === undefined ? false : options.enabled,
+      enabled: !appService.isDevMode ? false : options.enabled === undefined ? appService.isDevMode : options.enabled,
     };
   }
 

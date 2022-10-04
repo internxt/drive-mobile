@@ -23,21 +23,23 @@ export const getPhotosItemShareLink = async ({
     if (!photosItemFileId || !photoId) {
       return notifications.info(strings.messages.image_not_uploaded_yet);
     }
+    const photosUser = photos.user.getUser();
 
+    if (!photosUser) throw new Error('No Photos User found');
     const { credentials } = await AuthService.getAuthCredentials();
 
     const { mnemonic, userId, bridgeUser } = credentials.user;
 
     const network = new Network(bridgeUser, userId, mnemonic);
 
-    const fileToken = await network.createFileToken(credentials.user.bucket, photosItemFileId, 'PULL');
+    const fileToken = await network.createFileToken(photosUser.bucketId, photosItemFileId, 'PULL');
     const plainCode = randomBytes(32).toString('hex');
 
     const encryptedMnemonic = aes.encrypt(mnemonic, plainCode);
 
     const share = await SdkManager.getInstance().photos.shares.createShare({
       token: fileToken,
-      bucket: credentials.user.bucket,
+      bucket: photosUser.bucketId,
       views: 9999,
       photoIds: [photoId],
       encryptedMnemonic,

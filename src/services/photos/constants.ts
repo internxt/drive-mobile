@@ -21,6 +21,6 @@ export const ENABLE_PHOTOS_SYNC = true;
 export const ENABLE_PHOTOS_ANALYTICS = false;
 
 // Logging, this logs will be turned off in production mode
-export const ENABLE_PHOTOS_SYNC_MANAGER_LOGS = true;
+export const ENABLE_PHOTOS_SYNC_MANAGER_LOGS = false;
 export const ENABLE_PHOTOS_ANALYTICS_LOGS = false;
-export const ENABLE_PHOTOS_NETWORK_MANAGER_LOGS = true;
+export const ENABLE_PHOTOS_NETWORK_MANAGER_LOGS = false;

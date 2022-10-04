@@ -6,6 +6,7 @@ import { CreatePhotoData, Photo } from '@internxt/sdk/dist/photos';
 import { getEnvironmentConfig } from 'src/lib/network';
 import network from 'src/network';
 import { photosLocalDB } from '../database';
+import { photosUser } from '../user';
 
 export class PhotosNetworkService {
   private sdk: SdkManager;
@@ -31,12 +32,14 @@ export class PhotosNetworkService {
   }
 
   public async uploadPreview(previewRef: PhotoFileSystemRef) {
-    const { bridgeUser, bridgePass, encryptionKey, bucketId } = await getEnvironmentConfig();
+    const user = photosUser.getUser();
+    if (!user) throw new Error('Photos user not found');
+    const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
 
     return network.uploadFile(
       previewRef,
-      bucketId,
-      encryptionKey || '',
+      user.bucketId,
+      encryptionKey,
       constants.PHOTOS_NETWORK_API_URL,
       {
         user: bridgeUser,
@@ -47,11 +50,13 @@ export class PhotosNetworkService {
   }
 
   public async upload(photoRef: PhotoFileSystemRef, data: Omit<CreatePhotoData, 'fileId'>): Promise<Photo | null> {
-    const { bridgeUser, bridgePass, encryptionKey, bucketId } = await getEnvironmentConfig();
+    const user = photosUser.getUser();
+    if (!user) throw new Error('Photos user not found');
+    const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
 
     const fileId = await network.uploadFile(
       photoRef,
-      bucketId,
+      user.bucketId,
       encryptionKey,
       constants.PHOTOS_NETWORK_API_URL,
       {
@@ -87,11 +92,13 @@ export class PhotosNetworkService {
       decryptionProgressCallback: (progress: number) => void;
     },
   ): Promise<PhotoFileSystemRef> {
-    const { bridgeUser, bridgePass, encryptionKey, bucketId } = await getEnvironmentConfig();
+    const user = photosUser.getUser();
+    if (!user) throw new Error('Photos user not found');
+    const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
 
     await network.downloadFile(
       fileId,
-      bucketId,
+      user.bucketId,
       encryptionKey,
       {
         user: bridgeUser,
