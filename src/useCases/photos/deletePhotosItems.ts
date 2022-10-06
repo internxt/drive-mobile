@@ -4,9 +4,10 @@ import photos from '@internxt-mobile/services/photos';
 import { PhotosItemBacked } from '@internxt-mobile/types/photos';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { PhotosAnalyticsEventKey } from '@internxt-mobile/services/photos/analytics';
+
 export const deletePhotosItems = async ({ photosToDelete }: { photosToDelete: PhotosItemBacked[] }) => {
   try {
-    if (photosToDelete.some((p) => !p.photoId)) {
+    if (photosToDelete.some((p) => !p || !p.photoId)) {
       throw new Error('Some photos item id is missing');
     }
     photos.analytics.track(PhotosAnalyticsEventKey.MoveToTrashConfirmed, {

@@ -58,7 +58,7 @@ export class PhotosUtils {
     const iosPath = fileSystemService.tmpFilePath(filename);
     let path = uri;
 
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === 'ios' && uri.startsWith('ph://')) {
       await RNFS.copyAssetsFileIOS(uri, iosPath, 0, 0);
       path = iosPath;
     }
@@ -193,35 +193,36 @@ export class PhotosUtils {
   }
 
   public mergePhotosItems(photosItems: PhotosItem[]) {
-    const mapByName: { [name: string]: PhotosItem } = {};
+    const mapByName: { [key: string]: PhotosItem } = {};
 
     photosItems.forEach((photosItem) => {
-      if (!mapByName[photosItem.name]) {
-        mapByName[photosItem.name] = photosItem;
+      const key = `${photosItem.name}-${photosItem.takenAt}`;
+      if (!mapByName[key]) {
+        mapByName[key] = photosItem;
       }
 
       if (photosItem.status === PhotoSyncStatus.DELETED) {
-        if (mapByName[photosItem.name]) {
-          mapByName[photosItem.name].status = PhotoSyncStatus.DELETED;
+        if (mapByName[key]) {
+          mapByName[key].status = PhotoSyncStatus.DELETED;
         }
       }
 
       if (photosItem.status === PhotoSyncStatus.IN_SYNC_ONLY) {
-        if (mapByName[photosItem.name] && mapByName[photosItem.name].status === PhotoSyncStatus.IN_DEVICE_ONLY) {
-          mapByName[photosItem.name].photoFileId = photosItem.photoFileId;
-          mapByName[photosItem.name].previewFileId = photosItem.previewFileId;
-          mapByName[photosItem.name].photoId = photosItem.photoId;
-
-          mapByName[photosItem.name].status = PhotoSyncStatus.DEVICE_AND_IN_SYNC;
+        if (mapByName[key] && mapByName[key].status === PhotoSyncStatus.IN_DEVICE_ONLY) {
+          mapByName[key].photoFileId = photosItem.photoFileId;
+          mapByName[key].previewFileId = photosItem.previewFileId;
+          mapByName[key].photoId = photosItem.photoId;
+          mapByName[key].takenAt = photosItem.takenAt;
+          mapByName[key].status = PhotoSyncStatus.DEVICE_AND_IN_SYNC;
         }
       }
 
       if (photosItem.status === PhotoSyncStatus.IN_DEVICE_ONLY) {
-        if (mapByName[photosItem.name] && mapByName[photosItem.name].status === PhotoSyncStatus.IN_SYNC_ONLY) {
-          mapByName[photosItem.name].localFullSizePath = photosItem.localUri as string;
-          mapByName[photosItem.name].localPreviewPath = photosItem.localUri as string;
-          mapByName[photosItem.name].localUri = photosItem.localUri;
-          mapByName[photosItem.name].status = PhotoSyncStatus.DEVICE_AND_IN_SYNC;
+        if (mapByName[key] && mapByName[key].status === PhotoSyncStatus.IN_SYNC_ONLY) {
+          mapByName[key].localFullSizePath = photosItem.localUri as string;
+          mapByName[key].localPreviewPath = photosItem.localUri as string;
+          mapByName[key].localUri = photosItem.localUri;
+          mapByName[key].status = PhotoSyncStatus.DEVICE_AND_IN_SYNC;
         }
       }
     });

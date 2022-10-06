@@ -14,7 +14,6 @@ export class DevicePhotosSyncCheckerService {
   public status = DevicePhotosSyncCheckerStatus.IDLE;
   private queue = this.createQueue();
   private onStatusChangeCallback: DevicePhotosSyncServiceHandlers['onSyncQueueStatusChange'] = () => undefined;
-
   constructor(private database: PhotosLocalDB) {
     this.queue.drain(() => {
       this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);

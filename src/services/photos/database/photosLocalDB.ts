@@ -31,10 +31,12 @@ export class PhotosLocalDB {
     });
   }
 
-  public async getSyncedPhotoByName(photoName: string) {
-    const [result] = await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.getSyncedPhotoByName, [
-      photoName,
-    ]);
+  public async getSyncedPhotoByNameAndDate(photoName: string, takenAt: number) {
+    const [result] = await sqliteService.executeSql(
+      PHOTOS_DB_NAME,
+      deviceSyncTable.statements.getSyncedPhotoByNameAndDate,
+      [photoName, takenAt],
+    );
 
     const row = result.rows.item(0);
 
@@ -51,6 +53,20 @@ export class PhotosLocalDB {
       deviceSyncTable.statements.getSyncedPhotoByPhotoId,
       [photoId],
     );
+
+    const row = result.rows.item(0);
+
+    if (row) {
+      return this.parseRow(row);
+    } else {
+      return null;
+    }
+  }
+
+  public async getSyncedPhotoByHash(hash: string) {
+    const [result] = await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.getSyncedPhotoByHash, [
+      hash,
+    ]);
 
     const row = result.rows.item(0);
 
@@ -82,9 +98,23 @@ export class PhotosLocalDB {
     this.log('Photos item marked as TRASHED in the DB');
   }
 
+  public async getSyncedPhotoByName(name: string) {
+    const [result] = await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.getSyncedPhotoByName, [
+      name,
+    ]);
+
+    const row = result.rows.item(0);
+
+    if (row) {
+      return this.parseRow(row);
+    } else {
+      return null;
+    }
+  }
+
   public async savePhotosItem(photo: Photo) {
     this.log('Saving photos item');
-    const photoExists = await this.getSyncedPhotoByName(photo.name);
+    const photoExists = await this.getSyncedPhotoByPhotoId(photo.id);
     if (photoExists) {
       this.log('Photos item already exists, skipping insert');
       await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.updatePhotoById, [
@@ -96,6 +126,7 @@ export class PhotosLocalDB {
       await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.insert, [
         photo.id,
         photo.name,
+        photo.hash,
         JSON.stringify(photo),
       ]);
     }

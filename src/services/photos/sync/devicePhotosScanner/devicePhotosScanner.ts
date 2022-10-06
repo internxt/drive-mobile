@@ -1,7 +1,7 @@
 import { PHOTOS_PER_GROUP } from '../../constants';
 import * as MediaLibrary from 'expo-media-library';
 import { RunnableService } from '../../../../helpers/services';
-import { PhotosItem } from '@internxt-mobile/types/photos';
+import { DevicePhoto, PhotosItem } from '@internxt-mobile/types/photos';
 import { photosUtils } from '../../utils';
 
 export enum DevicePhotosScannerStatus {
@@ -9,6 +9,7 @@ export enum DevicePhotosScannerStatus {
   RUNNING = 'RUNNING',
   IDLE = 'IDLE',
   COMPLETED = 'COMPLETED',
+  NO_PHOTOS_IN_DEVICE = 'NO_PHOTOS_IN_DEVICE',
 }
 export type OnGroupReadyCallback = (items: PhotosItem[]) => void;
 type OnStatusChangeCallback = (status: DevicePhotosScannerStatus) => void;
@@ -26,7 +27,8 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
   private onStatusChangeCallback: OnStatusChangeCallback = () => undefined;
   private onTotalPhotosCalculatedCallback: OnTotalPhotosCalculatedCallback = () => undefined;
   private nextCursor?: string;
-
+  private cachedDevicePhotos: DevicePhoto[] = [];
+  private photosInDevice = 0;
   public static async getDevicePhotoData(photo: MediaLibrary.Asset) {
     return MediaLibrary.getAssetInfoAsync(photo);
   }
@@ -46,6 +48,12 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     this.run();
   }
 
+  public getPhotoInDevice(name: string, takenAt: number) {
+    return this.cachedDevicePhotos.find((devicePhoto) => {
+      return devicePhoto.filename.split('.')[0]?.includes(name) && takenAt === devicePhoto.creationTime;
+    });
+  }
+
   /**
    * Starts or resume the device photos scanning
    */
@@ -53,7 +61,10 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     this.updateStatus(DevicePhotosScannerStatus.RUNNING);
     this.getGroup().then((photos) => {
       if (photos) {
+        this.photosInDevice = photos.totalCount;
         this.onTotalPhotosCalculatedCallback(photos.totalCount);
+      } else {
+        this.updateStatus(DevicePhotosScannerStatus.NO_PHOTOS_IN_DEVICE);
       }
     });
   }
@@ -96,6 +107,10 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
       mediaType: MediaLibrary.MediaType.photo,
       sortBy: MediaLibrary.SortBy.creationTime,
     });
+
+    if (this.cachedDevicePhotos.length !== result.totalCount) {
+      this.cachedDevicePhotos = this.cachedDevicePhotos.concat(result.assets);
+    }
 
     return {
       ...result,

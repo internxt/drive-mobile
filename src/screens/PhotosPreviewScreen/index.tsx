@@ -1,11 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { View, TouchableOpacity, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowSquareOut, CaretLeft, DotsThreeVertical, DownloadSimple, Link, Trash } from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
 import { RootStackScreenProps } from '../../types/navigation';
 import AppScreen from '../../components/AppScreen';
 
@@ -22,6 +20,9 @@ import * as photosUseCases from '@internxt-mobile/useCases/photos';
 import { GeneratingLinkModal } from 'src/components/modals/common/GeneratingLinkModal';
 import photos from '@internxt-mobile/services/photos';
 import { PhotosAnalyticsEventKey, PhotosAnalyticsScreenKey } from '@internxt-mobile/services/photos/analytics';
+import { PhotosContext } from 'src/contexts/Photos';
+import { INCREASED_TOUCH_AREA } from 'src/styles/global';
+import fileSystemService from '@internxt-mobile/services/FileSystemService';
 export interface PhotosItemActions {
   exportPhoto: () => void;
   saveToGallery: () => void;
@@ -32,16 +33,19 @@ export interface PhotosItemActions {
   closeModal: (modal: PhotoPreviewModal) => void;
   openModal: (modal: PhotoPreviewModal) => void;
 }
+
+let isMounted = false;
 function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'PhotosPreview'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const getPhotosItemByName = useAppSelector(photosSelectors.getPhotosItemByName);
+  const photosCtx = useContext(PhotosContext);
   const [showActions, setShowActions] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [generatingShareLink, setGeneratingShareLink] = useState(false);
   const fadeAnimProgress = useRef(new Animated.Value(0)).current;
   const [progressVisible, setProgressVisible] = useState(false);
   const [fullSizeUri, setFullSizeUri] = useState<string | undefined>(undefined);
+
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: showActions ? 1 : 0,
@@ -61,17 +65,22 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
   }, [progressVisible]);
 
   const { photoName } = route.params;
-  const photosItem: PhotosItem = useMemo(() => getPhotosItemByName(photoName) as PhotosItem, [photoName]);
+  const photosItem: PhotosItem = useMemo(() => photosCtx.getPhotosItem(photoName) as PhotosItem, [photoName]);
+
+  const isDownloading = !fullSizeUri && photosItem.status === PhotoSyncStatus.IN_SYNC_ONLY;
 
   const [openedModals, setOpenedModals] = useState<PhotoPreviewModal[]>([]);
 
   const safeAreaInsets = useSafeAreaInsets();
 
-  const dispatch = useAppDispatch();
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    isMounted = true;
     loadFullSizePhoto();
+    return () => {
+      isMounted = false;
+    };
   }, [photosItem]);
 
   const loadFullSizePhoto = async () => {
@@ -81,16 +90,20 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
       photosItem.status === PhotoSyncStatus.IN_DEVICE_ONLY
     )
       return;
-    setProgressVisible(true);
+    if (isMounted) {
+      setProgressVisible(true);
+    }
 
     const destination = await photosUseCases.downloadFullSizePhotosItem({
       photosItem: photosItem as PhotosItemBacked,
       onProgressUpdate: setProgress,
     });
 
-    if (destination) setFullSizeUri(destination);
+    if (isMounted) {
+      if (destination) setFullSizeUri(destination);
 
-    setProgressVisible(false);
+      setProgressVisible(false);
+    }
   };
 
   const actions: PhotosItemActions = {
@@ -99,13 +112,17 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
         setOpenedModals(openedModals.concat(modal));
       }
     },
-    exportPhoto: async () => photosUseCases.exportPhotosItem({ photosItemToShare: photosItem }),
+    exportPhoto: async () => {
+      if (isDownloading) return;
+      photosUseCases.exportPhotosItem({ photosItemToShare: photosItem });
+    },
     confirmSaveToGallery: async () => {
       await photosUseCases.saveToGallery({ photosItem: photosItem });
       actions.closeModal('confirm-save');
       actions.closeModal('preview-options');
     },
     saveToGallery: async () => {
+      if (isDownloading) return;
       if (photosItem.status === PhotoSyncStatus.IN_SYNC_ONLY) {
         photosUseCases.saveToGallery({ photosItem: photosItem });
         actions.closeModal('preview-options');
@@ -143,8 +160,10 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
       setGeneratingShareLink(false);
     },
     moveToTrash: async () => {
-      dispatch(photosThunks.deletePhotosThunk({ photosToDelete: [photosItem as PhotosItemBacked] }));
-      dispatch(photosActions.deselectAll());
+      photosUseCases.deletePhotosItems({
+        photosToDelete: [photosItem as PhotosItemBacked],
+      });
+      photosCtx.removePhotosItems([photosItem]);
       actions.closeModal('trash');
       actions.closeModal('preview-options');
       navigation.goBack();
@@ -191,7 +210,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
           }}
         >
           <View style={[tailwind('flex-row justify-between w-full'), { marginBottom: safeAreaInsets.top }]}>
-            <TouchableOpacity style={tailwind('z-20')} onPress={onBackButtonPressed}>
+            <TouchableOpacity hitSlop={INCREASED_TOUCH_AREA} style={tailwind('z-20')} onPress={onBackButtonPressed}>
               <View style={tailwind('p-5')}>
                 <CaretLeft color={getColor('text-white')} size={28} weight="bold" />
               </View>
@@ -208,7 +227,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
                 progressStyle={tailwind('bg-white')}
               />
             </Animated.View>
-            <TouchableOpacity style={tailwind('z-10')} onPress={handleThreeDotsPress}>
+            <TouchableOpacity hitSlop={INCREASED_TOUCH_AREA} style={tailwind('z-10')} onPress={handleThreeDotsPress}>
               <View style={tailwind('p-5')}>
                 <DotsThreeVertical weight="bold" color={getColor('text-white')} size={28} />
               </View>
@@ -236,22 +255,39 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
             paddingBottom: safeAreaInsets.bottom,
           }}
         >
-          <TouchableOpacity style={tailwind('items-center flex-1 pb-5')} onPress={actions.shareLink}>
+          <TouchableOpacity
+            hitSlop={INCREASED_TOUCH_AREA}
+            style={tailwind('items-center flex-1 pb-5')}
+            onPress={actions.shareLink}
+          >
             <Link color={getColor('text-white')} size={28} />
           </TouchableOpacity>
-          <TouchableOpacity style={tailwind('items-center flex-1 pb-5')} onPress={actions.exportPhoto}>
+          <TouchableOpacity
+            hitSlop={INCREASED_TOUCH_AREA}
+            style={tailwind('items-center flex-1 pb-5')}
+            onPress={actions.exportPhoto}
+          >
             <ArrowSquareOut color={getColor('text-white')} size={28} />
           </TouchableOpacity>
-          <TouchableOpacity style={tailwind('items-center flex-1 pb-5')} onPress={actions.saveToGallery}>
+          <TouchableOpacity
+            hitSlop={INCREASED_TOUCH_AREA}
+            style={tailwind('items-center flex-1 pb-5')}
+            onPress={actions.saveToGallery}
+          >
             <DownloadSimple color={getColor('text-white')} size={28} />
           </TouchableOpacity>
-          <TouchableOpacity style={tailwind('items-center flex-1 pb-5')} onPress={() => actions.openModal('trash')}>
+          <TouchableOpacity
+            hitSlop={INCREASED_TOUCH_AREA}
+            style={tailwind('items-center flex-1 pb-5')}
+            onPress={() => actions.openModal('trash')}
+          >
             <Trash color={getColor('text-white')} size={28} />
           </TouchableOpacity>
         </LinearGradient>
       </Animated.View>
     );
   }
+
   return (
     <>
       <AppScreen
@@ -262,7 +298,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
       >
         <PhotoPreviewHeader />
         <ImageViewer
-          source={fullSizeUri || photosItem.localUri || photosItem.localPreviewPath}
+          source={fileSystemService.pathToUri(fullSizeUri ? fullSizeUri : photosItem.localPreviewPath)}
           onTapImage={handleTapImage}
           onZoomImage={handleZoomImage}
           onImageViewReset={handleImageViewReset}

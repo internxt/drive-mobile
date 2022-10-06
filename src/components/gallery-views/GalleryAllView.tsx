@@ -1,14 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { Dimensions, RefreshControl, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
 import GalleryItem from '../GalleryItem';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosActions, photosSelectors } from '../../store/slices/photos';
 import { PhotosScreenNavigationProp } from '../../types/navigation';
 import { PhotosItem } from '../../types/photos';
 
 import { DataProvider, LayoutProvider, RecyclerListView } from 'recyclerlistview';
+import { PhotosContext } from 'src/contexts/Photos';
 
 const COLUMNS = 3;
 const GUTTER = 3;
@@ -18,31 +16,31 @@ const GalleryAllView: React.FC<{
   onRefresh: () => Promise<void>;
   photos: DataProvider;
 }> = ({ onLoadNextPage, onRefresh, photos }) => {
-  const dispatch = useAppDispatch();
+  const photosCtx = useContext(PhotosContext);
   const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
-  const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
 
-  const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
   const [refreshing, setRefreshing] = useState(false);
 
   const itemSize = useMemo(() => (Dimensions.get('window').width - GUTTER * (COLUMNS - 1)) / COLUMNS, []);
   const selectItem = (photosItem: PhotosItem) => {
-    dispatch(photosActions.selectPhotos([photosItem]));
+    photosCtx.selection.selectPhotosItems([photosItem]);
   };
 
   const deselectItem = (photosItem: PhotosItem) => {
-    dispatch(photosActions.deselectPhotos([photosItem]));
+    photosCtx.selection.deselectPhotosItems([photosItem]);
   };
   const onItemLongPressed = (photosItem: PhotosItem) => {
-    dispatch(photosActions.setIsSelectionModeActivated(true));
-    isPhotoSelected(photosItem) ? deselectItem(photosItem) : selectItem(photosItem);
+    photosCtx.selection.setSelectionModeActivated(true);
+    photosCtx.selection.isPhotosItemSelected(photosItem) ? deselectItem(photosItem) : selectItem(photosItem);
   };
   const onItemPressed = (photosItem: PhotosItem) => {
-    isSelectionModeActivated
-      ? onItemLongPressed(photosItem)
-      : navigation.navigate('PhotosPreview', {
-          photoName: photosItem.name,
-        });
+    if (photosCtx.selection.selectionModeActivated) {
+      onItemLongPressed(photosItem);
+    } else {
+      navigation.navigate('PhotosPreview', {
+        photoName: photosItem.name,
+      });
+    }
   };
 
   async function onScrollEnd() {
@@ -69,13 +67,7 @@ const GalleryAllView: React.FC<{
     return (
       <>
         <View style={{}}>
-          <GalleryItem
-            size={itemSize - GUTTER}
-            data={data}
-            isSelected={isPhotoSelected(data)}
-            onPress={onItemPressed}
-            onLongPress={onItemLongPressed}
-          />
+          <GalleryItem size={itemSize - GUTTER} data={data} onPress={onItemPressed} />
         </View>
         <View style={{ height: GUTTER }} />
       </>
@@ -93,6 +85,7 @@ const GalleryAllView: React.FC<{
         rowRenderer={renderRow}
         dataProvider={photos}
         onEndReachedThreshold={itemSize * 10}
+        renderAheadOffset={1000}
         renderFooter={renderFooter}
         indicatorStyle={'black'}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}

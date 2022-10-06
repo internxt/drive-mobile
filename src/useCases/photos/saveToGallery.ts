@@ -1,5 +1,4 @@
 import errorService from '@internxt-mobile/services/ErrorService';
-import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import notificationsService from '@internxt-mobile/services/NotificationsService';
 import photos from '@internxt-mobile/services/photos';
 import { PhotosAnalyticsEventKey } from '@internxt-mobile/services/photos/analytics';
@@ -12,16 +11,16 @@ export const saveToGallery = async ({ photosItem }: { photosItem: PhotosItem }) 
     photos.analytics.track(PhotosAnalyticsEventKey.DownloadPhotoSelected, {
       destination: 'gallery',
     });
-    const path = await photosUtils.cameraRollUriToFileSystemUri(
+
+    const uri = await photosUtils.cameraRollUriToFileSystemUri(
       {
         name: photosItem.name,
         type: photosItem.format,
       },
-      photosItem.localFullSizePath,
+      photosItem.localUri || photosItem.localFullSizePath,
     );
-    await saveToLibraryAsync(path);
+    await saveToLibraryAsync(uri);
 
-    fileSystemService.unlinkIfExists(path);
     photos.analytics.track(PhotosAnalyticsEventKey.PhotoDownloaded, {
       destination: 'gallery',
     });

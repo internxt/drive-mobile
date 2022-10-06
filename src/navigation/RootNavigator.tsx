@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
 import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
@@ -18,13 +18,17 @@ import DebugScreen from '../screens/DebugScreen';
 import { uiActions } from 'src/store/slices/ui';
 import { paymentsThunks } from 'src/store/slices/payments';
 import { storageThunks } from 'src/store/slices/storage';
+import { PhotosContext } from 'src/contexts/Photos';
+import { PermissionStatus } from 'expo-media-library';
+import AuthService from '@internxt-mobile/services/AuthService';
+import { photosLogger } from '@internxt-mobile/services/photos/logger';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator(): JSX.Element {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
-
+  const photosCtx = useContext(PhotosContext);
   const initialRouteName: keyof RootStackParamList = isLoggedIn ? 'TabExplorer' : 'SignIn';
   const onAppLinkOpened = async (event: Linking.EventType) => {
     const sessionId = await AsyncStorage.getItem('tmpCheckoutSessionId');
@@ -59,6 +63,12 @@ function AppNavigator(): JSX.Element {
   };
 
   useEffect(() => {
+    function onLogout() {
+      photosCtx.resetContext();
+    }
+
+    AuthService.addLogoutListener(onLogout);
+
     Linking.addEventListener('url', onAppLinkOpened);
 
     Linking.getInitialURL().then((uri) => {
@@ -91,10 +101,27 @@ function AppNavigator(): JSX.Element {
     }
 
     return () => {
+      AuthService.removeLogoutListener(onLogout);
       Linking.removeEventListener('url', onAppLinkOpened);
     };
   }, []);
 
+  useEffect(() => {
+    if (isLoggedIn && !photosCtx.ready) {
+      initializePhotos();
+    }
+  }, [isLoggedIn]);
+
+  const initializePhotos = async () => {
+    photosLogger.info('Initializing photos system');
+    const status = await photosCtx.permissions.getPermissionsStatus();
+    if (status === PermissionStatus.GRANTED) {
+      await photosCtx.start();
+      photosLogger.info('Photos context ready');
+    } else {
+      photosLogger.info('Photos cant start, no permissions');
+    }
+  };
   // We send null here when we don't know the isLoggedIn status yet, so we avoid
   // redirects to the login screen even with the user logged
   if (isLoggedIn == null) return <View></View>;

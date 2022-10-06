@@ -248,10 +248,12 @@ const iosDecryptFileFromFs: DecryptFileFromFsFunction = (
   iv: Buffer,
 ) => {
   return new Promise((resolve, reject) => {
-    decryptFile(originPath, destinationPath, key.toString('hex'), iv.toString('hex'), (err) => {
+    decryptFile(originPath, destinationPath, key.toString('hex'), iv.toString('hex'), async (err) => {
       if (err) {
         reject(err);
-      } else resolve();
+      } else {
+        resolve();
+      }
     });
   });
 };
