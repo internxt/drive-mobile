@@ -42,6 +42,18 @@ export class SdkManager {
   }
 
   /** Auth SDK */
+  get authV2() {
+    return Auth.client(
+      constants.DRIVE_NEW_API_URL,
+      {
+        clientName: packageJson.name,
+        clientVersion: packageJson.version,
+      },
+      this.getApiSecurity({ throwErrorOnMissingCredentials: false }),
+    );
+  }
+
+  /** Auth old client SDK */
   get auth() {
     return Auth.client(
       constants.DRIVE_API_URL,

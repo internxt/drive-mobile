@@ -200,7 +200,7 @@ class AuthService {
       captcha: params.captcha,
     };
 
-    return this.sdk.auth.register(payload);
+    return this.sdk.authV2.register(payload);
   }
 
   public generateNew2FA(): Promise<TwoFactorAuthQR> {
