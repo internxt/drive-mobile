@@ -1,12 +1,7 @@
-import {
-  DevicePhoto,
-  DevicePhotoRemoteCheck,
-  PhotosNetworkManagerStatus,
-  PhotosNetworkOperation,
-} from '../../../types/photos';
+import { PhotosNetworkManagerStatus, PhotosNetworkOperation } from '../../../types/photos';
 
 import async from 'async';
-import { Photo, PhotoExistsData } from '@internxt/sdk/dist/photos';
+import { Photo, PhotoPreviewType } from '@internxt/sdk/dist/photos';
 import { RunnableService } from '../../../helpers/services';
 import fileSystemService from '../../FileSystemService';
 import { ENABLE_PHOTOS_NETWORK_MANAGER_LOGS, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
@@ -19,6 +14,7 @@ import { photosUtils } from '../utils';
 import { photosLogger } from '../logger';
 import { photosPreview } from '../preview';
 import { photosUser } from '../user';
+import { photosLocalDB } from '../database/photosLocalDB';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;
 
@@ -42,7 +38,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       throw new AbortedOperationError();
     }
 
-    this.processUploadOperation(task)
+    this.wrapWithDuration(task)
       .then((result) => {
         next(null, result);
       })
@@ -102,60 +98,6 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   }
 
   /**
-   * Gets a list of photos containing the ones that exists remotely and the ones that doesn't
-   *
-   * @param devicePhotos A list of device photos to check if exists remotely
-   * @returns The same list of photos containing an exists property and a remote photo if it exists
-   */
-  public async getMissingRemotely(devicePhotos: DevicePhoto[]): Promise<DevicePhotoRemoteCheck[]> {
-    const { credentials } = await AuthService.getAuthCredentials();
-    const convertedPhotos = [];
-    for (const devicePhoto of devicePhotos) {
-      const name = photosUtils.getPhotoName(devicePhoto.filename);
-      const type = photosUtils.getPhotoType(devicePhoto.filename);
-      const createdAt = new Date(devicePhoto.creationTime);
-
-      const photoRef = await photosUtils.cameraRollUriToFileSystemUri(
-        {
-          name,
-          type,
-        },
-        devicePhoto.uri,
-      );
-
-      convertedPhotos.push({
-        devicePhoto,
-        name,
-        takenAt: createdAt.toISOString(),
-        photoRef,
-        hash: await photosUtils.getPhotoHash(credentials.user.userId, name, createdAt.getTime(), photoRef),
-      });
-    }
-
-    const result = await this.sdk.photos.photos.photosExists(
-      convertedPhotos.map((converted) => {
-        return {
-          hash: converted.hash.toString('hex'),
-          takenAt: converted.takenAt,
-          name: converted.name,
-        };
-      }),
-    );
-
-    return convertedPhotos.map((convertedPhoto, index) => {
-      const serverPhoto: PhotoExistsData = result[index];
-
-      return {
-        photo: 'id' in serverPhoto ? (serverPhoto as Photo) : undefined,
-        devicePhoto: convertedPhoto.devicePhoto,
-        hash: convertedPhoto.hash.toString('hex'),
-        photoRef: convertedPhoto.photoRef,
-        exists: serverPhoto.exists,
-      };
-    });
-  }
-
-  /**
    * Starts and upload a given photo based on the operation data
    *
    * @param operation Operation to create the upload from
@@ -168,7 +110,9 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     if (!device) throw new Error('Photos device not found');
     if (!user) throw new Error('Photos user not found');
     if (!operation.photosItem.localUri) throw new Error('Local uri not found');
-    const startAt = Date.now();
+    // 1. Get photo data and the hash
+    const photoData = operation.photosItem;
+    const name = photoData.name;
     operation.photosItem.localUri = await photosUtils.cameraRollUriToFileSystemUri(
       {
         name: operation.photosItem.name,
@@ -176,11 +120,20 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       },
       operation.photosItem.localUri,
     );
-    const photoData = operation.photosItem;
-    // 1. Get photo data
-    const name = photoData.name;
+    const hash = (
+      await photosUtils.getPhotoHash(credentials.user.userId, name, photoData.takenAt, operation.photosItem.localUri)
+    ).toString('hex');
+
+    // 2. Make sure in the meantime, the photo was not pulled from the server, avoid network hits
+    const syncedPhoto = await photosLocalDB.getSyncedPhotoByHash(hash);
+    if (syncedPhoto?.photo) {
+      this.log('Photo matched by hash, skipping upload');
+      return syncedPhoto.photo;
+    }
+    const startAt = Date.now();
+
     this.log(`--- UPLOADING ${name} ---`);
-    // 2. Upload the preview
+    // 3. Upload the preview
     const preview = await photosPreview.generate(photoData);
     const previewGeneratedElapsed = Date.now() - startAt;
     this.log(`Preview generated in ${previewGeneratedElapsed / 1000}s`);
@@ -195,12 +148,8 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       photoData.localFullSizePath,
     );
 
-    const hash = (
-      await photosUtils.getPhotoHash(credentials.user.userId, name, photoData.takenAt, operation.photosItem.localUri)
-    ).toString('hex');
-
     this.log('Hash for photo generated');
-    // 3. Upload the photo
+    // 4. Upload the photo
     const photo = await photosNetwork.upload(operation.photosItem.localUri, {
       name,
       width: photoData.width,
@@ -215,10 +164,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
           height: preview.height,
           size: preview.size,
           fileId: previewId,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          // Should fix this in the SDK, types are wrong
-          type: preview.type,
+          type: preview.type as PhotoPreviewType,
         },
       ],
       type: photoData.format,
@@ -247,6 +193,45 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     });
 
     this.updateStatus(PhotosNetworkManagerStatus.RUNNING);
+  }
+
+  getPendingTasks() {
+    return this.queue.length();
+  }
+
+  private async wrapWithDuration(operation: PhotosNetworkOperation) {
+    return new Promise<Photo | null>((resolve, reject) => {
+      const start = Date.now();
+      const timeout = 1000;
+      let error: unknown | null = null;
+      let result: Photo | null = null;
+
+      this.processUploadOperation(operation)
+        .then((photo) => {
+          result = photo;
+        })
+        .catch((err) => {
+          error = err;
+        })
+        .finally(() => {
+          const duration = Date.now() - start;
+          if (duration < timeout) {
+            setTimeout(() => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            }, timeout - duration);
+          } else {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        });
+    });
   }
 
   private get isAborted() {

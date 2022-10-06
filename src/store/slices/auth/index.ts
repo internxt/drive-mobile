@@ -6,7 +6,6 @@ import authService from '../../../services/AuthService';
 import userService from '../../../services/UserService';
 import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
 import { AsyncStorageKey, DevicePlatform, NotificationType } from '../../../types';
-import { photosActions, photosThunks } from '../photos';
 import { driveActions, driveThunks } from '../drive';
 import { uiActions } from '../ui';
 import notificationsService from '../../../services/NotificationsService';
@@ -148,16 +147,13 @@ export const signInThunk = createAsyncThunk<
 
 export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/signOut',
-  async (payload, { dispatch }) => {
+  async (_, { dispatch }) => {
     await authService.signout();
-
+    await photos.clear();
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
     dispatch(driveThunks.clearLocalDatabaseThunk());
     dispatch(driveActions.resetState());
-
-    dispatch(photosThunks.clearPhotosThunk());
-    dispatch(photosActions.resetState());
     dispatch(authActions.setLoggedIn(false));
     authService.emitLogoutEvent();
   },

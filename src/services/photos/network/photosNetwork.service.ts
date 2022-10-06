@@ -2,9 +2,10 @@ import { constants } from '@internxt-mobile/services/AppService';
 import { SdkManager } from '@internxt-mobile/services/common';
 import { FileSystemRef } from '@internxt-mobile/types/index';
 import { PhotoFileSystemRef, PhotosItemBacked } from '@internxt-mobile/types/photos';
-import { CreatePhotoData, Photo } from '@internxt/sdk/dist/photos';
+import { CreatePhotoData, Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 import { getEnvironmentConfig } from 'src/lib/network';
 import network from 'src/network';
+import { REMOTE_PHOTOS_PER_PAGE } from '../constants';
 import { photosLocalDB } from '../database';
 import { photosUser } from '../user';
 
@@ -15,7 +16,7 @@ export class PhotosNetworkService {
   }
 
   public async getPhotos(page = 1): Promise<{ results: Photo[]; count: number }> {
-    const limit = 200;
+    const limit = REMOTE_PHOTOS_PER_PAGE;
     const skip = limit * (page - 1);
     const { results, count } = await this.sdk.photos.photos.getPhotos({}, skip, limit);
 
@@ -49,7 +50,10 @@ export class PhotosNetworkService {
     );
   }
 
-  public async upload(photoRef: PhotoFileSystemRef, data: Omit<CreatePhotoData, 'fileId'>): Promise<Photo | null> {
+  public async upload(
+    photoRef: PhotoFileSystemRef,
+    data: Omit<CreatePhotoData, 'fileId' | 'networkBucketId'>,
+  ): Promise<Photo | null> {
     const user = photosUser.getUser();
     if (!user) throw new Error('Photos user not found');
     const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
@@ -79,6 +83,7 @@ export class PhotosNetworkService {
       previewId: data.previewId,
       previews: data.previews,
       hash: data.hash,
+      networkBucketId: user.bucketId,
     };
 
     return this.sdk.photos.photos.findOrCreatePhoto(createPhotoData);

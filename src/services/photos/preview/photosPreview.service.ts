@@ -91,15 +91,6 @@ export class PhotosPreviewService {
 
     return null;
   }
-
-  private getPhotoRemotePreviewData(photo: Photo) {
-    const photoRemotePreview =
-      photo.previewId && photo.previews
-        ? photo.previews.find((preview) => preview.fileId === photo.previewId)
-        : undefined;
-
-    return photoRemotePreview;
-  }
 }
 
 export const photosPreview = new PhotosPreviewService();

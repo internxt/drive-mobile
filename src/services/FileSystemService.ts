@@ -29,6 +29,7 @@ class FileSystemService {
     await this.clearTempDir();
   }
   public pathToUri(path: string): string {
+    if (path.startsWith(ANDROID_URI_PREFIX)) return path;
     return Platform.OS === 'android' ? ANDROID_URI_PREFIX + path : path;
   }
 

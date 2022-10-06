@@ -26,6 +26,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const userFullName = useAppSelector(authSelectors.userFullName);
+
   const onAccountPressed = () => {
     navigation.navigate('Account');
   };

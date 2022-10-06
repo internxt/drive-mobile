@@ -1,4 +1,3 @@
-import { Photo } from '@internxt/sdk/dist/photos';
 import { PhotosSyncManager } from '../../../../../src/services/photos/sync/photosSyncManager/photosSyncManager';
 import { PhotosSyncManagerStatus } from '../../../../../src/types/photos';
 import { getAssetsAsync } from 'expo-media-library';
@@ -9,7 +8,7 @@ import { PhotosLocalDB } from '../../database';
 import { DevicePhotosSyncCheckerService } from '../devicePhotosSyncChecker';
 
 jest.mock('expo-media-library');
-
+jest.mock('');
 const mockedGetAssetsAsync = jest.mocked(getAssetsAsync, true);
 
 describe('PhotosSyncManager', () => {
@@ -20,6 +19,7 @@ describe('PhotosSyncManager', () => {
     clear: jest.fn(),
     getByDevicePhoto: jest.fn(),
     getByPhoto: jest.fn(),
+    getSyncedPhotoByName: jest.fn(),
     getByPreviewUri: jest.fn(),
     getAll: jest.fn(),
     isInitialized: true,
@@ -41,11 +41,8 @@ describe('PhotosSyncManager', () => {
   describe('Handle status changes', () => {
     it('Should on pause stop processing operations', (done) => {
       const onStatusChangeMock = jest.fn<void, [PhotosSyncManagerStatus]>((status) => {
-        if (status === PhotosSyncManagerStatus.PAUSED) {
-          expect(onStatusChangeMock).toHaveBeenNthCalledWith(1, PhotosSyncManagerStatus.RUNNING);
-          expect(onStatusChangeMock).toHaveBeenNthCalledWith(2, PhotosSyncManagerStatus.PAUSED);
-          done();
-        }
+        expect(onStatusChangeMock).toHaveBeenNthCalledWith(1, PhotosSyncManagerStatus.PAUSED);
+        done();
       });
       subject.onStatusChange(onStatusChangeMock);
       subject.run();
@@ -74,18 +71,15 @@ describe('PhotosSyncManager', () => {
           photo: photoFixture,
           photo_id: photoFixture.id,
           photo_name: photoFixture.name,
+          photo_hash: photoFixture.hash,
         };
       });
 
-      photosNetworkManager.getMissingRemotely = jest.fn();
+      photosNetworkManager.processUploadOperation = jest.fn();
 
-      const onPhotoSyncCompletedMock = jest.fn<void, [Error | null, Photo | null]>((_, photo) => {
-        expect(photo?.name).toBe('photo_2');
-        done();
-      });
-      subject.onPhotoSyncCompleted(onPhotoSyncCompletedMock);
       subject.onStatusChange(() => {
-        expect(photosNetworkManager.getMissingRemotely).toHaveBeenCalledTimes(0);
+        expect(photosNetworkManager.processUploadOperation).toHaveBeenCalledTimes(0);
+        done();
       });
       subject.run();
     });

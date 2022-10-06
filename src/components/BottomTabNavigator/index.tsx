@@ -9,6 +9,7 @@ import { uiActions } from '../../store/slices/ui';
 import { FolderSimple, Gear, House, ImageSquare, PlusCircle } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
+import { storageThunks } from 'src/store/slices/storage';
 
 const tabs = {
   Home: { label: strings.tabs.Home, icon: House },
@@ -29,7 +30,11 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
       const label = tabs[route.name as keyof typeof tabs].label;
       const isFocused = props.state.index === index;
       const isAddRoute = route.name === 'Add';
+      const isSettingsRoute = route.name === 'Settings';
       const onPress = () => {
+        if (isSettingsRoute) {
+          dispatch(storageThunks.loadStorageUsageThunk());
+        }
         if (isAddRoute) {
           return dispatch(uiActions.setShowUploadFileModal(true));
         }

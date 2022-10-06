@@ -1,7 +1,6 @@
 import photos from '@internxt-mobile/services/photos';
 import { PhotosAnalyticsEventKey } from '@internxt-mobile/services/photos/analytics';
 import { PhotosItem } from '@internxt-mobile/types/photos';
-import { Photo } from '@internxt/sdk/dist/photos';
 import React from 'react';
 import { ConfirmSavePhotoModal } from 'src/components/modals/photos/ConfirmSavePhotoModal';
 import { PhotosItemActions } from '.';

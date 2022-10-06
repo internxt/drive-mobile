@@ -28,6 +28,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import fileSystemService from './services/FileSystemService';
 import { referralsThunks } from './store/slices/referrals';
 import { storageThunks } from './store/slices/storage';
+import { PhotosContextProvider } from './contexts/Photos';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -67,7 +68,17 @@ export default function App(): JSX.Element {
     });
   };
   const onUserLoggedOut = () => {
-    dispatch(appThunks.initializeThunk());
+    /**
+     *
+     * Commented on 1.5.20 Release - 6/10/2022
+     *
+     * This was causing a lot of problems
+     * during the logout, commented out
+     * until I figure out why this was here and if is needed,
+     * probably not since no crashes/inconsistent states were
+     * found since it was commented
+     */
+    //dispatch(appThunks.initializeThunk());
   };
 
   useEffect(() => {
@@ -127,7 +138,9 @@ export default function App(): JSX.Element {
           <Portal.Host>
             <View style={tailwind('flex-1')}>
               {isAppInitialized ? (
-                <Navigation />
+                <PhotosContextProvider>
+                  <Navigation />
+                </PhotosContextProvider>
               ) : (
                 <View style={tailwind('items-center flex-1 justify-center')}>
                   {loadError ? <Text>{loadError}</Text> : null}

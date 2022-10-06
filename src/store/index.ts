@@ -4,7 +4,6 @@ import appReducer from './slices/app';
 import authReducer from './slices/auth';
 import driveReducer from './slices/drive';
 import uiReducer from './slices/ui';
-import photosReducer from './slices/photos';
 import paymentsReducer from './slices/payments';
 import referralsReducer from './slices/referrals';
 import usersReducer from './slices/users';
@@ -18,7 +17,6 @@ export const store = configureStore({
     auth: authReducer,
     drive: driveReducer,
     ui: uiReducer,
-    photos: photosReducer,
     payments: paymentsReducer,
     referrals: referralsReducer,
     users: usersReducer,

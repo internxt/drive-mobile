@@ -1,27 +1,30 @@
 import photos from '@internxt-mobile/services/photos';
 import { PhotosAnalyticsScreenKey } from '@internxt-mobile/services/photos/analytics';
 import { PermissionStatus } from 'expo-media-library';
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Linking, Platform, Text, View } from 'react-native';
+import { PhotosContext } from 'src/contexts/Photos';
 import { useTailwind } from 'tailwind-rn';
 import SyncIcon from '../../../assets/images/modals/sync.svg';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
 
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosSelectors, photosThunks } from '../../store/slices/photos';
 import globalStyle from '../../styles/global';
 import { PhotosScreenProps } from '../../types/navigation';
 
 function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermissions'>): JSX.Element {
   const tailwind = useTailwind();
-  const dispatch = useAppDispatch();
-  const permissionsStatus = useAppSelector(photosSelectors.permissionsStatus);
+  const photosCtx = useContext(PhotosContext);
+  const [permissionsStatus, setPermissionsStatus] = useState(PermissionStatus.UNDETERMINED);
   const features = [
     strings.screens.photosPermissions.features[0],
     strings.screens.photosPermissions.features[1],
     strings.screens.photosPermissions.features[2],
   ];
+
+  useEffect(() => {
+    photosCtx.permissions.getPermissionsStatus().then(setPermissionsStatus);
+  }, []);
 
   useEffect(() => {
     photos.analytics.screen(PhotosAnalyticsScreenKey.PhotosGallery, { permissions: false });
@@ -35,21 +38,19 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
       </View>
     );
   });
-  const onPermissionsGranted = () => {
-    dispatch(photosThunks.startUsingPhotosThunk());
+  const onPermissionsGranted = async () => {
     navigation.replace('PhotosGallery');
+    photosCtx.start();
   };
   const onButtonPressed = async () => {
-    const permissions = await dispatch(photosThunks.checkPermissionsThunk()).unwrap();
-
     if (permissionsStatus === PermissionStatus.DENIED) {
       if (Platform.OS === 'ios') {
         await Linking.openSettings();
       }
     }
 
-    if (!permissions.hasPermissions) {
-      const granted = await dispatch(photosThunks.askForPermissionsThunk()).unwrap();
+    if (permissionsStatus === PermissionStatus.UNDETERMINED) {
+      const granted = await photosCtx.permissions.askPermissions();
       if (granted) {
         await onPermissionsGranted();
       }
