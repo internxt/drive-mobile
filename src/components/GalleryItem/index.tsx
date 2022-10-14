@@ -1,5 +1,5 @@
 import React, { useContext, useMemo } from 'react';
-import { View, TouchableOpacity, Image } from 'react-native';
+import { View, Image } from 'react-native';
 import { GalleryItemType, PhotosItem, PhotoSyncStatus } from '../../types/photos';
 import { CheckCircle, CloudSlash } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -7,9 +7,12 @@ import useGetColor from 'src/hooks/useColor';
 import { PhotosContext } from 'src/contexts/Photos';
 import FastImage from 'react-native-fast-image';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import AppText from '../AppText';
+import { time } from '@internxt-mobile/services/common/time';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { PhotosItemType } from '@internxt/sdk/dist/photos';
 interface GalleryItemProps {
   type?: GalleryItemType;
-  size: number;
   data: PhotosItem;
   onPress: (photosItem: PhotosItem) => void;
 }
@@ -18,13 +21,14 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   const photosCtx = useContext(PhotosContext);
   const getColor = useGetColor();
   const tailwind = useTailwind();
-  const { onPress, data, size } = props;
+  const { onPress, data } = props;
 
   const uploadedItem = useMemo(
     () => photosCtx.uploadedPhotosItems.find((uploaded) => uploaded.name === data.name),
     [photosCtx.uploadedPhotosItems, data.name],
   );
 
+  const photosItem = uploadedItem || props.data;
   const isSelected = useMemo(
     () => photosCtx.selection.isPhotosItemSelected(data),
     [photosCtx.selection.selectedPhotosItems],
@@ -50,9 +54,8 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   const useLocalUri = props.data.status !== PhotoSyncStatus.IN_SYNC_ONLY && data.localUri;
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      style={[{ width: size, height: size }]}
+    <TouchableWithoutFeedback
+      style={[{ width: '100%', height: '100%', overflow: 'hidden' }]}
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
     >
@@ -82,20 +85,27 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
         />
       )}
 
+      {photosItem.type === PhotosItemType.VIDEO && !isSelected && photosItem.duration ? (
+        <View style={[tailwind('absolute bottom-1 right-1.5 flex justify-center items-center rounded-xl')]}>
+          <AppText medium style={tailwind('text-white text-xs')}>
+            {time.fromSeconds(photosItem.duration).toFormat(time.formats.duration)}
+          </AppText>
+        </View>
+      ) : null}
       {props.data.status === PhotoSyncStatus.IN_DEVICE_ONLY && !uploadedItem && (
-        <View style={[tailwind('absolute w-5 h-5 bottom-3 left-3 flex justify-center items-center rounded-xl')]}>
-          <CloudSlash color={getColor('text-white')} size={20} />
+        <View style={[tailwind('absolute w-5 h-5 bottom-1 left-1 flex justify-center items-center rounded-xl')]}>
+          <CloudSlash color={getColor('text-white')} size={16} />
         </View>
       )}
 
       {isSelected && (
         <View
-          style={[tailwind('absolute bg-blue-60 w-5 h-5 bottom-3 right-3 flex justify-center items-center rounded-xl')]}
+          style={[tailwind('absolute bg-blue-60 w-5 h-5 bottom-1 right-1 flex justify-center items-center rounded-xl')]}
         >
-          <CheckCircle color={getColor('text-white')} size={30} />
+          <CheckCircle color={getColor('text-white')} size={24} />
         </View>
       )}
-    </TouchableOpacity>
+    </TouchableWithoutFeedback>
   );
 };
 

@@ -11,15 +11,16 @@ export const exportPhotosItem = async ({ photosItemToShare }: { photosItemToShar
   try {
     photos.analytics.track(PhotosAnalyticsEventKey.ExportPhotoSelected);
 
+    const uri = await photosUtils.cameraRollUriToFileSystemUri({
+      name: photosItemToShare.name,
+      format: photosItemToShare.format,
+      itemType: photosItemToShare.type,
+      uri: photosItemToShare.localUri || photosItemToShare.localFullSizePath,
+    });
+
     const result = await fileSystemService.shareFile({
       title: photosItemToShare.getDisplayName(),
-      fileUri: await photosUtils.cameraRollUriToFileSystemUri(
-        {
-          name: photosItemToShare.name,
-          type: photosItemToShare.format,
-        },
-        photosItemToShare.localUri || photosItemToShare.localFullSizePath,
-      ),
+      fileUri: uri as string,
     });
 
     if (result.success) {

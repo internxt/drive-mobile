@@ -1,6 +1,6 @@
-import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
+import { Photo, PhotoStatus, PhotosItemType } from '@internxt/sdk/dist/photos';
 import { MediaType } from 'expo-media-library';
-import { DevicePhoto, PhotosItem, PhotosItemType, PhotoSyncStatus } from '../../../src/types/photos';
+import { DevicePhoto, PhotosItem, PhotoSyncStatus } from '../../../src/types/photos';
 
 export const createDevicePhotoFixture = (data?: Partial<DevicePhoto>): DevicePhoto => {
   const timestamp = Date.now().toString();
@@ -38,6 +38,7 @@ export const createPhotoFixture = (data?: Partial<Photo>): Photo => {
     takenAt: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
+    itemType: PhotosItemType.PHOTO,
     ...data,
   };
 };
@@ -62,6 +63,8 @@ export const createPhotosItemFixture = (data?: Partial<PhotosItem>): PhotosItem 
     photoFileId: (Date.now() - 500).toString(),
     previewFileId: (Date.now() - 300).toString(),
     getDisplayName: () => `${name}.${format}`,
+    duration: undefined,
+    bucketId: null,
     ...data,
   };
 };

@@ -4,6 +4,7 @@ import photos from '@internxt-mobile/services/photos';
 import { PhotosAnalyticsEventKey } from '@internxt-mobile/services/photos/analytics';
 import { photosUtils } from '@internxt-mobile/services/photos/utils';
 import { PhotosItem } from '@internxt-mobile/types/photos';
+import { PhotosItemType } from '@internxt/sdk/dist/photos';
 import strings from 'assets/lang/strings';
 import { saveToLibraryAsync } from 'expo-media-library';
 export const saveToGallery = async ({ photosItem }: { photosItem: PhotosItem }) => {
@@ -12,13 +13,13 @@ export const saveToGallery = async ({ photosItem }: { photosItem: PhotosItem }) 
       destination: 'gallery',
     });
 
-    const uri = await photosUtils.cameraRollUriToFileSystemUri(
-      {
-        name: photosItem.name,
-        type: photosItem.format,
-      },
-      photosItem.localUri || photosItem.localFullSizePath,
-    );
+    const uri = await photosUtils.cameraRollUriToFileSystemUri({
+      name: photosItem.name,
+      format: photosItem.format,
+      itemType: photosItem.type,
+      uri: photosItem.localUri || photosItem.localFullSizePath,
+    });
+
     await saveToLibraryAsync(uri);
 
     photos.analytics.track(PhotosAnalyticsEventKey.PhotoDownloaded, {

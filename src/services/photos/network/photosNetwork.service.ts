@@ -2,7 +2,7 @@ import { constants } from '@internxt-mobile/services/AppService';
 import { SdkManager } from '@internxt-mobile/services/common';
 import { FileSystemRef } from '@internxt-mobile/types/index';
 import { PhotoFileSystemRef, PhotosItemBacked } from '@internxt-mobile/types/photos';
-import { CreatePhotoData, Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
+import { CreatePhotoData, Photo } from '@internxt/sdk/dist/photos';
 import { getEnvironmentConfig } from 'src/lib/network';
 import network from 'src/network';
 import { REMOTE_PHOTOS_PER_PAGE } from '../constants';
@@ -84,6 +84,8 @@ export class PhotosNetworkService {
       previews: data.previews,
       hash: data.hash,
       networkBucketId: user.bucketId,
+      itemType: data.itemType,
+      duration: data.duration,
     };
 
     return this.sdk.photos.photos.findOrCreatePhoto(createPhotoData);
@@ -92,6 +94,7 @@ export class PhotosNetworkService {
   public async download(
     fileId: string,
     options: {
+      bucketId?: string;
       destination: FileSystemRef;
       downloadProgressCallback: (progress: number) => void;
       decryptionProgressCallback: (progress: number) => void;
@@ -103,7 +106,7 @@ export class PhotosNetworkService {
 
     await network.downloadFile(
       fileId,
-      user.bucketId,
+      options.bucketId || user.bucketId,
       encryptionKey,
       {
         user: bridgeUser,

@@ -104,7 +104,7 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     const result = await MediaLibrary.getAssetsAsync({
       first: photosPerPage,
       after: nextCursor,
-      mediaType: MediaLibrary.MediaType.photo,
+      mediaType: [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video],
       sortBy: MediaLibrary.SortBy.creationTime,
     });
 

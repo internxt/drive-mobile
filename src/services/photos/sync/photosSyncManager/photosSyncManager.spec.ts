@@ -8,7 +8,6 @@ import { PhotosLocalDB } from '../../database';
 import { DevicePhotosSyncCheckerService } from '../devicePhotosSyncChecker';
 
 jest.mock('expo-media-library');
-jest.mock('');
 const mockedGetAssetsAsync = jest.mocked(getAssetsAsync, true);
 
 describe('PhotosSyncManager', () => {

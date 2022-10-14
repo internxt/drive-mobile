@@ -9,6 +9,7 @@ export type TimeInput = Date | number | string;
 export class TimeService {
   public formats = {
     dateAtTime: `dd LLL yyyy '${strings.generic.atTime}' HH:mm`,
+    duration: 'mm:ss',
   };
 
   /**
@@ -45,6 +46,10 @@ export class TimeService {
    */
   getDateTime(input: TimeInput) {
     return DateTime.fromJSDate(new Date(input));
+  }
+
+  fromSeconds(seconds: number) {
+    return DateTime.fromSeconds(seconds);
   }
 }
 

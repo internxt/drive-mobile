@@ -42,6 +42,50 @@
   top: 0.25rem
 }
 
+.bottom-2\.5 {
+  bottom: 0.625rem
+}
+
+.right-2\.5 {
+  right: 0.625rem
+}
+
+.bottom-2 {
+  bottom: 0.5rem
+}
+
+.right-2 {
+  right: 0.5rem
+}
+
+.bottom-1\.5 {
+  bottom: 0.375rem
+}
+
+.bottom-1 {
+  bottom: 0.25rem
+}
+
+.left-2\.5 {
+  left: 0.625rem
+}
+
+.left-2 {
+  left: 0.5rem
+}
+
+.right-1 {
+  right: 0.25rem
+}
+
+.left-1 {
+  left: 0.25rem
+}
+
+.right-1\.5 {
+  right: 0.375rem
+}
+
 .z-10 {
   z-index: 10
 }
@@ -121,14 +165,14 @@
   margin-bottom: 1.5rem
 }
 
-.mx-8 {
-  margin-left: 2rem;
-  margin-right: 2rem
-}
-
 .mx-1\.5 {
   margin-left: 0.375rem;
   margin-right: 0.375rem
+}
+
+.mx-8 {
+  margin-left: 2rem;
+  margin-right: 2rem
 }
 
 .mx-6 {
@@ -192,12 +236,12 @@
   margin-right: 1rem
 }
 
-.mb-6 {
-  margin-bottom: 1.5rem
+.mb-0\.5 {
+  margin-bottom: 0.125rem
 }
 
-.mb-5 {
-  margin-bottom: 1.25rem
+.mb-0 {
+  margin-bottom: 0px
 }
 
 .mr-1 {
@@ -220,6 +264,10 @@
   margin-top: 0.375rem
 }
 
+.mb-5 {
+  margin-bottom: 1.25rem
+}
+
 .mb-16 {
   margin-bottom: 4rem
 }
@@ -234,6 +282,10 @@
 
 .mt-14 {
   margin-top: 3.5rem
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem
 }
 
 .mb-1\.5 {
@@ -302,22 +354,6 @@
 
 .-mt-10 {
   margin-top: -2.5rem
-}
-
-.mb-0\.5 {
-  margin-bottom: 0.125rem
-}
-
-.mb-0 {
-  margin-bottom: 0px
-}
-
-.ml-8 {
-  margin-left: 2rem
-}
-
-.ml-10 {
-  margin-left: 2.5rem
 }
 
 .flex {
@@ -392,16 +428,20 @@
   height: 1px
 }
 
-.h-16 {
-  height: 4rem
-}
-
 .h-40 {
   height: 10rem
 }
 
 .h-32 {
   height: 8rem
+}
+
+.h-16 {
+  height: 4rem
+}
+
+.h-20 {
+  height: 5rem
 }
 
 .min-h-full {
@@ -430,10 +470,6 @@
 
 .w-3\/4 {
   width: 75%
-}
-
-.w-6 {
-  width: 1.5rem
 }
 
 .w-5 {
@@ -476,10 +512,6 @@
   width: 0.75rem
 }
 
-.w-auto {
-  width: auto
-}
-
 .w-40 {
   width: 10rem
 }
@@ -490,6 +522,10 @@
 
 .w-2 {
   width: 0.5rem
+}
+
+.w-auto {
+  width: auto
 }
 
 .flex-1 {
@@ -774,26 +810,31 @@
   background-color: rgb(243 243 248 / 0.5)
 }
 
+.bg-gray-60 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(99 99 103 / var(--tw-bg-opacity))
+}
+
 .bg-red-60 {
   --tw-bg-opacity: 1;
   background-color: rgb(218 30 40 / var(--tw-bg-opacity))
 }
 
-.bg-gray-60 {
+.bg-black {
   --tw-bg-opacity: 1;
-  background-color: rgb(99 99 103 / var(--tw-bg-opacity))
+  background-color: rgb(0 0 0 / var(--tw-bg-opacity))
 }
 
 .p-0 {
   padding: 0px
 }
 
-.p-5 {
-  padding: 1.25rem
-}
-
 .p-2 {
   padding: 0.5rem
+}
+
+.p-5 {
+  padding: 1.25rem
 }
 
 .p-6 {
@@ -1090,12 +1131,12 @@
   font-weight: 400
 }
 
-.font-semibold {
-  font-weight: 600
-}
-
 .font-bold {
   font-weight: 700
+}
+
+.font-semibold {
+  font-weight: 600
 }
 
 .text-white {

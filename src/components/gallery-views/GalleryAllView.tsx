@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { Dimensions, RefreshControl, View } from 'react-native';
+import { Dimensions, Platform, RefreshControl, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import GalleryItem from '../GalleryItem';
 import { PhotosScreenNavigationProp } from '../../types/navigation';
@@ -8,8 +8,8 @@ import { PhotosItem } from '../../types/photos';
 import { DataProvider, LayoutProvider, RecyclerListView } from 'recyclerlistview';
 import { PhotosContext } from 'src/contexts/Photos';
 
-const COLUMNS = 3;
-const GUTTER = 3;
+const COLUMNS = 5;
+const GUTTER = 1.5;
 
 const GalleryAllView: React.FC<{
   onLoadNextPage: () => Promise<void>;
@@ -21,7 +21,17 @@ const GalleryAllView: React.FC<{
 
   const [refreshing, setRefreshing] = useState(false);
 
-  const itemSize = useMemo(() => (Dimensions.get('window').width - GUTTER * (COLUMNS - 1)) / COLUMNS, []);
+  const itemSizeNoGutter = useMemo(() => {
+    const itemSize = Dimensions.get('window').width / COLUMNS;
+
+    // On Android we need to do this, otherwise
+    // the items won't fit the row
+    if (Platform.OS === 'android') {
+      return Math.floor(itemSize);
+    }
+
+    return itemSize;
+  }, []);
   const selectItem = (photosItem: PhotosItem) => {
     photosCtx.selection.selectPhotosItems([photosItem]);
   };
@@ -56,27 +66,33 @@ const GalleryAllView: React.FC<{
   const layoutProvider = new LayoutProvider(
     () => 0,
     (_, dimensions) => {
-      dimensions.width = itemSize;
-      dimensions.height = itemSize;
+      dimensions.width = itemSizeNoGutter;
+      dimensions.height = itemSizeNoGutter;
     },
   );
 
   layoutProvider.shouldRefreshWithAnchoring = false;
 
-  function renderRow(_: unknown, data: PhotosItem) {
+  function renderRow(_: unknown, data: PhotosItem, index: number) {
+    const isFirst = index % COLUMNS === 0;
     return (
-      <>
-        <View style={{}}>
-          <GalleryItem size={itemSize - GUTTER} data={data} onPress={onItemPressed} />
-        </View>
-        <View style={{ height: GUTTER }} />
-      </>
+      <View
+        style={{
+          width: itemSizeNoGutter,
+          height: itemSizeNoGutter,
+          paddingBottom: GUTTER,
+          paddingLeft: isFirst ? 0 : GUTTER,
+        }}
+      >
+        <GalleryItem data={data} onPress={onItemPressed} />
+      </View>
     );
   }
 
   function renderFooter() {
     return <></>;
   }
+
   return (
     <View style={{ flex: 1 }}>
       <RecyclerListView
@@ -84,11 +100,8 @@ const GalleryAllView: React.FC<{
         layoutProvider={layoutProvider}
         rowRenderer={renderRow}
         dataProvider={photos}
-        onEndReachedThreshold={itemSize * 10}
-        renderAheadOffset={1000}
-        renderFooter={renderFooter}
-        indicatorStyle={'black'}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        renderFooter={renderFooter}
       />
     </View>
   );

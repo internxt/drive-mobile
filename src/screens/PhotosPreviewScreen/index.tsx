@@ -1,13 +1,13 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 
-import { View, TouchableOpacity, Animated, Easing } from 'react-native';
+import { View, TouchableOpacity, Animated, Easing, Platform, Dimensions, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowSquareOut, CaretLeft, DotsThreeVertical, DownloadSimple, Link, Trash } from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../types/navigation';
 import AppScreen from '../../components/AppScreen';
 
-import { PhotosItem, PhotosItemBacked, PhotoSyncStatus } from '../../types/photos';
+import { PhotosItem, PhotosItemBacked, PhotoSizeType, PhotoSyncStatus } from '../../types/photos';
 
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
@@ -23,6 +23,9 @@ import { PhotosAnalyticsEventKey, PhotosAnalyticsScreenKey } from '@internxt-mob
 import { PhotosContext } from 'src/contexts/Photos';
 import { INCREASED_TOUCH_AREA } from 'src/styles/global';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import { VideoViewer } from 'src/components/photos/VideoViewer';
+import { photosUtils } from '@internxt-mobile/services/photos/utils';
+import { PhotosItemType } from '@internxt/sdk/dist/photos';
 export interface PhotosItemActions {
   exportPhoto: () => void;
   saveToGallery: () => void;
@@ -44,7 +47,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
   const [generatingShareLink, setGeneratingShareLink] = useState(false);
   const fadeAnimProgress = useRef(new Animated.Value(0)).current;
   const [progressVisible, setProgressVisible] = useState(false);
-  const [fullSizeUri, setFullSizeUri] = useState<string | undefined>(undefined);
+  const [downloadedFullSizeUri, setDownloadedFullSizeUri] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -66,8 +69,10 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
 
   const { photoName } = route.params;
   const photosItem: PhotosItem = useMemo(() => photosCtx.getPhotosItem(photoName) as PhotosItem, [photoName]);
-
-  const isDownloading = !fullSizeUri && photosItem.status === PhotoSyncStatus.IN_SYNC_ONLY;
+  const isVideo = photosItem.type === PhotosItemType.VIDEO;
+  const isDownloading =
+    (!downloadedFullSizeUri && photosItem.status === PhotoSyncStatus.IN_SYNC_ONLY) ||
+    (photosItem.type === PhotosItemType.VIDEO && !downloadedFullSizeUri);
 
   const [openedModals, setOpenedModals] = useState<PhotoPreviewModal[]>([]);
 
@@ -77,13 +82,39 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
 
   useEffect(() => {
     isMounted = true;
-    loadFullSizePhoto();
+    downloadFullSizeIfNeeded();
     return () => {
       isMounted = false;
     };
   }, [photosItem]);
 
-  const loadFullSizePhoto = async () => {
+  const downloadFullSizeIfNeeded = async () => {
+    if (
+      photosItem.type === PhotosItemType.VIDEO &&
+      photosItem.status !== PhotoSyncStatus.IN_SYNC_ONLY &&
+      photosItem.localUri
+    ) {
+      /**
+       * In order to play the video, we need a local path, so on iOS
+       * we basically copy the asset to the file system, on Android
+       * this is a NOOP since the item path is already a file system
+       * path
+       */
+      const videoPath = await photosUtils.cameraRollUriToFileSystemUri({
+        name: photosItem.name,
+        format: photosItem.format,
+        itemType: photosItem.type,
+        uri: photosItem.localUri,
+        destination: photosUtils.getPhotoPath({
+          name: photosItem.name,
+          type: photosItem.format,
+          size: PhotoSizeType.Full,
+        }),
+      });
+
+      setDownloadedFullSizeUri(videoPath);
+    }
+
     if (
       !photosItem ||
       photosItem.status === PhotoSyncStatus.DEVICE_AND_IN_SYNC ||
@@ -100,7 +131,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
     });
 
     if (isMounted) {
-      if (destination) setFullSizeUri(destination);
+      if (destination) setDownloadedFullSizeUri(destination);
 
       setProgressVisible(false);
     }
@@ -198,7 +229,10 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
         pointerEvents={showActions ? 'auto' : 'none'}
         style={[
           tailwind('absolute top-0 w-full z-10'),
-          { height: (tailwind('h-24').height as number) + safeAreaInsets.top, opacity: fadeAnim },
+          {
+            height: (tailwind('h-24').height as number) + safeAreaInsets.top,
+            opacity: fadeAnim,
+          },
         ]}
       >
         <LinearGradient
@@ -288,6 +322,51 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
     );
   }
 
+  const renderVideoViewer = () => {
+    if (Platform.OS === 'ios') {
+      return <VideoViewer thumbnail={photosItem.localPreviewPath} source={downloadedFullSizeUri} />;
+    }
+
+    if (Platform.OS === 'android') {
+      // On Android some callbacks doesn't work also there's
+      // no full screen mode, so we display the video in
+      // a framed view only
+      // https://github.com/react-native-video/react-native-video/issues/1879
+
+      const totalHeaderHeight = tailwind('h-24').height as number;
+      const framedVideoHeight =
+        Dimensions.get('window').height - (totalHeaderHeight * 2 + safeAreaInsets.top + safeAreaInsets.bottom);
+
+      return (
+        <View
+          style={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <View style={{ height: framedVideoHeight }}>
+            <VideoViewer thumbnail={photosItem.localPreviewPath} source={downloadedFullSizeUri} />
+          </View>
+        </View>
+      );
+    }
+  };
+
+  const renderImageViewer = () => {
+    return (
+      <ImageViewer
+        source={fileSystemService.pathToUri(
+          downloadedFullSizeUri ? downloadedFullSizeUri : photosItem.localPreviewPath,
+        )}
+        onTapImage={handleTapImage}
+        onZoomImage={handleZoomImage}
+        onImageViewReset={handleImageViewReset}
+      />
+    );
+  };
+
   return (
     <>
       <AppScreen
@@ -297,12 +376,8 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
         style={{ ...tailwind('h-full') }}
       >
         <PhotoPreviewHeader />
-        <ImageViewer
-          source={fileSystemService.pathToUri(fullSizeUri ? fullSizeUri : photosItem.localPreviewPath)}
-          onTapImage={handleTapImage}
-          onZoomImage={handleZoomImage}
-          onImageViewReset={handleImageViewReset}
-        />
+        {isVideo ? renderVideoViewer() : renderImageViewer()}
+
         <PhotoPreviewFooter />
       </AppScreen>
       <GeneratingLinkModal isGenerating={generatingShareLink} />
