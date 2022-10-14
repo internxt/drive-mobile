@@ -50,14 +50,10 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
   const isRootFolder = currentFolderId === user?.root_folder_id;
   const screenTitle = !isRootFolder ? currentFolderName : strings.screens.drive.title;
   const driveSortedItems = useMemo(
-    () => [
-      ...driveUploadingItems,
-      ...driveItems.sort(drive.file.getSortFunction(sortMode)).sort((a, b) => {
-        const aValue = a.data.fileId ? 1 : 0;
-        const bValue = b.data.fileId ? 1 : 0;
-        return aValue - bValue;
-      }),
-    ],
+    () =>
+      driveUploadingItems
+        .concat(driveItems.filter((item) => !item.data.fileId).sort(drive.file.getSortFunction(sortMode)))
+        .concat(driveItems.filter((item) => item.data.fileId).sort(drive.file.getSortFunction(sortMode))),
     [sortMode, driveUploadingItems, driveItems],
   );
   const onCurrentFolderActionsButtonPressed = () => {
@@ -83,7 +79,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
 
   const onSortModeChange = (mode: SortMode) => {
     setSortMode(mode);
-    setSortModalOpen(false);
+    setTimeout(() => setSortModalOpen(false), 1);
   };
 
   const onCloseSortModal = () => {
