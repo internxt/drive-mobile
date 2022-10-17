@@ -3,7 +3,6 @@ import {
   DevicePhoto,
   PhotoFileSystemRef,
   PhotosItem,
-  PhotosItemType,
   PhotoSizeType,
   PhotoSyncStatus,
 } from '@internxt-mobile/types/photos';
@@ -15,7 +14,8 @@ import RNFS from 'react-native-fs';
 import * as crypto from 'react-native-crypto';
 import { PHOTOS_FULL_SIZE_DIRECTORY, PHOTOS_PREVIEWS_DIRECTORY } from '../constants';
 import { MediaType } from 'expo-media-library';
-import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
+
+import { Photo, PhotoPreviewType, PhotosItemType, PhotoStatus } from '@internxt/sdk/dist/photos';
 export class PhotosUtils {
   /**
    * Gets the type of the photo
@@ -50,16 +50,32 @@ export class PhotosUtils {
    * @param uri camera roll provided uri, usually something like asset://... or ph://...
    * @returns The filesystem ref to the photo
    */
-  public async cameraRollUriToFileSystemUri(
-    { name, type }: { name: string; type: string },
-    uri: string,
-  ): Promise<string> {
-    const filename = items.getItemDisplayName({ name, type });
-    const iosPath = fileSystemService.tmpFilePath(filename);
+  public async cameraRollUriToFileSystemUri({
+    name,
+    format,
+    itemType,
+    uri,
+    destination,
+  }: {
+    name: string;
+    format: string;
+    itemType: PhotosItemType;
+    destination?: string;
+    uri: string;
+  }): Promise<string> {
+    const filename = items.getItemDisplayName({ name, type: format });
+    const iosPath = destination || fileSystemService.tmpFilePath(filename);
     let path = uri;
 
     if (Platform.OS === 'ios' && uri.startsWith('ph://')) {
-      await RNFS.copyAssetsFileIOS(uri, iosPath, 0, 0);
+      if (itemType === PhotosItemType.PHOTO) {
+        await RNFS.copyAssetsFileIOS(uri, iosPath, 0, 0);
+      }
+
+      if (itemType === PhotosItemType.VIDEO) {
+        await RNFS.copyAssetsVideoIOS(uri, iosPath);
+      }
+
       path = iosPath;
     }
 
@@ -101,11 +117,11 @@ export class PhotosUtils {
 
   public getPhotoPath({ name, size, type }: { name: string; size: PhotoSizeType; type: string }) {
     if (size === PhotoSizeType.Full) {
-      return `${PHOTOS_FULL_SIZE_DIRECTORY}/${name}.${type.toLowerCase()}`;
+      return `${PHOTOS_FULL_SIZE_DIRECTORY}/${name}.${type}`;
     }
 
     if (size === PhotoSizeType.Preview) {
-      return `${PHOTOS_PREVIEWS_DIRECTORY}/${name}.${type.toLowerCase()}`;
+      return `${PHOTOS_PREVIEWS_DIRECTORY}/${name}.${type}`;
     }
 
     throw new Error('Photo size is not recognized');
@@ -120,6 +136,8 @@ export class PhotosUtils {
         size: PhotoSizeType.Full,
       });
 
+      const previewType = from.previews ? from.previews[0].type : ('JPEG' as PhotoPreviewType);
+
       return {
         photoId: from.id,
         photoFileId: from.fileId,
@@ -129,7 +147,7 @@ export class PhotosUtils {
         takenAt: new Date(from.takenAt).getTime(),
         localPreviewPath: this.getPhotoPath({
           name: from.name,
-          type: from.type,
+          type: previewType,
           size: PhotoSizeType.Preview,
         }),
         localFullSizePath: fullSizePath,
@@ -137,7 +155,12 @@ export class PhotosUtils {
         height: from.height,
         format: from.type,
         localUri: null,
-        type: PhotosItemType.PHOTO,
+        duration: from.duration,
+        type: from.itemType || PhotosItemType.PHOTO,
+        // TODO: Add the networkBucketId type to the SDK
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        bucketId: from.networkBucketId,
         status: from.status !== PhotoStatus.Exists ? PhotoSyncStatus.DELETED : PhotoSyncStatus.IN_SYNC_ONLY,
         getDisplayName() {
           return `${from.name}.${from.type.toLowerCase()}`;
@@ -150,13 +173,14 @@ export class PhotosUtils {
 
       const name = this.getPhotoName(photo.filename);
       const format = this.getPhotoFormat(photo.filename);
+      const itemType = photo.mediaType === MediaType.photo ? PhotosItemType.PHOTO : PhotosItemType.VIDEO;
       return {
         photoFileId: null,
         photoId: null,
         previewFileId: null,
         name,
         format,
-        type: photo.mediaType === MediaType.photo ? PhotosItemType.PHOTO : PhotosItemType.VIDEO,
+        type: itemType,
         takenAt: photo.creationTime,
         width: photo.width,
         height: photo.height,
@@ -165,19 +189,20 @@ export class PhotosUtils {
         localFullSizePath: photo.uri,
         updatedAt: photo.modificationTime,
         localUri: photo.uri,
+        bucketId: null,
         getSize: async () => {
-          const path = await this.cameraRollUriToFileSystemUri(
-            {
-              name,
-              type: format,
-            },
-            from.uri,
-          );
+          const path = await this.cameraRollUriToFileSystemUri({
+            name,
+            format,
+            itemType,
+            uri: from.uri,
+          });
           const stat = await fileSystemService.statRNFS(path);
 
           await fileSystemService.unlinkIfExists(path);
           return parseInt(stat.size);
         },
+        duration: photo.duration,
         getDisplayName() {
           return `${name}.${format.toLowerCase()}`;
         },
@@ -207,6 +232,7 @@ export class PhotosUtils {
         }
       }
 
+      // Photo is in server
       if (photosItem.status === PhotoSyncStatus.IN_SYNC_ONLY) {
         if (mapByName[key] && mapByName[key].status === PhotoSyncStatus.IN_DEVICE_ONLY) {
           mapByName[key].photoFileId = photosItem.photoFileId;
@@ -217,6 +243,7 @@ export class PhotosUtils {
         }
       }
 
+      // Photo is in device
       if (photosItem.status === PhotoSyncStatus.IN_DEVICE_ONLY) {
         if (mapByName[key] && mapByName[key].status === PhotoSyncStatus.IN_SYNC_ONLY) {
           mapByName[key].localFullSizePath = photosItem.localUri as string;

@@ -113,15 +113,15 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     // 1. Get photo data and the hash
     const photoData = operation.photosItem;
     const name = photoData.name;
-    operation.photosItem.localUri = await photosUtils.cameraRollUriToFileSystemUri(
-      {
-        name: operation.photosItem.name,
-        type: operation.photosItem.format,
-      },
-      operation.photosItem.localUri,
-    );
+    const localUriToPath = await photosUtils.cameraRollUriToFileSystemUri({
+      name: operation.photosItem.name,
+      format: operation.photosItem.format,
+      itemType: operation.photosItem.type,
+      uri: operation.photosItem.localUri,
+    });
+
     const hash = (
-      await photosUtils.getPhotoHash(credentials.user.userId, name, photoData.takenAt, operation.photosItem.localUri)
+      await photosUtils.getPhotoHash(credentials.user.userId, name, photoData.takenAt, localUriToPath)
     ).toString('hex');
 
     // 2. Make sure in the meantime, the photo was not pulled from the server, avoid network hits
@@ -143,14 +143,9 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     const uploadGeneratedElapsed = Date.now() - (previewGeneratedElapsed + startAt);
     this.log(`Preview uploaded in ${uploadGeneratedElapsed / 1000}s`);
 
-    const photoPath = await photosUtils.cameraRollUriToFileSystemUri(
-      { name: photoData.name, type: photoData.format },
-      photoData.localFullSizePath,
-    );
-
     this.log('Hash for photo generated');
     // 4. Upload the photo
-    const photo = await photosNetwork.upload(operation.photosItem.localUri, {
+    const photo = await photosNetwork.upload(localUriToPath, {
       name,
       width: photoData.width,
       height: photoData.height,
@@ -169,7 +164,9 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       ],
       type: photoData.format,
       userId: user.id,
-      size: parseInt((await fileSystemService.statRNFS(operation.photosItem.localUri)).size),
+      duration: photoData.duration,
+      itemType: photoData.type,
+      size: parseInt((await fileSystemService.statRNFS(localUriToPath)).size),
     });
     const photoUploadedElapsed = Date.now() - (uploadGeneratedElapsed + previewGeneratedElapsed + startAt);
     this.log(`Photo uploaded successfully in ${photoUploadedElapsed / 1000}s`);
@@ -178,7 +175,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
      * from another location so here we remove the copy
      */
     if (Platform.OS === 'ios') {
-      await fileSystemService.unlinkIfExists(photoPath);
+      await fileSystemService.unlinkIfExists(localUriToPath);
     }
 
     const totalElapsed = Date.now() - startAt;

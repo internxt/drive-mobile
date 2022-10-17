@@ -9,11 +9,13 @@ describe('Photos utils test', () => {
       const deviceOnlyPhotosItem: PhotosItem = createPhotosItemFixture({
         status: PhotoSyncStatus.IN_DEVICE_ONLY,
         name: 'photo_device_1',
+        takenAt: 123,
       });
 
       const syncOnlyPhotosItem: PhotosItem = createPhotosItemFixture({
         status: PhotoSyncStatus.IN_SYNC_ONLY,
         name: 'photo_device_1',
+        takenAt: 123,
       });
       const merged = sut.mergePhotosItems([deviceOnlyPhotosItem, syncOnlyPhotosItem]);
       expect(merged.length).toBe(1);

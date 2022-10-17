@@ -1,4 +1,4 @@
-import { Photo, Device, User } from '@internxt/sdk/dist/photos';
+import { Photo, Device, User, PhotosItemType } from '@internxt/sdk/dist/photos/types';
 import { FileSystemRef, NetworkCredentials } from '.';
 import * as MediaLibrary from 'expo-media-library';
 export enum GalleryViewMode {
@@ -185,11 +185,6 @@ export enum PhotoSyncStatus {
   DELETED = 'deleted',
 }
 
-export enum PhotosItemType {
-  PHOTO = 'photo',
-  VIDEO = 'video',
-}
-
 export type PhotosItem = {
   photoId: string | null;
   photoFileId: string | null;
@@ -202,11 +197,12 @@ export type PhotosItem = {
   height: number;
   format: string;
   type: PhotosItemType;
-
+  duration?: number;
   localPreviewPath: PhotoFileSystemRef;
   localFullSizePath: PhotoFileSystemRef;
   status: PhotoSyncStatus;
   localUri: string | null;
+  bucketId: string | null;
   getSize: () => Promise<number>;
   getDisplayName: () => string;
 };

@@ -25,13 +25,16 @@ class AsyncStorageService {
     return AsyncStorage.getAllKeys();
   }
 
-  clearStorage(): Promise<void> {
-    return AsyncStorage.multiRemove([
+  async clearStorage(): Promise<void> {
+    await AsyncStorage.multiRemove([
       AsyncStorageKey.User,
       AsyncStorageKey.Token,
       AsyncStorageKey.PhotosToken,
       AsyncStorageKey.LastPhotosPagePulled,
     ]);
+
+    // eslint-disable-next-line no-console
+    console.info('Async Storage cleaned');
   }
 }
 
