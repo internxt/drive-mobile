@@ -1,4 +1,3 @@
-import { Photo } from '@internxt/sdk/dist/photos';
 import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -17,15 +16,7 @@ export type RootStackParamList = {
   SignIn: undefined;
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList> & { showReferralsBanner?: boolean };
   ForgotPassword: undefined;
-  PhotosPreview: {
-    data: Omit<Photo, 'takenAt' | 'statusChangedAt' | 'createdAt' | 'updatedAt'> & {
-      takenAt: string;
-      statusChangedAt: string;
-      createdAt: string;
-      updatedAt: string;
-    };
-    preview: string;
-  };
+  PhotosPreview: { photoName: string };
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<

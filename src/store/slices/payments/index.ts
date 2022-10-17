@@ -38,13 +38,17 @@ const initialState: PaymentsState = {
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'payments/initialize',
   async (_, { dispatch }) => {
-    const { credentials } = await authService.getAuthCredentials();
+    try {
+      const { credentials } = await authService.getAuthCredentials();
 
-    if (credentials) {
-      dispatch(loadPricesThunk());
-      dispatch(loadUserSubscriptionThunk());
-      dispatch(loadInvoicesThunk());
-      dispatch(loadDefaultPaymentMethodThunk());
+      if (credentials) {
+        dispatch(loadPricesThunk());
+        dispatch(loadUserSubscriptionThunk());
+        dispatch(loadInvoicesThunk());
+        dispatch(loadDefaultPaymentMethodThunk());
+      }
+    } catch (err) {
+      // Pass
     }
   },
 );

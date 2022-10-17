@@ -1,10 +1,7 @@
-import { Photo, Device, User } from '@internxt/sdk/dist/photos';
+import { Photo, Device, User, PhotosItemType } from '@internxt/sdk/dist/photos/types';
 import { FileSystemRef, NetworkCredentials } from '.';
 import * as MediaLibrary from 'expo-media-library';
 export enum GalleryViewMode {
-  Years = 'years',
-  Months = 'months',
-  Days = 'days',
   All = 'all',
 }
 export enum GalleryItemType {
@@ -115,15 +112,6 @@ export enum DevicePhotosSyncCheckerStatus {
   RUNNING = 'RUNNING',
   PAUSED = 'PAUSED',
   IDLE = 'IDLE',
-  EMPTY = 'EMPTY',
-  COMPLETED = 'COMPLETED',
-}
-
-export enum PhotosSyncManagerStatus {
-  RUNNING = 'RUNNING',
-  PAUSED = 'PAUSED',
-  IDLE = 'IDLE',
-  EMPTY = 'EMPTY',
   COMPLETED = 'COMPLETED',
   ABORTED = 'ABORTED',
 }
@@ -132,7 +120,15 @@ export enum PhotosNetworkManagerStatus {
   RUNNING = 'RUNNING',
   PAUSED = 'PAUSED',
   IDLE = 'IDLE',
-  EMPTY = 'EMPTY',
+  COMPLETED = 'COMPLETED',
+  ABORTED = 'ABORTED',
+}
+
+export enum PhotosSyncManagerStatus {
+  RUNNING = 'RUNNING',
+  PAUSED = 'PAUSED',
+  IDLE = 'IDLE',
+  COMPLETED = 'COMPLETED',
   ABORTED = 'ABORTED',
 }
 
@@ -148,12 +144,8 @@ export enum PhotosNetworkOperationResult {
 }
 
 export interface PhotosNetworkOperation {
-  devicePhoto: DevicePhoto;
-  hash: string;
-  photoRef: PhotoFileSystemRef;
+  photosItem: PhotosItem;
   lastError?: Error;
-  uploadedPhoto?: Photo;
-  result: PhotosNetworkOperationResult;
   onOperationCompleted: (err: Error | null, photo: Photo | null) => void;
 }
 export type DevicePhoto = MediaLibrary.Asset;
@@ -164,9 +156,8 @@ export enum DevicePhotosOperationPriority {
 }
 
 export interface DevicePhotoSyncCheckOperation {
-  id: string;
-  devicePhoto: DevicePhoto;
-  uploadedPhoto?: Photo;
+  photosItem: PhotosItem;
+  syncedPhoto?: Photo;
   createdAt: Date;
   lastTry?: Date;
   lastError?: Error;
@@ -187,4 +178,37 @@ export interface DevicePhotoRemoteCheck {
   photo?: Photo;
 }
 
-export type PhotoWithPreview = Photo & { resolvedPreview: string | null };
+export enum PhotoSyncStatus {
+  IN_SYNC_ONLY = 'in_sync_only',
+  IN_DEVICE_ONLY = 'in_device_only',
+  DEVICE_AND_IN_SYNC = 'device_and_in_sync',
+  DELETED = 'deleted',
+}
+
+export type PhotosItem = {
+  photoId: string | null;
+  photoFileId: string | null;
+  previewFileId: string | null;
+  // name + takenAt + content hash makes a photo unique
+  name: string;
+  takenAt: number;
+  updatedAt: number;
+  width: number;
+  height: number;
+  format: string;
+  type: PhotosItemType;
+  duration?: number;
+  localPreviewPath: PhotoFileSystemRef;
+  localFullSizePath: PhotoFileSystemRef;
+  status: PhotoSyncStatus;
+  localUri: string | null;
+  bucketId: string | null;
+  getSize: () => Promise<number>;
+  getDisplayName: () => string;
+};
+
+export type PhotosItemBacked = PhotosItem & {
+  photoId: string;
+  photoFileId: string;
+  previewFileId: string;
+};

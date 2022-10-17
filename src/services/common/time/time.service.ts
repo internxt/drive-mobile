@@ -1,3 +1,4 @@
+import strings from 'assets/lang/strings';
 import { DateTime, Settings } from 'luxon';
 
 export type TimeInput = Date | number | string;
@@ -6,6 +7,11 @@ export type TimeInput = Date | number | string;
  * with time utilities such dates
  */
 export class TimeService {
+  public formats = {
+    dateAtTime: `dd LLL yyyy '${strings.generic.atTime}' HH:mm`,
+    duration: 'mm:ss',
+  };
+
   /**
    * Sets a default global locale
    * @param locale The locale to set
@@ -40,6 +46,10 @@ export class TimeService {
    */
   getDateTime(input: TimeInput) {
     return DateTime.fromJSDate(new Date(input));
+  }
+
+  fromSeconds(seconds: number) {
+    return DateTime.fromSeconds(seconds);
   }
 }
 

@@ -1,9 +1,7 @@
+import photos from '@internxt-mobile/services/photos';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
-
 import strings from '../../../assets/lang/strings';
-import { useAppDispatch } from '../../store/hooks';
-import { photosThunks } from '../../store/slices/photos';
 import AppButton from '../AppButton';
 import AppText from '../AppText';
 
@@ -13,9 +11,9 @@ interface DebugPhotosWidgetProps {
 
 const DebugPhotosWidget = (props: DebugPhotosWidgetProps): JSX.Element => {
   const tailwind = useTailwind();
-  const dispatch = useAppDispatch();
+
   const onResetPhotosFilesystemData = async () => {
-    dispatch(photosThunks.clearPhotosThunk());
+    await photos.clear();
   };
 
   return (

@@ -6,7 +6,6 @@ import authService from '../../../services/AuthService';
 import userService from '../../../services/UserService';
 import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
 import { AsyncStorageKey, DevicePlatform, NotificationType } from '../../../types';
-import { photosActions, photosThunks } from '../photos';
 import { driveActions, driveThunks } from '../drive';
 import { uiActions } from '../ui';
 import notificationsService from '../../../services/NotificationsService';
@@ -17,6 +16,7 @@ import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
 import errorService from 'src/services/ErrorService';
 import { SdkManager } from '@internxt-mobile/services/common';
 import UserService from '../../../services/UserService';
+import photos from '@internxt-mobile/services/photos';
 
 export interface AuthState {
   loggedIn: boolean | null;
@@ -83,6 +83,15 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
           user: credentials.user,
         }),
       );
+
+      /**
+       * TODO centralize this somewhere else
+       * this is not the right place
+       */
+      photos.analytics.setUser({
+        email: credentials.user.email,
+        uuid: credentials.user.uuid,
+      });
       authService.emitLoginEvent();
     } catch {
       dispatch(authActions.setLoggedIn(false));
@@ -114,6 +123,19 @@ export const signInThunk = createAsyncThunk<
   await asyncStorageService.saveItem(AsyncStorageKey.User, JSON.stringify(userToSave));
   dispatch(authActions.setSignInData({ token: payload.token, photosToken: payload.newToken, user: userToSave }));
 
+  SdkManager.init({
+    token: payload.token,
+    photosToken: payload.newToken,
+    mnemonic: userToSave.mnemonic,
+  });
+  /**
+   * TODO centralize this somewhere else
+   * this is not the right place
+   */
+  photos.analytics.setUser({
+    email: userToSave.email,
+    uuid: userToSave.uuid,
+  });
   authService.emitLoginEvent();
 
   return {
@@ -125,16 +147,13 @@ export const signInThunk = createAsyncThunk<
 
 export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/signOut',
-  async (payload, { dispatch }) => {
+  async (_, { dispatch }) => {
     await authService.signout();
-
+    await photos.clear();
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
     dispatch(driveThunks.clearLocalDatabaseThunk());
     dispatch(driveActions.resetState());
-
-    dispatch(photosThunks.clearPhotosThunk());
-    dispatch(photosActions.resetState());
     dispatch(authActions.setLoggedIn(false));
     authService.emitLogoutEvent();
   },

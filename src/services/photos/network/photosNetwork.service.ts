@@ -1,12 +1,13 @@
 import { constants } from '@internxt-mobile/services/AppService';
 import { SdkManager } from '@internxt-mobile/services/common';
-import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { FileSystemRef } from '@internxt-mobile/types/index';
-import { PhotoFileSystemRef } from '@internxt-mobile/types/photos';
-import { CreatePhotoData, Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
+import { PhotoFileSystemRef, PhotosItemBacked } from '@internxt-mobile/types/photos';
+import { CreatePhotoData, Photo } from '@internxt/sdk/dist/photos';
 import { getEnvironmentConfig } from 'src/lib/network';
 import network from 'src/network';
+import { REMOTE_PHOTOS_PER_PAGE } from '../constants';
 import { photosLocalDB } from '../database';
+import { photosUser } from '../user';
 
 export class PhotosNetworkService {
   private sdk: SdkManager;
@@ -14,34 +15,32 @@ export class PhotosNetworkService {
     this.sdk = sdk;
   }
 
-  public async getPhotos({
-    limit = 50,
-    skip = 0,
-  }: {
-    limit: number;
-    skip?: number;
-  }): Promise<{ results: Photo[]; count: number }> {
-    const { results, count } = await this.sdk.photos.photos.getPhotos({ status: PhotoStatus.Exists }, skip, limit);
+  public async getPhotos(page = 1): Promise<{ results: Photo[]; count: number }> {
+    const limit = REMOTE_PHOTOS_PER_PAGE;
+    const skip = limit * (page - 1);
+    const { results, count } = await this.sdk.photos.photos.getPhotos({}, skip, limit);
 
     return { results, count };
   }
 
-  public async deletePhotos(photos: Photo[]): Promise<void> {
+  public async deletePhotos(photos: PhotosItemBacked[]): Promise<void> {
     await Promise.all(
       photos.map(async (photo) => {
-        await this.sdk.photos.photos.deletePhotoById(photo.id);
-        await photosLocalDB.deletePhotoById(photo.id);
+        await this.sdk.photos.photos.deletePhotoById(photo.photoId);
+        await photosLocalDB.deleteSyncedPhotosItem(photo.photoId);
       }),
     );
   }
 
   public async uploadPreview(previewRef: PhotoFileSystemRef) {
-    const { bridgeUser, bridgePass, encryptionKey, bucketId } = await getEnvironmentConfig();
+    const user = photosUser.getUser();
+    if (!user) throw new Error('Photos user not found');
+    const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
 
     return network.uploadFile(
       previewRef,
-      bucketId,
-      encryptionKey || '',
+      user.bucketId,
+      encryptionKey,
       constants.PHOTOS_NETWORK_API_URL,
       {
         user: bridgeUser,
@@ -51,12 +50,17 @@ export class PhotosNetworkService {
     );
   }
 
-  public async upload(photoRef: PhotoFileSystemRef, data: Omit<CreatePhotoData, 'fileId'>): Promise<Photo> {
-    const { bridgeUser, bridgePass, encryptionKey, bucketId } = await getEnvironmentConfig();
+  public async upload(
+    photoRef: PhotoFileSystemRef,
+    data: Omit<CreatePhotoData, 'fileId' | 'networkBucketId'>,
+  ): Promise<Photo | null> {
+    const user = photosUser.getUser();
+    if (!user) throw new Error('Photos user not found');
+    const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
 
     const fileId = await network.uploadFile(
-      fileSystemService.uriToPath(photoRef),
-      bucketId,
+      photoRef,
+      user.bucketId,
       encryptionKey,
       constants.PHOTOS_NETWORK_API_URL,
       {
@@ -79,26 +83,30 @@ export class PhotosNetworkService {
       previewId: data.previewId,
       previews: data.previews,
       hash: data.hash,
+      networkBucketId: user.bucketId,
+      itemType: data.itemType,
+      duration: data.duration,
     };
 
-    const createdPhoto = await this.sdk.photos.photos.createPhoto(createPhotoData);
-
-    return createdPhoto;
+    return this.sdk.photos.photos.findOrCreatePhoto(createPhotoData);
   }
 
   public async download(
     fileId: string,
     options: {
+      bucketId?: string;
       destination: FileSystemRef;
       downloadProgressCallback: (progress: number) => void;
       decryptionProgressCallback: (progress: number) => void;
     },
   ): Promise<PhotoFileSystemRef> {
-    const { bridgeUser, bridgePass, encryptionKey, bucketId } = await getEnvironmentConfig();
+    const user = photosUser.getUser();
+    if (!user) throw new Error('Photos user not found');
+    const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
 
     await network.downloadFile(
       fileId,
-      bucketId,
+      options.bucketId || user.bucketId,
       encryptionKey,
       {
         user: bridgeUser,

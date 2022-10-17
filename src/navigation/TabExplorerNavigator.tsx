@@ -54,7 +54,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Drive" component={DriveScreen} />
         <Tab.Screen name="Add" component={EmptyScreen} />
-        <Tab.Screen name="Photos" component={PhotosNavigator} />
+        <Tab.Screen name="Photos" component={PhotosNavigator} options={{ lazy: false }} />
         <Tab.Screen name="Settings" component={SettingsNavigator} />
       </Tab.Navigator>
 

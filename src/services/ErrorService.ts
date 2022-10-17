@@ -35,7 +35,7 @@ class ErrorService {
     return castedError;
   }
 
-  public reportError(error: Error, context: Partial<ErrorContext>) {
+  public reportError(error: Error | unknown, context: Partial<ErrorContext> = {}) {
     if (!__DEV__) {
       sentryService.native.captureException(error, {
         level: context.level || Severity.Error,

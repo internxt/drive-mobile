@@ -1,67 +1,59 @@
 import React from 'react';
-import { Text, View } from 'react-native';
-import { Photo } from '@internxt/sdk/dist/photos';
+import { View } from 'react-native';
 
-import globalStyle from '../../../styles/global';
-import BottomModal, { BottomModalProps } from '../BottomModal';
+import { BottomModalProps } from '../BottomModal';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../AppButton';
-import { useAppDispatch } from '../../../store/hooks';
-import { photosActions, photosThunks } from '../../../store/slices/photos';
 import { useTailwind } from 'tailwind-rn';
+import CenterModal from '../CenterModal';
+import AppText from 'src/components/AppText';
+import { PhotosItem } from '@internxt-mobile/types/photos';
 
-interface DeletePhotosModalProps extends BottomModalProps {
-  data: Photo[];
-  onPhotosDeleted?: () => void;
+interface DeletePhotosModalProps {
+  data: PhotosItem[];
+  isOpen: boolean;
+  actions: {
+    onConfirm: () => void;
+    onClose: () => void;
+  };
 }
 
-function DeletePhotosModal({ isOpen, onClosed, data, onPhotosDeleted }: DeletePhotosModalProps): JSX.Element {
+function DeletePhotosModal({ isOpen, actions }: DeletePhotosModalProps): JSX.Element {
   const tailwind = useTailwind();
-  const dispatch = useAppDispatch();
-  const onCancelButtonPressed = () => {
-    onClosed();
-  };
-  const onMoveToTrashButtonPressed = async () => {
-    await dispatch(photosThunks.deletePhotosThunk({ photosToDelete: data }));
-    dispatch(photosActions.deselectAll());
-    onPhotosDeleted?.();
-    onClosed();
-  };
+
+  const onCancelButtonPressed = () => actions.onClose();
+
+  const onClose = () => actions.onClose();
 
   return (
-    <BottomModal isOpen={isOpen} onClosed={onClosed}>
-      <Text
-        style={[
-          tailwind('w-full text-center mt-10 mb-4 text-xl font-semibold text-neutral-500'),
-          globalStyle.fontWeight.medium,
-        ]}
-      >
-        {strings.modals.deletePhotosModal.title}
-      </Text>
-      {/* ADVICE */}
-      <Text style={[tailwind('mb-6 px-9 text-center text-sm text-neutral-100'), globalStyle.fontWeight.medium]}>
-        {strings.modals.deletePhotosModal.message}
-      </Text>
+    <CenterModal isOpen={isOpen} onClosed={onClose}>
+      <View style={tailwind('px-4 py-4')}>
+        <AppText medium style={tailwind('text-xl text-gray-80 mb-4')}>
+          {strings.modals.deletePhotosModal.title}
+        </AppText>
+        {/* ADVICE */}
+        <AppText style={tailwind('text-lg text-gray-80 mb-6')}>{strings.modals.deletePhotosModal.message}</AppText>
 
-      {/* ACTIONS */}
-      <View style={tailwind('p-3 flex-row justify-center')}>
-        <AppButton
-          title={strings.buttons.cancel}
-          type="cancel"
-          onPress={onCancelButtonPressed}
-          style={tailwind('flex-1')}
-        />
+        {/* ACTIONS */}
+        <View style={tailwind('flex-row justify-center')}>
+          <AppButton
+            title={strings.buttons.cancel}
+            type="cancel"
+            onPress={onCancelButtonPressed}
+            style={tailwind('flex-1')}
+          />
 
-        <View style={tailwind('w-2')} />
+          <View style={tailwind('w-3')} />
 
-        <AppButton
-          title={strings.buttons.moveToThrash}
-          type="delete"
-          onPress={onMoveToTrashButtonPressed}
-          style={tailwind('flex-1')}
-        />
+          <AppButton
+            title={strings.buttons.delete}
+            type="delete"
+            onPress={actions.onConfirm}
+            style={tailwind('flex-1')}
+          />
+        </View>
       </View>
-    </BottomModal>
+    </CenterModal>
   );
 }
 

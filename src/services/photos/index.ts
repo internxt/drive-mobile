@@ -7,13 +7,18 @@ import { photosUsage } from './usage';
 import { photosUser } from './user';
 import { photosUtils } from './utils';
 import { photosPreview } from './preview';
-import { photosSync } from './sync/PhotosSyncManager';
+import { photosSync } from './sync';
 import { photosNetwork } from './network/photosNetwork.service';
+import asyncStorageService from '../AsyncStorageService';
+import { AsyncStorageKey } from '@internxt-mobile/types/index';
+import { photosAnalytics } from './analytics/photosAnalytics';
 
 const photos = {
   clear: async () => {
     await photosLocalDB.clear();
     await fileSystemService.unlinkIfExists(PHOTOS_ROOT_DIRECTORY);
+    await asyncStorageService.deleteItem(AsyncStorageKey.LastPhotosPagePulled);
+    photosLogger.info('Photos system clear');
   },
   start: async () => {
     await fileSystemService.mkdir(PHOTOS_FULL_SIZE_DIRECTORY);
@@ -28,5 +33,6 @@ const photos = {
   utils: photosUtils,
   sync: photosSync,
   network: photosNetwork,
+  analytics: photosAnalytics,
 };
 export default photos;

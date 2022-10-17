@@ -16,11 +16,10 @@ function RunOutOfStorageModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
-  const { limit } = useAppSelector((state) => state.storage);
-  const { usage: driveUsage } = useAppSelector((state) => state.drive);
-  const { usage: photosUsage } = useAppSelector((state) => state.photos);
+  const { limit, totalUsage } = useAppSelector((state) => state.storage);
+
   const { showRunOutOfSpaceModal } = useAppSelector((state) => state.ui);
-  const usage = photosUsage + driveUsage;
+
   const getLimitString = () => {
     if (limit === 0) {
       return '...';
@@ -33,7 +32,7 @@ function RunOutOfStorageModal(): JSX.Element {
     return prettysize(limit, true);
   };
   const getUsageString = () => {
-    return prettysize(usage);
+    return prettysize(totalUsage);
   };
   const onUpgradeNowButtonPressed = () => {
     dispatch(uiActions.setShowRunOutSpaceModal(false));

@@ -1,44 +1,37 @@
 import { CheckCircle, Pause, Play } from 'phosphor-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosThunks } from '../../store/slices/photos';
 import { PhotosEventKey, PhotosSyncStatus } from '../../types/photos';
 import LoadingSpinner from '../LoadingSpinner';
 import AppText from '../AppText';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
+import { PhotosContext } from 'src/contexts/Photos';
 import photos from '@internxt-mobile/services/photos';
 
 const PhotosSyncStatusWidget = () => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const dispatch = useAppDispatch();
-
-  const { syncStatus } = useAppSelector((state) => state.photos);
-  const [completedTasks, setCompletedTasks] = useState(syncStatus.completedTasks);
-
-  const photosSyncStatus = syncStatus.status;
-  const totalTasks = syncStatus.totalTasks;
-  useEffect(() => {
-    photos.events.addListener({
-      event: PhotosEventKey.PhotoSyncDone,
-      listener: ([photosSynced]) => {
-        setCompletedTasks(photosSynced);
-      },
-    });
-  }, []);
+  const photosCtx = useContext(PhotosContext);
 
   const onResumeSyncPressed = () => {
-    dispatch(photosThunks.resumeSyncThunk());
+    photos.events.emit({
+      event: PhotosEventKey.ResumeSync,
+    });
+  };
+
+  const renderPending = () => {
+    if (!photosCtx.sync.pendingTasks) return '';
+    return `${photosCtx.sync.pendingTasks} ${strings.screens.gallery.items_left}`;
   };
   const contentByStatus = {
     [PhotosSyncStatus.Unknown]: (
-      <View style={tailwind('flex-row items-center')}>
-        <LoadingSpinner style={tailwind('mr-2')} size={14} />
-        <AppText style={tailwind('text-sm text-neutral-100')}>{strings.generic.preparing}</AppText>
+      <View style={tailwind('flex-row items-center justify-center')}>
+        <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
+          {strings.generic.preparing}
+        </AppText>
       </View>
     ),
     [PhotosSyncStatus.Calculating]: (
@@ -62,17 +55,18 @@ const PhotosSyncStatusWidget = () => {
     ),
     [PhotosSyncStatus.Paused]: (
       <View style={tailwind('flex-row items-center')}>
-        <Text style={tailwind('text-sm text-neutral-100')}>{strings.screens.gallery.paused}</Text>
+        <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
+          Backup paused
+        </AppText>
+        <AppText style={tailwind('text-sm text-neutral-100')}>{renderPending()}</AppText>
       </View>
     ),
     [PhotosSyncStatus.InProgress]: (
-      <View style={tailwind('flex-row items-center')}>
-        <LoadingSpinner style={tailwind('mr-2')} size={14} />
-        <Text style={tailwind('text-sm text-neutral-100')}>
-          {completedTasks > 0
-            ? strings.formatString(strings.screens.gallery.syncingTasks, completedTasks, totalTasks)
-            : strings.screens.gallery.syncing}
-        </Text>
+      <View style={tailwind('flex-row items-center justify-center')}>
+        <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
+          Backing up
+        </AppText>
+        <AppText style={tailwind('text-sm text-neutral-100')}>{renderPending()}</AppText>
       </View>
     ),
     [PhotosSyncStatus.Completed]: (
@@ -83,21 +77,23 @@ const PhotosSyncStatusWidget = () => {
     ),
   };
   const onPauseButtonPressed = () => {
-    dispatch(photosThunks.pauseSyncThunk());
+    photos.events.emit({
+      event: PhotosEventKey.PauseSync,
+    });
   };
   const onResumeButtonPressed = () => {
     onResumeSyncPressed();
   };
-  const isCompleted = photosSyncStatus === PhotosSyncStatus.Completed;
-  const isPaused = photosSyncStatus === PhotosSyncStatus.Paused;
-  const isPausing = photosSyncStatus === PhotosSyncStatus.Pausing;
-  const isPending = photosSyncStatus === PhotosSyncStatus.Pending;
-  const showPauseResumeButton = !isCompleted && !isPending;
+  const isCompleted = photosCtx.sync.status === PhotosSyncStatus.Completed;
+  const isPaused = photosCtx.sync.status === PhotosSyncStatus.Paused;
+  const isPausing = photosCtx.sync.status === PhotosSyncStatus.Pausing;
+  const isPending = photosCtx.sync.status === PhotosSyncStatus.Pending;
+  const showPauseResumeButton = !isCompleted && !isPending && photosCtx.sync.status !== PhotosSyncStatus.Unknown;
 
   return (
     <View>
       <View style={tailwind('h-10 flex-row items-center justify-between')}>
-        <View style={tailwind('pl-5')}>{contentByStatus[photosSyncStatus]}</View>
+        <View style={tailwind('pl-5')}>{contentByStatus[photosCtx.sync.status]}</View>
         {showPauseResumeButton ? (
           !isPaused && !isPausing ? (
             <TouchableOpacity

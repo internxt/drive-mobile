@@ -1,13 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, TouchableWithoutFeedback, BackHandler } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 
 import globalStyle from '../../styles/global';
 import ScreenTitle from '../../components/AppScreenTitle';
 import strings from '../../../assets/lang/strings';
-import galleryViews from '../../components/gallery-views';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosActions, photosSelectors, photosThunks } from '../../store/slices/photos';
+
 import DeletePhotosModal from '../../components/modals/DeletePhotosModal';
 import PhotosSyncStatusWidget from '../../components/PhotosSyncStatusWidget';
 import AppScreen from '../../components/AppScreen';
@@ -15,137 +13,111 @@ import { Trash } from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
-import AppText from 'src/components/AppText';
-
+import { PhotosItemBacked } from '@internxt-mobile/types/photos';
+import photos from '@internxt-mobile/services/photos';
+import { PhotosAnalyticsEventKey, PhotosAnalyticsScreenKey } from '@internxt-mobile/services/photos/analytics';
+import { PhotosContext } from 'src/contexts/Photos/Photos.context';
+import GalleryAllView from 'src/components/gallery-views/GalleryAllView';
+import * as photosUseCases from '@internxt-mobile/useCases/photos';
 function PhotosGalleryScreen(): JSX.Element {
+  const photosCtx = useContext(PhotosContext);
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
-  const [currentPage, setCurrentPage] = useState(1);
-  const { isSelectionModeActivated, viewMode } = useAppSelector((state) => state.photos);
-  const hasPhotos = useAppSelector(photosSelectors.hasPhotos);
-  const hasPhotosSelected = useAppSelector(photosSelectors.hasPhotosSelected);
-  const hasMorePhotos = useAppSelector(photosSelectors.hasMorePhotos);
 
-  const { selection } = useAppSelector((state) => state.photos);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDeletePhotosModalOpen, setIsDeletePhotosModalOpen] = useState(false);
 
   useEffect(() => {
-    if (hasPhotos) {
-      setIsLoading(false);
-    }
-  }, [hasPhotos]);
+    photos.analytics.screen(PhotosAnalyticsScreenKey.PhotosGallery, { permissions: true });
+    return () => {
+      photosCtx.selection.resetSelectionMode();
+    };
+  }, []);
 
-  const onDeletePhotosModalClosed = () => {
-    setIsDeletePhotosModalOpen(false);
-    dispatch(photosActions.setIsSelectionModeActivated(false));
-  };
   const onSelectButtonPressed = () => {
-    dispatch(photosActions.setIsSelectionModeActivated(true));
+    photos.analytics.track(PhotosAnalyticsEventKey.MultipleSelectionActivated);
+    photosCtx.selection.setSelectionModeActivated(true);
   };
   const onCancelSelectButtonPressed = () => {
-    dispatch(photosActions.setIsSelectionModeActivated(false));
-    dispatch(photosActions.deselectAll());
+    photosCtx.selection.resetSelectionMode();
   };
-  /* const onSelectAllButtonPressed = () => {
-    dispatch(photosThunks.selectAllThunk());
-  };
-  const onShareSelectionButtonPressed = () => {
-    dispatch(uiActions.setIsSharePhotoModalOpen(true));
-  };
-  const onDownloadSelectionButtonPressed = () => undefined; */
+
   const onDeleteSelectionButtonPressed = async () => {
-    //await dispatch(photosThunks.deletePhotosThunk({ photos: selection }));
+    photos.analytics.track(PhotosAnalyticsEventKey.MoveToTrashConfirmed, {
+      individual_action: false,
+      number_of_items: photosCtx.selection.selectedPhotosItems.length,
+    });
+
+    photosUseCases.deletePhotosItems({ photosToDelete: photosCtx.selection.selectedPhotosItems as PhotosItemBacked[] });
+    setIsDeletePhotosModalOpen(false);
+    photosCtx.removePhotosItems(photosCtx.selection.selectedPhotosItems);
+    photosCtx.selection.resetSelectionMode();
+  };
+
+  const onDeleteOptionButtonPressed = () => {
+    photos.analytics.track(PhotosAnalyticsEventKey.MoveToTrashSelected, {
+      individual_action: false,
+      number_of_items: photosCtx.selection.selectedPhotosItems.length,
+    });
+
     setIsDeletePhotosModalOpen(true);
+  };
+
+  const onCancelDeleteButtonPressed = () => {
+    setIsDeletePhotosModalOpen(false);
+    photos.analytics.track(PhotosAnalyticsEventKey.MoveToTrashCanceled, {
+      individual_action: false,
+      number_of_items: photosCtx.selection.selectedPhotosItems.length,
+    });
   };
   const onBackButtonPressed = () => {
     onCancelSelectButtonPressed();
 
     return false;
   };
-  const GalleryView = useMemo(() => galleryViews[viewMode], []);
-  /*const groupByMenu = (function () {
-    const groupByItems = Object.entries(GalleryViewMode).map(([, value]) => {
-      const isActive = value === viewMode;
-
-      return (
-        <TouchableWithoutFeedback key={value} onPress={() => dispatch(photosActions.setViewMode(value))}>
-          <View style={[tailwind('flex-1 rounded-2xl'), isActive && tailwind('bg-neutral-70')]}>
-            <Text style={[tailwind('text-neutral-500 text-center text-base'), isActive && tailwind('text-white')]}>
-              {strings.screens.gallery.groupBy[value]}
-            </Text>
-          </View>
-        </TouchableWithoutFeedback>
-      );
-    });
-
-    return (
-      <View style={tailwind('absolute bottom-3 px-5 w-full')}>
-        <View style={tailwind('px-1 py-1 flex-row bg-neutral-20 rounded-2xl')}>{groupByItems}</View>
-      </View>
-    );
-  })();*/
 
   useEffect(() => {
-    dispatch(photosThunks.startUsingPhotosThunk()).unwrap();
-
     const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressed);
 
     return () => {
-      dispatch(photosActions.resetPhotos());
       backHandler.remove();
     };
   }, []);
 
   async function loadNextPage() {
-    if (!isLoading && hasMorePhotos) {
-      setIsLoading(true);
-
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
-
-      await dispatch(photosThunks.loadPhotosThunk({ page: nextPage })).unwrap();
-
-      setIsLoading(false);
-    }
+    return;
   }
 
   async function handleRefresh() {
-    await dispatch(photosThunks.refreshPhotosThunk()).unwrap();
+    await photosCtx.refresh();
   }
 
+  const hasPhotosSelected = photosCtx.selection.selectedPhotosItems.length ? true : false;
   return (
     <>
-      {/*   <SharePhotoModal
-        isOpen={isSharePhotoModalOpen}
-        data={selectedPhotos[0]}
-        preview={hasNoPhotosSelected ? '' : getPhotoPreview(selectedPhotos[0])}
-        onClosed={onSharePhotoModalClosed}
-      /> */}
-      <DeletePhotosModal isOpen={isDeletePhotosModalOpen} data={selection} onClosed={onDeletePhotosModalClosed} />
-
+      <DeletePhotosModal
+        isOpen={isDeletePhotosModalOpen}
+        data={photosCtx.selection.selectedPhotosItems}
+        actions={{
+          onClose: onCancelDeleteButtonPressed,
+          onConfirm: onDeleteSelectionButtonPressed,
+        }}
+      />
       <AppScreen safeAreaTop style={tailwind('flex-1')}>
         {/* GALLERY TOP BAR */}
         <View style={tailwind('')}>
-          {isSelectionModeActivated ? (
+          {photosCtx.selection.selectionModeActivated ? (
             <View style={tailwind('h-10 flex-row justify-between items-center')}>
               <View style={tailwind('flex-row items-center justify-between')}>
-                <Text style={tailwind('pl-5')}>{strings.formatString(strings.screens.gallery.nPhotosSelected, 0)}</Text>
+                <Text style={tailwind('pl-5')}>
+                  {strings.formatString(
+                    strings.screens.gallery.nPhotosSelected,
+                    photosCtx.selection.selectedPhotosItems.length,
+                  )}
+                </Text>
               </View>
 
               <View style={tailwind('flex-row pr-5')}>
-                {/*<View style={tailwind('flex-row items-center justify-between')}>
-                    <TouchableOpacity
-                      style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl mr-2')}
-                      onPress={onSelectAllButtonPressed}
-                    >
-                      <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
-                        {strings.buttons.selectAll}
-                      </Text>
-                    </TouchableOpacity>
-            </View>*/}
                 <View style={tailwind('flex-row items-center justify-between')}>
                   <TouchableOpacity
                     style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
@@ -166,12 +138,11 @@ function PhotosGalleryScreen(): JSX.Element {
                 containerStyle={tailwind('py-0')}
               />
 
-              {hasPhotos && (
+              {photosCtx.ready && (
                 <View style={tailwind('flex-row items-center justify-between pr-5')}>
                   <TouchableOpacity
                     style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
                     onPress={onSelectButtonPressed}
-                    disabled={!hasPhotos}
                   >
                     <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
                       {strings.buttons.select}
@@ -185,8 +156,8 @@ function PhotosGalleryScreen(): JSX.Element {
           <PhotosSyncStatusWidget />
         </View>
         <View style={{ flex: 1 }}>
-          {hasPhotos ? (
-            <GalleryView onLoadNextPage={loadNextPage} onRefresh={handleRefresh} />
+          {photosCtx.ready ? (
+            <GalleryAllView photos={photosCtx.dataSource} onLoadNextPage={loadNextPage} onRefresh={handleRefresh} />
           ) : (
             <View style={tailwind('flex-1 items-center justify-center')}>
               <Text style={tailwind('text-lg text-neutral-60')}>{strings.screens.gallery.loading}</Text>
@@ -195,7 +166,7 @@ function PhotosGalleryScreen(): JSX.Element {
         </View>
 
         {/* SELECTION MODE ACTIONS */}
-        {isSelectionModeActivated && (
+        {photosCtx.selection.selectionModeActivated && (
           <Portal>
             <View
               style={[
@@ -203,53 +174,10 @@ function PhotosGalleryScreen(): JSX.Element {
                 { marginBottom: safeAreaInsets.bottom },
               ]}
             >
-              {/*<TouchableWithoutFeedback
-                onPress={onShareSelectionButtonPressed}
-                disabled={hasNoPhotosSelected || hasManyPhotosSelected}
-              >
-                <View style={tailwind('items-center flex-1')}>
-                  <Unicons.UilLink
-                    color={hasNoPhotosSelected || hasManyPhotosSelected ? getColor('text-neutral-60') : getColor('text-blue-60')}
-                    size={24}
-                  />
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      hasNoPhotosSelected || hasManyPhotosSelected
-                        ? tailwind('text-neutral-60')
-                        : tailwind('text-blue-60'),
-                      tailwind('text-xs'),
-                    ]}
-                  >
-                    {strings.buttons.share}
-                  </Text>
-                </View>
-                  </TouchableWithoutFeedback>*/}
-              {/*<TouchableWithoutFeedback
-                style={tailwind('flex-1')}
-                onPress={onDownloadSelectionButtonPressed}
-                disabled={hasNoPhotosSelected}
-              >
-                <View style={tailwind('items-center flex-1')}>
-                  <Unicons.UilDownloadAlt
-                    color={hasNoPhotosSelected ? getColor('text-neutral-60') : getColor('text-blue-60')}
-                    size={24}
-                  />
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      hasNoPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-blue-60'),
-                      tailwind('text-xs'),
-                    ]}
-                  >
-                    {strings.buttons.download}
-                  </Text>
-                </View>
-                  </TouchableWithoutFeedback>*/}
               <TouchableWithoutFeedback
                 style={tailwind('flex-1')}
-                onPress={onDeleteSelectionButtonPressed}
-                disabled={!hasPhotosSelected}
+                onPress={onDeleteOptionButtonPressed}
+                disabled={!photosCtx.selection.selectedPhotosItems.length}
               >
                 <View style={tailwind('items-center flex-1')}>
                   <Trash color={!hasPhotosSelected ? getColor('text-neutral-60') : getColor('text-red-60')} size={24} />

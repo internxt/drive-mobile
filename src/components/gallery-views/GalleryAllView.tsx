@@ -1,84 +1,60 @@
-import React, { useState } from 'react';
-import { Photo } from '@internxt/sdk/dist/photos';
-import { Dimensions, FlatList, RefreshControl, View } from 'react-native';
+import React, { useContext, useMemo, useState } from 'react';
+import { Dimensions, Platform, RefreshControl, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
 import GalleryItem from '../GalleryItem';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { photosActions, photosSelectors } from '../../store/slices/photos';
 import { PhotosScreenNavigationProp } from '../../types/navigation';
-import { PhotoWithPreview } from '../../types/photos';
-import { useTailwind } from 'tailwind-rn';
+import { PhotosItem } from '../../types/photos';
 
-const COLUMNS = 3;
-const GUTTER = 3;
-const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void>; onRefresh: () => Promise<void> }> = ({
-  onLoadNextPage,
-  onRefresh,
-}) => {
-  const dispatch = useAppDispatch();
+import { DataProvider, LayoutProvider, RecyclerListView } from 'recyclerlistview';
+import { PhotosContext } from 'src/contexts/Photos';
+
+const COLUMNS = 5;
+const GUTTER = 1.5;
+
+const GalleryAllView: React.FC<{
+  onLoadNextPage: () => Promise<void>;
+  onRefresh: () => Promise<void>;
+  photos: DataProvider;
+}> = ({ onLoadNextPage, onRefresh, photos }) => {
+  const photosCtx = useContext(PhotosContext);
   const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
-  const isPhotoSelected = useAppSelector(photosSelectors.isPhotoSelected);
-  const photos = useAppSelector(photosSelectors.getPhotosSorted);
 
-  const { isSelectionModeActivated } = useAppSelector((state) => state.photos);
   const [refreshing, setRefreshing] = useState(false);
 
-  const itemSize = (Dimensions.get('window').width - GUTTER * (COLUMNS - 1)) / COLUMNS;
-  const selectItem = (photo: Photo) => {
-    dispatch(photosActions.selectPhotos([photo]));
-  };
+  const itemSizeNoGutter = useMemo(() => {
+    const itemSize = Dimensions.get('window').width / COLUMNS;
 
-  const deselectItem = (photo: Photo) => {
-    dispatch(photosActions.deselectPhotos([photo]));
-  };
-  const onItemLongPressed = (photo: Photo) => {
-    dispatch(photosActions.setIsSelectionModeActivated(true));
-    isPhotoSelected(photo) ? deselectItem(photo) : selectItem(photo);
-  };
-  const onItemPressed = (photo: Photo, preview: string | null) => {
-    isSelectionModeActivated
-      ? onItemLongPressed(photo)
-      : preview &&
-        navigation.navigate('PhotosPreview', {
-          data: {
-            ...photo,
-            takenAt: photo.takenAt.toISOString(),
-            statusChangedAt: photo.statusChangedAt.toISOString(),
-            createdAt: photo.createdAt.toISOString(),
-            updatedAt: photo.updatedAt.toISOString(),
-          },
-          preview,
-        });
-  };
-
-  function renderListItem({ item }: { item: PhotoWithPreview }) {
-    return (
-      <View style={{ marginRight: GUTTER }}>
-        <GalleryItem
-          key={item.id}
-          size={itemSize}
-          data={item}
-          isSelected={isPhotoSelected(item)}
-          onPress={onItemPressed}
-          onLongPress={(photo) => onItemLongPressed(photo)}
-        />
-      </View>
-    );
-  }
-
-  function renderItemSeparator() {
-    return <View style={{ height: GUTTER }} />;
-  }
-
-  function extractKey(item: Photo) {
-    return item.id;
-  }
-
-  async function onScrollEnd(info: { distanceFromEnd: number }) {
-    if (photos.length && info.distanceFromEnd > 0) {
-      await onLoadNextPage();
+    // On Android we need to do this, otherwise
+    // the items won't fit the row
+    if (Platform.OS === 'android') {
+      return Math.floor(itemSize);
     }
+
+    return itemSize;
+  }, []);
+  const selectItem = (photosItem: PhotosItem) => {
+    photosCtx.selection.selectPhotosItems([photosItem]);
+  };
+
+  const deselectItem = (photosItem: PhotosItem) => {
+    photosCtx.selection.deselectPhotosItems([photosItem]);
+  };
+  const onItemLongPressed = (photosItem: PhotosItem) => {
+    photosCtx.selection.setSelectionModeActivated(true);
+    photosCtx.selection.isPhotosItemSelected(photosItem) ? deselectItem(photosItem) : selectItem(photosItem);
+  };
+  const onItemPressed = (photosItem: PhotosItem) => {
+    if (photosCtx.selection.selectionModeActivated) {
+      onItemLongPressed(photosItem);
+    } else {
+      navigation.navigate('PhotosPreview', {
+        photoName: photosItem.name,
+      });
+    }
+  };
+
+  async function onScrollEnd() {
+    await onLoadNextPage();
   }
 
   async function handleRefresh() {
@@ -87,26 +63,45 @@ const GalleryAllView: React.FC<{ onLoadNextPage: () => Promise<void>; onRefresh:
     setRefreshing(false);
   }
 
+  const layoutProvider = new LayoutProvider(
+    () => 0,
+    (_, dimensions) => {
+      dimensions.width = itemSizeNoGutter;
+      dimensions.height = itemSizeNoGutter;
+    },
+  );
+
+  layoutProvider.shouldRefreshWithAnchoring = false;
+
+  function renderRow(_: unknown, data: PhotosItem, index: number) {
+    const isFirst = index % COLUMNS === 0;
+    return (
+      <View
+        style={{
+          width: itemSizeNoGutter,
+          height: itemSizeNoGutter,
+          paddingBottom: GUTTER,
+          paddingLeft: isFirst ? 0 : GUTTER,
+        }}
+      >
+        <GalleryItem data={data} onPress={onItemPressed} />
+      </View>
+    );
+  }
+
+  function renderFooter() {
+    return <></>;
+  }
+
   return (
     <View style={{ flex: 1 }}>
-      <FlatList<PhotoWithPreview>
-        initialNumToRender={25}
-        getItemLayout={function (_, index) {
-          return {
-            index,
-            length: itemSize + GUTTER,
-            offset: (itemSize + GUTTER) * index,
-          };
-        }}
-        showsVerticalScrollIndicator
-        indicatorStyle={'black'}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        ItemSeparatorComponent={renderItemSeparator}
-        data={photos}
-        numColumns={COLUMNS}
+      <RecyclerListView
         onEndReached={onScrollEnd}
-        keyExtractor={extractKey}
-        renderItem={renderListItem}
+        layoutProvider={layoutProvider}
+        rowRenderer={renderRow}
+        dataProvider={photos}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        renderFooter={renderFooter}
       />
     </View>
   );

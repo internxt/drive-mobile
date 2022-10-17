@@ -7,7 +7,6 @@ import { RootState } from '../..';
 import { authThunks } from '../auth';
 import { driveThunks } from '../drive';
 import { paymentsThunks } from '../payments';
-import { photosThunks } from '../photos';
 import { storageThunks } from '../storage';
 
 export interface AppState {
@@ -23,7 +22,6 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   async (_, { dispatch }) => {
     dispatch(authThunks.initializeThunk());
     dispatch(driveThunks.initializeThunk());
-    dispatch(photosThunks.initializeThunk());
     dispatch(paymentsThunks.initializeThunk());
     dispatch(storageThunks.initializeThunk());
   },

@@ -89,6 +89,7 @@ export enum AsyncStorageKey {
   PhotosToken = 'photosToken',
   LastUpdateCheck = 'lastUpdateCheck',
   Language = 'language',
+  LastPhotosPagePulled = 'lastPhotosPagePulled',
 }
 
 export type ProgressCallback = (progress: number) => void;

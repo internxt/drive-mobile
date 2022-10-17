@@ -95,7 +95,6 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     const { credentials } = await authService.getAuthCredentials();
 
     if (credentials) {
-      dispatch(loadUsageThunk());
       dispatch(getRecentsThunk());
     }
   },
