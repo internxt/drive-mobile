@@ -14,6 +14,7 @@ export type RootStackParamList = {
   Debug: undefined;
   SignUp: undefined;
   SignIn: undefined;
+  DeactivatedAccount: undefined;
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList> & { showReferralsBanner?: boolean };
   ForgotPassword: undefined;
   PhotosPreview: { photoName: string };

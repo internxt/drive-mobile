@@ -132,6 +132,9 @@ const strings = new LocalizedStrings({
           ', so that you can sign up again. Please, if you still want to procede, enter your email below so that we can process the account removal.',
       },
       deactivation_screen: {
+        account_deleted: 'Account deleted',
+        account_deleted_advice:
+          'Your account and all its files, photos and backups has been successfully deleted, now you can sign up with the same email.',
         title: 'Deactivation email',
         subtitle_1:
           'Please check your email and follow the instructions to deactivate your account so you can start using Internxt again.',
@@ -786,6 +789,9 @@ const strings = new LocalizedStrings({
           ', por lo que podrás volver a registrarte con el mismo correo electrónico. Por favor, introduce tu correo electrónico para que podamos procesar el borrado de tu cuenta.',
       },
       deactivation_screen: {
+        account_deleted: 'Cuenta eliminada',
+        account_deleted_advice:
+          'Tu cuenta y todos sus archivos, fotos y backups han sido eliminadas correctamente. Ahora puedes crear una cuenta con el mismo email.',
         title: 'Email de desactivación',
         subtitle_1:
           'Por favor, comprueba el email que te hemos enviado y sigue las intrucciones para desactivar tu cuenta para que puedas seguir usando Internxt Drive.',
