@@ -30,6 +30,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [showPasswordText, setShowPasswordText] = useState(false);
   const isSubmitButtonDisabled = !email || !password;
+
   const onSignInButtonPressed = async () => {
     setIsLoading(true);
 

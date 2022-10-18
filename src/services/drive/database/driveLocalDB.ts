@@ -112,6 +112,7 @@ class DriveLocalDB {
         bucket: row.bucket,
         color: row.color,
         name: row.name,
+        plain_name: row.plain_name,
         userId: row.user_id,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
@@ -137,9 +138,12 @@ class DriveLocalDB {
         folderId: row.parent_id as number,
         folder_id: row.parent_id as number,
         name: row.name,
+        plain_name: row.plain_name,
         size: row.size as number,
         type: row.type || '',
         updatedAt: row.updated_at,
+        thumbnails: row.thumbnails,
+        currentThumbnail: row.currentThumbnail,
       };
       result = file;
     }

@@ -129,7 +129,9 @@ function AddModal(): JSX.Element {
     );
 
     const folderId = currentFolderId;
-    const name = encryptFilename(drive.file.removeExtension(fileName), folderId.toString());
+    const fileNameWithoutExtension = drive.file.removeExtension(fileName);
+    const name = encryptFilename(fileNameWithoutExtension, folderId.toString());
+
     const fileEntry: FileEntry = {
       fileId,
       file_id: fileId,
@@ -138,6 +140,7 @@ function AddModal(): JSX.Element {
       size: fileSize as unknown as number,
       folder_id: folderId.toString(),
       name,
+      plain_name: fileNameWithoutExtension,
       encrypt_version: '03-aes',
     };
 

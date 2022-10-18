@@ -30,6 +30,7 @@ export interface FileEntry {
   size: number;
   folder_id: string;
   name: string;
+  plain_name: string;
   encrypt_version: '03-aes';
 }
 

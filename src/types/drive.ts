@@ -1,4 +1,4 @@
-import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, DriveFolderData, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 
 export const UPLOAD_FILE_SIZE_LIMIT = 1024 * 1024 * 1024;
 
@@ -131,6 +131,7 @@ export interface SqliteDriveItemRow {
   icon_id: number | null;
   is_folder: boolean;
   name: string;
+  plain_name: string | null;
   parent_id: number | null;
   user_id: number;
   file_id: string | null;
@@ -138,6 +139,8 @@ export interface SqliteDriveItemRow {
   type: string | null;
   created_at: string;
   updated_at: string;
+  thumbnails: Array<Thumbnail>;
+  currentThumbnail: Thumbnail | null;
 }
 
 export interface SqliteDriveFolderRecord {
