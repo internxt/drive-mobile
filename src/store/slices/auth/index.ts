@@ -6,7 +6,7 @@ import authService from '../../../services/AuthService';
 import userService from '../../../services/UserService';
 import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
 import { AsyncStorageKey, DevicePlatform, NotificationType } from '../../../types';
-import { driveActions, driveThunks } from '../drive';
+import { driveActions } from '../drive';
 import { uiActions } from '../ui';
 import notificationsService from '../../../services/NotificationsService';
 import strings from '../../../../assets/lang/strings';
@@ -17,6 +17,7 @@ import errorService from 'src/services/ErrorService';
 import { SdkManager } from '@internxt-mobile/services/common';
 import UserService from '../../../services/UserService';
 import photos from '@internxt-mobile/services/photos';
+import drive from '@internxt-mobile/services/drive';
 
 export interface AuthState {
   loggedIn: boolean | null;
@@ -150,9 +151,9 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   async (_, { dispatch }) => {
     await authService.signout();
     await photos.clear();
+    await drive.clear();
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
-    dispatch(driveThunks.clearLocalDatabaseThunk());
     dispatch(driveActions.resetState());
     dispatch(authActions.setLoggedIn(false));
     authService.emitLogoutEvent();

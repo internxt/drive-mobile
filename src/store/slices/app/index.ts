@@ -1,3 +1,4 @@
+import drive from '@internxt-mobile/services/drive';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
 import languageService from 'src/services/LanguageService';
@@ -20,6 +21,7 @@ const initialState: AppState = {
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'app/initialize',
   async (_, { dispatch }) => {
+    await drive.start();
     dispatch(authThunks.initializeThunk());
     dispatch(driveThunks.initializeThunk());
     dispatch(paymentsThunks.initializeThunk());

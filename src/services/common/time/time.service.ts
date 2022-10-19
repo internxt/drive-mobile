@@ -9,6 +9,7 @@ export type TimeInput = Date | number | string;
 export class TimeService {
   public formats = {
     dateAtTime: `dd LLL yyyy '${strings.generic.atTime}' HH:mm`,
+    shortDate: 'dd/LL/yyyy',
     duration: 'mm:ss',
   };
 

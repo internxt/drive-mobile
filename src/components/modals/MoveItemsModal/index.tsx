@@ -78,6 +78,8 @@ function MoveItemsModal(): JSX.Element {
         .map<DriveListItem>((child) => ({
           status: DriveItemStatus.Idle,
           data: {
+            thumbnails: (child as DriveFileData).thumbnails,
+            currentThumbnail: null,
             createdAt: child.createdAt,
             updatedAt: child.updatedAt,
             name: child.name,
@@ -138,6 +140,11 @@ function MoveItemsModal(): JSX.Element {
               id: destinationFolderContentResponse.id,
               updatedAt: originFolderContentResponse.updatedAt,
               item: {
+                // TODO organize the Drive item types, we can't extend
+                // from one single type always and expect them to match
+                // the received object
+                thumbnails: [],
+                currentThumbnail: null,
                 name: originFolderContentResponse.name,
                 id: destinationFolderContentResponse.id,
                 parentId: originFolderContentResponse.parentId,

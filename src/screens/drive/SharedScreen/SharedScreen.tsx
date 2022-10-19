@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, RefreshControl } from 'react-native';
 import _ from 'lodash';
-
 import DriveItem from '../../../components/DriveItemTable';
 import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
 import strings from '../../../../assets/lang/strings';
@@ -79,6 +78,8 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
               /** SDK types are wrong, should fix */
               token: sharedLink.token,
               shareId: sharedLink.id,
+              thumbnails: [],
+              currentThumbnail: null,
               code: (sharedLink as unknown as { code: string }).code,
               updatedAt: sharedLink.item.updatedAt,
               createdAt: sharedLink.item.createdAt,

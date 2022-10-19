@@ -50,7 +50,7 @@ function DriveList(props: DriveListProps): JSX.Element {
 
   return (
     <FlatList
-      contentContainerStyle={[isEmptyFolder && tailwind('h-full justify-center')]}
+      contentContainerStyle={[isEmptyFolder ? tailwind('h-full justify-center') : tailwind('pt-5 px-1')]}
       key={props.viewMode}
       refreshControl={
         <RefreshControl
@@ -70,7 +70,7 @@ function DriveList(props: DriveListProps): JSX.Element {
         filesLoading ? (
           <View style={tailwind('h-full')}>
             {_.times(20, (n) => (
-              <DriveItemSkinSkeleton key={n} />
+              <DriveItemSkinSkeleton viewMode={props.viewMode} key={n} />
             ))}
           </View>
         ) : isRootFolder ? (

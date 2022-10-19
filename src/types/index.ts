@@ -91,6 +91,7 @@ export enum AsyncStorageKey {
   Language = 'language',
   LastPhotosPagePulled = 'lastPhotosPagePulled',
   IsDeletingAccount = 'isDeletingAccount',
+  PreferredDriveViewMode = 'preferredDriveViewMode',
 }
 
 export type ProgressCallback = (progress: number) => void;

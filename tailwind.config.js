@@ -197,6 +197,7 @@ module.exports = {
         800: 'rgb(23,43,77)',
         900: 'rgb(9,30,66)',
       },
+      debug: 'green',
     },
     extend: {
       fontSize: {
