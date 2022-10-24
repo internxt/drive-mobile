@@ -8,7 +8,7 @@ import LoadingSpinner from '../LoadingSpinner';
 interface AppButtonProps {
   testID?: string;
   title: string | JSX.Element;
-  type: 'accept' | 'accept-2' | 'cancel' | 'cancel-2' | 'delete';
+  type: 'accept' | 'accept-2' | 'cancel' | 'cancel-2' | 'delete' | 'white';
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
@@ -29,6 +29,21 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     cancel: tailwind('bg-gray-5'),
     'cancel-2': tailwind('bg-blue-10'),
     delete: props.disabled ? tailwind('bg-gray-40') : tailwind('bg-red-'),
+    white: {
+      ...tailwind('bg-white'),
+      ...({
+        borderColor: 'rgba(0,0,0,0.1)',
+        borderWidth: 1,
+        shadowColor: '#000000',
+        shadowOffset: {
+          width: 0,
+          height: 1,
+        },
+        shadowOpacity: 0.16,
+        shadowRadius: 1.51,
+        elevation: 2,
+      } as ViewStyle),
+    },
   }[props.type];
   const typeTextStyle = {
     accept: tailwind('text-white'),
@@ -36,6 +51,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     cancel: props.disabled ? tailwind('text-gray-40') : tailwind('text-gray-80'),
     'cancel-2': tailwind('text-blue-60'),
     delete: tailwind('text-white'),
+    white: tailwind('text-gray-80 border border-black-10'),
   }[props.type];
   const typeUnderlayColor = {
     accept: getColor('text-blue-70'),
@@ -43,6 +59,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     cancel: getColor('text-neutral-30'),
     'cancel-2': getColor('text-neutral-30'),
     delete: getColor('text-red-dark'),
+    white: getColor('text-gray-1'),
   }[props.type];
 
   const renderContent = () => {

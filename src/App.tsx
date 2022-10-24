@@ -29,6 +29,8 @@ import fileSystemService from './services/FileSystemService';
 import { referralsThunks } from './store/slices/referrals';
 import { storageThunks } from './store/slices/storage';
 import { PhotosContextProvider } from './contexts/Photos';
+import asyncStorageService from './services/AsyncStorageService';
+import { AsyncStorageKey } from './types';
 
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -60,12 +62,6 @@ export default function App(): JSX.Element {
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
   const onUserLoggedIn = () => {
     dispatch(appThunks.initializeThunk());
-    AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        dispatch(referralsThunks.fetchReferralsThunk());
-        dispatch(storageThunks.loadLimitThunk());
-      }
-    });
   };
   const onUserLoggedOut = () => {
     /**

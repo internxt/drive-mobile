@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import { AppState, AppStateStatus, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 
@@ -26,6 +26,12 @@ import { RootStackScreenProps, TabExplorerStackParamList } from '../types/naviga
 import { useTailwind } from 'tailwind-rn';
 import SecurityModal from 'src/components/modals/SecurityModal';
 import { SettingsNavigator } from './SettingsNavigator';
+import { useNavigation } from '@react-navigation/native';
+import { referralsThunks } from 'src/store/slices/referrals';
+import { storageThunks } from 'src/store/slices/storage';
+import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import { AsyncStorageKey } from '../types';
+import { authThunks } from 'src/store/slices/auth';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
@@ -38,8 +44,28 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
 
   useEffect(() => {
     props.route.params?.showReferralsBanner && dispatch(uiActions.setIsReferralsBannerOpen(true));
+
+    AppState.addEventListener('change', handleOnAppStateChange);
+
+    return () => {
+      AppState.removeEventListener('change', handleOnAppStateChange);
+    };
   }, []);
 
+  async function handleOnAppStateChange(state: AppStateStatus) {
+    if (state === 'active') {
+      try {
+        await dispatch(referralsThunks.fetchReferralsThunk()).unwrap();
+        await dispatch(storageThunks.loadLimitThunk()).unwrap();
+      } catch {
+        const isDeletingAccount = await asyncStorageService.getItem(AsyncStorageKey.IsDeletingAccount);
+        if (isDeletingAccount) {
+          dispatch(authThunks.signOutThunk());
+          props.navigation.replace('DeactivatedAccount');
+        }
+      }
+    }
+  }
   return (
     <View style={{ ...tailwind('h-full'), paddingBottom: safeAreaInsets.bottom }}>
       <Tab.Navigator

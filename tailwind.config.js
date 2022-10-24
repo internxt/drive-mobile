@@ -7,6 +7,9 @@ module.exports = {
       current: 'currentColor',
       black: 'rgb(0,0,0)',
       'black-75': 'rgba(0,0,0,.75)',
+      'black-5': 'rgba(0,0,0,0.05)',
+      'black-10': 'rgba(0,0,0,0.10)',
+      'black-15': 'rgba(0,0,0,0.15)',
       white: 'rgb(255,255,255)',
       // NEW DESIGN SYSTEM
       primary: 'rgb(0,102,255)',

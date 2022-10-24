@@ -16,6 +16,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import analyticsService from '../services/AnalyticsService';
 import DebugScreen from '../screens/DebugScreen';
 import { uiActions } from 'src/store/slices/ui';
+import { DeactivatedAccountScreen } from '../screens/DeactivatedAccountScreen';
+
 import { paymentsThunks } from 'src/store/slices/payments';
 import { storageThunks } from 'src/store/slices/storage';
 import { PhotosContext } from 'src/contexts/Photos';
@@ -35,7 +37,6 @@ function AppNavigator(): JSX.Element {
 
     if (isLoggedIn) {
       const comesFromCheckout = !!sessionId && event.url.includes('checkout');
-
       if (comesFromCheckout) {
         await analyticsService.trackPayment(sessionId as string);
         await AsyncStorage.removeItem('tmpCheckoutSessionId');
@@ -133,6 +134,7 @@ function AppNavigator(): JSX.Element {
       <Stack.Screen name="Debug" component={DebugScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen name="SignIn" component={SignInScreen} />
+      <Stack.Screen name="DeactivatedAccount" component={DeactivatedAccountScreen} />
       <Stack.Screen name="TabExplorer" component={AuthenticatedNavigator} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="PhotosPreview" component={PhotosPreviewScreen} />
