@@ -76,6 +76,14 @@ class FileSystemService {
     const items = await RNFS.readDir(this.getTemporaryDir());
 
     items.forEach(async (item) => {
+      // Some library is writing this file
+      // in the tmp directory, on startup
+      // something is trying to pick the file,
+      // so we avoid deleting this file. Otherwise
+      // the app crashes on startup.
+      if (item.path.includes('NSIRD')) {
+        return;
+      }
       await this.unlink(item.path);
     });
   }
