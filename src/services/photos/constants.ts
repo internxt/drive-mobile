@@ -19,7 +19,7 @@ export const PHOTOS_ITEMS_PER_PAGE = 24;
 export const ENABLE_PHOTOS_SYNC = true;
 
 // Enable the photos analytics reporting, such screen, track and identifying
-export const ENABLE_PHOTOS_ANALYTICS = false;
+export const ENABLE_PHOTOS_ANALYTICS = true;
 
 // Saves the last photos page pulled remotely, helpful to pull all the previews from page 1
 export const SAVE_LAST_PHOTOS_PAGE_PULLED = true;
