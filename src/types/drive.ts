@@ -1,4 +1,4 @@
-import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, DriveFolderData, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 
 export const UPLOAD_FILE_SIZE_LIMIT = 1024 * 1024 * 1024;
 
@@ -80,11 +80,13 @@ export enum SortType {
   UpdatedAt = 'updatedAt',
 }
 
-export type DriveItemDataProps = Pick<DriveItemData, 'id' | 'name' | 'updatedAt' | 'createdAt'> & {
+export type DriveItemDataProps = Pick<
+  DriveItemData,
+  'id' | 'name' | 'updatedAt' | 'createdAt' | 'currentThumbnail' | 'thumbnails'
+> & {
   fileId?: string;
   parentId?: number | null;
   code?: string;
-
   token?: string;
   size?: string | number;
   type?: string;
@@ -138,6 +140,8 @@ export interface SqliteDriveItemRow {
   type: string | null;
   created_at: string;
   updated_at: string;
+  thumbnails: Array<Thumbnail>;
+  currentThumbnail: Thumbnail | null;
 }
 
 export interface SqliteDriveFolderRecord {

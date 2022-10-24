@@ -98,10 +98,7 @@ export const uiSlice = createSlice({
     setShowMoveModal: (state, action: PayloadAction<boolean>) => {
       state.showMoveModal = action.payload;
     },
-    switchFileViewMode(state) {
-      state.fileViewMode =
-        state.fileViewMode === DriveListViewMode.List ? DriveListViewMode.Grid : DriveListViewMode.List;
-    },
+
     setBackButtonEnabled: (state, action: PayloadAction<boolean>) => {
       state.backButtonEnabled = action.payload;
     },

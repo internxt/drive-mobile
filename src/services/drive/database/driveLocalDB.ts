@@ -140,6 +140,8 @@ class DriveLocalDB {
         size: row.size as number,
         type: row.type || '',
         updatedAt: row.updated_at,
+        thumbnails: row.thumbnails,
+        currentThumbnail: row.currentThumbnail,
       };
       result = file;
     }

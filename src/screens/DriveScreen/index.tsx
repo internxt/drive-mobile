@@ -8,7 +8,7 @@ import strings from '../../../assets/lang/strings';
 import globalStyle from '../../styles/global';
 import ScreenTitle from '../../components/AppScreenTitle';
 import Separator from '../../components/AppSeparator';
-import { DevicePlatform } from '../../types';
+import { AsyncStorageKey, DevicePlatform } from '../../types';
 import { driveActions, driveSelectors, driveThunks } from '../../store/slices/drive';
 import { uiActions } from '../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -16,7 +16,7 @@ import { useRoute } from '@react-navigation/native';
 import AppScreen from '../../components/AppScreen';
 import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
 import asyncStorage from '../../services/AsyncStorageService';
-import { DriveListType, SortDirection, SortType } from '../../types/drive';
+import { DriveListType, DriveListViewMode, SortDirection, SortType } from '../../types/drive';
 import SortModal, { SortMode } from '../../components/modals/SortModal';
 
 import { TabExplorerScreenProps } from '../../types/navigation';
@@ -25,12 +25,22 @@ import useGetColor from '../../hooks/useColor';
 import Portal from '@burstware/react-native-portal';
 import drive from '@internxt-mobile/services/drive';
 import { SearchInput } from 'src/components/SearchInput';
+import asyncStorageService from '../../services/AsyncStorageService';
 
 function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Element {
   const route = useRoute();
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+  const [viewMode, setViewMode] = useState(DriveListViewMode.List);
+  useEffect(() => {
+    asyncStorageService.getItem(AsyncStorageKey.PreferredDriveViewMode).then((preferredDriveViewMode) => {
+      if (preferredDriveViewMode && preferredDriveViewMode !== viewMode) {
+        setViewMode(preferredDriveViewMode as DriveListViewMode);
+      }
+    });
+  }, []);
+
   const [sortModalOpen, setSortModalOpen] = useState(false);
   const [sortMode, setSortMode] = useState({
     type: SortType.Name,
@@ -42,7 +52,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
   const currentFolder = useAppSelector(driveSelectors.navigationStackPeek);
   const { id: currentFolderId, name: currentFolderName, parentId: currentFolderParentId } = currentFolder;
   const { uploading: driveUploadingItems, items: driveItems } = useAppSelector(driveSelectors.driveItems);
-  const { searchActive, backButtonEnabled, fileViewMode } = useAppSelector((state) => state.ui);
+  const { searchActive, backButtonEnabled } = useAppSelector((state) => state.ui);
   const { isLoading: contentLoading } = useAppSelector((state) => state.drive);
   const onSearchTextChanged = (value: string) => {
     dispatch(driveActions.setSearchString(value));
@@ -69,8 +79,10 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
   const onSortButtonPressed = () => {
     setSortModalOpen(true);
   };
-  const onViewModeButtonPressed = () => {
-    dispatch(uiActions.switchFileViewMode());
+  const onViewModeButtonPressed = async () => {
+    const newViewMode = viewMode === DriveListViewMode.List ? DriveListViewMode.Grid : DriveListViewMode.List;
+    setViewMode(newViewMode);
+    await asyncStorageService.saveItem(AsyncStorageKey.PreferredDriveViewMode, newViewMode);
   };
   const onBackButtonPressed = () => {
     goBackToSharedIfNeeded();
@@ -200,7 +212,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
           </TouchableOpacity>
           <TouchableOpacity onPress={onViewModeButtonPressed}>
             <View style={tailwind('py-2 px-5')}>
-              {fileViewMode === 'list' ? (
+              {viewMode === 'list' ? (
                 <SquaresFour size={22} color={getColor('text-neutral-100')} />
               ) : (
                 <Rows size={22} color={getColor('text-neutral-100')} />
@@ -211,7 +223,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
 
         <Separator />
 
-        <DriveList items={driveSortedItems} type={DriveListType.Drive} viewMode={fileViewMode} />
+        <DriveList items={driveSortedItems} type={DriveListType.Drive} viewMode={viewMode} />
       </AppScreen>
     </>
   );

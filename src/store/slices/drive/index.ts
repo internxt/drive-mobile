@@ -449,13 +449,6 @@ const deleteItemsThunk = createAsyncThunk<void, { items: any[] }, { state: RootS
   },
 );
 
-const clearLocalDatabaseThunk = createAsyncThunk<void, void, { state: RootState }>(
-  'drive/clearLocalDatabase',
-  async () => {
-    drive.database.resetDatabase();
-  },
-);
-
 const loadUsageThunk = createAsyncThunk<number, void, { state: RootState }>('drive/loadUsage', async () => {
   return drive.usage.getUsage();
 });
@@ -734,6 +727,9 @@ export const driveSelectors = {
         status: DriveItemStatus.Uploading,
         progress: f.progress,
         data: {
+          // TODO: Organize Drive item types
+          thumbnails: [],
+          currentThumbnail: null,
           ...f,
         },
       })),
@@ -759,7 +755,6 @@ export const driveThunks = {
   createFolderThunk,
   moveItemThunk,
   deleteItemsThunk,
-  clearLocalDatabaseThunk,
   loadUsageThunk,
   getRecentsThunk,
 };

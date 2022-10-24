@@ -4,7 +4,11 @@ import axios from 'axios';
 import { DriveFileMetadataPayload, DriveItemData, DriveListItem, SortDirection, SortType } from '../../../types/drive';
 import { getHeaders } from '../../../helpers/headers';
 import { constants } from '../../AppService';
-import { FetchFolderContentResponse, MoveFileResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchFolderContentResponse, MoveFileResponse, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { getEnvironmentConfig } from 'src/lib/network';
+import network from 'src/network';
+import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
+import fileSystemService from '@internxt-mobile/services/FileSystemService';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
 
@@ -215,6 +219,38 @@ class DriveFileService {
     }
 
     return sortFunction;
+  }
+
+  public async getThumbnail(thumbnail: Thumbnail) {
+    const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
+    const destination = `${DRIVE_THUMBNAILS_DIRECTORY}/${thumbnail.bucket_file}.${thumbnail.type}`;
+
+    if (await fileSystemService.exists(destination)) {
+      return destination;
+    }
+    await network.downloadFile(
+      thumbnail.bucket_file.toString(),
+      thumbnail.bucket_id,
+      encryptionKey,
+      {
+        user: bridgeUser,
+        pass: bridgePass,
+      },
+      {
+        toPath: destination,
+        downloadProgressCallback: () => {
+          /** NOOP */
+        },
+        decryptionProgressCallback: () => {
+          /** NOOP */
+        },
+      },
+      function () {
+        /** NOOP */
+      },
+    );
+
+    return destination;
   }
 
   public async renameFileInNetwork(fileId: string, bucketId: string, relativePath: string): Promise<void> {
