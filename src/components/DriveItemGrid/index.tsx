@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, TouchableOpacity, TouchableHighlight, Animated, Easing, Image } from 'react-native';
+import { View, TouchableHighlight, Animated, Easing, Image } from 'react-native';
 
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
 import globalStyle from '../../styles/global';
 import { useAppSelector } from '../../store/hooks';
-import { ArrowCircleUp, DotsThree } from 'phosphor-react-native';
+import { ArrowCircleUp } from 'phosphor-react-native';
 import { items } from '@internxt/lib';
 import AppText from '../AppText';
 
@@ -28,8 +28,7 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
   const IconFile = getFileTypeIcon(props.data.type || '');
   const iconSize = 80;
 
-  const { isFolder, isUploading, isDownloading, onItemPressed, onItemLongPressed, onActionsButtonPressed } =
-    useDriveItem(props);
+  const { isFolder, isUploading, isDownloading, onItemPressed, onItemLongPressed } = useDriveItem(props);
 
   const maxThumbnailHeight = 96;
   const thumbnail = props.data.currentThumbnail || props.data.thumbnails ? props.data.thumbnails[0] : null;
@@ -37,17 +36,12 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
   const getThumbnailWidth = () => {
     if (!thumbnailSize || !maxThumbnailWidth) return 0;
 
-    const thumbnailWidth = Math.floor(
-      thumbnailSize ? (thumbnailSize.width * maxThumbnailHeight) / thumbnailSize.height : 0,
-    );
-
+    const thumbnailWidth = thumbnailSize ? (thumbnailSize.width * maxThumbnailHeight) / thumbnailSize.height : 0;
     return thumbnailWidth > maxThumbnailWidth ? maxThumbnailWidth : thumbnailWidth;
   };
 
   const getThumbnailHeight = () => {
-    const thumbnailHeight = Math.floor(
-      thumbnailSize ? (thumbnailSize.height * getThumbnailWidth()) / thumbnailSize.width : 0,
-    );
+    const thumbnailHeight = thumbnailSize ? (thumbnailSize.height * getThumbnailWidth()) / thumbnailSize.width : 0;
 
     return thumbnailHeight > maxThumbnailHeight ? maxThumbnailHeight : thumbnailHeight;
   };
