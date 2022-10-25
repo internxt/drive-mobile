@@ -10,7 +10,7 @@ import { uiActions } from '../../../store/slices/ui';
 
 import BottomModalOption from '../../BottomModalOption';
 import BottomModal from '../BottomModal';
-import { Link, Copy, LinkBreak } from 'phosphor-react-native';
+import { Link, Copy, LinkBreak, Gear } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
 
@@ -20,6 +20,7 @@ import { useUseCase } from '@internxt-mobile/hooks/common';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import CenterModal from '../CenterModal';
 import AppButton from 'src/components/AppButton';
+import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
 export function SharedLinkInfoModal(): JSX.Element {
   const { executeUseCase: getShareLink, loading: gettingShareLink } = useUseCase(driveUseCases.getExistingShareLink, {
     lazy: true,
@@ -35,6 +36,7 @@ export function SharedLinkInfoModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const { focusedItem: item } = useAppSelector((state) => state.drive);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState(false);
+  const [sharedLinkSettingsModalOpen, setSharedLinkSettingsModalOpen] = useState(false);
   const { isSharedLinkOptionsModalOpen } = useAppSelector((state) => state.ui);
 
   if (!item) {
@@ -82,6 +84,11 @@ export function SharedLinkInfoModal(): JSX.Element {
       dispatch(uiActions.setIsSharedLinkOptionsModalOpen(false));
     }
   };
+
+  const handleShareLinkSettingsPress = () => {
+    dispatch(uiActions.setIsSharedLinkOptionsModalOpen(false));
+    setSharedLinkSettingsModalOpen(true);
+  };
   const options = [
     {
       icon: <Copy size={20} color={getColor('text-gray-100')} />,
@@ -92,6 +99,11 @@ export function SharedLinkInfoModal(): JSX.Element {
       icon: <Link size={20} color={getColor('text-gray-100')} />,
       label: strings.components.file_and_folder_options.shareLink,
       onPress: handleShareLink,
+    },
+    {
+      icon: <Gear size={20} color={getColor('text-gray-100')} />,
+      label: strings.components.file_and_folder_options.shareSettings,
+      onPress: handleShareLinkSettingsPress,
     },
     {
       icon: <LinkBreak size={20} color={getColor('text-red-60')} />,
@@ -170,6 +182,11 @@ export function SharedLinkInfoModal(): JSX.Element {
           </View>
         </View>
       </BottomModal>
+      <SharedLinkSettingsModal
+        isCreatingShareLink={false}
+        isOpen={sharedLinkSettingsModalOpen}
+        onClose={() => setSharedLinkSettingsModalOpen(false)}
+      />
       <CenterModal isOpen={confirmDeleteModalOpen} onClosed={() => setConfirmDeleteModalOpen(false)}>
         <View style={tailwind('bg-white rounded-xl p-4')}>
           <AppText style={tailwind('text-xl mb-4')} medium>

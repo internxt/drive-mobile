@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
+import { INCREASED_TOUCH_AREA } from 'src/styles/global';
 
 export interface BottomModalProps {
   isOpen: boolean;
@@ -42,7 +43,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       <View style={tailwind('h-full')}>
         <StatusBar translucent />
 
-        <TouchableWithoutFeedback onPress={props.onClosed}>
+        <TouchableWithoutFeedback hitSlop={INCREASED_TOUCH_AREA} onPress={props.onClosed}>
           <View style={tailwind('flex-grow')}>
             <View style={tailwind('flex-grow')} />
             <TouchableWithoutFeedback>

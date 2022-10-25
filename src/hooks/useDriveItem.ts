@@ -6,11 +6,13 @@ import { uiActions } from '../store/slices/ui';
 import { DriveItemDataProps, DriveItemStatus } from '../types/drive';
 import drive from '@internxt-mobile/services/drive';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { ShareLink } from '@internxt/sdk/dist/drive/share/types';
 
 interface UseDriveItemProps {
   data: DriveItemDataProps;
   status: DriveItemStatus;
   isSharedLinkItem?: boolean;
+  shareLink?: ShareLink;
 }
 
 /**
@@ -85,7 +87,14 @@ const useDriveItem = (props: UseDriveItemProps) => {
       }),
     );
 
-    if (props.isSharedLinkItem) {
+    if (props.isSharedLinkItem && props.shareLink) {
+      dispatch(
+        driveActions.setFocusedShareItem({
+          id: props.shareLink.id,
+          hashedPassword: props.shareLink.hashed_password || undefined,
+          views: props.shareLink.views,
+        }),
+      );
       dispatch(uiActions.setIsSharedLinkOptionsModalOpen(true));
     } else {
       dispatch(uiActions.setShowItemModal(true));

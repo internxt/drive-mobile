@@ -39,6 +39,12 @@ export enum ThunkOperationStatus {
   LOADING = 'LOADING',
   IDLE = 'IDLE',
 }
+
+export interface FocusedShareItem {
+  id: string;
+  hashedPassword?: string;
+  views: number;
+}
 export interface DriveState {
   isInitialized: boolean;
   isLoading: boolean;
@@ -49,6 +55,7 @@ export interface DriveState {
   selectedItems: DriveItemData[];
   folderContent: DriveItemData[];
   focusedItem: DriveItemFocused;
+  focusedShareItem: FocusedShareItem | null;
   itemToMove: DriveItemFocused;
   searchString: string;
   isUploading: boolean;
@@ -67,6 +74,7 @@ export interface DriveState {
 const initialState: DriveState = {
   isInitialized: false,
   navigationStack: [],
+  focusedShareItem: null,
   isLoading: false,
   items: [],
   folderContent: [],
@@ -533,6 +541,9 @@ export const driveSlice = createSlice({
     },
     setFocusedItem(state, action: PayloadAction<DriveItemFocused | null>) {
       state.focusedItem = action.payload;
+    },
+    setFocusedShareItem(state, action: PayloadAction<FocusedShareItem | null>) {
+      state.focusedShareItem = action.payload;
     },
 
     blurItem(state) {

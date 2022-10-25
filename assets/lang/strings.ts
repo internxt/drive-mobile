@@ -365,6 +365,7 @@ const strings = new LocalizedStrings({
       saveChanges: 'Save changes',
       saving: 'Saving',
       edit: 'Edit',
+      save: 'Save',
       uploadPhoto: 'Upload photo',
       takePhoto: 'Take photo',
       apply: 'Apply',
@@ -380,6 +381,7 @@ const strings = new LocalizedStrings({
       manage: 'Manage',
       sending: 'Sending',
       showStorageSpace: 'View device storage',
+      linkCopiedToClipboard: 'Link copied to clipboard',
     },
     inputs: {
       name: 'Name',
@@ -433,6 +435,7 @@ const strings = new LocalizedStrings({
         shareLink: 'Share link',
         downloadFile: 'Download file',
         view: 'View',
+        shareSettings: 'Share settings',
         deleteLink: 'Delete link',
       },
       ReferralsBanner: {
@@ -446,6 +449,13 @@ const strings = new LocalizedStrings({
       confirmSavePhoto: {
         title: 'Photo is already in your gallery',
         message: 'Do you want to duplicate it on your gallery anyway?',
+      },
+      shareLinkSettings: {
+        title: 'Share settings',
+        protectWithPassword: {
+          title: 'Protect with password',
+          advice: 'Secure this link by setting up a password',
+        },
       },
       CancelSubscription: {
         title: 'Cancel subscription',
@@ -621,6 +631,7 @@ const strings = new LocalizedStrings({
         title: 'There has been an error',
         message: '{0}. Please contact us.',
       },
+      shareLinkPasswordMissing: 'Enter a password or turn off password protection',
       photoNotUploadedYet: 'The photo is not in sync',
       generateShareLinkError: "Can't generate share link",
       deleteShareLinkError: 'Error deleting share link',
@@ -986,6 +997,7 @@ const strings = new LocalizedStrings({
       cancelling: 'Cancelando',
       confirm: 'Confirmar',
       move: 'Mover',
+      save: 'Guardar',
       moveHere: 'Mover aquí',
       share: 'Compartir',
       upgrade: 'Mejorar',
@@ -1037,6 +1049,7 @@ const strings = new LocalizedStrings({
       manage: 'Gestionar',
       sending: 'Enviando',
       showStorageSpace: 'Ver espacio usado',
+      linkCopiedToClipboard: 'Link copiado',
     },
     inputs: {
       name: 'Nombre',
@@ -1091,6 +1104,7 @@ const strings = new LocalizedStrings({
         downloadFile: 'Descargar archivo',
         view: 'Ver',
         deleteLink: 'Borrar link compartido',
+        shareSettings: 'Ajustes de link',
       },
       ReferralsBanner: {
         message: 'Obtén hasta 10GB gratis',
@@ -1099,6 +1113,13 @@ const strings = new LocalizedStrings({
     modals: {
       deleteShareLink: {
         title: 'Borrar link',
+      },
+      shareLinkSettings: {
+        title: 'Ajustes de Share',
+        protectWithPassword: {
+          title: 'Proteger con contraseña',
+          advice: 'Protege este link con una contraseña',
+        },
       },
       confirmSavePhoto: {
         title: 'Esta foto ya existe en tu galería',
@@ -1280,6 +1301,7 @@ const strings = new LocalizedStrings({
         title: 'Ha habido un error',
         message: '{0}. Por favor, contacta con nosotros.',
       },
+      shareLinkPasswordMissing: 'Introduce un password',
       photoNotUploadedYet: 'La foto no esta sincronizada',
       generateShareLinkError: 'Error generando link compartido',
       deleteShareLinkError: 'Error borrando link compartido',
