@@ -10,6 +10,7 @@ import { photosUtils } from '@internxt-mobile/services/photos/utils';
 export interface SyncHandlers {
   updateTotalTasks: (totalTasks: number) => void;
   updateCompletedTasks: (completedTasks: number) => void;
+  updateFailedTasks: (failedTasks: number) => void;
   updatePendingTasks: (pendingTasks: number) => void;
   updateStatus: (newStatus: PhotosSyncStatus) => void;
   onRemotePhotosSynced: (photosItemSynced: PhotosItem) => void;
@@ -74,6 +75,7 @@ export const startSync = async (handlers: SyncHandlers) => {
   syncManager.onPhotoSyncCompleted(async (err, photo) => {
     if (err) {
       handlers.updateCompletedTasks(syncManager.totalPhotosSynced);
+      handlers.updateFailedTasks(syncManager.totalPhotosFailed);
       // Something bad happened tos the photo, report it to the error tracker
       errorService.reportError(err, {
         tags: {

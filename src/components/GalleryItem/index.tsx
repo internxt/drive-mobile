@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { View, Image } from 'react-native';
 import { GalleryItemType, PhotosItem, PhotoSyncStatus } from '../../types/photos';
 import { CheckCircle, CloudSlash } from 'phosphor-react-native';
@@ -11,6 +11,7 @@ import AppText from '../AppText';
 import { time } from '@internxt-mobile/services/common/time';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { PhotosItemType } from '@internxt/sdk/dist/photos';
+import photos from '@internxt-mobile/services/photos';
 interface GalleryItemProps {
   type?: GalleryItemType;
   data: PhotosItem;
@@ -21,6 +22,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   const photosCtx = useContext(PhotosContext);
   const getColor = useGetColor();
   const tailwind = useTailwind();
+  const [retrievedPreviewUri, setRetrievedPreviewUri] = useState<string | null>(null);
   const { onPress, data } = props;
 
   const uploadedItem = useMemo(
@@ -51,6 +53,11 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
     }
   };
 
+  const handlePreviewLoadError = async () => {
+    const preview = await photos.preview.getPreview(photosItem);
+    setRetrievedPreviewUri(preview);
+  };
+
   const useLocalUri = props.data.status !== PhotoSyncStatus.IN_SYNC_ONLY && data.localUri;
 
   return (
@@ -59,6 +66,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
     >
+      {/* Looks like FastImage doesn't support ph:// uris, RN Image does */}
       {useLocalUri && (
         <Image
           style={tailwind('w-full h-full')}
@@ -76,11 +84,21 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
           }}
         />
       )}
-      {data.localPreviewPath && (
+      {data.localPreviewPath && !useLocalUri && !retrievedPreviewUri && (
         <FastImage
+          onError={handlePreviewLoadError}
           style={tailwind('w-full h-full')}
           source={{
             uri: fileSystemService.pathToUri(data.localPreviewPath),
+          }}
+        />
+      )}
+
+      {retrievedPreviewUri && !useLocalUri && (
+        <FastImage
+          style={tailwind('w-full h-full')}
+          source={{
+            uri: fileSystemService.pathToUri(retrievedPreviewUri),
           }}
         />
       )}

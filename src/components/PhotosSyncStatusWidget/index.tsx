@@ -10,6 +10,7 @@ import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import { PhotosContext } from 'src/contexts/Photos';
 import photos from '@internxt-mobile/services/photos';
+import appService from '@internxt-mobile/services/AppService';
 
 const PhotosSyncStatusWidget = () => {
   const tailwind = useTailwind();
@@ -94,6 +95,9 @@ const PhotosSyncStatusWidget = () => {
     <View>
       <View style={tailwind('h-10 flex-row items-center justify-between')}>
         <View style={tailwind('pl-5')}>{contentByStatus[photosCtx.sync.status]}</View>
+        {appService.isDevMode ? (
+          <AppText style={tailwind('text-red-50 text-xs ml-auto mr-2')}>{photosCtx.sync.failedTasks} Failed</AppText>
+        ) : null}
         {showPauseResumeButton ? (
           !isPaused && !isPausing ? (
             <TouchableOpacity

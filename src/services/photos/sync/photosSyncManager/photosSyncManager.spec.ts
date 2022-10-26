@@ -33,7 +33,7 @@ describe('PhotosSyncManager', () => {
       (db as any)[key] = jest.fn();
     });
 
-    photosNetworkManager = new PhotosNetworkManager(SdkManagerMock);
+    photosNetworkManager = new PhotosNetworkManager();
     devicePhotosSyncChecker = new DevicePhotosSyncCheckerService(db);
     subject = new PhotosSyncManager(photosNetworkManager, devicePhotosSyncChecker);
   });

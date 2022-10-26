@@ -248,7 +248,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
           />
 
           {/* DEBUG */}
-          {appService.constants.DEBUG && (
+          {appService.isDevMode && (
             <SettingsGroup
               title={strings.screens.SettingsScreen.debug}
               items={[

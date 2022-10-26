@@ -35,6 +35,7 @@ export interface PhotosContextType {
     status: PhotosSyncStatus;
     totalTasks: number;
     completedTasks: number;
+    failedTasks: number;
     photosInLocalDB: number;
     pendingTasks: number;
   };
@@ -82,6 +83,7 @@ export const PhotosContext = React.createContext<PhotosContextType>({
     getPermissionsStatus: () => Promise.reject('Photos context not ready'),
   },
   sync: {
+    failedTasks: 0,
     totalTasks: 0,
     photosInLocalDB: 0,
     completedTasks: 0,
@@ -101,6 +103,8 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   const [syncStatus, setSyncStatus] = useState(PhotosSyncStatus.Unknown);
   const [totalTasks, setTotalTasks] = useState(0);
   const [pendingTasks, setPendingTasks] = useState(0);
+  const [failedTasks, setFailedTasks] = useState(0);
+
   const [photosInLocalDB, setPhotosInLocalDB] = useState(0);
 
   const [completedTasks, setCompletedTasks] = useState(0);
@@ -139,6 +143,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       setSyncStatus(PhotosSyncStatus.Unknown);
       setTotalTasks(0);
       setPendingTasks(0);
+      setFailedTasks(0);
       setCompletedTasks(0);
     }
 
@@ -183,6 +188,10 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       photosLogger.info(`Device photos loaded in ${Date.now() - start}ms`);
       const startDb = Date.now();
       const syncedPhotos = await photos.database.getSyncedPhotos();
+      console.log(
+        'SYNCED PHOTOS',
+        syncedPhotos.map((s) => s.photo_name),
+      );
       photosLogger.info(`${syncedPhotos.length} photos loaded from DB in ${Date.now() - startDb}ms`);
 
       syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photosUtils.getPhotosItem(syncedPhoto.photo));
@@ -206,6 +215,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
         updateTotalTasks: setTotalTasks,
         updatePendingTasks: setPendingTasks,
         updateCompletedTasks: setCompletedTasks,
+        updateFailedTasks: setFailedTasks,
         onRemotePhotosSynced,
         onPhotosItemSynced: (photosItem) => {
           uploadedPhotosItemsRef.current = uploadedPhotosItemsRef.current.concat([photosItem]);
@@ -350,6 +360,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
           totalTasks,
           completedTasks,
           pendingTasks,
+          failedTasks,
           photosInLocalDB,
         },
         resetContext,

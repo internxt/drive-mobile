@@ -1,11 +1,14 @@
-import { PhotosNetworkManagerStatus, PhotosNetworkOperation } from '../../../types/photos';
+import { PhotoSizeType, PhotosNetworkManagerStatus, PhotosNetworkOperation } from '../../../types/photos';
 
 import async from 'async';
 import { Photo, PhotoPreviewType } from '@internxt/sdk/dist/photos';
 import { RunnableService } from '../../../helpers/services';
 import fileSystemService from '../../FileSystemService';
-import { ENABLE_PHOTOS_NETWORK_MANAGER_LOGS, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
-import { SdkManager } from '@internxt-mobile/services/common';
+import {
+  ENABLE_PHOTOS_NETWORK_MANAGER_LOGS,
+  MAX_UPLOAD_RETRYS,
+  PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY,
+} from '../constants';
 import { AbortedOperationError } from 'src/types';
 import { Platform } from 'react-native';
 import { photosNetwork } from './photosNetwork.service';
@@ -15,6 +18,7 @@ import { photosLogger } from '../logger';
 import { photosPreview } from '../preview';
 import { photosUser } from '../user';
 import { photosLocalDB } from '../database/photosLocalDB';
+import photos from '..';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;
 
@@ -31,7 +35,6 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   private logger = photosLogger;
   // eslint-disable-next-line
   private onStatusChangeCallback: OnStatusChangeCallback = () => {};
-  private sdk: SdkManager;
   private options: { enableLog: boolean };
   private queue = async.queue<PhotosNetworkOperation, Photo | null, Error>((task, next) => {
     if (this.isAborted) {
@@ -43,12 +46,21 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
         next(null, result);
       })
       .catch((err) => {
-        next(err, null);
+        if (task.retrys === MAX_UPLOAD_RETRYS) {
+          next(err, null);
+        } else {
+          const nextRetrys = task.retrys + 1;
+          this.log(`Failed photo upload retry number ${nextRetrys}`);
+          this.addOperation({
+            ...task,
+            retrys: nextRetrys,
+          });
+          next(err, null);
+        }
       });
   }, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY);
 
-  constructor(sdk: SdkManager, options = { enableLog: ENABLE_PHOTOS_NETWORK_MANAGER_LOGS }) {
-    this.sdk = sdk;
+  constructor(options = { enableLog: ENABLE_PHOTOS_NETWORK_MANAGER_LOGS }) {
     this.options = options;
     this.queue.drain(() => {
       this.updateStatus(PhotosNetworkManagerStatus.COMPLETED);
@@ -110,14 +122,31 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     if (!device) throw new Error('Photos device not found');
     if (!user) throw new Error('Photos user not found');
     if (!operation.photosItem.localUri) throw new Error('Local uri not found');
+
+    // Make sure the photo is not in the DB by name and date, hash generation
+    // is a bit intensive
+    const existsInDB = await photos.database.getSyncedPhotoByNameAndDate(
+      operation.photosItem.name,
+      operation.photosItem.takenAt,
+    );
+
+    if (existsInDB) {
+      return existsInDB.photo;
+    }
     // 1. Get photo data and the hash
     const photoData = operation.photosItem;
     const name = photoData.name;
+
     const localUriToPath = await photosUtils.cameraRollUriToFileSystemUri({
       name: operation.photosItem.name,
       format: operation.photosItem.format,
       itemType: operation.photosItem.type,
       uri: operation.photosItem.localUri,
+      destination: photosUtils.getPhotoPath({
+        name: operation.photosItem.name,
+        type: operation.photosItem.format,
+        size: PhotoSizeType.Full,
+      }),
     });
 
     const hash = (

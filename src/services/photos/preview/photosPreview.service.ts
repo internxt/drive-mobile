@@ -129,7 +129,10 @@ export class PhotosPreviewService {
       dirSize: 100,
     });
 
-    await fileSystemService.copyFile(result.path, previewPath);
+    if (!(await fileSystemService.exists(previewPath))) {
+      await fileSystemService.copyFile(result.path, previewPath);
+    }
+
     return {
       size: result.size,
       type: 'JPEG',

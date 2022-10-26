@@ -13,6 +13,7 @@ export class PhotosLocalDB {
   private async init(): Promise<void> {
     await sqliteService.open(PHOTOS_DB_NAME);
     await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.createTable);
+    await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.createIndex);
     this.isInitialized = true;
     this.logger.info('Local database initialized');
   }
@@ -118,6 +119,9 @@ export class PhotosLocalDB {
     if (photoExists) {
       this.log('Photos item already exists, skipping insert');
       await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.updatePhotoById, [
+        photo.name,
+        photo.hash,
+        new Date(photo.takenAt).getTime(),
         JSON.stringify(photo),
         photo.id,
       ]);
@@ -127,6 +131,7 @@ export class PhotosLocalDB {
         photo.id,
         photo.name,
         photo.hash,
+        new Date(photo.takenAt).getTime(),
         JSON.stringify(photo),
       ]);
     }
