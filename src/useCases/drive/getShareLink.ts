@@ -135,7 +135,7 @@ export const generateShareLink = async ({
       timesValid: -1,
       bucket,
       itemToken,
-      password: plainPassword,
+      plainPassword,
     });
 
     if (displayCopyNotification && link) {
