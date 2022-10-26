@@ -14,7 +14,6 @@ class DriveShareService {
     const result = await this.sdk.share.createShareLink(payload);
 
     return this.getUsableLink({
-      created: result.created,
       type: payload.type,
       token: result.token,
       /** Seems like the SDK TS signatures are wrong */
@@ -35,7 +34,6 @@ class DriveShareService {
     const shareLink = await this.sdk.share.updateShareLink({ itemId: shareId, plainPassword });
 
     return this.getUsableLink({
-      created: false,
       type: shareLink.isFolder ? 'folder' : 'file',
       mnemonic,
       token: shareLink.token,
@@ -47,7 +45,6 @@ class DriveShareService {
     const { credentials } = await AuthService.getAuthCredentials();
     if (!credentials?.user) throw new Error('User not found');
     return this.getUsableLink({
-      created: false,
       type,
       mnemonic: credentials?.user.mnemonic,
       token,
@@ -66,23 +63,17 @@ class DriveShareService {
   }
 
   private getUsableLink({
-    created,
     type,
     token,
     code,
     mnemonic,
   }: {
-    created: boolean;
     type: string;
     token: string;
     code: string;
     mnemonic: string;
   }) {
-    if (created) {
-      return `${appService.constants.WEB_CLIENT_URL}/sh/${type}/${token}/${code}`;
-    } else {
-      return `${appService.constants.WEB_CLIENT_URL}/sh/${type}/${token}/${aes.decrypt(code, mnemonic)}`;
-    }
+    return `${appService.constants.WEB_CLIENT_URL}/sh/${type}/${token}/${aes.decrypt(code, mnemonic)}`;
   }
 }
 

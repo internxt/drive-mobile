@@ -129,7 +129,7 @@ const strings = new LocalizedStrings({
           "As specified during the sign up process, Internxt Drive encrypts your files, and only you have access to those. We never know your password, and thus, that way, only you can decrypt your account. For that reason, if you forget your password, we can't restore your account. What we can do, however, is to",
         bold: ' delete your account and erase all its files',
         subtitle_2:
-          ', so that you can sign up again. Please, if you still want to procede, enter your email below so that we can process the account removal.',
+          ', so that you can sign up again. Please, if you still want to proceed, enter your email below so that we can process the account removal.',
       },
       deactivation_screen: {
         account_deleted: 'Account deleted',

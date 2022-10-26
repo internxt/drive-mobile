@@ -116,6 +116,10 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
     setProtectWithPassword(protectWithPassword);
   };
 
+  const handleDismiss = () => {
+    onClose();
+  };
+
   const handleChangePasswordText = (newPassword: string) => {
     if (newPassword && newPassword !== PASSWORD_PLACEHOLDER && !isCreatingShareLink) {
       setShouldSave(true);
@@ -297,9 +301,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
             style={tailwind('flex-1 mr-1')}
             title={strings.buttons.dismiss}
             type={'cancel'}
-            onPress={function (): void {
-              throw new Error('Function not implemented.');
-            }}
+            onPress={handleDismiss}
           ></AppButton>
           <AppButton
             loading={isSaving}
