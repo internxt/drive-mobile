@@ -52,10 +52,13 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   private onDevicePhotoSyncCompletedCallback: OnDevicePhotoSyncCompletedCallback = () => undefined;
   private onStatusChangeCallback: OnStatusChangeCallback = () => undefined;
   private onTotalPhotosInDeviceCalculatedCallback: OnTotalPhotosCalculatedCallback = () => undefined;
+  private onPhotosItemUploadStartCallback: (photosItem: PhotosItem) => void = () => undefined;
   private previewsQueue = async.queue<Photo, Photo, Error>(async (task, next) => {
     // Check if we have the preview locally,
     // if not download and save it
     const photosItem = photosUtils.getPhotosItem(task);
+    this.log('Saving photos item in DB');
+    await photosLocalDB.savePhotosItem(task);
     const existsInDevice = this.devicePhotosScanner.getPhotoInDevice(photosItem.name, photosItem.takenAt)
       ? true
       : false;
@@ -63,6 +66,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     if (existsInDevice) {
       this.log('Photo exists in device, skipping preview download');
       next(null, task);
+      return;
     }
 
     const existsPreviewFile = await fileSystemService.exists(photosItem.localPreviewPath);
@@ -73,13 +77,10 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
         await photosPreview.getPreview(photosItem);
       }
 
-      this.log('Saving photos item in DB');
-      await photosLocalDB.savePhotosItem(task);
       this.onRemotePhotosSyncedCallback(photosItem);
       this.log('Preview downloaded');
-      if (!existsInDevice) {
-        next(null, task);
-      }
+
+      return next(null, task);
     } catch (err) {
       this.log(`Preview download failed ${(err as Error).message}`);
 
@@ -230,6 +231,10 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     this.onTotalPhotosInDeviceCalculatedCallback = callback;
   }
 
+  public onPhotosItemUploadStart(callback: (photosItem: PhotosItem) => void) {
+    this.onPhotosItemUploadStartCallback = callback;
+  }
+
   private setupCallbacks() {
     // Transfer the groups of photos received from the DevicePhotosScannerService
     // to the DevicePhotosSyncCheckerService
@@ -262,6 +267,10 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     // Listen for PhotosNetworkManager status changes
     this.photosNetworkManager.onStatusChange(() => {
       this.checkIfFinishSync();
+    });
+
+    this.photosNetworkManager.onUploadStart((photosItem) => {
+      this.onPhotosItemUploadStartCallback(photosItem);
     });
   }
 

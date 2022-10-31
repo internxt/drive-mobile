@@ -1,4 +1,4 @@
-import { PhotoSizeType, PhotosNetworkManagerStatus, PhotosNetworkOperation } from '../../../types/photos';
+import { PhotosItem, PhotoSizeType, PhotosNetworkManagerStatus, PhotosNetworkOperation } from '../../../types/photos';
 
 import async from 'async';
 import { Photo, PhotoPreviewType } from '@internxt/sdk/dist/photos';
@@ -18,10 +18,9 @@ import { photosLogger } from '../logger';
 import { photosPreview } from '../preview';
 import { photosUser } from '../user';
 import { photosLocalDB } from '../database/photosLocalDB';
-import photos from '..';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;
-
+export type OnUploadStartCallback = (photosItem: PhotosItem) => void;
 /**
  * Manages the upload process for each photo using a queue
  *
@@ -35,6 +34,9 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   private logger = photosLogger;
   // eslint-disable-next-line
   private onStatusChangeCallback: OnStatusChangeCallback = () => {};
+  // eslint-disable-next-line
+  private onUploadStartCallback: OnUploadStartCallback = () => {};
+
   private options: { enableLog: boolean };
   private queue = async.queue<PhotosNetworkOperation, Photo | null, Error>((task, next) => {
     if (this.isAborted) {
@@ -47,13 +49,12 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       })
       .catch((err) => {
         if (task.retrys === MAX_UPLOAD_RETRYS) {
+          this.log(`Error during photo upload ${err}`);
           next(err, null);
         } else {
-          const nextRetrys = task.retrys + 1;
-          this.log(`Failed photo upload retry number ${nextRetrys}`);
           this.addOperation({
             ...task,
-            retrys: nextRetrys,
+            retrys: task.retrys + 1,
           });
           next(err, null);
         }
@@ -68,6 +69,10 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   }
   public onStatusChange(callback: OnStatusChangeCallback) {
     this.onStatusChangeCallback = callback;
+  }
+
+  public onUploadStart(callback: OnUploadStartCallback) {
+    this.onUploadStartCallback = callback;
   }
 
   public updateStatus(status: PhotosNetworkManagerStatus): void {
@@ -116,6 +121,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
    * @returns The result of the operation
    */
   public async processUploadOperation(operation: PhotosNetworkOperation): Promise<OperationResult | null> {
+    this.onUploadStartCallback(operation.photosItem);
     const { credentials } = await AuthService.getAuthCredentials();
     const device = photosUser.getDevice();
     const user = photosUser.getUser();
@@ -125,7 +131,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
 
     // Make sure the photo is not in the DB by name and date, hash generation
     // is a bit intensive
-    const existsInDB = await photos.database.getSyncedPhotoByNameAndDate(
+    const existsInDB = await photosLocalDB.getSyncedPhotoByNameAndDate(
       operation.photosItem.name,
       operation.photosItem.takenAt,
     );
@@ -149,9 +155,12 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       }),
     });
 
+    const hashStart = Date.now();
     const hash = (
       await photosUtils.getPhotoHash(credentials.user.userId, name, photoData.takenAt, localUriToPath)
     ).toString('hex');
+
+    this.log(`Hash for photo generated in ${Date.now() - hashStart}ms`);
 
     // 2. Make sure in the meantime, the photo was not pulled from the server, avoid network hits
     const syncedPhoto = await photosLocalDB.getSyncedPhotoByHash(hash);
@@ -172,7 +181,6 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     const uploadGeneratedElapsed = Date.now() - (previewGeneratedElapsed + startAt);
     this.log(`Preview uploaded in ${uploadGeneratedElapsed / 1000}s`);
 
-    this.log('Hash for photo generated');
     // 4. Upload the photo
     const photo = await photosNetwork.upload(localUriToPath, {
       name,
@@ -208,6 +216,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     }
 
     const totalElapsed = Date.now() - startAt;
+
     this.log(`--- TOTAL  ${totalElapsed / 1000}s ---\n`);
 
     return photo;

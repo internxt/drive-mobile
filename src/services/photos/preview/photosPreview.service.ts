@@ -5,6 +5,8 @@ import { PhotoFileSystemRef, PhotosItem, PhotoSizeType } from '@internxt-mobile/
 import { photosNetwork } from '../network/photosNetwork.service';
 import { photosUtils } from '../utils';
 import { createThumbnail } from 'react-native-create-thumbnail';
+import { photosUser } from '../user';
+import errorService from '@internxt-mobile/services/ErrorService';
 
 export type GeneratedPreview = {
   type: PhotoPreviewType;
@@ -91,14 +93,24 @@ export class PhotosPreviewService {
     }
 
     if (photo.previewFileId) {
-      const photoPreviewRef = await photosNetwork.download(photo.previewFileId, {
-        bucketId: photo.bucketId || undefined,
-        destination: photo.localPreviewPath,
-        decryptionProgressCallback: () => undefined,
-        downloadProgressCallback: () => undefined,
-      });
+      try {
+        const user = photosUser.getUser();
+        const photoPreviewRef = await photosNetwork.download(photo.previewFileId, {
+          bucketId: user?.bucketId,
+          destination: photo.localPreviewPath,
+          decryptionProgressCallback: () => undefined,
+          downloadProgressCallback: () => undefined,
+        });
 
-      return fileSystemService.pathToUri(photoPreviewRef);
+        return fileSystemService.pathToUri(photoPreviewRef);
+      } catch (error) {
+        errorService.reportError(error, {
+          tags: {
+            photos_step: 'RETRIEVE_REMOTE_PREVIEW',
+          },
+        });
+        return null;
+      }
     }
 
     return null;

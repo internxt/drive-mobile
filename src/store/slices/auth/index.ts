@@ -119,9 +119,12 @@ export const signInThunk = createAsyncThunk<
       ...initializedUser,
     };
   }
+
   await asyncStorageService.saveItem(AsyncStorageKey.Token, payload.token);
   await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, payload.newToken); // Photos access token
   await asyncStorageService.saveItem(AsyncStorageKey.User, JSON.stringify(userToSave));
+  // Reset this, in case we logged out during the pull process
+  await asyncStorageService.deleteItem(AsyncStorageKey.LastPhotosPagePulled);
   dispatch(authActions.setSignInData({ token: payload.token, photosToken: payload.newToken, user: userToSave }));
 
   SdkManager.init({

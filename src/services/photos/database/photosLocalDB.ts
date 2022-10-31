@@ -86,12 +86,16 @@ export class PhotosLocalDB {
       this.log('Cant mark as TRASHED since photo does not exists');
       return;
     }
+
     const newPhoto: Photo = {
       ...existingPhoto.photo,
       status: PhotoStatus.Trashed,
     };
 
     await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.updatePhotoById, [
+      newPhoto.name,
+      newPhoto.hash,
+      new Date(newPhoto.takenAt).getTime(),
       JSON.stringify(newPhoto),
       photoId,
     ]);

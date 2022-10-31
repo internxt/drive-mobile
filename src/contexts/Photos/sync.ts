@@ -15,6 +15,7 @@ export interface SyncHandlers {
   updateStatus: (newStatus: PhotosSyncStatus) => void;
   onRemotePhotosSynced: (photosItemSynced: PhotosItem) => void;
   onPhotosItemSynced: (photosItem: PhotosItem) => void;
+  onPhotosItemUploadStart: (photosItem: PhotosItem) => void;
 }
 export const startSync = async (handlers: SyncHandlers) => {
   if (!ENABLE_PHOTOS_SYNC) {
@@ -25,6 +26,9 @@ export const startSync = async (handlers: SyncHandlers) => {
 
   const syncManager = photos.sync;
 
+  syncManager.onPhotosItemUploadStart((photosItem) => {
+    handlers.onPhotosItemUploadStart(photosItem);
+  });
   syncManager.onRemotePhotosSynced((photosItem) => {
     handlers.updatePendingTasks(syncManager.getPendingTasks());
     handlers.onRemotePhotosSynced(photosItem);

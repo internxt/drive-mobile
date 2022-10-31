@@ -189,9 +189,10 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
       photosUseCases.deletePhotosItems({
         photosToDelete: [photosItem as PhotosItemBacked],
       });
-      photosCtx.removePhotosItems([photosItem]);
+      await photosCtx.removePhotosItems([photosItem]);
       actions.closeModal('trash');
       actions.closeModal('preview-options');
+
       navigation.goBack();
     },
 
