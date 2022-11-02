@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import { View, Text, Alert, TextInput, TouchableWithoutFeedback } from 'react-native';
 import { Eye, EyeSlash } from 'phosphor-react-native';
@@ -18,6 +18,7 @@ import AppButton from '../../components/AppButton';
 import { useTailwind } from 'tailwind-rn';
 import AppTextInput from '../../components/AppTextInput';
 import useGetColor from '../../hooks/useColor';
+import AppText from 'src/components/AppText';
 
 function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
   const tailwind = useTailwind();
@@ -29,12 +30,20 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [showPasswordText, setShowPasswordText] = useState(false);
+  const [failed2FA, setFailed2FA] = useState(false);
   const isSubmitButtonDisabled = !email || !password;
+  useEffect(() => {
+    if (!twoFactorCode.length) {
+      setFailed2FA(false);
+    }
+  }, [twoFactorCode]);
+
   const onSignInButtonPressed = async () => {
     setIsLoading(true);
-
+    setFailed2FA(false);
+    let requires2FA = false;
     try {
-      const requires2FA = await authService.is2FAEnabled(email);
+      requires2FA = await authService.is2FAEnabled(email);
 
       if (requires2FA && !twoFactorCode) {
         setShowTwoFactor(true);
@@ -51,6 +60,9 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         }, 1000);
       }
     } catch (err) {
+      if (requires2FA) {
+        setFailed2FA(true);
+      }
       const castedError = errorService.castError(err);
 
       analytics.track(AnalyticsEventKey.UserSignInAttempted, {
@@ -120,13 +132,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         </View>
 
         <View style={showTwoFactor ? tailwind('') : tailwind('hidden')}>
-          <View
-            style={[
-              inputWrapperStyle,
-              tailwind('my-2 items-stretch'),
-              validationService.validate2FA(twoFactorCode) ? {} : tailwind('border-red-50'),
-            ]}
-          >
+          <View style={[inputWrapperStyle, tailwind('my-2 items-stretch'), failed2FA ? tailwind('border-red-50') : {}]}>
             <TextInput
               style={tailwind('flex-grow pl-4')}
               value={twoFactorCode}
