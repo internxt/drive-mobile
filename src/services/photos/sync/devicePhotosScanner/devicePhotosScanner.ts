@@ -26,9 +26,7 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
   private onGroupReadyCallback: OnGroupReadyCallback = () => undefined;
   private onStatusChangeCallback: OnStatusChangeCallback = () => undefined;
   private onTotalPhotosCalculatedCallback: OnTotalPhotosCalculatedCallback = () => undefined;
-  private nextCursor?: string;
   private cachedDevicePhotos: DevicePhoto[] = [];
-  private photosInDevice = 0;
   public static async getDevicePhotoData(photo: MediaLibrary.Asset) {
     return MediaLibrary.getAssetInfoAsync(photo);
   }
@@ -61,7 +59,6 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     this.updateStatus(DevicePhotosScannerStatus.RUNNING);
     this.getGroup().then((photos) => {
       if (photos) {
-        this.photosInDevice = photos.totalCount;
         this.onTotalPhotosCalculatedCallback(photos.totalCount);
       } else {
         this.updateStatus(DevicePhotosScannerStatus.NO_PHOTOS_IN_DEVICE);
@@ -76,13 +73,12 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     this.updateStatus(DevicePhotosScannerStatus.PAUSED);
   }
 
-  public isDone() {
+  public hasFinished() {
     return this.status === DevicePhotosScannerStatus.COMPLETED;
   }
 
   public destroy() {
     this.pause();
-    this.nextCursor = undefined;
     this.updateStatus(DevicePhotosScannerStatus.IDLE);
   }
 
@@ -118,15 +114,14 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     };
   }
 
-  private async getGroup() {
+  private async getGroup(cursor?: string) {
     if (this.status !== DevicePhotosScannerStatus.RUNNING) return;
 
-    const photos = await this.getDevicePhotosItems(this.nextCursor);
+    const photos = await this.getDevicePhotosItems(cursor);
 
     this.handleGroupReady(photos.assets);
     if (photos.hasNextPage && photos.endCursor && this.status === DevicePhotosScannerStatus.RUNNING) {
-      this.nextCursor = photos.endCursor;
-      this.getGroup();
+      this.getGroup(photos.endCursor);
     } else {
       this.updateStatus(DevicePhotosScannerStatus.COMPLETED);
     }

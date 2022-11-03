@@ -16,6 +16,7 @@ export interface SyncHandlers {
   onRemotePhotosSynced: (photosItemSynced: PhotosItem) => void;
   onPhotosItemSynced: (photosItem: PhotosItem) => void;
   onPhotosItemUploadStart: (photosItem: PhotosItem) => void;
+  onPhotosItemUploadProgress: (photosItem: PhotosItem, progress: number) => void;
 }
 export const startSync = async (handlers: SyncHandlers) => {
   if (!ENABLE_PHOTOS_SYNC) {
@@ -25,11 +26,24 @@ export const startSync = async (handlers: SyncHandlers) => {
   }
 
   const syncManager = photos.sync;
+  let pendingPhotosInterval: number | null = null;
+  syncManager.onPhotosItemUploadStart(handlers.onPhotosItemUploadStart);
+  syncManager.onPhotosItemUploadProgress(handlers.onPhotosItemUploadProgress);
 
-  syncManager.onPhotosItemUploadStart((photosItem) => {
-    handlers.onPhotosItemUploadStart(photosItem);
-  });
+  const startPendingPhotosUpdatePolling = () => {
+    pendingPhotosInterval = setInterval(function () {
+      handlers.updatePendingTasks(syncManager.getPendingTasks());
+    }, 500);
+  };
+
+  const stopPendingPhotosUpdatePolling = () => {
+    if (pendingPhotosInterval) {
+      clearInterval(pendingPhotosInterval);
+      pendingPhotosInterval = null;
+    }
+  };
   syncManager.onRemotePhotosSynced((photosItem) => {
+    stopPendingPhotosUpdatePolling();
     handlers.updatePendingTasks(syncManager.getPendingTasks());
     handlers.onRemotePhotosSynced(photosItem);
   });
@@ -42,12 +56,14 @@ export const startSync = async (handlers: SyncHandlers) => {
   });
 
   syncManager.onStatusChange((status) => {
+    handlers.updatePendingTasks(syncManager.getPendingTasks());
     if (status === PhotosSyncManagerStatus.RUNNING) {
       activateKeepAwake('PHOTOS_SYNC');
       handlers.updateStatus(PhotosSyncStatus.InProgress);
       handlers.updateCompletedTasks(syncManager.totalPhotosSynced);
     }
     if (status === PhotosSyncManagerStatus.COMPLETED) {
+      stopPendingPhotosUpdatePolling();
       deactivateKeepAwake('PHOTOS_SYNC');
       handlers.updateStatus(PhotosSyncStatus.Completed);
       if (syncManager.totalPhotosSynced > 0) {
@@ -115,4 +131,5 @@ export const startSync = async (handlers: SyncHandlers) => {
   });
 
   syncManager.run();
+  startPendingPhotosUpdatePolling();
 };

@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleProp, View, ViewStyle } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { useTailwind } from 'tailwind-rn';
 import { Circle } from 'react-native-progress';
 import SpinnerImage from '../../../assets/icons/spinner.svg';
@@ -13,6 +12,7 @@ interface LoadingSpinnerProps {
   useDefaultSpinner?: boolean;
   fill?: string;
   renderIcon?: (size?: number, color?: string) => JSX.Element;
+  progress?: number;
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
@@ -23,6 +23,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   children,
   useDefaultSpinner,
   fill,
+  progress,
 }) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -61,7 +62,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         {renderIcon ? (
           renderIcon(size, color || defaultColor)
         ) : useDefaultSpinner ? (
-          <DefaultSpinner width={size} height={size} color={color || defaultColor} fill={fill} />
+          <DefaultSpinner progress={progress} width={size} height={size} color={color || defaultColor} fill={fill} />
         ) : (
           <SpinnerImage width={size} height={size} color={color || defaultColor} />
         )}
@@ -71,18 +72,21 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   );
 };
 
-const DefaultSpinner: React.FC<{ width: number; height: number; color: string; fill?: string }> = ({
+const DefaultSpinner: React.FC<{ width: number; height: number; color: string; fill?: string; progress?: number }> = ({
   width,
   color,
   fill,
+  progress,
 }) => {
   return (
     <Circle
       size={width}
-      borderColor={color}
+      thickness={2}
+      unfilledColor={'transparent'}
       animated
-      indeterminate
-      borderWidth={2}
+      progress={progress}
+      borderWidth={0}
+      color={color}
       style={{ backgroundColor: fill, borderRadius: 999 }}
     />
   );

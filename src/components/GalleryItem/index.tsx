@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useMemo, useRef, useState } from 'react';
 import { View, Image } from 'react-native';
 import { GalleryItemType, PhotosItem, PhotoSyncStatus } from '../../types/photos';
 import { ArrowUp, CheckCircle, CloudSlash } from 'phosphor-react-native';
@@ -14,6 +14,7 @@ import { PhotosItemType } from '@internxt/sdk/dist/photos';
 import photos from '@internxt-mobile/services/photos';
 import { LinearGradient } from 'expo-linear-gradient';
 import LoadingSpinner from '../LoadingSpinner';
+import errorService from '@internxt-mobile/services/ErrorService';
 interface GalleryItemProps {
   type?: GalleryItemType;
   data: PhotosItem;
@@ -28,6 +29,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   const { onPress, data } = props;
 
   const isUploading = photosCtx?.uploadingPhotosItem?.name === data.name;
+
   const uploadedItem = useMemo(
     () => photosCtx.uploadedPhotosItems.find((uploaded) => uploaded.name === data.name),
     [photosCtx.uploadedPhotosItems, data.name],
@@ -57,8 +59,16 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   };
 
   const handlePreviewLoadError = async () => {
-    const preview = await photos.preview.getPreview(photosItem);
-    setRetrievedPreviewUri(preview);
+    try {
+      const preview = await photos.preview.getPreview(photosItem);
+      setRetrievedPreviewUri(preview);
+    } catch {
+      errorService.reportError(new Error('Unable to load preview'), {
+        extra: {
+          previewId: photosItem.previewFileId,
+        },
+      });
+    }
   };
 
   const useLocalUri = props.data.status !== PhotoSyncStatus.IN_SYNC_ONLY && data.localUri;
@@ -67,7 +77,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
     return (
       <LinearGradient
         style={tailwind('w-full h-full')}
-        colors={['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.15)', 'rgba(0, 0, 0, 0.35)']}
+        colors={['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.15)', 'rgba(0, 0, 0, 0.25)']}
         locations={[0.5, 0.75, 1]}
       />
     );
@@ -81,6 +91,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
       {/* Looks like FastImage doesn't support ph:// uris, RN Image does */}
       {useLocalUri && (
         <Image
+          onError={handlePreviewLoadError}
           style={tailwind('w-full h-full')}
           source={{
             uri: fileSystemService.pathToUri(data.localUri as string),
@@ -90,6 +101,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
 
       {uploadedItem && !data.localPreviewPath && (
         <FastImage
+          onError={handlePreviewLoadError}
           style={tailwind('w-full h-full')}
           source={{
             uri: fileSystemService.pathToUri(uploadedItem.localPreviewPath),
@@ -108,6 +120,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
 
       {retrievedPreviewUri && !useLocalUri && (
         <FastImage
+          onError={handlePreviewLoadError}
           style={tailwind('w-full h-full')}
           source={{
             uri: fileSystemService.pathToUri(retrievedPreviewUri),
@@ -127,17 +140,17 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
           <CloudSlash color={getColor('text-white')} size={16} />
         </View>
       )}
-
       {isUploading && !uploadedItem && (
-        <View style={[tailwind('absolute bottom-1 left-1 flex justify-center items-center rounded-xl z-10')]}>
+        <View style={tailwind('absolute bottom-1 left-1 flex justify-center items-center rounded-xl z-10')}>
           <View style={tailwind('mb-0.5')}>
             <LoadingSpinner
+              progress={photosCtx.uploadProgress}
               size={18}
               color={tailwind('text-white').color as string}
               useDefaultSpinner
               fill={'rgba(0,0,0,0.25)'}
             >
-              <ArrowUp color={tailwind('text-white').color as string} size={12} />
+              <ArrowUp weight="bold" color={tailwind('text-white').color as string} size={12} />
             </LoadingSpinner>
           </View>
         </View>
@@ -152,7 +165,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
           <CheckCircle color={getColor('text-white')} size={24} />
         </View>
       )}
-      <View style={tailwind('absolute bottom-0 left-0 h-16 w-full')}>{renderGradient()}</View>
+      <View style={tailwind('absolute bottom-0 left-0 h-12 w-full')}>{renderGradient()}</View>
     </TouchableWithoutFeedback>
   );
 };

@@ -57,7 +57,7 @@ const PhotosSyncStatusWidget = () => {
     [PhotosSyncStatus.Paused]: (
       <View style={tailwind('flex-row items-center')}>
         <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
-          Backup paused
+          {strings.screens.gallery.paused}
         </AppText>
         <AppText style={tailwind('text-sm text-neutral-100')}>{renderPending()}</AppText>
       </View>
@@ -65,7 +65,7 @@ const PhotosSyncStatusWidget = () => {
     [PhotosSyncStatus.InProgress]: (
       <View style={tailwind('flex-row items-center justify-center')}>
         <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
-          Backing up
+          {strings.screens.gallery.syncing}
         </AppText>
         <AppText style={tailwind('text-sm text-neutral-100')}>{renderPending()}</AppText>
       </View>

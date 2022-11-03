@@ -32,6 +32,7 @@ export interface PhotosContextType {
   removePhotosItems: (photosItems: PhotosItem[]) => Promise<void>;
   refresh: () => Promise<void>;
   uploadingPhotosItem: PhotosItem | null;
+  uploadProgress: number;
   sync: {
     status: PhotosSyncStatus;
     totalTasks: number;
@@ -47,6 +48,7 @@ export const PhotosContext = React.createContext<PhotosContextType>({
     const r2Key = `${r2.name}-${r2.takenAt}`;
     return r1Key !== r2Key;
   }),
+  uploadProgress: 0,
   refresh: () => Promise.reject('Photos context not ready'),
   removePhotosItems() {
     return Promise.reject('Photos context not ready');
@@ -101,6 +103,8 @@ const getPhotos = async (cursor?: string) => {
 
 export const PhotosContextProvider: React.FC = ({ children }) => {
   const [uploadingPhotosItem, setUploadingPhotosItem] = useState<PhotosItem | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+
   const [selectionModeActivated, setSelectionModeActivated] = useState(false);
   const [uploadedPhotosItems, setUploadedPhotosItems] = useState<PhotosItem[]>([]);
 
@@ -180,6 +184,10 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     );
   }
 
+  function handlePhotosItemUploadProgress(_: PhotosItem, progress: number) {
+    setUploadProgress(progress);
+  }
+
   /**
    * Starts the photos systems
    * including the sync system
@@ -225,11 +233,15 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
         updateCompletedTasks: setCompletedTasks,
         updateFailedTasks: setFailedTasks,
         onRemotePhotosSynced,
+        onPhotosItemUploadProgress: handlePhotosItemUploadProgress,
         onPhotosItemUploadStart: (photosItem) => {
           // Timeout this since the upload item change will
           // be triggered before we insert the item into the already
           // uploaded items
-          setTimeout(() => setUploadingPhotosItem(photosItem), 450);
+          setTimeout(() => {
+            setUploadProgress(0);
+            setUploadingPhotosItem(photosItem);
+          }, 250);
         },
         onPhotosItemSynced: (photosItem) => {
           uploadedPhotosItemsRef.current = uploadedPhotosItemsRef.current.concat([photosItem]);
@@ -371,6 +383,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
         removePhotosItems: handleRemovePhotosItems,
         refresh: refreshPhotosContext,
         uploadingPhotosItem,
+        uploadProgress,
         sync: {
           status: syncStatus,
           totalTasks,

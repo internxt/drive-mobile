@@ -14,11 +14,7 @@ export class DevicePhotosSyncCheckerService {
   public status = DevicePhotosSyncCheckerStatus.IDLE;
   private queue = this.createQueue();
   private onStatusChangeCallback: DevicePhotosSyncServiceHandlers['onSyncQueueStatusChange'] = () => undefined;
-  constructor(private database: PhotosLocalDB) {
-    this.queue.drain(() => {
-      this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);
-    });
-  }
+  constructor(private database: PhotosLocalDB) {}
 
   public createQueue() {
     const queue = async.queue<DevicePhotoSyncCheckOperation, DevicePhotoSyncCheckOperation | null, Error>(
@@ -55,7 +51,7 @@ export class DevicePhotosSyncCheckerService {
     this.queue = this.createQueue();
   }
 
-  public isDone() {
+  public get hasFinished() {
     return this.status === DevicePhotosSyncCheckerStatus.COMPLETED;
   }
 

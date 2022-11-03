@@ -2,10 +2,8 @@ import { RunnableService } from '../../../../helpers/services';
 import {
   DevicePhotoRemoteCheck,
   DevicePhotosOperationPriority,
-  DevicePhotosSyncCheckerStatus,
   DevicePhotoSyncCheckOperation,
   PhotosItem,
-  PhotosNetworkManagerStatus,
   PhotosSyncManagerStatus,
   SyncStage,
 } from '../../../../types/photos';
@@ -52,7 +50,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   private onDevicePhotoSyncCompletedCallback: OnDevicePhotoSyncCompletedCallback = () => undefined;
   private onStatusChangeCallback: OnStatusChangeCallback = () => undefined;
   private onTotalPhotosInDeviceCalculatedCallback: OnTotalPhotosCalculatedCallback = () => undefined;
-  private onPhotosItemUploadStartCallback: (photosItem: PhotosItem) => void = () => undefined;
+
   private previewsQueue = async.queue<Photo, Photo, Error>(async (task, next) => {
     // Check if we have the preview locally,
     // if not download and save it
@@ -194,9 +192,11 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     this.log('Sync manager destroying');
     this.devicePhotosSyncChecker.destroy();
     this.devicePhotosScanner.destroy();
+    this.photosNetworkManager.destroy();
     this.updateStatus(PhotosSyncManagerStatus.ABORTED);
     this.totalPhotosSynced = 0;
     this.totalPhotosInDevice = 0;
+    this.pendingItemsToSync = 0;
   }
 
   public get isAborted() {
@@ -232,7 +232,11 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   }
 
   public onPhotosItemUploadStart(callback: (photosItem: PhotosItem) => void) {
-    this.onPhotosItemUploadStartCallback = callback;
+    this.photosNetworkManager.onUploadStart(callback);
+  }
+
+  public onPhotosItemUploadProgress(callback: (photosItem: PhotosItem, progress: number) => void) {
+    this.photosNetworkManager.onUploadProgress(callback);
   }
 
   private setupCallbacks() {
@@ -268,10 +272,6 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     this.photosNetworkManager.onStatusChange(() => {
       this.checkIfFinishSync();
     });
-
-    this.photosNetworkManager.onUploadStart((photosItem) => {
-      this.onPhotosItemUploadStartCallback(photosItem);
-    });
   }
 
   /**
@@ -281,11 +281,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
    */
   private checkIfFinishSync() {
     if (this.status === PhotosSyncManagerStatus.COMPLETED) return;
-    const shouldFinish =
-      (this.devicePhotosSyncChecker.status === DevicePhotosSyncCheckerStatus.COMPLETED &&
-        (this.photosNetworkManager.status === PhotosNetworkManagerStatus.COMPLETED ||
-          this.photosNetworkManager.status === PhotosNetworkManagerStatus.IDLE)) ||
-      (this.totalPhotosInDevice === 0 && this.getPendingTasks() === 0);
+    const shouldFinish = this.devicePhotosSyncChecker.hasFinished && this.photosNetworkManager.hasFinished;
 
     if (shouldFinish) {
       this.log('Sync manager should finish now');
