@@ -69,7 +69,7 @@ const PlansModal = (props: BaseModalProps) => {
   const onPriceButtonPressed = (priceId: string) => {
     dispatch(paymentsThunks.createSessionThunk(priceId));
   };
-  const header = <View></View>;
+  const header = <View style={tailwind('bg-white')}></View>;
   const renderPrices = () =>
     Object.entries(pricesBySize).map(([key], index) => {
       const isTheLast = index === Object.keys(pricesBySize).length - 1;
@@ -153,7 +153,13 @@ const PlansModal = (props: BaseModalProps) => {
   }, [props.isOpen]);
 
   return (
-    <BottomModal isOpen={props.isOpen} onClosed={onClosed} header={header} containerStyle={tailwind('pb-6 px-5')}>
+    <BottomModal
+      isOpen={props.isOpen}
+      onClosed={onClosed}
+      header={header}
+      containerStyle={tailwind('pb-6 px-5')}
+      headerStyle={tailwind('bg-white')}
+    >
       <View pointerEvents="none" style={tailwind('-mt-10 mb-16')}>
         <View style={tailwind('mb-1.5 p-4 items-center')}>
           <Image source={require('../../../../assets/icon.png')} style={tailwind('rounded-xl w-16 h-16')} />

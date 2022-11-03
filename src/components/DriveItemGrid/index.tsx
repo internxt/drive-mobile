@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, TouchableHighlight, Animated, Easing, Image } from 'react-native';
 
 import { FolderIcon, getFileTypeIcon } from '../../helpers';
-import globalStyle from '../../styles/global';
-import { useAppSelector } from '../../store/hooks';
 import { ArrowCircleUp } from 'phosphor-react-native';
 import { items } from '@internxt/lib';
 import AppText from '../AppText';
@@ -19,8 +17,6 @@ import prettysize from 'prettysize';
 function DriveItemGrid(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const { selectedItems } = useAppSelector((state) => state.drive);
-  const isSelectionMode = selectedItems.length > 0;
   const spinValue = new Animated.Value(1);
   const [thumbnailPath, setThumbnailPath] = useState<string | null>(null);
   const [maxThumbnailWidth, setMaxThumbnailWidth] = useState<number | null>(null);
@@ -69,9 +65,13 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
   }, []);
 
   const renderThumbnail = () => {
+    const height = getThumbnailHeight();
+    const width = getThumbnailWidth();
     return (
       <View
         style={{
+          height,
+          width,
           shadowColor: '#000',
           shadowOffset: {
             width: 0,
@@ -82,16 +82,15 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
         }}
       >
         <Image
-          borderRadius={10}
+          borderRadius={6}
           source={{ uri: thumbnailPath as string }}
           style={[
-            tailwind('rounded bg-debug'),
             {
-              height: getThumbnailHeight(),
-              width: getThumbnailWidth() - 10,
+              height,
+              width,
             },
           ]}
-          resizeMode={'cover'}
+          resizeMode="cover"
         />
       </View>
     );
@@ -105,12 +104,12 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
       onLayout={(event) => {
         !maxThumbnailWidth && setMaxThumbnailWidth(Math.floor(event.nativeEvent.layout.width) - 8);
       }}
-      style={[{ flex: 1 / 3 }, tailwind('p-2 mb-5 rounded-lg')]}
+      style={[{ flex: 1 }, tailwind('mb-2 rounded-lg')]}
     >
       <View>
-        <View style={[tailwind('flex-grow overflow-hidden'), tailwind('flex-col items-center justify-center')]}>
-          <View style={tailwind('w-full mb-1.5 items-center justify-center')}>
-            <View style={tailwind('h-24 flex items-center justify-center')}>
+        <View style={[tailwind('flex-grow'), tailwind('flex-col items-center justify-center')]}>
+          <View style={tailwind('w-full items-center justify-center')}>
+            <View style={tailwind('h-24 w-24 flex items-center justify-center')}>
               {isFolder ? (
                 <FolderIcon width={iconSize} height={iconSize} style={isUploading && tailwind('opacity-40')} />
               ) : thumbnailPath ? (
@@ -132,19 +131,19 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
             )}
           </View>
 
-          <View style={[tailwind('flex items-start justify-center items-center mt-1.5')]}>
+          <View style={[tailwind('flex items-start justify-center items-center mt-2.5 px-2 py-1')]}>
             <AppText
               style={[
-                tailwind('text-base text-gray-100 text-center px-2.5 leading-5'),
+                tailwind('text-base text-gray-100 text-center leading-5'),
                 isUploading && tailwind('opacity-40'),
-                globalStyle.fontWeight.medium,
+                { lineHeight: 16 * 1.2 },
               ]}
               numberOfLines={2}
               ellipsizeMode={'middle'}
             >
               {items.getItemDisplayName(props.data)}
             </AppText>
-            <AppText style={tailwind('text-xs text-gray-50 mt-2')}>
+            <AppText style={[tailwind('text-xs text-gray-50 mt-1'), { lineHeight: 14 }]}>
               {time.getFormattedDate(props.data.createdAt, time.formats.shortDate)}
             </AppText>
             {props.data.size ? (

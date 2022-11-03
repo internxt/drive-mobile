@@ -76,6 +76,7 @@ function MoveItemsModal(): JSX.Element {
     () =>
       [...(destinationFolderContentResponse?.children || []), ...(destinationFolderContentResponse?.files || [])]
         .map<DriveListItem>((child) => ({
+          id: child.id.toString(),
           status: DriveItemStatus.Idle,
           data: {
             thumbnails: (child as DriveFileData).thumbnails,

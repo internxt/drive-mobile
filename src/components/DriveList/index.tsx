@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { RefreshControl, View, FlatList } from 'react-native';
+import { RefreshControl, View, FlatList, useWindowDimensions } from 'react-native';
 import _ from 'lodash';
 
 import DriveItemTable from '../DriveItemTable';
@@ -14,6 +14,7 @@ import { driveSelectors, driveThunks } from '../../store/slices/drive';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { DriveListType, DriveListViewMode, DriveListItem } from '../../types/drive';
 import { useTailwind } from 'tailwind-rn';
+import { VirtualizedListView } from '@internxt-mobile/ui-kit';
 
 interface DriveListProps {
   type: DriveListType;
@@ -23,8 +24,8 @@ interface DriveListProps {
 
 function DriveList(props: DriveListProps): JSX.Element {
   const tailwind = useTailwind();
+  const { width } = useWindowDimensions();
   const dispatch = useAppDispatch();
-  const [refreshing, setRefreshing] = useState(false);
   const { searchString, isLoading: filesLoading } = useAppSelector((state) => state.drive);
   const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const { user } = useAppSelector((state) => state.auth);
@@ -32,7 +33,16 @@ function DriveList(props: DriveListProps): JSX.Element {
   const rootFolderId = user?.root_folder_id;
   const isRootFolder = currentFolderId === rootFolderId;
   const isEmptyFolder = props.items.length === 0;
-  const numColumns = 3;
+  const sizeByMode = {
+    [DriveListViewMode.List]: {
+      width,
+      height: tailwind('h-16').height as number,
+    },
+    [DriveListViewMode.Grid]: {
+      width: (width - 16) / 3,
+      height: tailwind('h-48').height as number,
+    },
+  };
   const itemByViewMode = {
     [DriveListViewMode.List]: DriveItemTable,
     [DriveListViewMode.Grid]: DriveItemGrid,
@@ -48,59 +58,59 @@ function DriveList(props: DriveListProps): JSX.Element {
     }
   }, []);
 
-  return (
-    <FlatList
-      contentContainerStyle={[isEmptyFolder ? tailwind('h-full justify-center') : tailwind('pt-5 px-1')]}
-      key={props.viewMode}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={async () => {
-            setRefreshing(true);
+  function renderEmptyState() {
+    if (filesLoading) {
+      return (
+        <View style={tailwind('h-full')}>
+          {_.times(20, (n) => (
+            <View style={tailwind('h-16')} key={n}>
+              <DriveItemSkinSkeleton viewMode={props.viewMode} />
+            </View>
+          ))}
+        </View>
+      );
+    }
 
-            await dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
+    if (isEmptyFolder) {
+      if (searchString) {
+        return renderNoResults();
+      }
+      const image = isRootFolder ? (
+        <EmptyDriveImage width={100} height={100} />
+      ) : (
+        <EmptyFolderImage width={100} height={100} />
+      );
+      return <EmptyList {...strings.screens.drive.emptyRoot} image={image} />;
+    }
+  }
 
-            setRefreshing(false);
-          }}
+  async function handleOnRefresh() {
+    await dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
+  }
+
+  function renderItem(item: DriveListItem) {
+    return (
+      <View style={tailwind('h-full flex justify-center')}>
+        <ItemComponent
+          type={props.type}
+          data={item.data}
+          status={item.status}
+          progress={item.progress}
+          viewMode={props.viewMode}
         />
-      }
-      numColumns={props.viewMode === DriveListViewMode.Grid ? numColumns : 1}
-      collapsable={true}
-      ListEmptyComponent={
-        filesLoading ? (
-          <View style={tailwind('h-full')}>
-            {_.times(20, (n) => (
-              <DriveItemSkinSkeleton viewMode={props.viewMode} key={n} />
-            ))}
-          </View>
-        ) : isRootFolder ? (
-          searchString ? (
-            renderNoResults()
-          ) : (
-            <EmptyList {...strings.screens.drive.emptyRoot} image={<EmptyDriveImage width={100} height={100} />} />
-          )
-        ) : searchString ? (
-          renderNoResults()
-        ) : (
-          <EmptyList {...strings.screens.drive.emptyFolder} image={<EmptyFolderImage width={100} height={100} />} />
-        )
-      }
+        {isGrid ? <View></View> : <View style={{ height: 1, ...tailwind('bg-neutral-20') }}></View>}
+      </View>
+    );
+  }
+
+  return (
+    <VirtualizedListView<DriveListItem>
+      contentContainerStyle={props.viewMode === DriveListViewMode.Grid ? tailwind('py-6 ml-2') : undefined}
+      onRefresh={handleOnRefresh}
       data={props.items}
-      keyExtractor={(item) => `${props.viewMode}-${item.data.id}-${item.data.fileId ? 'file' : 'folder'}`}
-      renderItem={({ item }) => {
-        return (
-          <ItemComponent
-            type={props.type}
-            data={item.data}
-            status={item.status}
-            progress={item.progress}
-            viewMode={props.viewMode}
-          />
-        );
-      }}
-      ItemSeparatorComponent={() => {
-        return isGrid ? <View></View> : <View style={{ height: 1, ...tailwind('bg-neutral-20') }}></View>;
-      }}
+      itemSize={sizeByMode[props.viewMode]}
+      renderRow={renderItem}
+      renderEmpty={renderEmptyState}
     />
   );
 }
