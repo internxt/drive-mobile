@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-export const INCREASED_TOUCH_AREA = { top: 8, left: 8, right: 8, bottom: 8 };
+export const INCREASED_TOUCH_AREA = { top: 16, left: 16, right: 16, bottom: 16 };
 export default {
   fontWeight: StyleSheet.create({
     light: {

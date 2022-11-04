@@ -743,10 +743,12 @@ export const driveSelectors = {
           currentThumbnail: null,
           ...f,
         },
+        id: f.id.toString(),
       })),
       items: items.map<DriveListItem>((f) => ({
         status: DriveItemStatus.Idle,
         data: f,
+        id: f.id.toString(),
       })),
     };
   },

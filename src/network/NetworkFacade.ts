@@ -67,8 +67,15 @@ export class NetworkFacade {
     filePath: string,
     options: UploadOptions,
   ): Promise<[Promise<string>, Abortable]> {
+    let currentProgress = 0;
+
+    const maxEncryptProgress = 0.5;
     let fileHash: string;
 
+    const updateProgress = (progress: number) => {
+      currentProgress = progress;
+      options.progress && options.progress(currentProgress);
+    };
     const plainFilePath = filePath;
 
     const encryptedFilePath = fileSystemService.tmpFilePath(`${uuid.v4()}.enc`);
@@ -84,8 +91,20 @@ export class NetworkFacade {
       mnemonic,
       fileSize,
       async (algorithm, key, iv) => {
-        await encryptFileFunction(plainFilePath, encryptedFilePath, key as Buffer, iv as Buffer);
+        // TODO: Use real progress passing a callback to the native module
+        const interval = setInterval(() => {
+          currentProgress += 0.05;
+          if (currentProgress <= maxEncryptProgress) {
+            updateProgress(currentProgress);
+          } else {
+            clearInterval(interval);
+          }
+        }, 1000);
 
+        await encryptFileFunction(plainFilePath, encryptedFilePath, key as Buffer, iv as Buffer);
+        // Clear the encrypt progress
+        clearInterval(interval);
+        updateProgress(maxEncryptProgress);
         fileHash = ripemd160(Buffer.from(await RNFS.hash(encryptedFilePath, 'sha256'), 'hex')).toString('hex');
       },
       async (url: string) => {
@@ -97,7 +116,10 @@ export class NetworkFacade {
           },
           RNFetchBlob.wrap(encryptedFilePath),
         ).uploadProgress({ interval: 500 }, (bytesSent, totalBytes) => {
-          options.progress && options.progress(bytesSent / totalBytes);
+          // From 0 to 1
+          const uploadProgress = bytesSent / totalBytes;
+
+          updateProgress(maxEncryptProgress + uploadProgress * maxEncryptProgress);
         });
 
         return fileHash;

@@ -16,6 +16,7 @@ export interface BottomModalProps {
   children?: JSX.Element | JSX.Element[];
   style?: StyleProp<ViewStyle>;
   containerStyle?: StyleProp<ViewStyle>;
+  headerStyle?: StyleProp<ViewStyle>;
   safeAreaColor?: string;
   height?: number;
   topDecoration?: boolean;
@@ -55,9 +56,12 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
                 )}
                 {props.header && (
                   <View
-                    style={tailwind(
-                      'flex-row bg-gray-5  px-5 py-4 items-center justify-between overflow-hidden rounded-t-xl',
-                    )}
+                    style={[
+                      tailwind(
+                        'flex-row bg-gray-5 px-5 py-4 items-center justify-between overflow-hidden rounded-t-xl',
+                      ),
+                      props.headerStyle,
+                    ]}
                   >
                     <View style={tailwind('flex-1')}>{props.header}</View>
                     <TouchableWithoutFeedback onPress={props.onClosed}>
