@@ -93,7 +93,7 @@ export type DriveItemDataProps = Pick<
   shareId?: string;
 };
 
-export type DriveListItem = { status: DriveItemStatus; progress?: number; data: DriveItemDataProps };
+export type DriveListItem = { status: DriveItemStatus; progress?: number; data: DriveItemDataProps; id: string };
 
 export interface DriveItemProps {
   type: DriveListType;
