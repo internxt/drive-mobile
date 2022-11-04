@@ -1,6 +1,7 @@
 import { DriveFileData, DriveFolderData, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 
-export const UPLOAD_FILE_SIZE_LIMIT = 1024 * 1024 * 1024;
+const GB = 1024 * 1024 * 1024;
+export const UPLOAD_FILE_SIZE_LIMIT = 5 * GB;
 
 export interface DriveNavigationStackItem {
   id: number;
