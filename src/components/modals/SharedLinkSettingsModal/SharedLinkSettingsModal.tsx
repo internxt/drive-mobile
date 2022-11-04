@@ -183,11 +183,10 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
       // You ned to provide a password
       setPasswordError(true);
       return;
-    } else {
-      setPasswordError(false);
-      setIsSaving(true);
     }
 
+    setPasswordError(false);
+    setIsSaving(true);
     setIsProcessingLink(true);
 
     const shouldIncludePassword = protectWithPassword ? true : false;
