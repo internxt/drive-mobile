@@ -132,39 +132,48 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
       // You ned to provide a password
       setPasswordError(true);
       return;
-    } else {
-      setPasswordError(false);
     }
+
+    setPasswordError(false);
+
+    // If we already have a generated share link, copy it
     if (generatedShareLink) {
       Clipboard.setString(generatedShareLink);
-    } else {
-      const isFolder = item?.type ? false : true;
-      if (item?.token && item?.code) {
-        const existingLink = await driveUseCases.getExistingShareLink({
-          code: item.code,
-          token: item.token,
-          type: isFolder ? 'folder' : 'file',
-        });
-        if (!existingLink) return;
-        setGeneratedShareLink(existingLink);
-        Clipboard.setString(existingLink);
-      } else {
-        setIsProcessingLink(true);
-        const result = await driveUseCases.generateShareLink({
-          itemId: item?.id.toString() as string,
-          fileId: item?.fileId,
-          displayCopyNotification: false,
-          type: isFolder ? 'folder' : 'file',
-          plainPassword: shareLinkPassword,
-        });
 
-        if (!result?.link) return;
-        setGeneratedShareLink(result.link);
-        Clipboard.setString(result.link);
-      }
-
-      setIsProcessingLink(false);
+      return;
     }
+
+    const isFolder = item?.type ? false : true;
+
+    // A share link already exists, obtain it
+    if (item?.token && item?.code) {
+      const existingLink = await driveUseCases.getExistingShareLink({
+        code: item.code,
+        token: item.token,
+        type: isFolder ? 'folder' : 'file',
+      });
+      if (!existingLink) return;
+      setGeneratedShareLink(existingLink);
+      Clipboard.setString(existingLink);
+
+      return;
+    }
+
+    // No share link, generate it
+    setIsProcessingLink(true);
+    const result = await driveUseCases.generateShareLink({
+      itemId: item?.id.toString() as string,
+      fileId: item?.fileId,
+      displayCopyNotification: false,
+      type: isFolder ? 'folder' : 'file',
+      plainPassword: shareLinkPassword,
+    });
+
+    if (!result?.link) return;
+    setGeneratedShareLink(result.link);
+    Clipboard.setString(result.link);
+
+    setIsProcessingLink(false);
   };
 
   const handleSaveShareLinkChanges = async () => {
