@@ -24,7 +24,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
   const { isFolder, isIdle, isUploading, isDownloading, onItemPressed, onItemLongPressed, onActionsButtonPressed } =
-    useDriveItem({ ...props, isSharedLinkItem: props.type === DriveListType.Shared });
+    useDriveItem({ ...props, isSharedLinkItem: props.type === DriveListType.Shared, shareLink: props.shareLink });
 
   useEffect(() => {
     Animated.loop(

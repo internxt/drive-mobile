@@ -12,6 +12,7 @@ import { useTailwind } from 'tailwind-rn';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { UseCaseStatus } from '@internxt-mobile/hooks/common';
 import { SharedLinkResult } from '@internxt-mobile/useCases/drive';
+import { ShareLink } from '@internxt/sdk/dist/drive/share/types';
 
 interface SharedScreenProps {
   searchText?: string;
@@ -85,6 +86,7 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
               createdAt: sharedLink.item.createdAt,
             }}
             progress={-1}
+            shareLink={sharedLink as ShareLink}
           />
         );
       });

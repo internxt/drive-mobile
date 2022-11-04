@@ -1,3 +1,4 @@
+import { ShareLink } from '@internxt/sdk/dist/drive/share/types';
 import { DriveFileData, DriveFolderData, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 
 const GB = 1024 * 1024 * 1024;
@@ -106,6 +107,7 @@ export interface DriveItemProps {
   selectable?: boolean;
   subtitle?: JSX.Element;
   progress?: number;
+  shareLink?: ShareLink;
 }
 
 export enum DriveEventKey {

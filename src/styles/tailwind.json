@@ -954,6 +954,15 @@
 			"borderLeftColor": "rgb(250 77 86 / var(--tw-border-opacity))"
 		}
 	},
+	"border-gray-100": {
+		"style": {
+			"--tw-border-opacity": 1,
+			"borderTopColor": "rgb(24 24 27 / var(--tw-border-opacity))",
+			"borderRightColor": "rgb(24 24 27 / var(--tw-border-opacity))",
+			"borderBottomColor": "rgb(24 24 27 / var(--tw-border-opacity))",
+			"borderLeftColor": "rgb(24 24 27 / var(--tw-border-opacity))"
+		}
+	},
 	"bg-primary-dark": {
 		"style": {
 			"--tw-bg-opacity": 1,

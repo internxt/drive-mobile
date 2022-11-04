@@ -1,5 +1,5 @@
 import prettysize from 'prettysize';
-import React from 'react';
+import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
@@ -21,26 +21,16 @@ import {
 } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
-import { useUseCase } from '@internxt-mobile/hooks/common';
-import * as driveUseCases from '@internxt-mobile/useCases/drive';
-
 import { time } from '@internxt-mobile/services/common/time';
 import AppText from 'src/components/AppText';
-import { GeneratingLinkModal } from '../common/GeneratingLinkModal';
+import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
 function DriveItemInfoModal(): JSX.Element {
-  const { executeUseCase: generateAndShowShareLink, loading: generatingShareLink } = useUseCase(
-    driveUseCases.generateShareLink,
-    {
-      lazy: true,
-    },
-  );
-
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const { focusedItem: item } = useAppSelector((state) => state.drive);
   const { showItemModal } = useAppSelector((state) => state.ui);
-
+  const [sharedLinkSettingsModalOpen, setSharedLinkSettingsModalOpen] = useState(false);
   if (!item) {
     return <></>;
   }
@@ -64,14 +54,8 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleGenerateShareLink = async () => {
-    await generateAndShowShareLink({
-      itemId: item.id.toString(),
-      fileId: item.fileId,
-      displayCopyNotification: true,
-      type: isFolder ? 'folder' : 'file',
-    });
-
     dispatch(uiActions.setShowItemModal(false));
+    setSharedLinkSettingsModalOpen(true);
   };
 
   const handleOpenItem = () => {
@@ -182,7 +166,12 @@ function DriveItemInfoModal(): JSX.Element {
           </View>
         </View>
       </BottomModal>
-      <GeneratingLinkModal isGenerating={generatingShareLink} />
+
+      <SharedLinkSettingsModal
+        isCreatingShareLink
+        isOpen={sharedLinkSettingsModalOpen}
+        onClose={() => setSharedLinkSettingsModalOpen(false)}
+      />
     </>
   );
 }

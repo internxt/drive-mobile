@@ -1,6 +1,6 @@
 import AuthService from '@internxt-mobile/services/AuthService';
-import { DisplayableError } from '@internxt-mobile/services/common';
 import drive from '@internxt-mobile/services/drive';
+import errorService from '@internxt-mobile/services/ErrorService';
 import notificationsService from '@internxt-mobile/services/NotificationsService';
 import { DriveEventKey } from '@internxt-mobile/types/drive';
 import { NotificationType } from '@internxt-mobile/types/index';
@@ -44,9 +44,9 @@ export const getExistingShareLink = async ({
 
     return link;
   } catch (error) {
-    throw new DisplayableError({
-      userFriendlyMessage: strings.errors.generateShareLinkError,
-      report: { error },
+    notificationsService.error(strings.errors.generateShareLinkError);
+    errorService.reportError({
+      error,
     });
   }
 };
@@ -99,9 +99,11 @@ export const generateShareLink = async ({
   fileId,
   displayCopyNotification,
   type,
+  plainPassword,
 }: {
   itemId: string;
   fileId?: string;
+  plainPassword?: string;
   displayCopyNotification?: boolean;
   type: 'file' | 'folder';
 }) => {
@@ -133,9 +135,10 @@ export const generateShareLink = async ({
       timesValid: -1,
       bucket,
       itemToken,
+      plainPassword,
     });
 
-    if (displayCopyNotification) {
+    if (displayCopyNotification && link) {
       copyShareLink({ link });
     }
     sharedLinksUpdated();
@@ -143,9 +146,45 @@ export const generateShareLink = async ({
       link,
     };
   } catch (error) {
-    throw new DisplayableError({
-      userFriendlyMessage: strings.errors.generateShareLinkError,
-      report: { error },
+    notificationsService.error(strings.errors.generateShareLinkError);
+    errorService.reportError({
+      error,
+    });
+  }
+};
+
+/**
+ * Updates a share link for a given Drive item
+ */
+export const updateShareLink = async ({
+  shareId,
+  plainPassword,
+}: {
+  shareId: string;
+  plainPassword: string | null;
+  type: 'file' | 'folder';
+}) => {
+  try {
+    const { credentials } = await AuthService.getAuthCredentials();
+
+    if (!credentials?.user) throw new Error('User credentials not found');
+
+    const { mnemonic } = credentials.user;
+
+    const link = await drive.share.updateShareLink({
+      mnemonic,
+      plainPassword,
+      shareId,
+    });
+
+    sharedLinksUpdated();
+    return {
+      link,
+    };
+  } catch (error) {
+    notificationsService.error(strings.errors.generateShareLinkError);
+    errorService.reportError({
+      error,
     });
   }
 };
