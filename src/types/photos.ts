@@ -146,7 +146,7 @@ export enum PhotosNetworkOperationResult {
 export interface PhotosNetworkOperation {
   photosItem: PhotosItem;
   lastError?: Error;
-  retrys: number;
+  retries: number;
   onOperationCompleted: (err: Error | null, photo: Photo | null) => void;
 }
 export type DevicePhoto = MediaLibrary.Asset;

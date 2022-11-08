@@ -6,7 +6,7 @@ import { RunnableService } from '../../../helpers/services';
 import fileSystemService from '../../FileSystemService';
 import {
   ENABLE_PHOTOS_NETWORK_MANAGER_LOGS,
-  MAX_UPLOAD_RETRYS,
+  MAX_UPLOAD_RETRIES,
   PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY,
 } from '../constants';
 import { AbortedOperationError } from 'src/types';
@@ -50,7 +50,8 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   private createQueue() {
     const queue = async.queue<PhotosNetworkOperation, Photo | null, Error>((task, next) => {
       if (this.isAborted) {
-        throw new AbortedOperationError();
+        next(new AbortedOperationError(), null);
+        return;
       }
 
       this.wrapWithDuration(task)
@@ -58,13 +59,13 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
           next(null, result);
         })
         .catch((err) => {
-          if (task.retrys === MAX_UPLOAD_RETRYS) {
+          if (task.retries === MAX_UPLOAD_RETRIES) {
             this.log(`Error during photo upload ${err}`);
             next(err, null);
           } else {
             this.addOperation({
               ...task,
-              retrys: task.retrys + 1,
+              retries: task.retries + 1,
             });
             next(err, null);
           }
