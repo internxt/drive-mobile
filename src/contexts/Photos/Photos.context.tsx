@@ -4,7 +4,7 @@ import { photosLogger } from '@internxt-mobile/services/photos/logger';
 import { photosUtils } from '@internxt-mobile/services/photos/utils';
 import { PhotosItem, PhotosSyncStatus } from '@internxt-mobile/types/photos';
 import * as MediaLibrary from 'expo-media-library';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DataProvider } from 'recyclerlistview';
 import { startSync } from './sync';
 
@@ -29,12 +29,15 @@ export interface PhotosContextType {
     getPermissionsStatus: () => Promise<MediaLibrary.PermissionStatus>;
     askPermissions: () => Promise<boolean>;
   };
-  removePhotosItems: (photosItems: PhotosItem[]) => void;
+  removePhotosItems: (photosItems: PhotosItem[]) => Promise<void>;
   refresh: () => Promise<void>;
+  uploadingPhotosItem: PhotosItem | null;
+  uploadProgress: number;
   sync: {
     status: PhotosSyncStatus;
     totalTasks: number;
     completedTasks: number;
+    failedTasks: number;
     photosInLocalDB: number;
     pendingTasks: number;
   };
@@ -45,10 +48,13 @@ export const PhotosContext = React.createContext<PhotosContextType>({
     const r2Key = `${r2.name}-${r2.takenAt}`;
     return r1Key !== r2Key;
   }),
+  uploadProgress: 0,
   refresh: () => Promise.reject('Photos context not ready'),
   removePhotosItems() {
-    return;
+    return Promise.reject('Photos context not ready');
   },
+  uploadingPhotosItem: null,
+
   resetContext() {
     return;
   },
@@ -82,6 +88,7 @@ export const PhotosContext = React.createContext<PhotosContextType>({
     getPermissionsStatus: () => Promise.reject('Photos context not ready'),
   },
   sync: {
+    failedTasks: 0,
     totalTasks: 0,
     photosInLocalDB: 0,
     completedTasks: 0,
@@ -95,12 +102,17 @@ const getPhotos = async (cursor?: string) => {
 };
 
 export const PhotosContextProvider: React.FC = ({ children }) => {
+  const [uploadingPhotosItem, setUploadingPhotosItem] = useState<PhotosItem | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+
   const [selectionModeActivated, setSelectionModeActivated] = useState(false);
   const [uploadedPhotosItems, setUploadedPhotosItems] = useState<PhotosItem[]>([]);
 
   const [syncStatus, setSyncStatus] = useState(PhotosSyncStatus.Unknown);
   const [totalTasks, setTotalTasks] = useState(0);
   const [pendingTasks, setPendingTasks] = useState(0);
+  const [failedTasks, setFailedTasks] = useState(0);
+
   const [photosInLocalDB, setPhotosInLocalDB] = useState(0);
 
   const [completedTasks, setCompletedTasks] = useState(0);
@@ -118,6 +130,12 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       return r1Key !== r2Key;
     }),
   );
+
+  useEffect(() => {
+    if (syncStatus === PhotosSyncStatus.Completed) {
+      setUploadingPhotosItem(null);
+    }
+  }, [syncStatus]);
 
   function resetContext(config = { resetLoadedImages: true }) {
     if (config.resetLoadedImages) {
@@ -139,6 +157,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       setSyncStatus(PhotosSyncStatus.Unknown);
       setTotalTasks(0);
       setPendingTasks(0);
+      setFailedTasks(0);
       setCompletedTasks(0);
     }
 
@@ -165,6 +184,10 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     );
   }
 
+  function handlePhotosItemUploadProgress(_: PhotosItem, progress: number) {
+    setUploadProgress(progress);
+  }
+
   /**
    * Starts the photos systems
    * including the sync system
@@ -173,6 +196,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     try {
       // 1. Initialize the photos services
       await photos.start();
+
       // 2. Initialize the Photos user, it creates a bucket for the photos
       await photos.user.init();
       const start = Date.now();
@@ -183,6 +207,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       photosLogger.info(`Device photos loaded in ${Date.now() - start}ms`);
       const startDb = Date.now();
       const syncedPhotos = await photos.database.getSyncedPhotos();
+
       photosLogger.info(`${syncedPhotos.length} photos loaded from DB in ${Date.now() - startDb}ms`);
 
       syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photosUtils.getPhotosItem(syncedPhoto.photo));
@@ -206,7 +231,18 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
         updateTotalTasks: setTotalTasks,
         updatePendingTasks: setPendingTasks,
         updateCompletedTasks: setCompletedTasks,
+        updateFailedTasks: setFailedTasks,
         onRemotePhotosSynced,
+        onPhotosItemUploadProgress: handlePhotosItemUploadProgress,
+        onPhotosItemUploadStart: (photosItem) => {
+          // Timeout this since the upload item change will
+          // be triggered before we insert the item into the already
+          // uploaded items
+          setTimeout(() => {
+            setUploadProgress(0);
+            setUploadingPhotosItem(photosItem);
+          }, 250);
+        },
         onPhotosItemSynced: (photosItem) => {
           uploadedPhotosItemsRef.current = uploadedPhotosItemsRef.current.concat([photosItem]);
           setUploadedPhotosItems(uploadedPhotosItemsRef.current);
@@ -314,14 +350,15 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     await startPhotos();
   }
 
-  function handleRemovePhotosItems(photosItems: PhotosItem[]) {
-    syncedPhotosItems.current = syncedPhotosItems.current.filter((mergedPhotosItem) =>
-      photosItems.find((pi) => pi.name === mergedPhotosItem.name) ? false : true,
-    );
+  async function handleRemovePhotosItems(photosItems: PhotosItem[]) {
+    for (const photosItem of photosItems) {
+      if (photosItem.photoId) {
+        await photos.database.deleteSyncedPhotosItem(photosItem.photoId);
+      }
+    }
+    const syncedPhotos = await photos.database.getSyncedPhotos();
+    syncedPhotosItems.current = syncedPhotos.map(({ photo }) => photosUtils.getPhotosItem(photo));
 
-    devicePhotosItems.current = devicePhotosItems.current.filter((mergedPhotosItem) =>
-      photosItems.find((pi) => pi.name === mergedPhotosItem.name) ? false : true,
-    );
     const merged = photosUtils.mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current));
     setDataSource(
       new DataProvider(function (r1, r2) {
@@ -345,11 +382,14 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
         getPhotosItem,
         removePhotosItems: handleRemovePhotosItems,
         refresh: refreshPhotosContext,
+        uploadingPhotosItem,
+        uploadProgress,
         sync: {
           status: syncStatus,
           totalTasks,
           completedTasks,
           pendingTasks,
+          failedTasks,
           photosInLocalDB,
         },
         resetContext,

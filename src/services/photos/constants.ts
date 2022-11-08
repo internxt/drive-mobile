@@ -28,3 +28,6 @@ export const SAVE_LAST_PHOTOS_PAGE_PULLED = true;
 export const ENABLE_PHOTOS_SYNC_MANAGER_LOGS = true;
 export const ENABLE_PHOTOS_ANALYTICS_LOGS = false;
 export const ENABLE_PHOTOS_NETWORK_MANAGER_LOGS = false;
+
+// How many times a photo can be retried if the upload fails
+export const MAX_UPLOAD_RETRIES = 2;

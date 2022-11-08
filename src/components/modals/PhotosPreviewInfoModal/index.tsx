@@ -16,14 +16,11 @@ interface PhotosPreviewInfoModalProps {
   data: PhotosItem;
   actions: PhotosItemActions;
   isOpen: boolean;
+  size: number;
 }
 
-function PhotosPreviewInfoModal({ isOpen, actions, data }: PhotosPreviewInfoModalProps): JSX.Element {
+function PhotosPreviewInfoModal({ isOpen, actions, data, size }: PhotosPreviewInfoModalProps): JSX.Element {
   const tailwind = useTailwind();
-  const [size, setSize] = useState(0);
-  useEffect(() => {
-    data.getSize().then(setSize);
-  }, [data]);
 
   const header = (
     <View style={tailwind('flex-row')}>

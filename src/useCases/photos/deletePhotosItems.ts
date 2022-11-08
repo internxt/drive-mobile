@@ -10,6 +10,7 @@ export const deletePhotosItems = async ({ photosToDelete }: { photosToDelete: Ph
     if (photosToDelete.some((p) => !p || !p.photoId)) {
       throw new Error('Some photos item id is missing');
     }
+
     photos.analytics.track(PhotosAnalyticsEventKey.MoveToTrashConfirmed, {
       individual_action: true,
       number_of_items: photosToDelete.length,

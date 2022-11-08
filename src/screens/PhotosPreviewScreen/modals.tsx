@@ -1,7 +1,7 @@
 import photos from '@internxt-mobile/services/photos';
 import { PhotosAnalyticsEventKey } from '@internxt-mobile/services/photos/analytics';
 import { PhotosItem } from '@internxt-mobile/types/photos';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ConfirmSavePhotoModal } from 'src/components/modals/photos/ConfirmSavePhotoModal';
 import { PhotosItemActions } from '.';
 import DeletePhotosModal from '../../components/modals/DeletePhotosModal';
@@ -19,12 +19,15 @@ export const PhotosPreviewScreenModals: React.FC<PhotosPreviewScreenModalsProps>
   photo,
   actions,
 }) => {
+  const [size, setSize] = useState(0);
   const isOpen = (modal: PhotoPreviewModal) => openedModals.includes(modal);
-
+  useEffect(() => {
+    photo.getSize().then(setSize);
+  }, [photo.name]);
   return (
     <>
-      <PhotosPreviewOptionsModal actions={actions} isOpen={isOpen('preview-options')} data={photo} />
-      <PhotosPreviewInfoModal isOpen={isOpen('preview-info')} data={photo} actions={actions} />
+      <PhotosPreviewOptionsModal size={size} actions={actions} isOpen={isOpen('preview-options')} data={photo} />
+      <PhotosPreviewInfoModal size={size} isOpen={isOpen('preview-info')} data={photo} actions={actions} />
       <ConfirmSavePhotoModal
         isOpen={isOpen('confirm-save')}
         actions={{

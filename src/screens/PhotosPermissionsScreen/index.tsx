@@ -1,6 +1,5 @@
 import photos from '@internxt-mobile/services/photos';
 import { PhotosAnalyticsScreenKey } from '@internxt-mobile/services/photos/analytics';
-import { PermissionStatus } from 'expo-media-library';
 import React, { useContext, useEffect, useState } from 'react';
 import { Linking, Platform, Text, View } from 'react-native';
 import { PhotosContext } from 'src/contexts/Photos';
@@ -8,14 +7,16 @@ import { useTailwind } from 'tailwind-rn';
 import SyncIcon from '../../../assets/images/modals/sync.svg';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
-
+import * as MediaLibrary from 'expo-media-library';
 import globalStyle from '../../styles/global';
 import { PhotosScreenProps } from '../../types/navigation';
 
 function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermissions'>): JSX.Element {
   const tailwind = useTailwind();
   const photosCtx = useContext(PhotosContext);
-  const [permissionsStatus, setPermissionsStatus] = useState(PermissionStatus.UNDETERMINED);
+  const [permissions, setPermissions] = useState<MediaLibrary.PermissionStatus>(
+    MediaLibrary.PermissionStatus.UNDETERMINED,
+  );
   const features = [
     strings.screens.photosPermissions.features[0],
     strings.screens.photosPermissions.features[1],
@@ -23,7 +24,9 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
   ];
 
   useEffect(() => {
-    photosCtx.permissions.getPermissionsStatus().then(setPermissionsStatus);
+    photosCtx.permissions.getPermissionsStatus().then((permissions) => {
+      setPermissions(permissions);
+    });
   }, []);
 
   useEffect(() => {
@@ -43,13 +46,13 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
     photosCtx.start();
   };
   const onButtonPressed = async () => {
-    if (permissionsStatus === PermissionStatus.DENIED) {
+    if (permissions === MediaLibrary.PermissionStatus.DENIED) {
       if (Platform.OS === 'ios') {
         await Linking.openSettings();
       }
     }
 
-    if (permissionsStatus === PermissionStatus.UNDETERMINED) {
+    if (permissions === MediaLibrary.PermissionStatus.UNDETERMINED) {
       const granted = await photosCtx.permissions.askPermissions();
       if (granted) {
         await onPermissionsGranted();
@@ -67,7 +70,7 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
 
       <View style={tailwind('mb-5')}>{featuresList}</View>
 
-      {permissionsStatus === PermissionStatus.DENIED && (
+      {permissions === MediaLibrary.PermissionStatus.DENIED && (
         <View style={tailwind('mb-2 rounded-lg w-full p-3 bg-blue-10')}>
           <Text style={tailwind('text-blue-90 text-center')}>
             {Platform.OS === 'android'

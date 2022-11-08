@@ -68,6 +68,10 @@ export class PhotosUtils {
     let path = uri;
 
     if (Platform.OS === 'ios' && uri.startsWith('ph://')) {
+      const exists = await fileSystemService.exists(iosPath);
+
+      if (exists) return iosPath;
+
       if (itemType === PhotosItemType.PHOTO) {
         await RNFS.copyAssetsFileIOS(uri, iosPath, 0, 0);
       }
@@ -196,6 +200,11 @@ export class PhotosUtils {
             format,
             itemType,
             uri: from.uri,
+            destination: this.getPhotoPath({
+              name: name,
+              type: format,
+              size: PhotoSizeType.Full,
+            }),
           });
           const stat = await fileSystemService.statRNFS(path);
 
@@ -222,6 +231,7 @@ export class PhotosUtils {
 
     photosItems.forEach((photosItem) => {
       const key = `${photosItem.name}-${photosItem.takenAt}`;
+
       if (!mapByName[key]) {
         mapByName[key] = photosItem;
       }

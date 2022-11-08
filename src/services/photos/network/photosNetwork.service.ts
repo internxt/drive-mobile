@@ -53,6 +53,7 @@ export class PhotosNetworkService {
   public async upload(
     photoRef: PhotoFileSystemRef,
     data: Omit<CreatePhotoData, 'fileId' | 'networkBucketId'>,
+    onProgressUpdate?: (progress: number) => void,
   ): Promise<Photo | null> {
     const user = photosUser.getUser();
     if (!user) throw new Error('Photos user not found');
@@ -67,7 +68,9 @@ export class PhotosNetworkService {
         user: bridgeUser,
         pass: bridgePass,
       },
-      {},
+      {
+        notifyProgress: onProgressUpdate,
+      },
     );
 
     const createPhotoData: CreatePhotoData = {

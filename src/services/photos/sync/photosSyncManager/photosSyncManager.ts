@@ -2,10 +2,8 @@ import { RunnableService } from '../../../../helpers/services';
 import {
   DevicePhotoRemoteCheck,
   DevicePhotosOperationPriority,
-  DevicePhotosSyncCheckerStatus,
   DevicePhotoSyncCheckOperation,
   PhotosItem,
-  PhotosNetworkManagerStatus,
   PhotosSyncManagerStatus,
   SyncStage,
 } from '../../../../types/photos';
@@ -16,7 +14,6 @@ import { DevicePhotosSyncCheckerService } from '../devicePhotosSyncChecker/devic
 import { Photo } from '@internxt/sdk/dist/photos';
 import errorService from 'src/services/ErrorService';
 import { AbortedOperationError, AsyncStorageKey } from 'src/types';
-import { SdkManager } from '@internxt-mobile/services/common';
 import { photosLocalDB } from '../../database';
 import { photosLogger } from '../../logger';
 import { photosNetwork } from '../../network/photosNetwork.service';
@@ -45,16 +42,21 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
 
   public pendingItemsToSync = 0;
   public totalPhotosSynced = 0;
+  public totalPhotosFailed = 0;
+
   public gettingRemotePhotos = false;
 
   private onRemotePhotosSyncedCallback: (photosItemSynced: PhotosItem) => void = () => undefined;
   private onDevicePhotoSyncCompletedCallback: OnDevicePhotoSyncCompletedCallback = () => undefined;
   private onStatusChangeCallback: OnStatusChangeCallback = () => undefined;
   private onTotalPhotosInDeviceCalculatedCallback: OnTotalPhotosCalculatedCallback = () => undefined;
+
   private previewsQueue = async.queue<Photo, Photo, Error>(async (task, next) => {
     // Check if we have the preview locally,
     // if not download and save it
     const photosItem = photosUtils.getPhotosItem(task);
+    this.log('Saving photos item in DB');
+    await photosLocalDB.savePhotosItem(task);
     const existsInDevice = this.devicePhotosScanner.getPhotoInDevice(photosItem.name, photosItem.takenAt)
       ? true
       : false;
@@ -62,27 +64,25 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     if (existsInDevice) {
       this.log('Photo exists in device, skipping preview download');
       next(null, task);
+      return;
     }
-    if (!existsInDevice) {
-      const existsPreviewFile = await fileSystemService.exists(photosItem.localPreviewPath);
+
+    const existsPreviewFile = await fileSystemService.exists(photosItem.localPreviewPath);
+
+    try {
       if (!existsPreviewFile) {
         this.log('Missing preview, downloading it');
-        try {
-          await photosPreview.getPreview(photosItem);
-          await photosLocalDB.savePhotosItem(task);
-          this.onRemotePhotosSyncedCallback(photosItem);
-          this.log('Preview downloaded');
-          next(null, task);
-        } catch (err) {
-          this.log(`Preview download failed ${err}`);
-
-          // TODO implement a retry on fail mechanism here, it should persist the
-          // failed previews to retry them later
-          next(err as Error);
-        }
-      } else {
-        this.log('Preview file exists, no download');
+        await photosPreview.getPreview(photosItem);
       }
+
+      this.onRemotePhotosSyncedCallback(photosItem);
+      this.log('Preview downloaded');
+
+      return next(null, task);
+    } catch (err) {
+      this.log(`Preview download failed ${(err as Error).message}`);
+
+      next(err as Error);
     }
   }, 1);
   constructor(
@@ -108,7 +108,9 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   async getRemotePhotos(page?: number) {
     try {
       this.gettingRemotePhotos = true;
-      const lastPhotosPagePulled = await asyncStorageService.getItem(AsyncStorageKey.LastPhotosPagePulled);
+      const lastPhotosPagePulled = SAVE_LAST_PHOTOS_PAGE_PULLED
+        ? await asyncStorageService.getItem(AsyncStorageKey.LastPhotosPagePulled)
+        : 1;
 
       const pageToPull = page ? page : lastPhotosPagePulled ? parseInt(lastPhotosPagePulled as string) : 1;
       this.log(`Getting remote photos page ${pageToPull}`);
@@ -190,9 +192,11 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     this.log('Sync manager destroying');
     this.devicePhotosSyncChecker.destroy();
     this.devicePhotosScanner.destroy();
+    this.photosNetworkManager.destroy();
     this.updateStatus(PhotosSyncManagerStatus.ABORTED);
     this.totalPhotosSynced = 0;
     this.totalPhotosInDevice = 0;
+    this.pendingItemsToSync = 0;
   }
 
   public get isAborted() {
@@ -225,6 +229,14 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
 
   public onTotalPhotosInDeviceCalculated(callback: OnTotalPhotosCalculatedCallback) {
     this.onTotalPhotosInDeviceCalculatedCallback = callback;
+  }
+
+  public onPhotosItemUploadStart(callback: (photosItem: PhotosItem) => void) {
+    this.photosNetworkManager.onUploadStart(callback);
+  }
+
+  public onPhotosItemUploadProgress(callback: (photosItem: PhotosItem, progress: number) => void) {
+    this.photosNetworkManager.onUploadProgress(callback);
   }
 
   private setupCallbacks() {
@@ -269,11 +281,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
    */
   private checkIfFinishSync() {
     if (this.status === PhotosSyncManagerStatus.COMPLETED) return;
-    const shouldFinish =
-      (this.devicePhotosSyncChecker.status === DevicePhotosSyncCheckerStatus.COMPLETED &&
-        (this.photosNetworkManager.status === PhotosNetworkManagerStatus.COMPLETED ||
-          this.photosNetworkManager.status === PhotosNetworkManagerStatus.IDLE)) ||
-      this.totalPhotosInDevice === 0;
+    const shouldFinish = this.devicePhotosSyncChecker.hasFinished && this.photosNetworkManager.hasFinished;
 
     if (shouldFinish) {
       this.log('Sync manager should finish now');
@@ -315,9 +323,10 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     if (operation.syncStage === SyncStage.NEEDS_REMOTE_CHECK) {
       this.photosNetworkManager.addOperation({
         photosItem: operation.photosItem,
+        retrys: 0,
         onOperationCompleted: async (err, photo) => {
           if (err) {
-            this.totalPhotosSynced++;
+            this.totalPhotosFailed++;
             this.onDevicePhotoSyncCompletedCallback(err, null);
           }
           if (photo) {
@@ -333,6 +342,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
       if (this.isAborted) {
         throw new AbortedOperationError();
       }
+
       await photosLocalDB.savePhotosItem(photo);
       this.devicePhotoSyncSuccess(photo, countPhoto);
     } catch (err) {
@@ -383,6 +393,6 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
 }
 
 export const photosSync = new PhotosSyncManager(
-  new PhotosNetworkManager(SdkManager.getInstance()),
+  new PhotosNetworkManager(),
   new DevicePhotosSyncCheckerService(photosLocalDB),
 );

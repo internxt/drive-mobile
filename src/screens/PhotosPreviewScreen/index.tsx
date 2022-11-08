@@ -89,6 +89,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
   }, [photosItem]);
 
   const downloadFullSizeIfNeeded = async () => {
+    if (downloadedFullSizeUri) return;
     if (
       photosItem.type === PhotosItemType.VIDEO &&
       photosItem.status !== PhotoSyncStatus.IN_SYNC_ONLY &&
@@ -105,13 +106,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
         format: photosItem.format,
         itemType: photosItem.type,
         uri: photosItem.localUri,
-        destination: photosUtils.getPhotoPath({
-          name: photosItem.name,
-          type: photosItem.format,
-          size: PhotoSizeType.Full,
-        }),
       });
-
       setDownloadedFullSizeUri(videoPath);
     }
 
@@ -194,9 +189,10 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
       photosUseCases.deletePhotosItems({
         photosToDelete: [photosItem as PhotosItemBacked],
       });
-      photosCtx.removePhotosItems([photosItem]);
+      await photosCtx.removePhotosItems([photosItem]);
       actions.closeModal('trash');
       actions.closeModal('preview-options');
+
       navigation.goBack();
     },
 

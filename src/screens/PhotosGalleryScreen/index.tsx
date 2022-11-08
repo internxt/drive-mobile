@@ -50,7 +50,7 @@ function PhotosGalleryScreen(): JSX.Element {
 
     photosUseCases.deletePhotosItems({ photosToDelete: photosCtx.selection.selectedPhotosItems as PhotosItemBacked[] });
     setIsDeletePhotosModalOpen(false);
-    photosCtx.removePhotosItems(photosCtx.selection.selectedPhotosItems);
+    await photosCtx.removePhotosItems(photosCtx.selection.selectedPhotosItems);
     photosCtx.selection.resetSelectionMode();
   };
 

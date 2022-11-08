@@ -19,16 +19,18 @@ interface PhotosPreviewOptionsModalProps {
   data: PhotosItem;
   actions: PhotosItemActions;
   isOpen: boolean;
+  size: number;
 }
 
-export function PhotosPreviewOptionsModal({ actions, data, isOpen }: PhotosPreviewOptionsModalProps): JSX.Element {
+export function PhotosPreviewOptionsModal({
+  actions,
+  data,
+  isOpen,
+  size,
+}: PhotosPreviewOptionsModalProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
 
-  const [size, setSize] = useState(0);
-  useEffect(() => {
-    data.getSize().then(setSize);
-  }, [data]);
   const getUpdatedAt = () => {
     return time.getFormattedDate(data.updatedAt, time.formats.dateAtTime);
   };
