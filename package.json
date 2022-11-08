@@ -118,7 +118,7 @@
     "react-native-permissions": "^3.2.0",
     "react-native-progress": "^5.0.0",
     "react-native-randombytes": "^3.6.1",
-    "react-native-reanimated": "~2.9.1",
+    "react-native-reanimated": "~2.10.0",
     "react-native-receive-sharing-intent": "^1.1.0",
     "react-native-responsive-screen": "^1.4.1",
     "react-native-restart": "^0.0.24",
