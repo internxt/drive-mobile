@@ -21,6 +21,7 @@ export interface AppEnv {
   PAYMENTS_API_URL: string;
   BRIDGE_URL: string;
   PHOTOS_API_URL: string;
+  SHARE_LINKS_URL: string;
   PHOTOS_NETWORK_API_URL: string;
   CRYPTO_SECRET2: string;
   MAGIC_IV: string;
