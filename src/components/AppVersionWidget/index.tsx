@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import * as Updates from 'expo-updates';
-
+import InternxtLogo from '../../../assets/logo.svg';
 import packageJson from '../../../package.json';
 import appService from '../../services/AppService';
 import AppText from '../AppText';
@@ -9,6 +9,7 @@ import { useTailwind } from 'tailwind-rn';
 
 interface AppVersionWidgetProps {
   style?: StyleProp<ViewStyle>;
+  displayLogo?: boolean;
 }
 
 function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
@@ -28,7 +29,12 @@ function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
 
   return (
     <View style={props.style}>
-      <AppText style={tailwind('text-center text-sm text-gray-40')}>
+      {props.displayLogo ? (
+        <View style={tailwind('flex items-center justify-center mb-0.5')}>
+          <InternxtLogo height={10} />
+        </View>
+      ) : null}
+      <AppText style={[tailwind('text-center text-xs text-gray-50')]}>
         v{packageJson.version} ({appService.constants.APP_BUILD_NUMBER})
       </AppText>
     </View>

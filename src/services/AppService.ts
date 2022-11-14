@@ -20,6 +20,12 @@ class AppService {
     return Constants.manifest?.extra as AppEnv;
   }
 
+  public get urls() {
+    return {
+      termsAndConditions: 'https://internxt.com/legal',
+    };
+  }
+
   public onAppStateChange(listener: AppStateListener) {
     const id = this.listeners.push(listener) - 1;
     AppState.addEventListener('change', this.listeners[id]);

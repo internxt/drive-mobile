@@ -30,6 +30,8 @@ export interface AuthCredentials {
 }
 
 class AuthService {
+  defaultName = 'My';
+  defaultLastname = 'Internxt';
   private readonly eventEmitter: EventEmitter;
   private sdk: SdkManager;
 
@@ -250,6 +252,10 @@ class AuthService {
 
   public emitLogoutEvent() {
     this.eventEmitter.emit(AuthEventKey.Logout);
+  }
+
+  public isEmailAlreadyInUseError(error: Error) {
+    return error.message.includes('is already registered');
   }
 
   /**

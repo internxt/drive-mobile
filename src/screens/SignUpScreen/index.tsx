@@ -1,54 +1,64 @@
 import React from 'react';
 import { View, ScrollView } from 'react-native';
-
 import strings from '../../../assets/lang/strings';
-import InternxtLogo from '../../../assets/logo.svg';
 import AppScreen from '../../components/AppScreen';
 import AppText from '../../components/AppText';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import AppButton from '../../components/AppButton';
 import SignUpForm from '../../components/forms/SignUpForm';
+import AppVersionWidget from 'src/components/AppVersionWidget';
 
 function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Element {
   const tailwind = useTailwind();
-  const onGoToSignInButtonPressed = () => navigation.replace('SignIn');
+  const onGoToSignInButtonPressed = () => {
+    navigation.canGoBack() ? navigation.goBack() : navigation.replace('SignIn');
+  };
   const onFormSubmitSuccess = () => {
     navigation.replace('TabExplorer', { screen: 'Home', showReferralsBanner: true });
   };
 
   return (
     <AppScreen safeAreaBottom safeAreaTop>
-      <ScrollView style={tailwind('px-6')}>
-        <View style={tailwind('pb-6')}>
-          <View style={tailwind('items-center mt-2')}>
-            <InternxtLogo width={120} height={40} />
-          </View>
-          <View>
-            <AppText style={tailwind('text-sm text-center')}>
-              {strings.screens.SignUpScreen.create_account_title}
-            </AppText>
-          </View>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        style={tailwind('px-6')}
+        contentContainerStyle={tailwind('h-full')}
+      >
+        <View style={tailwind('h-12')} />
+
+        <View style={tailwind('mb-5')}>
+          <AppText medium style={tailwind('text-2xl text-gray-100')}>
+            {strings.screens.SignUpScreen.title}
+          </AppText>
         </View>
 
         <SignUpForm
           onFormSubmitSuccess={onFormSubmitSuccess}
-          renderActionsContainer={({ onSubmitButtonPressed, isValid, isLoading }) => (
+          renderActionsContainer={({ onSubmitButtonPressed, isLoading }) => (
             <AppButton
               testID="sign-up-button"
               type="accept"
-              disabled={!isValid || isLoading}
-              style={[tailwind('py-4 my-4')]}
-              title={isLoading ? strings.buttons.creating : strings.buttons.createAccount}
+              loading={isLoading}
+              style={[tailwind('h-11 py-0 mt-2.5')]}
+              title={strings.buttons.createAccount}
               onPress={onSubmitButtonPressed}
             />
           )}
         />
 
-        <AppText style={tailwind('text-center mb-10')} onPress={onGoToSignInButtonPressed}>
-          <AppText style={tailwind('text-sm text-blue-60')}>{strings.screens.SignInScreen.title}</AppText>
+        <View style={tailwind('border-b border-gray-10 my-6 w-full')}></View>
+        <AppText style={tailwind('text-sm bg-transparent mb-4 text-center')}>
+          {strings.screens.SignUpScreen.alreadyHaveAccount}
         </AppText>
+        <AppButton
+          style={tailwind('w-full py-0 h-11')}
+          type="white"
+          onPress={onGoToSignInButtonPressed}
+          title={strings.buttons.sign_in}
+        />
       </ScrollView>
+      <AppVersionWidget displayLogo style={tailwind('mb-5 mt-auto')} />
     </AppScreen>
   );
 }

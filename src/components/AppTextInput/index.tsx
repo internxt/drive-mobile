@@ -1,6 +1,7 @@
 import { isString } from 'lodash';
 import { useState } from 'react';
 import { StyleProp, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
+import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
@@ -8,6 +9,7 @@ import AppText from '../AppText';
 export interface AppTextInputProps extends TextInputProps {
   status?: ['idle' | 'warning' | 'error' | 'success', string | JSX.Element | undefined];
   containerStyle?: StyleProp<ViewStyle>;
+  wrapperStyle?: StyleProp<ViewStyle>;
   label?: string;
   renderAppend?: ({ isFocused }: { isFocused: boolean }) => JSX.Element | undefined;
   inputRef?: React.LegacyRef<TextInput>;
@@ -56,6 +58,7 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
           status === 'warning' && tailwind('border-orange-'),
           status === 'success' && tailwind('border-green-'),
           !editable && tailwind('border-gray-10'),
+          props.wrapperStyle,
         ]}
       >
         <TextInput
