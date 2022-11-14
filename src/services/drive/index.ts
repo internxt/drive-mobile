@@ -6,6 +6,7 @@ import { driveLogger } from './logger';
 import { driveLocalDB } from './database';
 import { driveFileService } from './file';
 import { driveFolderService } from './folder';
+import { driveTrashService } from './trash';
 import fileSystemService from '../FileSystemService';
 import { DRIVE_ROOT_DIRECTORY, DRIVE_THUMBNAILS_DIRECTORY } from './constants';
 
@@ -18,6 +19,7 @@ export default {
   events: driveEvents,
   folder: driveFolderService,
   file: driveFileService,
+  trash: driveTrashService,
   clear: async () => {
     await driveLocalDB.resetDatabase();
     await fileSystemService.unlinkIfExists(DRIVE_ROOT_DIRECTORY);

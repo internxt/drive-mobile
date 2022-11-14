@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Text, View, BackHandler, TouchableOpacity } from 'react-native';
-
-import DriveList from '../../components/DriveList';
+import DriveList from '../../components/drive/lists/DriveList/DriveList';
 import analytics from '../../services/AnalyticsService';
 import storageService from '../../services/StorageService';
 import strings from '../../../assets/lang/strings';
@@ -12,7 +11,7 @@ import { AsyncStorageKey, DevicePlatform } from '../../types';
 import { driveActions, driveSelectors, driveThunks } from '../../store/slices/drive';
 import { uiActions } from '../../store/slices/ui';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { useRoute } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import AppScreen from '../../components/AppScreen';
 import { ArrowDown, ArrowUp, CaretLeft, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
 import asyncStorage from '../../services/AsyncStorageService';
@@ -33,7 +32,19 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const [viewMode, setViewMode] = useState(DriveListViewMode.List);
+  const currentFolder = useAppSelector(driveSelectors.navigationStackPeek);
+  const { id: currentFolderId, name: currentFolderName, parentId: currentFolderParentId } = currentFolder;
+
+  useFocusEffect(
+    useCallback(() => {
+      handleRefresh();
+    }, [currentFolder.id]),
+  );
   useEffect(() => {
+    if (currentFolderId) {
+      dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
+    }
+
     asyncStorageService.getItem(AsyncStorageKey.PreferredDriveViewMode).then((preferredDriveViewMode) => {
       if (preferredDriveViewMode && preferredDriveViewMode !== viewMode) {
         setViewMode(preferredDriveViewMode as DriveListViewMode);
@@ -48,9 +59,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
   });
 
   const { user, loggedIn } = useAppSelector((state) => state.auth);
-  const { searchString } = useAppSelector((state) => state.drive);
-  const currentFolder = useAppSelector(driveSelectors.navigationStackPeek);
-  const { id: currentFolderId, name: currentFolderName, parentId: currentFolderParentId } = currentFolder;
+  const { searchString, hiddenItemsIds } = useAppSelector((state) => state.drive);
   const { uploading: driveUploadingItems, items: driveItems } = useAppSelector(driveSelectors.driveItems);
   const { searchActive, backButtonEnabled } = useAppSelector((state) => state.ui);
   const { isLoading: contentLoading } = useAppSelector((state) => state.drive);
@@ -66,6 +75,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
         .concat(driveItems.filter((item) => item.data.fileId).sort(drive.file.getSortFunction(sortMode))),
     [sortMode, driveUploadingItems, driveItems],
   );
+
   const onCurrentFolderActionsButtonPressed = () => {
     dispatch(
       driveActions.setFocusedItem({
@@ -147,6 +157,15 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
     };
   }, []);
 
+  const getItems = () => {
+    return driveSortedItems.filter((si) => !hiddenItemsIds.includes(si.id));
+  };
+
+  async function handleRefresh() {
+    dispatch(driveActions.resetHiddenItems());
+    dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolder.id, ignoreCache: true }));
+  }
+
   return (
     <>
       <Portal>
@@ -223,7 +242,7 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
 
         <Separator />
 
-        <DriveList items={driveSortedItems} type={DriveListType.Drive} viewMode={viewMode} />
+        <DriveList onRefresh={handleRefresh} items={getItems()} type={DriveListType.Drive} viewMode={viewMode} />
       </AppScreen>
     </>
   );

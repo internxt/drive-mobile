@@ -59,6 +59,13 @@ const strings = new LocalizedStrings({
         },
         newChargeOn: 'New charge {0}',
       },
+      TrashScreen: {
+        title: 'Trash',
+        empty: {
+          title: 'Trash is empty',
+          hint: 'Deleted files and folders will appear here',
+        },
+      },
       DebugScreen: {
         title: 'Debug',
         internet: {
@@ -259,6 +266,7 @@ const strings = new LocalizedStrings({
         storage: 'Storage',
         language: 'Language',
         drive: 'Drive',
+        trash: 'Trash',
         account: {
           title: 'Account',
           advice: 'Profile, billing and security',
@@ -390,6 +398,7 @@ const strings = new LocalizedStrings({
       sending: 'Sending',
       showStorageSpace: 'View device storage',
       linkCopiedToClipboard: 'Link copied to clipboard',
+      undo: 'Undo',
     },
     inputs: {
       name: 'Name',
@@ -445,6 +454,8 @@ const strings = new LocalizedStrings({
         view: 'View',
         shareSettings: 'Share settings',
         deleteLink: 'Delete link',
+        deletePermanently: 'Delete permanently',
+        restore: 'Restore',
       },
       ReferralsBanner: {
         message: 'Get up to 10GB for free',
@@ -464,6 +475,14 @@ const strings = new LocalizedStrings({
           title: 'Protect with password',
           advice: 'Secure this link by setting up a password',
         },
+      },
+      deleteItemPermanently: {
+        title: 'Delete permanently?',
+        message: 'This action cannot be undone.',
+      },
+      clearTrash: {
+        title: 'Empty Drive trash?',
+        message: 'All items in the drive trash will be permanently deleted. This action cannot be undone.',
       },
       CancelSubscription: {
         title: 'Cancel subscription',
@@ -625,7 +644,12 @@ const strings = new LocalizedStrings({
       termsAndConditions: ['By creating an account you accept', 'terms and conditions.'],
       generatingLink: 'Generating link',
       folderCreated: 'Folder created',
-      itemsDeleted: 'Item/s deleted',
+      itemsDeleted: 'Items deleted successfully',
+      itemDeleted: 'Item deleted successfully',
+      itemMovedToTrash: 'Item moved to trash',
+      itemsMovedToTrash: 'Items moved to trash',
+      itemRestored: 'Item restored',
+      itemsRestored: 'Items restored',
       photoShared: 'You have shared a photo!',
       photosSyncPending: 'Pending synchronization',
       photosSyncCompleted: 'Your gallery is up to date',
@@ -636,6 +660,7 @@ const strings = new LocalizedStrings({
       sendVerificationEmail: 'Verification email sent',
       confirmDeleteSharedLink: 'Users with the link will lose access to the shared content.',
       linkDeleted: 'Link deleted successfully',
+      trashEmpty: 'Trash is empty',
     },
     errors: {
       generic: {
@@ -741,6 +766,13 @@ const strings = new LocalizedStrings({
           plan: 'Plan',
         },
         newChargeOn: 'Nuevo cargo el {0}',
+      },
+      TrashScreen: {
+        title: 'Papelera',
+        empty: {
+          title: 'La papelera esta vacía',
+          hint: 'Tus archivos y carpetas borrados\naparecerán aquí',
+        },
       },
       DebugScreen: {
         title: 'Depuración',
@@ -944,6 +976,7 @@ const strings = new LocalizedStrings({
         storage: 'Almacenamiento',
         language: 'Idioma',
         drive: 'Drive',
+        trash: 'Trash',
         account: {
           title: 'Cuenta',
           advice: 'Perfil, facturación y seguridad',
@@ -1074,6 +1107,7 @@ const strings = new LocalizedStrings({
       sending: 'Enviando',
       showStorageSpace: 'Ver espacio usado',
       linkCopiedToClipboard: 'Link copiado',
+      undo: 'Deshacer',
     },
     inputs: {
       name: 'Nombre',
@@ -1129,6 +1163,8 @@ const strings = new LocalizedStrings({
         view: 'Ver',
         deleteLink: 'Borrar link compartido',
         shareSettings: 'Ajustes de link',
+        deletePermanently: 'Borrar permanentemente',
+        restore: 'Restaurar',
       },
       ReferralsBanner: {
         message: 'Obtén hasta 10GB gratis',
@@ -1144,6 +1180,14 @@ const strings = new LocalizedStrings({
           title: 'Proteger con contraseña',
           advice: 'Protege este link con una contraseña',
         },
+      },
+      deleteItemPermanently: {
+        title: '¿Borrar permanentemente?',
+        message: 'Esta acción no se puede deshacer.',
+      },
+      clearTrash: {
+        title: '¿Vaciar papelera de Drive?',
+        message: 'Todos los items en la papelera de Drive serán eliminados, esta acción no se puede deshacer.',
       },
       confirmSavePhoto: {
         title: 'Esta foto ya existe en tu galería',
@@ -1311,7 +1355,12 @@ const strings = new LocalizedStrings({
       file_saved: 'Archivo guardado',
       generatingLink: 'Generando link',
       folderCreated: 'Carpeta creada',
-      itemsDeleted: 'Elementos borrados',
+      itemDeleted: 'Item borrado correctamente',
+      itemsDeleted: 'Items borrados correctamente',
+      itemMovedToTrash: 'Item movido a la papelera',
+      itemsMovedToTrash: 'Items movidos a la papelera',
+      itemRestored: 'Item restaurado',
+      itemsRestored: 'Items restaurados',
       photoShared: '¡Has compartido una foto!',
       photosSyncPending: 'Sincronización pendiente',
       photosSyncCompleted: 'Tu galería está sincronizada',
@@ -1322,6 +1371,7 @@ const strings = new LocalizedStrings({
       sendVerificationEmail: 'Email de verificación enviado',
       confirmDeleteSharedLink: 'Los usuarios con el link compartido perderán el acceso a este contenido compartido.',
       linkDeleted: 'Link eliminado correctamente',
+      trashEmpty: 'Papelera vaciada',
     },
     errors: {
       generic: {

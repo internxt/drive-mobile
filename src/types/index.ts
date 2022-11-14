@@ -118,3 +118,11 @@ export type Base64String = string;
  * - /var/tmp
  */
 export type FileSystemRef = string;
+
+// Standarize an use case return result,
+// this way we handle this always the same way
+export type UseCaseResult<T> = {
+  success: boolean;
+  error?: Error;
+  data?: T;
+};

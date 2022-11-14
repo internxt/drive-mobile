@@ -22,6 +22,7 @@ export interface BottomModalProps {
   topDecoration?: boolean;
   backdropPressToClose?: boolean;
   backButtonClose?: boolean;
+  ignoreSafeAreaBottom?: boolean;
 }
 
 const BottomModal = (props: BottomModalProps): JSX.Element => {
@@ -73,7 +74,12 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
                 )}
 
                 <View style={props.containerStyle}>{props.children}</View>
-                <View style={{ backgroundColor: safeAreaColor, height: safeAreaInsets.bottom }}></View>
+                <View
+                  style={{
+                    backgroundColor: safeAreaColor,
+                    height: props.ignoreSafeAreaBottom ? 0 : safeAreaInsets.bottom,
+                  }}
+                ></View>
               </View>
             </TouchableWithoutFeedback>
           </View>

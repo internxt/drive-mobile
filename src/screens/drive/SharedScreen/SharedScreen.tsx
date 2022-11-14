@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, ScrollView, RefreshControl } from 'react-native';
 import _ from 'lodash';
-import DriveItem from '../../../components/DriveItemTable';
+import DriveItem from '../../../components/drive/lists/items';
 import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
 import strings from '../../../../assets/lang/strings';
 import EmptyList from '../../../components/EmptyList';

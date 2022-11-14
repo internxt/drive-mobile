@@ -7,7 +7,7 @@ import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import globalStyle from '../../../styles/global';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
-import { driveActions } from '../../../store/slices/drive';
+import { driveActions, driveSelectors } from '../../../store/slices/drive';
 import BottomModalOption from '../../BottomModalOption';
 import BottomModal from '../BottomModal';
 import {
@@ -24,11 +24,13 @@ import useGetColor from '../../../hooks/useColor';
 import { time } from '@internxt-mobile/services/common/time';
 import AppText from 'src/components/AppText';
 import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
+import * as driveUseCases from '@internxt-mobile/useCases/drive';
 function DriveItemInfoModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const { focusedItem: item } = useAppSelector((state) => state.drive);
+  const currentFolder = useAppSelector(driveSelectors.navigationStackPeek);
   const { showItemModal } = useAppSelector((state) => state.ui);
   const [sharedLinkSettingsModalOpen, setSharedLinkSettingsModalOpen] = useState(false);
   if (!item) {
@@ -48,9 +50,35 @@ function DriveItemInfoModal(): JSX.Element {
     dispatch(driveActions.setItemToMove(item));
   };
 
-  const handleTrashItem = () => {
+  const handleUndoMoveToTrash = async () => {
+    dispatch(driveActions.removeHiddenItemsById([item.id.toString()]));
+    await driveUseCases.restoreDriveItems(
+      [
+        {
+          fileId: item.fileId,
+          folderId: isFolder ? item.folderId : undefined,
+          destinationFolderId: item.folderId as number,
+        },
+      ],
+      { displayNotification: false },
+    );
+  };
+  const handleTrashItem = async () => {
+    dispatch(driveActions.hideItemsById([item.id.toString()]));
     dispatch(uiActions.setShowItemModal(false));
-    dispatch(uiActions.setShowDeleteModal(true));
+    const { success } = await driveUseCases.moveItemsToTrash(
+      [
+        {
+          id: isFolder ? item.id.toString() : (item.fileId as string),
+          type: isFolder ? 'folder' : 'file',
+        },
+      ],
+      handleUndoMoveToTrash,
+    );
+
+    if (!success) {
+      dispatch(driveActions.removeHiddenItemsById([item.id.toString()]));
+    }
   };
 
   const handleGenerateShareLink = async () => {

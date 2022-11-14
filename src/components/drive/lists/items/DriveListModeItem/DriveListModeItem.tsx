@@ -1,21 +1,23 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, TouchableHighlight, Animated, Easing } from 'react-native';
 
-import { FolderIcon, getFileTypeIcon } from '../../helpers';
+import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
 import prettysize from 'prettysize';
-import { useAppSelector } from '../../store/hooks';
+import { useAppSelector } from '../../../../../store/hooks';
 import { ArrowCircleUp, DotsThree, Link } from 'phosphor-react-native';
-import strings from '../../../assets/lang/strings';
-import ProgressBar from '../AppProgressBar';
+import strings from '../../../../../../assets/lang/strings';
+import ProgressBar from '../../../../AppProgressBar';
 import { items } from '@internxt/lib';
-import AppText from '../AppText';
+import AppText from '../../../../AppText';
 
-import { DriveItemProps, DriveListType } from '../../types/drive';
-import useDriveItem from '../../hooks/useDriveItem';
+import { DriveItemProps, DriveListType } from '../../../../../types/drive';
+import useDriveItem from '../../../../../hooks/useDriveItem';
 import { useTailwind } from 'tailwind-rn';
-import useGetColor from '../../hooks/useColor';
+import useGetColor from '../../../../../hooks/useColor';
+import { time } from '@internxt-mobile/services/common/time';
+import { driveActions, driveSelectors } from 'src/store/slices/drive';
 
-function DriveItemTable(props: DriveItemProps): JSX.Element {
+export function DriveListModeItem(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const { selectedItems } = useAppSelector((state) => state.drive);
@@ -24,7 +26,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
   const { isFolder, isIdle, isUploading, isDownloading, onItemPressed, onItemLongPressed, onActionsButtonPressed } =
-    useDriveItem({ ...props, isSharedLinkItem: props.type === DriveListType.Shared, shareLink: props.shareLink });
+    useDriveItem({ ...props, isSharedLinkItem: props.type === DriveListType.Shared });
 
   useEffect(() => {
     Animated.loop(
@@ -37,12 +39,15 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
     ).start();
   }, []);
 
+  const getUpdatedAt = () => {
+    return time.getFormattedDate(props.data.createdAt, time.formats.dateAtTime);
+  };
   return (
     <TouchableHighlight
       disabled={isUploading || isDownloading}
       underlayColor={getColor('text-neutral-20')}
-      onLongPress={onItemLongPressed}
-      onPress={onItemPressed}
+      onLongPress={props.onActionsPress || onItemLongPressed}
+      onPress={props.onPress || onItemPressed}
     >
       <View style={[tailwind('flex-row pl-5')]}>
         <View style={[tailwind('flex-row flex-1 py-3')]}>
@@ -104,20 +109,13 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
               (props.subtitle ? (
                 props.subtitle
               ) : (
-                <AppText style={tailwind('text-xs text-neutral-100')}>
+                <View style={tailwind('flex flex-row items-center')}>
                   {!isFolder && (
-                    <>
-                      {prettysize(props.data.size || 0)}
-                      <AppText bold> · </AppText>
-                    </>
+                    <AppText style={tailwind('text-xs text-gray-60')}>{prettysize(props.data.size || 0)}</AppText>
                   )}
-                  Updated{' '}
-                  {new Date(props.data.updatedAt).toLocaleDateString('en-GB', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </AppText>
+                  {!isFolder && <View style={[tailwind('bg-gray-60 rounded-full mx-1.5'), { width: 3, height: 3 }]} />}
+                  <AppText style={tailwind('text-xs text-gray-60')}>{getUpdatedAt()}</AppText>
+                </View>
               ))}
           </View>
         </View>
@@ -125,8 +123,8 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
         <TouchableOpacity
           disabled={isUploading || isDownloading}
           style={isSelectionMode && tailwind('hidden')}
-          onPress={onActionsButtonPressed}
-          onLongPress={onActionsButtonPressed}
+          onPress={props.onActionsPress || onActionsButtonPressed}
+          onLongPress={props.onActionsPress || onActionsButtonPressed}
         >
           <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
             <DotsThree weight="bold" size={22} color={getColor('text-neutral-60')} />
@@ -136,5 +134,3 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
     </TouchableHighlight>
   );
 }
-
-export default DriveItemTable;

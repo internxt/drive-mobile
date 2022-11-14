@@ -2,6 +2,7 @@ import { Auth, Drive, photos } from '@internxt/sdk';
 import { constants } from '../../AppService';
 import packageJson from '../../../../package.json';
 import { ApiSecurity } from '@internxt/sdk/dist/shared';
+import { Trash } from '@internxt/sdk/dist/drive';
 
 export type SdkManagerApiSecurity = ApiSecurity & { photosToken: string };
 /**
@@ -113,6 +114,21 @@ export class SdkManager {
         clientVersion: packageJson.version,
       },
       this.getApiSecurity(),
+    );
+  }
+
+  /** Trash SDK */
+  get trash() {
+    return Trash.client(
+      constants.DRIVE_NEW_API_URL,
+      {
+        clientName: packageJson.name,
+        clientVersion: packageJson.version,
+      },
+      {
+        token: this.getApiSecurity().photosToken,
+        mnemonic: this.getApiSecurity().mnemonic,
+      },
     );
   }
 

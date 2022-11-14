@@ -32,7 +32,8 @@ export function useUseCase<TData, TParams = undefined, TError = unknown>(
   executeUseCase: ReExecutor<TParams, TData>;
   resetUseCase: () => void;
 } {
-  const [state, setState] = useState<UseCaseResult<TData, TError>>({ data: null, error: null, loading: false });
+  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState<{ data: TData | null; error: TError | null }>({ data: null, error: null });
 
   // Triggers the useCase on initial render, pass config.lazy: true to disable this
   useEffect(() => {
@@ -65,37 +66,35 @@ export function useUseCase<TData, TParams = undefined, TError = unknown>(
     if (state.data || state.error) {
       resetState();
     }
-    setState({
-      ...state,
-      loading: true,
-    });
+    setLoading(true);
 
     try {
       const result = await useCase(params);
       setState({
         ...state,
         data: result,
-        loading: false,
       });
+      setLoading(false);
       return result;
     } catch (error) {
       processError(error);
       setState({
         ...state,
         error: error as TError,
-        loading: false,
       });
-
+      setLoading(false);
       return null;
     }
   };
+
   return {
     data: state.data,
-    loading: state.loading,
+    loading,
     error: state.error,
     executeUseCase: executeUseCase as ReExecutor<TParams, TData>,
     resetUseCase: () => {
-      setState({ loading: false, error: null, data: null });
+      setLoading(false);
+      setState({ error: null, data: null });
     },
   };
 }

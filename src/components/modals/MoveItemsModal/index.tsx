@@ -136,8 +136,8 @@ function MoveItemsModal(): JSX.Element {
           navigation.push('TabExplorer', { screen: 'Drive' });
           dispatch(
             driveThunks.navigateToFolderThunk({
-              parentId: destinationFolderContentResponse.id,
-              name: originFolderContentResponse.name,
+              parentId: destinationFolderContentResponse.parentId,
+              name: destinationFolderContentResponse.name,
               id: destinationFolderContentResponse.id,
               updatedAt: originFolderContentResponse.updatedAt,
               item: {
@@ -161,6 +161,7 @@ function MoveItemsModal(): JSX.Element {
 
     if (moveResult.meta.requestStatus === 'fulfilled') {
       setConfirmModalOpen(false);
+
       await cleanUp({ shouldRefreshFolder: true });
     }
   };
@@ -178,8 +179,14 @@ function MoveItemsModal(): JSX.Element {
   };
   const cleanUp = async (options?: { shouldRefreshFolder: boolean }) => {
     if (options?.shouldRefreshFolder) {
-      if (originFolderId) {
-        await dispatch(driveThunks.getFolderContentThunk({ folderId: originFolderId }));
+      // TODO: Review Drive types, make stronger
+      // definitions, this is getting confuse
+      if (originFolderContentResponse?.id) {
+        setTimeout(async () => {
+          await dispatch(
+            driveThunks.getFolderContentThunk({ folderId: originFolderContentResponse.id, ignoreCache: true }),
+          );
+        }, 500);
       }
     }
     await dispatch(driveActions.setItemToMove(null));

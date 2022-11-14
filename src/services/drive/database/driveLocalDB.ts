@@ -70,7 +70,8 @@ class DriveLocalDB {
             created_at: item.createdAt,
             updated_at: item.updatedAt,
             file_id: item.fileId,
-            name: item.name,
+            // SQlite way to insert double quotes
+            name: item.name.toString().replace(/"/g, '\\""'),
             parent_id: item.parentId || item.folderId,
             size: item.size,
             type: item.type,
@@ -78,7 +79,6 @@ class DriveLocalDB {
           };
         });
         const bulkInsertQuery = driveItemTable.statements.bulkInsert(rows);
-
         tx.executeSql(bulkInsertQuery);
       }
     });

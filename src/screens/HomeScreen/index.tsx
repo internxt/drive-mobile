@@ -30,13 +30,16 @@ const HomeScreen = (): JSX.Element => {
   } = useUseCase(useCases.loadSharedLinks);
 
   useEffect(() => {
-    const unsubscribe = useCases.onDriveItemUploaded(refreshRecentItems);
-
-    return unsubscribe;
+    const unsubscribeUploaded = useCases.onDriveItemUploaded(refreshRecentItems);
+    const unsubscribeTrashed = useCases.onDriveItemTrashed(refreshRecentItems);
+    return () => {
+      unsubscribeUploaded();
+      unsubscribeTrashed();
+    };
   }, []);
 
   useEffect(() => {
-    const unsubscribe = useCases.onDriveItemDeleted(async () => {
+    const unsubscribe = useCases.onDriveItemTrashed(async () => {
       refreshRecentItems();
       refreshSharedLinks();
     });
@@ -54,6 +57,7 @@ const HomeScreen = (): JSX.Element => {
     [HomeTab.Recents]: strings.inputs.searchInRecents,
     [HomeTab.Shared]: strings.inputs.searchInShared,
   }[currentTab];
+
   const tabs = [
     {
       id: HomeTab.Recents,
