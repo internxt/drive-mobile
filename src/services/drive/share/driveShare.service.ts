@@ -73,7 +73,7 @@ class DriveShareService {
     code: string;
     mnemonic: string;
   }) {
-    return `${appService.constants.WEB_CLIENT_URL}/sh/${type}/${token}/${aes.decrypt(code, mnemonic)}`;
+    return `${appService.constants.SHARE_LINKS_URL}/sh/${type}/${token}/${aes.decrypt(code, mnemonic)}`;
   }
 }
 
