@@ -799,7 +799,7 @@ const strings = new LocalizedStrings({
         security_title: 'Internxt Security',
         security_subtitle: [
           'Internxt no almacena tus contraseñas.',
-          'Si olvidas tu contraseña, perderás el acceso a todos sus archivos.',
+          'Si olvidas tu contraseña, perderás el acceso a todos tus archivos.',
           'Con Internxt, tu eres el único propietario de tus datos.',
         ],
 

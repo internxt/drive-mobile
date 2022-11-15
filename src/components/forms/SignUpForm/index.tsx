@@ -203,6 +203,8 @@ const SignUpForm = (props: BaseFormProps) => {
         const castedError = errorService.castError(err);
         if (authService.isEmailAlreadyInUseError(castedError)) {
           setCreateAccountError(CreateAccountError.EmailAlreadyInUse);
+        } else {
+          setCreateAccountError(strings.errors.generic.title);
         }
         await analyticsService.track(AnalyticsEventKey.UserSignInAttempted, {
           status: 'error',
