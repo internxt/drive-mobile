@@ -84,14 +84,7 @@ class AuthService {
   }
 
   public async signout(): Promise<void> {
-    const userData = await asyncStorageService.getUser();
-
-    analytics.track(AnalyticsEventKey.UserSignOut, {
-      userId: userData?.uuid,
-      email: userData?.email,
-      platform: DevicePlatform.Mobile,
-    });
-
+    analytics.track(AnalyticsEventKey.UserLogout);
     await asyncStorageService.clearStorage();
   }
 

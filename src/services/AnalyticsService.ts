@@ -1,41 +1,48 @@
 import axios from 'axios';
 import { NavigationState } from '@react-navigation/native';
-import _ from 'lodash';
 import analytics from '@rudderstack/rudder-sdk-react-native';
 
 import { getHeaders } from '../helpers/headers';
 import { constants } from './AppService';
-import asyncStorage from './AsyncStorageService';
+import { BaseLogger } from './common';
 
 export type JsonMap = Record<string, unknown>;
 export type Options = Record<string, string | number>;
 
 export enum AnalyticsEventKey {
   UserSignUp = 'User Signup',
-  UserSignIn = 'user-sign-in',
-  UserSignInAttempted = 'user-signin-attempted',
-  UserSignOut = 'user-signout',
-  FileUploadStart = 'file-upload-start',
-  FileUploadFinished = 'file-upload-finished',
-  FileUploadError = 'file-upload-error',
-  FileDownloadStart = 'file-download-start',
-  FileDownloadFinished = 'file-download-finished',
-  FileDownloadError = 'file-download-error',
-  FolderOpened = 'folder-opened',
-  FolderCreated = 'folder-created',
-  CheckoutOpened = 'Checkout Opened',
-  PaymentConversionEvent = 'Payment Conversion',
-  CouponRedeemedEvent = 'Coupon Redeemed',
-  ShareTo = 'share-to',
+  UserSignIn = 'User Signin',
+  UserSignUpFailed = 'User Signup Failed',
+  UserSignInFailed = 'User Signin Failed',
+  UserLogout = 'User Logout',
+  PaymentConversion = 'Payment Conversion',
+  TrashEmptied = 'Trash Emptied',
 }
 
+export enum DriveAnalyticsEvent {
+  FileUploadStarted = 'File Upload Started',
+  FileUploadCompleted = 'File Upload Completed',
+  FileUploadError = 'File Upload Error',
+  SharedLinkCopied = 'Shared Link Copied',
+  SharedLinkDeleted = 'Shared Link Deleted',
+  FileDeleted = 'File Deleted',
+  FolderDeleted = 'Folder Deleted',
+  FileDownloadStarted = 'File Download Started',
+  FileDownloadError = 'File Download Error',
+  FileDownloadCompleted = 'File Download Completed',
+}
 export class AnalyticsService {
   private config = {
-    trackEnabled: false,
+    trackEnabled: true,
     trackAppLifeCycleEvents: true,
     screenTrackEnabled: true,
-    identifyEnabled: false,
+    identifyEnabled: true,
   };
+
+  private logger = new BaseLogger({
+    enabled: __DEV__,
+    tag: 'DRIVE_ANALYTICS',
+  });
 
   public getClient() {
     return analytics;
@@ -61,16 +68,19 @@ export class AnalyticsService {
     options: Record<string, string | number> = {},
   ) {
     if (!this.config.identifyEnabled) return this.asNoop();
+    this.logger.info('User identified');
     return analytics.identify(user, traits, options);
   }
 
-  public track(event: AnalyticsEventKey, properties?: JsonMap, options?: Options) {
+  public track(event: AnalyticsEventKey | DriveAnalyticsEvent, properties?: JsonMap, options?: Options) {
     if (!this.config.trackEnabled) return this.asNoop();
     analytics.track(event, properties, options);
+    this.logger.info(`"${event}" event tracked`);
   }
 
   public screen(name: string, properties?: JsonMap, options?: Options) {
     if (!this.config.screenTrackEnabled) return this.asNoop();
+    this.logger.info(`"${name}" screen tracked`);
     analytics.screen(name, properties, options);
   }
 
@@ -96,71 +106,37 @@ export class AnalyticsService {
       });
   }
 
-  public async getConversionData(sessionId: string) {
+  public async getConversionDataProperties(sessionId: string) {
     const session = await this.getCheckoutSessionById(sessionId);
-    let conversionData = {
-      traits: {},
-      properties: {},
-      coupon: {},
-    };
+
     if (session.payment_status === 'paid') {
       const amount = session.amount_total * 0.01;
-      const discounts = session.total_details.breakdown.discounts;
-      let coupon = {};
 
-      if (discounts.length > 0) {
-        const { discount } = discounts[0];
-        coupon = {
-          discount_id: discount.id,
-          coupon_id: discount.coupon.id,
-          coupon_name: discount.coupon.name.toLowerCase(),
-        };
-      }
-
-      conversionData = {
-        properties: {
-          price_id: session.metadata.price_id,
-          email: session.customer_details.email,
-          product: session.metadata.product,
-          customer_id: session.customer,
-          currency: session.currency.toUpperCase(),
-          value: amount,
-          revenue: amount,
-          quantity: 1,
-          type: session.metadata.type,
-          plan_name: session.metadata.name,
-          impact_value: amount === 0 ? 5 : amount,
-          subscription_id: session.subscription,
-          payment_intent: session.payment_intent,
-        },
-        traits: {
-          email: session.customer_details.email,
-          plan: session.metadata.priceId,
-          customer_id: session.customer,
-          storage_limit: session.metadata.maxSpaceBytes,
-          plan_name: session.metadata.name,
-          subscription_id: session.subscription,
-          payment_intent: session.payment_intent,
-        },
-        coupon,
+      return {
+        price_id: session.metadata.price_id,
+        email: session.customer_details.email,
+        product: session.metadata.product,
+        customer_id: session.customer,
+        currency: session.currency.toUpperCase(),
+        value: amount,
+        revenue: amount,
+        quantity: 1,
+        type: session.metadata.type,
+        plan_name: session.metadata.name,
+        impact_value: amount === 0 ? 5 : amount,
+        subscription_id: session.subscription,
+        payment_intent: session.payment_intent,
       };
     }
 
-    return conversionData;
+    return null;
   }
 
   public async trackPayment(sessionId: string): Promise<void> {
-    const user = await asyncStorage.getUser();
-    const conversionData = await this.getConversionData(sessionId);
+    const conversionData = await this.getConversionDataProperties(sessionId);
 
-    if (!_.isEmpty(conversionData.properties)) {
-      await this.identify(user.uuid, conversionData.traits);
-
-      await this.track(AnalyticsEventKey.PaymentConversionEvent, conversionData.properties);
-
-      if (!_.isEmpty(conversionData.coupon)) {
-        this.track(AnalyticsEventKey.CouponRedeemedEvent, conversionData.coupon);
-      }
+    if (conversionData) {
+      await this.track(AnalyticsEventKey.PaymentConversion, conversionData);
     }
   }
 

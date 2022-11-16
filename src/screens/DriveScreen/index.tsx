@@ -119,24 +119,6 @@ function DriveScreen({ navigation }: TabExplorerScreenProps<'Drive'>): JSX.Eleme
     }
   };
   useEffect(() => {
-    asyncStorage.getUser().then(async (user) => {
-      if (user) {
-        const limit = await storageService.loadLimit();
-        const driveUsage = await drive.usage.getUsage();
-
-        analytics
-          .identify(user.uuid, {
-            userId: user.uuid,
-            email: user.email,
-            platform: DevicePlatform.Mobile,
-            storage_used: driveUsage,
-            storage_limit: limit,
-            storage_usage: Math.floor(driveUsage / limit),
-          })
-          .catch(() => undefined);
-      }
-    });
-
     // BackHandler
     const backAction = () => {
       if (route.name === 'Drive') {

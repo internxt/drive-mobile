@@ -11,11 +11,11 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
 
 import uploadService, { FileEntry } from '../../../services/UploadService';
-import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
+import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 import { encryptFilename, isValidFilename } from '../../../helpers';
 import fileSystemService from '../../../services/FileSystemService';
 import strings from '../../../../assets/lang/strings';
-import { DevicePlatform, NotificationType, ProgressCallback } from '../../../types';
+import { NotificationType, ProgressCallback } from '../../../types';
 import asyncStorage from '../../../services/AsyncStorageService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
@@ -144,7 +144,7 @@ function AddModal(): JSX.Element {
     drive.events.emit({ event: DriveEventKey.UploadCompleted });
     return uploadService.createFileEntry(fileEntry);
   }
-  const upload = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
+  const uploadFile = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
     function progressCallback(progress: number) {
       dispatch(driveActions.uploadFileSetProgress({ progress, id: uploadingFile.id }));
     }
@@ -168,31 +168,31 @@ function AddModal(): JSX.Element {
     drive.events.emit({ event: DriveEventKey.UploadCompleted });
   };
 
-  async function trackUploadStart() {
-    const { uuid, email } = await asyncStorage.getUser();
-    const uploadStartedTrack = { userId: uuid, email, device: DevicePlatform.Mobile };
-
-    analytics.track(AnalyticsEventKey.FileUploadStart, uploadStartedTrack);
+  async function trackUploadStart(file: UploadingFile) {
+    await analytics.track(DriveAnalyticsEvent.FileUploadStarted, { size: file.size, type: file.type });
   }
 
-  async function trackUploadSuccess() {
-    const { email, uuid } = await asyncStorage.getUser();
-    const uploadFinishedTrack = { userId: uuid, email, device: DevicePlatform.Mobile };
-
-    analytics.track(AnalyticsEventKey.FileUploadFinished, uploadFinishedTrack);
+  async function trackUploadSuccess(file: UploadingFile) {
+    await analytics.track(DriveAnalyticsEvent.FileUploadCompleted, {
+      size: file.size,
+      type: file.type,
+      file_id: file.id,
+      parent_folder_id: file.parentId,
+    });
   }
 
-  async function trackUploadError(err: Error) {
-    const { email, uuid } = await asyncStorage.getUser();
-    const uploadErrorTrack = { userId: uuid, email, device: DevicePlatform.Mobile, error: err.message };
-
-    analytics.track(AnalyticsEventKey.FileUploadError, uploadErrorTrack);
+  async function trackUploadError(file: UploadingFile, err: Error) {
+    await analytics.track(DriveAnalyticsEvent.FileUploadError, {
+      message: err.message,
+      size: file.size,
+      type: file.type,
+    });
   }
 
-  function uploadSuccess(id: number) {
-    trackUploadSuccess();
+  function uploadSuccess(file: UploadingFile) {
+    trackUploadSuccess(file);
 
-    dispatch(driveActions.uploadingFileEnd(id));
+    dispatch(driveActions.uploadingFileEnd(file.id));
     dispatch(driveActions.setUri(undefined));
   }
 
@@ -280,7 +280,7 @@ function AddModal(): JSX.Element {
         };
       }
 
-      trackUploadStart();
+      trackUploadStart(file);
       dispatch(driveActions.uploadFileStart(file.name));
       dispatch(driveActions.addUploadingFile({ ...file }));
 
@@ -292,21 +292,20 @@ function AddModal(): JSX.Element {
       await fileSystemService.clearTempDir();
     }
     for (const file of formattedFiles) {
-      await upload(file, 'document')
-        .then(() => {
-          uploadSuccess(file.id);
-        })
-        .catch((err) => {
-          trackUploadError(err);
-          dispatch(driveActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
-          notificationsService.show({
-            type: NotificationType.Error,
-            text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
-          });
-        })
-        .finally(() => {
-          dispatch(driveActions.uploadFileFinished());
+      try {
+        await uploadFile(file, 'document');
+        uploadSuccess(file);
+      } catch (e) {
+        const err = e as Error;
+        trackUploadError(file, err);
+        dispatch(driveActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
         });
+      } finally {
+        dispatch(driveActions.uploadFileFinished());
+      }
     }
   }
 
@@ -476,28 +475,25 @@ function AddModal(): JSX.Element {
             progress: 0,
           };
 
-          trackUploadStart();
+          trackUploadStart(file);
           dispatch(driveActions.uploadFileStart(file.name));
           dispatch(driveActions.addUploadingFile(file));
           dispatch(uiActions.setShowUploadFileModal(false));
+          try {
+            await uploadFile(file, 'image');
+            await uploadSuccess(file);
+          } catch (err) {
+            trackUploadError(file, err as Error);
+            dispatch(driveActions.uploadFileFailed({ id: file.id }));
+            throw err;
+          } finally {
+            dispatch(driveActions.uploadFileFinished());
+            dispatch(driveThunks.loadUsageThunk());
 
-          upload(file, 'image')
-            .then(() => {
-              uploadSuccess(file.id);
-            })
-            .catch((err) => {
-              trackUploadError(err);
-              dispatch(driveActions.uploadFileFailed({ id: file.id }));
-              throw err;
-            })
-            .finally(() => {
-              dispatch(driveActions.uploadFileFinished());
-              dispatch(driveThunks.loadUsageThunk());
-
-              if (currentFolderId) {
-                dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
-              }
-            });
+            if (currentFolderId) {
+              dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
+            }
+          }
         }
       } catch (err) {
         notificationsService.show({

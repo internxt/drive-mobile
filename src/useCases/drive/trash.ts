@@ -1,3 +1,4 @@
+import analytics, { DriveAnalyticsEvent } from '@internxt-mobile/services/AnalyticsService';
 import drive from '@internxt-mobile/services/drive';
 import { driveEvents } from '@internxt-mobile/services/drive/events';
 import errorService from '@internxt-mobile/services/ErrorService';
@@ -92,6 +93,14 @@ export const deleteDriveItemsPermanently = async (items: DriveListItem[]): Promi
 
     const isPlural = items.length > 1;
     notifications.success(isPlural ? strings.messages.itemsDeleted : strings.messages.itemDeleted);
+    items.map((item) => {
+      analytics.track(DriveAnalyticsEvent.FileDeleted, {
+        size: item.data.size,
+        type: item.data.type,
+        file_id: item.data.fileId,
+        parent_folder_id: item.data.parentId,
+      });
+    });
     return {
       success: true,
       data: null,

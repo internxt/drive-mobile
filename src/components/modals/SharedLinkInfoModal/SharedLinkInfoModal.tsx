@@ -77,6 +77,7 @@ export function SharedLinkInfoModal(): JSX.Element {
     }
     const result = await deleteShareLink({
       shareId: item.shareId,
+      type: isFolder ? 'folder' : 'file',
     });
 
     if (result?.deleted) {
