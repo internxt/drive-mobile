@@ -87,7 +87,7 @@ export function isValidFilename(filename: string) {
     !filename.includes('\\') &&
     !filename.includes(':') &&
     // eslint-disable-next-line quotes
-    filename.match(new RegExp("([^\\p{L}\\s\\d\\-_~,;:\\[\\]\\(\\).'])", 'isg'))
+    !!filename.match(new RegExp("([^\\p{L}\\s\\d\\-_~,;:\\[\\]\\(\\).'])", 'isg'))
   );
 }
 export function encryptFilename(filename: string, folderId: string): string {
