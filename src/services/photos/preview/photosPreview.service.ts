@@ -38,11 +38,10 @@ export class PhotosPreviewService {
       options: { mode: 'cover' },
     });
 
-    const destination = await photosUtils.cameraRollUriToFileSystemUri({
+    const destination = await photosUtils.getPhotoPath({
       name: photosItem.name,
-      format: photosItem.format,
-      uri: photosItem.localPreviewPath,
-      itemType: photosItem.type,
+      size: PhotoSizeType.Preview,
+      type: photosItem.format,
     });
 
     if (!(await fileSystemService.exists(destination))) {
