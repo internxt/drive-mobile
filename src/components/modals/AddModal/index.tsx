@@ -32,8 +32,11 @@ import useGetColor from '../../../hooks/useColor';
 import { storageSelectors } from 'src/store/slices/storage';
 import drive from '@internxt-mobile/services/drive';
 import { useDrive } from '@internxt-mobile/hooks/drive';
+import { DriveFileData, EncryptionVersion, FileEntry, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { imageService } from '@internxt-mobile/services/common';
 import errorService from '@internxt-mobile/services/ErrorService';
-import { EncryptionVersion, FileEntry } from '@internxt/sdk/dist/drive/storage/types';
+import uuid from 'react-native-uuid';
+import { SaveFormat } from 'expo-image-manipulator';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
 function AddModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -111,6 +114,11 @@ function AddModal(): JSX.Element {
     return createdFileEntry;
   }
 
+  /**
+   * TODO: This function does a lot of stuff, we should
+   * separate things in smaller units so this code can be
+   * more maintenable
+   */
   async function uploadAndCreateFileEntry(
     filePath: string,
     fileName: string,
@@ -150,8 +158,46 @@ function AddModal(): JSX.Element {
       plain_name: plainName,
     };
 
+    const generatedThumbnail = await imageService.generateThumbnail(filePath.replace(/ /g, '%20'), {
+      extension: fileExtension,
+      thumbnailFormat: SaveFormat.JPEG,
+      // Android needs an extension to generate the thumbnails, otherwise it crashes
+      // jpg is the one that we use for thumbanil generations
+      outputPath: fileSystemService.tmpFilePath(`${uuid.v4()}.${SaveFormat.JPEG}`),
+    });
+
+    const generatedDriveItem = await uploadService.createFileEntry(fileEntry);
+    let uploadedThumbnail: Thumbnail | null = null;
+    if (generatedThumbnail) {
+      const thumbnailFileId = await network.uploadFile(
+        generatedThumbnail.path,
+        bucket,
+        mnemonic,
+        constants.BRIDGE_URL,
+        {
+          user: bridgeUser,
+          pass: userId,
+        },
+        {},
+      );
+
+      uploadedThumbnail = await uploadService.createThumbnailEntry({
+        file_id: generatedDriveItem.id,
+        max_width: generatedThumbnail.width,
+        max_height: generatedThumbnail.height,
+        type: generatedThumbnail.type,
+        size: generatedThumbnail.size,
+        bucket_id: bucket,
+        bucket_file: thumbnailFileId,
+        encrypt_version: EncryptionVersion.Aes03,
+      });
+    }
+
     drive.events.emit({ event: DriveEventKey.UploadCompleted });
-    return uploadService.createFileEntry(fileEntry);
+    return {
+      ...generatedDriveItem,
+      thumbnails: uploadedThumbnail ? [uploadedThumbnail] : null,
+    } as DriveFileData;
   }
   const uploadFile = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
     function progressCallback(progress: number) {
@@ -166,12 +212,17 @@ function AddModal(): JSX.Element {
       throw new Error(strings.errors.storageLimitReached);
     }
 
-    if (Platform.OS === 'ios') {
-      await uploadIOS(uploadingFile, fileType, progressCallback);
-    } else if (Platform.OS === 'android') {
-      await uploadAndroid(uploadingFile, fileType, progressCallback);
-    } else {
-      throw new Error('Unsuported platform');
+    try {
+      if (Platform.OS === 'ios') {
+        await uploadIOS(uploadingFile, fileType, progressCallback);
+      } else if (Platform.OS === 'android') {
+        await uploadAndroid(uploadingFile, fileType, progressCallback);
+      } else {
+        throw new Error('Unsuported platform');
+      }
+    } catch (error) {
+      errorService.reportError(error);
+      throw error;
     }
 
     drive.events.emit({ event: DriveEventKey.UploadCompleted });
@@ -223,7 +274,6 @@ function AddModal(): JSX.Element {
       throw new Error('This file name is not valid');
     }
     const nameSplittedByDots = file.name.split('.');
-
     return {
       id: new Date().getTime(),
       uri: file.uri,

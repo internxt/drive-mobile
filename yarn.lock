@@ -6452,6 +6452,18 @@ expo-font@~10.0.4, expo-font@~10.0.5:
   dependencies:
     fontfaceobserver "^2.1.0"
 
+expo-image-loader@~3.1.0:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/expo-image-loader/-/expo-image-loader-3.1.1.tgz#f88d94e66c5a102f15d858973c03b92e10662575"
+  integrity sha512-ZX4Bh3K4CCX1aZflnmbOgFNLS+c0/GUys4wdvqxO+4A4KU1NNb3jE7RVa/OFYNPDcGhEw20c1QjyE/WsVURJpg==
+
+expo-image-manipulator@~10.2.0:
+  version "10.2.1"
+  resolved "https://registry.yarnpkg.com/expo-image-manipulator/-/expo-image-manipulator-10.2.1.tgz#6fd0db248f10a5e99b16e1f53d382ca77e660b4a"
+  integrity sha512-0klgPMn8fIUkbWpRVT0LVCtq0ozzm3gO60jZEcJPofJRQWDKuv3Rcf0+8pTqpn45J53eAGsuZ72/Yj0AJqaedQ==
+  dependencies:
+    expo-image-loader "~3.1.0"
+
 expo-image-picker@~12.0.1:
   version "12.0.2"
   resolved "https://registry.yarnpkg.com/expo-image-picker/-/expo-image-picker-12.0.2.tgz#4789c5419208ff8ede557784368a7f18f3878c30"
@@ -11039,11 +11051,6 @@ react-native-image-picker@^4.0.6:
   resolved "https://registry.npmjs.org/react-native-image-picker/-/react-native-image-picker-4.2.0.tgz"
   integrity sha512-RT/MIDx/j6lSF7ZaHG1CU/Fw+TcY2FejvvzjfWbB3DUBp5cZU6JmIWwFEYD/GD8PSvE/3l6K1r67C02phk/wqw==
 
-react-native-image-resizer@^1.4.5:
-  version "1.4.5"
-  resolved "https://registry.npmjs.org/react-native-image-resizer/-/react-native-image-resizer-1.4.5.tgz"
-  integrity sha512-33EgL3C9pyvjKpullAB6fWyD5QhoYEpNNB9rxNvUsrpAnL2mHBW7PTrUCCZudJeB6Weg7nbweKrSw1nnto5aqg==
-
 react-native-image-zoom-viewer@^3.0.1:
   version "3.0.1"
   resolved "https://registry.npmjs.org/react-native-image-zoom-viewer/-/react-native-image-zoom-viewer-3.0.1.tgz"
@@ -11084,6 +11091,11 @@ react-native-os@^1.2.6:
   version "1.2.6"
   resolved "https://registry.npmjs.org/react-native-os/-/react-native-os-1.2.6.tgz"
   integrity sha512-OlT+xQAcvkcnf7imgXiu+myMkqDt4xw2bP5SlVo19hEn5XHBkPMLX7dk3sSGxxncH/ToMDsf1KLyrPabNVtadA==
+
+react-native-pdf-thumbnail@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/react-native-pdf-thumbnail/-/react-native-pdf-thumbnail-1.2.0.tgz#8143e3a922f4a6f9ef490af9b3bd2c97d632b112"
+  integrity sha512-B6NQtdl5PlIshOvUQDo9pzrFTQDwYIEpeHH5TKMCjXySvYvnC5s7+0w55Tlo745ZB46umwGD1app2THDIdtugg==
 
 react-native-permissions@^3.2.0:
   version "3.2.0"

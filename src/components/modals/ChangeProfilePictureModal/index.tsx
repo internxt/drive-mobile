@@ -19,7 +19,7 @@ import AppButton from '../../AppButton';
 import AppText from '../../AppText';
 import UserProfilePicture from '../../UserProfilePicture';
 import BottomModal from '../BottomModal';
-import imageService from '../../../services/ImageService';
+import { imageService } from '../../../services/common/media/image.service';
 import { authThunks } from '../../../store/slices/auth';
 
 const ChangeProfilePictureModal = (props: BaseModalProps) => {
@@ -40,10 +40,9 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
       format: 'JPEG',
       quality: 100,
       rotation: 0,
-      options: { mode: 'cover' },
     });
 
-    setAvatar(response.uri);
+    setAvatar(response.path);
   };
   const onCancelButtonPressed = () => {
     props.onClose();
