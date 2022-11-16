@@ -1,8 +1,8 @@
 import CryptoJS from 'crypto-js';
 import crypto from 'react-native-crypto';
-import { constants } from '../services/AppService';
-import errorService from '../services/ErrorService';
-import AesUtils from './aesUtils';
+import { constants } from '../../services/AppService';
+import errorService from '../../services/ErrorService';
+import AesUtils from '../aesUtils';
 const password = constants.CRYPTO_SECRET || ''; // Force env var loading
 
 interface PassObjectInterface {
@@ -82,7 +82,13 @@ export function probabilisticDecryption(cipherText: string): string | null {
 }
 
 export function isValidFilename(filename: string) {
-  return !filename.includes('/') && !filename.includes('\\') && !filename.includes(':');
+  return (
+    !filename.includes('/') &&
+    !filename.includes('\\') &&
+    !filename.includes(':') &&
+    // eslint-disable-next-line quotes
+    !!filename.match(new RegExp("([^\\p{L}\\s\\d\\-_~,;:\\[\\]\\(\\).'])", 'isg'))
+  );
 }
 export function encryptFilename(filename: string, folderId: string): string {
   const { CRYPTO_SECRET2: CRYPTO_KEY } = constants;
