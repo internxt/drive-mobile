@@ -96,13 +96,14 @@ const strings = new LocalizedStrings({
         },
       },
       SignInScreen: {
-        title: 'Login in to Internxt',
+        title: 'Login',
         forgot: 'Forgot your password?',
-        no_register: "Don't have account?",
+        no_register: 'Don’t have an Internxt account?',
         register: 'Get started',
         back: 'Back to login',
       },
       SignUpScreen: {
+        title: 'Create account',
         first:
           '{0} is a {1} cloud storage service. A {2} place for all your files. Welcome to the {3}. Welcome to {4}.',
         second:
@@ -113,23 +114,28 @@ const strings = new LocalizedStrings({
         bold_second: ['encrypted', 'no way', 'Privacy'],
         bold_third: ['Desktop', 'Web', 'Mobile', '10 GB', 'Upgrade your storage'],
         security_title: 'Internxt Security',
-        security_subtitle:
-          "Internxt uses your password to encrypt and decrypt your files. Due to the secure nature of Internxt, we don't know your password. That means that if you ever forget it, your files are gone forever. With us, you're the only owner of your files.",
+        security_subtitle: [
+          "Internxt doesn't store passwords.",
+          'If you forget your password, you will lose access to all your files.',
+          'With Internxt, you’re the only owner of your files.',
+        ],
         suggestion_1: 'Store your password. Keep it safe and secure.',
         suggestion_2: 'Keep an offline backup of your password.',
         create_account_title: 'Create an Internxt account',
         acceptTermsAndConditions: 'Accept terms, conditions and privacy policy',
+        alreadyHaveAccount: 'Already have an account?',
       },
       home: {
         title: 'Home',
       },
       forgot_password: {
-        title: 'Internxt security',
-        subtitle_1:
-          "As specified during the sign up process, Internxt Drive encrypts your files, and only you have access to those. We never know your password, and thus, that way, only you can decrypt your account. For that reason, if you forget your password, we can't restore your account. What we can do, however, is to",
-        bold: ' delete your account and erase all its files',
-        subtitle_2:
-          ', so that you can sign up again. Please, if you still want to proceed, enter your email below so that we can process the account removal.',
+        title: 'Delete account',
+        message:
+          "As specified in the app settings, only you have access to your password, therefore we can't restore your account without it. In order to sign up again, enter your email below so we can delete your account and all your files.",
+        confirmation: {
+          title: 'Check your email',
+          subtitle: "We've send an account delete link to {0}",
+        },
       },
       deactivation_screen: {
         account_deleted: 'Account deleted',
@@ -311,12 +317,14 @@ const strings = new LocalizedStrings({
       },
     },
     buttons: {
+      goBackToSignIn: 'Go back to login',
+
       export_file: 'Export file',
       duplicate: 'Duplicate',
       save_to_gallery: 'Save to gallery',
-      sign_in: 'Sign in',
+      sign_in: 'Log in',
       createAccount: 'Create account',
-      deleteAccount: 'Delete account',
+      sendDeleteAccountConfirmation: 'Send confirmation email',
       create: 'Create',
       next: 'Next',
       continue: 'Continue',
@@ -605,6 +613,8 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      passwordMediumStrength: 'Password is weak',
+      passwordHardStrength: 'Password is strong',
       image_not_uploaded_yet: 'This photo is not synced yet',
       photo_deleted: 'Photo deleted',
       image_shared: 'Image shared',
@@ -612,6 +622,7 @@ const strings = new LocalizedStrings({
       image_saved_to_gallery: 'Photo saved to gallery',
       video_saved_to_gallery: 'Vídeo saved to gallery',
       fileSaved: 'File saved',
+      termsAndConditions: ['By creating an account you accept', 'terms and conditions.'],
       generatingLink: 'Generating link',
       folderCreated: 'Folder created',
       itemsDeleted: 'Item/s deleted',
@@ -631,6 +642,10 @@ const strings = new LocalizedStrings({
         title: 'There has been an error',
         message: '{0}. Please contact us.',
       },
+      deactivationAccount: 'Error deactivating account. Please contact us.',
+      emailAlreadyInUse: 'Email already in use',
+      failed2FA: 'Wrong 2-factor auth code',
+      missingAuthCredentials: 'Wrong email or password',
       shareLinkPasswordMissing: 'Enter a password or turn off password protection',
       photoNotUploadedYet: 'The photo is not in sync',
       generateShareLinkError: "Can't generate share link",
@@ -764,13 +779,14 @@ const strings = new LocalizedStrings({
         },
       },
       SignInScreen: {
-        title: 'Inicia sesión en Internxt',
+        title: 'Inicia sesión',
         forgot: '¿Has olvidado la contraseña?',
-        no_register: '¿No tienes cuenta?',
+        no_register: '¿No tienes una cuenta de Internxt?',
         register: 'Regístrate',
         back: 'Iniciar sesión',
       },
       SignUpScreen: {
+        title: 'Crear cuenta',
         first:
           '{0} es un servicio de almacenamiento en la nube {1}. Un lugar {2} para todos tus archivos. Bienvenido a la {3}. Bienvenido a {4}.',
         second:
@@ -781,23 +797,29 @@ const strings = new LocalizedStrings({
         bold_second: ['encriptados', 'Ni nosotros ni ningún servicio', 'Privacidad'],
         bold_third: ['escritorio', 'web', 'móvil', '10 GB', 'Mejora tu almacenamiento'],
         security_title: 'Internxt Security',
-        security_subtitle:
-          'Interxt usa tu contraseña para encriptar y decriptar tus archivos. Debido a la segura naturaleza de nuestro servicio, nosotros no sabemos tu contraseña. Esto significa que si algún día la llegas a perder, tus archivos se volverán inaccesibles. Con nosotros, tú eres el único propietario de tus archivos.',
+        security_subtitle: [
+          'Internxt no almacena tus contraseñas.',
+          'Si olvidas tu contraseña, perderás el acceso a todos tus archivos.',
+          'Con Internxt, tu eres el único propietario de tus datos.',
+        ],
+
         suggestion_1: 'Guardes tu contraseña. Mantenla sana y salva.',
         suggestion_2: 'Guarda una copia local de todos tus archivos.',
         create_account_title: 'Crear cuenta',
         acceptTermsAndConditions: 'Aceptar términos, condiciones y política de privacidad',
+        alreadyHaveAccount: '¿Ya tienes una cuenta?',
       },
       home: {
         title: 'Inicio',
       },
       forgot_password: {
-        title: 'Internxt security',
-        subtitle_1:
-          'Como se especificó durante el proceso de registro, Internxt Drive encripta tus archivos, y solo tú tienes acceso a ellos. Nosotros nunca llegamos a conocer tu contraseña, y debido a esto, solo tú puedes desencriptar tus archivos. Si te has olvidado de la contraseña, no podemos restablecerla. Lo que sí que podemos hacer, es',
-        bold: ' borrar tu cuenta y todos tus archivos',
-        subtitle_2:
-          ', por lo que podrás volver a registrarte con el mismo correo electrónico. Por favor, introduce tu correo electrónico para que podamos procesar el borrado de tu cuenta.',
+        title: 'Borrar cuenta',
+        message:
+          'Como se especifica en la configuración de la aplicación, sólo tú tienes acceso a tu contraseña, por lo que no podemos restaurar tu cuenta sin ella. Para poder volver a registrarte, introduce tu correo electrónico a continuación para que podamos eliminar tu cuenta y todos tus archivos.',
+        confirmation: {
+          title: 'Revisa tu email',
+          subtitle: 'Hemos enviado un link para borrar tu cuenta a {0}',
+        },
       },
       deactivation_screen: {
         account_deleted: 'Cuenta eliminada',
@@ -979,12 +1001,14 @@ const strings = new LocalizedStrings({
       },
     },
     buttons: {
+      goBackToSignIn: 'Volver al login',
       duplicate: 'Duplicar',
       export_file: 'Exportar archivo',
       save_to_gallery: 'Guardar en galería',
       sign_in: 'Iniciar sesión',
       createAccount: 'Crear cuenta',
-      deleteAccount: 'Borrar cuenta',
+      sendDeleteAccountConfirmation: 'Enviar email de confirmación',
+
       create: 'Crear',
       next: 'Siguiente',
       continue: 'Continuar',
@@ -1275,12 +1299,15 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      passwordMediumStrength: 'La contraseña es débil',
+      passwordHardStrength: 'La contraseña es fuerte',
       image_not_uploaded_yet: 'Imagen no sincronizada aún',
       photo_deleted: 'Imagen borrada',
       image_shared: 'Imagen compartida',
       video_shared: 'Video compartido',
       image_saved_to_gallery: 'Imagen guardada en la galería',
       video_saved_to_gallery: 'Video guardado en la galería',
+      termsAndConditions: ['Al crear una cuenta aceptas los', 'términos de servicio \ny la política de privacidad'],
       file_saved: 'Archivo guardado',
       generatingLink: 'Generando link',
       folderCreated: 'Carpeta creada',
@@ -1301,6 +1328,10 @@ const strings = new LocalizedStrings({
         title: 'Ha habido un error',
         message: '{0}. Por favor, contacta con nosotros.',
       },
+      deactivationAccount: 'Error desactivando la cuenta. Por favor contacta con nosotros.',
+      emailAlreadyInUse: 'Ya existe una cuenta con este email',
+      failed2FA: 'Código 2FA incorrecto',
+      missingAuthCredentials: 'Email o password incorrectos',
       shareLinkPasswordMissing: 'Introduce un password',
       photoNotUploadedYet: 'La foto no esta sincronizada',
       generateShareLinkError: 'Error generando link compartido',
@@ -1323,7 +1354,7 @@ const strings = new LocalizedStrings({
       subscribeToNewsletter: 'Error al suscribirse al newsletter: {0}',
       loadProducts: 'Error al cargar productos: {0}',
       passwordsDontMatch: 'Las contraseñas no coinciden',
-      requiredField: 'Este campo es requerido',
+      requiredField: 'Este campo es obligatorio',
       deleteAccount: 'Error enviando email de confirmación',
       updateProfile: 'Error actualizando tu perfil',
       validEmail: 'Introduce un email válido',

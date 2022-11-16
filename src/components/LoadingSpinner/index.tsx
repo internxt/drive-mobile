@@ -38,7 +38,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     return Animated.loop(
       Animated.timing(syncingSpinnerRotationAnimation, {
         toValue: 1,
-        duration: 1500,
+        duration: 500,
         easing: Easing.linear,
         useNativeDriver: true,
       }),

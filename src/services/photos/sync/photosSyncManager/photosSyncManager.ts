@@ -323,7 +323,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     if (operation.syncStage === SyncStage.NEEDS_REMOTE_CHECK) {
       this.photosNetworkManager.addOperation({
         photosItem: operation.photosItem,
-        retrys: 0,
+        retries: 0,
         onOperationCompleted: async (err, photo) => {
           if (err) {
             this.totalPhotosFailed++;

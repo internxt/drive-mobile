@@ -46,7 +46,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
     Linking.openURL('https://internxt.com');
   };
   const onTermsAndConditionsPressed = () => {
-    Linking.openURL('https://internxt.com/legal');
+    Linking.openURL(appService.urls.termsAndConditions);
   };
   const onDebugPressed = () => {
     navigation.push('Debug');

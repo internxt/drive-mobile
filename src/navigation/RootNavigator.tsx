@@ -127,12 +127,15 @@ function AppNavigator(): JSX.Element {
   // redirects to the login screen even with the user logged
   if (isLoggedIn == null) return <View></View>;
   return (
-    <Stack.Navigator
-      initialRouteName={initialRouteName}
-      screenOptions={{ headerShown: false, animation: 'slide_from_right', gestureEnabled: false }}
-    >
+    <Stack.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false, gestureEnabled: true }}>
       <Stack.Screen name="Debug" component={DebugScreen} />
-      <Stack.Screen name="SignUp" component={SignUpScreen} />
+      <Stack.Screen
+        name="SignUp"
+        component={SignUpScreen}
+        options={{
+          animation: 'fade_from_bottom',
+        }}
+      />
       <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="DeactivatedAccount" component={DeactivatedAccountScreen} />
       <Stack.Screen name="TabExplorer" component={AuthenticatedNavigator} />

@@ -15,12 +15,8 @@ export interface BaseFormProps {
 }
 
 export interface SignUpFormData {
-  name: string;
-  lastName: string;
   email: string;
   password: string;
-  confirmPassword: string;
-  termsAndConditions: boolean;
 }
 
 export interface ChangePasswordFormData {

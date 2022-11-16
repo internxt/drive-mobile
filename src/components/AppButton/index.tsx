@@ -51,7 +51,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     cancel: props.disabled ? tailwind('text-gray-40') : tailwind('text-gray-80'),
     'cancel-2': tailwind('text-blue-60'),
     delete: tailwind('text-white'),
-    white: tailwind('text-gray-80 border border-black-10'),
+    white: tailwind('text-gray-80'),
   }[props.type];
   const typeUnderlayColor = {
     accept: getColor('text-blue-70'),
@@ -64,7 +64,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
 
   const renderContent = () => {
     const title = isTitleString ? (
-      <AppText medium numberOfLines={1} style={[tailwind('text-lg'), typeTextStyle]}>
+      <AppText medium numberOfLines={1} style={[tailwind('text-base'), typeTextStyle]}>
         {props.title}
       </AppText>
     ) : (
@@ -73,12 +73,12 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
 
     return (
       <View style={tailwind('flex-row')}>
-        {title}
         {props.loading && (
-          <View style={tailwind('ml-2 items-center justify-center')}>
+          <View style={tailwind('mr-2 items-center justify-center')}>
             <LoadingSpinner color={getColor('text-white')} size={16} />
           </View>
         )}
+        {title}
       </View>
     );
   };
