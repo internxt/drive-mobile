@@ -3,6 +3,13 @@ import { isValidFilename } from './crypt';
 describe('isValidFilename', () => {
   test('Allow a normal filename', () => {
     const allow = isValidFilename('valid_filename.jpg');
+    const allowWithNumbers = isValidFilename('012 345.txt');
+    expect(allow).toBeTruthy();
+    expect(allowWithNumbers).toBeTruthy();
+  });
+
+  test('Allow numeric filename without extension', () => {
+    const allow = isValidFilename('0123456');
     expect(allow).toBeTruthy();
   });
 
