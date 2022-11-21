@@ -63,22 +63,6 @@ function DriveDownloadModal(): JSX.Element {
   };
   const onDownloadCompleted = () => undefined;
   const onDownloadError = ([err]: [Error]) => {
-    const trackDownloadError = async (err: Error) => {
-      const { email, uuid } = await asyncStorage.getUser();
-
-      return analytics.track(AnalyticsEventKey.FileDownloadError, {
-        file_id: downloadingFile?.data.id || 0,
-        file_size: downloadingFile?.data.size || 0,
-        file_type: downloadingFile?.data.type || '',
-        folder_id: currentFolderId,
-        platform: DevicePlatform.Mobile,
-        error: err.message || strings.errors.unknown,
-        email: email || null,
-        userId: uuid || null,
-      });
-    };
-
-    trackDownloadError(err);
     notificationsService.show({ type: NotificationType.Error, text1: err.message });
   };
   const onDownloadFinally = () => {

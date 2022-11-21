@@ -8,7 +8,7 @@ import { BaseFormProps, SignUpFormData } from '../../../types/ui';
 import AppTextInput from '../../AppTextInput';
 import { useAppDispatch } from '../../../store/hooks';
 import { authThunks } from '../../../store/slices/auth';
-import analyticsService, { AnalyticsEventKey } from '../../../services/AnalyticsService';
+import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
 import errorService from '../../../services/ErrorService';
 import { Linking, TextInput, TouchableWithoutFeedback, useWindowDimensions, View } from 'react-native';
 import authService from '../../../services/AuthService';
@@ -178,8 +178,8 @@ const SignUpForm = (props: BaseFormProps) => {
         });
 
         await Promise.all([
-          analyticsService.identify(userData.uuid, { email: data.email }),
-          analyticsService.track(AnalyticsEventKey.UserSignUp, {
+          analytics.identify(userData.uuid, { email: data.email }),
+          analytics.track(AnalyticsEventKey.UserSignUp, {
             properties: {
               userId: userData.uuid,
               email: data.email,
@@ -206,8 +206,9 @@ const SignUpForm = (props: BaseFormProps) => {
         } else {
           setCreateAccountError(strings.errors.generic.title);
         }
-        await analyticsService.track(AnalyticsEventKey.UserSignInAttempted, {
-          status: 'error',
+
+        analytics.track(AnalyticsEventKey.UserSignUpFailed, {
+          email: data.email,
           message: castedError.message,
         });
         setIsLoading(false);

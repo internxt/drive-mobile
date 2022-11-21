@@ -319,22 +319,6 @@ export const authSlice = createSlice({
       .addCase(signInThunk.fulfilled, (state, action) => {
         const { photosToken, token, user } = action.payload;
 
-        analytics
-          .identify(user.uuid, {
-            email: user.email,
-            platform: DevicePlatform.Mobile,
-            referrals_credit: user.credit,
-            referrals_count: Math.floor(user.credit / 5),
-            createdAt: user.createdAt.toString(),
-          })
-          .then(() => {
-            analytics.track(AnalyticsEventKey.UserSignIn, {
-              email: user.email,
-              userId: user.uuid,
-              platform: DevicePlatform.Mobile,
-            });
-          });
-
         state.loggedIn = true;
         state.token = token;
         state.photosToken = photosToken;

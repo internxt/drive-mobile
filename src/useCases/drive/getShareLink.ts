@@ -1,3 +1,4 @@
+import analytics, { AnalyticsEventKey, DriveAnalyticsEvent } from '@internxt-mobile/services/AnalyticsService';
 import AuthService from '@internxt-mobile/services/AuthService';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
@@ -54,7 +55,7 @@ export const getExistingShareLink = async ({
 /**
  * Display a notification to copy the given link
  */
-export const copyShareLink = ({ link }: { link: string }) => {
+export const copyShareLink = ({ link, type }: { link: string; type: 'file' | 'folder' }) => {
   notificationsService.show({
     text1: strings.components.file_and_folder_options.linkReady,
     type: NotificationType.Success,
@@ -62,6 +63,9 @@ export const copyShareLink = ({ link }: { link: string }) => {
       text: strings.buttons.copyLink,
       onActionPress: () => {
         setString(link);
+        analytics.track(DriveAnalyticsEvent.SharedLinkCopied, {
+          type,
+        });
       },
     },
   });
@@ -139,7 +143,7 @@ export const generateShareLink = async ({
     });
 
     if (displayCopyNotification && link) {
-      copyShareLink({ link });
+      copyShareLink({ link, type });
     }
     sharedLinksUpdated();
     return {

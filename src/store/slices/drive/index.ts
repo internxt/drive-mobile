@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 
-import analytics, { AnalyticsEventKey } from '../../../services/AnalyticsService';
+import analytics, { AnalyticsEventKey, DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 
 import { DevicePlatform, NotificationType } from '../../../types';
 import { RootState } from '../..';
@@ -114,16 +114,10 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 
 const navigateToFolderThunk = createAsyncThunk<void, DriveNavigationStackItem, { state: RootState }>(
   'drive/navigateToFolder',
-  async (stackItem, { dispatch, getState }) => {
-    const { user } = getState().auth;
+  async (stackItem, { dispatch }) => {
     dispatch(driveActions.setFolderContent([]));
     dispatch(driveActions.pushToNavigationStack(stackItem));
     dispatch(driveThunks.getFolderContentThunk({ folderId: stackItem.id }));
-    analytics.track(AnalyticsEventKey.FolderOpened, {
-      folder_id: stackItem.id,
-      email: user?.email || null,
-      userId: user?.uuid || null,
-    });
   },
 );
 
@@ -286,25 +280,28 @@ const downloadFileThunk = createAsyncThunk<
     };
 
     const trackDownloadStart = () => {
-      return analytics.track(AnalyticsEventKey.FileDownloadStart, {
+      return analytics.track(DriveAnalyticsEvent.FileDownloadStarted, {
         file_id: id,
-        file_size: size || 0,
-        file_type: type || '',
-        folder_id: parentId || null,
-        platform: DevicePlatform.Mobile,
-        email: user?.email || null,
-        userId: user?.uuid || null,
+        size: size,
+        type: type,
+        parent_folder_id: parentId,
       });
     };
     const trackDownloadSuccess = () => {
-      return analytics.track(AnalyticsEventKey.FileDownloadFinished, {
+      return analytics.track(DriveAnalyticsEvent.FileDownloadCompleted, {
         file_id: id,
-        file_size: size || 0,
-        file_type: type || '',
-        folder_id: parentId || null,
-        platform: DevicePlatform.Mobile,
-        email: user?.email || null,
-        userId: user?.uuid || null,
+        size: size,
+        type: type,
+        parent_folder_id: parentId,
+      });
+    };
+
+    const trackDownloadError = () => {
+      return analytics.track(DriveAnalyticsEvent.FileDownloadError, {
+        file_id: id,
+        size: size,
+        type: type,
+        parent_folder_id: parentId,
       });
     };
     const destinationPath = fileSystemService.tmpFilePath(`${name}.${type}`);
@@ -339,6 +336,7 @@ const downloadFileThunk = createAsyncThunk<
       }
 
       if (!signal.aborted) {
+        trackDownloadError();
         drive.events.emit({ event: DriveEventKey.DownloadError }, new Error(strings.errors.downloadError));
         if ((err as Error).message === ErrorCodes.MISSING_SHARDS_ERROR) {
           errorService.reportError(new Error('MISSING_SHARDS_ERROR: File  is missing shards'), {
@@ -395,14 +393,6 @@ const createFolderThunk = createAsyncThunk<
   { state: RootState }
 >('drive/createFolder', async ({ parentFolderId, newFolderName }, { dispatch }) => {
   await drive.folder.createFolder(parentFolderId, newFolderName);
-  const userData = await asyncStorage.getUser();
-
-  await analytics.track(AnalyticsEventKey.FolderCreated, {
-    userId: userData.uuid,
-    platform: DevicePlatform.Mobile,
-    email: userData.email,
-  });
-
   await dispatch(getFolderContentThunk({ folderId: parentFolderId }));
 });
 
@@ -464,15 +454,6 @@ export const driveSlice = createSlice({
       Object.assign(state, initialState);
     },
     setUri(state, action: PayloadAction<string | undefined>) {
-      if (action.payload) {
-        asyncStorage.getUser().then((user) => {
-          analytics.track(AnalyticsEventKey.ShareTo, {
-            email: user.email,
-            uri: action.payload || '',
-          });
-        });
-      }
-
       state.uri = action.payload;
     },
     setSearchString(state, action: PayloadAction<string>) {

@@ -19,11 +19,7 @@ class PaymentService {
   }
 
   public async createSession(payload: CreatePaymentSessionPayload): Promise<{ id: string }> {
-    const response = await this.sdk.payments.createSession(payload);
-
-    analytics.track(AnalyticsEventKey.CheckoutOpened, { price_id: response.id });
-
-    return response;
+    return this.sdk.payments.createSession(payload);
   }
 
   async createSetupIntent(): Promise<{ clientSecret: string }> {

@@ -14,6 +14,7 @@ import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import strings from 'assets/lang/strings';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { driveActions } from 'src/store/slices/drive';
+import analytics, { AnalyticsEventKey } from '@internxt-mobile/services/AnalyticsService';
 export const TrashScreen: React.FC<SettingsScreenProps<'Trash'>> = (props) => {
   const { data: result, executeUseCase: getTrashItems } = useUseCase(driveUseCases.getTrashItems);
   const [optionsModalOpen, setOptionsModalOpen] = useState(false);
@@ -73,8 +74,12 @@ export const TrashScreen: React.FC<SettingsScreenProps<'Trash'>> = (props) => {
   const handleClearTrash = async () => {
     await driveUseCases.clearTrash();
     setConfirmClearTrashModalOpen(false);
+
     setHiddenItems(result?.data as DriveListItem[]);
     setEmptyTrashDisabled(true);
+    analytics.track(AnalyticsEventKey.TrashEmptied, {
+      number_of_items: result?.data?.length,
+    });
   };
 
   const handleRestoreDriveItem = async (item: DriveListItem) => {

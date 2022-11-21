@@ -94,6 +94,10 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         authThunks.signInThunk({ user: result.user, token: result.token, newToken: result.newToken }),
       ).unwrap();
 
+      analytics.identify(result.user.uuid, { email: result.user.email });
+      analytics.track(AnalyticsEventKey.UserSignIn, {
+        email,
+      });
       setTimeout(() => {
         setIsLoading(false);
         navigation.replace('TabExplorer', { screen: 'Home' });
@@ -104,8 +108,8 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
       }
       const castedError = errorService.castError(err);
 
-      analytics.track(AnalyticsEventKey.UserSignInAttempted, {
-        status: 'error',
+      analytics.track(AnalyticsEventKey.UserSignInFailed, {
+        email,
         message: castedError.message,
       });
 
@@ -213,7 +217,8 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
               style={tailwind('mb-5 w-full py-0 h-11')}
               type="accept"
               onPress={onSignInButtonPressed}
-              title={isLoading ? strings.buttons.descrypting : strings.buttons.sign_in}
+              loading={isLoading}
+              title={strings.buttons.sign_in}
             />
 
             <TouchableWithoutFeedback onPress={() => navigation.navigate('ForgotPassword')}>
