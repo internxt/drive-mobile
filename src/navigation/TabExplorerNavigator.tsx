@@ -11,7 +11,6 @@ import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
 
 import AddModal from '../components/modals/AddModal';
 import DriveRenameModal from '../components/modals/DriveRenameModal';
-import DeleteItemModal from '../components/modals/DeleteItemModal';
 import MoveItemsModal from '../components/modals/MoveItemsModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../screens/HomeScreen';
@@ -26,15 +25,19 @@ import { RootStackScreenProps, TabExplorerStackParamList } from '../types/naviga
 import { useTailwind } from 'tailwind-rn';
 import SecurityModal from 'src/components/modals/SecurityModal';
 import { SettingsNavigator } from './SettingsNavigator';
-import { useNavigation } from '@react-navigation/native';
 import { referralsThunks } from 'src/store/slices/referrals';
 import { storageThunks } from 'src/store/slices/storage';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { AsyncStorageKey } from '../types';
 import { authThunks } from 'src/store/slices/auth';
+import appService from '@internxt-mobile/services/AppService';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
+// On dev mode, sets the initial route for this navigator so you don't need to navigate on every reload
+const LAUNCH_ON_ROUTE_ON_DEV_MODE: keyof TabExplorerStackParamList | undefined = appService.isDevMode
+  ? undefined
+  : undefined;
 export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExplorer'>): JSX.Element {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
@@ -70,7 +73,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
     <View style={{ ...tailwind('h-full'), paddingBottom: safeAreaInsets.bottom }}>
       <Tab.Navigator
         tabBar={(tabBarProps: BottomTabBarProps) => <BottomTabNavigator {...{ ...tabBarProps }} />}
-        initialRouteName="Home"
+        initialRouteName={LAUNCH_ON_ROUTE_ON_DEV_MODE || 'Home'}
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: true,
@@ -88,7 +91,6 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <AddModal />
       <DriveItemInfoModal />
       <SharedLinkInfoModal />
-      <DeleteItemModal />
       <MoveItemsModal />
       <DriveDownloadModal />
       <DriveRenameModal />

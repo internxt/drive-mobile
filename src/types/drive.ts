@@ -86,6 +86,7 @@ export type DriveItemDataProps = Pick<
   DriveItemData,
   'id' | 'name' | 'updatedAt' | 'createdAt' | 'currentThumbnail' | 'thumbnails'
 > & {
+  folderId?: number;
   fileId?: string;
   parentId?: number | null;
   code?: string;
@@ -108,6 +109,8 @@ export interface DriveItemProps {
   subtitle?: JSX.Element;
   progress?: number;
   shareLink?: ShareLink;
+  onActionsPress?: () => void;
+  onPress?: () => void;
 }
 
 export enum DriveEventKey {
@@ -118,7 +121,8 @@ export enum DriveEventKey {
   CancelDownloadEnd = 'cancel-download-end',
   UploadCompleted = 'upload-completed',
   SharedLinksUpdated = 'shared-links-updated',
-  DriveItemDeleted = 'drive-item-deleted',
+  DriveItemTrashed = 'drive-item-trashed',
+  DriveItemRestored = 'drive-item-restored',
 }
 
 export interface DriveServiceModel {

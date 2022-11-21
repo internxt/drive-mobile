@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { View, TouchableHighlight, Animated, Easing, Image } from 'react-native';
 
-import { FolderIcon, getFileTypeIcon } from '../../helpers';
+import { FolderIcon, getFileTypeIcon } from '../../../../helpers';
 import { ArrowCircleUp } from 'phosphor-react-native';
 import { items } from '@internxt/lib';
-import AppText from '../AppText';
+import AppText from '../../../AppText';
 
-import { DriveItemProps } from '../../types/drive';
-import useDriveItem from '../../hooks/useDriveItem';
+import { DriveItemProps } from '../../../../types/drive';
+import useDriveItem from '../../../../hooks/useDriveItem';
 import { useTailwind } from 'tailwind-rn';
-import useGetColor from '../../hooks/useColor';
+import useGetColor from '../../../../hooks/useColor';
 import drive from '@internxt-mobile/services/drive';
 import { time } from '@internxt-mobile/services/common/time';
 import prettysize from 'prettysize';
 
-function DriveItemGrid(props: DriveItemProps): JSX.Element {
+export function DriveGridItem(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const spinValue = new Animated.Value(1);
@@ -155,5 +155,3 @@ function DriveItemGrid(props: DriveItemProps): JSX.Element {
     </TouchableHighlight>
   );
 }
-
-export default DriveItemGrid;

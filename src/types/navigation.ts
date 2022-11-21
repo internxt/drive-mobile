@@ -69,6 +69,7 @@ export type SettingsStackParamList = {
   Storage: undefined;
   Plan: undefined;
   Security: undefined;
+  Trash: undefined;
 };
 
 export type SettingsScreenProps<Screen extends keyof SettingsStackParamList> = CompositeScreenProps<

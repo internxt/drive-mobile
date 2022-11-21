@@ -27,7 +27,7 @@ const DriveItemSkinSkeleton: React.FC<{ viewMode?: DriveListViewMode }> = ({ vie
   if (viewMode === DriveListViewMode.Grid) {
     const renderGridItem = () => {
       return (
-        <View style={[{ flex: 1 / 3 }, tailwind('items-center flex-col justify-center pt-6 mb-6')]}>
+        <View style={[tailwind('items-center flex-col justify-center pt-6 mb-6 w-1/3')]}>
           <View style={tailwind('w-20 h-20 rounded bg-gray-5 mb-4')}></View>
           <View style={tailwind('w-full px-5 mb-1.5')}>
             <View style={tailwind('w-full h-3.5 rounded bg-gray-5')}></View>
@@ -42,7 +42,7 @@ const DriveItemSkinSkeleton: React.FC<{ viewMode?: DriveListViewMode }> = ({ vie
       );
     };
     return (
-      <Animated.View style={[tailwind('flex-row'), { opacity: fadeAnim }]}>
+      <Animated.View style={[tailwind('flex-row w-full'), { opacity: fadeAnim }]}>
         {renderGridItem()}
         {renderGridItem()}
         {renderGridItem()}

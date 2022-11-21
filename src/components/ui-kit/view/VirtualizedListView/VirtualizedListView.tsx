@@ -11,7 +11,7 @@ export interface VirtualizedListViewProps<T extends ItemWithId> {
   contentContainerStyle?: ViewStyle;
   renderRow: (data: T, index: number) => JSX.Element | JSX.Element[] | null;
   renderEmpty?: () => React.ReactNode;
-  onRefresh?: () => Promise<void>;
+  onRefresh?: () => Promise<unknown>;
 }
 
 export function VirtualizedListView<T extends ItemWithId>(props: VirtualizedListViewProps<T>) {

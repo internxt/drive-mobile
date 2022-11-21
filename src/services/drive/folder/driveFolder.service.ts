@@ -1,8 +1,13 @@
 import axios from 'axios';
-import { DriveFileData, DriveFolderData, MoveFolderPayload } from '@internxt/sdk/dist/drive/storage/types';
+import {
+  DriveFileData,
+  DriveFolderData,
+  FetchFolderContentResponse,
+  MoveFolderPayload,
+} from '@internxt/sdk/dist/drive/storage/types';
 
 import { getHeaders } from '../../../helpers/headers';
-import { DriveFolderMetadataPayload } from '../../../types/drive';
+import { DriveFolderMetadataPayload, DriveItemStatus, DriveListItem } from '../../../types/drive';
 import { constants } from '../../AppService';
 import { driveFileService } from '../file';
 import { SdkManager } from '@internxt-mobile/services/common';
@@ -79,6 +84,50 @@ class DriveFolderService {
         })),
       );
     }
+  }
+
+  public folderContentToDriveListItems(folderContent: FetchFolderContentResponse): DriveListItem[] {
+    const filesAsDriveListItems = folderContent.files.map<DriveListItem>((child) => {
+      return {
+        id: child.id.toString(),
+        status: DriveItemStatus.Idle,
+        data: {
+          folderId: folderContent.parentId,
+          thumbnails: (child as DriveFileData).thumbnails,
+          currentThumbnail: null,
+          createdAt: child.createdAt,
+          updatedAt: child.updatedAt,
+          name: child.name,
+          id: child.id,
+          parentId: child.folderId,
+          size: child.size,
+          type: child.type,
+          fileId: child.fileId,
+        },
+      };
+    });
+
+    const childsAsDriveListItems = folderContent.children.map<DriveListItem>((child) => {
+      return {
+        id: child.id.toString(),
+        status: DriveItemStatus.Idle,
+        data: {
+          thumbnails: [],
+          currentThumbnail: null,
+          createdAt: child.createdAt,
+          updatedAt: child.updatedAt,
+          name: child.name,
+          id: child.id,
+          parentId: child.parentId,
+          folderId: child.id,
+          size: undefined,
+          type: undefined,
+          fileId: undefined,
+        },
+      };
+    });
+
+    return childsAsDriveListItems.concat(filesAsDriveListItems);
   }
 }
 

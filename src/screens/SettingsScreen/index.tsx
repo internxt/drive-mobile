@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking, View, ScrollView } from 'react-native';
-import { Bug, CaretRight, FolderSimple, Info, Question, Translate } from 'phosphor-react-native';
+import { Bug, CaretRight, FolderSimple, Info, Question, Translate, Trash } from 'phosphor-react-native';
 
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
@@ -18,6 +18,7 @@ import { uiActions } from '../../store/slices/ui';
 import UserProfilePicture from '../../components/UserProfilePicture';
 import { Language } from 'src/types';
 import { storageSelectors } from 'src/store/slices/storage';
+import prettysize from 'prettysize';
 
 function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const tailwind = useTailwind();
@@ -36,6 +37,11 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   const onStoragePressed = () => {
     navigation.navigate('Storage');
   };
+
+  const onTrashPressed = () => {
+    navigation.navigate('Trash');
+  };
+
   const onLanguagePressed = () => {
     dispatch(uiActions.setIsLanguageModalOpen(true));
   };
@@ -135,6 +141,25 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                   </View>
                 ),
                 onPress: onStoragePressed,
+              },
+              {
+                key: 'trash',
+                template: (
+                  <View style={[tailwind('flex-row items-center  px-4 py-3')]}>
+                    <Trash size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
+                    <View style={tailwind('flex-grow justify-center')}>
+                      <AppText style={[tailwind('text-lg text-gray-80')]}>
+                        {strings.screens.SettingsScreen.trash}
+                      </AppText>
+                    </View>
+                    <View style={tailwind('flex-row items-center')}>
+                      {/* Disabled until we can get the Trash size */}
+                      {/* <AppText style={tailwind('text-gray-40 mr-2.5')}>{prettysize(0)}</AppText> */}
+                      <CaretRight color={getColor('text-neutral-60')} size={20} />
+                    </View>
+                  </View>
+                ),
+                onPress: onTrashPressed,
               },
               {
                 key: 'language',
