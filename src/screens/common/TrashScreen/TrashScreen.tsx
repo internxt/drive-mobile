@@ -1,6 +1,6 @@
 import { useUseCase } from '@internxt-mobile/hooks/common';
 import { DriveListItem, DriveListViewMode } from '@internxt-mobile/types/drive';
-import { SettingsScreenProps } from '@internxt-mobile/types/navigation';
+import { RootStackScreenProps, SettingsScreenProps } from '@internxt-mobile/types/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
@@ -15,9 +15,8 @@ import strings from 'assets/lang/strings';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { driveActions } from 'src/store/slices/drive';
 import analytics, { AnalyticsEventKey } from '@internxt-mobile/services/AnalyticsService';
-import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { useDrive } from '@internxt-mobile/hooks/drive';
-export const TrashScreen: React.FC<SettingsScreenProps<'Trash'>> = (props) => {
+export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
   const driveCtx = useDrive();
   const { data: result, executeUseCase: getTrashItems } = useUseCase(driveUseCases.getTrashItems);
   const [optionsModalOpen, setOptionsModalOpen] = useState(false);
