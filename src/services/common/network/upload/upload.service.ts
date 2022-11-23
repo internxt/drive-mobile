@@ -1,10 +1,8 @@
-import network from '../network';
-import { getEnvironmentConfig } from '../lib/network';
+import network from '../../../../network';
+import { getEnvironmentConfig } from '../../../../lib/network';
 
-import asyncStorage from './AsyncStorageService';
-import { getHeaders } from '../helpers/headers';
-import { constants } from './AppService';
-import { AsyncStorageKey } from '../types';
+import { SdkManager } from '../../sdk';
+import { DriveFileData, FileEntry } from '@internxt/sdk/dist/drive/storage/types';
 
 export interface FileMeta {
   progress: number;
@@ -22,18 +20,8 @@ export interface FileMeta {
 
 export type FileType = 'document' | 'image';
 
-export interface FileEntry {
-  fileId: string;
-  file_id: string;
-  type: string;
-  bucket: string;
-  size: number;
-  folder_id: string;
-  name: string;
-  encrypt_version: '03-aes';
-}
-
 class UploadService {
+  constructor(private sdk: SdkManager) {}
   public async uploadFile(
     file: FileMeta,
     apiUrl: string,
@@ -58,13 +46,13 @@ class UploadService {
     );
   }
 
-  public async createFileEntry(entry: FileEntry): Promise<any> {
-    const token = (await asyncStorage.getItem(AsyncStorageKey.Token)) as string;
-    const headers = await getHeaders(token);
-    const body = JSON.stringify({ file: entry });
-    const params = { method: 'post', headers, body };
-
-    return fetch(`${constants.DRIVE_API_URL}/storage/file`, params);
+  /**
+   *
+   * @param entry The file data to upload
+   * @returns The created file
+   */
+  public async createFileEntry(entry: FileEntry): Promise<DriveFileData> {
+    return this.sdk.storage.createFileEntry(entry);
   }
 
   public getFinalUri(fileUri: string, fileType: FileType): string {
@@ -72,5 +60,4 @@ class UploadService {
   }
 }
 
-const uploadService = new UploadService();
-export default uploadService;
+export const uploadService = new UploadService(SdkManager.getInstance());

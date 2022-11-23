@@ -18,7 +18,6 @@ import { uiActions } from '../../store/slices/ui';
 import UserProfilePicture from '../../components/UserProfilePicture';
 import { Language } from 'src/types';
 import { storageSelectors } from 'src/store/slices/storage';
-import prettysize from 'prettysize';
 
 function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const tailwind = useTailwind();

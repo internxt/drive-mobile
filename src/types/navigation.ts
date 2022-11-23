@@ -18,6 +18,7 @@ export type RootStackParamList = {
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList> & { showReferralsBanner?: boolean };
   ForgotPassword: undefined;
   PhotosPreview: { photoName: string };
+  Trash: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<
@@ -37,6 +38,15 @@ export type TabExplorerStackParamList = {
   Photos: undefined;
   Settings: undefined;
 };
+
+export type DriveStackParamList = {
+  DriveFolder: { isRootFolder?: boolean; folderId: number; folderName: string; parentFolderName?: string };
+};
+
+export type DriveScreenProps<Screen extends keyof DriveStackParamList> = CompositeScreenProps<
+  NativeStackScreenProps<DriveStackParamList, Screen>,
+  TabExplorerScreenProps<keyof TabExplorerStackParamList>
+>;
 
 export type TabExplorerScreenProps<Screen extends keyof TabExplorerStackParamList> = CompositeScreenProps<
   BottomTabScreenProps<TabExplorerStackParamList, Screen>,
@@ -69,7 +79,6 @@ export type SettingsStackParamList = {
   Storage: undefined;
   Plan: undefined;
   Security: undefined;
-  Trash: undefined;
 };
 
 export type SettingsScreenProps<Screen extends keyof SettingsStackParamList> = CompositeScreenProps<

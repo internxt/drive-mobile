@@ -1,44 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { Animated, Easing, StyleProp, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
-
+import { Bar as ProgressBar } from 'react-native-progress';
 interface AppProgressBarProps {
   currentValue: number;
   totalValue: number;
   style?: StyleProp<ViewStyle>;
   progressStyle?: StyleProp<ViewStyle>;
   animateWidth?: boolean;
+  height?: number;
+  borderRadius?: number;
 }
 
 export default function AppProgressBar(props: AppProgressBarProps): JSX.Element {
   const tailwind = useTailwind();
-  const { totalValue, progressStyle } = props;
-  const [width] = useState(new Animated.Value(0));
-
-  useEffect(() => {
-    Animated.timing(width, {
-      toValue: props.currentValue,
-      duration: 100,
-      easing: Easing.ease,
-      useNativeDriver: false,
-    }).start();
-  }, [props.currentValue]);
 
   return (
-    <View style={[tailwind('rounded-2xl h-2 bg-neutral-30 overflow-hidden'), props.style]}>
-      <Animated.View
-        style={[
-          tailwind('bg-blue-60 h-full'),
-          progressStyle,
-          {
-            width: props.animateWidth
-              ? width.interpolate({
-                  inputRange: [0, props.totalValue || 1],
-                  outputRange: ['0%', '100%'],
-                })
-              : (props.currentValue / totalValue) * 100 + '%',
-          },
-        ]}
+    <View style={[tailwind('bg-gray-5 rounded'), props.style]}>
+      <ProgressBar
+        borderRadius={props.borderRadius || 10}
+        width={null}
+        animated
+        height={props.height || 3}
+        borderWidth={0}
+        color={tailwind('text-primary').color as string}
+        progress={(props.currentValue * 100) / props.totalValue / 100}
       />
     </View>
   );

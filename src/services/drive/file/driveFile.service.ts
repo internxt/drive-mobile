@@ -1,18 +1,29 @@
 import { createHash } from 'crypto';
 import axios from 'axios';
 
-import { DriveFileMetadataPayload, DriveItemData, DriveListItem, SortDirection, SortType } from '../../../types/drive';
+import {
+  DownloadedThumbnail,
+  DriveFileMetadataPayload,
+  DriveItemData,
+  DriveListItem,
+  SortDirection,
+  SortType,
+} from '../../../types/drive';
 import { getHeaders } from '../../../helpers/headers';
 import { constants } from '../../AppService';
-import { FetchFolderContentResponse, MoveFileResponse, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+
+import { SdkManager } from '@internxt-mobile/services/common';
+import { MoveFileResponse, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { getEnvironmentConfig } from 'src/lib/network';
-import network from 'src/network';
 import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import network from 'src/network';
+import { Image } from 'react-native';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
 
 class DriveFileService {
+  constructor(private sdk: SdkManager) {}
   public getNameFromUri(uri: string): string {
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
     const fileUri = uri.replace(regex, '$2');
@@ -74,49 +85,20 @@ class DriveFileService {
     return `${filename} (${i})`;
   }
 
-  public async getFolderContent(folderId: number): Promise<FetchFolderContentResponse> {
-    const headers = await getHeaders();
-    const headersMap: Record<string, string> = {};
-
-    headers.forEach((value: string, key: string) => {
-      headersMap[key] = value;
-    });
-
-    const response = await axios.get<FetchFolderContentResponse>(
-      `${constants.DRIVE_API_URL}/storage/v2/folder/${folderId}`,
-      {
-        headers: headersMap,
-      },
-    );
-
-    return response.data;
-  }
-
   public async updateMetaData(
     fileId: string,
     metadata: DriveFileMetadataPayload,
     bucketId: string,
     relativePath: string,
   ): Promise<void> {
-    const hashedRelativePath = createHash('ripemd160').update(relativePath).digest('hex');
-    const headers = await getHeaders();
-    const headersMap: Record<string, string> = {};
-
-    headers.forEach((value: string, key: string) => {
-      headersMap[key] = value;
+    this.sdk.storage.updateFile({
+      fileId,
+      bucketId,
+      destinationPath: relativePath,
+      metadata: {
+        itemName: metadata.itemName,
+      },
     });
-
-    return axios
-      .post(
-        `${constants.DRIVE_API_URL}/storage/file/${fileId}/meta`,
-        {
-          metadata,
-          bucketId,
-          relativePath: hashedRelativePath,
-        },
-        { headers: headersMap },
-      )
-      .then(() => undefined);
   }
 
   public async moveFile(moveFilePayload: { fileId: string; destination: number }): Promise<MoveFileResponse> {
@@ -221,12 +203,45 @@ class DriveFileService {
     return sortFunction;
   }
 
+  public async renameFileInNetwork(fileId: string, bucketId: string, relativePath: string): Promise<void> {
+    const hashedRelativePath = createHash('ripemd160').update(relativePath).digest('hex');
+    const headers = await getHeaders();
+    const headersMap: Record<string, string> = {};
+
+    headers.forEach((value: string, key: string) => {
+      headersMap[key] = value;
+    });
+
+    await axios.post<{ message: string }>(
+      `${constants.DRIVE_API_URL}/storage/rename-file-in-network`,
+      {
+        fileId,
+        bucketId,
+        relativePath: hashedRelativePath,
+      },
+      { headers: headersMap },
+    );
+  }
+
   public async getThumbnail(thumbnail: Thumbnail) {
     const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
     const destination = `${DRIVE_THUMBNAILS_DIRECTORY}/${thumbnail.bucket_file}.${thumbnail.type}`;
 
+    const measureThumbnail = (path: string) => {
+      return new Promise<DownloadedThumbnail>((resolve, reject) => {
+        Image.getSize(
+          path,
+          (width, height) => {
+            resolve({ width, height, uri: path });
+          },
+          (err) => {
+            reject(err);
+          },
+        );
+      });
+    };
     if (await fileSystemService.exists(destination)) {
-      return destination;
+      return measureThumbnail(destination);
     }
     await network.downloadFile(
       thumbnail.bucket_file.toString(),
@@ -250,28 +265,8 @@ class DriveFileService {
       },
     );
 
-    return destination;
-  }
-
-  public async renameFileInNetwork(fileId: string, bucketId: string, relativePath: string): Promise<void> {
-    const hashedRelativePath = createHash('ripemd160').update(relativePath).digest('hex');
-    const headers = await getHeaders();
-    const headersMap: Record<string, string> = {};
-
-    headers.forEach((value: string, key: string) => {
-      headersMap[key] = value;
-    });
-
-    await axios.post<{ message: string }>(
-      `${constants.DRIVE_API_URL}/storage/rename-file-in-network`,
-      {
-        fileId,
-        bucketId,
-        relativePath: hashedRelativePath,
-      },
-      { headers: headersMap },
-    );
+    return measureThumbnail(destination);
   }
 }
 
-export const driveFileService = new DriveFileService();
+export const driveFileService = new DriveFileService(SdkManager.getInstance());

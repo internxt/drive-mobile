@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, useWindowDimensions, ViewStyle } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, useWindowDimensions, ViewStyle, FlatList } from 'react-native';
 import _ from 'lodash';
 
 import { DriveListModeItem } from '../items/DriveListModeItem';
@@ -10,8 +10,6 @@ import EmptyFolderImage from '../../../../../assets/images/screens/empty-folder.
 import NoResultsImage from '../../../../../assets/images/screens/no-results.svg';
 import EmptyList from '../../../EmptyList';
 import strings from '../../../../../assets/lang/strings';
-import { driveSelectors, driveThunks } from '../../../../store/slices/drive';
-import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { DriveListType, DriveListViewMode, DriveListItem } from '../../../../types/drive';
 import { useTailwind } from 'tailwind-rn';
 import { VirtualizedListView } from '@internxt-mobile/ui-kit';
@@ -23,23 +21,28 @@ interface DriveListProps {
 
   // Starting to refactor this component
   // so it can be reused consistently
-  onDriveItemActionsPress?: (driveItem: DriveListItem) => void;
-  onDriveItemPress?: (driveItem: DriveListItem) => void;
+  onDriveItemActionsPress: (driveItem: DriveListItem) => void;
+  onDriveItemPress: (driveItem: DriveListItem) => void;
   onRefresh?: () => Promise<void>;
   renderEmpty?: () => React.ReactNode;
   contentContainerStyle?: ViewStyle;
+  searchValue?: string;
+  // Feels weird that this is here
+  // but we need it to render the empty image
+  isRootFolder?: boolean;
+  isLoading?: boolean;
 }
 
+const PAGE_LIMIT = 50;
 export function DriveList(props: DriveListProps): JSX.Element {
   const tailwind = useTailwind();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [refreshing, setRefreshing] = useState(false);
   const { width } = useWindowDimensions();
-  const dispatch = useAppDispatch();
-  const { searchString, isLoading: filesLoading } = useAppSelector((state) => state.drive);
-  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
-  const { user } = useAppSelector((state) => state.auth);
   const isGrid = props.viewMode === DriveListViewMode.Grid;
-  const rootFolderId = user?.root_folder_id;
-  const isRootFolder = currentFolderId === rootFolderId;
+
+  const listItems = useMemo(() => props.items?.slice(0, PAGE_LIMIT * currentPage), [props.items, currentPage]);
+
   const isEmptyFolder = props.items?.length === 0;
   const sizeByMode = {
     [DriveListViewMode.List]: {
@@ -70,9 +73,6 @@ export function DriveList(props: DriveListProps): JSX.Element {
       unsubscribeTrashed = driveUseCases.onDriveItemTrashed(handleOnRefresh);
       unsubscribeRestored = driveUseCases.onDriveItemRestored(handleOnRefresh);
     }
-    if (rootFolderId && !props.onRefresh) {
-      dispatch(driveThunks.getFolderContentThunk({ folderId: rootFolderId }));
-    }
 
     return () => {
       unsubscribeRestored && unsubscribeRestored();
@@ -80,8 +80,12 @@ export function DriveList(props: DriveListProps): JSX.Element {
     };
   }, []);
 
+  function handleOnScrollEnd() {
+    setCurrentPage(currentPage + 1);
+  }
+
   function renderEmptyState() {
-    if (filesLoading || !props.items) {
+    if (props.isLoading || !props.items) {
       return (
         <View style={tailwind('h-full w-full')}>
           {_.times(20, (n) => (
@@ -94,21 +98,21 @@ export function DriveList(props: DriveListProps): JSX.Element {
     }
 
     if (isEmptyFolder) {
-      if (searchString) {
+      if (props.searchValue) {
         return renderNoResults();
       }
 
       if (props.renderEmpty) {
         return props.renderEmpty();
       }
-      const image = isRootFolder ? (
+      const image = props.isRootFolder ? (
         <EmptyDriveImage width={100} height={100} />
       ) : (
         <EmptyFolderImage width={100} height={100} />
       );
       return (
         <EmptyList
-          {...(isRootFolder ? strings.screens.drive.emptyRoot : strings.screens.drive.emptyFolder)}
+          {...(props.isRootFolder ? strings.screens.drive.emptyRoot : strings.screens.drive.emptyFolder)}
           image={image}
         />
       );
@@ -116,29 +120,24 @@ export function DriveList(props: DriveListProps): JSX.Element {
   }
 
   async function handleOnRefresh() {
-    if (props.onRefresh) {
-      props.onRefresh();
-    } else {
-      dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId, ignoreCache: true }));
-    }
+    setCurrentPage(1);
+    setRefreshing(true);
+    props.onRefresh && (await props.onRefresh());
+    setRefreshing(false);
   }
 
-  function renderItem(item: DriveListItem) {
+  function renderItem({ item }: { item: DriveListItem }) {
     return (
-      <View style={tailwind('h-full flex justify-center')}>
+      <View
+        style={[tailwind('flex justify-center'), { width: props.viewMode === DriveListViewMode.List ? '100%' : '33%' }]}
+      >
         <ItemComponent
           type={props.type || DriveListType.Drive}
           data={item.data}
           status={item.status}
           progress={item.progress}
           viewMode={props.viewMode}
-          onActionsPress={
-            props.onDriveItemActionsPress
-              ? () => {
-                  props.onDriveItemActionsPress && props.onDriveItemActionsPress(item);
-                }
-              : undefined
-          }
+          onActionsPress={() => props.onDriveItemActionsPress(item)}
           onPress={
             props.onDriveItemPress
               ? () => {
@@ -153,6 +152,28 @@ export function DriveList(props: DriveListProps): JSX.Element {
   }
 
   return (
+    <FlatList
+      getItemLayout={(_, index) => {
+        return { length: sizeByMode[props.viewMode].height, offset: sizeByMode[props.viewMode].height * index, index };
+      }}
+      refreshing={refreshing}
+      onRefresh={handleOnRefresh}
+      ListEmptyComponent={<View style={tailwind('h-full')}>{renderEmptyState() as React.ReactElement}</View>}
+      key={props.viewMode}
+      numColumns={props.viewMode === DriveListViewMode.List ? 1 : 3}
+      renderItem={renderItem}
+      contentContainerStyle={{
+        ...{ flex: props.items?.length ? 0 : 1 },
+        ...(props.viewMode === DriveListViewMode.Grid
+          ? { ...tailwind('py-6 ml-2'), ...props.contentContainerStyle }
+          : props.contentContainerStyle),
+      }}
+      onEndReachedThreshold={1000}
+      onEndReached={handleOnScrollEnd}
+      data={listItems}
+    />
+  );
+  /*  return (
     <VirtualizedListView<DriveListItem>
       contentContainerStyle={
         props.viewMode === DriveListViewMode.Grid
@@ -160,12 +181,14 @@ export function DriveList(props: DriveListProps): JSX.Element {
           : props.contentContainerStyle
       }
       onRefresh={handleOnRefresh}
-      data={props.items}
+      data={}
       itemSize={sizeByMode[props.viewMode]}
       renderRow={renderItem}
       renderEmpty={renderEmptyState}
+      onScrollEnd={handleOnScrollEnd}
+      renderAhead={1000}
     />
-  );
+  ); */
 }
 
 export default DriveList;

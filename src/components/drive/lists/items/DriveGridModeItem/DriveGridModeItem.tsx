@@ -1,33 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { View, TouchableHighlight, Animated, Easing, Image } from 'react-native';
+import { View, TouchableHighlight, Animated, Easing, Image, InteractionManager } from 'react-native';
 
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
 import { ArrowCircleUp } from 'phosphor-react-native';
 import { items } from '@internxt/lib';
 import AppText from '../../../../AppText';
 
-import { DriveItemProps } from '../../../../../types/drive';
-import useDriveItem from '../../../../../hooks/useDriveItem';
+import { DownloadedThumbnail, DriveItemProps, DriveItemStatus } from '../../../../../types/drive';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../../../hooks/useColor';
-import drive from '@internxt-mobile/services/drive';
 import { time } from '@internxt-mobile/services/common/time';
 import prettysize from 'prettysize';
+import FastImage from 'react-native-fast-image';
+import { driveFileService } from '@internxt-mobile/services/drive/file';
 
-export function DriveGridModeItem(props: DriveItemProps): JSX.Element {
+function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const spinValue = new Animated.Value(1);
-  const [thumbnailPath, setThumbnailPath] = useState<string | null>(null);
+  const [downloadedThumbnail, setDownloadedThumbnail] = useState<DownloadedThumbnail | null>(null);
   const [maxThumbnailWidth, setMaxThumbnailWidth] = useState<number | null>(null);
-  const [thumbnailSize, setThumbnailSize] = useState<{ width: number; height: number } | null>(null);
+  const thumbnailSize = downloadedThumbnail || null;
   const IconFile = getFileTypeIcon(props.data.type || '');
   const iconSize = 80;
-
-  const { isFolder, isUploading, isDownloading, onItemPressed, onItemLongPressed } = useDriveItem(props);
-
+  const isFolder = !props.data.type || props.data.type === 'folder';
+  const isUploading = props.status === DriveItemStatus.Uploading;
+  const isDownloading = props.status === DriveItemStatus.Downloading;
   const maxThumbnailHeight = 96;
-  const thumbnail = props.data.currentThumbnail || props.data.thumbnails ? props.data.thumbnails[0] : null;
 
   const getThumbnailWidth = () => {
     if (!thumbnailSize || !maxThumbnailWidth) return 0;
@@ -43,11 +42,10 @@ export function DriveGridModeItem(props: DriveItemProps): JSX.Element {
   };
 
   useEffect(() => {
-    if (thumbnail && !thumbnailPath) {
-      drive.file.getThumbnail(props.data.currentThumbnail || props.data.thumbnails[0]).then((path) => {
-        Image.getSize(path, (width, height) => {
-          setThumbnailSize({ width, height });
-          setThumbnailPath(path);
+    if (props.data.thumbnails && props.data.thumbnails.length && !downloadedThumbnail) {
+      InteractionManager.runAfterInteractions(() => {
+        driveFileService.getThumbnail(props.data.thumbnails[0]).then((downloadedThumbnail) => {
+          setDownloadedThumbnail(downloadedThumbnail);
         });
       });
     }
@@ -64,7 +62,7 @@ export function DriveGridModeItem(props: DriveItemProps): JSX.Element {
     ).start();
   }, []);
 
-  const renderThumbnail = () => {
+  const renderThumbnail = (thumbnail: { width: number; height: number; uri: string }) => {
     const height = getThumbnailHeight();
     const width = getThumbnailWidth();
     return (
@@ -81,13 +79,13 @@ export function DriveGridModeItem(props: DriveItemProps): JSX.Element {
           shadowRadius: 2.22,
         }}
       >
-        <Image
-          borderRadius={6}
-          source={{ uri: thumbnailPath as string }}
+        <FastImage
+          source={{ uri: thumbnail.uri }}
           style={[
             {
               height,
               width,
+              borderRadius: 6,
             },
           ]}
           resizeMode="cover"
@@ -99,8 +97,8 @@ export function DriveGridModeItem(props: DriveItemProps): JSX.Element {
     <TouchableHighlight
       disabled={isUploading || isDownloading}
       underlayColor={getColor('text-neutral-20')}
-      onLongPress={onItemLongPressed}
-      onPress={onItemPressed}
+      onLongPress={props.onActionsPress}
+      onPress={props.onPress}
       onLayout={(event) => {
         !maxThumbnailWidth && setMaxThumbnailWidth(Math.floor(event.nativeEvent.layout.width) - 8);
       }}
@@ -112,8 +110,8 @@ export function DriveGridModeItem(props: DriveItemProps): JSX.Element {
             <View style={tailwind('h-24 w-24 flex items-center justify-center')}>
               {isFolder ? (
                 <FolderIcon width={iconSize} height={iconSize} style={isUploading && tailwind('opacity-40')} />
-              ) : thumbnailPath ? (
-                renderThumbnail()
+              ) : downloadedThumbnail ? (
+                renderThumbnail(downloadedThumbnail)
               ) : (
                 <IconFile width={iconSize} height={iconSize} />
               )}
@@ -155,3 +153,5 @@ export function DriveGridModeItem(props: DriveItemProps): JSX.Element {
     </TouchableHighlight>
   );
 }
+
+export const DriveGridModeItem = DriveGridModeItemComp;

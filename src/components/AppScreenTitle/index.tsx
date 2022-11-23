@@ -36,7 +36,7 @@ const AppScreenTitle = ({
   return (
     <View
       style={[
-        tailwind('flex-row justify-center items-center px-5'),
+        tailwind('flex-row justify-center items-center px-4'),
         { paddingTop: 22, paddingBottom: 14 },
         containerStyle,
       ]}

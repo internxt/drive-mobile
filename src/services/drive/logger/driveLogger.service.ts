@@ -1,4 +1,4 @@
-import { BaseLogger } from '@internxt-mobile/services/common';
+import { BaseLogger } from '../../common/logger';
 
 export class DriveLogger extends BaseLogger {
   constructor() {

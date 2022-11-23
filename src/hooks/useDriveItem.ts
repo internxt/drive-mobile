@@ -37,9 +37,6 @@ const useDriveItem = (props: UseDriveItemProps) => {
     if (route.name === 'Home') {
       navigation.navigate('Drive' as any, { sharedFolderId: props.data.parentId as number });
     }
-    dispatch(
-      driveThunks.navigateToFolderThunk({ ...props.data, parentId: props.data.parentId as number, item: props.data }),
-    );
   };
 
   const onFilePressed = () => {

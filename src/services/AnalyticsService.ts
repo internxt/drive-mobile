@@ -40,7 +40,7 @@ export class AnalyticsService {
   };
 
   private logger = new BaseLogger({
-    enabled: __DEV__,
+    enabled: false,
     tag: 'DRIVE_ANALYTICS',
   });
 

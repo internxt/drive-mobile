@@ -7,7 +7,7 @@ import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import globalStyle from '../../../styles/global';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
-import { driveActions, driveSelectors } from '../../../store/slices/drive';
+import { driveActions } from '../../../store/slices/drive';
 import BottomModalOption from '../../BottomModalOption';
 import BottomModal from '../BottomModal';
 import {
@@ -25,12 +25,15 @@ import { time } from '@internxt-mobile/services/common/time';
 import AppText from 'src/components/AppText';
 import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
+import { useDrive } from '@internxt-mobile/hooks/drive';
+import { driveLocalDB } from '@internxt-mobile/services/drive/database';
+import { DriveItemData } from '@internxt-mobile/types/drive';
 function DriveItemInfoModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+  const driveCtx = useDrive();
   const { focusedItem: item } = useAppSelector((state) => state.drive);
-  const currentFolder = useAppSelector(driveSelectors.navigationStackPeek);
   const { showItemModal } = useAppSelector((state) => state.ui);
   const [sharedLinkSettingsModalOpen, setSharedLinkSettingsModalOpen] = useState(false);
   if (!item) {
@@ -50,34 +53,39 @@ function DriveItemInfoModal(): JSX.Element {
     dispatch(driveActions.setItemToMove(item));
   };
 
-  const handleUndoMoveToTrash = async () => {
-    dispatch(driveActions.removeHiddenItemsById([item.id.toString()]));
-    await driveUseCases.restoreDriveItems(
+  const handleUndoMoveToTrash = async (dbItem: DriveItemData) => {
+    const { success } = await driveUseCases.restoreDriveItems(
       [
         {
           fileId: item.fileId,
           folderId: isFolder ? item.folderId : undefined,
-          destinationFolderId: item.folderId as number,
+          destinationFolderId: item.parentId || (item.folderId as number),
         },
       ],
       { displayNotification: false },
     );
+    if (success && driveCtx.currentFolder) {
+      await driveLocalDB.saveItems([dbItem]);
+      driveCtx.loadFolderContent(driveCtx.currentFolder.id, { pullFrom: ['cache'] });
+    }
   };
   const handleTrashItem = async () => {
-    dispatch(driveActions.hideItemsById([item.id.toString()]));
+    const dbItem = await driveLocalDB.getDriveItem(item.id);
     dispatch(uiActions.setShowItemModal(false));
     const { success } = await driveUseCases.moveItemsToTrash(
       [
         {
+          dbItemId: dbItem?.id || item.id,
           id: isFolder ? item.id.toString() : (item.fileId as string),
           type: isFolder ? 'folder' : 'file',
         },
       ],
-      handleUndoMoveToTrash,
+
+      () => dbItem && handleUndoMoveToTrash(dbItem),
     );
 
-    if (!success) {
-      dispatch(driveActions.removeHiddenItemsById([item.id.toString()]));
+    if (success && driveCtx.currentFolder) {
+      driveCtx.loadFolderContent(driveCtx.currentFolder.id, { pullFrom: ['cache'] });
     }
   };
 

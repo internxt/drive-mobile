@@ -15,7 +15,10 @@ import strings from 'assets/lang/strings';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { driveActions } from 'src/store/slices/drive';
 import analytics, { AnalyticsEventKey } from '@internxt-mobile/services/AnalyticsService';
+import { driveLocalDB } from '@internxt-mobile/services/drive/database';
+import { useDrive } from '@internxt-mobile/hooks/drive';
 export const TrashScreen: React.FC<SettingsScreenProps<'Trash'>> = (props) => {
+  const driveCtx = useDrive();
   const { data: result, executeUseCase: getTrashItems } = useUseCase(driveUseCases.getTrashItems);
   const [optionsModalOpen, setOptionsModalOpen] = useState(false);
   const [hiddenItems, setHiddenItems] = useState<DriveListItem[]>([]);
@@ -84,7 +87,6 @@ export const TrashScreen: React.FC<SettingsScreenProps<'Trash'>> = (props) => {
 
   const handleRestoreDriveItem = async (item: DriveListItem) => {
     if (!user) return;
-    dispatch(driveActions.removeHiddenItemsById([item.id]));
     setHiddenItems(hiddenItems.concat([item]));
     setSelectedDriveItem(undefined);
     setOptionsModalOpen(false);
@@ -99,6 +101,10 @@ export const TrashScreen: React.FC<SettingsScreenProps<'Trash'>> = (props) => {
     if (!success) {
       dispatch(driveActions.hideItemsById([item.id]));
       setHiddenItems(hiddenItems.filter((hiddenItem) => hiddenItem.id === item.id));
+    } else {
+      setTimeout(() => {
+        driveCtx.loadFolderContent(item.data.parentId || user?.root_folder_id, { pullFrom: ['network'] });
+      }, 1000);
     }
   };
 

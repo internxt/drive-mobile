@@ -36,7 +36,7 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
 
   return (
     <View style={[tailwind('flex-row'), props.style]}>
-      <View style={[tailwind('flex-1 py-2'), isFocused ? tailwind('pl-3') : tailwind('px-5')]}>
+      <View style={[tailwind('flex-1 py-2'), isFocused ? tailwind('pl-3') : tailwind('px-4')]}>
         <View style={tailwind('bg-neutral-20 flex-grow rounded-xl flex-shrink')}>
           <View style={tailwind('flex-row items-center')}>
             {!isFocused && (

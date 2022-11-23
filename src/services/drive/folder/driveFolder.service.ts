@@ -7,7 +7,12 @@ import {
 } from '@internxt/sdk/dist/drive/storage/types';
 
 import { getHeaders } from '../../../helpers/headers';
-import { DriveFolderMetadataPayload, DriveItemStatus, DriveListItem } from '../../../types/drive';
+import {
+  DriveFolderMetadataPayload,
+  DriveItemStatus,
+  DriveListItem,
+  FetchFolderContentResponseWithThumbnails,
+} from '../../../types/drive';
 import { constants } from '../../AppService';
 import { driveFileService } from '../file';
 import { SdkManager } from '@internxt-mobile/services/common';
@@ -31,69 +36,34 @@ class DriveFolderService {
     return this.sdk.storage.moveFolder(payload);
   }
 
-  public async updateMetaData(
-    folderId: number,
-    metadata: DriveFolderMetadataPayload,
-    bucketId: string,
-    relativePath: string,
-  ): Promise<void> {
-    const headers = await getHeaders();
-    const headersMap: Record<string, string> = {};
-
-    headers.forEach((value: string, key: string) => {
-      headersMap[key] = value;
+  public async updateMetaData(folderId: number, metadata: DriveFolderMetadataPayload): Promise<void> {
+    await this.sdk.storage.updateFolder({
+      folderId,
+      changes: {
+        itemName: metadata.itemName,
+      },
     });
-
-    await axios.post(
-      `${constants.DRIVE_API_URL}/storage/folder/${folderId}/meta`,
-      { metadata },
-      { headers: headersMap },
-    );
-
-    // * Renames files on network recursively
-    const pendingFolders = [{ relativePath, folderId }];
-
-    while (pendingFolders.length > 0) {
-      const currentFolder = pendingFolders[0];
-      const folderContentResponse = await driveFileService.getFolderContent(currentFolder.folderId);
-      const folderContent: { folders: DriveFolderData[]; files: DriveFileData[] } = {
-        folders: [],
-        files: [],
-      };
-
-      if (folderContentResponse) {
-        folderContent.folders = folderContentResponse.children.map((folder: any) => ({ ...folder, isFolder: true }));
-        folderContent.files = folderContentResponse.files;
-      }
-
-      pendingFolders.shift();
-
-      // * Renames current folder files
-      for (const file of folderContent.files) {
-        const fileFullName = `${file.name}${file.type ? '.' + file.type : ''}`;
-        const relativePath = `${currentFolder.relativePath}/${fileFullName}`;
-
-        driveFileService.renameFileInNetwork(file.fileId, bucketId, relativePath);
-      }
-
-      // * Adds current folder folders to pending
-      pendingFolders.push(
-        ...folderContent.folders.map((folderData) => ({
-          relativePath: `${currentFolder.relativePath}/${folderData.name}`,
-          folderId: folderData.id,
-        })),
-      );
-    }
   }
 
-  public folderContentToDriveListItems(folderContent: FetchFolderContentResponse): DriveListItem[] {
+  /**
+   * Gets the folder content by folderID
+   *
+   * @param {number} folderId The folder ID which content you want to retrieve
+   * @returns The content and a request canceler
+   */
+  public getFolderContent(folderId: number) {
+    const [contentPromise] = this.sdk.storage.getFolderContent(folderId);
+    return contentPromise;
+  }
+
+  public folderContentToDriveListItems(folderContent: FetchFolderContentResponseWithThumbnails): DriveListItem[] {
     const filesAsDriveListItems = folderContent.files.map<DriveListItem>((child) => {
       return {
         id: child.id.toString(),
         status: DriveItemStatus.Idle,
         data: {
           folderId: folderContent.parentId,
-          thumbnails: (child as DriveFileData).thumbnails,
+          thumbnails: (child as DriveFileData).thumbnails || [],
           currentThumbnail: null,
           createdAt: child.createdAt,
           updatedAt: child.updatedAt,
@@ -103,6 +73,7 @@ class DriveFolderService {
           size: child.size,
           type: child.type,
           fileId: child.fileId,
+          thumbnail: child.thumbnail,
         },
       };
     });

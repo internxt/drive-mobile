@@ -8,3 +8,4 @@ export * from './onDriveItemTrashed';
 export * from './onDriveItemRestored';
 export * from './deleteShareLink';
 export * from './trash';
+export * from './folders/getFolderContent';
