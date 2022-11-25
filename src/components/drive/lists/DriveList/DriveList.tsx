@@ -173,22 +173,6 @@ export function DriveList(props: DriveListProps): JSX.Element {
       data={listItems}
     />
   );
-  /*  return (
-    <VirtualizedListView<DriveListItem>
-      contentContainerStyle={
-        props.viewMode === DriveListViewMode.Grid
-          ? { ...tailwind('py-6 ml-2'), ...props.contentContainerStyle }
-          : props.contentContainerStyle
-      }
-      onRefresh={handleOnRefresh}
-      data={}
-      itemSize={sizeByMode[props.viewMode]}
-      renderRow={renderItem}
-      renderEmpty={renderEmptyState}
-      onScrollEnd={handleOnScrollEnd}
-      renderAhead={1000}
-    />
-  ); */
 }
 
 export default DriveList;

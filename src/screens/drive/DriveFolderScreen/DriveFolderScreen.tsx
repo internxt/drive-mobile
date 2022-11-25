@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import DriveList from '../../../components/drive/lists/DriveList/DriveList';
 import strings from '../../../../assets/lang/strings';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
@@ -26,7 +26,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const driveCtx = useDrive();
 
   const folder = driveCtx.driveFoldersTree[folderId];
-  //const [folder, setFolder] = useState();
+
   const folderHasError = folder?.error;
   const folderContent = folder?.content ? drive.folder.folderContentToDriveListItems(folder.content) : [];
   const onBackButtonPressed = () => {
@@ -36,16 +36,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       driveCtx.loadFolderContent(folder.content.parentId, { focusFolder: true });
     }
   };
-
-  /**
-   * Limit the render by the folder we
-   * are "watching"
-   */
-  /*  useEffect(() => {
-    const folderContent = driveCtx.driveFoldersTree[folderId];
-  
-    setFolder(folderContent);
-  }, [driveCtx.driveFoldersTree[folderId]?.content]);  */
 
   // Register a handler for hardware back
   useHardwareBackPress(onBackButtonPressed);
