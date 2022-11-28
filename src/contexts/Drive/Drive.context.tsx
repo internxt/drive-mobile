@@ -60,19 +60,22 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   }, []);
   useEffect(() => {
     if (!rootFolderId) return;
-    fetchFolderContent(rootFolderId).then((folderContent) => {
-      updateDriveFoldersTree({
-        folderId: rootFolderId,
-        folderContent: folderContent.data,
-        error: folderContent.error,
-        shouldSetAsFocused: true,
+    fetchFolderContent(rootFolderId)
+      .then((folderContent) => {
+        updateDriveFoldersTree({
+          folderId: rootFolderId,
+          folderContent: folderContent.data,
+          error: folderContent.error,
+          shouldSetAsFocused: true,
+        });
+      })
+      .catch((err) => {
+        errorService.reportError(err);
       });
-    });
   }, [rootFolderId]);
 
   const fetchFolderContent = async (folderId: number) => {
-    const result = await driveUseCases.getFolderContent({ folderId });
-    return result;
+    return driveUseCases.getFolderContent({ folderId });
   };
 
   /**
