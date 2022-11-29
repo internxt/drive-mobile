@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, ColorValue, AppState } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, ColorValue, AppStateStatus } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
@@ -26,12 +26,10 @@ import PlansModal from './components/modals/PlansModal';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import fileSystemService from './services/FileSystemService';
-import { referralsThunks } from './store/slices/referrals';
-import { storageThunks } from './store/slices/storage';
 import { PhotosContextProvider } from './contexts/Photos';
-import asyncStorageService from './services/AsyncStorageService';
-import { AsyncStorageKey } from './types';
+import errorService from './services/ErrorService';
 
+let listenerId: number | null = null;
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
@@ -50,6 +48,7 @@ export default function App(): JSX.Element {
   const [loadError, setLoadError] = useState('');
   const silentSignIn = async () => {
     dispatch(authThunks.silentSignInThunk());
+    dispatch(authThunks.refreshTokensThunk());
   };
 
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
@@ -60,10 +59,18 @@ export default function App(): JSX.Element {
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
   const onLanguageModalClosed = () => dispatch(uiActions.setIsLanguageModalOpen(false));
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
+  function handleAppStateChange(state: AppStateStatus) {
+    if (state === 'active') {
+      dispatch(authThunks.refreshTokensThunk());
+    }
+  }
   const onUserLoggedIn = () => {
     dispatch(appThunks.initializeThunk());
+    // Refresh the auth tokens if the app comes to the foreground
+    listenerId = appService.onAppStateChange(handleAppStateChange);
   };
   const onUserLoggedOut = () => {
+    listenerId !== null && appService.removeListener(listenerId);
     /**
      *
      * Commented on 1.5.20 Release - 6/10/2022
@@ -91,6 +98,26 @@ export default function App(): JSX.Element {
     }
   };
 
+  const initializeApp = async () => {
+    try {
+      // 1. Prepare the TMP dir
+      await fileSystemService.prepareTmpDir();
+
+      // 2. Initialize all the services we need at start time
+      const initializeOperations = [authService.init(), loadFonts(), analyticsService.setup()];
+
+      await Promise.all(initializeOperations);
+
+      // 3. Silent SignIn only if token is still valid
+      await silentSignIn();
+    } catch (err) {
+      setLoadError((err as Error).message);
+      errorService.reportError(err);
+    } finally {
+      setIsAppInitialized(true);
+    }
+  };
+
   // Initialize app
   useEffect(() => {
     if (Platform.OS === 'android') {
@@ -102,15 +129,7 @@ export default function App(): JSX.Element {
     authService.addLogoutListener(onUserLoggedOut);
 
     if (!isAppInitialized) {
-      fileSystemService.prepareTmpDir().finally(() => {
-        return Promise.all([authService.init(), loadFonts(), silentSignIn(), analyticsService.setup()])
-          .then(() => {
-            setIsAppInitialized(true);
-          })
-          .catch((err: Error) => {
-            setLoadError(err.message);
-          });
-      });
+      initializeApp();
     }
 
     shouldForceUpdate()
