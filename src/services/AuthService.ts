@@ -2,14 +2,14 @@ import { Keys, Password, RegisterDetails, TwoFactorAuthQR } from '@internxt/sdk'
 import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { getHeaders } from '../helpers/headers';
-import { AsyncStorageKey, DevicePlatform } from '../types';
+import AppError, { AsyncStorageKey } from '../types';
 import asyncStorageService from './AsyncStorageService';
-import { constants } from './AppService';
+import appService, { constants } from './AppService';
 import AesUtils from '../helpers/aesUtils';
 import EventEmitter from 'events';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SdkManager } from './common/sdk/SdkManager';
-
+import jwtDecode from 'jwt-decode';
 interface RegisterParams {
   firstName: string;
   lastName: string;
@@ -28,6 +28,12 @@ export interface AuthCredentials {
   accessToken: string;
   user: UserSettings;
 }
+
+export type JWTPayload = {
+  email: string;
+  iat: number;
+  exp: number;
+};
 
 class AuthService {
   defaultName = 'My';
@@ -80,7 +86,16 @@ class AuthService {
 
     loginResult.user.mnemonic = decryptTextWithKey(loginResult.user.mnemonic, password);
 
-    return loginResult;
+    // Get the refreshed tokens, they contain expiration, the ones returned
+    // on the login doesn't have expiration
+    const refreshedTokens = await this.refreshAuthToken(loginResult.newToken);
+
+    if (!refreshedTokens.token || !refreshedTokens.newToken) throw new Error('Unable to refresh auth tokens');
+    return {
+      ...loginResult,
+      token: refreshedTokens.token,
+      newToken: refreshedTokens.newToken,
+    };
   }
 
   public async signout(): Promise<void> {
@@ -267,6 +282,52 @@ class AuthService {
     return {
       credentials: { accessToken: token, photosToken, user },
     };
+  }
+
+  /**
+   *
+   * Verifies if a JWT token is expired or not
+   *
+   * @param authToken The token to be checked
+   * @returns {boolean} If the token has expired or not
+   */
+  public authTokenHasExpired(authToken: string): boolean {
+    try {
+      const payload = jwtDecode<JWTPayload>(authToken);
+
+      // No expiration, bye
+      if (!payload.exp) return true;
+      const expiration = payload.exp * 1000;
+
+      return expiration > Date.now() ? false : true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Exchange a current token for a new one with
+   * extended expiration
+   *
+   * If the token is expired, an error will be thrown
+   *
+   * @param currentAuthToken The current auth token, needs to be still valid
+   * @returns A valid set of token and newToken
+   */
+  public async refreshAuthToken(currentAuthToken: string): Promise<{ newToken: string; token: string }> {
+    try {
+      const result = await fetch(`${appService.constants.DRIVE_NEW_API_URL}/users/refresh`, {
+        method: 'GET',
+        headers: await getHeaders(currentAuthToken),
+      });
+      const { newToken, token } = await result.json();
+      return {
+        newToken,
+        token,
+      };
+    } catch (e) {
+      throw new Error(`Cannot refresh auth token: ${(e as Error).message}`);
+    }
   }
 
   /**
