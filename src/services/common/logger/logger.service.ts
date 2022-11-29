@@ -36,3 +36,5 @@ export class DefaultLogger extends BaseLogger {
     });
   }
 }
+
+export const logger = new DefaultLogger();

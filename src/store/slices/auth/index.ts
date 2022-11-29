@@ -13,7 +13,7 @@ import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
 import errorService from 'src/services/ErrorService';
-import { SdkManager } from '@internxt-mobile/services/common';
+import { logger, SdkManager } from '@internxt-mobile/services/common';
 import UserService from '../../../services/UserService';
 import photos from '@internxt-mobile/services/photos';
 import drive from '@internxt-mobile/services/drive';
@@ -170,6 +170,7 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
       if (!currentAuthToken) throw new Error('Auth token not found');
       const { newToken, token } = await authService.refreshAuthToken(currentAuthToken);
 
+      logger.info('Auth tokens refreshed');
       await asyncStorageService.saveItem(AsyncStorageKey.Token, token);
       await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, newToken);
 
