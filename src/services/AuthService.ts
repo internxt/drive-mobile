@@ -2,7 +2,7 @@ import { Keys, Password, RegisterDetails, TwoFactorAuthQR } from '@internxt/sdk'
 import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { getHeaders } from '../helpers/headers';
-import AppError, { AsyncStorageKey } from '../types';
+import { AsyncStorageKey } from '../types';
 import asyncStorageService from './AsyncStorageService';
 import appService, { constants } from './AppService';
 import AesUtils from '../helpers/aesUtils';
@@ -301,7 +301,7 @@ class AuthService {
 
       return expiration > Date.now() ? false : true;
     } catch {
-      return false;
+      return true;
     }
   }
 
